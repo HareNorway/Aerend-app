@@ -1,0 +1,17 @@
+<svg viewBox="0 0 176 176" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dgauth-sq" x1="30" y1="6" x2="150" y2="176" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#b69ee8" /><stop offset="0.55" stop-color="#7f5fc4" /><stop offset="1" stop-color="#6b4fa8" />
+    </linearGradient>
+    <linearGradient id="dgauth-gloss" x1="88" y1="0" x2="88" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.4" /><stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <path d="M136.469 0H39.5312C17.6987 0 0 17.6987 0 39.5312V136.469C0 158.301 17.6987 176 39.5312 176H136.469C158.301 176 176 158.301 176 136.469V39.5312C176 17.6987 158.301 0 136.469 0Z" fill="url(#dgauth-sq)" />
+  <path d="M136.469 0H39.5312C17.6987 0 0 17.6987 0 39.5312V92H176V39.5312C176 17.6987 158.301 0 136.469 0Z" fill="url(#dgauth-gloss)" />
+  <path d="M37.6748 130.625L72.8404 45.2375" stroke="#fff" stroke-width="12.5709" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M72.8403 45.2375L108.006 130.625" stroke="#fff" stroke-width="12.5709" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M55.2402 91.7812H138.325" stroke="#fff" stroke-width="12.5709" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M108.006 45.2375H138.325" stroke="#fff" stroke-width="12.5709" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M108.006 130.625H138.325" stroke="#fff" stroke-width="12.5709" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

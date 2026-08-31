@@ -1,0 +1,56 @@
+<svg
+  width="128"
+  height="128"
+  viewBox="34 24 56 80"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Receipt outline -->
+  <path
+    d="
+      M38 28
+      L46 33
+      L54 28
+      L62 33
+      L70 28
+      L78 33
+      L86 28
+
+      L86 100
+      L78 95
+      L70 100
+      L62 95
+      L54 100
+      L46 95
+      L38 100
+
+      Z
+    "
+    fill="none"
+    stroke="#000000"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Top line -->
+  <line
+    x1="46"
+    y1="49"
+    x2="78"
+    y2="49"
+    stroke="#000000"
+    stroke-width="7"
+    stroke-linecap="round"
+  />
+
+  <!-- Bottom line -->
+  <line
+    x1="46"
+    y1="64"
+    x2="78"
+    y2="64"
+    stroke="#000000"
+    stroke-width="7"
+    stroke-linecap="round"
+  />
+</svg>

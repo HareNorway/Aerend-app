@@ -1,0 +1,2416 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:focus_detector/focus_detector.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:hare_customer/dialogs/reviewDialog/review_dialog_repo.dart';
+import 'package:hare_customer/screens/common/home/home_repo.dart';
+import 'package:hare_customer/screens/common/swipeHare/swipe_hare_dl.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:circular_motion/circular_motion.dart';
+import 'package:hare_customer/screens/deliveryService/storeDetail/store_detail.dart';
+import 'package:hare_customer/screens/deliveryService/home/ds_home.dart';
+import 'package:hare_customer/screens/common/manageAddress/manage_address_dl.dart';
+import 'package:hare_customer/screens/deliveryService/storeDetail/widget_topping_option.dart';
+import 'package:hare_customer/screens/deliveryService/storeDetail/widget_size_color.dart';
+import 'package:hare_customer/screens/deliveryService/trackOrder/track_order.dart';
+import 'package:hare_customer/utils/discount_star.dart';
+
+import '../../../commonView/common_view.dart';
+import '../../../commonView/no_record_found.dart';
+
+import '../../common/swipeHare/swipe_hare.dart';
+import '../../../networking/api_base_helper.dart';
+import '../../../utils/utils.dart';
+import '../location/add_location.dart';
+import 'home_bloc.dart';
+import 'home_dl.dart';
+import 'home_v1_shimmer.dart';
+import '../../deliveryService/storeDetail/add_on_repo.dart';
+
+class HomeV1 extends StatefulWidget {
+  final bool isShowDialog;
+  final bool isHareExplore;
+  final int orderId;
+
+  const HomeV1({
+    super.key,
+    this.isShowDialog = false,
+    this.isHareExplore = false,
+    this.orderId = 0,
+  });
+
+  @override
+  HomeV1State createState() => HomeV1State();
+}
+
+class HomeV1State extends State<HomeV1>
+    with AutomaticKeepAliveClientMixin<HomeV1> {
+  late HomeBloc _bloc;
+  Timer? timer;
+
+  bool isExpanded = false;
+
+  List checkedToppingList = [];
+  List checkedOptionsList = [];
+  int prodQuantity = 1;
+  bool inStock = true;
+  String addOnsMessage = '';
+
+  openFeedbackModal() {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        int amount = 3;
+        return AlertDialog(
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return Stack(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: deviceWidth * 0.25,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "How was your meal?",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      const Text(
+                        "Whether is good or bad, let's talk about it!😉",
+                        style: TextStyle(color: colorMainGray, fontSize: 14),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: deviceWidth * 0.5,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(
+                            5,
+                            (index) => GestureDetector(
+                              onTap: () async {
+                                setState(() => amount = index + 1);
+                                try {
+                                  await ReviewDialogRepo().callOrderRatingApi(
+                                    widget.orderId,
+                                    amount.toDouble(),
+                                    null,
+                                    null,
+                                    null,
+                                  );
+                                  var response = await HomeRepo()
+                                      .addProductRateApi(
+                                          widget.orderId, index + 1);
+                                  if (response['status'] == 1) {
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                    }
+                                  }
+                                } catch (e) {
+                                  print("Error: $e");
+                                }
+                              },
+                              child: LoadImageSimple(
+                                image: index < amount
+                                    ? 'assets/images/active_star.png'
+                                    : 'assets/images/inactive_star.png',
+                                width: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close),
+                  ),
+                ),
+              ],
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  openFeedbackModal1() {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        List<String> stateList = ['none', 'none'];
+        return AlertDialog(
+          content: Stack(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: deviceWidth * 0.4,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "We need your opinion!",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                    const Text(
+                      "Help others decide what the best to order in the restaurant",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: colorMainGray, fontSize: 14),
+                    ),
+                    const SizedBox(height: 10),
+                    StatefulBuilder(builder: (context, setVote) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const LoadImageSimple(
+                            image: 'assets/images/products/cruch.png',
+                            width: 32,
+                            height: 32,
+                          ),
+                          const SizedBox(width: 10),
+                          const Text('Cruch Rush Pizza',
+                              style: TextStyle(fontSize: 16)),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () => setVote(() => stateList[0] = 'down'),
+                            child: LoadImageSimple(
+                              image: stateList[0] == 'down'
+                                  ? 'assets/images/icons/downvote_red.png'
+                                  : 'assets/images/icons/downvote_gray.png',
+                              width: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () => setVote(() => stateList[0] = 'up'),
+                            child: LoadImageSimple(
+                              image: stateList[0] == 'up'
+                                  ? 'assets/images/icons/upvote_red.png'
+                                  : 'assets/images/icons/upvote_gray.png',
+                              width: 32,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                    StatefulBuilder(builder: (context, setVote) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const LoadImageSimple(
+                            image: 'assets/images/products/cruch.png',
+                            width: 32,
+                            height: 32,
+                          ),
+                          const SizedBox(width: 10),
+                          const Text('Cruch Rush Pizza',
+                              style: TextStyle(fontSize: 16)),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () => setVote(() => stateList[1] = 'down'),
+                            child: LoadImageSimple(
+                              image: stateList[1] == 'down'
+                                  ? 'assets/images/icons/downvote_red.png'
+                                  : 'assets/images/icons/downvote_gray.png',
+                              width: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () => setVote(() => stateList[1] = 'up'),
+                            child: LoadImageSimple(
+                              image: stateList[1] == 'up'
+                                  ? 'assets/images/icons/upvote_red.png'
+                                  : 'assets/images/icons/upvote_gray.png',
+                              width: 32,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.close),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  openFeedbackModal2() {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        int amount = 3;
+        String comment = "";
+        return AlertDialog(
+          content: StatefulBuilder(builder: (context, setState) {
+            return Stack(
+              children: [
+                SizedBox(
+                  width: deviceWidth * 0.8,
+                  height: deviceWidth * 0.6,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Rate a courrier",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      const Text(
+                        "Our courier will appreciate your ratings!",
+                        style: TextStyle(color: colorMainGray, fontSize: 14),
+                      ),
+                      const SizedBox(height: 5),
+                      SizedBox(
+                        width: deviceWidth * 0.5,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: List.generate(
+                            5,
+                            (index) => GestureDetector(
+                              onTap: () {
+                                setState(() => amount = index + 1);
+                              },
+                              child: LoadImageSimple(
+                                image: index < amount
+                                    ? 'assets/images/active_star.png'
+                                    : 'assets/images/inactive_star.png',
+                                width: 32,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        "Leave a feedback",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              // ReviewDialogRepo().callOrderRatingApi(
+                              //     widget.orderId,
+                              //     null,
+                              //     amount.toDouble(),
+                              //     null,
+                              //     comment);
+                              setState(() {
+                                comment = "Very Professional";
+                              });
+                            },
+                            child: Container(
+                              width: deviceWidth * 0.32,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: colorMainBackground,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Very Professional',
+                                  style: TextStyle(
+                                      color: colorMainGray, fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                comment = "Arrive on Time";
+                              });
+                            },
+                            child: Container(
+                              width: deviceWidth * 0.32,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: colorMainBackground,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Arrive on Time',
+                                  style: TextStyle(
+                                      color: colorMainGray, fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                comment = "Safety and Hygiene";
+                              });
+                            },
+                            child: Container(
+                              width: deviceWidth * 0.32,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: colorMainBackground,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Safety and Hygiene',
+                                  style: TextStyle(
+                                      color: colorMainGray, fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                comment = "Handed Gently";
+                              });
+                            },
+                            child: Container(
+                              width: deviceWidth * 0.32,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: colorMainBackground,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Handed Gently',
+                                  style: TextStyle(
+                                      color: colorMainGray, fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context, [amount, comment]),
+                    child: const Icon(Icons.close),
+                  ),
+                ),
+              ],
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _bloc = HomeBloc(context, this, widget.isHareExplore);
+    timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _bloc.callHomeTrackOrderApi();
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.orderId != 0) {
+        openFeedbackModal().then((value) {
+          openFeedbackModal2().then(([amount, comment]) {
+            ReviewDialogRepo().callOrderRatingApi(
+                widget.orderId, null, amount.toDouble(), null, comment);
+          });
+        });
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    _bloc = HomeBloc(context, this, widget.isHareExplore);
+    timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _bloc.callHomeTrackOrderApi();
+    });
+    if (isDemoApp) {
+      if (widget.isShowDialog) _bloc.openDemoDialog();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    stopTimer();
+    _bloc.dispose();
+    super.dispose();
+  }
+
+  stopTimer() {
+    if (timer != null && timer!.isActive) {
+      timer?.cancel();
+      timer = null;
+    }
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return FocusDetector(
+      onFocusLost: () {
+        scContext = null;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          toolbarHeight: 80,
+          backgroundColor: colorPrimary,
+          title: Stack(
+            children: [
+              SizedBox(
+                height: 70,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Location', style: TextStyle(fontSize: 12.0)),
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20.0),
+                                topRight: Radius.circular(20.0)),
+                          ),
+                          builder: (BuildContext context) {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(20.0),
+                                    topRight: Radius.circular(20.0)),
+                              ),
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                children: [
+                                  const Center(
+                                    child: Text(
+                                      'Location',
+                                      style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 35),
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          _bloc.getCurrentLocation();
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4, horizontal: 10),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? colorGreen.withOpacity(0.15)
+                                                : const Color.fromARGB(255, 225, 255, 225),
+                                            border: Border.all(
+                                                width: 1, color: colorGreen),
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                          ),
+                                          child: Row(
+                                            children: const [
+                                              Icon(CustomIcons.gps,
+                                                  color: colorGreen),
+                                              SizedBox(width: 10),
+                                              Text(
+                                                'Current Location',
+                                                style: TextStyle(
+                                                    color: colorGreen,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      GestureDetector(
+                                        onTap: () => openScreenWithResult(
+                                            context, const AddLocation()),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4, horizontal: 10),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.surface,
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(
+                                                    Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.08),
+                                                spreadRadius: 2,
+                                                blurRadius: 3,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.add,
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Colors.white
+                                                      : colorBlack),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                'New Location',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Theme.of(context).brightness == Brightness.dark
+                                                        ? Colors.white
+                                                        : colorBlack),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+                                  // const Divider(),
+                                  // GestureDetector(
+                                  //   onTap: () => openScreenWithResult(
+                                  //       context, const ExploreCity()),
+                                  //   child: Row(
+                                  //     children: const [
+                                  //       Icon(Icons.menu),
+                                  //       SizedBox(width: 15),
+                                  //       Text(
+                                  //         'Browse All Ærend City',
+                                  //         style: TextStyle(
+                                  //             fontWeight: FontWeight.bold),
+                                  //       )
+                                  //     ],
+                                  //   ),
+                                  // ),
+                                  const Divider(),
+                                  const SizedBox(height: 5),
+                                  StreamBuilder(
+                                      stream: _bloc.addressList,
+                                      builder: (context, snapshot) {
+                                        List<AddressListItem> addressList =
+                                            snapshot.data ?? [];
+                                        return addressList.isEmpty
+                                            ? const Expanded(
+                                                child: NoRecordFound(
+                                                    message:
+                                                        "No address saved"),
+                                              )
+                                            : Expanded(
+                                                child: ListView(
+                                                  children: List.generate(
+                                                    addressList.length,
+                                                    (index) =>
+                                                        _savedAddressItem(
+                                                            addressList[index]),
+                                                  ),
+                                                ),
+                                              );
+                                      })
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          const Spacer(),
+                          const Icon(Icons.location_on,
+                              color: colorWhite, size: 24.0),
+                          const SizedBox(width: 8.0),
+                          StreamBuilder(
+                              stream: _bloc.deliveryAddress,
+                              builder: (context, snapshot) {
+                                AddressListItem defaultAddress =
+                                    AddressListItem(address: 'Velg Adresse');
+                                String addressString =
+                                    prefGetString(prefNewDeliveryAddress);
+
+                                if (addressString.isNotEmpty) {
+                                  defaultAddress = AddressListItem.fromJson(
+                                      jsonDecode(addressString));
+                                }
+                                AddressListItem deliveryAddress =
+                                    snapshot.data ?? defaultAddress;
+
+                                return Text(
+                                  deliveryAddress.address.split(',')[0],
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              }),
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                left: 15,
+                child: ElevatedButton(
+                  onPressed: () {
+                    openScreenWithReplacePrevious(context, const SwipeReen());
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFBBC05),
+                      shadowColor: colorWhite,
+                      padding: const EdgeInsets.all(15),
+                      shape: const CircleBorder(),
+                      elevation: 5),
+                  child: Column(
+                    children: [
+                      SvgPicture.asset('assets/svgs/cursor_hand.svg',
+                          color: colorWhite),
+                      const SizedBox(height: 4),
+                      const SizedBox(
+                        width: 30,
+                        child: Text(
+                          'Ærend Swipe',
+                          style: TextStyle(
+                            fontSize: 10,
+                            height: 0.9,
+                            color: colorWhite,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              StreamBuilder<ApiResponse<HomeTrackOrderPojo>>(
+                  stream: _bloc.subjectTrackOrder,
+                  builder: (context, snapshot) {
+                    var data = snapshot.data;
+                    int? orderId = snapshot.data?.data?.orderId;
+                    if (data != null && orderId != null) {
+                      int remainingTime = snapshot.data!.data!.remainingTime;
+                      return Positioned(
+                        right: 15,
+                        child: GestureDetector(
+                          onTap: () {
+                            openScreen(context, TrackOrder(orderId: orderId));
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(50.0),
+                            child: Stack(
+                              alignment: Alignment.bottomCenter,
+                              children: [
+                                Container(
+                                  decoration: const BoxDecoration(
+                                      color: colorWhite,
+                                      shape: BoxShape.circle),
+                                  width: 70,
+                                  height: 70,
+                                  child: Image.asset(
+                                      'assets/images/tracking.png',
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.contain),
+                                ),
+                                Positioned(
+                                  bottom: -45,
+                                  child: Container(
+                                    width: 80,
+                                    height: 80,
+                                    decoration: const BoxDecoration(
+                                        color: colorGreen,
+                                        shape: BoxShape.circle),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 5,
+                                  child: Text(
+                                    '${remainingTime}min',
+                                    style: const TextStyle(
+                                      color: colorWhite,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return Container();
+                  }),
+            ],
+          ),
+        ),
+        body: Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: _buildHome(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _savedAddressItem(AddressListItem address) {
+    bool selected = address.addressId == prefGetInt(prefNewDeliveryAddressId);
+    return GestureDetector(
+      onTap: () {
+        _bloc.updateDeliveryAddress(addressId: address.addressId);
+        Navigator.pop(context);
+      },
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(selected ? Icons.check_circle : Icons.circle_outlined,
+                  color: selected ? Colors.green : colorMainGray),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        '${prefGetString(prefUserName)} | ${prefGetString(prefCountryCode)} ${prefGetString(prefContactNumber)}',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Text(address.address,
+                        softWrap: true,
+                        style: const TextStyle(
+                            fontSize: 15, color: colorMainGray)),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 15),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? (Theme.of(context).brightness == Brightness.dark
+                                ? colorGreen.withOpacity(0.15)
+                                : const Color.fromARGB(255, 225, 255, 225))
+                            : Theme.of(context).colorScheme.surface,
+                        border: Border.all(
+                          width: 1,
+                          color: selected ? colorGreen : colorMainGray,
+                        ),
+                        borderRadius: BorderRadius.circular(17),
+                      ),
+                      child: Text(
+                        capitalize(address.type),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: selected ? Colors.green[400] : colorMainGray,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  _bloc.deleteAddress(address.addressId);
+                },
+                child: Icon(Icons.delete_outlined,
+                    color: selected ? Colors.green[400] : colorMainGray),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Divider(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHome(BuildContext context) {
+    bool isNormalDelivery = false;
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+          child: Container(
+            width: double.infinity,
+            clipBehavior: Clip.antiAlias,
+            decoration: const BoxDecoration(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+            child: ListView(
+              children: [
+                if (widget.isHareExplore == false)
+                  Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        height: 330,
+                        width: 330,
+                        child: StreamBuilder<ApiResponse<HomeCatePojo>>(
+                          stream: _bloc.subjectHomeCat,
+                          builder: (context, snap) {
+                            Widget shimmer = Center(
+                              child: Container(
+                                width: 85,
+                                height: 85,
+                                decoration: BoxDecoration(
+                                    color: colorWhite.withOpacity(0.22),
+                                    shape: BoxShape.circle),
+                                child: const Center(
+                                  child: LoadImageSimple(
+                                      width: 40,
+                                      height: 40,
+                                      image: 'assets/images/light_logo.png'),
+                                ),
+                              ),
+                            );
+
+                            List<ServicesItem> serviceList =
+                                snap.data?.data?.services ?? [];
+
+                            switch (snap.data?.status) {
+                              case Status.loading:
+                                return shimmer;
+                              case Status.completed:
+                                if (serviceList.isNotEmpty) {
+                                  return _categoryList(serviceList);
+                                } else {
+                                  return SizedBox(
+                                    height: deviceHeight * 0.9,
+                                    width: deviceWidth * 0.9,
+                                    child: NoRecordFound(
+                                        message: languages.noRecordFound),
+                                  );
+                                }
+                              case Status.error:
+                              default:
+                                return SizedBox(
+                                  height: deviceWidth * 0.6,
+                                  child: Error(
+                                    onRetryPressed: () {
+                                      _bloc.onRefresh();
+                                    },
+                                  ),
+                                );
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                Container(
+                  width: double.infinity,
+                  clipBehavior: Clip.antiAlias,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(30))),
+                  child: RefreshIndicator(
+                    onRefresh: () {
+                      return _bloc.onRefresh();
+                    },
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        StatefulBuilder(builder: (context, setState) {
+                          return Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(30)),
+                            child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        isNormalDelivery = false;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      width: deviceWidth * 0.42,
+                                      decoration: BoxDecoration(
+                                          color: isNormalDelivery
+                                              ? colorMainBackground
+                                              : colorPrimary,
+                                          borderRadius:
+                                              BorderRadius.circular(30)),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(2),
+                                            width: 37,
+                                            height: 37,
+                                            decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : colorWhite),
+                                            child: SvgPicture.asset(
+                                              'assets/svgs/delivery/local.svg',
+                                              height: 32,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            'Local Delivery',
+                                            style: TextStyle(
+                                              color: isNormalDelivery
+                                                  ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack)
+                                                  : colorWhite,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        // isNormalDelivery = true;
+                                      });
+                                    },
+                                    child: Stack(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(2),
+                                          width: deviceWidth * 0.42,
+                                          decoration: BoxDecoration(
+                                              color: isNormalDelivery
+                                                  ? colorPrimary
+                                                  : Theme.of(context).scaffoldBackgroundColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(30)),
+                                          child: Row(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(5),
+                                                decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : colorWhite),
+                                                child: SvgPicture.asset(
+                                                  'assets/svgs/delivery/normal.svg',
+                                                  height: 32,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                'Normal Delivery',
+                                                style: TextStyle(
+                                                  color: isNormalDelivery
+                                                      ? colorWhite
+                                                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack),
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 10,
+                                          right: 0,
+                                          child: Transform.rotate(
+                                            angle: 10 * 3.141592653589793 / 180,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: colorPrimary,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Text(
+                                                'Coming Soon',
+                                                style: TextStyle(
+                                                  color: colorWhite,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                ]),
+                          );
+                        }),
+                        const SizedBox(height: 10),
+                        StreamBuilder<ApiResponse<HomeCatePojo>>(
+                          stream: _bloc.subjectHomeCat,
+                          builder: (context, snap) {
+                            final homeData = snap.data?.data;
+                            final reenMode =
+                                homeData?.reenSportsMode == true;
+                            final activeClub = homeData?.activeSportsClub;
+                            if (!reenMode ||
+                                activeClub == null ||
+                                activeClub.id <= 0) {
+                              return const SizedBox.shrink();
+                            }
+
+                            // Build a simple "store-like" card that opens the club's store page.
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _categoryHeader(
+                                    context, 'Matkasse / Ærend Boxes'),
+                                const SizedBox(height: 10),
+                                GestureDetector(
+                                  onTap: () {
+                                    openScreen(
+                                      context,
+                                      StoreDetail(
+                                        storeId: activeClub.id,
+                                        storeName: activeClub.name,
+                                      ),
+                                    );
+                                  },
+                                  child: _reenSportsMatkasseCard(activeClub),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            );
+                          },
+                        ),
+                        _categoryHeader(context, 'Ærend Exclusive Offer'),
+                        const SizedBox(height: 10),
+                        StreamBuilder<ApiResponse<HareSwipeListPojo>>(
+                          stream: _bloc.subjectHareSwipe,
+                          builder: (context, snap) {
+                            var isLoading = snap.hasData &&
+                                snap.data?.status == Status.loading;
+
+                            List<SwipeCardModel> swipeList =
+                                snap.data?.data?.swipeList ?? [];
+                            List<Widget> sliderList = swipeList
+                                .map((item) => GestureDetector(
+                                    onTap: () async {
+                                      var response = await AddOnRepo()
+                                          .getToppingsAndOptions(
+                                              item.productId);
+                                      if (!mounted) return;
+                                      if (response['status'] == 1) {
+                                        prefSetInt(prefSelectedServiceCateId,
+                                            response['service_category_id']);
+                                        _openFoodSheet(
+                                            context,
+                                            item,
+                                            response['size_list'],
+                                            response['color_list'],
+                                            response['options_list']);
+                                      }
+                                    },
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          child: Stack(
+                                            children: [
+                                              LoadImageSimple(
+                                                width: deviceHeight * 0.65,
+                                                height: deviceHeight * 0.65,
+                                                image: item.productImage,
+                                                imageFit: BoxFit.cover,
+                                              ),
+                                              Positioned.fill(
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      colors: [
+                                                        Theme.of(context).scaffoldBackgroundColor
+                                                            .withOpacity(0),
+                                                        Theme.of(context).scaffoldBackgroundColor
+                                                            .withOpacity(0.5),
+                                                        Theme.of(context).scaffoldBackgroundColor
+                                                            .withOpacity(0.8),
+                                                        Theme.of(context).scaffoldBackgroundColor
+                                                            .withOpacity(0.7),
+                                                        Theme.of(context).scaffoldBackgroundColor
+                                                            .withOpacity(0.5),
+                                                      ],
+                                                      stops: const [
+                                                        0.0,
+                                                        0.4,
+                                                        0.6,
+                                                        0.8,
+                                                        1.0
+                                                      ],
+                                                      begin: Alignment.center,
+                                                      end: Alignment
+                                                          .bottomCenter,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(20),
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context).colorScheme.surface,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.all(5),
+                                                  child: LoadImageSimple(
+                                                      image: item.storeLogo,
+                                                      height: 35,
+                                                      width: 35)),
+                                              const Spacer(),
+                                              Column(
+                                                children: [
+                                                  DiscountStar(
+                                                    discount:
+                                                        item.discountPercent,
+                                                  ),
+                                                  const Spacer(),
+                                                  if (item.discountAmount > 0)
+                                                    Text(
+                                                      'NOK ${item.originalAmount}',
+                                                      style: const TextStyle(
+                                                        color: colorPrimary,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough,
+                                                        decorationColor:
+                                                            colorPrimary,
+                                                        decorationThickness: 2,
+                                                      ),
+                                                    ),
+                                                  Text('NOK ${item.amount}',
+                                                      style: const TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.bold))
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    )))
+                                .toList();
+
+                            switch (snap.data?.status) {
+                              case Status.loading:
+                                return HomeBannerShimmer(enabled: isLoading);
+                              case Status.completed:
+                                if (sliderList.isNotEmpty) {
+                                  return CarouselSlider(
+                                    options: CarouselOptions(
+                                      autoPlay: true,
+                                      aspectRatio: 2.0,
+                                      enlargeCenterPage: true,
+                                    ),
+                                    items: sliderList,
+                                  );
+                                } else {
+                                  return SizedBox(
+                                    height: deviceHeight * 0.2,
+                                    child: NoRecordFound(
+                                        message: "No Exclusive Offer found",
+                                        height: deviceHeight * 0.1),
+                                  );
+                                }
+                              case Status.error:
+                              default:
+                                return SizedBox(
+                                  height: deviceHeight * 0.2,
+                                  child: NoRecordFound(
+                                      message: "No Exclusive Offer found",
+                                      height: deviceHeight * 0.1),
+                                );
+                            }
+                          },
+                        ),
+                        StreamBuilder<ApiResponse<HareExplorePojo>>(
+                          stream: _bloc.subjectHareExplore,
+                          builder: (context, snap) {
+                            var isLoading = snap.hasData &&
+                                snap.data?.status == Status.loading;
+
+                            List<HareStoreListItems> lunchList =
+                                snap.data?.data?.lunchList ?? [];
+                            List<HareStoreListItems> fastList =
+                                snap.data?.data?.fastList ?? [];
+
+                            switch (snap.data?.status) {
+                              case Status.loading:
+                                return HomeBannerShimmer(enabled: isLoading);
+                              case Status.completed:
+                                return Column(
+                                  children: [
+                                    _categoryHeader(context, 'Lunch Near You',
+                                        expandPossible: true),
+                                    if (lunchList.isNotEmpty)
+                                      CarouselSlider(
+                                        options: CarouselOptions(
+                                            autoPlay: true,
+                                            aspectRatio: 1.3,
+                                            enlargeCenterPage: true),
+                                        items: lunchList
+                                            .map(
+                                              (store) => GestureDetector(
+                                                onTap: () => openScreen(
+                                                  context,
+                                                  StoreDetail(
+                                                    storeId: store.storeId,
+                                                    storeName: store.storeName,
+                                                  ),
+                                                ),
+                                                child: _restaurantCard(store),
+                                              ),
+                                            )
+                                            .toList(),
+                                      )
+                                    else
+                                      const SizedBox(
+                                          height: 150,
+                                          child: NoRecordFound(
+                                              message: "No Store Found")),
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(15.0),
+                                        color: colorPrimary.withOpacity(0.1),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                colorPrimary.withOpacity(0.1),
+                                            spreadRadius: 2,
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: const [
+                                          Flexible(
+                                            child: Text(
+                                              'Enjoy 14 days off with no delivery fees!',
+                                              style: TextStyle(
+                                                fontSize: 21,
+                                                color: colorPrimary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          LoadImageSimple(
+                                            image:
+                                                'assets/images/no_delivery_fee.png',
+                                            width: 120,
+                                            imageFit: BoxFit.contain,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    _categoryHeader(context, 'Fastest Delivery',
+                                        expandPossible: true),
+                                    if (fastList.isNotEmpty)
+                                      CarouselSlider(
+                                        options: CarouselOptions(
+                                            autoPlay: true,
+                                            aspectRatio: 1.3,
+                                            enlargeCenterPage: true),
+                                        items: fastList
+                                            .map((store) => GestureDetector(
+                                                onTap: () => openScreen(
+                                                      context,
+                                                      StoreDetail(
+                                                        storeId: store.storeId,
+                                                        storeName:
+                                                            store.storeName,
+                                                      ),
+                                                    ),
+                                                child: _restaurantCard(store)))
+                                            .toList(),
+                                      )
+                                    else
+                                      const SizedBox(
+                                          height: 150,
+                                          child: NoRecordFound(
+                                              message: "No Store Found")),
+                                  ],
+                                );
+                              case Status.error:
+                              default:
+                                return Container();
+                            }
+                          },
+                        ),
+                        // _categoryHeader('Retail & grocery',
+                        //     expandPossible: true),
+                        // SingleChildScrollView(
+                        //   scrollDirection: Axis.horizontal,
+                        //   child: Row(
+                        //     children: [
+                        //       _groceryCard('assets/images/home/fresh_mart.png',
+                        //           'Happy Fresh Mart'),
+                        //       _groceryCard(
+                        //           'assets/images/home/smart_market.png',
+                        //           'Doma Smart Market '),
+                        //       _groceryCard('assets/images/home/grocery.png',
+                        //           'Joyland Candy Bar'),
+                        //     ],
+                        //   ),
+                        // ),
+                        // _categoryHeader('Get to Know Us!',
+                        //     expandPossible: true),
+                        // SingleChildScrollView(
+                        //   scrollDirection: Axis.horizontal,
+                        //   child: Row(
+                        //     children: [
+                        //       Container(
+                        //         height: deviceWidth * 0.5,
+                        //         width: deviceWidth * 0.8,
+                        //         margin: const EdgeInsets.all(8),
+                        //         decoration: BoxDecoration(
+                        //           color: colorWhite,
+                        //           borderRadius:
+                        //               BorderRadius.circular(deviceWidth * 0.05),
+                        //         ),
+                        //         child: ClipRRect(
+                        //           borderRadius: const BorderRadius.all(
+                        //               Radius.circular(10.0)),
+                        //           child: LoadImageSimple(
+                        //             width: deviceWidth * 0.8,
+                        //             height: deviceWidth * 0.5,
+                        //             image: 'assets/images/home/card.png',
+                        //             imageFit: BoxFit.cover,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //       Container(
+                        //         height: deviceWidth * 0.5,
+                        //         width: deviceWidth * 0.8,
+                        //         margin: const EdgeInsets.all(8),
+                        //         decoration: BoxDecoration(
+                        //           color: colorWhite,
+                        //           borderRadius:
+                        //               BorderRadius.circular(deviceWidth * 0.05),
+                        //         ),
+                        //         child: ClipRRect(
+                        //           borderRadius: const BorderRadius.only(
+                        //             topLeft: Radius.circular(10.0),
+                        //             topRight: Radius.circular(10.0),
+                        //             bottomLeft: Radius.zero,
+                        //             bottomRight: Radius.zero,
+                        //           ),
+                        //           child: LoadImageSimple(
+                        //             width: deviceWidth * 0.8,
+                        //             height: deviceWidth * 0.25,
+                        //             image: 'assets/images/home/card1.png',
+                        //             imageFit: BoxFit.cover,
+                        //           ),
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                        // _categoryHeader('Good Deal Campaign',
+                        //     expandPossible: true),
+                        // SingleChildScrollView(
+                        //   scrollDirection: Axis.horizontal,
+                        //   child: Row(
+                        //     children: [
+                        //       _dessertCard('assets/images/home/deal.png',
+                        //           'Discount For All Dessert'),
+                        //       _dessertCard('assets/images/home/deal1.png',
+                        //           'Get Juiced Up with All Deals!'),
+                        //       _dessertCard('assets/images/home/deal2.png',
+                        //           'Joyland Candy Bar'),
+                        //     ],
+                        //   ),
+                        // ),
+                        // _categoryHeader('Quick links'),
+                        // Row(
+                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //   children: const [
+                        //     Text('Send a gift'),
+                        //     Icon(Icons.arrow_forward_ios)
+                        //   ],
+                        // ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // if (isDemoApp)
+        //   Align(
+        //     alignment: AlignmentDirectional.bottomEnd,
+        //     child: GestureDetector(
+        //       onTap: () {
+        //         _bloc.openSupportWhatsapp();
+        //       },
+        //       child: Container(
+        //         margin: EdgeInsetsDirectional.only(
+        //             bottom: deviceHeight * 0.03, end: deviceWidth * 0.05),
+        //         decoration: BoxDecoration(
+        //           borderRadius:
+        //               BorderRadiusDirectional.circular(deviceAverageSize * 0.1),
+        //           color: const Color(0xff3DD848),
+        //           boxShadow: const [
+        //             BoxShadow(
+        //               color: Colors.grey,
+        //               offset: Offset(0.0, 1.0), //(x,y)
+        //               blurRadius: 6.0,
+        //             ),
+        //           ],
+        //         ),
+        //         child: Showcase(
+        //           title: languages.contactSalesPerson,
+        //           description: languages.contactSalesPersonMsg,
+        //           disableScaleAnimation: false,
+        //           disableMovingAnimation: false,
+        //           disposeOnTap: true,
+        //           targetShapeBorder: const CircleBorder(),
+        //           targetBorderRadius: BorderRadius.all(
+        //               Radius.circular(deviceAverageSize * 0.1)),
+        //           showArrow: false,
+        //           onTargetClick: () {
+        //             _bloc.openSupportWhatsapp();
+        //           },
+        //           titleTextStyle: headerText(fontWeight: FontWeight.bold),
+        //           descTextStyle: bodyText(
+        //               fontSize: textSizeSmallest, fontWeight: FontWeight.bold),
+        //           targetPadding: EdgeInsets.all(deviceAverageSize * 0.008),
+        //           key: _bloc.one,
+        //           child: Padding(
+        //             padding: EdgeInsets.all(deviceAverageSize * 0.02),
+        //             child: Icon(
+        //               CustomIcons.whatsappIcon,
+        //               size: deviceAverageSize * 0.055,
+        //               color: colorWhite,
+        //             ),
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+      ],
+    );
+  }
+
+  void _openFoodSheet(BuildContext context, SwipeCardModel item, List sizeList,
+      List colorList, List optionList) {
+    List productImageList = item.productImageList;
+
+    List<Widget> sliderList = productImageList
+        .map((item) => ClipRRect(
+              borderRadius: BorderRadius.circular(20.0),
+              child: LoadImageSimple(
+                width: deviceWidth,
+                height: deviceHeight * 0.33,
+                image: '$item',
+                imageFit: BoxFit.cover,
+              ),
+            ))
+        .toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      constraints: const BoxConstraints(minWidth: double.infinity),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(20),
+        topRight: Radius.circular(20),
+      )),
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (BuildContext context, setState) {
+          return SizedBox(
+            height: deviceHeight * 0.83,
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: sliderList),
+                ),
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  top: deviceHeight * 0.35,
+                  bottom: 80,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                item.productName,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                                style: const TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 120,
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (prodQuantity > 1) prodQuantity--;
+                                      });
+                                    },
+                                    icon: Icon(
+                                      Icons.remove_circle,
+                                      color: prodQuantity > 1
+                                          ? colorGreen
+                                          : colorGreen.withOpacity(0.3),
+                                      size: 27,
+                                    ),
+                                  ),
+                                  Text(
+                                    '$prodQuantity',
+                                    style: const TextStyle(
+                                        color: colorGreen, fontSize: 22),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        prodQuantity++;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add_circle,
+                                        color: colorGreen, size: 27),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        LayoutBuilder(builder: (context, constraints) {
+                          final textPainter = TextPainter(
+                            text: TextSpan(
+                              text: item.description,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            maxLines: 2,
+                            textDirection: TextDirection.ltr,
+                          )..layout(maxWidth: constraints.maxWidth);
+                          final isOverflowing = textPainter.didExceedMaxLines;
+                          return RichText(
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: isOverflowing
+                                      ? item.description.substring(
+                                          0,
+                                          textPainter
+                                              .getPositionForOffset(Offset(
+                                                  constraints.maxWidth - 100,
+                                                  textPainter.height))
+                                              .offset)
+                                      : item.description,
+                                  style: const TextStyle(
+                                      color: colorMainLightGray),
+                                ),
+                                if (isOverflowing)
+                                  WidgetSpan(
+                                    alignment: PlaceholderAlignment.middle,
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          _showDescriptionModal(context, item),
+                                      child: const Text(
+                                        "   Read More",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }),
+                        const SizedBox(height: 8),
+                        const Divider(),
+                        if (addOnsMessage != '')
+                          Text(addOnsMessage,
+                              style: const TextStyle(color: colorRed)),
+                        const SizedBox(height: 8),
+                        if (getAddOnsType() == typeSizeColor)
+                          SizeColorWidget(
+                              sizeOptional: item.sizeOptional,
+                              colorOptional: item.colorOptional,
+                              sizeList: sizeList,
+                              colorList: colorList,
+                              validate: (value) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  setState(() {
+                                    inStock = value;
+                                  });
+                                });
+                              })
+                        else if (getAddOnsType() == typeToppingOption)
+                          ToppingOptionWidget(
+                              optionList: optionList,
+                              validate: (value) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  print(value);
+                                  setState(() {
+                                    addOnsMessage = value;
+                                  });
+                                });
+                              })
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 30,
+                  right: 10,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Icon(Icons.close,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : colorBlack),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          if (item.discountAmount > 0)
+                            Text(
+                              'NOK ${item.originalAmount}',
+                              style: const TextStyle(
+                                color: colorPrimary,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: colorPrimary,
+                                decorationThickness: 2,
+                              ),
+                            ),
+                          Text(
+                            'NOK ${item.amount}  ',
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        margin: const EdgeInsets.symmetric(vertical: 20),
+                        height: 50,
+                        width: deviceWidth * 0.6,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorGreen,
+                            foregroundColor: colorWhite,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            textStyle: const TextStyle(fontSize: 20),
+                          ),
+                          onPressed: !inStock || addOnsMessage != ''
+                              ? null
+                              : () {
+                                  _bloc.addOrderCart(item.storeId,
+                                      item.productId, prodQuantity);
+                                  Navigator.pop(context);
+                                },
+                          child: const Text('Order Now',
+                              style: TextStyle(fontSize: 20)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  void _showDescriptionModal(BuildContext context, SwipeCardModel item) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0)),
+            content: SizedBox(
+                width: deviceWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      children: [
+                        const SizedBox(
+                          height: 50,
+                          child: Center(
+                              child: Text(
+                            "Product Details",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          )),
+                        ),
+                        Positioned(
+                          left: -10,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                elevation: 1,
+                                padding: const EdgeInsets.all(10),
+                                shape: const CircleBorder()),
+                            child: SvgPicture.asset(
+                                'assets/svgs/icons/back.svg',
+                                height: 18,
+                                width: 18,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : null),
+                          ),
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 25),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.productName,
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold)),
+                            Text(item.storeName,
+                                style: const TextStyle(
+                                    fontSize: 14, color: colorMainGray))
+                          ],
+                        ),
+                        Text('${item.amount}kr',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold))
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(item.description,
+                        style:
+                            const TextStyle(fontSize: 14, color: colorMainGray))
+                  ],
+                )),
+          );
+        });
+  }
+
+  Widget toppingCheckBoxGroup(int serviceCategoryId, List list) {
+    return StatefulBuilder(builder: (context, setState) {
+      return Column(
+        children: list.map((item) {
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                if (checkedToppingList.contains(item['id'])) {
+                  checkedToppingList.remove(item['id']);
+                } else {
+                  checkedToppingList.add(item['id']);
+                }
+              });
+            },
+            child: Row(
+              children: [
+                Icon(
+                  checkedToppingList.contains(item['id'])
+                      ? Icons.check_box
+                      : Icons.check_box_outline_blank,
+                  color: colorPrimary,
+                  size: 16,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  item['name'],
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: checkedToppingList.contains(item['id'])
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: checkedToppingList.contains(item['id'])
+                        ? null
+                        : colorMainLightGray,
+                  ),
+                ),
+                const Spacer(),
+                if (serviceCategoryId == 5)
+                  Text(
+                    "NOK ${item['amount']}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: checkedToppingList.contains(item['id'])
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: checkedToppingList.contains(item['id'])
+                          ? null
+                          : colorMainLightGray,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
+
+  Widget optionCheckBoxGroup(int serviceCategoryId, List list) {
+    return StatefulBuilder(builder: (context, setState) {
+      return Column(
+        children: list.map((item) {
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                if (checkedOptionsList.contains(item['id'])) {
+                  checkedOptionsList.remove(item['id']);
+                } else {
+                  checkedOptionsList.add(item['id']);
+                }
+              });
+            },
+            child: Row(
+              children: [
+                Icon(
+                  checkedOptionsList.contains(item['id'])
+                      ? Icons.check_box
+                      : Icons.check_box_outline_blank,
+                  color: colorPrimary,
+                  size: 16,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  item['name'],
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: checkedOptionsList.contains(item['id'])
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: checkedOptionsList.contains(item['id'])
+                        ? null
+                        : colorMainLightGray,
+                  ),
+                ),
+                const Spacer(),
+                if (serviceCategoryId == 5)
+                  Text(
+                    "NOK ${item['amount']}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: checkedOptionsList.contains(item['id'])
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: checkedOptionsList.contains(item['id'])
+                          ? null
+                          : colorMainLightGray,
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    });
+  }
+
+  Widget _categoryList(List<ServicesItem> serviceList) {
+    return CircularMotion(
+      centerWidget: Container(
+        width: 85,
+        height: 85,
+        decoration: BoxDecoration(
+            color: colorWhite.withOpacity(0.22), shape: BoxShape.circle),
+        child: const Center(
+          child: LoadImageSimple(
+              width: 40, height: 40, image: 'assets/images/light_logo.png'),
+        ),
+      ),
+      children: List.generate(
+        serviceList.length,
+        (index) => GestureDetector(
+          onTap: () {
+            setSelectedServiceInPref(
+              serviceList[index].serviceCategoryId,
+              serviceList[index].serviceCategoryName,
+              serviceList[index].serviceCategoryIcon,
+            );
+            openScreen(context, const DSHome());
+          },
+          child: Container(
+            width: 85,
+            height: 85,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: colorPrimary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                    color: colorPrimary.withOpacity(0.4),
+                    blurRadius: 15,
+                    offset: const Offset(0, 0)),
+              ],
+            ),
+            child: Column(
+              children: [
+                SvgPicture.network(
+                  serviceList[index].serviceCategoryIcon,
+                  width: 25,
+                  height: 25,
+                  color: colorWhite,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  serviceList[index].serviceCategoryName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: colorWhite,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _reenSportsMatkasseCard(
+      ActiveSportsClub club) {
+    return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 4),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(
+                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.08),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(18),
+                topRight: Radius.circular(18),
+              ),
+              child: club.image.isNotEmpty
+                  ? LoadImageSimple(
+                      image: club.image,
+                      width: double.infinity,
+                      height: 150,
+                      imageFit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: double.infinity,
+                      height: 150,
+                      color: colorDivider,
+                    ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          club.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'REEN Matkasse – support your club with today\'s food boxes',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: colorMainTabTextColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+}
+
+Widget _restaurantCard(HareStoreListItems storeInfo) {
+  return Builder(
+    builder: (context) {
+      return Container(
+        width: deviceWidth * 0.8,
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(deviceWidth * 0.05),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 3,
+                offset: const Offset(0, 3),
+              )
+            ]),
+        child: Column(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10.0),
+                topRight: Radius.circular(10.0),
+                bottomLeft: Radius.zero,
+                bottomRight: Radius.zero,
+              ),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: LoadImageSimple(
+                  width: double.infinity,
+                  height: double.infinity,
+                  image: storeInfo.storeImage,
+                  imageFit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            storeInfo.storeName,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack,
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      storeInfo.description,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: const TextStyle(color: colorMainTabTextColor),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(CupertinoIcons.smiley_fill, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          "${storeInfo.storeRating}",
+                          style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack,
+                              fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.circle, size: 5, color: colorMainTabTextColor),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                              'NOK ${storeInfo.productMinAmount} - ${storeInfo.productMaxAmount}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack,
+                                  fontSize: 13, fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.access_time, color: colorMainTabTextColor, size: 16),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text('${storeInfo.deliveryTime} Min',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack,
+                                  fontSize: 13, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  );
+}
+
+Widget _groceryCard(String image, String title) {
+  return Container(
+    height: deviceHeight * 0.25,
+    width: deviceWidth * 0.3,
+    margin: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: colorWhite,
+      borderRadius: BorderRadius.circular(deviceWidth * 0.05),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.3),
+          spreadRadius: 2,
+          blurRadius: 3,
+          offset: const Offset(0, 3), // changes position of shadow
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(10.0),
+            topRight: Radius.circular(10.0),
+            bottomLeft: Radius.zero,
+            bottomRight: Radius.zero,
+          ),
+          child: LoadImageSimple(
+            width: deviceWidth * 0.3,
+            height: deviceWidth * 0.25,
+            image: image,
+            imageFit: BoxFit.cover,
+          ),
+        ),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: colorBlack,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Row(
+                  children: const [
+                    Text(
+                      'Shibuya',
+                      style: TextStyle(fontSize: 15, color: colorMainGray),
+                    ),
+                    Spacer(),
+                    Text(
+                      '3.2 km',
+                      style: TextStyle(fontSize: 15),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _dessertCard(String image, String title) {
+  return Container(
+    height: deviceHeight * 0.26,
+    width: deviceWidth * 0.3,
+    margin: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: colorWhite,
+      borderRadius: BorderRadius.circular(deviceWidth * 0.05),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey
+              .withOpacity(0.3), // Adjust the color and opacity of the shadow
+          spreadRadius: 2, // Adjust the spread radius
+          blurRadius: 3, // Adjust the blur radius
+          offset: const Offset(0, 3), // Adjust the offset of the shadow
+        ),
+      ],
+    ),
+    child: Column(
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(10.0),
+            topRight: Radius.circular(10.0),
+            bottomLeft: Radius.zero,
+            bottomRight: Radius.zero,
+          ),
+          child: LoadImageSimple(
+            width: deviceWidth * 0.3,
+            height: deviceWidth * 0.3,
+            image: image,
+            imageFit: BoxFit.cover,
+          ),
+        ),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: colorBlack,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _categoryHeader(BuildContext context, String categoryName,
+    {bool expandPossible = false, Key? key}) {
+  return Container(
+    key: key,
+    padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
+    child: Row(
+      children: [
+        GestureDetector(
+          onTap: () => openSimpleSnackbar('Success'),
+          child: Text(
+            categoryName,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : colorBlack),
+          ),
+        ),
+        const Spacer(),
+      ],
+    ),
+  );
+}

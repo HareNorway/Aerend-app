@@ -1,0 +1,2987 @@
+{
+  "appName": "Reen Dugnad",
+  "viewAll": "Se alt",
+  "cancel": "Avbryt",
+  "add": "Legg til",
+  "retry": "Prøv på nytt",
+  "send": "Sende",
+  "clear": "Klar",
+  "showMore": "Mer",
+  "showLess": "Mindre",
+  "ok": "OK",
+  "search": "Søk",
+  "camera": "Kamera",
+  "gallery": "Galleri",
+  "cropper": "Cropper",
+  "fullName": "Fullt navn",
+  "email": "E-post",
+  "emailAddress": "Epostadresse",
+  "phoneNo": "Telefonnr",
+  "update": "Oppdater",
+  "edit": "Redigere",
+  "delete": "Slett",
+  "select": "Plukke ut",
+  "remove": "Fjerne",
+  "referralCode": "Henvisningskode",
+  "item": "punkt",
+  "viewCart": "Se handlekurv",
+  "checkOut": "Sjekk ut",
+  "change": "Endring",
+  "apply": "Søke om",
+  "noRecordFound": "Beklager !!\nIngen post funnet denne gangen",
+  "searchProduct": "Søk etter produkt",
+  "internetConnLostTitle": "Du er frakoblet, vennligst sjekk internettforbindelsen din.",
+  "yes": "Ja",
+  "no": "Nei",
+  "done": "Ferdig",
+  "from": "Fra",
+  "to": "Til",
+  "customer": "Kunde",
+  "get": "Få",
+  "next": "Neste",
+  "continueTxt": "Fortsette",
+  "skip": "Hopp over",
+  "finish": "Bli ferdig",
+  "share": "Dele",
+  "taxiRide": "Taxitur",
+  "bikeRide": "Sykkeltur",
+  "courierService": "Budtjeneste",
+  "rideService": "Rideservice",
+  "newUpdateAvailable": "Ny oppdatering tilgjengelig!",
+  "newUpdateMsg": "Oppdater den nye appen fra butikken for ytterligere tilgang til appen.",
+  "splashMsg": "40+ tjenester i én app",
+  "obRideTitle": "Bestill taxi, sykkel eller bud",
+  "obRideMsg": "Be om transporttjenester hvor som helst og når som helst. Velg reisemål, bestill en tur, følg turen og nyt reisen.",
+  "obDeliveryTitle": "Bestill mat, dagligvarer, brennevin og mer",
+  "obDeliveryMsg": "Nå får butikken på dørstokken, handle for dine daglige behov for samme dag og få levering på et passende tidspunkt.",
+  "obProviderTitle": "Bare fikse hva som helst",
+  "obProviderMsg": "Trenger du en hånd til husarbeid? Vi har deg dekket! Bokvasker, kosmetolog, altmuligmanntjenester og mer med få klikk.",
+  "obMoreTitle": "Og mange flere",
+  "obMoreMsg": "Med generell konfigurasjon, administrer appkonto, lommeboktransaksjon, chat og ordrehistorikk, profilinnstilling og mer.",
+  "pending": "Avventer",
+  "approved": "Godkjent",
+  "processing": "Behandling",
+  "completed": "Fullført",
+  "rejected": "Avvist",
+  "cancelled": "avbrutt",
+  "onGoing": "Pågående",
+  "arrived": "Ankommet",
+  "loginSignUpMsg": "Bli med i Reen Dugnad — hver ordre gir tilbake til klubben",
+  "login": "Logg Inn",
+  "signUp": "Melde deg på",
+  "productBy": "Produkt fra",
+  "register": "Registrere",
+  "registerNow": "Registrer deg nå!",
+  "registerWith": "Registrer deg med",
+  "preference": "Preferanse",
+  "selectLanguage": "Velg språk",
+  "selectCurrency": "Velg Valuta",
+  "submit": "Sende inn",
+  "preferenceMsg": "Du kan endre innstillinger senere fra preferanse",
+  "connectWith": "Koble til",
+  "loginWithFacebook": "Logg inn med Facebook",
+  "signInWithGoogle": "Fortsett med Google",
+  "signInWithApple": "Fortsett med Apple",
+  "or": "eller",
+  "referralCodeOptional": "Henvisningskode (valgfritt)",
+  "enterFullName": "Skriv inn fullt navn",
+  "enterEmailAddress": "Skriv inn e-post adresse",
+  "enterPass": "Oppgi passord",
+  "enterConfPass": "Skriv inn Bekreft passord",
+  "enterMobileNumber": "Skriv inn mobilnummer",
+  "invalidEmailAddress": "Ugyldig epostadresse",
+  "passShortMsg": "Passordet må være minst 6 tegn langt.",
+  "confPassNotMatch": "Bekreft at passordet ikke samsvarer",
+  "termsAndConditions": "Betingelser og vilkår",
+  "termsCondMsg": "Sjekk her for å bekrefte at du har lest og godtar vår",
+  "alreadyAccTitle": "Har du allerede en konto?",
+  "loginHere": "Logg inn her",
+  "loginWith": "Logg inn med",
+  "welcomeBack": "Velkommen tilbake",
+  "loginToContinue": "Logg på for å fortsette",
+  "acceptTermsCondMsg": "Godta vilkår og betingelser",
+  "forgotPassWithQueMark": "Glemt passord?",
+  "orConnectWith": "Eller koble til",
+  "dontHaveAnAcc": "Har du ikke en konto?",
+  "setNewPass": "Angi nytt passord",
+  "enterOtp": "Skriv inn OTP",
+  "enterCompOtp": "Skriv inn Fullstendig OTP",
+  "otp": "OTP",
+  "requiredInformation": "Nødvendig informasjon",
+  "accountVerification": "Konto bekreftelse",
+  "enterVerfCode": "Angi verifikasjonskode",
+  "enterVerfCodeMsg": "Vent på bekreftelseskoden.",
+  "enterOtp1234": "Skriv inn OTP 1234",
+  "verify": "Bekrefte",
+  "editNumber": "Rediger nummer",
+  "resendOtp": "Send OTP på nytt",
+  "resendOtpIn": "Send OTP inn på nytt",
+  "resendEmailMsg": "Venter du fortsatt på SMS-bekreftelseskoden?\nKlikk på knappen nedenfor for å sende koden på nytt.",
+  "resendOtpSuccessMsg": "Fresh OTP har sendt til ditt registrerte telefonnummer",
+  "forgotPass": "Glemt passord?",
+  "mobileNumber": "Mobilnummer",
+  "myProfile": "Min profil",
+  "myFavourites": "Mine favoritter",
+  "liveChat": "Live chat",
+  "orderHistory": "Ordrehistorikk",
+  "manageAddress": "Administrer adresse",
+  "cart": "Handlevogn",
+  "changePassword": "Bytt passord",
+  "preferences": "Preferanser",
+  "password": "Passord",
+  "signUpText": "Ved å registrere deg godtar du vår",
+  "termAndConditionUse": "Betingelse og vilkår",
+  "ofUse": "av bruk",
+  "myCoupons": "Mine kuponger",
+  "validity": "Gyldighet",
+  "days": "dager",
+  "emergencyContact": "Nødtelefon",
+  "notifications": "Varsler",
+  "wallet": "Lommebok",
+  "manageCard": "Administrer kort",
+  "inviteFriend": "Inviter venn",
+  "helpSupport": "Hjelp og støtte",
+  "chatWithAdmin": "Chat med administrator",
+  "admin": "Admin",
+  "logout": "Logg ut",
+  "logOutDialogTitle": "Er du sikker på at du vil logge ut?",
+  "surgePricing": "Surge Pricing",
+  "ofTotalFare": "av den totale prisen",
+  "surgeChargeMsg": "Topppriser brukt i spesifikk tidsperiode",
+  "iAcceptHigherFare": "Jeg godtar høyere pris",
+  "tryLater": "Prøv senere",
+  "year": "år",
+  "years": "år",
+  "month": "måned",
+  "months": "måneder",
+  "week": "uke",
+  "weeks": "uker",
+  "day": "dag",
+  "hour": "time",
+  "hours": "timer",
+  "minute": "minutt",
+  "minutes": "minutter",
+  "seconds": "sekunder",
+  "justNow": "akkurat nå",
+  "ago": "siden",
+  "more": "Mer",
+  "account": "Regnskap",
+  "restaurant": "Restaurant",
+  "sort": "Sortere",
+  "filter": "Filter",
+  "openNow": "Åpne nå",
+  "open": "Åpen",
+  "closed": "Lukket",
+  "allowAccess": "Vennligst gi tilgang",
+  "allow": "Tillate",
+  "locationPermission": "Vennligst gi \"{appName}\" tilgang til posisjonen din\nVennligst gå til Innstilling > {appName} > Plassering",
+  "min": "min",
+  "minOrder": "Min bestilling",
+  "noOfferAvailable": "Ingen tilbud tilgjengelig",
+  "rating": "Vurdering",
+  "sortRestaurantsBy": "Sorter restauranter etter",
+  "sortStoreBy": "Sorter butikk etter",
+  "costLowHigh": "Kostnad lav til høy",
+  "costHighLow": "Kostnad høy til lav",
+  "deliveryTime": "Leveringstid",
+  "clearSorting": "Fjern sortering",
+  "addFilter": "Legg til filter",
+  "filterRestWith": "Filtrer Restaurant Med",
+  "filterStoreWith": "Filter Lagre med",
+  "offers": "Tilbud",
+  "cuisine": "Mat",
+  "cuisineCategory": "Matkategori",
+  "productCategory": "produktkategori",
+  "applyFilter": "Bruk filter",
+  "bookNow": "Bestill nå",
+  "allServices": "Alle tjenester",
+  "transactionHistory": "betalingshistorie",
+  "inSpotLight": "I spotlight!",
+  "featuredRestaurant": "Utvalgt restaurant",
+  "featuredStore": "Utvalgt butikk",
+  "featuredGroceryStore": "Utvalgt matbutikk",
+  "findService": "Finn service",
+  "contactSalesPerson": "Kontakt selger",
+  "contactSalesPersonMsg": "Be om hjelp angående appfunksjonene og salgsspørsmål.",
+  "searchLocation": "Søk plassering",
+  "confirmPlace": "Bekreft plass",
+  "fetchingLocation": "Henter plassering ...",
+  "startTypingRestaurantName": "Begynn å skrive restaurantnavn...",
+  "noAnyRestaurantFound": "Ingen restaurant funnet",
+  "noAnyDishesFound": "Ingen retter funnet",
+  "noAnyProductsFound": "Ingen produkter funnet",
+  "noAnyStoreFound": "Ingen butikk funnet",
+  "minimumOrder": "Minimumsbestilling",
+  "addOns": "Tilpassbar",
+  "openingHour": "Åpningstid",
+  "onlyVeg": "Kun Veg",
+  "category": "Kategori",
+  "addToCart": "Legg i handlekurv",
+  "selectCuisine": "Velg mat",
+  "selectCategories": "Velg kategorier",
+  "updateCart": "Oppdater handlekurven",
+  "updateCartMsg": "Er du sikker på at du vil endre butikken? Din eksisterende handlekurv vil tømmes.",
+  "proceed": "Fortsette",
+  "iWillChoose": "Jeg velger",
+  "repeat": "Gjenta",
+  "minimumOrderMsg": "Minimum bestillingsbeløp må være",
+  "review": "Anmeldelse",
+  "noReviewMsg": "Ingen anmeldelser ennå",
+  "openingHours": "Åpningstider",
+  "profileUpdateSuccessfully": "Profilen ble oppdatert",
+  "addressDeletedSuccessMsg": "Adressen er slettet",
+  "changePicture": "Endre bilde",
+  "accountDelete": "Slett konto",
+  "accountDeleteMsg": "Er du sikker på at du vil slette kontoen?",
+  "orders": "Bestillinger",
+  "rides": "Rir",
+  "deliveries": "Leveranser",
+  "onDemandService": "On Demand-tjenester",
+  "filterToday": "I dag",
+  "filterUpcoming": "Kommende",
+  "filterLast7Days": "Siste 7 dager",
+  "filterThisMonth": "Siste 30 dager",
+  "filterYear": "I år",
+  "filterAll": "Alle",
+  "running": "Løping",
+  "accepted": "Akseptert",
+  "pickup": "Plukke opp",
+  "takeAwayOrder": "Ta bort ordre",
+  "deliveryOrder": "Leveringsordre",
+  "noAnyAddressMsg": "Du har ikke lagt til noen leveringsadresse, legg den til herfra",
+  "addAnAddress": "Legg til en adresse",
+  "changeAddress": "Bytt adresse",
+  "deleteAddress": "Vil du slette adressen?",
+  "deleteAddressDialogMsg": "Er du sikker på at du vil slette denne adressen?",
+  "addNewAddress": "Legg til ny adresse",
+  "saveAs": "Lagre som",
+  "home": "Hjem",
+  "work": "Arbeid",
+  "other": "Annen",
+  "location": "plassering",
+  "houseFlatNo": "Hus/leilighet nr.",
+  "selectLocationMsg": "Vennligst velg plassering",
+  "enterFlatNo": "Gå inn i leilighetsnr",
+  "enterLandmark": "Angi landemerke",
+  "landmark": "Landemerke",
+  "saveAddress": "Lagre adresse",
+  "oldPassword": "gammelt passord",
+  "newPassword": "Nytt passord",
+  "confirmPassword": "bekreft passord",
+  "enterOldPass": "Skriv inn gammelt passord",
+  "enterNewPass": "Skriv inn nytt passord",
+  "reEnterPass": "Skriv inn passord på nytt",
+  "passNotMatch": "Passord stemmer ikke",
+  "confPassNotMatchWithNew": "Bekreft at passord ikke samsvarer med nytt passord",
+  "passChangeSuccessMsg": "Passordet ditt ble endret!",
+  "setNewPassword": "Angi nytt passord",
+  "changePasswordMsg": "Vil du endre ditt nåværende passord?",
+  "myWallet": "Min lommebok",
+  "currentBalance": "Nåværende saldo",
+  "viewTransaction": "Se transaksjonen",
+  "addMoney": "Legg til penger",
+  "walletMsg": "Vi bruker sikker teknologi for å sikre dataene dine",
+  "rechargeAmount": "Oppladingsbeløp",
+  "selectValidDate": "Vennligst velg en gyldig dato",
+  "addCardDetails": "Legg til kortdetaljer",
+  "cardDateFormat": "MM/ÅÅÅÅ",
+  "expiryMonthIsInvalid": "Utløpsmåneden er ugyldig",
+  "expiryYearIsInvalid": "Utløpsåret er ugyldig",
+  "cardHasExpired": "Kortet har utløpt",
+  "enterAmount": "Tast inn beløp",
+  "pleaseEnterAmount": "Vennligst skriv inn beløp",
+  "transaction": "Transaksjon",
+  "cardListEmptyMsg": "Ingen kort tilgjengelig, legg til nytt kort",
+  "addCreditDebitCard": "Legg til kreditt-/debetkort",
+  "sureToRemove": "Er du sikker på å fjerne?",
+  "removeCardSuccessMsg": "Kortet ditt ble fjernet",
+  "safeAndSecurePaymentMethod": "Trygg og sikker betalingsmåte",
+  "selectCreditDebitCard": "Velg kreditt-/debetkort",
+  "payment": "Legg til nytt kort",
+  "hintCardHolderName": "Kortholders navn",
+  "hintYourCardNumber": "Kortnummeret ditt",
+  "hintExpirationDate": "Utløpsdato",
+  "hintCvv": "CVV",
+  "enterHolderName": "Skriv inn kortholderens navn",
+  "enterCardNumber": "Skriv inn kortnummer",
+  "invalidCard": "Ugyldig kortnummer",
+  "selectCardDate": "Angi utløpsdato",
+  "enterCvv": "Skriv inn CVV",
+  "invalidCvv": "Ugyldig CVV",
+  "buttonAddCard": "Legg til kort",
+  "inviteFriendAnd": "Henvis venn og få fordeler",
+  "inviteFriendMessage": "Inviter vennen din med denne henvisningskoden for å få flere fordeler",
+  "shareCode": "Del invitasjonskoden",
+  "use": "Bruk",
+  "referCodeGetDiscount": "Henvisningskode og få rabatt",
+  "download": "nedlasting",
+  "findForFoodAndRestaurant": "Finn for Mat og Restaurant",
+  "findForProductsAndStore": "Finn etter produkter og butikk",
+  "takeaway": "Ta bort",
+  "filterYourSearch": "Filtrer butikken din",
+  "filterRestaurantWith": "Filtrer Restaurant Med",
+  "filterOrderDelivery": "Bestillingslevering",
+  "favoriteRestaurant": "Favoritt restaurant",
+  "favoriteStore": "Favorittbutikk",
+  "filterOrderTakeAway": "Bestill takeaway",
+  "priceHighToLow": "Pris Høy Til Lav",
+  "priceLowToHigh": "Pris lav til høy",
+  "nearBy": "I nærheten",
+  "reset": "Nullstille",
+  "dishes": "Retter",
+  "products": "Produkter",
+  "searchForFood": "Søk etter mat",
+  "searchForProducts": "Søk etter produkter",
+  "searchForRestaurants": "Søk etter restauranter",
+  "searchForStore": "Søk etter butikk",
+  "receipt": "Kvittering",
+  "orderDetails": "Ordre detaljer",
+  "trackOrder": "Spor bestilling",
+  "deliveryAddress": "Leveringsadresse",
+  "additionalInfo": "Tilleggsinformasjon",
+  "bookingId": "Booking ID #",
+  "cancelReason": "Avbestillingsårsak",
+  "itemTotal": "Vare totalt",
+  "deliveryCharges": "Leveringskostnader",
+  "packingCharges": "Pakkekostnader",
+  "offerDiscount": "Tilby rabatt",
+  "toPay": "Å betale",
+  "paymentType": "Betalings type",
+  "discount": "Rabatt",
+  "tax": "Avgift",
+  "total": "Total",
+  "submitReview": "Send inn anmeldelse",
+  "giveReview": "Gi anmeldelse",
+  "ratingTitle": "Vurder fra 1 til 5 stjerner",
+  "store": "butikk",
+  "writeReviewHere": "Skriv din anmeldelse her",
+  "commentHere": "Kommenter her...",
+  "deliveryPerson": "Leveringsperson",
+  "giveReviewToAnyOne": "Gi din anmeldelse til butikken og leveringspersonen",
+  "giveReviewToStore": "Velg anmeldelse for å lagre",
+  "giveReviewToProvider": "Gi en anmeldelse til leverandøren",
+  "giveReviewToDriver": "Gi en anmeldelse til sjåføren",
+  "giveReviewToBoth": "Velg anmeldelse til begge",
+  "cartDetail": "Handlevogndetaljer",
+  "applyPromoCode": "Bruk kampanjekode",
+  "addAddress": "Legg til adresse",
+  "selectPaymentMethod": "Velg betalingsmåte",
+  "cash": "Penger",
+  "card": "Kort",
+  "scheduleOrder": "Planlegg bestilling",
+  "orderNow": "Bestill nå",
+  "promoCode": "Rabattkode",
+  "enterPromoCode": "Skriv inn kampanjekode",
+  "availablePromoCode": "Tilgjengelig kampanjekode",
+  "promoCodeListNullMsg": "Ingen kampanjekode tilgjengelig for denne kontoen",
+  "cartEmptyMsg": "Handlekurven din er tom, legg til nye varer.",
+  "addOrSelectAddress": "Vennligst legg til eller velg adresse",
+  "addDeliveryLocation": "Legg til leveringssted",
+  "landmarkOptional": "Landemerke (valgfritt)",
+  "flatNoHouseNameOptional": "Leilighetsnummer, husnavn (valgfritt)",
+  "doYouWant": "jeg vil",
+  "delivery": "Leveranse",
+  "invalidScheduleTime": "Vennligst velg tid etter en time fra nå",
+  "unavailableProductMess": "Noen produkter er ikke lenger tilgjengelig i butikken. Vi fjerner den fra vognen",
+  "prescriptionRequired": "Resept kreves",
+  "additionNotes": "Ytterligere instruksjoner for",
+  "addTipToDriver": "Legg til tips til sjåføren",
+  "requiredMess": "Vennligst skriv inn detaljene nedenfor.",
+  "orderPlaced": "Ordre plassert",
+  "orderPlacedMsg": "Din bestilling er lagt inn og vil bli levert snart",
+  "orderPickupMsg": "Bestillingen din ble lagt inn, vent til restauranten fullfører bestillingen og gå deretter for å hente bestillingen",
+  "thankYou": "Takk skal du ha!",
+  "addNewCard": "Legg til nytt kort",
+  "payNow": "Betal nå",
+  "selectAnyCardMsg": "Velg et hvilket som helst kort",
+  "pay": "Betale",
+  "addCard": "Legg til kort",
+  "creditDebitCard": "Kreditt-/debetkort",
+  "insufficientWalletBalance": "Du kan ikke betale bestillingsbeløpet gjennom Wallet fordi lommeboksaldoen din er utilstrekkelig.",
+  "chatHistoryEmpty": "Ingen chattelogg...",
+  "startTyping": "Begynn å skrive...",
+  "writeAMessageHere": "Skriv en melding her...",
+  "orderPlacedMsgTo": "Bestillingen din venter på godkjenning fra butikken.",
+  "orderProcessingMsg": "Bestillingen din er under behandling",
+  "orderReadyForPickupMsg": "Bestillingen din har vært klar for henting",
+  "orderPickedUp": "Bestilling hentet",
+  "orderReadyForPickup": "Klar til å hentes",
+  "acceptedByStore": "Godkjent av butikk",
+  "acceptedByDeliveryMan": "Akseptert av leveringsmann",
+  "orderPickUp": "Bestill Henting",
+  "delivered": "Levert",
+  "confirmYourOrder": "Bekreft din bestilling",
+  "yourOrderAcceptedBy": "Din bestilling akseptert av",
+  "orderPickUpBy": "Bestillingen din hentes innen kl",
+  "deliveredMsg": "Bestillingen din er levert",
+  "order": "Rekkefølge",
+  "cancelOrder": "Avbryt bestillingen",
+  "viewOrder": "Se bestilling",
+  "enterCancelReason": "Oppgi årsak til kansellering",
+  "orderCancelMsg": "Det vil påløpe et avbestillingsgebyr på",
+  "orderCancelMsg1": "Vil du fortsette?",
+  "cancellationCharge": "Avbestillingsgebyr",
+  "km": "KM",
+  "confirmBooking": "Bekreft bestilling",
+  "driver": "Sjåfør",
+  "trackLocation": "Spor plassering",
+  "rideFare": "Ride Fare",
+  "subTotal": "Subtotal",
+  "cancelRequest": "Avbryt forespørsel",
+  "selectPickupDateMsg": "Vennligst velg første hentedato og klokkeslett",
+  "invalidPickupDateTime": "Vennligst velg hentedato og -tid minst en time fra nå.",
+  "invalidDropDateTime": "Vennligst velg leveringsdato og -tid minst en time fra henting.",
+  "start": "Start",
+  "giveYourFeedback": "Gi din tilbakemelding!",
+  "complete": "Fullstendig",
+  "chat": "Chat",
+  "cancelBy": "Avbryt innen kl",
+  "courierDetail": "Kurerdetaljer",
+  "contactName": "kontakt navn",
+  "houseNameLandmark": "Husnavn/Landemerke",
+  "goodsDimensionInCM": "Varedimensjon (cm)",
+  "goodsWeightInKG": "Varevekt (kg)",
+  "kg": "Kg",
+  "above": "Ovenfor",
+  "weightUp": "Opp",
+  "weightTo": "til",
+  "itemDescription": "Varebeskrivelse",
+  "deliveryInstruction": "Leveringsinstrukser",
+  "pickUpDateAndTime": "Hent dato og klokkeslett",
+  "timeTaken": "Tid tatt",
+  "costPerKm": "Kostnad per km",
+  "distanceFare": "Avstandspris",
+  "serviceFare": "Tjenestepris",
+  "distance": "Avstand",
+  "baseFare": "Grunnpris",
+  "timeFare": "Tidspris",
+  "referDiscount": "Henvisningsrabatt",
+  "minAdjustAmt": "Min. Justeringsbeløp",
+  "tip": "Tips",
+  "paymentStatus": "Betalingsstatus",
+  "senderDetail": "Avsenderdetaljer",
+  "receiverDetail": "Mottaker detalj",
+  "flatNo": "Leilighet nr.",
+  "additionalRemark": "Ytterligere merknader",
+  "prescription": "Resept",
+  "shoppingCharges": "Handlegebyrer",
+  "addTip": "Legg til tips",
+  "enterTipAmount": "Angi tipsbeløp",
+  "addMoneyToWallet": "Legg til penger i Wallet",
+  "payByCard": "Betal med kort",
+  "payByWallet": "Betal med lommebok",
+  "processToAdd": "Prosess å legge til",
+  "dummyCardNote": "Merk: Legg til kortnummer 4111 1111 1111 1111 ELLER 4242 4242 4242 4242",
+  "panic": "Panikk",
+  "call": "Anrop",
+  "callStore": "Ring butikken",
+  "callDriver": "Ring sjåføren",
+  "emergencyContactAddMessage": "Vennligst legg til nødnummer!",
+  "emergencyContactAddMessage1": "Du kan endre nødnummeret fra profilen din",
+  "noEmergencyContact": "Ingen nødkontakt!",
+  "addEmergencyContactNumber": "Legg til nødnummer",
+  "emergencyCall": "Nødsamtale",
+  "destination": "Mål",
+  "stop": "Stoppe",
+  "confirm": "Bekrefte",
+  "plsSelectPickLoc": "Vennligst velg hentested",
+  "plsSelectDestLoc": "Vennligst velg destinasjonssted",
+  "selectLocation": "Velg Sted",
+  "addDeliveryAddress": "Legg til leveringsadresse",
+  "rideNow": "Kjør nå",
+  "scheduleRide": "Planlegg kjøretur",
+  "changePaymentMethod": "Endre betalingsmåte",
+  "selectPromoCode": "Velg Kampanjekode",
+  "promoCodeNotAvailable": "Ingen tilgjengelig kampanjekode!",
+  "doYouWantToCancel": "Vil du avbryte?",
+  "findDriver": "Finne driver",
+  "notFindDriver": "Kunne ikke finne driveren",
+  "findDriverMsg": "Vi finner sjåføren. Vennligst vent",
+  "notFindDriverMsg": "Vi har ikke den tilgjengelige driveren i dette området, prøv igjen",
+  "tryAgain": "Prøv igjen",
+  "pickUpLocation": "Hentested",
+  "dropLocation": "Slipp plassering",
+  "dropDateAndTime": "Slipp dato og klokkeslett",
+  "selectPickupTime": "Vennligst velg hentedato og tid",
+  "selectDropTime": "Velg dato og klokkeslett",
+  "process": "Prosess",
+  "courierDelivery": "Budlevering",
+  "sendAnyThing": "Send hva som helst",
+  "createOrder": "Opprett ordre",
+  "listIllegalItem": "Liste over ulovlige og ikke-essensielle gjenstander",
+  "pickUpInformation": "Henteinformasjon",
+  "orderSummary": "bestillingssammendrag",
+  "packageDetail": "Pakkedetaljer",
+  "packageWeight": "pakkevekt",
+  "estimatedValue": "Antatt verdi",
+  "pickupDetail": "Hentingsdetaljer",
+  "shopBuildingName": "Butikknavn/Bygningsnavn",
+  "placeOrder": "Legg inn bestilling",
+  "deliveryDetail": "Leveringsdetalj",
+  "packageInformation": "Pakkeinformasjon",
+  "selectPackageType": "Velg Pakketype",
+  "wantSend": "Jeg vil sende",
+  "estimatedValueOptional": "Anslått verdi (valgfritt)",
+  "enterDeliveryInstruction": "Skriv inn leveringsanvisning",
+  "notSending": "jeg sender ikke",
+  "illegalItem": "ulovlige gjenstander",
+  "selectPackageWeight": "Velg Pakkevekt",
+  "enterPickUpLocation": "Angi hentested",
+  "enterShopBuildingName": "Skriv inn butikk/bygningsnavn",
+  "enterHouseLandmark": "Skriv inn husnavn/landemerke",
+  "senderName": "Avsenders navn",
+  "enterSenderName": "Skriv inn avsendernavn",
+  "senderContactNum": "Avsenderens kontaktnummer",
+  "enterSenderContactNum": "Skriv inn avsenderens kontaktnummer",
+  "receiverInformation": "Mottakerinformasjon",
+  "enterDropLocation": "Angi Drop Location",
+  "receiverName": "Mottakers navn",
+  "enterReceiverName": "Skriv inn mottakernavn",
+  "enterReceiverContactNum": "Skriv inn mottakerens kontaktnummer",
+  "receiverContactNum": "Mottakers kontaktnummer",
+  "illegalConfirmation": "Vennligst bekreft at du ikke sender ulovlige varer.",
+  "itemDetails": "Varedetaljer",
+  "itemHeightInCM": "Varehøyde (cm)",
+  "itemWidthInCM": "Varebredde (cm)",
+  "enterContactName": "Skriv inn kontaktnavn",
+  "enterHouseOrLandmarkName": "Skriv inn hus- eller landemerkenavn",
+  "invalidContactNumber": "Ugyldig kontaktnummer",
+  "enterGoodsWeight": "Angi varevekt",
+  "enterGoodsWidth": "Angi varebredde",
+  "enterGoodsHeight": "Angi varehøyde",
+  "enterGoodsLength": "Angi varelengde",
+  "enRoute": "I rute",
+  "enterCourierDescription": "Skriv inn varebeskrivelse",
+  "goodsEg": "(Dokumenter, personlige gjenstander osv.)",
+  "your": "Din",
+  "goodsNotMatchMessage": "stemmer ikke med kjøretøyet. Du kan legge til maks",
+  "itemHeight": "Varehøyde",
+  "itemWidth": "Varebredde",
+  "itemWeight": "gjenstandsvekt",
+  "proceedToPay": "Fortsett å betale",
+  "productName": "Produktnavn",
+  "kmAway": "km unna",
+  "arriving": "Ankommer",
+  "cancelRide": "Avbryt tur",
+  "cancelRideMsg": "Tur kansellert av sjåfør",
+  "vehicleInformation": "Kjøretøyinformasjon",
+  "vehicleColor": "Farge på kjøretøy",
+  "vehicleManufactureName": "Kjøretøyets produsentnavn",
+  "vehicleModelName": "Kjøretøy modell",
+  "vehicleModelYear": "Årsmodell",
+  "vehiclePlatNo": "Kjøretøysskiltnummer",
+  "vehicleNotAvailable": "For øyeblikket er kjøretøy ikke tilgjengelig",
+  "weightLimit": "Vektgrense (i kg)",
+  "dimensionLimit": "Dimensjonsgrense (i cm)",
+  "walletAddSuccessful": "Wallet-beløpet ble lagt til",
+  "cardAddSuccessful": "Kortet ble lagt til",
+  "apiMsg52": "Bestilling avvist av butikk",
+  "apiMsg109": "Ikke nok lommebokbalanse. Legg til penger i lommeboken eller bruk kredittkort.",
+  "apiMsg157": "Produktene som er lagt til er ikke tilgjengelige for øyeblikket!",
+  "apiMsg204": "Utvalgte pakker er ikke tilgjengelige for øyeblikket!",
+  "apiErrorCancelMsg": "Forespørsel til API-server ble kansellert",
+  "apiErrorConnectTimeoutMsg": "Tidsavbrudd for tilkobling med API-server",
+  "apiErrorOtherMsg": "Du er frakoblet, vennligst sjekk internettforbindelsen din.",
+  "apiErrorReceiveTimeoutMsg": "Motta tidsavbrudd i forbindelse med API-server",
+  "apiErrorResponseMsg": "Mottok ugyldig statuskode",
+  "apiErrorSendTimeoutMsg": "Send timeout i forbindelse med API-server",
+  "apiErrorUnexpectedErrorMsg": "Det oppstod en uventet feil",
+  "apiErrorCommunicationMsg": "Det oppstod en feil under kommunikasjon med server med statuskode",
+  "firstName": "Fornavn",
+  "lastName": "Etternavn",
+  "firstNameReq": "Fornavn*",
+  "lastNameReq": "Etternavn*",
+  "emailAddressReq": "Epostadresse*",
+  "passReq": "Passord*",
+  "confPassReq": "Bekreft passord*",
+  "enterFirstName": "Skriv inn fornavn",
+  "enterLastName": "Skriv inn etternavn",
+  "closeStore": "Vi er fortsatt nærme, comeback senere...",
+  "close": "Lukk",
+  "sureToCancel": "Er du sikker på at du vil kansellere denne bestillingen?",
+  "packagingCharge": "Emballasjeavgift",
+  "bikeDriverArrivedMsg": "Sykkelsjåføren ankom hentestedet ditt.",
+  "bikeRideStartedMsg": "Bike Driver startet turen.",
+  "bikeRideFinishMsg": "Sykkelsjåføren fullførte turen din.\nVennligst sjekk avleveringsstedet.",
+  "bikeRideSuccessfullyFinishedMsg": "Nåværende tur er fullført.\nBesøk igjen!",
+  "courierDriverArrived": "Leveringsperson ankom",
+  "courierDriverArrivedMsg": "Din {appName}-leveringsperson ankom hentestedet ditt",
+  "courierDeliveryStarted": "Levering startet",
+  "courierDeliveryStartedMsg": "Din {appName}-levering har begynt",
+  "courierDeliveryFinish": "Levering fullført",
+  "courierDeliveryFinishMsg": "Din {appName}-leveringsperson leverte\nCourier-varene dine til mottakeren",
+  "courierRideSuccessfullyFinished": "Vellykket fullført",
+  "courierRideSuccessfullyFinishedMsg": "Nåværende levering er fullført",
+  "searchByContactOrEmail": "Søk på kontakt eller e-post",
+  "enterContactOrEmailToSearchPerson": "Vennligst skriv inn kontaktnummeret eller e-posten for å søke etter personen.",
+  "beneficial": "Fordelaktig",
+  "beneficialContactNumber": "Fordelaktig kontaktnummer",
+  "beneficialEmail": "Fordelaktig e-post",
+  "amountToTransfer": "Beløp som skal overføres",
+  "selectUser": "Velg Bruker",
+  "youCantTransfer": "Du kan ikke overføre mer enn",
+  "youHave": "Du har",
+  "toTransfer": "å overføre",
+  "success": "Suksess",
+  "successTransaction": "Du har overført",
+  "transfer": "Overføre",
+  "selectDay": "Velg dag",
+  "selectServiceTime": "Velg Servicetid",
+  "selectTime": "Velg Tid",
+  "atProviderLocation": "På leverandørens plassering",
+  "atYourLocation": "På din plassering",
+  "serviceLocation": "Tjenestested",
+  "routeToProvider": "På vei til leverandøren",
+  "providerAddress": "Leverandøradresse",
+  "serviceTime": "Servicetid",
+  "filterOrder": "Bestillingsfilter",
+  "courierAnything": "Bud/levere hva som helst",
+  "iWant": "Jeg ønsker",
+  "transportMyItem": "Transporter pakken min",
+  "purchaseDeliver": "Kjøp og levering",
+  "itemToPurchase": "Varer å kjøpe",
+  "amountToPayAtShop": "Beløp å betale i butikk",
+  "goodsWeight": "Varevekt",
+  "whatIsParcelGoods": "Hva er pakken/varene?",
+  "cashOnDeliery": "Kontantbetaling ved levering",
+  "remarks": "Merknader",
+  "enterItemName": "Skriv inn elementnavn",
+  "itemName": "Gjenstandsnavn",
+  "qty": "Antall",
+  "enterQty": "Angi mengde",
+  "addMoreItem": "Legg til mer element",
+  "houseName": "Husnavn",
+  "enterHouseName": "Skriv inn husnavn",
+  "surgeCharge": "Overspenningsladning",
+  "giveRatingMsg": "Del kjøreopplevelsen din og gi sjåføren en vurdering.",
+  "successfullyCompleted": "Vellykket fullført",
+  "deliveryCompleted": "Levering fullført",
+  "followMeAt": "Følg meg på {appName}",
+  "shareExperience": "Del din kjøreopplevelse",
+  "rateDriverStar": "Vurder sjåfør fra 1 til 5 stjerner",
+  "writeReview": "Skriv anmeldelse",
+  "cancelBooking": "Kanseller bestilling",
+  "enterReason": "Skriv inn grunn",
+  "reason": "Grunnen til",
+  "trackRide": "Sportur",
+  "goodsWidth": "Bredde",
+  "goodsHeight": "Høyde",
+  "goodsLength": "Lengde",
+  "estimatedPriceOfItem": "Antatt pris på varen",
+  "estimatedPriceMsg": "Dette hjelper sjåføren din med å forberede nok penger.",
+  "canNotAdd": "Du kan ikke legge til flere produkter",
+  "justUpdateOne": "Du kan bare oppdatere én linje om gangen",
+  "txtToday": "I dag",
+  "txtUpcoming": "Kommende",
+  "txtRunning": "Løping",
+  "txtLast7Days": "Siste 7 dager",
+  "txtThisMonth": "Siste 30 dager",
+  "txtYear": "I år",
+  "txtAll": "Alle",
+  "upTo": "Opp til",
+  "cm": "cm",
+  "maxAddressMsg": "Brukeren kan bare ha {maxLimit} adresser. Slett forrige før du legger til en ny",
+  "courier": "kurer",
+  "enterTip": "Skriv inn Tips",
+  "connection": "Forbindelse",
+  "connectionMsg": "Vennligst sjekk nettverkstilkoblingen",
+  "selectVehicle": "Velg Kjøretøy",
+  "rideCancelByAdmin": "Turen kansellert av admin!",
+  "sameEditNumberMsg": "Bruk et annet nummer. Du skrev inn den samme.",
+  "appExitMessage": "Tilbake igjen for å avslutte appen!",
+  "invalidAmountMsg": "Angi gyldig beløp",
+  "passChangeSuccess": "Passordet ditt ble endret!",
+  "transactionFailed" : "Transaksjonen mislyktes",
+  "stripe" : "Stripe",
+  "continueAsGuest": "Fortsett som gjest",
+  "signInToCompleteOrder": "Logg inn for å fullføre bestillingen din",
+  "signInToCompleteOrderMessage": "Opprett en konto eller logg inn for å lagre bestillingen din og følge leveringen.",
+  "createAccount": "Opprett konto",
+  "signInToSaveFavorites": "Logg inn for å lagre favoritter",
+  "signInToViewOrders": "Logg inn for å se bestillingene dine",
+  "signIn": "Logg inn",
+  "guestAccountPromptTitle": "Kom i gang med Reen Dugnad",
+  "guestAccountPromptMessage": "Logg inn eller opprett en konto for å få tilgang til bestillinger, favoritter og mer.",
+  "signInToSaveAddress": "Logg inn for å lagre adresser på kontoen din",
+  "feed_tab_label": "Feed",
+  "feed_brand_title": "Ærend Feed",
+  "feed_nav_home": "Hjem",
+  "feed_nav_explore": "Utforsk",
+  "feed_nav_reels": "Reels",
+  "feed_coming_soon": "Kommer snart",
+  "feed_explore_hint": "Søk etter en restaurant for å se innleggene deres",
+  "feed_loading": "Laster…",
+  "feed_empty_followed": "Følg en butikk for å se innlegg her",
+  "feed_empty_explore": "Ingenting å utforske akkurat nå",
+  "feed_pull_to_refresh": "Dra for å oppdatere",
+  "story_viewer_close": "Lukk",
+  "story_viewer_reply_hint": "Send en melding…",
+  "store_profile_follow": "Følg",
+  "store_profile_following": "Følger",
+  "store_profile_visit_store": "Besøk butikken",
+  "store_profile_followers": "følgere",
+  "store_profile_posts": "innlegg",
+  "store_profile_no_posts": "Ingen innlegg ennå",
+  "post_detail_like": "Lik",
+  "post_detail_liked": "Likt",
+  "post_detail_comments": "Kommentarer",
+  "post_detail_no_comments": "Vær den første til å kommentere",
+  "post_detail_comment_hint": "Legg til en kommentar…",
+  "post_detail_comment_send": "Send",
+  "comment_rate_limit_message": "Du poster for raskt. Vent litt.",
+  "comment_prohibited_message": "Kommentaren din inneholder innhold som ikke er tillatt.",
+  "comment_delete_confirm_title": "Slett kommentar?",
+  "comment_delete_confirm_message": "Dette kan ikke angres.",
+  "comment_delete_confirm_yes": "Slett",
+  "comment_delete_confirm_no": "Avbryt",
+  "search_stores_hint": "Søk butikker",
+  "search_no_results": "Ingen butikker passer",
+  "feed_error_generic": "Noe gikk galt. Prøv igjen.",
+  "feed_error_offline": "Du er offline. Sjekk tilkoblingen.",
+  "feed_error_login_required": "Logg inn for å bruke Ærend Feed",
+  "feed_empty_explore_button": "Utforsk",
+  "feed_view_comments": "Se {count} kommentarer",
+  "@feed_view_comments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feed_story_your_story": "Din historie",
+  "feed_post_kebab_report": "Rapporter",
+  "feed_post_kebab_copy_link": "Kopier lenke",
+  "feed_post_kebab_link_copied": "Lenke kopiert",
+  "feed_retry": "Prøv igjen",
+  "store_profile_stories": "Historier",
+  "store_profile_loading": "Laster…",
+  "store_profile_error": "Kunne ikke laste butikk",
+  "store_profile_visit_store_failed": "Kunne ikke åpne butikksiden",
+  "store_profile_report_action": "Rapporter butikk",
+  "feed_store_profile_story_hint": "Trykk på profilbildet for å se historien",
+  "feed_store_profile_default_hint": "Restaurant · Se innlegg og historier",
+  "post_detail_loading": "Laster…",
+  "post_detail_error": "Kunne ikke laste innlegg",
+  "post_detail_share_action": "Del",
+  "post_detail_title": "Innlegg",
+  "comment_send_failed": "Kunne ikke sende kommentar",
+  "comment_delete_failed": "Kunne ikke slette kommentar",
+  "comment_delete_not_author": "Du kan bare slette dine egne kommentarer",
+  "comment_char_counter": "{count} / 2000",
+  "@comment_char_counter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dugnadSelectModeTitle": "Velg modus",
+  "dugnadSelectModeSubtitle": "Hvordan vil du bruke Reen Dugnad?",
+  "dugnadModeDugnad": "Dugnad",
+  "dugnadModeActive": "Aktiv",
+  "dugnadModeDugnadDesc": "Bestill gjennom laget ditt og støtt klubben.",
+  "dugnadModeCommercial": "Kommersiell",
+  "dugnadModeComingSoon": "Kommer snart",
+  "dugnadModeCommercialDesc": "Vanlig bestilling fra alle butikker i Bergen.",
+  "dugnadModeSwitchHint": "Kommersiell modus lanseres senere. Inntil da bruker dere Reen Dugnad i dugnad-modus.",
+  "dugnadChooseYourClub": "Velg din klubb",
+  "dugnadSwitchClub": "Bytt klubb",
+  "dugnadSearchForClub": "Søk etter klubben din",
+  "dugnadChangeClub": "Endre",
+  "dugnadMemberOfClub": "Medlem av {clubName}?",
+  "dugnadMembershipPrompt": "Har du et medlemsnummer? Legg det inn for å låse opp eksklusive rabatter.",
+  "dugnadMembershipNumber": "Medlemsnummer",
+  "dugnadUnlockDiscounts": "Lås opp rabatter",
+  "dugnadContinueAsSupporter": "Fortsett som støttespiller",
+  "dugnadBrowseWithoutClub": "Bla rundt uten å velge",
+  "dugnadChooseClubToStart": "Velg en klubb for å komme i gang",
+  "dugnadChooseClubToStartDesc": "Finn klubben din og begynn å støtte dem gjennom dine kjøp.",
+  "dugnadChooseClubOnboardSubtitle": "Velg klubben du vil knytte medlemskapet ditt til. Du kan bytte når som helst.",
+  "dugnadClubChangeAnytime": "Du kan bytte klubb når som helst — valget er aldri bindende.",
+  "dugnadTourPromptTitle": "Ny i Reen Dugnad?",
+  "dugnadTourPromptBody": "Ta en kort gjennomgang av appen — hvordan du velger lag, samler poeng og bygger STØ-kortet ditt. Tar under et minutt.",
+  "dugnadTourPromptReward": "poeng når du er ferdig",
+  "dugnadTourPromptRewardNote": "Rett inn i STØ-ratingen din",
+  "dugnadTourPromptStart": "Ta gjennomgangen",
+  "dugnadTourPromptLater": "Ikke nå",
+  "dugnadTourBack": "Tilbake",
+  "dugnadTourSkip": "Hopp over",
+  "dugnadTourNext": "Neste",
+  "dugnadTourFinish": "Ferdig",
+  "dugnadTourClose": "Lukk gjennomgang",
+  "dugnadTourStepCounter": "{current} / {total}",
+  "dugnadTourRowTitle": "Gjennomgang av appen",
+  "dugnadTourRowSubtitle": "Se hvordan poeng, lag og STØ fungerer",
+  "dugnadTourWelcomeTitle": "Velkommen til Reen Dugnad 💜",
+  "dugnadTourWelcomeBody": "Alt du kjøper her sender en andel tilbake til klubben din. La oss ta en rask runde gjennom hvordan det fungerer.",
+  "dugnadTourTeamTitle": "Velg laget ditt i klubben",
+  "dugnadTourTeamBody": "Klubben har mange lag. Trykk på poengkortet og velg laget du vil støtte — da havner poengene dine på riktig lag i topplisten.",
+  "dugnadTourConnectTitle": "Poengene kobles til laget",
+  "dugnadTourConnectBody": "Når laget er valgt, teller hvert kjøp både for deg og for laget. Kortet viser din STØ-rating og hvor laget ligger.",
+  "dugnadTourEarnTitle": "Slik får du poeng",
+  "dugnadTourEarnBody": "Legg til leveringsadresse, kjøp fra kampanjer, sett opp fast støtte eller verv venner. Trykk her for å se hvor mange poeng hver handling gir.",
+  "dugnadTourAddrTitle": "Legg inn adressen din",
+  "dugnadTourAddrBody": "Trykk her for å legge til leveringsadressen. Det er det raskeste poenget du kan ta — og gjør at bestillinger går rett hjem til deg.",
+  "dugnadTourCampsTitle": "Kjøp fra kampanjer",
+  "dugnadTourCampsBody": "Klubbens egne kampanjer — matkasser, dugnadsvarer og tilbud. Størstedelen av poengene kommer herfra, og en andel går rett i klubbkassa.",
+  "dugnadTourDonateTitle": "Fast støtte",
+  "dugnadTourDonateBody": "Sett opp et månedlig beløp. Det gir klubben forutsigbar inntekt — og deg poeng hver måned uten at du trenger å gjøre noe.",
+  "dugnadTourReferTitle": "Verv venner",
+  "dugnadTourReferBody": "Del vervelenken din. Hver person som blir med gir deg poeng, og klubben får en ny støttespiller.",
+  "dugnadTourCompTitle": "Lagkonkurransen",
+  "dugnadTourCompBody": "Her ser du tabellen for alle lagene i klubben — pluss toppscorer, assistkonge og høyeste STØ-kort. Se hvor ditt lag ligger og hva som skiller til laget over.",
+  "dugnadTourStoTitle": "STØ-kortet ditt",
+  "dugnadTourStoBody": "STØ-ratingen din vokser med poengene. Kortet skifter metall — bronse, sølv, gull, platina — og viser laget, formen og merkene dine.",
+  "dugnadTourFormTitle": "Formen din",
+  "dugnadTourFormBody": "Formen viser aktiviteten din de siste ukene. Handler du jevnlig holder du god form; blir det stille, faller den.",
+  "dugnadTourBadgesTitle": "Merker",
+  "dugnadTourBadgesBody": "Merker låses opp av det du gjør — første kjøp, fast støtte, verving, sesongmål. Noen er permanente, andre fornyes hver sesong.",
+  "dugnadTourDoneTitle": "Da er du klar 🎉",
+  "dugnadTourDoneBody": "Du har tjent 50 poeng for gjennomgangen — de ligger allerede på STØ-kortet ditt. Du kan alltid ta den igjen fra profilen.",
+  "dugnadTourDoneAgainTitle": "Da er du oppdatert 💜",
+  "dugnadTourDoneAgainBody": "Belønningen på 50 poeng er alt utbetalt, så denne runden gir ingen nye poeng. Du kan komme tilbake hit når du vil.",
+  "dugnadMembershipOptionalHint": "Du kan legge til medlemsnummeret når som helst.",
+  "dugnadMembershipOptionalLabel": "Medlemsnummer (valgfritt)",
+  "dugnadChooseClub": "Velg klubb",
+  "dugnadSelectAddress": "Velg adresse",
+  "dugnadMyClub": "Min klubb",
+  "dugnadChangeTeamOrClub": "Bytt lag i klubben",
+  "dugnadChangeTeamOrClubSub": "Bytt når som helst — velg lag",
+  "dugnadSwitchAnytimeSubtitle": "Bytt når som helst — uten å vente på vinduet",
+  "dugnadYourTeamNow": "Laget ditt nå",
+  "dugnadYourTeamFallback": "laget ditt",
+  "dugnadSwitchTeamInfo": "STØ-ratingen, poengene og nivået ditt følger deg. Sesongtellerne starter på nytt for det nye laget.",
+  "dugnadSwitchConfirmTitle": "Bekreft bytte til {team}{clubSuffix}",
+  "@dugnadSwitchConfirmTitle": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "clubSuffix": { "type": "String" }
+    }
+  },
+  "dugnadSwitchConfirmBody": "Standard bytte — ingen nedtelling. Du beholder rating, poeng og nivå.",
+  "dugnadSwitchConfirmBtn": "Bekreft bytte",
+  "dugnadSwitchConfirmedToast": "Bytte bekreftet 💜",
+  "dugnadPointsTeamTitle": "Velg laget ditt så poengene teller",
+  "dugnadPointsTeamSubtitle": "Alle poeng du tjener går til dette laget. Du kan endre senere — kun fremtidige poeng påvirkes.",
+  "dugnadPointsTeamProfileTitle": "Lag du støtter",
+  "dugnadPointsTeamNone": "Ingen lag valgt",
+  "dugnadPointsTeamSelect": "Velg lag",
+  "dugnadPointsTeamChange": "Endre",
+  "dugnadPointsTeamConfirm": "Bekreft lag",
+  "dugnadPointsTeamSkip": "Hopp over for nå",
+  "dugnadPointsTeamEmpty": "Ingen lag er satt opp for denne klubben ennå.",
+  "dugnadPointsTeamLoginRequired": "Logg inn for å velge poenglag.",
+  "dugnadPointsTeamSaveFailed": "Kunne ikke lagre laget. Prøv igjen.",
+  "dugnadPointsTeamCheckoutNudge": "Velg et lag så kjøpet ditt gir poeng til dem.",
+  "dugnadPointsTeamPurchasePoints": "+{points} poeng per kampanjekjøp",
+  "dugnadPointsTeamTotal": "{points} poeng opptjent",
+  "dugnadPointsHistoryLink": "Se poenglogg",
+  "dugnadPointsHistoryTitle": "Poenglogg",
+  "dugnadPointsHistoryEmpty": "Ingen poengaktivitet ennå.",
+  "dugnadPointsActionCampaign": "Kampanjekjøp",
+  "dugnadPointsActionDonation": "Fast støtte",
+  "dugnadPointsActionReferral": "Verving konvertert",
+  "dugnadPointsActionReferralMilestone": "Verving-milepæl",
+  "dugnadPointsActionCampaignReversal": "Kampanjekjøp reversert",
+  "dugnadPointsActionDonationReversal": "Fast støtte reversert",
+  "dugnadPointsActionReferralReversal": "Verving reversert",
+  "dugnadPointsActionReferralMilestoneReversal": "Verving-milepæl reversert",
+  "dugnadPointsActionReversal": "Reversert",
+  "dugnadPointsReferralConversionDetail": "Verving nr. {sequence} konvertert",
+  "@dugnadPointsReferralConversionDetail": {
+    "placeholders": {
+      "sequence": { "type": "int" }
+    }
+  },
+  "dugnadPointsReferralMilestoneDetail": "Bonus ved {count} vervinger",
+  "@dugnadPointsReferralMilestoneDetail": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadProfileTitle": "Profil",
+  "dugnadYourPoints": "Dine poeng og merker",
+  "dugnadPointsUnit": "poeng",
+  "dugnadHeroNotConnected": "{tier} · ikke koblet til et lag",
+  "@dugnadHeroNotConnected": {
+    "placeholders": {
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadConnectPointsTeam": "Koble poengene til et lag",
+  "dugnadConnectPointsTeamSub": "Velg laget ditt så poengene teller i lagkonkurransen",
+  "dugnadConnectPointsToTeam": "Koble poeng til lag",
+  "dugnadStoCardButton": "STØ-kort",
+  "dugnadPointsToNextWithSto": "{points} poeng til {tier} ({sto} {stoLabel})",
+  "@dugnadPointsToNextWithSto": {
+    "placeholders": {
+      "points": { "type": "int" },
+      "tier": { "type": "String" },
+      "sto": { "type": "int" },
+      "stoLabel": { "type": "String" }
+    }
+  },
+  "dugnadSeasonCarryoverLine": "Tar med {points} poeng til neste sesong",
+  "@dugnadSeasonCarryoverLine": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadSeasonFinaleTitle": "Sesongen slutter snart",
+  "dugnadSeasonFinaleCarryoverBodyPrefix": "Med STØ {sto} tar du med deg ",
+  "@dugnadSeasonFinaleCarryoverBodyPrefix": {
+    "placeholders": {
+      "sto": { "type": "int" }
+    }
+  },
+  "dugnadSeasonFinaleCarryoverBodySuffix": " poeng inn i neste sesong.",
+  "@dugnadSeasonFinaleCarryoverBodySuffix": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadSeasonFinaleHigherMetalHint": "Høyere metall = større forsprang",
+  "dugnadSeasonFinaleNextCarryover": "Nå {nextTier} (STØ {sto}) → {points} poeng carryover 🚀",
+  "@dugnadSeasonFinaleNextCarryover": {
+    "placeholders": {
+      "nextTier": { "type": "String" },
+      "sto": { "type": "int" },
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadSeasonFinaleMaxCarryover": "Maks forsprang for carryover nådd 🚀",
+  "dugnadSeasonFinaleBadgesLocked": "{count} sesongmerker låst inn i historikken din denne sesongen",
+  "@dugnadSeasonFinaleBadgesLocked": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadSeasonFinaleShowAgain": "Vis sesonginnspurt igjen",
+  "dugnadSeasonFinaleDismiss": "Skjul",
+  "dugnadNowTier": "Nå {tier}",
+  "@dugnadNowTier": {
+    "placeholders": {
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadNoPointsYet": "Du har ikke tjent poeng enda",
+  "dugnadSignInForPoints": "Logg inn for å se poengene dine",
+  "dugnadReferFriendsEarnSub": "Få flere ildsjeler med i klubben",
+  "dugnadEarnMorePoints": "Tjen flere poeng",
+  "dugnadClubShopTitle": "Klubbshop",
+  "dugnadClubShopSubtitle": "{club}-kolleksjonen til medlemspris",
+  "@dugnadClubShopSubtitle": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadClubShopLockedTitle": "Shopen er for medlemmer",
+  "dugnadClubShopLockedBody": "{collection} selges til medlemspris. Skriv inn medlemsnummeret ditt for å låse opp.",
+  "@dugnadClubShopLockedBody": {
+    "placeholders": {
+      "collection": { "type": "String" }
+    }
+  },
+  "dugnadClubShopMemberNumber": "Medlemsnummer",
+  "dugnadClubShopMemberPlaceholder": "FF-10428",
+  "dugnadClubShopUnlockCta": "Lås opp shop",
+  "dugnadClubShopUnlockEmpty": "Skriv inn medlemsnummeret ditt.",
+  "dugnadClubShopUnlockGeneric": "Vi finner ikke dette medlemsnummeret. Sjekk at det står riktig, eller kontakt klubben.",
+  "dugnadClubShopHintCard": "Medlemsnummeret finner du i medlemskortet ditt eller i fakturaen fra klubben.",
+  "dugnadClubShopHintPartner": "Kolleksjonen leveres i samarbeid med {partner}. Plaggene hentes der mot ordrenummeret ditt.",
+  "@dugnadClubShopHintPartner": {
+    "placeholders": {
+      "partner": { "type": "String" }
+    }
+  },
+  "dugnadClubShopUnlockSuccess": "Shopen er låst opp — velkommen, {name}",
+  "@dugnadClubShopUnlockSuccess": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dugnadClubShopVerified": "Verifisert medlem",
+  "dugnadClubShopVerifiedLine": "Verifisert medlem · {number}",
+  "@dugnadClubShopVerifiedLine": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "dugnadClubShopVerifiedSub": "Medlemsrabatten trekkes automatisk i kassen",
+  "dugnadClubShopAudienceMen": "Herre",
+  "dugnadClubShopAudienceWomen": "Dame",
+  "dugnadClubShopAudienceKids": "Barn",
+  "dugnadClubShopCategoryAll": "Alle",
+  "dugnadClubShopSoldOut": "Utsolgt",
+  "dugnadClubShopSeeMore": "Se mer",
+  "dugnadClubShopWithPartner": "I samarbeid med {partner}",
+  "@dugnadClubShopWithPartner": {
+    "placeholders": {
+      "partner": { "type": "String" }
+    }
+  },
+  "dugnadClubShopMyOrders": "Mine ordrer",
+  "dugnadClubShopEmptyOrders": "Du har ingen ordrer ennå.",
+  "dugnadClubShopChooseSize": "Velg størrelse",
+  "dugnadClubShopAddToCart": "Legg i kurv · {price}",
+  "@dugnadClubShopAddToCart": {
+    "placeholders": {
+      "price": { "type": "String" }
+    }
+  },
+  "dugnadClubShopAllSoldOut": "Alle størrelser er utsolgt. Klubben legger ut nytt lager når partneren har levert.",
+  "dugnadClubShopInCartHint": "Du har allerede {count} av dette plagget i kurven.",
+  "@dugnadClubShopInCartHint": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadClubShopAdded": "{name} ({size}) lagt i kurven",
+  "@dugnadClubShopAdded": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "size": { "type": "String" }
+    }
+  },
+  "dugnadClubShopMemberDiscount": "Medlemsrabatt −{pct} %",
+  "@dugnadClubShopMemberDiscount": {
+    "placeholders": {
+      "pct": { "type": "int" }
+    }
+  },
+  "dugnadClubShopCategoryCollection": "{category} · {collection}",
+  "@dugnadClubShopCategoryCollection": {
+    "placeholders": {
+      "category": { "type": "String" },
+      "collection": { "type": "String" }
+    }
+  },
+  "dugnadClubShopStockGone": "Utsolgt",
+  "dugnadClubShopInStock": "På lager",
+  "dugnadClubShopLowStock": "Få igjen",
+  "dugnadClubShopCartCount": "{count} i kurven",
+  "@dugnadClubShopCartCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadClubShopGoToCart": "Til kurven",
+  "dugnadClubShopCartTitle": "Kurv",
+  "dugnadClubShopCartEmpty": "Kurven er tom",
+  "dugnadClubShopCartEmptyBody": "Legg til plagg fra klubbens kolleksjon.",
+  "dugnadClubShopToShop": "Til shopen",
+  "dugnadClubShopSizeLine": "Størrelse {size}",
+  "@dugnadClubShopSizeLine": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "dugnadClubShopOrdinarySum": "Ordinær sum",
+  "dugnadClubShopMemberDiscountLabel": "Medlemsrabatt",
+  "dugnadClubShopToPay": "Å betale",
+  "dugnadClubShopPaymentMethod": "Betalingsmåte",
+  "dugnadClubShopPayVipps": "Vipps",
+  "dugnadClubShopPayCard": "Kort · Visa •••• 4412",
+  "dugnadClubShopPayCta": "Betal {price}",
+  "@dugnadClubShopPayCta": {
+    "placeholders": {
+      "price": { "type": "String" }
+    }
+  },
+  "dugnadClubShopCartHint": "Ordren registreres på medlemsnummer {number}. Plaggene hentes hos {partner}, {address} — oppgi ordrenummeret du får etter betaling.",
+  "@dugnadClubShopCartHint": {
+    "placeholders": {
+      "number": { "type": "String" },
+      "partner": { "type": "String" },
+      "address": { "type": "String" }
+    }
+  },
+  "dugnadClubShopProcessing": "Behandler betalingen …",
+  "dugnadClubShopProcessingSub": "Lukk ikke appen",
+  "dugnadClubShopPaid": "Betalingen er bekreftet. Vis ordrenummeret når du henter.",
+  "dugnadClubShopReceiptTitle": "Ordrebekreftelse",
+  "dugnadClubShopThanks": "Takk for kjøpet",
+  "dugnadClubShopShowNumber": "Vis ordrenummeret når du henter plaggene.",
+  "dugnadClubShopPointsAdded": "poeng lagt til kontoen din",
+  "dugnadClubShopOrderNumber": "Ordrenummer",
+  "dugnadClubShopScanAt": "Skannes eller leses opp hos {partner}",
+  "@dugnadClubShopScanAt": {
+    "placeholders": { "partner": { "type": "String" } }
+  },
+  "dugnadClubShopPickupAt": "Henting hos {partner}",
+  "@dugnadClubShopPickupAt": {
+    "placeholders": { "partner": { "type": "String" } }
+  },
+  "dugnadClubShopPickupBody": "{address} · {pickup}. Oppgi ordrenummeret i skranken — de slår det opp og finner plaggene dine.",
+  "@dugnadClubShopPickupBody": {
+    "placeholders": {
+      "address": { "type": "String" },
+      "pickup": { "type": "String" }
+    }
+  },
+  "dugnadClubShopReceiptHint": "Ordrebekreftelsen ligger alltid under Mine ordrer i shopen — du finner den igjen når du skal hente.",
+  "dugnadClubShopSeeOrders": "Se mine ordrer",
+  "dugnadClubShopBackToShop": "Tilbake til shopen",
+  "dugnadClubShopPaidLabel": "Betalt",
+  "dugnadClubShopClubLabel": "Klubb",
+  "dugnadClubShopMemberNoLabel": "Medlemsnummer",
+  "dugnadClubShopPlacedLabel": "Bestilt",
+  "dugnadClubShopPointsLabel": "Poeng",
+  "dugnadClubShopOrderedToday": "I dag",
+  "dugnadClubShopOrderedTodayTime": "I dag · {time}",
+  "@dugnadClubShopOrderedTodayTime": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "dugnadClubShopStatusReady": "Klar til henting",
+  "dugnadClubShopStatusPending": "Behandles",
+  "dugnadClubShopStatusCollected": "Utlevert",
+  "dugnadClubShopOrderMeta": "{count} plagg",
+  "@dugnadClubShopOrderMeta": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "dugnadClubShopPayFailed": "Betalingen feilet. Prøv igjen.",
+  "dugnadClubShopPayInitFailed": "Kunne ikke starte betalingen. Prøv igjen.",
+  "dugnadClubShopRemoveItem": "Fjern",
+  "dugnadClubShopPointsTitle": "Du tjener poeng på dette kjøpet",
+  "dugnadClubShopPointsSub": "Poengene legges til når betalingen er bekreftet",
+  "dugnadClubShopProductImage": "Produktbilde",
+  "dugnadClubShopBrowseSoon": "Kolleksjonen åpnes her når du har låst opp.",
+
+  "dugnadEarnMostPointsTitle": "Slik tjener du flest poeng",
+  "dugnadEarnMostPointsSub": "Hver handling for {club} gir poeng",
+  "@dugnadEarnMostPointsSub": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadEarnSheetSubtitle": "Poeng løfter deg i nivå, låser opp merker og hjelper {club}",
+  "@dugnadEarnSheetSubtitle": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadEarnSheetIntro": "Jo mer du bidrar, jo flere poeng samler du. Poeng gir deg høyere nivå og merker — og løfter laget ditt på sesongtabellen mot premiene.",
+  "dugnadEarnSheetActivitiesLabel": "POENG PER AKTIVITET",
+  "dugnadEarnSheetTapHint": "Trykk en aktivitet for å komme i gang.",
+  "dugnadEarnBuyCampaignDesc": "Støtt et lag ved å handle varer",
+  "dugnadEarnReferDesc": "Få noen til å støtte {club}",
+  "@dugnadEarnReferDesc": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadEarnDonationDesc": "Tjen medlemspoeng hver måned automatisk",
+  "dugnadEarnDonationPtsPerMonth": "+{points}/mnd",
+  "@dugnadEarnDonationPtsPerMonth": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadEarnLeaderboardDesc": "Bidra til at laget ditt klatrer",
+  "dugnadEarnTeamPointsLabel": "Lag-poeng",
+  "dugnadCampaignsFromClub": "Kampanjer fra {club}",
+  "@dugnadCampaignsFromClub": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadCampaignPageTitle": "Kampanjer",
+  "dugnadCampaignSearchHint": "Søk etter lag, kampanje eller vare …",
+  "dugnadAllTeams": "Alle lag",
+  "dugnadSupportTeamsIn": "Støtt lagene i {club}",
+  "@dugnadSupportTeamsIn": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadSupportTeamsSub": "Hvert lag selger sin egen matkasse",
+  "dugnadCampaignSupportBuyTitle": "Støtt ditt lokale lag — kjøp fra kampanjen",
+  "dugnadSupplierEyebrow": "Leverandør",
+  "dugnadCarryoverHighlightPoints": "Nå {tier} (STØ {sto}) → ta med {points} poeng til neste sesong 🚀",
+  "@dugnadCarryoverHighlightPoints": {"placeholders": {"tier": {"type": "String"}, "sto": {"type": "int"}, "points": {"type": "int"}}},
+  "dugnadCarryoverPerLevelSubPoints": "Metallnivået ved sesongslutt bestemmer poeng-forspranget ditt inn i neste sesong.",
+  "campaignOrderDetailsTitle": "Ordredetaljer",
+  "campaignProductsSection": "Produkter",
+  "campaignCartTitle": "Din kurv",
+  "campaignCartClear": "Tøm kurv",
+  "campaignCartCheckout": "Til betaling",
+  "campaignCartSummary": "{count, plural, =1{1 vare i kurven} other{{count} varer i kurven}}",
+  "@campaignCartSummary": {"placeholders": {"count": {"type": "int"}}},
+  "campaignCountdownLeft": "igjen",
+  "campaignCountdownDeadlinePassed": "Bestillingsfristen er ute",
+  "campaignCountdownLastDay": "Siste døgn — bestill nå",
+  "campaignCountdownTimeLeft": "Tid igjen til bestillingsfrist",
+  "campaignCountdownClosed": "Stengt",
+  "campaignMatkasseFallback": "Matkasse",
+  "campaignOrderNumber": "Ordrenummer",
+  "campaignOrderPlacedOn": "Bestilt",
+  "campaignDistributionDate": "Distribusjonsdato",
+  "campaignPickupLocation": "Utleveringssted",
+  "campaignOrderAmount": "Beløp",
+  "campaignPaymentStatusLabel": "Betalingsstatus",
+  "campaignOrderStatusLabel": "Ordrestatus",
+  "campaignOrderDone": "Ferdig",
+  "campaignOrderOngoing": "Pågår",
+  "campaignDownloadPdf": "Last ned PDF",
+  "campaignOrderPdfFooter": "Generert fra Reen Dugnad-appen",
+  "campaignOrderPdfFailed": "Kunne ikke lage PDF. Prøv igjen.",
+  "dugnadMissionsLoadError": "Kunne ikke laste ukesoppdrag akkurat nå.",
+  "dugnadMissionsLoadErrorSub": "Sjekk nettverket og prøv igjen.",
+  "dugnadMissionsNoTeam": "Velg et lag under Dine poeng for å se ukesoppdrag og sesongmål.",
+  "dugnadMissionsNoWeekly": "Ingen aktive ukesoppdrag denne uken.",
+  "dugnadSeasonGoals": "Sesongmål",
+  "dugnadMissionsNoSeasonGoals": "Ingen sesongmål er satt opp ennå.",
+  "dugnadWeeklyChallengesTitle": "Ukeskamper",
+  "dugnadMissionsResetMonday": "Nullstilles mandag · {days} dager igjen",
+  "@dugnadMissionsResetMonday": {"placeholders": {"days": {"type": "int"}}},
+  "dugnadMissionsFormEntrySub": "Formen bygges av aktiviteten din i appen — kjøp, verving, deling og innlogging",
+  "dugnadStreakTitle": "{weeks} uker på rad med aktivitet",
+  "@dugnadStreakTitle": {"placeholders": {"weeks": {"type": "int"}}},
+  "dugnadStreakSubtitle": "Hold streaken for å bygge form — én poenggivende handling i uka teller",
+  "dugnadMissionsTempoDone": "Fullført",
+  "dugnadMissionsTempoOnTrack": "I rute",
+  "dugnadMissionsTempoNotStarted": "Ikke startet",
+  "dugnadWeeklyChallengeLabel": "Ukesoppdrag",
+  "dugnadMissionsInfoBanner": "Aktivitet gir poeng og form — aldri koblet til medlemskap eller betaling, og det påvirker aldri klubbenes andel.",
+  "dugnadShareYourSupport": "Del støtten din",
+  "dugnadSupportShareMessage": "Jeg støttet {club} 💜",
+  "@dugnadSupportShareMessage": {"placeholders": {"club": {"type": "String"}}},
+  "dugnadShareCampaign": "Del kampanjen",
+  "dugnadShareProduct": "Del produktet",
+  "dugnadShareCampaignMessage": "Støtt {club} — kjøp fra kampanjen på Reen Dugnad 💜",
+  "@dugnadShareCampaignMessage": {"placeholders": {"club": {"type": "String"}}},
+  "dugnadShareProductMessage": "Sjekk ut {product} fra {club} på Reen Dugnad 💜",
+  "@dugnadShareProductMessage": {"placeholders": {"product": {"type": "String"}, "club": {"type": "String"}}},
+  "dugnadPurchaseShareToClub": "En andel av kjøpet går til {club}",
+  "@dugnadPurchaseShareToClub": {"placeholders": {"club": {"type": "String"}}},
+  "dugnadModeCommercialSub": "Vanlig modus — lanseres senere",
+  "dugnadSaveChange": "Lagre endring",
+  "dugnadNotNow": "Ikke nå",
+  "dugnadEarnPointsOnPurchaseTitle": "Du tjener poeng på kjøpet",
+  "dugnadEarnPointsOnPurchaseSub": "Poengene legges til kontoen din når kjøpet er bekreftet",
+  "dugnadInCartBoxes": "I kurven · {count, plural, =1{1 kasse} other{{count} kasser}}",
+  "@dugnadInCartBoxes": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadProfileAccountSection": "Konto",
+  "dugnadSupporterCardProfileSub": "Ditt samlekort — delbart",
+  "dugnadSeasonRecapTitle": "Din sesong-recap",
+  "dugnadSeasonRecapSub": "Sesongen din i tall — delbar",
+  "dugnadVisibilityTitle": "Synlighet",
+  "dugnadVisibilitySub": "Visningsnavn og personvern på tabellene",
+  "dugnadPaymentVippsMasked": "Vipps •••• {last4}",
+  "@dugnadPaymentVippsMasked": {
+    "placeholders": {
+      "last4": { "type": "String" }
+    }
+  },
+  "dugnadSeasonRecapSoon": "Sesong-recap kommer snart",
+  "dugnadSeasonRecapSeasonLabel": "Sesongen {label}",
+  "@dugnadSeasonRecapSeasonLabel": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "dugnadSeasonRecapHeroTitle": "Din sesong, {name} 💜",
+  "@dugnadSeasonRecapHeroTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "dugnadSeasonRecapHeroSub": "Takk for at du heiet fram laget hele veien. Her er sesongen din i tall.",
+  "dugnadSeasonRecapContributed": "Du bidro med",
+  "dugnadSeasonRecapReferrals": "Ildsjeler du vervet",
+  "dugnadSeasonRecapCampaigns": "Kampanjer kjøpt",
+  "dugnadSeasonRecapPoints": "Poeng samlet",
+  "dugnadSeasonRecapTeamFinished": "{team} endte på {rank}. plass",
+  "@dugnadSeasonRecapTeamFinished": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "rank": { "type": "int" }
+    }
+  },
+  "dugnadSeasonRecapTeamOf": "av {count} lag i {club}",
+  "@dugnadSeasonRecapTeamOf": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadSeasonRecapViewCard": "Se støttespiller-kortet ditt",
+  "dugnadSeasonRecapCardSub": "Sesongens samlekort",
+  "dugnadSeasonRecapShare": "Del sesongen din",
+  "dugnadSeasonRecapShareMessage": "Min Reen Dugnad-sesong med {club} 💜\n{link}",
+  "@dugnadSeasonRecapShareMessage": {
+    "placeholders": {
+      "club": { "type": "String" },
+      "link": { "type": "String" }
+    }
+  },
+  "dugnadSeasonRecapShareMessageLegacy": "Min Reen Dugnad-sesong med {club} 💜",
+  "@dugnadSeasonRecapShareMessageLegacy": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadTransitionWindowTitle": "Overgangsvinduet",
+  "dugnadTransitionWindowSub": "Rykk opp med laget eller bytt klubb",
+  "dugnadTransitionWindowSoon": "Overgangsvinduet kommer snart",
+  "dugnadTransferWindowClosesTitle": "Overgangsvinduet stenger om {days} dager ⏳",
+  "@dugnadTransferWindowClosesTitle": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "dugnadTransferWindowClosesSoon": "Overgangsvinduet stenger snart ⏳",
+  "dugnadTransferWindowDeadlineSub": "Sesongslutt · gjør valget ditt før fristen",
+  "dugnadTransferNextSeasonLabel": "Hva skjer med laget ditt neste sesong?",
+  "dugnadTransferMoveUpTitle": "Rykk opp med laget",
+  "dugnadTransferMoveUpSub": "{current} blir {next} — bli med videre",
+  "@dugnadTransferMoveUpSub": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "next": { "type": "String" }
+    }
+  },
+  "dugnadTransferRecommended": "Anbefalt",
+  "dugnadTransferStayTitle": "Bli på samme trinn",
+  "dugnadTransferStaySub": "Fortsett å følge {team} (ny årgang)",
+  "@dugnadTransferStaySub": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferTeamSwitchTitle": "Bytt til et annet lag i klubben",
+  "dugnadTransferTeamSwitchSub": "Følg et annet lag i {club}",
+  "@dugnadTransferTeamSwitchSub": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadTransferClubChangeTitle": "Bytt klubb",
+  "dugnadTransferClubChangeSub": "Signer for en ny klubb — «Signert for»-kort",
+  "dugnadTransferInfo": "Ved sesongslutt bestemmer metallnivået ditt hvor mange poeng du tar med deg videre. Ratingen bygges opp på nytt gjennom aktivitet; lifetime-poengene dine er alltid trygge.",
+  "dugnadTransferMoveUpConfirmTitle": "{current} blir {next} — blir du med videre?",
+  "@dugnadTransferMoveUpConfirmTitle": {
+    "placeholders": {
+      "current": { "type": "String" },
+      "next": { "type": "String" }
+    }
+  },
+  "dugnadTransferMoveUpConfirmBody": "Laget rykker opp et alderstrinn til ny sesong. Du beholder rating, poeng og nivå.",
+  "dugnadTransferMoveUpConfirmBtn": "Ja, bli med til {next}",
+  "@dugnadTransferMoveUpConfirmBtn": {
+    "placeholders": {
+      "next": { "type": "String" }
+    }
+  },
+  "dugnadTransferStayConfirmTitle": "Bli på {team} neste sesong?",
+  "@dugnadTransferStayConfirmTitle": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferStayConfirmBody": "Du fortsetter å følge {team} (ny årgang). Kort bekreftelse — du beholder rating, poeng og nivå.",
+  "@dugnadTransferStayConfirmBody": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferStayConfirmBtn": "Ja, bli på {team}",
+  "@dugnadTransferStayConfirmBtn": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferPickTeamLabel": "Velg lag i {club}",
+  "@dugnadTransferPickTeamLabel": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadTransferPickClubLabel": "Velg ny klubb",
+  "dugnadTransferFollowTeamBtn": "Følg {team}",
+  "@dugnadTransferFollowTeamBtn": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferNewTeam": "nytt lag",
+  "dugnadTransferBack": "Tilbake",
+  "dugnadTransferSuccessMoveUp": "Du er med videre til {team} 💜",
+  "@dugnadTransferSuccessMoveUp": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferSuccessStay": "Du fortsetter med {team} 💜",
+  "@dugnadTransferSuccessStay": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferSuccessTeamSwitch": "Du følger nå {team} 💜",
+  "@dugnadTransferSuccessTeamSwitch": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadTransferClubChanged": "Du signerte for {club} 💜",
+  "@dugnadTransferClubChanged": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadTransferCommitSuccess": "Valget ditt er lagret 💜",
+  "dugnadTransferCommitFailed": "Kunne ikke lagre valget. Prøv igjen.",
+  "dugnadTransferMoveUpUnavailable": "Opprykk er ikke satt opp for dette laget ennå — mangler neste alderstrinn i klubben.",
+  "dugnadTransferLoadFailed": "Kunne ikke laste overgangsvinduet.",
+  "dugnadTransferWindowDisabled": "Overgangsvinduet er ikke aktivert ennå.",
+  "dugnadTransferWindowClosed": "Overgangsvinduet er stengt.",
+  "dugnadTransferNotNowTitle": "Ikke nå",
+  "dugnadTransferNotNowSub": "Behold laget ditt — velg senere fra profilen",
+  "dugnadTransferExtra": "Du kan bytte lag når som helst — i overgangsvinduet får overgangen ekstra stas ✨",
+  "dugnadTransferChooseLater": "Du kan velge senere fra profilen 💜",
+  "dugnadCareerTitle": "Din karriere",
+  "dugnadCareerSub": "Tidslinje for lagtilhørighet",
+  "dugnadCareerSoon": "Din karriere-tidslinje kommer snart",
+  "dugnadCareerHeroSub": "Din permanente historikk på Reen Dugnad",
+  "dugnadCareerLifetimeEyebrow": "Lifetime-poeng",
+  "dugnadCareerLifetimePermanent": "Permanent",
+  "dugnadCareerLifetimeSub": "Opptjent siden {date} · vokser for alltid, nullstilles aldri",
+  "@dugnadCareerLifetimeSub": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "dugnadCareerSeasonArchiveLabel": "Sesongkort-arkiv",
+  "dugnadCareerSeasonArchiveEmptyTitle": "Ingen sesonger arkivert ennå",
+  "dugnadCareerSeasonArchiveEmptyBody": "STØ-kortet ditt fryses her når den første sesongen er over — med sluttrating, klubb og sesongmerker. Da starter kortsamlingen din.",
+  "dugnadCareerSeasonStamp": "Sesong {label}",
+  "@dugnadCareerSeasonStamp": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "dugnadCareerStoTier": "STØ · {tier}",
+  "@dugnadCareerStoTier": {
+    "placeholders": {
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadCareerTeamsMulti": "{team} · {count} lag",
+  "@dugnadCareerTeamsMulti": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadCareerPermanentMarksTitle": "Permanente merker",
+  "dugnadCareerPermanentMarksSub": "Med opptjeningsdato og STØ-verdi · mistes aldri",
+  "dugnadCareerAffiliationTimeline": "Tilhørighets-tidslinje",
+  "dugnadCareerRoleCurrent": "Nåværende klubb",
+  "dugnadCareerRoleTransfer": "Fri overgang",
+  "dugnadCareerNowBadge": "Nå",
+  "dugnadCareerInfoFooter": "Lifetime-poeng og permanente merker består for alltid. Sesongmerker og sesongkort arkiveres her ved hvert sesongskifte — med klubb- og lagnavn frosset slik de var den sesongen.",
+  "dugnadCareerShareMessage": "Karrieren min på Reen Dugnad — {points} lifetime-poeng 💜\n{link}",
+  "@dugnadCareerShareMessage": {
+    "placeholders": {
+      "points": { "type": "String" },
+      "link": { "type": "String" }
+    }
+  },
+  "dugnadCareerShareMessageLegacy": "Karrieren min på Reen Dugnad — {points} lifetime-poeng 💜",
+  "@dugnadCareerShareMessageLegacy": {
+    "placeholders": {
+      "points": { "type": "String" }
+    }
+  },
+  "dugnadVisibilitySoon": "Synlighet kommer snart",
+  "dugnadPrivacyIntroPrefix": "Slik styrer du hvor du vises: ",
+  "dugnadPrivacyIntroBold": "Tabell, Toppscorer, Assistkonge, troppen",
+  "dugnadPrivacyIntroSuffix": " og delte kort.",
+  "dugnadPrivacyPreviewAsLabel": "Forhåndsvis som",
+  "dugnadPrivacyPreviewAdult": "Voksen",
+  "dugnadPrivacyPreviewMinor": "Under 18",
+  "dugnadPrivacyDisplayTitle": "Visningsnavn",
+  "dugnadPrivacyPrefFull": "Fullt navn",
+  "dugnadPrivacyPrefFullSub": "Synlig for alle",
+  "dugnadPrivacyPrefInitial": "Fornavn + initial",
+  "dugnadPrivacyPrefInitialSub": "Litt mer privat",
+  "dugnadPrivacyPrefNickname": "Kallenavn",
+  "dugnadPrivacyPrefNicknameSub": "Velg ditt eget",
+  "dugnadPrivacyPrefAnonymous": "Anonym støttespiller",
+  "dugnadPrivacyPrefAnonymousSub": "Skjul navnet ditt helt",
+  "dugnadPrivacyPrefAnonymousEx": "Anonym",
+  "dugnadPrivacyVisibleSection": "Synlighet",
+  "dugnadPrivacyVisibleOnTitle": "Vis meg på tabeller og i troppen",
+  "dugnadPrivacyVisibleOffTitle": "Skjult (anonym)",
+  "dugnadPrivacyVisibleNote": "Bidraget ditt teller for laget uansett — du forsvinner bare fra navnelistene.",
+  "dugnadPrivacyLeaderboardPreviewTitle": "Slik vises du på topplistene",
+  "dugnadPrivacyNicknameHint": "Skriv kallenavnet ditt …",
+  "dugnadPrivacyMinorBannerTitle": "Du er under 18",
+  "dugnadPrivacyMinorBannerSub": "Av personvernhensyn er du anonym eller maskert som standard. «Fullt navn» krever samtykke fra en foresatt.",
+  "dugnadPrivacyMinorConsent": "Be om foreldresamtykke",
+  "dugnadPrivacyMinorConsentSoon": "Foreldresamtykke kommer snart",
+  "dugnadPrivacyHiddenMeta": "Skjult · {team}",
+  "@dugnadPrivacyHiddenMeta": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadPrivacyGoalUnit": "mål",
+  "dugnadPrivacySaved": "Personverninnstillinger lagret",
+  "dugnadPrivacySaveFailed": "Kunne ikke lagre personverninnstillinger",
+  "dugnadPaymentSoon": "Betaling kommer snart",
+  "dugnadCustomerSupport": "Kundestøtte",
+  "dugnadSettings": "Innstillinger",
+  "dugnadPickTeamTitle": "Velg ditt lag",
+  "dugnadPickTeamSubtitle": "Hvilket lag i {club} hører du til?",
+  "@dugnadPickTeamSubtitle": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadPickTeamSearch": "Søk etter laget ditt …",
+  "dugnadPickTeamNote": "Du kan bytte lag når som helst. Engasjementspoeng fra hverdagskjøpene dine tilskrives laget du velger.",
+  "dugnadPickTeamMeta": "{families} ildsjeler aktive · #{rank} i konkurransen",
+  "@dugnadPickTeamMeta": {
+    "placeholders": {
+      "families": { "type": "int" },
+      "rank": { "type": "int" }
+    }
+  },
+  "dugnadPickTeamEmpty": "Fant ingen lag som matcher «{query}».",
+  "@dugnadPickTeamEmpty": {
+    "placeholders": {
+      "query": { "type": "String" }
+    }
+  },
+  "dugnadLeaderboardTeamSelectedTitle": "{team} · #{rank}",
+  "@dugnadLeaderboardTeamSelectedTitle": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "rank": { "type": "int" }
+    }
+  },
+  "dugnadLeaderboardTeamSelectedSub": "Se standing, poeng og nivå",
+  "dugnadYourPlaceLabel": "Din plass",
+  "dugnadYourPlaceRank": "#{rank} / {total}",
+  "@dugnadYourPlaceRank": {
+    "placeholders": {
+      "rank": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "dugnadBuyFoodbox": "Kjøp en matkasse",
+  "dugnadBuyFoodboxSub": "Lagenes matkasser — støtt et lag direkte",
+  "dugnadSupportRegularly": "Støtt laget fast",
+  "dugnadSupportRegularlySub": "Fast månedlig støtte til laget",
+  "dugnadYourBadges": "Dine merker",
+  "dugnadBadgesUnlocked": "{earned} av {total} merker låst opp",
+  "@dugnadBadgesUnlocked": {
+    "placeholders": {
+      "earned": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "dugnadSeeAllBadges": "Se alle",
+  "dugnadPointsToNext": "{points} poeng til {tier}",
+  "@dugnadPointsToNext": {
+    "placeholders": {
+      "points": { "type": "int" },
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadHighestTierReached": "Høyeste nivå nådd 🎉",
+  "dugnadPreviewLevelHint": "Trykk på et nivå for å se oppgraderingen",
+  "dugnadStoSourceSectionTitle": "Dette bygger ratingen din",
+  "dugnadStoSourceActivityTitle": "Aktivitet & verving",
+  "dugnadStoSourceActivitySub": "Verving, deltakelse og deling",
+  "dugnadStoSourceCampaignTitle": "Kampanjekjøp",
+  "dugnadStoSourceCampaignSub": "Kjøp av kampanjer og produkter",
+  "dugnadStoSourceBadgeTitle": "Bonus fra merker",
+  "dugnadStoSourceBadgeSub": "{count, plural, =1{1 merke låst opp} other{{count} merker låst opp}}",
+  "@dugnadStoSourceBadgeSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "dugnadSeasonPointsThisYear": "Sesongpoeng i år",
+  "dugnadYourStoRating": "Din STØ-rating",
+  "dugnadStoRatingFromPoints": "Poengsummen bestemmer ratingen",
+  "dugnadStoCardPillarTitle": "STØ-kortet ditt",
+  "dugnadStoCardPillarSubtitle": "{tier} · {metal} · delbart",
+  "@dugnadStoCardPillarSubtitle": {
+    "placeholders": {
+      "tier": { "type": "String" },
+      "metal": { "type": "String" }
+    }
+  },
+  "dugnadPointsShortSuffix": "p",
+  "dugnadYourTeam": "Ditt lag",
+  "dugnadShowSupporterCard": "Vis støttespiller-kortet ditt",
+  "dugnadSupporterCardLine": "{tier} · {points} poeng · delbart",
+  "@dugnadSupporterCardLine": {
+    "placeholders": {
+      "tier": { "type": "String" },
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadHowYouEarnPoints": "Slik tjener du poeng",
+  "dugnadReferFriend": "Verv en venn",
+  "dugnadReferFriendSub": "Få ildsjeler med i laget",
+  "dugnadBuyCampaign": "Kjøp en kampanje",
+  "dugnadBuyCampaignSub": "Matkasser fra laget",
+  "dugnadRegularSupport": "Fast støtte",
+  "dugnadRegularSupportSub": "Støtt et lag månedlig",
+  "dugnadChangeTeam": "Bytt",
+  "dugnadTeamPointsCount": "#{rank} av {total} · poengene dine teller her",
+  "@dugnadTeamPointsCount": {
+    "placeholders": {
+      "rank": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "dugnadLevelUpTitle": "Level opp — du er nå {tier}! 💜",
+  "@dugnadLevelUpTitle": {
+    "placeholders": {
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadLevelUpThanks": "Takk for alt du bidrar med. Neste nivå: {nextTier}.",
+  "@dugnadLevelUpThanks": {
+    "placeholders": {
+      "nextTier": { "type": "String" }
+    }
+  },
+  "dugnadLevelUpThanksMax": "Takk for alt du bidrar med.",
+  "dugnadSupporterLabel": "STØTTESPILLER",
+  "dugnadShareCardMessage": "Jeg er nå {tier} på Reen Dugnad 💜",
+  "@dugnadShareCardMessage": {
+    "placeholders": {
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadShareResult": "Del resultatet",
+  "dugnadSharePointsReward": "+{points} poeng",
+  "@dugnadSharePointsReward": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadCheerButton": "Heia!",
+  "dugnadSupporterCardTitle": "Støttespiller-kort",
+  "dugnadStoPosition": "STØ",
+  "dugnadKapPosition": "KAP",
+  "dugnadPointsStat": "POENG",
+  "dugnadGoalsPurchases": "MÅL · KJØP",
+  "dugnadAssistsReferrals": "ASSIST · VERV",
+  "dugnadShareYourCard": "Del kortet ditt",
+  "dugnadSupporterCardShareMessage": "{title} — {club} 💜\n{link}",
+  "@dugnadSupporterCardShareMessage": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "club": { "type": "String" },
+      "link": { "type": "String" }
+    }
+  },
+  "dugnadCardValueHint": "Kortet stiger i verdi når du tjener poeng, verver ildsjeler og støtter laget gjennom sesongen.",
+  "dugnadBadgeRegularSupporter": "Fast støttespiller",
+  "dugnadBadgeRegularSupporterSub": "Sett opp fast støtte",
+  "dugnadBadgeAmbassador": "Klubbambassadør",
+  "dugnadBadgeAmbassadorSub": "Verv 5 til klubben",
+  "dugnadBadgeTeamPlayer": "Lagspiller",
+  "dugnadBadgeTeamPlayerSub": "3 mnd fast støtte",
+  "dugnadBadgeVeteran": "Veteran",
+  "dugnadBadgeVeteranSub": "1 år som støttespiller",
+  "dugnadBadgeHatTrick": "Hat-trick",
+  "dugnadBadgeHatTrickSub": "3 vervinger",
+  "dugnadBadgeAssistKing": "Assist-konge",
+  "dugnadBadgeAssistKingSub": "Verv over 5 til klubben",
+  "dugnadBadgeUnlocked": "Låst opp",
+  "dugnadBadgeReferProgress": "{current}/5",
+  "@dugnadBadgeReferProgress": {
+    "placeholders": {
+      "current": { "type": "int" }
+    }
+  },
+  "dugnadBadgeVeteranProgress": "{current}/12 mnd",
+  "@dugnadBadgeVeteranProgress": {
+    "placeholders": {
+      "current": { "type": "int" }
+    }
+  },
+  "dugnadBadgeAssistProgress": "{current}/6",
+  "@dugnadBadgeAssistProgress": {
+    "placeholders": {
+      "current": { "type": "int" }
+    }
+  },
+  "dugnadPermanentBadgesTitle": "Permanente merker",
+  "dugnadPermanentBadgesSub": "Står for alltid — mistes aldri",
+  "dugnadSeasonalBadgesTitle": "Sesongmerker",
+  "dugnadSeasonalBadgesSub": "Fornyes hver sesong · nullstilles ved sesongslutt",
+  "dugnadBadgeSheetTitle": "Merke",
+  "dugnadBadgeTypePermanent": "Permanent merke · mistes aldri",
+  "dugnadBadgeTypeSeasonal": "Sesongmerke · fornyes hver sesong",
+  "dugnadBadgeStatusActiveNow": "Aktiv nå",
+  "dugnadBadgeEarnedAt": "Opptjent {date}",
+  "@dugnadBadgeEarnedAt": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "dugnadBadgeStatusLocked": "Ikke låst opp ennå",
+  "dugnadBadgeHowToSection": "SLIK OPPNÅR DU MERKET",
+  "dugnadBadgeProgressLabel": "Fremgang",
+  "dugnadBadgeStoEarned": "+{bonus} STØ",
+  "@dugnadBadgeStoEarned": {
+    "placeholders": {
+      "bonus": { "type": "int" }
+    }
+  },
+  "dugnadBadgeStoUnlock": "Lås opp +{bonus} STØ",
+  "@dugnadBadgeStoUnlock": {
+    "placeholders": {
+      "bonus": { "type": "int" }
+    }
+  },
+  "dugnadBadgeRewardEarnedTitle": "Gir deg +{bonus} STØ-rating",
+  "@dugnadBadgeRewardEarnedTitle": {
+    "placeholders": {
+      "bonus": { "type": "int" }
+    }
+  },
+  "dugnadBadgeRewardLockedTitle": "Låser opp +{bonus} STØ-rating",
+  "@dugnadBadgeRewardLockedTitle": {
+    "placeholders": {
+      "bonus": { "type": "int" }
+    }
+  },
+  "dugnadBadgeRewardEarnedSub": "Allerede lagt til ratingen din",
+  "dugnadBadgeRewardLockedSub": "Legges til når merket er oppnådd",
+  "dugnadBadgeFirstSub": "Gjennomfør en overgang",
+  "dugnadBadgeFirstPurchaseSub": "Kjøp din første kampanjekasse",
+  "dugnadBadgePurchaseHattrickSub": "Kjøp 3 kampanjekasser",
+  "dugnadBadgeTenBoxesSub": "Kjøp 10 kampanjekasser totalt",
+  "dugnadBadgeMissionsMasterSub": "Fullfør 8 ukesoppdrag",
+  "dugnadBadgeFormWeekSub": "10 uker i form",
+  "dugnadBadgeSeasonTopSub": "Topp 3 på laget",
+  "dugnadBadgeClubEngagedSub": "Aktiv for klubben din",
+  "dugnadBadgeLockedGenericSub": "Fortsett å være aktiv",
+  "dugnadBadgeMonthsProgress": "{current}/{goal} mnd",
+  "@dugnadBadgeMonthsProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "goal": { "type": "int" }
+    }
+  },
+  "dugnadBadgeReferralsProgress": "{current}/{goal} vervet",
+  "@dugnadBadgeReferralsProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "goal": { "type": "int" }
+    }
+  },
+  "dugnadBadgeWeeklyChallengesProgress": "{current}/{goal} oppdrag",
+  "@dugnadBadgeWeeklyChallengesProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "goal": { "type": "int" }
+    }
+  },
+  "dugnadBadgeFormWeeksProgress": "{current}/{goal} uker",
+  "@dugnadBadgeFormWeeksProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "goal": { "type": "int" }
+    }
+  },
+  "dugnadBadgeSeasonRankProgress": "#{rank} · {places} plasser opp",
+  "@dugnadBadgeSeasonRankProgress": {
+    "placeholders": {
+      "rank": { "type": "int" },
+      "places": { "type": "int" }
+    }
+  },
+  "dugnadBadgeBoxesProgress": "{current}/{goal} kasser",
+  "@dugnadBadgeBoxesProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "goal": { "type": "int" }
+    }
+  },
+  "dugnadBadgeHowActivityGeneric": "Fortsett å være aktiv i appen for å låse opp dette merket.",
+  "dugnadBadgeHowTenureGeneric": "Hold medlemskapet aktivt over tid for å låse opp dette merket.",
+  "dugnadBadgeHowLocalityGeneric": "Vær aktiv for klubben og laget ditt gjennom sesongen.",
+  "dugnadBadgeHowGenericStep1": "Vær aktiv i appen",
+  "dugnadBadgeHowGenericStep2": "Oppfyll kravet",
+  "dugnadBadgeHowGenericStep3": "Merket låses opp automatisk",
+  "dugnadBadgeHowSupport": "Sett opp et fast medlemskap i klubben din. Merket låses opp med en gang medlemskapet er aktivt.",
+  "dugnadBadgeHowSupportStep1": "Velg klubb og lag",
+  "dugnadBadgeHowSupportStep2": "Sett opp fast støtte",
+  "dugnadBadgeHowSupportStep3": "Merket er ditt for alltid",
+  "dugnadBadgeHowLagspiller": "Vær aktivt medlem i 3 måneder på rad. Teller så lenge medlemskapet ikke pauses.",
+  "dugnadBadgeHowLagspillerStep1": "Ha aktivt medlemskap",
+  "dugnadBadgeHowLagspillerStep2": "Hold det i 3 måneder",
+  "dugnadBadgeHowLagspillerStep3": "Låses opp automatisk",
+  "dugnadBadgeHowFirst": "Gjennomfør din første overgang mellom to klubber i appen.",
+  "dugnadBadgeHowFirstStep1": "Bytt til en ny klubb",
+  "dugnadBadgeHowFirstStep2": "Fullfør overgangen",
+  "dugnadBadgeHowFirstStep3": "Minnemerke — mistes aldri",
+  "dugnadBadgeHowHattrick": "Verv 3 venner som blir medlem. Hver venn som fullfører teller.",
+  "dugnadBadgeHowHattrickStep1": "Del vervelenken din",
+  "dugnadBadgeHowHattrickStep2": "3 venner blir medlem",
+  "dugnadBadgeHowHattrickStep3": "Merket låses opp",
+  "dugnadBadgeHowVeteran": "Vær sammenhengende medlem i 12 måneder. Et lojalitetsmerke som står for alltid.",
+  "dugnadBadgeHowVeteranStep1": "Hold medlemskapet aktivt",
+  "dugnadBadgeHowVeteranStep2": "12 måneder på rad",
+  "dugnadBadgeHowVeteranStep3": "Gir ekstra STØ-rating",
+  "dugnadBadgeHowSeasonAmbassador": "Verv 5 nye medlemmer i løpet av inneværende sesong. Nullstilles ved sesongslutt.",
+  "dugnadBadgeHowSeasonAmbassadorStep1": "Del vervelenken",
+  "dugnadBadgeHowSeasonAmbassadorStep2": "5 vervinger denne sesongen",
+  "dugnadBadgeHowSeasonAmbassadorStep3": "Fornyes hver sesong",
+  "dugnadBadgeHowMissionsMaster": "Fullfør 8 ukesoppdrag i løpet av sesongen. Nye oppdrag hver uke.",
+  "dugnadBadgeHowMissionsMasterStep1": "Åpne Ukens kamper",
+  "dugnadBadgeHowMissionsMasterStep2": "Fullfør 8 stk",
+  "dugnadBadgeHowMissionsMasterStep3": "Fornyes hver sesong",
+  "dugnadBadgeHowClubEngaged": "Vær aktiv for klubben din gjennom sesongen — logg inn, delta og støtt opp.",
+  "dugnadBadgeHowClubEngagedStep1": "Vær jevnlig aktiv",
+  "dugnadBadgeHowClubEngagedStep2": "Støtt klubben din",
+  "dugnadBadgeHowClubEngagedStep3": "Fornyes hver sesong",
+  "dugnadBadgeHowFormWeek": "Hold full form i 10 uker i løpet av sesongen. Full form bygges med daglig aktivitet.",
+  "dugnadBadgeHowFormWeekStep1": "Vær aktiv hver uke",
+  "dugnadBadgeHowFormWeekStep2": "10 uker i full form",
+  "dugnadBadgeHowFormWeekStep3": "Fornyes hver sesong",
+  "dugnadBadgeHowSeasonTop": "Bli topp 3 på laget ditt på sesongtabellen. Konkurrer med lagkameratene.",
+  "dugnadBadgeHowSeasonTopStep1": "Samle sesongpoeng",
+  "dugnadBadgeHowSeasonTopStep2": "Klatre til topp 3",
+  "dugnadBadgeHowSeasonTopStep3": "Fornyes hver sesong",
+  "dugnadBadgeHowFirstPurchase": "Fullfør ditt første betalte kampanjekjøp. Én kasse er nok.",
+  "dugnadBadgeHowFirstPurchaseStep1": "Åpne en kampanje",
+  "dugnadBadgeHowFirstPurchaseStep2": "Kjøp en matkasse",
+  "dugnadBadgeHowFirstPurchaseStep3": "Ditt for alltid etter første kjøp",
+  "dugnadBadgeHowPurchaseHattrick": "Kjøp 3 kampanjekasser totalt. De kan være i én ordre eller flere.",
+  "dugnadBadgeHowPurchaseHattrickStep1": "Bestill kampanjekasser",
+  "dugnadBadgeHowPurchaseHattrickStep2": "Nå 3 kasser totalt",
+  "dugnadBadgeHowPurchaseHattrickStep3": "Hat-trick-merket låses opp",
+  "dugnadBadgeHowTenBoxes": "Kjøp 10 kampanjekasser totalt. Hver betalte kasse teller.",
+  "dugnadBadgeHowTenBoxesStep1": "Fortsett å kjøpe kampanjekasser",
+  "dugnadBadgeHowTenBoxesStep2": "Nå 10 kasser totalt",
+  "dugnadBadgeHowTenBoxesStep3": "Minnemerke — mistes aldri",
+  "dugnadPointsChip": "+{points} poeng",
+  "@dugnadPointsChip": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadSwipeForOffers": "Sveip for tilbud",
+  "dugnadYouSupport": "Du støtter {clubName}",
+  "dugnadViewMemberOffers": "Se dine medlemstilbud",
+  "dugnadMemberDiscountsLocked": "Medlemsrabatter er låst",
+  "dugnadUnlock": "Lås opp",
+  "dugnadMemberNumber": "Medlem #{number}",
+  "dugnadShopAtSponsors": "Handle hos sponsorene",
+  "dugnadPercentToClub": "{percent}% til klubben",
+  "dugnadFundraisingYtd": "Klubben har samlet inn {amount} i år",
+  "dugnadReferFriendsToClub": "Verv venner til {clubName}",
+  "dugnadReferFriendsSubtitle": "Få flere til å støtte klubben — mer i klubbkassa",
+  "dugnadReferralPlaceholderBody": "Referral-linker og belønninger kommer i en senere Dugnad-dag.",
+  "dgAuthLoginTitle": "Kom i gang med Reen Dugnad",
+  "dgAuthLoginSubtitle": "Støtt idrettslaget ditt — hver bestilling gir tilbake til klubben.",
+  "dgAuthRegisterSubtitle": "Opprett kontoen din og velg klubb for å komme i gang.",
+  "dgAuthViaReferralLink": "Via vervelenke",
+  "dgAuthOrganic": "Organisk",
+  "dgAuthEmailToggle": "eller med e-post",
+  "dgAuthBrowseFirst": "Se deg rundt først",
+  "dugnadReferralTitle": "Verv til klubben",
+  "dugnadReferralYourLink": "Din vervelenke",
+  "dugnadReferralCopyLink": "Kopier lenke",
+  "dugnadReferralPromoEyebrow": "TJEN POENG NÅ",
+  "dugnadReferralPromoTitle": "Verv venner til Reen Dugnad",
+  "dugnadReferralPromoBenefit": "+{points} poeng for hver venn som blir med — med en gang.",
+  "@dugnadReferralPromoBenefit": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadReferralPromoBenefitBold": "+{points} poeng",
+  "@dugnadReferralPromoBenefitBold": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadReferralPromoBenefitSuffix": " for hver venn som blir med — med en gang.",
+  "dugnadReferralPromoCopyLink": "Kopier vervelenke",
+  "dugnadReferralPromoLinkCopied": "Lenke kopiert!",
+  "dugnadReferralPointsTitle": "Du tjener poeng for hver venn",
+  "dugnadReferralPointsSubtitle": "Poeng legges til når vennen fullfører sitt første kjøp (+{points}).",
+  "dugnadReferralConvertedCount": "vervet til klubben",
+  "dugnadReferralPointsPerConversion": "poeng per verving",
+  "dugnadReferralAmbassadorTitle": "Klubbambassadør",
+  "dugnadReferralAmbassadorProgress": "Verv {count} til for å låse opp badgen",
+  "dugnadReferralAmbassadorDone": "Du er klubbambassadør",
+  "dugnadReferralHowItWorks": "Slik fungerer det",
+  "dugnadReferralStep1Title": "Del lenken din",
+  "dugnadReferralStep1Subtitle": "Send til familie, naboer og kjente",
+  "dugnadReferralStep2Title": "De blir med i klubben",
+  "dugnadReferralStep2Subtitle": "De registrerer seg og velger {club}",
+  "dugnadReferralStep3Title": "Klubben tjener — for alltid",
+  "dugnadReferralStep3Subtitle": "{club} får en andel av alt de handler",
+  "dugnadReferralYourRecruits": "Dine vervinger",
+  "dugnadReferralPendingInvite": "Invitert · venter",
+  "dugnadReferralPending": "Ikke registrert ennå",
+  "dugnadReferralWaitingFirstPurchase": "Registrert · venter på første bestilling",
+  "dugnadReferralActive": "Støtter nå",
+  "dugnadReferralInvitedBy": "Vervet av {name} ✓",
+  "dugnadWelcomeTitle": "Gratulerer som ny bruker av Reen Dugnad-appen!",
+  "dugnadWelcomeSubtitle": "Ditt idrettslag er heldig som har slike som deg 💜",
+  "dugnadWelcomeCta": "Kom i gang",
+  "dugnadWelcomeBonusLabel": "poeng i velkomstbonus",
+  "dugnadWelcomeBonusPendingLabel": "velkomstbonus venter",
+  "dugnadWelcomeBonusPendingTip": "Du får +30 poeng når du velger hvilket lag du vil støtte under Profil.",
+  "dugnadWelcomeTip": "Du starter med et lite forsprang — så gapet til veteranene føles overkommelig fra dag én.",
+  "dugnadReferralInvitedToClub": "Du er invitert til {club}",
+  "dugnadReferralCodeLabel": "Vervekode",
+  "dugnadReferralCodeHint": "Skriv inn kode fra en venn",
+  "dugnadReferralCodeInvalid": "Denne koden er ikke gyldig.",
+  "dugnadReferralCodeSelf": "Du kan ikke bruke din egen kode.",
+  "dugnadReferralHaveCode": "Har du en vervekode?",
+  "dugnadReferralShareMessage": "Bli med i {club} på Reen Dugnad! Bruk lenken min {link} eller koden {code}.",
+  "dugnadReferralShareSubject": "Støtt {club} med Reen Dugnad",
+  "dugnadLeagueCtaTitle": "Bli med i lagkonkurransen",
+  "dugnadLeagueCtaSubtitle": "Se hvordan lagene ligger an",
+  "dugnadLeagueTeamRankTitle": "{team} ligger #{rank}",
+  "@dugnadLeagueTeamRankTitle": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "rank": { "type": "int" }
+    }
+  },
+  "dugnadLeagueTeamRankSubtitle": "Lagkonkurranse · {club}",
+  "@dugnadLeagueTeamRankSubtitle": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadMissionsEntryTitle": "Ukens kamper",
+  "dugnadMissionsEntrySubtitle": "Streak, form og sesongmål",
+  "dugnadFormEntryTitle": "Formen din · {status}",
+  "@dugnadFormEntryTitle": {
+    "placeholders": {
+      "status": { "type": "String" }
+    }
+  },
+  "dugnadFormStatusUp": "I form",
+  "dugnadFormStatusFlat": "Stabil",
+  "dugnadFormStatusDown": "Ute av form",
+  "dugnadFormEntrySubtitle": "Bygg form med daglig aktivitet og oppdrag",
+  "dugnadFormPageTitle": "Formen din",
+  "dugnadFormPageSubtitle": "Bygges kun på aktivitet i appen",
+  "dugnadFormSeasonGraphTitle": "Formen gjennom sesongen",
+  "dugnadFormStateUpDesc": "Du bygger form — hold det gående!",
+  "dugnadFormStateFlatDesc": "Formen er stabil. Ett oppdrag løfter deg.",
+  "dugnadFormStateDownDesc": "Formen faller. Fullfør et oppdrag for å snu den.",
+  "dugnadFormPreviewHint": "Trykk for å forhåndsvise formtilstander",
+  "dugnadFormWarningTitle": "Formen din er i ferd med å falle",
+  "dugnadFormWarningSub": "Fullfør et oppdrag denne uken for å snu den",
+  "dugnadFormBuildSection": "Slik bygger du form",
+  "dugnadFormBuildLoginTitle": "Daglig innlogging",
+  "dugnadFormBuildLoginSub": "Åpne appen hver dag",
+  "dugnadFormBuildMissionTitle": "Delta i ukens oppdrag",
+  "dugnadFormBuildMissionSub": "Ukens kamper gir mest form",
+  "dugnadFormBuildReferTitle": "Verv en venn",
+  "dugnadFormBuildReferSub": "Få flere ildsjeler med",
+  "dugnadFormBuildShareTitle": "Del støttespiller-kortet",
+  "dugnadFormBuildShareSub": "Spre ordet om laget",
+  "dugnadFormBuildStreakTitle": "Hold streaken din",
+  "dugnadFormBuildStreakSub": "Ikke bryt rekka av aktive uker",
+  "dugnadFormBuildChip": "+form",
+  "dugnadFormBuildChipPoints": "+{points} form",
+  "@dugnadFormBuildChipPoints": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadFormWhyRisingTitle": "Hvorfor stiger ratingen?",
+  "dugnadFormWhyFallingTitle": "Hvorfor faller ratingen?",
+  "dugnadFormWhyFlatTitle": "Hvorfor står ratingen stille?",
+  "dugnadFormLiftSection": "Slik løfter du formen",
+  "dugnadFormArrowExplainerPrefix": "Pilen viser ",
+  "dugnadFormArrowExplainerBold": "formen din",
+  "dugnadFormArrowExplainerSuffix": " — den delen av STØ-ratingen som beveger seg. Den stiger med aktivitet i appen og faller sakte i stille perioder. Betaling og medlemskap påvirker den aldri.",
+  "dugnadFormInfoBanner": "Form, poeng og rating bygges kun på det du gjør i appen. Å avslutte et medlemskap påvirker aldri formen din.",
+  "dugnadFormTeamRequired": "Velg et lag under Dine poeng for å se formen din.",
+  "dugnadKapteinTitle": "Du er kaptein for {team}",
+  "@dugnadKapteinTitle": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadKapteinSubtitle": "Lagets toppbidragsyter denne sesongen",
+  "dugnadKapteinBadge": "Kaptein",
+  "dugnadPlayerTitle": "Du er spiller på {team}",
+  "@dugnadPlayerTitle": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadPlayerSubtitle": "Bidra med poeng og stig på topplisten",
+  "dugnadPlayerBadge": "Spiller",
+  "dugnadTransferBannerTitle": "Overgangsvinduet er åpent ⏳",
+  "dugnadTransferBannerSubtitle": "Stenger om {days} dager · rykk opp eller bytt klubb",
+  "@dugnadTransferBannerSubtitle": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "dugnadTransferBannerSubtitleSoon": "Stenger snart · rykk opp eller bytt klubb",
+  "dugnadSupportClubFast": "Støtt {club} fast",
+  "@dugnadSupportClubFast": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadSupportClubFastSub": "Månedlig støtte — tjen poeng",
+  "dugnadManageSupportTitle": "Administrer fast støtte",
+  "dugnadLeaguePlaceholderBody": "Leaderboard og sesongtabeller bygges etter team-attribusjon.",
+  "dugnadLeaderboardSectionTitle": "Lagkonkurranse",
+  "dugnadMembershipSectionTitle": "Medlemskap",
+  "dugnadLeaderboardTitle": "Lagkonkurranse",
+  "dugnadLeaderboardProfileSubtitle": "Velg lag og følg konkurransen",
+  "dugnadLeaderboardSeasonEnds": "Sesongen avsluttes {date}",
+  "dugnadLeaderboardSeasonPrizeLabel": "SESONGPREMIER",
+  "dugnadLeaderboardSeasonPrizeAmount": "{amount} kr",
+  "dugnadLeaderboardSeasonPrizeNote": "Trykk for å se alle premier — fra Reen Dugnad",
+  "dugnadLeaderboardChooseAnotherClub": "Velg en annen klubb",
+  "dugnadLeaderboardChooseTeamInClub": "Velg ditt lag i {clubName}",
+  "dugnadLeaderboardChooseTeamSubtitle": "Følg lagets plassering og samle poeng",
+  "dugnadLeaderboardYourTeamSubtitle": "Følg lagets plassering og samle poeng",
+  "dugnadLeaderboardRankHeader": "PLASSERING",
+  "dugnadLeaderboardPointsHeader": "LAGPOENG",
+  "dugnadLeaderboardKrRaised": "{amount} kr",
+  "dugnadLeaderboardActiveFamilies": "{count, plural, =1{1 ildsjel aktiv} other{{count} ildsjeler aktive}}",
+  "dugnadLeaderboardPointsValue": "{points} POENG",
+  "dugnadLeaderboardEmpty": "Ingen lagpoeng ennå denne sesongen.",
+  "dugnadLeaderboardNoClub": "Velg en klubb for å se lagkonkurransen.",
+  "dugnadLeaderboardGuestTitle": "Poengene dine\nfølger kontoen din",
+  "dugnadLeaderboardGuestBody": "Lagene i klubben kjemper om premier gjennom sesongen. Med en konto teller kjøpene dine for laget ditt på tabellen.",
+  "dugnadLeaderboardGuestStep1Title": "Opprett konto",
+  "dugnadLeaderboardGuestStep1Body": "Poengene dine lagres på kontoen",
+  "dugnadLeaderboardGuestStep2Title": "Velg laget ditt",
+  "dugnadLeaderboardGuestStep2Body": "Poengene dine går til det laget",
+  "dugnadLeaderboardGuestStep3Title": "Følg sesongen",
+  "dugnadLeaderboardGuestStep3Body": "Toppscorer, assist og premie-sone",
+  "dugnadLeaderboardGuestCta": "Opprett konto",
+  "dugnadLeaderboardGuestHeroSubtitle": "Opprett konto for å vaere med",
+  "dugnadLeaderboardTabTable": "Tabell",
+  "dugnadLeaderboardTabTopScorer": "Toppscorer",
+  "dugnadLeaderboardTabAssistKing": "Assistkonge",
+  "dugnadLeaderboardTabValue": "STØ",
+  "dugnadLeaderboardValueTitle": "STØ-rangering",
+  "dugnadLeaderboardTableTitle": "{club}-tabellen",
+  "dugnadLeaderboardInternalSeries": "{count} lag · intern serie",
+  "dugnadLeaderboardTeamHeader": "LAG",
+  "dugnadLeaderboardPrizeZone": "Premie-sone",
+  "dugnadLeaderboardPrizeZoneTop": "Topp {count}",
+  "dugnadLeaderboardYourTeamTag": "Ditt lag",
+  "dugnadLeaderboardGapToZone": "{points} poeng unna premie-sonen",
+  "dugnadLeaderboardFilterClub": "Hele klubben",
+  "dugnadLeaderboardFilterMyTeam": "Mitt lag",
+  "dugnadLeaderboardScorerCapGoals": "Rangert på mål — kampanjekjøp",
+  "dugnadLeaderboardScorerCapAssists": "Rangert på assist — verving",
+  "dugnadLeaderboardScorerCapValue": "Rangert på STØ-rating",
+  "dugnadLeaderboardScorerEmpty": "Ingen bidragsytere i {team} ennå.",
+  "dugnadLeaderboardYouTag": "Deg",
+  "dugnadLeaderboardGoalUnit": "MÅL",
+  "dugnadLeaderboardAssistUnit": "ASSIST",
+  "dugnadLeaderboardValueUnit": "STØ",
+  "dugnadLeaderboardYourTeamCardSub": "{team} · #{rank} av {total}",
+  "dugnadLeaderboardYourPointsTitle": "Dine poeng",
+  "dugnadLeaderboardYourPointsCardSub": "{points} · {tier}",
+  "dugnadTeamDetailHeroTitle": "Ditt lag",
+  "dugnadTeamDetailRankOf": "#{rank} av {total} i {club}",
+  "dugnadTeamDetailChangeTeam": "Bytt",
+  "dugnadTeamDetailSupportTitle": "Støtt fast",
+  "dugnadTeamDetailSupportSub": "Fast månedlig støtte til laget",
+  "dugnadTeamDetailSeasonGoal": "Mot sesongmålet",
+  "dugnadTeamDetailGoalPercent": "{percent} % av målet",
+  "dugnadTeamDetailBreakdownHeading": "SLIK BYGGES LAGPOENG",
+  "dugnadTeamDetailBreakdownCampaigns": "Kampanjer",
+  "dugnadTeamDetailBreakdownCampaignsSub": "Innsamlet via matkasser",
+  "dugnadTeamDetailBreakdownEngagement": "Hverdagskjøp",
+  "dugnadTeamDetailBreakdownEngagementSub": "Engasjement hos sponsorene",
+  "dugnadTeamDetailBreakdownParticipation": "Deltakelse",
+  "dugnadTeamDetailBreakdownParticipationSub": "{families} ildsjeler aktive",
+  "dugnadTeamDetailClimbTitle": "Hvordan klatre?",
+  "dugnadTeamDetailClimbReferrals": "Verv ildsjeler",
+  "dugnadTeamDetailClimbReferralsSub": "Flere aktive ildsjeler = mer bredde-poeng",
+  "dugnadTeamDetailClimbSponsors": "Handle via sponsorene",
+  "dugnadTeamDetailClimbSponsorsSub": "Hverdagskjøp gir engasjementspoeng til laget",
+  "dugnadTeamDetailClimbCampaigns": "Delta i kampanjer",
+  "dugnadTeamDetailClimbCampaignsSub": "Matkasser gir flest lagpoeng",
+  "dugnadTeamDetailYourPointsSub": "Se nivå og hvordan du bidrar",
+  "dugnadMemberOffersTitle": "Medlemstilbud",
+  "dugnadMemberOffersSubtitle": "Rabatter aktive",
+  "dugnadMemberOffersPlaceholderBody": "Denne flaten er en placeholder og kobles opp senere.",
+  "dugnadFastSupportTitle": "Støtt fast",
+  "dugnadFastSupportSubtitle": "Månedlig støtte — baseline",
+  "dugnadFastSupportPlaceholderBody": "Vipps recurring for fast støtte bygges fra scratch på Day 3.",
+  "dugnadDonationHeroSubtitle": "Fast månedlig støtte til laget",
+  "dugnadDonationWhoSupport": "Hvem vil du støtte?",
+  "dugnadDonationWholeClub": "Hele klubben",
+  "dugnadDonationWholeClubShort": "KLUBB",
+  "dugnadDonationTeamLabel": "LAG",
+  "dugnadDonationTeamInClub": "Lag i {club}",
+  "@dugnadDonationTeamInClub": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "dugnadDonationSearchTeams": "Søk etter lag …",
+  "dugnadDonationMonthlyAmount": "Månedsbeløp",
+  "dugnadDonationOtherAmount": "Annet",
+  "dugnadDonationAmountKr": "{amount} kr",
+  "@dugnadDonationAmountKr": {
+    "placeholders": {
+      "amount": { "type": "int" }
+    }
+  },
+  "dugnadDonationCurrencyPerMonth": "kr/mnd",
+  "dugnadDonationCustomHint": "Skriv beløp",
+  "dugnadDonationTierBronze": "Bronse",
+  "dugnadDonationTierSilver": "Sølv",
+  "dugnadDonationTierGold": "Gull",
+  "dugnadDonationTierPlatinum": "Platina",
+  "dugnadDonationMinTierBronze": "Gi minst 50 kr/mnd for Bronse",
+  "dugnadDonationAmountToNextTier": "{amount} kr til {tier}",
+  "@dugnadDonationAmountToNextTier": {
+    "placeholders": {
+      "amount": { "type": "int" },
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadDonationFeeBreakdownPrefix": "Av {total} kr/mnd går ",
+  "@dugnadDonationFeeBreakdownPrefix": {
+    "placeholders": {
+      "total": { "type": "String" }
+    }
+  },
+  "dugnadDonationFeeBreakdownMiddle": " til {target} · ",
+  "@dugnadDonationFeeBreakdownMiddle": {
+    "placeholders": {
+      "target": { "type": "String" }
+    }
+  },
+  "dugnadDonationFeeBreakdownSuffix": "dekker betaling og drift",
+  "dugnadDonationWhyFee": "Hvorfor et gebyr?",
+  "dugnadDonationWhyFeeTitle": "Hvorfor et gebyr?",
+  "dugnadDonationWhyFeeLead": "Hele intensjonen din går til laget. Et lite, åpent gebyr trekkes og forklares ærlig:",
+  "dugnadDonationWhyFeeTransactionTitle": "Transaksjonsgebyr",
+  "dugnadDonationWhyFeeTransactionBody": "Dekker betaling (Vipps/kort) og trygg håndtering.",
+  "dugnadDonationWhyFeePlatformTitle": "Driftsavgift",
+  "dugnadDonationWhyFeePlatformBody": "Dekker drift, support og utvikling av Reen Dugnad.",
+  "dugnadDonationWhyFeeHeartNote": "Vi tar gebyret for å holde Reen Dugnad i gang — ikke for å tjene på gaven din.",
+  "dugnadDonationWhyFeeUnderstand": "Skjønner",
+  "dugnadDonationNudgeTitle": "Slik utbetales støtten",
+  "dugnadDonationHowPaidBody": "Reen Dugnad sponser {clubName} og betaler ut beløpet som et sponsorat, øremerket {teamName}. {clubShort} står for den endelige støtten til laget.",
+  "@dugnadDonationHowPaidBody": {
+    "placeholders": {
+      "clubName": { "type": "String" },
+      "clubShort": { "type": "String" },
+      "teamName": { "type": "String" }
+    }
+  },
+  "dugnadDonationNudgeBodyPrefix": "Du støtter laget enda mer når du kjøper lagets ",
+  "dugnadDonationNudgeMatkasserLink": "matkasser",
+  "dugnadDonationNudgeBodySuffix": " og verver venner.",
+  "dugnadDonationPaymentHeading": "BETALING",
+  "dugnadDonationVippsLabel": "Vipps",
+  "dugnadDonationVippsSubtitle": "Månedlig betaling i Vipps-appen",
+  "dugnadDonationSelectTeam": "Velg et lag",
+  "dugnadDonationNoTeams": "Ingen lag er tilgjengelig for denne klubben ennå. Be klubbadmin legge til lag i AdminPanel.",
+  "dugnadDonationTerms": "Første trekk om én måned. Kan avsluttes når som helst. Et mislykket trekk hoppes over. Allerede betalt refunderes ikke.",
+  "dugnadDonationPointsTitle": "Du tjener poeng hver måned",
+  "dugnadDonationPointsSubtitle": "Medlemspoengene legges til hver gang månedsbeløpet trekkes — aktivitet og kampanjekjøp gir enda mer",
+  "dugnadDonationPointsValue": "+{points}/mnd",
+  "@dugnadDonationPointsValue": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadDonationPointsUnit": "POENG",
+  "dugnadDonationPointsPerMonth": "/mnd",
+  "dugnadDonationSetupButton": "Sett opp fast støtte",
+  "dugnadDonationEditTitle": "Endre fast støtte",
+  "dugnadDonationEditButton": "Lagre endringer",
+  "dugnadDonationUpdateSuccess": "Endringene er lagret. De gjelder fra neste trekk.",
+  "dugnadDonationUpdateFailed": "Kunne ikke lagre endringene. Prøv igjen.",
+  "dugnadDonationUpdateNotConfirmed": "Vipps har ikke bekreftet det nye beløpet ennå. Prøv igjen om litt.",
+  "dugnadDonationPauseComingSoon": "Pause kommer snart.",
+  "dugnadDonationManageResume": "Gjenoppta",
+  "dugnadDonationManageSubLinePaused": "{amount} kr/mnd · pauset",
+  "@dugnadDonationManageSubLinePaused": {
+    "placeholders": {
+      "amount": { "type": "int" }
+    }
+  },
+  "dugnadDonationStatusPaused": "Pauset",
+  "dugnadDonationPauseSuccess": "Støtten er satt på pause.",
+  "dugnadDonationPauseFailed": "Kunne ikke sette på pause. Prøv igjen.",
+  "dugnadDonationResumeSuccess": "Støtten er gjenopptatt.",
+  "dugnadDonationResumeFailed": "Kunne ikke gjenoppta. Prøv igjen.",
+  "dugnadDonationIncompleteTitle": "Avtalen ble ikke fullført",
+  "dugnadDonationIncompleteBody": "Du kom tilbake fra Vipps uten å godkjenne avtalen. Ingen støtte er startet.",
+  "dugnadDonationIncompleteRetry": "Fortsett i Vipps",
+  "dugnadDonationIncompleteDiscard": "Forkast og gå tilbake",
+  "dugnadDonationSetupFailedTitle": "Kunne ikke starte støtte",
+  "dugnadDonationSetupFailedBody": "Vipps-avtalen ble ikke godkjent. Du kan prøve igjen fra Fast støtte.",
+  "dugnadDonationComingSoon": "Kommer snart",
+  "dugnadDonationComingSoonBackend": "Vipps recurring-oppsett kommer snart.",
+  "dugnadDonationManageLink": "Min støtte",
+  "dugnadDonationSyncing": "Bekrefter Vipps-avtalen …",
+  "dugnadDonationSyncFailed": "Kunne ikke bekrefte avtalen. Prøv igjen fra Min støtte.",
+  "dugnadDonationCreateFailed": "Kunne ikke starte fast støtte. Prøv igjen.",
+  "dugnadDonationVippsLaunchFailed": "Kunne ikke åpne Vipps. Prøv igjen.",
+  "dugnadDonationVippsError": "Kunne ikke starte Vipps-avtale. Sjekk at Recurring API er aktivert på test-MSN.",
+  "dugnadDonationErrorSubscriptionCap": "Du kan ha maks 3 aktive abonnement.",
+  "dugnadDonationErrorDuplicateTarget": "Du støtter allerede dette laget eller klubben.",
+  "dugnadDonationConfirmAppBar": "Fast støtte",
+  "dugnadDonationConfirmTitle": "Takk for støtten!",
+  "dugnadDonationConfirmSubtitle": "Din månedlige Vipps-avtale er aktiv. Første trekk skjer om én måned.",
+  "dugnadDonationPendingTitle": "Avtale venter",
+  "dugnadDonationPendingSubtitle": "Vi venter fortsatt på bekreftelse fra Vipps.",
+  "dugnadDonationConfirmTarget": "Mottaker",
+  "dugnadDonationConfirmAmount": "Beløp",
+  "dugnadDonationConfirmNextCharge": "Første trekk",
+  "dugnadDonationConfirmManage": "Se min støtte",
+  "dugnadDonationConfirmHome": "Tilbake til forsiden",
+  "dugnadDonationConfirmThanks": "Takk! 💜",
+  "dugnadDonationConfirmSupportLine": "Du støtter {team} med {amount}",
+  "@dugnadDonationConfirmSupportLine": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "dugnadDonationConfirmPointsLabel": "medlemspoeng i måneden",
+  "dugnadDonationConfirmEarmarked": "Øremerket {team}",
+  "@dugnadDonationConfirmEarmarked": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadDonationConfirmOperations": "Drift & betaling",
+  "dugnadDonationConfirmReady": "Ferdig",
+  "dugnadDonationConfirmGiveMoreTitle": "Vil du gi enda mer?",
+  "dugnadDonationConfirmGiveMoreBody": "Kjøp en matkasse fra laget — en andel går til klubben.",
+  "dugnadSupportShareCardMessage": "Jeg støtter {team} fast 💜",
+  "@dugnadSupportShareCardMessage": {
+    "placeholders": {
+      "team": { "type": "String" }
+    }
+  },
+  "dugnadShareSheetTitle": "Del at du støtter laget",
+  "dugnadShareSheetSubtitle": "Få flere ildsjeler med — laget tjener på hver som blir med.",
+  "dugnadShareLinkUnavailable": "Kunne ikke hente delingslenken til støttekortet.",
+  "dugnadShareSheetEarnTitle": "Tjen {points} poeng",
+  "@dugnadShareSheetEarnTitle": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadShareSheetEarnSubtitle": "når du deler med en venn",
+  "dugnadShareSheetDoneTitle": "Du tjente {points} poeng! 💜",
+  "@dugnadShareSheetDoneTitle": {
+    "placeholders": {
+      "points": { "type": "int" }
+    }
+  },
+  "dugnadShareSheetDoneSubtitle": "Takk for at du sprer ordet om laget.",
+  "dugnadDonationManageTitle": "Min faste støtte",
+  "dugnadDonationManageHeroTitle": "Fast støtte",
+  "dugnadDonationManageYouSupport": "Du støtter",
+  "dugnadDonationManageOfTeams": "av {max} lag",
+  "@dugnadDonationManageOfTeams": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
+  "dugnadDonationManageTotal": "Totalt",
+  "dugnadDonationManageKrPerMonthShort": "kr/mnd",
+  "dugnadDonationManageSubLine": "{amount} kr/mnd · neste trekk {date}",
+  "@dugnadDonationManageSubLine": {
+    "placeholders": {
+      "amount": { "type": "int" },
+      "date": { "type": "String" }
+    }
+  },
+  "dugnadDonationManageChange": "Endre",
+  "dugnadDonationManagePause": "Pause",
+  "dugnadDonationManageExit": "Avslutt",
+  "dugnadDonationManageAddTeamTitle": "Støtt et lag til",
+  "dugnadDonationManageAddTeamHint": "Du kan støtte inntil 3 lag samtidig",
+  "dugnadDonationManageMaxNote": "Du støtter maks 3 lag. Avslutt ett for å bytte ut.",
+  "dugnadDonationManageChangesNote": "Endringer gjelder fra neste trekk. Allerede betalt refunderes ikke.",
+  "dugnadDonationCancelSheetTitle": "Avslutte denne støtten?",
+  "dugnadDonationCancelSheetBody": "Du kan når som helst sette den opp igjen. Husk at du fortsatt støtter laget gratis når du handler gjennom sponsorene.",
+  "dugnadDonationCancelSheetKeep": "Behold",
+  "dugnadDonationManageAdd": "Legg til støtte",
+  "dugnadDonationManageEmpty": "Ingen fast støtte ennå",
+  "dugnadDonationManageEmptyHint": "Sett opp månedlig Vipps-støtte til lag eller klubb.",
+  "dugnadDonationManageAmountPerMonth": "{amount} kr/mnd",
+  "@dugnadDonationManageAmountPerMonth": {
+    "placeholders": {
+      "amount": { "type": "int" }
+    }
+  },
+  "dugnadDonationManageNextCharge": "Neste trekk: {date}",
+  "@dugnadDonationManageNextCharge": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "dugnadDonationManageStreak": "{months} måneder på rad",
+  "@dugnadDonationManageStreak": {
+    "placeholders": {
+      "months": { "type": "int" }
+    }
+  },
+  "dugnadDonationStatusActive": "Aktiv",
+  "dugnadDonationStatusPending": "Venter",
+  "dugnadDonationStatusCancelled": "Avsluttet",
+  "dugnadDonationCancelAction": "Avslutt",
+  "dugnadDonationCancelTitle": "Avslutte fast støtte?",
+  "dugnadDonationCancelBody": "Fremtidige trekk til {target} stoppes. Allerede betalte beløp refunderes ikke.",
+  "@dugnadDonationCancelBody": {
+    "placeholders": {
+      "target": { "type": "String" }
+    }
+  },
+  "dugnadDonationCancelConfirm": "Avslutt støtte",
+  "dugnadDonationCancelSuccess": "Fast støtte er avsluttet.",
+  "dugnadDonationCancelFailed": "Kunne ikke avslutte. Prøv igjen.",
+  "dugnadDonationLoadFailed": "Kunne ikke laste abonnementene dine.",
+  "dugnadMealBoxFromClub": "Matkasse fra klubben",
+  "dugnadSeeAll": "Se alle",
+  "dugnadSupportClub": "Støtt {clubName}",
+  "dugnadCampaign": "Kampanje",
+  "dugnadChooseClubFirst": "Velg en klubb først",
+  "dugnadChooseClubForCampaigns": "Du må velge en klubb for å se kampanjer.",
+  "dugnadNoCampaignsNow": "Ingen aktive kampanjer akkurat nå",
+  "dugnadCampaignsComingSoon": "Følg med — nye matkasser fra {clubName} kommer snart.",
+  "dugnadDeadline": "Frist: {date}",
+  "dugnadCampaignOrderBy": "Bestill innen {date}",
+  "dugnadCampaignRaised": "{amount} samlet inn",
+  "dugnadCampaignFromPrice": "Fra {amount} kr",
+  "dugnadCampaignSeeBoxes": "Se kassene",
+  "dugnadMembershipSheetDesc": "Legg inn medlemsnummeret ditt for å låse opp eksklusive rabatter.",
+  "dugnadSave": "Lagre",
+  "dugnadRemoveMembership": "Fjern medlemsnummer",
+  "dugnadSwitchMode": "Bytt modus",
+  "dugnadActiveNow": "Aktiv nå · støtt laget ditt",
+  "dugnadCommercialComingSoonToast": "Kommersiell modus kommer snart!",
+  "dugnadOffersComingSoon": "Tilbud kommer snart",
+  "dugnadOffersComingSoonDesc": "Vi jobber med eksklusive tilbud fra sponsorene til klubben din. Følg med!",
+  "dugnadSearchClubHint": "Søk etter klubben din …",
+  "dugnadSupporter": "Støttespiller",
+  "dugnadAddMembership": "Legg til",
+  "dugnadNoClubMatch": "Fant ingen klubb som matcher «{query}».",
+  "dugnadStoreCount": "{count, plural, =1{1 butikk} other{{count} butikker}}",
+  "dugnadNoClubSelected": "Ingen klubb valgt",
+  "dugnadSwitch": "Bytt",
+  "dugnadMemberDiscountsActive": "Medlem #{number} · rabatter aktive",
+  "dugnadAddMembershipNumber": "Legg til medlemsnummer",
+  "campaignMatkasser": "Matkasser",
+  "campaignNoActiveCampaigns": "Ingen aktive kampanjer akkurat nå",
+  "campaignOrderBefore": "Bestill før",
+  "campaignDeliveryDay": "Levering",
+  "campaignFromPrice": "fra",
+  "campaignSupport": "Støtt",
+  "campaignChooseBox": "Velg kasse",
+  "campaignChooseYourMatkasse": "Velg din matkasse",
+  "campaignOrderBy": "Bestill innen",
+  "campaignAllProfitToClub": "Hele overskuddet går til klubben",
+  "campaignViewDetails": "Se detaljer",
+  "campaignDescriptionHeading": "Beskrivelse",
+  "campaignContentsHeading": "Innhold",
+  "campaignPricePerBox": "Pris per kasse",
+  "campaignContains": "Inneholder",
+  "campaignSwipeToPay": "Sveip for å betale",
+  "campaignSubtotal": "Delsum",
+  "campaignPaymentHeading": "Betaling",
+  "campaignChange": "Endre",
+  "campaignGoToCheckout": "Gå til betaling",
+  "campaignEnded": "Kampanjen er avsluttet",
+  "campaignEndedBody": "Denne kampanjen er avsluttet. Ta kontakt med klubben for neste runde.",
+  "campaignUpcoming": "Kampanjen starter snart",
+  "campaignUpcomingBody": "Salget åpner snart. Kom tilbake når vi åpner.",
+  "campaignSuppliedBy": "Kjøtt fra Jens Eide Slakteri",
+  "campaignClubEarns": "Klubben tjener på hvert kjøp",
+  "campaignYourOrder": "Din bestilling",
+  "campaignDeliveryMethod": "Leveringsmåte",
+  "campaignHomeDelivery": "Levering hjem",
+  "campaignPickupAtClub": "Henting hos klubben",
+  "campaignPickupAtClubName": "Hentes hos {club}",
+  "@campaignPickupAtClubName": {
+    "placeholders": {
+      "club": { "type": "String" }
+    }
+  },
+  "campaignDeliveredOn": "Leveres {date}",
+  "@campaignDeliveredOn": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "campaignPickupOnDate": "Kan hentes {date}",
+  "@campaignPickupOnDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "campaignPickupOnDateTime": "Kan hentes {date} · kl. {time}",
+  "@campaignPickupOnDateTime": {
+    "placeholders": {
+      "date": { "type": "String" },
+      "time": { "type": "String" }
+    }
+  },
+  "campaignContactInfo": "Kontaktinformasjon",
+  "campaignPhone": "Telefonnummer",
+  "campaignStreetAddress": "Gateadresse",
+  "campaignPostalCode": "Postnummer",
+  "campaignCity": "Poststed",
+  "campaignPaymentMethod": "Betalingsmåte",
+  "campaignPayVipps": "Vipps",
+  "campaignPayWithVipps": "Betal med Vipps",
+  "campaignPayCard": "Kort / Apple Pay / Google Pay",
+  "campaignProcessing": "Behandler...",
+  "campaignTotal": "Totalt",
+  "campaignEmptyCart": "Legg til minst én kasse for å fortsette.",
+  "campaignThankYou": "Takk for bestillingen!",
+  "campaignSupportThankYou": "Takk for støtten!",
+  "campaignBoxesOrdered": "{count, plural, =1{1 matkasse er bestilt.} other{{count} matkasser er bestilt.}}",
+  "@campaignBoxesOrdered": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "campaignOrderSummaryTitle": "ORDRESAMMENDRAG",
+  "campaignConfirmationEmailSent": "Ordrebekreftelse og detaljer er sendt til {email}",
+  "@campaignConfirmationEmailSent": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "campaignPurchaseClubShare": "En andel av kjøpet går til klubben 💖",
+  "campaignPointsAddedLabel": "poeng lagt til kontoen din",
+  "campaignConfirmationSent": "Vi har sendt en bekreftelse på e-post.",
+  "campaignContributionToSupport": "Du bidro med {amount} kr til {supportName}",
+  "campaignPointsEarnedForTeam": "+{points} poeng opptjent for {teamName}",
+  "campaignOrderNumber": "Ordrenummer",
+  "campaignDistributionDate": "Leveringsdag",
+  "campaignViewMyOrders": "Se mine bestillinger",
+  "campaignBackToHome": "Tilbake til hjem",
+  "campaignPaymentFailed": "Betalingen mislyktes",
+  "campaignPaymentFailedBody": "Vi kunne ikke bekrefte betalingen. Prøv igjen.",
+  "campaignMyMatkasser": "Ordrehistorikk",
+  "campaignOrdersBoughtBanner": "{count, plural, =1{Du har kjøpt 1 kampanje så langt} other{Du har kjøpt {count} kampanjer så langt}}",
+  "campaignOrdersBoughtBannerSub": "hver av dem støtter laget ditt — takk! 💜",
+  "campaignNoOrders": "Du har ingen matkassebestillinger ennå.",
+  "campaignPaid": "Betalt",
+  "campaignPending": "Venter",
+  "campaignFailed": "Mislykket",
+  "campaignSomethingWentWrong": "Noe gikk galt",
+  "campaignNameRequired": "Navn er påkrevd",
+  "campaignEmailRequired": "E-post er påkrevd",
+  "campaignPhoneRequired": "Telefonnummer er påkrevd",
+  "campaignAddressRequired": "Adresse er påkrevd ved levering hjem",
+  "campaignPaymentInitFailed": "Betalingen kunne ikke startes. Prøv igjen.",
+
+  "cartTitle": "Handlekurv ({count})",
+  "cartRecommendations": "Anbefalinger",
+  "cartOpening": "\u00c5pner...",
+  "cartToCheckout": "Til kassen",
+  "cartEmpty": "Handlekurven er tom",
+  "cartAddProducts": "Legg til produkter for \u00e5 komme i gang",
+  "cartDugnadEmptyDesc": "Finn et tilbud hos klubbens sponsorer og legg varer i kurven.",
+  "cartSeeOffers": "Se tilbud",
+  "cartBackToStores": "Tilbake til butikker",
+  "cartReviewSubstitution": "Se gjennom erstatning",
+  "cartSubstitutionDetail": "Snurre matchet {requested} til {matched}. Se gjennom f\u00f8r du betaler.",
+
+  "homeFeedbackTitle": "Hvordan var m\u00e5ltidet ditt?",
+  "homeFeedbackBody": "Enten det er bra eller d\u00e5rlig, la oss snakke om det! \ud83d\ude09",
+  "homeLocation": "Lokasjon",
+  "homeCurrent": "N\u00e5v\u00e6rende",
+  "homeSwipe": "Swipe",
+
+  "accountMyAccount": "Min konto",
+  "accountAerendCredits": "\u00c6rend Credits",
+  "accountAvailableBalance": "Tilgjengelig saldo",
+
+  "heroDeliveryTo": "Leverer til",
+  "heroSearchStoresProducts": "S\u00f8k etter butikker og produkter",
+
+  "splashTagline": "Hver bestilling st\u00f8tter laget",
+
+  "snurreSuggestion1": "Hvor kan jeg kj\u00f8pe de billigste solbrillene?",
+  "snurreSuggestion2": "Hvor lenge er restauranter i Bergen \u00e5pne?",
+  "snurreWriteMessage": "Skriv en melding",
+
+  "campaignLastChance": "Siste sjanse",
+
+  "checkoutTitle": "Til kassen",
+  "checkoutDeliveryTab": "Levering",
+  "checkoutPickupTab": "Henting",
+  "checkoutEstimatedDelivery": "Estimert levering",
+  "checkoutSelectDeliveryAddress": "Velg leveringsadresse",
+  "dugnadAddressDeliverMultiple": "Lever til flere steder",
+  "dugnadAddressSavedInfo": "Adressen lagres for fremtidige leveringer. Du kan endre den når som helst.",
+  "dugnadAddressSearchHint": "Søk etter gate og nummer",
+  "dugnadAddressSavedToast": "Adresse lagret",
+  "dugnadAddressSuggestFoot": "Forslag fra stedssøk",
+  "dugnadAddressStandardBadge": "STANDARD",
+  "checkoutPickupInMin": "Henting om {minutes} min",
+  "checkoutPaymentMethod": "Betalingsm\u00e5te",
+  "checkoutOrderSummary": "Ordresammendrag",
+  "checkoutPaymentFailed": "Betaling mislyktes",
+  "checkoutPlacingOrderTerms": "Ved \u00e5 legge inn denne bestillingen godtar du ",
+  "checkoutUnableToEdit": "Kan ikke redigere denne varen akkurat n\u00e5.",
+  "checkoutUnableToLoadEdit": "Kan ikke laste redigeringsvalg akkurat n\u00e5.",
+  "checkoutDistanceKm": "{distance} km",
+
+  "searchStores": "Butikker",
+
+  "storeProductDetails": "Produktdetaljer",
+  "storeReadMore": "Les mer",
+  "storeViewCart": "Se handlekurv",
+  "storeAddToCart": "Legg i kurv",
+
+  "sizeLabel": "St\u00f8rrelse",
+  "colorLabel": "Farge",
+  "outOfStock": "Utsolgt",
+
+  "accountDetailTitle": "Min konto",
+  "accountDeleteMyAccount": "Slett kontoen min",
+
+  "editEmailTitle": "Endre e-post",
+  "editEmailCurrentLabel": "Din n\u00e5v\u00e6rende e-post",
+  "editEmailNewLabel": "Ny e-post",
+  "editEmailNewHint": "Ny e-post her",
+  "editEmailButton": "Oppdater e-post",
+
+  "editNameTitle": "Oppdater profil",
+  "editNameCurrentLabel": "Ditt n\u00e5v\u00e6rende navn",
+  "editNameNewLabel": "Nytt navn",
+  "editNameNewHint": "Nytt navn her",
+  "editNameButton": "Oppdater profil",
+
+  "editPhoneButton": "Oppdater nummer",
+
+  "editPicCurrent": "N\u00e5v\u00e6rende bilde",
+  "editPicNew": "Nytt bilde",
+
+  "redeemCodeTitle": "L\u00f8s inn kode",
+  "redeemCodeHint": "Skriv inn rabattkoden din",
+  "redeemCodeOkay": "OK",
+
+  "referralShareCode": "Del henvisningskoden din",
+  "referralHowItWorks": "Hvordan fungerer det?",
+
+  "settingsLimitTracking": "Begrens sporing",
+  "settingsAppearance": "Utseende",
+  "settingsLanguage": "Spr\u00e5k",
+  "settingsAerendVersion": "Reen Dugnad-versjon",
+  "settingsOsVersion": "OS-versjon",
+
+  "save": "Lagre",
+
+  "profileYourProfile": "Din profil",
+  "profileEnterFullName": "Skriv inn fullt navn",
+  "profileEnterEmail": "Skriv inn e-post",
+
+  "locationAddNew": "Legg til nytt sted",
+  "locationCountry": "Land",
+  "locationStreet": "Gate",
+  "locationStreetHint": "Gatenavn og nummer",
+  "locationYourType": "Din stedstype",
+  "locationAddressDetails": "Adressedetaljer",
+  "locationDoorHint": "Navn / Nummer p\u00e5 d\u00f8r",
+  "locationOptional": "Valgfritt",
+  "locationCourierInstruction": "Andre instruksjoner til budet",
+  "locationSelectFromMaps": "Velg fra kart",
+  "locationMapsHelp": "N\u00f8yaktig plassering p\u00e5 kartet hjelper oss \u00e5 finne deg raskere.",
+  "locationAddButton": "Legg til sted",
+
+  "locationAddressPrefix": "Adresse: {address}",
+  "locationChooseThis": "Velg dette stedet",
+
+  "locationEditTitle": "Rediger adresse",
+
+  "authEmailOrNumber": "E-post eller nummer",
+  "authEnterEmailOrNumber": "Skriv inn e-post eller nummer",
+  "authEnterPassword": "Skriv inn {field}",
+
+  "authRegisterAccount": "Registrer kontoen din",
+  "authEmailOrNumberLabel": "E-post eller nummer",
+  "authEnterEmailOrNumberHint": "Skriv inn e-post eller nummer",
+
+  "inviteTitle": "Inviter vennen din",
+  "inviteHeading": "Inviter en venn og hopp sammen!",
+  "inviteDescription": "Del gleden av Reen Dugnad med vennene dine og tjen bel\u00f8nninger sammen! Inviter en venn til \u00e5 bli med i Reen Dugnad og dere vil begge motta spennende fordeler. Spre ordet og la oss hoppe inn i moro og bel\u00f8nninger sammen!",
+  "inviteButton": "Inviter venner n\u00e5",
+  "inviteTerms": "Vilk\u00e5r for bruk",
+  "inviteCopyLink": "Kopier lenke",
+
+  "checkoutOrderFee": "Ordregebyr",
+
+  "snurreLoginRequired": "Logg inn for å bruke AI-chat.",
+  "snurreProductUnavailable": "Produktet er utilgjengelig.",
+  "snurreCouldNotAddToCart": "Kunne ikke legge til i kurven.",
+  "snurreAddedToCart": "Lagt til i kurven",
+  "snurreClose": "Avslutt",
+  "snurreStoreUnavailable": "Butikken er utilgjengelig.",
+  "snurreBuy": "Kjøp",
+  "snurreBuyNow": "Kjøp nå",
+  "snurreVisitStore": "Besøk butikk",
+  "snurreStoreSelectionUnavailable": "Butikkvalg er utilgjengelig.",
+
+  "chatTypeMessage": "Skriv melding",
+
+  "trackEstimatedTime": "Estimert tid",
+  "trackDeliveryOtp": "Leverings-OTP",
+  "trackCouldNotOpenPhone": "Kunne ikke åpne telefonappen.",
+  "trackNoDataAvailable": "Ingen data tilgjengelig",
+
+  "storeSearchIn": "Søk i {storeName}",
+
+  "storeDescription": "Beskrivelse",
+  "storePosition": "Posisjon",
+  "storeOpeningTime": "Åpningstid",
+  "storeContact": "Kontakt",
+  "storePhoneNumber": "Telefonnummer",
+
+  "locationMapError": "Google Maps-feil!",
+
+  "cartCannotLoadProduct": "Kan ikke laste dette produktet nå.",
+  "cartCannotAddNow": "Kan ikke legge til nå.",
+
+  "editPicSelectFirst": "Velg et bilde først",
+
+  "referralCopied": "Kopiert!",
+
+  "orderContactSupport": "Kontakt kundestøtte",
+
+  "swipeCouldNotAdd": "Kunne ikke legge denne varen i kurven.",
+  "swipeTokenMissing": "Enhetstoken mangler. Start appen på nytt og prøv igjen.",
+
+  "feedReportComingSoon": "Rapportering kommer snart",
+
+  "dugnadStoExplainerTitle": "Slik regnes STØ-ratingen",
+  "dugnadSeeWhatMakesRating": "Se hva som gir ratingen",
+  "dugnadStoTempoTitle": "Tempo",
+  "dugnadStoTempoNote": "i god form — hvor raskt du samler poeng nå. Dette er bare et tempo-mål og påvirker ikke ratingen.",
+  "dugnadStoSeasonFarmNote": "Ratingen viser poengene du har farmet denne sesongen og bygges opp på nytt hver sesong. Metallnivået ditt ved sesongslutt bestemmer hvor mange poeng du tar med deg videre.",
+  "dugnadStoSeasonFarmEmphasis": "denne sesongen",
+  "dugnadCarryoverPerLevelTitle": "Carryover per nivå",
+  "dugnadCarryoverPerLevelSub": "Metallnivået ved sesongslutt bestemmer hvor stor andel av sesongpoengene du tar med deg inn i neste sesong.",
+  "dugnadCarryoverYourLevelTag": "DIN NÅ",
+  "dugnadCarryoverHighlight": "Nå {tier} (STØ {sto}) → ta med {percent} % til neste sesong 🚀",
+  "@dugnadCarryoverHighlight": {
+    "placeholders": {
+      "tier": { "type": "String" },
+      "sto": { "type": "int" },
+      "percent": { "type": "int" }
+    }
+  },
+  "dugnadCarryoverMaxLine": "Toppnivå {tier} → du tar med mest poeng til neste sesong 🚀",
+  "@dugnadCarryoverMaxLine": {
+    "placeholders": {
+      "tier": { "type": "String" }
+    }
+  },
+  "dugnadStoIncreaseTitle": "Slik øker du ratingen",
+  "dugnadStoBoostReferTitle": "Verv en ildsjel",
+  "dugnadStoBoostReferSub": "Hver verving løfter kortet mest",
+  "dugnadStoBoostCampaignTitle": "Kjøp en matkasse",
+  "dugnadStoBoostCampaignSub": "Støtt et lag direkte",
+  "dugnadStoBoostMembershipTitle": "Sett opp medlemskap",
+  "dugnadStoBoostMembershipSub": "Låser «Fast medlem»-merket",
+  "dugnadStoBoostFormTitle": "Hold formen oppe",
+  "dugnadStoBoostFormSub": "Ukens oppdrag holder ratingen stigende",
+  "dugnadGateCollectPoints": "Opprett konto for å samle poeng",
+  "dugnadGateBuyAndEarn": "Opprett konto for å kjøpe og tjene poeng",
+  "dugnadGateCompete": "Opprett konto for å delta",
+  "dugnadGateUnlockBadges": "Opprett konto for å laase opp merker",
+  "dugnadGateMissions": "Opprett konto for å få oppdrag",
+  "dugnadGateSupport": "Opprett konto for å støtte fast",
+  "dugnadGateRefer": "Opprett konto for å verve venner",
+  "dugnadGateSeeAccountAndPayments": "Opprett konto for å se konto og betaling",
+  "dugnadGateChooseClubCollectPoints": "Velg klubb for å samle poeng",
+  "dugnadGateChooseClubBuyAndEarn": "Velg klubb for å kjøpe og tjene poeng",
+  "dugnadGateChooseClubCompete": "Velg klubb for å delta",
+  "dugnadGateChooseClubBadges": "Velg klubb for å låse opp merker",
+  "dugnadGateChooseClubAccount": "Velg klubb for å se konto og betaling",
+  "dugnadChooseClubHomeCardTitle": "Velg klubben din",
+  "dugnadChooseClubHomeCardBody": "Da går en andel av hver bestilling til klubbkassa",
+  "dugnadChooseClubHomeCardCta": "Velg klubb",
+  "dugnadLeaderboardNoClubHeroSubtitle": "Velg klubb for å se lagene",
+  "dugnadLeaderboardNoClubTitle": "Lagene kjemper\nom premier",
+  "dugnadLeaderboardNoClubBody": "Velg klubben du vil støtte — da kan du følge lagene og sesongen på tabellen.",
+  "dugnadLeaderboardNoClubStep1Title": "Velg klubb",
+  "dugnadLeaderboardNoClubStep1Body": "Finn klubben du vil støtte",
+  "dugnadProfileGuestTitle": "Ikke innlogget",
+  "dugnadProfileGuestBadge": "GJEST",
+  "dugnadProfileGuestBody": "Opprett konto for å lagre profil, poeng og bestillinger",
+  "dugnadProfileGuestCtaTitle": "Opprett konto",
+  "dugnadProfileGuestCtaBody": "Da lagres poengene dine og du kan handle i appen",
+  "dugnadChooseYourClubTitle": "Velg klubben din",
+  "dugnadChooseYourClubBody": "Da gaar en andel av hver bestilling til klubbkassa",
+  "celebrationClose": "Lukk",
+  "celebrationContinue": "Fortsett",
+  "celebrationCtaBadges": "Se merket",
+  "celebrationCtaMissions": "Ukeskamper",
+  "celebrationCtaSeasonGoals": "Sesongmål",
+  "celebrationCtaForm": "Se formen din",
+  "celebrationCtaTable": "Se tabellen",
+  "celebrationCtaSto": "Se STØ-rangeringsen",
+  "celebrationCtaStoCard": "Se STØ-kortet",
+  "celebrationCtaScorers": "Se toppscorer",
+  "celebrationCtaAssists": "Se assistkonge",
+  "celebrationCtaSeason": "Se sesongoppsummeringen",
+  "celebrationTitleT2": "Nytt merke låst opp",
+  "celebrationTitleT3Weekly": "Ukeskamp fullført",
+  "celebrationTitleT3Season": "Sesongmål nådd",
+  "celebrationSubtitleT3Weekly": "Du var innom hver dag denne uken",
+  "celebrationSubtitleT3Season": "Sesongmålet er nådd — takk for løftet",
+  "celebrationTitleT4Up": "Du er i form! 🔥",
+  "celebrationTitleT4Flat": "Formen din er stabil",
+  "celebrationTitleT4Down": "Formen din har falt",
+  "celebrationEyebrowT4Up": "Tempoet ditt har steget",
+  "celebrationEyebrowT4Flat": "Tempoet ditt holder seg",
+  "celebrationEyebrowT4Down": "Tempoet ditt har roet seg",
+  "celebrationTitleT5a": "Laget ditt er på topp! 🏆",
+  "celebrationEyebrowT5a": "Ny tabelltopp",
+  "celebrationTitleT5b": "Laget ditt er i premiesonen",
+  "celebrationEyebrowT5b": "Premiesonen",
+  "celebrationTitleT5bPlace": "Laget ditt tok {placeLabel}! {emoji}",
+  "@celebrationTitleT5bPlace": {
+    "placeholders": {
+      "placeLabel": { "type": "String" },
+      "emoji": { "type": "String" }
+    }
+  },
+  "celebrationTitleT5bSecond": "Laget ditt tok andreplassen! 🥈",
+  "celebrationTitleT5bThird": "Laget ditt tok tredjeplassen! 🥉",
+  "celebrationBodyT5a": "Laget ditt leder klubbtabellen akkurat nå. Hold forspranget ut sesongen.",
+  "celebrationBodyT5b": "Topp 3 ved sesongslutt gir premie. Dere er inne — nå gjelder det å bli der.",
+  "celebrationBodyT5bPlace": "Laget ditt er i premiesonen. {metal} på klubbtabellen.",
+  "@celebrationBodyT5bPlace": {
+    "placeholders": {
+      "metal": { "type": "String" }
+    }
+  },
+  "celebrationBodyT5bSilver": "Laget ditt er i premiesonen. Sølv på klubbtabellen.",
+  "celebrationBodyT5bBronze": "Laget ditt endte i premiesonen. Bronse i klubbtabellen for sesongen.",
+  "celebrationSeasonPill": "Sesong {season}",
+  "@celebrationSeasonPill": {
+    "placeholders": {
+      "season": { "type": "String" }
+    }
+  },
+  "celebrationSeasonPillFinal": "Sesong {season} · Endelig",
+  "@celebrationSeasonPillFinal": {
+    "placeholders": {
+      "season": { "type": "String" }
+    }
+  },
+  "celebrationTitleT6": "Du har klubbens høyeste STØ! 👑",
+  "celebrationEyebrowT6": "Ny trone",
+  "celebrationBodyT6": "Ingen i klubben har høyere STØ-rating enn deg akkurat nå.",
+  "celebrationTitleT7": "Du er toppscorer! ⚽",
+  "celebrationEyebrowT7": "Ny toppscorer",
+  "celebrationBodyT7": "Du har flest mål i klubben — flest kampanjekjøp denne sesongen.",
+  "celebrationTitleT8": "Du er assistkonge! 🅰️",
+  "celebrationEyebrowT8": "Ny assistkonge",
+  "celebrationBodyT8": "Du har flest assist i klubben — flest vervede venner.",
+  "celebrationTitleT9": "Laget ditt vant sesongen! 🏆",
+  "celebrationBodyT9": "Laget ditt endte øverst på klubbtabellen. Det står i historiebøkene nå.",
+  "celebrationTitleT10": "Du ble sesongens toppscorer! ⚽",
+  "celebrationTitleT11": "Du ble sesongens assistkonge! 🅰️",
+  "celebrationTitleT12": "Du hadde sesongens høyeste STØ! 👑",
+  "celebrationBodyT10": "Ingen i klubben kjøpte flere kampanjer enn deg denne sesongen.",
+  "celebrationBodyT11": "Ingen i klubben vervet flere enn deg denne sesongen.",
+  "celebrationBodyT12": "Du avsluttet sesongen med klubbens høyeste STØ-rating.",
+  "celebrationTitleT13": "Du er hentet av",
+  "celebrationTitleT14": "Velkommen i klubben",
+  "celebrationTitleT15": "Laget ditt tok {place}. plass!",
+  "@celebrationTitleT15": {
+    "placeholders": {
+      "place": { "type": "int" }
+    }
+  },
+  "celebrationTitleT15Second": "Laget ditt tok andreplassen! 🥈",
+  "celebrationTitleT15Third": "Laget ditt tok tredjeplassen! 🥉",
+  "celebrationTitleT16": "STØ-ratingen din steg",
+  "celebrationStoRemainingSuffix": " igjen til {league}",
+  "@celebrationStoRemainingSuffix": {
+    "placeholders": {
+      "league": { "type": "String" }
+    }
+  },
+  "celebrationStoAtTopLeague": "Du er i {league}",
+  "@celebrationStoAtTopLeague": {
+    "placeholders": {
+      "league": { "type": "String" }
+    }
+  },
+  "celebrationStoReasonCampaign": "Kjøp i kampanje",
+  "celebrationStoReasonDonation": "Støtte til klubben",
+  "celebrationStoReasonReferral": "Vervet venn",
+  "celebrationStoReasonBadge": "Nytt merke",
+  "celebrationStoReasonChallenge": "Ukeskamp fullført",
+  "celebrationStoReasonSeasonGoal": "Sesongmål nådd",
+  "celebrationStoReasonStreak": "Streak-bonus",
+  "celebrationStoReasonShop": "Kjøp i klubbshoppen",
+  "celebrationStoReasonWelcome": "Velkomstbonus",
+  "celebrationStoReasonTour": "Omvisning fullført",
+  "celebrationStoReasonCarryover": "Sesongovergang",
+  "celebrationStoReasonDefault": "STØ-ratingen din økte",
+  "celebrationBodyT15Silver": "Laget ditt endte i premiesonen. Sølv i klubbtabellen for sesongen.",
+  "celebrationBodyT15Bronze": "Laget ditt endte i premiesonen. Bronse i klubbtabellen for sesongen.",
+  "celebrationEyebrowT15": "Sesongresultat",
+  "celebrationBodyT2": "{name}",
+  "@celebrationBodyT2": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "celebrationBodyT3": "{title}",
+  "@celebrationBodyT3": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "celebrationBodyT4Up": "Du samler poeng raskere enn før — hold tempoet oppe.",
+  "celebrationBodyT4Flat": "Du holder jevnt tempo. Ett oppdrag løfter deg videre.",
+  "celebrationBodyT4Down": "Tempoet har roet seg — fullfør et oppdrag og kom tilbake ⚡",
+  "celebrationBodyT5": "{team} ligger nå på {position}. plass.",
+  "@celebrationBodyT5": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "position": { "type": "int" }
+    }
+  },
+  "celebrationBodyThrone": "{name} · {club}",
+  "@celebrationBodyThrone": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "club": { "type": "String" }
+    }
+  },
+  "celebrationBodySeasonTeam": "{team} · {season}",
+  "@celebrationBodySeasonTeam": {
+    "placeholders": {
+      "team": { "type": "String" },
+      "season": { "type": "String" }
+    }
+  },
+  "celebrationBodySeasonPersonal": "{name} · {season}",
+  "@celebrationBodySeasonPersonal": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "season": { "type": "String" }
+    }
+  },
+  "celebrationBodyT13": "Fra nå av spiller du for dette laget — poengene dine løfter dem på tabellen",
+  "@celebrationBodyT13": {},
+  "celebrationBodyT14": "Klubben vil vokse seg stor med en spiller som deg på laget",
+  "@celebrationBodyT14": {},
+  "celebrationContractTitle": "Spillerkontrakt",
+  "celebrationContractPlayerLabel": "Spiller",
+  "celebrationContractRoleLabel": "Rolle",
+  "celebrationContractSignedBy": "Signert av deg",
+  "celebrationContractStamp": "Signert",
+  "celebrationTeamContractConfirmed": "Kontrakt bekreftet · sesong {season}",
+  "@celebrationTeamContractConfirmed": {
+    "placeholders": {
+      "season": { "type": "String" }
+    }
+  },
+  "campaignPurchasesTitle": "Kampanjekjøp",
+  "campaignPurchasesEntryTitle": "Kampanjekjøp og oversikt",
+  "campaignPurchasesEntrySubtitle": "Nedtelling, levering og arkiv",
+  "campaignTrackerMore": "{count, plural, =1{+1 til} other{+{count} til}}",
+  "campaignTrackerLocked": "Låst",
+  "campaignUnitDay": "dag",
+  "campaignUnitDays": "dager",
+  "campaignUnitHour": "time",
+  "campaignUnitHours": "timer",
+  "campaignUnitMin": "min",
+  "campaignUnitSec": "sek",
+  "campaignCountdownDeliverIn": "Leveres om",
+  "campaignCountdownPickupIn": "Kan hentes om",
+  "campaignTabActive": "{count, plural, =0{Aktive} other{Aktive · {count}}}",
+  "campaignTabArchive": "Arkiv",
+  "campaignActiveEmptyTitle": "Ingen aktive kjøp",
+  "campaignActiveEmptyBody": "Når du kjøper en kampanje, følger du leveringen her.",
+  "campaignArchiveEmptyTitle": "Arkivet er tomt",
+  "campaignArchiveEmptyBody": "Fullførte kampanjekjøp havner her.",
+  "campaignReceiptBought": "Kvittering · kjøpt {date}",
+  "campaignRowPaid": "Betalt",
+  "campaignRowDeliveryDay": "Leveringsdag",
+  "campaignRowPickupDay": "Hentedag",
+  "campaignRowTimeSlot": "Tidsrom",
+  "campaignRowAddress": "Adresse",
+  "campaignRowPickupPlace": "Hentested",
+  "campaignRowMethod": "Metode",
+  "campaignMethodDelivery": "Levering",
+  "campaignMethodPickup": "Henting",
+  "campaignPointsChip": "+{points} poeng",
+  "campaignChangeButton": "Endre",
+  "campaignLockedButton": "Låst",
+  "campaignChangeSheetTitle": "Endre til {method}?",
+  "campaignFreeChangeUntil": "Gratis å endre frem til {time}",
+  "campaignChangeFee": "Endring koster {fee} kr for denne kampanjen",
+  "campaignConfirmChange": "Bekreft endring",
+  "campaignChangeProcessing": "Behandler …",
+  "campaignChangeDoneTitle": "Endret til {method}",
+  "campaignChangeSuccessToast": "Endret til {method}",
+  "campaignLockMessage": "Fristen for å endre er passert — den gikk ut {datetime}. Vi ses {place}!",
+  "campaignLockSeeYouDoor": "ved døren",
+  "campaignLockSeeYouPickup": "på hentestedet",
+  "campaignPointsUnit": "poeng",
+  "campaignErrorMethodNotOffered": "Denne kampanjen tilbyr kun: {methods}",
+  "campaignErrorNoChange": "Dette kjøpet bruker allerede den metoden.",
+  "campaignErrorGeneric": "Noe gikk galt. Prøv igjen.",
+  "campaignArchiveDelivered": "Levert {day}",
+  "campaignArchivePickedUp": "Hentet {day}",
+  "campaignArchivePointsEarnedLabel": "Poeng tjent i arkivet",
+  "campaignArchivePointsTotal": "{count, plural, =1{1 poeng} other{{count} poeng}}",
+  "campaignArchiveCount": "{count, plural, =1{1 kjøp} other{{count} kjøp}}",
+  "campaignViewFullHistory": "Se full kjøpshistorikk",
+  "campaignChangeFeeLabel": "Endringsgebyr",
+  "campaignChangeFeeHint": "Betales når du bekrefter",
+  "campaignChangeFreeLabel": "Gratis å endre",
+  "campaignChangeFreeHint": "Ingen kostnad for denne kampanjen",
+  "campaignDeliverTo": "Leveres til {place}",
+  "@campaignDeliverTo": {"placeholders":{"place":{"type":"String"}}},
+  "campaignWithinWindow": "Innen vinduet {time}",
+  "@campaignWithinWindow": {"placeholders":{"time":{"type":"String"}}},
+  "campaignPaidWith": "Betalt med",
+  "campaignKeepAppOpen": "Lukk ikke appen",
+  "campaignPayingOverlay": "Behandler betalingen …",
+  "campaignChangingOverlay": "Endrer …",
+  "campaignArchiveCompleteNote": "Kjøpet er fullført og arkivert",
+  "campaignPointsAddedToAccount": "Lagt til kontoen din",
+  "campaignBoughtLabel": "Kjøpt",
+  "campaignDeliveredShort": "Levert",
+  "campaignPickedUpShort": "Hentet",
+  "campaignMethodChangePending": "Endring venter",
+  "campaignYourAddress": "adressen din"
+}

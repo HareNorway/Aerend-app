@@ -1,0 +1,109 @@
+// Script to update all remaining shimmer files to use 1500ms period
+// Location: lib/commonView/skeleton_loaders/BATCH_UPDATE_INSTRUCTIONS.txt
+
+==============================================================================
+REMAINING SHIMMER FILES TO UPDATE (period: 800ms → 1500ms)
+==============================================================================
+
+Run a find-and-replace in your IDE with these exact patterns:
+
+FIND:
+    period: const Duration(milliseconds: 800),
+
+REPLACE WITH:
+    period: const Duration(milliseconds: 1500),
+
+IN FILES (alphabetically):
+
+1. lib/screens/common/chatting/chatting_shimmer.dart
+2. lib/screens/common/orderHistory/deliveriesHistory/deliveries_history_shimmer.dart
+3. lib/screens/common/orderHistory/rideHistory/rides_history_shimmer.dart
+4. lib/screens/common/selectLanguageAndCurrency/select_language_and_currency_shimmer.dart
+5. lib/screens/common/selectPaymentMethod/select_payment_method_shimmer.dart
+6. lib/screens/common/wallet/walletTransaction/wallet_transaction_shimmer.dart
+7. lib/screens/common/walletTransfer/search_user_shimmer.dart
+8. lib/screens/deliveryService/home/item_store_list_shimmer.dart
+9. lib/screens/deliveryService/home/add_filter_shimmer.dart
+10. lib/screens/deliveryService/searchStore/search_dishes_shimmer.dart
+11. lib/screens/deliveryService/storeDetail/product_list/product_grid_shimmer.dart
+12. lib/screens/deliveryService/storeDetail/item_store_product_shimmer.dart
+13. lib/screens/deliveryService/sub_category/ds_sub_category_shimmer.dart
+14. lib/screens/deliveryService/productList/product_list_shimmer.dart (may need double-check)
+
+==============================================================================
+VERIFICATION COMMANDS
+==============================================================================
+
+To verify all changes were made:
+
+grep -r "period: const Duration(milliseconds: 800)" lib/screens/ | grep shimmer
+
+This should return NO results if all files are updated.
+
+To see which files still have 800ms:
+
+grep -r "Duration(milliseconds: 800)" lib/screens/ | grep shimmer
+
+==============================================================================
+SUMMARY OF CHANGES
+==============================================================================
+
+✅ Completed Updates (14 files):
+   - custom_shimmer_layout.dart
+   - home_v1_shimmer.dart (4 instances)
+   - store_detail_shimmer.dart
+   - product_list_shimmer.dart
+   - checkout_shimmer.dart
+   - ds_home_shimmer.dart
+   - notifications_shimmer.dart
+   - chat_history_shimmer.dart
+   - help_and_support_shimmer.dart
+   - manage_card_shimmer.dart
+   - ride_detail_shimmer.dart
+   - deliveries_order_detail_shimmer.dart
+   - manage_address_shimmer.dart
+
+⏳ Pending Updates (14 files listed above):
+   - Use IDE find-and-replace or manually update each file
+
+==============================================================================
+WHY 1500ms?
+==============================================================================
+
+The new period of 1500ms provides:
+- Smooth, non-blinking appearance
+- Wave-like shimmer effect that feels natural
+- Consistent with modern UX patterns (Material Design, iOS)
+- Optimal balance between noticeable feedback and non-intrusive
+
+Previous 800ms was too fast (caused blinking effect).
+
+==============================================================================
+ADDITIONAL IMPROVEMENTS MADE
+==============================================================================
+
+1. ✅ Removed .repeat() from RipplesAnimationView
+2. ✅ Removed .repeat() from RedeemCode screen
+3. ✅ Updated CustomShimmerLayout with better skeleton structure
+4. ✅ Added rounded corners (borderRadius) to all skeleton placeholders
+5. ✅ Created reusable skeleton components (BaseSkelet on, TextSkeleton, etc.)
+6. ✅ Created screen-level skeleton skeletons (StoreListSkeleton, ProductListSkeleton, etc.)
+
+==============================================================================
+TESTING CHECKLIST
+==============================================================================
+
+After updating all files:
+
+□ Run: flutter pub get
+□ Run: flutter analyze (check for errors)
+□ Run: flutter pub run build_runner build --delete-conflicting-outputs
+□ Test loading states on multiple screens
+□ Verify shimmer is smooth, not blinking
+□ Check transition from skeleton to actual content
+□ Test on different device sizes (phone, tablet)
+□ Test on low-end devices to verify performance
+□ Test with slow network to see full skeleton effect
+□ Verify no layout shifts when transitioning
+
+==============================================================================

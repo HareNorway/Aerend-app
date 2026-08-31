@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name" translatable="false">Reen Dugnad</string>
+
+    <!--FACEBOOK-->
+    <string name="facebook_app_id" translatable="false">157613636565860</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb157613636565860</string>
+    <string name="facebook_client_token">5260223a0cd9dc59e3d6d581ae734422</string>
+    <string name="google_api_key" translatable="false">YOUR_KEY_HERE</string>
+
+</resources>

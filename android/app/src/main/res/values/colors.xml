@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#E86657</color>
+    <color name="colorPrimaryDark">#C94F41</color>
+    <!-- Reen splash navy — matches Flutter splash panel so cold start does not
+         flash the old Ærend lavender / purple mark. -->
+    <color name="launch_background">#14273F</color>
+</resources>
