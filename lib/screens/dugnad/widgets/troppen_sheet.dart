@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
-import '../dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../dugnad_state.dart';
 import '../dugnad_sto_utils.dart';
 
@@ -20,12 +20,12 @@ Future<void> showTroppenSheet({
   required int anonymousCount,
   required void Function(LeaderboardScorerRow scorer) onOpenScorer,
 }) {
-  return showDugnadSheet(
+  return showAeSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: const Color(0xFFF4F2F8),
     builder: (sheetContext) {
-      final theme = sheetContext.dugnadTheme;
+      final theme = sheetContext.aeTheme;
       final maxH = MediaQuery.sizeOf(sheetContext).height * 0.86;
       return SizedBox(
         height: maxH,
@@ -42,7 +42,7 @@ Future<void> showTroppenSheet({
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const DugnadSheetHandle(),
+                  const AeSheetHandle(),
                   Row(
                     children: [
                       Expanded(
@@ -134,7 +134,7 @@ class _SquadListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final chip = dugnadStoChipColors(scorer.stoRating);
     final metalDot = PointsMetalDot.forMetal(scorer.tierMetal);
     // Opaque white fill — translucent Material lets the previous row's
@@ -296,7 +296,7 @@ class _AnonListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.only(bottom: context.dp(8)),
       child: Container(
@@ -366,7 +366,7 @@ class _MiniAva extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final logo = DugnadState.instance.clubLogo;
     return SizedBox(
       width: context.dp(42),
@@ -391,7 +391,7 @@ class _MiniAva extends StatelessWidget {
             Positioned(
               right: -2,
               bottom: -2,
-              child: ClubCrest(
+              child: AeClubCrest(
                 name: DugnadClubBranding.compactName(),
                 logoUrl: logo.isEmpty ? null : logo,
                 size: context.dp(20),
@@ -408,7 +408,7 @@ class _PrivacyNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.all(context.dp(12)),
       decoration: BoxDecoration(

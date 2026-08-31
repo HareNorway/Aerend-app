@@ -9,7 +9,7 @@ import 'package:aerend_customer/utils/shared_pref_utill.dart';
 import 'package:aerend_customer/screens/campaign/campaign_delivery_utils.dart';
 import 'package:aerend_customer/screens/campaign/campaign_purchases_screen.dart';
 import 'package:aerend_customer/screens/campaign/models/campaign_order_pojo.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 
 CampaignMyOrder mkOrder({
   required String no,
@@ -127,8 +127,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.defaults,
+          home: AeThemeScope(
+            palette: AeThemePalette.defaults,
             child: CampaignPurchasesScreen(debugOrders: const []),
           ),
         ),
@@ -161,8 +161,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.defaults,
+          home: AeThemeScope(
+            palette: AeThemePalette.defaults,
             child: CampaignPurchasesScreen(debugOrders: orders),
           ),
         ),
@@ -197,8 +197,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.defaults,
+          home: AeThemeScope(
+            palette: AeThemePalette.defaults,
             child: CampaignPurchasesScreen(debugOrders: orders),
           ),
         ),

@@ -10,11 +10,11 @@ import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import '../common/homeMainV1/home_main_v1.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'donation_manage_screen.dart';
 import 'donation_setup_screen.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
@@ -22,8 +22,8 @@ import 'dugnad_sto_utils.dart';
 import 'matkasse_campaign_screen.dart';
 import 'points_metal_theme.dart';
 import 'widgets/dugnad_metal_animations.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 import 'widgets/mk_campaign_card.dart';
 import 'widgets/supporter_preview_sheet.dart';
 import 'widgets/team_support_sheet.dart';
@@ -255,9 +255,9 @@ class _TeamScreenState extends State<TeamScreen> {
             : DugnadState.instance.clubLogo);
     final heroTitle = _data?.teamName ?? '';
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
+        backgroundColor: context.aeTheme.primary,
         body: _data == null && !_loading
             ? Center(
                 child: Text(
@@ -265,8 +265,8 @@ class _TeamScreenState extends State<TeamScreen> {
                   style: aeBody(color: Colors.white.withValues(alpha: 0.9)),
                 ),
               )
-            : DugnadLbScrollBody(
-                hero: DugnadLbHero(
+            : AeScrollBody(
+                hero: AeHero(
                   clubName: clubName,
                   clubLogo: clubLogo,
                   title: heroTitle,
@@ -335,7 +335,7 @@ class _TeamScreenState extends State<TeamScreen> {
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const DugnadSectionLabel('Aktiv kampanje'), // TODO(l10n)
+                  const AeSectionLabel('Aktiv kampanje'), // TODO(l10n)
                   MkCampaignCard(
                     campaign: data.activeCampaign!,
                     onTap: () => _openCampaign(data.activeCampaign!),
@@ -349,7 +349,7 @@ class _TeamScreenState extends State<TeamScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const DugnadSectionLabel('Troppen'), // TODO(l10n)
+            const AeSectionLabel('Troppen'), // TODO(l10n)
             _SquadAggBar(
               activeFamilies: data.activeFamilies,
               teamName: data.teamName,
@@ -372,7 +372,7 @@ class _TeamScreenState extends State<TeamScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const DugnadSectionLabel('Lagets toppliste'), // TODO(l10n)
+            const AeSectionLabel('Lagets toppliste'), // TODO(l10n)
             _TeamScorerTabs(
               selected: _scorerTab,
               onChanged: _setScorerTab,
@@ -432,7 +432,7 @@ class _TeamStandingCardState extends State<_TeamStandingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final st = _podiumStandingStyle(widget.rank, theme);
     final r = BorderRadius.circular(context.dp(18));
 
@@ -594,7 +594,7 @@ class _StandingStyle {
   final double rankFontSize;
 }
 
-_StandingStyle _podiumStandingStyle(int rank, DugnadClubThemePalette theme) {
+_StandingStyle _podiumStandingStyle(int rank, AeThemePalette theme) {
   switch (rank) {
     case 1:
       return const _StandingStyle(
@@ -754,7 +754,7 @@ class _StoTipPopover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final tiers = <(String metal, String label)>[
       ('bronse', 'Bronse 74+'),
       ('solv', 'Sølv 84+'),
@@ -1039,7 +1039,7 @@ class _TeamStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Row(
       children: [
         Expanded(
@@ -1084,7 +1084,7 @@ class _StatCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.all(context.dp(14)),
       decoration: AeSurface.card(
@@ -1163,7 +1163,7 @@ class _SupportedTeamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final amount = donationAmountKr?.round();
     final subtitle = supportViaOrg
         ? 'Via fast støtte til hele $clubName · administrer' // TODO(l10n)
@@ -1278,7 +1278,7 @@ class _SupportGradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.td-support` — full-width shiny CTA (mock: heart + «Støtt dette laget»).
     final radius = BorderRadius.circular(context.dp(15));
     return Material(
@@ -1336,7 +1336,7 @@ class _NoCampaignBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.all(context.dp(14)),
       decoration: BoxDecoration(
@@ -1388,7 +1388,7 @@ class _SquadAggBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.td-squad-agg` — tinted track + white icon chip (not a solid CTA).
     return Container(
       padding: EdgeInsets.symmetric(
@@ -1490,7 +1490,7 @@ class _SquadRail extends StatelessWidget {
               SizedBox(
                 width: colW,
                 height: minH,
-                child: DugnadRiseIn(
+                child: AeRiseIn(
                   delay: Duration(milliseconds: 50 + i * 60),
                   duration: const Duration(milliseconds: 500),
                   child: children[i],
@@ -1516,7 +1516,7 @@ class _SquadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final isMe = scorer.isViewer && !isCaptain;
     final metal = scorer.tierMetal.trim().isNotEmpty
         ? scorer.tierMetal
@@ -1741,7 +1741,7 @@ class _SquadAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final logo = DugnadState.instance.clubLogo;
     final faceGradient = isCaptain
         ? const LinearGradient(
@@ -1797,7 +1797,7 @@ class _SquadAvatar extends StatelessWidget {
                 ],
               ),
               padding: EdgeInsets.all(context.dp(2)),
-              child: ClubCrest(
+              child: AeClubCrest(
                 name: DugnadClubBranding.compactName(),
                 logoUrl: logo.isEmpty ? null : logo,
                 size: context.dp(19),
@@ -1818,7 +1818,7 @@ class _SquadMoreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.sq-more` — dashed CTA; same slot size as member cards.
     return SizedBox.expand(
       child: Material(
@@ -1964,7 +1964,7 @@ class _TeamScorerTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final items = <(_TeamScorerTab, String)>[
       (_TeamScorerTab.topScorer, languages.dugnadLeaderboardTabTopScorer),
       (_TeamScorerTab.assistKing, languages.dugnadLeaderboardTabAssistKing),
@@ -2094,7 +2094,7 @@ class _TeamScorerSection extends StatelessWidget {
                     ? Icons.share_rounded
                     : Icons.inventory_2_outlined,
                 size: context.dp(13),
-                color: context.dugnadTheme.primary,
+                color: context.aeTheme.primary,
               ),
               SizedBox(width: context.dp(6)),
               Expanded(
@@ -2111,7 +2111,7 @@ class _TeamScorerSection extends StatelessWidget {
           ),
         ),
         for (var i = 0; i < scorers.length; i++)
-          DugnadRiseIn(
+          AeRiseIn(
             delay: Duration(milliseconds: i * 30),
             child: Material(
               color: Colors.transparent,
@@ -2324,7 +2324,7 @@ class _TeamScorerListRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final stat = _teamScorerStat(scorer, tab, formatCount);
     final unit = _teamScorerUnit(tab);
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Container(
       margin: EdgeInsets.only(bottom: context.dp(8)),
@@ -2443,7 +2443,7 @@ class _TeamScorerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final clubName = DugnadClubBranding.fullName();
     final logo = DugnadState.instance.clubLogo.trim();
     final logoUrl = logo.isEmpty ? null : logo;
@@ -2491,7 +2491,7 @@ class _TeamScorerAvatar extends StatelessWidget {
                   ),
                 ],
               ),
-              child: ClubCrest(
+              child: AeClubCrest(
                 name: clubName.isNotEmpty ? clubName : '?',
                 logoUrl: logoUrl,
                 size: crestInner,
@@ -2605,7 +2605,7 @@ class _TeamYouTag extends StatelessWidget {
         vertical: context.dp(2),
       ),
       decoration: BoxDecoration(
-        gradient: context.dugnadTheme.shinyGradient,
+        gradient: context.aeTheme.shinyGradient,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -2639,7 +2639,7 @@ String _teamScorerUnit(_TeamScorerTab tab) {
 
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

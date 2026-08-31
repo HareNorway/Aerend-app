@@ -6,8 +6,8 @@ import '../../theme/sc_saas_theme.dart';
 import '../../utils/guest_auth_helper.dart';
 import '../../utils/utils.dart';
 import '../common/homeMainV1/home_main_v1.dart';
-import '../dugnad/dugnad_club_theme.dart';
-import '../dugnad/widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'bloc/campaign_my_orders_bloc.dart';
 import 'campaign_order_detail_screen.dart';
 import 'campaign_strings.dart';
@@ -69,7 +69,7 @@ class _CampaignMyOrdersScreenState extends State<CampaignMyOrdersScreen> {
   Widget build(BuildContext context) {
     if (isGuestUser()) {
       return Scaffold(
-        backgroundColor: context.dugnadTheme.background,
+        backgroundColor: context.aeTheme.background,
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -88,7 +88,7 @@ class _CampaignMyOrdersScreenState extends State<CampaignMyOrdersScreen> {
     }
 
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -98,7 +98,7 @@ class _CampaignMyOrdersScreenState extends State<CampaignMyOrdersScreen> {
               child: StreamBuilder<ApiResponse<CampaignMyOrdersListPojo>>(
                 stream: _bloc?.ordersStream,
                 builder: (context, snapshot) {
-                  final theme = context.dugnadTheme;
+                  final theme = context.aeTheme;
                   final isLoading = !snapshot.hasData ||
                       snapshot.data?.status == Status.loading;
                   if (isLoading) {
@@ -114,7 +114,7 @@ class _CampaignMyOrdersScreenState extends State<CampaignMyOrdersScreen> {
                     return _buildEmpty();
                   }
                     return RefreshIndicator(
-                    color: context.dugnadTheme.primary,
+                    color: context.aeTheme.primary,
                     onRefresh: () => _bloc!.refresh(),
                     child: _buildOrderList(orders),
                   );
@@ -132,7 +132,7 @@ class _CampaignMyOrdersScreenState extends State<CampaignMyOrdersScreen> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
     return ListView(
@@ -168,7 +168,7 @@ class _CampaignMyOrdersScreenState extends State<CampaignMyOrdersScreen> {
   /// points and a right-aligned amount + payment-status pill.
   Widget _buildOrderCard(CampaignMyOrder order) {
     final status = _statusUi(order.paymentStatus);
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final points = order.earnedPoints ?? 0;
 
     return AoPressable(

@@ -5,11 +5,11 @@ import 'package:intl/intl.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
 import '../dugnad_sto_utils.dart';
 import '../gamification_models.dart';
-import 'dugnad_hourglass.dart';
+import '../../../ui/kit/ae_hourglass.dart';
 
 /// Season finale carryover card (prototype: `SeasonCarryoverCard` in gamify-cards.jsx).
 class DugnadSeasonFinaleSection extends StatelessWidget {
@@ -89,7 +89,7 @@ class DugnadSeasonFinaleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // Fixed per-metal carryover (what the rollover awards), not percent.
     final carryover = dugnadMetalCarryoverPreview(
       stoRating: summary.stoRating,
@@ -394,7 +394,7 @@ class _SeasonFinaleHourglass extends StatelessWidget {
         borderRadius: BorderRadius.circular(context.dp(9)),
       ),
       alignment: Alignment.center,
-      child: DugnadHourglass(
+      child: AeHourglass(
         size: context.dp(17),
         color: color,
         spin: true,

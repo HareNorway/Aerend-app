@@ -7,8 +7,8 @@ import '../../../commonView/common_circular_progress_indicator.dart';
 import '../../../networking/api_response.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../auth/auth_style.dart';
 import '../base_dl.dart';
 import 'wallet_transfer_bloc.dart';
@@ -99,7 +99,7 @@ class _WalletTransferState extends State<WalletTransfer> {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
@@ -120,7 +120,7 @@ class _WalletTransferState extends State<WalletTransfer> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: AuthField(
                           label: 'Til hvem', // TODO(l10n)
@@ -132,7 +132,7 @@ class _WalletTransferState extends State<WalletTransfer> {
                       ),
                       const SizedBox(height: 16),
                       if (_bloc.transferUserList == null)
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 190),
                           child: _suggestions(),
                         )
@@ -160,7 +160,7 @@ class _WalletTransferState extends State<WalletTransfer> {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(
+          AeBackButton(
             onPressed: () => Navigator.pop(context, false),
           ),
           Expanded(

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Clamp to [0, 1] before [Curve.transform] / alpha (float drift → 1.0000000000000002).
 double _unit(double v) => v.clamp(0.0, 1.0);
@@ -13,7 +13,7 @@ double _unit(double v) => v.clamp(0.0, 1.0);
 /// (`gamify.css` / `club-select.jsx`): light sweep, emblem sparks, gold star
 /// coins flying from the badge toward the points total, and a rising `+X` pill.
 ///
-/// Ring wash uses club [DugnadClubThemePalette.background] (secondary) at low
+/// Ring wash uses club [AeThemePalette.background] (secondary) at low
 /// opacity; the card border and pill/sparks use primary.
 class DugnadT1PulseOverlay extends StatefulWidget {
   const DugnadT1PulseOverlay({
@@ -66,7 +66,7 @@ class _DugnadT1PulseOverlayState extends State<DugnadT1PulseOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // Sparks / gain pill stay on club primary; the wash uses secondary so the
     // metal card does not go muddy-dark under a primary tint.
     final accent = widget.accent ?? theme.primary;

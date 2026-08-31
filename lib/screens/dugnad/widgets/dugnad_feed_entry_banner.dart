@@ -5,10 +5,10 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../dugnad_state.dart';
-import '../dugnad_club_theme.dart';
-import 'dugnad_hourglass.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_hourglass.dart';
 import 'dugnad_metal_animations.dart';
-import 'dugnad_rise_in.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 
 /// Identifies the faked top-edge `inset` highlight, so a test can tell it apart
 /// from the metal glaze overlays — which are also transparent-stop gradients.
@@ -61,7 +61,7 @@ class DugnadFeedEntryBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final style = _styleFor(context, variant, theme);
     final trailingIcon = trailingIsNorthEast
         ? Icons.north_east_rounded
@@ -77,8 +77,8 @@ class DugnadFeedEntryBanner extends StatelessWidget {
           borderColor: style.iconBorderColor,
         );
     if (animateLeading) {
-      icon = DugnadPulseIcon(
-        child: DugnadCampCtaMotion(iconPop: true, child: icon),
+      icon = AePulseIcon(
+        child: AeCampCtaMotion(iconPop: true, child: icon),
       );
     }
 
@@ -376,7 +376,7 @@ class _InsetLayer extends StatelessWidget {
 _EntryStyle _styleFor(
   BuildContext context,
   DugnadFeedEntryVariant variant,
-  DugnadClubThemePalette theme,
+  AeThemePalette theme,
 ) {
   final browseNoClub = !DugnadState.instance.hasClub;
   switch (variant) {
@@ -445,7 +445,7 @@ _EntryStyle _styleFor(
           goSize: 30,
           iconSize: 42,
           fallbackIcon: Icons.bolt_rounded,
-          gradient: DugnadClubThemePalette.reenBrowse.feedMissionsGradient,
+          gradient: AeThemePalette.reenBrowse.feedMissionsGradient,
           shadows: [
             BoxShadow(
               color: const Color(0xFF1B3554).withValues(alpha: 0.34),
@@ -508,7 +508,7 @@ _EntryStyle _styleFor(
           goSize: 30,
           iconSize: 42,
           fallbackIcon: Icons.hourglass_bottom_rounded,
-          gradient: DugnadClubThemePalette.reenBrowse.feedTransferGradient,
+          gradient: AeThemePalette.reenBrowse.feedTransferGradient,
           shadows: [
             BoxShadow(
               color: const Color(0xFF1B3554).withValues(alpha: 0.42),
@@ -707,7 +707,7 @@ class _IconBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = accent ?? context.dugnadTheme.primary;
+    final accentColor = accent ?? context.aeTheme.primary;
     return Container(
       width: context.dp(size),
       height: context.dp(size),
@@ -760,7 +760,7 @@ class DugnadTransferFeedBanner extends StatelessWidget {
           borderRadius: BorderRadius.circular(context.dp(13)),
         ),
         alignment: Alignment.center,
-        child: DugnadHourglass(
+        child: AeHourglass(
           size: context.dp(20),
           color: Colors.white,
           fast: true,

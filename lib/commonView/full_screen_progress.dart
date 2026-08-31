@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'dugnad_club_loader.dart';
+import '../ui/kit/ae_loader.dart';
 
 class FullScreenProgress extends StatelessWidget {
   final String message;
@@ -9,7 +9,7 @@ class FullScreenProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadClubLoaderScreen(
+    return AeLoaderScreen(
       label: message.isEmpty ? null : message,
     );
   }

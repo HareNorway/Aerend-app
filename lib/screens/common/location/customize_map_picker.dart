@@ -7,7 +7,7 @@ import 'package:aerend_customer/utils/utils.dart';
 
 import '../address_order_chrome.dart';
 import '../auth/auth_style.dart';
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Map picker used by the address forms — restyled to the Ærend design
 /// language (`.ae-back` shiny circle, white `--ae-shadow-card` info card,
@@ -93,7 +93,7 @@ class CustomMapPickerState extends State<CustomMapPicker> {
     }
 
     final topInset = MediaQuery.viewPaddingOf(context).top;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Scaffold(
       backgroundColor: ScSaasThemeTokens.background,

@@ -131,7 +131,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get next => 'Nästa';
 
   @override
-  String get loginToAerend => 'Login to Reen Dugnad';
+  String get loginToAerend => 'Login to Ærend';
 
   @override
   String get continueTxt => 'Fortsätta';
@@ -221,7 +221,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get loginSignUpMsg =>
-      'Gå med i Reen Dugnad — varje order ger tillbaka till klubben';
+      'Gå med i Ærend — varje order ger tillbaka till klubben';
 
   @override
   String get login => 'Logga in';
@@ -325,7 +325,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get loginWith => 'Logga in med';
 
   @override
-  String get startedWithAerend => 'Get Started with Reen Dugnad';
+  String get startedWithAerend => 'Get Started with Ærend';
 
   @override
   String get choosesettingaccount =>
@@ -2195,7 +2195,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get signIn => 'Sign In';
 
   @override
-  String get guestAccountPromptTitle => 'Get started with Reen Dugnad';
+  String get guestAccountPromptTitle => 'Get started with Ærend';
 
   @override
   String get guestAccountPromptMessage =>
@@ -6303,7 +6303,7 @@ class AppLocalizationsSv extends AppLocalizations {
   String get settingsLanguage => 'Language';
 
   @override
-  String get settingsAerendVersion => 'Reen Dugnad Version';
+  String get settingsAerendVersion => 'Ærend Version';
 
   @override
   String get settingsOsVersion => 'OS Version';
@@ -6396,7 +6396,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get inviteDescription =>
-      'Share the joy of Reen Dugnad with your friends and earn rewards together! Invite a friend to join Reen Dugnad and both of you will receive exciting benefits. Spread the word — every order gives back to the club!';
+      'Share the joy of Ærend with your friends and earn rewards together! Invite a friend to join Ærend and both of you will receive exciting benefits. Spread the word — every order gives back to the club!';
 
   @override
   String get inviteButton => 'Invite Friends Now';

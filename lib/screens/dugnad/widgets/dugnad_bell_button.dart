@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_state.dart';
 import '../dugnad_notification_unread.dart';
 import '../dugnad_notifications_screen.dart';
@@ -41,7 +41,7 @@ class _DugnadBellButtonState extends State<DugnadBellButton> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final size = context.dp(40);
     if (!DugnadState.instance.hasClub) {
       return widget.onHero

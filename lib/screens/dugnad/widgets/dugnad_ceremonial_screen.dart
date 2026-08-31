@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import 'dugnad_bead_badge.dart';
-import 'dugnad_confetti.dart';
+import '../../../ui/kit/ae_confetti.dart';
 
 /// Reusable full-screen ceremonial overlay (`dgseq` in celebrate-pops.jsx).
 ///
@@ -212,7 +212,7 @@ class _DugnadCeremonialScreenState extends State<DugnadCeremonialScreen>
     super.dispose();
   }
 
-  LinearGradient _backgroundGradient(DugnadClubThemePalette theme) {
+  LinearGradient _backgroundGradient(AeThemePalette theme) {
     Color mix(Color c, Color b, double weight) => Color.lerp(c, b, weight)!;
     const black = Color(0xFF000000);
     return LinearGradient(
@@ -254,7 +254,7 @@ class _DugnadCeremonialScreenState extends State<DugnadCeremonialScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final confettiColors = <Color>[
       const Color(0xFFF7CF6B),
       Colors.white,
@@ -295,7 +295,7 @@ class _DugnadCeremonialScreenState extends State<DugnadCeremonialScreen>
                   if (!reduce && widget.confettiPieces > 0)
                     Positioned.fill(
                       child: IgnorePointer(
-                        child: DugnadDesignBurstConfetti(
+                        child: AeDesignBurstConfetti(
                           colors: confettiColors,
                           count: widget.confettiPieces,
                           duration: const Duration(milliseconds: 4200),

@@ -3,19 +3,19 @@ import 'package:flutter/material.dart';
 
 import '../../networking/api_constant.dart';
 import '../../utils/utils.dart';
-import 'dugnad_club_theme.dart';
+import 'ae_theme.dart';
 
 /// Club avatar — network logo if present, else colored circle with initials.
 ///
 /// Design spec: dugnad/customer-screens.jsx → Crest component.
 /// Parameterized size for different contexts (38/44/56/72).
-class ClubCrest extends StatelessWidget {
+class AeClubCrest extends StatelessWidget {
   final String name;
   final String? logoUrl;
   final double size;
   final Color? backgroundColor;
 
-  const ClubCrest({
+  const AeClubCrest({
     super.key,
     required this.name,
     this.logoUrl,
@@ -63,7 +63,7 @@ class ClubCrest extends StatelessWidget {
   Widget build(BuildContext context) {
     final String? resolvedLogo = _resolvedLogoUrl;
     final bool hasLogo = resolvedLogo != null && resolvedLogo.isNotEmpty;
-    final Color bg = backgroundColor ?? context.dugnadTheme.primaryHover;
+    final Color bg = backgroundColor ?? context.aeTheme.primaryHover;
 
     return Container(
       width: size,

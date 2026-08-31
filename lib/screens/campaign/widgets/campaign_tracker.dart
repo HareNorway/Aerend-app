@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../dugnad/dugnad_celebration_orchestrator.dart';
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../campaign_strings.dart';
 import '../campaign_tracker_controller.dart';
 import '../models/campaign_order_pojo.dart';
@@ -141,7 +141,7 @@ class _CampaignTrackerState extends State<CampaignTracker> {
   }
 
   Widget _buildPill(BuildContext context, CampaignMyOrder order) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final delivery = order.deliveryMethod == 'delivery';
     final locked = order.state == CampaignPurchaseState.locked;
     final more = _controller.activeCount - 1;
@@ -329,7 +329,7 @@ class _CampaignTrackerState extends State<CampaignTracker> {
                 ),
                 child: Icon(Icons.lock,
                     size: context.dp(9),
-                    color: context.dugnadTheme.primaryHover),
+                    color: context.aeTheme.primaryHover),
               ),
             ),
         ],

@@ -347,7 +347,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginToAerend.
   ///
   /// In en, this message translates to:
-  /// **'Login to Reen Dugnad'**
+  /// **'Login to Ærend'**
   String get loginToAerend;
 
   /// No description provided for @continueTxt.
@@ -515,7 +515,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginSignUpMsg.
   ///
   /// In en, this message translates to:
-  /// **'Join Reen Dugnad — every order gives back to the club'**
+  /// **'Join Ærend — every order gives back to the club'**
   String get loginSignUpMsg;
 
   /// No description provided for @login.
@@ -719,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @startedWithAerend.
   ///
   /// In en, this message translates to:
-  /// **'Get Started with Reen Dugnad'**
+  /// **'Get Started with Ærend'**
   String get startedWithAerend;
 
   /// No description provided for @choosesettingaccount.
@@ -4349,7 +4349,7 @@ abstract class AppLocalizations {
   /// No description provided for @guestAccountPromptTitle.
   ///
   /// In en, this message translates to:
-  /// **'Get started with Reen Dugnad'**
+  /// **'Get started with Ærend'**
   String get guestAccountPromptTitle;
 
   /// No description provided for @guestAccountPromptMessage.
@@ -11286,7 +11286,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAerendVersion.
   ///
   /// In en, this message translates to:
-  /// **'Reen Dugnad Version'**
+  /// **'Ærend Version'**
   String get settingsAerendVersion;
 
   /// No description provided for @settingsOsVersion.
@@ -11460,7 +11460,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteDescription.
   ///
   /// In en, this message translates to:
-  /// **'Share the joy of Reen Dugnad with your friends and earn rewards together! Invite a friend to join Reen Dugnad and both of you will receive exciting benefits. Spread the word — every order gives back to the club!'**
+  /// **'Share the joy of Ærend with your friends and earn rewards together! Invite a friend to join Ærend and both of you will receive exciting benefits. Spread the word — every order gives back to the club!'**
   String get inviteDescription;
 
   /// No description provided for @inviteButton.

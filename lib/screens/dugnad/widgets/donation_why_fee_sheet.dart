@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Bottom sheet explaining the transparent two-part donation fee (Spleis model).
 class DonationWhyFeeSheet extends StatelessWidget {
@@ -53,7 +53,7 @@ class DonationWhyFeeSheet extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: context.dugnadTheme.text,
+                  color: context.aeTheme.text,
                 ),
               ),
               SizedBox(height: context.dp(10)),
@@ -84,7 +84,7 @@ class DonationWhyFeeSheet extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(context.dp(14)),
                 decoration: BoxDecoration(
-                  color: context.dugnadTheme.primaryTint,
+                  color: context.aeTheme.primaryTint,
                   borderRadius: BorderRadius.circular(context.dp(14)),
                 ),
                 child: Row(
@@ -92,7 +92,7 @@ class DonationWhyFeeSheet extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.favorite_rounded,
-                      color: context.dugnadTheme.primary,
+                      color: context.aeTheme.primary,
                       size: context.dp(20),
                     ),
                     SizedBox(width: context.dp(10)),
@@ -100,7 +100,7 @@ class DonationWhyFeeSheet extends StatelessWidget {
                       child: Text(
                         languages.dugnadDonationWhyFeeHeartNote,
                         style: TextStyle(
-                          color: context.dugnadTheme.text,
+                          color: context.aeTheme.text,
                           fontWeight: FontWeight.w700,
                           height: 1.4,
                         ),
@@ -116,7 +116,7 @@ class DonationWhyFeeSheet extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: context.dugnadTheme.primary,
+                  backgroundColor: context.aeTheme.primary,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: context.dp(14)),
                   shape: RoundedRectangleBorder(
@@ -157,10 +157,10 @@ class DonationWhyFeeSheet extends StatelessWidget {
           width: context.dp(40),
           height: context.dp(40),
           decoration: BoxDecoration(
-            color: context.dugnadTheme.primaryTint,
+            color: context.aeTheme.primaryTint,
             borderRadius: BorderRadius.circular(context.dp(12)),
           ),
-          child: Icon(icon, color: context.dugnadTheme.primary, size: context.dp(20)),
+          child: Icon(icon, color: context.aeTheme.primary, size: context.dp(20)),
         ),
         SizedBox(width: context.dp(12)),
         Expanded(

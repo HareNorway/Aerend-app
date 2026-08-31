@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import '../../commonView/skeleton_loaders/dugnad_subpage_skeletons.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_badge_sheet.dart';
 import 'dugnad_share.dart';
 import 'dugnad_badges.dart';
@@ -23,9 +23,9 @@ import 'dugnad_sto_utils.dart';
 import 'gamification_models.dart';
 import 'points_metal_theme.dart';
 import 'transfer_window_screen.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// Career screen — prototype: `CareerScreen` in gamify-cards.jsx + gamify-plus.css.
 class CareerScreen extends StatefulWidget {
@@ -152,17 +152,17 @@ class _CareerScreenState extends State<CareerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final clubName = _leaderboard?.clubName ?? DugnadClubBranding.fullName();
     final clubLogo = _leaderboard?.clubLogo ?? DugnadState.instance.clubLogo;
 
     // Same shell as Lagkonkurranse / sesong-recap — Stack overlap so the
     // lavender sheet radius composites over club purple cleanly.
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: theme.primary,
-        body: DugnadLbScrollBody(
-          hero: DugnadLbHero(
+        body: AeScrollBody(
+          hero: AeHero(
             clubName: clubName,
             clubLogo: clubLogo,
             title: languages.dugnadCareerTitle,
@@ -187,7 +187,7 @@ class _CareerScreenState extends State<CareerScreen> {
     );
   }
 
-  Widget _buildFeed(DugnadClubThemePalette theme) {
+  Widget _buildFeed(AeThemePalette theme) {
     final career = _career;
     final badges = _badgeSections?.permanent ?? const <DugnadBadgeItem>[];
     final earnedBadgeCount = badges.where((b) => b.earned).length;
@@ -198,7 +198,7 @@ class _CareerScreenState extends State<CareerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 120),
           child: _CareerLifetimeCard(
             points: career?.lifetimePoints ?? _summary?.lifetimePoints ?? 0,
@@ -207,14 +207,14 @@ class _CareerScreenState extends State<CareerScreen> {
           ),
         ),
         SizedBox(height: context.dp(18)),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 190),
           child: _CareerSectionLabel(
             languages.dugnadCareerSeasonArchiveLabel,
           ),
         ),
         SizedBox(height: context.dp(10)),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 190),
           child: (career?.seasonArchives ?? []).isEmpty
               ? _CareerSeasonArchiveEmpty(theme: theme)
@@ -224,7 +224,7 @@ class _CareerScreenState extends State<CareerScreen> {
                 ),
         ),
         SizedBox(height: context.dp(18)),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 260),
           child: _CareerMeritHead(
             earned: earnedBadgeCount,
@@ -233,7 +233,7 @@ class _CareerScreenState extends State<CareerScreen> {
         ),
         SizedBox(height: context.dp(10)),
         if (badges.isNotEmpty)
-          DugnadRiseIn(
+          AeRiseIn(
             delay: const Duration(milliseconds: 260),
             child: DugnadBadgeGrid(
               badges: badges,
@@ -241,14 +241,14 @@ class _CareerScreenState extends State<CareerScreen> {
             ),
           ),
         SizedBox(height: context.dp(18)),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 330),
           child: _CareerSectionLabel(
             languages.dugnadCareerAffiliationTimeline,
           ),
         ),
         SizedBox(height: context.dp(12)),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 330),
           child: (career?.affiliations ?? []).isEmpty
               ? Text(
@@ -264,7 +264,7 @@ class _CareerScreenState extends State<CareerScreen> {
         ),
         if (_showTransferEntry) ...[
           SizedBox(height: context.dp(16)),
-          DugnadRiseIn(
+          AeRiseIn(
             delay: const Duration(milliseconds: 400),
             duration: const Duration(milliseconds: 550),
             child: _CareerTransferEntry(
@@ -274,7 +274,7 @@ class _CareerScreenState extends State<CareerScreen> {
           ),
         ],
         SizedBox(height: context.dp(14)),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 450),
           duration: const Duration(milliseconds: 550),
           child: _CareerInfoFooter(
@@ -360,7 +360,7 @@ class _CareerLifetimeCard extends StatefulWidget {
 
   final int points;
   final String sinceLabel;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   State<_CareerLifetimeCard> createState() => _CareerLifetimeCardState();
@@ -665,7 +665,7 @@ class _CareerSeasonArchiveGrid extends StatelessWidget {
   });
 
   final List<GamificationSeasonArchive> archives;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -694,7 +694,7 @@ class _CareerSeasonCard extends StatelessWidget {
   });
 
   final GamificationSeasonArchive archive;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -787,7 +787,7 @@ class _CareerSeasonCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(context.dp(9)),
                           ),
                           alignment: Alignment.center,
-                          child: ClubCrest(
+                          child: AeClubCrest(
                             name: archive.clubName,
                             size: context.dp(22),
                           ),
@@ -843,7 +843,7 @@ class _CareerSeasonCard extends StatelessWidget {
 class _CareerSeasonArchiveEmpty extends StatelessWidget {
   const _CareerSeasonArchiveEmpty({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -900,7 +900,7 @@ class _CareerMeritHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -956,7 +956,7 @@ class _CareerAffiliationTimeline extends StatelessWidget {
 
   final List<CareerAffiliationEntry> entries;
   final String? fallbackClubLogo;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -985,7 +985,7 @@ class _CareerAffiliationRow extends StatelessWidget {
   final CareerAffiliationEntry entry;
   final bool showLine;
   final String? fallbackClubLogo;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   String? get _logoUrl {
     final fromApi = entry.clubLogoUrl?.trim();
@@ -1032,7 +1032,7 @@ class _CareerAffiliationRow extends StatelessWidget {
                     boxShadow: ScSaasThemeTokens.shadowCard,
                   ),
                   alignment: Alignment.center,
-                  child: ClubCrest(
+                  child: AeClubCrest(
                     name: entry.clubName,
                     logoUrl: _logoUrl,
                     size: context.dp(34),
@@ -1126,7 +1126,7 @@ class _CareerTransferEntry extends StatelessWidget {
   });
 
   final VoidCallback onTap;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -1191,7 +1191,7 @@ class _CareerInfoFooter extends StatelessWidget {
   const _CareerInfoFooter({required this.text, required this.theme});
 
   final String text;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {

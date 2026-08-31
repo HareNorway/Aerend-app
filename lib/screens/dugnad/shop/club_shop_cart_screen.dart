@@ -2,21 +2,21 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../commonView/dugnad_club_loader.dart';
+import '../../../ui/kit/ae_loader.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/global_loading_overlay.dart';
 import '../../../utils/stripe_payment_helper.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_club_crest.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_repo.dart';
 import '../dugnad_state.dart';
 import '../../campaign/widgets/campaign_swipe_pay_bar.dart';
-import '../widgets/dugnad_checkout_payment_selector.dart';
+import '../../../ui/kit/ae_checkout_payment_selector.dart';
 import '../widgets/dugnad_points_earn.dart';
-import '../widgets/dugnad_subpage_shell.dart';
-import '../widgets/mk_qty_stepper.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
+import '../../../ui/kit/ae_qty_stepper.dart';
 import 'club_shop_cart.dart';
 import 'club_shop_models.dart';
 import 'club_shop_receipt_screen.dart';
@@ -33,7 +33,7 @@ class ClubShopCartScreen extends StatefulWidget {
 class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
   final ClubShopCart _cart = ClubShopCart.instance;
   final DugnadRepo _repo = DugnadRepo();
-  DugnadCheckoutPayMethod _pay = dugnadCheckoutDefaultPayMethod();
+  AeCheckoutPayMethod _pay = aeCheckoutDefaultPayMethod();
   bool _busy = false;
 
   @override
@@ -55,9 +55,9 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
   Future<void> _payNow() async {
     if (_busy || _cart.itemCount == 0) return;
     setState(() => _busy = true);
-    final isWallet = _pay == DugnadCheckoutPayMethod.platformWallet;
+    final isWallet = _pay == AeCheckoutPayMethod.platformWallet;
     final method =
-        _pay == DugnadCheckoutPayMethod.vipps ? 'vipps' : 'stripe';
+        _pay == AeCheckoutPayMethod.vipps ? 'vipps' : 'stripe';
     try {
       final response = await _repo.clubShopPay(
         clubId: DugnadState.instance.clubId,
@@ -221,7 +221,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final qty = _cart.itemCount;
     final bottomPad = MediaQuery.paddingOf(context).bottom;
 
@@ -240,7 +240,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
                 ),
                 child: Row(
                   children: [
-                    DugnadLbBackButton(
+                    AeBackButton(
                       onPressed: () => Navigator.of(context).maybePop(),
                     ),
                     Expanded(
@@ -280,7 +280,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
                             subtitle: languages.dugnadClubShopPointsSub,
                           ),
                           SizedBox(height: context.dp(16)),
-                          DugnadCheckoutPaymentSelector(
+                          AeCheckoutPaymentSelector(
                             value: _pay,
                             accent: theme.primary,
                             onChanged: (method) =>
@@ -373,7 +373,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
     );
   }
 
-  Widget _empty(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _empty(BuildContext context, AeThemePalette theme) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.dp(28)),
       child: Column(
@@ -432,7 +432,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
     );
   }
 
-  Widget _linesCard(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _linesCard(BuildContext context, AeThemePalette theme) {
     return Container(
       padding: EdgeInsets.fromLTRB(
         context.dp(15),
@@ -487,12 +487,12 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
 
   Widget _line(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     ClubShopCartLine line,
   ) {
     final url = line.product.imageUrls.isEmpty
         ? null
-        : ClubCrest.resolveClubMediaUrl(line.product.imageUrls.first);
+        : AeClubCrest.resolveClubMediaUrl(line.product.imageUrls.first);
     final mp = line.product.memberPrice * line.qty;
     final op = line.product.ordinaryPrice * line.qty;
     return Padding(
@@ -517,7 +517,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
                         imageUrl: url,
                         fit: BoxFit.cover,
                         progressIndicatorBuilder: (_, __, ___) =>
-                            const DugnadClubImageLoader(size: 24),
+                            const AeImageLoader(size: 24),
                       ),
               ),
             ),
@@ -570,7 +570,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
               ],
             ),
           ),
-          MkQtyStepper(
+          AeQtyStepper(
             qty: line.qty,
             theme: theme,
             small: true,
@@ -603,7 +603,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
     );
   }
 
-  Widget _sumCard(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _sumCard(BuildContext context, AeThemePalette theme) {
     return Container(
       padding: EdgeInsets.fromLTRB(
         context.dp(16),
@@ -698,7 +698,7 @@ class _ClubShopCartScreenState extends State<ClubShopCartScreen> {
     );
   }
 
-  Widget _hint(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _hint(BuildContext context, AeThemePalette theme) {
     return Container(
       padding: EdgeInsets.all(context.dp(12)),
       decoration: BoxDecoration(

@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/l10n/app_localizations.dart';
 import 'package:aerend_customer/screens/dugnad/celebration_models.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/dugnad_celebration_overlay.dart';
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_confetti.dart';
+import 'package:aerend_customer/ui/kit/ae_confetti.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -31,8 +31,8 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: DugnadCelebrationOverlay(
                 item: item,
@@ -47,7 +47,7 @@ void main() {
 
     expect(find.text('NEW BADGE UNLOCKED'), findsOneWidget);
     expect(find.text('Sesongambassadør'), findsOneWidget);
-    expect(find.byType(DugnadConfetti), findsNothing);
+    expect(find.byType(AeConfetti), findsNothing);
   });
 
   testWidgets('T3 shows challenge headline and reward pill', (tester) async {
@@ -70,8 +70,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: DugnadCelebrationOverlay(
                 item: item,
@@ -108,8 +108,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: DugnadCelebrationOverlay(
                 item: item,
@@ -125,7 +125,7 @@ void main() {
     expect(find.textContaining('TEMPOET DITT HAR STEGET'), findsOneWidget);
     expect(find.textContaining('Du er i form!'), findsOneWidget);
     expect(find.text('Se formen din'), findsOneWidget);
-    expect(find.byType(DugnadConfetti), findsNothing);
+    expect(find.byType(AeConfetti), findsNothing);
   });
 
   testWidgets('T6 throne shows copy with confetti under motion', (tester) async {
@@ -147,8 +147,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: DugnadCelebrationOverlay(
                 item: item,
@@ -165,7 +165,7 @@ void main() {
     expect(find.textContaining('høyeste STØ'), findsOneWidget);
     expect(find.text('Se STØ-rangeringsen'), findsOneWidget);
     // Reduced motion still skips confetti paint.
-    expect(find.byType(DugnadConfetti), findsNothing);
+    expect(find.byType(AeConfetti), findsNothing);
   });
 
   testWidgets('T16 shows STØ rise copy under reduced motion', (tester) async {
@@ -194,8 +194,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: DugnadCelebrationOverlay(
                 item: item,
@@ -215,6 +215,6 @@ void main() {
       find.textContaining('igjen til Sølv', findRichText: true),
       findsOneWidget,
     );
-    expect(find.byType(DugnadConfetti), findsNothing);
+    expect(find.byType(AeConfetti), findsNothing);
   });
 }

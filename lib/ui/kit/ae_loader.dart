@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../screens/dugnad/dugnad_club_theme.dart';
-import '../utils/utils.dart' show languages;
+import 'ae_theme.dart';
+import '../../utils/utils.dart' show languages;
 
 /// Club-themed loader from the design tweaks / loading screenshot:
 /// thin orbiting ring + solid center disc + “Laster …” label.
 ///
-/// Color comes from the active club theme ([DugnadClubThemePalette.primary]).
-class DugnadClubLoader extends StatelessWidget {
-  const DugnadClubLoader({
+/// Color comes from the active club theme ([AeThemePalette.primary]).
+class AeLoader extends StatelessWidget {
+  const AeLoader({
     super.key,
     this.label,
     this.size = 56,
@@ -22,14 +22,14 @@ class DugnadClubLoader extends StatelessWidget {
   /// Outer ring diameter.
   final double size;
 
-  /// Override; defaults to club [DugnadClubThemePalette.primary].
+  /// Override; defaults to club [AeThemePalette.primary].
   final Color? color;
 
   final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final c = color ?? theme.primary;
     final text = label ?? languages.feed_loading;
     final trackW = (size * 0.048).clamp(2.0, 3.0);
@@ -93,25 +93,25 @@ class DugnadClubLoader extends StatelessWidget {
 }
 
 /// Image-slot progress for [CachedNetworkImage] — club orbit, no label.
-class DugnadClubImageLoader extends StatelessWidget {
-  const DugnadClubImageLoader({super.key, this.size = 32});
+class AeImageLoader extends StatelessWidget {
+  const AeImageLoader({super.key, this.size = 32});
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: context.dugnadTheme.primaryTint,
+      color: context.aeTheme.primaryTint,
       child: Center(
-        child: DugnadClubLoader(showLabel: false, size: size),
+        child: AeLoader(showLabel: false, size: size),
       ),
     );
   }
 }
 
 /// Full-screen club loader (`.ae-loader-screen` — club background).
-class DugnadClubLoaderScreen extends StatelessWidget {
-  const DugnadClubLoaderScreen({
+class AeLoaderScreen extends StatelessWidget {
+  const AeLoaderScreen({
     super.key,
     this.label,
     this.size = 56,
@@ -124,11 +124,11 @@ class DugnadClubLoaderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return ColoredBox(
       color: theme.background,
       child: Center(
-        child: DugnadClubLoader(
+        child: AeLoader(
           label: label,
           size: size,
           color: color ?? theme.primary,

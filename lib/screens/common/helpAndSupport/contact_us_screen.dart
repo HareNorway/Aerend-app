@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 
@@ -21,11 +21,11 @@ class ContactUsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Scaffold(
       backgroundColor: theme.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -41,16 +41,16 @@ class ContactUsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 80),
                         child: _HeroCard(theme: theme),
                       ),
                       const SizedBox(height: 18),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 140),
                         child: const DgLabel('Henvendelser'),
                       ),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 160),
                         child: _InquiryCard(
                           icon: Icons.business_center_outlined,
@@ -61,7 +61,7 @@ class ContactUsScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 200),
                         child: _InquiryCard(
                           icon: Icons.support_agent_rounded,
@@ -72,16 +72,16 @@ class ContactUsScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 240),
                         child: const DgLabel('Kundestøtte'),
                       ),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 260),
                         child: _CompanyCard(theme: theme),
                       ),
                       const SizedBox(height: 14),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 300),
                         child: DgInfoBox(
                           icon: Icons.info_outline_rounded,
@@ -105,7 +105,7 @@ class ContactUsScreen extends StatelessWidget {
 class _HeroCard extends StatelessWidget {
   const _HeroCard({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +133,7 @@ class _HeroCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Reen Dugnad',
+                  'Ærend',
                   style: dgText(
                     17,
                     FontWeight.w800,
@@ -174,7 +174,7 @@ class _InquiryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Material(
       color: Colors.white,
@@ -273,7 +273,7 @@ class _InquiryCard extends StatelessWidget {
 class _CompanyCard extends StatelessWidget {
   const _CompanyCard({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -341,7 +341,7 @@ class _ContactRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final row = Padding(
       padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(

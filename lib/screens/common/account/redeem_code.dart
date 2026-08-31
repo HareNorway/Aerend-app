@@ -6,8 +6,8 @@ import 'package:aerend_customer/screens/common/homeMainV1/home_main_v1.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'account_widgets.dart';
 import 'settings_design_kit.dart';
 
@@ -57,7 +57,7 @@ class _RedeemCodeState extends State<RedeemCode>
 
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -77,7 +77,7 @@ class _RedeemCodeState extends State<RedeemCode>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: DgrHero(
                           icon: Icons.card_giftcard_rounded,
@@ -92,7 +92,7 @@ class _RedeemCodeState extends State<RedeemCode>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -110,7 +110,7 @@ class _RedeemCodeState extends State<RedeemCode>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const DugnadRiseIn(
+                      const AeRiseIn(
                         delay: Duration(milliseconds: 260),
                         child: DgInfoBox(
                           icon: Icons.info_outline_rounded,

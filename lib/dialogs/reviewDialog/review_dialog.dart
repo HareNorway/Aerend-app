@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../networking/api_base_helper.dart';
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/common/base_dl.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../utils/utils.dart';
 import 'review_dialog_bloc.dart';
 
@@ -66,9 +66,9 @@ class _ReviewDialogState extends State<ReviewDialog> {
   Widget build(BuildContext context) {
     final bloc = _reviewDialogBloc!;
     return Form(
-      child: DugnadSheetBody(
+      child: AeSheetBody(
         children: [
-          DugnadSheetHead(
+          AeSheetHead(
             icon: Icons.star_rounded,
             title: 'Hvordan gikk det?', // TODO(l10n)
             message: widget.storeName.trim().isNotEmpty
@@ -119,20 +119,20 @@ class _ReviewDialogState extends State<ReviewDialog> {
             builder: (context, snapLoading) {
               final isLoading = snapLoading.hasData &&
                   snapLoading.data?.status == Status.loading;
-              return DugnadSheetPrimaryButton(
+              return AeSheetPrimaryButton(
                 label: 'Send vurdering', // TODO(l10n)
                 icon: Icons.check_rounded,
                 isLoading: isLoading,
                 onPressed: _isValid
                     ? () {
-                        dugnadSheetSaveHaptic();
+                        aeSheetSaveHaptic();
                         bloc.submit(widget.onSelected);
                       }
                     : null,
               );
             },
           ),
-          const DugnadSheetCancelButton(label: 'Ikke nå'), // TODO(l10n)
+          const AeSheetCancelButton(label: 'Ikke nå'), // TODO(l10n)
         ],
       ),
     );
@@ -178,7 +178,7 @@ class _StarRow extends StatelessWidget {
                   child: Icon(
                     n <= value ? Icons.star_rounded : Icons.star_outline_rounded,
                     size: 30,
-                    color: n <= value ? _onColor : kDugnadSheetIdle,
+                    color: n <= value ? _onColor : kAeSheetIdle,
                   ),
                 ),
               ),

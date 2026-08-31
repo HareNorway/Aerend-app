@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../campaign_delivery_utils.dart';
 import '../campaign_strings.dart';
 import '../models/campaign_order_pojo.dart';
@@ -23,7 +23,7 @@ class CpActiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final locked = order.state == CampaignPurchaseState.locked;
     final pickup = order.isPickup;
     final window = order.windowInstant;
@@ -209,7 +209,7 @@ class _CountWrap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final window = order.windowInstant!;
     final dash = Color.lerp(Colors.white, theme.primary, 0.26)!;
     final washTop = Color.lerp(Colors.white, theme.primary, 0.13)!;
@@ -375,7 +375,7 @@ class _ChangeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final off = !enabled;
     return GestureDetector(
       onTap: onTap,

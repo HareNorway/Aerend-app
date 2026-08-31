@@ -7,9 +7,9 @@ import 'package:aerend_customer/screens/common/homeMainV1/home_main_v1.dart';
 import '../../../utils/utils.dart';
 import '../../dugnad/dugnad_models.dart';
 import '../../dugnad/dugnad_repo.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'account_widgets.dart';
 import 'settings_design_kit.dart';
 
@@ -61,7 +61,7 @@ class _ReferralCodeState extends State<ReferralCode> {
     final short = prefGetString(prefSelectedClubShortName).trim();
     if (short.isNotEmpty) return short;
     final name = prefGetString(prefSelectedClubName).trim();
-    return name.isNotEmpty ? name : 'Reen Dugnad';
+    return name.isNotEmpty ? name : 'Ærend';
   }
 
   String get _inviteLink => 'https://reen.io/invite?code=$_code';
@@ -70,7 +70,7 @@ class _ReferralCodeState extends State<ReferralCode> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -90,17 +90,17 @@ class _ReferralCodeState extends State<ReferralCode> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: _hero(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: _codeSection(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 260),
                         child: DgPrimaryButton(
                           label: 'Del vervelenken', // TODO(l10n)
@@ -109,13 +109,13 @@ class _ReferralCodeState extends State<ReferralCode> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 330),
                         child: _redeemSection(),
                       ),
                       if (_recruits.isNotEmpty) ...[
                         const SizedBox(height: 16),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 400),
                           child: _recruitSection(),
                         ),
@@ -255,7 +255,7 @@ class _ReferralCodeState extends State<ReferralCode> {
   /// Share sheet — `.dg-msheet` shell, copy-link field. Same link and clipboard
   /// behaviour as before.
   void showInviteFriendModal() {
-    showDugnadSheet<void>(
+    showAeSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) {
@@ -266,7 +266,7 @@ class _ReferralCodeState extends State<ReferralCode> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const DugnadSheetHandle(),
+              const AeSheetHandle(),
               AccountSheetHead(
                 icon: Icons.ios_share_rounded,
                 title: languages.inviteTitle,
@@ -292,7 +292,7 @@ class _ReferralCodeState extends State<ReferralCode> {
               AccountSheetCancelButton(
                 label: languages.cancel,
                 onTap: () {
-                  dugnadSheetCloseHaptic();
+                  aeSheetCloseHaptic();
                   Navigator.pop(sheetContext);
                 },
               ),

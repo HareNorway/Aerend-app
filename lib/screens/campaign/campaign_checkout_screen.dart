@@ -14,21 +14,21 @@ import '../../utils/stripe_payment_helper.dart';
 import '../../utils/global_loading_overlay.dart';
 import '../../utils/utils.dart';
 import '../common/manageAddress/manage_address_dl.dart';
-import '../dugnad/club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import '../dugnad/dugnad_celebration_orchestrator.dart';
 import '../dugnad/dugnad_club_branding.dart';
-import '../dugnad/dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import '../dugnad/dugnad_repo.dart';
 import '../dugnad/dugnad_state.dart';
 import '../dugnad/points_team_sheet.dart';
 import '../dugnad/referral_capture_helper.dart';
-import '../dugnad/widgets/dugnad_checkout_payment_selector.dart';
+import '../../ui/kit/ae_checkout_payment_selector.dart';
 import '../dugnad/widgets/dugnad_points_earn.dart';
-import '../dugnad/widgets/mk_qty_stepper.dart';
+import '../../ui/kit/ae_qty_stepper.dart';
 import '../common/vipps/vipps_return_screens.dart';
 import 'bloc/campaign_detail_bloc.dart';
 import 'bloc/campaign_checkout_bloc.dart';
-import '../dugnad/widgets/dugnad_address_drawer.dart';
+import '../../ui/kit/ae_address_drawer.dart';
 import 'campaign_delivery_utils.dart';
 import 'campaign_media.dart';
 import 'campaign_repo.dart';
@@ -63,16 +63,16 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
 
   String _deliveryMethod = 'delivery';
-  DugnadCheckoutPayMethod _selectedPaymentMethod =
-      dugnadCheckoutDefaultPayMethod();
+  AeCheckoutPayMethod _selectedPaymentMethod =
+      aeCheckoutDefaultPayMethod();
 
   /// Flat points per purchase from points summary — null until loaded.
   int? _campaignEarnRate;
 
   bool get _useClubTheme => DugnadState.instance.isDugnadMode;
 
-  DugnadClubThemePalette _clubTheme(BuildContext context) =>
-      context.dugnadTheme;
+  AeThemePalette _clubTheme(BuildContext context) =>
+      context.aeTheme;
 
   Color _accent(BuildContext context) => _useClubTheme
       ? _clubTheme(context).primary
@@ -461,11 +461,11 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
   }
 
   void _onSwipePay() {
-    if (_selectedPaymentMethod == DugnadCheckoutPayMethod.vipps) {
+    if (_selectedPaymentMethod == AeCheckoutPayMethod.vipps) {
       _submit(paymentMethod: 'vipps');
       return;
     }
-    if (_selectedPaymentMethod == DugnadCheckoutPayMethod.platformWallet) {
+    if (_selectedPaymentMethod == AeCheckoutPayMethod.platformWallet) {
       _submit(
         paymentMethod: 'stripe',
         stripePayMode: _StripePayMode.platformWallet,
@@ -573,7 +573,7 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
                         child: _buildContactAndAddressFields(),
                       ),
                       const SizedBox(height: 14),
-                      DugnadCheckoutPaymentSelector(
+                      AeCheckoutPaymentSelector(
                         value: _selectedPaymentMethod,
                         accent: accent,
                         onChanged: (method) => setState(
@@ -711,7 +711,7 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
   Widget _buildOrderItemRow(
     CampaignCartItem item,
     String shortClub,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
   ) {
     // `.mk-coitem .qty` — "{price} kr · {short}"
     final meta = shortClub.isNotEmpty
@@ -753,7 +753,7 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
           ),
         ),
         const SizedBox(width: 11),
-        MkQtyStepper(
+        AeQtyStepper(
           qty: item.quantity,
           theme: theme,
           small: true,
@@ -937,7 +937,7 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
       ),
       child: Row(
         children: [
-          ClubCrest(name: crestName, logoUrl: crestLogo, size: 42),
+          AeClubCrest(name: crestName, logoUrl: crestLogo, size: 42),
           const SizedBox(width: 13),
           Expanded(
             child: Column(
@@ -970,7 +970,7 @@ class _CampaignCheckoutScreenState extends State<CampaignCheckoutScreen> {
 
   Future<void> _pickDeliveryAddress() async {
     HapticFeedback.lightImpact();
-    await showDugnadAddressDrawer(
+    await showAeAddressDrawer(
       context,
       parentContext: context,
       onAddressChanged: () {

@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
 import '../matkasse_campaign_screen.dart';
 import 'campaign_countdown.dart';
@@ -139,7 +139,7 @@ class _DugnadCampaignCarouselState extends State<DugnadCampaignCarousel> {
   Widget build(BuildContext context) {
     if (widget.campaigns.isEmpty) return const SizedBox.shrink();
 
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final atStart = _index == 0;
     final atEnd = _index == widget.campaigns.length - 1;
 
@@ -305,7 +305,7 @@ class _CarouselArrow extends StatelessWidget {
             icon,
             size: context.dp(16),
             color: enabled
-                ? context.dugnadTheme.primary
+                ? context.aeTheme.primary
                 : ScSaasThemeTokens.gray300,
           ),
         ),
@@ -367,7 +367,7 @@ class _DugnadCampMiniCardState extends State<DugnadCampMiniCard>
     final campaign = widget.campaign;
     final campaignPoints = widget.campaignPoints;
     final onTap = widget.onTap;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final teamName = campaign.teamName?.trim() ?? '';
     final note = campaign.landingIntroText?.trim() ?? '';
     final goalPct = campaign.goalPercent ?? 0;
@@ -623,7 +623,7 @@ class _MiniBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final heroUrl = campaign.heroImageUrl?.trim();
     final salesEnd = campaign.salesWindowEnd;
 
@@ -708,7 +708,7 @@ class _MiniBanner extends StatelessWidget {
     );
   }
 
-  Widget _bannerGradient(DugnadClubThemePalette theme) {
+  Widget _bannerGradient(AeThemePalette theme) {
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(

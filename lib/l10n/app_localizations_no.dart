@@ -130,7 +130,7 @@ class AppLocalizationsNo extends AppLocalizations {
   String get next => 'Neste';
 
   @override
-  String get loginToAerend => 'Login to Reen Dugnad';
+  String get loginToAerend => 'Login to Ærend';
 
   @override
   String get continueTxt => 'Fortsette';
@@ -220,7 +220,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get loginSignUpMsg =>
-      'Bli med i Reen Dugnad — hver ordre gir tilbake til klubben';
+      'Bli med i Ærend — hver ordre gir tilbake til klubben';
 
   @override
   String get login => 'Logg Inn';
@@ -324,7 +324,7 @@ class AppLocalizationsNo extends AppLocalizations {
   String get loginWith => 'Logg inn med';
 
   @override
-  String get startedWithAerend => 'Get Started with Reen Dugnad';
+  String get startedWithAerend => 'Get Started with Ærend';
 
   @override
   String get choosesettingaccount =>
@@ -2196,7 +2196,7 @@ class AppLocalizationsNo extends AppLocalizations {
   String get signIn => 'Logg inn';
 
   @override
-  String get guestAccountPromptTitle => 'Kom i gang med Reen Dugnad';
+  String get guestAccountPromptTitle => 'Kom i gang med Ærend';
 
   @override
   String get guestAccountPromptMessage =>
@@ -6289,7 +6289,7 @@ class AppLocalizationsNo extends AppLocalizations {
   String get settingsLanguage => 'Språk';
 
   @override
-  String get settingsAerendVersion => 'Reen Dugnad-versjon';
+  String get settingsAerendVersion => 'Ærend-versjon';
 
   @override
   String get settingsOsVersion => 'OS-versjon';
@@ -6382,7 +6382,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get inviteDescription =>
-      'Del gleden av Reen Dugnad med vennene dine og tjen belønninger sammen! Inviter en venn til å bli med i Reen Dugnad og dere vil begge motta spennende fordeler. Spre ordet og la oss hoppe inn i moro og belønninger sammen!';
+      'Del gleden av Ærend med vennene dine og tjen belønninger sammen! Inviter en venn til å bli med i Ærend og dere vil begge motta spennende fordeler. Spre ordet og la oss hoppe inn i moro og belønninger sammen!';
 
   @override
   String get inviteButton => 'Inviter venner nå';

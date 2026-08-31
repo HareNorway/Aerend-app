@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/dugnad_feed_entry_banner.dart';
 
 /// `DugnadFeedEntryBanner` paints five of home's nine feed cards, and every
@@ -20,7 +20,7 @@ void main() {
   Future<void> pumpBanner(
     WidgetTester tester,
     DugnadFeedEntryVariant variant, {
-    DugnadClubThemePalette? palette,
+    AeThemePalette? palette,
   }) async {
     tester.view.physicalSize = const Size(375, 812);
     tester.view.devicePixelRatio = 1.0;
@@ -28,8 +28,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: DugnadClubThemeScope(
-          palette: palette ?? DugnadClubThemePalette.defaults,
+        home: AeThemeScope(
+          palette: palette ?? AeThemePalette.defaults,
           child: Scaffold(
             // Unbounded height so the banner sizes to its content; under a
             // Scaffold it otherwise stretches to the full 812 frame, which
@@ -199,7 +199,7 @@ void main() {
         (tester) async {
       await pumpBanner(tester, DugnadFeedEntryVariant.missionsPurple);
       final g = cardDecoration(tester).gradient! as LinearGradient;
-      final theme = DugnadClubThemePalette.defaults;
+      final theme = AeThemePalette.defaults;
 
       // `.me-bg` is linear-gradient(135deg, --ae-purple-600, --ae-purple-500).
       // There is no third colour and no gloss layer to justify one.
@@ -213,7 +213,7 @@ void main() {
 
     testWidgets('transferDark shades the club primary, not a hardcoded hue',
         (tester) async {
-      final club = DugnadClubThemePalette.resolve(accentColor: '#E86657');
+      final club = AeThemePalette.resolve(accentColor: '#E86657');
       await pumpBanner(
         tester,
         DugnadFeedEntryVariant.transferDark,
@@ -279,9 +279,9 @@ void main() {
         (tester) async {
       // Flat magenta on every club — mixing it with a club token would drift
       // it per club, which the design does not do.
-      final navyClub = DugnadClubThemePalette.resolve(accentColor: '#1B3A6B');
+      final navyClub = AeThemePalette.resolve(accentColor: '#1B3A6B');
 
-      for (final palette in [DugnadClubThemePalette.defaults, navyClub]) {
+      for (final palette in [AeThemePalette.defaults, navyClub]) {
         await pumpBanner(
           tester,
           DugnadFeedEntryVariant.supportLight,
@@ -298,7 +298,7 @@ void main() {
   group('club overrides still propagate', () {
     testWidgets('missionsPurple shadow follows the club, gold does not',
         (tester) async {
-      final navyClub = DugnadClubThemePalette.resolve(accentColor: '#1B3A6B');
+      final navyClub = AeThemePalette.resolve(accentColor: '#1B3A6B');
 
       // rgba(45,27,91,.6) is `--ae-midnight`, which the club theme derives —
       // freezing it as a literal would leave a purple shadow under a navy card.

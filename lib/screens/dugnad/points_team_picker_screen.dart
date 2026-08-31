@@ -5,12 +5,12 @@ import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
 /// How the picker presents itself.
 ///
@@ -168,7 +168,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
         ? null
         : DugnadState.instance.clubLogo;
     final selectedId = DugnadState.instance.pointsTeamId;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     final title = _isSwitch
         ? languages.dugnadChangeTeamOrClub
@@ -177,15 +177,15 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
         ? languages.dugnadSwitchAnytimeSubtitle
         : languages.dugnadPickTeamSubtitle(clubName);
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: theme.primary,
         body: Stack(
           children: [
-            DugnadLbScrollBody(
+            AeScrollBody(
               // `.lb-feed { gap: 14 }` — list itself owns the 10px row gap.
               itemGap: context.dp(14),
-              hero: DugnadLbHero(
+              hero: AeHero(
                 clubName: clubName,
                 clubLogo: clubLogo,
                 title: title,
@@ -196,7 +196,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
               bottomPadding: context.dp(_isSwitch ? 120 : 24),
               children: [
                 if (!_isSwitch) ...[
-                  DugnadRiseIn(
+                  AeRiseIn(
                     key: const ValueKey('teamPickerSearch'),
                     delay: const Duration(milliseconds: 120),
                     child: _buildSearch(),
@@ -240,7 +240,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
                 if (_isSwitch)
                   _SwitchInfoBanner(theme: theme)
                 else
-                  DugnadRiseIn(
+                  AeRiseIn(
                     key: const ValueKey('teamPickerNote'),
                     delay: const Duration(milliseconds: 610),
                     duration: const Duration(milliseconds: 550),
@@ -272,7 +272,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
   Widget _buildTeamList(
     int selectedId,
     String clubShort,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
   ) {
     final rows = _filtered;
     return Column(
@@ -283,7 +283,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
             builder: (context) {
               final row = _buildTeamRow(rows[i], selectedId, clubShort, theme);
               if (i >= _staggerCount || !_inEntranceWindow) return row;
-              return DugnadRiseIn(
+              return AeRiseIn(
                 key: ValueKey('teamPickerRow-${rows[i].team.id}'),
                 delay: Duration(milliseconds: 190 + i * 70),
                 child: row,
@@ -307,7 +307,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
         borderRadius: BorderRadius.circular(context.dp(14)),
         boxShadow: [
           BoxShadow(
-            color: context.dugnadTheme.text.withValues(alpha: 0.05),
+            color: context.aeTheme.text.withValues(alpha: 0.05),
             blurRadius: context.dp(2),
             offset: Offset(0, context.dp(1)),
           ),
@@ -361,7 +361,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
     _TeamPickerRow row,
     int selectedId,
     String clubShort,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
   ) {
     final isSelected = row.team.id == selectedId;
     final meta = _isSwitch
@@ -479,7 +479,7 @@ class _PointsTeamPickerScreenState extends State<PointsTeamPickerScreen> {
 class _SwitchInfoBanner extends StatelessWidget {
   const _SwitchInfoBanner({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {

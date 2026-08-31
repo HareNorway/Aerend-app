@@ -6,14 +6,14 @@ import '../../commonView/surface_decorations.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import '../common/homeMainV1/home_main_v1.dart';
-import '../dugnad/club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import '../dugnad/dugnad_club_branding.dart';
-import '../dugnad/dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import '../dugnad/dugnad_state.dart';
-import '../dugnad/widgets/dugnad_confetti.dart';
+import '../../ui/kit/ae_confetti.dart';
 import '../dugnad/widgets/dugnad_points_pop.dart';
-import '../dugnad/widgets/dugnad_rise_in.dart';
-import '../dugnad/widgets/dugnad_support_share.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_support_share.dart';
 import 'campaign_my_orders_screen.dart';
 import 'campaign_strings.dart';
 
@@ -171,7 +171,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
 
   String get _shareMessage => languages.dugnadSupportShareMessage(_supportName);
 
-  void _copyShareLink() => copyDugnadSupportShareLink(context);
+  void _copyShareLink() => copyAeSupportShareLink(context);
 
   void _goHome() {
     if (!mounted) return;
@@ -194,7 +194,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
   @override
   Widget build(BuildContext context) {
     final isDugnad = DugnadState.instance.isDugnadMode;
-    final theme = isDugnad ? context.dugnadTheme : null;
+    final theme = isDugnad ? context.aeTheme : null;
     final accent = isDugnad ? theme!.primary : ScSaasThemeTokens.primary;
     final pageBg =
         isDugnad ? theme!.background : ScSaasThemeTokens.background;
@@ -219,7 +219,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 100),
                           child: TweenAnimationBuilder<double>(
                             tween: Tween<double>(begin: 0.4, end: 1),
@@ -233,7 +233,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                               ),
                             ),
                             child: isDugnad
-                                ? const DugnadSuccessBurstCheck()
+                                ? const AeSuccessBurstCheck()
                                 : Container(
                                     width: 80,
                                     height: 56,
@@ -254,7 +254,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                           ),
                         ),
                         const SizedBox(height: 18),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 160),
                           child: Text(
                             isDugnad
@@ -271,7 +271,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                         ),
                         if (isDugnad && _boxCount > 0) ...[
                           const SizedBox(height: 8),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 220),
                             child: Text(
                               languages.campaignBoxesOrdered(_boxCount),
@@ -297,9 +297,9 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                             widget.pointsEarned != null &&
                             widget.pointsEarned! > 0) ...[
                           const SizedBox(height: 22),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 280),
-                            child: DugnadSuccessPointsBadge(
+                            child: AeSuccessPointsBadge(
                               points: widget.pointsEarned!,
                               label: languages.campaignPointsAddedLabel,
                             ),
@@ -307,15 +307,15 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                         ],
                         if (isDugnad) ...[
                           const SizedBox(height: 18),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 330),
-                            child: DugnadSuccessCardWidth(
+                            child: AeSuccessCardWidth(
                               child: _clubCard(accent, textColor),
                             ),
                           ),
                           if (widget.distributionDate != null) ...[
                             const SizedBox(height: 12),
-                            DugnadRiseIn(
+                            AeRiseIn(
                               delay: const Duration(milliseconds: 370),
                               child: _deliveryPill(accent, theme!),
                             ),
@@ -323,9 +323,9 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                         ],
                         if (widget.lineItems.isNotEmpty) ...[
                           const SizedBox(height: 16),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 410),
-                            child: DugnadSuccessCardWidth(
+                            child: AeSuccessCardWidth(
                               child: _orderSummaryCard(textColor),
                             ),
                           ),
@@ -354,7 +354,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                         ],
                         if (isDugnad && _email.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 450),
                             child: Text(
                               languages.campaignConfirmationEmailSent(_email),
@@ -370,10 +370,10 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                         ],
                         if (isDugnad) ...[
                           const SizedBox(height: 20),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 490),
                             child: Center(
-                              child: DugnadSupportShareCard(
+                              child: AeSupportShareCard(
                                 teamName: _supportName,
                                 message: _shareMessage,
                                 logoUrl: _supportLogo,
@@ -381,10 +381,10 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                             ),
                           ),
                           const SizedBox(height: 12),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 530),
-                            child: DugnadSuccessCardWidth(
-                              child: DugnadShareSupportButton(
+                            child: AeSuccessCardWidth(
+                              child: AeShareSupportButton(
                                 onPressed: _copyShareLink,
                                 compact: true,
                               ),
@@ -400,8 +400,8 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
                   child: Column(
                     children: [
                       if (isDugnad) ...[
-                        DugnadSuccessCardWidth(
-                          child: DugnadSuccessPrimaryButton(
+                        AeSuccessCardWidth(
+                          child: AeSuccessPrimaryButton(
                             label: CampaignStrings.backToHome,
                             onPressed: _goHome,
                           ),
@@ -448,7 +448,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
           if (isDugnad)
             Positioned.fill(
               child: IgnorePointer(
-                child: DugnadConfetti(
+                child: AeConfetti(
                   progress: _confettiController,
                   fadeByHeight: true,
                 ),
@@ -470,7 +470,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
       ),
       child: Row(
         children: [
-          ClubCrest(
+          AeClubCrest(
             name: _clubDisplayName,
             logoUrl: _supportLogo,
             size: 40,
@@ -505,7 +505,7 @@ class _CampaignOrderSuccessScreenState extends State<CampaignOrderSuccessScreen>
     );
   }
 
-  Widget _deliveryPill(Color accent, DugnadClubThemePalette theme) {
+  Widget _deliveryPill(Color accent, AeThemePalette theme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
       decoration: BoxDecoration(

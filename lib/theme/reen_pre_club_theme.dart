@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Reen coral-navy tokens for pre-club surfaces (splash, login, mode select,
 /// club onboarding) — mirrors `.reen-pre` in Design/Custom Dugnad.html.
 ///
-/// After a club is selected, [DugnadClubThemePalette.resolve] takes over.
+/// After a club is selected, [AeThemePalette.resolve] takes over.
 abstract final class ReenPreClubTokens {
   // Coral
   static const Color coral = Color(0xFFE86657);

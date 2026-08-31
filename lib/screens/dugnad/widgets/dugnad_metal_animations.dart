@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/design_scale.dart';
 
 import '../../../theme/sc_saas_theme.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../points_metal_theme.dart';
 
 /// Soft metallic reflection gradient — wide feathered band.
@@ -639,7 +639,7 @@ class _DugnadCarryoverFlyGraphicState extends State<DugnadCarryoverFlyGraphic>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return SizedBox(

@@ -5,8 +5,8 @@ import 'package:aerend_customer/screens/common/orderHistory/order_history_dl.dar
 import 'package:aerend_customer/commonView/no_record_found.dart';
 
 import '../../../../utils/utils.dart';
-import '../../../dugnad/dugnad_club_theme.dart';
-import '../../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../../ui/kit/ae_theme.dart';
+import '../../../../ui/kit/ae_rise_in.dart';
 import '../../address_order_chrome.dart';
 // Imported through the same `package:` URI the bloc uses — mixing a relative
 // and a package URI for this library made the analyzer treat
@@ -54,11 +54,11 @@ class _OrderDetailState extends State<OrderDetail> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -104,7 +104,7 @@ class _OrderDetailState extends State<OrderDetail> {
   /// `.dgo-head` — 48px crest tile, store name, "#order · date", status pill.
   Widget _buildHeadCard() {
     final order = widget.orderDetail;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -178,7 +178,7 @@ class _OrderDetailState extends State<OrderDetail> {
   /// `.dgo-head .st` — levert (#EAFAF0/#1F8A5B) vs vei (club tint / primaryHover).
   Widget _statusPill() {
     final delivered = _isDelivered;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -209,7 +209,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
   /// `.dgo-route` — club-tint Fra → Til block.
   Widget _buildRoute() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -238,7 +238,7 @@ class _OrderDetailState extends State<OrderDetail> {
   }
 
   Widget _routeLeg(String key, String value) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -344,7 +344,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
   /// `.dgo-sum .it` — 44px thumb, name, line price, `.qt` quantity chip.
   Widget _summaryItem(OrderSummaryItem item) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: const BoxDecoration(
@@ -419,7 +419,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
   /// `.dgo-sum .rows .r` — 13.5/600 gray-500 label, 700 club text value.
   Widget _feeRow(String label, double value) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -446,7 +446,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
   /// `.dgo-sum .tot` — 12px top margin, 13px top padding, 1.5px hairline.
   Widget _totalRow(double total) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.only(top: 13),
@@ -498,7 +498,7 @@ class _OrderDetailState extends State<OrderDetail> {
   }
 
   Widget _shipRow(IconData icon, String key, String value) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(

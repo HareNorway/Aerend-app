@@ -15,11 +15,10 @@ import 'package:aerend_customer/screens/common/editProfile/edit_profile_repo.dar
 import 'package:aerend_customer/screens/common/selectLanguageAndCurrency/select_language_and_currency.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_repo.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_sheet.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_state.dart';
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_address_drawer.dart';
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_rise_in.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_sheet.dart';
+import 'package:aerend_customer/ui/kit/ae_address_drawer.dart';
+import 'package:aerend_customer/ui/kit/ae_rise_in.dart';
 import 'package:aerend_customer/commonView/modal_ui.dart';
 
 import '../../../utils/utils.dart';
@@ -43,8 +42,6 @@ class _AccountDetailState extends State<AccountDetail>
   @override
   void initState() {
     super.initState();
-    DugnadState.instance.revision.addListener(_onDugnadChanged);
-    DugnadState.instance.syncClubThemeFromApi();
     final savedAddressJson = prefGetString(prefNewDeliveryAddress);
     if (savedAddressJson.isNotEmpty) {
       try {
@@ -72,13 +69,8 @@ class _AccountDetailState extends State<AccountDetail>
     });
   }
 
-  void _onDugnadChanged() {
-    if (mounted) setState(() {});
-  }
-
   @override
   void dispose() {
-    DugnadState.instance.revision.removeListener(_onDugnadChanged);
     super.dispose();
   }
 
@@ -104,14 +96,14 @@ class _AccountDetailState extends State<AccountDetail>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final phone = prefGetString(prefContactNumber);
     final phoneValue = phone.isEmpty
         ? ''
         : '${prefGetString(prefCountryCode)} $phone'.trim();
     final email = prefGetString(prefEmail);
 
-    return DugnadClubThemeScope(
+    return AeThemeScope(
       palette: theme,
       child: Scaffold(
         backgroundColor: theme.background,
@@ -128,12 +120,12 @@ class _AccountDetailState extends State<AccountDetail>
                   // .ae-body: padding 0 18px 120px, gap 16.
                   padding: const EdgeInsets.fromLTRB(18, 0, 18, 120),
                   children: [
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 120),
                       child: _photoCard(theme),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 190),
                       child: _accountFieldRow(
                         theme: theme,
@@ -146,7 +138,7 @@ class _AccountDetailState extends State<AccountDetail>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 260),
                       child: _accountFieldRow(
                         theme: theme,
@@ -158,7 +150,7 @@ class _AccountDetailState extends State<AccountDetail>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 330),
                       child: _accountFieldRow(
                         theme: theme,
@@ -169,7 +161,7 @@ class _AccountDetailState extends State<AccountDetail>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 400),
                       child: _section(
                         theme: theme,
@@ -184,7 +176,7 @@ class _AccountDetailState extends State<AccountDetail>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 470),
                       child: _section(
                         theme: theme,
@@ -218,7 +210,7 @@ class _AccountDetailState extends State<AccountDetail>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 540),
                       child: _dangerCard(),
                     ),
@@ -237,7 +229,7 @@ class _AccountDetailState extends State<AccountDetail>
   }
 
   /// `.dga-photo` — avatar with camera badge, name, hint, `.dga-pen`.
-  Widget _photoCard(DugnadClubThemePalette theme) {
+  Widget _photoCard(AeThemePalette theme) {
     final profileImage = prefGetString(prefProfileImage).trim();
 
     return Container(
@@ -369,7 +361,7 @@ class _AccountDetailState extends State<AccountDetail>
 
   /// `.dga-field` — label + `.dga-fbox` value card with edit chip.
   Widget _accountFieldRow({
-    required DugnadClubThemePalette theme,
+    required AeThemePalette theme,
     required String label,
     required String value,
     required String placeholder,
@@ -450,7 +442,7 @@ class _AccountDetailState extends State<AccountDetail>
 
   /// `.dg-label` + `.dg-prof-list` section.
   Widget _section({
-    required DugnadClubThemePalette theme,
+    required AeThemePalette theme,
     required String label,
     required List<_ProfRow> rows,
   }) {
@@ -554,7 +546,7 @@ class _AccountDetailState extends State<AccountDetail>
 
   /// Design confirmation sheet → existing feedback/delete flow.
   void _openDeleteAccountSheet() {
-    showDugnadSheet(
+    showAeSheet(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) => DeleteAccountSheet(
@@ -567,9 +559,9 @@ class _AccountDetailState extends State<AccountDetail>
     );
   }
 
-  /// Same address drawer as Home (`showDugnadAddressDrawer`).
+  /// Same address drawer as Home (`showAeAddressDrawer`).
   Future<void> _openAddressSheet() async {
-    await showDugnadAddressDrawer(
+    await showAeAddressDrawer(
       context,
       parentContext: context,
       onAddressChanged: _reloadSelectedAddress,
@@ -813,7 +805,7 @@ class _ProfRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return _ScalePress(
       pressedScale: 0.99,
       onTap: onTap,

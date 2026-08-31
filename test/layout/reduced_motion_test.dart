@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_rise_in.dart';
+import 'package:aerend_customer/ui/kit/ae_rise_in.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/ae_metal_progress_bar.dart';
 
 import 'package:aerend_customer/screens/dugnad/widgets/dugnad_metal_animations.dart';
@@ -12,7 +12,7 @@ import 'package:aerend_customer/screens/dugnad/widgets/dugnad_prize_banner.dart'
 import 'package:aerend_customer/screens/dugnad/dugnad_models.dart';
 import 'package:aerend_customer/screens/dugnad/dugnad_welcome_screen.dart';
 import 'package:aerend_customer/screens/dugnad/tier_level_up_screen.dart';
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_subpage_shell.dart';
+import 'package:aerend_customer/ui/kit/ae_subpage_shell.dart';
 
 import 'reduced_motion_harness.dart';
 
@@ -38,10 +38,10 @@ const _solv = MetalTierInfo(
 void main() {
   setUpAll(bootstrapGlobals);
 
-  testWidgets('DugnadRiseIn respects reduced motion', (tester) async {
+  testWidgets('AeRiseIn respects reduced motion', (tester) async {
     await expectRespectsReducedMotion(
       tester,
-      () => const DugnadRiseIn(
+      () => const AeRiseIn(
         delay: Duration(milliseconds: 300),
         child: Text('x'),
       ),
@@ -49,26 +49,26 @@ void main() {
     );
   });
 
-  testWidgets('DugnadRiseIn with no delay respects reduced motion',
+  testWidgets('AeRiseIn with no delay respects reduced motion',
       (tester) async {
     await expectRespectsReducedMotion(
       tester,
-      () => const DugnadRiseIn(child: Text('x')),
+      () => const AeRiseIn(child: Text('x')),
     );
   });
 
-  testWidgets('DugnadPulseIcon respects reduced motion', (tester) async {
+  testWidgets('AePulseIcon respects reduced motion', (tester) async {
     await expectRespectsReducedMotion(
       tester,
-      () => const DugnadPulseIcon(child: Icon(Icons.star)),
+      () => const AePulseIcon(child: Icon(Icons.star)),
       longestDelay: const Duration(seconds: 6),
     );
   });
 
-  testWidgets('DugnadBreathe respects reduced motion', (tester) async {
+  testWidgets('AeBreathe respects reduced motion', (tester) async {
     await expectRespectsReducedMotion(
       tester,
-      () => const DugnadBreathe(child: Text('x')),
+      () => const AeBreathe(child: Text('x')),
       longestDelay: const Duration(seconds: 6),
     );
   });
@@ -153,10 +153,10 @@ void main() {
   });
 
   // Shared feed-item entrance reached every subpage feed ungated.
-  testWidgets('DugnadFeedEnter respects reduced motion', (tester) async {
+  testWidgets('AeFeedEnter respects reduced motion', (tester) async {
     await expectRespectsReducedMotion(
       tester,
-      () => const DugnadFeedEnter(index: 3, child: Text('x')),
+      () => const AeFeedEnter(index: 3, child: Text('x')),
       longestDelay: const Duration(seconds: 1),
     );
   });

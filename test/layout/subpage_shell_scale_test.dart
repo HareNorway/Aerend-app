@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// `dugnad_subpage_shell.dart` supplies four of the seven widgets shared across
-/// the gamify cluster — `DugnadFixedTypography` and `DugnadRiseIn` in seven of
-/// eight screens, `DugnadLbHero` and `DugnadLbScrollBody` in four each.
+/// the gamify cluster — `AeFixedTypography` and `AeRiseIn` in seven of
+/// eight screens, `AeHero` and `AeScrollBody` in four each.
 ///
 /// It was ~80% unscaled, so a fixed-px shell wrapped seven screens whose
 /// contents scaled around it. One file, one fix, the whole cluster.
@@ -49,7 +49,7 @@ void main() {
     // A helper carries the em conversion but cannot carry the device scale --
     // the call site must add it. Six sites across four cluster screens were
     // missing it, and three of those screens hand-roll their own hero instead
-    // of using DugnadLbHero, which is why scaling the shell did not reach them.
+    // of using AeHero, which is why scaling the shell did not reach them.
     const cluster = [
       'lib/screens/dugnad/points_team_picker_screen.dart',
       'lib/screens/dugnad/widgets/dugnad_player_card.dart',
@@ -77,7 +77,7 @@ void main() {
   test('the hero text styles go through the scale extension', () {
     final src = File(path).readAsStringSync();
     // A helper carries the em conversion but cannot carry the device scale --
-    // the call site must add it, which is what DugnadSectionLabel was missing.
+    // the call site must add it, which is what AeSectionLabel was missing.
     // Every AeDugnadText call in this file must be followed by .dp(context).
     final calls = 'AeDugnadText.'.allMatches(src).length;
     final scaled = ').dp(context)'.allMatches(src).length;

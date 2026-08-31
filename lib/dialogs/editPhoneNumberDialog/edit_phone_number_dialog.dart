@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../networking/api_base_helper.dart';
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/common/otpVerify/otp_verify_dl.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/reen_pre_club_theme.dart';
 import '../../utils/utils.dart';
@@ -11,7 +11,7 @@ import 'edit_phone_number_dialog_bloc.dart';
 
 /// Edit Number — navy auth sheet matching OTP / Login phone chrome.
 Future<bool?> showEditAuthPhoneSheet(BuildContext context) {
-  return showDugnadSheet<bool>(
+  return showAeSheet<bool>(
     context: context,
     isScrollControlled: true,
     // OTP / login sit on Reen navy; keep the sheet on the same surface so

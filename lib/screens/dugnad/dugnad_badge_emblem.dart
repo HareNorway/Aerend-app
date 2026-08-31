@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/sc_saas_theme.dart';
 import 'dugnad_badges.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 class DugnadBadgeEmblem extends StatelessWidget {
   const DugnadBadgeEmblem({
     super.key,
@@ -81,7 +81,7 @@ class DugnadBadgeEmblem extends StatelessWidget {
                 // negative spread was dropped along with the alpha, so the
                 // shadow read both wider and fainter than intended.
                 BoxShadow(
-                  color: context.dugnadTheme.text.withValues(alpha: 0.4),
+                  color: context.aeTheme.text.withValues(alpha: 0.4),
                   blurRadius: 14,
                   offset: const Offset(0, 6),
                   spreadRadius: -6,
@@ -129,8 +129,8 @@ class DugnadBadgeEmblem extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  context.dugnadTheme.text.withValues(alpha: 0.18),
-                  context.dugnadTheme.text.withValues(alpha: 0),
+                  context.aeTheme.text.withValues(alpha: 0.18),
+                  context.aeTheme.text.withValues(alpha: 0),
                 ],
                 stops: const [0.0, 0.09],
               ),
@@ -175,7 +175,7 @@ class DugnadBadgeEmblem extends StatelessWidget {
         return const [Color(0xFFE3E8EE), Color(0xFF9AA6B2)];
       case DugnadBadgeTone.purple:
         // `.tone-purple .ring` uses `--ae-shiny-purple` → club shiny fill.
-        final theme = context.dugnadTheme;
+        final theme = context.aeTheme;
         return theme.shinyGradient.colors.length >= 3
             ? [
                 theme.shinyGradient.colors.first,
@@ -196,10 +196,10 @@ class DugnadBadgeEmblem extends StatelessWidget {
         return const [Color(0xFFFBFCFE), Color(0xFFDDE3EA)];
       case DugnadBadgeTone.purple:
         // `#efe9fb → #cdbef0` remapped from club primary.
-        final primary = context.dugnadTheme.primary;
+        final primary = context.aeTheme.primary;
         return [
-          Color.lerp(primary, Colors.white, 0.92) ?? context.dugnadTheme.primaryTint,
-          Color.lerp(primary, Colors.white, 0.72) ?? context.dugnadTheme.primaryTint,
+          Color.lerp(primary, Colors.white, 0.92) ?? context.aeTheme.primaryTint,
+          Color.lerp(primary, Colors.white, 0.72) ?? context.aeTheme.primaryTint,
         ];
     }
   }
@@ -213,7 +213,7 @@ class DugnadBadgeEmblem extends StatelessWidget {
       case DugnadBadgeTone.silver:
         return const Color(0xFF5B6470);
       case DugnadBadgeTone.purple:
-        return context.dugnadTheme.primaryHover;
+        return context.aeTheme.primaryHover;
     }
   }
 

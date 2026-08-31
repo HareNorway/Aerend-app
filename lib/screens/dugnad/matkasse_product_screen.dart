@@ -15,12 +15,12 @@ import '../campaign/models/campaign_detail_pojo.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_supplier_sheet.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'widgets/campaign_countdown.dart';
 import 'widgets/dugnad_points_earn.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 import 'widgets/mk_cart_bar.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 // Aliases the token rather than repeating its hex. A shared constant is
 // verified once or not at all: when every site holds the same wrong value
@@ -110,7 +110,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final images = _images;
     final hasMultiple = images.length > 1;
     final audience = _audienceLabel();
@@ -240,7 +240,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     );
   }
 
-  Widget _contentBullet(String item, DugnadClubThemePalette theme) {
+  Widget _contentBullet(String item, AeThemePalette theme) {
     return Padding(
       padding: EdgeInsets.only(bottom: context.dp(9)),
       child: Row(
@@ -273,7 +273,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     );
   }
 
-  Widget _supplierBanner(String note, DugnadClubThemePalette theme) {
+  Widget _supplierBanner(String note, AeThemePalette theme) {
     // Tappable — opens the supplier detail sheet (prototype: banner → SupplierSheet).
     return GestureDetector(
       onTap: () {
@@ -331,7 +331,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
   Widget _buildHeroImage(
     List<String> images,
     bool hasMultiple,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
   ) {
     return AspectRatio(
       // `.mk-pcar { aspect-ratio: 16/10 }`
@@ -371,7 +371,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
           Positioned(
             top: MediaQuery.paddingOf(context).top + 8,
             left: 16,
-            child: DugnadLbBackButton(
+            child: AeBackButton(
               onPressed: () => Navigator.maybePop(context),
             ),
           ),
@@ -415,7 +415,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     );
   }
 
-  Widget _navBtn(IconData icon, int delta, DugnadClubThemePalette theme) {
+  Widget _navBtn(IconData icon, int delta, AeThemePalette theme) {
     return GestureDetector(
       onTap: () {
         final next = _imageIndex + delta;
@@ -447,7 +447,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     );
   }
 
-  Widget _buildBuyCard(DugnadClubThemePalette theme) {
+  Widget _buildBuyCard(AeThemePalette theme) {
     return StreamBuilder<List<CampaignCartItem>>(
       stream: widget.bloc.cartStream,
       builder: (context, snap) {
@@ -597,7 +597,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     required String label,
     required IconData icon,
     required VoidCallback onTap,
-    required DugnadClubThemePalette theme,
+    required AeThemePalette theme,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -630,7 +630,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     required String label,
     required IconData icon,
     required VoidCallback onTap,
-    required DugnadClubThemePalette theme,
+    required AeThemePalette theme,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -659,7 +659,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     );
   }
 
-  Widget _qtyStepper(int qty, DugnadClubThemePalette theme) {
+  Widget _qtyStepper(int qty, AeThemePalette theme) {
     return Container(
       padding: EdgeInsets.all(context.dp(3)),
       decoration: BoxDecoration(
@@ -686,7 +686,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
     );
   }
 
-  Widget _stepBtn(IconData icon, VoidCallback onTap, DugnadClubThemePalette theme) {
+  Widget _stepBtn(IconData icon, VoidCallback onTap, AeThemePalette theme) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -711,7 +711,7 @@ class _MatkasseProductScreenState extends State<MatkasseProductScreen> {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

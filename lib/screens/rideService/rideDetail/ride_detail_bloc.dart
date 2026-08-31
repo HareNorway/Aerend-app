@@ -14,7 +14,7 @@ import '../../../services/push_notification_service.dart';
 import '../../../utils/utils.dart';
 import '../../common/base_dl.dart';
 import '../../common/selectPaymentMethod/select_payment_method.dart';
-import '../../dugnad/dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import 'ride_detail.dart';
 import 'ride_detail_dl.dart';
 import 'ride_detail_repo.dart';
@@ -174,7 +174,7 @@ class RideDetailBloc extends Bloc {
               ? null
               : () {
                   // `TipsSheet` — a bottom sheet in the approved design.
-                  showDugnadSheet<bool>(
+                  showAeSheet<bool>(
                       context: context,
                       isScrollControlled: true,
                       builder: (BuildContext context) {

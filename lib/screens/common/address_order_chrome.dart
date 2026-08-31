@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../commonView/custom_text_field.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
-import '../dugnad/dugnad_club_theme.dart';
-import '../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
 /// Shared Ærend design chrome for the "Leveringsadresse / Ny adresse /
 /// Ordrehistorikk / Ordredetaljer" screens.
@@ -97,7 +97,7 @@ class _AoFieldState extends State<AoField> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -148,7 +148,7 @@ class AoTkHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         context.dp(22),
@@ -182,7 +182,7 @@ class AoTkHead extends StatelessWidget {
   }
 }
 
-/// `.tk-head .ae-back` — delegates to the shared [DugnadLbBackButton].
+/// `.tk-head .ae-back` — delegates to the shared [AeBackButton].
 class AoShinyBackButton extends StatelessWidget {
   const AoShinyBackButton({super.key, required this.onPressed});
 
@@ -190,7 +190,7 @@ class AoShinyBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadLbBackButton(onPressed: onPressed);
+    return AeBackButton(onPressed: onPressed);
   }
 }
 
@@ -228,7 +228,7 @@ class AoInfoBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
@@ -307,7 +307,7 @@ class AoGreenBanner extends StatelessWidget {
                     FontWeight.w800,
                     height: 1.25,
                     letterSpacingEm: -0.01,
-                    color: context.dugnadTheme.text,
+                    color: context.aeTheme.text,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -346,7 +346,7 @@ class AoAddRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return AoPressable(
       onTap: onTap,
       builder: (context, pressed) => CustomPaint(
@@ -590,7 +590,7 @@ class AoMapPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final gridColor = theme.primary.withValues(alpha: 0.14);
     return AoPressable(
       onTap: onTap,

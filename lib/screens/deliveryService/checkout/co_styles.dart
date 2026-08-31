@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_state.dart';
 
 /// Shared «Handlekurv → Kasse» primitives.
 ///
@@ -432,9 +430,7 @@ class CoFoot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = DugnadState.instance.isDugnadMode
-        ? context.dugnadTheme.background
-        : ScSaasThemeTokens.background;
+    const bg = ScSaasThemeTokens.background;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(

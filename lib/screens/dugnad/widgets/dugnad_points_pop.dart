@@ -11,7 +11,7 @@ import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/global_loading_overlay.dart';
 import '../../../main.dart' show navigatorKey;
 import '../dugnad_celebration_orchestrator.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Global « for `window.dgAwardPoints` — Design `dugnad/points-pop.jsx`.
 class DugnadPointsAward {
@@ -554,7 +554,7 @@ class _DgppLayerState extends State<_DgppLayer> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final reduce = MediaQuery.disableAnimationsOf(context);
     final reason = _reason(context);
 
@@ -627,7 +627,7 @@ class _DgppLayerState extends State<_DgppLayer> with TickerProviderStateMixin {
 
   Widget _cardBody(
     BuildContext context,
-    DugnadClubThemePalette theme, {
+    AeThemePalette theme, {
     required int shown,
     required String? reason,
     required bool reduce,
@@ -842,7 +842,7 @@ class _DgppLayerState extends State<_DgppLayer> with TickerProviderStateMixin {
     );
   }
 
-  Widget _ray(BuildContext context, DugnadClubThemePalette theme, int i) {
+  Widget _ray(BuildContext context, AeThemePalette theme, int i) {
     final delay = 0.1;
     final local = ((_coin.value - delay) / 0.5).clamp(0.0, 1.0);
     double opacity = 0;
@@ -871,7 +871,7 @@ class _DgppLayerState extends State<_DgppLayer> with TickerProviderStateMixin {
     );
   }
 
-  Widget _confetti(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _confetti(BuildContext context, AeThemePalette theme) {
     final colors = [
       theme.primary,
       const Color(0xFFE0A93A),

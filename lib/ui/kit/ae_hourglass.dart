@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Animated hourglass — mirrors prototype `Hourglass` + `dg-hg-flip` / `dg-hg-fall`.
-class DugnadHourglass extends StatefulWidget {
-  const DugnadHourglass({
+class AeHourglass extends StatefulWidget {
+  const AeHourglass({
     super.key,
     required this.size,
     required this.color,
@@ -18,10 +18,10 @@ class DugnadHourglass extends StatefulWidget {
   final bool spin;
 
   @override
-  State<DugnadHourglass> createState() => _DugnadHourglassState();
+  State<AeHourglass> createState() => _AeHourglassState();
 }
 
-class _DugnadHourglassState extends State<DugnadHourglass>
+class _AeHourglassState extends State<AeHourglass>
     with TickerProviderStateMixin {
   late final AnimationController _flip;
   late final AnimationController _sand;
@@ -46,7 +46,7 @@ class _DugnadHourglassState extends State<DugnadHourglass>
   }
 
   @override
-  void didUpdateWidget(covariant DugnadHourglass oldWidget) {
+  void didUpdateWidget(covariant AeHourglass oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.fast != oldWidget.fast) {
       _flip.duration = Duration(milliseconds: widget.fast ? 1700 : 3400);
@@ -224,8 +224,8 @@ class _HourglassPainter extends CustomPainter {
 }
 
 /// Pulsing ring for urgent countdown — mirrors `dg-cd-pulse`.
-class DugnadCountdownPulse extends StatefulWidget {
-  const DugnadCountdownPulse({
+class AeCountdownPulse extends StatefulWidget {
+  const AeCountdownPulse({
     super.key,
     required this.color,
     required this.child,
@@ -237,10 +237,10 @@ class DugnadCountdownPulse extends StatefulWidget {
   final double borderRadius;
 
   @override
-  State<DugnadCountdownPulse> createState() => _DugnadCountdownPulseState();
+  State<AeCountdownPulse> createState() => _AeCountdownPulseState();
 }
 
-class _DugnadCountdownPulseState extends State<DugnadCountdownPulse>
+class _AeCountdownPulseState extends State<AeCountdownPulse>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _expand;

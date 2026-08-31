@@ -8,15 +8,15 @@ import '../../utils/utils.dart';
 import 'donation_fee_calculator.dart';
 import 'donation_manage_screen.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
 import 'kampanje_screen.dart';
-import 'widgets/dugnad_confetti.dart';
+import '../../ui/kit/ae_confetti.dart';
 import 'widgets/dugnad_points_pop.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'widgets/dugnad_support_share.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_support_share.dart';
 
 /// Shown after Vipps agreement sync succeeds.
 class DonationConfirmScreen extends StatefulWidget {
@@ -123,7 +123,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
   String get _shareMessage =>
       languages.dugnadSupportShareCardMessage(_teamName);
 
-  void _copyShareLink() => copyDugnadSupportShareLink(context);
+  void _copyShareLink() => copyAeSupportShareLink(context);
 
   List<InlineSpan> _emphasizedSpans(
     String source,
@@ -156,7 +156,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final fee = _feeBreakdown;
     final amountKr = widget.subscription.amountKr.round();
     final amountPerMonth = languages.dugnadDonationManageAmountPerMonth(amountKr);
@@ -180,7 +180,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 100),
                           child: Container(
                             width: context.dp(80),
@@ -205,7 +205,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                           ),
                         ),
                         SizedBox(height: context.dp(18)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 160),
                           child: Text(
                             widget.activated
@@ -221,7 +221,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                           ),
                         ),
                         SizedBox(height: context.dp(8)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 220),
                           child: Text.rich(
                             TextSpan(
@@ -251,9 +251,9 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                         ),
                         if (_points > 0) ...[
                           SizedBox(height: context.dp(22)),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 280),
-                            child: DugnadSuccessPointsBadge(
+                            child: AeSuccessPointsBadge(
                               points: _points,
                               label: languages.dugnadDonationConfirmPointsLabel,
                               animate: widget.activated,
@@ -261,9 +261,9 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                           ),
                         ],
                         SizedBox(height: context.dp(16)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 340),
-                          child: DugnadSuccessCardWidth(
+                          child: AeSuccessCardWidth(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -297,10 +297,10 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                           ),
                         ),
                         SizedBox(height: context.dp(20)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 420),
                           child: Center(
-                            child: DugnadSupportShareCard(
+                            child: AeSupportShareCard(
                               teamName: _teamName,
                               message: _shareMessage,
                               logoUrl: _teamLogo,
@@ -308,24 +308,24 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
                           ),
                         ),
                         SizedBox(height: context.dp(12)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 460),
-                          child: DugnadSuccessCardWidth(
-                            child: DugnadShareSupportButton(
+                          child: AeSuccessCardWidth(
+                            child: AeShareSupportButton(
                               onPressed: _copyShareLink,
                             ),
                           ),
                         ),
                         SizedBox(height: context.dp(12)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 500),
-                          child: DugnadSuccessCardWidth(child: _giveMoreCard(theme)),
+                          child: AeSuccessCardWidth(child: _giveMoreCard(theme)),
                         ),
                       ],
                     ),
                   ),
                 ),
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 540),
                   child: _confirmFooter(theme),
                 ),
@@ -335,7 +335,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
           if (widget.activated)
             Positioned.fill(
               child: IgnorePointer(
-                child: DugnadConfetti(
+                child: AeConfetti(
                   progress: _confettiController,
                   fadeByHeight: true,
                 ),
@@ -390,7 +390,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
     required String value,
     bool subdued = false,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final labelColor =
         subdued ? ScSaasThemeTokens.gray500 : theme.text;
     final iconColor =
@@ -426,7 +426,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
     );
   }
 
-  Widget _confirmFooter(DugnadClubThemePalette theme) {
+  Widget _confirmFooter(AeThemePalette theme) {
     final radius = BorderRadius.circular(context.dp(14));
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -523,7 +523,7 @@ class _DonationConfirmScreenState extends State<DonationConfirmScreen>
     );
   }
 
-  Widget _giveMoreCard(DugnadClubThemePalette theme) {
+  Widget _giveMoreCard(AeThemePalette theme) {
     final radius = BorderRadius.circular(context.dp(16));
     final wellColor = Color.alphaBlend(
       theme.primary.withValues(alpha: 0.12),

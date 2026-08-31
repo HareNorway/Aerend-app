@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../googleApi/google_api_repo.dart';
-import '../../../googleApi/place_model_dl.dart';
-import '../../../googleApi/place_name_dl.dart';
-import '../../../theme/design_scale.dart';
-import '../../../theme/sc_saas_theme.dart';
-import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../address_order_chrome.dart';
-import 'add_new_address_repo.dart';
-import 'manage_address_dl.dart';
+import '../../googleApi/google_api_repo.dart';
+import '../../googleApi/place_model_dl.dart';
+import '../../googleApi/place_name_dl.dart';
+import '../../theme/design_scale.dart';
+import '../../theme/sc_saas_theme.dart';
+import '../../utils/utils.dart';
+import 'ae_theme.dart';
+import '../../screens/common/address_order_chrome.dart';
+import '../../screens/common/manageAddress/add_new_address_repo.dart';
+import '../../screens/common/manageAddress/manage_address_dl.dart';
 
 /// Street line shown on address cards — never `flat_no` (`N/A`).
 String addressDisplayTitle(AddressListItem address) {
@@ -59,7 +59,7 @@ Future<LatLng?> _latLngFromPlaceId(GoogleApiRepo google, String? placeId) async 
 }
 
 /// `flat_no` is required by the API; landmark is varchar(30) — send `N/A`.
-Future<dynamic> saveDugnadAddressLine({
+Future<dynamic> saveAeAddressLine({
   required String line,
   Predictions? picked,
   int? editingId,
@@ -89,8 +89,8 @@ String addressApiMessage(BuildContext context, dynamic response) {
 }
 
 /// Search + suggestions + Avbryt / Lagre — same form as Velg leveringsadresse.
-class DugnadInlineAddressForm extends StatefulWidget {
-  const DugnadInlineAddressForm({
+class AeInlineAddressForm extends StatefulWidget {
+  const AeInlineAddressForm({
     super.key,
     this.initialLine = '',
     this.editingId,
@@ -106,11 +106,11 @@ class DugnadInlineAddressForm extends StatefulWidget {
   final Future<void> Function(dynamic response) onSaved;
 
   @override
-  State<DugnadInlineAddressForm> createState() =>
-      _DugnadInlineAddressFormState();
+  State<AeInlineAddressForm> createState() =>
+      _AeInlineAddressFormState();
 }
 
-class _DugnadInlineAddressFormState extends State<DugnadInlineAddressForm> {
+class _AeInlineAddressFormState extends State<AeInlineAddressForm> {
   final GoogleApiRepo _google = GoogleApiRepo();
   final TextEditingController _lineController = TextEditingController();
   final FocusNode _lineFocus = FocusNode();
@@ -174,7 +174,7 @@ class _DugnadInlineAddressFormState extends State<DugnadInlineAddressForm> {
     FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _saving = true);
     try {
-      final response = await saveDugnadAddressLine(
+      final response = await saveAeAddressLine(
         line: line,
         picked: picked,
         editingId: widget.editingId,
@@ -197,7 +197,7 @@ class _DugnadInlineAddressFormState extends State<DugnadInlineAddressForm> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final valid = _lineController.text.trim().isNotEmpty && !_saving;
     return Container(
       padding: EdgeInsets.all(context.dp(13)),
@@ -333,7 +333,7 @@ class _DugnadInlineAddressFormState extends State<DugnadInlineAddressForm> {
     );
   }
 
-  Widget _suggestionList(DugnadClubThemePalette theme) {
+  Widget _suggestionList(AeThemePalette theme) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -394,7 +394,7 @@ class _DugnadInlineAddressFormState extends State<DugnadInlineAddressForm> {
     );
   }
 
-  Widget _suggestionRow(Predictions pred, DugnadClubThemePalette theme) {
+  Widget _suggestionRow(Predictions pred, AeThemePalette theme) {
     final full = pred.description ?? '';
     final street = pred.structuredFormatting?.mainText ?? full.split(',').first;
     final rest = pred.structuredFormatting?.secondaryText ??
@@ -464,14 +464,14 @@ class _DugnadInlineAddressFormState extends State<DugnadInlineAddressForm> {
   }
 }
 
-class DugnadAddAddressCard extends StatelessWidget {
-  const DugnadAddAddressCard({super.key, this.onTap});
+class AeAddAddressCard extends StatelessWidget {
+  const AeAddAddressCard({super.key, this.onTap});
 
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -541,8 +541,8 @@ class DugnadAddAddressCard extends StatelessWidget {
 
 /// Sheet-style address card. Checkout sheet shows a check when selected
 /// and a trash icon otherwise. Leveringsadresse keeps edit/delete outside.
-class DugnadAddressPickCard extends StatelessWidget {
-  const DugnadAddressPickCard({
+class AeAddressPickCard extends StatelessWidget {
+  const AeAddressPickCard({
     super.key,
     required this.address,
     this.selected = false,
@@ -561,7 +561,7 @@ class DugnadAddressPickCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final radius = BorderRadius.circular(context.dp(20));
     final trailing = _trailing(context, theme);
     return Opacity(
@@ -651,7 +651,7 @@ class DugnadAddressPickCard extends StatelessWidget {
     );
   }
 
-  Widget? _trailing(BuildContext context, DugnadClubThemePalette theme) {
+  Widget? _trailing(BuildContext context, AeThemePalette theme) {
     if (showCheckWhenSelected && selected) {
       return Container(
         width: context.dp(38),

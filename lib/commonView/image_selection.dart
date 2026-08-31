@@ -6,8 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../constant/constant.dart';
 import '../main.dart';
-import '../screens/dugnad/dugnad_club_theme.dart';
-import '../screens/dugnad/dugnad_state.dart';
+import '../ui/kit/ae_theme.dart';
 import '../theme/sc_saas_theme.dart';
 import 'common_view.dart';
 
@@ -22,7 +21,7 @@ class ImageSelection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.symmetric(
         vertical: deviceHeight * 0.01,
@@ -119,7 +118,7 @@ Future<File?> _getImage(
   bool isCamera,
   String toolbarTitle,
 ) async {
-  final theme = context.dugnadTheme;
+  final theme = context.aeTheme;
   CroppedFile? croppedFile;
   var pickedFile = await ImagePicker().pickImage(
     source: isCamera ? ImageSource.camera : ImageSource.gallery,
@@ -148,35 +147,28 @@ selectImgFromCameraOrGallery(
   BuildContext context,
   Function(File file) fileCallback,
 ) {
-  final palette = context.dugnadTheme;
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (BuildContext sheetContext) {
-      // Modal routes lose InheritedWidget ancestors — re-scope club colors.
-      return DugnadClubThemeScope(
-        palette: DugnadState.instance.isDugnadMode
-            ? DugnadState.instance.themePalette
-            : palette,
-        child: ImageSelection(
-          onPressedCamera: () {
-            Navigator.pop(sheetContext);
-            _getImage(context, true, languages.cropper).then((value) {
-              if (value != null && value.existsSync()) {
-                fileCallback(value);
-              }
-            });
-          },
-          onPressedGallery: () {
-            Navigator.pop(sheetContext);
-            _getImage(context, false, languages.cropper).then((value) {
-              if (value != null && value.existsSync()) {
-                fileCallback(value);
-              }
-            });
-          },
-        ),
+      return ImageSelection(
+        onPressedCamera: () {
+          Navigator.pop(sheetContext);
+          _getImage(context, true, languages.cropper).then((value) {
+            if (value != null && value.existsSync()) {
+              fileCallback(value);
+            }
+          });
+        },
+        onPressedGallery: () {
+          Navigator.pop(sheetContext);
+          _getImage(context, false, languages.cropper).then((value) {
+            if (value != null && value.existsSync()) {
+              fileCallback(value);
+            }
+          });
+        },
       );
     },
   );

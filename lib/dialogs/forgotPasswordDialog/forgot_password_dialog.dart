@@ -6,8 +6,8 @@ import '../../commonView/custom_text_field.dart';
 import '../../networking/api_base_helper.dart';
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/common/login/login_dl.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import 'forgot_password_dialog_bloc.dart';
@@ -29,7 +29,7 @@ class ForgotPasswordDialog extends StatefulWidget {
 
 /// Presents [ForgotPasswordDialog] as the design's bottom sheet.
 Future<void> showForgotPasswordSheet(BuildContext context) {
-  return showDugnadSheet<void>(
+  return showAeSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (context) => const ForgotPasswordDialog(),
@@ -64,9 +64,9 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
     final bloc = _bloc!;
     return Form(
       key: bloc.formKey,
-      child: DugnadSheetBody(
+      child: AeSheetBody(
         children: [
-          DugnadSheetHead(
+          AeSheetHead(
             icon: Icons.vpn_key_rounded,
             title: languages.forgotPass,
             message:
@@ -143,7 +143,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
             builder: (context, snapLoading) {
               final isLoading = snapLoading.hasData &&
                   snapLoading.data?.status == Status.loading;
-              return DugnadSheetPrimaryButton(
+              return AeSheetPrimaryButton(
                 topMargin: 18,
                 label: 'Send kode', // TODO(l10n)
                 icon: Icons.send_rounded,
@@ -151,7 +151,7 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 onPressed: _isValid
                     ? () {
                         if (bloc.formKey.currentState!.validate()) {
-                          dugnadSheetSaveHaptic();
+                          aeSheetSaveHaptic();
                           bloc.forgotPass();
                         }
                       }
@@ -159,10 +159,10 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
               );
             },
           ),
-          DugnadSheetCancelButton(
+          AeSheetCancelButton(
             label: languages.cancel,
             onPressed: () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.pop(context, true);
             },
           ),

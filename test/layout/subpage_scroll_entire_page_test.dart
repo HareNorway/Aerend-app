@@ -3,7 +3,7 @@
 // That is now the shell default, so a regression would be silent across ~17
 // screens at once. Three halves pinned here: the hero leaves, the status strip
 // stays, and the opt-out still pins.
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_subpage_shell.dart';
+import 'package:aerend_customer/ui/kit/ae_subpage_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,7 +20,7 @@ Future<void> pumpShell(WidgetTester tester, {required bool entirePage}) async {
         data: MediaQuery.of(context)
             .copyWith(padding: const EdgeInsets.only(top: _statusBar)),
         child: Scaffold(
-          body: DugnadLbScrollBody(
+          body: AeScrollBody(
             scrollEntirePage: entirePage,
             heroColor: _heroBg,
             hero: Container(key: _heroKey, height: 200, color: _heroBg),
@@ -45,7 +45,7 @@ void main() {
     // which never mention `scrollEntirePage` get the design behaviour.
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: DugnadLbScrollBody(
+        body: AeScrollBody(
           hero: Container(key: _heroKey, height: 200, color: _heroBg),
           children: List.generate(
             20,

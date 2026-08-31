@@ -7,7 +7,7 @@ import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import '../campaign/campaign_repo.dart';
 import '../campaign/models/campaign_order_pojo.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_club_branding.dart';
 import 'dugnad_models.dart';
 import 'dugnad_points_widgets.dart';
@@ -18,10 +18,10 @@ import 'dugnad_sto_utils.dart';
 import 'gamification_models.dart';
 import 'points_metal_theme.dart';
 import 'supporter_card_screen.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'widgets/dugnad_metal_animations.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Season recap — prototype: `SeasonRecapScreen` in player-card.jsx + gamify.css `.rc-*`.
 class SeasonRecapScreen extends StatefulWidget {
@@ -212,17 +212,17 @@ class _SeasonRecapScreenState extends State<SeasonRecapScreen> {
       config: _gamificationConfig,
       summary: _summary,
     );
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final clubName = _leaderboard?.clubName ?? DugnadClubBranding.fullName();
     final clubLogo = _leaderboard?.clubLogo ?? DugnadState.instance.clubLogo;
 
-    // Same shell as Lagkonkurranse (`DugnadLbScrollBody`) so `.rc-feed` /
+    // Same shell as Lagkonkurranse (`AeScrollBody`) so `.rc-feed` /
     // `.lb-feed` top radius composites over club purple without scroll-clip
     // or lavender-on-lavender corner tips.
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: theme.primary,
-        body: DugnadLbScrollBody(
+        body: AeScrollBody(
           hero: _SeasonRecapHeader(
             clubName: clubName,
             clubLogo: clubLogo,
@@ -241,7 +241,7 @@ class _SeasonRecapScreenState extends State<SeasonRecapScreen> {
     );
   }
 
-  List<Widget> _buildFeed(DugnadClubThemePalette theme) {
+  List<Widget> _buildFeed(AeThemePalette theme) {
     final summary = _summary;
     final teamRow = _teamRow();
     final clubName = _leaderboard?.clubName ?? DugnadClubBranding.fullName();
@@ -351,11 +351,11 @@ class _SeasonRecapHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Match [DugnadLbHero] insets so status-bar + `.lb-hero` padding live
+    // Match [AeHero] insets so status-bar + `.lb-hero` padding live
     // inside the fixed hero above the overlapped feed sheet.
     return Container(
       width: double.infinity,
-      color: context.dugnadTheme.primary,
+      color: context.aeTheme.primary,
       padding: EdgeInsets.fromLTRB(
         context.dp(18),
         MediaQuery.paddingOf(context).top + context.dp(6),
@@ -364,12 +364,12 @@ class _SeasonRecapHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(onPressed: onBack),
+          AeBackButton(onPressed: onBack),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ClubCrest(
+                AeClubCrest(
                   name: clubName,
                   logoUrl: clubLogo?.isEmpty ?? true ? null : clubLogo,
                   size: context.dp(34),
@@ -919,7 +919,7 @@ class _RecapShareButton extends StatelessWidget {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../commonView/dugnad_club_loader.dart';
+import '../../../ui/kit/ae_loader.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
-import '../dugnad_club_theme.dart';
-import '../widgets/dugnad_subpage_shell.dart';
-import '../widgets/mk_qty_stepper.dart';
+import '../../../ui/kit/ae_club_crest.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
+import '../../../ui/kit/ae_qty_stepper.dart';
 import 'club_shop_cart.dart';
 import 'club_shop_cart_screen.dart';
 import 'club_shop_models.dart';
@@ -113,10 +113,10 @@ class _ClubShopProductScreenState extends State<ClubShopProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final url = p.imageUrls.isEmpty
         ? null
-        : ClubCrest.resolveClubMediaUrl(p.imageUrls.first);
+        : AeClubCrest.resolveClubMediaUrl(p.imageUrls.first);
     final inCart = _cart.qtyFor(productId: p.id);
     final cartQty = _cart.itemCount;
     final canAdd = !_allOut && _size != null;
@@ -141,7 +141,7 @@ class _ClubShopProductScreenState extends State<ClubShopProductScreen> {
             ),
             child: Row(
               children: [
-                DugnadLbBackButton(
+                AeBackButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
                 Expanded(
@@ -194,7 +194,7 @@ class _ClubShopProductScreenState extends State<ClubShopProductScreen> {
                               imageUrl: url,
                               fit: BoxFit.cover,
                               progressIndicatorBuilder: (_, __, ___) =>
-                                  const DugnadClubImageLoader(size: 44),
+                                  const AeImageLoader(size: 44),
                             ),
                     ),
                   ),
@@ -559,7 +559,7 @@ class _ClubShopProductScreenState extends State<ClubShopProductScreen> {
     );
   }
 
-  Widget _miniCartSheet(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _miniCartSheet(BuildContext context, AeThemePalette theme) {
     return ColoredBox(
       color: Colors.white,
       child: ConstrainedBox(
@@ -639,7 +639,7 @@ class _ClubShopProductScreenState extends State<ClubShopProductScreen> {
                             ],
                           ),
                         ),
-                        MkQtyStepper(
+                        AeQtyStepper(
                           qty: line.qty,
                           theme: theme,
                           small: true,
@@ -681,7 +681,7 @@ class _ClubShopProductScreenState extends State<ClubShopProductScreen> {
 
   Widget _sizeChip(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     ClubShopSize size,
   ) {
     final left = _remaining(size.label);

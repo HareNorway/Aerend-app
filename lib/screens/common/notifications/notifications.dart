@@ -6,7 +6,7 @@ import '../../../commonView/no_record_found.dart';
 import '../../../networking/api_response.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 import 'item_notifications.dart';
@@ -48,7 +48,7 @@ class _NotificationsState extends State<Notifications> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(

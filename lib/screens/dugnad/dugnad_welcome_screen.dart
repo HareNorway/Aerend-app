@@ -10,9 +10,9 @@ import '../../utils/utils.dart';
 import '../common/homeMainV1/home_main_v1.dart';
 import 'celebration_models.dart';
 import 'dugnad_celebration_orchestrator.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_state.dart';
-import 'widgets/dugnad_confetti.dart';
+import '../../ui/kit/ae_confetti.dart';
 import 'widgets/dugnad_metal_animations.dart';
 import 'widgets/dugnad_points_pop.dart';
 
@@ -148,7 +148,7 @@ class _DugnadWelcomeScreenState extends State<DugnadWelcomeScreen>
     );
   }
 
-  List<Color> _confettiPalette(DugnadClubThemePalette theme) {
+  List<Color> _confettiPalette(AeThemePalette theme) {
     return [
       theme.primary,
       theme.primarySoft,
@@ -162,7 +162,7 @@ class _DugnadWelcomeScreenState extends State<DugnadWelcomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final ink = theme.ink;
 
     return Scaffold(
@@ -192,7 +192,7 @@ class _DugnadWelcomeScreenState extends State<DugnadWelcomeScreen>
               extraDelay: const Duration(milliseconds: 80),
             ),
             if (!_reduceMotion)
-              DugnadConfetti(
+              AeConfetti(
                 progress: _confettiController,
                 colors: _confettiPalette(theme),
                 includeStars: false,
@@ -357,7 +357,7 @@ class _DugnadWelcomeScreenState extends State<DugnadWelcomeScreen>
 class _WelcomeBrandMark extends StatelessWidget {
   const _WelcomeBrandMark({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -401,7 +401,7 @@ class _WelcomePointsReward extends StatefulWidget {
     required this.popScale,
   });
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final int points;
   final bool awarded;
   final String label;
@@ -650,7 +650,7 @@ class _WelcomeTipCard extends StatelessWidget {
     required this.tip,
   });
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final String tip;
 
   @override

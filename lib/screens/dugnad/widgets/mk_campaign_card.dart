@@ -9,14 +9,14 @@ import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_club_branding.dart';
 import '../dugnad_state.dart';
 import 'ae_sheen.dart';
 import 'campaign_countdown.dart';
 import 'lucide_box_icon.dart';
 import 'mk_price_tag.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
 
 // Aliases the token rather than repeating its hex. A shared constant is
@@ -74,7 +74,7 @@ class _MkCampaignCardState extends State<MkCampaignCard>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final browseNoClub = !DugnadState.instance.hasClub;
     const browseSlate = Color(0xFF6F87A4);
     const browseSlateDark = Color(0xFF284565);
@@ -370,7 +370,7 @@ class _MkCampBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final heroUrl = campaign.heroImageUrl?.trim();
 
     return SizedBox(
@@ -502,7 +502,7 @@ class _MkCampBanner extends StatelessWidget {
     );
   }
 
-  Widget _bannerFallback(DugnadClubThemePalette theme) {
+  Widget _bannerFallback(AeThemePalette theme) {
     final browseNoClub = !DugnadState.instance.hasClub;
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -542,7 +542,7 @@ class _MkCampClubPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ClubCrest(
+          AeClubCrest(
             name: clubName,
             logoUrl: logoUrl,
             size: context.dp(30),
@@ -570,7 +570,7 @@ class _MkCampTeamPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final browseNoClub = !DugnadState.instance.hasClub;
     return Container(
       padding: EdgeInsets.fromLTRB(context.dp(10), context.dp(6), context.dp(13), context.dp(6)),

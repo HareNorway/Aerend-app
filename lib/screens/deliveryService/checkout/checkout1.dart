@@ -16,7 +16,7 @@ import '../../../redux/store.dart';
 import '../../../utils/utils.dart';
 import '../../common/base_dl.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
-import '../../dugnad/dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../storeDetail/store_detail_dl.dart';
 import 'checkout.dart';
 import 'checkout_bloc.dart';
@@ -1035,7 +1035,7 @@ class _CheckOut1State extends State<CheckOut1> {
                   ? null
                   : () {
                       // `PromoCodeSheet` — a bottom sheet in the design.
-                      showDugnadSheet<void>(
+                      showAeSheet<void>(
                           context: context,
                           isScrollControlled: true,
                           builder: (BuildContext context) {

@@ -433,7 +433,7 @@ Widget ExploreAerend(BuildContext context) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Explore Reen Dugnad offer that suits you right now!',
+                  'Explore Ærend offer that suits you right now!',
                   style: TextStyle(
                     color: Color(0xFF7F5FC4),
                     fontSize: 16,

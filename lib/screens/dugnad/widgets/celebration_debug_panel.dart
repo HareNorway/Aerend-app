@@ -9,7 +9,7 @@ import '../celebration_debug_flags.dart';
 import '../celebration_models.dart';
 import '../dugnad_celebration_orchestrator.dart';
 import '../dugnad_t1_controller.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_repo.dart';
 import '../dugnad_state.dart';
 
@@ -212,7 +212,7 @@ class CelebrationDebugPanel extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.all(context.dp(12)),
       decoration: BoxDecoration(

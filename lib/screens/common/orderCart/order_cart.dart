@@ -12,9 +12,7 @@ import 'package:aerend_customer/screens/deliveryService/storeDetail/widget_toppi
 import 'package:aerend_customer/screens/deliveryService/storeDetail/widget_size_color.dart';
 import './order_cart_bloc.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_state.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../../deliveryService/checkout/checkout.dart';
 import '../../deliveryService/checkout/co_styles.dart';
 
@@ -40,11 +38,6 @@ class OrderCartState extends State<OrderCart> {
   void initState() {
     super.initState();
     bloc = OrderCartBloc(context, this);
-    if (DugnadState.instance.isDugnadMode) {
-      DugnadState.instance.syncClubThemeFromApi().then((_) {
-        if (mounted) setState(() {});
-      });
-    }
     bloc?.subject.listen((response) {
       if (response.data != null && response.status == Status.completed) {
         List orderList = response.data!['order_list'];
@@ -142,10 +135,7 @@ class OrderCartState extends State<OrderCart> {
           );
         }
 
-        final isDugnad = DugnadState.instance.isDugnadMode;
-        final theme = isDugnad ? context.dugnadTheme : null;
-        final pageBg =
-            theme?.background ?? ScSaasThemeTokens.background;
+        const pageBg = ScSaasThemeTokens.background;
 
         return Scaffold(
           backgroundColor: pageBg,
@@ -210,7 +200,7 @@ class OrderCartState extends State<OrderCart> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DugnadRiseIn(
+            AeRiseIn(
               delay: const Duration(milliseconds: 120),
               child: CoCard(
                 child: Column(
@@ -227,7 +217,7 @@ class OrderCartState extends State<OrderCart> {
             ),
             if (recommendationList.isNotEmpty) ...[
               const SizedBox(height: kCoBodyGap),
-              DugnadRiseIn(
+              AeRiseIn(
                 delay: const Duration(milliseconds: 190),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,10 +414,8 @@ class OrderCartState extends State<OrderCart> {
 
   // ── Empty cart ──────────────────────────────────────────────────
   Widget _blankCartBody(BuildContext context) {
-    final isDugnad = DugnadState.instance.isDugnadMode;
-    final theme = isDugnad ? context.dugnadTheme : null;
     return ColoredBox(
-      color: theme?.background ?? ScSaasThemeTokens.background,
+      color: ScSaasThemeTokens.background,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -453,13 +441,11 @@ class OrderCartState extends State<OrderCart> {
                 Text(
                   languages.cartEmpty,
                   textAlign: TextAlign.center,
-                  style: aeH3(color: theme?.text),
+                  style: aeH3(),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isDugnad
-                      ? languages.cartDugnadEmptyDesc
-                      : languages.cartAddProducts,
+                  languages.cartAddProducts,
                   textAlign: TextAlign.center,
                   style: aeBody(
                     color: ScSaasThemeTokens.gray500,
@@ -473,31 +459,25 @@ class OrderCartState extends State<OrderCart> {
                     height: 54,
                     constraints: const BoxConstraints(maxWidth: 270),
                     decoration: BoxDecoration(
-                      gradient: theme?.bannerGradient ??
-                          const LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [Color(0xFF8D61D8), Color(0xFF5E35B1)],
-                          ),
+                      gradient: const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [Color(0xFF8D61D8), Color(0xFF5E35B1)],
+                      ),
                       borderRadius: BorderRadius.circular(14),
-                      boxShadow:
-                          theme?.shadowButton ?? ScSaasThemeTokens.shadowButton,
+                      boxShadow: ScSaasThemeTokens.shadowButton,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          isDugnad
-                              ? Icons.local_offer_outlined
-                              : Icons.storefront_rounded,
+                        const Icon(
+                          Icons.storefront_rounded,
                           color: Colors.white,
                           size: 20,
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          isDugnad
-                              ? languages.cartSeeOffers
-                              : languages.cartBackToStores,
+                          languages.cartBackToStores,
                           style: aeTitle(color: Colors.white),
                         ),
                       ],
@@ -514,9 +494,8 @@ class OrderCartState extends State<OrderCart> {
 
   void _handleEmptyCartCta(BuildContext context) {
     final homeState = context.findAncestorStateOfType<HomeMainV1State>();
-    final isDugnad = DugnadState.instance.isDugnadMode;
     if (homeState != null) {
-      homeState.switchToTab(isDugnad ? 1 : 0);
+      homeState.switchToTab(0);
       return;
     }
 
@@ -573,10 +552,9 @@ class OrderCartState extends State<OrderCart> {
                             overflow: TextOverflow.ellipsis,
                             style: coItemQty,
                           ),
-                        // Snurre review badge — commercial only (AI agent disabled in dugnad)
-                        if (!DugnadState.instance.isDugnadMode &&
-                            (order['snurre_flag_review'] == true ||
-                                order['snurre_flag_review'] == 1)) ...[
+                        // Snurre review badge.
+                        if (order['snurre_flag_review'] == true ||
+                            order['snurre_flag_review'] == 1) ...[
                           const SizedBox(height: 6),
                           GestureDetector(
                             onTap: () {

@@ -3,32 +3,32 @@ import 'package:flutter/services.dart';
 
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
-import 'dugnad_club_theme.dart';
-import 'dugnad_state.dart';
+import 'ae_theme.dart';
+import '../../screens/dugnad/dugnad_state.dart';
 
 /// Light tap when a dugnad bottom sheet presents.
-void dugnadSheetOpenHaptic() => HapticFeedback.lightImpact();
+void aeSheetOpenHaptic() => HapticFeedback.lightImpact();
 
 /// Softer tick for dismiss / secondary sheet actions.
-void dugnadSheetCloseHaptic() => HapticFeedback.selectionClick();
+void aeSheetCloseHaptic() => HapticFeedback.selectionClick();
 
 /// Confirmation for primary save / commit in sheets.
-void dugnadSheetSaveHaptic() => HapticFeedback.mediumImpact();
+void aeSheetSaveHaptic() => HapticFeedback.mediumImpact();
 
-class _DugnadSheetHapticScope extends StatefulWidget {
-  const _DugnadSheetHapticScope({required this.child});
+class _AeSheetHapticScope extends StatefulWidget {
+  const _AeSheetHapticScope({required this.child});
 
   final Widget child;
 
   @override
-  State<_DugnadSheetHapticScope> createState() => _DugnadSheetHapticScopeState();
+  State<_AeSheetHapticScope> createState() => _AeSheetHapticScopeState();
 }
 
-class _DugnadSheetHapticScopeState extends State<_DugnadSheetHapticScope> {
+class _AeSheetHapticScopeState extends State<_AeSheetHapticScope> {
   @override
   void initState() {
     super.initState();
-    dugnadSheetOpenHaptic();
+    aeSheetOpenHaptic();
   }
 
   @override
@@ -42,15 +42,15 @@ class _DugnadSheetHapticScopeState extends State<_DugnadSheetHapticScope> {
 /// `sheet-exit.js`), so no custom transition is needed here.
 
 /// Prototype `.dg-msheet` / `.dg-csheet` corner radius (26, top only).
-const double kDugnadSheetRadius = 26;
+const double kAeSheetRadius = 26;
 
 /// Prototype `.dg-msheet-overlay` backdrop — rgba(20,12,40,0.42).
-const Color kDugnadSheetBarrier = Color(0x6B140C28);
+const Color kAeSheetBarrier = Color(0x6B140C28);
 
 /// Opens a dugnad bottom sheet with the shared radius / backdrop / club
 /// background. Mirrors `showModalBottomSheet` but with the dugnad chrome baked
 /// in. Pass [backgroundColor] to override the club background default.
-Future<T?> showDugnadSheet<T>({
+Future<T?> showAeSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isScrollControlled = false,
@@ -58,16 +58,16 @@ Future<T?> showDugnadSheet<T>({
   BoxConstraints? constraints,
 }) {
   final clubBg = DugnadState.instance.isDugnadMode
-      ? context.dugnadTheme.background
+      ? context.aeTheme.background
       : ScSaasThemeTokens.background;
   // Scale the prototype 26px radius so corners stay visibly curved on all
   // densities — and clip so the lavender fill doesn't square them off.
-  final radius = context.dp(kDugnadSheetRadius);
+  final radius = context.dp(kAeSheetRadius);
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: isScrollControlled,
     backgroundColor: backgroundColor ?? clubBg,
-    barrierColor: kDugnadSheetBarrier,
+    barrierColor: kAeSheetBarrier,
     constraints: constraints,
     clipBehavior: Clip.antiAlias,
     // `@keyframes dg-sheet-up` .32s cubic-bezier(.22,1,.36,1) in, and
@@ -82,16 +82,16 @@ Future<T?> showDugnadSheet<T>({
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
     ),
-    builder: (sheetContext) => DugnadClubThemeScope(
-      palette: context.dugnadTheme,
-      child: _DugnadSheetHapticScope(child: builder(sheetContext)),
+    builder: (sheetContext) => AeThemeScope(
+      palette: context.aeTheme,
+      child: _AeSheetHapticScope(child: builder(sheetContext)),
     ),
   );
 }
 
 /// The prototype drag handle (`.dg-msheet-grab`): 40×5 pill, gray-300, centered.
-class DugnadSheetHandle extends StatelessWidget {
-  const DugnadSheetHandle({super.key, this.bottom = 14});
+class AeSheetHandle extends StatelessWidget {
+  const AeSheetHandle({super.key, this.bottom = 14});
 
   /// Space beneath the handle (prototype `margin: 2px auto 14px`).
   final double bottom;

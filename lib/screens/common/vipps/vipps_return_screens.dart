@@ -7,7 +7,7 @@ import '../../../theme/reen_pre_club_theme.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/global_loading_overlay.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/settings_design_kit.dart';
 import '../../campaign/campaign_order_success_screen.dart';
 import '../../campaign/campaign_repo.dart';
@@ -276,7 +276,7 @@ class _VippsPaymentReturnScreenState extends State<VippsPaymentReturnScreen> {
 
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(

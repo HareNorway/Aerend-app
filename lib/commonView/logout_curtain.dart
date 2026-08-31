@@ -8,7 +8,7 @@ import '../theme/reen_pre_club_theme.dart';
 /// Opaque navy curtain held over a logout teardown.
 ///
 /// Logout clears the club *before* it navigates, so every club-themed surface
-/// repaints with the Ærend purple defaults (`DugnadClubThemePalette.defaults`,
+/// repaints with the Ærend purple defaults (`AeThemePalette.defaults`,
 /// primary `#7F5FC4`) while the old route is still on screen — a purple flash
 /// under the incoming splash. The curtain paints the splash's own gradient over
 /// the teardown, so the swap reads as one continuous navy surface.

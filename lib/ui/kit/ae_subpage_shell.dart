@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../theme/design_scale.dart';
-import '../../../theme/ae_typography.dart';
-import '../../../theme/reen_pre_club_theme.dart';
-import '../club_crest.dart';
-import 'dugnad_choose_club_widgets.dart';
-import '../dugnad_club_theme.dart';
-import 'dugnad_rounded_feed_sheet.dart';
+import '../../theme/design_scale.dart';
+import '../../theme/ae_typography.dart';
+import '../../theme/reen_pre_club_theme.dart';
+import 'ae_club_crest.dart';
+import '../../screens/dugnad/widgets/dugnad_choose_club_widgets.dart';
+import 'ae_theme.dart';
+import '../../screens/dugnad/widgets/dugnad_rounded_feed_sheet.dart';
 
 /// Locks typography to design-system px (375px frame) — ignores OS text scaling.
-class DugnadFixedTypography extends StatelessWidget {
-  const DugnadFixedTypography({super.key, required this.child});
+class AeFixedTypography extends StatelessWidget {
+  const AeFixedTypography({super.key, required this.child});
 
   final Widget child;
 
@@ -43,8 +43,8 @@ class DugnadFixedTypography extends StatelessWidget {
 /// ```
 /// Club accent remaps `--ae-purple-600`, so the shiny fill is club-tinted
 /// (not the hardcoded purple [AeSurface.shiny]).
-class DugnadLbBackButton extends StatefulWidget {
-  const DugnadLbBackButton({
+class AeBackButton extends StatefulWidget {
+  const AeBackButton({
     super.key,
     required this.onPressed,
     this.icon,
@@ -60,15 +60,15 @@ class DugnadLbBackButton extends StatefulWidget {
   final bool solidWhite;
 
   @override
-  State<DugnadLbBackButton> createState() => _DugnadLbBackButtonState();
+  State<AeBackButton> createState() => _AeBackButtonState();
 }
 
-class _DugnadLbBackButtonState extends State<DugnadLbBackButton> {
+class _AeBackButtonState extends State<AeBackButton> {
   bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final size = context.dp(38);
     final isDarkSurface =
         widget.forceDarkSurface || theme.background.computeLuminance() < 0.45;
@@ -149,8 +149,8 @@ class _DugnadLbBackButtonState extends State<DugnadLbBackButton> {
 }
 
 /// Compact purple header — back + centred title only (prototype: player-card screen).
-class DugnadLbSimpleHero extends StatelessWidget {
-  const DugnadLbSimpleHero({
+class AeSimpleHero extends StatelessWidget {
+  const AeSimpleHero({
     super.key,
     required this.title,
     required this.onBack,
@@ -164,7 +164,7 @@ class DugnadLbSimpleHero extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: context.dugnadTheme.heroGradient,
+        gradient: context.aeTheme.heroGradient,
       ),
       padding: EdgeInsets.fromLTRB(
         context.dp(22),
@@ -174,7 +174,7 @@ class DugnadLbSimpleHero extends StatelessWidget {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(onPressed: onBack),
+          AeBackButton(onPressed: onBack),
           Expanded(
             child: Text(
               title,
@@ -191,8 +191,8 @@ class DugnadLbSimpleHero extends StatelessWidget {
   }
 }
 
-class DugnadLbHero extends StatelessWidget {
-  const DugnadLbHero({
+class AeHero extends StatelessWidget {
+  const AeHero({
     super.key,
     required this.clubName,
     required this.title,
@@ -223,7 +223,7 @@ class DugnadLbHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final heroColor =
-        useReenLogo ? ReenPreClubTokens.navy : context.dugnadTheme.primary;
+        useReenLogo ? ReenPreClubTokens.navy : context.aeTheme.primary;
     // CSS `.lb-hero { background: var(--ae-purple-600) }` — solid primary so
     // feed-sheet corner cut-outs match the hero (no gradient seam at the curve).
     return Container(
@@ -241,7 +241,7 @@ class DugnadLbHero extends StatelessWidget {
         children: [
           Row(
             children: [
-              DugnadLbBackButton(
+              AeBackButton(
                 onPressed: onBack,
                 forceDarkSurface: useReenLogo,
                 solidWhite: useReenLogo,
@@ -252,7 +252,7 @@ class DugnadLbHero extends StatelessWidget {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ClubCrest(
+                          AeClubCrest(
                             name: clubName,
                             logoUrl:
                                 clubLogo?.isEmpty ?? true ? null : clubLogo,
@@ -336,8 +336,8 @@ class DugnadLbHero extends StatelessWidget {
 }
 
 /// Lavender feed content (padding + spaced children).
-class DugnadSubpageFeed extends StatelessWidget {
-  const DugnadSubpageFeed({
+class AeSubpageFeed extends StatelessWidget {
+  const AeSubpageFeed({
     super.key,
     required this.children,
     this.bottomPadding = 40,
@@ -392,8 +392,8 @@ class DugnadSubpageFeed extends StatelessWidget {
 /// Rounded lavender sheet (`.lb-feed` background + top radius).
 ///
 /// Delegates to [DugnadRoundedFeedSheet] (`ClipRRect` + lavender fill).
-class DugnadSubpageFeedShell extends StatelessWidget {
-  const DugnadSubpageFeedShell({
+class AeSubpageFeedShell extends StatelessWidget {
+  const AeSubpageFeedShell({
     super.key,
     required this.child,
     this.feedRadius = DugnadRoundedFeedSheet.subpageRadius,
@@ -413,10 +413,10 @@ class DugnadSubpageFeedShell extends StatelessWidget {
 }
 
 /// Pulls the feed sheet up over the purple hero (`.lb-feed { margin-top: -12px }`).
-/// Prefer [DugnadLbPageBody] for fixed-hero pages; use this only inside
+/// Prefer [AePageBody] for fixed-hero pages; use this only inside
 /// [CustomScrollView] slivers where negative layout overlap is handled by the scroll stack.
-class DugnadSubpageFeedOverlap extends StatelessWidget {
-  const DugnadSubpageFeedOverlap({
+class AeSubpageFeedOverlap extends StatelessWidget {
+  const AeSubpageFeedOverlap({
     super.key,
     required this.child,
     this.overlap,
@@ -443,8 +443,8 @@ class DugnadSubpageFeedOverlap extends StatelessWidget {
 ///
 /// Set [scrollEntirePage] to scroll hero + feed together, same as home
 /// ([CustomScrollView] with both in one sliver so the feed curve is not clipped).
-class DugnadLbPageBody extends StatelessWidget {
-  const DugnadLbPageBody({
+class AePageBody extends StatelessWidget {
+  const AePageBody({
     super.key,
     required this.hero,
     required this.children,
@@ -489,7 +489,7 @@ class DugnadLbPageBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final overlapPx =
         context.dp(overlap ?? AeDugnadSpace.subFeedOverlap);
 
@@ -522,9 +522,9 @@ class DugnadLbPageBody extends StatelessWidget {
                         offset: Offset(0, -overlapPx),
                         child: Padding(
                           padding: EdgeInsets.only(bottom: overlapPx),
-                          child: DugnadSubpageFeedShell(
+                          child: AeSubpageFeedShell(
                             feedRadius: feedRadius,
-                            child: DugnadSubpageFeed(
+                            child: AeSubpageFeed(
                               bottomPadding: bottomPadding,
                               itemGap: itemGap,
                               topPadding: topPadding,
@@ -570,10 +570,10 @@ class DugnadLbPageBody extends StatelessWidget {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: DugnadSubpageFeedShell(
+                    child: AeSubpageFeedShell(
                       feedRadius: feedRadius,
                       child: ScrollConfiguration(
-                        behavior: const _DugnadFeedScrollBehavior(),
+                        behavior: const _AeFeedScrollBehavior(),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             return SingleChildScrollView(
@@ -588,7 +588,7 @@ class DugnadLbPageBody extends StatelessWidget {
                                 constraints: BoxConstraints(
                                   minHeight: constraints.maxHeight,
                                 ),
-                                child: DugnadSubpageFeed(
+                                child: AeSubpageFeed(
                                   bottomPadding: bottomPadding,
                                   itemGap: itemGap,
                                   topPadding: topPadding,
@@ -613,8 +613,8 @@ class DugnadLbPageBody extends StatelessWidget {
 }
 
 /// No glow / stretch overscroll — pairs with [ClampingScrollPhysics] on feed.
-class _DugnadFeedScrollBehavior extends ScrollBehavior {
-  const _DugnadFeedScrollBehavior();
+class _AeFeedScrollBehavior extends ScrollBehavior {
+  const _AeFeedScrollBehavior();
 
   @override
   Widget buildOverscrollIndicator(
@@ -634,8 +634,8 @@ class _DugnadFeedScrollBehavior extends ScrollBehavior {
 }
 
 /// Hero + overlapping scroll feed (points, team picker — prototype: `.lb-hero` + `.lb-feed`).
-class DugnadLbScrollBody extends StatelessWidget {
-  const DugnadLbScrollBody({
+class AeScrollBody extends StatelessWidget {
+  const AeScrollBody({
     super.key,
     required this.hero,
     required this.children,
@@ -660,15 +660,15 @@ class DugnadLbScrollBody extends StatelessWidget {
   /// Optional controller forwarded to the feed scroll view (defaults to null).
   final ScrollController? scrollController;
 
-  /// See [DugnadLbPageBody.scrollEntirePage].
+  /// See [AePageBody.scrollEntirePage].
   final bool scrollEntirePage;
 
-  /// See [DugnadLbPageBody.heroColor].
+  /// See [AePageBody.heroColor].
   final Color? heroColor;
 
   @override
   Widget build(BuildContext context) {
-    return DugnadLbPageBody(
+    return AePageBody(
       hero: hero,
       bottomPadding: bottomPadding,
       itemGap: itemGap,
@@ -684,8 +684,8 @@ class DugnadLbScrollBody extends StatelessWidget {
 }
 
 /// Staggered rise-in entrance (prototype: `dg-rise-in`).
-class DugnadFeedEnter extends StatefulWidget {
-  const DugnadFeedEnter({
+class AeFeedEnter extends StatefulWidget {
+  const AeFeedEnter({
     super.key,
     required this.index,
     required this.child,
@@ -695,10 +695,10 @@ class DugnadFeedEnter extends StatefulWidget {
   final Widget child;
 
   @override
-  State<DugnadFeedEnter> createState() => _DugnadFeedEnterState();
+  State<AeFeedEnter> createState() => _AeFeedEnterState();
 }
 
-class _DugnadFeedEnterState extends State<DugnadFeedEnter>
+class _AeFeedEnterState extends State<AeFeedEnter>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _opacity;
@@ -765,8 +765,8 @@ class _DugnadFeedEnterState extends State<DugnadFeedEnter>
 }
 
 /// Section label (`.dg-label`).
-class DugnadSectionLabel extends StatelessWidget {
-  const DugnadSectionLabel(this.text, {super.key});
+class AeSectionLabel extends StatelessWidget {
+  const AeSectionLabel(this.text, {super.key});
 
   final String text;
 
@@ -790,8 +790,8 @@ class DugnadSectionLabel extends StatelessWidget {
 }
 
 /// Groups a section label with its content (prototype: `.dg-label` + block).
-class DugnadSectionBlock extends StatelessWidget {
-  const DugnadSectionBlock({
+class AeSectionBlock extends StatelessWidget {
+  const AeSectionBlock({
     super.key,
     required this.label,
     required this.children,
@@ -805,7 +805,7 @@ class DugnadSectionBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadSectionLabel(label),
+        AeSectionLabel(label),
         ...children,
       ],
     );

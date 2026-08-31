@@ -18,7 +18,7 @@ import '../common/manageAddress/manage_address_dl.dart';
 import 'club_sheet.dart';
 import 'dugnad_badges.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'gamification_models.dart';
 import 'dugnad_models.dart';
 import 'dugnad_points_screen.dart';
@@ -43,7 +43,7 @@ import 'transfer_window_screen.dart';
 import 'supporter_card_screen.dart';
 import 'widgets/dugnad_home_anchor_card.dart';
 import 'widgets/dugnad_locked_module.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 import 'widgets/incoming_referral_banner.dart';
 
 /// Dugnad profile content matching offers.jsx ProfileScreen layout.
@@ -357,8 +357,8 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
   @override
   Widget build(BuildContext context) {
     if (!DugnadState.instance.hasClub) {
-      return DugnadClubThemeScope(
-        palette: DugnadClubThemePalette.reenPreClub,
+      return AeThemeScope(
+        palette: AeThemePalette.reenPreClub,
         child: _buildContent(context),
       );
     }
@@ -405,9 +405,9 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           SizedBox(height: context.dp(12)),
           LinearProgressIndicator(
             minHeight: 2,
-            color: context.dugnadTheme.primary,
+            color: context.aeTheme.primary,
             backgroundColor:
-                context.dugnadTheme.primary.withValues(alpha: 0.12),
+                context.aeTheme.primary.withValues(alpha: 0.12),
           ),
         ],
         SizedBox(height: context.dp(18)),
@@ -417,7 +417,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           SizedBox(height: context.dp(18)),
           IncomingReferralBanner(summary: _referralSummary),
         ],
-        DugnadSectionLabel(languages.dugnadYourPoints),
+        AeSectionLabel(languages.dugnadYourPoints),
         SizedBox(height: context.dp(8)),
         _lockBrowseSection(
           languages.dugnadGateCollectPoints,
@@ -470,7 +470,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           DugnadProfilePurchasesCard(onTap: _openPurchases),
         ],
         SizedBox(height: context.dp(18)),
-        DugnadSectionLabel(languages.dugnadEarnMorePoints),
+        AeSectionLabel(languages.dugnadEarnMorePoints),
         SizedBox(height: context.dp(8)),
         _lockBrowseSection(
           languages.dugnadGateBuyAndEarn,
@@ -492,7 +492,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
                   width: context.dp(18),
                   height: context.dp(18),
                   colorFilter: ColorFilter.mode(
-                    context.dugnadTheme.primary,
+                    context.aeTheme.primary,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -512,7 +512,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           ),
         ),
         SizedBox(height: context.dp(18)),
-        DugnadSectionLabel(languages.dugnadYourBadges),
+        AeSectionLabel(languages.dugnadYourBadges),
         SizedBox(height: context.dp(8)),
         _lockBrowseSection(
           languages.dugnadGateUnlockBadges,
@@ -520,7 +520,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           DugnadProfileBadgesPreview(badges: _badges, onTap: _openPoints),
         ),
         SizedBox(height: context.dp(18)),
-        DugnadSectionLabel(languages.dugnadMyClub),
+        AeSectionLabel(languages.dugnadMyClub),
         DugnadProfileClubCard(
           clubName: ds.hasClub
               ? DugnadClubBranding.fullName()
@@ -536,7 +536,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           DugnadProfileChangeClubTeamCard(onTap: _switchClubAndTeam),
         ),
         SizedBox(height: context.dp(18)),
-        DugnadSectionLabel(languages.dugnadLeaderboardSectionTitle),
+        AeSectionLabel(languages.dugnadLeaderboardSectionTitle),
         SizedBox(height: context.dp(8)),
         _lockBrowseSection(
           languages.dugnadGateCompete,
@@ -591,7 +591,7 @@ class _DugnadProfileSectionState extends State<DugnadProfileSection> {
           ),
         ),
         SizedBox(height: context.dp(18)),
-        DugnadSectionLabel(languages.dugnadProfileAccountSection),
+        AeSectionLabel(languages.dugnadProfileAccountSection),
         SizedBox(height: context.dp(8)),
         _lockBrowseSection(
           languages.dugnadGateSeeAccountAndPayments,
@@ -614,7 +614,7 @@ class _GuestProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -716,7 +716,7 @@ class _GuestCreateAccountCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -827,7 +827,7 @@ class DugnadProfileAccountSection extends StatelessWidget {
             height: context.dp(18),
             fit: BoxFit.contain,
             colorFilter: ColorFilter.mode(
-              context.dugnadTheme.primary,
+              context.aeTheme.primary,
               BlendMode.srcIn,
             ),
           ),

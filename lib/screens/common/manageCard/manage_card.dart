@@ -5,8 +5,8 @@ import '../../../dialogs/simple_dialog_util.dart';
 import '../../../networking/api_base_helper.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../auth/auth_style.dart';
 import '../base_dl.dart';
 import 'manage_card_bloc.dart';
@@ -42,7 +42,7 @@ class _ManageCardState extends State<ManageCard> {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: ScSaasThemeTokens.background,
         body: Column(
@@ -55,7 +55,7 @@ class _ManageCardState extends State<ManageCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 120),
                       child: Padding(
                         // .dg-label margin override: 2px 2px 0 + body gap 12
@@ -71,18 +71,18 @@ class _ManageCardState extends State<ManageCard> {
                         ),
                       ),
                     ),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 190),
                       child: _vippsCard(),
                     ),
                     const SizedBox(height: 12),
                     _cardList(),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 260),
                       child: _addCardRow(),
                     ),
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 330),
                       child: _infoBox(),
                     ),
@@ -107,7 +107,7 @@ class _ManageCardState extends State<ManageCard> {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(onPressed: () => Navigator.maybePop(context)),
+          AeBackButton(onPressed: () => Navigator.maybePop(context)),
           Expanded(
             child: Text(
               'Betaling', // TODO(l10n)
@@ -512,7 +512,7 @@ class _ManageCardState extends State<ManageCard> {
           Expanded(
             child: Text(
               // TODO(l10n)
-              'Kortdetaljer lagres kryptert hos betalingsleverandøren — aldri hos Reen Dugnad.',
+              'Kortdetaljer lagres kryptert hos betalingsleverandøren — aldri hos Ærend.',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5,
                 height: 1.45,

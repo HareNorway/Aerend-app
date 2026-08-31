@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../commonView/ae_inset_surface.dart';
 import '../../commonView/circle_nav_bar.dart';
-import '../../commonView/dugnad_club_loader.dart';
+import '../../ui/kit/ae_loader.dart';
 import '../../theme/ae_typography.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/reen_pre_club_theme.dart';
@@ -14,10 +14,10 @@ import '../../utils/utils.dart';
 import '../../services/dugnad_data_cache.dart';
 import '../common/homeMainV1/home_main_v1.dart';
 import '../common/signUp/sign_up.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'club_sheet.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_points_screen.dart';
 import 'dugnad_repo.dart';
@@ -27,9 +27,9 @@ import 'team_detail_screen.dart';
 import 'team_screen.dart';
 import 'widgets/supporter_preview_sheet.dart';
 import 'widgets/dugnad_prize_banner.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'widgets/dugnad_metal_animations.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
 // Design tokens from Ærend Design System / dugnad/gamify.css (.lb-zone, .lb-trow.inzone)
 const _kGoldPoints = Color(0xFFB5851A);
@@ -322,16 +322,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (!DugnadState.instance.hasClub) {
-      return DugnadClubThemeScope(
-        palette: DugnadClubThemePalette.reenPreClub,
-        child: DugnadFixedTypography(
+      return AeThemeScope(
+        palette: AeThemePalette.reenPreClub,
+        child: AeFixedTypography(
           child: Scaffold(
             backgroundColor: ScSaasThemeTokens.background,
-            body: DugnadLbScrollBody(
+            body: AeScrollBody(
               // `useReenLogo` paints the hero navy while this scope's primary
               // is coral -- the strip has to follow the hero, not the palette.
               heroColor: ReenPreClubTokens.navy,
-              hero: DugnadLbHero(
+              hero: AeHero(
                 clubName: '',
                 clubLogo: null,
                 title: languages.dugnadLeaderboardTitle,
@@ -363,11 +363,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
     // Guests see a steps card inside the normal leaderboard chrome.
     if (!isLoggedIn()) {
-      return DugnadFixedTypography(
+      return AeFixedTypography(
         child: Scaffold(
-          backgroundColor: context.dugnadTheme.background,
-          body: DugnadLbScrollBody(
-            hero: DugnadLbHero(
+          backgroundColor: context.aeTheme.background,
+          body: AeScrollBody(
+            hero: AeHero(
               clubName: clubName,
               clubLogo: clubLogo,
               title: languages.dugnadLeaderboardTitle,
@@ -397,13 +397,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       );
     }
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.background,
+        backgroundColor: context.aeTheme.background,
         body: _loadingTable
-            ? const DugnadClubLoaderScreen()
-            : DugnadLbScrollBody(
-                  hero: DugnadLbHero(
+            ? const AeLoaderScreen()
+            : AeScrollBody(
+                  hero: AeHero(
                   clubName: clubName,
                   clubLogo: clubLogo,
                   title: languages.dugnadLeaderboardTitle,
@@ -517,7 +517,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ],
               insets: [AeSurfaceInset.top(Colors.white.withValues(alpha: 0.9))],
               child: Center(
-                child: ClubCrest(
+                child: AeClubCrest(
                   name: clubName,
                   logoUrl: clubLogo?.isEmpty ?? true ? null : clubLogo,
                   // `.lb-tablehead .crest-wrap .dg-crest` forces 50x50.
@@ -536,14 +536,14 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
             fontWeight: FontWeight.w900,
             height: 1.1,
             letterSpacing: -0.025 * 19,
-            color: context.dugnadTheme.text,
+            color: context.aeTheme.text,
           ),
         ),
         SizedBox(height: context.dp(8)),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(subtitleIcon, size: context.dp(13), color: context.dugnadTheme.primary),
+            Icon(subtitleIcon, size: context.dp(13), color: context.aeTheme.primary),
             SizedBox(width: context.dp(6)),
             Flexible(
               child: Text(
@@ -607,7 +607,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       return [
         Padding(
           padding: EdgeInsets.symmetric(vertical: context.dp(40)),
-          child: const Center(child: DugnadClubLoader()),
+          child: const Center(child: AeLoader()),
         ),
       ];
     }
@@ -636,7 +636,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         )
       else
         ...scorers.asMap().entries.map(
-          (e) => DugnadRiseIn(
+          (e) => AeRiseIn(
             delay: Duration(milliseconds: e.key * 30),
             child: _buildScorerRow(e.value, e.key == 0),
           ),
@@ -696,7 +696,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Widget _buildChooseTeamCta(String clubName) {
     return Material(
-      color: context.dugnadTheme.primaryTint,
+      color: context.aeTheme.primaryTint,
       borderRadius: BorderRadius.circular(context.dp(16)),
       child: InkWell(
         onTap: _openPointsTeamPicker,
@@ -714,7 +714,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 ),
                 child: Icon(
                   Icons.shield_outlined,
-                  color: context.dugnadTheme.primary,
+                  color: context.aeTheme.primary,
                   size: context.dp(22),
                 ),
               ),
@@ -736,7 +736,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: context.dugnadTheme.primary,
+                color: context.aeTheme.primary,
               ),
             ],
           ),
@@ -918,7 +918,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               // row reflows by 1px the moment it becomes yours.
               border: Border.all(
                 color: team.isUserTeam
-                    ? context.dugnadTheme.primary
+                    ? context.aeTheme.primary
                     : Colors.transparent,
                 width: 1.5,
               ),
@@ -927,7 +927,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   // `.mine` gets its own lift: 0 12px 26px -16px
                   // rgba(127,95,196,.5). It is not the base shadow recoloured.
                   BoxShadow(
-                    color: context.dugnadTheme.primary.withValues(alpha: 0.5),
+                    color: context.aeTheme.primary.withValues(alpha: 0.5),
                     blurRadius: context.dp(26),
                     offset: Offset(0, context.dp(12)),
                     spreadRadius: context.dp(-16),
@@ -938,7 +938,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     // .inzone 0 1px 3px rgba(160,110,10,.12)
                     color: inPrizeZone
                         ? const Color(0xFFA06E0A).withValues(alpha: 0.12)
-                        : context.dugnadTheme.text.withValues(alpha: 0.05),
+                        : context.aeTheme.text.withValues(alpha: 0.05),
                     blurRadius: context.dp(3),
                     offset: Offset(0, context.dp(1)),
                   ),
@@ -1044,7 +1044,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget _buildPointsColumn(int points, {required bool inPrizeZone}) {
     // `--ae-purple-700` is derived per club, so a static alias leaves this
     // numeral default-purple under a navy club.
-    final purple = context.dugnadTheme.primaryHover;
+    final purple = context.aeTheme.primaryHover;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -1118,7 +1118,7 @@ class _LbSegmentedTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final items = <(_LbTab, String)>[
       (_LbTab.table, languages.dugnadLeaderboardTabTable),
       (_LbTab.topScorer, languages.dugnadLeaderboardTabTopScorer),
@@ -1257,7 +1257,7 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Material(
       color: Colors.transparent,
@@ -1383,7 +1383,7 @@ class _YouTag extends StatelessWidget {
       decoration: BoxDecoration(
         // `--ae-shiny-purple`, not a flat primary. The token is club-derived,
         // so consuming it keeps the tag on-brand under an override.
-        gradient: context.dugnadTheme.shinyGradient,
+        gradient: context.aeTheme.shinyGradient,
         borderRadius: BorderRadius.circular(context.dp(999)),
       ),
       child: Text(
@@ -1455,7 +1455,7 @@ class _QuickCard extends StatelessWidget {
                         // Team: club shiny (admin accent). Points: amber stays
                         // fixed — star/poeng treatment, not club chrome.
                         gradient: variant == _LbCtaVariant.team
-                            ? context.dugnadTheme.shinyGradient
+                            ? context.aeTheme.shinyGradient
                             : const LinearGradient(
                                 begin: Alignment(-0.5, -0.85),
                                 end: Alignment(0.5, 0.85),
@@ -1713,7 +1713,7 @@ class _ScorerListRow extends StatelessWidget {
     final stat = _scorerStat(scorer, tab, formatCount);
     final unit = _scorerUnit(tab);
     final isValue = tab == _LbTab.value;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return GestureDetector(
       onTap: onTap,
@@ -1905,7 +1905,7 @@ class _ScorerStoBadge extends StatelessWidget {
           : EdgeInsets.fromLTRB(
               context.dp(6), context.dp(2), context.dp(7), context.dp(2)),
       decoration: BoxDecoration(
-        color: context.dugnadTheme.primaryTint,
+        color: context.aeTheme.primaryTint,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1914,7 +1914,7 @@ class _ScorerStoBadge extends StatelessWidget {
           Icon(
             Icons.shield_rounded,
             size: context.dp(10),
-            color: context.dugnadTheme.primary,
+            color: context.aeTheme.primary,
           ),
           SizedBox(width: context.dp(3)),
           // `.scl-sto` is 800; only its `b` -- the rating itself -- is 900.
@@ -1924,7 +1924,7 @@ class _ScorerStoBadge extends StatelessWidget {
                 fontSize: context.dp(size),
                 fontWeight: FontWeight.w800,
                 letterSpacing: context.dp(size) * 0.01,
-                color: context.dugnadTheme.primaryHover,
+                color: context.aeTheme.primaryHover,
               ),
               children: [
                 const TextSpan(text: 'STØ '),
@@ -1979,7 +1979,7 @@ class _ScorerAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final clubName = DugnadClubBranding.fullName();
     final logo = DugnadState.instance.clubLogo.trim();
     final logoUrl = logo.isEmpty ? null : logo;
@@ -2033,7 +2033,7 @@ class _ScorerAvatar extends StatelessWidget {
                   ),
                 ],
               ),
-              child: ClubCrest(
+              child: AeClubCrest(
                 name: clubName.isNotEmpty ? clubName : '?',
                 logoUrl: logoUrl,
                 size: crestInner,
@@ -2187,7 +2187,7 @@ class _GuestStepsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final titleColor =
         forChooseClub ? const Color(0xFF16304F) : theme.text;
     return Padding(
@@ -2340,7 +2340,7 @@ class _GuestStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final stepTitleColor =
         DugnadState.instance.hasClub ? theme.text : const Color(0xFF16304F);
     return IntrinsicHeight(

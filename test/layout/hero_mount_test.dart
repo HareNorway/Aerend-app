@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/dugnad_points_widgets.dart';
 import 'package:aerend_customer/screens/dugnad/metal_hero_tokens.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/ae_metal_hero_surface.dart';
@@ -23,8 +23,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: DugnadClubThemeScope(
-          palette: DugnadClubThemePalette.defaults,
+        home: AeThemeScope(
+          palette: AeThemePalette.defaults,
           child: Scaffold(
             // Unbounded height, so the card sizes to its content. Under a
             // Scaffold it otherwise stretches to the full 812 frame, which is

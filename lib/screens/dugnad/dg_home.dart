@@ -18,13 +18,13 @@ import '../../utils/utils.dart';
 import '../common/homeMainV1/home_main_v1.dart';
 import '../common/signUp/sign_up.dart';
 import '../common/manageAddress/manage_address_dl.dart';
-import 'widgets/dugnad_address_drawer.dart';
+import '../../ui/kit/ae_address_drawer.dart';
 import '../deliveryService/storeDetail/store_detail.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'celebration_debug_flags.dart';
 import 'club_sheet.dart';
 import 'dugnad_celebration_orchestrator.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_club_branding.dart';
 import 'dugnad_models.dart';
 import 'dugnad_state.dart';
@@ -47,7 +47,7 @@ import 'widgets/dugnad_feed_entry_banner.dart';
 import 'widgets/dugnad_home_anchor_card.dart';
 import 'widgets/dugnad_choose_club_widgets.dart';
 import 'widgets/dugnad_locked_module.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'widgets/dugnad_referral_promo_sheet.dart';
 import 'widgets/dugnad_rounded_feed_sheet.dart';
 import 'widgets/dugnad_season_finale_card.dart';
@@ -278,7 +278,7 @@ class DGHomeState extends State<DGHome> {
     final pagePad = _pagePadding(context);
     final feedGap = _feedGap(context);
     final heroColor =
-        hasClub ? context.dugnadTheme.primary : ReenPreClubTokens.navy;
+        hasClub ? context.aeTheme.primary : ReenPreClubTokens.navy;
 
     // `.h-hero` + `.h-feed` must live in ONE sliver. Translating the feed up
     // over a *previous* sliver gets clipped by [CustomScrollView] (default
@@ -307,11 +307,11 @@ class DGHomeState extends State<DGHome> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DugnadRiseIn(
+                  AeRiseIn(
                     child: DugnadChooseClubHomeCard(onTap: _pickClub),
                   ),
                   SizedBox(height: feedGap),
-                  DugnadRiseIn(
+                  AeRiseIn(
                     delay: const Duration(milliseconds: 100),
                     child: _lockSection(
                       languages.dugnadGateCollectPoints,
@@ -333,7 +333,7 @@ class DGHomeState extends State<DGHome> {
                 ],
               )
             else
-              DugnadRiseIn(
+              AeRiseIn(
                 child: KeyedSubtree(
                   key: DugnadTourKeys.register(DugnadTourTarget.points),
                   child: _lockSection(
@@ -350,7 +350,7 @@ class DGHomeState extends State<DGHome> {
               // panel — otherwise turning the panel off collapses the cards.
               if (_showSeasonFinale) ...[
                 SizedBox(height: feedGap),
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 100),
                   child: _buildSeasonFinaleSection(),
                 ),
@@ -361,7 +361,7 @@ class DGHomeState extends State<DGHome> {
               IncomingReferralBanner(summary: _referralSummary),
               SizedBox(height: feedGap),
             ],
-            DugnadRiseIn(
+            AeRiseIn(
               delay: const Duration(milliseconds: 200),
               child: KeyedSubtree(
                 key: DugnadTourKeys.register(DugnadTourTarget.earn),
@@ -378,13 +378,13 @@ class DGHomeState extends State<DGHome> {
                 _gamificationConfig?.showClubShopEntry == true &&
                 isLoggedIn()) ...[
               SizedBox(height: feedGap),
-              DugnadRiseIn(
+              AeRiseIn(
                 delay: const Duration(milliseconds: 230),
                 child: DugnadClubShopEntry(onTap: _openClubShop),
               ),
             ],
             SizedBox(height: feedGap),
-            DugnadRiseIn(
+            AeRiseIn(
               delay: const Duration(milliseconds: 260),
               child: _lockSection(
                 languages.dugnadGateBuyAndEarn,
@@ -425,7 +425,7 @@ class DGHomeState extends State<DGHome> {
       // Mint feed canvas fills the bottom (nav / home-indicator / overscroll).
       // Primary is painted only under the hero so top pull-to-refresh still
       // matches the club header — not a full-screen green flash at the foot.
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: Stack(
         children: [
           Positioned(
@@ -436,7 +436,7 @@ class DGHomeState extends State<DGHome> {
             child: ColoredBox(color: heroColor),
           ),
           RefreshIndicator(
-            color: hasClub ? context.dugnadTheme.primary : ReenPreClubTokens.coral,
+            color: hasClub ? context.aeTheme.primary : ReenPreClubTokens.coral,
             onRefresh: _loadData,
             child: CustomScrollView(
               controller: _scrollController,
@@ -467,8 +467,8 @@ class DGHomeState extends State<DGHome> {
       ),
     );
     if (!hasClub) {
-      return DugnadClubThemeScope(
-        palette: DugnadClubThemePalette.reenPreClub,
+      return AeThemeScope(
+        palette: AeThemePalette.reenPreClub,
         child: scaffold,
       );
     }
@@ -542,7 +542,7 @@ class DGHomeState extends State<DGHome> {
 
   Future<void> _pickDeliveryAddress() async {
     HapticFeedback.lightImpact();
-    final result = await showDugnadAddressDrawer(
+    final result = await showAeAddressDrawer(
       context,
       parentContext: context,
       onAddressChanged: () {
@@ -564,7 +564,7 @@ class DGHomeState extends State<DGHome> {
     // corner cut-outs reveal this colour (not scaffold lavender).
     return Container(
       width: double.infinity,
-      color: context.dugnadTheme.primary,
+      color: context.aeTheme.primary,
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -725,7 +725,7 @@ class DGHomeState extends State<DGHome> {
           children: [
             SizedBox(
               width: context.dp(38),
-              child: ClubCrest(
+              child: AeClubCrest(
                 name: DugnadClubBranding.fullName(),
                 logoUrl: _clubLogoUrl,
                 size: context.dp(30),
@@ -993,7 +993,7 @@ class DGHomeState extends State<DGHome> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 50),
           child: _lockSection(
             languages.dugnadGateCompete,
@@ -1025,7 +1025,7 @@ class DGHomeState extends State<DGHome> {
           ),
         ),
         SizedBox(height: gap),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 100),
           child: _lockSection(
             languages.dugnadGateMissions,
@@ -1040,7 +1040,7 @@ class DGHomeState extends State<DGHome> {
         ),
         if (hasClub && _showTransferBanner && isLoggedIn()) ...[
           SizedBox(height: gap),
-          DugnadRiseIn(
+          AeRiseIn(
             delay: const Duration(milliseconds: 140),
             child: DugnadTransferFeedBanner(
               title: languages.dugnadTransferBannerTitle,
@@ -1050,7 +1050,7 @@ class DGHomeState extends State<DGHome> {
           ),
         ],
         SizedBox(height: gap),
-        DugnadRiseIn(
+        AeRiseIn(
           delay: const Duration(milliseconds: 180),
           child: _lockSection(
             languages.dugnadGateSupport,
@@ -1067,7 +1067,7 @@ class DGHomeState extends State<DGHome> {
         ),
         if (hasClub && isLoggedIn()) ...[
           SizedBox(height: gap),
-          DugnadRiseIn(
+          AeRiseIn(
             delay: const Duration(milliseconds: 220),
             child: DugnadFeedEntryBanner(
               key: DugnadTourKeys.register(DugnadTourTarget.refer),
@@ -1139,9 +1139,9 @@ class DGHomeState extends State<DGHome> {
         child: Container(
           padding: EdgeInsets.all(context.dp(16)),
           decoration: BoxDecoration(
-            gradient: context.dugnadTheme.bannerGradient,
+            gradient: context.aeTheme.bannerGradient,
             borderRadius: BorderRadius.circular(context.dp(18)),
-            boxShadow: context.dugnadTheme.shadowButton,
+            boxShadow: context.aeTheme.shadowButton,
           ),
           child: Row(
             children: [
@@ -1254,7 +1254,7 @@ class DGHomeState extends State<DGHome> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ClubCrest(
+                  AeClubCrest(
                     name: store.name,
                     logoUrl: store.logo,
                     size: context.dp(48),
@@ -1567,7 +1567,7 @@ class _ClubWheelState extends State<_ClubWheel>
                                   ? AeSurface.shinyPurple(isCircle: true)
                                   : AeSurface.shiny(isCircle: true),
                               child: Center(
-                                child: ClubCrest(
+                                child: AeClubCrest(
                                   name: club.name,
                                   logoUrl: club.logo,
                                   size: chipSize - 16,
@@ -1586,8 +1586,8 @@ class _ClubWheelState extends State<_ClubWheel>
                               style:
                                   aeCaption(
                                         color: isSelected
-                                            ? context.dugnadTheme.primary
-                                            : context.dugnadTheme.text,
+                                            ? context.aeTheme.primary
+                                            : context.aeTheme.text,
                                       )
                                       .copyWith(
                                         fontSize: 10,

@@ -7,7 +7,7 @@ import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_state.dart';
 
 /// Guest lock overlay — blurs + washes [child] and shows a lock pill.
@@ -114,7 +114,7 @@ class _LockVeilState extends State<_LockVeil> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final reduce = MediaQuery.disableAnimationsOf(context);
 
     return Material(

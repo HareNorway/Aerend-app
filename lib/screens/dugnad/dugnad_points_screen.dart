@@ -28,9 +28,9 @@ import 'dugnad_sto_utils.dart';
 import 'dugnad_form_utils.dart';
 import 'dugnad_formen_screen.dart';
 import 'dugnad_missions_screen.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// Full "Dine poeng" screen — tier ladder, team, badges, earn paths (prototype: YourPointsScreen).
 class DugnadPointsScreen extends StatefulWidget {
@@ -322,11 +322,11 @@ class _DugnadPointsScreenState extends State<DugnadPointsScreen> {
     final clubLogo =
         DugnadState.instance.clubLogo.isEmpty ? null : DugnadState.instance.clubLogo;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
-        body: DugnadLbScrollBody(
-                hero: DugnadLbHero(
+        backgroundColor: context.aeTheme.primary,
+        body: AeScrollBody(
+                hero: AeHero(
                   clubName: clubName,
                   clubLogo: clubLogo,
                   title: languages.dugnadYourPoints,
@@ -433,7 +433,7 @@ class _DugnadPointsScreenState extends State<DugnadPointsScreen> {
         tierLabel: dugnadMetalTierLabel(displayTier, config: _gamificationConfig),
         onTap: () => openScreen(context, const SupporterCardScreen()),
       )),
-      _rise('teamSection', 400, DugnadSectionBlock(
+      _rise('teamSection', 400, AeSectionBlock(
         label: languages.dugnadYourTeam,
         children: [
           DugnadTeamSectionCard(
@@ -471,13 +471,13 @@ class _DugnadPointsScreenState extends State<DugnadPointsScreen> {
           ],
         ],
       ), duration: 550),
-      _rise('badgesSection', 450, DugnadSectionBlock(
+      _rise('badgesSection', 450, AeSectionBlock(
         label: languages.dugnadYourBadges,
         children: [
           DugnadDineMerker(sections: _badgeSections),
         ],
       ), duration: 550),
-      _rise('earnSection', 500, DugnadSectionBlock(
+      _rise('earnSection', 500, AeSectionBlock(
         label: languages.dugnadHowYouEarnPoints,
         children: [
           DugnadEarnPointsRow(
@@ -518,7 +518,7 @@ class _DugnadPointsScreenState extends State<DugnadPointsScreen> {
   /// rebuilds (and the optional STO-breakdown block appearing) reuse the
   /// existing animation state instead of replaying it.
   Widget _rise(String id, int delayMs, Widget child, {int duration = 600}) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       key: ValueKey('pointsRise-$id'),
       delay: Duration(milliseconds: delayMs),
       duration: Duration(milliseconds: duration),

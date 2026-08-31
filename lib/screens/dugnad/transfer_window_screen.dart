@@ -15,10 +15,10 @@ import 'career_screen.dart';
 import 'gamification_models.dart';
 import 'points_team_picker_screen.dart';
 import 'transfer_window_models.dart';
-import 'widgets/dugnad_hourglass.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_hourglass.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 enum _TransferStep { home, moveUp, stay, teamSwitch }
 
@@ -211,13 +211,13 @@ class _TransferWindowScreenState extends State<TransferWindowScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     // Same shell as Lagkonkurranse / sesong-recap / karriere.
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: theme.primary,
-        body: DugnadLbScrollBody(
+        body: AeScrollBody(
           hero: _TransferHero(
             title: languages.dugnadTransitionWindowTitle,
             deadlineTitle: _deadlineTitle(),
@@ -240,7 +240,7 @@ class _TransferWindowScreenState extends State<TransferWindowScreen> {
     );
   }
 
-  Widget _buildStepContent(DugnadClubThemePalette theme) {
+  Widget _buildStepContent(AeThemePalette theme) {
     final ctx = _context;
     if (ctx == null) {
       return _enter(
@@ -280,7 +280,7 @@ class _TransferWindowScreenState extends State<TransferWindowScreen> {
     };
   }
 
-  Widget _buildHome(TransferWindowContext ctx, DugnadClubThemePalette theme) {
+  Widget _buildHome(TransferWindowContext ctx, AeThemePalette theme) {
     final current = ctx.currentTeamName;
     final next = _nextTeamLabel(ctx);
 
@@ -407,7 +407,7 @@ class _TransferWindowScreenState extends State<TransferWindowScreen> {
     openScreen(context, const CareerScreen());
   }
 
-  Widget _buildMoveUpConfirm(TransferWindowContext ctx, DugnadClubThemePalette theme) {
+  Widget _buildMoveUpConfirm(TransferWindowContext ctx, AeThemePalette theme) {
     final current = ctx.currentTeamName;
     final next = _nextTeamLabel(ctx);
 
@@ -451,7 +451,7 @@ class _TransferWindowScreenState extends State<TransferWindowScreen> {
     );
   }
 
-  Widget _buildStayConfirm(TransferWindowContext ctx, DugnadClubThemePalette theme) {
+  Widget _buildStayConfirm(TransferWindowContext ctx, AeThemePalette theme) {
     final current = ctx.currentTeamName;
 
     return Column(
@@ -484,7 +484,7 @@ class _TransferWindowScreenState extends State<TransferWindowScreen> {
     );
   }
 
-  Widget _buildTeamSwitch(TransferWindowContext ctx, DugnadClubThemePalette theme) {
+  Widget _buildTeamSwitch(TransferWindowContext ctx, AeThemePalette theme) {
     if (ctx.clubTeams.isEmpty) {
       return const DugnadTransferWindowSkeleton();
     }
@@ -572,7 +572,7 @@ class _TransferHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Container(
       width: double.infinity,
@@ -588,7 +588,7 @@ class _TransferHero extends StatelessWidget {
         children: [
           Row(
             children: [
-              DugnadLbBackButton(onPressed: onBack),
+              AeBackButton(onPressed: onBack),
               Expanded(
                 child: Text(
                   title,
@@ -618,7 +618,7 @@ class _TransferHero extends StatelessWidget {
                     borderRadius: BorderRadius.circular(context.dp(12)),
                   ),
                   alignment: Alignment.center,
-                  child: DugnadHourglass(size: context.dp(22), color: Colors.white),
+                  child: AeHourglass(size: context.dp(22), color: Colors.white),
                 ),
                 SizedBox(width: context.dp(12)),
                 Expanded(
@@ -696,7 +696,7 @@ class _TransferOptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final titleColor = enabled ? theme.text : ScSaasThemeTokens.gray500;
     final subColor = enabled
         ? ScSaasThemeTokens.gray500
@@ -834,7 +834,7 @@ class _MoveUpCard extends StatelessWidget {
   final String next;
   final String question;
   final String body;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final bool stayMode;
 
   @override
@@ -916,7 +916,7 @@ class _TeamBubble extends StatelessWidget {
 
   final String label;
   final bool highlight;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -959,7 +959,7 @@ class _TransferInfoBox extends StatelessWidget {
   const _TransferInfoBox({required this.text, required this.theme});
 
   final String text;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -1003,7 +1003,7 @@ class _TeamPickRow extends StatelessWidget {
   final String clubName;
   final bool selected;
   final VoidCallback onTap;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -1093,7 +1093,7 @@ class _TransferPrimaryButton extends StatelessWidget {
 
   final String label;
   final VoidCallback? onPressed;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final IconData? leading;
   final bool loading;
 
@@ -1200,7 +1200,7 @@ class _TransferExtraNote extends StatelessWidget {
   const _TransferExtraNote({required this.text, required this.theme});
 
   final String text;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -1239,7 +1239,7 @@ class _TransferCareerEntry extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -1314,7 +1314,7 @@ class _TransferCareerEntry extends StatelessWidget {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child, {required bool animate}) {
   if (!animate || index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

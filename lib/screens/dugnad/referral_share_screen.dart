@@ -12,9 +12,9 @@ import 'dugnad_share.dart';
 import 'dugnad_state.dart';
 import 'widgets/ae_sheen.dart';
 import 'widgets/dugnad_points_earn.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Club-level referral share screen (prototype: ClubReferral in club-select.jsx).
 class ReferralShareScreen extends StatefulWidget {
@@ -106,13 +106,13 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
     final clubName = DugnadClubBranding.fullName();
     final clubLogo = DugnadState.instance.clubLogo;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         // Club primary under the hero/feed shell so pull-down never flashes
         // lavender through the overlap seam.
-        backgroundColor: context.dugnadTheme.primary,
-        body: DugnadLbScrollBody(
-          hero: DugnadLbHero(
+        backgroundColor: context.aeTheme.primary,
+        body: AeScrollBody(
+          hero: AeHero(
             clubName: clubName,
             clubLogo: clubLogo,
             title: languages.dugnadReferralTitle,
@@ -143,7 +143,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
   }
 
   Widget _buildShareCard() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final code = _summary?.referralCode ?? '—';
     final link = _summary?.referralLink ?? '';
     // Club primary → subtle magenta (mock: red/navy cards bleed into magenta).
@@ -255,7 +255,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
     required bool filled,
     VoidCallback? onTap,
   }) {
-    final accent = context.dugnadTheme.primary;
+    final accent = context.aeTheme.primary;
     final radius = BorderRadius.circular(context.dp(12));
 
     return Material(
@@ -461,7 +461,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 13,
-                  color: context.dugnadTheme.text,
+                  color: context.aeTheme.text,
                 ),
               ),
             ],
@@ -494,7 +494,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
   }
 
   Widget _buildSteps() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final club = _referralClubLabel(compact: true);
     final steps = [
       (
@@ -514,7 +514,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadSectionLabel(languages.dugnadReferralHowItWorks),
+        AeSectionLabel(languages.dugnadReferralHowItWorks),
         ...steps.asMap().entries.map((entry) {
           final index = entry.key + 1;
           final step = entry.value;
@@ -590,7 +590,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadSectionLabel(languages.dugnadReferralYourRecruits),
+        AeSectionLabel(languages.dugnadReferralYourRecruits),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -623,7 +623,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
   }
 
   Widget _recruitRow(ReferralRecord record) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final isConverted = record.status == 'converted';
     final isPending = !record.referredIsVerified;
     final name =
@@ -704,7 +704,7 @@ class _ReferralShareScreenState extends State<ReferralShareScreen> {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

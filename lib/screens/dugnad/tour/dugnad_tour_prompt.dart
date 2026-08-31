@@ -7,7 +7,7 @@ import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../../utils/utils.dart' show languages;
 import '../dugnad_celebration_orchestrator.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_state.dart';
 import 'dugnad_tour_controller.dart';
 
@@ -101,11 +101,11 @@ class _DugnadTourPromptCardState extends State<_DugnadTourPromptCard>
   }
 
   /// Club theme from admin portal colours. Overlay sits above
-  /// [DugnadClubThemeScope], so resolve via [DugnadState] rather than inherited.
-  DugnadClubThemePalette get _theme {
+  /// [AeThemeScope], so resolve via [DugnadState] rather than inherited.
+  AeThemePalette get _theme {
     final st = DugnadState.instance;
     if (st.isDugnadMode && st.hasClub) return st.themePalette;
-    return context.dugnadTheme;
+    return context.aeTheme;
   }
 
   @override
@@ -157,7 +157,7 @@ class _DugnadTourPromptCardState extends State<_DugnadTourPromptCard>
     );
   }
 
-  Widget _card(BuildContext context, DugnadClubThemePalette theme,
+  Widget _card(BuildContext context, AeThemePalette theme,
       dynamic l, bool rewardPaid) {
     return Container(
       width: double.infinity,
@@ -350,7 +350,7 @@ class _PrimaryButton extends StatelessWidget {
   });
 
   final String label;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final VoidCallback onTap;
 
   @override

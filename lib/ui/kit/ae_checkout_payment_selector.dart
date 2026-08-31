@@ -2,48 +2,48 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 
-import '../../../commonView/surface_decorations.dart';
-import '../../../networking/api_constant.dart';
-import '../../../theme/ae_typography.dart';
-import '../../../theme/sc_saas_theme.dart';
-import '../../campaign/campaign_strings.dart';
+import '../../commonView/surface_decorations.dart';
+import '../../networking/api_constant.dart';
+import '../../theme/ae_typography.dart';
+import '../../theme/sc_saas_theme.dart';
+import '../../screens/campaign/campaign_strings.dart';
 
-enum DugnadCheckoutPayMethod { vipps, cardKlarna, platformWallet }
+enum AeCheckoutPayMethod { vipps, cardKlarna, platformWallet }
 
-const String kDugnadApplePayLogo = 'assets/images/applepay.png';
-const String kDugnadGooglePayLogo = 'assets/images/gpay.png';
-const String kDugnadVippsLogo = 'assets/images/Vipps_Logo_orange.png';
+const String kAeApplePayLogo = 'assets/images/applepay.png';
+const String kAeGooglePayLogo = 'assets/images/gpay.png';
+const String kAeVippsLogo = 'assets/images/Vipps_Logo_orange.png';
 
-bool get dugnadSupportsPlatformPay => Platform.isIOS || Platform.isAndroid;
+bool get aeSupportsPlatformPay => Platform.isIOS || Platform.isAndroid;
 
-String get dugnadPlatformPayLabel => Platform.isIOS ? 'Apple Pay' : 'Google Pay';
+String get aePlatformPayLabel => Platform.isIOS ? 'Apple Pay' : 'Google Pay';
 
-String get dugnadPlatformPayLogo =>
-    Platform.isIOS ? kDugnadApplePayLogo : kDugnadGooglePayLogo;
+String get aePlatformPayLogo =>
+    Platform.isIOS ? kAeApplePayLogo : kAeGooglePayLogo;
 
-DugnadCheckoutPayMethod dugnadCheckoutDefaultPayMethod() {
-  if (AppFeatureFlags.showVippsPay) return DugnadCheckoutPayMethod.vipps;
-  if (dugnadSupportsPlatformPay) return DugnadCheckoutPayMethod.platformWallet;
-  return DugnadCheckoutPayMethod.cardKlarna;
+AeCheckoutPayMethod aeCheckoutDefaultPayMethod() {
+  if (AppFeatureFlags.showVippsPay) return AeCheckoutPayMethod.vipps;
+  if (aeSupportsPlatformPay) return AeCheckoutPayMethod.platformWallet;
+  return AeCheckoutPayMethod.cardKlarna;
 }
 
 /// Compact payment row + change sheet used on dugnad campaign checkout.
-class DugnadCheckoutPaymentSelector extends StatelessWidget {
-  const DugnadCheckoutPaymentSelector({
+class AeCheckoutPaymentSelector extends StatelessWidget {
+  const AeCheckoutPaymentSelector({
     super.key,
     required this.value,
     required this.onChanged,
     required this.accent,
   });
 
-  final DugnadCheckoutPayMethod value;
-  final ValueChanged<DugnadCheckoutPayMethod> onChanged;
+  final AeCheckoutPayMethod value;
+  final ValueChanged<AeCheckoutPayMethod> onChanged;
   final Color accent;
 
   @override
   Widget build(BuildContext context) {
-    final isPlatform = value == DugnadCheckoutPayMethod.platformWallet;
-    final isVipps = value == DugnadCheckoutPayMethod.vipps;
+    final isPlatform = value == AeCheckoutPayMethod.platformWallet;
+    final isVipps = value == AeCheckoutPayMethod.vipps;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: AeSurface.card(borderRadius: BorderRadius.circular(18)),
@@ -74,7 +74,7 @@ class DugnadCheckoutPaymentSelector extends StatelessWidget {
                 clipBehavior: Clip.antiAlias,
                 child: isVipps
                     ? Image.asset(
-                        kDugnadVippsLogo,
+                        kAeVippsLogo,
                         fit: BoxFit.cover,
                         filterQuality: FilterQuality.high,
                       )
@@ -82,7 +82,7 @@ class DugnadCheckoutPaymentSelector extends StatelessWidget {
                         ? Padding(
                             padding: const EdgeInsets.all(6),
                             child: Image.asset(
-                              dugnadPlatformPayLogo,
+                              aePlatformPayLogo,
                               fit: BoxFit.contain,
                               filterQuality: FilterQuality.high,
                             ),
@@ -102,7 +102,7 @@ class DugnadCheckoutPaymentSelector extends StatelessWidget {
                       isVipps
                           ? CampaignStrings.payWithVippsSemanticsLabel
                           : isPlatform
-                              ? dugnadPlatformPayLabel
+                              ? aePlatformPayLabel
                               : 'Card / Klarna',
                       style: aeTitle(),
                     ),
@@ -143,16 +143,16 @@ class DugnadCheckoutPaymentSelector extends StatelessWidget {
             children: [
               Text(CampaignStrings.paymentMethod, style: aeH3()),
               const SizedBox(height: 14),
-              if (dugnadSupportsPlatformPay) ...[
+              if (aeSupportsPlatformPay) ...[
                 _optionTile(
-                  title: dugnadPlatformPayLabel,
+                  title: aePlatformPayLabel,
                   leading: _logoMark(
-                    asset: dugnadPlatformPayLogo,
+                    asset: aePlatformPayLogo,
                     darkTile: Platform.isAndroid,
                   ),
-                  selected: value == DugnadCheckoutPayMethod.platformWallet,
+                  selected: value == AeCheckoutPayMethod.platformWallet,
                   onTap: () {
-                    onChanged(DugnadCheckoutPayMethod.platformWallet);
+                    onChanged(AeCheckoutPayMethod.platformWallet);
                     Navigator.pop(ctx);
                   },
                 ),
@@ -161,9 +161,9 @@ class DugnadCheckoutPaymentSelector extends StatelessWidget {
               _optionTile(
                 title: 'Card / Klarna',
                 icon: Icons.credit_card_outlined,
-                selected: value == DugnadCheckoutPayMethod.cardKlarna,
+                selected: value == AeCheckoutPayMethod.cardKlarna,
                 onTap: () {
-                  onChanged(DugnadCheckoutPayMethod.cardKlarna);
+                  onChanged(AeCheckoutPayMethod.cardKlarna);
                   Navigator.pop(ctx);
                 },
               ),
@@ -171,10 +171,10 @@ class DugnadCheckoutPaymentSelector extends StatelessWidget {
                 const SizedBox(height: 8),
                 _optionTile(
                   title: CampaignStrings.payWithVippsSemanticsLabel,
-                  leading: _logoMark(asset: kDugnadVippsLogo),
-                  selected: value == DugnadCheckoutPayMethod.vipps,
+                  leading: _logoMark(asset: kAeVippsLogo),
+                  selected: value == AeCheckoutPayMethod.vipps,
                   onTap: () {
-                    onChanged(DugnadCheckoutPayMethod.vipps);
+                    onChanged(AeCheckoutPayMethod.vipps);
                     Navigator.pop(ctx);
                   },
                 ),

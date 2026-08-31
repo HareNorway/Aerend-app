@@ -7,14 +7,14 @@ import '../../commonView/skeleton_loaders/dugnad_subpage_skeletons.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_club_branding.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// Profile privacy controls — matches prototype `visibility.jsx`.
 class DugnadPrivacyScreen extends StatefulWidget {
@@ -244,9 +244,9 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.background,
+        backgroundColor: context.aeTheme.background,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -267,27 +267,27 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 120),
                             child: _buildIntro(),
                           ),
                           SizedBox(height: context.dp(14)),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 190),
                             child: _buildPreviewAsToggle(),
                           ),
                           SizedBox(height: context.dp(14)),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 260),
                             child: _buildDisplayNameSection(),
                           ),
                           SizedBox(height: context.dp(14)),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 330),
                             child: _buildVisibilitySection(),
                           ),
                           SizedBox(height: context.dp(14)),
-                          DugnadRiseIn(
+                          AeRiseIn(
                             delay: const Duration(milliseconds: 400),
                             duration: const Duration(milliseconds: 550),
                             child: _buildLeaderboardPreview(),
@@ -312,7 +312,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(onPressed: () => Navigator.of(context).pop()),
+          AeBackButton(onPressed: () => Navigator.of(context).pop()),
           Expanded(
             child: Text(
               languages.dugnadVisibilityTitle,
@@ -335,7 +335,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
           child: Icon(
             Icons.shield_outlined,
             size: context.dp(17),
-            color: context.dugnadTheme.primary,
+            color: context.aeTheme.primary,
           ),
         ),
         SizedBox(width: context.dp(10)),
@@ -352,7 +352,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
                 TextSpan(
                   text: languages.dugnadPrivacyIntroBold,
                   style: TextStyle(
-                    color: context.dugnadTheme.text,
+                    color: context.aeTheme.text,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -472,7 +472,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(context.dp(12)),
                     borderSide: BorderSide(
-                      color: context.dugnadTheme.primary,
+                      color: context.aeTheme.primary,
                       width: 1.5,
                     ),
                   ),
@@ -586,7 +586,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
     return Container(
       padding: EdgeInsets.all(context.dp(13)),
       decoration: BoxDecoration(
-        color: context.dugnadTheme.background,
+        color: context.aeTheme.background,
         borderRadius: BorderRadius.circular(context.dp(16)),
       ),
       child: Column(
@@ -604,7 +604,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(context.dp(15)),
-              border: Border.all(color: context.dugnadTheme.primary, width: 1.5),
+              border: Border.all(color: context.aeTheme.primary, width: 1.5),
               boxShadow: [
                 // `.scl-row.me` — rgba(127,95,196,.55); the app had .35.
                 BoxShadow(
@@ -688,7 +688,7 @@ class _DugnadPrivacyScreenState extends State<DugnadPrivacyScreen> {
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
-                        color: context.dugnadTheme.primaryHover,
+                        color: context.aeTheme.primaryHover,
                         letterSpacing: -0.02 * 17,
                         fontFeatures: [FontFeature.tabularFigures()],
                       ),
@@ -760,7 +760,7 @@ class _PreviewSegButton extends StatelessWidget {
         child: Text(
           label,
           style: aeCaption(
-            color: selected ? context.dugnadTheme.text : ScSaasThemeTokens.gray500,
+            color: selected ? context.aeTheme.text : ScSaasThemeTokens.gray500,
           ).copyWith(fontWeight: FontWeight.w800, fontSize: 12),
         ),
       ),
@@ -798,7 +798,7 @@ class _NameOptionCard extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(context.dp(14)),
             border: Border.all(
-              color: selected ? context.dugnadTheme.primary : Colors.transparent,
+              color: selected ? context.aeTheme.primary : Colors.transparent,
               width: 1.5,
             ),
             boxShadow: [
@@ -845,7 +845,7 @@ class _NameOptionCard extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: context.dp(10), vertical: context.dp(4)),
                 decoration: BoxDecoration(
                   color: selected
-                      ? context.dugnadTheme.primaryTint
+                      ? context.aeTheme.primaryTint
                       : ScSaasThemeTokens.gray50,
                   borderRadius: BorderRadius.circular(999),
                 ),
@@ -855,7 +855,7 @@ class _NameOptionCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: aeCaption(
                     color: selected
-                        ? context.dugnadTheme.primaryHover
+                        ? context.aeTheme.primaryHover
                         : ScSaasThemeTokens.gray500,
                   ).copyWith(fontWeight: FontWeight.w800, fontSize: 12),
                 ),
@@ -881,7 +881,7 @@ class _VisRadio extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? context.dugnadTheme.primary : ScSaasThemeTokens.gray300,
+          color: selected ? context.aeTheme.primary : ScSaasThemeTokens.gray300,
           width: 2,
         ),
       ),
@@ -891,7 +891,7 @@ class _VisRadio extends StatelessWidget {
                 width: context.dp(11),
                 height: context.dp(11),
                 decoration: BoxDecoration(
-                  color: context.dugnadTheme.primary,
+                  color: context.aeTheme.primary,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -916,7 +916,7 @@ class _DgSwitch extends StatelessWidget {
         width: context.dp(48),
         height: context.dp(28),
         decoration: BoxDecoration(
-          color: value ? context.dugnadTheme.primary : ScSaasThemeTokens.gray300,
+          color: value ? context.aeTheme.primary : ScSaasThemeTokens.gray300,
           borderRadius: BorderRadius.circular(999),
         ),
         child: AnimatedAlign(
@@ -1052,13 +1052,13 @@ class _PreviewScorerAvatar extends StatelessWidget {
             width: context.dp(42),
             height: context.dp(42),
             decoration: BoxDecoration(
-              color: anon ? ScSaasThemeTokens.gray100 : context.dugnadTheme.primaryTint,
+              color: anon ? ScSaasThemeTokens.gray100 : context.aeTheme.primaryTint,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.person_rounded,
               size: context.dp(20),
-              color: anon ? Color(0xFF9890A8) : context.dugnadTheme.primaryHover,
+              color: anon ? Color(0xFF9890A8) : context.aeTheme.primaryHover,
             ),
           ),
           if (!anon)
@@ -1080,7 +1080,7 @@ class _PreviewScorerAvatar extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: ClubCrest(
+                child: AeClubCrest(
                   name: clubName,
                   logoUrl: clubLogo?.isEmpty ?? true ? null : clubLogo,
                   size: context.dp(17),
@@ -1100,7 +1100,7 @@ class _YouTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: context.dp(7),

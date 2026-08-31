@@ -9,8 +9,8 @@ import '../snurre/snurre_launcher_policy.dart';
 import 'club_onboarding_screen.dart';
 import 'dugnad_flip_route.dart';
 import 'dugnad_state.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import '../common/login/login.dart';
 
 /// "Velg modus" — mode gate shown after login when onboarding is incomplete.
@@ -48,14 +48,14 @@ class ModeSelectScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadClubThemeScope(
-      palette: DugnadClubThemePalette.reenPreClub,
+    return AeThemeScope(
+      palette: AeThemePalette.reenPreClub,
       child: Builder(builder: _buildPreClub),
     );
   }
 
   Widget _buildPreClub(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -109,9 +109,9 @@ class ModeSelectScreen extends StatelessWidget {
                             _headMarginBottom + _modeListMarginTop,
                           ),
                         ),
-                        DugnadRiseIn(child: _buildDugnadCard(context, theme)),
+                        AeRiseIn(child: _buildDugnadCard(context, theme)),
                         SizedBox(height: context.dp(_modeListGap)),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 80),
                           child: _buildCommercialCard(context),
                         ),
@@ -139,7 +139,7 @@ class ModeSelectScreen extends StatelessWidget {
   }
 
   /// `.dg-modecard.dugnad` — grid `54px 1fr auto`, gap 15, radius 20, pad 18.
-  Widget _buildDugnadCard(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _buildDugnadCard(BuildContext context, AeThemePalette theme) {
     return GestureDetector(
       onTap: () async {
         HapticFeedback.lightImpact();
@@ -333,7 +333,7 @@ class ModeSelectScreen extends StatelessWidget {
   }
 
   /// `.dg-info` — gap 11, radius 14, padding 13px 14px, copy 12.5/600/lh 1.45.
-  Widget _buildInfoBanner(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _buildInfoBanner(BuildContext context, AeThemePalette theme) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(

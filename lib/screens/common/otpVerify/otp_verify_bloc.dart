@@ -3,10 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../blocs/bloc.dart';
 import '../../../constant/constant.dart';
 import '../../../utils/utils.dart';
-// Mode select temporarily skipped.
-// import '../../dugnad/mode_select_screen.dart';
-import '../../dugnad/referral_capture_helper.dart';
 import '../base_dl.dart';
+import '../homeMainV1/home_main_v1.dart';
 import '../createProfile/create_profile_repo.dart';
 import '../login/login_dl.dart';
 import 'otp_verify.dart';
@@ -169,7 +167,6 @@ class OtpVerifyBloc extends Bloc {
       prefCountryCode,
       dialCode.trim().isNotEmpty ? dialCode.trim() : defaultCountryCode.dialCode!,
     );
-    await prefSetBool(prefShowDugnadWelcomeAfterOnboarding, true);
     await setDataInPref(response);
 
     if (!state.mounted) return;
@@ -245,7 +242,6 @@ class OtpVerifyBloc extends Bloc {
           _subjectVerify.sink.add(ApiResponse.completed(response));
           prefSetInt(prefUserVerified, 1);
           prefSetBool(prefIsGuestMode, false);
-          await capturePendingDugnadReferralIfNeeded();
           _pendingFinish = () => _navigateAfterVerify();
           onSuccess?.call();
           if (onSuccess == null) {
@@ -285,11 +281,7 @@ class OtpVerifyBloc extends Bloc {
       Navigator.pop(context, true);
       return;
     }
-    // ModeSelectScreen skipped — dugnad is the only mode for now.
-    dugnadAuthDestination(isShowDialog: true).then((dest) {
-      if (!state.mounted) return;
-      openScreenWithClearPrevious(context, dest);
-    });
+    openScreenWithClearPrevious(context, const HomeMainV1(isShowDialog: true));
   }
 
   Future<void> resendOtp() async {

@@ -5,7 +5,7 @@ import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart' show languages;
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import 'dugnad_tour_controller.dart';
 
 /// Overlay scrim + stroke constants (the only non-theme colours allowed here).
@@ -197,7 +197,7 @@ class DugnadTourCard extends StatelessWidget {
   }
 
   Widget _cardContent(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final l = languages;
     final total = controller.totalSteps;
     final index = controller.index;

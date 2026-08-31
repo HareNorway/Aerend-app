@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import '../common/address_order_chrome.dart';
-import '../dugnad/dugnad_club_theme.dart';
-import '../dugnad/widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'campaign_order_pdf.dart';
 import 'models/campaign_order_pojo.dart';
 
@@ -90,10 +90,10 @@ class _CampaignOrderDetailScreenState extends State<CampaignOrderDetailScreen> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Scaffold(
       backgroundColor: theme.background,
@@ -207,7 +207,7 @@ class _CampaignOrderDetailScreenState extends State<CampaignOrderDetailScreen> {
 
   /// `.dgo-head` — 48px icon tile, campaign name, club name, status pill.
   Widget _buildHeadCard(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -269,7 +269,7 @@ class _CampaignOrderDetailScreenState extends State<CampaignOrderDetailScreen> {
   }
 
   Widget _statusPill(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -417,7 +417,7 @@ class _CampaignOrderDetailScreenState extends State<CampaignOrderDetailScreen> {
               style: aoText(
                 14,
                 FontWeight.w700,
-                color: context.dugnadTheme.text,
+                color: context.aeTheme.text,
               ),
             ),
           ),
@@ -444,7 +444,7 @@ class _CampaignOrderDetailScreenState extends State<CampaignOrderDetailScreen> {
             style: aoText(
               17,
               FontWeight.w800,
-              color: context.dugnadTheme.text,
+              color: context.aeTheme.text,
             ),
           ),
         ],

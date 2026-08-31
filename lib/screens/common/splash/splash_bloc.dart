@@ -9,12 +9,9 @@ import 'package:intercom_flutter/intercom_flutter.dart';
 
 import '../../../blocs/bloc.dart';
 import '../../../dialogs/simple_dialog_util.dart';
-import '../../../services/dugnad_data_cache.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_state.dart';
-// Mode select temporarily skipped.
-// import '../../dugnad/mode_select_screen.dart';
 import '../consent/consent_gate_screen.dart';
+import '../homeMainV1/home_main_v1.dart';
 import '../login/login.dart';
 // Language/currency pre-login screen skipped — NOK is the only currency;
 // language is chosen via the NO/EN toggle on Login.
@@ -94,13 +91,8 @@ class SplashBloc extends Bloc {
     }
   }
 
-  void _openDugnadHome({required bool isShowDialog}) {
-    DugnadDataCache.instance.prefetchForDugnadEntry();
-    // ModeSelectScreen skipped — dugnad is the only mode for now.
-    dugnadAuthDestination(isShowDialog: isShowDialog).then((dest) {
-      if (!state.mounted) return;
-      _openScreen(dest);
-    });
+  void _openHome({required bool isShowDialog}) {
+    _openScreen(HomeMainV1(isShowDialog: isShowDialog));
   }
 
   splashAction() {
@@ -116,14 +108,10 @@ class SplashBloc extends Bloc {
       }
     });
 
-    // Desired cold-start flow: Splash → Consent → Login → (auth) → club select.
-    // Only skip Login when the user already finished club onboarding.
-    if (isLoggedIn() && DugnadState.instance.onboardingComplete) {
+    // Cold-start flow: Splash → Consent → Login → (auth) → Home.
+    if (isLoggedIn()) {
       prefSetBool(prefIsGuestMode, false);
       callRunningServiceApi();
-    } else if (isLoggedIn()) {
-      prefSetBool(prefIsGuestMode, false);
-      _openScreen(const Login());
     } else {
       prefSetBool(prefIsGuestMode, false);
       _openScreen(const ConsentGateScreen(), handoff: true);
@@ -177,7 +165,7 @@ class SplashBloc extends Bloc {
   }
 
   callRunningServiceApi() async {
-    _openDugnadHome(isShowDialog: true);
+    _openHome(isShowDialog: true);
     // var connectivityResult = await (Connectivity().checkConnectivity());
     // if (connectivityResult != ConnectivityResult.none) {
     //   try {
@@ -198,11 +186,7 @@ class SplashBloc extends Bloc {
     if (status == 2) {
       _openScreen(const Login());
     } else if (status == 0) {
-      // ModeSelectScreen skipped — dugnad is the only mode for now.
-      dugnadAuthDestination(isShowDialog: true).then((dest) {
-        if (!state.mounted) return;
-        _openScreen(dest);
-      });
+      _openScreen(const HomeMainV1(isShowDialog: true));
     } else {
       String message = getApiMsg(
         context,
@@ -221,13 +205,8 @@ class SplashBloc extends Bloc {
   }
 
   openHomeOrLoginActivity() {
-    if (isLoggedIn() && DugnadState.instance.onboardingComplete) {
-      dugnadAuthDestination(isShowDialog: true).then((dest) {
-        if (!state.mounted) return;
-        _openScreen(dest);
-      });
-    } else if (isLoggedIn()) {
-      _openScreen(const Login());
+    if (isLoggedIn()) {
+      _openScreen(const HomeMainV1(isShowDialog: true));
     } else {
       _openScreen(const ConsentGateScreen(), handoff: true);
     }

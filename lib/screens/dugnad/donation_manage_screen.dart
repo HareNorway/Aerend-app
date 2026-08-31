@@ -11,9 +11,9 @@ import 'donation_setup_screen.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Manage active Fast støtte subscriptions (prototype: DonateStatusScreen).
 class DonationManageScreen extends StatefulWidget {
@@ -164,13 +164,13 @@ class _DonationManageScreenState extends State<DonationManageScreen> {
 
     final feedChildren = _buildFeedChildren(active);
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
+        backgroundColor: context.aeTheme.primary,
         body: Stack(
           children: [
-            DugnadLbScrollBody(
-              hero: DugnadLbHero(
+            AeScrollBody(
+              hero: AeHero(
                 clubName: clubName,
                 clubLogo: clubLogo,
                 title: languages.dugnadDonationManageHeroTitle,
@@ -377,7 +377,7 @@ class _DonationSubCard extends StatelessWidget {
     final amountKr = subscription.amountKr.round();
     final points = DonationFeeCalculator.previewPointsForAmountKr(amountKr);
     final isOrg = subscription.beneficiaryType == 'organization';
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Opacity(
       opacity: isPaused ? 0.82 : 1,
@@ -540,10 +540,10 @@ class _StatusPill extends StatelessWidget {
     final Color fg;
     if (paused) {
       bg = const Color(0xFFF3F4F6);
-      fg = context.dugnadTheme.primaryHover;
+      fg = context.aeTheme.primaryHover;
     } else if (pending) {
       bg = const Color(0xFFF3F4F6);
-      fg = context.dugnadTheme.primaryHover;
+      fg = context.aeTheme.primaryHover;
     } else {
       bg = ScSaasThemeTokens.success.withValues(alpha: 0.16);
       fg = ScSaasThemeTokens.success;
@@ -587,7 +587,7 @@ class _SubActionButton extends StatelessWidget {
     final bg = danger
         ? const Color(0x1ADC4040)
         : const Color(0xFFF3F4F6);
-    final fg = danger ? Color(0xFFDC4040) : context.dugnadTheme.text;
+    final fg = danger ? Color(0xFFDC4040) : context.aeTheme.text;
 
     return Material(
       color: bg,
@@ -674,13 +674,13 @@ class _DonationAddTeamCard extends StatelessWidget {
                   width: context.dp(42),
                   height: context.dp(42),
                   decoration: BoxDecoration(
-                    color: context.dugnadTheme.primaryTint,
+                    color: context.aeTheme.primaryTint,
                     borderRadius: BorderRadius.circular(context.dp(12)),
                   ),
                   child: Icon(
                     Icons.add_rounded,
                     size: context.dp(19),
-                    color: context.dugnadTheme.primaryHover,
+                    color: context.aeTheme.primaryHover,
                   ),
                 ),
                 SizedBox(width: context.dp(13)),
@@ -854,14 +854,14 @@ class _DonationCancelSheet extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: context.dugnadTheme.text,
+                        color: context.aeTheme.text,
                       ),
                     ),
                     SizedBox(height: context.dp(10)),
                     Text(
                       languages.dugnadDonationCancelSheetBody,
                       style: TextStyle(
-                        color: context.dugnadTheme.primaryHover,
+                        color: context.aeTheme.primaryHover,
                         fontWeight: FontWeight.w600,
                         height: 1.45,
                       ),
@@ -890,7 +890,7 @@ class _DonationCancelSheet extends StatelessWidget {
                         languages.dugnadDonationCancelSheetKeep,
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: context.dugnadTheme.text,
+                          color: context.aeTheme.text,
                         ),
                       ),
                     ),
@@ -911,7 +911,7 @@ class _DonationCancelSheet extends StatelessWidget {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

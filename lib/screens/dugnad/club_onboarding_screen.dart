@@ -10,21 +10,21 @@ import '../../utils/utils.dart';
 import '../common/homeMainV1/home_main_v1.dart';
 import 'dugnad_celebration_orchestrator.dart';
 import 'dugnad_welcome_screen.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'club_sheet.dart';
 import 'dugnad_models.dart';
 import 'dugnad_state.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'widgets/dugnad_points_pop.dart';
 // Mode select temporarily skipped — back goes to Login.
 // import 'mode_select_screen.dart';
 import '../common/login/login.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
-/// Onboarding is always `.reen-pre` — do not use [BuildContext.dugnadTheme]
+/// Onboarding is always `.reen-pre` — do not use [BuildContext.aeTheme]
 /// here; browse/no-club mode overrides that to the light feed palette.
-final DugnadClubThemePalette _onbTheme = DugnadClubThemePalette.reenPreClub;
+final AeThemePalette _onbTheme = AeThemePalette.reenPreClub;
 
 /// Club onboarding: pick a club, then continue.
 ///
@@ -145,10 +145,10 @@ class _ClubOnboardingScreenState extends State<ClubOnboardingScreen> {
   Widget build(BuildContext context) {
     // Keep Reen for the whole onboarding flow — even after [selectClub] so the
     // picker/confirmation stay coral-navy until the user lands on Home.
-    // Colors use [_onbTheme] directly — not [context.dugnadTheme], which
+    // Colors use [_onbTheme] directly — not [context.aeTheme], which
     // resolves to the light browse palette when no club is selected yet.
-    return DugnadClubThemeScope(
-      palette: DugnadClubThemePalette.reenPreClub,
+    return AeThemeScope(
+      palette: AeThemePalette.reenPreClub,
       child: Builder(builder: _buildPreClubScaffold),
     );
   }
@@ -220,7 +220,7 @@ class _ClubOnboardingScreenState extends State<ClubOnboardingScreen> {
                   Positioned(
                     top: 6,
                     left: 12,
-                    child: DugnadLbBackButton(
+                    child: AeBackButton(
                       onPressed: _goBack,
                       solidWhite: true,
                       forceDarkSurface: true,
@@ -241,7 +241,7 @@ class _ClubOnboardingScreenState extends State<ClubOnboardingScreen> {
   static const List<int> _onbDelaysMs = [40, 100, 160, 220];
 
   Widget _onbRise(int index, Widget child) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       // The prototype replays this on every step change via its `key="s1"`
       // remount. This screen implements a single step, so mounting the screen
       // is the step entry — a stable key per child is equivalent here.
@@ -545,7 +545,7 @@ class _OnbPickedClub extends StatelessWidget {
           ),
           child: Row(
             children: [
-              ClubCrest(name: club.name, logoUrl: club.logo, size: context.dp(46)),
+              AeClubCrest(name: club.name, logoUrl: club.logo, size: context.dp(46)),
               SizedBox(width: context.dp(13)),
               Expanded(
                 child: Column(

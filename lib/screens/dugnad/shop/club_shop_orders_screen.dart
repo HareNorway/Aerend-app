@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../commonView/dugnad_club_loader.dart';
+import '../../../ui/kit/ae_loader.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_repo.dart';
 import '../dugnad_state.dart';
-import '../widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'club_shop_models.dart';
 import 'club_shop_receipt_screen.dart';
 
@@ -56,7 +56,7 @@ class _ClubShopOrdersScreenState extends State<ClubShopOrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Scaffold(
       backgroundColor: theme.background,
       body: Column(
@@ -70,7 +70,7 @@ class _ClubShopOrdersScreenState extends State<ClubShopOrdersScreen> {
             ),
             child: Row(
               children: [
-                DugnadLbBackButton(
+                AeBackButton(
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
                 Expanded(
@@ -88,7 +88,7 @@ class _ClubShopOrdersScreenState extends State<ClubShopOrdersScreen> {
           ),
           Expanded(
             child: _loading
-                ? const Center(child: DugnadClubLoader())
+                ? const Center(child: AeLoader())
                 : _orders.isEmpty
                     ? Center(
                         child: Padding(

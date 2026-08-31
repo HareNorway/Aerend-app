@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Press + release for shiny club pills (`.ae-btn` / `.sh-entry` in kit-shared.css).
 ///
@@ -123,7 +123,7 @@ class _DugnadShinyPressState extends State<DugnadShinyPress>
   @override
   Widget build(BuildContext context) {
     final reduced = MediaQuery.disableAnimationsOf(context);
-    final accent = context.dugnadTheme.primary;
+    final accent = context.aeTheme.primary;
 
     return AnimatedBuilder(
       animation: Listenable.merge([_hold, _pop, _ring]),

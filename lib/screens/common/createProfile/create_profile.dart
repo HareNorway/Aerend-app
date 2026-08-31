@@ -6,7 +6,7 @@ import '../../../networking/api_base_helper.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../auth/auth_style.dart';
 import '../login/login_dl.dart';
 import 'create_profile_bloc.dart';
@@ -41,7 +41,7 @@ class CreateProfileState extends State<CreateProfile> {
   }
 
   Widget _rise(Widget child, int ms) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       delay: Duration(milliseconds: ms),
       offsetY: 16,
       child: child,

@@ -3,16 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../theme/design_scale.dart';
-import '../../../theme/sc_saas_theme.dart';
-import '../../../utils/utils.dart';
-import '../../common/address_order_chrome.dart';
-import '../../common/manageAddress/dugnad_inline_address.dart';
-import '../../common/manageAddress/manage_address_dl.dart';
-import '../../common/manageAddress/manage_address_repo.dart';
-import '../dugnad_club_theme.dart';
+import '../../theme/design_scale.dart';
+import '../../theme/sc_saas_theme.dart';
+import '../../utils/utils.dart';
+import '../../screens/common/address_order_chrome.dart';
+import 'ae_inline_address.dart';
+import '../../screens/common/manageAddress/manage_address_dl.dart';
+import '../../screens/common/manageAddress/manage_address_repo.dart';
+import 'ae_theme.dart';
 
-Future<bool?> showDugnadAddressDrawer(
+Future<bool?> showAeAddressDrawer(
   BuildContext context, {
   required BuildContext parentContext,
   VoidCallback? onAddressChanged,
@@ -24,28 +24,28 @@ Future<bool?> showDugnadAddressDrawer(
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(context.dp(24))),
     ),
-    builder: (_) => DugnadAddressDrawer(
+    builder: (_) => AeAddressDrawer(
       parentContext: parentContext,
       onAddressChanged: onAddressChanged,
     ),
   );
 }
 
-class DugnadAddressDrawer extends StatefulWidget {
+class AeAddressDrawer extends StatefulWidget {
   final BuildContext parentContext;
   final VoidCallback? onAddressChanged;
 
-  const DugnadAddressDrawer({
+  const AeAddressDrawer({
     super.key,
     required this.parentContext,
     this.onAddressChanged,
   });
 
   @override
-  State<DugnadAddressDrawer> createState() => DugnadAddressDrawerState();
+  State<AeAddressDrawer> createState() => AeAddressDrawerState();
 }
 
-class DugnadAddressDrawerState extends State<DugnadAddressDrawer> {
+class AeAddressDrawerState extends State<AeAddressDrawer> {
   final ManageAddressRepo _repo = ManageAddressRepo();
   List<AddressListItem> _addresses = [];
   bool _loading = true;
@@ -151,7 +151,7 @@ class DugnadAddressDrawerState extends State<DugnadAddressDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     return Padding(
       padding: EdgeInsets.only(bottom: keyboard),
@@ -206,7 +206,7 @@ class DugnadAddressDrawerState extends State<DugnadAddressDrawer> {
                 Expanded(
                   child: Center(
                     child: CircularProgressIndicator(
-                      color: context.dugnadTheme.primary,
+                      color: context.aeTheme.primary,
                     ),
                   ),
                 )
@@ -228,12 +228,12 @@ class DugnadAddressDrawerState extends State<DugnadAddressDrawer> {
                       ..._addresses.map(_savedAddressItem),
                       if (_addresses.isNotEmpty) SizedBox(height: context.dp(14)),
                       if (_adding)
-                        DugnadInlineAddressForm(
+                        AeInlineAddressForm(
                           onCancel: () => setState(() => _adding = false),
                           onSaved: _onFormSaved,
                         )
                       else
-                        DugnadAddAddressCard(
+                        AeAddAddressCard(
                           onTap: _busy ? null : _openInlineAdd,
                         ),
                       SizedBox(height: context.dp(14)),
@@ -252,7 +252,7 @@ class DugnadAddressDrawerState extends State<DugnadAddressDrawer> {
   }
 
   Widget _drawerCloseButton() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: () => Navigator.maybePop(context),
       child: Container(
@@ -283,7 +283,7 @@ class DugnadAddressDrawerState extends State<DugnadAddressDrawer> {
     final selected = address.addressId == prefGetInt(prefNewDeliveryAddressId);
     return Padding(
       padding: EdgeInsets.only(bottom: context.dp(14)),
-      child: DugnadAddressPickCard(
+      child: AeAddressPickCard(
         address: address,
         selected: selected,
         enabled: !_busy && !_adding,

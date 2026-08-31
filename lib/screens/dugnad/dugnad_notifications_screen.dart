@@ -7,13 +7,13 @@ import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import '../common/account/account_widgets.dart';
 import '../common/account/settings_design_kit.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_notification_nav.dart';
 import 'dugnad_notification_prefs_screen.dart';
 import 'dugnad_notification_unread.dart';
 import 'dugnad_repo.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
 /// Feed categories — API keys (`points` / `campaigns` / …) with design labels.
 /// Tones: sosial=amber/gold, kampanje=green, everything else=club colors.
@@ -44,7 +44,7 @@ class _NotifCat {
 /// Design `.dgn-row .ic` / `.cat` colors — keyed by category, not API `tone`.
 ({Color bg, Color fg}) _notifToneColors(
   String tone,
-  DugnadClubThemePalette theme,
+  AeThemePalette theme,
 ) {
   switch (tone) {
     case 'amber':
@@ -273,12 +273,12 @@ class _DugnadNotificationsScreenState extends State<DugnadNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final unread = _unreadCount;
 
     return Scaffold(
       backgroundColor: theme.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -347,7 +347,7 @@ class _DugnadNotificationsScreenState extends State<DugnadNotificationsScreen> {
     );
   }
 
-  Widget _body(DugnadClubThemePalette theme) {
+  Widget _body(AeThemePalette theme) {
     if (_loading) {
       return Center(
         child: CommonCircularProgressIndicator(
@@ -520,7 +520,7 @@ class _SettingsCircleButtonState extends State<_SettingsCircleButton> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final size = context.dp(38);
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -584,7 +584,7 @@ class _CategoryTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // Design `.dgn-filters.scl-filter.scroll` — no fixed height (that was
     // clipping the pills). Padding 2 / 18 / 12 matches CSS.
     return SingleChildScrollView(
@@ -633,7 +633,7 @@ class _TabPill extends StatelessWidget {
   final int count;
   final bool selected;
   final VoidCallback onTap;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -761,7 +761,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Center(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -833,7 +833,7 @@ class _DisabledCatsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final joined = labels.length == 1
         ? labels.first
         : '${labels.sublist(0, labels.length - 1).join(', ')} og ${labels.last}';
@@ -934,7 +934,7 @@ class _DugnadNotificationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final when = _relativeWhen(item.createdAt);
     final cat = _NotifCat.of(item.category);
     final colors = _notifToneColors(cat.tone, theme);

@@ -1,4 +1,4 @@
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_subpage_shell.dart';
+import 'package:aerend_customer/ui/kit/ae_subpage_shell.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -50,7 +50,7 @@ class SelectPaymentMethodState extends State<SelectPaymentMethod> {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: ScSaasThemeTokens.background,
-        body: DugnadFixedTypography(
+        body: AeFixedTypography(
           child: SafeArea(
             bottom: false,
             child: Column(
@@ -78,7 +78,7 @@ class SelectPaymentMethodState extends State<SelectPaymentMethod> {
         padding: const EdgeInsets.fromLTRB(22, 8, 22, 14),
         child: Row(
           children: [
-            DugnadLbBackButton(onPressed: () => Navigator.maybePop(context)),
+            AeBackButton(onPressed: () => Navigator.maybePop(context)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

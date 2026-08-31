@@ -6,11 +6,11 @@ import '../../theme/design_scale.dart';
 import '../../theme/reen_pre_club_theme.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
-import 'dugnad_sheet.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_state.dart';
 
 /// Searchable club picker bottom sheet.
@@ -37,13 +37,13 @@ Future<ClubListItem?> showClubSheet(
   title ??= currentClub != null
       ? languages.dugnadSwitchClub
       : languages.dugnadChooseYourClub;
-  final theme = context.dugnadTheme;
+  final theme = context.aeTheme;
   final dark = useReenPreClubStyle ??
       _isReenPreClubSheet(theme) ||
       !DugnadState.instance.onboardingComplete;
   final sheetTheme =
-      dark ? DugnadClubThemePalette.reenPreClub : theme;
-  return showDugnadSheet<ClubListItem>(
+      dark ? AeThemePalette.reenPreClub : theme;
+  return showAeSheet<ClubListItem>(
     context: context,
     isScrollControlled: true,
     // Prototype `.dg-csheet` height: 90%.
@@ -52,7 +52,7 @@ Future<ClubListItem?> showClubSheet(
     constraints: BoxConstraints(
       maxHeight: MediaQuery.of(context).size.height * 0.90,
     ),
-    builder: (_) => DugnadClubThemeScope(
+    builder: (_) => AeThemeScope(
       palette: sheetTheme,
       child: _ClubSheetBody(
         title: title!,
@@ -65,7 +65,7 @@ Future<ClubListItem?> showClubSheet(
   );
 }
 
-bool _isReenPreClubSheet(DugnadClubThemePalette theme) {
+bool _isReenPreClubSheet(AeThemePalette theme) {
   // Match Reen navy — luminance alone is wrong for a dark admin club color.
   return theme.background == ReenPreClubTokens.navy &&
       theme.primary == ReenPreClubTokens.coral;
@@ -210,7 +210,7 @@ class _ClubSheetBodyState extends State<_ClubSheetBody> {
         SizedBox(width: context.dp(10)),
         GestureDetector(
           onTap: () {
-            dugnadSheetCloseHaptic();
+            aeSheetCloseHaptic();
             Navigator.pop(context);
           },
           child: Container(
@@ -284,7 +284,7 @@ class _ClubSheetBodyState extends State<_ClubSheetBody> {
             ),
       child: Row(
         children: [
-          ClubCrest(
+          AeClubCrest(
             name: club.name,
             logoUrl: club.logo,
             size: context.dp(38),
@@ -334,7 +334,7 @@ class _ClubSheetBodyState extends State<_ClubSheetBody> {
                 decoration: BoxDecoration(
                   color: dark
                       ? const Color(0x26FFFFFF)
-                      : context.dugnadTheme.primaryTint,
+                      : context.aeTheme.primaryTint,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Row(
@@ -345,7 +345,7 @@ class _ClubSheetBodyState extends State<_ClubSheetBody> {
                       size: context.dp(12),
                       color: dark
                           ? ReenPreClubTokens.coralHover
-                          : context.dugnadTheme.primaryHover,
+                          : context.aeTheme.primaryHover,
                     ),
                     SizedBox(width: context.dp(5)),
                     Text(
@@ -358,7 +358,7 @@ class _ClubSheetBodyState extends State<_ClubSheetBody> {
                         letterSpacing: context.dp(11) * -0.01,
                         color: dark
                             ? ReenPreClubTokens.coralHover
-                            : context.dugnadTheme.primaryHover,
+                            : context.aeTheme.primaryHover,
                       ),
                     ),
                   ],
@@ -488,7 +488,7 @@ class _ClubSheetBodyState extends State<_ClubSheetBody> {
         child: CircularProgressIndicator(
           color: widget.dark
               ? ReenPreClubTokens.coral
-              : context.dugnadTheme.primary,
+              : context.aeTheme.primary,
         ),
       );
     }
@@ -585,7 +585,7 @@ class _ClubRowState extends State<_ClubRow> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final club = widget.club;
     final dark = widget.dark;
@@ -683,7 +683,7 @@ class _ClubRowState extends State<_ClubRow> {
               ),
         child: Row(
           children: [
-            ClubCrest(
+            AeClubCrest(
               name: club.name,
               logoUrl: club.logo,
               size: context.dp(44),

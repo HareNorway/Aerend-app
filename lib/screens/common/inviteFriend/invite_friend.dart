@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 import 'invite_friend_bloc.dart';
@@ -45,7 +45,7 @@ class _InviteFriendState extends State<InviteFriend> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -62,7 +62,7 @@ class _InviteFriendState extends State<InviteFriend> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: DgrHero(
                           icon: Icons.ios_share_rounded,
@@ -73,12 +73,12 @@ class _InviteFriendState extends State<InviteFriend> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: _codeSection(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 260),
                         child: DgPrimaryButton(
                           label: languages.shareCode,

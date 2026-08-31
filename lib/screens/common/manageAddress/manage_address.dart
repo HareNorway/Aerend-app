@@ -7,12 +7,12 @@ import '../../../blocs/bloc.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../address_order_chrome.dart';
 import '../auth/auth_style.dart';
-import 'dugnad_inline_address.dart';
+import '../../../ui/kit/ae_inline_address.dart';
 import 'item_address_list.dart';
 import 'manage_address_bloc.dart';
 import 'manage_address_dl.dart';
@@ -102,7 +102,7 @@ class _ManageAddressState extends State<ManageAddress> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         bottom: false,
@@ -120,7 +120,7 @@ class _ManageAddressState extends State<ManageAddress> {
   }
 
   Widget _buildBody() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return StreamBuilder<ApiResponse<AddressListPojo>>(
       stream: _bloc.subject,
       builder: (context, snap) {
@@ -165,7 +165,7 @@ class _ManageAddressState extends State<ManageAddress> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
     return ListView(
@@ -187,7 +187,7 @@ class _ManageAddressState extends State<ManageAddress> {
           if (_editingId == a.addressId) {
             return Padding(
               padding: EdgeInsets.only(bottom: context.dp(14)),
-              child: DugnadInlineAddressForm(
+              child: AeInlineAddressForm(
                 key: _formKey,
                 initialLine: a.address,
                 editingId: a.addressId,
@@ -215,14 +215,14 @@ class _ManageAddressState extends State<ManageAddress> {
         }),
         if (_editingId == null) ...[
           if (_adding)
-            DugnadInlineAddressForm(
+            AeInlineAddressForm(
               key: _formKey,
               onCancel: _cancelForm,
               onSaved: _onFormSaved,
             )
           else
             rise(
-              DugnadAddAddressCard(onTap: () => _openAdd(bloc)),
+              AeAddAddressCard(onTap: () => _openAdd(bloc)),
             ),
         ],
         SizedBox(height: context.dp(14)),
@@ -255,7 +255,7 @@ class _ManageAddressState extends State<ManageAddress> {
     ManageAddressBloc bloc,
     AddressListItem address,
   ) {
-    return showDugnadSheet<void>(
+    return showAeSheet<void>(
       context: context,
       builder: (sheetContext) => _DeleteAddressSheet(
         address: address.address,
@@ -283,7 +283,7 @@ class _DeleteAddressSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DugnadSheetHandle(),
+          const AeSheetHandle(),
           Padding(
             padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
             child: Row(
@@ -355,7 +355,7 @@ class _DeleteAddressSheet extends StatelessWidget {
             padding: const EdgeInsets.only(top: 16),
             child: AuthPressable(
               onTap: () {
-                dugnadSheetSaveHaptic();
+                aeSheetSaveHaptic();
                 onConfirm();
               },
               builder: (context, pressed) => Container(
@@ -391,7 +391,7 @@ class _DeleteAddressSheet extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                dugnadSheetCloseHaptic();
+                aeSheetCloseHaptic();
                 Navigator.maybePop(context);
               },
               child: Padding(

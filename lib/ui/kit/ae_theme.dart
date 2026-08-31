@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/reen_pre_club_theme.dart';
 import '../../theme/sc_saas_theme.dart';
-import 'dugnad_state.dart';
+import '../../screens/dugnad/dugnad_state.dart';
 
 /// Normalize admin/API hex input to `#RRGGBB` or null when invalid/empty.
 String? normalizeThemeColor(String? input) {
@@ -66,7 +66,7 @@ Color _deriveLavenderFromAccent(Color accent) =>
     _mixHex(accent, Colors.white, 93);
 
 /// Full derived palette for Dugnad mode — mirrors Reen-web-portal `buildClubThemeStyle`.
-class DugnadClubThemePalette {
+class AeThemePalette {
   final Color primary;
   final Color primaryHover;
   final Color primarySoft;
@@ -80,7 +80,7 @@ class DugnadClubThemePalette {
   final LinearGradient bannerGradient;
   final List<BoxShadow> shadowButton;
 
-  const DugnadClubThemePalette({
+  const AeThemePalette({
     required this.primary,
     required this.primaryHover,
     required this.primarySoft,
@@ -99,8 +99,8 @@ class DugnadClubThemePalette {
   ///
   /// Only for splash / login / mode select / club onboarding — never as the
   /// fallback after a club is selected. Post-club UI uses [resolve] → [defaults].
-  static final DugnadClubThemePalette reenPreClub =
-      DugnadClubThemePalette._fromTokens(
+  static final AeThemePalette reenPreClub =
+      AeThemePalette._fromTokens(
     primary: ReenPreClubTokens.coral,
     primaryHover: const Color(0xFFC94F41),
     primarySoft: ReenPreClubTokens.coralMid,
@@ -114,8 +114,8 @@ class DugnadClubThemePalette {
   );
 
   /// Browse-without-club palette: light feed canvas + coral actions + navy hero.
-  static final DugnadClubThemePalette reenBrowse =
-      DugnadClubThemePalette._fromTokens(
+  static final AeThemePalette reenBrowse =
+      AeThemePalette._fromTokens(
     primary: ReenPreClubTokens.coral,
     primaryHover: ReenPreClubTokens.coralDeep,
     primarySoft: ReenPreClubTokens.coralMid,
@@ -129,8 +129,8 @@ class DugnadClubThemePalette {
   );
 
   /// Fallback when a selected club has no admin theme colors — Ærend lavender.
-  static final DugnadClubThemePalette defaults =
-      DugnadClubThemePalette._fromTokens(
+  static final AeThemePalette defaults =
+      AeThemePalette._fromTokens(
     primary: ScSaasThemeTokens.primary,
     primaryHover: ScSaasThemeTokens.primaryHover,
     primarySoft: ScSaasThemeTokens.primarySoft,
@@ -144,7 +144,7 @@ class DugnadClubThemePalette {
     shinyDark: ScSaasThemeTokens.primaryHover,
   );
 
-  factory DugnadClubThemePalette.resolve({
+  factory AeThemePalette.resolve({
     String? accentColor,
     String? backgroundColor,
   }) {
@@ -175,7 +175,7 @@ class DugnadClubThemePalette {
     final shinyLight = _mixHex(primary, Colors.white, 12);
     final shinyDark = _mixHex(primary, Colors.black, 22);
 
-    return DugnadClubThemePalette._fromTokens(
+    return AeThemePalette._fromTokens(
       primary: primary,
       primaryHover: purple700,
       primarySoft: purple500,
@@ -189,7 +189,7 @@ class DugnadClubThemePalette {
     );
   }
 
-  static DugnadClubThemePalette _fromTokens({
+  static AeThemePalette _fromTokens({
     required Color primary,
     required Color primaryHover,
     required Color primarySoft,
@@ -204,7 +204,7 @@ class DugnadClubThemePalette {
     final light = shinyLight ?? _mixHex(primary, Colors.white, 12);
     final dark = shinyDark ?? _mixHex(primary, Colors.black, 22);
 
-    return DugnadClubThemePalette(
+    return AeThemePalette(
       primary: primary,
       primaryHover: primaryHover,
       primarySoft: primarySoft,
@@ -284,34 +284,34 @@ class DugnadClubThemePalette {
 }
 
 /// Provides club theme palette to the Dugnad tab shell and its descendants.
-class DugnadClubThemeScope extends InheritedWidget {
-  final DugnadClubThemePalette palette;
+class AeThemeScope extends InheritedWidget {
+  final AeThemePalette palette;
 
-  const DugnadClubThemeScope({
+  const AeThemeScope({
     super.key,
     required this.palette,
     required super.child,
   });
 
-  static DugnadClubThemePalette of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<DugnadClubThemeScope>();
-    return scope?.palette ?? DugnadClubThemePalette.defaults;
+  static AeThemePalette of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<AeThemeScope>();
+    return scope?.palette ?? AeThemePalette.defaults;
   }
 
   @override
-  bool updateShouldNotify(DugnadClubThemeScope oldWidget) =>
+  bool updateShouldNotify(AeThemeScope oldWidget) =>
       oldWidget.palette != palette;
 }
 
-extension DugnadClubThemeContext on BuildContext {
-  DugnadClubThemePalette get dugnadTheme {
+extension AeThemeContext on BuildContext {
+  AeThemePalette get aeTheme {
     // Browse/no-club mode uses a mixed REEN palette: light page canvas with
     // coral actions. Hero surfaces opt into navy explicitly where needed.
     if (DugnadState.instance.isDugnadMode && !DugnadState.instance.hasClub) {
-      return DugnadClubThemePalette.reenBrowse;
+      return AeThemePalette.reenBrowse;
     }
     final scope =
-        dependOnInheritedWidgetOfExactType<DugnadClubThemeScope>();
+        dependOnInheritedWidgetOfExactType<AeThemeScope>();
     if (scope != null) return scope.palette;
     // In dugnad with a club → admin [resolve] palette (or Ærend defaults).
     if (DugnadState.instance.isDugnadMode && DugnadState.instance.hasClub) {
@@ -319,8 +319,8 @@ extension DugnadClubThemeContext on BuildContext {
     }
     // Pre-club dugnad surfaces (mode select / onboarding) without a scope.
     if (DugnadState.instance.isDugnadMode) {
-      return DugnadClubThemePalette.reenPreClub;
+      return AeThemePalette.reenPreClub;
     }
-    return DugnadClubThemePalette.defaults;
+    return AeThemePalette.defaults;
   }
 }

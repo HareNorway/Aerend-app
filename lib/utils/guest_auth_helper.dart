@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:aerend_customer/screens/common/login/login.dart';
+import 'package:aerend_customer/screens/common/homeMainV1/home_main_v1.dart';
 import 'package:aerend_customer/screens/common/signUp/sign_up.dart';
-// Mode select temporarily skipped.
-// import 'package:aerend_customer/screens/dugnad/mode_select_screen.dart';
 import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:aerend_customer/utils/utils.dart';
@@ -66,11 +65,7 @@ void clearGuestMode() {
 
 void continueAsGuest(BuildContext context) {
   enterGuestMode();
-  // ModeSelectScreen skipped — dugnad is the only mode for now.
-  dugnadAuthDestination(isShowDialog: false).then((dest) {
-    if (!context.mounted) return;
-    openScreenWithClearPrevious(context, dest);
-  });
+  openScreenWithClearPrevious(context, const HomeMainV1(isShowDialog: false));
 }
 
 /// Returns `true` if the user signed in successfully.

@@ -85,7 +85,7 @@ class _ReferralTermState extends State<ReferralTerm> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Your friends receive NOK 75 in Ærend credits for each of their first 3 deliveries when they use your referral code when registering on Reen Dugnad.',
+              'Your friends receive NOK 75 in Ærend credits for each of their first 3 deliveries when they use your referral code when registering on Ærend.',
               style: TextStyle(fontSize: 15, color: mutedColor, height: 1.1),
             ),
             Divider(height: 35, color: theme.dividerColor),

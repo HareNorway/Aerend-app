@@ -6,10 +6,10 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../widgets/dugnad_points_pop.dart';
-import '../widgets/dugnad_subpage_shell.dart';
-import '../widgets/dugnad_support_share.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
+import '../../../ui/kit/ae_support_share.dart';
 import 'club_shop_models.dart';
 import 'club_shop_orders_screen.dart';
 import 'club_shop_screen.dart';
@@ -49,7 +49,7 @@ class ClubShopReceiptScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final partner = order.partnerName;
     final club = DugnadClubBranding.compactName();
     final code = order.orderNumber;
@@ -70,7 +70,7 @@ class ClubShopReceiptScreen extends StatelessWidget {
             child: Row(
               children: [
                 if (!fresh)
-                  DugnadLbBackButton(
+                  AeBackButton(
                     onPressed: () => Navigator.of(context).maybePop(),
                   )
                 else
@@ -146,7 +146,7 @@ class ClubShopReceiptScreen extends StatelessWidget {
                   ),
                   if (order.pointsAwarded > 0) ...[
                     SizedBox(height: context.dp(18)),
-                    DugnadSuccessPointsBadge(
+                    AeSuccessPointsBadge(
                       points: order.pointsAwarded,
                       label: languages.dugnadClubShopPointsAdded,
                       animate: fresh,
@@ -253,7 +253,7 @@ class ClubShopReceiptScreen extends StatelessWidget {
 
   Widget _ticket(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String partner,
     String club,
     String code,
@@ -463,7 +463,7 @@ class ClubShopReceiptScreen extends StatelessWidget {
 
   Widget _metaRow(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String label,
     String value, {
     Color? valueColor,
@@ -502,7 +502,7 @@ class ClubShopReceiptScreen extends StatelessWidget {
 
   Widget _infoBox(
     BuildContext context,
-    DugnadClubThemePalette theme, {
+    AeThemePalette theme, {
     required IconData icon,
     required String title,
     required String body,

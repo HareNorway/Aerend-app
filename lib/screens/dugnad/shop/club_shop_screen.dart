@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../commonView/circle_nav_bar.dart';
-import '../../../commonView/dugnad_club_loader.dart';
+import '../../../ui/kit/ae_loader.dart';
 import '../../../services/dugnad_data_cache.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
@@ -13,13 +13,13 @@ import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/signUp/sign_up.dart';
 import '../club_sheet.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_repo.dart';
 import '../dugnad_state.dart';
 import '../gamification_models.dart';
 import '../widgets/dugnad_locked_module.dart';
 import '../widgets/dugnad_shiny_press.dart';
-import '../widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'club_shop_home.dart';
 import 'club_shop_models.dart';
 
@@ -187,11 +187,11 @@ class _ClubShopScreenState extends State<ClubShopScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Scaffold(
       backgroundColor: theme.background,
       body: _checking
-          ? const DugnadClubLoaderScreen()
+          ? const AeLoaderScreen()
           : _member != null
               ? ClubShopHome(member: _member!)
               : Column(
@@ -231,7 +231,7 @@ class _ShopHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return ColoredBox(
       color: theme.background,
       child: SafeArea(
@@ -246,7 +246,7 @@ class _ShopHead extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              DugnadLbBackButton(onPressed: onBack, solidWhite: true),
+              AeBackButton(onPressed: onBack, solidWhite: true),
               Expanded(
                 child: Text(
                   title,
@@ -293,7 +293,7 @@ class _LockedGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return ListView(
       padding: EdgeInsets.fromLTRB(
         context.dp(22),
@@ -579,7 +579,7 @@ class _HintCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.fromLTRB(
         context.dp(14),

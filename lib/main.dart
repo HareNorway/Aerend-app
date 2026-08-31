@@ -10,10 +10,6 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:aerend_customer/screens/snurre/snurre_chat_screen.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_celebration_orchestrator.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_state.dart';
-import 'package:aerend_customer/screens/dugnad/tour/dugnad_tour_controller.dart';
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_points_pop.dart';
 import 'package:aerend_customer/screens/dugnad/referral_deep_link_loader.dart';
 import 'package:aerend_customer/screens/dugnad/donation_deep_link_loader.dart';
 import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
@@ -33,7 +29,6 @@ import 'screens/common/vipps/vipps_login_link_handler.dart';
 import 'screens/common/vipps/donation_vipps_return.dart';
 import 'screens/common/vipps/vipps_return_screens.dart';
 import 'screens/dugnad/shop/club_shop_vipps_return.dart';
-import 'services/dugnad_data_cache.dart';
 import 'services/push_notification_service.dart';
 import 'networking/feed/feed_api_constant.dart';
 import 'utils/utils.dart';
@@ -96,7 +91,6 @@ Future<void> main() async {
 
   // Initialize shared preferences
   await initSharedPreferences();
-  await DugnadDataCache.instance.hydrateFromPrefs();
   await BaseUrl.restoreOverride();
   await FeedBaseUrl.restoreOverride();
   print('Shared preferences initialized');
@@ -205,26 +199,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    DugnadState.instance.onReferrerPointsAwarded = (points) {
-      DugnadPointsPop.award(
-        points,
-        reason: DugnadPointsPopReasons.referralJoinFromCode(
-          selectedLocale.languageCode,
-        ),
-      );
-    };
-    DugnadState.instance.onMissionPointsAwarded = (points, action) {
-      DugnadPointsPop.award(
-        points,
-        reason: DugnadPointsPopReasons.missionFromAction(
-          selectedLocale.languageCode,
-          action,
-        ),
-      );
-    };
-    DugnadTourController.onBecameInactive = () {
-      unawaited(DugnadCelebrationOrchestrator.instance.pump());
-    };
     WidgetsBinding.instance.addPostFrameCallback((_) {
       VippsLoginLinkHandler.bootstrap();
     });
@@ -250,12 +224,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         resumePendingClubShopVippsPaymentIfNeeded();
         resumePendingDonationVippsIfNeeded();
         resumePendingVippsLoginIfNeeded();
-        unawaited(
-          DugnadState.instance.syncPointsTeamFromServer().catchError((_) {}),
-        );
-        unawaited(
-          DugnadCelebrationOrchestrator.instance.sync().catchError((_) {}),
-        );
       });
     }
   }
@@ -487,7 +455,6 @@ class _GlobalSnurreLauncherState extends State<_GlobalSnurreLauncher> {
       animation: Listenable.merge([
         snurreLauncherVisible,
         snurreChatRouteOnTop,
-        DugnadState.instance.revision,
       ]),
       builder: (context, _) {
         if (!shouldShowSnurreLauncherForRoute(

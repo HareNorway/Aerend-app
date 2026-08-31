@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/l10n/app_localizations.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/dugnad_ceremonial_screen.dart';
 
 import '../layout/reduced_motion_harness.dart';
@@ -23,8 +23,8 @@ void main() {
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: DugnadClubThemeScope(
-          palette: DugnadClubThemePalette.reenPreClub,
+        home: AeThemeScope(
+          palette: AeThemePalette.reenPreClub,
           child: Builder(
             builder: (context) {
               return TextButton(

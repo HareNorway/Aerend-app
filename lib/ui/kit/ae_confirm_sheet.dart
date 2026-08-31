@@ -2,30 +2,30 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../../../theme/design_scale.dart';
+import '../../theme/design_scale.dart';
 
-import '../../../theme/sc_saas_theme.dart';
-import '../../common/auth/auth_style.dart';
-import '../dugnad_club_theme.dart';
-import '../dugnad_sheet.dart';
+import '../../theme/sc_saas_theme.dart';
+import '../../screens/common/auth/auth_style.dart';
+import 'ae_theme.dart';
+import 'ae_sheet.dart';
 
 /// Shared bottom-sheet vocabulary for the dugnad dialog family
 /// (`dugnad/dialogs.jsx` + the two password sheets in `dugnad/auth-screens.jsx`).
 ///
 /// Every "dialog" in the approved design is a bottom sheet, so all of these
-/// build on [showDugnadSheet] / [DugnadSheetHandle] and implement the prototype
+/// build on [showAeSheet] / [AeSheetHandle] and implement the prototype
 /// classes verbatim:
 ///
-/// * `.dg-msheet`      — [DugnadSheetBody] (lavender, 12/18/safe+22 padding)
-/// * `.dg-msheet-grab` — [DugnadSheetHandle] (from `dugnad_sheet.dart`)
-/// * `.dg-mem-head`    — [DugnadSheetHead]
-/// * `.dgd-confirm`    — [DugnadSheetConfirmButton] (+ `.danger`)
-/// * `.ae-btn--primary`— [DugnadSheetPrimaryButton]
-/// * `.dga-cancel`     — [DugnadSheetCancelButton]
-/// * `.dgo-err`        — [DugnadSheetErrorNote]
+/// * `.dg-msheet`      — [AeSheetBody] (lavender, 12/18/safe+22 padding)
+/// * `.dg-msheet-grab` — [AeSheetHandle] (from `dugnad_sheet.dart`)
+/// * `.dg-mem-head`    — [AeSheetHead]
+/// * `.dgd-confirm`    — [AeSheetConfirmButton] (+ `.danger`)
+/// * `.ae-btn--primary`— [AeSheetPrimaryButton]
+/// * `.dga-cancel`     — [AeSheetCancelButton]
+/// * `.dgo-err`        — [AeSheetErrorNote]
 
 /// `--ae-shiny-purple`: linear-gradient(150deg,#a98fe0,#7f5fc4 55%,#6b4fa8).
-const LinearGradient kDugnadShinyPurple = LinearGradient(
+const LinearGradient kAeSheetShinyPurple = LinearGradient(
   begin: Alignment(-0.5, -0.85), // ≈ 150deg origin
   end: Alignment(0.5, 0.85),
   colors: [Color(0xFFA98FE0), Color(0xFF7F5FC4), Color(0xFF6B4FA8)],
@@ -34,16 +34,16 @@ const LinearGradient kDugnadShinyPurple = LinearGradient(
 
 /// `--ae-gray-200` as rendered in `dugnad.css` (#e2ddf0) — the sheet control
 /// hairline. Not the same value as [ScSaasThemeTokens.gray300].
-const Color kDugnadSheetHairline = Color(0xFFE2DDF0);
+const Color kAeSheetHairline = Color(0xFFE2DDF0);
 
 /// `--ae-gray-300` as rendered in `dugnad.css` (#d5cfe4).
-const Color kDugnadSheetIdle = Color(0xFFD5CFE4);
+const Color kAeSheetIdle = Color(0xFFD5CFE4);
 
 /// `--ae-purple-300` (#c9b8ec) — the dashed promo border.
-const Color kDugnadPurple300 = Color(0xFFC9B8EC);
+const Color kAePurple300 = Color(0xFFC9B8EC);
 
 /// The head chip fill: purple gradient / error red / success green.
-enum DugnadSheetTone { purple, danger, success }
+enum AeSheetTone { purple, danger, success }
 
 TextStyle _sheetText(
   BuildContext context, {
@@ -65,10 +65,10 @@ TextStyle _sheetText(
 }
 
 /// `.dg-msheet` — the sheet body itself: lavender background (supplied by
-/// [showDugnadSheet]), `padding: 12px 18px calc(safe-area + 22px)`, grab handle
+/// [showAeSheet]), `padding: 12px 18px calc(safe-area + 22px)`, grab handle
 /// on top. Lifts above the keyboard so field sheets stay usable.
-class DugnadSheetBody extends StatelessWidget {
-  const DugnadSheetBody({
+class AeSheetBody extends StatelessWidget {
+  const AeSheetBody({
     super.key,
     required this.children,
     this.showHandle = true,
@@ -96,7 +96,7 @@ class DugnadSheetBody extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (showHandle) const DugnadSheetHandle(),
+            if (showHandle) const AeSheetHandle(),
             ...children,
           ],
         ),
@@ -107,13 +107,13 @@ class DugnadSheetBody extends StatelessWidget {
 
 /// `.dg-mem-head` — 40px round tone chip + `h2` 18/800/-0.02em midnight +
 /// optional `p` 12.5/600/lh1.45 gray-500. `gap: 13px`, `margin: 4px 2px`.
-class DugnadSheetHead extends StatelessWidget {
-  const DugnadSheetHead({
+class AeSheetHead extends StatelessWidget {
+  const AeSheetHead({
     super.key,
     required this.icon,
     required this.title,
     this.message,
-    this.tone = DugnadSheetTone.purple,
+    this.tone = AeSheetTone.purple,
     this.iconSize = 19,
     this.trailing,
   });
@@ -121,13 +121,13 @@ class DugnadSheetHead extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? message;
-  final DugnadSheetTone tone;
+  final AeSheetTone tone;
   final double iconSize;
   final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final hasMessage = message != null && message!.trim().isNotEmpty;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.dp(2), vertical: context.dp(4)),
@@ -140,12 +140,12 @@ class DugnadSheetHead extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: tone == DugnadSheetTone.danger
+              color: tone == AeSheetTone.danger
                   ? ScSaasThemeTokens.danger
-                  : tone == DugnadSheetTone.success
+                  : tone == AeSheetTone.success
                       ? ScSaasThemeTokens.success
                       : null,
-              gradient: tone == DugnadSheetTone.purple
+              gradient: tone == AeSheetTone.purple
                   ? theme.shinyGradient
                   : null,
             ),
@@ -192,8 +192,8 @@ class DugnadSheetHead extends StatelessWidget {
 /// `.dgd-confirm` — full-width 15px-padded pill, radius 15, shiny-purple (or
 /// `.danger` red), 15/800 white label, `margin-top: 18px`, purple glow.
 /// Disabled = opacity .42 and no shadow.
-class DugnadSheetConfirmButton extends StatelessWidget {
-  const DugnadSheetConfirmButton({
+class AeSheetConfirmButton extends StatelessWidget {
+  const AeSheetConfirmButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -213,7 +213,7 @@ class DugnadSheetConfirmButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null || isLoading;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.only(top: topMargin),
       child: AuthPressable(
@@ -284,8 +284,8 @@ class DugnadSheetConfirmButton extends StatelessWidget {
 /// `.ae-btn.ae-btn--primary` inside a sheet — 56px, radius 14, flat purple-600
 /// (pressed purple-700, disabled purple-400 without shadow), optional leading
 /// icon with the 10px `.ae-btn` gap.
-class DugnadSheetPrimaryButton extends StatelessWidget {
-  const DugnadSheetPrimaryButton({
+class AeSheetPrimaryButton extends StatelessWidget {
+  const AeSheetPrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -303,7 +303,7 @@ class DugnadSheetPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null || isLoading;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.only(top: topMargin),
       child: AuthPressable(
@@ -362,8 +362,8 @@ class DugnadSheetPrimaryButton extends StatelessWidget {
 
 /// `.dga-cancel` — full-width transparent text button, `margin-top: 10px`,
 /// `padding: 13px`, 14.5/700 gray-500.
-class DugnadSheetCancelButton extends StatelessWidget {
-  const DugnadSheetCancelButton({
+class AeSheetCancelButton extends StatelessWidget {
+  const AeSheetCancelButton({
     super.key,
     required this.label,
     this.onPressed,
@@ -379,7 +379,7 @@ class DugnadSheetCancelButton extends StatelessWidget {
       child: AuthPressable(
         onTap: onPressed ??
             () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.pop(context);
             },
         builder: (context, pressed) => Container(
@@ -403,8 +403,8 @@ class DugnadSheetCancelButton extends StatelessWidget {
 }
 
 /// `.dgo-err` — alert row, `margin-top: 10px`, gap 6, 12.5/700 error red.
-class DugnadSheetErrorNote extends StatelessWidget {
-  const DugnadSheetErrorNote({super.key, required this.message});
+class AeSheetErrorNote extends StatelessWidget {
+  const AeSheetErrorNote({super.key, required this.message});
 
   final String message;
 
@@ -438,14 +438,14 @@ class DugnadSheetErrorNote extends StatelessWidget {
   }
 }
 
-/// `DGConfirmSheet` — the generic yes/no sheet every confirmation builds on.
-class DGConfirmSheet extends StatelessWidget {
-  const DGConfirmSheet({
+/// `AeConfirmSheet` — the generic yes/no sheet every confirmation builds on.
+class AeConfirmSheet extends StatelessWidget {
+  const AeConfirmSheet({
     super.key,
     required this.icon,
     required this.title,
     this.message,
-    this.tone = DugnadSheetTone.purple,
+    this.tone = AeSheetTone.purple,
     this.confirmLabel = 'Bekreft', // TODO(l10n)
     this.cancelLabel = 'Avbryt', // TODO(l10n)
     this.onConfirm,
@@ -456,7 +456,7 @@ class DGConfirmSheet extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? message;
-  final DugnadSheetTone tone;
+  final AeSheetTone tone;
   final String confirmLabel;
   final String cancelLabel;
   final VoidCallback? onConfirm;
@@ -465,25 +465,25 @@ class DGConfirmSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadSheetBody(
+    return AeSheetBody(
       children: [
-        DugnadSheetHead(
+        AeSheetHead(
           icon: icon,
           title: title,
           message: message,
           tone: tone,
         ),
-        DugnadSheetConfirmButton(
+        AeSheetConfirmButton(
           label: confirmLabel,
-          danger: tone == DugnadSheetTone.danger,
+          danger: tone == AeSheetTone.danger,
           isLoading: isLoading,
           onPressed: onConfirm ??
               () {
-                dugnadSheetSaveHaptic();
+                aeSheetSaveHaptic();
                 Navigator.pop(context, true);
               },
         ),
-        DugnadSheetCancelButton(
+        AeSheetCancelButton(
           label: cancelLabel,
           onPressed: onCancel,
         ),
@@ -492,21 +492,21 @@ class DGConfirmSheet extends StatelessWidget {
   }
 }
 
-/// Presents [DGConfirmSheet] and resolves to `true` when the primary action is
+/// Presents [AeConfirmSheet] and resolves to `true` when the primary action is
 /// tapped, `null` when the sheet is dismissed.
-Future<bool?> showDugnadConfirmSheet({
+Future<bool?> showAeConfirmSheet({
   required BuildContext context,
   required IconData icon,
   required String title,
   String? message,
-  DugnadSheetTone tone = DugnadSheetTone.purple,
+  AeSheetTone tone = AeSheetTone.purple,
   String confirmLabel = 'Bekreft', // TODO(l10n)
   String cancelLabel = 'Avbryt', // TODO(l10n)
 }) {
-  return showDugnadSheet<bool>(
+  return showAeSheet<bool>(
     context: context,
     isScrollControlled: true,
-    builder: (context) => DGConfirmSheet(
+    builder: (context) => AeConfirmSheet(
       icon: icon,
       title: title,
       message: message,
@@ -519,12 +519,12 @@ Future<bool?> showDugnadConfirmSheet({
 
 /// Rounded-rect dashed outline — Flutter has no `border-style: dashed`, so the
 /// `.dgd-promo` border is painted (6px dash / 5px gap approximates the CSS).
-class DugnadDashedBorder extends StatelessWidget {
-  const DugnadDashedBorder({
+class AeDashedBorder extends StatelessWidget {
+  const AeDashedBorder({
     super.key,
     required this.child,
     required this.radius,
-    this.color = kDugnadPurple300,
+    this.color = kAePurple300,
     this.strokeWidth = 1.5,
   });
 

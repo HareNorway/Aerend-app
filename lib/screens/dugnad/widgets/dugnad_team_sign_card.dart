@@ -8,7 +8,7 @@ import '../../../theme/design_scale.dart';
 import '../../../utils/utils.dart';
 import '../dugnad_badges.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_form_utils.dart';
 import '../dugnad_models.dart';
 import '../dugnad_state.dart';
@@ -142,7 +142,7 @@ class _DugnadTeamSignCardState extends State<DugnadTeamSignCard>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final l10n = AppLocalizations.of(context)!;
     final summary = DugnadDataCache.instance.peekPointsSummary();
     final ds = DugnadState.instance;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/main.dart' as app;
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/dugnad_feed_entry_banner.dart';
 
 import 'reduced_motion_harness.dart';
@@ -47,8 +47,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: DugnadClubThemeScope(
-          palette: DugnadClubThemePalette.defaults,
+        home: AeThemeScope(
+          palette: AeThemePalette.defaults,
           child: Scaffold(
             // Unbounded height, so the banner must size to its content
             // instead of being stretched to the frame.

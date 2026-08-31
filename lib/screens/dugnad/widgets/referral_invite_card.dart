@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 
 /// `.reg-invite` / `.reg-applied` — club invite card under login referral tabs.
 ///
@@ -44,7 +44,7 @@ class ReferralInviteCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ClubCrest(
+          AeClubCrest(
             name: clubName,
             logoUrl: clubLogoUrl,
             size: context.dp(44),

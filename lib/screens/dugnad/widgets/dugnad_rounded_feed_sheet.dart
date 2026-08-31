@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Shared `.lb-feed` / `.h-feed` sheet — rounded top over the club hero.
 ///
@@ -46,7 +46,7 @@ class DugnadRoundedFeedSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final r = context.dp(radius ?? subpageRadius);
     final sheet = sheetColor ?? theme.background;
     final topRadius = BorderRadius.only(

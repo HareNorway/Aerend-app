@@ -5,14 +5,14 @@ import '../../commonView/surface_decorations.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'dugnad_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
 
 /// "Bytt modus" bottom sheet — Dugnad (active, checkmark) and
 /// Kommersiell (locked, "Kommer snart", toast on tap).
 ///
 /// Design spec: dugnad/auth.jsx → ModeSheet.
 Future<void> showModeSheet(BuildContext context) {
-  return showDugnadSheet<void>(
+  return showAeSheet<void>(
     context: context,
     builder: (_) => const _ModeSheetBody(),
   );
@@ -29,14 +29,14 @@ class _ModeSheetBody extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DugnadSheetHandle(),
+          const AeSheetHandle(),
           // Title + close
           Row(
             children: [
               Expanded(child: Text(languages.dugnadSwitchMode, style: aeH2())),
               GestureDetector(
                 onTap: () {
-                  dugnadSheetCloseHaptic();
+                  aeSheetCloseHaptic();
                   Navigator.pop(context);
                 },
                 child: Icon(Icons.close_rounded,

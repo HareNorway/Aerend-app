@@ -3,29 +3,29 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-/// How [DugnadConfetti] pieces are spawned (progress-driven).
-enum DugnadConfettiStyle {
+/// How [AeConfetti] pieces are spawned (progress-driven).
+enum AeConfettiStyle {
   /// Falls from above the viewport (order-complete / welcome).
   rain,
 }
 
 /// Progress-driven canvas confetti (rain). For T2 celebration pops use
-/// [DugnadDesignBurstConfetti] — Design `Confetti` in `gamify.jsx`.
-class DugnadConfetti extends StatelessWidget {
+/// [AeDesignBurstConfetti] — Design `Confetti` in `gamify.jsx`.
+class AeConfetti extends StatelessWidget {
   final Animation<double> progress;
   final List<Color>? colors;
   final bool includeStars;
   final bool fadeByHeight;
-  final DugnadConfettiStyle style;
+  final AeConfettiStyle style;
   final int count;
 
-  const DugnadConfetti({
+  const AeConfetti({
     super.key,
     required this.progress,
     this.colors,
     this.includeStars = true,
     this.fadeByHeight = false,
-    this.style = DugnadConfettiStyle.rain,
+    this.style = AeConfettiStyle.rain,
     this.count = 130,
   });
 
@@ -46,7 +46,7 @@ class DugnadConfetti extends StatelessWidget {
       child: AnimatedBuilder(
         animation: progress,
         builder: (context, _) => CustomPaint(
-          painter: _DugnadRainPainter(
+          painter: _AeRainPainter(
             progress: progress.value.clamp(0.0, 1.0),
             colors: palette,
             includeStars: includeStars,
@@ -60,8 +60,8 @@ class DugnadConfetti extends StatelessWidget {
   }
 }
 
-class _DugnadRainPainter extends CustomPainter {
-  _DugnadRainPainter({
+class _AeRainPainter extends CustomPainter {
+  _AeRainPainter({
     required this.progress,
     required this.colors,
     required this.includeStars,
@@ -131,7 +131,7 @@ class _DugnadRainPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DugnadRainPainter oldDelegate) =>
+  bool shouldRepaint(covariant _AeRainPainter oldDelegate) =>
       oldDelegate.progress != progress ||
       oldDelegate.colors != colors ||
       oldDelegate.includeStars != includeStars ||
@@ -146,8 +146,8 @@ class _DugnadRainPainter extends CustomPainter {
 ///
 /// Shapes match the season-finale mock: short rects, round dots, small squares
 /// (no stars).
-class DugnadDesignBurstConfetti extends StatefulWidget {
-  const DugnadDesignBurstConfetti({
+class AeDesignBurstConfetti extends StatefulWidget {
+  const AeDesignBurstConfetti({
     super.key,
     this.colors,
     this.count = 110,
@@ -163,11 +163,11 @@ class DugnadDesignBurstConfetti extends StatefulWidget {
   final double fallSpeed;
 
   @override
-  State<DugnadDesignBurstConfetti> createState() =>
-      _DugnadDesignBurstConfettiState();
+  State<AeDesignBurstConfetti> createState() =>
+      _AeDesignBurstConfettiState();
 }
 
-class _DugnadDesignBurstConfettiState extends State<DugnadDesignBurstConfetti>
+class _AeDesignBurstConfettiState extends State<AeDesignBurstConfetti>
     with SingleTickerProviderStateMixin {
   static const _fallbackColors = [
     Color(0xFFF7CF6B),
@@ -393,8 +393,8 @@ class _LiveBurstPainter extends CustomPainter {
 }
 
 /// Card-local paper bits — Design `.dgpp-confetti` on the T2 card.
-class DugnadCardPaperConfetti extends StatelessWidget {
-  const DugnadCardPaperConfetti({
+class AeCardPaperConfetti extends StatelessWidget {
+  const AeCardPaperConfetti({
     super.key,
     required this.progress,
     required this.colors,

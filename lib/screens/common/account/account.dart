@@ -7,17 +7,10 @@ import 'package:aerend_customer/screens/common/account/redeem_code.dart';
 import 'package:aerend_customer/screens/common/account/referral_code.dart';
 import 'package:intercom_flutter/intercom_flutter.dart';
 
-import '../../../commonView/circle_nav_bar.dart';
 import '../../../commonView/guest_empty_state.dart';
 import '../../../commonView/surface_decorations.dart';
-import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_profile_section.dart';
-import '../../dugnad/dugnad_state.dart';
-import '../../dugnad/widgets/dugnad_bell_button.dart';
 import '../../common/helpAndSupport/help_and_support.dart';
 import '../orderHistory/order_history.dart';
 import 'application_setting.dart';
@@ -40,113 +33,36 @@ class AccountState extends State<Account> {
     if (prefGetString(prefAccessToken) != '') {
       Intercom.instance.loginIdentifiedUser(email: prefGetString(prefEmail));
     }
-    if (DugnadState.instance.isDugnadMode && isLoggedIn()) {
-      DugnadState.instance.syncPointsTeamFromServer().then((_) {
-        if (mounted) setState(() {});
-      });
-      DugnadState.instance.syncClubThemeFromApi().then((_) {
-        if (mounted) setState(() {});
-      });
-    }
-    DugnadState.instance.revision.addListener(_onDugnadStateChanged);
-  }
-
-  void _onDugnadStateChanged() {
-    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    DugnadState.instance.revision.removeListener(_onDugnadStateChanged);
     bloc!.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDugnad = DugnadState.instance.isDugnadMode;
-    final theme = isDugnad ? context.dugnadTheme : null;
-    final pageBg =
-        theme?.background ?? ScSaasThemeTokens.background;
+    const pageBg = ScSaasThemeTokens.background;
 
     return Scaffold(
       backgroundColor: pageBg,
-      appBar: isDugnad
-          ? null
-          : AppBar(
-              backgroundColor: pageBg,
-              automaticallyImplyLeading: false,
-              toolbarHeight: 60,
-              elevation: 0,
-              title: GestureDetector(
-                onLongPress: () {
-                  if (!kReleaseMode) {
-                    openScreen(context, const DevEnvScreen());
-                  }
-                },
-                child: Text(languages.accountMyAccount, style: aeH2()),
-              ),
-              centerTitle: true,
-            ),
-      body: (isLoggedIn() || (isDugnad && isGuestUser()))
-          ? (isDugnad
-              // bottom: false — parent shell uses extendBody + floating pill;
-              // SafeArea bottom would paint an opaque page-bg strip under the nav.
-              ? SafeArea(bottom: false, child: _buildDugnadAccount(context))
-              : _buildAccount())
-          : _noAccount(),
-    );
-  }
-
-  Widget _buildDugnadAccount(BuildContext context) {
-    final theme = context.dugnadTheme;
-    return StreamBuilder<String>(
-      stream: bloc?.userName,
-      builder: (context, nameSnap) {
-        return StreamBuilder<String>(
-          stream: bloc?.profileImg,
-          builder: (context, imgSnap) {
-            return ListView(
-              // Clear floating pill + mockup breathing room under Sign out.
-              padding: EdgeInsets.fromLTRB(
-                18,
-                8,
-                18,
-                aePillNavReservedHeight(context) + context.dp(28),
-              ),
-              children: [
-                // Design `.tk-head` — Profile title + bell (offers.jsx).
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 4, 0, 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onLongPress: () {
-                            if (!kReleaseMode) {
-                              openScreen(context, const DevEnvScreen());
-                            }
-                          },
-                          child: Text(
-                            languages.dugnadProfileTitle,
-                            style: aeH2(color: theme.text),
-                          ),
-                        ),
-                      ),
-                      const DugnadBellButton(),
-                    ],
-                  ),
-                ),
-                DugnadProfileSection(
-                  userName: nameSnap.data ?? '-',
-                  avatarUrl: imgSnap.data ?? '',
-                  onLogout: () => bloc!.openLogoutDialog(),
-                ),
-              ],
-            );
+      appBar: AppBar(
+        backgroundColor: pageBg,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 60,
+        elevation: 0,
+        title: GestureDetector(
+          onLongPress: () {
+            if (!kReleaseMode) {
+              openScreen(context, const DevEnvScreen());
+            }
           },
-        );
-      },
+          child: Text(languages.accountMyAccount, style: aeH2()),
+        ),
+        centerTitle: true,
+      ),
+      body: isLoggedIn() ? _buildAccount() : _noAccount(),
     );
   }
 

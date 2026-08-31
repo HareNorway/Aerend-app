@@ -11,7 +11,7 @@ import '../../../theme/reen_pre_club_theme.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
 import '../../dugnad/dugnad_referral_state.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../../dugnad/widgets/referral_capture_banner.dart';
 import '../../dugnad/widgets/referral_manual_code_field.dart';
 import '../auth/auth_style.dart';
@@ -102,7 +102,7 @@ class LoginState extends State<Login> {
   }
 
   Widget _rise(Widget child, Duration delay) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       delay: delay,
       duration: Duration(milliseconds: widget.enteredFromConsent ? 520 : 600),
       offsetY: widget.enteredFromConsent ? 14 : 16,
@@ -112,7 +112,7 @@ class LoginState extends State<Login> {
 
   Widget _fromConsentRise(Widget child, int delayMs) {
     if (!widget.enteredFromConsent) return child;
-    return DugnadRiseIn(
+    return AeRiseIn(
       delay: Duration(milliseconds: delayMs),
       duration: const Duration(milliseconds: 520),
       offsetY: 14,
@@ -244,7 +244,7 @@ class LoginState extends State<Login> {
           SocialLogin(
             spacing: context.dp(_methodsGap),
             wrapButton: widget.enteredFromConsent
-                ? (child, index) => DugnadRiseIn(
+                ? (child, index) => AeRiseIn(
                     delay: Duration(milliseconds: 360 + index * 50),
                     duration: const Duration(milliseconds: 520),
                     offsetY: 14,

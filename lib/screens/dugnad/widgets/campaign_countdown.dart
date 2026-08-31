@@ -7,8 +7,8 @@ import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
-import 'dugnad_hourglass.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_hourglass.dart';
 
 class CampaignCountdownState {
   const CampaignCountdownState({
@@ -95,7 +95,7 @@ class _CampaignCountdownChipState extends State<CampaignCountdownChip> {
     final state = campaignCountdownState(widget.salesWindowEnd);
     if (state == null) return const SizedBox.shrink();
 
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     final chip = Container(
       padding: EdgeInsets.fromLTRB(context.dp(9), context.dp(5), context.dp(12), context.dp(5)),
@@ -121,7 +121,7 @@ class _CampaignCountdownChipState extends State<CampaignCountdownChip> {
           if (state.expired)
             Icon(Icons.close_rounded, size: context.dp(13), color: ScSaasThemeTokens.gray500)
           else
-            DugnadHourglass(
+            AeHourglass(
               size: context.dp(15),
               color: state.urgent ? theme.primaryHover : theme.primary,
               fast: state.urgent,
@@ -153,7 +153,7 @@ class _CampaignCountdownChipState extends State<CampaignCountdownChip> {
     );
 
     if (state.urgent && !state.expired) {
-      return DugnadCountdownPulse(color: theme.primary, child: chip);
+      return AeCountdownPulse(color: theme.primary, child: chip);
     }
     return chip;
   }
@@ -199,7 +199,7 @@ class _CampaignCountdownPanelState extends State<CampaignCountdownPanel> {
     final state = campaignCountdownState(widget.salesWindowEnd);
     if (state == null) return const SizedBox.shrink();
 
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final isNo = Localizations.localeOf(context).languageCode == 'no';
     final borderColor = state.expired
         ? ScSaasThemeTokens.gray100
@@ -339,7 +339,7 @@ class _PanelHourglass extends StatelessWidget {
                   size: context.dp(22),
                 )
               : Center(
-                  child: DugnadHourglass(
+                  child: AeHourglass(
                     size: context.dp(26),
                     color: Colors.white,
                     fast: urgent,

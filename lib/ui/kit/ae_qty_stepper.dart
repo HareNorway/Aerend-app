@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../theme/ae_typography.dart';
-import '../dugnad_club_theme.dart';
+import '../../theme/ae_typography.dart';
+import 'ae_theme.dart';
 
 /// Compact qty control — mirrors prototype `.mk-cstep` (cart sheet + checkout).
 ///
 /// White circular +/- on a lavender pill track. [small] matches `.mk-cstep.sm`
 /// used on checkout rows; default size matches the cart bottom sheet.
-class MkQtyStepper extends StatelessWidget {
-  const MkQtyStepper({
+class AeQtyStepper extends StatelessWidget {
+  const AeQtyStepper({
     super.key,
     required this.qty,
     required this.onDecrement,
@@ -21,12 +21,12 @@ class MkQtyStepper extends StatelessWidget {
   final int qty;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
-  final DugnadClubThemePalette? theme;
+  final AeThemePalette? theme;
   final bool small;
 
   @override
   Widget build(BuildContext context) {
-    final palette = theme ?? context.dugnadTheme;
+    final palette = theme ?? context.aeTheme;
     // `.mk-cstep` / `.mk-cstep.sm` — fixed design-px (375 frame).
     final btn = small ? 26.0 : 30.0;
     final iconSize = small ? 13.0 : 15.0;

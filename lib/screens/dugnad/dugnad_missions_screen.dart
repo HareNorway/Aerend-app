@@ -13,9 +13,9 @@ import 'dugnad_formen_screen.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
 import 'gamification_models.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// Canonical `au-rise` entrance stagger for a flat list of top-level feed
 /// blocks: first block at 120ms then ~70ms apart, trailing group at 550ms
@@ -27,7 +27,7 @@ List<Widget> _staggerFeed(List<Widget> blocks, {int maxAnimated = 6}) {
       if (i >= maxAnimated)
         blocks[i]
       else
-        DugnadRiseIn(
+        AeRiseIn(
           delay: Duration(
             milliseconds: i < 4 ? 120 + i * 70 : 400 + (i - 4) * 50,
           ),
@@ -137,11 +137,11 @@ class _DugnadMissionsScreenState extends State<DugnadMissionsScreen>
         ? null
         : DugnadState.instance.clubLogo;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
-        body: DugnadLbScrollBody(
-          hero: DugnadLbHero(
+        backgroundColor: context.aeTheme.primary,
+        body: AeScrollBody(
+          hero: AeHero(
             clubName: clubName,
             clubLogo: clubLogo,
             title: 'Ukens kamper & Sesongmal',
@@ -467,7 +467,7 @@ class _DugnadMissionsScreenState extends State<DugnadMissionsScreen>
   }
 
   Widget _challengeCard(GamificationChallengeProgress c) {
-    final clubPrimary = context.dugnadTheme.primary;
+    final clubPrimary = context.aeTheme.primary;
     final clubPrimaryTint =
         Color.lerp(clubPrimary, Colors.white, 0.86) ?? const Color(0xFFE8EEF8);
     final clubPrimaryText =
@@ -503,7 +503,7 @@ class _DugnadMissionsScreenState extends State<DugnadMissionsScreen>
             : Icons.access_time_rounded;
     final barColor = isCompleted
         ? const Color(0xFF2BB673)
-        : context.dugnadTheme.primary;
+        : context.aeTheme.primary;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(context.dp(14), context.dp(13), context.dp(14), context.dp(13)),
@@ -633,7 +633,7 @@ class _DugnadMissionsScreenState extends State<DugnadMissionsScreen>
   }
 
   Widget _goalCard(GamificationGoalProgress g) {
-    final clubPrimary = context.dugnadTheme.primary;
+    final clubPrimary = context.aeTheme.primary;
     final clubPrimaryTint =
         Color.lerp(clubPrimary, Colors.white, 0.86) ?? const Color(0xFFE8EEF8);
     final clubPrimaryText =
@@ -762,7 +762,7 @@ class _DugnadMissionsScreenState extends State<DugnadMissionsScreen>
                 SizedBox(height: context.dp(9)),
                 _animatedStripedProgressBar(
                   fraction: g.progressFraction,
-                  fillColor: context.dugnadTheme.primary,
+                  fillColor: context.aeTheme.primary,
                   trackColor: ScSaasThemeTokens.gray100,
                 ),
                 SizedBox(height: context.dp(9)),
@@ -808,12 +808,12 @@ class _DugnadMissionsScreenState extends State<DugnadMissionsScreen>
 
   Widget _infoNote() {
     final purple100 =
-        Color.lerp(context.dugnadTheme.primary, Colors.white, 0.86) ??
+        Color.lerp(context.aeTheme.primary, Colors.white, 0.86) ??
             const Color(0xFFEDE8F8);
-    final purple600 = context.dugnadTheme.primary;
+    final purple600 = context.aeTheme.primary;
     final purple700 =
-        Color.lerp(context.dugnadTheme.primary, Colors.black, 0.15) ??
-            context.dugnadTheme.primaryHover;
+        Color.lerp(context.aeTheme.primary, Colors.black, 0.15) ??
+            context.aeTheme.primaryHover;
     return Container(
       padding: EdgeInsets.fromLTRB(context.dp(14), context.dp(13), context.dp(14), context.dp(13)),
       decoration: BoxDecoration(

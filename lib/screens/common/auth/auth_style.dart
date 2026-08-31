@@ -10,10 +10,9 @@ import '../../../commonView/custom_text_field.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_state.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../consent/reen_flip_mark.dart';
 
 // `.dg-auth` / Reen `.reen-pre` tokens — navy surface, coral action.
@@ -495,7 +494,7 @@ class _AuthAnimatedLogoState extends State<AuthAnimatedLogo>
   /// Gate → login: FLIP the coral square from the wordmark rect (`dgcEnterLoginFromConsent`).
   Widget _logoFromConsent(BuildContext context, Widget mark) {
     final box = context.dp(widget.size);
-    final halo = DugnadRiseIn(
+    final halo = AeRiseIn(
       delay: const Duration(milliseconds: 220),
       duration: const Duration(milliseconds: 500),
       offsetY: 14,
@@ -543,7 +542,7 @@ class _AuthAnimatedLogoState extends State<AuthAnimatedLogo>
   }
 }
 
-/// `.ae-back`: unified shiny circle — shared [DugnadLbBackButton].
+/// `.ae-back`: unified shiny circle — shared [AeBackButton].
 class AuthBackButton extends StatelessWidget {
   final VoidCallback? onTap;
 
@@ -551,7 +550,7 @@ class AuthBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadLbBackButton(
+    return AeBackButton(
       onPressed: onTap ?? () => Navigator.maybePop(context),
       solidWhite: true,
       forceDarkSurface: true,
@@ -799,10 +798,8 @@ class AuthPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null || isLoading;
-    // Pre-auth surfaces use Reen defaults until the user enters a club.
-    final theme = useDugnadTheme && DugnadState.instance.isDugnadMode
-        ? context.dugnadTheme
-        : DugnadClubThemePalette.reenPreClub;
+    // Auth surfaces use the Reen pre-club palette.
+    final theme = AeThemePalette.reenPreClub;
     return AuthPressable(
       onTap: disabled ? null : onPressed,
       builder: (context, pressed) {

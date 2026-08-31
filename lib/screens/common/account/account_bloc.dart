@@ -7,9 +7,8 @@ import 'package:aerend_customer/screens/common/wallet/wallet_dl.dart';
 
 import '../../../blocs/bloc.dart';
 import '../../../dialogs/simple_dialog_util.dart';
-import '../../dugnad/dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_state.dart';
 import '../base_dl.dart';
 import '../changePassword/change_password.dart';
 import '../chatHistory/chat_history.dart';
@@ -39,9 +38,7 @@ class AccountBloc extends Bloc {
     getProfile();
     getDrawerData();
     setUserData();
-    if (!DugnadState.instance.isDugnadMode) {
-      getWalletBalance();
-    }
+    getWalletBalance();
   }
 
   final _accountItemController = BehaviorSubject<List<AccountItem>>();
@@ -223,7 +220,7 @@ class AccountBloc extends Bloc {
 
   /// `LogoutSheet` (dugnad/dialogs.jsx) — a bottom sheet in the design.
   openLogoutDialog() {
-    showDugnadSheet<bool>(
+    showAeSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext sheetContext) {

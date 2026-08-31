@@ -5,9 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../commonView/custom_text_field.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../auth/auth_style.dart';
 
 /// Shared Ærend design widgets for the "Min konto" screens
@@ -50,7 +50,7 @@ class AccountTkHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         context.dp(22),
@@ -85,7 +85,7 @@ class AccountTkHead extends StatelessWidget {
   }
 }
 
-/// `.tk-head .ae-back` — delegates to the shared [DugnadLbBackButton].
+/// `.tk-head .ae-back` — delegates to the shared [AeBackButton].
 class AccountShinyBackButton extends StatelessWidget {
   const AccountShinyBackButton({super.key, required this.onPressed});
 
@@ -93,7 +93,7 @@ class AccountShinyBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadLbBackButton(onPressed: onPressed);
+    return AeBackButton(onPressed: onPressed);
   }
 }
 
@@ -117,7 +117,7 @@ class AccountSheetHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
       child: Row(
@@ -271,7 +271,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
 
   Future<void> _save() async {
     if (_saving) return;
-    dugnadSheetSaveHaptic();
+    aeSheetSaveHaptic();
     setState(() => _saving = true);
     try {
       await widget.onSave(context, _controller.text.trim());
@@ -282,7 +282,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final hasCurrent = widget.current != null && widget.current!.isNotEmpty;
     final valid = widget.isValid(_controller.text);
 
@@ -297,7 +297,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const DugnadSheetHandle(),
+            const AeSheetHandle(),
             AccountSheetHead(
               icon: widget.icon,
               title: widget.title,
@@ -330,7 +330,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
             AccountSheetCancelButton(
               label: widget.cancelLabel,
               onTap: () {
-                dugnadSheetCloseHaptic();
+                aeSheetCloseHaptic();
                 Navigator.maybePop(context);
               },
             ),
@@ -341,7 +341,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
   }
 
   /// `.dga-cur` — "Nåværende" row.
-  Widget _currentRow(DugnadClubThemePalette theme) {
+  Widget _currentRow(AeThemePalette theme) {
     return Container(
       margin: const EdgeInsets.only(top: 6),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -376,7 +376,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
   }
 
   /// `.dga-phone .cc` — 🇳🇴 +47 chip.
-  Widget _phonePrefixChip(DugnadClubThemePalette theme) {
+  Widget _phonePrefixChip(AeThemePalette theme) {
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
@@ -398,7 +398,7 @@ class _AccountEditFieldSheetState extends State<AccountEditFieldSheet> {
   }
 
   /// `.ae-input` — white, radius 14, 1.5px border, club focus ring.
-  Widget _input(DugnadClubThemePalette theme) {
+  Widget _input(AeThemePalette theme) {
     return _AccountSheetInput(
       controller: _controller,
       hint: widget.hint,
@@ -440,7 +440,7 @@ class _AccountSheetInputState extends State<_AccountSheetInput> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final focus = widget.focusColor ?? theme.primary;
     return Focus(
       skipTraversal: true,
@@ -524,7 +524,7 @@ class _DeleteAccountSheetState extends State<DeleteAccountSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DugnadSheetHandle(),
+          const AeSheetHandle(),
           AccountSheetHead(
             icon: Icons.delete_outline_rounded,
             title: widget.title,
@@ -602,7 +602,7 @@ class _DeleteAccountSheetState extends State<DeleteAccountSheet> {
             child: AuthPressable(
               onTap: _ack
                   ? () {
-                      dugnadSheetSaveHaptic();
+                      aeSheetSaveHaptic();
                       widget.onConfirm();
                     }
                   : null,
@@ -635,7 +635,7 @@ class _DeleteAccountSheetState extends State<DeleteAccountSheet> {
           AccountSheetCancelButton(
             label: 'Behold kontoen', // TODO(l10n)
             onTap: () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.maybePop(context);
             },
           ),

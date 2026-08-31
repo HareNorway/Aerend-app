@@ -9,7 +9,7 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../auth/auth_style.dart';
 import '../login/login.dart';
 import '../splash/splash.dart';
@@ -269,7 +269,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
       ),
       child: Column(
         children: [
-          DugnadRiseIn(
+          AeRiseIn(
             duration: const Duration(milliseconds: 500),
             offsetY: 14,
             child: Row(
@@ -299,7 +299,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
             ),
           ),
           SizedBox(height: context.dp(18)),
-          DugnadRiseIn(
+          AeRiseIn(
             delay: const Duration(milliseconds: 460),
             duration: const Duration(milliseconds: 500),
             offsetY: 14,
@@ -475,7 +475,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
     required int fallDelay,
     int fallMs = 300,
   }) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       delay: Duration(milliseconds: delayMs),
       duration: const Duration(milliseconds: 620),
       offsetY: 14,
@@ -494,7 +494,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
     required int fallDelay,
     int fallMs = 280,
   }) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       delay: Duration(milliseconds: delayMs),
       duration: const Duration(milliseconds: 560),
       offsetY: 14,

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../dugnad_club_theme.dart';
-import '../dugnad_sheet.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_sheet.dart';
 
 /// Choice sheet: Fast støtte vs Kjøp kampanje (prototype mock4 / `.dn-entry`).
 Future<void> showTeamSupportSheet({
@@ -13,8 +13,8 @@ Future<void> showTeamSupportSheet({
   required VoidCallback onFastStotte,
   required VoidCallback onBuyCampaign,
 }) {
-  final theme = context.dugnadTheme;
-  return showDugnadSheet(
+  final theme = context.aeTheme;
+  return showAeSheet(
     context: context,
     isScrollControlled: true,
     // Mock4 uses a light sheet surface, not the club page wash.
@@ -32,7 +32,7 @@ Future<void> showTeamSupportSheet({
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const DugnadSheetHandle(bottom: 10),
+            const AeSheetHandle(bottom: 10),
             Text(
               'Støtt $teamName', // TODO(l10n)
               style: TextStyle(
@@ -102,7 +102,7 @@ class _DnEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.dn-entry` uses 16px. Keep the shadow on this outer decoration —
     // putting it on [Ink] clips the glow to a rectangle (sharp corners),
     // which is especially visible on the light secondary row.

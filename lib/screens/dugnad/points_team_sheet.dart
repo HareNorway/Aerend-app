@@ -4,12 +4,12 @@ import 'package:flutter/services.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
-import 'dugnad_club_theme.dart';
-import 'dugnad_sheet.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_sheet.dart';
 
 /// Bottom sheet to pick the user's single points-team for a club.
 ///
@@ -67,7 +67,7 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
   @override
   void initState() {
     super.initState();
-    dugnadSheetOpenHaptic();
+    aeSheetOpenHaptic();
     _selected = widget.currentTeam;
     _loadTeams();
   }
@@ -84,7 +84,7 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
   Future<void> _confirmSelection() async {
     final team = _selected;
     if (team == null || _saving) return;
-    dugnadSheetSaveHaptic();
+    aeSheetSaveHaptic();
 
     if (!isLoggedIn()) {
       setState(() => _error = languages.dugnadPointsTeamLoginRequired);
@@ -163,7 +163,7 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
               if (!widget.requiredSelection)
                 GestureDetector(
                   onTap: () {
-                    dugnadSheetCloseHaptic();
+                    aeSheetCloseHaptic();
                     Navigator.pop(context);
                   },
                   child: Icon(Icons.close_rounded,
@@ -176,7 +176,7 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
             child: _loading
                 ? Center(
                     child: CircularProgressIndicator(
-                      color: context.dugnadTheme.primary,
+                      color: context.aeTheme.primary,
                     ),
                   )
                 : _teams.isEmpty
@@ -210,7 +210,7 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
                               ),
                               child: Row(
                                 children: [
-                                  ClubCrest(
+                                  AeClubCrest(
                                     name: team.name,
                                     logoUrl: team.logoUrl,
                                     size: context.dp(44),
@@ -235,7 +235,7 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
                                         ? Icons.radio_button_checked_rounded
                                         : Icons.radio_button_off_rounded,
                                     color: isSelected
-                                        ? context.dugnadTheme.primary
+                                        ? context.aeTheme.primary
                                         : ScSaasThemeTokens.gray300,
                                     size: context.dp(22),
                                   ),
@@ -261,8 +261,8 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
               padding: EdgeInsets.symmetric(vertical: context.dp(16)),
               decoration: BoxDecoration(
                 color: _selected != null && !_saving
-                    ? context.dugnadTheme.primary
-                    : context.dugnadTheme.primaryDisabled,
+                    ? context.aeTheme.primary
+                    : context.aeTheme.primaryDisabled,
                 borderRadius: BorderRadius.circular(context.dp(14)),
                 boxShadow: _selected != null && !_saving
                     ? ScSaasThemeTokens.shadowButton
@@ -292,14 +292,14 @@ class _PointsTeamSheetBodyState extends State<_PointsTeamSheetBody> {
                 onTap: _saving
                     ? null
                     : () {
-                        dugnadSheetCloseHaptic();
+                        aeSheetCloseHaptic();
                         Navigator.pop(context);
                       },
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: context.dp(8)),
                   child: Text(
                     languages.dugnadPointsTeamSkip,
-                    style: aeCaption(color: context.dugnadTheme.primary)
+                    style: aeCaption(color: context.aeTheme.primary)
                         .copyWith(decoration: TextDecoration.underline),
                   ),
                 ),

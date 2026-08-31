@@ -4,8 +4,8 @@ import '../../../commonView/common_view.dart';
 import '../../../networking/api_base_helper.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 import '../base_dl.dart';
@@ -61,7 +61,7 @@ class _SelectLanguageAndCurrencyState extends State<SelectLanguageAndCurrency> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -80,17 +80,17 @@ class _SelectLanguageAndCurrencyState extends State<SelectLanguageAndCurrency> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (!widget.isFromHome) _welcomeHead(),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: _languageSection(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: _currencySection(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 260),
                         child: _saveButton(_bloc!),
                       ),
@@ -113,7 +113,7 @@ class _SelectLanguageAndCurrencyState extends State<SelectLanguageAndCurrency> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Velkommen til Reen Dugnad!', // TODO(l10n)
+            'Velkommen til Ærend!', // TODO(l10n)
             textAlign: TextAlign.center,
             style: dgText(26, FontWeight.w800,
                 height: 1.12, letterSpacingEm: -0.02),

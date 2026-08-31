@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../consent/consent_legal_docs.dart';
 import 'account_widgets.dart';
 import 'settings_design_kit.dart';
@@ -17,10 +17,10 @@ class _LegalDocScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Scaffold(
       backgroundColor: theme.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -34,7 +34,7 @@ class _LegalDocScreen extends StatelessWidget {
                 child: SingleChildScrollView(
                   // .ae-body { padding: 0 18px 120px }
                   padding: const EdgeInsets.fromLTRB(18, 0, 18, 120),
-                  child: DugnadRiseIn(
+                  child: AeRiseIn(
                     delay: const Duration(milliseconds: 120),
                     child: DgDocCard(children: children),
                   ),
@@ -88,7 +88,7 @@ Widget _p(String text, {double top = 0}) => Padding(
 
 /// Bulleted item — 4px club-primary dot plus paragraph type.
 Widget _bullet(BuildContext context, String text) {
-  final theme = context.dugnadTheme;
+  final theme = context.aeTheme;
   return Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Row(
@@ -126,28 +126,28 @@ class _TermsOfServiceState extends State<TermsOfService> {
     return _LegalDocScreen(
       title: 'Terms Of Service',
       children: [
-        _h(context, 'Welcome to Reen Dugnad!', top: 0),
+        _h(context, 'Welcome to Ærend!', top: 0),
         _p(
-          'These terms and conditions outline the rules and regulations for the use of Reen Dugnad\'s mobile application and delivery services.',
+          'These terms and conditions outline the rules and regulations for the use of Ærend\'s mobile application and delivery services.',
         ),
         _p(
-          'By accessing this mobile application, we assume you accept these terms and conditions. Do not continue to use Reen Dugnad if you do not agree to take all of the terms and conditions stated on this page.',
+          'By accessing this mobile application, we assume you accept these terms and conditions. Do not continue to use Ærend if you do not agree to take all of the terms and conditions stated on this page.',
         ),
         _p(
           'The following terminology applies to these Terms and Conditions, Privacy Statement, and Disclaimer Notice and all Agreements: "Client," "You," and "Your" refers to you, the person accessing this mobile application and accepting the Company\'s terms and conditions. "The Company," "Ourselves," "We," "Our," and "Us," refers to our Company. "Party," "Parties," or "Us," refers to both the Client and ourselves, or either the Client or ourselves. All terms refer to the offer, acceptance, and consideration of payment necessary to undertake the process of our assistance to the Client in the most appropriate manner for the express purpose of meeting the \'s needs in respect of the provision of the \'s stated services, in accordance with and subject to, prevailing law.',
         ),
         _h(context, 'License'),
         _p(
-          'Unless otherwise stated, Reen Dugnad and/or its licensors own the intellectual property rights for all material on Reen Dugnad. All intellectual property rights are reserved. You may access this from Reen Dugnad for your own personal use subjected to restrictions set in these terms and conditions.',
+          'Unless otherwise stated, Ærend and/or its licensors own the intellectual property rights for all material on Ærend. All intellectual property rights are reserved. You may access this from Ærend for your own personal use subjected to restrictions set in these terms and conditions.',
         ),
         _h(context, 'You must not:'),
-        _bullet(context, 'Republish material from Reen Dugnad'),
-        _bullet(context, 'Sell, rent, or sub-license material from Reen Dugnad'),
-        _bullet(context, 'Reproduce, duplicate, or copy material from Reen Dugnad'),
-        _bullet(context, 'Redistribute content from Reen Dugnad'),
-        _h(context, 'This Agreement shall begin on Reen Dugnad:'),
+        _bullet(context, 'Republish material from Ærend'),
+        _bullet(context, 'Sell, rent, or sub-license material from Ærend'),
+        _bullet(context, 'Reproduce, duplicate, or copy material from Ærend'),
+        _bullet(context, 'Redistribute content from Ærend'),
+        _h(context, 'This Agreement shall begin on Ærend:'),
         _p(
-          'Parts of this mobile application offer an opportunity for users to post and exchange opinions and information in certain areas of the website. Reen Dugnad does not filter, edit, publish, or review Comments prior to their presence on the mobile application. Comments do not reflect the views and opinions of Reen Dugnad, its agents, and/or affiliates.',
+          'Parts of this mobile application offer an opportunity for users to post and exchange opinions and information in certain areas of the website. Ærend does not filter, edit, publish, or review Comments prior to their presence on the mobile application. Comments do not reflect the views and opinions of Ærend, its agents, and/or affiliates.',
         ),
       ],
     );
@@ -169,10 +169,10 @@ class _AvaibilityStatementState extends State<AvaibilityStatement> {
       children: [
         _h(context, 'Updated 02 April 2024', top: 0),
         _p(
-          'At Reen Dugnad, we strive to maintain optimal availability of our services to ensure a seamless experience for our users. While we endeavor to provide uninterrupted access to our mobile application and delivery services, occasional downtime may occur due to maintenance, updates, or unforeseen technical issues.',
+          'At Ærend, we strive to maintain optimal availability of our services to ensure a seamless experience for our users. While we endeavor to provide uninterrupted access to our mobile application and delivery services, occasional downtime may occur due to maintenance, updates, or unforeseen technical issues.',
         ),
         _p(
-          'We are committed to promptly addressing any issues that may arise and restoring full functionality as quickly as possible. Our team works tirelessly to minimize disruptions and maximize uptime, ensuring that you can rely on Reen Dugnad whenever you need us.',
+          'We are committed to promptly addressing any issues that may arise and restoring full functionality as quickly as possible. Our team works tirelessly to minimize disruptions and maximize uptime, ensuring that you can rely on Ærend whenever you need us.',
         ),
         _p(
           'Should you encounter any difficulties accessing our services, please don\'t hesitate to contact our support team for assistance. Your satisfaction is our priority, and we appreciate your understanding and patience as we work to deliver the best possible experience to you.',

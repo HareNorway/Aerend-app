@@ -4,9 +4,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:aerend_customer/screens/common/account/terms_statement.dart';
 
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 
@@ -34,7 +34,7 @@ class _InviteFriendsState extends State<InviteFriends> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -51,7 +51,7 @@ class _InviteFriendsState extends State<InviteFriends> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: DgrHero(
                           icon: Icons.card_giftcard_rounded,
@@ -62,7 +62,7 @@ class _InviteFriendsState extends State<InviteFriends> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: DgPrimaryButton(
                           label: languages.inviteButton,
@@ -90,7 +90,7 @@ class _InviteFriendsState extends State<InviteFriends> {
 
   /// Share sheet — `.dg-msheet` shell with the channel row and copy-link field.
   void showInviteFriendModal() {
-    showDugnadSheet<void>(
+    showAeSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) {
@@ -101,7 +101,7 @@ class _InviteFriendsState extends State<InviteFriends> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const DugnadSheetHandle(),
+              const AeSheetHandle(),
               AccountSheetHead(
                 icon: Icons.ios_share_rounded,
                 title: languages.inviteTitle,
@@ -147,7 +147,7 @@ class _InviteFriendsState extends State<InviteFriends> {
               AccountSheetCancelButton(
                 label: languages.cancel,
                 onTap: () {
-                  dugnadSheetCloseHaptic();
+                  aeSheetCloseHaptic();
                   Navigator.pop(sheetContext);
                 },
               ),

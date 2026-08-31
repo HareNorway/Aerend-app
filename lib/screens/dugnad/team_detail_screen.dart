@@ -16,9 +16,9 @@ import 'dugnad_points_screen.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
 import 'points_team_picker_screen.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
 
 const _kBreakdownCampaigns = 'campaigns';
 const _kBreakdownEngagement = 'engagement';
@@ -121,9 +121,9 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
         ? null
         : DugnadState.instance.clubLogo;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
+        backgroundColor: context.aeTheme.primary,
         body: _data == null && !_loading
             ? Center(
                 child: Text(
@@ -131,8 +131,8 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
                   style: aeBody(color: Colors.white.withValues(alpha: 0.9)),
                 ),
               )
-            : DugnadLbScrollBody(
-                hero: DugnadLbHero(
+            : AeScrollBody(
+                hero: AeHero(
                   clubName: clubName,
                   clubLogo: clubLogo,
                   title: languages.dugnadTeamDetailHeroTitle,
@@ -246,7 +246,7 @@ class _RankCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.lb-standing` is four states, not one. The base is --ae-shiny-purple
     // with the `#rank` number; ranks 1-3 add `.podium .gold|silver|bronze`,
     // each a different metal gradient with its own text colour, inset alpha
@@ -398,7 +398,7 @@ class _StandingStyle {
   final double insetAlpha;
 }
 
-_StandingStyle _standingStyle(int rank, DugnadClubThemePalette theme) {
+_StandingStyle _standingStyle(int rank, AeThemePalette theme) {
   // Ditt lag mock uses club gradient for the hero strip regardless of rank.
   return _StandingStyle(
     gradient: theme.shinyGradient,
@@ -419,7 +419,7 @@ class _SupportEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final borderRadius = BorderRadius.circular(context.dp(16));
     return Material(
       color: Colors.transparent,
@@ -554,7 +554,7 @@ class _SeasonGoalCard extends StatelessWidget {
               value: pct / 100,
               minHeight: 8,
               backgroundColor: ScSaasThemeTokens.gray100,
-              color: context.dugnadTheme.primary,
+              color: context.aeTheme.primary,
             ),
           ),
           SizedBox(height: context.dp(10)),
@@ -604,7 +604,7 @@ class _BreakdownSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadSectionLabel(heading),
+        AeSectionLabel(heading),
         ClipRRect(
           borderRadius: BorderRadius.circular(context.dp(6)),
           child: Row(
@@ -614,7 +614,7 @@ class _BreakdownSection extends StatelessWidget {
                   flex: campaigns,
                   child: Container(
                     height: context.dp(6),
-                    color: context.dugnadTheme.primary,
+                    color: context.aeTheme.primary,
                   ),
                 ),
               if (engagement > 0)
@@ -645,7 +645,7 @@ class _BreakdownSection extends StatelessWidget {
         ),
         SizedBox(height: context.dp(12)),
         _BreakdownRow(
-          color: context.dugnadTheme.primary,
+          color: context.aeTheme.primary,
           icon: Icons.inventory_2_outlined,
           title: languages.dugnadTeamDetailBreakdownCampaigns,
           subtitle: languages.dugnadTeamDetailBreakdownCampaignsSub,
@@ -781,7 +781,7 @@ class _ClimbSection extends StatelessWidget {
         vertical: context.dp(14),
       ),
       decoration: BoxDecoration(
-        color: context.dugnadTheme.primaryTint,
+        color: context.aeTheme.primaryTint,
         borderRadius: BorderRadius.circular(context.dp(16)),
         // Match white cards (AeSurface.card) so the climb tip panel lifts
         // off the feed instead of reading as a flat tint block.
@@ -795,7 +795,7 @@ class _ClimbSection extends StatelessWidget {
               Icon(
                 Icons.bolt_rounded,
                 size: context.dp(16),
-                color: context.dugnadTheme.primaryHover,
+                color: context.aeTheme.primaryHover,
               ),
               SizedBox(width: context.dp(7)),
               // `.lb-climb-head` is 13 / 800 / -0.01em / purple-700.
@@ -805,7 +805,7 @@ class _ClimbSection extends StatelessWidget {
                   fontSize: context.dp(13),
                   fontWeight: FontWeight.w800,
                   letterSpacing: context.dp(13) * -0.01,
-                  color: context.dugnadTheme.primaryHover,
+                  color: context.aeTheme.primaryHover,
                 ),
               ),
             ],
@@ -836,7 +836,7 @@ class _ClimbSection extends StatelessWidget {
                     ),
                     child: Icon(tips[i].icon,
                         size: context.dp(15),
-                        color: context.dugnadTheme.primaryHover),
+                        color: context.aeTheme.primaryHover),
                   ),
                   SizedBox(width: context.dp(11)),
                   Expanded(
@@ -850,7 +850,7 @@ class _ClimbSection extends StatelessWidget {
                             fontSize: context.dp(13),
                             fontWeight: FontWeight.w800,
                             letterSpacing: context.dp(13) * -0.01,
-                            color: context.dugnadTheme.text,
+                            color: context.aeTheme.text,
                           ),
                         ),
                         SizedBox(height: context.dp(1)),
@@ -861,7 +861,7 @@ class _ClimbSection extends StatelessWidget {
                           style: TextStyle(
                             fontSize: context.dp(11),
                             fontWeight: FontWeight.w600,
-                            color: context.dugnadTheme.primaryHover
+                            color: context.aeTheme.primaryHover
                                 .withValues(alpha: 0.8),
                           ),
                         ),
@@ -948,7 +948,7 @@ class _PointsLinkCard extends StatelessWidget {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

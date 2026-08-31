@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_state.dart';
 import 'dugnad_shiny_press.dart';
 
@@ -17,7 +17,7 @@ class DugnadClubShopEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final club = DugnadClubBranding.compactName();
     final radius = context.dp(18);
     final logo = DugnadState.instance.clubLogo;
@@ -114,7 +114,7 @@ class _LogoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = context.dp(44);
     final radius = context.dp(13);
-    final url = ClubCrest.resolveClubMediaUrl(logoUrl);
+    final url = AeClubCrest.resolveClubMediaUrl(logoUrl);
 
     return Container(
       width: size,

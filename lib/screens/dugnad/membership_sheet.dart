@@ -5,18 +5,18 @@ import '../../commonView/surface_decorations.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
 import 'dugnad_state.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Membership number editor bottom sheet.
 ///
 /// Prefilled with current membership number (if any). "Lagre" saves,
 /// "Fjern" clears. Returns after save so callers can refresh.
 Future<void> showMembershipSheet(BuildContext context) {
-  return showDugnadSheet<void>(
+  return showAeSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (_) => const _MembershipSheetBody(),
@@ -55,13 +55,13 @@ class _MembershipSheetBodyState extends State<_MembershipSheetBody> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DugnadSheetHandle(),
+          const AeSheetHandle(),
           // Header — crest + "Medlem av {club}?" + unlock value (prototype
           // `.dg-mem-head`). Reads as unlocking member value, not billing.
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClubCrest(
+              AeClubCrest(
                 name: DugnadClubBranding.fullName(),
                 logoUrl: DugnadState.instance.clubLogo.isEmpty
                     ? null
@@ -131,7 +131,7 @@ class _MembershipSheetBodyState extends State<_MembershipSheetBody> {
           // Primary — "Lås opp rabatter" (new) / "Lagre endring" (editing).
           GestureDetector(
             onTap: () async {
-              dugnadSheetSaveHaptic();
+              aeSheetSaveHaptic();
               final nr = _ctrl.text.trim();
               if (nr.isNotEmpty) {
                 await DugnadState.instance.setMembershipNumber(nr);
@@ -142,7 +142,7 @@ class _MembershipSheetBodyState extends State<_MembershipSheetBody> {
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: context.dp(16)),
               decoration: BoxDecoration(
-                color: context.dugnadTheme.primary,
+                color: context.aeTheme.primary,
                 borderRadius: BorderRadius.circular(context.dp(14)),
                 boxShadow: ScSaasThemeTokens.shadowButton,
               ),
@@ -166,7 +166,7 @@ class _MembershipSheetBodyState extends State<_MembershipSheetBody> {
           // Ghost — "Fjern medlemsnummer" (editing) / "Ikke nå" (new).
           GestureDetector(
             onTap: () async {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               if (DugnadState.instance.hasMembership) {
                 await DugnadState.instance.clearMembership();
               }

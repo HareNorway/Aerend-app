@@ -3,8 +3,8 @@ import 'package:aerend_customer/networking/api_base_helper.dart';
 import 'package:aerend_customer/screens/common/homeMainV1/home_main_v1.dart';
 
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 import './explore_city_bloc.dart';
@@ -50,7 +50,7 @@ class ExploreCityState extends State<ExploreCity> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kDgPageBackground,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -123,7 +123,7 @@ class ExploreCityState extends State<ExploreCity> {
           ),
           for (var i = 0; i < hits.length; i++) ...[
             const SizedBox(height: 12),
-            DugnadRiseIn(
+            AeRiseIn(
               delay: Duration(milliseconds: 120 + (i * 70)),
               child: _cityRow(hits[i]),
             ),

@@ -4,11 +4,11 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_form_utils.dart';
-import '../dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../gamification_models.dart';
-import 'dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 
 /// Form tempo explainer (prototype `PcFormSheet` in player-card.jsx).
 class DugnadFormExplainerSheet extends StatelessWidget {
@@ -32,10 +32,10 @@ class DugnadFormExplainerSheet extends StatelessWidget {
     int formValue = 70,
     int floor = 40,
   }) {
-    return showDugnadSheet<void>(
+    return showAeSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       builder: (_) => DugnadFormExplainerSheet(
         status: status,
         history: history,
@@ -102,15 +102,15 @@ class DugnadFormExplainerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final sheetBg = theme.background;
-    final radius = context.dp(kDugnadSheetRadius);
+    final radius = context.dp(kAeSheetRadius);
     final values = history.isNotEmpty
         ? history.map((p) => p.value.toDouble()).toList()
         : [formValue.toDouble()];
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: ClipRRect(
         borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
         child: ColoredBox(
@@ -327,7 +327,7 @@ class DugnadFormExplainerSheet extends StatelessWidget {
     );
   }
 
-  Widget _explainerBanner(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _explainerBanner(BuildContext context, AeThemePalette theme) {
     return Container(
       padding: EdgeInsets.fromLTRB(
         context.dp(13),
@@ -382,7 +382,7 @@ class DugnadFormExplainerSheet extends StatelessWidget {
     required String title,
     required String subtitle,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: context.dp(14),

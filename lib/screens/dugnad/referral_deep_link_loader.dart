@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../commonView/dugnad_club_loader.dart';
+import '../../ui/kit/ae_loader.dart';
 import '../../utils/utils.dart';
 import '../common/login/login.dart';
 import 'dugnad_referral_state.dart';
 import 'dugnad_repo.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Validates aerend://referral deep links and routes into signup with pending attribution.
 class ReferralDeepLinkLoader extends StatefulWidget {
@@ -57,8 +57,8 @@ class _ReferralDeepLinkLoaderState extends State<ReferralDeepLinkLoader> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
-      body: const DugnadClubLoaderScreen(),
+      backgroundColor: context.aeTheme.background,
+      body: const AeLoaderScreen(),
     );
   }
 }

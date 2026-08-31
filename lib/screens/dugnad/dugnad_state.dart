@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../services/dugnad_data_cache.dart';
 import '../../utils/utils.dart';
 import 'dugnad_celebration_orchestrator.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 
@@ -62,7 +62,7 @@ class DugnadState {
   String get clubPortalBackgroundColor =>
       prefGetString(prefSelectedClubPortalBackgroundColor);
 
-  DugnadClubThemePalette get themePalette => DugnadClubThemePalette.resolve(
+  AeThemePalette get themePalette => AeThemePalette.resolve(
         accentColor: clubPortalThemeColor.isEmpty ? null : clubPortalThemeColor,
         backgroundColor:
             clubPortalBackgroundColor.isEmpty ? null : clubPortalBackgroundColor,

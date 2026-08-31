@@ -115,7 +115,6 @@ class CreateProfileBloc extends Bloc {
 
     try {
       await _persistSignupSessionCritical(response);
-      await prefSetBool(prefShowDugnadWelcomeAfterOnboarding, true);
       if (!state.mounted) return;
       if (state.widget.returnOnSuccess) {
         await prefSetBool(prefAuthReturnOnSuccess, true);

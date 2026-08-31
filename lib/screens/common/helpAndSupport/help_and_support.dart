@@ -4,9 +4,9 @@ import '../../../commonView/no_record_found.dart';
 import '../../../networking/api_base_helper.dart';
 import '../../../utils/brand_scrub.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
 import 'contact_us_screen.dart';
@@ -46,8 +46,8 @@ class _HelpAndSupportState extends State<HelpAndSupport> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
-      body: DugnadFixedTypography(
+      backgroundColor: context.aeTheme.background,
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -65,7 +65,7 @@ class _HelpAndSupportState extends State<HelpAndSupport> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Live chat hidden for now — re-enable when support chat ships.
-                      // DugnadRiseIn(
+                      // AeRiseIn(
                       //   delay: const Duration(milliseconds: 120),
                       //   child: DnAddCard(
                       //     icon: Icons.chat_bubble_outline_rounded,
@@ -75,12 +75,12 @@ class _HelpAndSupportState extends State<HelpAndSupport> {
                       //   ),
                       // ),
                       // const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: _contactSection(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: _articleSection(),
                       ),
@@ -129,12 +129,12 @@ class _HelpAndSupportState extends State<HelpAndSupport> {
   }
 
   Widget _icon(IconData icon) =>
-      Icon(icon, size: 18, color: context.dugnadTheme.primaryHover);
+      Icon(icon, size: 18, color: context.aeTheme.primaryHover);
 
   Widget _chevron() => Icon(
         Icons.chevron_right_rounded,
         size: 18,
-        color: context.dugnadTheme.primary.withValues(alpha: 0.55),
+        color: context.aeTheme.primary.withValues(alpha: 0.55),
       );
 
   /// `.dg-label` + `.dgs-list` — help articles. Bodies are server-rendered HTML,

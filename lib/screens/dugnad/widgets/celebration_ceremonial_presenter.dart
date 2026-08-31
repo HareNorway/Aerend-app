@@ -7,7 +7,7 @@ import '../celebration_copy.dart';
 import '../celebration_models.dart';
 import '../dugnad_badges.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_state.dart';
 import '../leaderboard_screen.dart';
 import 'dugnad_bead_badge.dart';
@@ -29,7 +29,7 @@ class CelebrationCeremonialPresenter {
     required String label,
     required VoidCallback onPressed,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return DugnadShinyPress(
       borderRadius: context.dp(14),
       onTap: onPressed,

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/shared_pref_utill.dart';
-import '../dugnad/club_onboarding_screen.dart';
-import '../dugnad/dugnad_state.dart';
-import '../dugnad/mode_select_screen.dart';
 import '../common/consent/consent_gate_screen.dart';
 import '../common/createProfile/create_profile.dart';
 import '../common/login/login.dart';
@@ -37,13 +34,6 @@ String snurreLauncherRouteNameFor(Widget screen) {
   if (screen is SelectLanguageAndCurrency) {
     return '${snurreLauncherHiddenRoutePrefix}language';
   }
-  // Dugnad onboarding (mode not set yet — isDugnadMode is still false here).
-  if (screen is ModeSelectScreen) {
-    return '${snurreLauncherHiddenRoutePrefix}dugnad-mode-select';
-  }
-  if (screen is ClubOnboardingScreen) {
-    return '${snurreLauncherHiddenRoutePrefix}dugnad-club-onboarding';
-  }
   if (screen.runtimeType.toString() == 'SnurreChatScreen') {
     return '${snurreLauncherHiddenRoutePrefix}chat';
   }
@@ -63,10 +53,6 @@ final ValueNotifier<bool> snurreLauncherVisible = ValueNotifier(false);
 
 bool shouldShowSnurreLauncherForRoute(Route<dynamic>? route) {
   if (!canUseSnurreLauncher()) return false;
-  // Snurre entrypoint is not used on dugnad screens for now — including
-  // mode/club onboarding before [DugnadState.isDugnadMode] is set.
-  if (DugnadState.instance.isDugnadMode) return false;
-  if (!DugnadState.instance.onboardingComplete) return false;
   if (snurreChatRouteOnTop.value) return false;
   if (isSnurreLauncherHiddenRoute(route)) return false;
   return true;

@@ -11,8 +11,8 @@ import '../celebration_copy.dart';
 import '../celebration_models.dart';
 import '../dugnad_badge_emblem.dart';
 import '../dugnad_badges.dart';
-import '../dugnad_club_theme.dart';
-import 'dugnad_confetti.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_confetti.dart';
 import 'dugnad_shiny_press.dart';
 import 'dugnad_t16_sto_rise.dart';
 import 'lucide_box_icon.dart';
@@ -147,7 +147,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   Widget _formBody(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String eyebrow,
     String title,
     String body,
@@ -242,7 +242,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   Widget _throneBody(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String eyebrow,
     String title,
     String body,
@@ -379,7 +379,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   Widget _rewardPill({
     required BuildContext context,
-    required DugnadClubThemePalette theme,
+    required AeThemePalette theme,
     required IconData icon,
     required String label,
   }) {
@@ -411,7 +411,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   Widget _challengeProgressBar(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     bool reduce,
   ) {
     final track = theme.ink.withValues(alpha: 0.08);
@@ -452,7 +452,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   Widget _challengeBody(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String eyebrow,
     String headline,
     String subtitle,
@@ -543,7 +543,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
     );
   }
 
-  Widget _badgeBody(BuildContext context, DugnadClubThemePalette theme) {
+  Widget _badgeBody(BuildContext context, AeThemePalette theme) {
     final l10n = AppLocalizations.of(context)!;
     final name = _badgeName(l10n);
     final sub = _badgeSubtitle();
@@ -628,7 +628,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   Widget _genericBody(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     Color accent,
     String title,
     String body,
@@ -679,7 +679,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final l10n = AppLocalizations.of(context)!;
     final copy = CelebrationCopy(l10n);
     final title = copy.title(widget.item);
@@ -894,7 +894,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
                       card,
                       // Design `.dgpp-confetti` — paper bits on the card face.
                       Positioned.fill(
-                        child: DugnadCardPaperConfetti(
+                        child: AeCardPaperConfetti(
                           progress: _confetti,
                           colors: confettiColors,
                         ),
@@ -907,7 +907,7 @@ class _DugnadCelebrationOverlayState extends State<DugnadCelebrationOverlay>
           if (!reduce && !formOverlay)
             Positioned.fill(
               child: IgnorePointer(
-                child: DugnadDesignBurstConfetti(
+                child: AeDesignBurstConfetti(
                   colors: confettiColors,
                   count: 110,
                 ),

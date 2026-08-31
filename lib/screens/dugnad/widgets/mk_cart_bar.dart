@@ -9,8 +9,8 @@ import '../../campaign/bloc/campaign_detail_bloc.dart';
 import '../../campaign/campaign_checkout_screen.dart';
 import '../../campaign/models/campaign_detail_pojo.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
-import 'mk_qty_stepper.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_qty_stepper.dart';
 
 /// Expandable sticky cart bar — mirrors prototype `MkCartBar`.
 class MkCartBar extends StatefulWidget {
@@ -41,7 +41,7 @@ class _MkCartBarState extends State<MkCartBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return StreamBuilder<List<CampaignCartItem>>(
       stream: widget.bloc.cartStream,
@@ -209,7 +209,7 @@ class _CartToggle extends StatelessWidget {
 
   final int count;
   final bool open;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final VoidCallback onTap;
 
   @override
@@ -302,7 +302,7 @@ class _CartSheet extends StatelessWidget {
   final VoidCallback onClear;
   final void Function(int productId) onDecrement;
   final void Function(int productId) onIncrement;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +386,7 @@ class _CartSheet extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: context.dp(10)),
-                      MkQtyStepper(
+                      AeQtyStepper(
                         qty: item.quantity,
                         theme: theme,
                         onDecrement: () => onDecrement(item.product.id),

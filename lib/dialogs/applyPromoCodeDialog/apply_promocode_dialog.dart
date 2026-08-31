@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/deliveryService/checkout/checkout_dl.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../utils/utils.dart';
 import 'item_promo_code_list.dart';
 
@@ -70,7 +70,7 @@ class _ApplyPromoCodeDialogState extends State<ApplyPromoCodeDialog> {
 
   void _apply() {
     if (widget.onPromoCodeApply == null) return;
-    dugnadSheetSaveHaptic();
+    aeSheetSaveHaptic();
     widget.onPromoCodeApply!(_code);
     Navigator.pop(context);
   }
@@ -80,9 +80,9 @@ class _ApplyPromoCodeDialogState extends State<ApplyPromoCodeDialog> {
     final promos = widget.promoCodeList ?? const <PromoCodeListItem>[];
     return Form(
       key: formKey,
-      child: DugnadSheetBody(
+      child: AeSheetBody(
         children: [
-          DugnadSheetHead(
+          AeSheetHead(
             icon: Icons.local_offer_rounded,
             title: languages.promoCode,
             message:
@@ -117,13 +117,13 @@ class _ApplyPromoCodeDialogState extends State<ApplyPromoCodeDialog> {
               ),
             ],
           ],
-          DugnadSheetPrimaryButton(
+          AeSheetPrimaryButton(
             label: 'Bruk koden', // TODO(l10n)
             icon: Icons.check_rounded,
             isLoading: widget.isLoading,
             onPressed: _code.length < 3 ? null : _apply,
           ),
-          DugnadSheetCancelButton(label: languages.cancel),
+          AeSheetCancelButton(label: languages.cancel),
         ],
       ),
     );

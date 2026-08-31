@@ -11,11 +11,11 @@ import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/stripe_payment_helper.dart';
 import '../../../utils/utils.dart';
 import '../../dugnad/dugnad_celebration_orchestrator.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_address_drawer.dart';
-import '../../dugnad/widgets/dugnad_checkout_payment_selector.dart';
-import '../../dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_address_drawer.dart';
+import '../../../ui/kit/ae_checkout_payment_selector.dart';
+import '../../../ui/kit/ae_confirm_sheet.dart';
 import '../../common/vipps/vipps_return_screens.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../campaign_delivery_utils.dart';
@@ -30,7 +30,7 @@ Future<bool?> showCpChangeSheet(
   BuildContext context,
   CampaignMyOrder order,
 ) {
-  return showDugnadSheet<bool>(
+  return showAeSheet<bool>(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => CpChangeSheet(order: order),
@@ -50,7 +50,7 @@ class CpChangeSheet extends StatefulWidget {
 
 class _CpChangeSheetState extends State<CpChangeSheet>
     with WidgetsBindingObserver {
-  late DugnadCheckoutPayMethod _pay = dugnadCheckoutDefaultPayMethod();
+  late AeCheckoutPayMethod _pay = aeCheckoutDefaultPayMethod();
   _ChangePhase _phase = _ChangePhase.form;
   bool _held = false;
   String? _payLabel;
@@ -144,7 +144,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
 
   Future<void> _pickAddress() async {
     HapticFeedback.lightImpact();
-    await showDugnadAddressDrawer(
+    await showAeAddressDrawer(
       context,
       parentContext: context,
       onAddressChanged: _loadAddressFromPrefs,
@@ -155,15 +155,15 @@ class _CpChangeSheetState extends State<CpChangeSheet>
   bool get _hasDeliveryAddress => _addressRaw.trim().isNotEmpty;
 
   String get _apiPayMethod =>
-      _pay == DugnadCheckoutPayMethod.vipps ? 'vipps' : 'stripe';
+      _pay == AeCheckoutPayMethod.vipps ? 'vipps' : 'stripe';
 
   String _selectedPayLabel() {
     switch (_pay) {
-      case DugnadCheckoutPayMethod.vipps:
+      case AeCheckoutPayMethod.vipps:
         return CampaignStrings.payWithVippsSemanticsLabel;
-      case DugnadCheckoutPayMethod.platformWallet:
-        return dugnadPlatformPayLabel;
-      case DugnadCheckoutPayMethod.cardKlarna:
+      case AeCheckoutPayMethod.platformWallet:
+        return aePlatformPayLabel;
+      case AeCheckoutPayMethod.cardKlarna:
         return CampaignStrings.payCard;
     }
   }
@@ -281,7 +281,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
     }
 
     try {
-      if (_pay == DugnadCheckoutPayMethod.platformWallet) {
+      if (_pay == AeCheckoutPayMethod.platformWallet) {
         await StripePaymentHelper.confirmPlatformPay(
           clientSecret: payment.clientSecret!,
           orderNo: order.orderNo,
@@ -336,7 +336,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final media = MediaQuery.of(context);
     final window = order.windowInstant;
     final day = campaignDayLabel(window);
@@ -394,7 +394,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
 
   Widget _form(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String headline,
     String whereSub,
     String clock,
@@ -404,7 +404,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const DugnadSheetHandle(),
+        const AeSheetHandle(),
         Align(
           alignment: Alignment.centerRight,
           child: IconButton(
@@ -526,7 +526,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
         ),
         if (_fee > 0) ...[
           SizedBox(height: context.dp(14)),
-          DugnadCheckoutPaymentSelector(
+          AeCheckoutPaymentSelector(
             value: _pay,
             accent: theme.primary,
             onChanged: (method) => setState(() => _pay = method),
@@ -542,11 +542,11 @@ class _CpChangeSheetState extends State<CpChangeSheet>
             buttonShadow: theme.shadowButton,
           ),
         ] else
-          DugnadSheetPrimaryButton(
+          AeSheetPrimaryButton(
             label: CampaignStrings.confirmChange,
             onPressed: _commit,
           ),
-        DugnadSheetCancelButton(
+        AeSheetCancelButton(
           label: languages.cancel,
           onPressed: () => Navigator.pop(context, false),
         ),
@@ -556,7 +556,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
 
   Widget _done(
     BuildContext context,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
     String location,
     String clock,
     String day,
@@ -565,7 +565,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const DugnadSheetHandle(),
+        const AeSheetHandle(),
         SizedBox(height: context.dp(12)),
         Center(
           child: Container(
@@ -632,7 +632,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
             ],
           ),
         ),
-        DugnadSheetPrimaryButton(
+        AeSheetPrimaryButton(
           label: languages.done,
           onPressed: _finish,
         ),
@@ -641,7 +641,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
   }
 
   Widget _doneRow(String label, String value, {Color? valueColor}) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Row(
       children: [
         Text(label, style: aeCaption()),
@@ -659,7 +659,7 @@ class _CpChangeSheetState extends State<CpChangeSheet>
     );
   }
 
-  Widget _busyOverlay(DugnadClubThemePalette theme) {
+  Widget _busyOverlay(AeThemePalette theme) {
     return Positioned.fill(
       child: ColoredBox(
         color: Colors.white.withValues(alpha: 0.86),

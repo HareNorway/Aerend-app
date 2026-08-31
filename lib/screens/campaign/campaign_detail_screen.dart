@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../blocs/bloc.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../commonView/common_circular_progress_indicator.dart';
-import '../dugnad/club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'bloc/campaign_detail_bloc.dart';
 import 'campaign_checkout_screen.dart';
 import 'campaign_media.dart';
@@ -271,7 +271,7 @@ class _CampaignDetailScreenState extends State<CampaignDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  ClubCrest(
+                  AeClubCrest(
                     name:
                         supportName.isNotEmpty ? supportName : campaign.displayHeading,
                     logoUrl: logoUrl,

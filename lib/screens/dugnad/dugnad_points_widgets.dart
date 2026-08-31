@@ -6,13 +6,13 @@ import '../../commonView/ae_inset_surface.dart';
 import '../../commonView/surface_decorations.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_badges.dart';
 import 'dugnad_club_branding.dart';
 import 'dugnad_models.dart';
 import 'dugnad_state.dart';
 import 'points_metal_theme.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'gamification_models.dart';
 import 'dugnad_sto_source_breakdown.dart';
 import 'dugnad_sto_utils.dart';
@@ -133,7 +133,7 @@ class DugnadEarnPointsRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(context.dp(16)),
           boxShadow: [
             BoxShadow(
-              color: context.dugnadTheme.text.withValues(alpha: 0.05),
+              color: context.aeTheme.text.withValues(alpha: 0.05),
               blurRadius: context.dp(10),
               offset: Offset(context.dp(0), context.dp(3)),
             ),
@@ -147,16 +147,16 @@ class DugnadEarnPointsRow extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(context.dp(12)),
                 gradient: strong
-                    ? context.dugnadTheme.shinyGradient
+                    ? context.aeTheme.shinyGradient
                     : null,
-                color: strong ? null : context.dugnadTheme.primaryTint,
+                color: strong ? null : context.aeTheme.primaryTint,
               ),
               alignment: Alignment.center,
               child: iconWidget ??
                   Icon(
                     icon!,
                     size: context.dp(18),
-                    color: strong ? Colors.white : context.dugnadTheme.primary,
+                    color: strong ? Colors.white : context.aeTheme.primary,
                   ),
             ),
             SizedBox(width: context.dp(12)),
@@ -242,7 +242,7 @@ class DugnadConnectTeamCard extends StatelessWidget {
         margin: EdgeInsets.only(top: context.dp(10)),
         padding: EdgeInsets.all(context.dp(14)),
         decoration: BoxDecoration(
-          color: context.dugnadTheme.primaryTint,
+          color: context.aeTheme.primaryTint,
           borderRadius: BorderRadius.circular(context.dp(16)),
         ),
         child: Row(
@@ -255,7 +255,7 @@ class DugnadConnectTeamCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(context.dp(12)),
                 boxShadow: [
                   BoxShadow(
-                    color: context.dugnadTheme.text.withValues(alpha: 0.04),
+                    color: context.aeTheme.text.withValues(alpha: 0.04),
                     blurRadius: context.dp(6),
                     offset: Offset(context.dp(0), context.dp(2)),
                   ),
@@ -264,7 +264,7 @@ class DugnadConnectTeamCard extends StatelessWidget {
               child: Icon(
                 Icons.shield_outlined,
                 size: context.dp(20),
-                color: context.dugnadTheme.primary,
+                color: context.aeTheme.primary,
               ),
             ),
             SizedBox(width: context.dp(12)),
@@ -276,13 +276,13 @@ class DugnadConnectTeamCard extends StatelessWidget {
                     languages.dugnadConnectPointsTeam,
                     style: aeBody().copyWith(
                       fontWeight: FontWeight.w800,
-                      color: context.dugnadTheme.primaryHover,
+                      color: context.aeTheme.primaryHover,
                     ).dp(context),
                   ),
                   SizedBox(height: context.dp(2)),
                   Text(
                     languages.dugnadConnectPointsTeamSub,
-                    style: aeCaption(color: context.dugnadTheme.primary).dp(context),
+                    style: aeCaption(color: context.aeTheme.primary).dp(context),
                   ),
                 ],
               ),
@@ -461,7 +461,7 @@ class DugnadProfilePointsCard extends StatelessWidget {
                     SizedBox(height: context.dp(12)),
                     Row(
                       children: [
-                        ClubCrest(
+                        AeClubCrest(
                           name: ds.pointsTeamName,
                           logoUrl: ds.pointsTeamLogo.isEmpty
                               ? null
@@ -893,14 +893,14 @@ class _LadderStepCard extends StatelessWidget {
         border: Border.all(color: Colors.transparent, width: context.dp(1.5)),
         boxShadow: [
           BoxShadow(
-            color: context.dugnadTheme.text.withValues(alpha: 0.05),
+            color: context.aeTheme.text.withValues(alpha: 0.05),
             blurRadius: context.dp(3),
             offset: Offset(context.dp(0), context.dp(1)),
           ),
         ],
       );
     } else {
-      final theme = context.dugnadTheme;
+      final theme = context.aeTheme;
       decoration = BoxDecoration(
         // `.lb-ladder .step.metal-*` is 135deg with a 48% midpoint -- the same
         // Family A ramp as .lb-level and M_BG, not a two-stop reduction.
@@ -980,7 +980,7 @@ class _LadderStepCard extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 color: isLocked
                     ? const Color(0xFF9890A8)
-                    : context.dugnadTheme.primaryHover,
+                    : context.aeTheme.primaryHover,
                 letterSpacing: -0.01 * 11.5,
                 height: 1.1,
               ),
@@ -1022,7 +1022,7 @@ class DugnadStoSourceBreakdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final rows = [
       _StoSourceRowData(
         iconName: 'share',
@@ -1176,7 +1176,7 @@ class _StoSourceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.fromLTRB(context.dp(13), context.dp(11), context.dp(13), context.dp(11)),
       decoration: BoxDecoration(
@@ -1242,7 +1242,7 @@ class _StoSourcePointsValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.dugnadTheme.primaryHover;
+    final accent = context.aeTheme.primaryHover;
     return RichText(
       text: TextSpan(
         style: TextStyle(
@@ -1442,7 +1442,7 @@ class _LadderDot extends StatelessWidget {
       );
     }
     if (isOn) {
-      final theme = context.dugnadTheme;
+      final theme = context.aeTheme;
       return Container(
         width: context.dp(24),
         height: context.dp(24),
@@ -1512,15 +1512,15 @@ class DugnadTeamSectionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(context.dp(16)),
           border: Border.all(
             color: Color.lerp(
-              context.dugnadTheme.primaryTint,
-              context.dugnadTheme.primary,
+              context.aeTheme.primaryTint,
+              context.aeTheme.primary,
               0.28,
             )!,
             width: context.dp(1.5),
           ),
           boxShadow: [
             BoxShadow(
-              color: context.dugnadTheme.text.withValues(alpha: 0.05),
+              color: context.aeTheme.text.withValues(alpha: 0.05),
               blurRadius: context.dp(4),
               offset: Offset(context.dp(0), context.dp(2)),
             ),
@@ -1532,13 +1532,13 @@ class DugnadTeamSectionCard extends StatelessWidget {
               width: context.dp(44),
               height: context.dp(44),
               decoration: BoxDecoration(
-                color: context.dugnadTheme.primaryTint,
+                color: context.aeTheme.primaryTint,
                 borderRadius: BorderRadius.circular(context.dp(12)),
               ),
               child: Icon(
                 Icons.shield_outlined,
                 size: context.dp(20),
-                color: context.dugnadTheme.primaryHover,
+                color: context.aeTheme.primaryHover,
               ),
             ),
             SizedBox(width: context.dp(13)),
@@ -1574,12 +1574,12 @@ class DugnadTeamSectionCard extends StatelessWidget {
                 padding:
                     EdgeInsets.symmetric(horizontal: context.dp(14), vertical: context.dp(8)),
                 decoration: BoxDecoration(
-                  color: context.dugnadTheme.primaryTint,
+                  color: context.aeTheme.primaryTint,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   languages.dugnadChangeTeam,
-                  style: aeLabel(color: context.dugnadTheme.primaryHover).copyWith(
+                  style: aeLabel(color: context.aeTheme.primaryHover).copyWith(
                     fontWeight: FontWeight.w800,
                     fontSize: 12,
                   ).dp(context),
@@ -1634,7 +1634,7 @@ class DugnadFormEntryCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: context.dugnadTheme.text.withValues(alpha: 0.05),
+              color: context.aeTheme.text.withValues(alpha: 0.05),
               blurRadius: context.dp(4),
               offset: Offset(context.dp(0), context.dp(2)),
             ),
@@ -1693,7 +1693,7 @@ class DugnadMissionsEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return GestureDetector(
       onTap: onTap,
@@ -1791,7 +1791,7 @@ class DugnadKapteinChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Container(
       padding: EdgeInsets.all(context.dp(14)),
@@ -1888,7 +1888,7 @@ class DugnadPlayerChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Container(
       padding: EdgeInsets.all(context.dp(14)),
@@ -2105,7 +2105,7 @@ class _DugnadMerkeHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(context.dp(2), context.dp(0), context.dp(2), context.dp(11)),
@@ -2283,7 +2283,7 @@ class _DugnadBadgeCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final earned = badge.earned;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final stoBonus = badge.stoBonus;
 
     return GestureDetector(
@@ -2454,7 +2454,7 @@ class DugnadProfileBadgesPreview extends StatelessWidget {
                       vertical: context.dp(6),
                     ),
                     decoration: BoxDecoration(
-                      color: context.dugnadTheme.primaryTint,
+                      color: context.aeTheme.primaryTint,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Row(
@@ -2462,13 +2462,13 @@ class DugnadProfileBadgesPreview extends StatelessWidget {
                       children: [
                         Text(
                           languages.dugnadSeeAllBadges,
-                          style: aeLabel(color: context.dugnadTheme.primary)
+                          style: aeLabel(color: context.aeTheme.primary)
                               .dp(context),
                         ),
                         Icon(
                           Icons.chevron_right_rounded,
                           size: context.dp(16),
-                          color: context.dugnadTheme.primary,
+                          color: context.aeTheme.primary,
                         ),
                       ],
                     ),
@@ -2573,7 +2573,7 @@ class DugnadMetalStarEmblem extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: context.dugnadTheme.text.withValues(alpha: 0.18),
+                  color: context.aeTheme.text.withValues(alpha: 0.18),
                   blurRadius: context.dp(14),
                   offset: Offset(context.dp(0), context.dp(6)),
                 ),

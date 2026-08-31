@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aerend_customer/screens/common/account/account_widgets.dart';
 import 'package:aerend_customer/screens/common/editProfile/edit_profile_repo.dart';
 import 'package:aerend_customer/screens/common/login/login_dl.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_sheet.dart';
+import 'package:aerend_customer/ui/kit/ae_sheet.dart';
 
 import '../../../utils/utils.dart';
 
@@ -14,7 +14,7 @@ final RegExp _emailPattern = RegExp(r'.+@.+\..+');
 ///
 /// Resolves with `true` when the e-mail was saved.
 Future<bool?> showEditEmailSheet(BuildContext context) {
-  return showDugnadSheet<bool>(
+  return showAeSheet<bool>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => AccountEditFieldSheet(

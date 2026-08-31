@@ -1,5 +1,5 @@
 import 'package:aerend_customer/screens/common/homeMainV1/home_main_v1.dart';
-import 'package:aerend_customer/screens/dugnad/widgets/dugnad_subpage_shell.dart';
+import 'package:aerend_customer/ui/kit/ae_subpage_shell.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,7 +22,7 @@ class _CreditState extends State<Credit> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ScSaasThemeTokens.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -55,7 +55,7 @@ class _CreditState extends State<Credit> {
         padding: const EdgeInsets.fromLTRB(22, 8, 22, 14),
         child: Row(
           children: [
-            DugnadLbBackButton(
+            AeBackButton(
               onPressed: () => openScreenWithResult(context, const HomeMainV1(homeIndex: 3)),
             ),
             const SizedBox(width: 12),

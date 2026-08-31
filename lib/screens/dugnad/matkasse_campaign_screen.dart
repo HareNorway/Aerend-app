@@ -14,15 +14,15 @@ import '../campaign/campaign_media.dart';
 import 'matkasse_product_screen.dart';
 import '../campaign/campaign_strings.dart';
 import '../campaign/models/campaign_detail_pojo.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_points_widgets.dart';
 import '../../services/dugnad_data_cache.dart';
 import 'widgets/campaign_countdown.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 import 'widgets/mk_cart_bar.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 // Aliases the token rather than repeating its hex. A shared constant is
 // verified once or not at all: when every site holds the same wrong value
@@ -77,7 +77,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Scaffold(
       backgroundColor: theme.background,
@@ -118,7 +118,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
     );
   }
 
-  Widget _buildLive(CampaignDetail campaign, DugnadClubThemePalette theme) {
+  Widget _buildLive(CampaignDetail campaign, AeThemePalette theme) {
     final clubName = campaign.club?.name ?? DugnadClubBranding.fullName();
     final teamName = campaign.team?.name ?? '';
     final logoUrl = (campaign.team?.logoUrl?.isNotEmpty ?? false)
@@ -264,7 +264,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
     );
   }
 
-  Widget _buildLoading(DugnadClubThemePalette theme) {
+  Widget _buildLoading(AeThemePalette theme) {
     return Scaffold(
       backgroundColor: theme.background,
       appBar: AppBar(
@@ -273,7 +273,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
         leadingWidth: 56,
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
-          child: DugnadLbBackButton(
+          child: AeBackButton(
             onPressed: () => Navigator.maybePop(context),
           ),
         ),
@@ -288,7 +288,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
     );
   }
 
-  Widget _buildError(DugnadClubThemePalette theme, String message) {
+  Widget _buildError(AeThemePalette theme, String message) {
     return Scaffold(
       backgroundColor: theme.background,
       appBar: AppBar(
@@ -297,7 +297,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
         leadingWidth: 56,
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
-          child: DugnadLbBackButton(
+          child: AeBackButton(
             onPressed: () => Navigator.maybePop(context),
           ),
         ),
@@ -326,7 +326,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
     );
   }
 
-  Widget _buildMessage(DugnadClubThemePalette theme, String title, String body) {
+  Widget _buildMessage(AeThemePalette theme, String title, String body) {
     return Scaffold(
       backgroundColor: theme.background,
       appBar: AppBar(
@@ -335,7 +335,7 @@ class _MatkasseCampaignScreenState extends State<MatkasseCampaignScreen> {
         leadingWidth: 56,
         leading: Padding(
           padding: const EdgeInsets.only(left: 10),
-          child: DugnadLbBackButton(
+          child: AeBackButton(
             onPressed: () => Navigator.maybePop(context),
           ),
         ),
@@ -384,7 +384,7 @@ class _MkCampHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Container(
       width: double.infinity,
@@ -419,12 +419,12 @@ class _MkCampHero extends StatelessWidget {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: DugnadLbBackButton(
+                    child: AeBackButton(
                       onPressed: () => Navigator.maybePop(context),
                     ),
                   ),
                   SizedBox(height: context.dp(22)),
-                  ClubCrest(
+                  AeClubCrest(
                     name: clubName,
                     logoUrl: logoUrl,
                     size: context.dp(70),
@@ -496,7 +496,7 @@ class _DgGreenBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: context.dp(13), vertical: context.dp(11)),
       decoration: BoxDecoration(
@@ -561,7 +561,7 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.all(context.dp(12)),
       decoration: BoxDecoration(
@@ -664,7 +664,7 @@ class _MkProductCardState extends State<_MkProductCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final images = _images;
     final hasMultiple = images.length > 1;
 
@@ -813,7 +813,7 @@ class _MkProductCardState extends State<_MkProductCard> {
   Widget _buildCarousel(
     List<String> images,
     bool hasMultiple,
-    DugnadClubThemePalette theme,
+    AeThemePalette theme,
   ) {
     return AspectRatio(
       aspectRatio: 16 / 10,
@@ -917,7 +917,7 @@ class _MkProductCardState extends State<_MkProductCard> {
             ),
           ],
         ),
-        child: Icon(icon, size: context.dp(18), color: context.dugnadTheme.text),
+        child: Icon(icon, size: context.dp(18), color: context.aeTheme.text),
       ),
     );
   }
@@ -929,7 +929,7 @@ class _MkProductCardState extends State<_MkProductCard> {
     return end != null && end.isBefore(DateTime.now());
   }
 
-  Widget _buildQtyControl(int qty, DugnadClubThemePalette theme) {
+  Widget _buildQtyControl(int qty, AeThemePalette theme) {
     if (_expired) {
       // `disabled`, gray-100 on gray-500 at opacity .6 with no shadow. The
       // button must not accept a tap either -- a disabled-looking control
@@ -1017,7 +1017,7 @@ class _MkProductCardState extends State<_MkProductCard> {
     );
   }
 
-  Widget _stepBtn(IconData icon, VoidCallback onTap, DugnadClubThemePalette theme) {
+  Widget _stepBtn(IconData icon, VoidCallback onTap, AeThemePalette theme) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -1054,7 +1054,7 @@ class _MkProductCardState extends State<_MkProductCard> {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

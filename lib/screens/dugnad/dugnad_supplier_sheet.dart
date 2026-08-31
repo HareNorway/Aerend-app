@@ -5,8 +5,8 @@ import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import '../campaign/campaign_supplier_content.dart';
-import 'dugnad_club_theme.dart';
-import 'dugnad_sheet.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_sheet.dart';
 
 const Color _kSuccessGreen = Color(0xFF22A769);
 
@@ -19,7 +19,7 @@ Future<void> showDugnadSupplierSheet(
   BuildContext context, {
   required String heading,
 }) {
-  return showDugnadSheet<void>(
+  return showAeSheet<void>(
     context: context,
     isScrollControlled: true,
     constraints: BoxConstraints(
@@ -36,7 +36,7 @@ class _SupplierSheetBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final lang = Localizations.localeOf(context).languageCode;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -46,7 +46,7 @@ class _SupplierSheetBody extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const DugnadSheetHandle(),
+          const AeSheetHandle(),
           // Header — green shield emblem + "Leverandør" eyebrow + supplier name.
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,7 +110,7 @@ class _SupplierSheetBody extends StatelessWidget {
           // "Skjønner" — reuses the existing why-fee sheet button copy.
           GestureDetector(
             onTap: () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.pop(context);
             },
             child: Container(

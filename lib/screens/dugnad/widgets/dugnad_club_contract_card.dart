@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../theme/design_scale.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_club_crest.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Player contract card for T14 club welcome (`dgseq-contract-card`).
 class DugnadClubContractCard extends StatefulWidget {
@@ -94,7 +94,7 @@ class _DugnadClubContractCardState extends State<DugnadClubContractCard>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final l10n = AppLocalizations.of(context)!;
     final stampColor = Color.lerp(theme.primary, Colors.black, 0.12)!;
 
@@ -222,7 +222,7 @@ class _ContractDocument extends StatelessWidget {
     required this.sweepProgress,
   });
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
   final AppLocalizations l10n;
   final String clubName;
   final String playerName;
@@ -304,7 +304,7 @@ class _ContractDocument extends StatelessWidget {
                   color: _DugnadClubContractCardState._ink.withValues(alpha: 0.08),
                 ),
                 SizedBox(height: context.dp(13)),
-                ClubCrest(
+                AeClubCrest(
                   name: clubName,
                   logoUrl: clubLogoUrl,
                   size: context.dp(52),

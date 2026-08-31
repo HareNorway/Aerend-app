@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 
-import '../../../theme/design_scale.dart';
+import '../../theme/design_scale.dart';
 
-import '../../../theme/sc_saas_theme.dart';
+import '../../theme/sc_saas_theme.dart';
 
 /// Swipe-to-confirm slider — mirrors `SwipeButton` (dugnad/swipe.jsx) and the
 /// `.dg-swipe` rules: ~66px track, 56px knob inset 5px, settle transition
 /// 280ms cubic-bezier(.2,.9,.3,1.2), completion at 85% of travel.
 /// Track fill stays fully opaque so content never shows through the capsule.
-enum DugnadSwipeVariant { green, purple }
+enum AeSwipeVariant { green, purple }
 
-class DugnadSwipeButton extends StatefulWidget {
-  const DugnadSwipeButton({
+class AeSwipeButton extends StatefulWidget {
+  const AeSwipeButton({
     super.key,
     required this.label,
     required this.onComplete,
     this.amount,
     this.doneLabel,
-    this.variant = DugnadSwipeVariant.purple,
+    this.variant = AeSwipeVariant.purple,
     this.enabled = true,
   });
 
@@ -25,14 +25,14 @@ class DugnadSwipeButton extends StatefulWidget {
   final String? amount;
   final String? doneLabel;
   final VoidCallback onComplete;
-  final DugnadSwipeVariant variant;
+  final AeSwipeVariant variant;
   final bool enabled;
 
   @override
-  State<DugnadSwipeButton> createState() => _DugnadSwipeButtonState();
+  State<AeSwipeButton> createState() => _AeSwipeButtonState();
 }
 
-class _DugnadSwipeButtonState extends State<DugnadSwipeButton>
+class _AeSwipeButtonState extends State<AeSwipeButton>
     with TickerProviderStateMixin {
   static const double _trackHeight = 66;
   static const double _knob = 56;
@@ -82,7 +82,7 @@ class _DugnadSwipeButtonState extends State<DugnadSwipeButton>
 
   @override
   Widget build(BuildContext context) {
-    final purple = widget.variant == DugnadSwipeVariant.purple;
+    final purple = widget.variant == AeSwipeVariant.purple;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return LayoutBuilder(

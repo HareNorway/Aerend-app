@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../theme/design_scale.dart';
 import '../../utils/utils.dart';
 import 'dugnad_repo.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// Shown when Vipps rejected or stopped the agreement during sync.
 class DonationSetupFailedScreen extends StatelessWidget {
@@ -22,7 +22,7 @@ class DonationSetupFailedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(context.dp(20), context.dp(24), context.dp(20), context.dp(24)),
@@ -32,7 +32,7 @@ class DonationSetupFailedScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: Duration(milliseconds: 120),
                       child: Icon(
                         Icons.cancel_outlined,
@@ -41,7 +41,7 @@ class DonationSetupFailedScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: context.dp(20)),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 190),
                       child: Text(
                         languages.dugnadDonationSetupFailedTitle,
@@ -53,13 +53,13 @@ class DonationSetupFailedScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: context.dp(10)),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 260),
                       child: Text(
                         languages.dugnadDonationSetupFailedBody,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: context.dugnadTheme.primaryHover,
+                          color: context.aeTheme.primaryHover,
                           fontWeight: FontWeight.w600,
                           height: 1.45,
                         ),
@@ -68,7 +68,7 @@ class DonationSetupFailedScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              DugnadRiseIn(
+              AeRiseIn(
                 delay: const Duration(milliseconds: 440),
                 duration: const Duration(milliseconds: 550),
                 child: SizedBox(
@@ -76,7 +76,7 @@ class DonationSetupFailedScreen extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => _dismiss(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: context.dugnadTheme.primary,
+                      backgroundColor: context.aeTheme.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: EdgeInsets.symmetric(vertical: context.dp(16)),

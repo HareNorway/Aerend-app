@@ -7,12 +7,12 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
 import '../donation_setup_screen.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_form_utils.dart';
 import '../dugnad_formen_screen.dart';
 import '../dugnad_models.dart';
 import '../dugnad_points_widgets.dart';
-import '../dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../dugnad_sto_source_breakdown.dart';
 import '../dugnad_sto_utils.dart';
 import '../gamification_models.dart';
@@ -20,7 +20,7 @@ import '../kampanje_screen.dart';
 import '../points_metal_theme.dart';
 import '../referral_share_screen.dart';
 import 'dugnad_metal_animations.dart';
-import 'dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 
 /// Bottom sheet that explains how the STØ rating is calculated.
 ///
@@ -51,8 +51,8 @@ class DugnadStoExplainerSheet extends StatelessWidget {
     GamificationConfig? config,
   }) {
     // `.dg-csheet { background: var(--ae-lavender) }` — club lavender, not white.
-    final sheetBg = context.dugnadTheme.background;
-    return showDugnadSheet<void>(
+    final sheetBg = context.aeTheme.background;
+    return showAeSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: sheetBg,
@@ -69,9 +69,9 @@ class DugnadStoExplainerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final sheetBg = context.dugnadTheme.background;
-    final radius = context.dp(kDugnadSheetRadius);
-    return DugnadFixedTypography(
+    final sheetBg = context.aeTheme.background;
+    final radius = context.dp(kAeSheetRadius);
+    return AeFixedTypography(
       child: ClipRRect(
         borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
         child: ColoredBox(
@@ -194,7 +194,7 @@ class _SheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return ColoredBox(
       color: background,
       child: Padding(
@@ -202,7 +202,7 @@ class _SheetHeader extends StatelessWidget {
         child: Column(
           children: [
             // `.dg-msheet-grab` — 40×5 gray pill.
-            const DugnadSheetHandle(bottom: 12),
+            const AeSheetHandle(bottom: 12),
             Row(
               children: [
                 Expanded(
@@ -430,7 +430,7 @@ class _TempoNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.fromLTRB(context.dp(12), context.dp(10), context.dp(12), context.dp(10)),
       decoration: BoxDecoration(
@@ -479,7 +479,7 @@ class _SeasonFarmNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.fromLTRB(context.dp(12), context.dp(10), context.dp(12), context.dp(10)),
       decoration: BoxDecoration(
@@ -552,7 +552,7 @@ class _CarryoverSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final currentIdx = dugnadMetalOrder.indexOf(currentMetal);
     final nextMetal = currentIdx >= 0 && currentIdx + 1 < dugnadMetalOrder.length
         ? dugnadMetalOrder[currentIdx + 1]
@@ -703,7 +703,7 @@ class _CarryoverRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final accent = _CarryoverMetalAccent.forMetal(metal);
     final bg = isCurrent ? accent.bg : Colors.white;
     final borderColor = isCurrent ? accent.dot : const Color(0xFFEEECF5);
@@ -870,7 +870,7 @@ class _FormBoostRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(

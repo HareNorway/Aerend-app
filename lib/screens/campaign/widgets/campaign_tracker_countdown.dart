@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_hourglass.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_hourglass.dart';
 import '../campaign_strings.dart';
 
 /// Countdown intensifies in the final 26h — mirrors the prototype `.cp-*.soon`.
@@ -111,7 +111,7 @@ class _TrackerCountdownState extends State<TrackerCountdown> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final remaining = trackerRemaining(widget.windowStart);
     final soon = trackerIsSoon(remaining);
     final expired = remaining <= Duration.zero;
@@ -143,7 +143,7 @@ class _TrackerCountdownState extends State<TrackerCountdown> {
 
     if (soon) {
       // Reduced-motion-safe pulse (returns child directly when animations off).
-      return DugnadCountdownPulse(color: ScSaasThemeTokens.danger, child: row);
+      return AeCountdownPulse(color: ScSaasThemeTokens.danger, child: row);
     }
     return row;
   }
@@ -296,7 +296,7 @@ class _TrackerDialState extends State<TrackerDial>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final remaining = trackerRemaining(widget.windowStart);
     final soon = trackerIsSoon(remaining);
     final progress = trackerProgress(widget.boughtAt, widget.windowStart);

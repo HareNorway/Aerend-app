@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/club_crest.dart';
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_club_crest.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../../dugnad/dugnad_state.dart';
 import '../campaign_delivery_utils.dart';
 import '../campaign_strings.dart';
@@ -72,7 +72,7 @@ class CpReceiptPaper extends StatelessWidget {
         zig: zig,
         tooth: tooth,
         topRadius: radius,
-        color: context.dugnadTheme.ink,
+        color: context.aeTheme.ink,
       ),
       child: ClipPath(
         clipper: CpZigzagClipper(zig: zig, tooth: tooth, topRadius: radius),
@@ -232,8 +232,8 @@ class CpCrest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
-    final url = ClubCrest.resolveClubMediaUrl(logoUrl);
+    final theme = context.aeTheme;
+    final url = AeClubCrest.resolveClubMediaUrl(logoUrl);
     return ClipRRect(
       borderRadius: BorderRadius.circular(context.dp(12)),
       child: ColoredBox(
@@ -273,7 +273,7 @@ class CpReceiptHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final bought = campaignDayLabel(order.boughtAt);
     final teamBits = [
       if ((order.clubName ?? '').trim().isNotEmpty) order.clubName!.trim(),
@@ -358,7 +358,7 @@ class CpDottedRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -427,7 +427,7 @@ class CpMethodTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.fromLTRB(
         context.dp(7),
@@ -470,7 +470,7 @@ class CpPointsStamp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final radius = context.dp(11);
     final border = Color.lerp(Colors.white, theme.primary, 0.42)!;
     final fill = Color.lerp(Colors.white, theme.primary, 0.07)!;

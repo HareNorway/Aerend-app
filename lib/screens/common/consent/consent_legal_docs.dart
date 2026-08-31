@@ -1,6 +1,6 @@
 // In-gate legal copy — ports `DG_LEGAL_DOCS` from
-// `DesignNew/dugnad/legal-support.jsx`, with the Reen rebrand applied
-// (`Ærend` → `Reen Dugnad`, `Ærends` → `Reens`) as in Custom Dugnad.html.
+// `DesignNew/dugnad/legal-support.jsx`. The entity name is Ærend;
+// the interim "Reen Dugnad" rebrand was reverted in Chunk 3b.
 
 class ConsentLegalBlock {
   const ConsentLegalBlock({this.h, this.p, this.list});
@@ -30,20 +30,20 @@ const ConsentLegalDoc kConsentTermsDoc = ConsentLegalDoc(
   updated: 'Oppdatert 2. april 2026',
   blocks: [
     ConsentLegalBlock(
-      h: 'Velkommen til Reen Dugnad!',
-      p: 'Disse vilkårene beskriver reglene for bruk av Reen Dugnads app og leveringstjenester.',
+      h: 'Velkommen til Ærend!',
+      p: 'Disse vilkårene beskriver reglene for bruk av Ærends app og leveringstjenester.',
     ),
     ConsentLegalBlock(
-      p: 'Ved å bruke appen godtar du disse vilkårene. Er du uenig i noe av det som står her, skal du ikke bruke Reen Dugnad.',
+      p: 'Ved å bruke appen godtar du disse vilkårene. Er du uenig i noe av det som står her, skal du ikke bruke Ærend.',
     ),
     ConsentLegalBlock(
       h: 'Lisens',
-      p: 'Med mindre annet er oppgitt eier Reen Dugnad og våre lisensgivere alle immaterielle rettigheter til innholdet i appen. Du kan bruke innholdet til eget personlig bruk, innenfor rammene av disse vilkårene.',
+      p: 'Med mindre annet er oppgitt eier Ærend og våre lisensgivere alle immaterielle rettigheter til innholdet i appen. Du kan bruke innholdet til eget personlig bruk, innenfor rammene av disse vilkårene.',
     ),
     ConsentLegalBlock(
       h: 'Du kan ikke',
       list: [
-        'Publisere Reens innhold på nytt',
+        'Publisere Ærends innhold på nytt',
         'Selge, leie ut eller viderelisensiere innholdet',
         'Kopiere eller duplisere innholdet',
         'Distribuere innholdet videre',
@@ -51,7 +51,7 @@ const ConsentLegalDoc kConsentTermsDoc = ConsentLegalDoc(
     ),
     ConsentLegalBlock(
       h: 'Innhold fra brukere',
-      p: 'Deler av appen lar brukere legge ut meninger og informasjon. Reen Dugnad forhåndsgodkjenner ikke slikt innhold, og det gjenspeiler ikke Reens syn.',
+      p: 'Deler av appen lar brukere legge ut meninger og informasjon. Ærend forhåndsgodkjenner ikke slikt innhold, og det gjenspeiler ikke Ærends syn.',
     ),
     ConsentLegalBlock(
       h: 'Dugnad og klubbandel',

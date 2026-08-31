@@ -6,10 +6,10 @@ import 'package:flutter/services.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_club_branding.dart';
 import '../dugnad_t1_controller.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
 import '../dugnad_points_widgets.dart';
 import '../dugnad_state.dart';
@@ -440,7 +440,7 @@ class _DugnadHomeAnchorCardBody extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      ClubCrest(
+                      AeClubCrest(
                         name: ds.pointsTeamName,
                         logoUrl: ds.pointsTeamLogo.isEmpty
                             ? null
@@ -516,7 +516,7 @@ class _DugnadHomeAnchorCardBody extends StatelessWidget {
                             size: context.dp(15),
                             color: browsePreview
                                 ? fg
-                                : context.dugnadTheme.primaryHover,
+                                : context.aeTheme.primaryHover,
                           ),
                           SizedBox(width: context.dp(7)),
                           Text(
@@ -526,7 +526,7 @@ class _DugnadHomeAnchorCardBody extends StatelessWidget {
                                   fontWeight: FontWeight.w800,
                                   color: browsePreview
                                       ? fg
-                                      : context.dugnadTheme.primaryHover,
+                                      : context.aeTheme.primaryHover,
                                   fontSize: 13,
                                 )
                                 .dp(context),
@@ -602,7 +602,7 @@ class _DugnadHomeAnchorCardBody extends StatelessWidget {
               child: DugnadT1PulseOverlay(
                 key: ValueKey('t1-fx-$pulseDelta'),
                 delta: pulseDelta!,
-                accent: context.dugnadTheme.primary,
+                accent: context.aeTheme.primary,
               ),
             ),
         ],
@@ -768,7 +768,7 @@ class _EmptyAnchorCard extends StatelessWidget {
           ),
           if (!hasTeam && onConnectTeam != null)
             Material(
-              color: context.dugnadTheme.primaryTint.withValues(alpha: 0.35),
+              color: context.aeTheme.primaryTint.withValues(alpha: 0.35),
               child: InkWell(
                 // Haptic fires in the onConnectTeam handler (_pickPointsTeam).
                 onTap: onConnectTeam,
@@ -783,7 +783,7 @@ class _EmptyAnchorCard extends StatelessWidget {
                       Icon(
                         Icons.shield_outlined,
                         size: context.dp(15),
-                        color: context.dugnadTheme.primaryHover,
+                        color: context.aeTheme.primaryHover,
                       ),
                       SizedBox(width: context.dp(7)),
                       Text(
@@ -791,7 +791,7 @@ class _EmptyAnchorCard extends StatelessWidget {
                         style: aeBody()
                             .copyWith(
                               fontWeight: FontWeight.w800,
-                              color: context.dugnadTheme.primaryHover,
+                              color: context.aeTheme.primaryHover,
                               fontSize: 13,
                             )
                             .dp(context),

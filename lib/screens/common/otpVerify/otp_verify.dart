@@ -11,7 +11,7 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../auth/auth_style.dart';
 import 'otp_verify_bloc.dart';
 
@@ -107,7 +107,7 @@ class _OtpVerifyState extends State<OtpVerify> {
   }
 
   Widget _rise(Widget child, int ms) {
-    return DugnadRiseIn(
+    return AeRiseIn(
       delay: Duration(milliseconds: ms),
       duration: const Duration(milliseconds: 600),
       offsetY: 16,
@@ -460,7 +460,7 @@ const String kAoOtpPhoneSubtitle = 'Vi sender deg en kode på SMS.'; // TODO(l10
 const String kAoOtpCodeSubtitle = 'Skriv inn koden vi sendte til'; // TODO(l10n)
 const String kAoOtpDoneTitle = 'Nummeret er bekreftet'; // TODO(l10n)
 const String kAoOtpDoneSubtitle =
-    'Du er klar — velkommen til Reen Dugnad.'; // TODO(l10n)
+    'Du er klar — velkommen til Ærend.'; // TODO(l10n)
 const String kAoOtpPhoneLabel = 'Telefonnummer'; // TODO(l10n)
 const String kAoOtpCodeLabel = 'Engangskode (SMS)'; // TODO(l10n)
 const String kAoOtpSendCode = 'Send kode'; // TODO(l10n)

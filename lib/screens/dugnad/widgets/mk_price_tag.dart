@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/design_scale.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_state.dart';
 
 /// Animated price tag — mirrors `.mk-pricetag` + `mk-tag-swing` / `mk-tag-sheen`.
@@ -21,7 +21,7 @@ class MkPriceTag extends StatefulWidget {
   /// endpoints -- a neighbouring token, not this one. Browsing without a club
   /// swaps in slate, matching the rest of the card chrome in that mode.
   static LinearGradient gradientFor(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final browseNoClub = !DugnadState.instance.hasClub;
     return LinearGradient(
       begin: Alignment.topLeft,

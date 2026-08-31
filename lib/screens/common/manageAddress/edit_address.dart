@@ -8,8 +8,8 @@ import 'package:aerend_customer/theme/sc_saas_theme.dart';
 
 import '../../../utils/utils.dart';
 import '../../../utils/dropdown_search.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../address_order_chrome.dart';
 import '../auth/auth_style.dart';
 
@@ -51,11 +51,11 @@ class EditAddressState extends State<EditAddress> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -223,7 +223,7 @@ class EditAddressState extends State<EditAddress> {
     String hint, {
     TextInputAction textInputAction = TextInputAction.next,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.text,
@@ -299,7 +299,7 @@ class EditAddressState extends State<EditAddress> {
     String label, {
     required bool on,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Expanded(
       child: AoPressable(
         scale: 0.97,

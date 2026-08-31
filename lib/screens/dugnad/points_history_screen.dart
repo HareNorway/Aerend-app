@@ -8,8 +8,8 @@ import '../../utils/utils.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'points_ledger_display.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 class PointsHistoryScreen extends StatefulWidget {
   const PointsHistoryScreen({super.key});
@@ -86,15 +86,15 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       appBar: AppBar(
-        backgroundColor: context.dugnadTheme.background,
+        backgroundColor: context.aeTheme.background,
         elevation: 0,
         title: Text(
           languages.dugnadPointsHistoryTitle,
           style: aeH2().copyWith(fontSize: 18),
         ),
-        iconTheme: IconThemeData(color: context.dugnadTheme.text),
+        iconTheme: IconThemeData(color: context.aeTheme.text),
       ),
       body: _loading
           ? Padding(
@@ -106,7 +106,7 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
               child: _entries.isEmpty
                   ? ListView(
                       children: [
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 120),
                           child: Padding(
                             padding: EdgeInsets.all(context.dp(32)),
@@ -192,7 +192,7 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
                         if (index >= _staggerCount || !_inEntranceWindow) {
                           return row;
                         }
-                        return DugnadRiseIn(
+                        return AeRiseIn(
                           delay: Duration(milliseconds: 120 + index * 70),
                           child: row,
                         );

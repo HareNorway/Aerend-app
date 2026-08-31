@@ -17,10 +17,10 @@ import 'package:aerend_customer/screens/deliveryService/storeDetail/widget_toppi
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
-import '../../dugnad/widgets/dugnad_swipe_button.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
+import '../../../ui/kit/ae_swipe_button.dart';
 import 'checkout_bloc.dart';
 import 'checkout_preview_utils.dart';
 import 'co_styles.dart';
@@ -107,7 +107,7 @@ class CheckOutState extends State<CheckOut>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ScSaasThemeTokens.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: StreamBuilder<bool>(
@@ -127,7 +127,7 @@ class CheckOutState extends State<CheckOut>
                           kCoBodyPadH,
                           kCoBodyGap,
                         ),
-                        child: DugnadRiseIn(
+                        child: AeRiseIn(
                           delay: const Duration(milliseconds: 120),
                           child: CoCard(child: _buildCoSeg()),
                         ),
@@ -174,7 +174,7 @@ class CheckOutState extends State<CheckOut>
       padding: const EdgeInsets.fromLTRB(kCoBodyPadH, 4, kCoBodyPadH, 12),
       child: Row(
         children: [
-          DugnadLbBackButton(
+          AeBackButton(
             onPressed: () => openScreenWithResult(
               context,
               const HomeMainV1(homeIndex: 1),
@@ -353,13 +353,13 @@ class _DeliveryState extends State<Delivery> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Leveringsadresse (.co-card > .co-row + .co-when) ───────
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 190),
                   child: CoCard(child: _buildAddressSection()),
                 ),
                 const SizedBox(height: kCoBodyGap),
                 // ── Din bestilling (.co-label + .co-item) ─────────────────
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 260),
                   child: CoCard(
                     child: orderSummaryWidget(
@@ -372,13 +372,13 @@ class _DeliveryState extends State<Delivery> {
                 ),
                 const SizedBox(height: kCoBodyGap),
                 // ── Tips ──────────────────────────────────────────────────
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 330),
                   child: CoCard(child: _buildTipSection()),
                 ),
                 const SizedBox(height: kCoBodyGap),
                 // ── Betaling (.co-label + .co-row + «Endre») ──────────────
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 400),
                   child: CoCard(
                     child: _paymentSection(
@@ -391,7 +391,7 @@ class _DeliveryState extends State<Delivery> {
                 ),
                 const SizedBox(height: kCoBodyGap),
                 // ── .co-card.co-totals ────────────────────────────────────
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 470),
                   child: _buildTotals(),
                 ),
@@ -574,9 +574,9 @@ class _DeliveryState extends State<Delivery> {
           }
         }
 
-        return DugnadSwipeButton(
+        return AeSwipeButton(
           key: ValueKey<int>(_payAttempt),
-          variant: DugnadSwipeVariant.purple,
+          variant: AeSwipeVariant.purple,
           label: payLabel,
           amount: grossTotal > 0 ? formatNok(grossTotal) : null,
           doneLabel: 'Betaler…', // TODO(l10n)
@@ -622,12 +622,12 @@ class _SelfPickupState extends State<SelfPickup> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 190),
                   child: CoCard(child: _buildPickupSection()),
                 ),
                 const SizedBox(height: kCoBodyGap),
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 260),
                   child: CoCard(
                     child: orderSummaryWidget(
@@ -640,7 +640,7 @@ class _SelfPickupState extends State<SelfPickup> {
                   ),
                 ),
                 const SizedBox(height: kCoBodyGap),
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 330),
                   child: CoCard(
                     child: _paymentSection(
@@ -652,7 +652,7 @@ class _SelfPickupState extends State<SelfPickup> {
                   ),
                 ),
                 const SizedBox(height: kCoBodyGap),
-                DugnadRiseIn(
+                AeRiseIn(
                   delay: const Duration(milliseconds: 400),
                   child: _buildTotals(),
                 ),
@@ -767,9 +767,9 @@ class _SelfPickupState extends State<SelfPickup> {
           }
         }
 
-        return DugnadSwipeButton(
+        return AeSwipeButton(
           key: ValueKey<int>(_payAttempt),
-          variant: DugnadSwipeVariant.purple,
+          variant: AeSwipeVariant.purple,
           label: 'Sveip for å betale', // TODO(l10n)
           amount: grossTotal > 0 ? formatNok(grossTotal) : null,
           doneLabel: 'Betaler…', // TODO(l10n)
@@ -899,7 +899,7 @@ Future<CheckoutPaymentMethod?> _openPaymentMethodSheet(
   CheckoutPaymentMethod selected,
 ) {
   final List<CheckoutPaymentMethod> methods = _availablePaymentMethods();
-  return showDugnadSheet<CheckoutPaymentMethod>(
+  return showAeSheet<CheckoutPaymentMethod>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) {
@@ -911,7 +911,7 @@ Future<CheckoutPaymentMethod?> _openPaymentMethodSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const DugnadSheetHandle(),
+              const AeSheetHandle(),
               Row(
                 children: [
                   Container(
@@ -1546,8 +1546,8 @@ Future<void> _openOrderItemEditor(
     constraints: const BoxConstraints(minWidth: double.infinity),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(kDugnadSheetRadius),
-        topRight: Radius.circular(kDugnadSheetRadius),
+        topLeft: Radius.circular(kAeSheetRadius),
+        topRight: Radius.circular(kAeSheetRadius),
       ),
     ),
     builder: (BuildContext bottomSheetContext) {
@@ -1558,7 +1558,7 @@ Future<void> _openOrderItemEditor(
             child: Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(kDugnadSheetRadius),
+                  borderRadius: BorderRadius.circular(kAeSheetRadius),
                   child: LoadImageSimple(
                     image: orderItem['product_image'] ?? '',
                     imageFit: BoxFit.contain,

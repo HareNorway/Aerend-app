@@ -18,9 +18,9 @@ import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
 import 'widgets/donation_why_fee_sheet.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'widgets/dugnad_rise_in.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
 
 enum _DonationBeneficiaryKind { organization, team }
 
@@ -425,13 +425,13 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
     final valid = amount >= 10 && recipient != null;
     final enabled = _donationsLive;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
+        backgroundColor: context.aeTheme.primary,
         body: Stack(
           children: [
-            DugnadLbScrollBody(
-              hero: DugnadLbHero(
+            AeScrollBody(
+              hero: AeHero(
                 clubName: clubName,
                 clubLogo: clubLogo,
                 title: _isEditing
@@ -523,7 +523,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DugnadSectionLabel(languages.dugnadDonationWhoSupport),
+            AeSectionLabel(languages.dugnadDonationWhoSupport),
             _buildRecipientPicker(recipient),
           ],
         ),
@@ -533,7 +533,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DugnadSectionLabel(languages.dugnadDonationMonthlyAmount),
+            AeSectionLabel(languages.dugnadDonationMonthlyAmount),
             SizedBox(height: context.dp(10)),
             _buildAmountChips(),
             if (_customAmount) ...[
@@ -550,10 +550,10 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
                   context.dp(12),
                 ),
                 decoration: BoxDecoration(
-                  color: context.dugnadTheme.primaryTint,
+                  color: context.aeTheme.primaryTint,
                   borderRadius: BorderRadius.circular(context.dp(12)),
                   border: Border.all(
-                    color: context.dugnadTheme.primary.withValues(alpha: 0.16),
+                    color: context.aeTheme.primary.withValues(alpha: 0.16),
                   ),
                 ),
                 child: Row(
@@ -564,7 +564,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
                       child: Icon(
                         Icons.star_rounded,
                         size: context.dp(14),
-                        color: context.dugnadTheme.primaryHover,
+                        color: context.aeTheme.primaryHover,
                       ),
                     ),
                     SizedBox(width: context.dp(8)),
@@ -572,7 +572,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
                       child: Text(
                         _monthlySupportPointsLine(points),
                         style: aeBody(
-                          color: context.dugnadTheme.primaryHover,
+                          color: context.aeTheme.primaryHover,
                         ).copyWith(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
@@ -594,7 +594,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DugnadSectionLabel(languages.dugnadDonationPaymentHeading),
+            AeSectionLabel(languages.dugnadDonationPaymentHeading),
             _buildVippsCard(),
             SizedBox(height: context.dp(12)),
             Text(
@@ -609,7 +609,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
   }
 
   _DonationChipStyle _chipStyle(bool selected) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return _DonationChipStyle(
       background: Colors.white,
@@ -620,7 +620,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
   }
 
   Widget _buildRecipientPicker(_DonationRecipientOption? recipient) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     if (_recipients.isEmpty) {
       return Container(
@@ -634,7 +634,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
         child: Text(
           languages.dugnadDonationNoTeams,
           style: TextStyle(
-            color: context.dugnadTheme.primaryHover,
+            color: context.aeTheme.primaryHover,
             fontWeight: FontWeight.w600,
             height: 1.4,
           ),
@@ -733,7 +733,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
   }
 
   Widget _buildRecipientMenuCard() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -926,7 +926,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
                 ]
               : [
                   BoxShadow(
-                    color: context.dugnadTheme.text.withValues(alpha: 0.06),
+                    color: context.aeTheme.text.withValues(alpha: 0.06),
                     blurRadius: context.dp(3),
                     offset: const Offset(0, 1),
                   ),
@@ -961,7 +961,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
         fillColor: const Color(0xFFE8F0FE),
         suffixText: languages.dugnadDonationCurrencyPerMonth,
         suffixStyle: TextStyle(
-          color: context.dugnadTheme.primaryHover,
+          color: context.aeTheme.primaryHover,
           fontWeight: FontWeight.w700,
         ),
         border: OutlineInputBorder(
@@ -1018,7 +1018,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
                 TextSpan(
                   text: ' ${_formatKr(fee.feeKr)} kr ',
                   style: TextStyle(
-                    color: context.dugnadTheme.text,
+                    color: context.aeTheme.text,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -1028,7 +1028,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
           ),
           SizedBox(height: context.dp(12)),
           Material(
-            color: context.dugnadTheme.primaryTint,
+            color: context.aeTheme.primaryTint,
             borderRadius: BorderRadius.circular(999),
             child: InkWell(
               onTap: () {
@@ -1044,13 +1044,13 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
                     Icon(
                       Icons.info_outline_rounded,
                       size: context.dp(14),
-                      color: context.dugnadTheme.primary,
+                      color: context.aeTheme.primary,
                     ),
                     SizedBox(width: context.dp(6)),
                     Text(
                       languages.dugnadDonationWhyFee,
                       style: aeLabel().copyWith(
-                        color: context.dugnadTheme.primary,
+                        color: context.aeTheme.primary,
                         fontWeight: FontWeight.w800,
                         fontSize: 12.5,
                       ),
@@ -1176,7 +1176,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
             width: context.dp(26),
             height: context.dp(26),
             decoration: BoxDecoration(
-              color: context.dugnadTheme.primary,
+              color: context.aeTheme.primary,
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.check_rounded, color: Colors.white, size: context.dp(14)),
@@ -1280,7 +1280,7 @@ class _DonationSetupScreenState extends State<DonationSetupScreen> {
 
   Widget _buildProceedButton({required bool valid, required bool enabled}) {
     final canPress = valid && enabled && !_proceeding;
-    final primary = context.dugnadTheme.primary;
+    final primary = context.aeTheme.primary;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -1416,7 +1416,7 @@ class _FeeProgressBar extends StatelessWidget {
 /// the first screenful render immediately rather than animating out of view.
 Widget _riseIn(int index, Widget child) {
   if (index > 6) return child;
-  return DugnadRiseIn(
+  return AeRiseIn(
     delay: Duration(
       milliseconds: index < 4 ? 120 + index * 70 : 400 + (index - 4) * 50,
     ),

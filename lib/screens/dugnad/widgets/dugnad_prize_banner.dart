@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import 'dugnad_metal_animations.dart';
 
 /// Season prize banner — mirrors `.lb-prize-banner` in `dugnad/gamify.css`.
@@ -74,7 +74,7 @@ class _DugnadPrizeBannerState extends State<DugnadPrizeBanner>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // Figma: linear-gradient(135deg, dark theme → faint club color)
     // Keep faint end on-theme — do not bleach with white (that causes right-side fog).
     final dark = theme.primaryHover;

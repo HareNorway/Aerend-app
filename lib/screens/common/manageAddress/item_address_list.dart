@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../../../utils/utils.dart';
 import '../address_order_chrome.dart';
-import 'dugnad_inline_address.dart';
+import '../../../ui/kit/ae_inline_address.dart';
 import 'manage_address_dl.dart';
 
 /// Address card plus `.oh-acts` Endre / Slett row beneath it.
@@ -31,11 +31,11 @@ class ItemAddressList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DugnadAddressPickCard(
+        AeAddressPickCard(
           address: addressListItem,
           selected: isSelected || isDefault,
           enabled: enabled,

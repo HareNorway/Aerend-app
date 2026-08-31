@@ -6,7 +6,7 @@ import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
 import '../dugnad_state.dart';
 
@@ -34,7 +34,7 @@ class DugnadChooseClubHomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     const cardTitle = Color(0xFF16304F);
     const cardBody = Color(0xFF6D7684);
     return Container(

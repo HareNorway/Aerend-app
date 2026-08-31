@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../networking/api_base_helper.dart';
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/common/login/login_dl.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../utils/utils.dart';
 import 'change_password_dialog_bloc.dart';
 
@@ -34,7 +34,7 @@ Future<void> showChangePasswordSheet(
   BuildContext context, {
   required int userId,
 }) {
-  return showDugnadSheet<void>(
+  return showAeSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (context) => ChangePasswordDialog(userId: userId),
@@ -85,9 +85,9 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
     final bloc = _bloc!;
     return Form(
       key: bloc.formKey,
-      child: DugnadSheetBody(
+      child: AeSheetBody(
         children: [
-          DugnadSheetHead(
+          AeSheetHead(
             icon: Icons.lock_rounded,
             title: languages.setNewPassword,
             message: 'Minst 6 tegn.', // TODO(l10n)
@@ -128,7 +128,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                 confirmPasswordValidate(value, bloc.passController.text) ?? '',
           ),
           if (_mismatch)
-            const DugnadSheetErrorNote(
+            const AeSheetErrorNote(
               message: 'Passordene er ikke like', // TODO(l10n)
             ),
           StreamBuilder<ApiResponse<LoginPojo>>(
@@ -136,7 +136,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
             builder: (context, snapLoading) {
               final isLoading = snapLoading.hasData &&
                   snapLoading.data!.status == Status.loading;
-              return DugnadSheetPrimaryButton(
+              return AeSheetPrimaryButton(
                 topMargin: 18,
                 label: 'Lagre passord', // TODO(l10n)
                 icon: Icons.check_rounded,
@@ -144,7 +144,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                 onPressed: _isValid
                     ? () {
                         if (bloc.formKey.currentState!.validate()) {
-                          dugnadSheetSaveHaptic();
+                          aeSheetSaveHaptic();
                           bloc.submit(widget.userId);
                         }
                       }
@@ -152,10 +152,10 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
               );
             },
           ),
-          DugnadSheetCancelButton(
+          AeSheetCancelButton(
             label: languages.cancel,
             onPressed: () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.pop(context, true);
             },
           ),

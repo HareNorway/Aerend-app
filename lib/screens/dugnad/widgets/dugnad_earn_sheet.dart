@@ -6,8 +6,8 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../dugnad_club_theme.dart';
-import '../dugnad_sheet.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../donation_setup_screen.dart';
 import '../kampanje_screen.dart';
 import '../leaderboard_screen.dart';
@@ -26,7 +26,7 @@ class DugnadEarnPointsEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -125,7 +125,7 @@ Future<void> showDugnadEarnSheet(
   required String clubName,
   required DugnadEarnSheetPoints points,
 }) {
-  return showDugnadSheet<void>(
+  return showAeSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => _DugnadEarnSheetBody(
@@ -146,7 +146,7 @@ class _DugnadEarnSheetBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
@@ -155,7 +155,7 @@ class _DugnadEarnSheetBody extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DugnadSheetHandle(bottom: 12),
+          const AeSheetHandle(bottom: 12),
           Padding(
             padding: EdgeInsets.fromLTRB(context.dp(18), context.dp(4), context.dp(12), context.dp(0)),
             child: Row(
@@ -184,7 +184,7 @@ class _DugnadEarnSheetBody extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    dugnadSheetCloseHaptic();
+                    aeSheetCloseHaptic();
                     Navigator.pop(context);
                   },
                   icon: const Icon(Icons.close_rounded),
@@ -363,7 +363,7 @@ class _EarnActivityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.only(bottom: context.dp(10)),
       child: GestureDetector(

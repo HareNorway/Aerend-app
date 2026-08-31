@@ -4,12 +4,12 @@ import 'package:flutter/services.dart';
 import '../../../theme/design_scale.dart';
 
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_club_branding.dart';
 import '../dugnad_models.dart';
 import '../dugnad_repo.dart';
 import '../dugnad_state.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 
 /// Shows localized "Vervet av X ✓" after account creation when the user was referred.
 ///
@@ -136,7 +136,7 @@ class _IncomingReferralBannerState extends State<IncomingReferralBanner> {
       ),
       child: Row(
         children: [
-          ClubCrest(
+          AeClubCrest(
             name: clubName,
             logoUrl: _organizationLogo ?? DugnadState.instance.clubLogo,
             size: context.dp(40),
@@ -166,7 +166,7 @@ class _IncomingReferralBannerState extends State<IncomingReferralBanner> {
                     Text(
                       languages.dugnadReferralInvitedBy(referrerName),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.dugnadTheme.primary,
+                        color: context.aeTheme.primary,
                         fontWeight: FontWeight.w800,
                       ),
                     ),

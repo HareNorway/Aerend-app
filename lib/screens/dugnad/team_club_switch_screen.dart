@@ -4,13 +4,13 @@ import 'package:flutter/services.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
+import '../../ui/kit/ae_club_crest.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'dugnad_state.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
 /// Prototype: `SwitchScreen` in dugnad/gamify-cards.jsx.
 ///
@@ -223,21 +223,21 @@ class _TeamClubSwitchScreenState extends State<TeamClubSwitchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final clubName = DugnadClubBranding.fullName();
     final clubLogo = DugnadState.instance.clubLogo.isEmpty
         ? null
         : DugnadState.instance.clubLogo;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: theme.primary,
         body: Stack(
           children: [
-            DugnadLbScrollBody(
+            AeScrollBody(
               itemGap: context.dp(14),
               bottomPadding: context.dp(120),
-              hero: DugnadLbHero(
+              hero: AeHero(
                 clubName: clubName,
                 clubLogo: clubLogo,
                 title: languages.dugnadChangeTeamOrClub,
@@ -265,7 +265,7 @@ class _TeamClubSwitchScreenState extends State<TeamClubSwitchScreen> {
     );
   }
 
-  List<Widget> _buildStepBody(DugnadClubThemePalette theme) {
+  List<Widget> _buildStepBody(AeThemePalette theme) {
     switch (_step) {
       case _SwitchStep.pickclub:
         return [
@@ -319,14 +319,14 @@ class _TeamClubSwitchScreenState extends State<TeamClubSwitchScreen> {
     }
   }
 
-  Widget _buildClubList(DugnadClubThemePalette theme) {
+  Widget _buildClubList(AeThemePalette theme) {
     final currentId = _currentClub?.id;
     return Column(
       children: [
         for (var i = 0; i < _clubs.length; i++) ...[
           if (i > 0) SizedBox(height: context.dp(10)),
           _PickRow(
-            leading: ClubCrest(
+            leading: AeClubCrest(
               name: _clubs[i].name,
               logoUrl: _clubs[i].logo,
               size: context.dp(26),
@@ -346,7 +346,7 @@ class _TeamClubSwitchScreenState extends State<TeamClubSwitchScreen> {
     );
   }
 
-  Widget _buildTeamList(DugnadClubThemePalette theme) {
+  Widget _buildTeamList(AeThemePalette theme) {
     final myTeamId = DugnadState.instance.pointsTeamId;
     return Column(
       children: [
@@ -407,7 +407,7 @@ class _PickRow extends StatelessWidget {
   final String meta;
   final bool selected;
   final VoidCallback onTap;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -508,7 +508,7 @@ class _ConfirmCard extends StatelessWidget {
   final String toName;
   final String question;
   final String body;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -589,7 +589,7 @@ class _TeamCrestLabel extends StatelessWidget {
 
   final String name;
   final bool filled;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -633,7 +633,7 @@ class _TeamCrestLabel extends StatelessWidget {
 class _SwitchInfoBanner extends StatelessWidget {
   const _SwitchInfoBanner({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -684,7 +684,7 @@ class _PrimaryButton extends StatelessWidget {
 
   final String label;
   final VoidCallback? onTap;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -741,7 +741,7 @@ class _SecondaryButton extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: context.dugnadTheme.text,
+              color: context.aeTheme.text,
               fontSize: context.dp(15),
               fontWeight: FontWeight.w800,
             ),

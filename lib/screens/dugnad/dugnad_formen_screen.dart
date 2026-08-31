@@ -7,7 +7,7 @@ import '../../commonView/skeleton_loaders/dugnad_subpage_skeletons.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import 'dugnad_club_branding.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_form_utils.dart';
 import 'dugnad_missions_screen.dart';
 import 'dugnad_repo.dart';
@@ -15,8 +15,8 @@ import 'dugnad_state.dart';
 import 'gamification_models.dart';
 import 'referral_share_screen.dart';
 import 'supporter_card_screen.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// "Formen din" — season form tempo screen with an activity line graph,
 /// preview toggles and the activities that build form (aerend-sto spec §3, form
@@ -116,11 +116,11 @@ class _DugnadFormenScreenState extends State<DugnadFormenScreen> {
         ? null
         : DugnadState.instance.clubLogo;
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
-        body: DugnadLbScrollBody(
-          hero: DugnadLbHero(
+        backgroundColor: context.aeTheme.primary,
+        body: AeScrollBody(
+          hero: AeHero(
             clubName: clubName,
             clubLogo: clubLogo,
             title: languages.dugnadFormPageTitle,
@@ -145,7 +145,7 @@ class _DugnadFormenScreenState extends State<DugnadFormenScreen> {
     final progress = _progress;
     if (progress == null || progress.teamRequired) {
       return [
-        DugnadRiseIn(
+        AeRiseIn(
           key: const ValueKey('formenTeamRequired'),
           delay: const Duration(milliseconds: 120),
           child: _plainCard(
@@ -163,7 +163,7 @@ class _DugnadFormenScreenState extends State<DugnadFormenScreen> {
     // 550ms. Keys keep the animation state stable when the preview chips
     // toggle `status` and the warning banner appears/disappears.
     return [
-      DugnadRiseIn(
+      AeRiseIn(
         key: const ValueKey('formenStateCard'),
         delay: const Duration(milliseconds: 120),
         child: _FormStateCard(
@@ -173,26 +173,26 @@ class _DugnadFormenScreenState extends State<DugnadFormenScreen> {
           floor: progress.formFloor,
         ),
       ),
-      DugnadRiseIn(
+      AeRiseIn(
         key: const ValueKey('formenPreviewChips'),
         delay: const Duration(milliseconds: 190),
         child: _previewChips(),
       ),
       if (status != DugnadFormStatus.up)
-        DugnadRiseIn(
+        AeRiseIn(
           key: const ValueKey('formenWarning'),
           delay: const Duration(milliseconds: 260),
           child: _warningBanner(),
         ),
-      DugnadRiseIn(
+      AeRiseIn(
         key: const ValueKey('formenBuildSection'),
         delay: const Duration(milliseconds: 330),
-        child: DugnadSectionBlock(
+        child: AeSectionBlock(
           label: languages.dugnadFormBuildSection,
           children: _buildRows(),
         ),
       ),
-      DugnadRiseIn(
+      AeRiseIn(
         key: const ValueKey('formenInfo'),
         delay: const Duration(milliseconds: 400),
         duration: const Duration(milliseconds: 550),
@@ -391,14 +391,14 @@ class _DugnadFormenScreenState extends State<DugnadFormenScreen> {
     return Container(
       padding: EdgeInsets.fromLTRB(context.dp(12), context.dp(12), context.dp(12), context.dp(12)),
       decoration: BoxDecoration(
-        color: context.dugnadTheme.primaryTint,
+        color: context.aeTheme.primaryTint,
         borderRadius: BorderRadius.circular(context.dp(14)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.info_outline_rounded,
-              size: context.dp(17), color: context.dugnadTheme.primary),
+              size: context.dp(17), color: context.aeTheme.primary),
           SizedBox(width: context.dp(9)),
           Expanded(
             child: Text(
@@ -790,7 +790,7 @@ class _FormBuildRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.lb-ways .ic` → club tint + hover (same treatment for every builder row).
 
     return GestureDetector(

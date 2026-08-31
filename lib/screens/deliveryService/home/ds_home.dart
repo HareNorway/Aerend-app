@@ -34,9 +34,6 @@ class _DSHomeState extends State<DSHome> {
 
   List<ProductCategoryList> storeCategoryList = [];
 
-  bool get _isReenSportsMode => prefGetBool(prefReenSportsMode);
-  int get _activeClubId => prefGetInt(prefActiveSportsClubId);
-
   @override
   void initState() {
     super.initState();
@@ -134,7 +131,7 @@ class _DSHomeState extends State<DSHome> {
               ),
 
               // ── Store list ────────────────────────────────────────
-              _viewCategory(isFood),
+              _viewCategory(),
             ],
           );
         },
@@ -156,7 +153,7 @@ class _DSHomeState extends State<DSHome> {
           return PromoCarousel(
             slides: const [
               PromoSlide(
-                title: 'Velkommen til Reen Dugnad',
+                title: 'Velkommen til Ærend',
                 eyebrow: 'Ny i byen?',
               ),
             ],
@@ -328,7 +325,7 @@ class _DSHomeState extends State<DSHome> {
     );
   }
 
-  Widget _viewCategory(bool isFood) {
+  Widget _viewCategory() {
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
@@ -340,22 +337,8 @@ class _DSHomeState extends State<DSHome> {
                 case Status.loading:
                   return const DsHomeShimmer(enabled: true);
                 case Status.completed:
-                  List<StoreListItem> storeList =
+                  final List<StoreListItem> storeList =
                       snapshot.data?.data?.storeList ?? [];
-                  bool hasActiveClub = _isReenSportsMode && _activeClubId > 0;
-                  if (hasActiveClub && isFood) {
-                    storeList = storeList
-                        .where((s) => s.storeId == _activeClubId)
-                        .toList();
-                    if (storeList.isEmpty) {
-                      return NoRecordFound(
-                        message: _activeClubId > 0
-                            ? "Matkasse is not available today."
-                            : "No active sports club scheduled for today.",
-                        height: deviceAverageSize * 0.18,
-                      );
-                    }
-                  }
                   return Column(
                     children: List.generate(storeList.length, (index) {
                       StoreListItem storeItem = storeList[index];

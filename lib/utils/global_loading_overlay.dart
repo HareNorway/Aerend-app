@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../commonView/dugnad_club_loader.dart';
+import '../ui/kit/ae_loader.dart';
 import '../main.dart';
 
 OverlayEntry? _entry;
@@ -25,7 +25,7 @@ void showGlobalLoadingOverlay({String? message}) {
   _entry = OverlayEntry(
     builder: (context) => Material(
       type: MaterialType.transparency,
-      child: DugnadClubLoaderScreen(
+      child: AeLoaderScreen(
         label: (_message != null && _message!.isNotEmpty) ? _message : null,
       ),
     ),

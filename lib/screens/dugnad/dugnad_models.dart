@@ -1,6 +1,6 @@
 // Pojos for the dugnad sports-club API (D1 endpoints).
 
-import 'dugnad_club_theme.dart' show normalizeThemeColor;
+import '../../ui/kit/ae_theme.dart' show normalizeThemeColor;
 
 class ClubListItem {
   final int id;

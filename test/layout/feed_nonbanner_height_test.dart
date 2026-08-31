@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/dugnad_models.dart';
 import 'package:aerend_customer/screens/dugnad/gamification_models.dart';
 import 'package:aerend_customer/screens/dugnad/widgets/dugnad_campaign_carousel.dart';
@@ -47,8 +47,8 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: DugnadClubThemeScope(
-          palette: DugnadClubThemePalette.defaults,
+        home: AeThemeScope(
+          palette: AeThemePalette.defaults,
           child: Scaffold(
             // Unbounded height so nothing stretches to the frame (rule 22).
             body: SingleChildScrollView(

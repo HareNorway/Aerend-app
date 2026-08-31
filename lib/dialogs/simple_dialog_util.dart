@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../commonView/modal_ui.dart';
-import '../screens/dugnad/dugnad_sheet.dart';
-import '../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../ui/kit/ae_sheet.dart';
+import '../ui/kit/ae_confirm_sheet.dart';
 import '../utils/utils.dart';
 
 /// `LogoutSheet` (dugnad/dialogs.jsx) — the logout confirmation is a bottom
@@ -27,8 +27,8 @@ class LogoutSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DGConfirmSheet(
-      tone: DugnadSheetTone.danger,
+    return AeConfirmSheet(
+      tone: AeSheetTone.danger,
       icon: Icons.logout_rounded,
       title: title,
       message: message,
@@ -43,7 +43,7 @@ class LogoutSheet extends StatelessWidget {
 /// Presents [LogoutSheet]; resolves to `true` when "Logg ut" is tapped and
 /// `null` when the sheet is dismissed.
 Future<bool?> showLogoutSheet(BuildContext context) {
-  return showDugnadSheet<bool>(
+  return showAeSheet<bool>(
     context: context,
     isScrollControlled: true,
     builder: (context) => const LogoutSheet(),

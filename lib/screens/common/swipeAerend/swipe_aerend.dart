@@ -158,7 +158,7 @@ class _SwipeAerendState extends State<SwipeReen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Reen Dugnad Explore',
+                    'Ærend Explore',
                     style:
                         TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),

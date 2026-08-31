@@ -5,8 +5,8 @@ import '../../theme/design_scale.dart';
 
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
-import 'club_crest.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_club_crest.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Profile head row (`.dg-prof-head`) — avatar · name/email · edit.
 /// Bell lives in the screen `tk-head`; edit is right-aligned under it.
@@ -26,7 +26,7 @@ class DugnadProfileHead extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         context.dp(2),
@@ -182,7 +182,7 @@ class _DugnadProfileShinyRowState extends State<DugnadProfileShinyRow> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final reduce = MediaQuery.disableAnimationsOf(context);
     return AnimatedScale(
       scale: _pressed && !reduce ? 0.985 : 1,
@@ -293,7 +293,7 @@ class DugnadProfileListCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(context.dp(16)),
         boxShadow: [
           BoxShadow(
-            color: context.dugnadTheme.text.withValues(alpha: 0.05),
+            color: context.aeTheme.text.withValues(alpha: 0.05),
             blurRadius: context.dp(4),
             offset: const Offset(0, 2),
           ),
@@ -381,7 +381,7 @@ class DugnadProfileListRow extends StatelessWidget {
       );
     } else {
       decoration = BoxDecoration(
-        color: iconBackground ?? context.dugnadTheme.primaryTint,
+        color: iconBackground ?? context.aeTheme.primaryTint,
         borderRadius: BorderRadius.circular(context.dp(11)),
       );
     }
@@ -391,7 +391,7 @@ class DugnadProfileListRow extends StatelessWidget {
           size: context.dp(18),
           color: amberIcon
               ? Colors.white
-              : (iconColor ?? context.dugnadTheme.primary),
+              : (iconColor ?? context.aeTheme.primary),
         );
     return Container(
       width: context.dp(40),
@@ -441,12 +441,12 @@ class DugnadProfileClubCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(context.dp(16)),
           border: Border.all(
-            color: context.dugnadTheme.primary.withValues(alpha: 0.18),
+            color: context.aeTheme.primary.withValues(alpha: 0.18),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: context.dugnadTheme.text.withValues(alpha: 0.05),
+              color: context.aeTheme.text.withValues(alpha: 0.05),
               blurRadius: context.dp(4),
               offset: const Offset(0, 2),
             ),
@@ -454,7 +454,7 @@ class DugnadProfileClubCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            ClubCrest(
+            AeClubCrest(
               name: clubName,
               logoUrl: clubLogo?.isEmpty ?? true ? null : clubLogo,
               size: context.dp(46),
@@ -480,12 +480,12 @@ class DugnadProfileClubCard extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: context.dp(14), vertical: context.dp(8)),
               decoration: BoxDecoration(
-                color: context.dugnadTheme.primaryTint,
+                color: context.aeTheme.primaryTint,
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
                 languages.dugnadSwitch,
-                style: aeLabel(color: context.dugnadTheme.primary),
+                style: aeLabel(color: context.aeTheme.primary),
               ),
             ),
           ],
@@ -513,7 +513,7 @@ class DugnadProfileChangeClubTeamCard extends StatelessWidget {
           border: Border.all(color: ScSaasThemeTokens.gray100, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: context.dugnadTheme.text.withValues(alpha: 0.05),
+              color: context.aeTheme.text.withValues(alpha: 0.05),
               blurRadius: context.dp(4),
               offset: const Offset(0, 2),
             ),
@@ -525,11 +525,11 @@ class DugnadProfileChangeClubTeamCard extends StatelessWidget {
               width: context.dp(46),
               height: context.dp(46),
               decoration: BoxDecoration(
-                color: context.dugnadTheme.primary,
+                color: context.aeTheme.primary,
                 borderRadius: BorderRadius.circular(context.dp(14)),
                 boxShadow: [
                   BoxShadow(
-                    color: context.dugnadTheme.primary.withValues(alpha: 0.28),
+                    color: context.aeTheme.primary.withValues(alpha: 0.28),
                     blurRadius: context.dp(12),
                     offset: const Offset(0, 5),
                     spreadRadius: -6,
@@ -597,7 +597,7 @@ class DugnadProfileLogoutButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(context.dp(16)),
             boxShadow: [
               BoxShadow(
-                color: context.dugnadTheme.text.withValues(alpha: 0.05),
+                color: context.aeTheme.text.withValues(alpha: 0.05),
                 blurRadius: context.dp(4),
                 offset: const Offset(0, 2),
               ),

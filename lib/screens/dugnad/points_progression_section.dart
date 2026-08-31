@@ -8,7 +8,7 @@ import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
 import 'points_history_screen.dart';
 import 'points_metal_theme.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Progression banner + metal tier cards (Phase 6).
 class PointsProgressionSection extends StatefulWidget {
@@ -146,7 +146,7 @@ class _PointsProgressionSectionState extends State<PointsProgressionSection> {
                       ),
                       Text(
                         languages.dugnadPointsHistoryLink,
-                        style: aeCaption(color: context.dugnadTheme.primary)
+                        style: aeCaption(color: context.aeTheme.primary)
                             .copyWith(fontWeight: FontWeight.w700).dp(context),
                       ),
                     ],

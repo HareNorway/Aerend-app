@@ -5,9 +5,9 @@ import '../../../commonView/common_circular_progress_indicator.dart';
 import '../../../networking/api_base_helper.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../auth/auth_style.dart';
 import '../selectPaymentMethod/select_payment_method_dl.dart';
 import 'wallet_bloc.dart';
@@ -58,7 +58,7 @@ class _WalletState extends State<Wallet> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: ScSaasThemeTokens.background,
         resizeToAvoidBottomInset: false,
@@ -72,13 +72,13 @@ class _WalletState extends State<Wallet> with WidgetsBindingObserver {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 120),
                       child: _balanceCard(),
                     ),
                     // `.ae-body { gap: 16 }`
                     const SizedBox(height: 16),
-                    DugnadRiseIn(
+                    AeRiseIn(
                       delay: const Duration(milliseconds: 190),
                       child: _transactionsSection(),
                     ),
@@ -103,7 +103,7 @@ class _WalletState extends State<Wallet> with WidgetsBindingObserver {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(onPressed: () => Navigator.maybePop(context)),
+          AeBackButton(onPressed: () => Navigator.maybePop(context)),
           Expanded(
             child: Text(
               languages.wallet,
@@ -476,7 +476,7 @@ class _WalletState extends State<Wallet> with WidgetsBindingObserver {
   void _openTopUpSheet() {
     _bloc.addAmountTEC.clear();
     _bloc.setError = true;
-    showDugnadSheet<void>(
+    showAeSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) {
@@ -495,7 +495,7 @@ class _WalletState extends State<Wallet> with WidgetsBindingObserver {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const DugnadSheetHandle(),
+                const AeSheetHandle(),
                 // `.dg-mem-head`: gradient icon chip + h2 + p
                 Row(
                   children: [

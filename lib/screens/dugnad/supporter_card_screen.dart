@@ -22,10 +22,10 @@ import 'tour/dugnad_tour_controller.dart';
 import 'tour/dugnad_tour_keys.dart';
 import 'widgets/dugnad_form_explainer_sheet.dart';
 import 'widgets/dugnad_player_card.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'widgets/dugnad_sto_explainer_sheet.dart';
-import 'widgets/dugnad_subpage_shell.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// FIFA-style supporter card (prototype: player-card.jsx).
 class SupporterCardScreen extends StatefulWidget {
@@ -267,12 +267,12 @@ class _SupporterCardScreenState extends State<SupporterCardScreen> {
     final cardWidth = DugnadPlayerCard.stoCardWidth(screen.width);
     final cardMinHeight = DugnadPlayerCard.stoCardMinHeight(cardWidth);
 
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.primary,
-        body: DugnadLbScrollBody(
+        backgroundColor: context.aeTheme.primary,
+        body: AeScrollBody(
           scrollController: _tourScrollController,
-          hero: DugnadLbSimpleHero(
+          hero: AeSimpleHero(
             title: languages.dugnadSupporterCardTitle,
             onBack: () => Navigator.of(context).pop(),
           ),
@@ -321,17 +321,17 @@ class _SupporterCardScreenState extends State<SupporterCardScreen> {
                         ),
                       ),
                       SizedBox(height: context.dp(16)),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 160),
                         child: _SeeRatingButton(onPressed: _openRatingSheet),
                       ),
                       SizedBox(height: context.dp(10)),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 240),
                         child: _ShareCardButton(onPressed: _share),
                       ),
                       SizedBox(height: context.dp(16)),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 320),
                         child: Text(
                           languages.dugnadCardValueHint,
@@ -398,7 +398,7 @@ class _ShareCardButton extends StatelessWidget {
             borderRadius: radius,
             boxShadow: [
               BoxShadow(
-                color: context.dugnadTheme.primary.withValues(alpha: 0.35),
+                color: context.aeTheme.primary.withValues(alpha: 0.35),
                 blurRadius: context.dp(16),
                 offset: const Offset(0, 6),
               ),
@@ -416,7 +416,7 @@ class _ShareCardButton extends StatelessWidget {
               borderRadius: radius,
               child: Ink(
                 decoration: BoxDecoration(
-                  gradient: context.dugnadTheme.heroGradient,
+                  gradient: context.aeTheme.heroGradient,
                   borderRadius: radius,
                 ),
                 child: Padding(
@@ -456,7 +456,7 @@ class _SeeRatingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(context.dp(14));
-    final borderColor = context.dugnadTheme.primary.withValues(alpha: 0.22);
+    final borderColor = context.aeTheme.primary.withValues(alpha: 0.22);
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: context.dp(270)),
@@ -465,7 +465,7 @@ class _SeeRatingButton extends StatelessWidget {
             borderRadius: radius,
             boxShadow: [
               BoxShadow(
-                color: context.dugnadTheme.text.withValues(alpha: 0.08),
+                color: context.aeTheme.text.withValues(alpha: 0.08),
                 blurRadius: context.dp(14),
                 offset: const Offset(0, 5),
               ),
@@ -493,12 +493,12 @@ class _SeeRatingButton extends StatelessWidget {
                     Icon(
                       Icons.bar_chart_rounded,
                       size: context.dp(18),
-                      color: context.dugnadTheme.primary,
+                      color: context.aeTheme.primary,
                     ),
                     SizedBox(width: context.dp(8)),
                     Text(
                       languages.dugnadSeeWhatMakesRating,
-                      style: aeLabel(color: context.dugnadTheme.primaryHover)
+                      style: aeLabel(color: context.aeTheme.primaryHover)
                           .copyWith(
                         fontWeight: FontWeight.w800,
                         fontSize: 16,

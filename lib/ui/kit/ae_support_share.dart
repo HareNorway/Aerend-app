@@ -3,27 +3,27 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../theme/design_scale.dart';
-import '../../../theme/sc_saas_theme.dart';
-import '../../../utils/utils.dart';
-import '../club_crest.dart';
-import '../dugnad_club_theme.dart';
-import '../dugnad_club_branding.dart';
-import '../dugnad_repo.dart';
-import '../dugnad_share.dart';
-import '../dugnad_sheet.dart';
-import '../dugnad_state.dart';
-import 'dugnad_confirm_sheet.dart';
+import '../../theme/design_scale.dart';
+import '../../theme/sc_saas_theme.dart';
+import '../../utils/utils.dart';
+import 'ae_club_crest.dart';
+import 'ae_theme.dart';
+import '../../screens/dugnad/dugnad_club_branding.dart';
+import '../../screens/dugnad/dugnad_repo.dart';
+import '../../screens/dugnad/dugnad_share.dart';
+import 'ae_sheet.dart';
+import '../../screens/dugnad/dugnad_state.dart';
+import 'ae_confirm_sheet.dart';
 
 /// Shared max width for cards on payment/donation success screens.
-const double dugnadSuccessCardWidth = 320;
+const double aeSuccessCardWidth = 320;
 
-/// Centers content to the same width as [DugnadSupportShareCard].
-class DugnadSuccessCardWidth extends StatelessWidget {
-  const DugnadSuccessCardWidth({
+/// Centers content to the same width as [AeSupportShareCard].
+class AeSuccessCardWidth extends StatelessWidget {
+  const AeSuccessCardWidth({
     super.key,
     required this.child,
-    this.maxWidth = dugnadSuccessCardWidth,
+    this.maxWidth = aeSuccessCardWidth,
   });
 
   final Widget child;
@@ -40,15 +40,15 @@ class DugnadSuccessCardWidth extends StatelessWidget {
   }
 }
 
-Future<String> fetchDugnadSupportShareLink({int? organizationId}) async {
+Future<String> fetchAeSupportShareLink({int? organizationId}) async {
   final share = await DugnadRepo().getShareSummary(
     organizationId: organizationId ?? DugnadState.instance.clubId,
   );
   return share?.shareLink?.trim() ?? '';
 }
 
-Future<void> copyDugnadSupportShareLink(BuildContext context) async {
-  final link = await fetchDugnadSupportShareLink();
+Future<void> copyAeSupportShareLink(BuildContext context) async {
+  final link = await fetchAeSupportShareLink();
   if (!context.mounted) return;
   if (link.isEmpty) {
     openSimpleSnackbar(languages.dugnadShareLinkUnavailable);
@@ -60,14 +60,14 @@ Future<void> copyDugnadSupportShareLink(BuildContext context) async {
 }
 
 /// Success check burst (`.dg-placed .burst`) — primary shiny gradient + white tick.
-class DugnadSuccessBurstCheck extends StatelessWidget {
-  const DugnadSuccessBurstCheck({super.key, this.size = 96});
+class AeSuccessBurstCheck extends StatelessWidget {
+  const AeSuccessBurstCheck({super.key, this.size = 96});
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final s = context.dp(size);
     return Container(
       width: s,
@@ -99,14 +99,14 @@ class DugnadSuccessBurstCheck extends StatelessWidget {
 }
 
 /// Dark shareable support card (prototype `ShareCard` in gamify.jsx).
-class DugnadSupportShareCard extends StatelessWidget {
-  const DugnadSupportShareCard({
+class AeSupportShareCard extends StatelessWidget {
+  const AeSupportShareCard({
     super.key,
     required this.teamName,
     required this.message,
     this.logoUrl,
     this.eyebrow,
-    this.maxWidth = dugnadSuccessCardWidth,
+    this.maxWidth = aeSuccessCardWidth,
   });
 
   final String teamName;
@@ -117,7 +117,7 @@ class DugnadSupportShareCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: DecoratedBox(
@@ -189,7 +189,7 @@ class DugnadSupportShareCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(context.dp(14)),
                           ),
                           child: Center(
-                            child: ClubCrest(
+                            child: AeClubCrest(
                               name: teamName,
                               logoUrl: logoUrl,
                               size: context.dp(40),
@@ -269,8 +269,8 @@ class DugnadSupportShareCard extends StatelessWidget {
 }
 
 /// White share button with optional points reward pill (`.dg-sharebtn`).
-class DugnadShareSupportButton extends StatelessWidget {
-  const DugnadShareSupportButton({
+class AeShareSupportButton extends StatelessWidget {
+  const AeShareSupportButton({
     super.key,
     required this.onPressed,
     this.pointsReward = 20,
@@ -320,7 +320,7 @@ class DugnadShareSupportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // `.ae-btn` uses `--ae-r-md` (14). Shadow lives on this outer decoration
     // so it is not clipped to a rectangle (which reads as sharp corners).
     final radius = BorderRadius.circular(context.dp(14));
@@ -431,8 +431,8 @@ class DugnadShareSupportButton extends StatelessWidget {
 }
 
 /// Primary CTA matching `.ae-btn--primary` (shiny gradient + white label).
-class DugnadSuccessPrimaryButton extends StatelessWidget {
-  const DugnadSuccessPrimaryButton({
+class AeSuccessPrimaryButton extends StatelessWidget {
+  const AeSuccessPrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,
@@ -446,7 +446,7 @@ class DugnadSuccessPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -491,17 +491,17 @@ class DugnadSuccessPrimaryButton extends StatelessWidget {
 }
 
 /// Opens the share sheet with the support card preview.
-Future<void> showDugnadSupportShareSheet({
+Future<void> showAeSupportShareSheet({
   required BuildContext context,
   required String teamName,
   required String message,
   String? logoUrl,
   int pointsReward = 20,
 }) {
-  return showDugnadSheet(
+  return showAeSheet(
     context: context,
     isScrollControlled: true,
-    builder: (ctx) => _DugnadSupportShareSheet(
+    builder: (ctx) => _AeSupportShareSheet(
       teamName: teamName,
       message: message,
       logoUrl: logoUrl,
@@ -510,8 +510,8 @@ Future<void> showDugnadSupportShareSheet({
   );
 }
 
-class _DugnadSupportShareSheet extends StatefulWidget {
-  const _DugnadSupportShareSheet({
+class _AeSupportShareSheet extends StatefulWidget {
+  const _AeSupportShareSheet({
     required this.teamName,
     required this.message,
     this.logoUrl,
@@ -524,10 +524,10 @@ class _DugnadSupportShareSheet extends StatefulWidget {
   final int pointsReward;
 
   @override
-  State<_DugnadSupportShareSheet> createState() => _DugnadSupportShareSheetState();
+  State<_AeSupportShareSheet> createState() => _AeSupportShareSheetState();
 }
 
-class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
+class _AeSupportShareSheetState extends State<_AeSupportShareSheet> {
   bool _done = false;
   String _shareLink = '';
 
@@ -538,7 +538,7 @@ class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
   }
 
   Future<void> _loadShareLink() async {
-    final link = await fetchDugnadSupportShareLink();
+    final link = await fetchAeSupportShareLink();
     if (mounted) setState(() => _shareLink = link);
   }
 
@@ -575,19 +575,19 @@ class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
-    return DugnadSheetBody(
+    final theme = context.aeTheme;
+    return AeSheetBody(
       children: _done
           ? [_buildDone(theme)]
           : [
-              DugnadSheetHead(
+              AeSheetHead(
                 icon: Icons.share_rounded,
                 title: languages.dugnadShareSheetTitle,
                 message: languages.dugnadShareSheetSubtitle,
               ),
               SizedBox(height: context.dp(14)),
               Center(
-                child: DugnadSupportShareCard(
+                child: AeSupportShareCard(
                   teamName: widget.teamName,
                   message: widget.message,
                   logoUrl: widget.logoUrl,
@@ -619,7 +619,7 @@ class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
     );
   }
 
-  Widget _buildDone(DugnadClubThemePalette theme) {
+  Widget _buildDone(AeThemePalette theme) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: context.dp(12)),
       child: Column(
@@ -661,7 +661,7 @@ class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
     );
   }
 
-  Widget _rewardBanner(DugnadClubThemePalette theme) {
+  Widget _rewardBanner(AeThemePalette theme) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: context.dp(14), vertical: context.dp(12)),
       decoration: BoxDecoration(
@@ -726,7 +726,7 @@ class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
     required String label,
     required VoidCallback onTap,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -768,8 +768,8 @@ class _DugnadSupportShareSheetState extends State<_DugnadSupportShareSheet> {
 
 /// Centered golden points badge for success screens (`.dg-ptsreward`).
 /// Medal pops, star-coins burst, and the amount counts up from 0.
-class DugnadSuccessPointsBadge extends StatefulWidget {
-  const DugnadSuccessPointsBadge({
+class AeSuccessPointsBadge extends StatefulWidget {
+  const AeSuccessPointsBadge({
     super.key,
     required this.points,
     required this.label,
@@ -781,11 +781,11 @@ class DugnadSuccessPointsBadge extends StatefulWidget {
   final bool animate;
 
   @override
-  State<DugnadSuccessPointsBadge> createState() =>
-      _DugnadSuccessPointsBadgeState();
+  State<AeSuccessPointsBadge> createState() =>
+      _AeSuccessPointsBadgeState();
 }
 
-class _DugnadSuccessPointsBadgeState extends State<DugnadSuccessPointsBadge>
+class _AeSuccessPointsBadgeState extends State<AeSuccessPointsBadge>
     with TickerProviderStateMixin {
   static const _goldLight = Color(0xFFF7D979);
   static const _goldMid = Color(0xFFE0A93A);

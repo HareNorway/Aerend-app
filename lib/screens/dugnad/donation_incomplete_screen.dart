@@ -4,8 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../theme/design_scale.dart';
 import '../../utils/utils.dart';
 import 'dugnad_repo.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 
 /// Shown when the user returns from Vipps without an active agreement.
 class DonationIncompleteScreen extends StatelessWidget {
@@ -47,15 +47,15 @@ class DonationIncompleteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       appBar: AppBar(
-        backgroundColor: context.dugnadTheme.background,
+        backgroundColor: context.aeTheme.background,
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
           languages.dugnadDonationConfirmAppBar,
           style: TextStyle(
-            color: context.dugnadTheme.text,
+            color: context.aeTheme.text,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -68,7 +68,7 @@ class DonationIncompleteScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  DugnadRiseIn(
+                  AeRiseIn(
                     delay: const Duration(milliseconds: 120),
                     child: Container(
                       width: context.dp(72),
@@ -85,7 +85,7 @@ class DonationIncompleteScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: context.dp(20)),
-                  DugnadRiseIn(
+                  AeRiseIn(
                     delay: const Duration(milliseconds: 190),
                     child: Text(
                       languages.dugnadDonationIncompleteTitle,
@@ -97,13 +97,13 @@ class DonationIncompleteScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: context.dp(10)),
-                  DugnadRiseIn(
+                  AeRiseIn(
                     delay: const Duration(milliseconds: 260),
                     child: Text(
                       languages.dugnadDonationIncompleteBody,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: context.dugnadTheme.primaryHover,
+                        color: context.aeTheme.primaryHover,
                         fontWeight: FontWeight.w600,
                         height: 1.45,
                       ),
@@ -112,7 +112,7 @@ class DonationIncompleteScreen extends StatelessWidget {
                 ],
               ),
             ),
-            DugnadRiseIn(
+            AeRiseIn(
               delay: const Duration(milliseconds: 440),
               duration: const Duration(milliseconds: 550),
               child: SizedBox(
@@ -120,7 +120,7 @@ class DonationIncompleteScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => _retry(context),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: context.dugnadTheme.primary,
+                    backgroundColor: context.aeTheme.primary,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: EdgeInsets.symmetric(vertical: context.dp(16)),
@@ -133,7 +133,7 @@ class DonationIncompleteScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: context.dp(10)),
-            DugnadRiseIn(
+            AeRiseIn(
               delay: const Duration(milliseconds: 490),
               duration: const Duration(milliseconds: 550),
               child: TextButton(

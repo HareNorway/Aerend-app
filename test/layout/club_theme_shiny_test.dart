@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 
 /// `--ae-shiny-purple` must darken toward the far stop. The feed-card shade
 /// helper floors at 0.48 L, which *lightens* a navy accent and inverts the CTA.
 void main() {
   test('Sædalen navy CTA darkens along the 150deg ramp', () {
-    final navy = DugnadClubThemePalette.resolve(accentColor: '#1E4377');
+    final navy = AeThemePalette.resolve(accentColor: '#1E4377');
     final g = navy.shinyGradient;
 
     expect(g.colors, hasLength(3));
@@ -22,14 +22,14 @@ void main() {
   });
 
   test('shiny stops match buildClubThemeStyle mix 12 / 22', () {
-    final navy = DugnadClubThemePalette.resolve(accentColor: '#1E4377');
+    final navy = AeThemePalette.resolve(accentColor: '#1E4377');
     // mixHex(#1E4377, #fff, 12) / mixHex(#1E4377, #000, 22)
     expect(navy.shinyGradient.colors.first, const Color(0xFF395A87));
     expect(navy.shinyGradient.colors.last, const Color(0xFF17345D));
   });
 
   test('Ærend defaults keep the authored purple shiny token', () {
-    final g = DugnadClubThemePalette.defaults.shinyGradient;
+    final g = AeThemePalette.defaults.shinyGradient;
     expect(g.colors, const [
       Color(0xFFA98FE0),
       Color(0xFF7F5FC4),

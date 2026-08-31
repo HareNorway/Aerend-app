@@ -266,19 +266,6 @@ class HomeBloc extends Bloc {
         String message =
             getApiMsg(context, response.messageCode, response.message);
         if (isApiStatus(context, response.status, message, true)) {
-          // Persist reen sports club info for other screens.
-          prefSetBool(prefReenSportsMode, response.reenSportsMode);
-          final club = response.activeSportsClub;
-          if (club != null && club.id > 0) {
-            prefSetInt(prefActiveSportsClubId, club.id);
-            prefSetString(prefActiveSportsClubName, club.name);
-            prefSetString(prefActiveSportsClubImage, club.image);
-          } else {
-            prefSetInt(prefActiveSportsClubId, 0);
-            prefSetString(prefActiveSportsClubName, "");
-            prefSetString(prefActiveSportsClubImage, "");
-          }
-
           _cacheHomeCategories(response);
           subjectHomeCat.sink.add(ApiResponse.completed(response));
         } else {

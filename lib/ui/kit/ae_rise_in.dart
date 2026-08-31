@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// Staggered rise + fade entrance — mirrors prototype `dg-rise-in` / `dg-fade`.
-class DugnadRiseIn extends StatefulWidget {
-  const DugnadRiseIn({
+class AeRiseIn extends StatefulWidget {
+  const AeRiseIn({
     super.key,
     required this.child,
     this.delay = Duration.zero,
@@ -23,10 +23,10 @@ class DugnadRiseIn extends StatefulWidget {
   final double beginOpacity;
 
   @override
-  State<DugnadRiseIn> createState() => _DugnadRiseInState();
+  State<AeRiseIn> createState() => _AeRiseInState();
 }
 
-class _DugnadRiseInState extends State<DugnadRiseIn>
+class _AeRiseInState extends State<AeRiseIn>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final CurvedAnimation _curve;
@@ -104,8 +104,8 @@ class _DugnadRiseInState extends State<DugnadRiseIn>
 }
 
 /// Gentle pulse for referral share icon — mirrors `dg-ref-share`.
-class DugnadPulseIcon extends StatefulWidget {
-  const DugnadPulseIcon({
+class AePulseIcon extends StatefulWidget {
+  const AePulseIcon({
     super.key,
     required this.child,
     this.duration = const Duration(seconds: 5),
@@ -115,10 +115,10 @@ class DugnadPulseIcon extends StatefulWidget {
   final Duration duration;
 
   @override
-  State<DugnadPulseIcon> createState() => _DugnadPulseIconState();
+  State<AePulseIcon> createState() => _AePulseIconState();
 }
 
-class _DugnadPulseIconState extends State<DugnadPulseIcon>
+class _AePulseIconState extends State<AePulseIcon>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scale;
@@ -163,8 +163,8 @@ class _DugnadPulseIconState extends State<DugnadPulseIcon>
 }
 
 /// Subtle breathe on campaign CTA — mirrors `campcta-breathe`.
-class DugnadBreathe extends StatefulWidget {
-  const DugnadBreathe({
+class AeBreathe extends StatefulWidget {
+  const AeBreathe({
     super.key,
     required this.child,
     this.duration = const Duration(milliseconds: 3400),
@@ -174,10 +174,10 @@ class DugnadBreathe extends StatefulWidget {
   final Duration duration;
 
   @override
-  State<DugnadBreathe> createState() => _DugnadBreatheState();
+  State<AeBreathe> createState() => _AeBreatheState();
 }
 
-class _DugnadBreatheState extends State<DugnadBreathe>
+class _AeBreatheState extends State<AeBreathe>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scale;
@@ -222,8 +222,8 @@ class _DugnadBreatheState extends State<DugnadBreathe>
 }
 
 /// Icon pop / arrow nudge on the buy-from-club CTA — mirrors `campcta-pop` / `campcta-arrow`.
-class DugnadCampCtaMotion extends StatefulWidget {
-  const DugnadCampCtaMotion({
+class AeCampCtaMotion extends StatefulWidget {
+  const AeCampCtaMotion({
     super.key,
     required this.child,
     this.iconPop = false,
@@ -235,10 +235,10 @@ class DugnadCampCtaMotion extends StatefulWidget {
   final Duration duration;
 
   @override
-  State<DugnadCampCtaMotion> createState() => _DugnadCampCtaMotionState();
+  State<AeCampCtaMotion> createState() => _AeCampCtaMotionState();
 }
 
-class _DugnadCampCtaMotionState extends State<DugnadCampCtaMotion>
+class _AeCampCtaMotionState extends State<AeCampCtaMotion>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 

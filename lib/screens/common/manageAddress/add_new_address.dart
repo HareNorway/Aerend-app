@@ -5,8 +5,8 @@ import '../../../commonView/custom_text_field.dart';
 import '../../../networking/api_base_helper.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../address_order_chrome.dart';
 import '../auth/auth_style.dart';
 import '../base_dl.dart';
@@ -66,7 +66,7 @@ class _AddNewAddressState extends State<AddNewAddress> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         bottom: false,
@@ -88,7 +88,7 @@ class _AddNewAddressState extends State<AddNewAddress> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
     return Form(
@@ -199,7 +199,7 @@ class _AddNewAddressState extends State<AddNewAddress> {
   /// purple-600 border on lavender with purple-700 icon + label.
   Widget _typeTile(int value, IconData icon, String label, int selected) {
     final on = selected == value;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Expanded(
       child: AoPressable(
         scale: 0.97,
@@ -245,7 +245,7 @@ class _AddNewAddressState extends State<AddNewAddress> {
   /// `.ae-field` + `.dgm-locwrap` — `.ae-input` with a 32px `.gpsic` button
   /// pinned 8px from the right edge. Tapping either opens the location picker.
   Widget _buildLocationField() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

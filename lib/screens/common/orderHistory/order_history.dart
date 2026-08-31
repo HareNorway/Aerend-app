@@ -9,8 +9,8 @@ import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import '../../../commonView/guest_empty_state.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../address_order_chrome.dart';
 import '../auth/auth_style.dart';
 import 'order_detail/order_detail.dart';
@@ -45,7 +45,7 @@ class _OrderHistoryState extends State<OrderHistory> {
   Widget build(BuildContext context) {
     if (isGuestUser()) {
       return Scaffold(
-        backgroundColor: context.dugnadTheme.background,
+        backgroundColor: context.aeTheme.background,
         body: SafeArea(
           bottom: false,
           child: Column(
@@ -64,7 +64,7 @@ class _OrderHistoryState extends State<OrderHistory> {
     }
 
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -100,7 +100,7 @@ class _OrderHistoryState extends State<OrderHistory> {
     var step = 0;
     Widget rise(Widget child) {
       final delay = Duration(milliseconds: 120 + 70 * step++);
-      return DugnadRiseIn(delay: delay, child: child);
+      return AeRiseIn(delay: delay, child: child);
     }
 
     return ListView(

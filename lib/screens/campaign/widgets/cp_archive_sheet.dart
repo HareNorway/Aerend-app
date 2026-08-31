@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../theme/ae_typography.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_sheet.dart';
-import '../../dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_sheet.dart';
+import '../../../ui/kit/ae_confirm_sheet.dart';
 import '../campaign_delivery_utils.dart';
 import '../campaign_my_orders_screen.dart';
 import '../campaign_strings.dart';
@@ -16,7 +16,7 @@ Future<void> showCpArchiveSheet(
   BuildContext context,
   CampaignMyOrder order,
 ) async {
-  final openHistory = await showDugnadSheet<bool>(
+  final openHistory = await showAeSheet<bool>(
     context: context,
     isScrollControlled: true,
     builder: (ctx) => _CpArchiveSheet(order: order),
@@ -35,7 +35,7 @@ class _CpArchiveSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final pickup = order.isPickup;
     final window = order.windowInstant;
     final day = campaignDayLabel(window);
@@ -57,7 +57,7 @@ class _CpArchiveSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const DugnadSheetHandle(bottom: 8),
+          const AeSheetHandle(bottom: 8),
           Align(
             alignment: Alignment.centerRight,
             child: IconButton(
@@ -211,7 +211,7 @@ class _CpArchiveSheet extends StatelessWidget {
               ],
             ),
           ),
-          DugnadSheetPrimaryButton(
+          AeSheetPrimaryButton(
             label: CampaignStrings.viewFullHistory,
             icon: Icons.receipt_long_outlined,
             onPressed: () => Navigator.pop(context, true),

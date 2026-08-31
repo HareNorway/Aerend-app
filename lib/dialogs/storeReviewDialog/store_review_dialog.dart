@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../screens/deliveryService/storeDetail/store_detail_dl.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../utils/utils.dart';
 import 'item_store_review_dialog.dart';
 
 /// The store's existing reviews. The design has no dedicated screen for this
 /// list, so it reuses the shared review-sheet chrome: `.dg-msheet` ›
 /// `.dg-msheet-grab` › `.dg-mem-head` (purple tone, star glyph) › the review
-/// rows › `.dga-cancel` to close. Present it with `showDugnadSheet`.
+/// rows › `.dga-cancel` to close. Present it with `showAeSheet`.
 class StoreReviewDialog extends StatelessWidget {
   final List<StoreRatingListItem> storeRatingList;
 
@@ -16,9 +16,9 @@ class StoreReviewDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadSheetBody(
+    return AeSheetBody(
       children: [
-        DugnadSheetHead(
+        AeSheetHead(
           icon: Icons.star_rounded,
           title: languages.review,
           message: storeRatingList.isEmpty ? languages.noReviewMsg : null,
@@ -36,7 +36,7 @@ class StoreReviewDialog extends StatelessWidget {
               );
             },
           ),
-        DugnadSheetCancelButton(label: languages.close),
+        AeSheetCancelButton(label: languages.close),
       ],
     );
   }

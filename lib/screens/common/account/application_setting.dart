@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'account_widgets.dart';
 import 'appearance.dart';
 import 'settings_design_kit.dart';
@@ -36,10 +36,10 @@ class _ApplicationSettingState extends State<ApplicationSetting> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Scaffold(
       backgroundColor: theme.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -57,19 +57,19 @@ class _ApplicationSettingState extends State<ApplicationSetting> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (_showGeneralAndAppearance) ...[
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 120),
                           child: _generalSection(),
                         ),
                         const SizedBox(height: 16),
                       ],
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: _aboutSection(),
                       ),
                       if (_showGeneralAndAppearance) ...[
                         const SizedBox(height: 16),
-                        DugnadRiseIn(
+                        AeRiseIn(
                           delay: const Duration(milliseconds: 260),
                           child: DgPrimaryButton(
                             label: languages.settingsAppearance,
@@ -102,7 +102,7 @@ class _ApplicationSettingState extends State<ApplicationSetting> {
           rows: [
             DgsInfoRow(
               title: languages.settingsLimitTracking,
-              subtitle: 'Del mindre bruksdata med Reen Dugnad', // TODO(l10n)
+              subtitle: 'Del mindre bruksdata med Ærend', // TODO(l10n)
               trailing: DrToggle(
                 value: limitTracking,
                 onChanged: (value) => setState(() => limitTracking = value),

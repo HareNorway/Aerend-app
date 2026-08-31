@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'account_widgets.dart';
 import 'settings_design_kit.dart';
 
@@ -73,8 +73,8 @@ class _AppearanceState extends State<Appearance> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
-      body: DugnadFixedTypography(
+      backgroundColor: context.aeTheme.background,
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -91,12 +91,12 @@ class _AppearanceState extends State<Appearance> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: _themeSection(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: _notificationSection(),
                       ),

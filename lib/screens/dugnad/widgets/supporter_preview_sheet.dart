@@ -5,10 +5,10 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_models.dart';
 import '../dugnad_share.dart';
-import '../dugnad_sheet.dart';
+import '../../../ui/kit/ae_sheet.dart';
 import '../dugnad_state.dart';
 import 'dugnad_player_card.dart';
 
@@ -37,11 +37,11 @@ Future<void> showSupporterPreviewSheet({
   final blurb =
       '${scorer.displayName} bidrar med ${scorer.goals} mål og ${scorer.assists} assist for $teamName denne sesongen.'; // TODO(l10n)
 
-  return showDugnadSheet(
+  return showAeSheet(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) {
-      final theme = sheetContext.dugnadTheme;
+      final theme = sheetContext.aeTheme;
       final media = MediaQuery.of(sheetContext);
       final bottom = media.padding.bottom;
       final screen = media.size;
@@ -62,7 +62,7 @@ Future<void> showSupporterPreviewSheet({
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const DugnadSheetHandle(bottom: 8),
+              const AeSheetHandle(bottom: 8),
               Row(
                 children: [
                   Expanded(
@@ -178,7 +178,7 @@ Future<void> showSupporterPreviewSheet({
 }
 
 Widget _sheetCloseButton(BuildContext context) {
-  final theme = context.dugnadTheme;
+  final theme = context.aeTheme;
   return GestureDetector(
     onTap: () => Navigator.maybePop(context),
     child: Container(

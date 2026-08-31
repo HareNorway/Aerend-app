@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../../../commonView/no_record_found.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../chatting/chatting.dart';
 import 'chat_history_bloc.dart';
@@ -22,8 +22,8 @@ class ChatHistory extends StatelessWidget {
   Widget build(BuildContext context) {
     final bloc = ChatHistoryBloc();
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
-      body: DugnadFixedTypography(
+      backgroundColor: context.aeTheme.background,
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(

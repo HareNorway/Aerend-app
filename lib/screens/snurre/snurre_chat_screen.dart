@@ -1451,7 +1451,7 @@ class _SnurreChatScreenState extends State<SnurreChatScreen> with RouteAware {
             ),
             _buildPriceCompareRow(
               sourceKey: 'aerend',
-              label: 'Price Reen Dugnad',
+              label: 'Price Ærend',
               price: money(reenPrice),
             ),
             Divider(

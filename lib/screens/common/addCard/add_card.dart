@@ -7,8 +7,8 @@ import '../../../networking/api_base_helper.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/payment_card.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../auth/auth_style.dart';
 import '../base_dl.dart';
 import 'add_card_bloc.dart';
@@ -60,7 +60,7 @@ class _AddCardState extends State<AddCard> {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadFixedTypography(
+    return AeFixedTypography(
       child: Scaffold(
         backgroundColor: ScSaasThemeTokens.background,
         body: Column(
@@ -77,12 +77,12 @@ class _AddCardState extends State<AddCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 120),
                         child: _cardPreview(),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 190),
                         child: _AeField(
                           label: 'Kortnummer', // TODO(l10n)
@@ -104,7 +104,7 @@ class _AddCardState extends State<AddCard> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 260),
                         child: _AeField(
                           label: 'Navn på kortet', // TODO(l10n)
@@ -118,7 +118,7 @@ class _AddCardState extends State<AddCard> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 330),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,7 +182,7 @@ class _AddCardState extends State<AddCard> {
                           ),
                         ),
                       const SizedBox(height: 16),
-                      DugnadRiseIn(
+                      AeRiseIn(
                         delay: const Duration(milliseconds: 400),
                         child: _saveButton(),
                       ),
@@ -208,7 +208,7 @@ class _AddCardState extends State<AddCard> {
       ),
       child: Row(
         children: [
-          DugnadLbBackButton(onPressed: () => Navigator.maybePop(context)),
+          AeBackButton(onPressed: () => Navigator.maybePop(context)),
           Expanded(
             child: Text(
               languages.addCard,

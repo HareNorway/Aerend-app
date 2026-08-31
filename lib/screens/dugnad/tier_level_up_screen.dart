@@ -13,12 +13,12 @@ import 'dugnad_models.dart';
 import 'dugnad_share.dart';
 import 'dugnad_state.dart';
 import 'dugnad_sto_utils.dart';
-import 'dugnad_club_theme.dart';
-import 'widgets/dugnad_confetti.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_confetti.dart';
 import 'widgets/dugnad_player_card.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'widgets/dugnad_shiny_press.dart';
-import 'widgets/dugnad_support_share.dart';
+import '../../ui/kit/ae_support_share.dart';
 
 /// Full-screen celebration when the user reaches a new points tier.
 /// Shows old metal STØ card → squash-flip → new metal card (CelMetalUp mockup).
@@ -244,7 +244,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
 
   Future<void> _share(BuildContext shareContext) async {
     final club = DugnadClubBranding.fullName();
-    final link = await fetchDugnadSupportShareLink();
+    final link = await fetchAeSupportShareLink();
     final text = link.isNotEmpty
         ? languages.dugnadSupporterCardShareMessage(
             languages.dugnadSupporterCardTitle,
@@ -278,7 +278,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final tierName = widget.toTier.titleSuffix;
     final nextName = widget.nextTier?.titleSuffix;
     final delta = widget.toStoRating - widget.fromStoRating;
@@ -352,7 +352,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                         context.dp(26),
                         context.dp(18),
                       ),
-                      child: DugnadSuccessCardWidth(
+                      child: AeSuccessCardWidth(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -398,7 +398,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                                         ),
                                         if (!_reduceMotion)
                                           Positioned.fill(
-                                            child: DugnadCardPaperConfetti(
+                                            child: AeCardPaperConfetti(
                                               progress: _confettiController,
                                               colors: confettiColors,
                                             ),
@@ -477,7 +477,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                               ),
                             ),
                             SizedBox(height: context.dp(22)),
-                            DugnadRiseIn(
+                            AeRiseIn(
                               delay: const Duration(milliseconds: 120),
                               child: Text(
                                 languages.dugnadLevelUpTitle(tierName),
@@ -490,7 +490,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                               ),
                             ),
                             SizedBox(height: context.dp(8)),
-                            DugnadRiseIn(
+                            AeRiseIn(
                               delay: const Duration(milliseconds: 190),
                               child: Padding(
                                 padding: EdgeInsets.symmetric(
@@ -511,11 +511,11 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                               ),
                             ),
                             SizedBox(height: context.dp(22)),
-                            DugnadRiseIn(
+                            AeRiseIn(
                               delay: const Duration(milliseconds: 260),
                               child: SizedBox(
                                 width: double.infinity,
-                                child: DugnadSupportShareCard(
+                                child: AeSupportShareCard(
                                   teamName: DugnadClubBranding.fullName(),
                                   message: languages
                                       .dugnadShareCardMessage(tierName),
@@ -529,7 +529,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                               ),
                             ),
                             SizedBox(height: context.dp(16)),
-                            DugnadRiseIn(
+                            AeRiseIn(
                               delay: const Duration(milliseconds: 440),
                               duration: const Duration(milliseconds: 550),
                               child: GestureDetector(
@@ -584,7 +584,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
                               ),
                             ),
                             SizedBox(height: context.dp(10)),
-                            DugnadRiseIn(
+                            AeRiseIn(
                               delay: const Duration(milliseconds: 490),
                               duration: const Duration(milliseconds: 550),
                               child: DugnadShinyPress(
@@ -623,7 +623,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
             if (!_reduceMotion)
               Positioned.fill(
                 child: IgnorePointer(
-                  child: DugnadDesignBurstConfetti(
+                  child: AeDesignBurstConfetti(
                     colors: confettiColors,
                     count: 110,
                   ),
@@ -632,7 +632,7 @@ class _TierLevelUpScreenState extends State<TierLevelUpScreen>
             if (!_reduceMotion && _flipBurst)
               Positioned.fill(
                 child: IgnorePointer(
-                  child: DugnadDesignBurstConfetti(
+                  child: AeDesignBurstConfetti(
                     colors: confettiColors,
                     count: 95,
                     duration: const Duration(milliseconds: 4600),

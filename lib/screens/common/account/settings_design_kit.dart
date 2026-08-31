@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../commonView/surface_decorations.dart';
 import '../../../theme/sc_saas_theme.dart';
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../auth/auth_style.dart';
 
 /// Shared Ærend design primitives for the "Innstillinger og støtte" screens
@@ -97,7 +97,7 @@ class DgInfoBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
       decoration: BoxDecoration(
@@ -288,7 +288,7 @@ class DgsInfoRow extends StatelessWidget {
                   style: dgText(
                     14.5,
                     FontWeight.w800,
-                    color: context.dugnadTheme.text,
+                    color: context.aeTheme.text,
                   ),
                 ),
                 if (subtitle != null && subtitle!.isNotEmpty)
@@ -362,7 +362,7 @@ class DrToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onChanged == null ? null : () => onChanged!(!value),
@@ -1088,7 +1088,7 @@ class DnAddCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return AuthPressable(
       onTap: onTap,
       builder: (context, pressed) => Container(
@@ -1184,7 +1184,7 @@ class DgPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onPressed == null || isLoading;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return AuthPressable(
       onTap: disabled ? null : onPressed,
       builder: (context, pressed) => AnimatedContainer(
@@ -1302,7 +1302,7 @@ TextStyle dgDocHeading([BuildContext? context]) => dgText(
       FontWeight.w800,
       height: 1.2,
       letterSpacingEm: -0.01,
-      color: context?.dugnadTheme.text,
+      color: context?.aeTheme.text,
     );
 
 /// Legal document paragraph — 13.5/600, lh 1.55, gray-700.
@@ -1314,7 +1314,7 @@ TextStyle dgDocBody() => dgText(
     );
 
 /// Default page background when no [BuildContext] is available.
-/// Prefer `context.dugnadTheme.background` on screens.
+/// Prefer `context.aeTheme.background` on screens.
 const Color kDgPageBackground = ScSaasThemeTokens.background;
 
 /// Shiny back-button decoration re-exported so screens don't import the

@@ -2,21 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:badges/badges.dart' as badges;
 
-import '../../../theme/design_scale.dart';
-import '../../../theme/reen_pre_club_theme.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
 import '../../../commonView/circle_nav_bar.dart';
-import '../../campaign/campaign_purchases_screen.dart';
-import '../../campaign/widgets/campaign_tracker.dart';
 import '../account/account.dart';
 import '../../deliveryService/searchStore/search_store.dart';
-import '../../dugnad/dg_home.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/dugnad_state.dart';
-import '../../dugnad/kampanje_screen.dart';
-import '../../dugnad/leaderboard_screen.dart';
-import '../../dugnad/shop/club_shop_screen.dart';
 import '../../feed/feed_shell_screen.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../home/home_v1.dart';
@@ -59,25 +49,22 @@ class HomeMainV1State extends State<HomeMainV1>
     prefGetInt(prefCartCount),
   );
 
-  /// Dugnad tabs mount on first visit so Kampanje/Toppliste/Profil skip cold-start APIs.
-  final Set<int> _visitedDugnadTabs = {0};
-
   /// Keyword from home search bar when opening the shell search tab.
   final ValueNotifier<String> searchLaunchKeyword = ValueNotifier('');
 
   static const int searchTabIndex = 1; // Søk is now index 1 (commercial)
+
+  // Inert tab indices still referenced by dugnad-only screens (dg_home,
+  // dugnad_notification_nav, dugnad_profile_section). No behaviour hangs off
+  // them any more — they are deleted in Chunk 5 with their callers.
   static const int dugnadHomeTabIndex = 0;
   static const int dugnadKampanjeTabIndex = 1;
   static const int dugnadShopTabIndex = 2;
   static const int dugnadLeaderboardTabIndex = 3;
   static const int dugnadProfileTabIndex = 4;
 
-  bool get _isDugnad => DugnadState.instance.isDugnadMode;
-
   // ── Commercial 6-tab layout ──────────────────────────────────────
   // 0: Hjem   1: Søk   2: Feed   3: AI   4: Kurv   5: Profil
-  // ── Dugnad 5-tab layout ──────────────────────────────────────────
-  // 0: Hjem   1: Kampanje   2: Shop   3: Toppliste   4: Profil
   // ─────────────────────────────────────────────────────────────────
 
   /// Maps legacy 5-tab homeIndex values to the new 6-tab positions (commercial).
@@ -92,58 +79,20 @@ class HomeMainV1State extends State<HomeMainV1>
     return mapping[legacy] ?? 0;
   }
 
-  /// Maps legacy homeIndex values to the dugnad 5-tab positions.
-  static int _remapDugnadIndex(int legacy) {
-    const mapping = {
-      0: dugnadHomeTabIndex,
-      1: dugnadKampanjeTabIndex,
-      2: dugnadHomeTabIndex,
-      3: dugnadHomeTabIndex,
-      4: dugnadProfileTabIndex,
-    };
-    return mapping[legacy] ?? 0;
-  }
-
   @override
   void initState() {
     super.initState();
-    final int initialTab = _isDugnad
-        ? _remapDugnadIndex(widget.homeIndex)
-        : _remapLegacyIndex(widget.homeIndex);
+    final int initialTab = _remapLegacyIndex(widget.homeIndex);
     controller = PageController(initialPage: initialTab);
     setState(() {
       selectedPos = initialTab;
     });
-    DugnadState.instance.revision.addListener(_onDugnadStateChanged);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _armPendingReferrerPointsPop();
-    });
-  }
-
-  Future<void> _armPendingReferrerPointsPop() async {
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    DugnadState.instance.markHomeShellReady();
-  }
-
-  void _onDugnadStateChanged() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    DugnadState.instance.markHomeShellNotReady();
-    DugnadState.instance.revision.removeListener(_onDugnadStateChanged);
-    super.dispose();
   }
 
   /// Switch bottom-nav tab. Pass [animate]: false for instant jumps (e.g. tour
   /// relaunch from profile) so club-home tour targets can mount without waiting
   /// out the 1s page animation.
   void switchToTab(int index, {bool animate = true}) {
-    if (_isDugnad && !_visitedDugnadTabs.contains(index)) {
-      setState(() => _visitedDugnadTabs.add(index));
-    }
     if (animate) {
       controller.animateToPage(
         index,
@@ -158,15 +107,14 @@ class HomeMainV1State extends State<HomeMainV1>
     });
   }
 
-  /// Back affordance for dugnad root tabs (Kampanje / Toppliste):
-  /// pop a pushed route when possible, otherwise switch to Hjem.
+  /// Pop a pushed route when possible, otherwise switch to Hjem.
   void backOrHome() {
     final nav = Navigator.of(context);
     if (nav.canPop()) {
       nav.pop();
       return;
     }
-    switchToTab(dugnadHomeTabIndex);
+    switchToTab(0);
   }
 
   void openSearchTab({String keyword = ''}) {
@@ -186,11 +134,6 @@ class HomeMainV1State extends State<HomeMainV1>
 
   /// Layout reserve for pages that need bottom padding above the floating pill.
   static const double _kShellNavLayoutReserve = 80;
-
-  /// Gap between the campaign tracker pill and the top of the nav pill —
-  /// `.cp-tracker { bottom: 92px }` minus the 78px `.ae-pillnav` occupies on
-  /// the design frame.
-  static const double _kTrackerNavGap = 14;
 
   Widget _navSvgIcon(
     String assetPath, {
@@ -247,14 +190,6 @@ class HomeMainV1State extends State<HomeMainV1>
     );
   }
 
-  Widget _buildLeaderboardIcon({required bool active}) {
-    return Icon(
-      Icons.emoji_events_outlined,
-      size: _kNavIconSize,
-      color: active ? _navActiveColor : _navInactiveOutline,
-    );
-  }
-
   Widget _buildCartIconForNav({required bool selected}) {
     final icon = _navSvgIcon(
       'assets/svgs/menu/bucket.svg',
@@ -291,144 +226,69 @@ class HomeMainV1State extends State<HomeMainV1>
 
   @override
   Widget build(BuildContext context) {
-    final dugnadPalette =
-        _isDugnad ? DugnadState.instance.themePalette : null;
-    final browseNoClub =
-        _isDugnad && !DugnadState.instance.hasClub;
-
     final pageView = PageView(
         controller: controller,
         physics: const NeverScrollableScrollPhysics(),
-        children: _isDugnad
-            ? [
-                const DGHome(),
-                _visitedDugnadTabs.contains(dugnadKampanjeTabIndex)
-                    ? const KampanjeScreen()
-                    : const SizedBox.shrink(),
-                _visitedDugnadTabs.contains(dugnadShopTabIndex)
-                    ? const ClubShopScreen()
-                    : const SizedBox.shrink(),
-                _visitedDugnadTabs.contains(dugnadLeaderboardTabIndex)
-                    ? const LeaderboardScreen()
-                    : const SizedBox.shrink(),
-                _visitedDugnadTabs.contains(dugnadProfileTabIndex)
-                    ? const Account()
-                    : const SizedBox.shrink(),
-              ]
-            : [
-                // 0 — Hjem
-                HomeV1(
-                    isShowDialog: widget.isShowDialog,
-                    orderId: widget.orderId),
-                // 1 — Søk
-                SearchStore(latLng: prefGetLatLng()),
-                // 2 — Feed
-                const FeedShellScreen(),
-                // 3 — AI
-                const SnurreChatScreen(),
-                // 4 — Kurv
-                Padding(
-                  padding:
-                      const EdgeInsets.only(bottom: _kShellNavLayoutReserve),
-                  child: OrderCart(fromStore: widget.fromStore),
-                ),
-                // 5 — Profil
-                const Account(),
-              ],
+        children: [
+          // 0 — Hjem
+          HomeV1(
+              isShowDialog: widget.isShowDialog,
+              orderId: widget.orderId),
+          // 1 — Søk
+          SearchStore(latLng: prefGetLatLng()),
+          // 2 — Feed
+          const FeedShellScreen(),
+          // 3 — AI
+          const SnurreChatScreen(),
+          // 4 — Kurv
+          Padding(
+            padding:
+                const EdgeInsets.only(bottom: _kShellNavLayoutReserve),
+            child: OrderCart(fromStore: widget.fromStore),
+          ),
+          // 5 — Profil
+          const Account(),
+        ],
     );
 
     final scaffold = Scaffold(
       extendBody: true,
-      // Persistent campaign tracker pill sits above the nav across dugnad tabs;
-      // non-blocking (a bounded Positioned — taps outside it fall through).
-      body: _isDugnad
-          ? Stack(
-              children: [
-                pageView,
-                Positioned(
-                  left: context.dp(14),
-                  right: context.dp(14),
-                  // Design puts `.cp-tracker` at `bottom: 92px`, which on the
-                  // 375 frame (no safe-area) is the 78px pill nav plus a 14px
-                  // gap. Hard-coding 92 loses that gap on a home-indicator
-                  // phone, where the nav's own inset lifts it past 92 and the
-                  // two pills touch — so measure from the nav instead.
-                  bottom: aePillNavReservedHeight(context) +
-                      context.dp(_kTrackerNavGap),
-                  child: CampaignTracker(
-                    onOpenOverview: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const CampaignPurchasesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            )
-          : pageView,
+      body: pageView,
       // Floating pill — keep Scaffold's bottom slot fully transparent so the
-      // club page shows through (no solid foot plate behind the nav).
+      // page shows through (no solid foot plate behind the nav).
+      //
+      // activePillGradient / pillBorderColor / activePillShadowColor are left
+      // null: on the commercial branch they always resolved to null (they were
+      // fed from the dugnad club palette). CircleNavBar's own defaults apply.
       bottomNavigationBar: CircleNavBar(
         activeIndex: selectedPos,
         onTap: (index) => _onItemTapped(index),
         color: Colors.transparent,
         tabCurve: Curves.easeOutCubic,
         tabDuration: const Duration(milliseconds: 280),
-        compactItems: _isDugnad,
+        compactItems: false,
         compactGap: 2,
-        compactWidthFactor: _isDugnad ? 0.98 : 0.90,
-        activePillGradient: browseNoClub
-            ? ReenPreClubTokens.shinyCoral
-            : dugnadPalette?.shinyGradient,
-        pillBorderColor: browseNoClub
-            ? const Color(0x14081626)
-            : dugnadPalette?.primary.withValues(alpha: 0.12),
-        activePillShadowColor: browseNoClub
-            ? ReenPreClubTokens.coral.withValues(alpha: 0.42)
-            : dugnadPalette?.primary.withValues(alpha: 0.55),
-        levels: _isDugnad
-            ? const [
-                'Hjem',
-                'Kampanje',
-                'Shop',
-                'Toppliste',
-                'Profil',
-              ]
-            : const ['Hjem', 'Søk', 'Feed', 'AI', 'Kurv', 'Profil'],
-        activeIcons: _isDugnad
-            ? [
-                _navSvgActive('assets/svgs/menu/home.svg'),
-                _navSvgActive('assets/svgs/menu/box.svg'),
-                _navSvgActive('assets/svgs/menu/shirt.svg'),
-                _buildLeaderboardIcon(active: true),
-                _navSvgActive('assets/svgs/menu/user.svg'),
-              ]
-            : [
-                _navSvgActive('assets/svgs/menu/home.svg'),
-                _navSvgActive('assets/svgs/menu/search.svg'),
-                _buildFeedIcon(active: true),
-                _buildAiIcon(active: true),
-                _buildCartIconForNav(selected: true),
-                _navSvgActive('assets/svgs/menu/user.svg'),
-              ],
-        inactiveIcons: _isDugnad
-            ? [
-                _navSvgInactive('assets/svgs/menu/home.svg'),
-                _navSvgInactive('assets/svgs/menu/box.svg'),
-                _navSvgInactive('assets/svgs/menu/shirt.svg'),
-                _buildLeaderboardIcon(active: false),
-                _navSvgInactive('assets/svgs/menu/user.svg'),
-              ]
-            : [
-                _navSvgInactive('assets/svgs/menu/home.svg'),
-                _navSvgInactive('assets/svgs/menu/search.svg'),
-                _buildFeedIcon(active: false),
-                _buildAiIcon(active: false),
-                _buildCartIconForNav(selected: false),
-                _navSvgInactive('assets/svgs/menu/user.svg'),
-              ],
+        compactWidthFactor: 0.90,
+        activePillGradient: null,
+        pillBorderColor: null,
+        activePillShadowColor: null,
+        levels: const ['Hjem', 'Søk', 'Feed', 'AI', 'Kurv', 'Profil'],
+        activeIcons: [
+          _navSvgActive('assets/svgs/menu/home.svg'),
+          _navSvgActive('assets/svgs/menu/search.svg'),
+          _buildFeedIcon(active: true),
+          _buildAiIcon(active: true),
+          _buildCartIconForNav(selected: true),
+          _navSvgActive('assets/svgs/menu/user.svg'),
+        ],
+        inactiveIcons: [
+          _navSvgInactive('assets/svgs/menu/home.svg'),
+          _navSvgInactive('assets/svgs/menu/search.svg'),
+          _buildFeedIcon(active: false),
+          _buildAiIcon(active: false),
+          _buildCartIconForNav(selected: false),
+          _navSvgInactive('assets/svgs/menu/user.svg'),
+        ],
       ),
     );
 
@@ -457,12 +317,7 @@ class HomeMainV1State extends State<HomeMainV1>
         }
         return Future.value(true);
       },
-      child: _isDugnad
-          ? DugnadClubThemeScope(
-              palette: dugnadPalette!,
-              child: themedScaffold,
-            )
-          : themedScaffold,
+      child: themedScaffold,
     );
   }
 }

@@ -6,10 +6,10 @@ import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../common/account/account_widgets.dart';
 import '../common/account/settings_design_kit.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'dugnad_models.dart';
 import 'dugnad_repo.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 
 /// Design `NotifSettingsScreen` / `.dgn-note` + `.dgn-prefs` + `.dgn-foot`.
 class DugnadNotificationPrefsScreen extends StatefulWidget {
@@ -103,7 +103,7 @@ final _kPrefCats = <_PrefCat>[
   ),
 ];
 
-({Color bg, Color fg}) _prefTone(String tone, DugnadClubThemePalette theme) {
+({Color bg, Color fg}) _prefTone(String tone, AeThemePalette theme) {
   switch (tone) {
     case 'green':
       return (bg: const Color(0xFFEAFAF0), fg: const Color(0xFF1F8A5B));
@@ -170,10 +170,10 @@ class _DugnadNotificationPrefsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Scaffold(
       backgroundColor: theme.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
@@ -247,7 +247,7 @@ class _DugnadNotificationPrefsScreenState
 class _DgnNote extends StatelessWidget {
   const _DgnNote({required this.theme});
 
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {
@@ -309,7 +309,7 @@ class _DgnPrefRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final colors = _prefTone(cat.tone, theme);
 
     return Opacity(

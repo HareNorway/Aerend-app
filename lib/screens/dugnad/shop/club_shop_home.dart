@@ -4,18 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../commonView/circle_nav_bar.dart';
-import '../../../commonView/dugnad_club_loader.dart';
+import '../../../ui/kit/ae_loader.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
 import '../../common/account/settings_design_kit.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_club_branding.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_repo.dart';
 import '../dugnad_state.dart';
-import '../widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import 'club_shop_cart.dart';
 import 'club_shop_models.dart';
 import 'club_shop_orders_screen.dart';
@@ -120,9 +120,9 @@ class _ClubShopHomeState extends State<ClubShopHome> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     if (_loading) {
-      return const DugnadClubLoaderScreen();
+      return const AeLoaderScreen();
     }
 
     final catalog = _catalog;
@@ -270,7 +270,7 @@ class _ShopHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final logo = DugnadState.instance.clubLogo;
     final top = MediaQuery.paddingOf(context).top;
 
@@ -294,11 +294,11 @@ class _ShopHero extends StatelessWidget {
               child: Opacity(
                 opacity: 0.9,
                 child: CachedNetworkImage(
-                  imageUrl: ClubCrest.resolveClubMediaUrl(heroImageUrl) ??
+                  imageUrl: AeClubCrest.resolveClubMediaUrl(heroImageUrl) ??
                       heroImageUrl!,
                   fit: BoxFit.cover,
                   progressIndicatorBuilder: (_, __, ___) =>
-                      const DugnadClubImageLoader(),
+                      const AeImageLoader(),
                 ),
               ),
             ),
@@ -345,9 +345,9 @@ class _ShopHero extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    DugnadLbBackButton(onPressed: onBack),
+                    AeBackButton(onPressed: onBack),
                     const Spacer(),
-                    DugnadLbBackButton(
+                    AeBackButton(
                       onPressed: onOrders,
                       iconWidget: SvgPicture.asset(
                         'assets/svgs/order_history.svg',
@@ -363,7 +363,7 @@ class _ShopHero extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: context.dp(18)),
-                ClubCrest(
+                AeClubCrest(
                   name: clubName,
                   logoUrl: logo.isEmpty ? null : logo,
                   size: context.dp(70),
@@ -527,7 +527,7 @@ class _AudienceSegment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // CSS `.sh-aud` is `rgba(45,27,91,.055)` over the mint page. Keep that
     // mix opaque so the selected pill's drop shadow cannot show through.
     final track = Color.alphaBlend(
@@ -572,7 +572,7 @@ class _AudienceTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final radius = BorderRadius.circular(context.dp(11));
     return GestureDetector(
       onTap: onTap,
@@ -633,7 +633,7 @@ class _CatPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -731,11 +731,11 @@ class _ClubShopProductCardState extends State<ClubShopProductCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final p = widget.product;
     final url = p.imageUrls.isEmpty
         ? null
-        : ClubCrest.resolveClubMediaUrl(p.imageUrls.first);
+        : AeClubCrest.resolveClubMediaUrl(p.imageUrls.first);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -786,7 +786,7 @@ class _ClubShopProductCardState extends State<ClubShopProductCard> {
                         imageUrl: url,
                         fit: BoxFit.cover,
                         progressIndicatorBuilder: (_, __, ___) =>
-                            const DugnadClubImageLoader(),
+                            const AeImageLoader(),
                       )
                     else
                       _ImagePlaceholder(),
@@ -964,7 +964,7 @@ class _ImagePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _DashPainter(color: context.dugnadTheme.primary.withValues(alpha: 0.28)),
+      painter: _DashPainter(color: context.aeTheme.primary.withValues(alpha: 0.28)),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -972,7 +972,7 @@ class _ImagePlaceholder extends StatelessWidget {
             Icon(
               Icons.image_outlined,
               size: context.dp(22),
-              color: context.dugnadTheme.primaryHover.withValues(alpha: 0.55),
+              color: context.aeTheme.primaryHover.withValues(alpha: 0.55),
             ),
             SizedBox(height: context.dp(4)),
             Text(

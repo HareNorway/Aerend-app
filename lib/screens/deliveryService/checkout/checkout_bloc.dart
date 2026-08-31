@@ -603,7 +603,7 @@ class CheckOutBloc extends Bloc {
           customFlow: false,
           allowsDelayedPaymentMethods: true,
           returnURL: 'aerend://stripe-redirect',
-          merchantDisplayName: 'Reen Dugnad',
+          merchantDisplayName: 'Ærend',
           paymentIntentClientSecret: paymentIntent['paymentIntent'],
           customerEphemeralKeySecret: paymentIntent['ephemeralKey'],
           customerId: paymentIntent['customerId'],
@@ -626,7 +626,7 @@ class CheckOutBloc extends Bloc {
           clientSecret: paymentIntent['paymentIntent'],
           confirmParams: const PlatformPayConfirmParams.googlePay(
             googlePay: GooglePayParams(
-              merchantName: 'Reen Dugnad',
+              merchantName: 'Ærend',
               allowCreditCards: true,
               isEmailRequired: false,
               testEnv: false,

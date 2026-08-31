@@ -4,8 +4,8 @@ import 'package:rxdart/rxdart.dart';
 import '../../networking/api_base_helper.dart';
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/common/base_dl.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import 'order_cancel_dialog_bloc.dart';
@@ -90,7 +90,7 @@ class OrderCancelDialogState extends State<OrderCancelDialog> {
         ? _otherController.text.trim()
         : _reason;
     _bloc!.reasonController.text = reason;
-    dugnadSheetSaveHaptic();
+    aeSheetSaveHaptic();
     _bloc!.submit();
   }
 
@@ -99,10 +99,10 @@ class OrderCancelDialogState extends State<OrderCancelDialog> {
     final message = (widget.message ?? '').trim();
     return Form(
       key: _bloc!.formKey,
-      child: DugnadSheetBody(
+      child: AeSheetBody(
         children: [
-          DugnadSheetHead(
-            tone: DugnadSheetTone.danger,
+          AeSheetHead(
+            tone: AeSheetTone.danger,
             icon: Icons.close_rounded,
             title: widget.title ?? languages.cancelReason,
             message: message.isNotEmpty
@@ -137,7 +137,7 @@ class OrderCancelDialogState extends State<OrderCancelDialog> {
             builder: (context, snapLoading) {
               final isLoading = snapLoading.hasData &&
                   snapLoading.data?.status == Status.loading;
-              return DugnadSheetConfirmButton(
+              return AeSheetConfirmButton(
                 label: 'Avbryt bestillingen', // TODO(l10n)
                 danger: true,
                 isLoading: isLoading,
@@ -145,10 +145,10 @@ class OrderCancelDialogState extends State<OrderCancelDialog> {
               );
             },
           ),
-          DugnadSheetCancelButton(
+          AeSheetCancelButton(
             label: 'Behold bestillingen', // TODO(l10n)
             onPressed: () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.pop(context, true);
             },
           ),
@@ -184,7 +184,7 @@ class _ReasonTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             width: 1.5,
-            color: selected ? ScSaasThemeTokens.primary : kDugnadSheetHairline,
+            color: selected ? ScSaasThemeTokens.primary : kAeSheetHairline,
           ),
         ),
         child: Row(
@@ -198,7 +198,7 @@ class _ReasonTile extends StatelessWidget {
                 border: Border.all(
                   width: 2,
                   color:
-                      selected ? ScSaasThemeTokens.primary : kDugnadSheetIdle,
+                      selected ? ScSaasThemeTokens.primary : kAeSheetIdle,
                 ),
               ),
               child: selected

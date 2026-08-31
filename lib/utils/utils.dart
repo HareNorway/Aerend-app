@@ -29,12 +29,7 @@ import '../firebase_options.dart';
 import '../googleApi/geocoding_api_call.dart';
 import '../main.dart';
 import '../redux/store.dart';
-import '../screens/dugnad/dugnad_celebration_orchestrator.dart';
-import '../screens/dugnad/dugnad_state.dart';
 import '../theme/reen_pre_club_theme.dart';
-// Mode select temporarily skipped — dugnad is the only mode; go to club onboarding.
-// import '../screens/dugnad/mode_select_screen.dart';
-import '../screens/dugnad/club_onboarding_screen.dart';
 import '../screens/common/base_dl.dart';
 import '../screens/common/homeMainV1/home_main_v1.dart';
 import '../screens/common/login/login_dl.dart';
@@ -293,11 +288,9 @@ BoxDecoration getStatusBorder(Color color, {bool? isLeft}) {
 /// Ærend toast kinds (`.ae-toast--*`).
 enum AeToastKind { info, success, error, heart }
 
-/// Splash / login / OTP / club onboarding use `.reen-pre` (coral), not Ærend purple.
-bool _toastOnReenPreClub() => !DugnadState.instance.hasClub;
-
 /// `.ae-toast` — midnight pill, icon circle, centred above the nav.
-/// Pre-club auth remaps `--ae-shiny-purple` / `--ae-midnight` to coral.
+/// `.ae-toast` — pill, icon circle, centred above the nav. Uses the coral
+/// `.reen-pre` remap of `--ae-shiny-purple` / `--ae-midnight`.
 openSimpleSnackbar(
   String title, {
   duration = 3,
@@ -305,7 +298,6 @@ openSimpleSnackbar(
   AeToastKind kind = AeToastKind.info,
 }) {
   if (rootScaffoldMessengerKey.currentState != null) {
-    final reenPre = _toastOnReenPreClub();
     final Gradient? gradient = switch (kind) {
       AeToastKind.success => const LinearGradient(
         begin: Alignment.topLeft,
@@ -317,21 +309,8 @@ openSimpleSnackbar(
         end: Alignment.bottomRight,
         colors: [Color(0xFFD9534F), Color(0xFFB83B37)],
       ),
-      AeToastKind.heart =>
-        reenPre
-            ? ReenPreClubTokens.shinyCoral
-            : const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFA98FE0),
-                  Color(0xFF7F5FC4),
-                  Color(0xFF6B4FA8),
-                ],
-                stops: [0, 0.55, 1],
-              ),
-      // Info: `--ae-midnight` on club screens; coral shiny on `.reen-pre`.
-      AeToastKind.info => reenPre ? ReenPreClubTokens.shinyCoral : null,
+      AeToastKind.heart => ReenPreClubTokens.shinyCoral,
+      AeToastKind.info => ReenPreClubTokens.shinyCoral,
     };
     final IconData icon = switch (kind) {
       AeToastKind.success => Icons.check_rounded,
@@ -357,9 +336,7 @@ openSimpleSnackbar(
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: reenPre
-                            ? const Color(0x99C94F41)
-                            : const Color(0x992D1B5B),
+                        color: const Color(0x99C94F41),
                         blurRadius: 34,
                         offset: const Offset(0, 14),
                         spreadRadius: -10,
@@ -761,10 +738,6 @@ logout(BuildContext context) async {
     });
     StoreProvider.of<AppState>(context).dispatch(ClearCartItem());
     StoreProvider.of<AppState>(context).dispatch(ClearSelectedCoupons());
-    // Before the route stack is cleared: `pushAndRemoveUntil` drops routes only,
-    // so any dugnad Overlay entry still up would float into the next session.
-    dugnadResetTransientUi();
-    await DugnadState.instance.reset();
     prefClearWithRemainSomeData();
     // Zero-duration opaque swap onto the same navy surface the curtain paints —
     // a Cupertino slide would drag the purple repaint across the screen instead.
@@ -818,18 +791,6 @@ isUserVerified() {
   return false;
 }
 
-/// Mode select is temporarily skipped — dugnad is the only mode.
-/// Enables dugnad when needed, then opens Home (club already chosen) or
-/// [ClubOnboardingScreen].
-Future<Widget> dugnadAuthDestination({bool isShowDialog = true}) async {
-  if (!DugnadState.instance.onboardingComplete) {
-    await DugnadState.instance.setDugnadMode(true);
-  }
-  return DugnadState.instance.onboardingComplete
-      ? HomeMainV1(isShowDialog: isShowDialog)
-      : const ClubOnboardingScreen();
-}
-
 Future<void> manageLoginResponse(
   BuildContext context,
   LoginPojo response, {
@@ -862,9 +823,10 @@ Future<void> manageLoginResponse(
     if (popOnSuccess && Navigator.canPop(context)) {
       Navigator.pop(context, true);
     } else {
-      final dest = await dugnadAuthDestination(isShowDialog: true);
-      if (!context.mounted) return;
-      openScreenWithClearPrevious(context, dest);
+      openScreenWithClearPrevious(
+        context,
+        const HomeMainV1(isShowDialog: true),
+      );
     }
   } else {
     if (popOnSuccess) {

@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aerend_customer/l10n/app_localizations.dart';
 import 'package:aerend_customer/main.dart' as app;
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
-import 'package:aerend_customer/screens/dugnad/dugnad_club_theme.dart';
+import 'package:aerend_customer/ui/kit/ae_theme.dart';
 import 'package:aerend_customer/screens/dugnad/dugnad_celebration_orchestrator.dart';
 import 'package:aerend_customer/screens/campaign/campaign_repo.dart';
 import 'package:aerend_customer/screens/campaign/campaign_tracker_controller.dart';
@@ -48,8 +48,8 @@ Future<void> pumpTracker(
         locale: const Locale('no'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: DugnadClubThemeScope(
-          palette: DugnadClubThemePalette.reenPreClub,
+        home: AeThemeScope(
+          palette: AeThemePalette.reenPreClub,
           child: Scaffold(
             body: Center(
               child: CampaignTracker(
@@ -153,8 +153,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: Stack(
                 children: [
@@ -289,8 +289,8 @@ void main() {
           locale: const Locale('no'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: DugnadClubThemeScope(
-            palette: DugnadClubThemePalette.reenPreClub,
+          home: AeThemeScope(
+            palette: AeThemePalette.reenPreClub,
             child: Scaffold(
               body: Center(
                 child: TrackerDial(

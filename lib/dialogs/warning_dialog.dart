@@ -103,7 +103,7 @@ class WarningDialog extends StatelessWidget {
                 ),
                 SizedBox(height: deviceHeight * 0.015),
                 Text(
-                  "White Label Fox is located in the western part of India. We DO NOT have any representatives, Resellers, or Partner companies anywhere in the world. Please email at \"sales@whitelabelfox.com\" or WhatsApp on \"+91 79849 31943\". If someone claims this Reen Dugnad system to be his/her and is planning to sell it to you. He/She is probably a scammer.",
+                  "White Label Fox is located in the western part of India. We DO NOT have any representatives, Resellers, or Partner companies anywhere in the world. Please email at \"sales@whitelabelfox.com\" or WhatsApp on \"+91 79849 31943\". If someone claims this Ærend system to be his/her and is planning to sell it to you. He/She is probably a scammer.",
                   textAlign: TextAlign.start,
                   style: bodyText(
                     fontSize: textSizeSmallest,

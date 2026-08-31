@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../club_crest.dart';
+import '../../../ui/kit/ae_club_crest.dart';
 import '../dugnad_badge_emblem.dart';
 import '../dugnad_badges.dart';
 import '../dugnad_form_utils.dart';
@@ -266,7 +266,7 @@ class DugnadPlayerCard extends StatelessWidget {
                   ],
                 ),
                 alignment: Alignment.center,
-                child: ClubCrest(
+                child: AeClubCrest(
                   name: crestName,
                   logoUrl: crestLogo,
                   size: context.dp(42),

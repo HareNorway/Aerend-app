@@ -6,7 +6,7 @@ import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import 'dugnad_badge_emblem.dart';
 import 'dugnad_badges.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 
 Future<void> showDugnadBadgeSheet(
   BuildContext context, {
@@ -28,7 +28,7 @@ class _DugnadBadgeSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final earned = badge.earned;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
@@ -140,7 +140,7 @@ class _BadgeSheetHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final earned = badge.earned;
 
     return Container(
@@ -181,7 +181,7 @@ class _BadgeSheetHero extends StatelessWidget {
               fontWeight: FontWeight.w900,
               letterSpacing: 20 * -0.02,
               color: earned
-                  ? context.dugnadTheme.text
+                  ? context.aeTheme.text
                   : ScSaasThemeTokens.gray500,
             ),
           ),
@@ -286,7 +286,7 @@ class _BadgeSheetStep extends StatelessWidget {
 
   final int number;
   final String text;
-  final DugnadClubThemePalette theme;
+  final AeThemePalette theme;
 
   @override
   Widget build(BuildContext context) {

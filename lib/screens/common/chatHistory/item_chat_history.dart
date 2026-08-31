@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../account/settings_design_kit.dart';
 import 'chat_history_bloc.dart';
 import 'chat_history_dl.dart';
@@ -24,7 +24,7 @@ class ItemChatHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final rawTime = getChatDateTime(modelChatList.lastMsgTime);
     final time = rawTime.trim().isNotEmpty
         ? getChatDateTime(modelChatList.lastMsgTime, format: "hh:mm aa")

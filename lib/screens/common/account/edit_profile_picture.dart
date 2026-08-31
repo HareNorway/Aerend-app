@@ -8,8 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../commonView/image_selection.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_rise_in.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_rise_in.dart';
 import '../auth/auth_style.dart';
 import '../editProfile/edit_profile_repo.dart';
 import '../login/login_dl.dart';
@@ -43,7 +43,7 @@ class _EditProfilePictureState extends State<EditProfilePicture> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Scaffold(
       backgroundColor: theme.background,
       body: SafeArea(
@@ -58,7 +58,7 @@ class _EditProfilePictureState extends State<EditProfilePicture> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(18, 0, 18, 40),
                 children: [
-                  DugnadRiseIn(
+                  AeRiseIn(
                     delay: const Duration(milliseconds: 120),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +93,7 @@ class _EditProfilePictureState extends State<EditProfilePicture> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DugnadRiseIn(
+                  AeRiseIn(
                     delay: const Duration(milliseconds: 190),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +165,7 @@ class _EditProfilePictureState extends State<EditProfilePicture> {
     );
   }
 
-  Widget _chooseImageButton(DugnadClubThemePalette theme) {
+  Widget _chooseImageButton(AeThemePalette theme) {
     final disabled = _isSaving;
     return AuthPressable(
       onTap: disabled

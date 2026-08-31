@@ -6,7 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../theme/design_scale.dart';
 import '../../../theme/ae_typography.dart';
 import '../celebration_models.dart';
-import '../dugnad_club_theme.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../dugnad_sto_utils.dart';
 import '../points_metal_theme.dart';
 import 'dugnad_metal_animations.dart';
@@ -81,7 +81,7 @@ class _DugnadT16StoRiseBodyState extends State<DugnadT16StoRiseBody>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final l10n = AppLocalizations.of(context)!;
     final metal = _metal;
     final disc = PointsMetalTheme.stoRiseDisc(metal);

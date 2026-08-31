@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../screens/common/auth/auth_style.dart';
 import '../../screens/deliveryService/checkout/checkout_dl.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 
@@ -32,7 +32,7 @@ class ItemPromoCodeList extends StatelessWidget {
 
     return AuthPressable(
       onTap: onClickApplyPromo,
-      builder: (context, pressed) => DugnadDashedBorder(
+      builder: (context, pressed) => AeDashedBorder(
         radius: 14,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 13),

@@ -17,12 +17,12 @@ import '../../services/dugnad_data_cache.dart';
 import 'dugnad_club_branding.dart';
 import 'dugnad_models.dart';
 import 'dugnad_state.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 import 'widgets/dugnad_choose_club_widgets.dart';
 import 'widgets/dugnad_locked_module.dart';
-import 'widgets/dugnad_subpage_shell.dart';
+import '../../ui/kit/ae_subpage_shell.dart';
 import 'widgets/mk_campaign_card.dart';
-import 'widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'widgets/lucide_box_icon.dart';
 
 /// Club-scoped campaign tab for dugnad mode.
@@ -162,16 +162,16 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
   @override
   Widget build(BuildContext context) {
     if (!DugnadState.instance.hasClub) {
-      return DugnadClubThemeScope(
-        palette: DugnadClubThemePalette.reenPreClub,
+      return AeThemeScope(
+        palette: AeThemePalette.reenPreClub,
         child: Scaffold(
-          backgroundColor: context.dugnadTheme.background,
+          backgroundColor: context.aeTheme.background,
           body: _buildBody(),
         ),
       );
     }
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
       body: _buildBody(),
     );
   }
@@ -211,7 +211,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
         for (int i = 0; i < visibleCampaigns.length; i++)
           Padding(
             padding: EdgeInsets.only(bottom: context.dp(14)),
-            child: DugnadRiseIn(
+            child: AeRiseIn(
               delay: Duration(milliseconds: 60 * i.clamp(0, 6)),
               child: buildCampaignSummaryCard(context, visibleCampaigns[i]),
             ),
@@ -221,7 +221,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
     );
 
     return RefreshIndicator(
-      color: context.dugnadTheme.primary,
+      color: context.aeTheme.primary,
       onRefresh: _loadCampaigns,
       child: ListView(
         padding: EdgeInsets.fromLTRB(hPad, context.dp(8), hPad, context.dp(100)),
@@ -294,10 +294,10 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
   }
 
   Widget _buildTitleBar() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Row(
       children: [
-        DugnadLbBackButton(
+        AeBackButton(
           onPressed: _onBack,
           solidWhite: !DugnadState.instance.hasClub,
         ),
@@ -320,7 +320,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
   }
 
   Widget _buildHeaderArea() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     // Prototype: `.tk-head` + `.dg-green-banner` (matkasse.jsx MatkasseList).
     const success = ScSaasThemeTokens.success; // --ae-success #22A769
     return SafeArea(
@@ -396,7 +396,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
 
   Widget _buildSearchAndFilters() {
     final chips = _teamFilters;
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,7 +463,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
     required VoidCallback onTap,
     bool showShield = true,
   }) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -514,7 +514,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
         for (int i = 0; i < dummy.length; i++)
           Padding(
             padding: EdgeInsets.only(bottom: context.dp(14)),
-            child: DugnadRiseIn(
+            child: AeRiseIn(
               delay: Duration(milliseconds: 60 * i.clamp(0, 6)),
               child: buildCampaignSummaryCard(context, dummy[i]),
             ),
@@ -558,7 +558,7 @@ class _KampanjeScreenState extends State<KampanjeScreen> {
               height: context.dp(64),
               decoration: AeSurface.shiny(isCircle: true),
               child: Icon(Icons.inventory_2_rounded,
-                  color: context.dugnadTheme.primary, size: context.dp(28)),
+                  color: context.aeTheme.primary, size: context.dp(28)),
             ),
             SizedBox(height: context.dp(20)),
             Text(languages.dugnadNoCampaignsNow,

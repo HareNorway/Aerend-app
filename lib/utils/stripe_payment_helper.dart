@@ -26,7 +26,7 @@ class StripePaymentHelper {
         customFlow: false,
         allowsDelayedPaymentMethods: allowsDelayedPaymentMethods,
         returnURL: 'aerend://stripe-redirect',
-        merchantDisplayName: 'Reen',
+        merchantDisplayName: 'Ærend',
         paymentIntentClientSecret: clientSecret,
         customerEphemeralKeySecret: ephemeralKey,
         customerId: customerId,
@@ -65,7 +65,7 @@ class StripePaymentHelper {
         clientSecret: clientSecret,
         confirmParams: const PlatformPayConfirmParams.googlePay(
           googlePay: GooglePayParams(
-            merchantName: 'Reen',
+            merchantName: 'Ærend',
             allowCreditCards: true,
             isEmailRequired: false,
             testEnv: false,

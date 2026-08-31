@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../screens/common/auth/auth_style.dart';
-import '../../screens/dugnad/dugnad_sheet.dart';
-import '../../screens/dugnad/widgets/dugnad_confirm_sheet.dart';
+import '../../ui/kit/ae_sheet.dart';
+import '../../ui/kit/ae_confirm_sheet.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../utils/utils.dart';
 import 'add_tips_dialog_bloc.dart';
@@ -48,7 +48,7 @@ class _AddTipsDialogState extends State<AddTipsDialog> {
 
   void _submit() {
     _bloc!.tipController.text = _amount.toString();
-    dugnadSheetSaveHaptic();
+    aeSheetSaveHaptic();
     _bloc!.submit();
   }
 
@@ -56,14 +56,14 @@ class _AddTipsDialogState extends State<AddTipsDialog> {
   Widget build(BuildContext context) {
     return Form(
       key: _bloc!.formKey,
-      child: DugnadSheetBody(
+      child: AeSheetBody(
         children: [
-          const DugnadSheetHead(
-            tone: DugnadSheetTone.success,
+          const AeSheetHead(
+            tone: AeSheetTone.success,
             icon: Icons.favorite_rounded,
             iconSize: 18,
             title: 'Tips til budet', // TODO(l10n)
-            message: '100 % går til budet — ikke til Reen Dugnad.', // TODO(l10n)
+            message: '100 % går til budet — ikke til Ærend.', // TODO(l10n)
           ),
           // .dgd-tips { gap: 8px; margin-top: 12px }
           Padding(
@@ -85,7 +85,7 @@ class _AddTipsDialogState extends State<AddTipsDialog> {
               ],
             ),
           ),
-          DugnadSheetPrimaryButton(
+          AeSheetPrimaryButton(
             topMargin: 18,
             label: _amount > 0
                 ? 'Gi ${getAmountWithCurrency(_amount)} i tips' // TODO(l10n)
@@ -93,10 +93,10 @@ class _AddTipsDialogState extends State<AddTipsDialog> {
             icon: Icons.check_rounded,
             onPressed: _submit,
           ),
-          DugnadSheetCancelButton(
+          AeSheetCancelButton(
             label: languages.cancel,
             onPressed: () {
-              dugnadSheetCloseHaptic();
+              aeSheetCloseHaptic();
               Navigator.pop(context, true);
             },
           ),
@@ -137,7 +137,7 @@ class _TipChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
             width: 1.5,
-            color: selected ? ScSaasThemeTokens.success : kDugnadSheetHairline,
+            color: selected ? ScSaasThemeTokens.success : kAeSheetHairline,
           ),
         ),
         child: Text(

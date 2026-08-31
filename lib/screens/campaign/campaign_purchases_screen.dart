@@ -7,8 +7,8 @@ import '../../theme/sc_saas_theme.dart';
 import '../../utils/guest_auth_helper.dart';
 import '../../utils/utils.dart';
 import '../common/address_order_chrome.dart';
-import '../dugnad/dugnad_club_theme.dart';
-import '../dugnad/widgets/dugnad_rise_in.dart';
+import '../../ui/kit/ae_theme.dart';
+import '../../ui/kit/ae_rise_in.dart';
 import 'campaign_delivery_utils.dart';
 import 'campaign_my_orders_screen.dart';
 import 'campaign_repo.dart';
@@ -83,7 +83,7 @@ class _CampaignPurchasesScreenState extends State<CampaignPurchasesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     if (isGuestUser() && widget.debugOrders == null) {
       return Scaffold(
         backgroundColor: theme.background,
@@ -164,7 +164,7 @@ class _CampaignPurchasesScreenState extends State<CampaignPurchasesScreen> {
     }
     return [
       for (var i = 0; i < active.length; i++) ...[
-        DugnadRiseIn(
+        AeRiseIn(
           delay: Duration(milliseconds: 80 * i),
           child: CpActiveCard(order: active[i], onChanged: (_) => _onChanged()),
         ),
@@ -205,7 +205,7 @@ class _CampaignPurchasesScreenState extends State<CampaignPurchasesScreen> {
         },
         child: Text(
           CampaignStrings.viewFullHistory,
-          style: aeLabel(color: context.dugnadTheme.primary),
+          style: aeLabel(color: context.aeTheme.primary),
         ),
       ),
     ];
@@ -226,7 +226,7 @@ class _CampaignPurchasesScreenState extends State<CampaignPurchasesScreen> {
             onPressed: _load,
             child: Text(
               CampaignStrings.tryAgain,
-              style: aeLabel(color: context.dugnadTheme.primary),
+              style: aeLabel(color: context.aeTheme.primary),
             ),
           ),
         ),
@@ -248,7 +248,7 @@ class _CpSeg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final reduce = MediaQuery.disableAnimationsOf(context);
     return Container(
       padding: const EdgeInsets.all(4),
@@ -324,7 +324,7 @@ class _CpSeg extends StatelessWidget {
             label,
             style: aeCaption(
               color: selected
-                  ? context.dugnadTheme.ink
+                  ? context.aeTheme.ink
                   : ScSaasThemeTokens.gray500,
             ).copyWith(fontWeight: FontWeight.w600, fontSize: 13),
           ),
@@ -347,7 +347,7 @@ class _CpEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Padding(
       padding: EdgeInsets.symmetric(vertical: context.dp(36)),
       child: Column(
@@ -386,7 +386,7 @@ class _ArchiveSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Container(
       padding: EdgeInsets.all(context.dp(14)),
       decoration: BoxDecoration(
@@ -462,7 +462,7 @@ class _ArchiveRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     final pickup = order.isPickup;
     final day = campaignDayLabel(order.windowInstant);
     return Material(

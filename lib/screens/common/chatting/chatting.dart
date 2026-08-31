@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import '../../../commonView/custom_text_field.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../chatHistory/chat_history_dl.dart';
 import '../splash/splash.dart';
@@ -71,8 +71,8 @@ class ChattingState extends State<Chatting> {
   Widget build(BuildContext context) {
     return WillPopScope(
       child: Scaffold(
-        backgroundColor: context.dugnadTheme.background,
-        body: DugnadFixedTypography(
+        backgroundColor: context.aeTheme.background,
+        body: AeFixedTypography(
           child: SafeArea(
             bottom: false,
             child: Column(
@@ -108,7 +108,7 @@ class ChattingState extends State<Chatting> {
   }
 
   _buildChatting() {
-    final theme = context.dugnadTheme;
+    final theme = context.aeTheme;
     return Column(
       children: [
         Container(

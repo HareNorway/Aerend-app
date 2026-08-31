@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../utils/utils.dart';
 import '../common/vipps/donation_vipps_return.dart';
-import 'dugnad_club_theme.dart';
+import '../../ui/kit/ae_theme.dart';
 
 /// Syncs Vipps recurring agreement after aerend://donation/vipps return.
 /// Loading is shown via the global processing overlay (same as campaign payments).
@@ -39,7 +39,7 @@ class _DonationDeepLinkLoaderState extends State<DonationDeepLinkLoader> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.dugnadTheme.background,
+      backgroundColor: context.aeTheme.background,
     );
   }
 }

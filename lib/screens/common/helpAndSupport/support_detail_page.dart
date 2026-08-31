@@ -4,8 +4,8 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/brand_scrub.dart';
-import '../../dugnad/dugnad_club_theme.dart';
-import '../../dugnad/widgets/dugnad_subpage_shell.dart';
+import '../../../ui/kit/ae_theme.dart';
+import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 
 class SupportDetailPage extends StatelessWidget {
@@ -21,7 +21,7 @@ class SupportDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final materialTheme = Theme.of(context);
     final isDark = materialTheme.brightness == Brightness.dark;
-    final clubTheme = context.dugnadTheme;
+    final clubTheme = context.aeTheme;
 
     final String html =
         '''
@@ -108,7 +108,7 @@ class SupportDetailPage extends StatelessWidget {
     }
     return Scaffold(
       backgroundColor: clubTheme.background,
-      body: DugnadFixedTypography(
+      body: AeFixedTypography(
         child: SafeArea(
           bottom: false,
           child: Column(
