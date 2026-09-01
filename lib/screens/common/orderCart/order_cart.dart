@@ -13,6 +13,7 @@ import 'package:aerend_customer/screens/deliveryService/storeDetail/widget_size_
 import './order_cart_bloc.dart';
 import '../../../utils/utils.dart';
 import '../../../ui/kit/ae_rise_in.dart';
+import '../../../ui/kit/ae_theme.dart';
 import '../../deliveryService/checkout/checkout.dart';
 import '../../deliveryService/checkout/co_styles.dart';
 
@@ -77,6 +78,7 @@ class OrderCartState extends State<OrderCart> {
     return StreamBuilder<ApiResponse>(
       stream: bloc?.subject,
       builder: (context, snapshot) {
+        final theme = context.aeTheme;
         Widget body;
 
         if (snapshot.hasData) {
@@ -170,7 +172,7 @@ class OrderCartState extends State<OrderCart> {
               numberOfCart > 0
                   ? languages.cartTitle(numberOfCart)
                   : languages.cart,
-              style: coHeadTitle.copyWith(color: theme?.text),
+              style: coHeadTitle.copyWith(color: theme.text),
             ),
             centerTitle: false,
           ),
@@ -414,6 +416,7 @@ class OrderCartState extends State<OrderCart> {
 
   // ── Empty cart ──────────────────────────────────────────────────
   Widget _blankCartBody(BuildContext context) {
+    final theme = context.aeTheme;
     return ColoredBox(
       color: ScSaasThemeTokens.background,
       child: Center(
@@ -428,12 +431,12 @@ class OrderCartState extends State<OrderCart> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: theme?.primaryTint ?? ScSaasThemeTokens.primaryTint,
+                    color: theme.primaryTint,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.shopping_cart_outlined,
-                    color: theme?.primaryHover ?? ScSaasThemeTokens.primaryHover,
+                    color: theme.primaryHover,
                     size: 34,
                   ),
                 ),
