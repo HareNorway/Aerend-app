@@ -784,7 +784,6 @@ class AuthPrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final IconData? trailingIcon;
-  final bool useDugnadTheme;
 
   const AuthPrimaryButton({
     super.key,
@@ -792,7 +791,6 @@ class AuthPrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.isLoading = false,
     this.trailingIcon,
-    this.useDugnadTheme = true,
   });
 
   @override

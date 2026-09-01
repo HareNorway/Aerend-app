@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../theme/reen_pre_club_theme.dart';
 import '../../theme/sc_saas_theme.dart';
-import '../../screens/dugnad/dugnad_state.dart';
 
 /// Normalize admin/API hex input to `#RRGGBB` or null when invalid/empty.
 String? normalizeThemeColor(String? input) {
@@ -305,22 +304,8 @@ class AeThemeScope extends InheritedWidget {
 
 extension AeThemeContext on BuildContext {
   AeThemePalette get aeTheme {
-    // Browse/no-club mode uses a mixed REEN palette: light page canvas with
-    // coral actions. Hero surfaces opt into navy explicitly where needed.
-    if (DugnadState.instance.isDugnadMode && !DugnadState.instance.hasClub) {
-      return AeThemePalette.reenBrowse;
-    }
-    final scope =
-        dependOnInheritedWidgetOfExactType<AeThemeScope>();
+    final scope = dependOnInheritedWidgetOfExactType<AeThemeScope>();
     if (scope != null) return scope.palette;
-    // In dugnad with a club → admin [resolve] palette (or Ærend defaults).
-    if (DugnadState.instance.isDugnadMode && DugnadState.instance.hasClub) {
-      return DugnadState.instance.themePalette;
-    }
-    // Pre-club dugnad surfaces (mode select / onboarding) without a scope.
-    if (DugnadState.instance.isDugnadMode) {
-      return AeThemePalette.reenPreClub;
-    }
     return AeThemePalette.defaults;
   }
 }

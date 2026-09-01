@@ -1,5 +1,28 @@
 # Ærend App — Dugnad Removal Audit (Chunk 0)
 
+> ## ✅ CHUNKS 4+5 (MERGED) — CAMPAIGN AND DUGNAD DELETED
+>
+> **U1 resolved: REMOVE.** The matkasse campaign and the entire dugnad feature
+> are gone from the commercial delivery app. Merged into one chunk because nine
+> dugnad files imported campaign and `ae_support_share.dart` had three dugnad
+> consumers — neither could be deleted alone and leave a compiling tree.
+>
+> **Resolved by deletion:** G6 (login spacing), G14 (campaign carried dugnad
+> state into order payloads), G15 (celebration orchestrator as a critical-flow
+> lock), G16 (`CampaignTrackerController` never fetched commercially).
+> Also resolved: **U6** — `checkout1.dart` deleted (dead, and no longer
+> compiled once the Reen Sports prefs went).
+>
+> **Still open after this chunk:**
+> - **U3 — the palette.** `ReenPreClubTokens` and `AeThemePalette.reenPreClub`
+>   are byte-unchanged. No colour value has been altered in any chunk.
+> - **`appName`** — still `'Reen Dugnad'` in all five locales. Product decision;
+>   must change together with `CFBundleDisplayName` / `android:label` and the
+>   store listings.
+> - **The end-of-project build.** No chunk has run `flutter analyze` or built an
+>   APK. That is the next gate.
+
+
 Inventory only. **No code was changed, no files deleted, no analyzer or build
 was run.** Every claim below is anchored to a real path and line number in
 `Aerend-app/`.

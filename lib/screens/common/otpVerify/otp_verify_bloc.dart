@@ -274,8 +274,7 @@ class OtpVerifyBloc extends Bloc {
   void _navigateAfterVerify() {
     if (!state.mounted) return;
     final bool returnToCaller = prefGetBool(prefAuthReturnOnSuccess) ||
-        prefGetBool(prefGuestCheckoutResume) ||
-        prefGetBool(prefGuestCampaignCheckoutResume);
+        prefGetBool(prefGuestCheckoutResume);
     prefSetBool(prefAuthReturnOnSuccess, false);
     if (returnToCaller && Navigator.canPop(context)) {
       Navigator.pop(context, true);

@@ -10,16 +10,11 @@ import '../../../theme/design_scale.dart';
 import '../../../theme/reen_pre_club_theme.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
-import '../../dugnad/dugnad_referral_state.dart';
 import '../../../ui/kit/ae_rise_in.dart';
-import '../../dugnad/widgets/referral_capture_banner.dart';
-import '../../dugnad/widgets/referral_manual_code_field.dart';
 import '../auth/auth_style.dart';
 import '../otpVerify/otp_verify.dart';
 import 'login_bloc.dart';
 import 'login_dl.dart';
-
-enum _ReferralUiMode { link, organic }
 
 enum _EmailTab { login, signup }
 
@@ -53,7 +48,6 @@ class Login extends StatefulWidget {
 
 class LoginState extends State<Login> {
   late final LoginBloc _bloc;
-  late _ReferralUiMode _refMode;
   late bool _emailOpen;
   late _EmailTab _emailTab;
 
@@ -74,9 +68,6 @@ class LoginState extends State<Login> {
   void initState() {
     super.initState();
     _bloc = LoginBloc(context, this);
-    _refMode = DugnadReferralState.instance.pending != null
-        ? _ReferralUiMode.link
-        : _ReferralUiMode.organic;
     _emailOpen = widget.openEmailForm || widget.startOnRegisterTab;
     _emailTab = widget.startOnRegisterTab ? _EmailTab.signup : _EmailTab.login;
     _loginSub = _bloc.subject.listen(_onLoginState);
@@ -156,7 +147,6 @@ class LoginState extends State<Login> {
   static const double _logoMarginBottom = 18; // .auth-logo-wrap margin-bottom
   static const double _titleMarginBottom = 8; // .auth-head h1 margin-bottom
   static const double _headMarginBottom = 22; // .auth-head margin-bottom
-  static const double _regDemoMarginBottom = 14; // .reg-demo margin-bottom
   // `.auth-methods { margin-top: 18px }` only — the referral widgets already
   // carry `.reg-invite`/`.reg-organic`'s own 16px bottom margin internally.
   static const double _methodsMarginTop = 18;
@@ -231,16 +221,7 @@ class LoginState extends State<Login> {
           ),
           SizedBox(height: context.dp(10)),
           _rise(_buildAerendByline(context), const Duration(milliseconds: 220)),
-          SizedBox(height: context.dp(_headMarginBottom - 10)),
-          _fromConsentRise(_buildRegDemoTabs(context), 260),
-          SizedBox(height: context.dp(_regDemoMarginBottom)),
-          _fromConsentRise(
-            _refMode == _ReferralUiMode.link
-                ? const ReferralCaptureBanner()
-                : const ReferralManualCodeField(),
-            310,
-          ),
-          SizedBox(height: context.dp(_methodsMarginTop)),
+          SizedBox(height: context.dp(_headMarginBottom + _methodsMarginTop)),
           SocialLogin(
             spacing: context.dp(_methodsGap),
             wrapButton: widget.enteredFromConsent
@@ -271,105 +252,6 @@ class LoginState extends State<Login> {
           // No Spacer / bottom group on the start view — `.auth-guest` is the
           // last element in the scroll body and SafeArea absorbs the inset.
         ],
-      ),
-    );
-  }
-
-  Widget _buildRegDemoTabs(BuildContext context) {
-    final linkSelected = _refMode == _ReferralUiMode.link;
-
-    Widget tab(String label, bool selected, VoidCallback onTap) {
-      return Expanded(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Padding(
-            // .reg-demo button { padding: 9px 8px }
-            padding: EdgeInsets.symmetric(
-              vertical: context.dp(9),
-              horizontal: context.dp(8),
-            ),
-            child: AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 250),
-              style: TextStyle(
-                // .reg-demo button { font-size: 12.5px; font-weight: 800 }
-                fontSize: context.dp(12.5),
-                fontWeight: FontWeight.w800,
-                height: 1.15,
-                letterSpacing: context.dp(12.5) * -0.01,
-                color: selected ? Colors.white : const Color(0x8CFFFFFF),
-              ),
-              child: Text(label, textAlign: TextAlign.center),
-            ),
-          ),
-        ),
-      );
-    }
-
-    // `.reen-pre .reg-demo` — dark glass track, coral sliding thumb.
-    return IntrinsicHeight(
-      child: Container(
-        padding: EdgeInsets.all(context.dp(4)),
-        decoration: BoxDecoration(
-          color: const Color(0x38000000),
-          borderRadius: BorderRadius.circular(context.dp(13)),
-          border: Border.all(color: const Color(0x1AFFFFFF)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x4D000000),
-              blurRadius: 2,
-              offset: Offset(0, 1),
-              spreadRadius: -1,
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 300),
-                curve: const Cubic(0.4, 0, 0.2, 1),
-                alignment: linkSelected
-                    ? Alignment.centerLeft
-                    : Alignment.centerRight,
-                child: FractionallySizedBox(
-                  widthFactor: 0.5,
-                  heightFactor: 1,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: ReenPreClubTokens.regDemoThumb,
-                      borderRadius: BorderRadius.circular(context.dp(10)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: ReenPreClubTokens.coral.withValues(
-                            alpha: 0.45,
-                          ),
-                          blurRadius: context.dp(12),
-                          offset: Offset(0, context.dp(4)),
-                          spreadRadius: context.dp(-4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                tab(
-                  languages.dgAuthViaReferralLink,
-                  linkSelected,
-                  () => setState(() => _refMode = _ReferralUiMode.link),
-                ),
-                tab(
-                  languages.dgAuthOrganic,
-                  !linkSelected,
-                  () => setState(() => _refMode = _ReferralUiMode.organic),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -498,7 +380,6 @@ class LoginState extends State<Login> {
                     return AuthPrimaryButton(
                       label: isSignup ? kAoCreateAccountCta : languages.login,
                       isLoading: isLoading,
-                      useDugnadTheme: false,
                       onPressed: (isLoading || !isEnable)
                           ? null
                           : _onEmailPrimary,

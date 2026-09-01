@@ -8,7 +8,6 @@ import 'package:aerend_customer/utils/utils.dart';
 
 enum GuestLoginPrompt {
   checkout,
-  campaignCheckout,
   favorites,
   orders,
   address,
@@ -19,7 +18,6 @@ enum GuestLoginPrompt {
 String _titleFor(GuestLoginPrompt prompt) {
   switch (prompt) {
     case GuestLoginPrompt.checkout:
-    case GuestLoginPrompt.campaignCheckout:
       return languages.signInToCompleteOrder;
     case GuestLoginPrompt.favorites:
       return languages.signInToSaveFavorites;
@@ -36,7 +34,6 @@ String _titleFor(GuestLoginPrompt prompt) {
 String _messageFor(GuestLoginPrompt prompt) {
   switch (prompt) {
     case GuestLoginPrompt.checkout:
-    case GuestLoginPrompt.campaignCheckout:
       return languages.signInToCompleteOrderMessage;
     case GuestLoginPrompt.favorites:
       return languages.signInToSaveFavorites;
@@ -248,29 +245,4 @@ int guestCheckoutResumeTakenType() => prefGetInt(prefGuestCheckoutTakenType);
 bool guestCheckoutResumeSpendCredit() =>
     prefGetBool(prefGuestCheckoutSpendCredit);
 
-void saveGuestCampaignCheckoutResume({
-  required String paymentMethod,
-  required String payMode,
-}) {
-  prefSetBool(prefGuestCampaignCheckoutResume, true);
-  prefSetString(prefGuestCampaignPaymentMethod, paymentMethod);
-  prefSetString(prefGuestCampaignPayMode, payMode);
-}
 
-void clearGuestCampaignCheckoutResume() {
-  prefSetBool(prefGuestCampaignCheckoutResume, false);
-  prefSetString(prefGuestCampaignPaymentMethod, '');
-  prefSetString(prefGuestCampaignPayMode, '');
-}
-
-bool consumeGuestCampaignCheckoutResume() {
-  final resume = prefGetBool(prefGuestCampaignCheckoutResume);
-  if (!resume) return false;
-  clearGuestCampaignCheckoutResume();
-  return true;
-}
-
-String guestCampaignResumePaymentMethod() =>
-    prefGetString(prefGuestCampaignPaymentMethod);
-
-String guestCampaignResumePayMode() => prefGetString(prefGuestCampaignPayMode);

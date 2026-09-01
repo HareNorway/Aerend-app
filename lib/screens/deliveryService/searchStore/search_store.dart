@@ -112,10 +112,10 @@ class _SearchStoreState extends State<SearchStore> {
   String get _locationLabel {
     try {
       final raw = prefGetString(prefNewDeliveryAddress);
-      if (raw.trim().isEmpty) return languages.dugnadSelectAddress;
+      if (raw.trim().isEmpty) return languages.selectAddress;
       return AddressListItem.fromJson(jsonDecode(raw)).address.split(',')[0];
     } catch (_) {
-      return languages.dugnadSelectAddress;
+      return languages.selectAddress;
     }
   }
 

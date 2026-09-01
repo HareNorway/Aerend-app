@@ -697,8 +697,8 @@
   "appExitMessage": "Back again to exit the app!",
   "invalidAmountMsg": "Enter valid amount",
   "passChangeSuccess": "Your password changed successfully!",
-  "transactionFailed" : "Transaction Failed",
-  "stripe" : "Stripe",
+  "transactionFailed": "Transaction Failed",
+  "stripe": "Stripe",
   "@maxAddressMsg": {
     "placeholders": {
       "maxLimit": {
@@ -795,1133 +795,106 @@
       }
     }
   },
-  "dugnadSelectModeTitle": "Select mode",
-  "dugnadSelectModeSubtitle": "How do you want to use Reen Dugnad?",
-  "dugnadModeDugnad": "Dugnad",
-  "dugnadModeActive": "Active",
-  "dugnadModeDugnadDesc": "Order through your team and support the club.",
-  "dugnadModeCommercial": "Commercial",
-  "dugnadModeComingSoon": "Coming soon",
-  "dugnadModeCommercialDesc": "Regular ordering from all stores in Bergen.",
-  "dugnadModeSwitchHint": "Commercial mode launches later. Until then you use Reen Dugnad in dugnad mode.",
-  "dugnadChooseYourClub": "Choose your club",
-  "dugnadSwitchClub": "Switch club",
-  "dugnadSearchForClub": "Search for your club",
-  "dugnadChangeClub": "Change",
-  "dugnadMemberOfClub": "Member of {clubName}?",
-  "@dugnadMemberOfClub": {
+  "dugnadMembershipPrompt": "Got a membership number? Enter it to unlock exclusive discounts.",
+  "dugnadContinueAsSupporter": "Continue as supporter",
+  "dugnadChooseClubToStart": "Choose a club to get started",
+  "dugnadChooseClubToStartDesc": "Find your club and start supporting them through your purchases.",
+  "dugnadMembershipOptionalHint": "You can add your membership number at any time.",
+  "selectAddress": "Select address",
+  "dugnadPointsTeamProfileTitle": "Team you support",
+  "dugnadPointsTeamNone": "No team selected",
+  "dugnadPointsTeamChange": "Change",
+  "dugnadPointsActionReversal": "Reversed",
+  "dugnadProfileTitle": "Profile",
+  "dugnadClubShopVerified": "Verifisert medlem",
+  "dugnadClubShopAdded": "{name} ({size}) added to the cart",
+  "@dugnadClubShopAdded": {
     "placeholders": {
-      "clubName": {
+      "name": {
+        "type": "String"
+      },
+      "size": {
         "type": "String"
       }
     }
   },
-  "dugnadMembershipPrompt": "Got a membership number? Enter it to unlock exclusive discounts.",
-  "dugnadMembershipNumber": "Membership number",
-  "dugnadUnlockDiscounts": "Unlock discounts",
-  "dugnadContinueAsSupporter": "Continue as supporter",
-  "dugnadBrowseWithoutClub": "Browse without choosing",
-  "dugnadChooseClubToStart": "Choose a club to get started",
-  "dugnadChooseClubToStartDesc": "Find your club and start supporting them through your purchases.",
-  "dugnadChooseClubOnboardSubtitle": "Choose the club to connect your membership to. You can switch at any time.",
-  "dugnadClubChangeAnytime": "You can change clubs at any time — the choice is never binding.",
-  "dugnadTourPromptTitle": "New to Reen Dugnad?",
-  "dugnadTourPromptBody": "Take a short tour of the app — how you pick a team, collect points and build your STØ card. Takes under a minute.",
-  "dugnadTourPromptReward": "points when you finish",
-  "dugnadTourPromptRewardNote": "Straight into your STØ rating",
-  "dugnadTourPromptStart": "Take the tour",
-  "dugnadTourPromptLater": "Not now",
-  "dugnadTourBack": "Back",
-  "dugnadTourSkip": "Skip",
-  "dugnadTourNext": "Next",
-  "dugnadTourFinish": "Done",
-  "dugnadTourClose": "Close tour",
-  "dugnadTourStepCounter": "{current} / {total}",
-  "@dugnadTourStepCounter": {
-    "placeholders": {
-      "current": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "dugnadTourRowTitle": "App walkthrough",
-  "dugnadTourRowSubtitle": "See how points, teams and STØ work",
-  "dugnadTourWelcomeTitle": "Welcome to Reen Dugnad 💜",
-  "dugnadTourWelcomeBody": "Everything you buy here sends a share back to your club. Let's take a quick tour of how it works.",
-  "dugnadTourTeamTitle": "Pick your team in the club",
-  "dugnadTourTeamBody": "The club has many teams. Tap the points card and choose the team you want to support — your points then land with the right team on the leaderboard.",
-  "dugnadTourConnectTitle": "Your points connect to the team",
-  "dugnadTourConnectBody": "Once your team is set, every purchase counts for both you and the team. The card shows your STØ rating and where the team stands.",
-  "dugnadTourEarnTitle": "How you earn points",
-  "dugnadTourEarnBody": "Add a delivery address, buy from campaigns, set up recurring support or refer friends. Tap here to see how many points each action gives.",
-  "dugnadTourAddrTitle": "Add your address",
-  "dugnadTourAddrBody": "Tap here to add your delivery address. It's the quickest points you can pick up — and it means orders go straight to your door.",
-  "dugnadTourCampsTitle": "Buy from campaigns",
-  "dugnadTourCampsBody": "The club's own campaigns — food boxes, fundraising goods and offers. Most of your points come from here, and a share goes straight into the club's coffers.",
-  "dugnadTourDonateTitle": "Recurring support",
-  "dugnadTourDonateBody": "Set up a monthly amount. It gives the club predictable income — and you points every month without lifting a finger.",
-  "dugnadTourReferTitle": "Refer friends",
-  "dugnadTourReferBody": "Share your referral link. Everyone who joins earns you points, and the club gains another supporter.",
-  "dugnadTourCompTitle": "The team competition",
-  "dugnadTourCompBody": "Here you'll find the table for every team in the club — plus top scorer, assist leader and the highest STØ card. See where your team sits and what separates you from the one above.",
-  "dugnadTourStoTitle": "Your STØ card",
-  "dugnadTourStoBody": "Your STØ rating grows with your points. The card changes metal — bronze, silver, gold, platinum — and shows your team, form and badges.",
-  "dugnadTourFormTitle": "Your form",
-  "dugnadTourFormBody": "Form reflects your activity over recent weeks. Shop regularly and you stay in good form; go quiet and it drops.",
-  "dugnadTourBadgesTitle": "Badges",
-  "dugnadTourBadgesBody": "Badges unlock from what you do — first purchase, recurring support, referrals, season goals. Some are permanent, others renew each season.",
-  "dugnadTourDoneTitle": "You're all set 🎉",
-  "dugnadTourDoneBody": "You've earned 50 points for the tour — they're already on your STØ card. You can always take it again from your profile.",
-  "dugnadTourDoneAgainTitle": "You're up to speed 💜",
-  "dugnadTourDoneAgainBody": "The 50-point reward has already been paid out, so this round doesn't add new points. Come back here whenever you like.",
-  "dugnadMembershipOptionalHint": "You can add your membership number at any time.",
-  "dugnadMembershipOptionalLabel": "Membership number (optional)",
-  "dugnadChooseClub": "Choose club",
-  "dugnadSelectAddress": "Select address",
-  "dugnadMyClub": "My club",
-  "dugnadChangeTeamOrClub": "Change team in Club",
-  "dugnadChangeTeamOrClubSub": "Change anytime — choose a team",
-  "dugnadSwitchAnytimeSubtitle": "Change anytime — without waiting for the window",
-  "dugnadYourTeamNow": "Your team now",
-  "dugnadYourTeamFallback": "your team",
-  "dugnadSwitchTeamInfo": "Your STØ rating, points and level follow you. Season counters restart for the new team.",
-  "dugnadSwitchConfirmTitle": "Confirm switch to {team}{clubSuffix}",
-  "@dugnadSwitchConfirmTitle": {
-    "placeholders": {
-      "team": { "type": "String" },
-      "clubSuffix": { "type": "String" }
-    }
-  },
-  "dugnadSwitchConfirmBody": "Standard switch — no countdown. You keep rating, points and level.",
-  "dugnadSwitchConfirmBtn": "Confirm switch",
-  "dugnadSwitchConfirmedToast": "Switch confirmed 💜",
-  "dugnadPointsTeamTitle": "Choose your team so points count",
-  "dugnadPointsTeamSubtitle": "All points you earn go to this one team. You can change it later — only future points are affected.",
-  "dugnadPointsTeamProfileTitle": "Team you support",
-  "dugnadPointsTeamNone": "No team selected",
-  "dugnadPointsTeamSelect": "Choose team",
-  "dugnadPointsTeamChange": "Change",
-  "dugnadPointsTeamConfirm": "Confirm team",
-  "dugnadPointsTeamSkip": "Skip for now",
-  "dugnadPointsTeamEmpty": "No teams are set up for this club yet.",
-  "dugnadPointsTeamLoginRequired": "Log in to choose a points team.",
-  "dugnadPointsTeamSaveFailed": "Could not save your team. Please try again.",
-  "dugnadPointsTeamCheckoutNudge": "Choose a team so your purchase earns points for them.",
-  "dugnadPointsTeamPurchasePoints": "+{points} points per campaign purchase",
-  "@dugnadPointsTeamPurchasePoints": {
-    "placeholders": {
-      "points": {
-        "type": "int"
-      }
-    }
-  },
-  "dugnadPointsTeamTotal": "{points} points earned",
-  "dugnadPointsHistoryLink": "View points log",
-  "dugnadPointsHistoryTitle": "Points log",
-  "dugnadPointsHistoryEmpty": "No points activity yet.",
-  "dugnadPointsActionCampaign": "Campaign purchase",
-  "dugnadPointsActionDonation": "Monthly support",
-  "dugnadPointsActionReferral": "Referral conversion",
-  "dugnadPointsActionReferralMilestone": "Referral milestone",
-  "dugnadPointsActionCampaignReversal": "Campaign purchase reversed",
-  "dugnadPointsActionDonationReversal": "Monthly support reversed",
-  "dugnadPointsActionReferralReversal": "Referral reversed",
-  "dugnadPointsActionReferralMilestoneReversal": "Referral milestone reversed",
-  "dugnadPointsActionReversal": "Reversed",
-  "dugnadPointsReferralConversionDetail": "Referral no. {sequence} converted",
-  "@dugnadPointsReferralConversionDetail": {
-    "placeholders": {
-      "sequence": { "type": "int" }
-    }
-  },
-  "dugnadPointsReferralMilestoneDetail": "Bonus at {count} converted referrals",
-  "@dugnadPointsReferralMilestoneDetail": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadProfileTitle": "Profile",
-  "dugnadYourPoints": "Your points and badges",
-  "dugnadPointsUnit": "points",
-  "dugnadHeroNotConnected": "{tier} · not connected to a team",
-  "@dugnadHeroNotConnected": {
-    "placeholders": {
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadConnectPointsTeam": "Connect your points to a team",
-  "dugnadConnectPointsTeamSub": "Choose your team so points count in the team competition",
-  "dugnadConnectPointsToTeam": "Connect points to teams",
-  "dugnadStoCardButton": "STØ card",
-  "dugnadPointsToNextWithSto": "{points} points to {tier} ({sto} {stoLabel})",
-  "@dugnadPointsToNextWithSto": {
-    "placeholders": {
-      "points": { "type": "int" },
-      "tier": { "type": "String" },
-      "sto": { "type": "int" },
-      "stoLabel": { "type": "String" }
-    }
-  },
-  "dugnadSeasonCarryoverLine": "Bringing {points} points to next season",
-  "@dugnadSeasonCarryoverLine": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadSeasonFinaleTitle": "The season is ending soon",
-  "dugnadSeasonFinaleCarryoverBodyPrefix": "With STØ {sto} you take ",
-  "@dugnadSeasonFinaleCarryoverBodyPrefix": {
-    "placeholders": {
-      "sto": { "type": "int" }
-    }
-  },
-  "dugnadSeasonFinaleCarryoverBodySuffix": " {points, plural, =1{point} other{points}} into the next season.",
-  "@dugnadSeasonFinaleCarryoverBodySuffix": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadSeasonFinaleHigherMetalHint": "Higher metal = greater lead",
-  "dugnadSeasonFinaleNextCarryover": "Now {nextTier} (STØ {sto}) → {points} points carryover 🚀",
-  "@dugnadSeasonFinaleNextCarryover": {
-    "placeholders": {
-      "nextTier": { "type": "String" },
-      "sto": { "type": "int" },
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadSeasonFinaleMaxCarryover": "Maximum carryover lead reached 🚀",
-  "dugnadSeasonFinaleBadgesLocked": "{count} season badges locked into your history this season",
-  "@dugnadSeasonFinaleBadgesLocked": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadSeasonFinaleShowAgain": "Show season finale again",
-  "dugnadSeasonFinaleDismiss": "Dismiss",
-  "dugnadNowTier": "Now {tier}",
-  "@dugnadNowTier": {
-    "placeholders": {
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadNoPointsYet": "You have not earned points yet",
-  "dugnadSignInForPoints": "Sign in to see your points",
-  "dugnadReferFriendsEarnSub": "Get more supporters to join the club",
-  "dugnadEarnMorePoints": "Earn more points",
-  "dugnadClubShopTitle": "Club shop",
-  "dugnadClubShopSubtitle": "{club} collection at member price",
-  "@dugnadClubShopSubtitle": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadClubShopLockedTitle": "The shop is for members",
-  "dugnadClubShopLockedBody": "{collection} is sold at member price. Enter your membership number to unlock.",
-  "@dugnadClubShopLockedBody": {
-    "placeholders": {
-      "collection": { "type": "String" }
-    }
-  },
-  "dugnadClubShopMemberNumber": "Membership number",
-  "dugnadClubShopMemberPlaceholder": "FF-10428",
-  "dugnadClubShopUnlockCta": "Unlock shop",
-  "dugnadClubShopUnlockEmpty": "Enter your membership number.",
-  "dugnadClubShopUnlockGeneric": "We cannot find this membership number. Check that it is correct, or contact the club.",
-  "dugnadClubShopHintCard": "You will find the membership number on your membership card or on the invoice from the club.",
-  "dugnadClubShopHintPartner": "The collection is delivered together with {partner}. Garments are picked up there against your order number.",
-  "@dugnadClubShopHintPartner": {
-    "placeholders": {
-      "partner": { "type": "String" }
-    }
-  },
-  "dugnadClubShopUnlockSuccess": "The shop is unlocked — welcome, {name}",
-  "@dugnadClubShopUnlockSuccess": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "dugnadClubShopVerified": "Verifisert medlem",
-  "dugnadClubShopVerifiedLine": "Verified member · {number}",
-  "@dugnadClubShopVerifiedLine": {
-    "placeholders": {
-      "number": { "type": "String" }
-    }
-  },
-  "dugnadClubShopVerifiedSub": "The member discount is deducted automatically at checkout",
-  "dugnadClubShopAudienceMen": "Men",
-  "dugnadClubShopAudienceWomen": "Women",
-  "dugnadClubShopAudienceKids": "Kids",
-  "dugnadClubShopCategoryAll": "All",
-  "dugnadClubShopSoldOut": "Sold out",
-  "dugnadClubShopSeeMore": "See more",
-  "dugnadClubShopWithPartner": "In collaboration with {partner}",
-  "@dugnadClubShopWithPartner": {
-    "placeholders": {
-      "partner": { "type": "String" }
-    }
-  },
-  "dugnadClubShopMyOrders": "My orders",
-  "dugnadClubShopEmptyOrders": "You have no orders yet.",
-  "dugnadClubShopChooseSize": "Choose size",
-  "dugnadClubShopAddToCart": "Add to cart · {price}",
-  "@dugnadClubShopAddToCart": {
-    "placeholders": {
-      "price": { "type": "String" }
-    }
-  },
-  "dugnadClubShopAllSoldOut": "All sizes are sold out. The club will restock when the partner has delivered.",
-  "dugnadClubShopInCartHint": "You already have {count} of this item in the cart.",
-  "@dugnadClubShopInCartHint": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadClubShopAdded": "{name} ({size}) added to the cart",
-  "@dugnadClubShopAdded": {
-    "placeholders": {
-      "name": { "type": "String" },
-      "size": { "type": "String" }
-    }
-  },
-  "dugnadClubShopMemberDiscount": "Member discount −{pct} %",
-  "@dugnadClubShopMemberDiscount": {
-    "placeholders": {
-      "pct": { "type": "int" }
-    }
-  },
-  "dugnadClubShopCategoryCollection": "{category} · {collection}",
-  "@dugnadClubShopCategoryCollection": {
-    "placeholders": {
-      "category": { "type": "String" },
-      "collection": { "type": "String" }
-    }
-  },
   "dugnadClubShopStockGone": "Sold out",
-  "dugnadClubShopInStock": "In stock",
-  "dugnadClubShopLowStock": "Few left",
-  "dugnadClubShopCartCount": "{count} in the basket",
-  "@dugnadClubShopCartCount": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadClubShopGoToCart": "To the basket",
-  "dugnadClubShopCartTitle": "Basket",
-  "dugnadClubShopCartEmpty": "The basket is empty",
-  "dugnadClubShopCartEmptyBody": "Add items from the club collection.",
-  "dugnadClubShopToShop": "To the shop",
-  "dugnadClubShopSizeLine": "Size {size}",
-  "@dugnadClubShopSizeLine": {
-    "placeholders": {
-      "size": { "type": "String" }
-    }
-  },
-  "dugnadClubShopOrdinarySum": "Ordinary sum",
-  "dugnadClubShopMemberDiscountLabel": "Member discount",
-  "dugnadClubShopToPay": "To pay",
   "dugnadClubShopPaymentMethod": "Payment method",
   "dugnadClubShopPayVipps": "Vipps",
   "dugnadClubShopPayCard": "Card · Visa •••• 4412",
   "dugnadClubShopPayCta": "Pay {price}",
   "@dugnadClubShopPayCta": {
     "placeholders": {
-      "price": { "type": "String" }
+      "price": {
+        "type": "String"
+      }
     }
   },
-  "dugnadClubShopCartHint": "The order is registered under membership number {number}. Items are picked up at {partner}, {address} — give the order number you receive after payment.",
-  "@dugnadClubShopCartHint": {
-    "placeholders": {
-      "number": { "type": "String" },
-      "partner": { "type": "String" },
-      "address": { "type": "String" }
-    }
-  },
-  "dugnadClubShopProcessing": "Processing payment …",
-  "dugnadClubShopProcessingSub": "Do not close the app",
   "dugnadClubShopPaid": "Payment confirmed. Show the order number when you pick up.",
-  "dugnadClubShopReceiptTitle": "Order confirmation",
-  "dugnadClubShopThanks": "Thank you for your purchase",
-  "dugnadClubShopShowNumber": "Show the order number when you pick up the garments.",
-  "dugnadClubShopPointsAdded": "points added to your account",
-  "dugnadClubShopOrderNumber": "Order number",
-  "dugnadClubShopScanAt": "Scanned or read out at {partner}",
-  "@dugnadClubShopScanAt": {
-    "placeholders": { "partner": { "type": "String" } }
-  },
-  "dugnadClubShopPickupAt": "Pickup at {partner}",
-  "@dugnadClubShopPickupAt": {
-    "placeholders": { "partner": { "type": "String" } }
-  },
-  "dugnadClubShopPickupBody": "{address} · {pickup}. Give the order number at the counter — they look it up and find your garments.",
-  "@dugnadClubShopPickupBody": {
-    "placeholders": {
-      "address": { "type": "String" },
-      "pickup": { "type": "String" }
-    }
-  },
-  "dugnadClubShopReceiptHint": "The confirmation is always under My orders in the shop — you will find it again when you pick up.",
-  "dugnadClubShopSeeOrders": "See my orders",
-  "dugnadClubShopBackToShop": "Back to the shop",
-  "dugnadClubShopPaidLabel": "Paid",
-  "dugnadClubShopClubLabel": "Club",
-  "dugnadClubShopMemberNoLabel": "Membership number",
-  "dugnadClubShopPlacedLabel": "Ordered",
-  "dugnadClubShopPointsLabel": "Points",
-  "dugnadClubShopOrderedToday": "Today",
-  "dugnadClubShopOrderedTodayTime": "Today · {time}",
-  "@dugnadClubShopOrderedTodayTime": {
-    "placeholders": { "time": { "type": "String" } }
-  },
-  "dugnadClubShopStatusReady": "Ready for pickup",
-  "dugnadClubShopStatusPending": "Processing",
-  "dugnadClubShopStatusCollected": "Collected",
-  "dugnadClubShopOrderMeta": "{count} garments",
-  "@dugnadClubShopOrderMeta": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "dugnadClubShopPayFailed": "Payment failed. Try again.",
-  "dugnadClubShopPayInitFailed": "Could not start payment. Try again.",
   "dugnadClubShopRemoveItem": "Remove",
-  "dugnadClubShopPointsTitle": "You earn points on this purchase",
-  "dugnadClubShopPointsSub": "Points are added once payment is confirmed",
-  "dugnadClubShopProductImage": "Product image",
   "dugnadClubShopBrowseSoon": "The collection opens here after you unlock.",
-
-  "dugnadEarnMostPointsTitle": "How to earn the most points",
-  "dugnadEarnMostPointsSub": "Every action for {club} gives points",
-  "@dugnadEarnMostPointsSub": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadEarnSheetSubtitle": "Points level you up, unlock badges and help {club}",
-  "@dugnadEarnSheetSubtitle": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadEarnSheetIntro": "The more you contribute, the more points you collect. Points earn you higher levels and badges — and propel your team up the season standings toward prizes.",
-  "dugnadEarnSheetActivitiesLabel": "POINTS PER ACTIVITY",
-  "dugnadEarnSheetTapHint": "Tap an activity to get started.",
-  "dugnadEarnBuyCampaignDesc": "Support a team by shopping for items",
-  "dugnadEarnReferDesc": "Get someone to support {club}",
-  "@dugnadEarnReferDesc": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadEarnDonationDesc": "Earn membership points every month automatically",
-  "dugnadEarnDonationPtsPerMonth": "+{points}/mo",
-  "@dugnadEarnDonationPtsPerMonth": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadEarnLeaderboardDesc": "Help your team climb",
-  "dugnadEarnTeamPointsLabel": "Team points",
   "dugnadCampaignsFromClub": "Campaigns from {club}",
   "@dugnadCampaignsFromClub": {
     "placeholders": {
-      "club": { "type": "String" }
+      "club": {
+        "type": "String"
+      }
     }
   },
-  "dugnadCampaignPageTitle": "Campaigns",
-  "dugnadCampaignSearchHint": "Search team, campaign or product …",
-  "dugnadAllTeams": "All teams",
-  "dugnadSupportTeamsIn": "Support teams in {club}",
-  "@dugnadSupportTeamsIn": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadSupportTeamsSub": "Each team sells its own meal box",
-  "dugnadCampaignSupportBuyTitle": "Support your local team — buy from the campaign",
-  "dugnadSupplierEyebrow": "Supplier",
-  "dugnadCarryoverHighlightPoints": "Now {tier} (STØ {sto}) → take {points} points into next season 🚀",
-  "@dugnadCarryoverHighlightPoints": {"placeholders": {"tier": {"type": "String"}, "sto": {"type": "int"}, "points": {"type": "int"}}},
-  "dugnadCarryoverPerLevelSubPoints": "Your metal level at season end sets the points head start you bring into next season.",
-  "campaignOrderDetailsTitle": "Order details",
-  "campaignProductsSection": "Products",
-  "campaignCartTitle": "Your cart",
-  "campaignCartClear": "Clear cart",
-  "campaignCartCheckout": "Checkout",
-  "campaignCartSummary": "{count, plural, =1{1 item in cart} other{{count} items in cart}}",
-  "@campaignCartSummary": {"placeholders": {"count": {"type": "int"}}},
-  "campaignCountdownLeft": "left",
-  "campaignCountdownDeadlinePassed": "Order deadline has passed",
-  "campaignCountdownLastDay": "Last day — order now",
-  "campaignCountdownTimeLeft": "Time left to order",
-  "campaignCountdownClosed": "Closed",
-  "campaignMatkasseFallback": "Meal box",
-  "campaignOrderNumber": "Order number",
-  "campaignOrderPlacedOn": "Ordered",
-  "campaignDistributionDate": "Distribution date",
-  "campaignPickupLocation": "Pickup location",
-  "campaignOrderAmount": "Amount",
-  "campaignPaymentStatusLabel": "Payment status",
   "campaignOrderStatusLabel": "Order status",
-  "campaignOrderDone": "Completed",
-  "campaignOrderOngoing": "Ongoing",
-  "campaignDownloadPdf": "Download PDF",
-  "campaignOrderPdfFooter": "Generated from the Reen Dugnad app",
-  "campaignOrderPdfFailed": "Couldn't create the PDF. Please try again.",
-  "dugnadMissionsLoadError": "Couldn't load weekly challenges right now.",
-  "dugnadMissionsLoadErrorSub": "Check your network and try again.",
-  "dugnadMissionsNoTeam": "Choose a team under Your points to see weekly challenges and season goals.",
-  "dugnadMissionsNoWeekly": "No active weekly challenges this week.",
-  "dugnadSeasonGoals": "Season goals",
-  "dugnadMissionsNoSeasonGoals": "No season goals set up yet.",
-  "dugnadWeeklyChallengesTitle": "Weekly challenges",
-  "dugnadMissionsResetMonday": "Resets Monday · {days} days left",
-  "@dugnadMissionsResetMonday": {"placeholders": {"days": {"type": "int"}}},
-  "dugnadMissionsFormEntrySub": "Form is built from your in-app activity — purchases, referrals, sharing and logins",
-  "dugnadStreakTitle": "{weeks} weeks in a row with activity",
-  "@dugnadStreakTitle": {"placeholders": {"weeks": {"type": "int"}}},
-  "dugnadStreakSubtitle": "Keep the streak to build form — one point-earning action a week counts",
-  "dugnadMissionsTempoDone": "Completed",
-  "dugnadMissionsTempoOnTrack": "On track",
-  "dugnadMissionsTempoNotStarted": "Not started",
-  "dugnadWeeklyChallengeLabel": "Weekly challenge",
-  "dugnadMissionsInfoBanner": "Activity earns points and form — never tied to membership or payment, and it never affects the clubs' share.",
-  "dugnadShareYourSupport": "Share your support",
-  "dugnadSupportShareMessage": "I just supported {club} 💜",
-  "@dugnadSupportShareMessage": {"placeholders": {"club": {"type": "String"}}},
   "dugnadShareCampaign": "Share the campaign",
   "dugnadShareProduct": "Share the product",
   "dugnadShareCampaignMessage": "Support {club} — buy from the campaign on Reen Dugnad 💜",
-  "@dugnadShareCampaignMessage": {"placeholders": {"club": {"type": "String"}}},
-  "dugnadShareProductMessage": "Check out {product} from {club} on Reen Dugnad 💜",
-  "@dugnadShareProductMessage": {"placeholders": {"product": {"type": "String"}, "club": {"type": "String"}}},
-  "dugnadPurchaseShareToClub": "A share of your purchase goes to {club}",
-  "@dugnadPurchaseShareToClub": {"placeholders": {"club": {"type": "String"}}},
-  "dugnadModeCommercialSub": "Regular mode — launching later",
-  "dugnadSaveChange": "Save change",
-  "dugnadNotNow": "Not now",
-  "dugnadEarnPointsOnPurchaseTitle": "You earn points on this purchase",
-  "dugnadEarnPointsOnPurchaseSub": "Points are added to your account when the purchase is confirmed",
-  "dugnadInCartBoxes": "In cart · {count, plural, =1{1 box} other{{count} boxes}}",
-  "@dugnadInCartBoxes": {
+  "@dugnadShareCampaignMessage": {
     "placeholders": {
-      "count": { "type": "int" }
+      "club": {
+        "type": "String"
+      }
     }
   },
-  "dugnadProfileAccountSection": "Account",
-  "dugnadSupporterCardProfileSub": "Your collectible card — shareable",
-  "dugnadSeasonRecapTitle": "Your season recap",
-  "dugnadSeasonRecapSub": "Your season in numbers — shareable",
-  "dugnadVisibilityTitle": "Visibility",
-  "dugnadVisibilitySub": "Display name and privacy on leaderboards",
+  "dugnadShareProductMessage": "Check out {product} from {club} on Reen Dugnad 💜",
+  "@dugnadShareProductMessage": {
+    "placeholders": {
+      "product": {
+        "type": "String"
+      },
+      "club": {
+        "type": "String"
+      }
+    }
+  },
   "dugnadPaymentVippsMasked": "Vipps •••• {last4}",
   "@dugnadPaymentVippsMasked": {
     "placeholders": {
-      "last4": { "type": "String" }
+      "last4": {
+        "type": "String"
+      }
     }
   },
   "dugnadSeasonRecapSoon": "Season recap coming soon",
-  "dugnadSeasonRecapSeasonLabel": "Season {label}",
-  "@dugnadSeasonRecapSeasonLabel": {
-    "placeholders": {
-      "label": { "type": "String" }
-    }
-  },
-  "dugnadSeasonRecapHeroTitle": "Your season, {name} 💜",
-  "@dugnadSeasonRecapHeroTitle": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "dugnadSeasonRecapHeroSub": "Thanks for cheering the team on all the way. Here's your season in numbers.",
-  "dugnadSeasonRecapContributed": "You contributed",
-  "dugnadSeasonRecapReferrals": "Friends you referred",
-  "dugnadSeasonRecapCampaigns": "Campaigns purchased",
-  "dugnadSeasonRecapPoints": "Points collected",
-  "dugnadSeasonRecapTeamFinished": "{team} finished in {rank} place",
-  "@dugnadSeasonRecapTeamFinished": {
-    "placeholders": {
-      "team": { "type": "String" },
-      "rank": { "type": "int" }
-    }
-  },
-  "dugnadSeasonRecapTeamOf": "of {count} teams in {club}",
-  "@dugnadSeasonRecapTeamOf": {
-    "placeholders": {
-      "count": { "type": "int" },
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadSeasonRecapViewCard": "View your supporter card",
-  "dugnadSeasonRecapCardSub": "Seasonal trading card",
-  "dugnadSeasonRecapShare": "Share your season",
-  "dugnadSeasonRecapShareMessage": "My Reen Dugnad season with {club} 💜\n{link}",
-  "@dugnadSeasonRecapShareMessage": {
-    "placeholders": {
-      "club": { "type": "String" },
-      "link": { "type": "String" }
-    }
-  },
-  "dugnadSeasonRecapShareMessageLegacy": "My Reen Dugnad season with {club} 💜",
-  "@dugnadSeasonRecapShareMessageLegacy": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadTransitionWindowTitle": "The transition window",
-  "dugnadTransitionWindowSub": "Move up with the team or change clubs",
   "dugnadTransitionWindowSoon": "The transition window is coming soon",
-  "dugnadTransferWindowClosesTitle": "The transfer window closes in {days} days ⏳",
-  "@dugnadTransferWindowClosesTitle": {
-    "placeholders": {
-      "days": { "type": "int" }
-    }
-  },
-  "dugnadTransferWindowClosesSoon": "The transfer window closes soon ⏳",
-  "dugnadTransferWindowDeadlineSub": "End of season · make your choice before the deadline",
-  "dugnadTransferNextSeasonLabel": "What's happening with your team next season?",
-  "dugnadTransferMoveUpTitle": "Move up",
-  "dugnadTransferMoveUpSub": "{current} become {next} — join us",
-  "@dugnadTransferMoveUpSub": {
-    "placeholders": {
-      "current": { "type": "String" },
-      "next": { "type": "String" }
-    }
-  },
-  "dugnadTransferRecommended": "Recommended",
-  "dugnadTransferStayTitle": "Stay on the same level",
-  "dugnadTransferStaySub": "Continue following {team} (new year)",
-  "@dugnadTransferStaySub": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferTeamSwitchTitle": "Switch to another team in the club",
-  "dugnadTransferTeamSwitchSub": "Follow another team in {club}",
-  "@dugnadTransferTeamSwitchSub": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadTransferClubChangeTitle": "Change club",
-  "dugnadTransferClubChangeSub": "Sign for a new club — \"Signed for\" card",
-  "dugnadTransferInfo": "At season end your metal level determines how many points you carry over. Your rating rebuilds through activity; lifetime points are always safe.",
-  "dugnadTransferMoveUpConfirmTitle": "{current} become {next} — coming with us?",
-  "@dugnadTransferMoveUpConfirmTitle": {
-    "placeholders": {
-      "current": { "type": "String" },
-      "next": { "type": "String" }
-    }
-  },
-  "dugnadTransferMoveUpConfirmBody": "The team moves up one age group for the new season. You keep your rating, points and level.",
-  "dugnadTransferMoveUpConfirmBtn": "Yes, join {next}",
-  "@dugnadTransferMoveUpConfirmBtn": {
-    "placeholders": {
-      "next": { "type": "String" }
-    }
-  },
-  "dugnadTransferStayConfirmTitle": "Stay on {team} next season?",
-  "@dugnadTransferStayConfirmTitle": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferStayConfirmBody": "You continue following {team} (new year group). Quick confirmation — you keep rating, points and level.",
-  "@dugnadTransferStayConfirmBody": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferStayConfirmBtn": "Yes, stay on {team}",
-  "@dugnadTransferStayConfirmBtn": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferPickTeamLabel": "Choose a team in {club}",
-  "@dugnadTransferPickTeamLabel": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadTransferPickClubLabel": "Choose a new club",
-  "dugnadTransferFollowTeamBtn": "Follow {team}",
-  "@dugnadTransferFollowTeamBtn": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferNewTeam": "new team",
-  "dugnadTransferBack": "Back",
-  "dugnadTransferSuccessMoveUp": "You're continuing with {team} 💜",
-  "@dugnadTransferSuccessMoveUp": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferSuccessStay": "You're continuing with {team} 💜",
-  "@dugnadTransferSuccessStay": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferSuccessTeamSwitch": "You're now following {team} 💜",
-  "@dugnadTransferSuccessTeamSwitch": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadTransferClubChanged": "You signed for {club} 💜",
-  "@dugnadTransferClubChanged": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadTransferCommitSuccess": "Your choice is saved 💜",
-  "dugnadTransferCommitFailed": "Could not save your choice. Try again.",
-  "dugnadTransferMoveUpUnavailable": "Move-up is not set up for this team yet — the next age group is missing in the club.",
-  "dugnadTransferLoadFailed": "Could not load the transfer window.",
-  "dugnadTransferWindowDisabled": "The transfer window is not enabled yet.",
-  "dugnadTransferWindowClosed": "The transfer window is closed.",
-  "dugnadTransferNotNowTitle": "Not now",
-  "dugnadTransferNotNowSub": "Keep your team — choose later from your profile",
-  "dugnadTransferExtra": "You can switch teams at any time — in the transfer window your move gets extra celebration ✨",
-  "dugnadTransferChooseLater": "You can choose later from your profile 💜",
-  "dugnadCareerTitle": "Your career",
-  "dugnadCareerSub": "Timeline of team affiliation",
   "dugnadCareerSoon": "Your career timeline is coming soon",
-  "dugnadCareerHeroSub": "Your permanent history on Reen Dugnad",
-  "dugnadCareerLifetimeEyebrow": "Lifetime points",
-  "dugnadCareerLifetimePermanent": "Permanent",
-  "dugnadCareerLifetimeSub": "Earned since {date} · grows forever, never resets",
-  "@dugnadCareerLifetimeSub": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "dugnadCareerSeasonArchiveLabel": "Season ticket archive",
-  "dugnadCareerSeasonArchiveEmptyTitle": "No seasons archived yet",
-  "dugnadCareerSeasonArchiveEmptyBody": "Your STØ card is frozen here when the first season ends — with final rating, club and season badges. That is when your card collection starts.",
-  "dugnadCareerSeasonStamp": "Season {label}",
-  "@dugnadCareerSeasonStamp": {
-    "placeholders": {
-      "label": { "type": "String" }
-    }
-  },
-  "dugnadCareerStoTier": "STØ · {tier}",
-  "@dugnadCareerStoTier": {
-    "placeholders": {
-      "tier": { "type": "String" }
-    }
-  },
   "dugnadCareerTeamsMulti": "{team} · {count} teams",
   "@dugnadCareerTeamsMulti": {
     "placeholders": {
-      "team": { "type": "String" },
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadCareerPermanentMarksTitle": "Permanent marks",
-  "dugnadCareerPermanentMarksSub": "With vesting date and STØ value · never lost",
-  "dugnadCareerAffiliationTimeline": "Affiliation timeline",
-  "dugnadCareerRoleCurrent": "Current club",
-  "dugnadCareerRoleTransfer": "Free transfer",
-  "dugnadCareerNowBadge": "Now",
-  "dugnadCareerInfoFooter": "Lifetime points and permanent badges last forever. Season badges and season tickets are archived here at the end of each season — with club and team names frozen as they were that season.",
-  "dugnadCareerShareMessage": "My career on Reen Dugnad — {points} lifetime points 💜\n{link}",
-  "@dugnadCareerShareMessage": {
-    "placeholders": {
-      "points": { "type": "String" },
-      "link": { "type": "String" }
-    }
-  },
-  "dugnadCareerShareMessageLegacy": "My career on Reen Dugnad — {points} lifetime points 💜",
-  "@dugnadCareerShareMessageLegacy": {
-    "placeholders": {
-      "points": { "type": "String" }
+      "team": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "dugnadVisibilitySoon": "Visibility coming soon",
-  "dugnadPrivacyIntroPrefix": "How to control where you appear: ",
-  "dugnadPrivacyIntroBold": "Standings, Top Scorer, Assist King, Squad",
-  "dugnadPrivacyIntroSuffix": " and Shared Cards.",
-  "dugnadPrivacyPreviewAsLabel": "Preview as",
-  "dugnadPrivacyPreviewAdult": "Adult",
-  "dugnadPrivacyPreviewMinor": "Under 18",
-  "dugnadPrivacyDisplayTitle": "Display name",
-  "dugnadPrivacyPrefFull": "Full name",
-  "dugnadPrivacyPrefFullSub": "Visible to everyone",
-  "dugnadPrivacyPrefInitial": "First name + initial",
-  "dugnadPrivacyPrefInitialSub": "A little more private",
-  "dugnadPrivacyPrefNickname": "Nickname",
-  "dugnadPrivacyPrefNicknameSub": "Choose your own",
-  "dugnadPrivacyPrefAnonymous": "Anonymous supporter",
-  "dugnadPrivacyPrefAnonymousSub": "Hide your name completely",
-  "dugnadPrivacyPrefAnonymousEx": "Anonymous",
-  "dugnadPrivacyVisibleSection": "Visibility",
-  "dugnadPrivacyVisibleOnTitle": "Show me on tables and in the squad",
-  "dugnadPrivacyVisibleOffTitle": "Hidden (anonymous)",
-  "dugnadPrivacyVisibleNote": "Your contribution counts for the team regardless — you just disappear from the roster.",
-  "dugnadPrivacyLeaderboardPreviewTitle": "How to appear on the leaderboards",
-  "dugnadPrivacyNicknameHint": "Write your nickname …",
-  "dugnadPrivacyMinorBannerTitle": "You are under 18",
-  "dugnadPrivacyMinorBannerSub": "For privacy you are anonymous or masked by default. Full name requires consent from a parent or guardian.",
-  "dugnadPrivacyMinorConsent": "Request parental consent",
-  "dugnadPrivacyMinorConsentSoon": "Parental consent coming soon",
-  "dugnadPrivacyHiddenMeta": "Hidden · {team}",
-  "@dugnadPrivacyHiddenMeta": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadPrivacyGoalUnit": "goal",
   "dugnadPrivacySaved": "Privacy settings saved",
   "dugnadPrivacySaveFailed": "Could not save privacy settings",
   "dugnadPaymentSoon": "Payment coming soon",
-  "dugnadCustomerSupport": "Customer support",
-  "dugnadSettings": "Settings",
-  "dugnadPickTeamTitle": "Choose your team",
-  "dugnadPickTeamSubtitle": "Which team in {club} do you belong to?",
-  "@dugnadPickTeamSubtitle": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadPickTeamSearch": "Search for your team …",
-  "dugnadPickTeamNote": "You can change teams at any time. Engagement points from your everyday purchases are credited to the team you choose.",
-  "dugnadPickTeamMeta": "{families} active supporters · #{rank} in the competition",
-  "@dugnadPickTeamMeta": {
-    "placeholders": {
-      "families": { "type": "int" },
-      "rank": { "type": "int" }
-    }
-  },
-  "dugnadPickTeamEmpty": "No teams match «{query}».",
-  "@dugnadPickTeamEmpty": {
-    "placeholders": {
-      "query": { "type": "String" }
-    }
-  },
-  "dugnadLeaderboardTeamSelectedTitle": "{team} · #{rank}",
-  "@dugnadLeaderboardTeamSelectedTitle": {
-    "placeholders": {
-      "team": { "type": "String" },
-      "rank": { "type": "int" }
-    }
-  },
-  "dugnadLeaderboardTeamSelectedSub": "See standing, points and level",
-  "dugnadYourPlaceLabel": "Your place",
-  "dugnadYourPlaceRank": "#{rank} / {total}",
-  "@dugnadYourPlaceRank": {
-    "placeholders": {
-      "rank": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "dugnadBuyFoodbox": "Buy a food box",
-  "dugnadBuyFoodboxSub": "Team food boxes — support a team directly",
-  "dugnadSupportRegularly": "Support the team regularly",
-  "dugnadSupportRegularlySub": "Regular monthly support for the team",
-  "dugnadYourBadges": "Your badges",
-  "dugnadBadgesUnlocked": "{earned} of {total} badges unlocked",
-  "@dugnadBadgesUnlocked": {
-    "placeholders": {
-      "earned": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "dugnadSeeAllBadges": "See all",
-  "dugnadPointsToNext": "{points} points to {tier}",
-  "@dugnadPointsToNext": {
-    "placeholders": {
-      "points": { "type": "int" },
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadHighestTierReached": "Highest level reached 🎉",
   "dugnadPreviewLevelHint": "Tap a level to see the upgrade",
-  "dugnadStoSourceSectionTitle": "This builds your rating",
-  "dugnadStoSourceActivityTitle": "Activity & referrals",
-  "dugnadStoSourceActivitySub": "Referrals, participation and sharing",
-  "dugnadStoSourceCampaignTitle": "Campaign purchases",
-  "dugnadStoSourceCampaignSub": "Purchases of campaigns and products",
-  "dugnadStoSourceBadgeTitle": "Bonus from badges",
-  "dugnadStoSourceBadgeSub": "{count, plural, =1{1 badge unlocked} other{{count} badges unlocked}}",
-  "@dugnadStoSourceBadgeSub": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadSeasonPointsThisYear": "Season points this year",
-  "dugnadYourStoRating": "Your STØ rating",
-  "dugnadStoRatingFromPoints": "Your point total determines the rating",
-  "dugnadStoCardPillarTitle": "Your STØ card",
-  "dugnadStoCardPillarSubtitle": "{tier} · {metal} · shareable",
-  "@dugnadStoCardPillarSubtitle": {
-    "placeholders": {
-      "tier": { "type": "String" },
-      "metal": { "type": "String" }
-    }
-  },
-  "dugnadPointsShortSuffix": "p",
-  "dugnadYourTeam": "Your team",
-  "dugnadShowSupporterCard": "Show your supporter card",
-  "dugnadSupporterCardLine": "{tier} · {points} points · shareable",
-  "@dugnadSupporterCardLine": {
-    "placeholders": {
-      "tier": { "type": "String" },
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadHowYouEarnPoints": "How you earn points",
-  "dugnadReferFriend": "Refer a friend",
-  "dugnadReferFriendSub": "Get supporters to join the team",
-  "dugnadBuyCampaign": "Buy a campaign",
-  "dugnadBuyCampaignSub": "Food boxes from the team",
-  "dugnadRegularSupport": "Regular support",
-  "dugnadRegularSupportSub": "Support a team monthly",
-  "dugnadChangeTeam": "Change",
-  "dugnadTeamPointsCount": "#{rank} of {total} · your points count here",
-  "@dugnadTeamPointsCount": {
-    "placeholders": {
-      "rank": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "dugnadLevelUpTitle": "Level up — you're now {tier}! 💜",
-  "@dugnadLevelUpTitle": {
-    "placeholders": {
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadLevelUpThanks": "Thanks for everything you contribute. Next level: {nextTier}.",
-  "@dugnadLevelUpThanks": {
-    "placeholders": {
-      "nextTier": { "type": "String" }
-    }
-  },
-  "dugnadLevelUpThanksMax": "Thanks for everything you contribute.",
-  "dugnadSupporterLabel": "SUPPORTER",
   "dugnadShareCardMessage": "I'm now {tier} on Reen Dugnad 💜",
   "@dugnadShareCardMessage": {
     "placeholders": {
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadShareResult": "Share your result",
-  "dugnadSharePointsReward": "+{points} points",
-  "@dugnadSharePointsReward": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadCheerButton": "Cheers!",
-  "dugnadSupporterCardTitle": "Supporter card",
-  "dugnadStoPosition": "SUP",
-  "dugnadKapPosition": "CAP",
-  "dugnadPointsStat": "POINT",
-  "dugnadGoalsPurchases": "GOAL · PURCHASE",
-  "dugnadAssistsReferrals": "ASSIST · POSITION",
-  "dugnadShareYourCard": "Share your card",
-  "dugnadSupporterCardShareMessage": "{title} — {club} 💜\n{link}",
-  "@dugnadSupporterCardShareMessage": {
-    "placeholders": {
-      "title": { "type": "String" },
-      "club": { "type": "String" },
-      "link": { "type": "String" }
-    }
-  },
-  "dugnadCardValueHint": "The card increases in value as you earn points, recruit supporters, and support the team throughout the season.",
-  "dugnadBadgeRegularSupporter": "Regular supporter",
-  "dugnadBadgeRegularSupporterSub": "Set up regular support",
-  "dugnadBadgeAmbassador": "Club ambassador",
-  "dugnadBadgeAmbassadorSub": "Refer 5 to the club",
-  "dugnadBadgeTeamPlayer": "Team player",
-  "dugnadBadgeTeamPlayerSub": "3 months regular support",
-  "dugnadBadgeVeteran": "Veteran",
-  "dugnadBadgeVeteranSub": "1 year as a supporter",
-  "dugnadBadgeHatTrick": "Hat-trick",
-  "dugnadBadgeHatTrickSub": "3 referrals",
-  "dugnadBadgeAssistKing": "Assist king",
-  "dugnadBadgeAssistKingSub": "Refer more than 5 to the club",
-  "dugnadBadgeUnlocked": "Unlocked",
-  "dugnadBadgeReferProgress": "{current}/5",
-  "@dugnadBadgeReferProgress": {
-    "placeholders": {
-      "current": { "type": "int" }
-    }
-  },
-  "dugnadBadgeVeteranProgress": "{current}/12 mo",
-  "@dugnadBadgeVeteranProgress": {
-    "placeholders": {
-      "current": { "type": "int" }
-    }
-  },
-  "dugnadBadgeAssistProgress": "{current}/6",
-  "@dugnadBadgeAssistProgress": {
-    "placeholders": {
-      "current": { "type": "int" }
-    }
-  },
-  "dugnadPermanentBadgesTitle": "Permanent badges",
-  "dugnadPermanentBadgesSub": "Lasts forever — never lost",
-  "dugnadSeasonalBadgesTitle": "Seasonal badges",
-  "dugnadSeasonalBadgesSub": "Renews every season · resets at season end",
-  "dugnadBadgeSheetTitle": "Badge",
-  "dugnadBadgeTypePermanent": "Permanent badge · never lost",
-  "dugnadBadgeTypeSeasonal": "Seasonal badge · renews every season",
-  "dugnadBadgeStatusActiveNow": "Active now",
-  "dugnadBadgeEarnedAt": "Earned {date}",
-  "@dugnadBadgeEarnedAt": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "dugnadBadgeStatusLocked": "Not unlocked yet",
-  "dugnadBadgeHowToSection": "HOW TO EARN THIS BADGE",
-  "dugnadBadgeProgressLabel": "Progress",
-  "dugnadBadgeStoEarned": "+{bonus} STØ",
-  "@dugnadBadgeStoEarned": {
-    "placeholders": {
-      "bonus": { "type": "int" }
-    }
-  },
-  "dugnadBadgeStoUnlock": "Unlock +{bonus} STØ",
-  "@dugnadBadgeStoUnlock": {
-    "placeholders": {
-      "bonus": { "type": "int" }
-    }
-  },
-  "dugnadBadgeRewardEarnedTitle": "Gives you +{bonus} STØ rating",
-  "@dugnadBadgeRewardEarnedTitle": {
-    "placeholders": {
-      "bonus": { "type": "int" }
-    }
-  },
-  "dugnadBadgeRewardLockedTitle": "Unlocks +{bonus} STØ rating",
-  "@dugnadBadgeRewardLockedTitle": {
-    "placeholders": {
-      "bonus": { "type": "int" }
-    }
-  },
-  "dugnadBadgeRewardEarnedSub": "Already added to your rating",
-  "dugnadBadgeRewardLockedSub": "Added when you earn the badge",
-  "dugnadBadgeFirstSub": "Complete a club transfer",
-  "dugnadBadgeFirstPurchaseSub": "Buy your first campaign box",
-  "dugnadBadgePurchaseHattrickSub": "Buy 3 campaign boxes",
-  "dugnadBadgeTenBoxesSub": "Buy 10 campaign boxes in total",
-  "dugnadBadgeMissionsMasterSub": "Complete 8 weekly missions",
-  "dugnadBadgeFormWeekSub": "10 weeks in shape",
-  "dugnadBadgeSeasonTopSub": "Top 3 on your team",
-  "dugnadBadgeClubEngagedSub": "Active for your club",
-  "dugnadBadgeLockedGenericSub": "Keep being active",
-  "dugnadBadgeMonthsProgress": "{current}/{goal} mo",
-  "@dugnadBadgeMonthsProgress": {
-    "placeholders": {
-      "current": { "type": "int" },
-      "goal": { "type": "int" }
-    }
-  },
-  "dugnadBadgeReferralsProgress": "{current}/{goal} referred",
-  "@dugnadBadgeReferralsProgress": {
-    "placeholders": {
-      "current": { "type": "int" },
-      "goal": { "type": "int" }
-    }
-  },
-  "dugnadBadgeWeeklyChallengesProgress": "{current}/{goal} missions",
-  "@dugnadBadgeWeeklyChallengesProgress": {
-    "placeholders": {
-      "current": { "type": "int" },
-      "goal": { "type": "int" }
-    }
-  },
-  "dugnadBadgeFormWeeksProgress": "{current}/{goal} weeks",
-  "@dugnadBadgeFormWeeksProgress": {
-    "placeholders": {
-      "current": { "type": "int" },
-      "goal": { "type": "int" }
-    }
-  },
-  "dugnadBadgeSeasonRankProgress": "#{rank} · {places} places to go",
-  "@dugnadBadgeSeasonRankProgress": {
-    "placeholders": {
-      "rank": { "type": "int" },
-      "places": { "type": "int" }
-    }
-  },
-  "dugnadBadgeBoxesProgress": "{current}/{goal} boxes",
-  "@dugnadBadgeBoxesProgress": {
-    "placeholders": {
-      "current": { "type": "int" },
-      "goal": { "type": "int" }
-    }
-  },
-  "dugnadBadgeHowActivityGeneric": "Stay active in the app to unlock this badge.",
-  "dugnadBadgeHowTenureGeneric": "Keep an active membership over time to unlock this badge.",
-  "dugnadBadgeHowLocalityGeneric": "Stay active for your club and team through the season.",
-  "dugnadBadgeHowGenericStep1": "Be active in the app",
-  "dugnadBadgeHowGenericStep2": "Meet the requirement",
-  "dugnadBadgeHowGenericStep3": "The badge unlocks automatically",
-  "dugnadBadgeHowSupport": "Set up regular support for your club. The badge unlocks as soon as membership is active.",
-  "dugnadBadgeHowSupportStep1": "Choose club and team",
-  "dugnadBadgeHowSupportStep2": "Set up regular support",
-  "dugnadBadgeHowSupportStep3": "Yours forever",
-  "dugnadBadgeHowLagspiller": "Be an active member for 3 months in a row without pausing.",
-  "dugnadBadgeHowLagspillerStep1": "Keep active membership",
-  "dugnadBadgeHowLagspillerStep2": "Hold it for 3 months",
-  "dugnadBadgeHowLagspillerStep3": "Unlocks automatically",
-  "dugnadBadgeHowFirst": "Complete your first transfer between two clubs in the app.",
-  "dugnadBadgeHowFirstStep1": "Switch to a new club",
-  "dugnadBadgeHowFirstStep2": "Complete the transfer",
-  "dugnadBadgeHowFirstStep3": "A keepsake badge — never lost",
-  "dugnadBadgeHowHattrick": "Refer 3 friends who become members. Each completed referral counts.",
-  "dugnadBadgeHowHattrickStep1": "Share your referral link",
-  "dugnadBadgeHowHattrickStep2": "3 friends become members",
-  "dugnadBadgeHowHattrickStep3": "Badge unlocks",
-  "dugnadBadgeHowVeteran": "Stay a member for 12 consecutive months. A loyalty badge that lasts forever.",
-  "dugnadBadgeHowVeteranStep1": "Keep membership active",
-  "dugnadBadgeHowVeteranStep2": "12 months in a row",
-  "dugnadBadgeHowVeteranStep3": "Gives extra STØ rating",
-  "dugnadBadgeHowSeasonAmbassador": "Refer 5 new members during the current season. Resets at season end.",
-  "dugnadBadgeHowSeasonAmbassadorStep1": "Share your referral link",
-  "dugnadBadgeHowSeasonAmbassadorStep2": "5 referrals this season",
-  "dugnadBadgeHowSeasonAmbassadorStep3": "Renews every season",
-  "dugnadBadgeHowMissionsMaster": "Complete 8 weekly missions during the season. New missions every week.",
-  "dugnadBadgeHowMissionsMasterStep1": "Open Matches of the week",
-  "dugnadBadgeHowMissionsMasterStep2": "Complete 8 missions",
-  "dugnadBadgeHowMissionsMasterStep3": "Renews every season",
-  "dugnadBadgeHowClubEngaged": "Stay active for your club through the season — log in, participate and support.",
-  "dugnadBadgeHowClubEngagedStep1": "Stay regularly active",
-  "dugnadBadgeHowClubEngagedStep2": "Support your club",
-  "dugnadBadgeHowClubEngagedStep3": "Renews every season",
-  "dugnadBadgeHowFormWeek": "Stay in full shape for 10 weeks during the season. Shape is built with daily activity.",
-  "dugnadBadgeHowFormWeekStep1": "Be active every week",
-  "dugnadBadgeHowFormWeekStep2": "10 weeks in full shape",
-  "dugnadBadgeHowFormWeekStep3": "Renews every season",
-  "dugnadBadgeHowSeasonTop": "Reach top 3 on your team in the season standings. Compete with teammates.",
-  "dugnadBadgeHowSeasonTopStep1": "Collect season points",
-  "dugnadBadgeHowSeasonTopStep2": "Climb to top 3",
-  "dugnadBadgeHowSeasonTopStep3": "Renews every season",
-  "dugnadBadgeHowFirstPurchase": "Complete your first paid campaign order. One box is enough.",
-  "dugnadBadgeHowFirstPurchaseStep1": "Open a campaign",
-  "dugnadBadgeHowFirstPurchaseStep2": "Buy a meal box",
-  "dugnadBadgeHowFirstPurchaseStep3": "Yours forever after the first purchase",
-  "dugnadBadgeHowPurchaseHattrick": "Buy 3 campaign boxes in total. They can be in one order or several.",
-  "dugnadBadgeHowPurchaseHattrickStep1": "Order campaign boxes",
-  "dugnadBadgeHowPurchaseHattrickStep2": "Reach 3 boxes in total",
-  "dugnadBadgeHowPurchaseHattrickStep3": "Hat-trick badge unlocks",
-  "dugnadBadgeHowTenBoxes": "Buy 10 campaign boxes in total. Every paid box counts.",
-  "dugnadBadgeHowTenBoxesStep1": "Keep ordering campaign boxes",
-  "dugnadBadgeHowTenBoxesStep2": "Reach 10 boxes in total",
-  "dugnadBadgeHowTenBoxesStep3": "A keepsake badge — never lost",
-  "dugnadPointsChip": "+{points} points",
-  "@dugnadPointsChip": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "@dugnadPointsTeamTotal": {
-    "placeholders": {
-      "points": {
-        "type": "int"
+      "tier": {
+        "type": "String"
       }
     }
   },
@@ -1934,26 +907,7 @@
       }
     }
   },
-  "dugnadViewMemberOffers": "View your member offers",
-  "dugnadMemberDiscountsLocked": "Member discounts are locked",
   "dugnadUnlock": "Unlock",
-  "dugnadMemberNumber": "Member #{number}",
-  "@dugnadMemberNumber": {
-    "placeholders": {
-      "number": {
-        "type": "String"
-      }
-    }
-  },
-  "dugnadShopAtSponsors": "Shop at sponsors",
-  "dugnadPercentToClub": "{percent}% to the club",
-  "@dugnadPercentToClub": {
-    "placeholders": {
-      "percent": {
-        "type": "String"
-      }
-    }
-  },
   "dugnadFundraisingYtd": "The club has raised {amount} this year",
   "@dugnadFundraisingYtd": {
     "placeholders": {
@@ -1962,626 +916,103 @@
       }
     }
   },
-  "dugnadReferFriendsToClub": "Refer friends to {clubName}",
-  "@dugnadReferFriendsToClub": {
-    "placeholders": {
-      "clubName": {
-        "type": "String"
-      }
-    }
-  },
-  "dugnadReferFriendsSubtitle": "Get more people to support the club — more in the club fund",
   "dugnadReferralPlaceholderBody": "Referral links and rewards are coming in a later Dugnad phase.",
   "dgAuthLoginTitle": "Get started with Reen Dugnad",
   "dgAuthLoginSubtitle": "Support your sports club — every order gives back to the team.",
   "dgAuthRegisterSubtitle": "Create your account and choose your club to start supporting.",
-  "dgAuthViaReferralLink": "Via referral link",
-  "dgAuthOrganic": "Organic",
   "dgAuthEmailToggle": "or continue with email",
   "dgAuthBrowseFirst": "Browse first",
-  "dugnadReferralTitle": "Refer to the club",
-  "dugnadReferralYourLink": "Your referral link",
-  "dugnadReferralCopyLink": "Copy link",
-  "dugnadReferralPromoEyebrow": "EARN POINTS NOW",
-  "dugnadReferralPromoTitle": "Refer friends to Reen Dugnad",
   "dugnadReferralPromoBenefit": "+{points} points for every friend who joins — right away.",
   "@dugnadReferralPromoBenefit": {
     "placeholders": {
-      "points": { "type": "int" }
+      "points": {
+        "type": "int"
+      }
     }
   },
-  "dugnadReferralPromoBenefitBold": "+{points} points",
-  "@dugnadReferralPromoBenefitBold": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadReferralPromoBenefitSuffix": " for every friend who joins — right away.",
-  "dugnadReferralPromoCopyLink": "Copy referral link",
-  "dugnadReferralPromoLinkCopied": "Link copied!",
-  "dugnadReferralPointsTitle": "You earn points for each friend",
-  "dugnadReferralPointsSubtitle": "Points are added when your friend completes their first purchase (+{points}).",
-  "@dugnadReferralPointsSubtitle": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadReferralConvertedCount": "referred to the club",
-  "dugnadReferralPointsPerConversion": "points per conversion",
-  "dugnadReferralAmbassadorTitle": "Club ambassador",
-  "dugnadReferralAmbassadorProgress": "Refer {count} more to unlock the badge",
-  "@dugnadReferralAmbassadorProgress": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "dugnadReferralAmbassadorDone": "You are a club ambassador",
-  "dugnadReferralHowItWorks": "How it works",
-  "dugnadReferralStep1Title": "Share your link",
-  "dugnadReferralStep1Subtitle": "Send it to family, neighbours and friends",
-  "dugnadReferralStep2Title": "They join the club",
-  "dugnadReferralStep2Subtitle": "They sign up and choose {club}",
-  "@dugnadReferralStep2Subtitle": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadReferralStep3Title": "The club earns — for good",
-  "dugnadReferralStep3Subtitle": "{club} gets a share of everything they buy",
-  "@dugnadReferralStep3Subtitle": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadReferralYourRecruits": "Your referrals",
-  "dugnadReferralPendingInvite": "Invited · waiting",
-  "dugnadReferralPending": "Not registered yet",
-  "dugnadReferralWaitingFirstPurchase": "Registered · waiting for first order",
-  "dugnadReferralActive": "Supporting now",
-  "dugnadReferralInvitedBy": "Invited by {name} ✓",
-  "@dugnadReferralInvitedBy": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "dugnadWelcomeTitle": "Congratulations as a new user of the Reen Dugnad app!",
-  "dugnadWelcomeSubtitle": "Your sports team is lucky to have people like you 💜",
-  "dugnadWelcomeCta": "Get started",
-  "dugnadWelcomeBonusLabel": "points welcome bonus",
   "dugnadWelcomeBonusPendingLabel": "welcome bonus waiting",
   "dugnadWelcomeBonusPendingTip": "You will receive +30 points when you choose which team to support under Profile.",
-  "dugnadWelcomeTip": "You start with a small head start — so the gap to the veterans feels manageable from day one.",
-  "dugnadReferralInvitedToClub": "You are invited to {club}",
-  "@dugnadReferralInvitedToClub": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
   "dugnadReferralCodeLabel": "Referral code",
   "dugnadReferralCodeHint": "Enter code from a friend",
-  "dugnadReferralCodeInvalid": "This code is not valid.",
-  "dugnadReferralCodeSelf": "You cannot use your own code.",
-  "dugnadReferralHaveCode": "Have a referral code?",
-  "dugnadReferralShareMessage": "Join {club} on Reen Dugnad! Use my link {link} or code {code}.",
-  "@dugnadReferralShareMessage": {
-    "placeholders": {
-      "club": { "type": "String" },
-      "link": { "type": "String" },
-      "code": { "type": "String" }
-    }
-  },
-  "dugnadReferralShareSubject": "Support {club} with Reen Dugnad",
-  "@dugnadReferralShareSubject": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadLeagueCtaTitle": "Join the team competition",
-  "dugnadLeagueCtaSubtitle": "See how the teams are doing",
-  "dugnadLeagueTeamRankTitle": "{team} are #{rank}",
-  "@dugnadLeagueTeamRankTitle": {
-    "placeholders": {
-      "team": { "type": "String" },
-      "rank": { "type": "int" }
-    }
-  },
-  "dugnadLeagueTeamRankSubtitle": "Team competition · {club}",
-  "@dugnadLeagueTeamRankSubtitle": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadMissionsEntryTitle": "Matches of the week",
-  "dugnadMissionsEntrySubtitle": "Streak, form and season goals",
-  "dugnadFormEntryTitle": "Your shape · {status}",
-  "@dugnadFormEntryTitle": {
-    "placeholders": {
-      "status": { "type": "String" }
-    }
-  },
-  "dugnadFormStatusUp": "In shape",
-  "dugnadFormStatusFlat": "Steady",
-  "dugnadFormStatusDown": "Out of shape",
-  "dugnadFormEntrySubtitle": "Build shape with daily activities and assignments",
-  "dugnadFormPageTitle": "Your form",
-  "dugnadFormPageSubtitle": "Built only on activity in the app",
-  "dugnadFormSeasonGraphTitle": "Form through the season",
-  "dugnadFormStateUpDesc": "You're building form — keep it going!",
-  "dugnadFormStateFlatDesc": "Your form is stable. One mission lifts you.",
-  "dugnadFormStateDownDesc": "Your form is falling. Complete a mission to turn it around.",
-  "dugnadFormPreviewHint": "Tap to preview form states",
-  "dugnadFormWarningTitle": "Your form is about to fall",
-  "dugnadFormWarningSub": "Complete a mission this week to turn it around",
-  "dugnadFormBuildSection": "How you build form",
-  "dugnadFormBuildLoginTitle": "Daily login",
-  "dugnadFormBuildLoginSub": "Open the app every day",
-  "dugnadFormBuildMissionTitle": "Take part in weekly missions",
-  "dugnadFormBuildMissionSub": "Weekly matches give the most form",
-  "dugnadFormBuildReferTitle": "Refer a friend",
-  "dugnadFormBuildReferSub": "Bring more supporters on board",
-  "dugnadFormBuildShareTitle": "Share the supporter card",
-  "dugnadFormBuildShareSub": "Spread the word about the team",
-  "dugnadFormBuildStreakTitle": "Keep your streak",
-  "dugnadFormBuildStreakSub": "Don't break your run of active weeks",
-  "dugnadFormBuildChip": "+form",
-  "dugnadFormBuildChipPoints": "+{points} form",
-  "@dugnadFormBuildChipPoints": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadFormWhyRisingTitle": "Why is the rating rising?",
-  "dugnadFormWhyFallingTitle": "Why is the rating falling?",
-  "dugnadFormWhyFlatTitle": "Why is the rating standing still?",
-  "dugnadFormLiftSection": "How you lift form",
-  "dugnadFormArrowExplainerPrefix": "The arrow shows ",
-  "dugnadFormArrowExplainerBold": "your form",
-  "dugnadFormArrowExplainerSuffix": " — the part of the STØ rating that moves. It rises with activity in the app and falls slowly in quiet periods. Payment and membership never affect it.",
-  "dugnadFormInfoBanner": "Form, points and rating are built only on what you do in the app. Ending a membership never affects your form.",
-  "dugnadFormTeamRequired": "Pick a team under Your points to see your form.",
-  "dugnadKapteinTitle": "You are the captain of {team}",
-  "@dugnadKapteinTitle": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadKapteinSubtitle": "The team's top contributor this season",
-  "dugnadKapteinBadge": "Captain",
-  "dugnadPlayerTitle": "You are a player on {team}",
-  "@dugnadPlayerTitle": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadPlayerSubtitle": "Earn points and climb the leaderboard",
-  "dugnadPlayerBadge": "Player",
-  "dugnadTransferBannerTitle": "The transfer window is open ⏳",
-  "dugnadTransferBannerSubtitle": "Closes in {days} days · move up or change club",
-  "@dugnadTransferBannerSubtitle": {
-    "placeholders": {
-      "days": { "type": "int" }
-    }
-  },
-  "dugnadTransferBannerSubtitleSoon": "Closing soon · move up or change club",
-  "dugnadSupportClubFast": "Support {club} firmly",
-  "@dugnadSupportClubFast": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadSupportClubFastSub": "Monthly support — earn points",
   "dugnadManageSupportTitle": "Manage regular support",
   "dugnadLeaguePlaceholderBody": "Leaderboard and season tables will be built after team attribution.",
-  "dugnadLeaderboardSectionTitle": "Team competition",
   "dugnadMembershipSectionTitle": "Membership",
-  "dugnadLeaderboardTitle": "Team competition",
-  "dugnadLeaderboardProfileSubtitle": "Choose a team and follow the competition",
-  "dugnadLeaderboardSeasonEnds": "Season ends {date}",
-  "@dugnadLeaderboardSeasonEnds": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "dugnadLeaderboardSeasonPrizeLabel": "SEASONAL PRIZES",
-  "dugnadLeaderboardSeasonPrizeAmount": "{amount} kr",
-  "@dugnadLeaderboardSeasonPrizeAmount": {
-    "placeholders": {
-      "amount": { "type": "String" }
-    }
-  },
-  "dugnadLeaderboardSeasonPrizeNote": "Tap to see all prizes — from Reen Dugnad",
   "dugnadLeaderboardChooseAnotherClub": "Choose another club",
-  "dugnadLeaderboardChooseTeamInClub": "Choose your team in {clubName}",
-  "@dugnadLeaderboardChooseTeamInClub": {
-    "placeholders": {
-      "clubName": { "type": "String" }
-    }
-  },
-  "dugnadLeaderboardChooseTeamSubtitle": "Follow your team's ranking and collect points",
   "dugnadLeaderboardYourTeamSubtitle": "Follow your team's ranking and collect points",
   "dugnadLeaderboardRankHeader": "RANKING",
   "dugnadLeaderboardPointsHeader": "TEAM POINTS",
-  "dugnadLeaderboardKrRaised": "{amount} kr",
-  "@dugnadLeaderboardKrRaised": {
-    "placeholders": {
-      "amount": { "type": "String" }
-    }
-  },
-  "dugnadLeaderboardActiveFamilies": "{count, plural, =1{1 active supporter} other{{count} active supporters}}",
-  "@dugnadLeaderboardActiveFamilies": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
   "dugnadLeaderboardPointsValue": "{points} POINTS",
   "@dugnadLeaderboardPointsValue": {
     "placeholders": {
-      "points": { "type": "String" }
+      "points": {
+        "type": "String"
+      }
     }
   },
-  "dugnadLeaderboardEmpty": "No team points yet this season.",
   "dugnadLeaderboardNoClub": "Choose a club to see the team competition.",
-  "dugnadLeaderboardGuestTitle": "Your points\nfollow your account",
-  "dugnadLeaderboardGuestBody": "Teams in the club compete for prizes throughout the season. With an account your purchases count for your team on the table.",
-  "dugnadLeaderboardGuestStep1Title": "Create account",
-  "dugnadLeaderboardGuestStep1Body": "Your points are saved to your account",
-  "dugnadLeaderboardGuestStep2Title": "Choose your team",
-  "dugnadLeaderboardGuestStep2Body": "Your points go to that team",
-  "dugnadLeaderboardGuestStep3Title": "Follow the season",
-  "dugnadLeaderboardGuestStep3Body": "Top scorer, assists and prize zone",
-  "dugnadLeaderboardGuestCta": "Create account",
-  "dugnadLeaderboardGuestHeroSubtitle": "Create an account to join",
-  "dugnadLeaderboardTabTable": "Table",
-  "dugnadLeaderboardTabTopScorer": "Top scorer",
-  "dugnadLeaderboardTabAssistKing": "Assist king",
-  "dugnadLeaderboardTabValue": "STØ",
-  "dugnadLeaderboardValueTitle": "STØ ranking",
-  "dugnadLeaderboardTableTitle": "{club} table",
-  "@dugnadLeaderboardTableTitle": {
-    "placeholders": { "club": { "type": "String" } }
-  },
-  "dugnadLeaderboardInternalSeries": "{count} teams · internal series",
-  "@dugnadLeaderboardInternalSeries": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "dugnadLeaderboardTeamHeader": "TEAM",
-  "dugnadLeaderboardPrizeZone": "PRIZE ZONE",
-  "dugnadLeaderboardPrizeZoneTop": "TOP {count}",
-  "@dugnadLeaderboardPrizeZoneTop": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "dugnadLeaderboardYourTeamTag": "YOUR TEAM",
-  "dugnadLeaderboardGapToZone": "{points} points away from the prize zone",
-  "@dugnadLeaderboardGapToZone": {
-    "placeholders": { "points": { "type": "String" } }
-  },
-  "dugnadLeaderboardFilterClub": "The whole club",
-  "dugnadLeaderboardFilterMyTeam": "My team",
-  "dugnadLeaderboardScorerCapGoals": "RANKED ON GOALS — CAMPAIGN PURCHASES",
-  "dugnadLeaderboardScorerCapAssists": "RANKED ON ASSISTS — REFERRALS",
-  "dugnadLeaderboardScorerCapValue": "Ranked by STØ rating",
-  "dugnadLeaderboardScorerEmpty": "No contributors in {team} yet.",
-  "@dugnadLeaderboardScorerEmpty": {
-    "placeholders": { "team": { "type": "String" } }
-  },
-  "dugnadLeaderboardYouTag": "YOU",
-  "dugnadLeaderboardGoalUnit": "GOAL",
-  "dugnadLeaderboardAssistUnit": "ASSIST",
-  "dugnadLeaderboardValueUnit": "STØ",
-  "dugnadLeaderboardYourTeamCardSub": "{team} · #{rank} of {total}",
-  "@dugnadLeaderboardYourTeamCardSub": {
-    "placeholders": {
-      "team": { "type": "String" },
-      "rank": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
-  "dugnadLeaderboardYourPointsTitle": "Your points",
-  "dugnadLeaderboardYourPointsCardSub": "{points} · {tier}",
-  "@dugnadLeaderboardYourPointsCardSub": {
-    "placeholders": {
-      "points": { "type": "String" },
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadTeamDetailHeroTitle": "Your team",
-  "dugnadTeamDetailRankOf": "#{rank} of {total} in {club}",
-  "@dugnadTeamDetailRankOf": {
-    "placeholders": {
-      "rank": { "type": "int" },
-      "total": { "type": "int" },
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadTeamDetailChangeTeam": "Change",
-  "dugnadTeamDetailSupportTitle": "Support firmly",
-  "dugnadTeamDetailSupportSub": "Fixed monthly support for the team",
-  "dugnadTeamDetailSeasonGoal": "Towards the season goal",
-  "dugnadTeamDetailGoalPercent": "{percent} % of the target",
-  "@dugnadTeamDetailGoalPercent": {
-    "placeholders": { "percent": { "type": "int" } }
-  },
-  "dugnadTeamDetailBreakdownHeading": "HOW TEAM POINTS ARE BUILT",
-  "dugnadTeamDetailBreakdownCampaigns": "Campaigns",
-  "dugnadTeamDetailBreakdownCampaignsSub": "Collected via food boxes",
-  "dugnadTeamDetailBreakdownEngagement": "Everyday purchases",
-  "dugnadTeamDetailBreakdownEngagementSub": "Sponsor engagement",
-  "dugnadTeamDetailBreakdownParticipation": "Participation",
-  "dugnadTeamDetailBreakdownParticipationSub": "{families} supporters active",
-  "@dugnadTeamDetailBreakdownParticipationSub": {
-    "placeholders": { "families": { "type": "int" } }
-  },
-  "dugnadTeamDetailClimbTitle": "How do you climb?",
-  "dugnadTeamDetailClimbReferrals": "Recruit supporters",
-  "dugnadTeamDetailClimbReferralsSub": "More active supporters = more breadth points",
-  "dugnadTeamDetailClimbSponsors": "Buy through sponsors",
-  "dugnadTeamDetailClimbSponsorsSub": "Everyday purchases give engagement points to the team",
-  "dugnadTeamDetailClimbCampaigns": "Participate in promotions",
-  "dugnadTeamDetailClimbCampaignsSub": "Food boxes give the most team points",
-  "dugnadTeamDetailYourPointsSub": "See level and how you contribute",
   "dugnadMemberOffersTitle": "Member offers",
   "dugnadMemberOffersSubtitle": "Discounts active",
   "dugnadMemberOffersPlaceholderBody": "This surface is a placeholder and will be connected later.",
-  "dugnadFastSupportTitle": "Support regularly",
   "dugnadFastSupportSubtitle": "Monthly support — baseline",
   "dugnadFastSupportPlaceholderBody": "Vipps recurring for regular support is being built.",
-  "dugnadDonationHeroSubtitle": "Regular monthly support for the team",
-  "dugnadDonationWhoSupport": "Who do you want to support?",
-  "dugnadDonationWholeClub": "The whole club",
-  "dugnadDonationWholeClubShort": "CLUB",
-  "dugnadDonationTeamLabel": "TEAM",
-  "dugnadDonationTeamInClub": "Team in {club}",
-  "@dugnadDonationTeamInClub": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "dugnadDonationSearchTeams": "Search for a team …",
-  "dugnadDonationMonthlyAmount": "Monthly amount",
-  "dugnadDonationOtherAmount": "Other",
-  "dugnadDonationAmountKr": "{amount} kr",
-  "@dugnadDonationAmountKr": {
-    "placeholders": {
-      "amount": { "type": "int" }
-    }
-  },
-  "dugnadDonationCurrencyPerMonth": "kr/month",
-  "dugnadDonationCustomHint": "Enter amount",
-  "dugnadDonationTierBronze": "Bronze",
-  "dugnadDonationTierSilver": "Silver",
-  "dugnadDonationTierGold": "Gold",
-  "dugnadDonationTierPlatinum": "Platinum",
   "dugnadDonationMinTierBronze": "Give at least 50 kr/month for Bronze",
   "dugnadDonationAmountToNextTier": "{amount} kr to {tier}",
   "@dugnadDonationAmountToNextTier": {
     "placeholders": {
-      "amount": { "type": "int" },
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadDonationFeeBreakdownPrefix": "Of {total} kr/month, ",
-  "@dugnadDonationFeeBreakdownPrefix": {
-    "placeholders": {
-      "total": { "type": "String" }
-    }
-  },
-  "dugnadDonationFeeBreakdownMiddle": " goes to {target} · ",
-  "@dugnadDonationFeeBreakdownMiddle": {
-    "placeholders": {
-      "target": { "type": "String" }
-    }
-  },
-  "dugnadDonationFeeBreakdownSuffix": "covers payment and operations",
-  "dugnadDonationWhyFee": "Why a fee?",
-  "dugnadDonationWhyFeeTitle": "Why a fee?",
-  "dugnadDonationWhyFeeLead": "Your full intention goes to the team. A small, transparent fee is deducted and explained honestly:",
-  "dugnadDonationWhyFeeTransactionTitle": "Transaction fee",
-  "dugnadDonationWhyFeeTransactionBody": "Covers payment (Vipps/card) and secure handling.",
-  "dugnadDonationWhyFeePlatformTitle": "Operations fee",
-  "dugnadDonationWhyFeePlatformBody": "Covers running support and development of Reen Dugnad.",
-  "dugnadDonationWhyFeeHeartNote": "We take the fee to keep Reen Dugnad going — not to profit from your gift.",
-  "dugnadDonationWhyFeeUnderstand": "Got it",
-  "dugnadDonationNudgeTitle": "How the support is paid",
-  "dugnadDonationHowPaidBody": "Reen Dugnad sponsors {clubName} and pays out the amount as a sponsorship, earmarked for {teamName}. {clubShort} is responsible for the final support to the team.",
-  "@dugnadDonationHowPaidBody": {
-    "placeholders": {
-      "clubName": { "type": "String" },
-      "clubShort": { "type": "String" },
-      "teamName": { "type": "String" }
+      "amount": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
     }
   },
   "dugnadDonationNudgeBodyPrefix": "You support the team even more when you buy the team's ",
   "dugnadDonationNudgeMatkasserLink": "meal boxes",
   "dugnadDonationNudgeBodySuffix": " and refer friends.",
-  "dugnadDonationPaymentHeading": "Payment",
-  "dugnadDonationVippsLabel": "Vipps",
-  "dugnadDonationVippsSubtitle": "Monthly payment in the Vipps app",
-  "dugnadDonationSelectTeam": "Choose a team",
-  "dugnadDonationNoTeams": "No teams are available for this club yet. Ask your club admin to add teams in AdminPanel.",
-  "dugnadDonationTerms": "First charge in one month. Cancel anytime. A failed charge is skipped. Already paid amounts are not refunded.",
-  "dugnadDonationPointsTitle": "You earn points every month",
-  "dugnadDonationPointsSubtitle": "Membership points are added every time the monthly amount is deducted — activity and promotional purchases give even more",
-  "dugnadDonationPointsValue": "+{points}/month",
-  "@dugnadDonationPointsValue": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
   "dugnadDonationPointsUnit": "POINTS",
-  "dugnadDonationPointsPerMonth": "/month",
-  "dugnadDonationSetupButton": "Set up regular support",
-  "dugnadDonationEditTitle": "Change fixed support",
-  "dugnadDonationEditButton": "Save changes",
-  "dugnadDonationUpdateSuccess": "Changes saved. They apply from the next payment.",
-  "dugnadDonationUpdateFailed": "Could not save changes. Please try again.",
-  "dugnadDonationUpdateNotConfirmed": "Vipps has not confirmed the new amount yet. Try again in a moment.",
   "dugnadDonationPauseComingSoon": "Pause is coming soon.",
-  "dugnadDonationManageResume": "Resume",
-  "dugnadDonationManageSubLinePaused": "{amount} kr/month · paused",
-  "@dugnadDonationManageSubLinePaused": {
-    "placeholders": {
-      "amount": { "type": "int" }
-    }
-  },
-  "dugnadDonationStatusPaused": "Paused",
-  "dugnadDonationPauseSuccess": "Support paused.",
-  "dugnadDonationPauseFailed": "Could not pause. Please try again.",
-  "dugnadDonationResumeSuccess": "Support resumed.",
-  "dugnadDonationResumeFailed": "Could not resume. Please try again.",
-  "dugnadDonationIncompleteTitle": "Agreement not completed",
-  "dugnadDonationIncompleteBody": "You returned from Vipps without approving the agreement. Nothing was started.",
-  "dugnadDonationIncompleteRetry": "Continue in Vipps",
-  "dugnadDonationIncompleteDiscard": "Discard and go back",
-  "dugnadDonationSetupFailedTitle": "Could not start support",
-  "dugnadDonationSetupFailedBody": "The Vipps agreement was not approved. You can try again from Fast støtte.",
-  "dugnadDonationComingSoon": "Coming soon",
   "dugnadDonationComingSoonBackend": "Vipps recurring setup is coming soon.",
-  "dugnadDonationManageLink": "My support",
-  "dugnadDonationSyncing": "Confirming your Vipps agreement…",
-  "dugnadDonationSyncFailed": "Could not confirm the agreement. Try again from My support.",
-  "dugnadDonationCreateFailed": "Could not start regular support. Please try again.",
-  "dugnadDonationVippsLaunchFailed": "Could not open Vipps. Please try again.",
-  "dugnadDonationVippsError": "Could not start Vipps agreement. Check that Recurring API is enabled on your test MSN.",
-  "dugnadDonationErrorSubscriptionCap": "You can have at most 3 active subscriptions.",
-  "dugnadDonationErrorDuplicateTarget": "You already support this team or club.",
-  "dugnadDonationConfirmAppBar": "Regular support",
   "dugnadDonationConfirmTitle": "Thank you for your support!",
   "dugnadDonationConfirmSubtitle": "Your monthly Vipps agreement is active. The first charge is one month from today.",
-  "dugnadDonationPendingTitle": "Agreement pending",
   "dugnadDonationPendingSubtitle": "We are still waiting for Vipps to confirm your agreement.",
   "dugnadDonationConfirmTarget": "Recipient",
   "dugnadDonationConfirmAmount": "Amount",
   "dugnadDonationConfirmNextCharge": "First charge",
-  "dugnadDonationConfirmManage": "View my support",
-  "dugnadDonationConfirmHome": "Back to home",
-  "dugnadDonationConfirmThanks": "Thank you! 💜",
-  "dugnadDonationConfirmSupportLine": "You support {team} with {amount}",
-  "@dugnadDonationConfirmSupportLine": {
-    "placeholders": {
-      "team": { "type": "String" },
-      "amount": { "type": "String" }
-    }
-  },
-  "dugnadDonationConfirmPointsLabel": "membership points per month",
-  "dugnadDonationConfirmEarmarked": "Earmarked {team}",
-  "@dugnadDonationConfirmEarmarked": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadDonationConfirmOperations": "Operation & payment",
-  "dugnadDonationConfirmReady": "Ready",
-  "dugnadDonationConfirmGiveMoreTitle": "Do you want to give even more?",
-  "dugnadDonationConfirmGiveMoreBody": "Buy a food box from the team — a portion goes to the club.",
-  "dugnadSupportShareCardMessage": "I support {team} firmly 💜",
-  "@dugnadSupportShareCardMessage": {
-    "placeholders": {
-      "team": { "type": "String" }
-    }
-  },
-  "dugnadShareSheetTitle": "Share that you support the team",
-  "dugnadShareSheetSubtitle": "Get more supporters involved — the team benefits from everyone who joins.",
-  "dugnadShareLinkUnavailable": "Could not load your support card link.",
-  "dugnadShareSheetEarnTitle": "Earn {points} points",
-  "@dugnadShareSheetEarnTitle": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadShareSheetEarnSubtitle": "when you share with a friend",
-  "dugnadShareSheetDoneTitle": "You earned {points} points! 💜",
-  "@dugnadShareSheetDoneTitle": {
-    "placeholders": {
-      "points": { "type": "int" }
-    }
-  },
-  "dugnadShareSheetDoneSubtitle": "Thanks for spreading the word about the team.",
   "dugnadDonationManageTitle": "My regular support",
-  "dugnadDonationManageHeroTitle": "Fixed support",
-  "dugnadDonationManageYouSupport": "You support",
-  "dugnadDonationManageOfTeams": "of {max} teams",
-  "@dugnadDonationManageOfTeams": {
-    "placeholders": {
-      "max": { "type": "int" }
-    }
-  },
-  "dugnadDonationManageTotal": "Total",
-  "dugnadDonationManageKrPerMonthShort": "kr/month",
-  "dugnadDonationManageSubLine": "{amount} kr/month · next payment {date}",
-  "@dugnadDonationManageSubLine": {
-    "placeholders": {
-      "amount": { "type": "int" },
-      "date": { "type": "String" }
-    }
-  },
-  "dugnadDonationManageChange": "Change",
-  "dugnadDonationManagePause": "Pause",
-  "dugnadDonationManageExit": "Exit",
-  "dugnadDonationManageAddTeamTitle": "Support another team",
-  "dugnadDonationManageAddTeamHint": "You can support up to 3 teams at the same time",
-  "dugnadDonationManageMaxNote": "You support the maximum of 3 teams. Cancel one to switch.",
-  "dugnadDonationManageChangesNote": "Changes will apply from the next payment. Payments already made will not be refunded.",
-  "dugnadDonationCancelSheetTitle": "Cancel this support?",
-  "dugnadDonationCancelSheetBody": "You can set it up again at any time. Remember you still support the team for free when you shop through sponsors.",
-  "dugnadDonationCancelSheetKeep": "Keep",
   "dugnadDonationManageAdd": "Add support",
   "dugnadDonationManageEmpty": "No regular support yet",
   "dugnadDonationManageEmptyHint": "Set up monthly Vipps support for your team or club.",
-  "dugnadDonationManageAmountPerMonth": "{amount} kr/month",
-  "@dugnadDonationManageAmountPerMonth": {
-    "placeholders": {
-      "amount": { "type": "int" }
-    }
-  },
   "dugnadDonationManageNextCharge": "Next charge: {date}",
   "@dugnadDonationManageNextCharge": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "dugnadDonationManageStreak": "{months} month streak",
   "@dugnadDonationManageStreak": {
     "placeholders": {
-      "months": { "type": "int" }
+      "months": {
+        "type": "int"
+      }
     }
   },
-  "dugnadDonationStatusActive": "Active",
-  "dugnadDonationStatusPending": "Pending",
   "dugnadDonationStatusCancelled": "Cancelled",
   "dugnadDonationCancelAction": "Cancel",
   "dugnadDonationCancelTitle": "Cancel regular support?",
   "dugnadDonationCancelBody": "Future charges to {target} will stop. Amounts already paid are not refunded.",
   "@dugnadDonationCancelBody": {
     "placeholders": {
-      "target": { "type": "String" }
+      "target": {
+        "type": "String"
+      }
     }
   },
-  "dugnadDonationCancelConfirm": "Cancel support",
-  "dugnadDonationCancelSuccess": "Regular support cancelled.",
-  "dugnadDonationCancelFailed": "Could not cancel. Please try again.",
-  "dugnadDonationLoadFailed": "Could not load your subscriptions.",
   "dugnadMealBoxFromClub": "Meal box from the club",
-  "dugnadSeeAll": "See all",
-  "dugnadSupportClub": "Support {clubName}",
-  "@dugnadSupportClub": {
-    "placeholders": {
-      "clubName": {
-        "type": "String"
-      }
-    }
-  },
   "dugnadCampaign": "Campaign",
-  "dugnadChooseClubFirst": "Choose a club first",
   "dugnadChooseClubForCampaigns": "You need to choose a club to see campaigns.",
-  "dugnadNoCampaignsNow": "No active campaigns right now",
-  "dugnadCampaignsComingSoon": "Stay tuned — new meal boxes from {clubName} are coming soon.",
-  "@dugnadCampaignsComingSoon": {
-    "placeholders": {
-      "clubName": {
-        "type": "String"
-      }
-    }
-  },
   "dugnadDeadline": "Deadline: {date}",
   "@dugnadDeadline": {
     "placeholders": {
@@ -2598,14 +1029,6 @@
       }
     }
   },
-  "dugnadCampaignRaised": "{amount} raised",
-  "@dugnadCampaignRaised": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      }
-    }
-  },
   "dugnadCampaignFromPrice": "From {amount} kr",
   "@dugnadCampaignFromPrice": {
     "placeholders": {
@@ -2614,36 +1037,9 @@
       }
     }
   },
-  "dugnadCampaignSeeBoxes": "See boxes",
-  "dugnadMembershipSheetDesc": "Enter your membership number to unlock exclusive discounts.",
   "dugnadSave": "Save",
-  "dugnadRemoveMembership": "Remove membership number",
-  "dugnadSwitchMode": "Switch mode",
-  "dugnadActiveNow": "Active now · support your team",
-  "dugnadCommercialComingSoonToast": "Commercial mode coming soon!",
   "dugnadOffersComingSoon": "Offers coming soon",
   "dugnadOffersComingSoonDesc": "We're working on exclusive offers from sponsors for your club. Stay tuned!",
-  "dugnadSearchClubHint": "Search for your club …",
-  "dugnadSupporter": "Supporter",
-  "dugnadAddMembership": "Add",
-  "dugnadNoClubMatch": "No club matches \"{query}\".",
-  "@dugnadNoClubMatch": {
-    "placeholders": {
-      "query": {
-        "type": "String"
-      }
-    }
-  },
-  "dugnadStoreCount": "{count, plural, =1{1 store} other{{count} stores}}",
-  "@dugnadStoreCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "dugnadNoClubSelected": "No club selected",
-  "dugnadSwitch": "Switch",
   "dugnadMemberDiscountsActive": "Member #{number} · discounts active",
   "@dugnadMemberDiscountsActive": {
     "placeholders": {
@@ -2653,134 +1049,7 @@
     }
   },
   "dugnadAddMembershipNumber": "Add membership number",
-  "campaignMatkasser": "Meal boxes",
-  "campaignNoActiveCampaigns": "No active campaigns right now",
-  "campaignOrderBefore": "Order before",
-  "campaignDeliveryDay": "Delivery",
-  "campaignFromPrice": "from",
-  "campaignSupport": "Support",
-  "campaignChooseBox": "Choose box",
-  "campaignChooseYourMatkasse": "Choose your box",
-  "campaignOrderBy": "Order by",
-  "campaignAllProfitToClub": "All profits go to the club",
-  "campaignViewDetails": "View details",
-  "campaignDescriptionHeading": "Description",
-  "campaignContentsHeading": "Contents",
-  "campaignPricePerBox": "Price per box",
-  "campaignContains": "Contains",
-  "campaignSwipeToPay": "Swipe to pay",
-  "campaignSubtotal": "Subtotal",
-  "campaignPaymentHeading": "Payment",
   "campaignChange": "Change",
-  "campaignGoToCheckout": "Go to checkout",
-  "campaignEnded": "Campaign has ended",
-  "campaignEndedBody": "This campaign has ended. Contact the club for the next round.",
-  "campaignUpcoming": "Campaign starting soon",
-  "campaignUpcomingBody": "Sales open soon. Come back when we open.",
-  "campaignSuppliedBy": "Meat from Jens Eide Slakteri",
-  "campaignClubEarns": "The club earns from every purchase",
-  "campaignYourOrder": "Your order",
-  "campaignDeliveryMethod": "Delivery method",
-  "campaignHomeDelivery": "Home delivery",
-  "campaignPickupAtClub": "Pickup at club",
-  "campaignPickupAtClubName": "Pick up at {club}",
-  "@campaignPickupAtClubName": {
-    "placeholders": {
-      "club": { "type": "String" }
-    }
-  },
-  "campaignDeliveredOn": "Delivered {date}",
-  "@campaignDeliveredOn": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "campaignPickupOnDate": "Can be picked up on {date}",
-  "@campaignPickupOnDate": {
-    "placeholders": {
-      "date": { "type": "String" }
-    }
-  },
-  "campaignPickupOnDateTime": "Can be picked up on {date} · at {time}",
-  "@campaignPickupOnDateTime": {
-    "placeholders": {
-      "date": { "type": "String" },
-      "time": { "type": "String" }
-    }
-  },
-  "campaignContactInfo": "Contact information",
-  "campaignPhone": "Phone number",
-  "campaignStreetAddress": "Street address",
-  "campaignPostalCode": "Postal code",
-  "campaignCity": "City",
-  "campaignPaymentMethod": "Payment method",
-  "campaignPayVipps": "Vipps",
-  "campaignPayWithVipps": "Pay with Vipps",
-  "campaignPayCard": "Card / Apple Pay / Google Pay",
-  "campaignProcessing": "Processing...",
-  "campaignTotal": "Total",
-  "campaignEmptyCart": "Add at least one box to continue.",
-  "campaignThankYou": "Thank you for your order!",
-  "campaignSupportThankYou": "Thank you for your support!",
-  "campaignBoxesOrdered": "{count, plural, =1{1 meal box ordered.} other{{count} meal boxes ordered.}}",
-  "@campaignBoxesOrdered": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
-  "campaignOrderSummaryTitle": "ORDER SUMMARY",
-  "campaignConfirmationEmailSent": "Order confirmation and details have been sent to {email}",
-  "@campaignConfirmationEmailSent": {
-    "placeholders": {
-      "email": { "type": "String" }
-    }
-  },
-  "campaignPurchaseClubShare": "A portion of the purchase goes to the club 💖",
-  "campaignPointsAddedLabel": "points added to your account",
-  "campaignConfirmationSent": "We have sent a confirmation by email.",
-  "campaignContributionToSupport": "You contributed {amount} kr to {supportName}",
-  "@campaignContributionToSupport": {
-    "placeholders": {
-      "amount": {
-        "type": "String"
-      },
-      "supportName": {
-        "type": "String"
-      }
-    }
-  },
-  "campaignPointsEarnedForTeam": "+{points} points earned for {teamName}",
-  "@campaignPointsEarnedForTeam": {
-    "placeholders": {
-      "points": {
-        "type": "int"
-      },
-      "teamName": {
-        "type": "String"
-      }
-    }
-  },
-  "campaignOrderNumber": "Order number",
-  "campaignDistributionDate": "Delivery date",
-  "campaignViewMyOrders": "View my orders",
-  "campaignBackToHome": "Back to home",
-  "campaignPaymentFailed": "Payment failed",
-  "campaignPaymentFailedBody": "We could not confirm the payment. Please try again.",
-  "campaignMyMatkasser": "Order History",
-  "campaignOrdersBoughtBanner": "{count, plural, =1{You have bought 1 campaign so far} other{You have bought {count} campaigns so far}}",
-  "@campaignOrdersBoughtBanner": {"placeholders":{"count":{"type":"int"}}},
-  "campaignOrdersBoughtBannerSub": "each of them supports your team — thank you! 💜",
-  "campaignNoOrders": "You have no meal box orders yet.",
-  "campaignPaid": "Paid",
-  "campaignPending": "Pending",
-  "campaignFailed": "Failed",
-  "campaignSomethingWentWrong": "Something went wrong",
-  "campaignNameRequired": "Name is required",
-  "campaignEmailRequired": "Email is required",
-  "campaignPhoneRequired": "Phone number is required",
-  "campaignAddressRequired": "Address is required for home delivery",
-  "campaignPaymentInitFailed": "Payment initialization failed. Please try again.",
-
   "cartTitle": "Shopping cart ({count})",
   "@cartTitle": {
     "placeholders": {
@@ -2809,28 +1078,20 @@
       }
     }
   },
-
   "homeFeedbackTitle": "How was your meal?",
-  "homeFeedbackBody": "Whether it's good or bad, let's talk about it! \ud83d\ude09",
+  "homeFeedbackBody": "Whether it's good or bad, let's talk about it! 😉",
   "homeLocation": "Location",
   "homeCurrent": "Current",
   "homeSwipe": "Swipe",
-
   "accountMyAccount": "My account",
-  "accountAerendCredits": "\u00c6rend Credits",
+  "accountAerendCredits": "Ærend Credits",
   "accountAvailableBalance": "Available balance",
-
   "heroDeliveryTo": "Delivery to",
   "heroSearchStoresProducts": "Search for stores and products",
-
   "splashTagline": "Every order supports the team",
-
   "snurreSuggestion1": "Where can I buy the cheapest sunglasses?",
   "snurreSuggestion2": "How long are restaurants in Bergen open?",
   "snurreWriteMessage": "Write a message",
-
-  "campaignLastChance": "Last chance",
-
   "checkoutTitle": "Checkout",
   "checkoutDeliveryTab": "Delivery",
   "checkoutPickupTab": "Pickup",
@@ -2864,57 +1125,42 @@
       }
     }
   },
-
   "searchStores": "Stores",
-
   "storeProductDetails": "Product details",
   "storeReadMore": "Read more",
   "storeViewCart": "View cart",
   "storeAddToCart": "Add to cart",
-
   "sizeLabel": "Size",
   "colorLabel": "Color",
   "outOfStock": "Out of Stock",
-
   "accountDetailTitle": "My account",
   "accountDeleteMyAccount": "Delete My Account",
-
   "editEmailTitle": "Change Email",
   "editEmailCurrentLabel": "Your Email Now",
   "editEmailNewLabel": "New Email",
   "editEmailNewHint": "New Email Here",
   "editEmailButton": "Update Email",
-
   "editNameTitle": "Update Profile",
   "editNameCurrentLabel": "Your Name Now",
   "editNameNewLabel": "New Name",
   "editNameNewHint": "New Name Here",
   "editNameButton": "Update Profile",
-
   "editPhoneButton": "Update Number",
-
   "editPicCurrent": "Current Picture",
   "editPicNew": "New Picture",
-
   "redeemCodeTitle": "Redeem Code",
   "redeemCodeHint": "Enter your discount code",
   "redeemCodeOkay": "Okay",
-
   "referralShareCode": "Share your referral code",
-  "referralHowItWorks": "How it works?",
-
   "settingsLimitTracking": "Limit Tracking",
   "settingsAppearance": "Appearance",
   "settingsLanguage": "Language",
   "settingsAerendVersion": "Ærend Version",
   "settingsOsVersion": "OS Version",
-
   "save": "Save",
-
   "profileYourProfile": "Your Profile",
   "profileEnterFullName": "Enter your full name",
   "profileEnterEmail": "Enter your email",
-
   "locationAddNew": "Add New Location",
   "locationCountry": "Country",
   "locationStreet": "Street",
@@ -2927,7 +1173,6 @@
   "locationSelectFromMaps": "Select From Maps",
   "locationMapsHelp": "Adding exact location on maps helps us find you faster.",
   "locationAddButton": "Add Location",
-
   "locationAddressPrefix": "Address: {address}",
   "@locationAddressPrefix": {
     "placeholders": {
@@ -2937,9 +1182,7 @@
     }
   },
   "locationChooseThis": "Choose This Location",
-
   "locationEditTitle": "Edit Address",
-
   "authEmailOrNumber": "Email or number",
   "authEnterEmailOrNumber": "Enter email or number",
   "authEnterPassword": "Enter {field}",
@@ -2950,20 +1193,16 @@
       }
     }
   },
-
   "authRegisterAccount": "Register Your Account",
   "authEmailOrNumberLabel": "Email or Number",
   "authEnterEmailOrNumberHint": "Enter your email or number",
-
   "inviteTitle": "Invite Your Friend",
   "inviteHeading": "Invite a Friend and Hop Together!",
   "inviteDescription": "Share the joy of Ærend with your friends and earn rewards together! Invite a friend to join Ærend and both of you will receive exciting benefits. Spread the word — every order gives back to the club!",
   "inviteButton": "Invite Friends Now",
   "inviteTerms": "Terms of Service",
   "inviteCopyLink": "Copy Link",
-
   "checkoutOrderFee": "Order fee",
-
   "snurreLoginRequired": "Please log in to use AI chat.",
   "snurreProductUnavailable": "Product is unavailable.",
   "snurreCouldNotAddToCart": "Could not add to cart.",
@@ -2974,14 +1213,11 @@
   "snurreBuyNow": "Buy Now",
   "snurreVisitStore": "Visit Store",
   "snurreStoreSelectionUnavailable": "Store selection is unavailable.",
-
   "chatTypeMessage": "Type message",
-
   "trackEstimatedTime": "Estimated time",
   "trackDeliveryOtp": "Delivery OTP",
   "trackCouldNotOpenPhone": "Could not open the phone app.",
   "trackNoDataAvailable": "No data available",
-
   "storeSearchIn": "Search in {storeName}",
   "@storeSearchIn": {
     "placeholders": {
@@ -2990,89 +1226,36 @@
       }
     }
   },
-
   "storeDescription": "Description",
   "storePosition": "Position",
   "storeOpeningTime": "Opening Time",
   "storeContact": "Contact",
   "storePhoneNumber": "Phone Number",
-
   "locationMapError": "Google Map Error!",
-
   "cartCannotLoadProduct": "Cannot load this product right now.",
   "cartCannotAddNow": "Cannot add right now.",
-
   "editPicSelectFirst": "Please select an image first",
-
   "referralCopied": "Copied!",
-
   "orderContactSupport": "Contact Support",
-
   "swipeCouldNotAdd": "Could not add this item to cart.",
   "swipeTokenMissing": "Device token missing. Restart the app and try again.",
-
   "feedReportComingSoon": "Report coming soon",
-
-  "dugnadStoExplainerTitle": "How the STØ rating is calculated",
-  "dugnadSeeWhatMakesRating": "See what makes the rating",
-  "dugnadStoTempoTitle": "Tempo",
-  "dugnadStoTempoNote": "in good form — how quickly you're collecting points right now. This is only a tempo indicator and doesn't affect the rating.",
-  "dugnadStoSeasonFarmNote": "The rating shows the points you've earned this season and rebuilds every season. Your metal level at season end determines how many points you carry forward.",
-  "dugnadStoSeasonFarmEmphasis": "this season",
-  "dugnadCarryoverPerLevelTitle": "Carryover per level",
   "dugnadCarryoverPerLevelSub": "Your metal level at season end sets how much of your season points carry over into next season.",
-  "dugnadCarryoverYourLevelTag": "YOU NOW",
   "dugnadCarryoverHighlight": "Reach {tier} ({sto} STØ) → carry {percent} % to next season 🚀",
   "@dugnadCarryoverHighlight": {
     "placeholders": {
-      "tier": { "type": "String" },
-      "sto": { "type": "int" },
-      "percent": { "type": "int" }
+      "tier": {
+        "type": "String"
+      },
+      "sto": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
     }
   },
-  "dugnadCarryoverMaxLine": "Top level {tier} → you bring the most points to next season 🚀",
-  "@dugnadCarryoverMaxLine": {
-    "placeholders": {
-      "tier": { "type": "String" }
-    }
-  },
-  "dugnadStoIncreaseTitle": "How to increase the rating",
-  "dugnadStoBoostReferTitle": "Refer a supporter",
-  "dugnadStoBoostReferSub": "Every referral lifts the card the most",
-  "dugnadStoBoostCampaignTitle": "Buy a food box",
-  "dugnadStoBoostCampaignSub": "Support a team directly",
-  "dugnadStoBoostMembershipTitle": "Set up membership",
-  "dugnadStoBoostMembershipSub": "Unlocks the «Regular member» badge",
-  "dugnadStoBoostFormTitle": "Keep your form up",
-  "dugnadStoBoostFormSub": "Weekly missions keep the rating rising",
-  "dugnadGateCollectPoints": "Create an account to collect points",
-  "dugnadGateBuyAndEarn": "Create an account to buy and earn points",
-  "dugnadGateCompete": "Create an account to take part",
-  "dugnadGateUnlockBadges": "Create an account to unlock badges",
-  "dugnadGateMissions": "Create an account to get missions",
-  "dugnadGateSupport": "Create an account to support monthly",
   "dugnadGateRefer": "Create an account to invite friends",
-  "dugnadGateSeeAccountAndPayments": "Create an account to view account and payments",
-  "dugnadGateChooseClubCollectPoints": "Choose a club to collect points",
-  "dugnadGateChooseClubBuyAndEarn": "Choose a club to buy and earn points",
-  "dugnadGateChooseClubCompete": "Choose a club to take part",
-  "dugnadGateChooseClubBadges": "Choose a club to unlock badges",
-  "dugnadGateChooseClubAccount": "Choose a club to view account and payments",
-  "dugnadChooseClubHomeCardTitle": "Choose your club",
-  "dugnadChooseClubHomeCardBody": "A share of every order goes to the club fund",
-  "dugnadChooseClubHomeCardCta": "Choose club",
-  "dugnadLeaderboardNoClubHeroSubtitle": "Choose a club to see the teams",
-  "dugnadLeaderboardNoClubTitle": "Teams compete\nfor prizes",
-  "dugnadLeaderboardNoClubBody": "Choose the club you want to support — then follow the teams and season on the table.",
-  "dugnadLeaderboardNoClubStep1Title": "Choose club",
-  "dugnadLeaderboardNoClubStep1Body": "Find the club you want to support",
-  "dugnadProfileGuestTitle": "Not logged in",
-  "dugnadProfileGuestBadge": "GUEST",
-  "dugnadProfileGuestBody": "Create an account to save your profile, points and orders",
-  "dugnadProfileGuestCtaTitle": "Create account",
-  "dugnadProfileGuestCtaBody": "Your points will be saved and you can shop in the app",
-  "dugnadChooseYourClubTitle": "Choose your club",
-  "dugnadChooseYourClubBody": "A share of every order goes to the club fund",
   "celebrationClose": "Close",
   "celebrationContinue": "Continue",
   "celebrationCtaBadges": "See badge",
@@ -3103,8 +1286,12 @@
   "celebrationTitleT5bPlace": "Your team took {placeLabel}! {emoji}",
   "@celebrationTitleT5bPlace": {
     "placeholders": {
-      "placeLabel": { "type": "String" },
-      "emoji": { "type": "String" }
+      "placeLabel": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      }
     }
   },
   "celebrationTitleT5bSecond": "Your team took second place! 🥈",
@@ -3114,7 +1301,9 @@
   "celebrationBodyT5bPlace": "Your team is in the prize zone. {metal} on the club table.",
   "@celebrationBodyT5bPlace": {
     "placeholders": {
-      "metal": { "type": "String" }
+      "metal": {
+        "type": "String"
+      }
     }
   },
   "celebrationBodyT5bSilver": "Your team is in the prize zone. Silver on the club table.",
@@ -3122,13 +1311,17 @@
   "celebrationSeasonPill": "Season {season}",
   "@celebrationSeasonPill": {
     "placeholders": {
-      "season": { "type": "String" }
+      "season": {
+        "type": "String"
+      }
     }
   },
   "celebrationSeasonPillFinal": "Season {season} · Final",
   "@celebrationSeasonPillFinal": {
     "placeholders": {
-      "season": { "type": "String" }
+      "season": {
+        "type": "String"
+      }
     }
   },
   "celebrationTitleT6": "You have the club's highest STØ! 👑",
@@ -3153,7 +1346,9 @@
   "celebrationTitleT15": "Your team took {place}. place!",
   "@celebrationTitleT15": {
     "placeholders": {
-      "place": { "type": "int" }
+      "place": {
+        "type": "int"
+      }
     }
   },
   "celebrationTitleT15Second": "Your team took second place! 🥈",
@@ -3162,13 +1357,17 @@
   "celebrationStoRemainingSuffix": " left until {league}",
   "@celebrationStoRemainingSuffix": {
     "placeholders": {
-      "league": { "type": "String" }
+      "league": {
+        "type": "String"
+      }
     }
   },
   "celebrationStoAtTopLeague": "You're in {league}",
   "@celebrationStoAtTopLeague": {
     "placeholders": {
-      "league": { "type": "String" }
+      "league": {
+        "type": "String"
+      }
     }
   },
   "celebrationStoReasonCampaign": "Campaign purchase",
@@ -3189,13 +1388,17 @@
   "celebrationBodyT2": "{name}",
   "@celebrationBodyT2": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "celebrationBodyT3": "{title}",
   "@celebrationBodyT3": {
     "placeholders": {
-      "title": { "type": "String" }
+      "title": {
+        "type": "String"
+      }
     }
   },
   "celebrationBodyT4Up": "You're collecting points faster than before — keep the tempo up.",
@@ -3204,29 +1407,45 @@
   "celebrationBodyT5": "{team} is now in position {position}.",
   "@celebrationBodyT5": {
     "placeholders": {
-      "team": { "type": "String" },
-      "position": { "type": "int" }
+      "team": {
+        "type": "String"
+      },
+      "position": {
+        "type": "int"
+      }
     }
   },
   "celebrationBodyThrone": "{name} · {club}",
   "@celebrationBodyThrone": {
     "placeholders": {
-      "name": { "type": "String" },
-      "club": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "club": {
+        "type": "String"
+      }
     }
   },
   "celebrationBodySeasonTeam": "{team} · {season}",
   "@celebrationBodySeasonTeam": {
     "placeholders": {
-      "team": { "type": "String" },
-      "season": { "type": "String" }
+      "team": {
+        "type": "String"
+      },
+      "season": {
+        "type": "String"
+      }
     }
   },
   "celebrationBodySeasonPersonal": "{name} · {season}",
   "@celebrationBodySeasonPersonal": {
     "placeholders": {
-      "name": { "type": "String" },
-      "season": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "season": {
+        "type": "String"
+      }
     }
   },
   "celebrationBodyT13": "From now on you play for this team — your points lift them on the table",
@@ -3241,93 +1460,9 @@
   "celebrationTeamContractConfirmed": "Contract confirmed · season {season}",
   "@celebrationTeamContractConfirmed": {
     "placeholders": {
-      "season": { "type": "String" }
+      "season": {
+        "type": "String"
+      }
     }
-  },
-  "campaignPurchasesTitle": "Campaign purchases",
-  "campaignPurchasesEntryTitle": "Campaign purchases and overview",
-  "campaignPurchasesEntrySubtitle": "Countdown, delivery and archive",
-  "campaignTrackerMore": "{count, plural, =1{+1 more} other{+{count} more}}",
-  "@campaignTrackerMore": {"placeholders":{"count":{"type":"int"}}},
-  "campaignTrackerLocked": "Locked",
-  "campaignUnitDay": "day",
-  "campaignUnitDays": "days",
-  "campaignUnitHour": "hour",
-  "campaignUnitHours": "hours",
-  "campaignUnitMin": "min",
-  "campaignUnitSec": "sec",
-  "campaignCountdownDeliverIn": "Delivered in",
-  "campaignCountdownPickupIn": "Ready for pickup in",
-  "campaignTabActive": "{count, plural, =0{Active} other{Active · {count}}}",
-  "@campaignTabActive": {"placeholders":{"count":{"type":"int"}}},
-  "campaignTabArchive": "Archive",
-  "campaignActiveEmptyTitle": "No active purchases",
-  "campaignActiveEmptyBody": "When you buy a campaign, you follow the delivery here.",
-  "campaignArchiveEmptyTitle": "Archive is empty",
-  "campaignArchiveEmptyBody": "Completed campaign purchases show up here.",
-  "campaignReceiptBought": "Receipt · bought {date}",
-  "@campaignReceiptBought": {"placeholders":{"date":{"type":"String"}}},
-  "campaignRowPaid": "Paid",
-  "campaignRowDeliveryDay": "Delivery day",
-  "campaignRowPickupDay": "Pickup day",
-  "campaignRowTimeSlot": "Time slot",
-  "campaignRowAddress": "Address",
-  "campaignRowPickupPlace": "Pickup point",
-  "campaignRowMethod": "Method",
-  "campaignMethodDelivery": "Delivery",
-  "campaignMethodPickup": "Pickup",
-  "campaignPointsChip": "+{points} points",
-  "@campaignPointsChip": {"placeholders":{"points":{"type":"int"}}},
-  "campaignChangeButton": "Change",
-  "campaignLockedButton": "Locked",
-  "campaignChangeSheetTitle": "Change to {method}?",
-  "@campaignChangeSheetTitle": {"placeholders":{"method":{"type":"String"}}},
-  "campaignFreeChangeUntil": "Free to change until {time}",
-  "@campaignFreeChangeUntil": {"placeholders":{"time":{"type":"String"}}},
-  "campaignChangeFee": "Changing costs {fee} kr for this campaign",
-  "@campaignChangeFee": {"placeholders":{"fee":{"type":"String"}}},
-  "campaignConfirmChange": "Confirm change",
-  "campaignChangeProcessing": "Processing…",
-  "campaignChangeDoneTitle": "Changed to {method}",
-  "@campaignChangeDoneTitle": {"placeholders":{"method":{"type":"String"}}},
-  "campaignChangeSuccessToast": "Changed to {method}",
-  "@campaignChangeSuccessToast": {"placeholders":{"method":{"type":"String"}}},
-  "campaignLockMessage": "The deadline to change has passed — it ended {datetime}. See you {place}!",
-  "@campaignLockMessage": {"placeholders":{"datetime":{"type":"String"},"place":{"type":"String"}}},
-  "campaignLockSeeYouDoor": "at the door",
-  "campaignLockSeeYouPickup": "at the pickup point",
-  "campaignPointsUnit": "points",
-  "campaignErrorMethodNotOffered": "This campaign only offers: {methods}",
-  "@campaignErrorMethodNotOffered": {"placeholders":{"methods":{"type":"String"}}},
-  "campaignErrorNoChange": "This purchase already uses that method.",
-  "campaignErrorGeneric": "Something went wrong. Please try again.",
-  "campaignArchiveDelivered": "Delivered {day}",
-  "@campaignArchiveDelivered": {"placeholders":{"day":{"type":"String"}}},
-  "campaignArchivePickedUp": "Picked up {day}",
-  "@campaignArchivePickedUp": {"placeholders":{"day":{"type":"String"}}},
-  "campaignArchivePointsEarnedLabel": "Points earned in archive",
-  "campaignArchivePointsTotal": "{count, plural, =1{1 point} other{{count} points}}",
-  "@campaignArchivePointsTotal": {"placeholders":{"count":{"type":"int"}}},
-  "campaignArchiveCount": "{count, plural, =1{1 purchase} other{{count} purchases}}",
-  "@campaignArchiveCount": {"placeholders":{"count":{"type":"int"}}},
-  "campaignViewFullHistory": "See full purchase history",
-  "campaignChangeFeeLabel": "Change fee",
-  "campaignChangeFeeHint": "Paid when you confirm",
-  "campaignChangeFreeLabel": "Free to change",
-  "campaignChangeFreeHint": "No cost for this campaign",
-  "campaignDeliverTo": "Delivered to {place}",
-  "@campaignDeliverTo": {"placeholders":{"place":{"type":"String"}}},
-  "campaignWithinWindow": "During the window {time}",
-  "@campaignWithinWindow": {"placeholders":{"time":{"type":"String"}}},
-  "campaignPaidWith": "Paid with",
-  "campaignKeepAppOpen": "Don't close the app",
-  "campaignPayingOverlay": "Processing payment…",
-  "campaignChangingOverlay": "Changing…",
-  "campaignArchiveCompleteNote": "This purchase is complete and archived",
-  "campaignPointsAddedToAccount": "Added to your account",
-  "campaignBoughtLabel": "Bought",
-  "campaignDeliveredShort": "Delivered",
-  "campaignPickedUpShort": "Picked up",
-  "campaignMethodChangePending": "Change pending",
-  "campaignYourAddress": "your address"
+  }
 }

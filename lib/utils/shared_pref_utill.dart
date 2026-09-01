@@ -50,74 +50,20 @@ const String prefOTPerror = "prefOTPerror";
 const String prefSelectedLatLng = "selectedLatLng";
 const String prefTip = "tip";
 const String prefThemeMode = "themeMode";
-const String prefReenSportsMode = "reenSportsMode";
-const String prefActiveSportsClubId = "activeSportsClubId";
-const String prefActiveSportsClubName = "activeSportsClubName";
-const String prefActiveSportsClubImage = "activeSportsClubImage";
 const String prefHomeCategoryCache = "homeCategoryCache";
-// Dugnad mode — user-driven (separate from server-schedule reen prefs above).
-const String prefDugnadModeEnabled = "dugnadModeEnabled";
-const String prefSelectedClubId = "selectedClubId";
-const String prefSelectedClubName = "selectedClubName";
-const String prefSelectedClubShortName = "selectedClubShortName";
-const String prefSelectedClubLogo = "selectedClubLogo";
-const String prefSelectedClubArea = "selectedClubArea";
-const String prefSelectedClubPortalThemeColor = "selectedClubPortalThemeColor";
-const String prefSelectedClubPortalBackgroundColor = "selectedClubPortalBackgroundColor";
-const String prefMembershipNumber = "membershipNumber";
-const String prefPointsTeamId = "pointsTeamId";
-const String prefPointsTeamName = "pointsTeamName";
-const String prefPointsTeamLogo = "pointsTeamLogo";
-const String prefPointsTeamAgeGroup = "pointsTeamAgeGroup";
-const String prefPointsTotal = "pointsTotal";
 const String prefIsGuestMode = "isGuestMode";
 /// Set when guest taps Pay on store checkout; cleared after resume.
 const String prefGuestCheckoutResume = "guestCheckoutResume";
 const String prefGuestCheckoutPaymentType = "guestCheckoutPaymentType";
 const String prefGuestCheckoutTakenType = "guestCheckoutTakenType";
 const String prefGuestCheckoutSpendCredit = "guestCheckoutSpendCredit";
-/// Set when guest taps Pay on campaign checkout.
-const String prefGuestCampaignCheckoutResume = "guestCampaignCheckoutResume";
-const String prefGuestCampaignPayMode = "guestCampaignPayMode";
-const String prefGuestCampaignPaymentMethod = "guestCampaignPaymentMethod";
 /// Set when login was opened to return to a prior screen after OTP.
 const String prefAuthReturnOnSuccess = "authReturnOnSuccess";
-/// Set only while a newly registered user is finishing Dugnad onboarding.
-const String prefShowDugnadWelcomeAfterOnboarding =
-    "showDugnadWelcomeAfterOnboarding";
-const String prefDugnadWelcomeBonusPoints = "dugnadWelcomeBonusPoints";
-/// Pending referred-user signup points pop (shown after welcome, then cleared).
-const String prefDugnadReferralJoinPoints = "dugnadReferralJoinPoints";
-/// Guided tour (dugnad app walkthrough). Completed = prompt suppressed / final
-/// step shows its "again" copy. RewardPaid = the 50-point reward strip hidden.
-const String prefDugnadTourCompleted = "dugnadTourCompleted";
-const String prefDugnadTourRewardPaid = "dugnadTourRewardPaid";
-/// Set after the tour-completion points pop has been queued at least once.
-const String prefDugnadTourPopShown = "dugnadTourPopShown";
-/// Set only when the tour is FINISHED (not merely dismissed). Gates the reward
-/// retry so a dismiss never awards; a later finish still does.
-const String prefDugnadTourFinished = "dugnadTourFinished";
 
-/// Pending Dugnad referral from deep link or manual entry (JSON).
-const String prefPendingDugnadReferral = "pendingDugnadReferral";
 
-/// Last acknowledged points tier key (per user+club) for level-up celebration.
-const String prefDugnadLastSeenTierKey = "dugnadLastSeenTierKey";
 
-/// Home season finale / carryover card dismissed by user.
-const String prefDugnadSeasonFinaleDismissed = "dugnadSeasonFinaleDismissed";
-const String prefDugnadReferralPromoDismissed = "dugnadReferralPromoDismissed";
 
-/// Incoming referral banner dismissed by user (stores referral record id).
-const String prefDugnadIncomingReferralDismissedId =
-    "dugnadIncomingReferralDismissedId";
-/// Last referral ledger id whose points pop was shown (or baselined) for this install.
-const String prefDugnadReferralPopCursor = "dugnadReferralPopCursor";
-const String prefDugnadReferralPopCursorReady = "dugnadReferralPopCursorReady";
-const String prefDugnadMissionPopCursor = "dugnadMissionPopCursor";
 
-/// Serialized [DugnadDataCache] snapshot for cold dugnad start.
-const String prefDugnadDataCacheSnapshot = "dugnadDataCacheSnapshot";
 
 late SharedPreferences _prefs;
 
@@ -191,24 +137,9 @@ Future<bool> prefClear() async => await _prefs.clear();
 prefClearWithRemainSomeData() async {
   String languageCode = prefGetString(prefSelectedLanguageCode);
   bool isShownOnBoarding = prefGetBool(prefIsShownOnBoarding);
-  final referralPopKeep = <String, Object?>{};
-  for (final key in _prefs.getKeys()) {
-    if (key.startsWith(prefDugnadReferralPopCursor) ||
-        key.startsWith(prefDugnadMissionPopCursor)) {
-      referralPopKeep[key] = _prefs.get(key);
-    }
-  }
   await _prefs.clear();
   prefSetString(prefSelectedLanguageCode, languageCode);
   prefSetBool(prefIsShownOnBoarding, isShownOnBoarding);
-  for (final entry in referralPopKeep.entries) {
-    final value = entry.value;
-    if (value is bool) {
-      await prefSetBool(entry.key, value);
-    } else if (value is int) {
-      await prefSetInt(entry.key, value);
-    }
-  }
 }
 
 Future<void> saveThemeMode(ThemeMode themeMode) async {

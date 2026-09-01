@@ -70,7 +70,7 @@ void refreshSnurreLauncherVisibility(Route<dynamic>? route) {
 /// Maintains an explicit stack — [didRemove]'s `previousRoute` is the route
 /// *below the removed one*, not the navigator top, so assigning it directly
 /// (e.g. after [Navigator.pushAndRemoveUntil]) incorrectly clears [topRoute]
-/// and made the FAB reappear on ModeSelect.
+/// and made the FAB reappear on the screen below.
 class SnurreLauncherNavigatorObserver extends NavigatorObserver {
   final List<Route<dynamic>> _stack = <Route<dynamic>>[];
 

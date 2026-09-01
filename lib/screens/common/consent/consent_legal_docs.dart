@@ -53,10 +53,6 @@ const ConsentLegalDoc kConsentTermsDoc = ConsentLegalDoc(
       h: 'Innhold fra brukere',
       p: 'Deler av appen lar brukere legge ut meninger og informasjon. Ærend forhåndsgodkjenner ikke slikt innhold, og det gjenspeiler ikke Ærends syn.',
     ),
-    ConsentLegalBlock(
-      h: 'Dugnad og klubbandel',
-      p: 'Andelen som går til klubben trekkes fra butikkens margin — du betaler aldri mer for å støtte laget ditt.',
-    ),
   ],
 );
 

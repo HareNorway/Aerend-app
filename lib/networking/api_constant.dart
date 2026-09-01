@@ -307,79 +307,13 @@ class ApiConst {
   static const String endPointVippsLoginStart = 'vipps/login/start';
   static const String endPointVippsLoginComplete = 'vipps/login/complete';
 
-  // Dugnad / sports-club
-  static const String endPointSportsClubList = 'sports-club/list';
-  static const String endPointSportsClubDetail = 'sports-club/';
-  static const String endPointSportsClubFinancialSummary = 'sports-club/financial-summary';
-  static const String endPointSportsClubPointsTeam = 'sports-club/points-team';
-  static const String endPointSportsClubPointsTeamSet = 'sports-club/points-team/set';
-  static const String endPointSportsClubClubSet = 'sports-club/club/set';
-  static const String endPointSportsClubWelcomeBonusClaim =
-      'sports-club/welcome-bonus/claim';
-  static const String endPointSportsClubTourComplete =
-      'sports-club/tour/complete';
-  static const String endPointPointsSummary = 'points/summary';
-  static const String endPointPointsLedger = 'points/ledger';
 
-  // Dugnad referrals
-  static const String endPointReferralValidate = 'referral/validate';
-  static const String endPointReferralCapture = 'referral/capture';
-  static const String endPointReferralSummary = 'referral/summary';
-  static const String endPointShareSummary = 'share/summary';
 
-  static const String endPointDugnadPrivacy = 'dugnad/privacy';
-  static const String endPointDugnadPrivacyUpdate = 'dugnad/privacy/update';
 
-  // Dugnad in-app notifications (separate from mass-notification-list / push)
-  static const String endPointDugnadNotifications = 'dugnad/notifications';
-  static const String endPointDugnadNotificationsUnreadCount =
-      'dugnad/notifications/unread-count';
-  static const String endPointDugnadNotificationsMarkRead =
-      'dugnad/notifications/mark-read';
-  static const String endPointDugnadNotificationsMarkFeedSeen =
-      'dugnad/notifications/mark-feed-seen';
-  static const String endPointDugnadNotificationsPrefs =
-      'dugnad/notifications/prefs';
-  static const String endPointDugnadNotificationsPrefsUpdate =
-      'dugnad/notifications/prefs/update';
 
-  static const String endPointDugnadConfig = 'dugnad/config';
-  static const String endPointDugnadCelebrationsPending =
-      'dugnad/celebrations/pending';
-  static const String endPointDugnadCelebrationsDevTrigger =
-      'dugnad/celebrations/dev/trigger';
-  static const String endPointDugnadCelebrationsDevClear =
-      'dugnad/celebrations/dev/clear';
-  static const String endPointDugnadCelebrationsConsume =
-      'dugnad/celebrations';
 
-  static const String endPointClubShopUnlock = 'dugnad/club-shop/unlock';
-  static const String endPointClubShopAccess = 'dugnad/club-shop/access';
-  static const String endPointClubShopCatalog = 'dugnad/club-shop/catalog';
-  static const String endPointClubShopQuote = 'dugnad/club-shop/quote';
-  static const String endPointClubShopPay = 'dugnad/club-shop/pay';
-  static const String endPointClubShopConfirm = 'dugnad/club-shop/confirm';
-  static const String endPointClubShopOrders = 'dugnad/club-shop/orders';
-  static const String endPointClubShopOrder = 'dugnad/club-shop/order';
-  static const String endPointDugnadGamificationProgress = 'dugnad/gamification/progress';
-  static const String endPointDugnadGamificationActivity = 'dugnad/gamification/activity';
-  static const String endPointDugnadGamificationCareer = 'dugnad/gamification/career';
-  static const String endPointDugnadTransferWindow = 'dugnad/transfer/window';
-  static const String endPointDugnadTransferCommit = 'dugnad/transfer/commit';
 
-  static const String endPointDonationEnabled = 'donation/enabled';
-  static const String endPointDonationFeePreview = 'donation/fee-preview';
-  static const String endPointDonationSubscriptions = 'donation/subscriptions';
 
-  // Campaign / Matkasse (v3 dugnad)
-  static const String endPointCampaignsActive = 'campaigns/active';
-  static const String endPointCampaignPlaceOrder = 'campaign/place-order';
-  static const String endPointCampaignConfirmPayment = 'campaign/confirm-payment';
-  static const String endPointCampaignMyOrders = 'campaign/orders';
-  static const String endPointCampaignChangeMethod = 'campaign/change-method';
-  static const String endPointCampaignPublicShow = 'api/public/campaign/';
-  static const String endPointCampaignPublicOrderStatus =
-      'api/public/campaign/order/';
 
   // Snurre AI assistant (Laravel — see SnurreAi.md)
   static const String endPointSnurreContext = 'snurre/context';

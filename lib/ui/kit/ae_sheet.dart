@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import 'ae_theme.dart';
-import '../../screens/dugnad/dugnad_state.dart';
 
 /// Light tap when a dugnad bottom sheet presents.
 void aeSheetOpenHaptic() => HapticFeedback.lightImpact();
@@ -47,9 +46,9 @@ const double kAeSheetRadius = 26;
 /// Prototype `.dg-msheet-overlay` backdrop — rgba(20,12,40,0.42).
 const Color kAeSheetBarrier = Color(0x6B140C28);
 
-/// Opens a dugnad bottom sheet with the shared radius / backdrop / club
-/// background. Mirrors `showModalBottomSheet` but with the dugnad chrome baked
-/// in. Pass [backgroundColor] to override the club background default.
+/// Opens a bottom sheet with the shared radius / backdrop / background.
+/// Mirrors `showModalBottomSheet` with the Ærend chrome baked in. Pass
+/// [backgroundColor] to override the default background.
 Future<T?> showAeSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -57,9 +56,7 @@ Future<T?> showAeSheet<T>({
   Color? backgroundColor,
   BoxConstraints? constraints,
 }) {
-  final clubBg = DugnadState.instance.isDugnadMode
-      ? context.aeTheme.background
-      : ScSaasThemeTokens.background;
+  const clubBg = ScSaasThemeTokens.background;
   // Scale the prototype 26px radius so corners stay visibly curved on all
   // densities — and clip so the lavender fill doesn't square them off.
   final radius = context.dp(kAeSheetRadius);

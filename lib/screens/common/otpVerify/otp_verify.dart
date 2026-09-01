@@ -385,7 +385,6 @@ class _OtpVerifyState extends State<OtpVerify> {
           return AuthPrimaryButton(
             label: kAoOtpSendCode,
             isLoading: loading,
-            useDugnadTheme: false,
             onPressed: digits.length < 8 || loading
                 ? null
                 : () => bloc?.submitPhone(
@@ -415,7 +414,6 @@ class _OtpVerifyState extends State<OtpVerify> {
               return AuthPrimaryButton(
                 label: kAoOtpConfirmCta,
                 isLoading: loading,
-                useDugnadTheme: false,
                 onPressed: otp.length < 4 || loading
                     ? null
                     : () => bloc?.verify(onSuccess: _onVerified),
@@ -428,7 +426,6 @@ class _OtpVerifyState extends State<OtpVerify> {
         return AuthPrimaryButton(
           label: kAoOtpDoneCta,
           trailingIcon: Icons.arrow_outward_rounded,
-          useDugnadTheme: false,
           onPressed: () => bloc?.finishAfterSuccess(),
         );
       },

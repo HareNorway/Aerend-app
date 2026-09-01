@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:aerend_customer/screens/campaign/campaign_my_orders_screen.dart';
 import 'package:aerend_customer/screens/dev/dev_env_screen.dart';
 import 'package:aerend_customer/screens/common/account/account_detail.dart';
 import 'package:aerend_customer/screens/common/account/redeem_code.dart';
-import 'package:aerend_customer/screens/common/account/referral_code.dart';
 import 'package:intercom_flutter/intercom_flutter.dart';
 
 import '../../../commonView/guest_empty_state.dart';
@@ -147,24 +145,10 @@ class AccountState extends State<Account> {
               ),
               _divider(),
               _settingsRow(
-                icon: Icons.shopping_bag_outlined,
-                label: languages.orderHistory,
-                onTap: () => openScreenWithResult(
-                    context, const CampaignMyOrdersScreen()),
-              ),
-              _divider(),
-              _settingsRow(
                 icon: Icons.headset_mic_outlined,
                 label: 'Kundestøtte',
                 onTap: () => openScreenWithResult(
                     context, const HelpAndSupport()),
-              ),
-              _divider(),
-              _settingsRow(
-                icon: Icons.card_giftcard_outlined,
-                label: 'Henvisningskode',
-                onTap: () =>
-                    openScreenWithResult(context, const ReferralCode()),
               ),
               _divider(),
               _settingsRow(

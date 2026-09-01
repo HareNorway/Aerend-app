@@ -54,15 +54,6 @@ class HomeMainV1State extends State<HomeMainV1>
 
   static const int searchTabIndex = 1; // Søk is now index 1 (commercial)
 
-  // Inert tab indices still referenced by dugnad-only screens (dg_home,
-  // dugnad_notification_nav, dugnad_profile_section). No behaviour hangs off
-  // them any more — they are deleted in Chunk 5 with their callers.
-  static const int dugnadHomeTabIndex = 0;
-  static const int dugnadKampanjeTabIndex = 1;
-  static const int dugnadShopTabIndex = 2;
-  static const int dugnadLeaderboardTabIndex = 3;
-  static const int dugnadProfileTabIndex = 4;
-
   // ── Commercial 6-tab layout ──────────────────────────────────────
   // 0: Hjem   1: Søk   2: Feed   3: AI   4: Kurv   5: Profil
   // ─────────────────────────────────────────────────────────────────
@@ -259,7 +250,7 @@ class HomeMainV1State extends State<HomeMainV1>
       //
       // activePillGradient / pillBorderColor / activePillShadowColor are left
       // null: on the commercial branch they always resolved to null (they were
-      // fed from the dugnad club palette). CircleNavBar's own defaults apply.
+      // fed from a club palette). CircleNavBar's own defaults apply.
       bottomNavigationBar: CircleNavBar(
         activeIndex: selectedPos,
         onTap: (index) => _onItemTapped(index),

@@ -10,8 +10,6 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:aerend_customer/screens/snurre/snurre_chat_screen.dart';
-import 'package:aerend_customer/screens/dugnad/referral_deep_link_loader.dart';
-import 'package:aerend_customer/screens/dugnad/donation_deep_link_loader.dart';
 import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:aerend_customer/blocs/bloc.dart';
@@ -26,9 +24,7 @@ import 'firebase_options.dart';
 import 'redux/store.dart';
 import 'screens/common/splash/splash.dart';
 import 'screens/common/vipps/vipps_login_link_handler.dart';
-import 'screens/common/vipps/donation_vipps_return.dart';
 import 'screens/common/vipps/vipps_return_screens.dart';
-import 'screens/dugnad/shop/club_shop_vipps_return.dart';
 import 'services/push_notification_service.dart';
 import 'networking/feed/feed_api_constant.dart';
 import 'utils/utils.dart';
@@ -220,9 +216,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed && _resumedFromBackground) {
       _resumedFromBackground = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        resumePendingCampaignVippsPaymentIfNeeded();
-        resumePendingClubShopVippsPaymentIfNeeded();
-        resumePendingDonationVippsIfNeeded();
         resumePendingVippsLoginIfNeeded();
       });
     }
@@ -292,45 +285,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               name.contains('://') ? name : 'aerend://local$name',
             );
 
-            final isClubShopVipps =
-                uri?.path.contains('club-shop/vipps') == true ||
-                    name.contains('club-shop/vipps');
-            if (isClubShopVipps) {
-              final ref = uri?.queryParameters['ref'] ??
-                  uri?.queryParameters['payment_ref'] ??
-                  prefGetString(prefVippsPendingClubShopRef);
-              if (ref.isNotEmpty) {
-                return MaterialPageRoute(
-                  builder: (context) =>
-                      ClubShopVippsReturnScreen(paymentRef: ref),
-                );
-              }
-            }
-
-            final isCampaignVipps = uri?.path.contains('campaign/vipps') == true ||
-                name.contains('campaign/vipps');
-            if (isCampaignVipps) {
-              final purpose = uri?.queryParameters['purpose'];
-              final orderNo = uri?.queryParameters['orderNo'] ??
-                  uri?.queryParameters['order_no'] ??
-                  (purpose == 'method_change'
-                      ? prefGetString(prefVippsPendingMethodChangeOrderNo)
-                      : prefGetString(prefVippsPendingCampaignOrderNo));
-              if (orderNo.isNotEmpty) {
-                return MaterialPageRoute(
-                  builder: (context) => CampaignVippsReturnScreen(
-                    orderNo: orderNo,
-                    purpose: purpose,
-                  ),
-                );
-              }
-            }
-
-            final isVippsPayment = !isCampaignVipps &&
-                !isClubShopVipps &&
-                (name.contains('payment/vipps') ||
-                    (uri?.host == 'payment' &&
-                        (uri?.path.contains('vipps') ?? false)));
+            final isVippsPayment = name.contains('payment/vipps') ||
+                (uri?.host == 'payment' &&
+                    (uri?.path.contains('vipps') ?? false));
             if (isVippsPayment) {
               final orderId = int.tryParse(
                     uri?.queryParameters['orderId'] ?? '',
@@ -371,38 +328,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               return MaterialPageRoute(
                 builder: (context) => RedeemCode(discountCode: code),
               );
-            }
-
-            final isReferralDeepLink = uri?.host == 'referral' ||
-                name.contains('referral') ||
-                (settings.name?.contains('/k/') ?? false);
-            if (isReferralDeepLink) {
-              final club = uri?.queryParameters['club'] ?? '';
-              final token = uri?.queryParameters['v'] ?? '';
-              if (club.isNotEmpty && token.isNotEmpty) {
-                return MaterialPageRoute(
-                  builder: (context) => ReferralDeepLinkLoader(
-                    clubSlug: club,
-                    referralToken: token,
-                  ),
-                );
-              }
-            }
-
-            final isDonationVipps = uri?.host == 'donation' &&
-                (uri?.path.contains('vipps') ?? false);
-            if (isDonationVipps || name.contains('donation/vipps')) {
-              final subscriptionId = int.tryParse(
-                    uri?.queryParameters['subscription_id'] ?? '',
-                  ) ??
-                  prefGetInt(prefDonationPendingSubscriptionId);
-              if (subscriptionId > 0) {
-                return MaterialPageRoute(
-                  builder: (context) => DonationDeepLinkLoader(
-                    subscriptionId: subscriptionId,
-                  ),
-                );
-              }
             }
 
             return null;

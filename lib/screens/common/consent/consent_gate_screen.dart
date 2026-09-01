@@ -226,7 +226,6 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
               children: [
                 AuthPrimaryButton(
                   label: 'Godta og fortsett',
-                  useDugnadTheme: false,
                   onPressed: (_checked && !_leaving) ? _accept : null,
                 ),
                 Transform.translate(
@@ -305,7 +304,6 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
             offsetY: 14,
             child: AuthPrimaryButton(
               label: 'Tilbake til vilkårene',
-              useDugnadTheme: false,
               onPressed: _closeDoc,
             ),
           ),
@@ -425,7 +423,6 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
               _declRise(
                 AuthPrimaryButton(
                   label: 'Les vilkårene på nytt',
-                  useDugnadTheme: false,
                   onPressed: () =>
                       _leaveDecl(() => setState(() => _declined = false)),
                 ),

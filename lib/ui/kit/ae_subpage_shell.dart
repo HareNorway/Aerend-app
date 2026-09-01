@@ -5,10 +5,7 @@ import 'package:flutter/material.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/ae_typography.dart';
 import '../../theme/reen_pre_club_theme.dart';
-import 'ae_club_crest.dart';
-import '../../screens/dugnad/widgets/dugnad_choose_club_widgets.dart';
 import 'ae_theme.dart';
-import '../../screens/dugnad/widgets/dugnad_rounded_feed_sheet.dart';
 
 /// Locks typography to design-system px (375px frame) — ignores OS text scaling.
 class AeFixedTypography extends StatelessWidget {
@@ -190,151 +187,6 @@ class AeSimpleHero extends StatelessWidget {
     );
   }
 }
-
-class AeHero extends StatelessWidget {
-  const AeHero({
-    super.key,
-    required this.clubName,
-    required this.title,
-    this.clubLogo,
-    this.subtitle,
-    this.subtitleWithHeart = false,
-    this.subtitleWithClock = false,
-    this.useReenLogo = false,
-    this.trailing,
-    this.titleTrailing,
-    required this.onBack,
-  });
-
-  final String clubName;
-  final String? clubLogo;
-  final String title;
-  final String? subtitle;
-  final bool subtitleWithHeart;
-  final bool subtitleWithClock;
-  /// When true, show REEN wordmark instead of club crest + name.
-  final bool useReenLogo;
-  /// Top-row action (balances the back button), e.g. share.
-  final Widget? trailing;
-  /// Inline action on the title row (e.g. Min støtte).
-  final Widget? titleTrailing;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    final heroColor =
-        useReenLogo ? ReenPreClubTokens.navy : context.aeTheme.primary;
-    // CSS `.lb-hero { background: var(--ae-purple-600) }` — solid primary so
-    // feed-sheet corner cut-outs match the hero (no gradient seam at the curve).
-    return Container(
-      width: double.infinity,
-      color: heroColor,
-      padding: EdgeInsets.fromLTRB(
-        context.dp(22),
-        MediaQuery.paddingOf(context).top +
-            context.dp(useReenLogo ? 2 : 6),
-        context.dp(22),
-        context.dp(useReenLogo ? 16 : 22),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              AeBackButton(
-                onPressed: onBack,
-                forceDarkSurface: useReenLogo,
-                solidWhite: useReenLogo,
-              ),
-              Expanded(
-                child: useReenLogo
-                    ? const Center(child: DugnadReenLogo(height: 26))
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AeClubCrest(
-                            name: clubName,
-                            logoUrl:
-                                clubLogo?.isEmpty ?? true ? null : clubLogo,
-                            size: context.dp(34),
-                          ),
-                          SizedBox(width: context.dp(10)),
-                          Flexible(
-                            child: Text(
-                              clubName,
-                              style: AeDugnadText.pageHeroOrg(color: Colors.white)
-                                  .dp(context),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-              trailing ?? SizedBox(width: context.dp(38)),
-            ],
-          ),
-          SizedBox(height: context.dp(useReenLogo ? 12 : 16)),
-          Padding(
-            padding: EdgeInsets.only(left: context.dp(2)),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: AeDugnadText.pageHeroTitle(color: Colors.white).dp(context),
-                  ),
-                ),
-                if (titleTrailing != null) ...[
-                  SizedBox(width: context.dp(10)),
-                  titleTrailing!,
-                ],
-              ],
-            ),
-          ),
-          if (subtitle != null) ...[
-            SizedBox(height: context.dp(7)),
-            Row(
-              children: [
-                if (subtitleWithHeart) ...[
-                  Icon(
-                    Icons.favorite_rounded,
-                    size: context.dp(13),
-                    // `.lb-hero-sub { opacity: .9 }` applies to the whole
-                    // inline-flex, so the icon and the text share it. The icon
-                    // was 2% brighter than the label beside it.
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                  SizedBox(width: context.dp(6)),
-                ] else if (subtitleWithClock) ...[
-                  Icon(
-                    Icons.schedule_rounded,
-                    size: context.dp(13),
-                    // `.lb-hero-sub { opacity: .9 }` applies to the whole
-                    // inline-flex, so the icon and the text share it. The icon
-                    // was 2% brighter than the label beside it.
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                  SizedBox(width: context.dp(6)),
-                ],
-                Expanded(
-                  child: Text(
-                    subtitle!,
-                    style: AeDugnadText.pageHeroSub(
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ).dp(context),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
 /// Lavender feed content (padding + spaced children).
 class AeSubpageFeed extends StatelessWidget {
   const AeSubpageFeed({
@@ -391,12 +243,12 @@ class AeSubpageFeed extends StatelessWidget {
 
 /// Rounded lavender sheet (`.lb-feed` background + top radius).
 ///
-/// Delegates to [DugnadRoundedFeedSheet] (`ClipRRect` + lavender fill).
+/// Delegates to [_AeRoundedFeedSheet] (rounded lavender fill).
 class AeSubpageFeedShell extends StatelessWidget {
   const AeSubpageFeedShell({
     super.key,
     required this.child,
-    this.feedRadius = DugnadRoundedFeedSheet.subpageRadius,
+    this.feedRadius = _AeRoundedFeedSheet.subpageRadius,
   });
 
   final Widget child;
@@ -405,7 +257,7 @@ class AeSubpageFeedShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DugnadRoundedFeedSheet(
+    return _AeRoundedFeedSheet(
       radius: feedRadius,
       child: child,
     );
@@ -808,6 +660,45 @@ class AeSectionBlock extends StatelessWidget {
         AeSectionLabel(label),
         ...children,
       ],
+    );
+  }
+}
+
+/// Rounded `.lb-feed` sheet over the hero — inlined from the deleted
+/// `dugnad_rounded_feed_sheet.dart` so the kit carries no dugnad dependency.
+///
+/// Paint like CSS: rounded [BoxDecoration] fill, **no** [ClipRRect]. Soft
+/// anti-aliased clipping leaves a bright fringe on the corner tips.
+class _AeRoundedFeedSheet extends StatelessWidget {
+  const _AeRoundedFeedSheet({
+    required this.child,
+    this.radius,
+    this.sheetColor,
+  });
+
+  final double? radius;
+  final Widget child;
+  final Color? sheetColor;
+
+  /// Design-px radius for sub-pages (`.lb-feed`).
+  static const double subpageRadius = 22;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.aeTheme;
+    final r = context.dp(radius ?? subpageRadius);
+    final sheet = sheetColor ?? theme.background;
+    final topRadius = BorderRadius.only(
+      topLeft: Radius.circular(r),
+      topRight: Radius.circular(r),
+    );
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: sheet,
+        borderRadius: topRadius,
+      ),
+      child: child,
     );
   }
 }
