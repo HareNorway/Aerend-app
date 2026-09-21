@@ -109,10 +109,10 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: ReenPreClubTokens.navyBottom,
+        backgroundColor: AerendBergenAuthTokens.navyBottom,
         body: DecoratedBox(
           decoration: const BoxDecoration(
-            gradient: ReenPreClubTokens.screenGradient,
+            gradient: AerendBergenAuthTokens.screenGradient,
           ),
           child: SafeArea(
             child: _doc != null
@@ -146,7 +146,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
                       from: _splashFrom,
                       duration: const Duration(milliseconds: 620),
                       child: SvgPicture.asset(
-                        ReenPreClubTokens.logoWhite,
+                        AerendBergenAuthTokens.mark,
                         key: _markKey,
                         height: context.dp(34),
                         fit: BoxFit.contain,
@@ -341,7 +341,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
                         child: Icon(
                           Icons.lock_outline_rounded,
                           size: context.dp(28),
-                          color: ReenPreClubTokens.coralHover,
+                          color: AerendBergenAuthTokens.orangeHover,
                         ),
                       ),
                     ),
@@ -393,7 +393,7 @@ class _ConsentGateScreenState extends State<ConsentGateScreen> {
                             Icon(
                               Icons.info_outline,
                               size: context.dp(16),
-                              color: ReenPreClubTokens.coralHover,
+                              color: AerendBergenAuthTokens.orangeHover,
                             ),
                             SizedBox(width: context.dp(11)),
                             Expanded(
@@ -567,7 +567,7 @@ class _DocRow extends StatelessWidget {
                   child: Icon(
                     icon,
                     size: context.dp(19),
-                    color: ReenPreClubTokens.coralHover,
+                    color: AerendBergenAuthTokens.orangeHover,
                   ),
                 ),
                 SizedBox(width: context.dp(12)),
@@ -672,12 +672,12 @@ class _ConsentCheckState extends State<_ConsentCheck>
   Widget build(BuildContext context) {
     final box = context.dp(24);
     final linkStyle = TextStyle(
-      color: ReenPreClubTokens.coralHover,
+      color: AerendBergenAuthTokens.orangeHover,
       fontSize: context.dp(13.5),
       fontWeight: FontWeight.w800,
       height: 1.5,
       decoration: TextDecoration.underline,
-      decorationColor: ReenPreClubTokens.coralHover,
+      decorationColor: AerendBergenAuthTokens.orangeHover,
       decorationThickness: 1,
     );
     return Row(
@@ -702,13 +702,13 @@ class _ConsentCheckState extends State<_ConsentCheck>
                 height: box,
                 decoration: BoxDecoration(
                   color: widget.checked
-                      ? ReenPreClubTokens.coral
+                      ? AerendBergenAuthTokens.orange
                       : const Color(0x14FFFFFF),
                   borderRadius: BorderRadius.circular(context.dp(8)),
                   border: Border.all(
                     width: 2,
                     color: widget.checked
-                        ? ReenPreClubTokens.coral
+                        ? AerendBergenAuthTokens.orange
                         : const Color(0x59FFFFFF),
                   ),
                 ),
@@ -824,7 +824,7 @@ class _LegalCard extends StatelessWidget {
             child: Text(
               b.h!,
               style: TextStyle(
-                color: ReenPreClubTokens.navy,
+                color: AerendBergenAuthTokens.navy,
                 fontSize: context.dp(15),
                 fontWeight: FontWeight.w800,
                 letterSpacing: context.dp(15) * -0.01,
@@ -864,7 +864,7 @@ class _LegalCard extends StatelessWidget {
                             width: context.dp(6),
                             height: context.dp(6),
                             decoration: const BoxDecoration(
-                              color: ReenPreClubTokens.coral,
+                              color: AerendBergenAuthTokens.orange,
                               shape: BoxShape.circle,
                             ),
                           ),

@@ -326,8 +326,8 @@ class _OtpVerifyState extends State<OtpVerify> {
                         context.dp(2),
                         0,
                       ),
-                      foregroundColor: ReenPreClubTokens.coral,
-                      disabledForegroundColor: ReenPreClubTokens.textSoft,
+                      foregroundColor: AerendBergenAuthTokens.orange,
+                      disabledForegroundColor: AerendBergenAuthTokens.textSoft,
                     ),
                     child: Text(
                       _secondsLeft > 0
@@ -349,7 +349,7 @@ class _OtpVerifyState extends State<OtpVerify> {
                       context.dp(2),
                       0,
                     ),
-                    foregroundColor: ReenPreClubTokens.textMuted,
+                    foregroundColor: AerendBergenAuthTokens.textMuted,
                   ),
                   child: Text(
                     '${languages.change} ${languages.phoneNo.toLowerCase()}',

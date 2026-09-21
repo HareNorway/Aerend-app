@@ -36,7 +36,7 @@ void showLogoutCurtain() {
     builder: (_) => const AbsorbPointer(
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: ReenPreClubTokens.splashPanelGradient,
+          gradient: AerendBergenAuthTokens.splashPanelGradient,
         ),
         child: SizedBox.expand(),
       ),

@@ -6,9 +6,9 @@ class BaseUrl {
   // Runtime override for dev environment switching
   static String _override = '';
 
-  static const String prodDomain = 'https://api.ailogistics.no/';
+  // static const String prodDomain = 'https://api.ailogistics.no/';
   // static const String prodDomain = 'http://192.168.29.65:8000/';
-  // static const String prodDomain = 'http://127.0.0.1:8000/';
+  static const String prodDomain = 'http://127.0.0.1:8000/';
   /// Dev tunnel for Vipps webhooks; use Dev Env screen or --dart-define for app testing.
   static const String devTunnelDomain =
       'https://1gl51l6h-8000.inc1.devtunnels.ms/';

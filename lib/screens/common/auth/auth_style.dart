@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
@@ -16,25 +17,25 @@ import '../../../ui/kit/ae_subpage_shell.dart';
 import '../consent/reen_flip_mark.dart';
 
 // `.dg-auth` / Reen `.reen-pre` tokens — navy surface, coral action.
-const Color _authBackground = ReenPreClubTokens.navy;
-const Color _authText = ReenPreClubTokens.ink;
-const Color _authSubtitle = ReenPreClubTokens.textSubtitle;
-const Color _authHairline = ReenPreClubTokens.glassBorder;
-const Color _authGray500 = ReenPreClubTokens.textSoft;
-const Color _vippsOrange = Color(0xFFFF5B24);
-const Color _vippsOrangeLight = Color(0xFFFF7A4D);
-const Color _vippsOrangeDeep = Color(0xFFE64A15);
-const String _reenMarkAsset = ReenPreClubTokens.markCoralPng;
+const Color _authBackground = AerendBergenAuthTokens.navy;
+const Color _authText = AerendBergenAuthTokens.ink;
+const Color _authSubtitle = AerendBergenAuthTokens.textSubtitle;
+const Color _authHairline = AerendBergenAuthTokens.glassBorder;
+const Color _authGray500 = AerendBergenAuthTokens.textSoft;
+const Color _vippsOrange = Color(0xFFF1591F);
+const Color _vippsOrangeLight = Color(0xFFFF7A45);
+const Color _vippsOrangeDeep = Color(0xFFD9450F);
+const String _reenMarkAsset = AerendBergenAuthTokens.mark;
 const String _vippsWordmarkAsset = 'assets/images/vipps_wordmark.png';
 const String _googleLogoAsset = 'assets/images/google_standard_color.png';
 
-/// `.reen-pre .auth-methods .ae-btn--vipps` — same 3-stop shiny ramp as
-/// primary/reg-demo, in Vipps orange.
+/// Design `.reen-pre .auth-methods .ae-btn--vipps`:
+/// `linear-gradient(180deg,#FF7A45,#F1591F 60%,#D9450F)`.
 const LinearGradient _vippsShinyGradient = LinearGradient(
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
   colors: [_vippsOrangeLight, _vippsOrange, _vippsOrangeDeep],
-  stops: [0.0, 0.52, 1.0],
+  stops: [0.0, 0.6, 1.0],
 );
 
 /// `.reen-pre .auth-methods .ae-btn--secondary` / `--dark` white plate.
@@ -89,13 +90,13 @@ TextStyle authLabelStyle(BuildContext context) {
   // `.reen-pre .ae-flabel` — white ~70% on navy.
   final size = context.dp(14);
   return Theme.of(context).textTheme.labelLarge?.copyWith(
-        color: ReenPreClubTokens.textMuted,
+        color: AerendBergenAuthTokens.textMuted,
         fontSize: size,
         fontWeight: FontWeight.w600,
         letterSpacing: size * -0.005,
       ) ??
       TextStyle(
-        color: ReenPreClubTokens.textMuted,
+        color: AerendBergenAuthTokens.textMuted,
         fontSize: size,
         fontWeight: FontWeight.w600,
         letterSpacing: size * -0.005,
@@ -182,7 +183,7 @@ class AuthScaffold extends StatelessWidget {
         value: SystemUiOverlayStyle.light,
         child: DecoratedBox(
           decoration: const BoxDecoration(
-            gradient: ReenPreClubTokens.screenGradient,
+            gradient: AerendBergenAuthTokens.screenGradient,
           ),
           child: SafeArea(
             child: Stack(
@@ -285,11 +286,13 @@ class AuthBrandHeader extends StatelessWidget {
   }
 }
 
-/// Coral Reen mark — Design `website/assets/reen-mark-coral.svg`.
+/// The sticker Æ mark — Design `<symbol id="merke-flat">`. Natural aspect
+/// ratio is 172:138 (wider than tall), unlike the old square coral badge.
 class AuthBrandMark extends StatelessWidget {
   final double size;
 
-  /// When true, skip drop-shadow (halo is drawn separately).
+  /// When true, wrap in a soft drop-shadow (halo is drawn separately when
+  /// false, e.g. inside [AuthAnimatedLogo]).
   final bool showShadow;
 
   const AuthBrandMark({super.key, this.size = 68, this.showShadow = true});
@@ -297,30 +300,24 @@ class AuthBrandMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final box = context.dp(size);
-    return SizedBox(
+    final mark = SvgPicture.asset(
+      _reenMarkAsset,
       width: box,
-      height: box,
-      child: DecoratedBox(
-        decoration: showShadow
-            ? BoxDecoration(
-                borderRadius: BorderRadius.circular(box * 0.2246),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0x59000000),
-                    blurRadius: context.dp(24),
-                    offset: Offset(0, context.dp(12)),
-                  ),
-                ],
-              )
-            : const BoxDecoration(),
-        child: Image.asset(
-          _reenMarkAsset,
-          width: box,
-          height: box,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        ),
+      height: box * (138 / 172),
+      fit: BoxFit.contain,
+    );
+    if (!showShadow) return mark;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x59000000),
+            blurRadius: context.dp(24),
+            offset: Offset(0, context.dp(12)),
+          ),
+        ],
       ),
+      child: mark,
     );
   }
 }
@@ -473,12 +470,11 @@ class _AuthAnimatedLogoState extends State<AuthAnimatedLogo>
                       Colors.black,
                       BlendMode.srcATop,
                     ),
-                    child: Image.asset(
+                    child: SvgPicture.asset(
                       _reenMarkAsset,
                       width: box,
-                      height: box,
+                      height: box * (138 / 172),
                       fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
                     ),
                   ),
                 ),
@@ -509,12 +505,11 @@ class _AuthAnimatedLogoState extends State<AuthAnimatedLogo>
                 Colors.black,
                 BlendMode.srcATop,
               ),
-              child: Image.asset(
+              child: SvgPicture.asset(
                 _reenMarkAsset,
                 width: box,
-                height: box,
+                height: box * (138 / 172),
                 fit: BoxFit.contain,
-                filterQuality: FilterQuality.high,
               ),
             ),
           ),
@@ -686,7 +681,7 @@ class _AuthFieldState extends State<AuthField> {
               boxShadow: _focused
                   ? [
                       BoxShadow(
-                        color: ReenPreClubTokens.coral.withValues(alpha: 0.22),
+                        color: AerendBergenAuthTokens.orange.withValues(alpha: 0.22),
                         spreadRadius: context.dp(4),
                       ),
                     ]
@@ -718,12 +713,12 @@ class _AuthFieldState extends State<AuthField> {
                 fontSize: context.dp(15),
                 fontWeight: FontWeight.w400,
               ),
-              backgroundColor: ReenPreClubTokens.glassFill,
+              backgroundColor: AerendBergenAuthTokens.glassFill,
               boxBorder: Border.all(
                 width: context.dp(1.5),
                 color: _focused
-                    ? ReenPreClubTokens.coral
-                    : ReenPreClubTokens.glassBorder,
+                    ? AerendBergenAuthTokens.orange
+                    : AerendBergenAuthTokens.glassBorder,
               ),
               radius: context.dp(14),
               textAlignVertical: TextAlignVertical.center,
@@ -941,11 +936,11 @@ class _AuthPhoneFieldState extends State<AuthPhoneField> {
         child: Ink(
           height: _controlHeight(context),
           decoration: BoxDecoration(
-            color: ReenPreClubTokens.glassFill,
+            color: AerendBergenAuthTokens.glassFill,
             borderRadius: chipRadius,
             border: Border.all(
               width: context.dp(1.5),
-              color: ReenPreClubTokens.glassBorder,
+              color: AerendBergenAuthTokens.glassBorder,
             ),
           ),
           child: Padding(
@@ -977,7 +972,7 @@ class _AuthPhoneFieldState extends State<AuthPhoneField> {
                   Icon(
                     Icons.arrow_drop_down_rounded,
                     size: context.dp(20),
-                    color: ReenPreClubTokens.textMuted,
+                    color: AerendBergenAuthTokens.textMuted,
                   ),
                 ],
               ],
@@ -1018,7 +1013,7 @@ class _AuthPhoneFieldState extends State<AuthPhoneField> {
                     boxShadow: _focused
                         ? [
                             BoxShadow(
-                              color: ReenPreClubTokens.coral.withValues(
+                              color: AerendBergenAuthTokens.orange.withValues(
                                 alpha: 0.22,
                               ),
                               spreadRadius: context.dp(4),
@@ -1057,12 +1052,12 @@ class _AuthPhoneFieldState extends State<AuthPhoneField> {
                       fontWeight: FontWeight.w400,
                       height: 1.2,
                     ),
-                    backgroundColor: ReenPreClubTokens.glassFill,
+                    backgroundColor: AerendBergenAuthTokens.glassFill,
                     boxBorder: Border.all(
                       width: context.dp(1.5),
                       color: _focused
-                          ? ReenPreClubTokens.coral
-                          : ReenPreClubTokens.glassBorder,
+                          ? AerendBergenAuthTokens.orange
+                          : AerendBergenAuthTokens.glassBorder,
                     ),
                     radius: context.dp(14),
                     textAlignVertical: TextAlignVertical.center,
@@ -1126,20 +1121,20 @@ class AuthOtpCells extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: filled
                         ? const Color(0x24FFFFFF)
-                        : ReenPreClubTokens.glassFill,
+                        : AerendBergenAuthTokens.glassFill,
                     borderRadius: BorderRadius.circular(context.dp(13)),
                     border: Border.all(
                       width: context.dp(1.5),
                       color: current
-                          ? ReenPreClubTokens.coral
+                          ? AerendBergenAuthTokens.orange
                           : filled
                           ? const Color(0x40FFFFFF)
-                          : ReenPreClubTokens.glassBorder,
+                          : AerendBergenAuthTokens.glassBorder,
                     ),
                     boxShadow: current
                         ? [
                             BoxShadow(
-                              color: ReenPreClubTokens.coral.withValues(
+                              color: AerendBergenAuthTokens.orange.withValues(
                                 alpha: 0.22,
                               ),
                               spreadRadius: context.dp(3),
@@ -1530,7 +1525,7 @@ class AuthFooterLink extends StatelessWidget {
         TextButton(
           onPressed: onTap,
           style: TextButton.styleFrom(
-            foregroundColor: ReenPreClubTokens.coral,
+            foregroundColor: AerendBergenAuthTokens.orange,
             padding: EdgeInsets.symmetric(horizontal: context.dp(4)),
             minimumSize: Size.zero,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1539,12 +1534,12 @@ class AuthFooterLink extends StatelessWidget {
             action,
             style:
                 Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: ReenPreClubTokens.coral,
+                  color: AerendBergenAuthTokens.orange,
                   fontSize: context.dp(13),
                   fontWeight: FontWeight.w700,
                 ) ??
                 TextStyle(
-                  color: ReenPreClubTokens.coral,
+                  color: AerendBergenAuthTokens.orange,
                   fontSize: context.dp(13),
                   fontWeight: FontWeight.w700,
                 ),

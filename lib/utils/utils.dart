@@ -309,8 +309,8 @@ openSimpleSnackbar(
         end: Alignment.bottomRight,
         colors: [Color(0xFFD9534F), Color(0xFFB83B37)],
       ),
-      AeToastKind.heart => ReenPreClubTokens.shinyCoral,
-      AeToastKind.info => ReenPreClubTokens.shinyCoral,
+      AeToastKind.heart => AerendBergenAuthTokens.shinyOrange,
+      AeToastKind.info => AerendBergenAuthTokens.shinyOrange,
     };
     final IconData icon = switch (kind) {
       AeToastKind.success => Icons.check_rounded,

@@ -114,14 +114,7 @@ flutter:
     - assets/svgs/categories/
     - assets/svgs/services/
     - assets/Logo/
-    - assets/Logo/reen/
-    - assets/Logo/reen-logo-white.svg
-    - assets/Logo/reen-logo-white.png
-    - assets/Logo/reen-mark-coral.svg
-    - assets/Logo/reen-mark-coral.png
-    - assets/Logo/reen/mark-coral-navy.svg
     - assets/Logo/reen/mark-coral-navy.png
-    - assets/Logo/reen/app-icon.png
     - assets/mapStyle/
     - assets/flags/
     - assets/json/
@@ -134,8 +127,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/Logo/reen/app-icon.png
+  image_path: icon/aerend_app_icon.png
   remove_alpha_ios: true
-  android_adaptive_icon_background: "#16304F"
-  android_adaptive_icon_foreground: "assets/Logo/reen/app-icon.png"
+  android_adaptive_icon_background: "#173E48"
+  android_adaptive_icon_foreground: "icon/aerend_app_icon_fg.png"
   min_sdk_android: 21

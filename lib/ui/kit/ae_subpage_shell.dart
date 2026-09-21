@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../theme/design_scale.dart';
 import '../../theme/ae_typography.dart';
-import '../../theme/reen_pre_club_theme.dart';
 import 'ae_theme.dart';
 
 /// Locks typography to design-system px (375px frame) — ignores OS text scaling.

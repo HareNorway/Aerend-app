@@ -100,31 +100,31 @@ class AeThemePalette {
   /// fallback after a club is selected. Post-club UI uses [resolve] → [defaults].
   static final AeThemePalette reenPreClub =
       AeThemePalette._fromTokens(
-    primary: ReenPreClubTokens.coral,
+    primary: AerendBergenAuthTokens.orange,
     primaryHover: const Color(0xFFC94F41),
-    primarySoft: ReenPreClubTokens.coralMid,
-    primaryDisabled: ReenPreClubTokens.coralSoft,
+    primarySoft: AerendBergenAuthTokens.orangeMid,
+    primaryDisabled: AerendBergenAuthTokens.orangeSoft,
     primaryTint: const Color(0x14FFFFFF),
-    background: ReenPreClubTokens.navy,
-    text: ReenPreClubTokens.ink,
-    ink: ReenPreClubTokens.ink,
-    shinyLight: ReenPreClubTokens.coralMid,
-    shinyDark: ReenPreClubTokens.coralDeep,
+    background: AerendBergenAuthTokens.navy,
+    text: AerendBergenAuthTokens.ink,
+    ink: AerendBergenAuthTokens.ink,
+    shinyLight: AerendBergenAuthTokens.orangeMid,
+    shinyDark: AerendBergenAuthTokens.orangeDeep,
   );
 
   /// Browse-without-club palette: light feed canvas + coral actions + navy hero.
   static final AeThemePalette reenBrowse =
       AeThemePalette._fromTokens(
-    primary: ReenPreClubTokens.coral,
-    primaryHover: ReenPreClubTokens.coralDeep,
-    primarySoft: ReenPreClubTokens.coralMid,
-    primaryDisabled: ReenPreClubTokens.coralSoft,
+    primary: AerendBergenAuthTokens.orange,
+    primaryHover: AerendBergenAuthTokens.orangeDeep,
+    primarySoft: AerendBergenAuthTokens.orangeMid,
+    primaryDisabled: AerendBergenAuthTokens.orangeSoft,
     primaryTint: const Color(0x1FE86657),
     background: ScSaasThemeTokens.background,
     text: ScSaasThemeTokens.text,
     ink: ScSaasThemeTokens.ink,
-    shinyLight: ReenPreClubTokens.coralMid,
-    shinyDark: ReenPreClubTokens.coralDeep,
+    shinyLight: AerendBergenAuthTokens.orangeMid,
+    shinyDark: AerendBergenAuthTokens.orangeDeep,
   );
 
   /// Fallback when a selected club has no admin theme colors — Ærend lavender.

@@ -16,7 +16,7 @@ Future<bool?> showEditAuthPhoneSheet(BuildContext context) {
     isScrollControlled: true,
     // OTP / login sit on Reen navy; keep the sheet on the same surface so
     // authTitleStyle / authLabelStyle (white) stay readable.
-    backgroundColor: ReenPreClubTokens.navy,
+    backgroundColor: AerendBergenAuthTokens.navy,
     builder: (sheetContext) => const _EditAuthPhoneSheet(),
   );
 }
@@ -103,7 +103,7 @@ class _EditAuthPhoneSheetState extends State<_EditAuthPhoneSheet> {
                 height: context.dp(4),
                 margin: EdgeInsets.only(bottom: context.dp(14)),
                 decoration: BoxDecoration(
-                  color: ReenPreClubTokens.glassBorder,
+                  color: AerendBergenAuthTokens.glassBorder,
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -144,7 +144,7 @@ class _EditAuthPhoneSheetState extends State<_EditAuthPhoneSheet> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: BorderSide(
-                            color: ReenPreClubTokens.glassBorder,
+                            color: AerendBergenAuthTokens.glassBorder,
                             width: context.dp(1.5),
                           ),
                           minimumSize: Size.fromHeight(context.dp(48)),

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../commonView/social_login.dart';
 import '../../../dialogs/forgotPasswordDialog/forgot_password_dialog.dart';
@@ -180,10 +179,10 @@ class LoginState extends State<Login> {
           Positioned.fill(
             child: AbsorbPointer(
               child: ColoredBox(
-                color: ReenPreClubTokens.navy.withValues(alpha: 0.72),
+                color: AerendBergenAuthTokens.navy.withValues(alpha: 0.72),
                 child: const Center(
                   child: CircularProgressIndicator(
-                    color: ReenPreClubTokens.coral,
+                    color: AerendBergenAuthTokens.orange,
                   ),
                 ),
               ),
@@ -219,8 +218,6 @@ class LoginState extends State<Login> {
             ),
             _dSubtitle,
           ),
-          SizedBox(height: context.dp(10)),
-          _rise(_buildAerendByline(context), const Duration(milliseconds: 220)),
           SizedBox(height: context.dp(_headMarginBottom + _methodsMarginTop)),
           SocialLogin(
             spacing: context.dp(_methodsGap),
@@ -253,47 +250,6 @@ class LoginState extends State<Login> {
           // last element in the scroll body and SafeArea absorbs the inset.
         ],
       ),
-    );
-  }
-
-  Widget _buildAerendByline(BuildContext context) {
-    final mark = context.dp(19);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Design `.auth-by svg` — purple Æ tile with white strokes.
-        ClipRRect(
-          borderRadius: BorderRadius.circular(context.dp(5)),
-          child: SvgPicture.string(
-            ReenPreClubTokens.aerendByMarkSvg,
-            width: mark,
-            height: mark,
-            fit: BoxFit.contain,
-          ),
-        ),
-        SizedBox(width: context.dp(8)),
-        Text.rich(
-          TextSpan(
-            style: TextStyle(
-              fontSize: context.dp(12.5),
-              fontWeight: FontWeight.w600,
-              color: const Color(0x99FFFFFF),
-            ),
-            children: [
-              const TextSpan(text: 'et konsept av '),
-              TextSpan(
-                text: 'Ærend',
-                style: TextStyle(
-                  fontSize: context.dp(12.5),
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xDBFFFFFF),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -334,7 +290,7 @@ class LoginState extends State<Login> {
           colors: [Color(0x1AFFFFFF), Color(0x09FFFFFF)],
         ),
         borderRadius: BorderRadius.circular(context.dp(16)),
-        border: Border.all(color: ReenPreClubTokens.glassBorder),
+        border: Border.all(color: AerendBergenAuthTokens.glassBorder),
       ),
       child: Form(
         key: _bloc.formKey,
@@ -404,7 +360,7 @@ class LoginState extends State<Login> {
                     child: Text(
                       languages.forgotPass,
                       style: authLabelStyle(context).copyWith(
-                        color: ReenPreClubTokens.coral,
+                        color: AerendBergenAuthTokens.orange,
                         fontSize: context.dp(13),
                         fontWeight: FontWeight.w700,
                       ),
@@ -436,7 +392,7 @@ class LoginState extends State<Login> {
                 fontWeight: FontWeight.w800,
                 height: 1.15,
                 color: selected
-                    ? ReenPreClubTokens.coral
+                    ? AerendBergenAuthTokens.orange
                     : const Color(0x8CFFFFFF),
               ),
               child: Text(label, textAlign: TextAlign.center),
@@ -517,7 +473,7 @@ class LoginState extends State<Login> {
     return TextButton(
       onPressed: () => continueAsGuest(context),
       style: TextButton.styleFrom(
-        foregroundColor: ReenPreClubTokens.coral,
+        foregroundColor: AerendBergenAuthTokens.orange,
         minimumSize: const Size.fromHeight(0),
         padding: EdgeInsets.all(context.dp(14)),
       ),
@@ -533,7 +489,7 @@ class LoginState extends State<Login> {
               fontSize: context.dp(14),
               fontWeight: FontWeight.w800,
               letterSpacing: context.dp(14) * -0.01,
-              color: ReenPreClubTokens.coral,
+              color: AerendBergenAuthTokens.orange,
             ),
           ),
         ],
@@ -635,7 +591,7 @@ class _AuthLanguageToggle extends StatelessWidget {
             fontWeight: FontWeight.w800,
             letterSpacing: context.dp(11) * 0.04,
             height: 1.1,
-            color: selected ? ReenPreClubTokens.coral : const Color(0x8CFFFFFF),
+            color: selected ? AerendBergenAuthTokens.orange : const Color(0x8CFFFFFF),
           ),
           child: Text(label),
         ),

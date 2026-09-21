@@ -195,11 +195,11 @@ class _VippsLoginReturnScreenState extends State<VippsLoginReturnScreen> {
     // Handoff beat between Vipps and the next screen — still an auth surface,
     // so it wears Reen navy + coral, not the app theme's purple spinner.
     return const Scaffold(
-      backgroundColor: ReenPreClubTokens.navy,
+      backgroundColor: AerendBergenAuthTokens.navy,
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: ReenPreClubTokens.screenGradient),
+        decoration: BoxDecoration(gradient: AerendBergenAuthTokens.screenGradient),
         child: Center(
-          child: CircularProgressIndicator(color: ReenPreClubTokens.coral),
+          child: CircularProgressIndicator(color: AerendBergenAuthTokens.orange),
         ),
       ),
     );
