@@ -116,19 +116,19 @@ Acceptance tests
 **Spec:** Order Ops §10. **Design:** Partner "Henting" screen; Bud "Skann" stage; `leveranser (steg 4)` QR/samle-QR states.
 
 Tasks
-- [ ] `pickup_tokens` (order_id, jws ES256, nonce, expires_at 60s, used_at); key pair + rotation config; JWKS endpoint for couriers; offline batch tokens; samle-QR token spanning an assignment
-- [ ] `POST /api/ops/courier/scan`: checks in order signature → expiry → nonce reuse → order state → courier assignment; `422` codes `SIG_INVALID|TOKEN_EXPIRED|NONCE_REUSED|WRONG_STATE|NOT_ASSIGNED`; `scans` (source `qr|typed|store_confirm|panel_override`, client_ts, server_ts); rate limit 10/min/courier
-- [ ] Fallbacks: typed code endpoint, store-confirm endpoint, panel override (audit)
-- [ ] Hylleplass assigned on `ready` from store slot config; customer self-pickup code/QR → `delivered` with `proof_type=self_pickup`
-- [ ] Hare-Store Henting: ready tiles + dimmed nearly-ready; rotating QR with 60s ring; samle-QR when one courier holds several; scan confirmation flash; slide-to-confirm with courier-pending state; typed-code fallback; self-pickup tile; Kasse actions "Utlevert til bud"/"Utlevert til kunden"
-- [ ] Hare-Driver pickup stage: code + shelf slot; camera/QR scan → green confirm; rejection states per code; "Skriv kode" offline; "Be butikken bekrefte"; offline scan queue (client ts, pending marker, replay, cached-JWKS local verification); samle-QR with one-missing-order handling
+- [x] `pickup_tokens` (order_id, jws ES256, nonce, expires_at 60s, used_at); key pair + rotation config; JWKS endpoint for couriers; offline batch tokens; samle-QR token spanning an assignment
+- [x] `POST /api/ops/courier/scan`: checks in order signature → expiry → nonce reuse → order state → courier assignment; `422` codes `SIG_INVALID|TOKEN_EXPIRED|NONCE_REUSED|WRONG_STATE|NOT_ASSIGNED`; `scans` (source `qr|typed|store_confirm|panel_override`, client_ts, server_ts); rate limit 10/min/courier
+- [x] Fallbacks: typed code endpoint, store-confirm endpoint, panel override (audit)
+- [x] Hylleplass assigned on `ready` from store slot config; customer self-pickup code/QR → `delivered` with `proof_type=self_pickup`
+- [x] Hare-Store Henting: ready tiles + dimmed nearly-ready; rotating QR with 60s ring; samle-QR when one courier holds several; scan confirmation flash; slide-to-confirm with courier-pending state; typed-code fallback; self-pickup tile; Kasse actions "Utlevert til bud"/"Utlevert til kunden"
+- [x] Hare-Driver pickup stage: code + shelf slot; camera/QR scan → green confirm; rejection states per code; "Skriv kode" offline; "Be butikken bekrefte"; offline scan queue (client ts, pending marker, replay, cached-JWKS local verification); samle-QR with one-missing-order handling
 
 Acceptance tests
-- [ ] `ScanTest`: same token twice → `NONCE_REUSED`; token aged 61s → `TOKEN_EXPIRED`; other courier → `NOT_ASSIGNED`; wrong state → `WRONG_STATE`; tampered → `SIG_INVALID`; 11th scan in a minute → 429
-- [ ] `SamleQrTest`: 3-order assignment → one scan marks all `picked_up`; with one not ready → two picked up, response lists the third
-- [ ] Hare-Driver test: with network mocked offline, typed code validated locally and queued; on reconnect the server row has the client timestamp
-- [ ] `SelfPickupTest`: customer code scanned on Henting → `delivered`, `proof_type=self_pickup`
-- [ ] Shelf slot string identical in Kasse card, Henting tile, courier stage (integration test over one order)
+- [x] `ScanTest`: same token twice → `NONCE_REUSED`; token aged 61s → `TOKEN_EXPIRED`; other courier → `NOT_ASSIGNED`; wrong state → `WRONG_STATE`; tampered → `SIG_INVALID`; 11th scan in a minute → 429
+- [x] `SamleQrTest`: 3-order assignment → one scan marks all `picked_up`; with one not ready → two picked up, response lists the third
+- [x] Hare-Driver test: with network mocked offline, typed code validated locally and queued; on reconnect the server row has the client timestamp
+- [x] `SelfPickupTest`: customer code scanned on Henting → `delivered`, `proof_type=self_pickup`
+- [x] Shelf slot string identical in Kasse card, Henting tile, courier stage (integration test over one order)
 
 ---
 
