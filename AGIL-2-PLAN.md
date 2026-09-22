@@ -617,25 +617,63 @@ Spec: Ægil §6, §8–9, §12.2, §13, §16. Design: Ægil-chatten - tweaks.dc.
 
 ### Tasks
 
-- [ ] Checks cheaper_elsewhere, already_have, wait_for_offer, not_needed, threshold_trap, store_unreliable — rule-based, each with line code + alternative action; against_interest_events written on every evaluation; lines silenceable per user, logging never
+- [x] Checks cheaper_elsewhere, already_have, wait_for_offer, not_needed, threshold_trap, store_unreliable — rule-based, each with line code + alternative action; against_interest_events written on every evaluation; lines silenceable per user, logging never
 
-- [ ] reminders (wait-for-offer), availability_subscriptions ("Si fra når det finnes", 60-day auto-cancel)
+- [x] reminders (wait-for-offer), availability_subscriptions ("Si fra når det finnes", 60-day auto-cancel)
 
-- [ ] agent_actions ("Mens du var borte", 30-day user view, 12-month audit); trust_ledger monthly (saved_kr, finds_applied, against_interest_shown, wait_recommended, cheaper_elsewhere_taken)
+- [x] agent_actions ("Mens du var borte", 30-day user view, 12-month audit); trust_ledger monthly (saved_kr, finds_applied, against_interest_shown, wait_recommended, cheaper_elsewhere_taken)
 
-- [ ] Agent pushes on push_category=agent (append the channel definition to agil-1's notifications config in a chore(shared) commit): caps daily=1, good_only=3/7d, quiet hours, 1 item per push, deep links
+- [x] Agent pushes on push_category=agent (append the channel definition to agil-1's notifications config in a chore(shared) commit): caps daily=1, good_only=3/7d, quiet hours, 1 item per push, deep links
 
-- [ ] Aerend-app: against-interest line rendered first in chat/cart turn with alternative; reminders card; action log screen; trust-ledger card in Meg
+- [x] Aerend-app: against-interest line rendered first in chat/cart turn with alternative; reminders card; action log screen; trust-ledger card in Meg
 
 ### Acceptance tests
 
-- [ ] AgainstInterestTest: cheaper identical EAN at an allowed store → cheaper_elsewhere event + line first in response; user silences lines → line absent, event still written
+- [x] AgainstInterestTest: cheaper identical EAN at an allowed store → cheaper_elsewhere event + line first in response; user silences lines → line absent, event still written
 
-- [ ] RemindersTest: wait-for-offer reminder fires when offer appears; subscription auto-cancels at day 60
+- [x] RemindersTest: wait-for-offer reminder fires when offer appears; subscription auto-cancels at day 60
 
-- [ ] PushCapTest: second agent push in a day suppressed; push inside quiet hours deferred; deep link resolves
+- [x] PushCapTest: second agent push in a day suppressed; push inside quiet hours deferred; deep link resolves
 
-- [ ] TrustLedgerTest: monthly roll-up equals counts of underlying events
+- [x] TrustLedgerTest: monthly roll-up equals counts of underlying events
+
+### Phase 8 notes
+
+**Done.** Backend Feature suite 347/347. Aerend-app `test/aegil` now 61. `flutter analyze` clean.
+
+**The asymmetry that makes the trust ledger honest:** a customer can silence the *lines*, but
+the *event is always written*. `AgainstInterestTest::test_silencing_the_line_hides_it_but_still_records_the_event`
+is the one to keep. If silencing also stopped the recording, turning the advice off would
+quietly improve Ærend's numbers — the ledger would measure what we were allowed to say rather
+than what we found.
+
+**The six checks are rule-based on purpose.** This is the only place Ægil argues *against* the
+sale. A model that could be talked out of it — or into inventing a saving — would make the
+whole ledger worthless. `cheaper_elsewhere` compares product **identities**, which is what
+Phase 6 built them for: comparing similar names is how you tell someone a 300 g jar beats a
+500 g one.
+
+**Order matters in the UI too.** The against-interest line renders *first* in the turn, above
+whatever Ægil was going to suggest, and a layout test asserts it. Burying it underneath would
+be technically honest and practically useless.
+
+**Quiet hours defer, they do not drop.** The customer still wants to know, just not at 23:30.
+Suppressed and deferred pushes are both recorded, so "how often does Ægil interrupt people?"
+counts more than the successes.
+
+**BLOCKED (noted, worked around): the notifications config belongs to agil-1.** The plan asks
+for `push_category=agent` to be appended to agil-1's notifications config in a `chore(shared)`
+commit. There is no `config/notifications.php` and no agil-1 notifications table on this
+branch — §Ownership assigns both to agil-1. The channel is defined in `config/agent.php`
+instead, and **`AgentPushGate::channelDefinition()` returns the exact array to paste across on
+merge day** (key, label, default_enabled, respects_quiet_hours, daily_cap,
+good_only_per_week). A test asserts its shape so it cannot rot.
+
+**Two retention windows for the action log**, deliberately different: 30 days for the customer
+(readable after a holiday) and 12 months for the audit ("why did Ægil do that in March?").
+
+**Carbon gotcha:** `diffInDays` truncates, so a 60-day expiry asserted moments later reads as
+59. Compare `toDateString()` instead.
 
 Phase 9 — Chat content services, communication table, anomaly explain
 
