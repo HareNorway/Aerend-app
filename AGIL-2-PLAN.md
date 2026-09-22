@@ -287,27 +287,68 @@ Spec: Points §Removal & migration, §Premiehylla, §Claims & fulfilment, §Goal
 
 ### Tasks
 
-- [ ] Migration job: kroner → points at policy points.migration_factor; adjust rows with ref_type=migration; earned_12m seeded from trailing-12-month delivered orders; --dry-run produces reconciliation report (users, kroner in, points out, tier distribution)
+- [x] Migration job: kroner → points at policy points.migration_factor; adjust rows with ref_type=migration; earned_12m seeded from trailing-12-month delivered orders; --dry-run produces reconciliation report (users, kroner in, points out, tier distribution)
 
-- [ ] Remove from backend, admin and Aerend-app: Ærend-kroner/cashback, varder/Din sti, Syv fjell, store stamp cards, Bydelsligaen, "Ekte bergenser", "fjell tent", standalone trust-ledger card (savings line moves to monthly summary); drop the compat view once nothing reads it
+- [x] Remove from backend, admin and Aerend-app: Ærend-kroner/cashback, varder/Din sti, Syv fjell, store stamp cards, Bydelsligaen, "Ekte bergenser", "fjell tent", standalone trust-ledger card (savings line moves to monthly summary); drop the compat view once nothing reads it
 
-- [ ] prizes (tier_band, type voucher|physical|donation|identity|partner, funding aerend|partner, point_price, inventory, per_user_cap, fulfilment_type, active); prize_claims claimed→applied|shipped|delivered|used|expired|cancelled; 60-day expiry; 24h cancel refund; voucher auto-apply at checkout; shipment queue; donation ledger; identity prize (boat) name + name-filter review queue
+- [x] prizes (tier_band, type voucher|physical|donation|identity|partner, funding aerend|partner, point_price, inventory, per_user_cap, fulfilment_type, active); prize_claims claimed→applied|shipped|delivered|used|expired|cancelled; 60-day expiry; 24h cancel refund; voucher auto-apply at checkout; shipment queue; donation ledger; identity prize (boat) name + name-filter review queue
 
-- [ ] Seed catalogue from the spec table (Fløyen: free delivery 100, sticker pack 150, Forundringspose 250, club donation 500 … Ulriken: boat 2000)
+- [x] Seed catalogue from the spec table (Fløyen: free delivery 100, sticker pack 150, Forundringspose 250, club donation 500 … Ulriken: boat 2000)
 
-- [ ] point_goals (one active, prize or tier)
+- [x] point_goals (one active, prize or tier)
 
-- [ ] API: GET /api/points/prizes, POST /api/points/prizes/{id}/claim, DELETE /api/points/claims/{id}, GET /api/points/claims, PUT /api/points/goal
+- [x] API: GET /api/points/prizes, POST /api/points/prizes/{id}/claim, DELETE /api/points/claims/{id}, GET /api/points/claims, PUT /api/points/goal
 
 ### Acceptance tests
 
-- [ ] MigrationTest: dry-run reconciles kroner→points within rounding; nobody below Fløyen; report lists tier distribution; second run is idempotent
+- [x] MigrationTest: dry-run reconciles kroner→points within rounding; nobody below Fløyen; report lists tier distribution; second run is idempotent
 
-- [ ] grep -ri "vardersyv fjellbydelsligaenekte bergenserfjell tent" returns nothing in Hare-AdminPanel/app, resources, and Aerend-app/lib; flutter analyze clean
+- [x] grep -ri "vardersyv fjellbydelsligaenekte bergenserfjell tent" returns nothing in Hare-AdminPanel/app, resources, and Aerend-app/lib; flutter analyze clean
 
-- [ ] ClaimTest: claim → spend row, inventory −1, voucher auto-applies on next checkout; cancel at 23h refunds, at 25h refused; unclaimed after 60 days → expired
+- [x] ClaimTest: claim → spend row, inventory −1, voucher auto-applies on next checkout; cancel at 23h refunds, at 25h refused; unclaimed after 60 days → expired
 
-- [ ] IdentityPrizeTest: filtered name → review queue, not rendered; approved → rendered
+- [x] IdentityPrizeTest: filtered name → review queue, not rendered; approved → rendered
+
+### Phase 3 notes
+
+**Done, with one task blocked and one deliberately deferred.** Feature suite 159/159.
+
+**BLOCKER — the kroner→points conversion factor is an open business decision.** The master
+plan's Appendix B lists *"Kroner→points conversion factor; customer comms plan"* as gating the
+Week 3 dry-run and the Week 10 cutover, and it has not been made. The migration job is built
+and tested; a **live run refuses to start** while `POINTS_MIGRATION_FACTOR_CONFIRMED` is false,
+and `--dry-run` works against a clearly-labelled placeholder of 1.0 so the reconciliation
+report can be produced and reviewed now. **To unblock:** agree the factor, set
+`POINTS_MIGRATION_FACTOR`, seed `points.migration_factor`, set
+`POINTS_MIGRATION_FACTOR_CONFIRMED=true`, then `php artisan points:migrate-kroner --live`.
+(Appendix B also lists *"Tier thresholds confirmation (1000/3000/8000)"* — Phase 2 used the
+plan's values, still pending formal confirmation.)
+
+**What the legacy "kroner" balance actually is:** the customer wallet — `users.credit`, whose
+live value is the newest `user_wallet_transaction.remaining_balance` for
+`wallet_provider_type = 0`. There is no separate "Ærend-kroner" store.
+
+**Nothing to remove.** `varder`/Din sti, Syv fjell, Bydelsligaen, "Ekte bergenser" and "fjell
+tent" were **never implemented** — they exist only in the design prototypes, and the acceptance
+grep was already empty before this phase. `RemovedMechanicsTest` is a regression guard so they
+cannot reappear under those names. The only `cashback` hits in the repo are inside
+already-commented-out Blade markup.
+
+**Compat view deliberately not dropped.** The plan conditions the drop on *"once nothing reads
+it"*. The migration job still needs legacy history, so the drop moves to the Phase 10 cutover.
+Dropping it now would strand the one thing that still uses it.
+
+**Catalogue seeded from two sources that disagree on price.** The plan states five prices
+(free delivery 100, sticker pack 150, Forundringspose 250, club donation 500, boat 2000) —
+those are seeded **active**. The design's fuller `PREMIER` list carries the real partner
+relationships (Sandviken Bakeri, Bergen kaffebrenneri, Nordnes Fisk, Marken bok, Fløibanen,
+Casa Maria) but at roughly **4× the plan's prices** (free delivery 400, boat 2500) — those are
+seeded **inactive**, so the shelf's shape and partners are in place while nothing unpriced is
+claimable. Reprice and activate when the spec's price table is available.
+
+**Design detail worth keeping:** the locked previews show at most three, blurred, dearest
+first, from the next band only, with a "Fra <tier> · N poeng til" gap and **no padlock** — the
+shelf should read as "not yet", not "forbidden". Asserted in `PremiehyllaApiTest`.
 
 Phase 4 — Customer points UI, missions v1, welcome gift, Admin Points v1
 
