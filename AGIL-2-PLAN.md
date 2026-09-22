@@ -104,262 +104,344 @@ Cross-branch events (agil-1 emits): order.delivered, order.cancelled, product.pr
 
 Merge day: rebase on main; merge agil-1 first, then agil-2; migrate on prod snapshot; swap both adapters to live implementations; run both acceptance suites + master Week 10 regression; flip flags in master rollout order.
 
+## Agent execution notes (environment reconciliation)
+
+Recorded 2026-09-22 at the start of execution. These reconcile the plan's assumptions with the
+actual state of the checkout on this machine.
+
+**Repo root** is `/Users/adityasudhakarchawale/Desktop/Hare/`, not `D:\work\hare`. All four target
+repos (Hare-AdminPanel, Hare-Store, Hare-Driver, Aerend-app) were already on `agil-2` at start;
+no branch creation was needed. Aerend-Feed is also present and on `agil-2` — it is **not touched**.
+
+**BLOCKER (noted, worked around): the three authoritative specs are not in the checkout.**
+`AEREND POINTS SPEC v2 .md`, `AEREND AEGIL AGENT SPEC FINAL VERSION.md` and the Order Ops spec
+do not exist anywhere under the repo root or `~/Desktop`. The per-phase "Spec:" lines therefore
+cannot be read. Work proceeds against the task text in this plan plus
+`8-10-WEEK-IMPLEMENTATION-PLAN.md`, which together specify concrete values (policy keys, table
+columns, tier thresholds, prize catalogue, acceptance criteria). Anything the plan does not pin
+down is flagged in the phase it affects rather than invented.
+
+**BLOCKER (noted, worked around): `sync-A` does not exist.** There are no tags in Hare-AdminPanel
+and `origin/agil-1` points at the same commit as the `agil-2` base — agil-1 has not produced the
+policy engine yet. So there is no `policies` table, no `PolicyService`, no `feature_flags`.
+Per §Sync points ("Phase 1 can start on fixtures before Sync A lands — only the policy seeder
+waits for it") Phase 1 proceeds on fixtures. To honour "never create your own policy table",
+points policy is read through `App\Points\Policy\PointsPolicy`, which resolves keys from
+`config/points.php` today and is written to delegate to `PolicyService` the moment sync-A lands
+(single swap point, documented in that class). `PointsPolicySeeder` writes the `points.*` keys
+into the `policies` table **only if that table exists**, so it becomes live automatically at sync-A.
+
+**Design files** are in `Design/`, not `designs/20des/`. All files named in the plan are present,
+including `Ærend Kunde Bergen.dc.html`, `Ægil-chatten - tweaks.dc.html`,
+`Ærend Bud og Partner - register og system.dc.html` and `Ærend Partner.dc.html`.
+
+**`points_ledger` is already taken** by the legacy Dugnad engine (columns `action`, `points`,
+`source_type`, `organization_id`, `team_id`). Per the `pts_` convention and the "additive
+migrations only" rule, the v2 tables are `pts_ledger` / `pts_balances` etc. The legacy table is
+left completely untouched, so legacy Dugnad screens keep rendering against it; the read-compat
+view (`pts_ledger_legacy_compat`) projects legacy rows into the v2 column shape for the new
+engine to read history, and is what Phase 3 drops.
+
+**Test environment**: MySQL 9.6 on 127.0.0.1, `db_hare_test` created and fully migrated (all 158
+existing migrations apply clean). `tests/Feature/ExampleTest::testBasicTest` fails at baseline
+(`GET /` returns 500 on an unseeded DB) — pre-existing, unrelated to this plan, not counted as a
+regression.
+
+**API auth convention**: this codebase has no token guard (`config/auth.php` has `api` commented
+out). Customer endpoints take `user_id` + `access_token` in the request and validate via
+`UserClassApi::checkUserAllow()`. The new Points/Agent endpoints follow that house pattern rather
+than introducing a second auth scheme.
+
 Phase 1 — Branch setup, ledger, earning rules
 
 Spec: Points §Core rules, §Ledger, §Earning rules, §Jobs. Design: Kunde Bergen.dc.html "Meg" balance strip (data shape only).
 
-Tasks
+### Tasks
 
-Create agil-2 on all four repos; git cherry-pick sync-A; seed points.* keys: kjop_per_10kr=1, dagens_napp=5, verving=200, verving_referee=200, verving_min_order, verving_monthly_cap, forste_gang=50, forste_gang_monthly_cap, league_cap_per_order=200, expiry_months=12, expiry_warning_days=30, tier_thresholds=[0,1000,3000,8000], claim_expiry_days=60, claim_cancel_hours=24
+- [x] Create agil-2 on all four repos; git cherry-pick sync-A; seed points.* keys: kjop_per_10kr=1, dagens_napp=5, verving=200, verving_referee=200, verving_min_order, verving_monthly_cap, forste_gang=50, forste_gang_monthly_cap, league_cap_per_order=200, expiry_months=12, expiry_warning_days=30, tier_thresholds=[0,1000,3000,8000], claim_expiry_days=60, claim_cancel_hours=24
 
-OrderCompletionSource interface + LegacyBookingSource (listens to ProductBooking completion/cancel) + stub OrderEventsSource
+- [x] OrderCompletionSource interface + LegacyBookingSource (listens to ProductBooking completion/cancel) + stub OrderEventsSource
 
-points_ledger append-only (user_id, kind earn|spend|expire|revoke|adjust, rule_key, amount, ref_type, ref_id, policy_version, available_at, expires_at, created_at); points_balances (available, pending, earned_12m, lifetime); points:rebuild {user?}; nightly integrity job; read-compat view over legacy PointsLedger
+- [x] points_ledger append-only (user_id, kind earn|spend|expire|revoke|adjust, rule_key, amount, ref_type, ref_id, policy_version, available_at, expires_at, created_at); points_balances (available, pending, earned_12m, lifetime); points:rebuild {user?}; nightly integrity job; read-compat view over legacy PointsLedger
 
-Rules: Kjøp (pending earn 1 pt/10 kr on completion → available after return window; revoke on cancel/refund); Verving (code + link, 200/200 on referee's first ≥ threshold delivered order, monthly cap); Første gang (50 on first delivered order in a new category/store, monthly cap); Dagens napp (5/day on suggestion.reeled via SignalSource); Ægils oppdrag (mission.completed → template points)
+- [x] Rules: Kjøp (pending earn 1 pt/10 kr on completion → available after return window; revoke on cancel/refund); Verving (code + link, 200/200 on referee's first ≥ threshold delivered order, monthly cap); Første gang (50 on first delivered order in a new category/store, monthly cap); Dagens napp (5/day on suggestion.reeled via SignalSource); Ægils oppdrag (mission.completed → template points)
 
-Jobs points_release, points_expire (12-month FIFO), 30-day warning event points.expiring
+- [x] Jobs points_release, points_expire (12-month FIFO), 30-day warning event points.expiring
 
-API: GET /api/points/me, GET /api/points/me/ledger, POST /api/points/me/referral
+- [x] API: GET /api/points/me, GET /api/points/me/ledger, POST /api/points/me/referral
 
-Acceptance tests
+### Acceptance tests
 
-LedgerTest: 149 kr completion → 14 pending; release job → available; cancel → revoke row; balance projection matches ledger after points:rebuild
+- [x] LedgerTest: 149 kr completion → 14 pending; release job → available; cancel → revoke row; balance projection matches ledger after points:rebuild
 
-ReferralTest: pair earns 200/200 once; below-threshold order earns nothing; cap+1 referral earns nothing
+- [x] ReferralTest: pair earns 200/200 once; below-threshold order earns nothing; cap+1 referral earns nothing
 
-ForsteGangTest: second order in same category same month earns nothing; new category earns 50
+- [x] ForsteGangTest: second order in same category same month earns nothing; new category earns 50
 
-ExpiryTest: 13-month-old earn → expire row; warning fired 30 days before
+- [x] ExpiryTest: 13-month-old earn → expire row; warning fired 30 days before
 
-Legacy Dugnad screens still render against the compat view; php artisan migrate --pretend shows only additive pts_ migrations
+- [x] Legacy Dugnad screens still render against the compat view; php artisan migrate --pretend shows only additive pts_ migrations
+
+### Phase 1 notes
+
+**Done.** Backend acceptance suite green: `vendor/bin/phpunit --testsuite Feature` → 68/68 passing,
+of which 39 are the new `tests/Feature/Points/*` (LedgerTest, ReferralTest, ForsteGangTest,
+ExpiryTest, DagensNappTest, LegacyCompatTest, PointsApiTest). `php artisan migrate --pretend`
+lists only the five additive `pts_` migrations. The 6 failures in the `Unit` suite
+(DonationFeeService, GamificationConfigService, SeasonRolloverService, StoreMediaResolver) are
+pre-existing — identical with `PointsServiceProvider` disabled — and are not touched by this work.
+
+**`sync-A` blocker (unresolved, worked around).** No `sync-A` tag exists and `origin/agil-1` has no
+policy-engine commits, so the cherry-pick could not happen and there is no `policies` table.
+`points.*` values therefore resolve from `config/points.php` through
+`App\Points\Policy\PointsPolicy`, which already prefers the `policies` table when it appears.
+`Database\Seeders\PointsPolicySeeder` is written and warns-and-exits until the table exists.
+**Action when sync-A lands:** cherry-pick it, then
+`php artisan db:seed --class="Database\Seeders\PointsPolicySeeder"`. No other change needed.
+
+**Test database had to be rebuilt from the live schema.** The migrations in Hare-AdminPanel do not
+reproduce the production schema — production has at least `users.deleted_at` (the `User` model uses
+SoftDeletes), `service_category.is_sub_cat_flow` (queried in `UserClassApi`'s constructor) and
+`user_store_product_booking.tip`, none of which any migration creates. A `db_hare_test` built by
+`php artisan migrate` alone therefore 500s on every authenticated endpoint. `scripts/rebuild_test_db.sh`
+copies the live schema (structure only, never data) and then migrates on top. **Run it before
+`php artisan test`.** This is a pre-existing repo problem, flagged here because later phases depend on it.
+
+**`UserClassApi` is not used by the Points API.** Its constructor eagerly queries `service_category`
+and pulls in `NotificationClass` + `AdminClass` on every request. `App\Points\Support\CustomerAuthenticator`
+performs the identical `user_id` + `access_token` handshake and returns byte-identical rejection
+codes (2 unverified, 3 blocked, 4 bad token, 5 unknown), without that coupling.
+
+**Naming.** `points_ledger` was already taken by the legacy Dugnad engine, so the v2 tables are
+`pts_ledger`, `pts_balances`, `pts_referrals`, `pts_event_receipts`, plus the
+`pts_ledger_legacy_compat` view that Phase 3 drops. The legacy table is untouched.
 
 Phase 2 — Nivå tier engine, agent platform substrate (Sync B), Admin Agenter
 
 Spec: Points §Nivå; Order Ops §17.1–17.6, Ægil §15. Design: Kunde Bergen.dc.html Nivå card (mountain names, progress), admin Agenter list (Order Ops §18.5).
 
-Tasks
+### Tasks
 
-Tiers Fløyen 0 / Løvstakken 1000 / Rundemanen 3000 / Ulriken 8000 on earned_12m; tier_evaluate on every earn → immediate promotion, tier.promoted; tier_review annual job (max one drop, [tier.review](http://tier.review)_warning 60 days prior with mission recommendation, protected_until) scheduled for launch anniversary; code guard: spend/expire never touch earned_12m
+- [ ] Tiers Fløyen 0 / Løvstakken 1000 / Rundemanen 3000 / Ulriken 8000 on earned_12m; tier_evaluate on every earn → immediate promotion, tier.promoted; tier_review annual job (max one drop, [tier.review](http://tier.review)_warning 60 days prior with mission recommendation, protected_until) scheduled for launch anniversary; code guard: spend/expire never touch earned_12m
 
-Substrate (extend Snurre): agents (name, autonomy L0|L1|L2, scopes json, caps json, enabled); scoped service tokens → 403 AGENT_SCOPE_DENIED; actor_type=agent; agent_runs (agent, input_hash, output, validation_result, deadline_hit, fallback_used, cost); AgentInvoker::run(agent, input, deadline, fallback, validator); per-agent/per-hour/per-case caps; kill switch check; untrusted-text sanitiser; money-by-policy-key guard; disclosure copy component (Flutter + Blade)
+- [ ] Substrate (extend Snurre): agents (name, autonomy L0|L1|L2, scopes json, caps json, enabled); scoped service tokens → 403 AGENT_SCOPE_DENIED; actor_type=agent; agent_runs (agent, input_hash, output, validation_result, deadline_hit, fallback_used, cost); AgentInvoker::run(agent, input, deadline, fallback, validator); per-agent/per-hour/per-case caps; kill switch check; untrusted-text sanitiser; money-by-policy-key guard; disclosure copy component (Flutter + Blade)
 
-Seed register rows for all agents named in both plans: aegil_customer, menu_copy, photo_enhance, campaign_planner, onboarding, hours_exceptions, bud_translate, bud_problem, bud_door, bud_explain, exception_triage, comms, photo_qa, anomaly_explain, editorial (disabled)
+- [ ] Seed register rows for all agents named in both plans: aegil_customer, menu_copy, photo_enhance, campaign_planner, onboarding, hours_exceptions, bud_translate, bud_problem, bud_door, bud_explain, exception_triage, comms, photo_qa, anomaly_explain, editorial (disabled)
 
-Admin Agenter v1: register list, runs log with filters, kill switch, cap editing
+- [ ] Admin Agenter v1: register list, runs log with filters, kill switch, cap editing
 
-Tag sync-B (substrate + seed only; no points code in that commit)
+- [ ] Tag sync-B (substrate + seed only; no points code in that commit)
 
-Acceptance tests
+### Acceptance tests
 
-TierTest: crossing 1000 promotes on the same request; spending 900 keeps tier; expiry keeps tier; annual dry-run on seeded users never drops > 1 tier and lists warning recipients
+- [ ] TierTest: crossing 1000 promotes on the same request; spending 900 keeps tier; expiry keeps tier; annual dry-run on seeded users never drops > 1 tier and lists warning recipients
 
-AgentInvokerTest: out-of-scope token → 403; deadline exceeded → fallback + deadline_hit=true; validator rejection → nothing stored, validation_result=rejected; kill switch → fallback with no model call; every run writes one agent_runs row
+- [ ] AgentInvokerTest: out-of-scope token → 403; deadline exceeded → fallback + deadline_hit=true; validator rejection → nothing stored, validation_result=rejected; kill switch → fallback with no model call; every run writes one agent_runs row
 
-git cherry-pick sync-B onto a fresh agil-1 checkout applies cleanly and php artisan test --filter=AgentInvoker passes there
+- [ ] git cherry-pick sync-B onto a fresh agil-1 checkout applies cleanly and php artisan test --filter=AgentInvoker passes there
 
 Phase 3 — Migration, removal of old mechanics, Premiehylla backend
 
 Spec: Points §Removal & migration, §Premiehylla, §Claims & fulfilment, §Goal-setting. Design: Kunde Bergen.dc.html Premiehylla shelf bands, locked previews, claim states.
 
-Tasks
+### Tasks
 
-Migration job: kroner → points at policy points.migration_factor; adjust rows with ref_type=migration; earned_12m seeded from trailing-12-month delivered orders; --dry-run produces reconciliation report (users, kroner in, points out, tier distribution)
+- [ ] Migration job: kroner → points at policy points.migration_factor; adjust rows with ref_type=migration; earned_12m seeded from trailing-12-month delivered orders; --dry-run produces reconciliation report (users, kroner in, points out, tier distribution)
 
-Remove from backend, admin and Aerend-app: Ærend-kroner/cashback, varder/Din sti, Syv fjell, store stamp cards, Bydelsligaen, "Ekte bergenser", "fjell tent", standalone trust-ledger card (savings line moves to monthly summary); drop the compat view once nothing reads it
+- [ ] Remove from backend, admin and Aerend-app: Ærend-kroner/cashback, varder/Din sti, Syv fjell, store stamp cards, Bydelsligaen, "Ekte bergenser", "fjell tent", standalone trust-ledger card (savings line moves to monthly summary); drop the compat view once nothing reads it
 
-prizes (tier_band, type voucher|physical|donation|identity|partner, funding aerend|partner, point_price, inventory, per_user_cap, fulfilment_type, active); prize_claims claimed→applied|shipped|delivered|used|expired|cancelled; 60-day expiry; 24h cancel refund; voucher auto-apply at checkout; shipment queue; donation ledger; identity prize (boat) name + name-filter review queue
+- [ ] prizes (tier_band, type voucher|physical|donation|identity|partner, funding aerend|partner, point_price, inventory, per_user_cap, fulfilment_type, active); prize_claims claimed→applied|shipped|delivered|used|expired|cancelled; 60-day expiry; 24h cancel refund; voucher auto-apply at checkout; shipment queue; donation ledger; identity prize (boat) name + name-filter review queue
 
-Seed catalogue from the spec table (Fløyen: free delivery 100, sticker pack 150, Forundringspose 250, club donation 500 … Ulriken: boat 2000)
+- [ ] Seed catalogue from the spec table (Fløyen: free delivery 100, sticker pack 150, Forundringspose 250, club donation 500 … Ulriken: boat 2000)
 
-point_goals (one active, prize or tier)
+- [ ] point_goals (one active, prize or tier)
 
-API: GET /api/points/prizes, POST /api/points/prizes/{id}/claim, DELETE /api/points/claims/{id}, GET /api/points/claims, PUT /api/points/goal
+- [ ] API: GET /api/points/prizes, POST /api/points/prizes/{id}/claim, DELETE /api/points/claims/{id}, GET /api/points/claims, PUT /api/points/goal
 
-Acceptance tests
+### Acceptance tests
 
-MigrationTest: dry-run reconciles kroner→points within rounding; nobody below Fløyen; report lists tier distribution; second run is idempotent
+- [ ] MigrationTest: dry-run reconciles kroner→points within rounding; nobody below Fløyen; report lists tier distribution; second run is idempotent
 
-grep -ri "vardersyv fjellbydelsligaenekte bergenserfjell tent" returns nothing in Hare-AdminPanel/app, resources, and Aerend-app/lib; flutter analyze clean
+- [ ] grep -ri "vardersyv fjellbydelsligaenekte bergenserfjell tent" returns nothing in Hare-AdminPanel/app, resources, and Aerend-app/lib; flutter analyze clean
 
-ClaimTest: claim → spend row, inventory −1, voucher auto-applies on next checkout; cancel at 23h refunds, at 25h refused; unclaimed after 60 days → expired
+- [ ] ClaimTest: claim → spend row, inventory −1, voucher auto-applies on next checkout; cancel at 23h refunds, at 25h refused; unclaimed after 60 days → expired
 
-IdentityPrizeTest: filtered name → review queue, not rendered; approved → rendered
+- [ ] IdentityPrizeTest: filtered name → review queue, not rendered; approved → rendered
 
 Phase 4 — Customer points UI, missions v1, welcome gift, Admin Points v1
 
 Spec: Points §Premiehylla UI, §Ægils oppdrag, §Welcome gift, §Admin (Dashboard, Ledger, Premiehylla). Design: Kunde Bergen.dc.html "Meg", Nivå, Premiehylla (blurred previews "Fra Rundemanen · 2400 poeng til", max 3, no padlock), mission card, welcome moment, monthly summary.
 
-Tasks
+### Tasks
 
-Aerend-app lib/screens/points/*: Meg (available/pending, Nivå card with progress, expiry notice); Premiehylla cumulative bands, locked previews per design, claim flow + history, voucher at checkout; goal picker + progress line; monthly summary (incl. migrated savings line)
+- [ ] Aerend-app lib/screens/points/*: Meg (available/pending, Nivå card with progress, expiry notice); Premiehylla cumulative bands, locked previews per design, claim flow + history, voucher at checkout; goal picker + progress line; monthly summary (incl. migrated savings line)
 
-mission_templates × business_goals (quiet_hours|new_store|category_growth|pickup_share), weekly scoring, one active, one decline/week, template wording; missions_weekly job; mission.completed → points; mission card in app
+- [ ] mission_templates × business_goals (quiet_hours|new_store|category_growth|pickup_share), weekly scoring, one active, one decline/week, template wording; missions_weekly job; mission.completed → points; mission card in app
 
-Welcome gift: on tier.promoted create zero-cost claim from configured pool (deterministic pick); welcome moment in app
+- [ ] Welcome gift: on tier.promoted create zero-cost claim from configured pool (deterministic pick); welcome moment in app
 
-Admin Points v1: Dashboard (issuance, liability with editable breakage assumption, redemptions); Ledger (search user/order, adjust with reason, rebuild); Premiehylla CRUD, inventory, fulfilment queues (shipment/donation/name review), cost per prize
+- [ ] Admin Points v1: Dashboard (issuance, liability with editable breakage assumption, redemptions); Ledger (search user/order, adjust with reason, rebuild); Premiehylla CRUD, inventory, fulfilment queues (shipment/donation/name review), cost per prize
 
-Acceptance tests
+### Acceptance tests
 
-Aerend-app widget tests: Fløyen user sees exactly 3 blurred previews with correct "poeng til" gaps; claim button disabled when balance < price; voucher chip appears in checkout after claim
+- [ ] Aerend-app widget tests: Fløyen user sees exactly 3 blurred previews with correct "poeng til" gaps; claim button disabled when balance < price; voucher chip appears in checkout after claim
 
-MissionsTest: job assigns one active mission per eligible user; completion earns template points once; second decline in a week → 422
+- [ ] MissionsTest: job assigns one active mission per eligible user; completion earns template points once; second decline in a week → 422
 
-WelcomeGiftTest: promotion creates a zero-cost claim automatically; no duplicate on re-evaluation
+- [ ] WelcomeGiftTest: promotion creates a zero-cost claim automatically; no duplicate on re-evaluation
 
-Admin feature test: adjust without reason → 422; with reason → ledger row + audit row; dashboard liability = Σ available × (1 − breakage)
+- [ ] Admin feature test: adjust without reason → 422; with reason → ledger row + audit row; dashboard liability = Σ available × (1 − breakage)
 
 Phase 5 — League, Admin Points complete, partner prize proposals, fraud flags
 
 Spec: Points §Fløyen-ligaen, §Admin (Regler, Nivå, Oppdrag, Liga, Svindel), §Partner: Tilby en premie. Design: Kunde Bergen.dc.html liga screen (top-10, own rank, "Din bydel"); Ærend Partner.dc.html prize proposal form.
 
-Tasks
+### Tasks
 
-League: monthly opt-in, tier-blind, per-order cap points.league_cap_per_order; standings top-10 + own rank + "Din bydel"; league_month_end (freeze, fraud exclusion, prize assignment, twice-a-year top-3 cap); league screen in app
+- [ ] League: monthly opt-in, tier-blind, per-order cap points.league_cap_per_order; standings top-10 + own rank + "Din bydel"; league_month_end (freeze, fraud exclusion, prize assignment, twice-a-year top-3 cap); league screen in app
 
-Admin: Regler og satser (every points.* key, version history, what-if simulator replaying last 30 days without writes); Nivå (thresholds, population over time, review queue, protected_until, welcome pool, dry-run button); Oppdrag (templates, completion rates, kill switch); Liga (standings, exclusions, month-end run)
+- [ ] Admin: Regler og satser (every points.* key, version history, what-if simulator replaying last 30 days without writes); Nivå (thresholds, population over time, review queue, protected_until, welcome pool, dry-run button); Oppdrag (templates, completion rates, kill switch); Liga (standings, exclusions, month-end run)
 
-Hare-Store lib/screens/points/tilby_premie_*: proposal form (item/experience, quantity, window, price, band) → admin approve + price → partner-funded claims redeem as 0-kr order line with prize_claim_id (adapter on existing cart)
+- [ ] Hare-Store lib/screens/points/tilby_premie_*: proposal form (item/experience, quantity, window, price, band) → admin approve + price → partner-funded claims redeem as 0-kr order line with prize_claim_id (adapter on existing cart)
 
-Svindel og avvik v1: detectors for referral rings, self-referral, velocity anomalies, daily-catch abuse, mission farming, tier gaming → flags only (humans act)
+- [ ] Svindel og avvik v1: detectors for referral rings, self-referral, velocity anomalies, daily-catch abuse, mission farming, tier gaming → flags only (humans act)
 
-Acceptance tests
+### Acceptance tests
 
-LeagueTest: month-end freezes standings, excludes a flagged account, assigns prizes, refuses a third top-3 prize in a year for the same user
+- [ ] LeagueTest: month-end freezes standings, excludes a flagged account, assigns prizes, refuses a third top-3 prize in a year for the same user
 
-WhatIfTest: kjop_per_10kr=2 doubles reported issuance; ledger row count unchanged
+- [ ] WhatIfTest: kjop_per_10kr=2 doubles reported issuance; ledger row count unchanged
 
-PartnerPrizeTest: proposal → approval → claim → order contains a 0-kr line with prize_claim_id
+- [ ] PartnerPrizeTest: proposal → approval → claim → order contains a 0-kr line with prize_claim_id
 
-FraudTest: seeded self-referral raises exactly one flag and changes no balance
+- [ ] FraudTest: seeded self-referral raises exactly one flag and changes no balance
 
 Phase 6 — Ægil settings, memory, product identity, onboarding
 
 Spec: Ægil §2–4, §20 (privacy). Design: Kunde Bergen.dc.html Ægil onboarding chip cards + summary, settings; Ægil-chatten - tweaks.dc.html disclosure line.
 
-Tasks
+### Tasks
 
-agent_settings (level 0–4, allowed_store_mode, allowed_store_ids, allowed_categories, cap_per_order, cap_per_week, quiet_hours, learning_enabled, paused_until, push_mode, against_interest_enabled, read_aloud); default 2; level 4 → 422 LEVEL_REQUIRES_RECURRING; level changes audited
+- [ ] agent_settings (level 0–4, allowed_store_mode, allowed_store_ids, allowed_categories, cap_per_order, cap_per_week, quiet_hours, learning_enabled, paused_until, push_mode, against_interest_enabled, read_aloud); default 2; level 4 → 422 LEVEL_REQUIRES_RECURRING; level changes audited
 
-preferences (kind incl. allergen/diet hard constraints — never inferred; exclusion_product/store; source stated|onboarding|chat|settings|feedback); GET /api/agent/me/memory, DELETE /api/agent/me/memory (forget_all)
+- [ ] preferences (kind incl. allergen/diet hard constraints — never inferred; exclusion_product/store; source stated|onboarding|chat|settings|feedback); GET /api/agent/me/memory, DELETE /api/agent/me/memory (forget_all)
 
-Free-text interpretation via AgentInvoker(aegil_customer, deadline 5s, fallback → note row); validator rejects any inferred allergen/diet
+- [ ] Free-text interpretation via AgentInvoker(aegil_customer, deadline 5s, fallback → note row); validator rejects any inferred allergen/diet
 
-product_identities (EAN / store_product_id), reference_prices; additive store_products.product_identity_id
+- [ ] product_identities (EAN / store_product_id), reference_prices; additive store_products.product_identity_id
 
-Aerend-app lib/screens/aegil/*: onboarding chip-card batch flow (POST /api/agent/me/preferences/batch, PATCH /api/agent/me/settings), skip + 7-day re-invite, guest onboarding after first delivery, summary sentence (model/template), disclosure; settings screen (level explanations, pause, quiet hours, against-interest toggle, read-aloud)
+- [ ] Aerend-app lib/screens/aegil/*: onboarding chip-card batch flow (POST /api/agent/me/preferences/batch, PATCH /api/agent/me/settings), skip + 7-day re-invite, guest onboarding after first delivery, summary sentence (model/template), disclosure; settings screen (level explanations, pause, quiet hours, against-interest toggle, read-aloud)
 
-Acceptance tests
+### Acceptance tests
 
-PreferencesTest: stated "nøtter" stored as hard constraint; free text "jeg spiser vel alt uten nøtter" never creates an allergen row (must stay a note unless stated explicitly via chip)
+- [ ] PreferencesTest: stated "nøtter" stored as hard constraint; free text "jeg spiser vel alt uten nøtter" never creates an allergen row (must stay a note unless stated explicitly via chip)
 
-SettingsTest: level 4 without recurring agreement → 422; forget_all leaves zero preference/suggestion/against-interest rows
+- [ ] SettingsTest: level 4 without recurring agreement → 422; forget_all leaves zero preference/suggestion/against-interest rows
 
-InterpretTest: simulated 6s model latency → note row, no structured rows, deadline_hit=true
+- [ ] InterpretTest: simulated 6s model latency → note row, no structured rows, deadline_hit=true
 
-Aerend-app widget tests: chip batch posts the expected payload; re-invite hidden inside 7 days
+- [ ] Aerend-app widget tests: chip batch posts the expected payload; re-invite hidden inside 7 days
 
 Phase 7 — Signals, matching, suggestion tray, feedback, points↔Ægil hooks
 
 Spec: Ægil §5, §7, §12. Design: Kunde Bergen.dc.html suggestion tray + "Ikke for meg" sheet; "Vågen" daily catch moment.
 
-Tasks
+### Tasks
 
-SignalSource adapters: FixtureSignalSource (reads tests/fixtures/events/*.json — the frozen contract fixtures on main) + stub WebhookSignalSource (dedupe on event_id, per contract guarantees); signals: [feed.post](http://feed.post).published (post_type tilbud → offer, ny_i_hyllene|dagens_rett|nytt_i_hyllene → arrival), product.price_changed, scheduler rhythm, rewards threshold, availability
+- [ ] SignalSource adapters: FixtureSignalSource (reads tests/fixtures/events/*.json — the frozen contract fixtures on main) + stub WebhookSignalSource (dedupe on event_id, per contract guarantees); signals: [feed.post](http://feed.post).published (post_type tilbud → offer, ny_i_hyllene|dagens_rett|nytt_i_hyllene → arrival), product.price_changed, scheduler rhythm, rewards threshold, availability
 
-Deterministic match: eligibility (hard constraints, allowed stores/categories, age-restricted exclusion) → weighted score policy.agent.match_weights → threshold → dedup → daily pool policy.agent.pool_size=20; 9 reason codes (offer_liked_product, arrival_fav_store, …)
+- [ ] Deterministic match: eligibility (hard constraints, allowed stores/categories, age-restricted exclusion) → weighted score policy.agent.match_weights → threshold → dedup → daily pool policy.agent.pool_size=20; 9 reason codes (offer_liked_product, arrival_fav_store, …)
 
-suggestions (candidate|open|dismissed|never|added|merged|expired, reason_code, rerank_source); shadow re-rank via AgentInvoker(aegil_customer) logging only; served tray = engine top-N (policy.agent.tray_size=5)
+- [ ] suggestions (candidate|open|dismissed|never|added|merged|expired, reason_code, rerank_source); shadow re-rank via AgentInvoker(aegil_customer) logging only; served tray = engine top-N (policy.agent.tray_size=5)
 
-API: GET /api/agent/me/suggestions, POST .../{id}/add|dismiss|never; no cart writes at level ≤ 2
+- [ ] API: GET /api/agent/me/suggestions, POST .../{id}/add|dismiss|never; no cart writes at level ≤ 2
 
-suggestion_feedback ("Ikke for meg" + reason codes) → bounded ±30 %, 90-day decay, reflected in /me/memory
+- [ ] suggestion_feedback ("Ikke for meg" + reason codes) → bounded ±30 %, 90-day decay, reflected in /me/memory
 
-Points hooks: Dagens napp from suggestion.reeled; missions worded by aegil_customer (fallback template); Ægil-proposed point_goals; welcome-gift reason text
+- [ ] Points hooks: Dagens napp from suggestion.reeled; missions worded by aegil_customer (fallback template); Ægil-proposed point_goals; welcome-gift reason text
 
-Aerend-app: tray UI, "Ikke for meg" sheet, "Vågen" daily-catch moment reading suggestion.reeled result
+- [ ] Aerend-app: tray UI, "Ikke for meg" sheet, "Vågen" daily-catch moment reading suggestion.reeled result
 
-Acceptance tests
+### Acceptance tests
 
-MatchingTest: fixture tilbud post for a liked product → open suggestion with offer_liked_product; nut-containing candidate excluded for a nut-allergic user; age-restricted excluded for all
+- [ ] MatchingTest: fixture tilbud post for a liked product → open suggestion with offer_liked_product; nut-containing candidate excluded for a nut-allergic user; age-restricted excluded for all
 
-TrayTest: level 2 tray populated; cart untouched after add (tray-only); level 0 receives no proactive suggestions
+- [ ] TrayTest: level 2 tray populated; cart untouched after add (tray-only); level 0 receives no proactive suggestions
 
-FeedbackTest: "Ikke for meg" lowers product weight, visible in /me/memory; weight never exceeds ±30 %
+- [ ] FeedbackTest: "Ikke for meg" lowers product weight, visible in /me/memory; weight never exceeds ±30 %
 
-RerankShadowTest: rerank_source logged on 100 % of daily runs; served order equals engine top-N
+- [ ] RerankShadowTest: rerank_source logged on 100 % of daily runs; served order equals engine top-N
 
 Phase 8 — Against-interest engine, reminders, action log, trust ledger, agent pushes
 
 Spec: Ægil §6, §8–9, §12.2, §13, §16. Design: Ægil-chatten - tweaks.dc.html against-interest card first in turn; Kunde Bergen.dc.html "Mens du var borte", trust-ledger card in Meg.
 
-Tasks
+### Tasks
 
-Checks cheaper_elsewhere, already_have, wait_for_offer, not_needed, threshold_trap, store_unreliable — rule-based, each with line code + alternative action; against_interest_events written on every evaluation; lines silenceable per user, logging never
+- [ ] Checks cheaper_elsewhere, already_have, wait_for_offer, not_needed, threshold_trap, store_unreliable — rule-based, each with line code + alternative action; against_interest_events written on every evaluation; lines silenceable per user, logging never
 
-reminders (wait-for-offer), availability_subscriptions ("Si fra når det finnes", 60-day auto-cancel)
+- [ ] reminders (wait-for-offer), availability_subscriptions ("Si fra når det finnes", 60-day auto-cancel)
 
-agent_actions ("Mens du var borte", 30-day user view, 12-month audit); trust_ledger monthly (saved_kr, finds_applied, against_interest_shown, wait_recommended, cheaper_elsewhere_taken)
+- [ ] agent_actions ("Mens du var borte", 30-day user view, 12-month audit); trust_ledger monthly (saved_kr, finds_applied, against_interest_shown, wait_recommended, cheaper_elsewhere_taken)
 
-Agent pushes on push_category=agent (append the channel definition to agil-1's notifications config in a chore(shared) commit): caps daily=1, good_only=3/7d, quiet hours, 1 item per push, deep links
+- [ ] Agent pushes on push_category=agent (append the channel definition to agil-1's notifications config in a chore(shared) commit): caps daily=1, good_only=3/7d, quiet hours, 1 item per push, deep links
 
-Aerend-app: against-interest line rendered first in chat/cart turn with alternative; reminders card; action log screen; trust-ledger card in Meg
+- [ ] Aerend-app: against-interest line rendered first in chat/cart turn with alternative; reminders card; action log screen; trust-ledger card in Meg
 
-Acceptance tests
+### Acceptance tests
 
-AgainstInterestTest: cheaper identical EAN at an allowed store → cheaper_elsewhere event + line first in response; user silences lines → line absent, event still written
+- [ ] AgainstInterestTest: cheaper identical EAN at an allowed store → cheaper_elsewhere event + line first in response; user silences lines → line absent, event still written
 
-RemindersTest: wait-for-offer reminder fires when offer appears; subscription auto-cancels at day 60
+- [ ] RemindersTest: wait-for-offer reminder fires when offer appears; subscription auto-cancels at day 60
 
-PushCapTest: second agent push in a day suppressed; push inside quiet hours deferred; deep link resolves
+- [ ] PushCapTest: second agent push in a day suppressed; push inside quiet hours deferred; deep link resolves
 
-TrustLedgerTest: monthly roll-up equals counts of underlying events
+- [ ] TrustLedgerTest: monthly roll-up equals counts of underlying events
 
 Phase 9 — Chat content services, communication table, anomaly explain
 
 Spec: Ægil §14, §17 (tool allowlist); Points §Ægil communication table; Order Ops §17.7 X2. Design: Ægil-chatten - tweaks.dc.html card types (T07 shopping list, T08 news card, comparison, tracking snapshot, reminders, against-interest, points explainer, monthly summary).
 
-Tasks
+### Tasks
 
-Chat services (reuse Snurre chat shell): shopping list (shopping_list_items), comparison POST /api/agent/compare (allowlisted fields only), tracking snapshot (read model), news card (GET /feed/posts/{id} read-only), reminders card, against-interest card, "Hvordan får jeg poeng?" explainer, monthly points summary card
+- [ ] Chat services (reuse Snurre chat shell): shopping list (shopping_list_items), comparison POST /api/agent/compare (allowlisted fields only), tracking snapshot (read model), news card (GET /feed/posts/{id} read-only), reminders card, against-interest card, "Hvordan får jeg poeng?" explainer, monthly points summary card
 
-Tool allowlist: model may call read tools only; no eligibility/score/merge/charge/hard-constraint tools exposed; requests to act above the user's level answered with the level explanation
+- [ ] Tool allowlist: model may call read tools only; no eligibility/score/merge/charge/hard-constraint tools exposed; requests to act above the user's level answered with the level explanation
 
-Communication table: events + templates points.earned, goal.near, goal.reached, tier.promoted, [tier.review](http://tier.review)_warning, tier.demoted, points.expiring, mission.proposed, league.month_closed, monthly summary — routed by surface (in-app card / push / chat)
+- [ ] Communication table: events + templates points.earned, goal.near, goal.reached, tier.promoted, [tier.review](http://tier.review)_warning, tier.demoted, points.expiring, mission.proposed, league.month_closed, monthly summary — routed by surface (in-app card / push / chat)
 
-agent.anomaly_explain attached to Svindel og avvik flags (explain only, never act)
+- [ ] agent.anomaly_explain attached to Svindel og avvik flags (explain only, never act)
 
-Acceptance tests
+### Acceptance tests
 
-ChatToolsTest: prompt "legg den i handlekurven" at level 2 → refusal with level copy, no cart write; compare response contains only allowlisted fields
+- [ ] ChatToolsTest: prompt "legg den i handlekurven" at level 2 → refusal with level copy, no cart write; compare response contains only allowlisted fields
 
-CommunicationTest: each event renders its template on the correct surface exactly once
+- [ ] CommunicationTest: each event renders its template on the correct surface exactly once
 
-AnomalyExplainTest: explanation stored on the flag; zero state changes; agent_runs row present
+- [ ] AnomalyExplainTest: explanation stored on the flag; zero state changes; agent_runs row present
 
 Phase 10 — Security & privacy, metrics, migration cutover, merge
 
 Spec: Ægil §20–22, Points §Metrics/Rollout, Order Ops §17.6 guardrails.
 
-Tasks
+### Tasks
 
-PII-minimisation audit of every agent payload (no raw addresses/phones to the model); age-restricted hard exclusion verified; audit_log completeness for Points/Agenter admin actions; agent scope review report (override rate > 30 % flags scope review)
+- [ ] PII-minimisation audit of every agent payload (no raw addresses/phones to the model); age-restricted hard exclusion verified; audit_log completeness for Points/Agenter admin actions; agent scope review report (override rate > 30 % flags scope review)
 
-Metrics jobs + dashboards: points issuance, liability, redemption, tier distribution, migration reconciliation; Ægil runs, fallback rate, override rate, against-interest "saved kr", tray add/dismiss; alerts
+- [ ] Metrics jobs + dashboards: points issuance, liability, redemption, tier distribution, migration reconciliation; Ægil runs, fallback rate, override rate, against-interest "saved kr", tray add/dismiss; alerts
 
-Migration cutover: final dry-run sign-off; customer comms (in-app + email) same day; production run; post-run reconciliation; 24h monitoring
+- [ ] Migration cutover: final dry-run sign-off; customer comms (in-app + email) same day; production run; post-run reconciliation; 24h monitoring
 
-Merge prep: rebase on main; git diff --stat main..agil-2 touches only owned paths + chore(shared); feature flags points, premiehylla, missions, league, aegil_level_max; rollback runbook; docs (API, policy keys, agent register)
+- [ ] Merge prep: rebase on main; git diff --stat main..agil-2 touches only owned paths + chore(shared); feature flags points, premiehylla, missions, league, aegil_level_max; rollback runbook; docs (API, policy keys, agent register)
 
-Merge day with agil-1: swap OrderCompletionSource → OrderEventsSource, SignalSource → WebhookSignalSource; rerun both suites + master Week 10 regression
+- [ ] Merge day with agil-1: swap OrderCompletionSource → OrderEventsSource, SignalSource → WebhookSignalSource; rerun both suites + master Week 10 regression
 
-Acceptance tests
+### Acceptance tests
 
-PrivacyTest: agent payload snapshot contains no phone/email/street strings; age-restricted item never appears in any tray
+- [ ] PrivacyTest: agent payload snapshot contains no phone/email/street strings; age-restricted item never appears in any tray
 
-Production migration reconciles within rounding; monitoring shows zero missing-balance reports in 24h
+- [ ] Production migration reconciles within rounding; monitoring shows zero missing-balance reports in 24h
 
-Post-merge integration: real order.delivered via order_events earns Kjøp points; real store tilbud post creates a suggestion; real "Vågen" tap fires Dagens napp
+- [ ] Post-merge integration: real order.delivered via order_events earns Kjøp points; real store tilbud post creates a suggestion; real "Vågen" tap fires Dagens napp
 
-Every agent kill switch drilled with fallback observed; every flag toggled off/on cleanly; git merge agil-2 onto main clean after agil-1
+- [ ] Every agent kill switch drilled with fallback observed; every flag toggled off/on cleanly; git merge agil-2 onto main clean after agil-1
