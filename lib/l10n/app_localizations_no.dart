@@ -3539,4 +3539,18 @@ class AppLocalizationsNo extends AppLocalizations {
   String celebrationTeamContractConfirmed(String season) {
     return 'Kontrakt bekreftet · sesong $season';
   }
+
+  @override
+  String get aegil_disclosure_title => 'Om Ægil';
+
+  @override
+  String get aegil_disclosure_body =>
+      'Ægil er en assistent laget av Ærend, ikke et menneske. Ægil gjør ingenting med pengene dine uten et trykk fra deg under nivå 3, og alt Ægil gjør kan angres i 7 dager. Ærend-innlegg i feeden skrives aldri i Ægils stemme.';
+
+  @override
+  String get aegil_disclosure_short =>
+      'Laget med AI-hjelp. Ægil er en assistent laget av Ærend, ikke et menneske.';
+
+  @override
+  String get aegil_disclosure_terms => 'Vilkår';
 }

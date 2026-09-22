@@ -3533,4 +3533,18 @@ class AppLocalizationsDa extends AppLocalizations {
   String celebrationTeamContractConfirmed(String season) {
     return 'Contract confirmed · season $season';
   }
+
+  @override
+  String get aegil_disclosure_title => 'About Ægil';
+
+  @override
+  String get aegil_disclosure_body =>
+      'Ægil is an assistant made by Ærend, not a person. Below level 3 Ægil does nothing with your money without a tap from you, and everything Ægil does can be undone for 7 days. Ærend posts in the feed are never written in Ægil\'s voice.';
+
+  @override
+  String get aegil_disclosure_short =>
+      'Made with AI. Ægil is an assistant made by Ærend, not a person.';
+
+  @override
+  String get aegil_disclosure_terms => 'Terms';
 }

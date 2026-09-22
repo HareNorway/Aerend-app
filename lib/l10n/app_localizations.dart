@@ -6739,6 +6739,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contract confirmed · season {season}'**
   String celebrationTeamContractConfirmed(String season);
+
+  /// No description provided for @aegil_disclosure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About Ægil'**
+  String get aegil_disclosure_title;
+
+  /// No description provided for @aegil_disclosure_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil is an assistant made by Ærend, not a person. Below level 3 Ægil does nothing with your money without a tap from you, and everything Ægil does can be undone for 7 days. Ærend posts in the feed are never written in Ægil\'s voice.'**
+  String get aegil_disclosure_body;
+
+  /// No description provided for @aegil_disclosure_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Made with AI. Ægil is an assistant made by Ærend, not a person.'**
+  String get aegil_disclosure_short;
+
+  /// No description provided for @aegil_disclosure_terms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get aegil_disclosure_terms;
 }
 
 class _AppLocalizationsDelegate
