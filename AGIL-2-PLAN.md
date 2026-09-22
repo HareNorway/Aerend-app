@@ -477,25 +477,68 @@ Spec: Ægil §2–4, §20 (privacy). Design: Kunde Bergen.dc.html Ægil onboardi
 
 ### Tasks
 
-- [ ] agent_settings (level 0–4, allowed_store_mode, allowed_store_ids, allowed_categories, cap_per_order, cap_per_week, quiet_hours, learning_enabled, paused_until, push_mode, against_interest_enabled, read_aloud); default 2; level 4 → 422 LEVEL_REQUIRES_RECURRING; level changes audited
+- [x] agent_settings (level 0–4, allowed_store_mode, allowed_store_ids, allowed_categories, cap_per_order, cap_per_week, quiet_hours, learning_enabled, paused_until, push_mode, against_interest_enabled, read_aloud); default 2; level 4 → 422 LEVEL_REQUIRES_RECURRING; level changes audited
 
-- [ ] preferences (kind incl. allergen/diet hard constraints — never inferred; exclusion_product/store; source stated|onboarding|chat|settings|feedback); GET /api/agent/me/memory, DELETE /api/agent/me/memory (forget_all)
+- [x] preferences (kind incl. allergen/diet hard constraints — never inferred; exclusion_product/store; source stated|onboarding|chat|settings|feedback); GET /api/agent/me/memory, DELETE /api/agent/me/memory (forget_all)
 
-- [ ] Free-text interpretation via AgentInvoker(aegil_customer, deadline 5s, fallback → note row); validator rejects any inferred allergen/diet
+- [x] Free-text interpretation via AgentInvoker(aegil_customer, deadline 5s, fallback → note row); validator rejects any inferred allergen/diet
 
-- [ ] product_identities (EAN / store_product_id), reference_prices; additive store_products.product_identity_id
+- [x] product_identities (EAN / store_product_id), reference_prices; additive store_products.product_identity_id
 
-- [ ] Aerend-app lib/screens/aegil/*: onboarding chip-card batch flow (POST /api/agent/me/preferences/batch, PATCH /api/agent/me/settings), skip + 7-day re-invite, guest onboarding after first delivery, summary sentence (model/template), disclosure; settings screen (level explanations, pause, quiet hours, against-interest toggle, read-aloud)
+- [x] Aerend-app lib/screens/aegil/*: onboarding chip-card batch flow (POST /api/agent/me/preferences/batch, PATCH /api/agent/me/settings), skip + 7-day re-invite, guest onboarding after first delivery, summary sentence (model/template), disclosure; settings screen (level explanations, pause, quiet hours, against-interest toggle, read-aloud)
 
 ### Acceptance tests
 
-- [ ] PreferencesTest: stated "nøtter" stored as hard constraint; free text "jeg spiser vel alt uten nøtter" never creates an allergen row (must stay a note unless stated explicitly via chip)
+- [x] PreferencesTest: stated "nøtter" stored as hard constraint; free text "jeg spiser vel alt uten nøtter" never creates an allergen row (must stay a note unless stated explicitly via chip)
 
-- [ ] SettingsTest: level 4 without recurring agreement → 422; forget_all leaves zero preference/suggestion/against-interest rows
+- [x] SettingsTest: level 4 without recurring agreement → 422; forget_all leaves zero preference/suggestion/against-interest rows
 
-- [ ] InterpretTest: simulated 6s model latency → note row, no structured rows, deadline_hit=true
+- [x] InterpretTest: simulated 6s model latency → note row, no structured rows, deadline_hit=true
 
-- [ ] Aerend-app widget tests: chip batch posts the expected payload; re-invite hidden inside 7 days
+- [x] Aerend-app widget tests: chip batch posts the expected payload; re-invite hidden inside 7 days
+
+### Phase 6 notes
+
+**Done.** Backend Feature suite 259/259. Aerend-app `test/aegil` 32/32; full Flutter run 207
+passing with the same 6 pre-existing `test/feed` failures.
+
+**The allergen rule is the most important thing in this phase, and it is enforced three
+times.** `allergen` and `diet` may only ever be written with source `stated` or `onboarding` —
+both of which mean the customer tapped a chip:
+
+1. a **CHECK constraint** on `agent_preferences`, so even a direct `INSERT` fails;
+2. **`PreferenceService::remember()`**, which *downgrades* an inferred hard constraint to a
+   `note` rather than refusing — the customer's words are kept for a human to read, but
+   influence nothing;
+3. the **`aegil_customer` validator**, which rejects any model output claiming one, so the run
+   is recorded as `rejected` and nothing is stored.
+
+The reason is asymmetric cost: a missed preference is a slightly worse suggestion; a wrongly
+inferred allergen silently hides food from someone who can eat it, and a wrongly inferred
+*absence* of one could put nuts in front of someone who cannot. **"Jeg spiser vel alt uten
+nøtter" is exactly the sentence a model reads as a nut allergy, and it is not one.**
+
+**Level wording came from the design**, not invented: `NIVAAER` in
+`Ærend Kunde Bergen.dc.html` gives 0 "Bare når jeg spør" … 4 "Fast ukeshandel", and the last
+one's own copy says it needs Vipps recurring — which is exactly `LEVEL_REQUIRES_RECURRING`.
+The app shows that condition **before** the level is tapped; the 422 is a backstop, not how the
+customer finds out.
+
+**`forget_all` is deliberately wide** and guarded: it clears preferences now and suggestions,
+feedback, against-interest events, reminders, actions and the shopping list as those tables
+appear in Phases 7–8. Someone who asks to be forgotten does not mean "except the useful parts".
+
+**Skipping onboarding is honoured for a full 7 days**, and guests are not asked at all until
+they have had a delivery — there is nothing to personalise from before that.
+
+**Product identity exists for Phase 8's sake.** Without `agent_product_identities` (EAN, brand,
+size, `age_restricted`, allergens), "cheaper elsewhere" cannot be said honestly — comparing two
+similarly-named `store_product_details` rows is how you end up telling someone a 300 g jar
+beats a 500 g one. `store_product_details` already had `ean_number`; `product_identity_id` was
+added additively beside it.
+
+**Flutter testing note:** `AegilSettingsPanel` is a `ListView`, so anything below the fold is
+not built — those tests use `scrollUntilVisible` rather than assuming a tall surface.
 
 Phase 7 — Signals, matching, suggestion tray, feedback, points↔Ægil hooks
 
