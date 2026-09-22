@@ -356,23 +356,56 @@ Spec: Points §Premiehylla UI, §Ægils oppdrag, §Welcome gift, §Admin (Dashbo
 
 ### Tasks
 
-- [ ] Aerend-app lib/screens/points/*: Meg (available/pending, Nivå card with progress, expiry notice); Premiehylla cumulative bands, locked previews per design, claim flow + history, voucher at checkout; goal picker + progress line; monthly summary (incl. migrated savings line)
+- [x] Aerend-app lib/screens/points/*: Meg (available/pending, Nivå card with progress, expiry notice); Premiehylla cumulative bands, locked previews per design, claim flow + history, voucher at checkout; goal picker + progress line; monthly summary (incl. migrated savings line)
 
-- [ ] mission_templates × business_goals (quiet_hours|new_store|category_growth|pickup_share), weekly scoring, one active, one decline/week, template wording; missions_weekly job; mission.completed → points; mission card in app
+- [x] mission_templates × business_goals (quiet_hours|new_store|category_growth|pickup_share), weekly scoring, one active, one decline/week, template wording; missions_weekly job; mission.completed → points; mission card in app
 
-- [ ] Welcome gift: on tier.promoted create zero-cost claim from configured pool (deterministic pick); welcome moment in app
+- [x] Welcome gift: on tier.promoted create zero-cost claim from configured pool (deterministic pick); welcome moment in app
 
-- [ ] Admin Points v1: Dashboard (issuance, liability with editable breakage assumption, redemptions); Ledger (search user/order, adjust with reason, rebuild); Premiehylla CRUD, inventory, fulfilment queues (shipment/donation/name review), cost per prize
+- [x] Admin Points v1: Dashboard (issuance, liability with editable breakage assumption, redemptions); Ledger (search user/order, adjust with reason, rebuild); Premiehylla CRUD, inventory, fulfilment queues (shipment/donation/name review), cost per prize
 
 ### Acceptance tests
 
-- [ ] Aerend-app widget tests: Fløyen user sees exactly 3 blurred previews with correct "poeng til" gaps; claim button disabled when balance < price; voucher chip appears in checkout after claim
+- [x] Aerend-app widget tests: Fløyen user sees exactly 3 blurred previews with correct "poeng til" gaps; claim button disabled when balance < price; voucher chip appears in checkout after claim
 
-- [ ] MissionsTest: job assigns one active mission per eligible user; completion earns template points once; second decline in a week → 422
+- [x] MissionsTest: job assigns one active mission per eligible user; completion earns template points once; second decline in a week → 422
 
-- [ ] WelcomeGiftTest: promotion creates a zero-cost claim automatically; no duplicate on re-evaluation
+- [x] WelcomeGiftTest: promotion creates a zero-cost claim automatically; no duplicate on re-evaluation
 
-- [ ] Admin feature test: adjust without reason → 422; with reason → ledger row + audit row; dashboard liability = Σ available × (1 − breakage)
+- [x] Admin feature test: adjust without reason → 422; with reason → ledger row + audit row; dashboard liability = Σ available × (1 − breakage)
+
+### Phase 4 notes
+
+**Done.** Backend Feature suite 186/186. Flutter: 171 passing (up from a 141 baseline), with
+the same 6 pre-existing failures in `test/feed` — verified by stashing and re-running, so no
+regressions. `flutter analyze` clean on all new code.
+
+**Two design rules were load-bearing and are asserted in tests**, not just implemented:
+the locked previews carry **no padlock** (the shelf reads "not yet", not "forbidden"), and the
+mission decline **disappears** after its one use per week rather than failing on tap. Both come
+from the shared "no streaks/leaderboards as gamification" rule in
+`Ærend Bud og Partner - register og system.dc.html`; a padlock and an unlimited reroll are each
+that pressure in miniature.
+
+**Mission wording is copied onto the mission row**, not read from the template at render time.
+Phase 7 lets `aegil_customer` reword a mission, and a customer must keep seeing the wording
+they were actually given even if the template changes afterwards. The card shows the AI
+disclosure only when `wording_source == 'agent'`.
+
+**The welcome gift's pick is deterministic** — a hash of (user, tier), not a random draw. That
+is what makes the idempotency check meaningful: a replayed `tier.promoted`, a rebuild or a
+retried job all land on the same prize, so "already granted?" is answerable.
+
+**Liability excludes pending points.** A Kjøp earn inside its return window can still be
+revoked, so it is not yet a promise. Liability = Σ **available** × (1 − breakage), with
+breakage an editable input on the dashboard rather than a constant in code.
+
+**`api_constant.dart` needed a shared append** (`chore(shared)` commit): the Points and agent
+endpoints are at `/api/points/*` and `/api/agent/*`, not under `/api/customer/`, so they need
+their own base. Note `endPointBaseUrlApi` lives on `BaseUrl`, not `ApiConst`.
+
+**Still pre-existing, still not ours:** `pubspec.yaml` references `assets/json/`, which does not
+exist, so every `flutter test` run prints a warning.
 
 Phase 5 — League, Admin Points complete, partner prize proposals, fraud flags
 
