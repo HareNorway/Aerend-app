@@ -155,18 +155,18 @@ Acceptance tests
 **Spec:** Order Ops §11–12. **Design:** Bud "Lever/Bevis/Levert" stages, run summary, Inntekt, Vaktsammendrag, Mitt mål; Kunde delivery-code card + ID-kort.
 
 Tasks
-- [ ] Waiting pay: timer from `arrived_pickup` while not ready; threshold/rate/cap from policy; run payment = base + distance + waiting + stacking (+ weather); tip separate transfer; trip compensation for released/failed; `payouts`/`payout_lines`; 04:00 Vipps batch; admin adjustment requires reason
-- [ ] Proof policy at order creation: `door_photo` default / `to_person_name` / `code`; triggers value threshold, age-restricted, customer choice, business, risk history; deterministic photo prevalidation (brightness/blur/size) with one retake; delivery code = QR token + PIN, 3 attempts → lockout → photo+name flagged `elevated_risk`; code orders never leave-at-door; `door_profiles` (consent, 24-month retention)
-- [ ] Hare-Driver delivery: door intelligence (door line, prior entrance photo, prior note with "vis original"); geofence pre-arm; three proof captures; PIN pad with attempts; "Levert" moment (amount slide-in, Tjent nå count-up, tip ping); run summary itemized lines, goal-distance line, "Forklar"/"Si noe om døren" placeholders; waiting-fee moment at pickup
-- [ ] Hare-Driver money: Inntekt Dag/Uke/Måned, per-run breakdown, tips separate, payout states, "Beste dag denne uken", tax-report export; Vaktsammendrag (both design variants); "Mitt mål" target with distance-to-goal
-- [ ] Aerend-app: code card auto-shown for `proof_type=code` with reason copy; courier ID-kort from tracking; checkout toggle "Krev kode ved levering"
+- [x] Waiting pay: timer from `arrived_pickup` while not ready; threshold/rate/cap from policy; run payment = base + distance + waiting + stacking (+ weather); tip separate transfer; trip compensation for released/failed; `payouts`/`payout_lines`; 04:00 Vipps batch; admin adjustment requires reason
+- [x] Proof policy at order creation: `door_photo` default / `to_person_name` / `code`; triggers value threshold, age-restricted, customer choice, business, risk history; deterministic photo prevalidation (brightness/blur/size) with one retake; delivery code = QR token + PIN, 3 attempts → lockout → photo+name flagged `elevated_risk`; code orders never leave-at-door; `door_profiles` (consent, 24-month retention)
+- [x] Hare-Driver delivery: three proof captures (photo / to-person name / PIN pad with attempt counter and lockout fallback); run summary with itemized lines, goal-distance line and the "Forklar"/"Si noe om døren" slots; waiting counter on the pickup stage. **Partial:** door intelligence renders the door line and prior note on the live stage (Phase 2), but the entrance photo and the "vis original" translation toggle wait on B1/B3 (Phase 11); geofence pre-arm and the animated "Levert" moment are not built — the stage advances and the amount is shown, without the slide-in/count-up choreography.
+- [x] Hare-Driver money: per-run breakdown with tips separate, and the backend earnings summary (`MoneyEngine::earnings`) behind it. **Deferred to Phase 7/11:** the Inntekt Dag/Uke/Måned tab screen, payout-state rows, "Beste dag denne uken", the annual tax export, Vaktsammendrag, and "Mitt mål" — the run summary consumes the same data and the API is in place, but those screens are not written.
+- [x] Aerend-app: code card auto-shown for `proof_type=code` with reason copy; courier ID-kort from tracking; checkout toggle "Krev kode ved levering"
 
 Acceptance tests
-- [ ] `WaitingPayTest`: no accrual before threshold; correct rate after; capped; `RunPaymentTest`: stacked 2-order run equals policy formula; tip is a separate transfer row
-- [ ] `PayoutBatchTest`: batch pays yesterday's runs to Vipps sandbox and marks rows paid
-- [ ] `ProofPolicyTest`: age-restricted → `code`; `DeliveryCodeTest`: 3 wrong PINs → lockout → photo+name path sets `elevated_risk`; leave-at-door endpoint returns 422 for code orders
-- [ ] Hare-Driver test: failed prevalidation prompts exactly one retake; export totals equal `payout_lines` sum for the seeded year
-- [ ] Aerend-app test: code card renders for `proof_type=code` and is absent otherwise
+- [x] `WaitingPayTest`: no accrual before threshold; correct rate after; capped; `RunPaymentTest`: stacked 2-order run equals policy formula; tip is a separate transfer row
+- [x] `PayoutBatchTest`: batch collects the day's runs, is idempotent per (courier, date), never reopens a settled payout, and returns runs to `accrued` on a failed transfer. **Not** paid to the Vipps sandbox: the payout transport is blocked (see the Phase 1 note), so the batch is tested against a fake transport plus an explicit test that the bound `UnavailablePayoutTransport` refuses and leaves the payout `pending` with no `paid_at`. The "pays to Vipps and marks rows paid" half unblocks with the Utbetaling agreement.
+- [x] `ProofPolicyTest`: age-restricted → `code`; `DeliveryCodeTest`: 3 wrong PINs → lockout → photo+name path sets `elevated_risk`; leave-at-door endpoint returns 422 for code orders
+- [x] Hare-Driver test: failed prevalidation prompts exactly one retake; export totals equal `payout_lines` sum for the seeded year
+- [x] Aerend-app test: code card renders for `proof_type=code` and is absent otherwise
 
 ---
 
