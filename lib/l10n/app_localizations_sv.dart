@@ -2232,10 +2232,41 @@ class AppLocalizationsSv extends AppLocalizations {
   String get feed_empty_followed => 'Follow a store to see posts here';
 
   @override
+  String get feed_empty_no_posts =>
+      'The stores you follow haven\'t posted yet — check back soon!';
+
+  @override
   String get feed_empty_explore => 'Nothing to explore right now';
 
   @override
   String get feed_pull_to_refresh => 'Pull to refresh';
+
+  @override
+  String get story_viewer_unavailable => 'This story is no longer available';
+
+  @override
+  String get post_detail_unavailable => 'This post is no longer available';
+
+  @override
+  String get post_detail_go_back => 'Go back';
+
+  @override
+  String get feed_tab_stores => 'Published by stores';
+
+  @override
+  String get feed_tab_aerend => 'Published by Ærend';
+
+  @override
+  String get feed_category_all => 'All';
+
+  @override
+  String get feed_vaagen_title => 'The daily catch';
+
+  @override
+  String get feed_vaagen_pull => 'Pull it in';
+
+  @override
+  String get feed_vaagen_done => 'Today\'s catch is pulled in';
 
   @override
   String get story_viewer_close => 'Close';

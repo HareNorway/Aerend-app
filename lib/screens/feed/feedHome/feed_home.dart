@@ -13,6 +13,7 @@ import '../search/feed_search_screen.dart';
 import '../storeProfile/store_profile.dart';
 import '../utils/feed_story_viewer_nav.dart';
 import '../components/feed_empty_followed.dart';
+import '../components/feed_empty_no_posts.dart';
 import '../components/feed_error_state.dart';
 import '../components/feed_login_gate.dart';
 import '../components/feed_post_card.dart';
@@ -259,9 +260,15 @@ class _FeedHomeState extends State<FeedHome> {
                       message: l10n.feed_error_generic,
                       onRetry: () => bloc.pagingController.refresh(),
                     ),
-                    noItemsFoundIndicatorBuilder: (_) => FeedEmptyFollowed(
-                      onExploreTap: _openSearch,
-                    ),
+                    // Two different empty feeds, two different answers (T4).
+                    // `hasFollows == true` means the shops they follow simply
+                    // have not posted, and pushing them to follow more would
+                    // read as the app not listening. Unknown falls back to the
+                    // CTA — the safer of the two wrong answers.
+                    noItemsFoundIndicatorBuilder: (_) =>
+                        (loaded?.hasFollows ?? false)
+                            ? const FeedEmptyNoPosts()
+                            : FeedEmptyFollowed(onExploreTap: _openSearch),
                   ),
                 ),
                 const SliverPadding(padding: EdgeInsets.only(bottom: 24)),

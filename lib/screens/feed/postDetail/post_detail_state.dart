@@ -17,6 +17,16 @@ class PostDetailError extends PostDetailState {
   const PostDetailError(this.message);
 }
 
+/// The post is gone — deleted by its store, or removed by Ærend (T8).
+///
+/// Separate from [PostDetailError] because it is not an error the customer can
+/// retry out of. A deep link from a push notification to a post that has since
+/// been taken down should say so and offer a way back, not show a retry button
+/// that will fail identically every time.
+class PostDetailNotFound extends PostDetailState {
+  const PostDetailNotFound();
+}
+
 class PostDetailLoaded extends PostDetailState {
   final FeedPost post;
   final bool likeInFlight;

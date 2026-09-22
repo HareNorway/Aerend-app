@@ -78,9 +78,14 @@ void main() {
   test('FeedMedia.cloudinaryUrl format', () {
     final media = FeedMedia.fromJson(fullPostJson['media'] as Map<String, dynamic>);
     final url = media.cloudinaryUrl(FeedCloudinaryConfig.cloudName);
+    // Built from the configured cloud name rather than a hard-coded one: this
+    // test used to assert "demo" and started failing the moment a real cloud
+    // was configured, which told us nothing about the URL format it exists to
+    // check.
     expect(
       url,
-      'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto/v1/demo/sample.jpg',
+      'https://res.cloudinary.com/${FeedCloudinaryConfig.cloudName}'
+      '/image/upload/f_auto,q_auto/v1/demo/sample.jpg',
     );
   });
 

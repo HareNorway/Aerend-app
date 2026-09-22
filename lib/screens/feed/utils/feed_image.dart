@@ -8,12 +8,21 @@ class FeedImage extends StatelessWidget {
   final double? aspectRatio;
   final BorderRadius? borderRadius;
 
+  /// Replaces the broken-image placeholder.
+  ///
+  /// A story whose media has expired mid-view is not a broken image — it is a
+  /// story that ended, and a grey icon leaves the viewer wondering whether the
+  /// app is broken. Callers that know what a missing image *means* pass their
+  /// own explanation (handover T3).
+  final WidgetBuilder? errorBuilder;
+
   const FeedImage({
     super.key,
     required this.url,
     this.fit = BoxFit.cover,
     this.aspectRatio,
     this.borderRadius,
+    this.errorBuilder,
   });
 
   @override
@@ -34,7 +43,8 @@ class FeedImage extends StatelessWidget {
       imageUrl: url,
       fit: fit,
       placeholder: (_, __) => placeholder,
-      errorWidget: (_, __, ___) => errorWidget,
+      errorWidget: (BuildContext ctx, __, ___) =>
+          errorBuilder?.call(ctx) ?? errorWidget,
       fadeInDuration: const Duration(milliseconds: 200),
     );
 

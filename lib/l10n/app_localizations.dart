@@ -4418,6 +4418,12 @@ abstract class AppLocalizations {
   /// **'Follow a store to see posts here'**
   String get feed_empty_followed;
 
+  /// No description provided for @feed_empty_no_posts.
+  ///
+  /// In en, this message translates to:
+  /// **'The stores you follow haven\'t posted yet — check back soon!'**
+  String get feed_empty_no_posts;
+
   /// No description provided for @feed_empty_explore.
   ///
   /// In en, this message translates to:
@@ -4429,6 +4435,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pull to refresh'**
   String get feed_pull_to_refresh;
+
+  /// No description provided for @story_viewer_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This story is no longer available'**
+  String get story_viewer_unavailable;
+
+  /// No description provided for @post_detail_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This post is no longer available'**
+  String get post_detail_unavailable;
+
+  /// No description provided for @post_detail_go_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back'**
+  String get post_detail_go_back;
+
+  /// No description provided for @feed_tab_stores.
+  ///
+  /// In en, this message translates to:
+  /// **'Published by stores'**
+  String get feed_tab_stores;
+
+  /// No description provided for @feed_tab_aerend.
+  ///
+  /// In en, this message translates to:
+  /// **'Published by Ærend'**
+  String get feed_tab_aerend;
+
+  /// No description provided for @feed_category_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get feed_category_all;
+
+  /// No description provided for @feed_vaagen_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The daily catch'**
+  String get feed_vaagen_title;
+
+  /// No description provided for @feed_vaagen_pull.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull it in'**
+  String get feed_vaagen_pull;
+
+  /// No description provided for @feed_vaagen_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s catch is pulled in'**
+  String get feed_vaagen_done;
 
   /// No description provided for @story_viewer_close.
   ///

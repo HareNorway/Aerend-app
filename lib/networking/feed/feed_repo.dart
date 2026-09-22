@@ -31,6 +31,15 @@ class FeedRepo {
     return FeedPage.fromJson(json, FeedPost.fromJson);
   }
 
+  /// How many stores this customer follows.
+  ///
+  /// Used only to tell two empty feeds apart (handover T4). A count rather than
+  /// the list: the caller asks whether it is zero and nothing else.
+  Future<int> fetchFollowingCount() async {
+    final json = await _helper.get('me/follows/count');
+    return (json['following_count'] as num?)?.toInt() ?? 0;
+  }
+
   Future<FeedStoryFeed> fetchFollowedStories() async {
     final json = await _helper.get('stories');
     return FeedStoryFeed.fromJson(json);

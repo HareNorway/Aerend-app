@@ -158,6 +158,41 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           );
         }
 
+        // A post that is gone says so, and offers the way out rather than a
+        // retry that would fail identically every time (T8).
+        if (state is PostDetailNotFound) {
+          return Scaffold(
+            appBar: AppBar(title: Text(l10n.post_detail_title)),
+            body: Center(
+              key: const Key('post_detail_not_found'),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.hide_source_outlined, size: 56),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.post_detail_unavailable,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    OutlinedButton(
+                      key: const Key('post_detail_go_back'),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      child: Text(l10n.post_detail_go_back),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
         if (state is PostDetailError) {
           return Scaffold(
             appBar: AppBar(title: Text(l10n.post_detail_title)),

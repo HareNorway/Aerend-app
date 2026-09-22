@@ -143,8 +143,8 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.favorite), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border), findsNothing);
+    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_border_rounded), findsNothing);
   });
 
   testWidgets('FeedPostCard shows outlined heart when not liked',
@@ -161,7 +161,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
   });
 
   testWidgets('FeedPostCard disables like while in flight', (tester) async {
@@ -179,7 +179,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.favorite_border));
+    await tester.tap(find.byIcon(Icons.favorite_border_rounded));
     await tester.pump();
     expect(taps, 0);
   });
@@ -198,7 +198,7 @@ void main() {
       ),
     );
 
-    final heart = find.byIcon(Icons.favorite_border);
+    final heart = find.byIcon(Icons.favorite_border_rounded);
     await tester.ensureVisible(heart);
     await tester.tap(heart);
     expect(tapped, isTrue);

@@ -81,7 +81,27 @@ class FeedHomeBloc extends Bloc {
     _sessionReady = true;
     _emit(FeedHomeLoaded(stories: const [], storiesLoading: true));
     await _loadStories();
+    await _loadFollowingCount();
     pagingController.refresh();
+  }
+
+  /// Fetch the follow count so an empty feed can be explained correctly.
+  ///
+  /// A failure here leaves `hasFollows` null rather than guessing. Null falls
+  /// back to the Explore call to action, which is the safer of the two wrong
+  /// answers: offering a way forward beats telling someone who follows nobody
+  /// to wait for posts that can never arrive.
+  Future<void> _loadFollowingCount() async {
+    try {
+      final count = await _repo.fetchFollowingCount();
+      if (!state.mounted) return;
+      final loaded = currentState;
+      if (loaded is FeedHomeLoaded) {
+        _emit(loaded.copyWith(hasFollows: count > 0));
+      }
+    } catch (_) {
+      // Left unknown on purpose; see above.
+    }
   }
 
   Future<void> refresh() async {
@@ -94,6 +114,8 @@ class FeedHomeBloc extends Bloc {
       _emit(loaded.copyWith(storiesLoading: true));
     }
     await _loadStories();
+    // Re-read on pull-to-refresh: a customer may have followed a shop since.
+    await _loadFollowingCount();
     pagingController.refresh();
     await Future<void>.delayed(const Duration(milliseconds: 400));
   }
@@ -132,14 +154,15 @@ class FeedHomeBloc extends Bloc {
       }
 
       if (cursor == null) {
+        final prior =
+            currentState is FeedHomeLoaded ? currentState as FeedHomeLoaded : null;
         _emit(FeedHomeLoaded(
-          stories: currentState is FeedHomeLoaded
-              ? (currentState as FeedHomeLoaded).stories
-              : const [],
-          storiesLoading: currentState is FeedHomeLoaded
-              ? (currentState as FeedHomeLoaded).storiesLoading
-              : false,
+          stories: prior?.stories ?? const [],
+          storiesLoading: prior?.storiesLoading ?? false,
           likeInFlight: Set.unmodifiable(_likeInFlight),
+          // Carried over rather than rebuilt: losing it here would make the
+          // first page's empty state fall back to the wrong copy.
+          hasFollows: prior?.hasFollows,
         ));
       } else if (currentState is FeedHomeLoaded) {
         _emit((currentState as FeedHomeLoaded)

@@ -11,6 +11,7 @@ import '../components/feed_avatar.dart';
 import '../components/feed_story_progress_bars.dart';
 import '../storeProfile/store_profile.dart';
 import '../utils/feed_image.dart';
+import 'story_unavailable_view.dart';
 import '../utils/feed_time_ago.dart';
 
 const Duration _kStoryDuration = Duration(seconds: 5);
@@ -95,6 +96,36 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
     if (!_paused) return;
     setState(() => _paused = false);
     _progressController.forward();
+  }
+
+  /// An expired story: hold the message briefly, then move on (T3).
+  ///
+  /// Two seconds is long enough to read the line and short enough that the
+  /// viewer does not feel stuck. The progress timer is stopped first so the
+  /// normal advance does not race this one and skip two stories.
+  void _onStoryUnavailable() {
+    _progressController.stop();
+    _advanceTimer?.cancel();
+    _advanceTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        _skipExpiredStory();
+      }
+    });
+  }
+
+  /// Skip to the next *store*, not the next story.
+  ///
+  /// Stories expire in the order they were posted, so the next story from the
+  /// same store is very likely expired too — stepping through them one
+  /// two-second message at a time would be a worse experience than leaving.
+  void _skipExpiredStory() {
+    if (_storeIndex < widget.stores.length - 1) {
+      _goToStore(_storeIndex + 1, storyIndex: 0);
+      return;
+    }
+
+    // Nothing left to show: a clean exit rather than an empty black screen.
+    Navigator.of(context).pop();
   }
 
   void _advance() {
@@ -199,7 +230,18 @@ class _StoryViewerScreenState extends State<StoryViewerScreen>
                   return const ColoredBox(color: Colors.black);
                 }
                 return story != null
-                    ? FeedImage(url: mediaUrl, fit: BoxFit.cover)
+                    ? FeedImage(
+                        url: mediaUrl,
+                        fit: BoxFit.cover,
+                        // A story's media can expire between the list being
+                        // fetched and the viewer opening it. That is a story
+                        // that ended, not a broken app, so it is named (T3).
+                        errorBuilder: (_) => StoryUnavailableView(
+                          storeName: store.name,
+                          message: l10n.story_viewer_unavailable,
+                          onExpired: _onStoryUnavailable,
+                        ),
+                      )
                     : const ColoredBox(color: Colors.black);
               },
             ),

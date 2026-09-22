@@ -134,9 +134,11 @@ void main() {
     // watch.
     var withSize = 0;
     var withoutTracking = 0;
+    var dugnadFiles = 0;
 
     for (final file in dartSources()) {
       if (!file.path.contains('dugnad')) continue;
+      dugnadFiles++;
       final src = file.readAsStringSync();
       for (final m in RegExp(r'fontSize:\s*').allMatches(src)) {
         withSize++;
@@ -151,8 +153,16 @@ void main() {
     }
 
     // ignore: avoid_print
-    print('dugnad fontSize sites: $withSize, '
+    print('dugnad sources: $dugnadFiles, fontSize sites: $withSize, '
         'without a nearby letterSpacing: $withoutTracking');
-    expect(withSize, greaterThan(0));
+
+    // The dugnad surfaces have since been removed from the app, so there is
+    // nothing to sweep. This used to assert `withSize > 0` and started failing
+    // the day that code went — a guard that fires because its subject no
+    // longer exists tells you nothing and trains people to ignore the suite.
+    // It still reports, and starts asserting again if dugnad code returns.
+    if (dugnadFiles > 0) {
+      expect(withSize, greaterThan(0));
+    }
   });
 }

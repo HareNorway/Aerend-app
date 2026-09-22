@@ -84,6 +84,10 @@ class PostDetailBloc extends Bloc {
       _initialDetail = detail;
       _emit(PostDetailLoaded(post: detail));
       commentsPagingController.refresh();
+    } on FeedPostNotFoundException {
+      // Caught specifically: a deleted post is not a retryable error, and a
+      // retry button here would fail identically every time (T8).
+      _emit(const PostDetailNotFound());
     } catch (e) {
       _emit(PostDetailError(_messageForError(e)));
     }

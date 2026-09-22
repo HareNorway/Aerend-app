@@ -2235,10 +2235,43 @@ class AppLocalizationsNo extends AppLocalizations {
   String get feed_empty_followed => 'Følg en butikk for å se innlegg her';
 
   @override
+  String get feed_empty_no_posts =>
+      'De du følger har ikke postet ennå — sjekk tilbake snart!';
+
+  @override
   String get feed_empty_explore => 'Ingenting å utforske akkurat nå';
 
   @override
   String get feed_pull_to_refresh => 'Dra for å oppdatere';
+
+  @override
+  String get story_viewer_unavailable =>
+      'Denne storyen er ikke tilgjengelig lenger';
+
+  @override
+  String get post_detail_unavailable =>
+      'Dette innlegget er ikke tilgjengelig lenger';
+
+  @override
+  String get post_detail_go_back => 'Tilbake';
+
+  @override
+  String get feed_tab_stores => 'Publisert av butikker';
+
+  @override
+  String get feed_tab_aerend => 'Publisert av Ærend';
+
+  @override
+  String get feed_category_all => 'Alle';
+
+  @override
+  String get feed_vaagen_title => 'Dagens napp';
+
+  @override
+  String get feed_vaagen_pull => 'Trekk opp';
+
+  @override
+  String get feed_vaagen_done => 'Dagens napp er trukket opp';
 
   @override
   String get story_viewer_close => 'Lukk';
