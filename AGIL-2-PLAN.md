@@ -546,29 +546,70 @@ Spec: Ægil §5, §7, §12. Design: Kunde Bergen.dc.html suggestion tray + "Ikke
 
 ### Tasks
 
-- [ ] SignalSource adapters: FixtureSignalSource (reads tests/fixtures/events/*.json — the frozen contract fixtures on main) + stub WebhookSignalSource (dedupe on event_id, per contract guarantees); signals: [feed.post](http://feed.post).published (post_type tilbud → offer, ny_i_hyllene|dagens_rett|nytt_i_hyllene → arrival), product.price_changed, scheduler rhythm, rewards threshold, availability
+- [x] SignalSource adapters: FixtureSignalSource (reads tests/fixtures/events/*.json — the frozen contract fixtures on main) + stub WebhookSignalSource (dedupe on event_id, per contract guarantees); signals: [feed.post](http://feed.post).published (post_type tilbud → offer, ny_i_hyllene|dagens_rett|nytt_i_hyllene → arrival), product.price_changed, scheduler rhythm, rewards threshold, availability
 
-- [ ] Deterministic match: eligibility (hard constraints, allowed stores/categories, age-restricted exclusion) → weighted score policy.agent.match_weights → threshold → dedup → daily pool policy.agent.pool_size=20; 9 reason codes (offer_liked_product, arrival_fav_store, …)
+- [x] Deterministic match: eligibility (hard constraints, allowed stores/categories, age-restricted exclusion) → weighted score policy.agent.match_weights → threshold → dedup → daily pool policy.agent.pool_size=20; 9 reason codes (offer_liked_product, arrival_fav_store, …)
 
-- [ ] suggestions (candidate|open|dismissed|never|added|merged|expired, reason_code, rerank_source); shadow re-rank via AgentInvoker(aegil_customer) logging only; served tray = engine top-N (policy.agent.tray_size=5)
+- [x] suggestions (candidate|open|dismissed|never|added|merged|expired, reason_code, rerank_source); shadow re-rank via AgentInvoker(aegil_customer) logging only; served tray = engine top-N (policy.agent.tray_size=5)
 
-- [ ] API: GET /api/agent/me/suggestions, POST .../{id}/add|dismiss|never; no cart writes at level ≤ 2
+- [x] API: GET /api/agent/me/suggestions, POST .../{id}/add|dismiss|never; no cart writes at level ≤ 2
 
-- [ ] suggestion_feedback ("Ikke for meg" + reason codes) → bounded ±30 %, 90-day decay, reflected in /me/memory
+- [x] suggestion_feedback ("Ikke for meg" + reason codes) → bounded ±30 %, 90-day decay, reflected in /me/memory
 
-- [ ] Points hooks: Dagens napp from suggestion.reeled; missions worded by aegil_customer (fallback template); Ægil-proposed point_goals; welcome-gift reason text
+- [x] Points hooks: Dagens napp from suggestion.reeled; missions worded by aegil_customer (fallback template); Ægil-proposed point_goals; welcome-gift reason text
 
-- [ ] Aerend-app: tray UI, "Ikke for meg" sheet, "Vågen" daily-catch moment reading suggestion.reeled result
+- [x] Aerend-app: tray UI, "Ikke for meg" sheet, "Vågen" daily-catch moment reading suggestion.reeled result
 
 ### Acceptance tests
 
-- [ ] MatchingTest: fixture tilbud post for a liked product → open suggestion with offer_liked_product; nut-containing candidate excluded for a nut-allergic user; age-restricted excluded for all
+- [x] MatchingTest: fixture tilbud post for a liked product → open suggestion with offer_liked_product; nut-containing candidate excluded for a nut-allergic user; age-restricted excluded for all
 
-- [ ] TrayTest: level 2 tray populated; cart untouched after add (tray-only); level 0 receives no proactive suggestions
+- [x] TrayTest: level 2 tray populated; cart untouched after add (tray-only); level 0 receives no proactive suggestions
 
-- [ ] FeedbackTest: "Ikke for meg" lowers product weight, visible in /me/memory; weight never exceeds ±30 %
+- [x] FeedbackTest: "Ikke for meg" lowers product weight, visible in /me/memory; weight never exceeds ±30 %
 
-- [ ] RerankShadowTest: rerank_source logged on 100 % of daily runs; served order equals engine top-N
+- [x] RerankShadowTest: rerank_source logged on 100 % of daily runs; served order equals engine top-N
+
+### Phase 7 notes
+
+**Done.** Backend Feature suite 305/305. Aerend-app 220 passing (the same 6 pre-existing
+`test/feed` failures). `flutter analyze` clean.
+
+**Ordering is the safety design.** Eligibility runs *before* scoring and its answers are
+absolute — no score can promote an ineligible candidate. `MatchingTest` proves it with a
+nut-allergic customer who has a maximum-weight liking for a nut product: the allergy wins.
+A weighted system that could out-vote an allergy is not a safety system.
+
+**Reasons are a closed list of nine**, each with customer-facing copy, and the engine
+*sharpens* the reason rather than overclaiming: a feed offer for a product the customer has
+never liked, at a store they do use, becomes `offer_fav_store` — saying "tilbud på noe du
+liker" would be a lie. A suggestion that cannot name why it exists is not made, which is the
+difference between a suggestion and an advert.
+
+**The shadow re-ranker is overruled by design.** The model's ordering goes into `shadow_rank`
+and the engine's into `engine_rank`; the tray reads `engine_rank`. `RerankShadowTest` installs
+a re-ranker that reverses everything and asserts the tray does not move. That is what lets the
+re-ranker be measured on real traffic without a customer ever seeing a suggestion no rule can
+explain — and `rerank_source` is asserted at 100 % coverage, because the comparison is
+meaningless otherwise.
+
+**Below level 3, "Legg til" writes nothing to the cart.** The API returns the item and
+`cart_written: false`; the customer's own tap adds it. Cart writes are something they have to
+choose deliberately.
+
+**Feedback is bounded and decays.** ±30 % maximum however many times someone taps, linear
+decay to nothing at 90 days. One irritated tap should shade the ranking, not blacklist a
+category; an opinion from three months ago should not outweigh what someone does today. The
+reasons are kept distinct because they mean different things — `already_have` is not a dislike
+and does not blacklist anything, `wrong_store` excludes the store and not the product.
+
+**Appendix B note:** the master plan lists *"Ægil policy values (match weights, thresholds,
+tray size, TTL)"* as a Week 9 decision. The values in `config/agent.php` are working defaults
+chosen to be explainable, **not agreed numbers** — they are exactly the sort of thing to tune
+against real traffic.
+
+**Bug worth remembering:** `->map('strval')` on a Collection passes the *key* as strval's
+second argument and throws. Use `->map(fn ($v) => (string) $v)`.
 
 Phase 8 — Against-interest engine, reminders, action log, trust ledger, agent pushes
 
