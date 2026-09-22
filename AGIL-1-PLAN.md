@@ -97,18 +97,18 @@ Acceptance tests
 **Spec:** Order Ops §8.1–8.3, Partner&Bud §19 (client requirements). **Design:** `Ærend Partner.dc.html` (screens "Drift · Kasse", "Kjøkken"), `Ærend Bud.dc.html` (live stages, mode pill), `Kunde Bergen.dc.html` (tracking).
 
 Tasks
-- [ ] `store_devices` (store_id, role, name, push_token, battery, sound_ok, last_heartbeat_at, state); `POST /api/ops/partner/devices/heartbeat` (30s); stale after 90s; store liveness = any alive `kasse`
-- [ ] `order.seen` on first render (Kjøkken auto); scheduler writes `order.unseen_escalation_{1,2,3}` at policy seconds; panel counter "unseen > 60s"
-- [ ] Hare-Store: app bar (Æ mark, Drift/Butikk switch, role pill Kasse/Kjøkken/Henting, clock, mic placeholder); bottom nav Drift · Varer · Poser · Feed · Mer; Kasse board with sections Ny · Tilberedes · Klar · Hentet driven by the status enum (replace hidden tabs); order card per design (code, type, code-required flag, allergen flag, pending marker, sum, customer, items, window + countdown, shelf slot, kundeblikk placeholder, courier line); Kjøkken view (large cards, allergen line red until acknowledged and blocks Klar, auto-seen); wake-lock, audio focus for new-order sound, heartbeat sender
-- [ ] Hare-Driver: mode pill Av vakt / På vakt / På oppdrag; "Tjent nå" header slot; 7-stage stepper Hent → Ankommet henting → Skann → Lever → Ankommet levering → Bevis → Levert; fixed lower-third (next action, Naviger, Ring, mic placeholder, Problem); ID-kort slot; "Butikken ser / Kunden ser" line; enable the existing dark theme as Night mode base
-- [ ] Aerend-app: tracking shows status strings + promised window (never a single ETA); subscribe `private-customer.{id}` with polling fallback
+- [x] `store_devices` (store_id, role, name, push_token, battery, sound_ok, last_heartbeat_at, state); `POST /api/ops/partner/devices/heartbeat` (30s); stale after 90s; store liveness = any alive `kasse`
+- [x] `order.seen` on first render (Kjøkken auto); scheduler writes `order.unseen_escalation_{1,2,3}` at policy seconds; panel counter "unseen > 60s"
+- [x] Hare-Store: app bar (Æ mark, Drift/Butikk switch, role pill Kasse/Kjøkken/Henting, clock, mic placeholder); bottom nav Drift · Varer · Poser · Feed · Mer; Kasse board with sections Ny · Tilberedes · Klar · Hentet driven by the status enum (replace hidden tabs); order card per design (code, type, code-required flag, allergen flag, pending marker, sum, customer, items, window + countdown, shelf slot, kundeblikk placeholder, courier line); Kjøkken view (large cards, allergen line red until acknowledged and blocks Klar, auto-seen); wake-lock, audio focus for new-order sound, heartbeat sender
+- [x] Hare-Driver: mode pill Av vakt / På vakt / På oppdrag; "Tjent nå" header slot; 7-stage stepper Hent → Ankommet henting → Skann → Lever → Ankommet levering → Bevis → Levert; fixed lower-third (next action, Naviger, Ring, mic placeholder, Problem); ID-kort slot; "Butikken ser / Kunden ser" line; enable the existing dark theme as Night mode base
+- [x] Aerend-app: tracking shows status strings + promised window (never a single ETA); subscribe `private-customer.{id}` with polling fallback
 
 Acceptance tests
-- [ ] `DeviceLivenessTest`: no heartbeat 90s → `stale`; next heartbeat → `alive`; store liveness false when only a `kjokken` device is alive
-- [ ] `SeenSignalTest`: render → `order.seen` ≤ 1s; no render 60s → `unseen_escalation_1` exists
-- [ ] Hare-Store widget tests: board re-sorts on injected events without refresh; Kjøkken Klar button disabled until allergen acknowledged; role pill switches views over the same order list
-- [ ] Hare-Driver widget test: stepper rejects out-of-order stage taps; server rejects the same with 422
-- [ ] Aerend-app widget test: tracking renders window text for each status enum value; no unmapped state
+- [x] `DeviceLivenessTest`: no heartbeat 90s → `stale`; next heartbeat → `alive`; store liveness false when only a `kjokken` device is alive
+- [x] `SeenSignalTest`: render → `order.seen` ≤ 1s; no render 60s → `unseen_escalation_1` exists
+- [x] Hare-Store widget tests: board re-sorts on injected events without refresh; Kjøkken Klar button disabled until allergen acknowledged; role pill switches views over the same order list
+- [x] Hare-Driver widget test: stepper rejects out-of-order stage taps; server rejects the same with 422
+- [x] Aerend-app widget test: tracking renders window text for each status enum value; no unmapped state
 
 ---
 
