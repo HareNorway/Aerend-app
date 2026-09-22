@@ -268,18 +268,47 @@ Acceptance tests
 ## Phase 10 — Partner agents P1/P5, Bud B4, voice entry  *(requires `sync-B` cherry-picked first)*
 **Spec:** Order Ops §17.7 P1, P5, B4. **Design:** `Partner - agentfunksjoner P1-P5.dc.html` (P1, P5), `Bud - agentfunksjoner B1-B4.dc.html` (B4), Partner mic entry + Kjøkken voice in `Ærend Partner.dc.html`.
 
+> ## ⛔ BLOCKED — `sync-B` does not exist
+>
+> **Checked 2026-09-22.** There is no `sync-B` branch or tag in Hare-AdminPanel
+> (`git tag` lists only `sync-A`, which agil-1 produced), and `agil-2` is still
+> sitting on the `plans` commit with no work on it. `AgentInvoker`, the
+> `agent_scopes` / `agent_runs` tables and the kill switch — all of which every
+> agent task below calls into — are agil-2's deliverable and have not been
+> written. Confirmed absent: `grep -rln "AgentInvoker\|agent_scopes\|agent.menu_copy" app/ database/` finds nothing.
+>
+> **This is not something agil-1 can work around.** Building a second
+> `AgentInvoker` here would be the thing the merge contract exists to prevent —
+> two implementations of the same substrate, guaranteed to conflict on merge
+> day. So P1, P5 and B4 stay unstarted, and the phase's three agent acceptance
+> tests with them.
+>
+> **To unblock:** agil-2 lands the agent substrate and tags it `sync-B`, then
+> `git cherry-pick sync-B` in Hare-AdminPanel and the three tasks below can be
+> done as written. Nothing else in agil-1 depends on them, so the remaining
+> phases were not held up.
+
 Tasks
-- [ ] `git cherry-pick sync-B`; register scopes for `agent.menu_copy`, `agent.hours_exceptions`, `agent.bud_explain`, `agent.exception_triage`, `agent.comms`, `agent.photo_qa` (rows are seeded by agil-2 — only add if missing)
-- [ ] P1 `agent.menu_copy` via `AgentInvoker`: generate from empty/draft → use/rewrite/discard; allergen proposals unchecked and validated against allowlist; category chip; text-only mode; batch queue "Beskrivelser å se over (N)"; fallback when unavailable
-- [ ] P5 `agent.hours_exceptions`: free-text → structured rows, single-row correction, holiday prompt, coherence check vs store page, parse-failure fallback; Åpningstider weekly grid + customer-facing sentence
-- [ ] B4 `agent.bud_explain`: "Forklar" on run summary + Inntekt rows → per-line sentences, one follow-up, fallback, "noe er feil" → prefilled problem
-- [ ] Voice: shared hold-to-speak wrapper; Kjøkken "Æ-42 klar" → confirm → undo; Partner mic entry (4 example chips, single interpreted action, confirm-can-undo, disclosure on first use)
+- [ ] `git cherry-pick sync-B`; register scopes for `agent.menu_copy`, `agent.hours_exceptions`, `agent.bud_explain`, `agent.exception_triage`, `agent.comms`, `agent.photo_qa` (rows are seeded by agil-2 — only add if missing) — **blocked, see above**
+- [ ] P1 `agent.menu_copy` via `AgentInvoker`: generate from empty/draft → use/rewrite/discard; allergen proposals unchecked and validated against allowlist; category chip; text-only mode; batch queue "Beskrivelser å se over (N)"; fallback when unavailable — **blocked**
+- [ ] P5 `agent.hours_exceptions`: free-text → structured rows, single-row correction, holiday prompt, coherence check vs store page, parse-failure fallback; Åpningstider weekly grid + customer-facing sentence — **blocked on the agent half.** The Åpningstider weekly grid and its customer-facing sentence do not need an agent and are grouped with the other Butikk sections in Phase 11.
+- [ ] B4 `agent.bud_explain`: "Forklar" on run summary + Inntekt rows → per-line sentences, one follow-up, fallback, "noe er feil" → prefilled problem — **blocked.** The "Forklar" and door-note slots already exist on the Bud run summary from Phase 5, so wiring is all that is left once the substrate lands.
+- [x] Voice: shared hold-to-speak wrapper; Kjøkken "Æ-42 klar" → confirm → undo; Partner mic entry (4 example chips, single interpreted action, confirm-can-undo, disclosure on first use) — *interpretation is a local pattern matcher, not a model call: the four phrases are known, the phone may be offline, and a kitchen cannot wait on a round trip. So this does not depend on `sync-B`.*
 
 Acceptance tests
-- [ ] `MenuCopyTest`: model output containing an allergen outside the allowlist is rejected and not stored; kill switch on → fallback response within the same request
-- [ ] `HoursExceptionsTest`: "stengt neste tirsdag" → one exception row; gibberish → fallback state, zero rows
-- [ ] `BudExplainTest`: explanation lines sum equals `payout_lines` for the run; every invocation writes `agent_runs`
-- [ ] Hare-Store widget test: voice "Æ-42 klar" requires confirm and supports undo within the toast window
+- [ ] `MenuCopyTest`: model output containing an allergen outside the allowlist is rejected and not stored; kill switch on → fallback response within the same request — **blocked**
+- [ ] `HoursExceptionsTest`: "stengt neste tirsdag" → one exception row; gibberish → fallback state, zero rows — **blocked**
+- [ ] `BudExplainTest`: explanation lines sum equals `payout_lines` for the run; every invocation writes `agent_runs` — **blocked**
+- [x] Hare-Store widget test: voice "Æ-42 klar" requires confirm and supports undo within the toast window — *24 cases in `Hare-Store/test/ops/voice_test.dart`*
+
+> **Two bugs found while testing the voice path, both of which would have
+> shipped.** The order-code pattern allowed whitespace before the check letter,
+> so "Æ-42 klar" parsed as order `Æ-42K` — the "k" of "klar" — and would have
+> marked a different order ready, sending a courier for a bag that was not
+> there. And the control used a `GestureDetector` with both tap and long-press
+> recognisers, which share a gesture arena and wait to disambiguate; that delay
+> sits between the finger landing and the mic opening, long enough to clip the
+> first word, which in "Æ-42 klar" is the code. Both fixed.
 
 ---
 
