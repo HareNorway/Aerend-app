@@ -174,19 +174,19 @@ Acceptance tests
 **Spec:** Order Ops §8.4–8.6, §13, §18 (Nå/Unntak/Butikker/Bud). **Design:** Partner "Trenger deg", Travelmodus sheet, banners, Autodrift Puls; Bud "Problem" sheet, offer variants.
 
 Tasks
-- [ ] `problems` (type `store_closed|wrong_order|customer_unreachable|wrong_address|damage`, source `tap|voice|photo`, actor, state, resolution, payment_line_key, photos); per-type flows/closures with `money.problem.*` lines; `agent.exception_triage` hook 60s → policy default; masked relay calls (Twilio proxy) + SMS fallback
-- [ ] Escalation: 60s sound+push → 120s scripted owner SMS/call → 240s `paused_auto` + exception + customer choice (wait / cancel-refund); resume with explanation card; Autodrift Auto (server auto-accept + ny→prep when alive); Puls device rows; sound/escalation test endpoint
-- [ ] Hare-Store: Trenger deg list (unseen, courier waiting, allergen note, sold-out suggestion, battery/muted, courier problem card with two outcomes); return-to-store ("Mottatt" → shelf D); Autodrift Auto with consequence sheet + learning-week note; device sheet (mute/test/rename/role/remove); Travelmodus pause sheet (15/30/60/rest of day, extend all, hold-to-confirm); offline/paused/pulse-lost/low-battery/muted banners; order detail sheet (options/allergens, note, relay contact, reject with reason + refund)
-- [ ] Hare-Driver: problem sheet (5 types, per-type photo hint, offline queue); customer-unreachable relay→SMS→timer→policy outcome; wrong-address corrected stop; damage closes run with protected pay; offer screen single/stacked/auto-accepted variants, payment breakdown, countdown ring, Godta/Avslå, decline→next, expiry
-- [ ] Admin: Nå (orders by state, unseen, waiting couriers, paused stores, open problems); Unntak inbox with SLA timers and override actions (panel scan override, manual state change with reason); Butikker liveness board + store detail; Bud shift board + courier detail; role landing pages
+- [x] `problems` (type `store_closed|wrong_order|customer_unreachable|wrong_address|damage`, source `tap|voice|photo`, actor, state, resolution, payment_line_key, photos); per-type flows/closures with `money.problem.*` lines; `agent.exception_triage` hook 60s → policy default; masked relay calls (Twilio proxy) + SMS fallback
+- [x] Escalation: 60s sound+push → 120s scripted owner SMS/call → 240s `paused_auto` + exception + customer choice (wait / cancel-refund); resume with explanation card; Autodrift Auto (server auto-accept + ny→prep when alive); Puls device rows; sound/escalation test endpoint
+- [x] Hare-Store: Trenger deg list (unseen, courier waiting, allergen note, sold-out suggestion, battery/muted, courier problem card with two outcomes); return-to-store ("Mottatt" → shelf D); Autodrift Auto with consequence sheet + learning-week note; device sheet (mute/test/rename/role/remove); Travelmodus pause sheet (15/30/60/rest of day, extend all, hold-to-confirm); offline/paused/pulse-lost/low-battery/muted banners; order detail sheet (options/allergens, note, relay contact, reject with reason + refund)
+- [x] Hare-Driver: problem sheet (5 types, per-type photo hint, offline queue); customer-unreachable relay→SMS→timer→policy outcome; wrong-address corrected stop; damage closes run with protected pay; offer screen single/stacked/auto-accepted variants, payment breakdown, countdown ring, Godta/Avslå, decline→next, expiry
+- [x] Admin: Nå (orders by state, unseen, waiting couriers, paused stores, open problems); Unntak inbox with SLA timers and override actions (panel scan override, manual state change with reason); Butikker liveness board + store detail; Bud shift board + courier detail; role landing pages
 
 Acceptance tests
-- [ ] `ProblemsTest`: each type from courier → correct payment line, store card payload, customer status, exception row; triage timeout applies default
-- [ ] `EscalationTest`: unseen with alive device → events at 60/120/240s; `paused_auto` + exception + customer-choice notification; resume writes `store.resumed`
-- [ ] `AutoLevelTest`: new order accepted + seen ≤ 2s with zero store calls
-- [ ] Relay: sandbox call log shows proxy numbers on both legs
-- [ ] Admin feature test: override scan → `picked_up`, `scans.source=panel_override`, audit row
-- [ ] Hare-Store/Driver widget tests for Trenger deg ordering and problem sheet per-type copy
+- [x] `ProblemsTest`: each type from courier → correct payment line, store card payload, customer status, exception row; triage timeout applies default
+- [x] `EscalationTest`: unseen with alive device → events at 60/120/240s; `paused_auto` + exception + customer-choice notification; resume writes `store.resumed`
+- [x] `AutoLevelTest`: new order accepted + seen ≤ 2s with zero store calls
+- [x] Relay: sandbox call log shows proxy numbers on both legs
+- [x] Admin feature test: override scan → `picked_up`, `scans.source=panel_override`, audit row
+- [x] Hare-Store/Driver widget tests for Trenger deg ordering and problem sheet per-type copy
 
 ---
 
