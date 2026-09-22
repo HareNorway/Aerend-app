@@ -322,6 +322,25 @@ class ApiConst {
       'snurre/conversations/list';
   static const String endPointSnurreConversationMessages =
       'snurre/conversations/messages';
+
+  // --- AGIL-2: Points v2 and Ægil ------------------------------------------
+  // These sit at /api/points/* and /api/agent/*, NOT under /api/customer/, so
+  // they need their own base rather than the customer one. Built from
+  // BaseUrl.domain at call time so the dev-env override still applies.
+  static String get basePointsUrl =>
+      '${BaseUrl.domain}${BaseUrl.endPointBaseUrlApi}points/';
+  static String get baseAgentUrl =>
+      '${BaseUrl.domain}${BaseUrl.endPointBaseUrlApi}agent/';
+
+  static const String endPointPointsMe = 'me';
+  static const String endPointPointsLedger = 'me/ledger';
+  static const String endPointPointsReferral = 'me/referral';
+  static const String endPointPointsPrizes = 'prizes';
+  static const String endPointPointsClaims = 'claims';
+  static const String endPointPointsGoal = 'goal';
+  static const String endPointPointsMission = 'mission';
+  static const String endPointPointsMissionDecline = 'mission/decline';
+  static const String endPointPointsMissionProgress = 'mission/progress';
 }
 
 class ApiParam {
