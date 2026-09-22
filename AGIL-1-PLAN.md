@@ -48,10 +48,10 @@
 | Admin | Nå, Unntak, Butikker, Bud, Feed, policy editor | Points, Agenter |
 
 **Sync points**
-- **Sync A** (end of agil-1 Phase 1): agil-1 tags commit `sync-A` containing `policies` + `PolicyService`, `feature_flags`, status vocabulary ARB keys, `docs/EVENT_CONTRACT.md`. agil-2 cherry-picks it.
+- **Sync A** (end of agil-1 Phase 1): agil-1 tags commit `sync-A` containing `policies` + `PolicyService`, `feature_flags`, status vocabulary ARB keys. agil-2 cherry-picks it. (The event contract is not part of Sync A — it is already on `main`.)
 - **Sync B** (agil-2 Phase 2): agil-2 tags `sync-B` containing the agent platform substrate (`agents`, `agent_runs`, scoped tokens, kill switches, `AgentInvoker`). agil-1 cherry-picks it **before Phase 10**.
 
-**Event contract** (agil-1 emits; agil-2 consumes): `order.delivered`, `order.cancelled`, `product.price_changed`, `feed.post.published`, `suggestion.reeled` (customer "Vågen" tap). Frozen in `docs/EVENT_CONTRACT.md`.
+**Event contract** (agil-1 emits; agil-2 consumes): `order.delivered`, `order.cancelled`, `product.price_changed`, `feed.post.published`, `suggestion.reeled` (customer "Vågen" tap). **Already frozen on `main`** at `Hare-AdminPanel/docs/EVENT_CONTRACT.md` with canonical fixtures in `Hare-AdminPanel/tests/fixtures/events/*.json`. Your emitted payloads must validate against those fixtures (add a contract test per event in Phase 1). Do not edit the contract; extend only per its versioning rule.
 
 **Merge day**: rebase both on `main`; merge `agil-1` then `agil-2`; migrate on a prod snapshot; agil-2 swaps its `OrderCompletionSource` to `order_events` and Ægil ingestion from fixtures to live webhooks; run both acceptance suites + master Week 10 regression (17 Partner + 28 Bud demo-control scenarios from the `leveranser (steg 4)` files); flip flags in master rollout order.
 
@@ -72,7 +72,7 @@ Tasks
 - [ ] `orders` additive columns: `code`, `proof_type`, `origin`, `source_post_id`, `policy_version`, `promised_start`, `promised_end`, `predicted_ready_at`, `shelf_slot`
 - [ ] Order code `Æ-42K`: unambiguous alphabet + check letter (Partner&Bud spec algorithm), unique per city/day
 - [ ] Status vocabulary: server enum → ARB `ops_status_*` in all three apps (Ny/Bekreftet, Sett/Tilberedes, Klar for henting, På vei/Hentet, Levert, Åpner igjen snart)
-- [ ] Write `docs/EVENT_CONTRACT.md`; tag `sync-A`
+- [ ] Contract tests `tests/Feature/Ops/EventContractTest`: each emitted event validates field-for-field against `tests/fixtures/events/<type>.json` (contract already exists on `main` — do not rewrite it); tag `sync-A`
 
 Acceptance tests
 - [ ] `tests/Feature/Ops/EventsTest`: subscribe test client → transition → event received < 1s; with broadcasting disabled, polling returns identical event

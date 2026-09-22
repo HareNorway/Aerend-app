@@ -25,7 +25,7 @@
 **Commands to run for acceptance**
 - Backend: `php artisan test --filter=<Phase>` (tests under `tests/Feature/Points/*`, `tests/Feature/Agent/*`), `php artisan points:rebuild`, `php artisan migrate --pretend`.
 - Flutter: `flutter analyze`, `flutter test` (`test/points/*`, `test/aegil/*`), `flutter build apk --debug`.
-- Fixture events for cross-branch signals live in `tests/fixtures/events/*.json` and match `docs/EVENT_CONTRACT.md` (owned by agil-1, read-only).
+- The cross-branch event contract is **already on `main`**: `Hare-AdminPanel/docs/EVENT_CONTRACT.md` (frozen, read-only) with canonical fixtures in `Hare-AdminPanel/tests/fixtures/events/*.json` (`order.delivered`, `order.cancelled`, `product.price_changed`, `feed.post.published`, `suggestion.reeled`). Build `FixtureSignalSource` / `LegacyBookingSource` to emit exactly those payloads; on merge day the live producers from agil-1 are validated against the same files.
 
 **Conventions**
 - Additive migrations only, prefixed `pts_` / `agent_`. Routes `routes/api_points.php`, `routes/api_agent.php`. Controllers `app/Http/Controllers/Points/*`, `Agent/*`. Flutter code only in owned folders (§1). ARB keys prefixed `pts_` / `aegil_`.
@@ -45,7 +45,7 @@
 | Admin | Points (Dashboard, Ledger, Regler, Nivå, Premiehylla, Oppdrag, Liga, Svindel), Agenter | Nå, Unntak, Butikker, Bud, Feed, policy editor UI |
 
 **Sync points**
-- **Sync A** (agil-1 Phase 1 → you, at your Phase 1): cherry-pick `sync-A` (`policies`, `PolicyService`, `feature_flags`, status ARB keys, `docs/EVENT_CONTRACT.md`). Never create your own policy table; seed `points.*`/`agent.*` keys via a seeder.
+- **Sync A** (agil-1 Phase 1 → you, at your Phase 1): cherry-pick `sync-A` (`policies`, `PolicyService`, `feature_flags`, status ARB keys). Never create your own policy table; seed `points.*`/`agent.*` keys via a seeder. The event contract is already on `main`, so Phase 1 can start on fixtures before Sync A lands — only the policy seeder waits for it.
 - **Sync B** (your Phase 2 → agil-1): tag `sync-B` with the agent platform substrate. agil-1 cherry-picks it before their Phase 10.
 
 **Cross-branch events** (agil-1 emits): `order.delivered`, `order.cancelled`, `product.price_changed`, `feed.post.published`, `suggestion.reeled`. Consume through adapters: `OrderCompletionSource` (`LegacyBookingSource` now, `OrderEventsSource` at merge) and `SignalSource` (`FixtureSignalSource` now, `WebhookSignalSource` at merge).
@@ -166,7 +166,7 @@ Acceptance tests
 **Spec:** Ægil §5, §7, §12. **Design:** `Kunde Bergen.dc.html` suggestion tray + "Ikke for meg" sheet; "Vågen" daily catch moment.
 
 Tasks
-- [ ] `SignalSource` adapters: `FixtureSignalSource` (reads `tests/fixtures/events/*.json` matching `EVENT_CONTRACT.md`) + stub `WebhookSignalSource`; signals: `feed.post.published` (offer/arrival types), `product.price_changed`, scheduler rhythm, rewards threshold, availability
+- [ ] `SignalSource` adapters: `FixtureSignalSource` (reads `tests/fixtures/events/*.json` — the frozen contract fixtures on `main`) + stub `WebhookSignalSource` (dedupe on `event_id`, per contract guarantees); signals: `feed.post.published` (`post_type` `tilbud` → offer, `ny_i_hyllene|dagens_rett|nytt_i_hyllene` → arrival), `product.price_changed`, scheduler rhythm, rewards threshold, availability
 - [ ] Deterministic match: eligibility (hard constraints, allowed stores/categories, age-restricted exclusion) → weighted score `policy.agent.match_weights` → threshold → dedup → daily pool `policy.agent.pool_size=20`; 9 reason codes (`offer_liked_product`, `arrival_fav_store`, …)
 - [ ] `suggestions` (`candidate|open|dismissed|never|added|merged|expired`, reason_code, rerank_source); shadow re-rank via `AgentInvoker(aegil_customer)` logging only; served tray = engine top-N (`policy.agent.tray_size=5`)
 - [ ] API: `GET /api/agent/me/suggestions`, `POST .../{id}/add|dismiss|never`; no cart writes at level ≤ 2
