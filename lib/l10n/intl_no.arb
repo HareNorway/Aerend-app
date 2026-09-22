@@ -1343,5 +1343,33 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "@@_agil1_ops_status": "Shared ops status vocabulary (Order Ops §5.4) — one server state, three surfaces.",
+  "ops_status_placed_customer": "Sendt til butikken",
+  "ops_status_placed_partner": "Ny",
+  "ops_status_placed_courier": "Ny ordre",
+  "ops_status_accepted_customer": "Bekreftet",
+  "ops_status_accepted_partner": "Bekreftet",
+  "ops_status_accepted_courier": "Tildelt",
+  "ops_status_seen_customer": "Tilberedes",
+  "ops_status_seen_partner": "Sett",
+  "ops_status_seen_courier": "Tilberedes",
+  "ops_status_ready_customer": "Klar for henting",
+  "ops_status_ready_partner": "Klar",
+  "ops_status_ready_courier": "Klar for henting",
+  "ops_status_picked_up_customer": "På vei",
+  "ops_status_picked_up_partner": "Hentet",
+  "ops_status_picked_up_courier": "Hentet",
+  "ops_status_arrived_customer_customer": "Budet er framme",
+  "ops_status_arrived_customer_partner": "Leveres",
+  "ops_status_arrived_customer_courier": "Framme",
+  "ops_status_delivered_customer": "Levert",
+  "ops_status_delivered_partner": "Levert",
+  "ops_status_delivered_courier": "Levert",
+  "ops_status_cancelled_customer": "Kansellert",
+  "ops_status_cancelled_partner": "Avvist",
+  "ops_status_cancelled_courier": "Avbrutt",
+  "ops_status_paused": "Åpner igjen snart",
+  "ops_status_unknown": "Ukjent"
 }

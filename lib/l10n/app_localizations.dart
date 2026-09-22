@@ -6739,6 +6739,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Contract confirmed · season {season}'**
   String celebrationTeamContractConfirmed(String season);
+
+  /// No description provided for @ops_status_placed_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to the store'**
+  String get ops_status_placed_customer;
+
+  /// No description provided for @ops_status_placed_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get ops_status_placed_partner;
+
+  /// No description provided for @ops_status_placed_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'New order'**
+  String get ops_status_placed_courier;
+
+  /// No description provided for @ops_status_accepted_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get ops_status_accepted_customer;
+
+  /// No description provided for @ops_status_accepted_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get ops_status_accepted_partner;
+
+  /// No description provided for @ops_status_accepted_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned'**
+  String get ops_status_accepted_courier;
+
+  /// No description provided for @ops_status_seen_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Being prepared'**
+  String get ops_status_seen_customer;
+
+  /// No description provided for @ops_status_seen_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get ops_status_seen_partner;
+
+  /// No description provided for @ops_status_seen_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Being prepared'**
+  String get ops_status_seen_courier;
+
+  /// No description provided for @ops_status_ready_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for pickup'**
+  String get ops_status_ready_customer;
+
+  /// No description provided for @ops_status_ready_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get ops_status_ready_partner;
+
+  /// No description provided for @ops_status_ready_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for pickup'**
+  String get ops_status_ready_courier;
+
+  /// No description provided for @ops_status_picked_up_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'On the way'**
+  String get ops_status_picked_up_customer;
+
+  /// No description provided for @ops_status_picked_up_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up'**
+  String get ops_status_picked_up_partner;
+
+  /// No description provided for @ops_status_picked_up_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up'**
+  String get ops_status_picked_up_courier;
+
+  /// No description provided for @ops_status_arrived_customer_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier has arrived'**
+  String get ops_status_arrived_customer_customer;
+
+  /// No description provided for @ops_status_arrived_customer_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivering'**
+  String get ops_status_arrived_customer_partner;
+
+  /// No description provided for @ops_status_arrived_customer_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived'**
+  String get ops_status_arrived_customer_courier;
+
+  /// No description provided for @ops_status_delivered_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get ops_status_delivered_customer;
+
+  /// No description provided for @ops_status_delivered_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get ops_status_delivered_partner;
+
+  /// No description provided for @ops_status_delivered_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get ops_status_delivered_courier;
+
+  /// No description provided for @ops_status_cancelled_customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get ops_status_cancelled_customer;
+
+  /// No description provided for @ops_status_cancelled_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get ops_status_cancelled_partner;
+
+  /// No description provided for @ops_status_cancelled_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get ops_status_cancelled_courier;
+
+  /// No description provided for @ops_status_paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening again soon'**
+  String get ops_status_paused;
+
+  /// No description provided for @ops_status_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get ops_status_unknown;
 }
 
 class _AppLocalizationsDelegate

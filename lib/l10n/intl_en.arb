@@ -1464,5 +1464,33 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "@@_agil1_ops_status": "Shared ops status vocabulary (Order Ops §5.4) — one server state, three surfaces.",
+  "ops_status_placed_customer": "Sent to the store",
+  "ops_status_placed_partner": "New",
+  "ops_status_placed_courier": "New order",
+  "ops_status_accepted_customer": "Confirmed",
+  "ops_status_accepted_partner": "Confirmed",
+  "ops_status_accepted_courier": "Assigned",
+  "ops_status_seen_customer": "Being prepared",
+  "ops_status_seen_partner": "Seen",
+  "ops_status_seen_courier": "Being prepared",
+  "ops_status_ready_customer": "Ready for pickup",
+  "ops_status_ready_partner": "Ready",
+  "ops_status_ready_courier": "Ready for pickup",
+  "ops_status_picked_up_customer": "On the way",
+  "ops_status_picked_up_partner": "Picked up",
+  "ops_status_picked_up_courier": "Picked up",
+  "ops_status_arrived_customer_customer": "Courier has arrived",
+  "ops_status_arrived_customer_partner": "Delivering",
+  "ops_status_arrived_customer_courier": "Arrived",
+  "ops_status_delivered_customer": "Delivered",
+  "ops_status_delivered_partner": "Delivered",
+  "ops_status_delivered_courier": "Delivered",
+  "ops_status_cancelled_customer": "Cancelled",
+  "ops_status_cancelled_partner": "Rejected",
+  "ops_status_cancelled_courier": "Cancelled",
+  "ops_status_paused": "Opening again soon",
+  "ops_status_unknown": "Unknown"
 }

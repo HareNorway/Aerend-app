@@ -3535,4 +3535,82 @@ class AppLocalizationsSv extends AppLocalizations {
   String celebrationTeamContractConfirmed(String season) {
     return 'Contract confirmed · season $season';
   }
+
+  @override
+  String get ops_status_placed_customer => 'Sent to the store';
+
+  @override
+  String get ops_status_placed_partner => 'New';
+
+  @override
+  String get ops_status_placed_courier => 'New order';
+
+  @override
+  String get ops_status_accepted_customer => 'Confirmed';
+
+  @override
+  String get ops_status_accepted_partner => 'Confirmed';
+
+  @override
+  String get ops_status_accepted_courier => 'Assigned';
+
+  @override
+  String get ops_status_seen_customer => 'Being prepared';
+
+  @override
+  String get ops_status_seen_partner => 'Seen';
+
+  @override
+  String get ops_status_seen_courier => 'Being prepared';
+
+  @override
+  String get ops_status_ready_customer => 'Ready for pickup';
+
+  @override
+  String get ops_status_ready_partner => 'Ready';
+
+  @override
+  String get ops_status_ready_courier => 'Ready for pickup';
+
+  @override
+  String get ops_status_picked_up_customer => 'On the way';
+
+  @override
+  String get ops_status_picked_up_partner => 'Picked up';
+
+  @override
+  String get ops_status_picked_up_courier => 'Picked up';
+
+  @override
+  String get ops_status_arrived_customer_customer => 'Courier has arrived';
+
+  @override
+  String get ops_status_arrived_customer_partner => 'Delivering';
+
+  @override
+  String get ops_status_arrived_customer_courier => 'Arrived';
+
+  @override
+  String get ops_status_delivered_customer => 'Delivered';
+
+  @override
+  String get ops_status_delivered_partner => 'Delivered';
+
+  @override
+  String get ops_status_delivered_courier => 'Delivered';
+
+  @override
+  String get ops_status_cancelled_customer => 'Cancelled';
+
+  @override
+  String get ops_status_cancelled_partner => 'Rejected';
+
+  @override
+  String get ops_status_cancelled_courier => 'Cancelled';
+
+  @override
+  String get ops_status_paused => 'Opening again soon';
+
+  @override
+  String get ops_status_unknown => 'Unknown';
 }

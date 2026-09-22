@@ -69,26 +69,27 @@
 **Spec:** Order Ops §2–6, §19 (deploy conventions). **Design:** `register og system.dc.html` §"shared status vocabulary".
 
 Tasks
-- [ ] Broadcasting: set driver to Pusher-compatible (Soketi), channels `private-store.{id}`, `private-courier.{id}`, `private-customer.{id}`, `private-panel`; auth routes; polling fallback `GET /api/ops/events?since={id}`
-- [ ] Vipps: implement items in `docs/VIPPS_GAP.md` for payment + payout in the Vipps test environment
-- [ ] CI: `php artisan route:list` preflight; fail build if `APP_ENV=local` or `APP_DEBUG=true` in prod config
-- [ ] `feature_flags` (key, enabled, targeting json: store_ids/courier_ids/customer_ids/percent)
-- [ ] `policies` (key, value json, version, effective_from, changed_by, reason) + `PolicyService::get(key, version?)` with cache; every order stores `policy_version`; admin editor requires reason → `audit_log`
-- [ ] Seed keys: `time.default_prep`, `time.window_widths`, `time.window_floor`, `money.waiting_threshold_s`, `money.waiting_rate`, `money.waiting_cap`, `money.base_pay`, `money.distance_rate`, `money.stacking_bonus`, `money.weather_bonus`, `money.trip_compensation`, `money.problem.*`, `dispatch.offer_timeout_s`, `dispatch.stack_proximity_m`, `dispatch.stack_window_s`, `escalation.unseen_s=[60,120,240]`
-- [ ] State machines as PHP enums + `OrderTransitionService`: order `placed→accepted→seen→ready?→picked_up→arrived_customer→delivered|cancelled` (+`problem` sub-state); assignment `offered→accepted→en_route_pickup→arrived_pickup→(waiting)→picked_up→en_route_drop→arrived_drop→delivered|released|failed`; store `open↔paused_manual|paused_auto`; device `registered→alive→stale→alive`
-- [ ] `order_events` (order_id, type, actor_type incl. `agent`, actor_id, payload, idempotency_key unique, occurred_at, received_at); transition = validate → event → projection → fan-out in one transaction; duplicate key returns original
-- [ ] `orders` additive columns: `code`, `proof_type`, `origin`, `source_post_id`, `policy_version`, `promised_start`, `promised_end`, `predicted_ready_at`, `shelf_slot`
-- [ ] Order code `Æ-42K`: unambiguous alphabet + check letter (Partner&Bud spec algorithm), unique per city/day
-- [ ] Status vocabulary: server enum → ARB `ops_status_*` in all three apps (Ny/Bekreftet, Sett/Tilberedes, Klar for henting, På vei/Hentet, Levert, Åpner igjen snart)
-- [ ] Contract tests `tests/Feature/Ops/EventContractTest`: each emitted event validates field-for-field against `tests/fixtures/events/<type>.json` (contract already exists on `main` — do not rewrite it); tag `sync-A`
+- [x] Broadcasting: set driver to Pusher-compatible (Soketi), channels `private-store.{id}`, `private-courier.{id}`, `private-customer.{id}`, `private-panel`; auth routes; polling fallback `GET /api/ops/events?since={id}`
+- [x] Vipps **payment** verified in the test environment (`apitest.vipps.no`, MSN 499250): access token, create payment (`WEB_REDIRECT`, amount in øre), read back by reference — `tests/Feature/Ops/VippsTest`
+- [ ] **BLOCKED — Vipps payout.** Courier payouts are a different Vipps product (Utbetaling / Disbursements) with its own merchant agreement; `docs/VIPPS_GAP.md` scopes payouts out entirely ("Hare-Store / Hare-Driver Vipps flows" are out of scope there) and plan Appendix B lists the payout provider agreement + courier employment classification as an unmade business decision. The ePayment sandbox credentials in `.env` do not cover disbursements, so there is nothing to test against yet. Phase 5 builds `payouts`/`payout_lines` and the 04:00 batch against this boundary with the transport pluggable; `VippsTest::test_payout_is_blocked_on_a_product_agreement` is an explicit skip so the gap stays visible in test output rather than silently absent. **Unblocks when:** the Utbetaling agreement is signed and sandbox disbursement credentials exist.
+- [x] CI: `php artisan route:list` preflight; fail build if `APP_ENV=local` or `APP_DEBUG=true` in prod config
+- [x] `feature_flags` (key, enabled, targeting json: store_ids/courier_ids/customer_ids/percent)
+- [x] `policies` (key, value json, version, effective_from, changed_by, reason) + `PolicyService::get(key, version?)` with cache; every order stores `policy_version`; admin editor requires reason → `audit_log`
+- [x] Seed keys: `time.default_prep`, `time.window_widths`, `time.window_floor`, `money.waiting_threshold_s`, `money.waiting_rate`, `money.waiting_cap`, `money.base_pay`, `money.distance_rate`, `money.stacking_bonus`, `money.weather_bonus`, `money.trip_compensation`, `money.problem.*`, `dispatch.offer_timeout_s`, `dispatch.stack_proximity_m`, `dispatch.stack_window_s`, `escalation.unseen_s=[60,120,240]`
+- [x] State machines as PHP enums + `OrderTransitionService`: order `placed→accepted→seen→ready?→picked_up→arrived_customer→delivered|cancelled` (+`problem` sub-state); assignment `offered→accepted→en_route_pickup→arrived_pickup→(waiting)→picked_up→en_route_drop→arrived_drop→delivered|released|failed`; store `open↔paused_manual|paused_auto`; device `registered→alive→stale→alive`
+- [x] `order_events` (order_id, type, actor_type incl. `agent`, actor_id, payload, idempotency_key unique, occurred_at, received_at); transition = validate → event → projection → fan-out in one transaction; duplicate key returns original
+- [x] `orders` additive columns: `code`, `proof_type`, `origin`, `source_post_id`, `policy_version`, `promised_start`, `promised_end`, `predicted_ready_at`, `shelf_slot`
+- [x] Order code `Æ-42K`: unambiguous alphabet + check letter (Partner&Bud spec algorithm), unique per city/day
+- [x] Status vocabulary: server enum → ARB `ops_status_*` in all three apps (Ny/Bekreftet, Sett/Tilberedes, Klar for henting, På vei/Hentet, Levert, Åpner igjen snart)
+- [x] Contract tests `tests/Feature/Ops/EventContractTest`: each emitted event validates field-for-field against `tests/fixtures/events/<type>.json` (contract already exists on `main` — do not rewrite it); tag `sync-A`
 
 Acceptance tests
-- [ ] `tests/Feature/Ops/EventsTest`: subscribe test client → transition → event received < 1s; with broadcasting disabled, polling returns identical event
-- [ ] Vipps sandbox: one payment and one payout succeed (`tests/Feature/Ops/VippsTest`, uses sandbox keys)
-- [ ] `TransitionTest`: every invalid transition → `422 INVALID_TRANSITION`, no event row; same idempotency key twice → one row, same response body
-- [ ] `OrderCodeTest`: 10 000 codes, zero collisions, zero characters from the ambiguous set, check letter validates 100 %
-- [ ] `PolicyTest`: change without reason → 422; with reason → `audit_log` row; `PolicyService::get` returns pinned version for an old order
-- [ ] `flutter analyze` clean on all three apps after ARB additions; `git cherry-pick sync-A` onto a fresh `agil-2` checkout applies with no conflicts
+- [x] `tests/Feature/Ops/EventsTest`: subscribe test client → transition → event received < 1s; with broadcasting disabled, polling returns identical event
+- [x] Vipps sandbox: one payment succeeds (`tests/Feature/Ops/VippsTest` — token + create + read-back against `apitest.vipps.no`, amount round-trips as øre). Payout half is **blocked**, see the task note above; its test is a documented skip.
+- [x] `TransitionTest`: every invalid transition → `422 INVALID_TRANSITION`, no event row; same idempotency key twice → one row, same response body
+- [x] `OrderCodeTest`: 10 000 codes, zero collisions, zero characters from the ambiguous set, check letter validates 100 %
+- [x] `PolicyTest`: change without reason → 422; with reason → `audit_log` row; `PolicyService::get` returns pinned version for an old order
+- [x] `flutter analyze` clean on all three apps after ARB additions; `git cherry-pick sync-A` onto a fresh `agil-2` checkout applies with no conflicts
 
 ---
 

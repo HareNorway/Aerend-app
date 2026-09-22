@@ -3539,4 +3539,82 @@ class AppLocalizationsNo extends AppLocalizations {
   String celebrationTeamContractConfirmed(String season) {
     return 'Kontrakt bekreftet · sesong $season';
   }
+
+  @override
+  String get ops_status_placed_customer => 'Sendt til butikken';
+
+  @override
+  String get ops_status_placed_partner => 'Ny';
+
+  @override
+  String get ops_status_placed_courier => 'Ny ordre';
+
+  @override
+  String get ops_status_accepted_customer => 'Bekreftet';
+
+  @override
+  String get ops_status_accepted_partner => 'Bekreftet';
+
+  @override
+  String get ops_status_accepted_courier => 'Tildelt';
+
+  @override
+  String get ops_status_seen_customer => 'Tilberedes';
+
+  @override
+  String get ops_status_seen_partner => 'Sett';
+
+  @override
+  String get ops_status_seen_courier => 'Tilberedes';
+
+  @override
+  String get ops_status_ready_customer => 'Klar for henting';
+
+  @override
+  String get ops_status_ready_partner => 'Klar';
+
+  @override
+  String get ops_status_ready_courier => 'Klar for henting';
+
+  @override
+  String get ops_status_picked_up_customer => 'På vei';
+
+  @override
+  String get ops_status_picked_up_partner => 'Hentet';
+
+  @override
+  String get ops_status_picked_up_courier => 'Hentet';
+
+  @override
+  String get ops_status_arrived_customer_customer => 'Budet er framme';
+
+  @override
+  String get ops_status_arrived_customer_partner => 'Leveres';
+
+  @override
+  String get ops_status_arrived_customer_courier => 'Framme';
+
+  @override
+  String get ops_status_delivered_customer => 'Levert';
+
+  @override
+  String get ops_status_delivered_partner => 'Levert';
+
+  @override
+  String get ops_status_delivered_courier => 'Levert';
+
+  @override
+  String get ops_status_cancelled_customer => 'Kansellert';
+
+  @override
+  String get ops_status_cancelled_partner => 'Avvist';
+
+  @override
+  String get ops_status_cancelled_courier => 'Avbrutt';
+
+  @override
+  String get ops_status_paused => 'Åpner igjen snart';
+
+  @override
+  String get ops_status_unknown => 'Ukjent';
 }
