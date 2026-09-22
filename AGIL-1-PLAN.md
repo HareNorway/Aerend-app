@@ -2,6 +2,8 @@
 
 **Branch:** `agil-1` on `Hare-AdminPanel`, `Hare-Store`, `Hare-Driver`, `Aerend-app/Aerend-app`, `Aerend-Feed`.
 
+> 🛑 **NO MERGES. Decided 2026-09-22.** Nothing from `agil-1` is to be merged into `main` or `master` in **any** of the five repos, and nothing is to be pushed. `agil-1` stays a local branch in every repo until that decision changes. This overrides the Phase 12 merge-prep and merge-day tasks below: the merge readiness was *verified* (one `.env` conflict, everything else auto-merges) and deliberately **not executed**. Remaining work is tracked in `AGIL-1-REMAINING.md`.
+
 > ⚠️ **`Aerend-Feed` deploy hazard.** Its deploy branch is **`master`** and **every push to `master` auto-deploys to DigitalOcean production.** Create and stay on `agil-1` there; never push `master`. Verify with `git branch --show-current` in `D:\work\hare\Aerend-Feed` before any push. Production URLs: feed `https://aerend-feed-88chd.ondigitalocean.app`, Laravel `https://api.ailogistics.no`.
 **Sister plan:** `AGIL-2-PLAN.md` (branch `agil-2`: Points v2, Ægil, agent platform). Merging both yields the master plan `8-10-WEEK-IMPLEMENTATION-PLAN.md`.
 **Specs (authoritative order):** `aerend-app/docs/AEREND ORDER OPS SPEC FINAL STATEv3.md` → `AEREND PARTNER & BUD UPGRADE SPEC.md` (client detail) → `aerendvstore feed update spec.md`.
@@ -178,7 +180,7 @@ Tasks
 - [x] Escalation: 60s sound+push → 120s scripted owner SMS/call → 240s `paused_auto` + exception + customer choice (wait / cancel-refund); resume with explanation card; Autodrift Auto (server auto-accept + ny→prep when alive); Puls device rows; sound/escalation test endpoint
 - [x] Hare-Store: Trenger deg list (unseen, courier waiting, allergen note, sold-out suggestion, battery/muted, courier problem card with two outcomes); return-to-store ("Mottatt" → shelf D); Autodrift Auto with consequence sheet + learning-week note; device sheet (mute/test/rename/role/remove); Travelmodus pause sheet (15/30/60/rest of day, extend all, hold-to-confirm); offline/paused/pulse-lost/low-battery/muted banners; order detail sheet (options/allergens, note, relay contact, reject with reason + refund)
 - [x] Hare-Driver: problem sheet (5 types, per-type photo hint, offline queue); customer-unreachable relay→SMS→timer→policy outcome; wrong-address corrected stop; damage closes run with protected pay; offer screen single/stacked/auto-accepted variants, payment breakdown, countdown ring, Godta/Avslå, decline→next, expiry
-- [x] Admin: Nå (orders by state, unseen, waiting couriers, paused stores, open problems); Unntak inbox with SLA timers and override actions (panel scan override, manual state change with reason); Butikker liveness board + store detail; Bud shift board + courier detail; role landing pages
+- [~] Admin: Nå (orders by state, unseen, waiting couriers, paused stores, open problems); Unntak inbox with SLA timers and override actions (panel scan override, manual state change with reason); Butikker liveness board + store detail; Bud shift board + courier detail; role landing pages — **data done, screens not built.** Every one of these is a working JSON read model under `/api/ops/panel/*` with feature tests (`PanelTest`), but there is no Blade/Vue under `resources/views/admin` for any of them. This repo's admin is Blade + Vue 2 and none was written. Support would today read these through the API, not a screen. See `AGIL-1-REMAINING.md` §1.
 
 Acceptance tests
 - [x] `ProblemsTest`: each type from courier → correct payment line, store card payload, customer status, exception row; triage timeout applies default
@@ -241,7 +243,7 @@ Acceptance tests
 Tasks
 - [x] Hare-Store composer: pick own product → headline + text (+ type) → preview as customer → publish; image default = product image; own post list sorted by attributed orders with reach; detail sheet (delete/expire); status "Skjult av Ærend"; scheduling/expiry; offline queue; service-down state; v1 rules: one product per post, composer blocks før-pris/discount copy; Innstillinger toggle "Ærend kan skrive om butikken min" + frequency (data only); "Din bestillingslenke" with lower-commission tracking
 - [x] Aerend-app: tabs «Publisert av butikker» / «Publisert av Ærend»; category chips from config; post → live product detail; hidden posts vanish on fetch; fix reels tab (hide unless confirmed), header heart/message icons, kebab item; feed-follow pushes; "Vågen" hook emits `suggestion.reeled` per `EVENT_CONTRACT.md`
-- [x] Admin: Ærend composer (any store product, publish now/schedule, draft→scheduled→live→hidden/removed, edit/unpublish); unified oversight (filter store/category/status/date, hide/remove with reason, immediate); eligibility toggle; change-log viewer with search; hide-product takeover; feed health card on Nå
+- [~] Admin: Ærend composer (any store product, publish now/schedule, draft→scheduled→live→hidden/removed, edit/unpublish); unified oversight (filter store/category/status/date, hide/remove with reason, immediate); eligibility toggle; change-log viewer with search; hide-product takeover; feed health card on Nå — **endpoints done, screens not built.** The composer, oversight, hide/remove-with-reason and schedule sweep are real and tested in `Aerend-Feed/test/admin-feed.test.ts`; eligibility, change-log search, takeover and feed health are real and tested in the monolith. No admin front-end renders any of it. See `AGIL-1-REMAINING.md` §1.
 - [x] **T3** story-expired-mid-view: `errorBuilder` on the story image → "This story is no longer available" + store name, auto-advance after 2s, skip to next store, clean exit when none remain (`Aerend-app/lib/screens/feed/storyViewer/story_viewer_screen.dart`)
 - [x] **T4** "follows but no posts" empty state: add `hasFollows` to `FeedHomeLoaded`; `noItemsFoundIndicatorBuilder` picks `FeedEmptyFollowed` (zero follows, keeps Explore CTA) vs new `FeedEmptyNoPosts` (has follows, no CTA); ARB key `feed_empty_no_posts` in `intl_en.arb` + `intl_no.arb` ("De du følger har ikke postet ennå — sjekk tilbake snart!")
 - [x] **T5** Cloudinary upload-failure UX in the Partner composer: pre-validate > 10 MB with an immediate dialog; on `CloudinaryUploadException` show a persistent inline error + Retry instead of a vanishing snackbar (`Hare-Store/lib/screens/feed/feed_composer_screen.dart`, exception already carries `message`/`statusCode`)
@@ -369,6 +371,13 @@ Acceptance tests
 - [x] T1/T2/T9/T10 each have a written status note in this file (done-by-human, blocked, or pending) — none silently dropped
 
 ### Phase 12 merge-prep notes
+
+> 🛑 **Superseded by the no-merge decision (2026-09-22).** Nothing below is to be
+> acted on. No `agil-1` branch is merged into `main` or `master`, and none is
+> pushed, in any of the five repos. The notes are kept because the readiness
+> findings stay true and will be needed whenever the decision changes — in
+> particular the `.env` conflict and the three out-of-ownership exceptions, which
+> are the things a future merge would get wrong.
 
 **Test state at the end of the phase.** Hare-AdminPanel 490 passing (`--group=requires-mysql`) plus 3 in the `load` group; Hare-Store 222; Hare-Driver 129; Aerend-app 187; Aerend-Feed 60 passing / 120 skipped, typecheck and lint clean.
 
