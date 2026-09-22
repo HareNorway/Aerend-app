@@ -681,21 +681,61 @@ Spec: Ægil §14, §17 (tool allowlist); Points §Ægil communication table; Ord
 
 ### Tasks
 
-- [ ] Chat services (reuse Snurre chat shell): shopping list (shopping_list_items), comparison POST /api/agent/compare (allowlisted fields only), tracking snapshot (read model), news card (GET /feed/posts/{id} read-only), reminders card, against-interest card, "Hvordan får jeg poeng?" explainer, monthly points summary card
+- [x] Chat services (reuse Snurre chat shell): shopping list (shopping_list_items), comparison POST /api/agent/compare (allowlisted fields only), tracking snapshot (read model), news card (GET /feed/posts/{id} read-only), reminders card, against-interest card, "Hvordan får jeg poeng?" explainer, monthly points summary card
 
-- [ ] Tool allowlist: model may call read tools only; no eligibility/score/merge/charge/hard-constraint tools exposed; requests to act above the user's level answered with the level explanation
+- [x] Tool allowlist: model may call read tools only; no eligibility/score/merge/charge/hard-constraint tools exposed; requests to act above the user's level answered with the level explanation
 
-- [ ] Communication table: events + templates points.earned, goal.near, goal.reached, tier.promoted, [tier.review](http://tier.review)_warning, tier.demoted, points.expiring, mission.proposed, league.month_closed, monthly summary — routed by surface (in-app card / push / chat)
+- [x] Communication table: events + templates points.earned, goal.near, goal.reached, tier.promoted, [tier.review](http://tier.review)_warning, tier.demoted, points.expiring, mission.proposed, league.month_closed, monthly summary — routed by surface (in-app card / push / chat)
 
-- [ ] agent.anomaly_explain attached to Svindel og avvik flags (explain only, never act)
+- [x] agent.anomaly_explain attached to Svindel og avvik flags (explain only, never act)
 
 ### Acceptance tests
 
-- [ ] ChatToolsTest: prompt "legg den i handlekurven" at level 2 → refusal with level copy, no cart write; compare response contains only allowlisted fields
+- [x] ChatToolsTest: prompt "legg den i handlekurven" at level 2 → refusal with level copy, no cart write; compare response contains only allowlisted fields
 
-- [ ] CommunicationTest: each event renders its template on the correct surface exactly once
+- [x] CommunicationTest: each event renders its template on the correct surface exactly once
 
-- [ ] AnomalyExplainTest: explanation stored on the flag; zero state changes; agent_runs row present
+- [x] AnomalyExplainTest: explanation stored on the flag; zero state changes; agent_runs row present
+
+### Phase 9 notes
+
+**Done.** Backend Feature suite 380/380. Aerend-app `test/aegil` now 89. `flutter analyze` clean.
+
+**The tool list is an allowlist, not a denylist.** The model can reach exactly the tools named
+in `ChatToolAllowlist::READ_TOOLS` and `WRITE_TOOLS`; everything else is unreachable because
+it is simply absent, so no "dangerous tool" has to be remembered about and excluded.
+`NEVER_EXPOSED` names the four dangerous families anyway — eligibility/score/merge, charge/pay,
+hard-constraint writes, cart writes — **purely so the test suite can assert they are not
+reachable at any level**. Adding one to the allowlist would require deleting it from that list
+first, which is a deliberate speed bump.
+
+**A refusal names the level and what it means.** `test_adding_to_the_cart_at_level_2_is_refused_with_the_level_copy`
+asserts the copy contains "nivå 3", "Fyll kurven min" *and* the customer's current level.
+"I can't do that" teaches nothing.
+
+**The shopping list works at level 0.** A list is the customer's own, so writing to it needs no
+autonomy at all — and repeated items merge, because saying "melk" twice means more milk, not a
+second line saying milk.
+
+**Comparison is built from an allowlist of fields**, never filtered down from a model, and
+always carries size. `test_a_comparison_is_honest_about_different_sizes` is the one worth
+keeping: 500 g at 99 kr beats 300 g at 69 kr on value, and the card says the sizes differ so
+"cheapest" cannot be misread.
+
+**Only two events push.** `tier.review_warning` and `points.expiring` — both time-sensitive
+and actionable. Points arriving is pleasant; it is not worth a notification. The communication
+row is written even when the push is capped, because what we decided to say is a different
+question from whether their settings let us say it.
+
+**anomaly_explain writes exactly one column.** After writing it the service re-reads the flag
+and **throws if the state moved**; the validator rejects any output carrying `decision`,
+`action` or `state`; the agent is registered at L0. An explainer that could also act would be
+a judge. Its payload carries evidence only — no user id, email or phone — which Phase 10's PII
+audit re-checks.
+
+**Feed contact point confirmed:** `FeedRepo.fetchPostDetail(postId)` already exists in
+`lib/networking/feed/`, with the JWT interceptor. That is the single read agil-2 makes of the
+feed service, exactly as §1 allows. Nothing in Aerend-Feed was touched.
 
 Phase 10 — Security & privacy, metrics, migration cutover, merge
 
