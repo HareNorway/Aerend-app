@@ -222,23 +222,64 @@ Spec: Points §Nivå; Order Ops §17.1–17.6, Ægil §15. Design: Kunde Bergen.
 
 ### Tasks
 
-- [ ] Tiers Fløyen 0 / Løvstakken 1000 / Rundemanen 3000 / Ulriken 8000 on earned_12m; tier_evaluate on every earn → immediate promotion, tier.promoted; tier_review annual job (max one drop, [tier.review](http://tier.review)_warning 60 days prior with mission recommendation, protected_until) scheduled for launch anniversary; code guard: spend/expire never touch earned_12m
+- [x] Tiers Fløyen 0 / Løvstakken 1000 / Rundemanen 3000 / Ulriken 8000 on earned_12m; tier_evaluate on every earn → immediate promotion, tier.promoted; tier_review annual job (max one drop, [tier.review](http://tier.review)_warning 60 days prior with mission recommendation, protected_until) scheduled for launch anniversary; code guard: spend/expire never touch earned_12m
 
-- [ ] Substrate (extend Snurre): agents (name, autonomy L0|L1|L2, scopes json, caps json, enabled); scoped service tokens → 403 AGENT_SCOPE_DENIED; actor_type=agent; agent_runs (agent, input_hash, output, validation_result, deadline_hit, fallback_used, cost); AgentInvoker::run(agent, input, deadline, fallback, validator); per-agent/per-hour/per-case caps; kill switch check; untrusted-text sanitiser; money-by-policy-key guard; disclosure copy component (Flutter + Blade)
+- [x] Substrate (extend Snurre): agents (name, autonomy L0|L1|L2, scopes json, caps json, enabled); scoped service tokens → 403 AGENT_SCOPE_DENIED; actor_type=agent; agent_runs (agent, input_hash, output, validation_result, deadline_hit, fallback_used, cost); AgentInvoker::run(agent, input, deadline, fallback, validator); per-agent/per-hour/per-case caps; kill switch check; untrusted-text sanitiser; money-by-policy-key guard; disclosure copy component (Flutter + Blade)
 
-- [ ] Seed register rows for all agents named in both plans: aegil_customer, menu_copy, photo_enhance, campaign_planner, onboarding, hours_exceptions, bud_translate, bud_problem, bud_door, bud_explain, exception_triage, comms, photo_qa, anomaly_explain, editorial (disabled)
+- [x] Seed register rows for all agents named in both plans: aegil_customer, menu_copy, photo_enhance, campaign_planner, onboarding, hours_exceptions, bud_translate, bud_problem, bud_door, bud_explain, exception_triage, comms, photo_qa, anomaly_explain, editorial (disabled)
 
-- [ ] Admin Agenter v1: register list, runs log with filters, kill switch, cap editing
+- [x] Admin Agenter v1: register list, runs log with filters, kill switch, cap editing
 
-- [ ] Tag sync-B (substrate + seed only; no points code in that commit)
+- [x] Tag sync-B (substrate + seed only; no points code in that commit)
 
 ### Acceptance tests
 
-- [ ] TierTest: crossing 1000 promotes on the same request; spending 900 keeps tier; expiry keeps tier; annual dry-run on seeded users never drops > 1 tier and lists warning recipients
+- [x] TierTest: crossing 1000 promotes on the same request; spending 900 keeps tier; expiry keeps tier; annual dry-run on seeded users never drops > 1 tier and lists warning recipients
 
-- [ ] AgentInvokerTest: out-of-scope token → 403; deadline exceeded → fallback + deadline_hit=true; validator rejection → nothing stored, validation_result=rejected; kill switch → fallback with no model call; every run writes one agent_runs row
+- [x] AgentInvokerTest: out-of-scope token → 403; deadline exceeded → fallback + deadline_hit=true; validator rejection → nothing stored, validation_result=rejected; kill switch → fallback with no model call; every run writes one agent_runs row
 
-- [ ] git cherry-pick sync-B onto a fresh agil-1 checkout applies cleanly and php artisan test --filter=AgentInvoker passes there
+- [x] git cherry-pick sync-B onto a fresh agil-1 checkout applies cleanly and php artisan test --filter=AgentInvoker passes there
+
+### Phase 2 notes
+
+**Done.** Feature suite 120/120 (39 Points + 41 Agent + 40 pre-existing). Flutter
+`test/aegil` 6/6, `flutter analyze` clean on the new code.
+
+**sync-B verified, not just tagged.** The acceptance test was actually run: a fresh clone
+checked out at `origin/agil-1` (cd5c41e), `git cherry-pick sync-B` applied with no conflicts,
+`php artisan migrate` there added only the two `agent_*` tables (no `pts_` anything, no
+`app/Points`), and `phpunit --filter=AgentInvoker` passed 11/11 — the whole
+`tests/Feature/Agent` suite passed 41/41. Two things were needed to make that true and both
+are worth knowing before editing the substrate:
+
+- `MoneyGuard` must not depend on `PointsPolicy`. It reads policy through
+  `App\Agent\Contracts\PolicyLookup`; `AgentServiceProvider` binds `ConfigPolicyLookup`
+  with `bindIf`, and `PointsServiceProvider` (registered earlier) binds `PointsPolicy` over
+  it. Phase 2c is that adapter, deliberately a separate commit from sync-B.
+- The `config/app.php` registration sits at the **end** of the providers array, on its own.
+  Placed next to the `PointsServiceProvider` line it had that line in its diff context, and
+  the cherry-pick conflicted.
+
+**Tiers renamed relative to the design.** `designs/Ærend Kunde Bergen.dc.html` still shows the
+previous metal tiers (`NIVAA` = Bronse/Sølv/Gull/Platina at 0/1000/3000/**6000**). The plan
+renames them to the mountains and moves the top threshold to **8000**; the plan is
+authoritative and the discrepancy is recorded in `config/points.php`. Two lines of design copy
+confirm the earned_12m guard and are worth keeping: *"Nivået påvirkes aldri av at du bruker
+poeng"* and *"Nivået følger poengene du har tjent opp, ikke saldoen din"*.
+
+**Useful find for Phase 6.** The same design file carries `NIVAAER`, the Ægil autonomy levels
+0–4 with their customer-facing copy: 0 "Bare når jeg spør", 1 "Foreslå", 2 "Varsle og foreslå"
+(default), 3 "Fyll kurven min", 4 "Fast ukeshandel" (needs a Vipps recurring agreement). That
+matches `agent_settings.level` and the `LEVEL_REQUIRES_RECURRING` rule exactly.
+
+**AI disclosure copy is fixed and shared.** Taken verbatim from the design's "Om Ægil" sheet.
+Blade: `resources/views/components/agent/disclosure.blade.php`. Flutter:
+`lib/screens/aegil/widgets/aegil_disclosure.dart`. Change both together.
+
+**Pre-existing, not ours:** `pubspec.yaml` references `assets/json/`, which does not exist, so
+every `flutter test` run prints a warning. Also `pubspec.lock` gets downgraded by the local
+Flutter 3.35.7 SDK (matcher/test packages) on `pub get`; that churn is reverted rather than
+committed.
 
 Phase 3 — Migration, removal of old mechanics, Premiehylla backend
 
