@@ -136,18 +136,18 @@ Acceptance tests
 **Spec:** Order Ops §7. **Design:** Partner "Autodrift" panel (Nivå/Tider/Kapasitet), Kasse card actions, kundeblikk line; Kunde tracking window copy.
 
 Tasks
-- [ ] Layer 1 store defaults per category (`store_settings`); Layer 2 `prep_stats` EWMA per store/item/weekday/hour from `ready` and `arrived_pickup`, `assistert` confirmations double-weighted; `predicted_ready_at` on accept and every adjustment; customer window (centre = predicted + travel, width from confidence, ≥ `time.window_floor`)
-- [ ] Layer 3 `order_time_adjustments` (+5/+10/+15, actor, reason, undo); capacity + queue load; busy mode widens windows; temporary prep exceptions with reset/undo
-- [ ] Hare-Store Kasse: +5/+10/+15 with consequence text + undo; kundeblikk line; Manuell (Godta/Avvis) and Assistert (Bekreft tiden/Endre tid) primary actions; reject requires reason and shows refund consequence; "Solgt i kveld" header; next-courier ETA
-- [ ] Hare-Store Autodrift panel: Nivå (Manuell/Assistert), Tider (defaults, read-only "lært fra kjøkkenet" sentence, exceptions), Kapasitet stepper with stated rule
-- [ ] Aerend-app: window + confidence copy; re-render on `order.time_adjusted` with honest "+10 min" line
+- [x] Layer 1 store defaults per category (`store_settings`); Layer 2 `prep_stats` EWMA per store/item/weekday/hour from `ready` and `arrived_pickup`, `assistert` confirmations double-weighted; `predicted_ready_at` on accept and every adjustment; customer window (centre = predicted + travel, width from confidence, ≥ `time.window_floor`)
+- [x] Layer 3 `order_time_adjustments` (+5/+10/+15, actor, reason, undo); capacity + queue load; busy mode widens windows; temporary prep exceptions with reset/undo
+- [x] Hare-Store Kasse: +5/+10/+15 with consequence text + undo; kundeblikk line; Manuell (Godta/Avvis) and Assistert (Bekreft tiden/Endre tid) primary actions; reject requires reason and shows refund consequence; "Solgt i kveld" header; next-courier ETA
+- [x] Hare-Store Autodrift panel: Nivå (Manuell/Assistert), Tider (defaults, read-only "lært fra kjøkkenet" sentence, exceptions), Kapasitet stepper with stated rule
+- [x] Aerend-app: window + confidence copy; re-render on `order.time_adjusted` with honest "+10 min" line
 
 Acceptance tests
-- [ ] `PrepStatsTest`: 30 seeded orders at 12 min → EWMA within 1 min of 12; assistert confirmation shifts twice as much as an unconfirmed sample
-- [ ] `AdjustmentTest`: +10 changes `predicted_ready_at`, window and dispatch time in one request; undo restores all three; both write events
-- [ ] `CapacityTest`: queue > capacity widens the next window by policy amount; drains → normal
-- [ ] Hare-Store test: reject without reason blocked; with reason shows the refund copy from policy
-- [ ] Aerend-app test: `order.time_adjusted` event re-renders window and shows the extra-time line
+- [x] `PrepStatsTest`: 30 seeded orders at 12 min → EWMA within 1 min of 12; assistert confirmation shifts twice as much as an unconfirmed sample
+- [x] `AdjustmentTest`: +10 changes `predicted_ready_at`, window and dispatch time in one request; undo restores all three; both write events
+- [x] `CapacityTest`: queue > capacity widens the next window by policy amount; drains → normal
+- [x] Hare-Store test: reject without reason blocked; with reason shows the refund copy from policy
+- [x] Aerend-app test: `order.time_adjusted` event re-renders window and shows the extra-time line
 
 ---
 
