@@ -5,6 +5,7 @@ import '../../data/feed/feed_post.dart';
 import '../../data/feed/feed_post_detail.dart';
 import '../../data/feed/feed_store.dart';
 import '../../data/feed/feed_store_profile.dart';
+import '../../data/feed/feed_tab_item.dart';
 import '../../data/feed/feed_story.dart';
 import '../../data/feed/feed_upload_sign.dart';
 import '../../data/feed/feed_write_results.dart';
@@ -29,6 +30,29 @@ class FeedRepo {
       query: {'cursor': cursor, 'limit': limit},
     );
     return FeedPage.fromJson(json, FeedPost.fromJson);
+  }
+
+  /// One tab of the customer feed (feed update spec §3.1).
+  ///
+  /// `tab` is the ASCII slug the service expects — `naerheten`, `folger` or
+  /// `fra_aerend` — rather than the Norwegian label, so a URL never depends on
+  /// encoding "æ" correctly.
+  Future<FeedTabPage> fetchFeedTab({
+    required String tab,
+    String? cursor,
+    int? limit,
+    String? bydel,
+  }) async {
+    final json = await _helper.get(
+      'feed/tabs',
+      query: {
+        'tab': tab,
+        'cursor': cursor,
+        'limit': limit,
+        'bydel': bydel,
+      },
+    );
+    return FeedTabPage.fromJson(json);
   }
 
   /// How many stores this customer follows.
