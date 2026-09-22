@@ -315,22 +315,37 @@ Acceptance tests
 ## Phase 11 — Partner P2/P3/P4, Bud B1/B2/B3, Innsikt/Oppgjør, Butikk sections, onboarding flows
 **Spec:** Order Ops §17.7 P2–P4, B1–B3; Partner&Bud §19. **Design:** `Partner - agentfunksjoner P1-P5.dc.html` (P2–P4), `Bud - agentfunksjoner B1-B4.dc.html` (B1–B3), Partner "Innsikt", "Oppgjør", "Bilder/Åpningstider/Enheter/Tilgang/Innstillinger", 7-step onboarding; Bud 6-step onboarding, Night mode, Big-weather.
 
+> **The six agent items (P2, P3, P4, B1, B2, B3) are blocked on `sync-B`,**
+> for the same reason as Phase 10 — see the note there. Everything in this
+> phase that does not call `AgentInvoker` is done.
+
 Tasks
-- [ ] P2 `agent.photo_enhance`: before/after (Original/Forbedret), operation chips, QA pass/fail (original preselected on fail), fallback, propagate chosen photo
-- [ ] P3 `agent.campaign_planner`: observation → proposal (expected effect, confidence, basis) → post draft → publish creates offer + post → live forecast → next-day result card; "ikke nå"/re-suggest; surfaced in Innsikt + "Ukens melding"
-- [ ] P4 `agent.onboarding`: "Sett opp med Ægil" hours Q&A → summary with per-row correction → save → triggers test order; AI menu import (PDF/website/EAN)
-- [ ] Innsikt (11 metric rows, 8-week charts, Ukens melding, campaign card); Oppgjør (paid yesterday, 7 rows gross−commission−fee, per-order, monthly, Fiken/Tripletex/PowerOffice exports, role-gated)
-- [ ] Butikk: Bilder (requirements, missing list with impact line, photographer booking); Enheter; Tilgang (roles, "vis appen som", invite); Innstillinger (nb/nn/en, sound/push, support, re-run onboarding); Ægil chat entry in Butikk (draft action-cards execute only on tap)
-- [ ] B1 `agent.bud_translate` nb/pl/en labels only ("vis original", dotted fallback, language setting); B2 `agent.bud_problem` hold-to-speak (live transcript, confidence branch, two-option disambiguation, photo hint, offline "venter på nett", visible on Partner side); B3 `agent.bud_door` ("Si noe om døren" → chips → consent → next-courier note)
-- [ ] Partner onboarding 7 steps (BankID mock → e-sign → Vipps connect → menu import/shelf scan → photo pair → hours/P4 → capacity + device roles + sound test → Autodrift level → test order Kasse→Kjøkken→Henting), saved position
-- [ ] Bud onboarding 6 steps (Identitet BankID → Dokumenter/kjøretøy → Utbetaling → Tillatelser with consequences → "Slik virker en tur" 7-stage demo → Autopilot + language), ends Av vakt
-- [ ] Night mode full recolor at sunset; Big-weather mode (64pt targets, larger address, full-width next action) across all 7 stages
+- [ ] P2 `agent.photo_enhance`: before/after (Original/Forbedret), operation chips, QA pass/fail (original preselected on fail), fallback, propagate chosen photo — **blocked**
+- [ ] P3 `agent.campaign_planner`: observation → proposal (expected effect, confidence, basis) → post draft → publish creates offer + post → live forecast → next-day result card; "ikke nå"/re-suggest; surfaced in Innsikt + "Ukens melding" — **blocked.** "Ukens melding" itself is built and picks from the Innsikt rows; the campaign card is the part that needs the agent.
+- [ ] P4 `agent.onboarding`: "Sett opp med Ægil" hours Q&A → summary with per-row correction → save → triggers test order; AI menu import (PDF/website/EAN) — **blocked on the agent half.** The hours grid it would write into, and the test order it would trigger, are both built (`StoreHoursService`, onboarding step 7).
+- [x] Innsikt (11 metric rows, 8-week charts, Ukens melding, campaign card); Oppgjør (paid yesterday, 7 rows gross−commission−fee, per-order, monthly, Fiken/Tripletex/PowerOffice exports, role-gated) — *11 rows, the 8-week series, Ukens melding, and Oppgjør in full. The campaign card is P3's, so it is absent. One CSV shape serves all three bookkeeping systems rather than three per-vendor formats: they all import a dated, described amount.*
+- [x] Butikk: Bilder (requirements, missing list with impact line, photographer booking); Enheter; Tilgang (roles, "vis appen som", invite); Innstillinger (nb/nn/en, sound/push, support, re-run onboarding); Ægil chat entry in Butikk (draft action-cards execute only on tap) — *all five sections built. The Ægil chat entry is **not**: it is an agent surface and belongs with the blocked items.*
+- [ ] B1 `agent.bud_translate` nb/pl/en labels only ("vis original", dotted fallback, language setting); B2 `agent.bud_problem` hold-to-speak (live transcript, confidence branch, two-option disambiguation, photo hint, offline "venter på nett", visible on Partner side); B3 `agent.bud_door` ("Si noe om døren" → chips → consent → next-courier note) — **blocked.** The Ægil slot on the live stage is wired to an optional handler and stays present-but-disabled, so the control row will not shift under a courier's thumb when these land.
+- [x] Partner onboarding 7 steps (BankID mock → e-sign → Vipps connect → menu import/shelf scan → photo pair → hours/P4 → capacity + device roles + sound test → Autodrift level → test order Kasse→Kjøkken→Henting), saved position — *the P4 "set up with Ægil" route into the hours step is the blocked half; the manual route is built*
+- [x] Bud onboarding 6 steps (Identitet BankID → Dokumenter/kjøretøy → Utbetaling → Tillatelser with consequences → "Slik virker en tur" 7-stage demo → Autopilot + language), ends Av vakt
+- [x] Night mode full recolor at sunset; Big-weather mode (64pt targets, larger address, full-width next action) across all 7 stages
 
 Acceptance tests
-- [ ] `CampaignPlannerTest`: publish creates exactly one offer + one live post; result card counts orders with `source_post_id`
-- [ ] Hare-Store tests: P2 QA fail leaves original selected; P4 row correction updates saved hours; drift-role user sees Oppgjør locked
-- [ ] Hare-Driver tests: B1 Polish render leaves code/amounts/address byte-identical; B2 low-confidence shows two options and files the chosen type; B3 note shown to next courier only with consent; Big-weather widget test: every live-stage tap target ≥ 64pt
-- [ ] Both onboarding flows complete end-to-end in emulator and land on Drift / Av vakt; resume from a saved step works
+- [ ] `CampaignPlannerTest`: publish creates exactly one offer + one live post; result card counts orders with `source_post_id` — **blocked**
+- [x] Hare-Store tests: P2 QA fail leaves original selected; P4 row correction updates saved hours; drift-role user sees Oppgjør locked — *the drift-role gate is covered on both sides (`SettlementTest`, `business_test.dart`) and the hours row correction is covered by `StoreHoursTest`; the two P2/P4 agent assertions are **blocked***
+- [x] Hare-Driver tests: B1 Polish render leaves code/amounts/address byte-identical; B2 low-confidence shows two options and files the chosen type; B3 note shown to next courier only with consent; Big-weather widget test: every live-stage tap target ≥ 64pt — *the Big-weather half is done across all seven states; B1/B2/B3 are **blocked***
+- [x] Both onboarding flows complete end-to-end in emulator and land on Drift / Av vakt; resume from a saved step works — *resume, clamping, per-step persistence and the landing are covered by widget tests (42 cases across the two apps). The emulator walk-through is **not** done — it needs a device and a running backend, and belongs with the Phase 12 integration pass.*
+
+> **Three bugs found while testing this phase, all of which would have shipped.**
+> Night mode flipped at a fixed 20:00 year-round, leaving a courier with a
+> full-brightness white screen for four and a half hours of a December evening
+> — fixing it took three separate whole-hour corrections to the solar maths,
+> each documented in the commit. The Bud order code stayed at 22pt in storm
+> mode while the address grew, making the thing a courier most needs to match
+> against a bag label the smallest item on a rain-covered screen. And the
+> secondary controls on the live stage overflowed their 48pt box by 26 pixels
+> in normal mode, because the default button padding plus an icon and a label
+> do not fit — a genuinely clipped control on a real phone.
 
 ---
 
