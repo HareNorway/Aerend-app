@@ -1,6 +1,8 @@
 # AGIL-1 — Order Ops backbone, Partner & Bud upgrade, Feed (agent execution plan)
 
-**Branch:** `agil-1` on `Hare-AdminPanel`, `Hare-Store`, `Hare-Driver`, `Aerend-app/Aerend-app`, `aerend-feed-service`.
+**Branch:** `agil-1` on `Hare-AdminPanel`, `Hare-Store`, `Hare-Driver`, `Aerend-app/Aerend-app`, `Aerend-Feed`.
+
+> ⚠️ **`Aerend-Feed` deploy hazard.** Its deploy branch is **`master`** and **every push to `master` auto-deploys to DigitalOcean production.** Create and stay on `agil-1` there; never push `master`. Verify with `git branch --show-current` in `D:\work\hare\Aerend-Feed` before any push. Production URLs: feed `https://aerend-feed-88chd.ondigitalocean.app`, Laravel `https://api.ailogistics.no`.
 **Sister plan:** `AGIL-2-PLAN.md` (branch `agil-2`: Points v2, Ægil, agent platform). Merging both yields the master plan `8-10-WEEK-IMPLEMENTATION-PLAN.md`.
 **Specs (authoritative order):** `aerend-app/docs/AEREND ORDER OPS SPEC FINAL STATEv3.md` → `AEREND PARTNER & BUD UPGRADE SPEC.md` (client detail) → `aerendvstore feed update spec.md`.
 
@@ -22,12 +24,18 @@
 - Hare-Store: custom bloc pattern (`*_bloc.dart` + `*_repo.dart` + `*_dl.dart`, rxdart); existing order tabs in `lib/screen/home`, products in `lib/screen/products`, feed in `lib/screens/feed/*`.
 - Hare-Driver: `flutter_bloc`; home/map in `lib/screens/home`, offers in `newRequest`, live run in `runningRide`, wallet/bank/payment screens, background location service in `lib/services/backgroundService/`; dark theme exists but is disabled in `main.dart`.
 - Aerend-app: redux app-wide, bloc inside feed; feed models `lib/data/feed/*`, repo `feed_repo.dart`, screens `lib/screens/feed/*`; networking `lib/networking/api_constant.dart` (Laravel) and `lib/networking/feed/*` (feed service).
+- **Aerend-Feed** (`D:\work\hare\Aerend-Feed`, npm name `aerend-feed-service`) — the feed backend, a **separate service and separate database**, not part of the Laravel monolith. Fastify 5 + TypeScript (ESM, Node ≥24), **Drizzle ORM** over Postgres (`drizzle/`, `drizzle.config.ts`), **BullMQ + ioredis/Valkey** for queues, `jose` for the RS256 feed-JWT verification, Cloudinary for media, `firebase-admin` for FCM push, Zod for validation, pino logging, **vitest** for tests. Deployed on DigitalOcean App Platform (`do-app-platform.yaml`, `Dockerfile`, `docker-compose.dev.yml`).
+  - Layout: `src/routes/*` (incl. `store-publish.ts`, `comments.ts`), `src/notifications/*` (`queue.ts`, `notification-worker.ts`, `processors.ts`, `fcm.ts`), `src/laravel/client.ts` (calls back into Laravel, e.g. `fetchDeviceTokens`), `src/migrate.ts`, `test/*`.
+  - Workers are separate processes: `npm run worker:store-sync`, `npm run worker:notifications`.
+  - **Read its own docs before touching it** — they are more current than anything in `aerend-app/docs`: `Aerend-Feed/docs/ARCHITECTURE.md`, `FEED_SYSTEM.md` (JWT bridge + **the `store_details_id` / `provider_id` / `provider_service_id` ID-mapping gotcha, §2 — get this wrong and posts attach to the wrong store**), `FEED_LAUNCH_PLAN.md`, `FEED_HANDOVER_10DAYS.md` (current open items T1–T10), `LOCAL_DEV.md`.
+  - **Current state:** structurally complete and deployed, **not fully verified**. Open items from `FEED_HANDOVER_10DAYS.md` that overlap this plan: T1 Laravel `GET /api/internal/feed-device-tokens` prod verification, T2 push-notification E2E smoke test (never run on a real device), T3 story-expired-mid-view, T4 "follows but no posts" empty state, T5 Cloudinary upload-failure UX, T6 feed-JWT silent re-mint verification, T7 notification integration tests, T8 deep-link "post deleted" 404 handling, T9 demo seed post still in prod, T10 DB credential rotation. **Fold T3–T8 into Phase 9** (they are the same surfaces you are already touching); leave T1/T2/T9/T10 as ops tasks flagged in Phase 12 — they need prod access and a real device.
+  - Note the handover doc predates the `Aerend-app` rename and refers to the customer app as `Hare-Customer` with feed work on branch `feed-integrated` (Hare-Store on `feed`). Our customer app is `Aerend-app/Aerend-app`; check whether the feed feature branches were already merged there before re-implementing anything.
 
 **Commands to run for acceptance**
 - Backend: `php artisan test --filter=<Phase>` (write tests under `tests/Feature/Ops/*`, `tests/Feature/Feed/*`), `php artisan route:list`, `php artisan migrate --pretend`.
 - Flutter: `flutter analyze`, `flutter test` (widget/unit tests under `test/ops/*`, `test/feed/*`), `flutter build apk --debug` for compile proof.
-- Feed service: `npm test`.
-- "Staging" checks below are executed against a local stack (`php artisan serve` + Soketi + the three apps on emulators); record results in the checklist.
+- Feed service (`D:\work\hare\Aerend-Feed`): `npm test` (vitest), `npm run typecheck`, `npm run lint`, `npm run db:generate` (Drizzle migration from schema change) then `npm run db:migrate` against local Postgres. Local stack via `docker-compose.dev.yml` + `npm run dev` — see `docs/LOCAL_DEV.md`. **Never run `db:migrate:prod`.**
+- "Staging" checks below are executed against a local stack (`php artisan serve` + Soketi + local feed service + the three apps on emulators); record results in the checklist. Health probes on the feed service: `/health`, `/ready`.
 
 **Conventions**
 - Additive migrations only, prefixed `ops_` / `feed_`. Routes in `routes/api_ops.php`, `routes/api_feed.php`. Controllers under `app/Http/Controllers/Ops/*`, `Feed/*`. Flutter code in the owned folders (§1). ARB keys prefixed `ops_` / `feed_`.
@@ -41,7 +49,7 @@
 | Layer | agil-1 owns | agil-2 owns — do not touch |
 |---|---|---|
 | Backend | `policies`, `feature_flags`, order/assignment/store/device machines, `order_events`, `pickup_tokens`, `scans`, time engine, money/payouts, `problems`, escalation, dispatch/autopilot/stacking, offline outbox, `notifications`, feed bridge/webhooks, `product_change_log`, `store_feed_eligibility` | `points_*`, `prizes`, `missions`, `league_*`, `agent_*`, `preferences`, `suggestions`, Ægil tables; `routes/api_points.php`, `api_agent.php` |
-| Feed service | schema reconciliation, ranking/mix rule, moderation, webhooks | — |
+| **Aerend-Feed** (feed service) | everything: Drizzle schema reconciliation, ranking/mix rule, moderation endpoints, webhooks in/out, notification queue/worker changes, its tests | — (agil-2 only *reads* `GET /v1/posts/{id}` for the news card and consumes `feed.post.published`; it never edits this repo) |
 | Hare-Store | everything (`lib/screens/ops/*`, `feed/*`, `butikk/*`, onboarding) | `lib/screens/points/*` |
 | Hare-Driver | everything (`lib/screens/live/*`, `money/*`, onboarding) | — |
 | Aerend-app | `lib/screens/tracking/*`, `lib/screens/feed/*`, delivery code, ID-kort | `lib/screens/points/*`, `lib/screens/aegil/*`, Meg |
@@ -200,35 +208,53 @@ Acceptance tests
 ---
 
 ## Phase 8 — Feed data layer, product & price management, Forundringspose
-**Spec:** feed update spec §2, §5; Order Ops §16. **Design:** Partner "Varer" (Meny og varer), "Poser" (Forundringspose).
+**Spec:** feed update spec §2, §5; Order Ops §16. **Design:** Partner "Varer" (Meny og varer), "Poser" (Forundringspose). **Repo docs:** read `Aerend-Feed/docs/FEED_SYSTEM.md` (esp. §2 ID-mapping gotcha) and `ARCHITECTURE.md` before the first schema change.
 
 Tasks
-- [ ] Feed service: unify `feed_post` with existing `posts` (publisher_type `store|aerend`, store_id nullable, product_id, headline, body, image, category, status `draft|scheduled|live|hidden|removed`, hidden_reason, scheduled_at, created_by); mix rule (≤ 1 Ærend per 5 store posts, never consecutive, `drift` exempt); tabs `I nærheten` (chronological + deliverability) / `Følger` / `Fra Ærend`; health endpoint
+- [ ] **Aerend-Feed** — confirm you are on branch `agil-1`, not `master` (auto-deploys to prod). Extend the existing Drizzle schema (`src/db/schema*` + `drizzle/`) rather than adding a parallel table: `posts` gains `publisher_type` (`store|aerend`, default `store`), nullable `store_id` for Ærend posts, `product_id`, `headline`, `category`, `status` (`draft|scheduled|live|hidden|removed`), `hidden_reason`, `scheduled_at`, `created_by`. Generate with `npm run db:generate`, apply locally with `npm run db:migrate` — never `db:migrate:prod`
+- [ ] **Aerend-Feed** — ranking: mix rule (≤ 1 Ærend per 5 store posts, never consecutive, `drift` exempt); tabs `I nærheten` (chronological + deliverability filter) / `Følger` / `Fra Ærend`; status filter so `hidden|removed` never leak into any tab; `/health` + `/ready` already exist — extend `/ready` with a degraded flag if the Laravel bridge is unreachable
+- [ ] **Aerend-Feed** — inbound webhook route for the monolith's product/store events and outbound `feed.post.published` per `Hare-AdminPanel/docs/EVENT_CONTRACT.md` (HMAC `X-Feed-Signature`, dedupe on `event_id`); Zod schemas for both directions
 - [ ] Monolith: `product_change_log` (store_id, product_id, field, old, new, changed_by, changed_at); `store_feed_eligibility` (default true); webhooks → feed `product.upserted|sold_out|price_changed`, `store.updated`, `order.delivered` (`source_post_id`); inbound `feed.post.published`; no order path depends on feed
 - [ ] Hare-Store Varer: create/edit/archive (name, description, images via existing Cloudinary path, category, price, availability) live immediately, every field change logged; price edit with sync-consequence copy; availability toggle with undo; search → one-tap sold-out with re-availability time; sold-out suggestion card from sales velocity
 - [ ] Hare-Store Poser: Forundringspose fields (quantity, price ≤ half-value floor, value floor, pickup window, allergen exclusions, net per bag, reservations with pickup code) on the existing surprise-bag backend
 
 Acceptance tests
-- [ ] Feed service `npm test`: 50-post fixture ranking obeys mix rule; hidden posts excluded from every tab
-- [ ] `ProductChangeLogTest`: editing name + price → two rows; `WebhookTest`: `product.price_changed` delivered ≤ 2s (retry on failure)
-- [ ] `FeedDegradationTest`: feed service unreachable → order placement, scan, delivery, payout all succeed; health reports degraded
+- [ ] `cd D:\work\hare\Aerend-Feed && git branch --show-current` prints `agil-1` (not `master`) — check this before every commit in that repo
+- [ ] Aerend-Feed: `npm run typecheck && npm run lint && npm test` all clean; new vitest cases prove a 50-post fixture obeys the mix rule and that `hidden`/`removed` posts appear in no tab; existing tests still pass
+- [ ] Aerend-Feed: `npm run db:generate` produces a migration that applies cleanly to a fresh local Postgres and is **additive** (no dropped/renamed existing columns — inspect the generated SQL in `drizzle/`)
+- [ ] Aerend-Feed: outbound `feed.post.published` payload validates field-for-field against `Hare-AdminPanel/tests/fixtures/events/feed.post.published.json`; a replayed `event_id` is deduped, not double-processed
+- [ ] `ProductChangeLogTest`: editing name + price → two rows; `WebhookTest`: `product.price_changed` delivered ≤ 2s with retry on failure
+- [ ] `FeedDegradationTest`: feed service unreachable → order placement, scan, delivery, payout all succeed; `/ready` reports degraded
+- [ ] ID-mapping check: a post published by a store resolves to the correct `store_details_id` → `provider_id` → `provider_service_id` chain per `FEED_SYSTEM.md` §2 (assert the customer feed shows it under the right store, not a neighbouring one)
 - [ ] Hare-Store widget tests: sold-out toggle undo restores state; Forundringspose price above half-value floor is rejected inline
 
 ---
 
-## Phase 9 — Feed publishing & oversight (Partner composer, customer tabs, admin)
-**Spec:** feed update spec §2.4, §3, §4. **Design:** Partner "Feed" (3-step composer, post list, detail sheet), `Kunde Bergen.dc.html` feed tabs + category chips + "Vågen"; admin Feed section (Order Ops §18.7).
+## Phase 9 — Feed publishing & oversight (Partner composer, customer tabs, admin) + launch-readiness gaps
+**Spec:** feed update spec §2.4, §3, §4. **Design:** Partner "Feed" (3-step composer, post list, detail sheet), `Kunde Bergen.dc.html` feed tabs + category chips + "Vågen"; admin Feed section (Order Ops §18.7). **Repo docs:** `Aerend-Feed/docs/FEED_HANDOVER_10DAYS.md` items T3–T8 land here — read each item's "What to build" before starting, it names the exact files.
 
 Tasks
 - [ ] Hare-Store composer: pick own product → headline + text (+ type) → preview as customer → publish; image default = product image; own post list sorted by attributed orders with reach; detail sheet (delete/expire); status "Skjult av Ærend"; scheduling/expiry; offline queue; service-down state; v1 rules: one product per post, composer blocks før-pris/discount copy; Innstillinger toggle "Ærend kan skrive om butikken min" + frequency (data only); "Din bestillingslenke" with lower-commission tracking
 - [ ] Aerend-app: tabs «Publisert av butikker» / «Publisert av Ærend»; category chips from config; post → live product detail; hidden posts vanish on fetch; fix reels tab (hide unless confirmed), header heart/message icons, kebab item; feed-follow pushes; "Vågen" hook emits `suggestion.reeled` per `EVENT_CONTRACT.md`
 - [ ] Admin: Ærend composer (any store product, publish now/schedule, draft→scheduled→live→hidden/removed, edit/unpublish); unified oversight (filter store/category/status/date, hide/remove with reason, immediate); eligibility toggle; change-log viewer with search; hide-product takeover; feed health card on Nå
+- [ ] **T3** story-expired-mid-view: `errorBuilder` on the story image → "This story is no longer available" + store name, auto-advance after 2s, skip to next store, clean exit when none remain (`Aerend-app/lib/screens/feed/storyViewer/story_viewer_screen.dart`)
+- [ ] **T4** "follows but no posts" empty state: add `hasFollows` to `FeedHomeLoaded`; `noItemsFoundIndicatorBuilder` picks `FeedEmptyFollowed` (zero follows, keeps Explore CTA) vs new `FeedEmptyNoPosts` (has follows, no CTA); ARB key `feed_empty_no_posts` in `intl_en.arb` + `intl_no.arb` ("De du følger har ikke postet ennå — sjekk tilbake snart!")
+- [ ] **T5** Cloudinary upload-failure UX in the Partner composer: pre-validate > 10 MB with an immediate dialog; on `CloudinaryUploadException` show a persistent inline error + Retry instead of a vanishing snackbar (`Hare-Store/lib/screens/feed/feed_composer_screen.dart`, exception already carries `message`/`statusCode`)
+- [ ] **T6** verify feed-JWT silent re-mint: confirm `FeedJwtService.forceRefresh()` really re-mints via Laravel `POST /api/auth/feed-token`, that the `feed_retry` flag prevents loops, and that a short-TTL token recovers transparently — fix only if broken
+- [ ] **T7** notification integration tests in Aerend-Feed: `processFeedNewPost` happy path / no followers / followers-without-tokens / 250-follower batch splitting (asserts `fetchDeviceTokens` called 3×), `processFeedNewComment`, `processFeedNewFollower`, and error resilience (network throw must propagate so BullMQ retries). Mock `fetchDeviceTokens` and `sendFeedFcmToTokens`; do **not** mock the DB
+- [ ] **T8** deep-link "post deleted": add `PostDetailNotFound` state, catch 404 specifically, render "This post is no longer available" + Go back — in both `Aerend-app/lib/screens/feed/postDetail/*` and `Hare-Store/lib/screens/feed/store_feed_post_detail_screen.dart`
 
 Acceptance tests
 - [ ] Integration: store publishes → appears in customer feed ≤ 5s under the store tab; admin hides → gone on next fetch; store post list shows "Skjult av Ærend"
 - [ ] Hare-Store test: copy "før 199, nå 149" rejected with compliance message; second product cannot be attached
 - [ ] Admin feature test: scheduled post flips to `live` at time; ineligible store's publish → 403 while its products stay live
 - [ ] Aerend-app test: hidden post removed from list after refetch; "Vågen" tap dispatches `suggestion.reeled` with the contract payload
+- [ ] T3: story with a deliberately broken `media_url` shows the expiry message and advances — no crash, no broken-image placeholder
+- [ ] T4: zero follows → Explore CTA; follows with no posts → `FeedEmptyNoPosts`, no CTA; follows with posts → neither empty state
+- [ ] T5: > 10 MB photo blocked before upload; airplane mode → inline error + working Retry; normal photo publishes unchanged
+- [ ] T6: with a 30s-TTL token the feed recovers after expiry with no error screen and no login prompt; normal TTL unaffected
+- [ ] T7: `cd D:\work\hare\Aerend-Feed && npm test -- test/notifications.test.ts` — all new cases pass, original 4 template tests still pass
+- [ ] T8: post detail for a deleted post (or `postId` 999999) shows "no longer available", not a generic error — verified in both apps
 
 ---
 
@@ -280,8 +306,13 @@ Tasks
 - [ ] Metrics jobs + dashboards: time (window hit-rate, MAE), handoff (scan success, fallback share), money (waiting share, payout latency), store (unseen rate, auto-pause count, level mix), courier (accept/decline/release, autopilot share), feed (posts/day, attributed orders, hide rate); alert routing table
 - [ ] Regression suite: automate the 17 Partner + 28 Bud demo-control scenarios as integration tests; Order Ops edge cases (offer expiry mid-add, sold-out at pickup, address change mid-run, feed down, key rotation mid-shift); load 500 orders / 200 couriers streaming
 - [ ] Merge prep: rebase on `main`; verify only owned paths changed (`git diff --stat main..agil-1`); `chore(shared)` commits isolated; feature flag per surface; rollback runbook; docs (API, events, policy keys) updated; execute merge-day checklist with agil-2
+- [ ] **Aerend-Feed merge guard:** that repo's deploy branch is `master` and pushes auto-deploy. Do **not** merge `agil-1` → `master` yourself. Rebase `agil-1` on `master`, run the full suite (`npm run typecheck && npm run lint && npm test`), push **`agil-1` only**, and hand the merge to a human (per `FEED_HANDOVER_10DAYS.md` §6, merging to deploy branches needs sign-off)
+- [ ] **Flag for a human, do not attempt** — these need prod access, a real device, or DO dashboard rights, so leave them as written notes in this file rather than acting: **T1** verify `GET /api/internal/feed-device-tokens` is live in prod (`curl` expects 401/403; a 404 means Laravel needs a `workflow_dispatch` deploy); **T2** push-notification E2E smoke test on two real devices (store publishes → customer push in ≤ 30s → deep-link; comment → store push), the single most important unverified path in the feed; **T9** delete the demo seed post still in prod (post id `1`, likely `store_details_id` 45 — confirm before deleting, real partner posts may exist); **T10** rotate `aerend-feed-pg` + `aerend-feed-redis` credentials and redeploy (do after T2, causes ~30s downtime)
+- [ ] Also flag the two out-of-band items from `FEED_HANDOVER_10DAYS.md` §4: partner content seeding (10–15 stores × 3–5 posts before launch — BD work, not engineering) and native Norwegian review of the 23 machine-translated feed ARB keys
 
 Acceptance tests
 - [ ] `SecurityTest`: unverified courier → 403 on go-online; drift staff → 403 on Oppgjør; old-key token valid until expiry, new-key token valid immediately
 - [ ] All 45 demo-control scenarios green; edge-case tests green; load test fan-out p95 < 1s
 - [ ] `git merge agil-1` onto `main` clean; post-merge master Week 10 regression green; every feature flag toggled off/on without errors
+- [ ] `cd D:\work\hare\Aerend-Feed && git log master..agil-1 --oneline` shows your work is on `agil-1` and `git log agil-1..master` shows you never pushed to `master`
+- [ ] T1/T2/T9/T10 each have a written status note in this file (done-by-human, blocked, or pending) — none silently dropped

@@ -21,6 +21,7 @@
 - Aerend-app: redux app-wide, bloc in feature modules; no points/Ægil UI exists (net-new under `lib/screens/points/*`, `lib/screens/aegil/*`); networking in `lib/networking/api_constant.dart`. Existing "Snurre" chat screen `lib/screens/snurre/snurre_chat_screen.dart` can be reused as the Ægil chat shell.
 - Hare-Store: custom bloc pattern; only `lib/screens/points/*` ("Tilby en premie") is yours.
 - Order completion today = `ProductBooking` status update in the Laravel app. Until merge, hook points onto that through an adapter (see §1).
+- The feed backend is a **separate service and database**, not the Laravel monolith: `D:\work\hare\Aerend-Feed` (npm `aerend-feed-service`, Fastify + Drizzle + Postgres + BullMQ, deployed on DigitalOcean, prod `https://aerend-feed-88chd.ondigitalocean.app`, API versioned `/v1/`). **It belongs to agil-1 — do not edit, migrate, or push it.** Your only contact points are the `feed.post.published` event (fixtures until merge day) and read-only `GET /v1/posts/{id}` for the news card, reached through the existing feed client in `Aerend-app/lib/networking/feed/*` with its JWT interceptor. If a task seems to need a feed-service change, that is an agil-1 dependency — note it and move on.
 
 **Commands to run for acceptance**
 - Backend: `php artisan test --filter=<Phase>` (tests under `tests/Feature/Points/*`, `tests/Feature/Agent/*`), `php artisan points:rebuild`, `php artisan migrate --pretend`.
@@ -42,6 +43,7 @@
 | Aerend-app | `lib/screens/points/*`, `lib/screens/aegil/*`, `lib/data/points/*`, `lib/data/aegil/*`, Meg section | tracking, feed, delivery code |
 | Hare-Store | `lib/screens/points/*` ("Tilby en premie") | everything else |
 | Hare-Driver | nothing (substrate is backend-only) | everything |
+| **Aerend-Feed** (feed service) | **nothing — never edit or push this repo.** You only *consume* its `feed.post.published` event (via fixtures until merge) and *read* `GET /v1/posts/{id}` for the chat news card | everything in `D:\work\hare\Aerend-Feed` |
 | Admin | Points (Dashboard, Ledger, Regler, Nivå, Premiehylla, Oppdrag, Liga, Svindel), Agenter | Nå, Unntak, Butikker, Bud, Feed, policy editor UI |
 
 **Sync points**
