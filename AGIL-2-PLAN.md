@@ -413,23 +413,63 @@ Spec: Points §Fløyen-ligaen, §Admin (Regler, Nivå, Oppdrag, Liga, Svindel), 
 
 ### Tasks
 
-- [ ] League: monthly opt-in, tier-blind, per-order cap points.league_cap_per_order; standings top-10 + own rank + "Din bydel"; league_month_end (freeze, fraud exclusion, prize assignment, twice-a-year top-3 cap); league screen in app
+- [x] League: monthly opt-in, tier-blind, per-order cap points.league_cap_per_order; standings top-10 + own rank + "Din bydel"; league_month_end (freeze, fraud exclusion, prize assignment, twice-a-year top-3 cap); league screen in app
 
-- [ ] Admin: Regler og satser (every points.* key, version history, what-if simulator replaying last 30 days without writes); Nivå (thresholds, population over time, review queue, protected_until, welcome pool, dry-run button); Oppdrag (templates, completion rates, kill switch); Liga (standings, exclusions, month-end run)
+- [x] Admin: Regler og satser (every points.* key, version history, what-if simulator replaying last 30 days without writes); Nivå (thresholds, population over time, review queue, protected_until, welcome pool, dry-run button); Oppdrag (templates, completion rates, kill switch); Liga (standings, exclusions, month-end run)
 
-- [ ] Hare-Store lib/screens/points/tilby_premie_*: proposal form (item/experience, quantity, window, price, band) → admin approve + price → partner-funded claims redeem as 0-kr order line with prize_claim_id (adapter on existing cart)
+- [x] Hare-Store lib/screens/points/tilby_premie_*: proposal form (item/experience, quantity, window, price, band) → admin approve + price → partner-funded claims redeem as 0-kr order line with prize_claim_id (adapter on existing cart)
 
-- [ ] Svindel og avvik v1: detectors for referral rings, self-referral, velocity anomalies, daily-catch abuse, mission farming, tier gaming → flags only (humans act)
+- [x] Svindel og avvik v1: detectors for referral rings, self-referral, velocity anomalies, daily-catch abuse, mission farming, tier gaming → flags only (humans act)
 
 ### Acceptance tests
 
-- [ ] LeagueTest: month-end freezes standings, excludes a flagged account, assigns prizes, refuses a third top-3 prize in a year for the same user
+- [x] LeagueTest: month-end freezes standings, excludes a flagged account, assigns prizes, refuses a third top-3 prize in a year for the same user
 
-- [ ] WhatIfTest: kjop_per_10kr=2 doubles reported issuance; ledger row count unchanged
+- [x] WhatIfTest: kjop_per_10kr=2 doubles reported issuance; ledger row count unchanged
 
-- [ ] PartnerPrizeTest: proposal → approval → claim → order contains a 0-kr line with prize_claim_id
+- [x] PartnerPrizeTest: proposal → approval → claim → order contains a 0-kr line with prize_claim_id
 
-- [ ] FraudTest: seeded self-referral raises exactly one flag and changes no balance
+- [x] FraudTest: seeded self-referral raises exactly one flag and changes no balance
+
+### Phase 5 notes
+
+**Done.** Backend Feature suite 229/229. Hare-Store `test/points` 13/13. Aerend-app
+`test/points` now 40 (10 new league tests). `flutter analyze` clean on all new code in both
+apps.
+
+**The three properties that keep the league on the right side of the ethics rule** are
+structural, not cosmetic, and each is asserted: it is **opt-in and monthly** (nobody is ranked
+without choosing, and the choice lapses), it is **tier-blind** (the same spend scores the same
+whatever mountain you are on — `test_the_league_is_tier_blind`), and it is **capped per
+order**. The card states the last two on its face so the league cannot be read as a second
+status ladder on Nivå.
+
+**Month-end order matters:** freeze → exclude → assign. Freezing first means the standings
+people saw are the ones that count; excluding after freezing means an exclusion cannot be
+dodged by a late surge. Excluded entries **keep their points** — exclusion is not confiscation.
+
+**Detectors flag and stop.** None of the six revoke points, suspend an account or touch a
+balance; the only automatic consequence is league exclusion, and even that leaves the points.
+`FraudTest::test_flagging_changes_no_balance` and the admin review test both assert it. One
+open flag per detector per user, so a nightly detector cannot bury the queue.
+
+**A partner never prices in points.** They propose and give a kroner value; Ærend sets the
+point price on approval. The Hare-Store form has no point-price field and says why — the
+absence should read as a rule, not an oversight. This is money-by-policy-key seen from the
+partner side.
+
+**The what-if simulator is arithmetic, not a re-run.** It restates each recorded earn against
+the proposed rates from what the row already stored (`meta.total_ore` for Kjøp), so it can
+never write. `WhatIfTest` asserts the ledger row count and every balance are identical
+afterwards.
+
+**Policy values are still not agil-2's to own.** `pts_policy_versions` records *what changed,
+when and why* so a ledger row stamped with a `policy_version` can be explained later; the
+values themselves stay wherever `PointsPolicy` resolves them. The admin screen says as much
+when you log a change.
+
+**Blade gotcha worth remembering:** the tab body chain used `@else` for the last branch, so
+appending `@elseif` after it was a parse error. All branches are now explicit `@elseif`.
 
 Phase 6 — Ægil settings, memory, product identity, onboarding
 
