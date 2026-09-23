@@ -191,45 +191,67 @@ those.
 
 ---
 
-## 1b. The screens are built but mostly unreachable — found 2026-09-23
+## 1b. The screens are built but not connected — found 2026-09-23
 
-**This is the biggest gap in the whole plan, and neither branch's notes mention
-it.** Both branches built their screens and tested them as widgets. Almost none
-of them are wired into app navigation, so running any of the three apps shows
-you the old app: the work is real, tested, and unreachable by a human.
+**Corrected after a second look.** The first version of this section said the
+screens only needed a navigation entry each. That was wrong, and the real
+situation is worse: **they are presentational widgets with no container layer.**
 
-Checked by looking for any file that constructs each entry point other than its
-own definition:
+### What is reachable today
 
-| App | Entry point | Reachable? |
+| Path | Reachable? | How |
 |---|---|---|
-| Hare-Store | `OpsShellScreen` (the host for all 23 ops screens) | **No** — referenced in 1 file, its own |
-| Hare-Store | `TilbyPremieScreen` (agil-2) | **No** |
-| Hare-Driver | `LiveStageScreen` (the courier run screen) | **No** — referenced in 1 file, its own |
-| Aerend-app | `FeedShellScreen` | **Yes** — from `home_v1.dart:91` and `home_main_v1.dart:231` |
+| Store publishes a feed post | **Yes** | `home_screen.dart:116` → `StoreFeedProfileScreen` → `FeedCreateOptionsSheet` → `FeedComposerScreen` |
+| Customer browses the feed | **Yes** | `home_v1.dart:91` and `home_main_v1.dart:231` → `FeedShellScreen` |
+| Customer opens a post from a push | **Yes** | `push_notification_service.dart:305` routes `feedNewPost` → `PostDetailScreen(postId:)` |
+| Partner ops surface (`OpsShellScreen`, 5 tabs, 23 screens) | **No** | nothing constructs it |
+| Courier run screen (`LiveStageScreen`) | **No** | nothing constructs it |
+| agil-2 Points surfaces (`TilbyPremieScreen`, `MegPointsCard`, `PremiehyllaShelf`, `WelcomeMoment`, `SuggestionTray`) | **No** | nothing constructs them |
+| `VaagenCard`, `DeliveryCodeCard`, `FeedPublisherTabs`, `OpsTrackingStatus` | **No** | nothing constructs them |
 
-And inside the customer app, where the shell *is* wired, the individual pieces
-mostly are not. Each of these is constructed in zero files other than its own:
-`VaagenCard`, `DeliveryCodeCard`, `FeedPublisherTabs`, `OpsTrackingStatus`,
-`MegPointsCard`, `PremiehyllaShelf`, `WelcomeMoment`, `SuggestionTray`. Only
-`FeedEmptyNoPosts` is used by a real parent.
+So the feed — the pre-agil-1 work — is wired end to end. Everything agil-1 and
+agil-2 added on top of it is not.
 
-**Why the tests did not catch it.** A widget test pumps the widget directly, so
-a screen nobody can navigate to passes its tests exactly as well as one anybody
-can. 666 green Flutter tests say every screen works; none of them says a screen
-is reachable.
+### Why it is not a routing fix
 
-**What this means for a manual pass.** Until this is wired, manual testing of
-the Partner and Bud apps is not possible at all, and the customer app shows the
-feed but not Vågen, the delivery code, the tracking status or any Points
-surface. Anyone opening the apps and concluding "no UI was built" is reading the
-evidence correctly — the wiring, not the screens, is what is missing.
+`OpsShellScreen` takes `required List<OpsOrder> orders` plus `onPrimaryAction`,
+`onReject`, `onAddTime`, `onMarkReady`, `onSeen`, and its banner state
+(`offline`, `paused`, `pulseLost`, `soldTonightOre`, `nextCourierEtaMinutes`).
+`LiveStageScreen` takes `required assignmentState`, `orderCode`, `address` and a
+dozen more. Every one of them is a pure function of props — which is why they
+test so cleanly, and why they cannot simply be pushed onto a navigator.
 
-**Roughly what it takes:** one navigation entry per app (a menu item, tab or
-route to `OpsShellScreen` and `LiveStageScreen`), plus placing the loose
-customer widgets in their parents — the tracking screen, the Meg section, the
-feed. Small per item, and nothing about it is hard; it was simply never anyone's
-task, because both plans described screens rather than routes.
+What is missing is the layer between them and the API:
+
+1. **A fetch that does not exist yet.** `lib/networking/ops/ops_api.dart` has
+   `heartbeat`, `devices`, `markSeen`, `transition` and `eventsSince` — there is
+   no "give me this store's current orders". `GET /api/ops/panel/now` is the
+   closest thing and it is admin-scoped, not store-scoped. Either the Partner app
+   builds its state from `eventsSince` or the backend needs a store snapshot
+   endpoint.
+2. **A container per shell** mapping that state into the widget's props and each
+   callback back onto `transition()`.
+3. **Then** the navigation entry. Both apps have a `DrawerEnum`-driven drawer, so
+   this last part really is a few lines.
+
+I attempted the navigation entry first and it failed to compile precisely
+because of this — `const OpsShellScreen()` has no valid zero-argument form. That
+failure is the useful evidence here, so it is recorded rather than tidied away.
+
+### Why the tests did not catch it
+
+A widget test pumps the widget with hand-built props, so a screen with no data
+source passes exactly as well as one with a working feed behind it. 666 green
+Flutter tests say every screen renders correctly from good data; not one says
+where that data comes from, or that a human can open the screen.
+
+### What this means for manual testing
+
+- **Feed and push (T2) can be tested today.** That path is complete on both
+  sides.
+- **The Partner ops surface, the courier run screen and every Points surface
+  cannot be tested at all**, by anyone, until the container layer exists. There
+  is no configuration, flag or seed that unlocks them.
 
 ---
 
