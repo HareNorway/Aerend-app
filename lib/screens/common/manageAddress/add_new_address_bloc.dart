@@ -56,7 +56,7 @@ class AddNewAddressBloc extends Bloc {
   }
 
   submit() {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     if (locationController.text.trim().isEmpty) {
       openSimpleSnackbar(languages.selectLocationMsg);
     } else if (landmarkController.text.trim().isEmpty) {

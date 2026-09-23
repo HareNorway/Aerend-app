@@ -25,7 +25,7 @@ class ChangePasswordDialogBloc extends Bloc {
   BehaviorSubject<ApiResponse<LoginPojo>> get subject => _subject;
 
   submit(int userId) async {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult != ConnectivityResult.none) {
       _subject.sink.add(ApiResponse.loading());

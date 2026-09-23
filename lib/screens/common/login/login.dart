@@ -1,34 +1,41 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../commonView/social_login.dart';
 import '../../../dialogs/forgotPasswordDialog/forgot_password_dialog.dart';
-import '../../../networking/api_base_helper.dart';
-import '../../../theme/design_scale.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../networking/api_constant.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
-import '../../../ui/kit/ae_rise_in.dart';
-import '../auth/auth_style.dart';
+import '../auth/onboarding_copy.dart';
+import '../auth/onboarding_kit.dart';
+import '../consent/consent_gate_screen.dart';
+import '../consent/reen_flip_mark.dart';
 import '../otpVerify/otp_verify.dart';
 import 'login_bloc.dart';
-import 'login_dl.dart';
+import 'vipps_login_helper.dart';
 
-enum _EmailTab { login, signup }
+enum _Step { landing, account }
 
-/// Login — mirrors `ConsumerLogin` (ui_kits/customer/Login.jsx, `.auth-body`).
+enum _AccountTab { register, login }
+
+/// Onboarding **Landing** + **Konto** — mirrors `onbErLanding` / `onbErKonto`
+/// in `Design/Ærend Kunde Bergen (frittstående).html`.
 ///
-/// Register stays **on this screen** (`.auth-emailtabs` → Opprett konto), then
-/// navigates to the OTP phone phase — never the old Create Account / Your
-/// Profile screens.
+/// Landing: Vipps / Google / Apple / e-post. Every method first passes the
+/// Vilkår step ([ConsentGateScreen], skipped once accepted), then either
+/// signs in with the provider or opens Konto (e-post). Konto registers
+/// (stash credentials → [OtpVerify] phone step) or logs in.
 class Login extends StatefulWidget {
   final bool returnOnSuccess;
+
+  /// Open straight on Konto (e-post) instead of the landing.
   final bool openEmailForm;
+
+  /// Open Konto on the "Opprett konto" tab.
   final bool startOnRegisterTab;
 
-  /// Nullable so a hot-reloaded `Login()` built before this field existed
-  /// does not throw (`Null is not a subtype of bool`).
+  /// Kept for call sites from the old consent-first flow; no longer used.
+  /// Nullable so a hot-reloaded `Login()` built before it existed is safe.
   final bool? fromConsent;
 
   const Login({
@@ -47,85 +54,178 @@ class Login extends StatefulWidget {
 
 class LoginState extends State<Login> {
   late final LoginBloc _bloc;
-  late bool _emailOpen;
-  late _EmailTab _emailTab;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _referralController = TextEditingController();
 
-  /// Vipps/Google/Apple have no button of their own to spin — without this the
-  /// screen sits dead between the provider sheet closing and the login call
-  /// landing. Coral, because `.reen-pre` owns every pre-club surface.
-  bool _socialBusy = false;
-  StreamSubscription<ApiResponse<LoginPojo>>? _loginSub;
+  late _Step _step;
+  late _AccountTab _tab;
 
-  Duration get _dTitle => widget.enteredFromConsent
-      ? const Duration(milliseconds: 140)
-      : const Duration(milliseconds: 120);
-  Duration get _dSubtitle => widget.enteredFromConsent
-      ? const Duration(milliseconds: 200)
-      : const Duration(milliseconds: 190);
+  /// The splash mark's on-screen rect, for the splash → landing FLIP.
+  Rect? _splashFrom;
+
+  /// Blocks the screen while a provider login call is running — tied to the
+  /// call and always released, so a success that doesn't leave this screen
+  /// (session not saved, OTP screen popped back) can't lock it.
+  bool _busy = false;
+
+  String _referralNote = '';
+  bool _referralSaved = false;
 
   @override
   void initState() {
     super.initState();
     _bloc = LoginBloc(context, this);
-    _emailOpen = widget.openEmailForm || widget.startOnRegisterTab;
-    _emailTab = widget.startOnRegisterTab ? _EmailTab.signup : _EmailTab.login;
-    _loginSub = _bloc.subject.listen(_onLoginState);
-  }
-
-  /// Hold the loader through a successful response — `manageLoginResponse`
-  /// emits `completed` *before* it navigates. Anything else (error, or a
-  /// non-1 status that only raises a snackbar) has to release it.
-  void _onLoginState(ApiResponse<LoginPojo> response) {
-    if (!mounted || !_socialBusy) return;
-    if (response.status == Status.loading) return;
-    if (response.status == Status.completed && response.data?.status == 1) {
-      return;
+    _step = (widget.openEmailForm || widget.startOnRegisterTab)
+        ? _Step.account
+        : _Step.landing;
+    _tab = widget.startOnRegisterTab ? _AccountTab.register : _AccountTab.login;
+    if (_step == _Step.landing) _splashFrom = ReenMarkHandoff.takeSplash();
+    final pending = prefGetString(prefPendingReferCode);
+    if (pending.isNotEmpty && !_referralFromLink) {
+      _referralController.text = pending;
+      _referralSaved = true;
+      _referralNote = OnbCopy.referralSaved;
     }
-    setState(() => _socialBusy = false);
   }
 
   @override
   void dispose() {
-    _loginSub?.cancel();
+    _nameController.dispose();
+    _referralController.dispose();
     _bloc.dispose();
     super.dispose();
   }
 
-  Widget _rise(Widget child, Duration delay) {
-    return AeRiseIn(
-      delay: delay,
-      duration: Duration(milliseconds: widget.enteredFromConsent ? 520 : 600),
-      offsetY: widget.enteredFromConsent ? 14 : 16,
-      child: child,
+  bool get _referralFromLink =>
+      prefGetBool(prefPendingReferFromLink) &&
+      prefGetString(prefPendingReferCode).isNotEmpty;
+
+  bool get _hasReferral => prefGetString(prefPendingReferCode).isNotEmpty;
+
+  // ── Validation (design `regOk` / `loggOk`) ────────────────────────────────
+
+  static final RegExp _emailRe = RegExp(r'.+@.+\..+');
+
+  String get _name => _nameController.text.trim();
+  String get _email => _bloc.emailController.text.trim();
+  String get _pass => _bloc.passController.text;
+
+  bool get _nameOk => _name.length > 1;
+  bool get _emailOk => _emailRe.hasMatch(_email);
+  bool get _passOk => _pass.length >= 6;
+  bool get _registerOk => _nameOk && _emailOk && _passOk;
+
+  /// Login also accepts a phone number, like the API does.
+  bool get _loginIdOk =>
+      _email.isNotEmpty && validateEmailOrNumber(_email).isEmpty;
+  bool get _loginOk => _loginIdOk && _pass.isNotEmpty;
+
+  // ── Flow ──────────────────────────────────────────────────────────────────
+
+  /// Vilkår step — once per device. True when accepted.
+  Future<bool> _ensureTerms() async {
+    if (prefGetBool(prefTermsAccepted)) return true;
+    final accepted = await Navigator.of(
+      context,
+    ).push<bool>(buildNavyHandoffRoute<bool>(const ConsentGateScreen()));
+    if (!mounted) return false;
+    if (accepted == true) return true;
+    if (accepted == false && !widget.returnOnSuccess) {
+      // Avvis → look around as a guest (design `onbAvvis`).
+      openSimpleSnackbar(OnbCopy.declinedToast);
+      continueAsGuest(context);
+    }
+    return false;
+  }
+
+  Future<void> _withBusy(Future<void> Function() run) async {
+    setState(() => _busy = true);
+    try {
+      await run();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _onVipps() async {
+    if (!await _ensureTerms()) return;
+    if (!mounted) return;
+    VippsLoginHelper.signInWithVipps(
+      context,
+      onSuccess: (response) async {
+        if (!mounted) return;
+        await manageLoginResponse(
+          context,
+          response,
+          popOnSuccess: widget.returnOnSuccess,
+        );
+      },
+      onError: (message) => openSimpleSnackbar(message),
     );
   }
 
-  Widget _fromConsentRise(Widget child, int delayMs) {
-    if (!widget.enteredFromConsent) return child;
-    return AeRiseIn(
-      delay: Duration(milliseconds: delayMs),
-      duration: const Duration(milliseconds: 520),
-      offsetY: 14,
-      child: child,
+  Future<void> _onProvider(Future<SocialAccount?> Function() pick) async {
+    if (!await _ensureTerms()) return;
+    final account = await pick();
+    if (account == null || !mounted) return;
+    await _withBusy(
+      () => _bloc.login(
+        account.loginType,
+        account.email,
+        account.name,
+        account.id,
+      ),
     );
   }
 
-  Future<void> _onEmailPrimary() async {
-    if (_emailTab == _EmailTab.login) {
-      _bloc.manageEmailLogin(loginTypeEmail);
+  Future<void> _onEmail() async {
+    if (!await _ensureTerms()) return;
+    if (!mounted) return;
+    setState(() {
+      _step = _Step.account;
+      _tab = _AccountTab.register;
+    });
+  }
+
+  void _toLanding() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _step = _Step.landing;
+      _splashFrom = null;
+    });
+  }
+
+  void _onReferralApply() {
+    final code = _referralController.text.trim().toUpperCase();
+    if (code.isEmpty) {
+      setState(() {
+        _referralSaved = false;
+        _referralNote = OnbCopy.referralEmpty;
+      });
       return;
     }
-    // Registrer → Opprett konto: stash credentials, open OTP phone phase.
     FocusManager.instance.primaryFocus?.unfocus();
-    if (!_bloc.formKey.currentState!.validate()) return;
+    prefSetString(prefPendingReferCode, code);
+    prefSetBool(prefPendingReferFromLink, false);
+    setState(() {
+      _referralController.text = code;
+      _referralSaved = true;
+      _referralNote = OnbCopy.referralSaved;
+    });
+  }
 
-    final email = _bloc.emailController.text.trim();
-    final pass = _bloc.passController.text.trim();
-    final name = email.contains('@') ? email.split('@').first : email;
+  /// "Opprett konto" — stash credentials, then the OTP phone step registers.
+  Future<void> _onRegister() async {
+    if (!_registerOk) {
+      openSimpleSnackbar(OnbCopy.registerMissing);
+      return;
+    }
+    if (!await _ensureTerms()) return;
+    FocusManager.instance.primaryFocus?.unfocus();
 
-    await prefSetString(prefEmail, email);
-    await prefSetString(prefPassword, pass);
-    await prefSetString(prefUserName, name.isEmpty ? 'Bruker' : name);
+    await prefSetString(prefEmail, _email);
+    await prefSetString(prefPassword, _pass.trim());
+    await prefSetString(prefUserName, _name);
     await prefSetString(prefContactNumber, '');
     if (prefGetString(prefCountryCode).isEmpty) {
       await prefSetString(prefCountryCode, '+47');
@@ -136,24 +236,20 @@ class LoginState extends State<Login> {
       await prefSetBool(prefAuthReturnOnSuccess, true);
     }
     if (!mounted) return;
-    openScreen(context, const OtpVerify());
+    Navigator.of(context).push(buildNavyHandoffRoute(const OtpVerify()));
   }
 
-  // Design px on the 375×812 reference frame. Each is passed through
-  // `context.dp()` at the use site so the layout keeps the same proportion of
-  // the screen on wider devices — exact at 375, scaled beyond it.
-  static const double _headMarginTop = 24; // .auth-head margin-top (inline)
-  static const double _logoMarginBottom = 18; // .auth-logo-wrap margin-bottom
-  static const double _titleMarginBottom = 8; // .auth-head h1 margin-bottom
-  static const double _headMarginBottom = 22; // .auth-head margin-bottom
-  // `.auth-methods { margin-top: 18px }` only — the referral widgets already
-  // carry `.reg-invite`/`.reg-organic`'s own 16px bottom margin internally.
-  static const double _methodsMarginTop = 18;
-  static const double _methodsGap = 11; // .auth-methods gap
-  // .auth-methods gap + .auth-email-link margin-top 2 / .auth-email-form 4.
-  static const double _methodsToEmailLink = _methodsGap + 2;
-  static const double _methodsToEmailForm = _methodsGap + 4;
-  static const double _guestMarginTop = 14; // .auth-guest margin-top
+  Future<void> _onLogin() async {
+    if (!_loginOk) {
+      openSimpleSnackbar(OnbCopy.loginMissing);
+      return;
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
+    await _withBusy(
+      () =>
+          _bloc.loginApiCall(loginTypeEmail, _email, _pass.trim(), "", "", ""),
+    );
+  }
 
   void _onLanguageToggle(bool isNorwegian) {
     final code = isNorwegian ? 'no' : 'en';
@@ -161,443 +257,703 @@ class LoginState extends State<Login> {
     setChangedLanguage(context, code, this);
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final isNorwegian = resolveSelectedLanguage() == 'no';
-    return AuthScaffold(
-      // Top-right language pill — mirrors design lang toggle (NO | EN).
-      overlay: [
-        Positioned(
-          top: context.dp(8),
-          right: context.dp(16),
-          child: _AuthLanguageToggle(
-            isNorwegian: isNorwegian,
-            onChanged: _onLanguageToggle,
-          ),
-        ),
-        if (_socialBusy)
-          Positioned.fill(
-            child: AbsorbPointer(
-              child: ColoredBox(
-                color: AerendBergenAuthTokens.navy.withValues(alpha: 0.72),
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    color: AerendBergenAuthTokens.orange,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(height: context.dp(_headMarginTop)),
-          AuthAnimatedLogo(fromConsent: widget.enteredFromConsent),
-          SizedBox(height: context.dp(_logoMarginBottom)),
-          _rise(
-            Text(
-              languages.dgAuthLoginTitle,
-              textAlign: TextAlign.center,
-              style: authTitleStyle(context),
-            ),
-            _dTitle,
-          ),
-          SizedBox(height: context.dp(_titleMarginBottom)),
-          _rise(
-            Center(
-              child: ConstrainedBox(
-                // .auth-head p { max-width: 30ch } ≈ 268px at 14px
-                constraints: BoxConstraints(maxWidth: context.dp(268)),
-                child: Text(
-                  languages.dgAuthLoginSubtitle,
-                  textAlign: TextAlign.center,
-                  style: authSubtitleStyle(context),
-                ),
-              ),
-            ),
-            _dSubtitle,
-          ),
-          SizedBox(height: context.dp(_headMarginBottom + _methodsMarginTop)),
-          SocialLogin(
-            spacing: context.dp(_methodsGap),
-            wrapButton: widget.enteredFromConsent
-                ? (child, index) => AeRiseIn(
-                    delay: Duration(milliseconds: 360 + index * 50),
-                    duration: const Duration(milliseconds: 520),
-                    offsetY: 14,
-                    child: child,
-                  )
-                : null,
-            function:
-                ({String? email, String? name, String? id, String? loginType}) {
-                  setState(() => _socialBusy = true);
-                  _bloc.login(loginType!, email ?? "", name ?? "", id ?? "");
-                },
-          ),
-          SizedBox(
-            height: context.dp(
-              _emailOpen ? _methodsToEmailForm : _methodsToEmailLink,
-            ),
-          ),
-          _fromConsentRise(
-            _emailOpen ? _buildEmailForm(context) : _buildEmailLink(context),
-            410,
-          ),
-          SizedBox(height: context.dp(_guestMarginTop)),
-          _fromConsentRise(_buildGuestLink(context), 460),
-          // No Spacer / bottom group on the start view — `.auth-guest` is the
-          // last element in the scroll body and SafeArea absorbs the inset.
-        ],
-      ),
-    );
-  }
-
-  /// `.auth-email-link` — 13.5px / 700 / gray-500 / underlined, self-centred.
-  Widget _buildEmailLink(BuildContext context) {
-    return Center(
-      child: TextButton(
-        onPressed: () => setState(() => _emailOpen = true),
-        style: TextButton.styleFrom(
-          padding: EdgeInsets.all(context.dp(4)),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        child: Text(
-          languages.dgAuthEmailToggle,
-          style: TextStyle(
-            fontSize: context.dp(13.5),
-            fontWeight: FontWeight.w700,
-            color: const Color(0xE6FFFFFF),
-            decoration: TextDecoration.underline,
-            decorationColor: const Color(0xE6FFFFFF),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// `.auth-email-form { gap: 12; background: gray-50; radius: 16; pad: 14 }`
-  Widget _buildEmailForm(BuildContext context) {
-    final isSignup = _emailTab == _EmailTab.signup;
-    final gap = SizedBox(height: context.dp(12));
-    return Container(
-      padding: EdgeInsets.all(context.dp(14)),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0x1AFFFFFF), Color(0x09FFFFFF)],
-        ),
-        borderRadius: BorderRadius.circular(context.dp(16)),
-        border: Border.all(color: AerendBergenAuthTokens.glassBorder),
-      ),
-      child: Form(
-        key: _bloc.formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildEmailTabs(context),
-            gap,
-            AuthField(
-              label: languages.email,
-              hint: languages.authEnterEmailOrNumber,
-              controller: _bloc.emailController,
-              keyboardType: TextInputType.emailAddress,
-              validator: validateEmailOrNumber,
-              onValidate: _bloc.buttonHide,
-            ),
-            gap,
-            AuthField(
-              label: languages.password,
-              hint: languages.authEnterPassword(
-                languages.password.toLowerCase(),
-              ),
-              controller: _bloc.passController,
-              textInputAction: TextInputAction.done,
-              password: true,
-              validator: (value) {
-                if (value.trim().isEmpty) return languages.enterPass;
-                return "";
-              },
-              onValidate: _bloc.buttonHide,
-            ),
-            gap,
-            StreamBuilder<bool>(
-              stream: _bloc.submitValid,
-              builder: (context, snapshot) {
-                final isEnable = snapshot.data ?? false;
-                return StreamBuilder<ApiResponse<LoginPojo>>(
-                  stream: _bloc.subject,
-                  builder: (context, snapLoading) {
-                    final isLoading =
-                        snapLoading.hasData &&
-                        snapLoading.data?.status == Status.loading;
-                    return AuthPrimaryButton(
-                      label: isSignup ? kAoCreateAccountCta : languages.login,
-                      isLoading: isLoading,
-                      onPressed: (isLoading || !isEnable)
-                          ? null
-                          : _onEmailPrimary,
-                    );
-                  },
-                );
-              },
-            ),
-            // .auth-forgot { margin-top: -4 } against the form's 12px gap.
-            if (!isSignup)
-              Padding(
-                padding: EdgeInsets.only(top: context.dp(12 - 4)),
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton(
-                    onPressed: () => showForgotPasswordSheet(context),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      languages.forgotPass,
-                      style: authLabelStyle(context).copyWith(
-                        color: AerendBergenAuthTokens.orange,
-                        fontSize: context.dp(13),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// `.auth-emailtabs` — white selected pill + coral label (Design Reen).
-  Widget _buildEmailTabs(BuildContext context) {
-    final selectedLogin = _emailTab == _EmailTab.login;
-
-    Widget tab(String label, bool selected, VoidCallback onTap) {
-      return Expanded(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: Padding(
-            padding: EdgeInsets.all(context.dp(8)),
-            child: AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 250),
-              style: TextStyle(
-                fontSize: context.dp(13),
-                fontWeight: FontWeight.w800,
-                height: 1.15,
-                color: selected
-                    ? AerendBergenAuthTokens.orange
-                    : const Color(0x8CFFFFFF),
-              ),
-              child: Text(label, textAlign: TextAlign.center),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return IntrinsicHeight(
-      child: Container(
-        padding: EdgeInsets.all(context.dp(4)),
-        decoration: BoxDecoration(
-          color: const Color(0x38000000),
-          borderRadius: BorderRadius.circular(context.dp(11)),
-          border: Border.all(color: const Color(0x1AFFFFFF)),
-        ),
-        child: Stack(
-          children: [
+    final onAccount = _step == _Step.account;
+    return PopScope(
+      canPop: !onAccount || widget.openEmailForm || widget.startOnRegisterTab,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && onAccount) _toLanding();
+      },
+      child: OnbScaffold(
+        step: onAccount ? 1 : null,
+        overlay: [
+          if (_busy)
             Positioned.fill(
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 300),
-                curve: const Cubic(0.4, 0, 0.2, 1),
-                alignment: selectedLogin
-                    ? Alignment.centerLeft
-                    : Alignment.centerRight,
-                child: FractionallySizedBox(
-                  widthFactor: 0.5,
-                  heightFactor: 1,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment(-0.5, -0.85),
-                        end: Alignment(0.5, 0.85),
-                        colors: [
-                          Color(0xFFFFFFFF),
-                          Color(0xFFF6F8FA),
-                          Color(0xFFE9EDF2),
-                        ],
-                        stops: [0.0, 0.55, 1.0],
-                      ),
-                      borderRadius: BorderRadius.circular(context.dp(8)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0x66000000),
-                          blurRadius: context.dp(8),
-                          offset: Offset(0, context.dp(3)),
-                          spreadRadius: context.dp(-3),
-                        ),
-                      ],
-                    ),
+              child: AbsorbPointer(
+                child: ColoredBox(
+                  color: OnbColors.navy.withValues(alpha: .55),
+                  child: const Center(
+                    child: CircularProgressIndicator(color: OnbColors.orange),
                   ),
                 ),
               ),
             ),
-            Row(
-              children: [
-                tab(
-                  languages.login,
-                  selectedLogin,
-                  () => setState(() => _emailTab = _EmailTab.login),
-                ),
-                tab(
-                  languages.register,
-                  !selectedLogin,
-                  () => setState(() => _emailTab = _EmailTab.signup),
-                ),
-              ],
-            ),
-          ],
+        ],
+        child: KeyedSubtree(
+          key: ValueKey(_step),
+          child: OnbEnter(
+            child: onAccount ? _buildAccount(context) : _buildLanding(context),
+          ),
         ),
       ),
     );
   }
 
-  /// `.auth-guest` — width 100% / padding 14 / gap 7.
-  Widget _buildGuestLink(BuildContext context) {
-    return TextButton(
-      onPressed: () => continueAsGuest(context),
-      style: TextButton.styleFrom(
-        foregroundColor: AerendBergenAuthTokens.orange,
-        minimumSize: const Size.fromHeight(0),
-        padding: EdgeInsets.all(context.dp(14)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+  // ── Landing ───────────────────────────────────────────────────────────────
+
+  Widget _buildLanding(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    final invited = _referralFromLink;
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(22, top + 6, 22, bottom + 26),
+      child: Column(
         children: [
-          Icon(Icons.search_rounded, size: context.dp(15)),
-          SizedBox(width: context.dp(7)),
-          Text(
-            languages.dgAuthBrowseFirst,
-            style: TextStyle(
-              fontSize: context.dp(14),
-              fontWeight: FontWeight.w800,
-              letterSpacing: context.dp(14) * -0.01,
-              color: AerendBergenAuthTokens.orange,
+          Align(
+            alignment: Alignment.centerRight,
+            child: OnbLanguagePill(
+              isNorwegian: resolveSelectedLanguage() != 'en',
+              onChanged: _onLanguageToggle,
+            ),
+          ),
+          const SizedBox(height: 4),
+          ReenFlipMark(
+            from: _splashFrom,
+            duration: const Duration(milliseconds: 620),
+            child: const OnbStickerMark(),
+          ),
+          const SizedBox(height: 8),
+          OnbRise(
+            delayMs: 100,
+            child: Text(
+              OnbCopy.landingTitle,
+              textAlign: TextAlign.center,
+              style: onbDisplay(27, letterSpacingEm: -.035, height: 1.12),
+            ),
+          ),
+          const SizedBox(height: 7),
+          OnbRise(
+            delayMs: 160,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 270),
+              child: Text(
+                OnbCopy.landingSubtitle,
+                textAlign: TextAlign.center,
+                style: onbText(12.5, height: 1.45, color: OnbColors.subtitle),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          AegilSays(asset: OnbAegil.landing, text: OnbCopy.aegilLanding),
+          const SizedBox(height: 14),
+          if (invited) _buildInviteCard() else _buildReferralInput(),
+          const SizedBox(height: 16),
+          _buildMethods(),
+          const SizedBox(height: 15),
+          OnbRise(
+            delayMs: 520,
+            durationMs: 400,
+            child: OnbTextLink(
+              label: OnbCopy.withEmail,
+              onTap: _onEmail,
+              color: Colors.white,
+              underline: true,
+            ),
+          ),
+          const SizedBox(height: 12),
+          OnbRise(
+            delayMs: 580,
+            durationMs: 400,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => continueAsGuest(context),
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    OnbIcons.of(OnbIcons.search, 15),
+                    const SizedBox(width: 7),
+                    Text(
+                      OnbCopy.browseFirst,
+                      style: onbText(
+                        12.5,
+                        weight: FontWeight.w800,
+                        color: OnbColors.orangeLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
   }
-}
 
-/// Compact NO | EN pill — top-right on Login (Design `.ae-lang` on navy).
-class _AuthLanguageToggle extends StatelessWidget {
-  final bool isNorwegian;
-  final ValueChanged<bool> onChanged;
-
-  const _AuthLanguageToggle({
-    required this.isNorwegian,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Language',
-      child: Container(
-        padding: EdgeInsets.all(context.dp(3)),
-        decoration: BoxDecoration(
-          color: const Color(0x38000000),
-          borderRadius: BorderRadius.circular(context.dp(20)),
-          border: Border.all(color: const Color(0x47000000)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x4D000000),
-              blurRadius: 2,
-              offset: Offset(0, 1),
-              spreadRadius: -1,
-            ),
-          ],
-        ),
-        child: IntrinsicHeight(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: AnimatedAlign(
-                  duration: const Duration(milliseconds: 250),
-                  curve: const Cubic(0.4, 0, 0.2, 1),
-                  alignment: isNorwegian
-                      ? Alignment.centerLeft
-                      : Alignment.centerRight,
-                  child: FractionallySizedBox(
-                    widthFactor: 0.5,
-                    heightFactor: 1,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(context.dp(16)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0x33000000),
-                            blurRadius: context.dp(3),
-                            offset: Offset(0, context.dp(1)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+  /// Opened from a referral link: "Du er vervet · +50 poeng til dere begge".
+  Widget _buildInviteCard() {
+    return OnbSlap(
+      delayMs: 300,
+      scales: const [1.7, .96, 1.03, 1],
+      degs: const [-14, -4, -6.5, -6],
+      child: OnbGlassCard(
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                width: 46,
+                height: 46,
+                color: const Color(0x1FFFFFFF),
+                child: Image.asset(OnbAegil.invite, fit: BoxFit.cover),
               ),
-              Row(
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _chip(context, 'NO', isNorwegian, () => onChanged(true)),
-                  _chip(context, 'EN', !isNorwegian, () => onChanged(false)),
+                  Text(
+                    OnbCopy.invitedTitle,
+                    style: onbDisplay(13.5, letterSpacingEm: -.015),
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Container(
+                        width: 15,
+                        height: 15,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          color: OnbColors.mint,
+                          shape: BoxShape.circle,
+                        ),
+                        child: OnbIcons.of(OnbIcons.check('#0F1F2B', 4), 9),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        OnbCopy.invitedPoints,
+                        style: onbText(
+                          11,
+                          weight: FontWeight.w700,
+                          color: OnbColors.mintText,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// No referral link: optional code + "Bruk".
+  Widget _buildReferralInput() {
+    final hasText = _referralController.text.trim().length > 3;
+    final note = _referralNote.isEmpty ? OnbCopy.referralPrompt : _referralNote;
+    return OnbRise(
+      durationMs: 350,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: onbPaperShadow(y: 12, blur: 20),
+                  ),
+                  child: TextField(
+                    controller: _referralController,
+                    textCapitalization: TextCapitalization.characters,
+                    textInputAction: TextInputAction.done,
+                    inputFormatters: [LengthLimitingTextInputFormatter(14)],
+                    onChanged: (_) => setState(() {
+                      _referralSaved = false;
+                      _referralNote = '';
+                    }),
+                    onSubmitted: (_) => _onReferralApply(),
+                    cursorColor: OnbColors.orange,
+                    style: onbText(
+                      13.5,
+                      weight: FontWeight.w800,
+                      letterSpacingEm: .02,
+                      color: OnbColors.ink,
+                    ),
+                    decoration: onbBareInput(
+                      hint: OnbCopy.referralHint,
+                      hintStyle: onbText(
+                        13.5,
+                        weight: FontWeight.w800,
+                        letterSpacingEm: .02,
+                        color: OnbColors.placeholder,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OnbPressable(
+                onTap: _onReferralApply,
+                pressDy: 2,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: OnbColors.orange.withValues(alpha: hasText ? 1 : .3),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color.fromRGBO(184, 58, 12, .7),
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    OnbCopy.referralApply,
+                    style: onbText(12.5, weight: FontWeight.w800),
+                  ),
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 6),
+          Text(
+            note,
+            style: onbText(
+              10.5,
+              weight: FontWeight.w700,
+              color: _referralSaved
+                  ? OnbColors.mintText
+                  : const Color(0x80FFFFFF),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _chip(
-    BuildContext context,
-    String label,
-    bool selected,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: context.dp(10),
-          vertical: context.dp(6),
+  Widget _buildMethods() {
+    final buttons = <Widget>[
+      if (AppFeatureFlags.showVippsLogin) _MethodButton.vipps(onTap: _onVipps),
+      _MethodButton.white(
+        icon: Image.asset(
+          'assets/images/google_standard_color.png',
+          width: 18,
+          height: 18,
         ),
-        child: AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 200),
-          style: TextStyle(
-            fontSize: context.dp(11),
-            fontWeight: FontWeight.w800,
-            letterSpacing: context.dp(11) * 0.04,
-            height: 1.1,
-            color: selected ? AerendBergenAuthTokens.orange : const Color(0x8CFFFFFF),
+        label: OnbCopy.continueGoogle,
+        onTap: () => _onProvider(pickGoogleAccount),
+      ),
+      if (Theme.of(context).platform == TargetPlatform.iOS)
+        _MethodButton.white(
+          icon: const Icon(Icons.apple, size: 19, color: OnbColors.navy),
+          label: OnbCopy.continueApple,
+          onTap: () => _onProvider(pickAppleAccount),
+        ),
+    ];
+    return Column(
+      children: [
+        for (var i = 0; i < buttons.length; i++) ...[
+          if (i > 0) const SizedBox(height: 9),
+          OnbRise(
+            delayMs: 340 + 60.0 * i,
+            durationMs: 400,
+            child: SizedBox(width: double.infinity, child: buttons[i]),
           ),
-          child: Text(label),
+        ],
+      ],
+    );
+  }
+
+  // ── Konto ─────────────────────────────────────────────────────────────────
+
+  Widget _buildAccount(BuildContext context) {
+    final register = _tab == _AccountTab.register;
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(22, onbTopInset(context), 22, bottom + 26),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          OnbSegmented(
+            labels: [OnbCopy.tabRegister, OnbCopy.tabLogin],
+            index: register ? 0 : 1,
+            onChanged: (i) => setState(
+              () => _tab = i == 0 ? _AccountTab.register : _AccountTab.login,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            register ? OnbCopy.registerTitle : OnbCopy.loginTitle,
+            style: onbDisplay(24, letterSpacingEm: -.03),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            register ? OnbCopy.registerSubtitle : OnbCopy.loginSubtitle,
+            style: onbText(12.5, height: 1.45, color: OnbColors.subtitle),
+          ),
+          const SizedBox(height: 12),
+          AegilSays(
+            asset: OnbAegil.account,
+            text: OnbCopy.aegilAccount,
+            avatarSize: 48,
+            avatarRadius: 16,
+            bubbleRadius: 16,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            showLabel: false,
+            fontSize: 12,
+            floorShadow: false,
+            delayMs: 160,
+          ),
+          const SizedBox(height: 18),
+          if (register) ..._registerFields() else ..._loginFields(),
+          const SizedBox(height: 20),
+          OnbTextLink(
+            label: OnbCopy.backToLanding,
+            onTap: _toLanding,
+            size: 12,
+            color: const Color(0x73FFFFFF),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _registerFields() {
+    final pass = _pass;
+    final strength = pass.length >= 10
+        ? 3
+        : pass.length >= 6
+        ? 2
+        : pass.isNotEmpty
+        ? 1
+        : 0;
+    final strengthColor = strength == 3
+        ? OnbColors.mint
+        : strength == 2
+        ? const Color(0xFFF2C14E)
+        : OnbColors.error;
+    final strengthText = switch (strength) {
+      0 => '',
+      1 => OnbCopy.strengthShort,
+      2 => OnbCopy.strengthOk,
+      _ => OnbCopy.strengthStrong,
+    };
+    final strengthTextColor = strength == 3
+        ? OnbColors.mintText
+        : strength == 2
+        ? const Color(0xFFF2C14E)
+        : const Color(0xFFF09578);
+    void refresh(String _) => setState(() {});
+    return [
+      OnbField(
+        label: OnbCopy.fullName,
+        hint: OnbCopy.fullNameHint,
+        icon: OnbIcons.user,
+        controller: _nameController,
+        textCapitalization: TextCapitalization.words,
+        autofillHints: const [AutofillHints.name],
+        accent: _nameOk ? OnbColors.mintDeep : OnbColors.accentIdle,
+        onChanged: refresh,
+      ),
+      const SizedBox(height: 13),
+      OnbField(
+        label: OnbCopy.email,
+        hint: OnbCopy.emailHint,
+        icon: OnbIcons.mail,
+        controller: _bloc.emailController,
+        keyboardType: TextInputType.emailAddress,
+        autofillHints: const [AutofillHints.email],
+        accent: _emailOk ? OnbColors.mintDeep : OnbColors.accentIdle,
+        onChanged: refresh,
+      ),
+      const SizedBox(height: 13),
+      OnbField(
+        label: OnbCopy.password,
+        hint: OnbCopy.passwordHintNew,
+        icon: OnbIcons.lock,
+        controller: _bloc.passController,
+        obscure: true,
+        textInputAction: TextInputAction.done,
+        autofillHints: const [AutofillHints.newPassword],
+        accent: _passOk
+            ? OnbColors.mintDeep
+            : pass.isNotEmpty
+            ? OnbColors.orange
+            : OnbColors.accentIdle,
+        onChanged: refresh,
+        onSubmitted: (_) => _onRegister(),
+      ),
+      const SizedBox(height: 10),
+      Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                for (var i = 0; i < 3; i++) ...[
+                  if (i > 0) const SizedBox(width: 4),
+                  Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: i < strength
+                            ? strengthColor
+                            : const Color(0x24FFFFFF),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            strengthText,
+            style: onbText(
+              10.5,
+              weight: FontWeight.w800,
+              color: strengthTextColor,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 13),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(92, 224, 184, .12),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color.fromRGBO(92, 224, 184, .3)),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                OnbAegil.account,
+                width: 38,
+                height: 38,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _hasReferral ? OnbCopy.bonusReferral : OnbCopy.bonusOrganic,
+                style: onbText(
+                  11.5,
+                  weight: FontWeight.w700,
+                  height: 1.4,
+                  color: const Color(0xFFCFF3E6),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 18),
+      OnbCta(
+        label: OnbCopy.registerTitle,
+        ready: _registerOk,
+        onTap: _onRegister,
+      ),
+      const SizedBox(height: 13),
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _tab = _AccountTab.login),
+        child: Text.rich(
+          TextSpan(
+            text: OnbCopy.haveAccount,
+            style: onbText(
+              12.5,
+              weight: FontWeight.w700,
+              color: const Color(0x99FFFFFF),
+            ),
+            children: [
+              TextSpan(
+                text: OnbCopy.tabLogin,
+                style: onbText(
+                  12.5,
+                  weight: FontWeight.w800,
+                  color: OnbColors.orangeLight,
+                ),
+              ),
+            ],
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _loginFields() {
+    void refresh(String _) => setState(() {});
+    return [
+      OnbField(
+        label: OnbCopy.email,
+        hint: OnbCopy.emailHint,
+        icon: OnbIcons.mail,
+        controller: _bloc.emailController,
+        keyboardType: TextInputType.emailAddress,
+        autofillHints: const [AutofillHints.email, AutofillHints.username],
+        accent: _loginIdOk ? OnbColors.mintDeep : OnbColors.accentIdle,
+        onChanged: refresh,
+      ),
+      const SizedBox(height: 13),
+      OnbField(
+        label: OnbCopy.password,
+        hint: OnbCopy.passwordHintLogin,
+        icon: OnbIcons.lock,
+        controller: _bloc.passController,
+        obscure: true,
+        textInputAction: TextInputAction.done,
+        autofillHints: const [AutofillHints.password],
+        accent: _pass.isNotEmpty ? OnbColors.mintDeep : OnbColors.accentIdle,
+        onChanged: refresh,
+        onSubmitted: (_) => _onLogin(),
+      ),
+      const SizedBox(height: 18),
+      OnbCta(
+        label: OnbCopy.tabLogin,
+        ready: _loginOk,
+        loading: _busy,
+        onTap: _onLogin,
+      ),
+      const SizedBox(height: 13),
+      Align(
+        alignment: Alignment.centerRight,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => showForgotPasswordSheet(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              OnbCopy.forgotPassword,
+              style: onbText(
+                12,
+                weight: FontWeight.w800,
+                color: OnbColors.orangeLight,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+}
+
+/// Landing sign-in buttons: orange Vipps, white Google / Apple.
+class _MethodButton extends StatelessWidget {
+  const _MethodButton._({
+    required this.onTap,
+    required this.child,
+    required this.height,
+    required this.gradient,
+    required this.shadows,
+    required this.pressDy,
+    this.insetTop = false,
+  });
+
+  factory _MethodButton.vipps({required VoidCallback onTap}) => _MethodButton._(
+    onTap: onTap,
+    height: 52,
+    gradient: kOnbVippsGradient,
+    pressDy: 3,
+    insetTop: true,
+    shadows: [
+      const BoxShadow(color: Color(0xFFB83A0C), offset: Offset(0, 2)),
+      BoxShadow(
+        color: const Color.fromRGBO(233, 92, 44, .95),
+        offset: const Offset(0, 14),
+        blurRadius: onbBlur(22),
+        spreadRadius: -12,
+      ),
+    ],
+    child: Semantics(
+      label: 'Fortsett med Vipps',
+      child: Text('vipps', style: onbDisplay(21, letterSpacingEm: -.02)),
+    ),
+  );
+
+  factory _MethodButton.white({
+    required Widget icon,
+    required String label,
+    required VoidCallback onTap,
+  }) => _MethodButton._(
+    onTap: onTap,
+    height: 50,
+    pressDy: 2,
+    gradient: const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [Color(0xFFFFFFFF), Color(0xFFF1ECE4)],
+    ),
+    shadows: onbPaperShadow(y: 12, blur: 20, lip: .9),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        icon,
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: onbText(13.5, weight: FontWeight.w800, color: OnbColors.ink),
+        ),
+      ],
+    ),
+  );
+
+  final VoidCallback onTap;
+  final Widget child;
+  final double height;
+  final Gradient gradient;
+  final List<BoxShadow> shadows;
+  final double pressDy;
+  final bool insetTop;
+
+  @override
+  Widget build(BuildContext context) {
+    return OnbPressable(
+      onTap: onTap,
+      pressDy: pressDy,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: gradient,
+          boxShadow: shadows,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (insetTop)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: const Align(
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        height: 1.5,
+                        width: double.infinity,
+                        child: ColoredBox(color: Color(0x59FFFFFF)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            child,
+          ],
         ),
       ),
     );
   }
 }
-
-const String kAoCreateAccountCta = 'Opprett konto'; // TODO(l10n)

@@ -253,7 +253,7 @@ class RideBookBloc extends Bloc {
   }
 
   cancelRideBookingApi() async {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult != ConnectivityResult.none) {
       _subjectCancelRide.sink.add(ApiResponse.loading());

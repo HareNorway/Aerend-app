@@ -103,7 +103,7 @@ class WalletBloc extends Bloc {
   }
 
   openSelectPaymentScreen() {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     addAmountToWallet(getDoubleFromDynamic(addAmountTEC.text.trim()), 2);
  /*   openScreenWithResult(
         context,

@@ -41,7 +41,7 @@ class VippsIntegrationBloc extends Bloc {
   ValueStream<bool> get acceptTermsStream => _acceptTermsController.stream;
 
   submit() {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     if (formKey.currentState!.validate()) {
       signUpApiCall();
     }
@@ -91,7 +91,7 @@ class VippsIntegrationBloc extends Bloc {
   }
 
   socialLogin(String loginType, String name, String id, String email) async {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult != ConnectivityResult.none) {
       loginApiCall(loginType, email, "", name, id, "");

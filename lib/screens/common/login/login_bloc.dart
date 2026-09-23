@@ -32,10 +32,10 @@ class LoginBloc extends Bloc {
   Function(CountryCode) get changeCountryCode =>
       _countryCodeController.sink.add;
 
-  loginApiCall(String loginType, String emailAddress, String password,
-      String name, String loginId, String profileImg) async {
+  Future<void> loginApiCall(String loginType, String emailAddress,
+      String password, String name, String loginId, String profileImg) async {
     var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult != ConnectivityResult.none) {
+    if (!connectivityResult.contains(ConnectivityResult.none)) {
       _subject.sink.add(ApiResponse.loading());
       try {
         var response = LoginPojo.fromJson(await _loginRepo.login(
@@ -59,13 +59,15 @@ class LoginBloc extends Bloc {
     }
   }
 
-  login(String loginType, String email, String name, String id) async {
-    FocusManager.instance.primaryFocus!.unfocus();
-    loginApiCall(loginType, email, "", name, id, "");
+  /// Completes once the login call — including any navigation it triggers
+  /// (e.g. the OTP screen being popped) — has finished.
+  Future<void> login(String loginType, String email, String name, String id) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    return loginApiCall(loginType, email, "", name, id, "");
   }
 
   manageEmailLogin(String loginType) {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     if (formKey.currentState!.validate()) {
       loginApiCall(loginTypeEmail, emailController.text.trim(),
           passController.text.trim(), "", "", "");

@@ -62,7 +62,7 @@ class _RideAddLocationState extends State<RideAddLocation> {
                 initialCameraPosition: initCameraPosition,
                 onCameraMove: (cameraPosition) {
                   _bloc!.onCameraMoved(cameraPosition);
-                  FocusManager.instance.primaryFocus!.unfocus();
+                  FocusManager.instance.primaryFocus?.unfocus();
                   _bloc!.textEditingController.clear();
                 },
                 onCameraIdle: _bloc!.onCameraIdle,
@@ -183,7 +183,7 @@ class _RideAddLocationState extends State<RideAddLocation> {
                       onTap: () {
                         _bloc!.changeLocationSearch("");
                         _bloc!.textEditingController.clear();
-                        FocusManager.instance.primaryFocus!.unfocus();
+                        FocusManager.instance.primaryFocus?.unfocus();
                       },
                       child: Icon(
                         CustomIcons.cancelled,

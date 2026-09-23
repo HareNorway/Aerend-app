@@ -38,7 +38,7 @@ class AddCardBloc extends Bloc {
   }
 
   addCard() async {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     if (formKey.currentState?.validate() ?? false) {
       var connectivityResult = await (Connectivity().checkConnectivity());
       if (connectivityResult != ConnectivityResult.none) {

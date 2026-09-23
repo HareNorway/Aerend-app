@@ -220,7 +220,7 @@ class CustomBorderButton extends StatelessWidget {
             ),
             onPressed: onPressed != null
                 ? () {
-                    FocusManager.instance.primaryFocus!.unfocus();
+                    FocusManager.instance.primaryFocus?.unfocus();
                     onPressed?.call();
                   }
                 : null,
@@ -245,7 +245,7 @@ class CustomBorderButton extends StatelessWidget {
             ),
             onPressed: onPressed != null
                 ? () {
-                    FocusManager.instance.primaryFocus!.unfocus();
+                    FocusManager.instance.primaryFocus?.unfocus();
                     onPressed?.call();
                   }
                 : null,

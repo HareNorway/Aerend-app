@@ -22,6 +22,7 @@ import 'package:intercom_flutter/intercom_flutter.dart';
 
 import 'firebase_options.dart';
 import 'redux/store.dart';
+import 'screens/common/login/login.dart';
 import 'screens/common/splash/splash.dart';
 import 'screens/common/vipps/vipps_login_link_handler.dart';
 import 'screens/common/vipps/vipps_return_screens.dart';
@@ -325,6 +326,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
             if (settings.name?.startsWith('/invite') ?? false) {
               final uri = Uri.parse(settings.name!);
               final code = uri.queryParameters['code'];
+              if (!isLoggedIn() && code != null && code.trim().isNotEmpty) {
+                // Logged out: keep the code for `register` and show the
+                // "Du er vervet" card on the onboarding landing.
+                prefSetString(prefPendingReferCode, code.trim().toUpperCase());
+                prefSetBool(prefPendingReferFromLink, true);
+                return MaterialPageRoute(builder: (context) => const Login());
+              }
               return MaterialPageRoute(
                 builder: (context) => RedeemCode(discountCode: code),
               );

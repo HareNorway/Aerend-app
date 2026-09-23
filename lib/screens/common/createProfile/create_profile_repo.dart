@@ -15,7 +15,7 @@ class CreateProfileRepo {
         ApiParam.paramEmail: email,
         ApiParam.paramPassword: password,
         ApiParam.paramContactNumber: phoneNum,
-        ApiParam.paramReferCode: '',
+        ApiParam.paramReferCode: prefGetString(prefPendingReferCode),
         ApiParam.paramDeviceToken: prefGetString(prefDeviceToken),
         ApiParam.paramLoginDevice: Platform.isAndroid
             ? loginDeviceFlutterAndroid

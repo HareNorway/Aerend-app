@@ -90,50 +90,88 @@ class SocialLogin extends StatelessWidget {
   }
 
   Future<void> _signInWithApple() async {
+    final account = await pickAppleAccount();
+    if (account == null) return;
+    function.call(
+      loginType: account.loginType,
+      name: account.name,
+      email: account.email,
+      id: account.id,
+    );
+  }
+
+  Future<void> _signInWithGoogle() async {
+    final account = await pickGoogleAccount();
+    if (account == null) return;
+    function.call(
+      loginType: account.loginType,
+      name: account.name,
+      email: account.email,
+      id: account.id,
+    );
+  }
+}
+
+/// A provider account picked on the device, ready for the `login` API.
+class SocialAccount {
+  const SocialAccount({
+    required this.loginType,
+    required this.name,
+    required this.email,
+    required this.id,
+  });
+
+  final String loginType;
+  final String name;
+  final String email;
+  final String id;
+}
+
+/// Opens the Google account sheet. Null when cancelled or it fails.
+Future<SocialAccount?> pickGoogleAccount() async {
+  GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
+  try {
+    bool isSignedIn = await googleSignIn.isSignedIn();
+    if (isSignedIn) {
+      await googleSignIn.signOut();
+    }
+    GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+    if (googleSignInAccount == null) return null;
+    return SocialAccount(
+      loginType: loginTypeGoogle,
+      name: googleSignInAccount.displayName ?? "-",
+      email: googleSignInAccount.email,
+      id: googleSignInAccount.id,
+    );
+  } catch (error) {
+    debugPrint("pickGoogleAccount $error");
+    return null;
+  }
+}
+
+/// Opens Sign in with Apple. Null when cancelled or it fails.
+Future<SocialAccount?> pickAppleAccount() async {
+  try {
     final credential = await SignInWithApple.getAppleIDCredential(
       scopes: [
         AppleIDAuthorizationScopes.email,
         AppleIDAuthorizationScopes.fullName,
       ],
     );
-
-    var id = credential.userIdentifier ?? "";
-    var email = credential.email ?? "";
-
     String givenName = credential.givenName ?? "";
     String familyName = credential.familyName ?? "";
     String fullName = "$givenName $familyName";
     if (givenName.trim().isEmpty && familyName.trim().isEmpty) {
       fullName = "N/A";
     }
-
-    function.call(
+    return SocialAccount(
       loginType: loginTypeApple,
       name: fullName,
-      email: email,
-      id: id,
+      email: credential.email ?? "",
+      id: credential.userIdentifier ?? "",
     );
+  } catch (error) {
+    debugPrint("pickAppleAccount $error");
+    return null;
   }
-
-  Future<void> _signInWithGoogle() async {
-    GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
-    try {
-      bool isSignedIn = await googleSignIn.isSignedIn();
-      if (isSignedIn) {
-        await googleSignIn.signOut();
-      }
-      GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
-      if (googleSignInAccount != null) {
-        var id = googleSignInAccount.id;
-        var email = googleSignInAccount.email;
-        var name = googleSignInAccount.displayName ?? "-";
-
-        function.call(
-            loginType: loginTypeGoogle, name: name, email: email, id: id);
-      }
-    } catch (error) {
-      debugPrint("_signInWithGoogle $error");
-    }
-  }
-
 }

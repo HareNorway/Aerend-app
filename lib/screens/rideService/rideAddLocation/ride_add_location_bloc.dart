@@ -91,7 +91,7 @@ class RideAddLocationBloc extends Bloc {
             PlaceNameLocation? locationLatLong = geometry.location;
             latLng = LatLng(locationLatLong?.lat ?? 0, locationLatLong?.lng ?? 0);
             focusInMap(googleMapController!, locationLatLong?.lat ?? 0, locationLatLong?.lng ?? 0, true);
-            FocusManager.instance.primaryFocus!.unfocus();
+            FocusManager.instance.primaryFocus?.unfocus();
           }
         }
       } catch (e) {

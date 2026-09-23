@@ -29,7 +29,7 @@ class ForgotPasswordDialogBloc extends Bloc {
   Function(CountryCode) get changeCountryCode => _countryCodeController.sink.add;
 
   forgotPass() async {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     var connectivityResult = await (Connectivity().checkConnectivity());
     if (connectivityResult != ConnectivityResult.none) {
       _subject.sink.add(ApiResponse.loading());

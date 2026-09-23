@@ -26,7 +26,7 @@ class ChangePasswordBloc extends Bloc {
   BehaviorSubject<ApiResponse<BaseModel>> get subject => _subject;
 
   submit() async {
-    FocusManager.instance.primaryFocus!.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
     if (formKey.currentState!.validate()) {
       var connectivityResult = await (Connectivity().checkConnectivity());
       if (connectivityResult != ConnectivityResult.none) {

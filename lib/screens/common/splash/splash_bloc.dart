@@ -10,7 +10,6 @@ import 'package:intercom_flutter/intercom_flutter.dart';
 import '../../../blocs/bloc.dart';
 import '../../../dialogs/simple_dialog_util.dart';
 import '../../../utils/utils.dart';
-import '../consent/consent_gate_screen.dart';
 import '../homeMainV1/home_main_v1.dart';
 import '../login/login.dart';
 // Language/currency pre-login screen skipped — NOK is the only currency;
@@ -108,13 +107,14 @@ class SplashBloc extends Bloc {
       }
     });
 
-    // Cold-start flow: Splash → Consent → Login → (auth) → Home.
+    // Cold-start flow: Splash → Login (landing) → Vilkår → Konto / provider
+    // → Telefon → Kode → Ferdig → Home.
     if (isLoggedIn()) {
       prefSetBool(prefIsGuestMode, false);
       callRunningServiceApi();
     } else {
       prefSetBool(prefIsGuestMode, false);
-      _openScreen(const ConsentGateScreen(), handoff: true);
+      _openScreen(const Login(), handoff: true);
     }
   }
 
@@ -208,7 +208,7 @@ class SplashBloc extends Bloc {
     if (isLoggedIn()) {
       _openScreen(const HomeMainV1(isShowDialog: true));
     } else {
-      _openScreen(const ConsentGateScreen(), handoff: true);
+      _openScreen(const Login(), handoff: true);
     }
   }
 

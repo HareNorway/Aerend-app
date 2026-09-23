@@ -70,7 +70,7 @@ class CustomFillButton extends StatelessWidget {
         ),
         onPressed: onPressed != null
             ? () {
-                FocusManager.instance.primaryFocus!.unfocus();
+                FocusManager.instance.primaryFocus?.unfocus();
                 onPressed!.call();
               }
             : null,

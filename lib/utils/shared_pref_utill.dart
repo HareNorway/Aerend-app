@@ -52,6 +52,15 @@ const String prefTip = "tip";
 const String prefThemeMode = "themeMode";
 const String prefHomeCategoryCache = "homeCategoryCache";
 const String prefIsGuestMode = "isGuestMode";
+/// Vilkår og personvern accepted on this device — returning users skip the
+/// terms step of the onboarding flow.
+const String prefTermsAccepted = "termsAccepted";
+/// Referral (verve) code entered or received before an account exists; sent
+/// as `refer_code` with the register call.
+const String prefPendingReferCode = "pendingReferCode";
+/// [prefPendingReferCode] arrived through an `/invite?code=` link (shows the
+/// "Du er vervet" card instead of the code input).
+const String prefPendingReferFromLink = "pendingReferFromLink";
 /// Set when guest taps Pay on store checkout; cleared after resume.
 const String prefGuestCheckoutResume = "guestCheckoutResume";
 const String prefGuestCheckoutPaymentType = "guestCheckoutPaymentType";
