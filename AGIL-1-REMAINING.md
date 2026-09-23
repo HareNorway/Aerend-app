@@ -1,268 +1,323 @@
 # Ærend — combined remaining work (agil-1 + agil-2)
 
-Companion to `AGIL-1-PLAN.md` and `AGIL-2-PLAN.md`. The plans record what was
-built; this records what is not, across both branches, now that they sit on one
-tree. Last updated **2026-09-23**.
+Companion to `AGIL-1-PLAN.md` and `AGIL-2-PLAN.md`. Those record what was built.
+This records what is not, what is built but unreachable, and what nobody has
+checked. Rewritten **2026-09-23** after the branches were merged.
 
-> 🛑 **Branch policy.** `agil-2` is merged into `agil-1` in all five repos for
+> 🛑 **Branch policy.** `agil-2` is merged into `agil-1` in all five repos, for
 > combined testing. `agil-1` is the integration branch. **Nothing goes into
 > `main` or `master` in any repo, and nothing is pushed.** `agil-1-backup` holds
 > the pre-merge commit in each repo, so the merge is reversible with
 > `git reset --hard agil-1-backup`.
 
-## Where things stand
+---
+
+## Contents
+
+1. [Status at a glance](#1-status-at-a-glance)
+2. [Before you manually test](#2-before-you-manually-test)
+3. [What you can and cannot reach today](#3-what-you-can-and-cannot-reach-today)
+4. [Design fidelity — not assessed](#4-design-fidelity--not-assessed)
+5. [What the merge found](#5-what-the-merge-found)
+6. [Admin screens](#6-admin-screens)
+7. [Other outstanding UI work](#7-other-outstanding-ui-work)
+8. [Blocked on a decision or a credential](#8-blocked-on-a-decision-or-a-credential)
+9. [Blocked on the eventual main merge](#9-blocked-on-the-eventual-main-merge)
+10. [What this environment could not verify](#10-what-this-environment-could-not-verify)
+11. [Suggested order](#11-suggested-order)
+
+---
+
+## 1. Status at a glance
 
 | Repo | Merged | Combined tests |
 |---|---|---|
 | Hare-AdminPanel | 12 commits, no conflicts | **989 passing**, 11 skipped, 6 pre-existing failures |
-| Hare-Store | 2 commits, no conflicts | **235 passing** (222 ops + 13 points) |
-| Aerend-app | 19 commits, 10 conflicts resolved | **302 passing** (187 ops/feed + 115 points/Ægil) |
+| Hare-Store | 2 commits, no conflicts | **235 passing** |
+| Aerend-app | 19 commits, 10 conflicts resolved | **302 passing**, `lib/` analyzes with 0 errors |
 | Hare-Driver | nothing to merge — agil-2 owns nothing here | 129 passing |
 | Aerend-Feed | nothing to merge — agil-2 never touched it, as contracted | 60 passing / 120 skipped (no Docker) |
 
-The backend suite passes identically in **both** configurations: the default
-pre-cutover bindings, and with the merge-day adapters live
+The backend suite passes identically in both configurations: default pre-cutover
+bindings, and with the merge-day adapters live
 (`POINTS_ORDER_SOURCE=order_events POINTS_SIGNAL_SOURCE=webhook`).
 
-The six remaining backend failures are pre-existing main-branch unit tests —
+The six backend failures are pre-existing main-branch unit tests —
 `DonationFeeService`, `GamificationConfigService`, `MediaUrlResolver`,
 `SeasonRolloverService`, `StoreMediaResolver` (×2). Neither branch touches those
-files and all six already fail on `agil-1-backup`. They are somebody's to fix,
-but they are not merge damage and not in either plan.
+files; all six already fail on `agil-1-backup`. Not merge damage, and not in
+either plan.
+
+**The headline.** Both branches built their screens and tested them as widgets.
+The test counts are high and honest. But most of that work is **not connected to
+the running apps** (§3), and **nobody has compared any of it to the designs**
+(§4). Those two things, not the test results, are what stands between here and a
+manual test pass.
 
 ---
 
-## 0. Before you manually test
+## 2. Before you manually test
 
-Run in this order. Steps 1-3 are required; skip 4 and the app looks broken when
+Run in order. Steps 1–3 are required. Skip step 4 and the app looks broken when
 it is only switched off.
 
-**1. Migrate the dev database.** It has agil-1's tables but **not agil-2's** -
+**1. Migrate the dev database.** It has agil-1's tables but **not agil-2's** —
 24 pending migrations. The test DB is already done.
 
 ```
 cd D:/work/hare/Hare-AdminPanel
-php artisan migrate            # 24 pending, all additive
+php artisan migrate
 ```
 
-**2. Seed. Yes, five of them, and four are agil-2's.** All idempotent.
+**2. Seed — five of them, four are agil-2's.** All idempotent. There is no
+`DatabaseSeeder.php`, so a bare `db:seed` does nothing; each needs `--class`.
 
 ```
-php artisan ops:seed-policies                              # agil-1 rate card (already 16 rows)
-php artisan db:seed --class=PointsPolicySeeder             # 16 points.* keys
-php artisan db:seed --class=AgentRegisterSeeder            # 15 agents, all DISABLED
-php artisan db:seed --class=MissionTemplateSeeder          # 4 templates
-php artisan db:seed --class=PrizeCatalogueSeeder           # 5 active + 10 inactive
+php artisan ops:seed-policies                      # agil-1 rate card
+php artisan db:seed --class=PointsPolicySeeder     # 16 points.* keys
+php artisan db:seed --class=AgentRegisterSeeder    # 15 agents, all DISABLED
+php artisan db:seed --class=MissionTemplateSeeder  # 4 templates
+php artisan db:seed --class=PrizeCatalogueSeeder   # 5 active + 10 inactive
 ```
 
-There is no `DatabaseSeeder.php`, so `db:seed` with no `--class` will not work -
-each one is named explicitly. `PointsPolicySeeder` seeded **nothing at all**
-before the fix in this merge; if you ran it earlier and saw no rows, that is why.
+`PointsPolicySeeder` wrote **nothing at all** before the fix in this merge (§5);
+if you ran it earlier and saw no rows, that is why.
 
-**3. Seed the flags, then turn some on.** Everything ships off by design, which
-means a fresh manual pass shows you the pre-agil-1 app and nothing else.
+**3. Seed the flags, then turn some on.** Every agil-1 surface flag ships off by
+design, so a fresh pass otherwise shows you the pre-agil-1 app.
 
 ```
-php artisan ops:flags seed     # 30 surface flags, all off
-php artisan ops:flags list     # what is on
-php artisan ops:flags stage backbone       --reason="manual test"
-php artisan ops:flags stage partner_floor  --reason="manual test"
-php artisan ops:flags stage courier        --reason="manual test"
-php artisan ops:flags stage money          --reason="manual test"
-php artisan ops:flags stage storefront     --reason="manual test"
+php artisan ops:flags seed          # 30 surface flags, all off
+php artisan ops:flags list
+php artisan ops:flags stage backbone      --reason="manual test"
+php artisan ops:flags stage partner_floor --reason="manual test"
+php artisan ops:flags stage courier       --reason="manual test"
+php artisan ops:flags stage money         --reason="manual test"
+php artisan ops:flags stage storefront    --reason="manual test"
 ```
 
-**4. agil-2's flags are separate, and env-only.** `ops:flags` does **not** touch
-them - see the `feature_flags` / `ops_feature_flags` mismatch in §1. Set these in
-`.env` and they take effect immediately:
+**4. agil-2's flags are a separate, env-only mechanism.** `ops:flags` does not
+touch them — see the `feature_flags` mismatch in §5. In `.env`:
 
 ```
 FLAG_POINTS=true
 FLAG_PREMIEHYLLA=true
 FLAG_MISSIONS=true
 FLAG_LEAGUE=true
-FLAG_AEGIL_LEVEL_MAX=3        # a number, not a boolean: how far Aegil may go
+FLAG_AEGIL_LEVEL_MAX=3     # a number, not a boolean
 ```
 
-**5. Decide which adapter configuration you are testing.** The default is
-pre-cutover; combined testing is the point of the merge, so you probably want the
-merge-day pair:
+**5. Choose an adapter configuration.** Unset is the legacy/fixture path; these
+two vars are the entire merge-day cutover:
 
 ```
-POINTS_ORDER_SOURCE=order_events    # points from real ops_order_events rows
-POINTS_SIGNAL_SOURCE=webhook        # Aegil signals from the real feed inbox
+POINTS_ORDER_SOURCE=order_events
+POINTS_SIGNAL_SOURCE=webhook
 ```
 
-Leave them unset to test the legacy/fixture path instead. The suite passes both
-ways; these two vars are the whole cutover.
+**6. Services, for the live paths rather than the screens alone.**
 
-**6. Services, if you want the live paths rather than the screens alone.**
-
-- `.env` currently has `BROADCAST_DRIVER=log` and `QUEUE_CONNECTION=sync`. Live
-  tracking and the courier/partner realtime channels need Soketi:
-  `docker compose -f docker-compose.soketi.yml up -d`, then set
-  `BROADCAST_DRIVER=pusher`, `PUSHER_APP_ID=aerend`, `PUSHER_APP_KEY=aerend-key`
-  and the secret from that compose file. On `log` the apps fall back to polling
+- `.env` has `BROADCAST_DRIVER=log` and `QUEUE_CONNECTION=sync`. Realtime
+  channels need Soketi: `docker compose -f docker-compose.soketi.yml up -d`,
+  then `BROADCAST_DRIVER=pusher`, `PUSHER_APP_ID=aerend`,
+  `PUSHER_APP_KEY=aerend-key`. On `log` the apps fall back to polling
   `GET /api/ops/events?since=`, which works but is not what you are testing.
-- Escalation, auto-pause and the feed outbox are driven by the scheduler, not by
-  requests. Without `php artisan schedule:work` running, an unseen order never
-  escalates and no feed event is delivered.
-- The feed service needs Docker (Postgres + Valkey). **It is not running on this
-  machine**, which is also why 120 of its tests skip.
+- Escalation, auto-pause and feed delivery are **scheduler-driven**. Without
+  `php artisan schedule:work`, an unseen order never escalates and no feed event
+  is delivered.
+- The feed service needs Docker (Postgres + Valkey), which is not running here.
 
 **7. Nothing to reinstall.** The merge changed no `composer.json` and no
-`pubspec.yaml`, so no `composer install` and no `flutter pub get` are needed.
+`pubspec.yaml`.
 
-### What you can click immediately
-
-| Surface | Where |
-|---|---|
-| Points admin | `/admin/poeng-v2` |
-| Agents admin (register, kill switches, caps) | `/admin/agenter` |
-| agil-1 ops surfaces | API only - no screens, see §2 |
-| Partner, Bud, customer apps | the three Flutter apps, against `php artisan serve` |
-
-### If something looks wrong
-
-Check in this order, because these are the likely causes and the cheapest to
-rule out: flag off (§0.3, §0.4) → seed missing (§0.2) → migration not run (§0.1)
-→ scheduler not running (§0.6) → actually a bug. All 15 agents are seeded
-**disabled**, so Ægil doing nothing is the designed state, not a failure.
+**If something looks wrong,** check in this order — flag off (§2.3, §2.4) → seed
+missing (§2.2) → migration not run (§2.1) → screen not mounted (§3) → scheduler
+not running (§2.6) → actually a bug. All 15 agents seed **disabled**, so Ægil
+doing nothing is the designed state.
 
 ---
 
-## 1. What the merge itself found
+## 3. What you can and cannot reach today
 
-Five defects that no amount of testing on either branch alone could have caught.
-All are fixed and covered by tests; they are listed because they say something
-about where the next one will be.
+The most operationally important section. Verified by searching for any file
+that constructs each entry point other than its own definition.
 
-**Three of them were silent by design.** Both merge-day adapters degrade to
-empty when their table is missing, which is correct behaviour for a branch
-waiting on the other — and exactly why nothing complained when the table names
-turned out to be wrong.
+### Customer app (Aerend-app) — navigation works
 
-1. **`OrderEventsSource` read `order_events`; the table is `ops_order_events`.**
-   Both plans' ownership tables name it unprefixed, and agil-1 applied its `ops_`
-   convention to everything it created. Each side was locally right and the
-   contract was ambiguous. Consequence had this shipped: flipping
-   `POINTS_ORDER_SOURCE` on cutover would have awarded **nobody any points for
-   any delivery**, with nothing in any log to say why.
-2. **`WebhookSignalSource` read `feed_webhook_events`, a table neither branch
-   creates.** agil-1's inbound landing table is `ops_feed_inbox`, and its shape
-   differs too — no surrogate `id`, and `received_at` rather than `occurred_at`.
-   Ægil would never have reacted to a feed post.
-3. **The `SignalSource` binding ignored `POINTS_SIGNAL_SOURCE` entirely** and
-   always returned fixtures. The env var is documented in `AGIL2_ROLLOUT.md` §7
-   and was read nowhere.
-4. **The order event's actor is two columns, not one.** agil-1 stores
-   `actor_type`/`actor_id`; agil-2 decoded a single JSON `actor` field, so every
-   event resolved to `system`/`null` — losing who did the thing on every record.
-5. **A migration pinned a column to a position that only exists in production.**
-   agil-2's `agent_product_identity` migration used `->after('ean_number')`; that
-   column exists on the live and dev databases and **no migration in the repo
-   creates it**. Worked on a developer's machine, failed on any database built
-   from migrations.
+`main.dart` → `Splash` → `HomeMainV1`, a six-tab bottom nav: **Hjem, Søk, Feed,
+AI, Kurv, Profil**. All six are real screens. `lib/` analyzes with zero errors.
 
-**The pattern worth taking forward:** every one of these is a place where two
-components agreed on a *name* in prose and disagreed in code. The frozen event
-contract stopped that happening to the payloads — `MergeIntegrationTest` drives
-the real path from `tests/fixtures/events/order.delivered.json` and passes — but
-nothing played the same role for table names, column shapes or env var names. If
-there is one thing to add to the contract before the next integration, it is
-those.
+| Path | Reachable |
+|---|---|
+| All six bottom-nav tabs | **Yes** |
+| Feed tab → stories row, post cards | **Yes** |
+| "Follows but no posts" empty state (`FeedEmptyNoPosts`) | **Yes** — the one new widget with a real parent |
+| Feed search (embedded) | **Yes** |
+| Push → post detail deep-link (`feedNewPost` → `PostDetailScreen`) | **Yes** |
+| Story viewer, post-detail "no longer available" | **Yes** |
+| Live order screen (`deliveries_order_detail`) | **Yes** — pre-existing |
+| `FeedPublisherTabs` — the *Nærheten / Følger / Fra Ærend* tabs | **No** — `FeedHome` never constructs it |
+| `VaagenCard` | **No** |
+| `DeliveryCodeCard`, `OpsTrackingStatus` | **No** — `lib/screens/tracking/` holds only these two files and nothing imports either |
+| `MegPointsCard`, `PremiehyllaShelf`, `WelcomeMoment`, `SuggestionTray` (agil-2) | **No** — Profil → `Account` does not include them |
+
+**These are light widgets, not a missing layer.** `FeedPublisherTabs(active,
+onSelected)`, `VaagenCard(available, onReel, pending)`, `OpsTrackingStatus(state,
+promisedStart, promisedEnd, adjustedByMinutes)`, `DeliveryCodeCard(pin,
+reasonCopy, qrPayload)`. `FeedHomeState` already carries the tab state and
+`hasFollows`; `ops_feed_api.dart` already has the Vågen call; the order-detail
+screen already has the order. Mounting them is placement plus a few prop
+wirings.
+
+### Partner app (Hare-Store) — feed yes, ops no
+
+| Path | Reachable |
+|---|---|
+| Store publishes a feed post — `home_screen.dart:116` → `StoreFeedProfileScreen` → `FeedCreateOptionsSheet` → `FeedComposerScreen` | **Yes** |
+| `OpsShellScreen` — the five-tab host for all 23 ops screens | **No** |
+| `TilbyPremieScreen` (agil-2) | **No** |
+
+This repo also has **two screen trees**: `lib/screen/` (singular, 125 files) is
+the shipping app; `lib/screens/` (plural, 44 files) is where both branches built.
+Imports work across them, so this is confusing rather than blocking.
+
+### Courier app (Hare-Driver) — no
+
+`LiveStageScreen` is referenced in exactly one file, its own. Its screens are in
+the right tree, just unlinked.
+
+### Why Partner and Bud are harder than the customer app
+
+`OpsShellScreen` takes `required List<OpsOrder> orders` plus `onPrimaryAction`,
+`onReject`, `onAddTime`, `onMarkReady`, `onSeen` and its banner state.
+`LiveStageScreen` takes `required assignmentState`, `orderCode`, `address` and a
+dozen more. They are pure functions of their props — which is why they test so
+cleanly and why they cannot simply be pushed onto a navigator. Missing:
+
+1. **A fetch that does not exist.** `lib/networking/ops/ops_api.dart` has
+   `heartbeat`, `devices`, `markSeen`, `transition`, `eventsSince` — nothing that
+   returns a store's current orders. `GET /api/ops/panel/now` is admin-scoped.
+   Either the app builds state from `eventsSince`, or the backend gains a store
+   snapshot endpoint. **That is a backend decision, not Flutter work.**
+2. **A container per shell**, mapping state into props and callbacks onto
+   `transition()`.
+3. **Then** the navigation entry — both apps have a `DrawerEnum` drawer, so that
+   last part is a few lines.
+
+I attempted the navigation entry alone and it failed to compile, because
+`const OpsShellScreen()` has no valid zero-argument form. That failure is the
+evidence for this section.
+
+### Why the tests did not catch any of this
+
+A widget test pumps the widget with hand-built props. A screen with no data
+source and no route passes exactly as well as one wired end to end. 666 green
+Flutter tests say every screen renders correctly from good data; not one says
+where that data comes from, or that a human can open the screen.
+
+---
+
+## 4. Design fidelity — not assessed
+
+**Stated plainly: no screen in any of the three apps has been compared to any
+design.** No test in any repo asserts visual fidelity, and nothing in either
+plan's notes records a design review having happened. So if the impression is
+that the screens do not match the designs, **nothing here contradicts that**, and
+this document is not in a position to argue either way.
+
+What is true:
+
+- The widgets were written *from* the designs — they cite them in their
+  docstrings (`feed_publisher_tabs.dart`: "§3.1, `Kunde Bergen` design";
+  `delivery_code_card.dart`: "Kunde design delivery-code card + ID-kort";
+  `vaagen_card.dart`: "One pull a day, and that limit is the design").
+- The sources are in `designs/20des/` (43 `.dc.html` files), for the customer app
+  principally `Ærend Kunde Bergen.dc.html`,
+  `Ærend Kunde - inventar (steg 1).dc.html` and
+  `Ærend Kunde - leveranser (steg 4).dc.html`.
+- Some divergence is **deliberate and recorded**: the Bergen splash skips the
+  mountain/harbour illustration, the animated chip cards and the boat graphics,
+  noted at `splash.dart:13`.
+
+What is not true: that any of it was checked. Widget tests assert structure and
+behaviour — that a label exists, that a tap fires a callback, that an empty state
+appears. None assert spacing, type scale, colour, elevation or motion, which is
+most of what "consistent with the designs" means.
+
+**So this is open work of unknown size**, and it cannot be sized without someone
+opening the design files beside the running app. It interacts with §3: a widget
+that is not mounted cannot be design-reviewed at all, so mounting comes first,
+then review, then rework. Treat any estimate for §3 as excluding whatever rework
+§4 produces.
+
+---
+
+## 5. What the merge found
+
+Seven defects that no amount of testing on either branch alone could have caught.
+All are fixed and covered by tests. They are listed because the pattern says
+where the next one will be.
+
+**Five of the seven were silent.** Both merge-day adapters degrade to empty when
+their table is missing — correct behaviour for a branch waiting on the other, and
+exactly why nothing complained when the names turned out wrong.
+
+| # | Defect | Consequence had it shipped |
+|---|---|---|
+| 1 | `OrderEventsSource` read `order_events`; the table is `ops_order_events` | A cutover would have awarded **nobody any points for any delivery**, with nothing in any log to say why |
+| 2 | `WebhookSignalSource` read `feed_webhook_events`, which neither branch creates; the real table is `ops_feed_inbox`, with a different shape | Ægil would never have reacted to a feed post |
+| 3 | The `SignalSource` binding ignored `POINTS_SIGNAL_SOURCE` and always returned fixtures | The documented merge-day switch did nothing |
+| 4 | `ops_order_events` stores the actor as `actor_type`/`actor_id`; agil-2 decoded one JSON `actor` field | Every event resolved to `system`/`null` — attribution lost on every record |
+| 5 | A migration pinned a column with `->after('ean_number')` — a column production has and no migration creates | Worked on a developer machine, failed on any DB built from migrations |
+| 6 | agil-2's `FeatureFlags` reads `feature_flags`; agil-1 created `ops_feature_flags` | Points/Ægil flags unreadable from the DB — still two separate rollout mechanisms today (§2.4) |
+| 7 | `PointsPolicy`, `ConfigPolicyLookup` and `PointsPolicySeeder` read `policies`; agil-1 created `ops_policies` | The seeder wrote **nothing**; the points rate card came only from config, and admin policy changes had no effect on Points |
+
+**The pattern.** Every one is two components agreeing on a *name* in prose and
+disagreeing in code. The frozen event contract prevented exactly this for the
+payloads — `MergeIntegrationTest` drives the real path from
+`tests/fixtures/events/order.delivered.json` and passes, including both plans'
+acceptance criterion *"real `order.delivered` via `order_events` earns Kjøp
+points"*. Nothing played that role for table names, column shapes or env var
+names. **If one thing goes into the contract before the next integration, it is
+those.**
+
+Number 6 is the one still open as a design question: agil-2 reads a `value`
+column that can hold a number (`aegil_level_max`); agil-1's table has
+`enabled`/`targeting` with no equivalent. Unifying the two rollout controls needs
+a schema decision.
 
 ### Also surfaced, and fixed
 
 - **agil-1's ops fixtures inserted `providers.name`.** Production has
-  `first_name`/`last_name` and **no `name` column at all**. Those tests passed
+  `first_name`/`last_name` and **no `name` column at all** — those tests passed
   against a schema that exists nowhere real. Now detected with
   `Schema::hasColumn`, the guard `FeedTokenTest` already used.
-- **`MetricsTest::the_unseen_rate_pages_support` was date-dependent** — it
-  windowed on a hard-coded 22 September while the fixture stamped `created_at`
-  from the wall clock. It passed on the day it was written and failed the next.
-  Nothing to do with the merge.
-- **The test database has to be built from the live schema, not from
-  migrations.** `scripts/rebuild_test_db.sh` (agil-2's, documented in
-  `AGIL2_ROLLOUT.md` §6) copies the live structure and migrates on top. Run it
-  before `php artisan test` or roughly a third of the suite fails on drift that
-  has nothing to do with the code under test. This is the single most important
-  thing for a new person to know about this repo.
+- **`MetricsTest::the_unseen_rate_pages_support` was date-dependent** — windowed
+  on a hard-coded 22 September while the fixture stamped `created_at` from the
+  wall clock. Passed the day it was written, failed the next.
+- **The test database must be built from the live schema, not migrations.**
+  `scripts/rebuild_test_db.sh` copies the live structure and migrates on top. Run
+  it before `php artisan test`, or roughly a third of the suite fails on drift
+  unrelated to the code under test. **The most important thing a new person needs
+  to know about this repo.** Drifted columns include `users.credit`,
+  `providers.first_name`, `users.deleted_at`, `service_category.is_sub_cat_flow`,
+  `user_store_product_booking.tip` and `store_product_details.ean_number`.
 
 ---
 
-## 1b. The screens are built but not connected — found 2026-09-23
+## 6. Admin screens
 
-**Corrected after a second look.** The first version of this section said the
-screens only needed a navigation entry each. That was wrong, and the real
-situation is worse: **they are presentational widgets with no container layer.**
+**agil-2's are built. agil-1's are not.**
 
-### What is reachable today
+**agil-2 — clickable today** (after §2 steps 1–2, or the controllers 500 on
+missing tables): `/admin/poeng-v2` (dashboard, ledger, adjust, rebuild, prizes,
+claims, donations, rules, tier review, missions, league month-end, fraud flags,
+partner proposals) and `/admin/agenter` (register, per-agent kill switch, caps).
+Views at
+`resources/views/admin/pages/super_admin/{points,agents}/index.blade.php`.
 
-| Path | Reachable? | How |
-|---|---|---|
-| Store publishes a feed post | **Yes** | `home_screen.dart:116` → `StoreFeedProfileScreen` → `FeedCreateOptionsSheet` → `FeedComposerScreen` |
-| Customer browses the feed | **Yes** | `home_v1.dart:91` and `home_main_v1.dart:231` → `FeedShellScreen` |
-| Customer opens a post from a push | **Yes** | `push_notification_service.dart:305` routes `feedNewPost` → `PostDetailScreen(postId:)` |
-| Partner ops surface (`OpsShellScreen`, 5 tabs, 23 screens) | **No** | nothing constructs it |
-| Courier run screen (`LiveStageScreen`) | **No** | nothing constructs it |
-| agil-2 Points surfaces (`TilbyPremieScreen`, `MegPointsCard`, `PremiehyllaShelf`, `WelcomeMoment`, `SuggestionTray`) | **No** | nothing constructs them |
-| `VaagenCard`, `DeliveryCodeCard`, `FeedPublisherTabs`, `OpsTrackingStatus` | **No** | nothing constructs them |
-
-So the feed — the pre-agil-1 work — is wired end to end. Everything agil-1 and
-agil-2 added on top of it is not.
-
-### Why it is not a routing fix
-
-`OpsShellScreen` takes `required List<OpsOrder> orders` plus `onPrimaryAction`,
-`onReject`, `onAddTime`, `onMarkReady`, `onSeen`, and its banner state
-(`offline`, `paused`, `pulseLost`, `soldTonightOre`, `nextCourierEtaMinutes`).
-`LiveStageScreen` takes `required assignmentState`, `orderCode`, `address` and a
-dozen more. Every one of them is a pure function of props — which is why they
-test so cleanly, and why they cannot simply be pushed onto a navigator.
-
-What is missing is the layer between them and the API:
-
-1. **A fetch that does not exist yet.** `lib/networking/ops/ops_api.dart` has
-   `heartbeat`, `devices`, `markSeen`, `transition` and `eventsSince` — there is
-   no "give me this store's current orders". `GET /api/ops/panel/now` is the
-   closest thing and it is admin-scoped, not store-scoped. Either the Partner app
-   builds its state from `eventsSince` or the backend needs a store snapshot
-   endpoint.
-2. **A container per shell** mapping that state into the widget's props and each
-   callback back onto `transition()`.
-3. **Then** the navigation entry. Both apps have a `DrawerEnum`-driven drawer, so
-   this last part really is a few lines.
-
-I attempted the navigation entry first and it failed to compile precisely
-because of this — `const OpsShellScreen()` has no valid zero-argument form. That
-failure is the useful evidence here, so it is recorded rather than tidied away.
-
-### Why the tests did not catch it
-
-A widget test pumps the widget with hand-built props, so a screen with no data
-source passes exactly as well as one with a working feed behind it. 666 green
-Flutter tests say every screen renders correctly from good data; not one says
-where that data comes from, or that a human can open the screen.
-
-### What this means for manual testing
-
-- **Feed and push (T2) can be tested today.** That path is complete on both
-  sides.
-- **The Partner ops surface, the courier run screen and every Points surface
-  cannot be tested at all**, by anyone, until the container layer exists. There
-  is no configuration, flag or seed that unlocks them.
-
----
-
-## 2. Admin panel screens — agil-1's half is the largest gap
-
-**agil-1's screens were not built. agil-2's were.** Corrected 2026-09-23 after
-checking the merged tree rather than trusting the earlier note: agil-2 shipped
-Blade screens into the existing admin, with controllers and web routes.
-agil-1 delivered only the data behind its own screens.
-
-agil-1 side — every one of these is a working, tested JSON endpoint:
+**agil-1 — no Blade, no Vue, no `web.php` route.** Every one of these is a
+working, tested JSON endpoint with no screen in front of it:
 
 | Screen | Endpoint | Tested in |
 |---|---|---|
@@ -274,26 +329,18 @@ agil-1 side — every one of these is a working, tested JSON endpoint:
 | **Policy editor** (reason required → `audit_log`) | `PolicyService::set()` | `PolicyTest` |
 | **Feed** oversight, composer, eligibility, change-log, takeover | `Aerend-Feed /admin/feed/*`; `/api/ops/feed/*`, `/api/ops/change-log` | `AdminFeedOversightTest`, `ProductChangeLogTest`, `admin-feed.test.ts` |
 
-**agil-2 side — built and clickable.** `/admin/poeng-v2` (dashboard, ledger,
-adjust, rebuild, prizes, claims, donations, rules, tier review, missions, league
-month-end, fraud flags, partner proposals) and `/admin/agenter` (register,
-per-agent kill switch, caps). Views live at
-`resources/views/admin/pages/super_admin/{points,agents}/index.blade.php` with
-`PointsAdminV2Controller` and `AgentAdminController` behind them. So the gap in
-this section is agil-1's half only.
+**What it costs today:** support can do all of it, through an API client rather
+than a screen. The override paths — panel scan override, manual state change with
+a reason — are what a human reaches for under time pressure and the worst
+candidates for curl.
 
-**What agil-1's missing half costs today:** support can do all of it, but
-through an API client rather than a screen. The override paths — panel scan
-override, manual state change with a reason — are the ones a human reaches for
-under time pressure and the worst possible candidates for curl.
+**Sizing:** seven screens, read-mostly, against endpoints already shaped for a
+table, with agil-2's two as a working precedent in the same admin. The one new
+piece is Unntak's SLA timers, which want a live-updating view.
 
-**Sizing:** seven screens, all read-mostly, against endpoints already shaped
-for a table — and agil-2's two are a working precedent to copy, in the same
-admin, with the same layout and auth. The one genuinely new piece is the Unntak
-inbox's SLA timers, which want a live-updating view rather than a page render.
 ---
 
-## 3. Other UI work outstanding
+## 7. Other outstanding UI work
 
 **Bergen reskin naming debt** (customer app). The reskin landed — Bergen palette,
 `AerendBergenAuthTokens`, correct app icon on `#173E48`. Not finished:
@@ -304,36 +351,37 @@ inbox's SLA timers, which want a live-updating view rather than a page render.
   still carry Reen names and render on five live surfaces — `homeMainV1`,
   `feed_branded_header`, `home_v1`, `contact_us_screen`, `snurre_chat_screen`.
   Both were touched in the reskin commit, so the **pixels are probably already
-  right and only the names are wrong** — but that wants one visual confirmation,
-  because the alternative is a coral Reen mark on the feed header.
+  right and only the names are wrong** — one visual check settles it, because the
+  alternative is a coral Reen mark on the feed header.
 
 **Two surfaces a widget test cannot reach**, both built, both needing one manual
 pass:
 
 - **Composer image picker** (Hare-Store) — the 10 MB gate and the inline error
-  with a working Retry are built and analyze-clean, but the picker crosses a
-  platform channel. Check: oversized photo blocked before upload; airplane mode
-  gives an inline error and Retry works; a normal photo publishes unchanged.
+  with Retry are built and analyze-clean, but the picker crosses a platform
+  channel. Check: oversized photo blocked before upload; airplane mode gives an
+  inline error and Retry works; a normal photo publishes unchanged.
 - **Story viewer with a broken `media_url`** (Aerend-app) — the view is tested
   directly because `CachedNetworkImage` needs `path_provider`, so driving the
   full screen sits on the placeholder and passes for the wrong reason.
 
-**Analyze noise in the customer app:** 632 infos and 2 errors. Both errors are in
-a stray `test_app/` scaffold that exists identically on both branches — a
-`flutter create` leftover, not merge damage. Worth deleting.
+**Analyze noise:** the customer app's `lib/` has 0 errors and 641 infos
+(deprecations). The only 2 errors in that repo are in a stray `test_app/`
+scaffold present identically on both branches — a `flutter create` leftover worth
+deleting. Hare-Store has 11 pre-existing errors from inconsistent import casing
+(`homeScreen` vs `homescreen`), also on both branches.
 
-**Pre-existing, nobody's plan:** `lib/screens/common/account/account_detail.dart`
-has ~8 hardcoded Norwegian strings marked `// TODO(l10n)`.
+**Pre-existing, nobody's plan:** `account_detail.dart` has ~8 hardcoded
+Norwegian strings marked `// TODO(l10n)`.
 
 ---
 
-## 4. Blocked on a decision or a credential
+## 8. Blocked on a decision or a credential
 
 **Points migration cutover** (agil-2's last open task). Needs the Appendix B
-conversion factor **and** production access. The job, dry run and reconciliation
+conversion factor **and** production access. Job, dry run and reconciliation
 report are built and tested; a live run refuses to start until
-`POINTS_MIGRATION_FACTOR_CONFIRMED=true`. The 24-hour monitoring window follows
-it.
+`POINTS_MIGRATION_FACTOR_CONFIRMED=true`. 24-hour monitoring follows it.
 
 **Vipps payout (courier disbursements).** A different Vipps product (Utbetaling)
 with its own merchant agreement. `payouts`/`payout_lines` and the 04:00 batch are
@@ -342,10 +390,10 @@ built against a pluggable transport, deliberately bound to
 that refuses. **Unblocks when** the agreement is signed and sandbox credentials
 exist.
 
-**Six policy values are placeholders, not decisions** (Appendix B): the three
+**Six policy values are placeholders, not decisions** (Appendix B): three
 waiting-pay figures, trip compensation, and the two store commercial rates (14 %
-commission, 1.55 % payment fee). All marked in `docs/OPS_POLICY_KEYS.md`. Each is
-one `PolicyService::set()` call with a reason; every historical order keeps the
+commission, 1.55 % payment fee). Marked in `docs/OPS_POLICY_KEYS.md`. Each is one
+`PolicyService::set()` call with a reason; every historical order keeps the
 `policy_version` it was quoted under.
 
 **Four ops tasks need prod access, a real device, or DO rights** — all
@@ -353,61 +401,64 @@ one `PolicyService::set()` call with a reason; every historical order keeps the
 
 - **T1** verify `GET /api/internal/feed-device-tokens` is live in prod. A 404
   means Laravel never deployed the route and needs a `workflow_dispatch` run.
+  **T2 depends on this.**
 - **T2** push-notification E2E on two real phones: store publishes → customer
-  push within 30s → deep-link; customer comments → store push. **Still the most
-  important unverified path in the product.** Processors and templates are
-  unit-tested; delivery is not.
+  push within 30s → deep-link; customer comments → store push. **The most
+  important unverified path in the product, and testable today** — the whole
+  chain is wired (§3): store publish reachable, customer feed reachable, FCM
+  configured in both apps, `feedNewPost` → `PostDetailScreen` implemented. Needs
+  T1 first, two devices with Play Services, a test store and customer with the
+  customer **following** the store, and release builds against production. Note
+  that `notification-processors.test.ts` covers the *processor* logic with mocks —
+  fan-out, token de-duplication, batching, retries. That is a different claim
+  from the real chain on real hardware, which the handover says has never been
+  run.
 - **T9** delete the demo seed post in prod (id `1`, likely `store_details_id`
   45). **Confirm what that row actually is first** — real partner posts may sit
   alongside it.
 - **T10** rotate `aerend-feed-pg` + `aerend-feed-redis` credentials and redeploy.
-  ~30s downtime, and must run **after** T2.
+  ~30s downtime; run **after** T2.
 
 **Two out-of-band items, not engineering:**
 
 - **Partner content seeding** — 10–15 stores × 3–5 posts before launch. BD work.
   An empty feed on day one reads as a broken app rather than a new one, and the
   mix rule (5 store posts per Ærend post) has nothing to mix without it.
-- **Native Norwegian review of the 23 machine-translated feed ARB keys.** Machine
-  Norwegian in a Bergen-local product is noticeable, and these sit on the
-  most-read surface in the app.
+- **Native Norwegian review of the 23 machine-translated feed ARB keys.**
 
 ---
 
-## 5. Still blocked on the eventual `main` merge
+## 9. Blocked on the eventual main merge
 
-Not blocked on agil-2 any more — that merge has happened. These wait on the
-branch policy changing:
+Not blocked on agil-2 any more — that merge has happened.
 
-- **Post-merge integration against live producers.** The adapters are now proven
-  against real rows in the integration suite, but "a real feed webhook arriving
-  from the deployed feed service creates a suggestion" needs both services
-  running and a staging environment.
+- **Post-merge integration against live producers.** The adapters are proven
+  against real rows in the integration suite, but "a real feed webhook from the
+  deployed feed service creates a suggestion" needs both services running.
 - **The `main` merge itself.** Verified, not executed: a dry-run merge
   auto-merges everything and conflicts in `.env` alone. **Resolve that hunk in
   `main`'s favour** — `agil-1` points `VIPPS_LOGIN_REDIRECT_URI` at `127.0.0.1`
   from local testing, `main` at production. (`main`'s value also has a typo:
   `https//ailogistics.no`, missing the colon.)
-- **Three out-of-ownership exceptions** to settle before that merge: the tracked
-  `.env`; three pre-existing `Snurre` commits (`9ddee0f`, `4253c07`, `2b85dc0`)
-  that belong to neither plan and should be reviewed on their own merit; and the
-  shared-file appends (`main.dart`, `l10n.yaml`, generated `lib/l10n/*`,
+- **Three out-of-ownership exceptions:** the tracked `.env`; three pre-existing
+  `Snurre` commits (`9ddee0f`, `4253c07`, `2b85dc0`) belonging to neither plan;
+  and the shared-file appends (`main.dart`, `l10n.yaml`, generated `lib/l10n/*`,
   `routes/api.php`, `Kernel.php`, `config/broadcasting.php`,
   `AppServiceProvider.php`).
-- **Flag rollout.** 30 agil-1 surface flags plus agil-2's (`points`,
-  `premiehylla`, `missions`, `league`, `aegil_level_max`), all defaulting off.
-  Order and rollback: `docs/OPS_ROLLBACK.md` §5 and `docs/AGIL2_ROLLOUT.md`.
+- **Flag rollout.** 30 agil-1 surface flags plus agil-2's five, all defaulting
+  off. Order and rollback: `docs/OPS_ROLLBACK.md` §5 and `docs/AGIL2_ROLLOUT.md`.
 
 ---
 
-## 6. Verification this environment could not do
+## 10. What this environment could not verify
 
 - **Docker Desktop is not running**, so 120 of Aerend-Feed's 180 tests skip —
   every Postgres- and Valkey-backed suite, including feed-tab ranking and
   moderation. They pass with the local stack up; they were not run here.
 - **No staging environment**, so "store publishes → appears in the customer feed
   ≤ 5s" and the two-service integration pass remain unmeasured.
-- **No real devices** — T2, plus the two platform-channel surfaces in §3.
+- **No real devices** — T2, plus the two platform-channel surfaces in §7.
+- **No design review** — §4.
 - **The load test measures the monolith, not the wire.** p50 9 ms / p95 25 ms /
   max 35 ms against a 1 s budget, with the broadcast driver faked. Read it as
   "the monolith can produce 500 orders' worth of fan-out inside the budget", not
@@ -415,16 +466,24 @@ branch policy changing:
 
 ---
 
-## Suggested order
+## 11. Suggested order
 
-1. **Admin panel screens** (§2) — the only gap where working, tested behaviour is
-   unreachable to the people who need it under pressure. Start with Unntak.
-2. **Add table names, column shapes and env var names to the cross-branch
-   contract** (§1). Five of five merge defects were name disagreements; the
-   payloads, which *were* contracted, survived untouched.
-3. **The two manual UI passes** (§3) — an hour each, and they close the last
-   surfaces where a test passes for a reason other than the feature working.
-4. **T2** (§4) — the most important unverified path in the product. Two phones.
-5. **Reen naming cleanup** (§3) — cheap, and one visual check settles whether it
-   is cosmetic or a live wrong-brand mark.
-6. Everything else waits on an agreement, a decision, or the `main` merge.
+1. **Mount the customer app's widgets** (§3) — `FeedPublisherTabs` and
+   `VaagenCard` into `FeedHome`, `DeliveryCodeCard` and `OpsTrackingStatus` into
+   the order-detail screen. Light props, data already in reach, and it makes the
+   first-priority surfaces visible enough to design-review at all.
+2. **Then design-review the customer app** against `Ærend Kunde Bergen.dc.html`
+   (§4) and decide the rework from there. Unsized until someone looks.
+3. **T2** (§8) — testable today, two phones, and the most important unverified
+   path in the product.
+4. **Decide the Partner data source** (§3): store snapshot endpoint, or build
+   state from `eventsSince`. That one decision unblocks 23 screens behind a
+   five-tab shell, and it is a backend call.
+5. **agil-1's seven admin screens** (§6) — the only place where working, tested
+   behaviour is unreachable to the people who need it under pressure.
+6. **Add names to the cross-branch contract** (§5). Seven of seven merge defects
+   were name disagreements; the payloads, which *were* contracted, came through
+   untouched.
+7. The two manual UI passes and the Reen naming cleanup (§7) — cheap, and they
+   close the last surfaces where a test passes for the wrong reason.
+8. Everything else waits on an agreement, a decision, or the `main` merge.
