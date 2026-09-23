@@ -32,6 +32,105 @@ but they are not merge damage and not in either plan.
 
 ---
 
+## 0. Before you manually test
+
+Run in this order. Steps 1-3 are required; skip 4 and the app looks broken when
+it is only switched off.
+
+**1. Migrate the dev database.** It has agil-1's tables but **not agil-2's** -
+24 pending migrations. The test DB is already done.
+
+```
+cd D:/work/hare/Hare-AdminPanel
+php artisan migrate            # 24 pending, all additive
+```
+
+**2. Seed. Yes, five of them, and four are agil-2's.** All idempotent.
+
+```
+php artisan ops:seed-policies                              # agil-1 rate card (already 16 rows)
+php artisan db:seed --class=PointsPolicySeeder             # 16 points.* keys
+php artisan db:seed --class=AgentRegisterSeeder            # 15 agents, all DISABLED
+php artisan db:seed --class=MissionTemplateSeeder          # 4 templates
+php artisan db:seed --class=PrizeCatalogueSeeder           # 5 active + 10 inactive
+```
+
+There is no `DatabaseSeeder.php`, so `db:seed` with no `--class` will not work -
+each one is named explicitly. `PointsPolicySeeder` seeded **nothing at all**
+before the fix in this merge; if you ran it earlier and saw no rows, that is why.
+
+**3. Seed the flags, then turn some on.** Everything ships off by design, which
+means a fresh manual pass shows you the pre-agil-1 app and nothing else.
+
+```
+php artisan ops:flags seed     # 30 surface flags, all off
+php artisan ops:flags list     # what is on
+php artisan ops:flags stage backbone       --reason="manual test"
+php artisan ops:flags stage partner_floor  --reason="manual test"
+php artisan ops:flags stage courier        --reason="manual test"
+php artisan ops:flags stage money          --reason="manual test"
+php artisan ops:flags stage storefront     --reason="manual test"
+```
+
+**4. agil-2's flags are separate, and env-only.** `ops:flags` does **not** touch
+them - see the `feature_flags` / `ops_feature_flags` mismatch in §1. Set these in
+`.env` and they take effect immediately:
+
+```
+FLAG_POINTS=true
+FLAG_PREMIEHYLLA=true
+FLAG_MISSIONS=true
+FLAG_LEAGUE=true
+FLAG_AEGIL_LEVEL_MAX=3        # a number, not a boolean: how far Aegil may go
+```
+
+**5. Decide which adapter configuration you are testing.** The default is
+pre-cutover; combined testing is the point of the merge, so you probably want the
+merge-day pair:
+
+```
+POINTS_ORDER_SOURCE=order_events    # points from real ops_order_events rows
+POINTS_SIGNAL_SOURCE=webhook        # Aegil signals from the real feed inbox
+```
+
+Leave them unset to test the legacy/fixture path instead. The suite passes both
+ways; these two vars are the whole cutover.
+
+**6. Services, if you want the live paths rather than the screens alone.**
+
+- `.env` currently has `BROADCAST_DRIVER=log` and `QUEUE_CONNECTION=sync`. Live
+  tracking and the courier/partner realtime channels need Soketi:
+  `docker compose -f docker-compose.soketi.yml up -d`, then set
+  `BROADCAST_DRIVER=pusher`, `PUSHER_APP_ID=aerend`, `PUSHER_APP_KEY=aerend-key`
+  and the secret from that compose file. On `log` the apps fall back to polling
+  `GET /api/ops/events?since=`, which works but is not what you are testing.
+- Escalation, auto-pause and the feed outbox are driven by the scheduler, not by
+  requests. Without `php artisan schedule:work` running, an unseen order never
+  escalates and no feed event is delivered.
+- The feed service needs Docker (Postgres + Valkey). **It is not running on this
+  machine**, which is also why 120 of its tests skip.
+
+**7. Nothing to reinstall.** The merge changed no `composer.json` and no
+`pubspec.yaml`, so no `composer install` and no `flutter pub get` are needed.
+
+### What you can click immediately
+
+| Surface | Where |
+|---|---|
+| Points admin | `/admin/poeng-v2` |
+| Agents admin (register, kill switches, caps) | `/admin/agenter` |
+| agil-1 ops surfaces | API only - no screens, see §2 |
+| Partner, Bud, customer apps | the three Flutter apps, against `php artisan serve` |
+
+### If something looks wrong
+
+Check in this order, because these are the likely causes and the cheapest to
+rule out: flag off (§0.3, §0.4) → seed missing (§0.2) → migration not run (§0.1)
+→ scheduler not running (§0.6) → actually a bug. All 15 agents are seeded
+**disabled**, so Ægil doing nothing is the designed state, not a failure.
+
+---
+
 ## 1. What the merge itself found
 
 Five defects that no amount of testing on either branch alone could have caught.
@@ -92,12 +191,12 @@ those.
 
 ---
 
-## 2. Admin panel screens — still the largest gap
+## 2. Admin panel screens — agil-1's half is the largest gap
 
-**Nothing was built, on either branch.** There is no Blade or Vue under
-`Hare-AdminPanel/resources/views/admin` for any agil-1 or agil-2 surface, and no
-`web.php` route. Both plans' ownership tables assign admin screens, and both
-branches delivered the data behind them instead.
+**agil-1's screens were not built. agil-2's were.** Corrected 2026-09-23 after
+checking the merged tree rather than trusting the earlier note: agil-2 shipped
+Blade screens into the existing admin, with controllers and web routes.
+agil-1 delivered only the data behind its own screens.
 
 agil-1 side — every one of these is a working, tested JSON endpoint:
 
@@ -111,19 +210,23 @@ agil-1 side — every one of these is a working, tested JSON endpoint:
 | **Policy editor** (reason required → `audit_log`) | `PolicyService::set()` | `PolicyTest` |
 | **Feed** oversight, composer, eligibility, change-log, takeover | `Aerend-Feed /admin/feed/*`; `/api/ops/feed/*`, `/api/ops/change-log` | `AdminFeedOversightTest`, `ProductChangeLogTest`, `admin-feed.test.ts` |
 
-agil-2 side — **Points** (Dashboard, Ledger, Regler, Nivå, Premiehylla, Oppdrag,
-Liga, Svindel) and **Agenter**, same situation: APIs and services built and
-tested, no screens. See `docs/AGIL2_API.md` for the endpoint list.
+**agil-2 side — built and clickable.** `/admin/poeng-v2` (dashboard, ledger,
+adjust, rebuild, prizes, claims, donations, rules, tier review, missions, league
+month-end, fraud flags, partner proposals) and `/admin/agenter` (register,
+per-agent kill switch, caps). Views live at
+`resources/views/admin/pages/super_admin/{points,agents}/index.blade.php` with
+`PointsAdminV2Controller` and `AgentAdminController` behind them. So the gap in
+this section is agil-1's half only.
 
-**What this costs today:** support can do all of it, through an API client rather
-than a screen. The override paths — panel scan override, manual state change with
-a reason — are the ones a human reaches for under time pressure and the worst
-possible candidates for curl.
+**What agil-1's missing half costs today:** support can do all of it, but
+through an API client rather than a screen. The override paths — panel scan
+override, manual state change with a reason — are the ones a human reaches for
+under time pressure and the worst possible candidates for curl.
 
-**Sizing:** fifteen or so screens, all read-mostly, against endpoints already
-shaped for a table. The one genuinely new piece is the Unntak inbox's SLA timers,
-which want a live-updating view rather than a page render.
-
+**Sizing:** seven screens, all read-mostly, against endpoints already shaped
+for a table — and agil-2's two are a working precedent to copy, in the same
+admin, with the same layout and auth. The one genuinely new piece is the Unntak
+inbox's SLA timers, which want a live-updating view rather than a page render.
 ---
 
 ## 3. Other UI work outstanding
