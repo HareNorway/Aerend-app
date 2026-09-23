@@ -1354,7 +1354,6 @@
       }
     }
   },
-
   "@@_agil1_ops_status": "Shared ops status vocabulary (Order Ops §5.4) — one server state, three surfaces.",
   "ops_status_placed_customer": "Sendt til butikken",
   "ops_status_placed_partner": "Ny",
@@ -1381,5 +1380,9 @@
   "ops_status_cancelled_partner": "Avvist",
   "ops_status_cancelled_courier": "Avbrutt",
   "ops_status_paused": "Åpner igjen snart",
-  "ops_status_unknown": "Ukjent"
+  "ops_status_unknown": "Ukjent",
+  "aegil_disclosure_title": "Om Ægil",
+  "aegil_disclosure_body": "Ægil er en assistent laget av Ærend, ikke et menneske. Ægil gjør ingenting med pengene dine uten et trykk fra deg under nivå 3, og alt Ægil gjør kan angres i 7 dager. Ærend-innlegg i feeden skrives aldri i Ægils stemme.",
+  "aegil_disclosure_short": "Laget med AI-hjelp. Ægil er en assistent laget av Ærend, ikke et menneske.",
+  "aegil_disclosure_terms": "Vilkår"
 }

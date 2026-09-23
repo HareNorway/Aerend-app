@@ -1475,7 +1475,6 @@
       }
     }
   },
-
   "@@_agil1_ops_status": "Shared ops status vocabulary (Order Ops §5.4) — one server state, three surfaces.",
   "ops_status_placed_customer": "Sent to the store",
   "ops_status_placed_partner": "New",
@@ -1502,5 +1501,9 @@
   "ops_status_cancelled_partner": "Rejected",
   "ops_status_cancelled_courier": "Cancelled",
   "ops_status_paused": "Opening again soon",
-  "ops_status_unknown": "Unknown"
+  "ops_status_unknown": "Unknown",
+  "aegil_disclosure_title": "About Ægil",
+  "aegil_disclosure_body": "Ægil is an assistant made by Ærend, not a person. Below level 3 Ægil does nothing with your money without a tap from you, and everything Ægil does can be undone for 7 days. Ærend posts in the feed are never written in Ægil's voice.",
+  "aegil_disclosure_short": "Made with AI. Ægil is an assistant made by Ærend, not a person.",
+  "aegil_disclosure_terms": "Terms"
 }
