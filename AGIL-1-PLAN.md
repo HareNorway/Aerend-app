@@ -2,7 +2,9 @@
 
 **Branch:** `agil-1` on `Hare-AdminPanel`, `Hare-Store`, `Hare-Driver`, `Aerend-app/Aerend-app`, `Aerend-Feed`.
 
-> 🛑 **NO MERGES. Decided 2026-09-22.** Nothing from `agil-1` is to be merged into `main` or `master` in **any** of the five repos, and nothing is to be pushed. `agil-1` stays a local branch in every repo until that decision changes. This overrides the Phase 12 merge-prep and merge-day tasks below: the merge readiness was *verified* (one `.env` conflict, everything else auto-merges) and deliberately **not executed**. Remaining work is tracked in `AGIL-1-REMAINING.md`.
+> 🛑 **Branch policy, updated 2026-09-23.** `agil-2` has been **merged into `agil-1`** in every repo, for combined testing; `agil-1` is now the integration branch. Still off-limits: **nothing goes into `main` or `master` in any of the five repos, and nothing is pushed anywhere.** `agil-1-backup` in each repo holds the pre-merge commit, so the merge is reversible. Combined remaining work is tracked in `AGIL-1-REMAINING.md`.
+>
+> The Phase 12 merge-prep findings further down still describe the eventual `main` merge, which has **not** happened. The `.env` conflict and the three out-of-ownership exceptions recorded there are still the things that merge would get wrong.
 
 > ⚠️ **`Aerend-Feed` deploy hazard.** Its deploy branch is **`master`** and **every push to `master` auto-deploys to DigitalOcean production.** Create and stay on `agil-1` there; never push `master`. Verify with `git branch --show-current` in `D:\work\hare\Aerend-Feed` before any push. Production URLs: feed `https://aerend-feed-88chd.ondigitalocean.app`, Laravel `https://api.ailogistics.no`.
 **Sister plan:** `AGIL-2-PLAN.md` (branch `agil-2`: Points v2, Ægil, agent platform). Merging both yields the master plan `8-10-WEEK-IMPLEMENTATION-PLAN.md`.
