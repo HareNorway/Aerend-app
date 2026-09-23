@@ -191,6 +191,48 @@ those.
 
 ---
 
+## 1b. The screens are built but mostly unreachable — found 2026-09-23
+
+**This is the biggest gap in the whole plan, and neither branch's notes mention
+it.** Both branches built their screens and tested them as widgets. Almost none
+of them are wired into app navigation, so running any of the three apps shows
+you the old app: the work is real, tested, and unreachable by a human.
+
+Checked by looking for any file that constructs each entry point other than its
+own definition:
+
+| App | Entry point | Reachable? |
+|---|---|---|
+| Hare-Store | `OpsShellScreen` (the host for all 23 ops screens) | **No** — referenced in 1 file, its own |
+| Hare-Store | `TilbyPremieScreen` (agil-2) | **No** |
+| Hare-Driver | `LiveStageScreen` (the courier run screen) | **No** — referenced in 1 file, its own |
+| Aerend-app | `FeedShellScreen` | **Yes** — from `home_v1.dart:91` and `home_main_v1.dart:231` |
+
+And inside the customer app, where the shell *is* wired, the individual pieces
+mostly are not. Each of these is constructed in zero files other than its own:
+`VaagenCard`, `DeliveryCodeCard`, `FeedPublisherTabs`, `OpsTrackingStatus`,
+`MegPointsCard`, `PremiehyllaShelf`, `WelcomeMoment`, `SuggestionTray`. Only
+`FeedEmptyNoPosts` is used by a real parent.
+
+**Why the tests did not catch it.** A widget test pumps the widget directly, so
+a screen nobody can navigate to passes its tests exactly as well as one anybody
+can. 666 green Flutter tests say every screen works; none of them says a screen
+is reachable.
+
+**What this means for a manual pass.** Until this is wired, manual testing of
+the Partner and Bud apps is not possible at all, and the customer app shows the
+feed but not Vågen, the delivery code, the tracking status or any Points
+surface. Anyone opening the apps and concluding "no UI was built" is reading the
+evidence correctly — the wiring, not the screens, is what is missing.
+
+**Roughly what it takes:** one navigation entry per app (a menu item, tab or
+route to `OpsShellScreen` and `LiveStageScreen`), plus placing the loose
+customer widgets in their parents — the tracking screen, the Meg section, the
+feed. Small per item, and nothing about it is hard; it was simply never anyone's
+task, because both plans described screens rather than routes.
+
+---
+
 ## 2. Admin panel screens — agil-1's half is the largest gap
 
 **agil-1's screens were not built. agil-2's were.** Corrected 2026-09-23 after
