@@ -2,7 +2,8 @@
 
 Companion to `AGIL-1-PLAN.md` and `AGIL-2-PLAN.md`. Those record what was built.
 This records what is not, what is built but unreachable, and what nobody has
-checked. Rewritten **2026-09-23** after the branches were merged.
+checked. Rewritten **2026-09-23** after the branches were merged, and
+updated **2026-09-24** when the customer pre-auth flow landed (see §3 and §4).
 
 > 🛑 **Branch policy.** `agil-2` is merged into `agil-1` in all five repos, for
 > combined testing. `agil-1` is the integration branch. **Nothing goes into
@@ -17,7 +18,7 @@ checked. Rewritten **2026-09-23** after the branches were merged.
 1. [Status at a glance](#1-status-at-a-glance)
 2. [Before you manually test](#2-before-you-manually-test)
 3. [What you can and cannot reach today](#3-what-you-can-and-cannot-reach-today)
-4. [Design fidelity — not assessed](#4-design-fidelity--not-assessed)
+4. [Design fidelity — one flow done, the rest not assessed](#4-design-fidelity--one-flow-done-the-rest-not-assessed)
 5. [What the merge found](#5-what-the-merge-found)
 6. [Admin screens](#6-admin-screens)
 7. [Other outstanding UI work](#7-other-outstanding-ui-work)
@@ -53,6 +54,13 @@ The test counts are high and honest. But most of that work is **not connected to
 the running apps** (§3), and **nobody has compared any of it to the designs**
 (§4). Those two things, not the test results, are what stands between here and a
 manual test pass.
+
+**The one exception, and the shape to copy.** The customer app’s pre-auth flow
+(splash, onboarding, login, OTP, consent) landed on 2026-09-24 in `590cfc4`. It
+is the first work in this project that is **both reachable and built to the
+design** — the splash samples the design’s own CSS keyframes, and the onboarding
+follows the design’s step order. That is the bar the rest of §3 and §4 is
+measured against from here.
 
 ---
 
@@ -149,6 +157,7 @@ AI, Kurv, Profil**. All six are real screens. `lib/` analyzes with zero errors.
 
 | Path | Reachable |
 |---|---|
+| **Splash → onboarding (Landing → Vilkår → Konto → Telefon → Kode → Ferdig) → login → OTP → consent** | **Yes — complete, 2026-09-24** |
 | All six bottom-nav tabs | **Yes** |
 | Feed tab → stories row, post cards | **Yes** |
 | "Follows but no posts" empty state (`FeedEmptyNoPosts`) | **Yes** — the one new widget with a real parent |
@@ -217,13 +226,36 @@ where that data comes from, or that a human can open the screen.
 
 ---
 
-## 4. Design fidelity — not assessed
+## 4. Design fidelity — one flow done, the rest not assessed
 
-**Stated plainly: no screen in any of the three apps has been compared to any
-design.** No test in any repo asserts visual fidelity, and nothing in either
-plan's notes records a design review having happened. So if the impression is
-that the screens do not match the designs, **nothing here contradicts that**, and
-this document is not in a position to argue either way.
+### Done: the customer pre-auth flow
+
+**One flow has been built to the design and is reachable** — splash, onboarding,
+login, OTP and consent, delivered 2026-09-24 in `590cfc4`:
+
+- The splash is a 1:1 port of `data-screen-label="Splash · klistremerke"` from
+  `Ærend Kunde Bergen.dc.html` — 3D sticker slap, rings, dust, sheen, letter
+  flips, horizon line — with **every value sampled from the design’s own CSS
+  keyframes** on one 2.6s clock, positioned in the design’s 390×844 frame. The
+  iOS launch screen is solid `#2F6270` so the native-to-Flutter handover does not
+  flash.
+- Onboarding runs in the design’s order: Landing → Vilkår → Konto → Telefon →
+  Kode → Ferdig, on a shared kit (sea surface, step ladder, Ægil + bubble, CTA,
+  fields, tabs), NO/EN copy in `OnbCopy`. Terms acceptance persists per device;
+  a referral code from the landing or an `/invite?code=` link is sent as
+  `refer_code` on register.
+- It is **wired**: `onboarding_kit.dart` is used by `consent_gate_screen.dart`,
+  `login.dart` and `otp_verify.dart`, and splash routes into them. Unlike §3’s
+  orphans, a tester reaches this by opening the app.
+
+That flow no longer needs a design review. **Everything below still does.**
+
+### Not assessed: everything else
+
+**No other screen in any of the three apps has been compared to any design.** No
+test in any repo asserts visual fidelity, and nothing in either plan’s notes
+records a review of them. So if the impression is that the remaining screens do
+not match the designs, nothing here contradicts that.
 
 What is true:
 
@@ -346,7 +378,9 @@ piece is Unntak's SLA timers, which want a live-updating view.
 `AerendBergenAuthTokens`, correct app icon on `#173E48`. Not finished:
 
 - `lib/theme/reen_pre_club_theme.dart` still carries the old filename for a class
-  no longer called that; ten files import it.
+  no longer called that (`AerendBergenAuthTokens`). **24 files import it now**, up
+  from ten — agil-2’s Points and Ægil widgets import it too, and the new pre-auth
+  work keeps using it. The rename gets cheaper the sooner it happens.
 - `assets/Logo/reen-mark-coral.png` and `assets/Logo/reen/mark-coral-navy.png`
   still carry Reen names and render on five live surfaces — `homeMainV1`,
   `feed_branded_header`, `home_v1`, `contact_us_screen`, `snurre_chat_screen`.
@@ -370,6 +404,14 @@ pass:
 scaffold present identically on both branches — a `flutter create` leftover worth
 deleting. Hare-Store has 11 pre-existing errors from inconsistent import casing
 (`homeScreen` vs `homescreen`), also on both branches.
+
+**Fixed on the way in (2026-09-24), worth knowing before you test.** The
+social-login busy overlay could stay up forever and **block every tap in the
+app** — a tester would have been stuck on the login screen with no way forward.
+It is now tied to the login call and always released. Also fixed:
+`primaryFocus!.unfocus()` threw when nothing had focus (20 call sites), login’s
+connectivity check compared a `List` to an enum, and cancelling Sign in with
+Apple threw.
 
 **Pre-existing, nobody's plan:** `account_detail.dart` has ~8 hardcoded
 Norwegian strings marked `// TODO(l10n)`.
@@ -458,7 +500,7 @@ Not blocked on agil-2 any more — that merge has happened.
 - **No staging environment**, so "store publishes → appears in the customer feed
   ≤ 5s" and the two-service integration pass remain unmeasured.
 - **No real devices** — T2, plus the two platform-channel surfaces in §7.
-- **No design review** — §4.
+- **No design review beyond the pre-auth flow** — §4.
 - **The load test measures the monolith, not the wire.** p50 9 ms / p95 25 ms /
   max 35 ms against a 1 s budget, with the broadcast driver faked. Read it as
   "the monolith can produce 500 orders' worth of fan-out inside the budget", not
@@ -472,9 +514,10 @@ Not blocked on agil-2 any more — that merge has happened.
    `VaagenCard` into `FeedHome`, `DeliveryCodeCard` and `OpsTrackingStatus` into
    the order-detail screen. Light props, data already in reach, and it makes the
    first-priority surfaces visible enough to design-review at all.
-2. **Then design-review the customer app** against `Ærend Kunde Bergen.dc.html`
-   (§4) and decide the rework from there. Unsized until someone looks.
-3. **T2** (§8) — testable today, two phones, and the most important unverified
+2. **Then design-review the rest of the customer app** against
+   `Ærend Kunde Bergen.dc.html` (§4). The pre-auth flow is already done to that
+   standard and is the reference for what "done" looks like; the feed, tracking
+   and Meg surfaces have not been looked at. Unsized until someone looks.
    path in the product.
 4. **Decide the Partner data source** (§3): store snapshot endpoint, or build
    state from `eventsSince`. That one decision unblocks 23 screens behind a
