@@ -17,10 +17,10 @@
 **Read before every phase**
 - The spec section named in the phase.
 - The design file named in the phase. The `.dc.html` files are single-file prototypes. Map a file first with `grep -n 'data-screen-label=' <file>` (screen list) and `grep -n '<symbol id=' <file>` (SVG assets), then read the screen block. `ui_kits/partner/*.jsx`, `ui_kits/driver/*.jsx` and their `README.md` are cleaner React recreations of the same screens — use them for layout/component structure; use the `.dc.html` files for copy, states, colours and animation timings.
-  - Partner: `designs/20des/Ærend Partner.dc.html`, `Ærend Partner - leveranser (steg 4).dc.html` (screen map + button ledger + state matrix — treat as the checklist), `Ærend Partner - agentfunksjoner P1-P5.dc.html`, `Ærend Partner - inventar (steg 1).dc.html`.
-  - Bud: `designs/20des/Ærend Bud.dc.html`, `Ærend Bud - leveranser (steg 4).dc.html`, `Ærend Bud - agentfunksjoner B1-B4.dc.html`, `Ærend Bud - inventar (steg 1).dc.html`.
-  - Both: `designs/20des/Ærend Bud og Partner - register og system.dc.html` (parity audit vs existing apps, shared status vocabulary, 18 shared components, density rules).
-  - Customer: `designs/20des/Ærend Kunde Bergen.dc.html` (tracking, feed tabs, "Vågen", delivery-code card, ID-kort).
+  - Partner: `designs/21des/Ærend Partner.dc.html`, `Ærend Partner - leveranser (steg 4).dc.html` (screen map + button ledger + state matrix — treat as the checklist), `Ærend Partner - agentfunksjoner P1-P5.dc.html`, `Ærend Partner - inventar (steg 1).dc.html`.
+  - Bud: `designs/21des/Ærend Bud.dc.html`, `Ærend Bud - leveranser (steg 4).dc.html`, `Ærend Bud - agentfunksjoner B1-B4.dc.html`, `Ærend Bud - inventar (steg 1).dc.html`.
+  - Both: `designs/21des/Ærend Bud og Partner - register og system.dc.html` (parity audit vs existing apps, shared status vocabulary, 18 shared components, density rules).
+  - Customer: `designs/21des/Ærend Kunde Bergen.dc.html` (tracking, feed tabs, "Vågen", delivery-code card, ID-kort).
 - Brand tokens already in code: `Aerend-app/lib/theme/reen_pre_club_theme.dart` (`AerendBergenAuthTokens`), `sc_saas_theme.dart`; mark asset `assets/Logo/aerend_mark_bergen.svg`. Partner/Bud keep the glass/depth "Bergen scene" treatment; Bud additionally has Night mode and Big-weather mode.
 
 **Codebase facts**

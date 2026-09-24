@@ -263,7 +263,9 @@ What is true:
   docstrings (`feed_publisher_tabs.dart`: "§3.1, `Kunde Bergen` design";
   `delivery_code_card.dart`: "Kunde design delivery-code card + ID-kort";
   `vaagen_card.dart`: "One pull a day, and that limit is the design").
-- The sources are in `designs/20des/` (43 `.dc.html` files), for the customer app
+- The sources are in `designs/21des/` (47 `.dc.html` files — the folder was
+  `20des` until 2026-09-24, so any older citation of that path is stale), for the
+  customer app
   principally `Ærend Kunde Bergen.dc.html`,
   `Ærend Kunde - inventar (steg 1).dc.html` and
   `Ærend Kunde - leveranser (steg 4).dc.html`.
