@@ -18,7 +18,6 @@ import '../../../dialogs/warning_dialog.dart';
 import '../../../utils/utils.dart';
 import 'home_dl.dart';
 import 'home_repo.dart';
-import 'home_v1.dart';
 import '../swipeAerend/swipe_aerend_repo.dart';
 import '../swipeAerend/swipe_aerend_dl.dart';
 
@@ -54,7 +53,7 @@ class HomeBloc extends Bloc {
 
   final GlobalKey exclusiveOfferKey = GlobalKey();
 
-  State<HomeV1> state;
+  State<StatefulWidget> state;
 
   HomeBloc(this.context, this.state, this.isHareExplore) {
     _initialize();

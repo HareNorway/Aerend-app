@@ -103,12 +103,14 @@ flutter:
     - assets/images/
     - assets/images/home/
     - assets/images/aegil/
+    - assets/images/dashboard/
     - assets/images/products/
     - assets/images/service-category/
     - assets/gifs/
     - assets/svgs/
     - assets/svgs/icons/
     - assets/svgs/onboarding/
+    - assets/svgs/dashboard/
     - assets/svgs/star/
     - assets/svgs/delivery/
     - assets/svgs/account/
