@@ -3,7 +3,8 @@
 Companion to `AGIL-1-PLAN.md` and `AGIL-2-PLAN.md`. Those record what was built.
 This records what is not, what is built but unreachable, and what nobody has
 checked. Rewritten **2026-09-23** after the branches were merged, and
-updated **2026-09-24** when the customer pre-auth flow landed (see §3 and §4).
+updated **2026-09-25**: the customer pre-auth flow and the Bergen Hjem screen
+have both landed (see §3 and §4).
 
 > 🛑 **Branch policy.** `agil-2` is merged into `agil-1` in all five repos, for
 > combined testing. `agil-1` is the integration branch. **Nothing goes into
@@ -35,7 +36,7 @@ updated **2026-09-24** when the customer pre-auth flow landed (see §3 and §4).
 |---|---|---|
 | Hare-AdminPanel | 12 commits, no conflicts | **989 passing**, 11 skipped, 6 pre-existing failures |
 | Hare-Store | 2 commits, no conflicts | **235 passing** |
-| Aerend-app | 19 commits, 10 conflicts resolved | **302 passing**, `lib/` analyzes with 0 errors |
+| Aerend-app | 19 commits, 10 conflicts resolved; `agil-1-dashboard` merged clean 2026-09-25 | **321 passing**, `lib/` analyzes with 0 errors |
 | Hare-Driver | nothing to merge — agil-2 owns nothing here | 129 passing |
 | Aerend-Feed | nothing to merge — agil-2 never touched it, as contracted | 60 passing / 120 skipped (no Docker) |
 
@@ -152,13 +153,16 @@ that constructs each entry point other than its own definition.
 
 ### Customer app (Aerend-app) — navigation works
 
-`main.dart` → `Splash` → `HomeMainV1`, a six-tab bottom nav: **Hjem, Søk, Feed,
-AI, Kurv, Profil**. All six are real screens. `lib/` analyzes with zero errors.
+`main.dart` → `Splash` → `HomeMainV1`, now a **four-tab** bottom nav:
+**Hjem, Utforsk, Kurv, Meg** (`BergenBottomNav`). Søk and the Ægil chat moved out
+of the nav into the home screen's search flow and are still reachable from there
+(`home_main_v1.dart:116` and `:120`). `lib/` analyzes with zero errors.
 
 | Path | Reachable |
 |---|---|
 | **Splash → onboarding (Landing → Vilkår → Konto → Telefon → Kode → Ferdig) → login → OTP → consent** | **Yes — complete, 2026-09-24** |
-| All six bottom-nav tabs | **Yes** |
+| **Hjem — the Bergen home screen (`BergenHome`)** | **Yes — complete, 2026-09-25** |
+| All four bottom-nav tabs | **Yes** |
 | Feed tab → stories row, post cards | **Yes** |
 | "Follows but no posts" empty state (`FeedEmptyNoPosts`) | **Yes** — the one new widget with a real parent |
 | Feed search (embedded) | **Yes** |
@@ -228,7 +232,7 @@ where that data comes from, or that a human can open the screen.
 
 ## 4. Design fidelity — one flow done, the rest not assessed
 
-### Done: the customer pre-auth flow
+### Done: the customer pre-auth flow and the Hjem screen
 
 **One flow has been built to the design and is reachable** — splash, onboarding,
 login, OTP and consent, delivered 2026-09-24 in `590cfc4`:
@@ -248,7 +252,15 @@ login, OTP and consent, delivered 2026-09-24 in `590cfc4`:
   `login.dart` and `otp_verify.dart`, and splash routes into them. Unlike §3’s
   orphans, a tester reaches this by opening the app.
 
-That flow no longer needs a design review. **Everything below still does.**
+**The Hjem screen followed on 2026-09-25** (`agil-1-dashboard`, merged clean).
+Built 1:1 from the Bergen design: the sea hero and its day/evening/rain/fishing
+variants, the category row, the explore cards and the four-tab bottom nav, with
+ten scene SVGs under `assets/svgs/dashboard/`. Around 10,000 lines across a
+`lib/screens/common/home/bergen/` package, wired as tab 0 of the shell — so it
+is reachable as well as faithful, which is the combination §3 says almost
+nothing else in this project has.
+
+Those two flows no longer need a design review. **Everything below still does.**
 
 ### Not assessed: everything else
 
@@ -517,9 +529,10 @@ Not blocked on agil-2 any more — that merge has happened.
    the order-detail screen. Light props, data already in reach, and it makes the
    first-priority surfaces visible enough to design-review at all.
 2. **Then design-review the rest of the customer app** against
-   `Ærend Kunde Bergen.dc.html` (§4). The pre-auth flow is already done to that
-   standard and is the reference for what "done" looks like; the feed, tracking
-   and Meg surfaces have not been looked at. Unsized until someone looks.
+   `Ærend Kunde Bergen.dc.html` (§4). Pre-auth and Hjem are done to that
+   standard and are the reference for what "done" looks like; the feed,
+   tracking and Meg surfaces have not been looked at. Unsized until someone
+   looks.
    path in the product.
 4. **Decide the Partner data source** (§3): store snapshot endpoint, or build
    state from `eventsSince`. That one decision unblocks 23 screens behind a
