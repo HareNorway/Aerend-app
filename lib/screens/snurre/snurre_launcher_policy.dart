@@ -7,6 +7,7 @@ import '../common/login/login.dart';
 import '../common/otpVerify/otp_verify.dart';
 import '../common/selectLanguageAndCurrency/select_language_and_currency.dart';
 import '../common/signUp/sign_up.dart';
+import '../common/homeMainV1/home_main_v1.dart';
 import '../common/splash/splash.dart';
 
 /// Route names with this prefix hide the global Snurre launcher.
@@ -22,6 +23,9 @@ bool canUseSnurreLauncher() {
 /// Assign on [RouteSettings.name] for pushed screens (see [_buildSmoothRoute]).
 String snurreLauncherRouteNameFor(Widget screen) {
   if (screen is Splash) return '${snurreLauncherHiddenRoutePrefix}splash';
+  // The Bergen shell carries Ægil in its own nav (search pill + long-press
+  // orb) and on Hjem's pull handle, so the floating launcher stays out.
+  if (screen is HomeMainV1) return '${snurreLauncherHiddenRoutePrefix}shell';
   if (screen is ConsentGateScreen) {
     return '${snurreLauncherHiddenRoutePrefix}consent';
   }
