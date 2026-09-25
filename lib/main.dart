@@ -32,6 +32,7 @@ import 'utils/utils.dart';
 import 'screens/bergen/bergen_routes_agil1.dart';
 import 'screens/bergen/bergen_routes_agil3.dart';
 import 'screens/bergen/kit/bergen_routes.dart';
+import 'screens/bergen/meg/a3_services.dart';
 
 //Created at 20/05/2021 11:30 AM
 
@@ -271,7 +272,23 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: ScrollConfiguration(behavior: MyBehavior(), child: child!),
             );
 
-            return Stack(children: [appChild, const _GlobalSnurreLauncher()]);
+            // agil-1 Phase 8 (an ask of agil-3): Konto's "Roligere bevegelse"
+            // becomes MediaQuery.disableAnimations for the whole app, so the
+            // Bergen kit's motion helpers honour it everywhere.
+            final calmChild = ValueListenableBuilder<bool>(
+              valueListenable: A3Services.reducedMotion,
+              builder: (context, calm, child) => calm
+                  ? MediaQuery(
+                      data: MediaQuery.of(
+                        context,
+                      ).copyWith(disableAnimations: true),
+                      child: child!,
+                    )
+                  : child!,
+              child: appChild,
+            );
+
+            return Stack(children: [calmChild, const _GlobalSnurreLauncher()]);
           },
           debugShowCheckedModeBanner: false,
           locale: selectedLocale,
@@ -292,13 +309,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               name.contains('://') ? name : 'aerend://local$name',
             );
 
-            final isVippsPayment = name.contains('payment/vipps') ||
+            final isVippsPayment =
+                name.contains('payment/vipps') ||
                 (uri?.host == 'payment' &&
                     (uri?.path.contains('vipps') ?? false));
             if (isVippsPayment) {
-              final orderId = int.tryParse(
-                    uri?.queryParameters['orderId'] ?? '',
-                  ) ??
+              final orderId =
+                  int.tryParse(uri?.queryParameters['orderId'] ?? '') ??
                   prefGetInt('vipps_pending_order_id');
               if (orderId > 0) {
                 return MaterialPageRoute(
@@ -310,7 +327,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
             final isVippsLoginHttpsCallback =
                 uri?.path.contains('/vipps/login/callback') == true;
-            final isVippsLogin = isVippsLoginHttpsCallback ||
+            final isVippsLogin =
+                isVippsLoginHttpsCallback ||
                 name.contains('vipps-login') ||
                 uri?.host == 'vipps-login' ||
                 (uri?.scheme == 'aerend' &&
@@ -321,10 +339,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               final state = uri?.queryParameters['state'] ?? '';
               if (code.isNotEmpty && state.isNotEmpty) {
                 return MaterialPageRoute(
-                  builder: (context) => VippsLoginReturnScreen(
-                    code: code,
-                    state: state,
-                  ),
+                  builder: (context) =>
+                      VippsLoginReturnScreen(code: code, state: state),
                 );
               }
             }

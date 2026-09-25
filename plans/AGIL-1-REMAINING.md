@@ -19,6 +19,25 @@ have both landed (see §3 and §4).
 
 ---
 
+> **Post-merge state, 2026-09-25 (AGIL-1 v2 Phase 8).** `agil-3` is merged
+> into `agil-1` in both repos (`Hare-AdminPanel 75f14b2`, `Aerend-app 5fffe95`);
+> `php artisan ops:contract-check --strict` reports every registered name real;
+> both suites are green on the merged tree (backend: only the six pre-existing
+> unit failures; app: 447). The customer's ærend is end to end behind
+> `/bergen/...` routes, the copy lives in the ARB files, every new flag is
+> off. What stays human is unchanged below (§7 story-viewer pass, §8
+> T1/T2/T9/T10, the Hare-Store image picker, the Vipps payout agreement, the
+> Points cutover, the six policy placeholders) plus, from agil-3's
+> `AGIL-3-REMAINING.md`: pushes, credentials, seeds, legal sign-off on the
+> courier outreach text, a device pass of its screens, and a native review of
+> its copy. Two agil-3 asks of agil-1 remain follow-ups: `SettlementService`
+> does not list payout lines by kind at all today (adding `delivery_income` to
+> partner statements is a feature), and agil-3's Meg rows for "Nytt fra
+> butikkene" / "Hjelp og kontakt" still open Konto — the targets
+> (`/bergen/utforsk?tab=feed`, `/bergen/kundeservice`) now exist and the rows
+> are agil-3's to repoint. Everything below this line is the 2026-09-25
+> pre-merge record, kept as written.
+
 ## Contents
 
 1. [Status at a glance](#1-status-at-a-glance)

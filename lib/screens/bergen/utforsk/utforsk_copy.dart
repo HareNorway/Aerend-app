@@ -1,5 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
+import '../../../main.dart' show languages;
 import '../../../utils/utils.dart';
 
 /// Copy for the Utforsk group (`utforsk` ≈L4389 and `feed` ≈L6643 in
@@ -10,88 +11,52 @@ abstract final class UtforskCopy {
   static String _t(String no, String en) => _en ? en : no;
 
   // ── screen ──────────────────────────────────────────────────────────────
-  static String get a1_utforsk_title => _t('Utforsk', 'Explore');
-  static String get a1_utforsk_tab_feed => 'Feed';
-  static String get a1_utforsk_tab_fiske => 'Fjordfiske';
-  static String get a1_utforsk_tab_pose =>
-      _t('Forundringspose', 'Surprise bag');
-  static String get a1_utforsk_filter_alle => _t('Alle', 'All');
-  static String get a1_utforsk_kommer_snart =>
-      _t('Kommer snart', 'Coming soon');
+  static String get a1_utforsk_title => languages.ops_utforsk_title;
+  static String get a1_utforsk_tab_feed => languages.ops_utforsk_tab_feed;
+  static String get a1_utforsk_tab_fiske => languages.ops_utforsk_tab_fiske;
+  static String get a1_utforsk_tab_pose => languages.ops_utforsk_tab_pose;
+  static String get a1_utforsk_filter_alle => languages.ops_utforsk_filter_alle;
+  static String get a1_utforsk_kommer_snart => languages.ops_utforsk_kommer_snart;
 
   // ── Drift notice ────────────────────────────────────────────────────────
-  static String get a1_utforsk_drift_title => 'Ærend · Drift';
-  static String a1_utforsk_drift_pinned(String until) =>
-      _t('Festet til $until', 'Pinned until $until');
+  static String get a1_utforsk_drift_title => languages.ops_utforsk_drift_title;
+  static String a1_utforsk_drift_pinned(String until) => languages.ops_utforsk_drift_pinned(until);
 
   // ── Fjordfiske landing ──────────────────────────────────────────────────
-  static String get a1_utforsk_fiske_intro => _t(
-    'For kveldene du bare vil se — aldri i veien når du er sulten.',
-    'For the evenings you just want to look — never in the way when you are hungry.',
-  );
-  static String a1_utforsk_fiske_napp(int n) =>
-      _t('$n napp igjen i dag', '$n bites left today');
-  static String get a1_utforsk_fiske_line => _t(
-    'Kast ut — finn ting du ikke visste du ville ha. Høyre lagrer, opp legger i kurven.',
-    'Cast out — find things you did not know you wanted. Right saves, up adds to the basket.',
-  );
-  static String get a1_utforsk_fiske_cta => _t('Kast ut', 'Cast out');
+  static String get a1_utforsk_fiske_intro => languages.ops_utforsk_fiske_intro;
+  static String a1_utforsk_fiske_napp(int n) => languages.ops_utforsk_fiske_napp(n);
+  static String get a1_utforsk_fiske_line => languages.ops_utforsk_fiske_line;
+  static String get a1_utforsk_fiske_cta => languages.ops_utforsk_fiske_cta;
 
   // ── Forundringspose tab ─────────────────────────────────────────────────
-  static String get a1_utforsk_pose_title =>
-      _t('Forundringsposer i nærheten', 'Surprise bags nearby');
-  static String a1_utforsk_pose_left_today(int n) =>
-      _t('$n igjen i dag', '$n left today');
-  static String get a1_utforsk_pose_line => _t(
-    'Overskudd fra butikkene til en brøkdel. Innholdet avsløres under nordlys ved levering.',
-    'Surplus from the shops at a fraction. The contents are revealed under the northern lights at delivery.',
-  );
-  static String a1_utforsk_pose_left(int n) => _t('$n igjen', '$n left');
-  static String a1_utforsk_pose_value(int kr) =>
-      _t('verdi minst $kr kr', 'worth at least $kr kr');
-  static String a1_utforsk_pose_pickup(String window) =>
-      _t('Hentes $window', 'Pick up $window');
-  static String a1_utforsk_pose_price(int kr) => '$kr kr';
-  static String get a1_utforsk_pose_secure => _t('Sikre en', 'Grab one');
-  static String get a1_utforsk_pose_empty => _t(
-    'Ingen poser i nærheten akkurat nå — butikkene legger ut når de har overskudd.',
-    'No bags nearby right now — the shops list them when they have surplus.',
-  );
-  static String get a1_utforsk_automat =>
-      _t('Poseautomaten', 'The bag machine');
-  static String a1_utforsk_automat_line(int kr) =>
-      _t('Trekk i spaken · $kr kr', 'Pull the lever · $kr kr');
+  static String get a1_utforsk_pose_title => languages.ops_utforsk_pose_title;
+  static String a1_utforsk_pose_left_today(int n) => languages.ops_utforsk_pose_left_today(n);
+  static String get a1_utforsk_pose_line => languages.ops_utforsk_pose_line;
+  static String a1_utforsk_pose_left(int n) => languages.ops_utforsk_pose_left(n);
+  static String a1_utforsk_pose_value(int kr) => languages.ops_utforsk_pose_value(kr);
+  static String a1_utforsk_pose_pickup(String window) => languages.ops_utforsk_pose_pickup(window);
+  static String a1_utforsk_pose_price(int kr) => languages.ops_utforsk_pose_price(kr);
+  static String get a1_utforsk_pose_secure => languages.ops_utforsk_pose_secure;
+  static String get a1_utforsk_pose_empty => languages.ops_utforsk_pose_empty;
+  static String get a1_utforsk_automat => languages.ops_utforsk_automat;
+  static String a1_utforsk_automat_line(int kr) => languages.ops_utforsk_automat_line(kr);
 
   // ── Feed promo (design `visPromo`) ──────────────────────────────────────
-  static String get a1_utforsk_promo_label =>
-      _t('FORUNDRINGSPOSE · GRØNT & GODT', 'SURPRISE BAG · GREENS & GOODIES');
-  static String get a1_utforsk_promo_cta => _t('Hent posen', 'Get the bag');
-  static String a1_utforsk_promo_left(int n) =>
-      _t('$n igjen · ekte antall', '$n left · real count');
+  static String get a1_utforsk_promo_label => languages.ops_utforsk_promo_label;
+  static String get a1_utforsk_promo_cta => languages.ops_utforsk_promo_cta;
+  static String a1_utforsk_promo_left(int n) => languages.ops_utforsk_promo_left(n);
 
   // ── Feed empty state ────────────────────────────────────────────────────
-  static String get a1_utforsk_feed_empty_title =>
-      _t('Ingenting nytt her ennå', 'Nothing new here yet');
-  static String get a1_utforsk_feed_empty_text => _t(
-    'Følg butikker i nærheten, så dukker de opp her.',
-    'Follow shops nearby and they show up here.',
-  );
+  static String get a1_utforsk_feed_empty_title => languages.ops_utforsk_feed_empty_title;
+  static String get a1_utforsk_feed_empty_text => languages.ops_utforsk_feed_empty_text;
 
   // ── Nytt fra butikkene (`feed` ≈L6643) ──────────────────────────────────
-  static String a1_utforsk_nyheter_chip(String bydel) =>
-      _t('$bydel · i dag', '$bydel · today');
-  static String get a1_utforsk_nyheter_title =>
-      _t('Nytt fra butikkene', 'New from the shops');
-  static String get a1_utforsk_nyheter_bergensk =>
-      _t('Bergensk', 'From Bergen');
-  static String a1_utforsk_nyheter_order(String price) =>
-      _t('Bestill · $price', 'Order · $price');
-  static String get a1_utforsk_nyheter_see_store => _t('Se butikk', 'See shop');
-  static String get a1_utforsk_nyheter_see => _t('Se', 'See');
-  static String get a1_utforsk_nyheter_footer => _t(
-    'Bare butikker i nærheten av deg · ingen reklame',
-    'Only shops near you · no ads',
-  );
-  static String get a1_utforsk_nyheter_empty =>
-      _t('Ingen nyheter fra butikkene i dag.', 'No news from the shops today.');
+  static String a1_utforsk_nyheter_chip(String bydel) => languages.ops_utforsk_nyheter_chip(bydel);
+  static String get a1_utforsk_nyheter_title => languages.ops_utforsk_nyheter_title;
+  static String get a1_utforsk_nyheter_bergensk => languages.ops_utforsk_nyheter_bergensk;
+  static String a1_utforsk_nyheter_order(String price) => languages.ops_utforsk_nyheter_order(price);
+  static String get a1_utforsk_nyheter_see_store => languages.ops_utforsk_nyheter_see_store;
+  static String get a1_utforsk_nyheter_see => languages.ops_utforsk_nyheter_see;
+  static String get a1_utforsk_nyheter_footer => languages.ops_utforsk_nyheter_footer;
+  static String get a1_utforsk_nyheter_empty => languages.ops_utforsk_nyheter_empty;
 }

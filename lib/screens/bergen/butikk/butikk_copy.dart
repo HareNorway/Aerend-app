@@ -1,5 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
+import '../../../main.dart' show languages;
 import '../../../utils/utils.dart';
 
 /// Copy for the Butikk group (`kategori` ≈L4748, `butikk` ≈L3035,
@@ -14,273 +15,166 @@ abstract final class ButikkCopy {
       '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2)} kr';
 
   // ── Kategori ────────────────────────────────────────────────────────────
-  static String a1_butikk_kat_open(int n) =>
-      _t('$n åpne nå · Bergen', '$n open now · Bergen');
-  static String get a1_butikk_kat_bestill_bilde =>
-      _t('Bestill fra bilde', 'Order from a photo');
-  static String get a1_butikk_kat_butikker => _t('Butikker', 'Shops');
-  static String get a1_butikk_kat_produkter => _t('Produkter', 'Products');
-  static String a1_butikk_kat_pulse(String kat, int n) => _t(
-    'Akkurat nå i $kat: $n bestillinger siste time',
-    'Right now in $kat: $n orders in the last hour',
-  );
-  static String get a1_butikk_kat_bestiller_naa =>
-      _t('bestiller nå', 'ordering now');
-  static String get a1_butikk_kat_video => 'VIDEO';
-  static String get a1_butikk_kat_f_open => _t('Åpen nå', 'Open now');
-  static String get a1_butikk_kat_f_free =>
-      _t('Gratis levering', 'Free delivery');
-  static String get a1_butikk_kat_f_fast => _t('Under 30 min', 'Under 30 min');
-  static String get a1_butikk_kat_f_top => _t('Topprangert', 'Top rated');
-  static String get a1_butikk_kat_empty =>
-      _t('Ingen butikker her ennå.', 'No shops here yet.');
-  static String get a1_butikk_kat_empty_products =>
-      _t('Ingen produkter her ennå.', 'No products here yet.');
-  static String get a1_butikk_kat_free => _t('Gratis', 'Free');
-  static String a1_butikk_kat_eta(int min) => '$min min';
+  static String a1_butikk_kat_open(int n) => languages.ops_butikk_kat_open(n);
+  static String get a1_butikk_kat_bestill_bilde => languages.ops_butikk_kat_bestill_bilde;
+  static String get a1_butikk_kat_butikker => languages.ops_butikk_kat_butikker;
+  static String get a1_butikk_kat_produkter => languages.ops_butikk_kat_produkter;
+  static String a1_butikk_kat_pulse(String kat, int n) => languages.ops_butikk_kat_pulse(kat, n);
+  static String get a1_butikk_kat_bestiller_naa => languages.ops_butikk_kat_bestiller_naa;
+  static String get a1_butikk_kat_video => languages.ops_butikk_kat_video;
+  static String get a1_butikk_kat_f_open => languages.ops_butikk_kat_f_open;
+  static String get a1_butikk_kat_f_free => languages.ops_butikk_kat_f_free;
+  static String get a1_butikk_kat_f_fast => languages.ops_butikk_kat_f_fast;
+  static String get a1_butikk_kat_f_top => languages.ops_butikk_kat_f_top;
+  static String get a1_butikk_kat_empty => languages.ops_butikk_kat_empty;
+  static String get a1_butikk_kat_empty_products => languages.ops_butikk_kat_empty_products;
+  static String get a1_butikk_kat_free => languages.ops_butikk_kat_free;
+  static String a1_butikk_kat_eta(int min) => languages.ops_butikk_kat_eta(min);
 
   // Gaver variant
-  static String get a1_butikk_gave_idag =>
-      _t('Rekker fram i dag', 'Arrives today');
-  static String a1_butikk_gave_innen(String time) =>
-      _t('Innen $time', 'By $time');
-  static String get a1_butikk_gave_aegil =>
-      _t('La Ægil finne en gave ›', 'Let Ægil find a gift ›');
-  static String get a1_butikk_gave_utstilling =>
-      _t('Ukens utstilling · Gaver', 'This week\'s display · Gifts');
-  static String get a1_butikk_gave_anledninger =>
-      _t('Anledninger', 'Occasions');
-  static String get a1_butikk_gave_naerheten =>
-      _t('Butikker i nærheten', 'Shops nearby');
-  static String get a1_butikk_gave_innpakning =>
-      _t('GRATIS INNPAKNING', 'FREE WRAPPING');
-  static String a1_butikk_gave_populaert(String bydel) =>
-      _t('Populært til bursdag i $bydel', 'Popular for birthdays in $bydel');
+  static String get a1_butikk_gave_idag => languages.ops_butikk_gave_idag;
+  static String a1_butikk_gave_innen(String time) => languages.ops_butikk_gave_innen(time);
+  static String get a1_butikk_gave_aegil => languages.ops_butikk_gave_aegil;
+  static String get a1_butikk_gave_utstilling => languages.ops_butikk_gave_utstilling;
+  static String get a1_butikk_gave_anledninger => languages.ops_butikk_gave_anledninger;
+  static String get a1_butikk_gave_naerheten => languages.ops_butikk_gave_naerheten;
+  static String get a1_butikk_gave_innpakning => languages.ops_butikk_gave_innpakning;
+  static String a1_butikk_gave_populaert(String bydel) => languages.ops_butikk_gave_populaert(bydel);
   static List<String> get a1_butikk_gave_anledning_liste => _en
       ? const ['Birthday', 'Housewarming', 'Thank you', 'Just because']
       : const ['Bursdag', 'Innflytting', 'Takk', 'Bare fordi'];
 
   // Mote variant
-  static String get a1_butikk_mote_utstilling =>
-      _t('Ukens utstilling · Mote', 'This week\'s display · Fashion');
-  static String a1_butikk_mote_antall(int n) => _t('$n plagg', '$n pieces');
+  static String get a1_butikk_mote_utstilling => languages.ops_butikk_mote_utstilling;
+  static String a1_butikk_mote_antall(int n) => languages.ops_butikk_mote_antall(n);
 
   // ── Dreieskiven ─────────────────────────────────────────────────────────
-  static String get a1_butikk_skive_lagre => _t(
-    'Lagre · si fra hvis prisen faller',
-    'Save · tell me if the price drops',
-  );
-  static String get a1_butikk_skive_lagret => _t('Lagret', 'Saved');
-  static String get a1_butikk_skive_legg => _t('Legg til', 'Add');
-  static String get a1_butikk_skive_hint =>
-      _t('Dra for å snurre', 'Drag to spin');
+  static String get a1_butikk_skive_lagre => languages.ops_butikk_skive_lagre;
+  static String get a1_butikk_skive_lagret => languages.ops_butikk_skive_lagret;
+  static String get a1_butikk_skive_legg => languages.ops_butikk_skive_legg;
+  static String get a1_butikk_skive_hint => languages.ops_butikk_skive_hint;
 
   // ── Butikk (restaurant) ─────────────────────────────────────────────────
-  static String a1_butikk_open_til(String t) =>
-      _t('Åpent til $t', 'Open until $t');
-  static String a1_butikk_apner(String t) => _t('Åpner $t', 'Opens $t');
-  static String get a1_butikk_stengt => _t('Stengt nå', 'Closed now');
-  static String get a1_butikk_kjokken =>
-      _t('Kjøkkenet er i gang', 'The kitchen is running');
-  static String get a1_butikk_pauset =>
-      _t('Pause i kjøkkenet', 'The kitchen is paused');
+  static String a1_butikk_open_til(String t) => languages.ops_butikk_open_til(t);
+  static String a1_butikk_apner(String t) => languages.ops_butikk_apner(t);
+  static String get a1_butikk_stengt => languages.ops_butikk_stengt;
+  static String get a1_butikk_kjokken => languages.ops_butikk_kjokken;
+  static String get a1_butikk_pauset => languages.ops_butikk_pauset;
   static String a1_butikk_km(double km) =>
       '${km.toStringAsFixed(1).replaceAll('.', ',')} km';
-  static String a1_butikk_levering(String fee) =>
-      _t('Levering $fee', 'Delivery $fee');
-  static String a1_butikk_aerend_idag(int n) =>
-      _t('$n ærend i dag', '$n errands today');
-  static String a1_butikk_kikker(int n) => _t('$n kikker nå', '$n looking now');
-  static String get a1_butikk_seilas => _t('SEILASEN DIN', 'YOUR VOYAGE');
-  static String get a1_butikk_kjokkenet => _t('Kjøkkenet', 'The kitchen');
-  static String get a1_butikk_din_dor => _t('Din dør', 'Your door');
-  static String get a1_butikk_gratis_frakt =>
-      _t('Gratis frakt', 'Free delivery');
-  static String get a1_butikk_dessert => _t('Dessert', 'Dessert');
-  static String get a1_butikk_ti_prosent => '10 %';
-  static String a1_butikk_min(num kr) =>
-      _t('MIN. ${kr.toInt()} KR', 'MIN. ${kr.toInt()} KR');
-  static String get a1_butikk_neste => _t('NESTE FORDEL', 'NEXT PERK');
-  static String a1_butikk_igjen(num kr, String navn) =>
-      _t('${kr.toInt()} kr igjen til $navn', '${kr.toInt()} kr to $navn');
-  static String get a1_butikk_havn => _t(
-    'Båten er i havn — alt låst opp',
-    'The boat is in — everything unlocked',
-  );
-  static String get a1_butikk_frakt_naadd =>
-      _t('Nå fikser jeg gratis frakt for deg', 'Now I get you free delivery');
-  static String get a1_butikk_allergener => _t('Allergener', 'Allergens');
-  static String get a1_butikk_apningstider =>
-      _t('Åpningstider', 'Opening hours');
-  static String get a1_butikk_mer => _t('Mer', 'More');
-  static String get a1_butikk_del => _t('Del', 'Share');
-  static String get a1_butikk_spor_aegil => _t('Spør Ægil', 'Ask Ægil');
-  static String get a1_butikk_spor_aegil_line => _t(
-    'Meny, allergener, hva som går fort',
-    'Menu, allergens, what is quick',
-  );
-  static String get a1_butikk_spesial =>
-      _t('Ærend spesialtilbud', 'Ærend specials');
-  static String get a1_butikk_kjokkenluka => 'Kjøkkenluka';
-  static String a1_butikk_spar(num kr) =>
-      _t('Spar ${kr.toInt()} kr', 'Save ${kr.toInt()} kr');
-  static String a1_butikk_kroner(num kr) =>
-      _t('+${kr.toInt()} kr', '+${kr.toInt()} kr');
-  static String get a1_butikk_mest_bestilt =>
-      _t('Mest bestilt', 'Most ordered');
-  static String get a1_butikk_inkl_mva =>
-      _t('Priser inkl. mva', 'Prices incl. VAT');
-  static String get a1_butikk_ingen_allergener =>
-      _t('Ingen allergener', 'No allergens');
-  static String get a1_butikk_legg_til => _t('Legg til', 'Add');
-  static String get a1_butikk_ny => _t('Ny', 'New');
-  static String get a1_butikk_i_kurven => _t('I kurven', 'In the basket');
-  static String get a1_butikk_tom_kurven =>
-      _t('Tøm kurven', 'Empty the basket');
-  static String a1_butikk_kurv_antall(int n) =>
-      _t(n == 1 ? '1 vare' : '$n varer', n == 1 ? '1 item' : '$n items');
-  static String get a1_butikk_til_kassen => _t('Til kassen', 'To checkout');
-  static String get a1_butikk_menu_empty => _t(
-    'Menyen legges inn av butikken. Prøv igjen om litt.',
-    'The shop is adding its menu. Try again shortly.',
-  );
-  static String get a1_butikk_not_found =>
-      _t('Fant ikke butikken.', 'Could not find the shop.');
-  static String get a1_butikk_drikke_hint => _t(
-    'Drikke legges inn av butikken denne uken. Vann fra kranen i Bergen er uansett blant landets beste.',
-    'Drinks are being added by the shop this week. Bergen tap water is among the country\'s best anyway.',
-  );
+  static String a1_butikk_levering(String fee) => languages.ops_butikk_levering(fee);
+  static String a1_butikk_aerend_idag(int n) => languages.ops_butikk_aerend_idag(n);
+  static String a1_butikk_kikker(int n) => languages.ops_butikk_kikker(n);
+  static String get a1_butikk_seilas => languages.ops_butikk_seilas;
+  static String get a1_butikk_kjokkenet => languages.ops_butikk_kjokkenet;
+  static String get a1_butikk_din_dor => languages.ops_butikk_din_dor;
+  static String get a1_butikk_gratis_frakt => languages.ops_butikk_gratis_frakt;
+  static String get a1_butikk_dessert => languages.ops_butikk_dessert;
+  static String get a1_butikk_ti_prosent => languages.ops_butikk_ti_prosent;
+  static String a1_butikk_min(num kr) => languages.ops_butikk_min('${kr.toInt()}');
+  static String get a1_butikk_neste => languages.ops_butikk_neste;
+  static String a1_butikk_igjen(num kr, String navn) => languages.ops_butikk_igjen('${kr.toInt()}', navn);
+  static String get a1_butikk_havn => languages.ops_butikk_havn;
+  static String get a1_butikk_frakt_naadd => languages.ops_butikk_frakt_naadd;
+  static String get a1_butikk_allergener => languages.ops_butikk_allergener;
+  static String get a1_butikk_apningstider => languages.ops_butikk_apningstider;
+  static String get a1_butikk_mer => languages.ops_butikk_mer;
+  static String get a1_butikk_del => languages.ops_butikk_del;
+  static String get a1_butikk_spor_aegil => languages.ops_butikk_spor_aegil;
+  static String get a1_butikk_spor_aegil_line => languages.ops_butikk_spor_aegil_line;
+  static String get a1_butikk_spesial => languages.ops_butikk_spesial;
+  static String get a1_butikk_kjokkenluka => languages.ops_butikk_kjokkenluka;
+  static String a1_butikk_spar(num kr) => languages.ops_butikk_spar('${kr.toInt()}');
+  static String a1_butikk_kroner(num kr) => languages.ops_butikk_kroner('${kr.toInt()}');
+  static String get a1_butikk_mest_bestilt => languages.ops_butikk_mest_bestilt;
+  static String get a1_butikk_inkl_mva => languages.ops_butikk_inkl_mva;
+  static String get a1_butikk_ingen_allergener => languages.ops_butikk_ingen_allergener;
+  static String get a1_butikk_legg_til => languages.ops_butikk_legg_til;
+  static String get a1_butikk_ny => languages.ops_butikk_ny;
+  static String get a1_butikk_i_kurven => languages.ops_butikk_i_kurven;
+  static String get a1_butikk_tom_kurven => languages.ops_butikk_tom_kurven;
+  static String a1_butikk_kurv_antall(int n) => languages.ops_butikk_kurv_antall(n);
+  static String get a1_butikk_til_kassen => languages.ops_butikk_til_kassen;
+  static String get a1_butikk_menu_empty => languages.ops_butikk_menu_empty;
+  static String get a1_butikk_not_found => languages.ops_butikk_not_found;
+  static String get a1_butikk_drikke_hint => languages.ops_butikk_drikke_hint;
 
   // ── Mote / gave page ────────────────────────────────────────────────────
-  static String get a1_butikk_mote_label => _t('Mote-butikk', 'Fashion shop');
-  static String a1_butikk_gave_label(String navn) =>
-      _t('Gavebutikk · $navn', 'Gift shop · $navn');
-  static String a1_butikk_anledning_label(String x) =>
-      _t('Anledning · $x', 'Occasion · $x');
-  static String get a1_butikk_ukens => _t('UKENS', 'THIS WEEK');
-  static String get a1_butikk_personalets =>
-      _t('PERSONALETS FAVORITT', 'STAFF PICK');
-  static String get a1_butikk_spor_butikken =>
-      _t('Spør butikken', 'Ask the shop');
-  static String a1_butikk_til_denne(String navn, String pris) =>
-      _t('Til denne: $navn · $pris', 'With this: $navn · $pris');
-  static String get a1_butikk_pluss_legg => _t('+ Legg til', '+ Add');
-  static String get a1_butikk_lagt_til => _t('Lagt til', 'Added');
-  static String get a1_butikk_til_hvem => _t('Til hvem', 'For whom');
+  static String get a1_butikk_mote_label => languages.ops_butikk_mote_label;
+  static String a1_butikk_gave_label(String navn) => languages.ops_butikk_gave_label(navn);
+  static String a1_butikk_anledning_label(String x) => languages.ops_butikk_anledning_label(x);
+  static String get a1_butikk_ukens => languages.ops_butikk_ukens;
+  static String get a1_butikk_personalets => languages.ops_butikk_personalets;
+  static String get a1_butikk_spor_butikken => languages.ops_butikk_spor_butikken;
+  static String a1_butikk_til_denne(String navn, String pris) => languages.ops_butikk_til_denne(navn, pris);
+  static String get a1_butikk_pluss_legg => languages.ops_butikk_pluss_legg;
+  static String get a1_butikk_lagt_til => languages.ops_butikk_lagt_til;
+  static String get a1_butikk_til_hvem => languages.ops_butikk_til_hvem;
   static List<String> get a1_butikk_til_hvem_liste => _en
       ? const ['Partner', 'Friend', 'Parent', 'Colleague', 'Child']
       : const ['Kjæresten', 'Venn', 'Forelder', 'Kollega', 'Barn'];
-  static String get a1_butikk_merker => _t('Merker', 'Brands');
-  static String get a1_butikk_alle => _t('Alle', 'All');
-  static String get a1_butikk_hyllene => _t('Hyllene', 'The shelves');
-  static String get a1_butikk_populaer =>
-      _t('Populær i Bergen', 'Popular in Bergen');
-  static String get a1_butikk_bergensk => _t('Bergensk', 'From Bergen');
-  static String get a1_butikk_innpakning => _t('INNPAKNING', 'WRAPPING');
-  static String a1_butikk_storrelse_hint(String navn) => _t(
-    'Usikker på størrelsen? Spør butikken — $navn svarer i Varsler.',
-    'Unsure about the size? Ask the shop — $navn replies in Varsler.',
-  );
-  static String get a1_butikk_storrelse_hint_generic => _t(
-    'Usikker på størrelsen? Spør butikken — de svarer i Varsler.',
-    'Unsure about the size? Ask the shop — they reply in Varsler.',
-  );
-  static String get a1_butikk_melding_sendt =>
-      _t('Meldingen er sendt til butikken', 'Your message went to the shop');
-  static String get a1_butikk_melding_hint =>
-      _t('Hva lurer du på?', 'What would you like to know?');
-  static String get a1_butikk_send => _t('Send', 'Send');
+  static String get a1_butikk_merker => languages.ops_butikk_merker;
+  static String get a1_butikk_alle => languages.ops_butikk_alle;
+  static String get a1_butikk_hyllene => languages.ops_butikk_hyllene;
+  static String get a1_butikk_populaer => languages.ops_butikk_populaer;
+  static String get a1_butikk_bergensk => languages.ops_butikk_bergensk;
+  static String get a1_butikk_innpakning => languages.ops_butikk_innpakning;
+  static String a1_butikk_storrelse_hint(String navn) => languages.ops_butikk_storrelse_hint(navn);
+  static String get a1_butikk_storrelse_hint_generic => languages.ops_butikk_storrelse_hint_generic;
+  static String get a1_butikk_melding_sendt => languages.ops_butikk_melding_sendt;
+  static String get a1_butikk_melding_hint => languages.ops_butikk_melding_hint;
+  static String get a1_butikk_send => languages.ops_butikk_send;
 
   // ── Klede sheet ─────────────────────────────────────────────────────────
-  static String get a1_butikk_klede_farge => _t('Farge', 'Colour');
-  static String get a1_butikk_klede_storrelse => _t('Størrelse', 'Size');
-  static String get a1_butikk_klede_paa_lager => _t('På lager', 'In stock');
-  static String get a1_butikk_klede_utsolgt => _t('Utsolgt', 'Sold out');
-  static String get a1_butikk_klede_prov => _t(
-    'Prøv hjemme. Budet henter returen gratis innen 14 dager.',
-    'Try it at home. The courier collects the return for free within 14 days.',
-  );
-  static String a1_butikk_klede_legg(String pris) =>
-      _t('Legg i kurv · $pris', 'Add to basket · $pris');
-  static String get a1_butikk_klede_velg_str =>
-      _t('Velg størrelse', 'Choose a size');
+  static String get a1_butikk_klede_farge => languages.ops_butikk_klede_farge;
+  static String get a1_butikk_klede_storrelse => languages.ops_butikk_klede_storrelse;
+  static String get a1_butikk_klede_paa_lager => languages.ops_butikk_klede_paa_lager;
+  static String get a1_butikk_klede_utsolgt => languages.ops_butikk_klede_utsolgt;
+  static String get a1_butikk_klede_prov => languages.ops_butikk_klede_prov;
+  static String a1_butikk_klede_legg(String pris) => languages.ops_butikk_klede_legg(pris);
+  static String get a1_butikk_klede_velg_str => languages.ops_butikk_klede_velg_str;
 
   // ── Food product sheet ──────────────────────────────────────────────────
-  static String get a1_butikk_prod_mest_bestilt =>
-      _t('Mest bestilt i kveld', 'Most ordered tonight');
-  static String a1_butikk_prod_poeng(int n) => _t('+$n poeng', '+$n points');
-  static String a1_butikk_prod_klar(int min) =>
-      _t('Klar på $min min', 'Ready in $min min');
-  static String get a1_butikk_prod_inkl_mva => _t('inkl. mva', 'incl. VAT');
-  static String get a1_butikk_prod_storrelse => _t('Størrelse', 'Size');
-  static String get a1_butikk_prod_velg_en => _t('Velg én', 'Choose one');
-  static String get a1_butikk_prod_tillegg => _t('Tillegg', 'Extras');
-  static String get a1_butikk_prod_styrke => _t('Styrke', 'Heat');
-  static String get a1_butikk_prod_allergener => _t('Allergener', 'Allergens');
-  static String a1_butikk_prod_legg(String pris) =>
-      _t('Legg til · $pris', 'Add · $pris');
-  static String get a1_butikk_prod_standard => _t('Standard', 'Standard');
+  static String get a1_butikk_prod_mest_bestilt => languages.ops_butikk_prod_mest_bestilt;
+  static String a1_butikk_prod_poeng(int n) => languages.ops_butikk_prod_poeng(n);
+  static String a1_butikk_prod_klar(int min) => languages.ops_butikk_prod_klar(min);
+  static String get a1_butikk_prod_inkl_mva => languages.ops_butikk_prod_inkl_mva;
+  static String get a1_butikk_prod_storrelse => languages.ops_butikk_prod_storrelse;
+  static String get a1_butikk_prod_velg_en => languages.ops_butikk_prod_velg_en;
+  static String get a1_butikk_prod_tillegg => languages.ops_butikk_prod_tillegg;
+  static String get a1_butikk_prod_styrke => languages.ops_butikk_prod_styrke;
+  static String get a1_butikk_prod_allergener => languages.ops_butikk_prod_allergener;
+  static String a1_butikk_prod_legg(String pris) => languages.ops_butikk_prod_legg(pris);
+  static String get a1_butikk_prod_standard => languages.ops_butikk_prod_standard;
 
   // ── Info sheet ──────────────────────────────────────────────────────────
-  static String get a1_butikk_info_allergen_line => _t(
-    'Alle retter merkes med allergener på samme sted, alltid. Spør gjerne budet om noe er uklart.',
-    'Every dish carries its allergens in the same place, always. Ask the courier if anything is unclear.',
-  );
-  static String get a1_butikk_info_allergen_missing => _t(
-    'Butikken har ikke lagt inn allergener ennå — spør butikken før du bestiller.',
-    'The shop has not listed allergens yet — ask the shop before ordering.',
-  );
-  static String get a1_butikk_info_idag => _t('I dag', 'Today');
-  static String get a1_butikk_info_stengt => _t('Stengt', 'Closed');
-  static String a1_butikk_info_minste(String kr) =>
-      _t('Minsteordre $kr', 'Minimum order $kr');
-  static String a1_butikk_info_levering(String kr) =>
-      _t('levering $kr', 'delivery $kr');
-  static String get a1_butikk_info_henting =>
-      _t('henting mulig', 'pickup possible');
-  static String get a1_butikk_info_del => _t('Del butikken', 'Share the shop');
-  static String get a1_butikk_info_kopiert =>
-      _t('Lenken er kopiert', 'Link copied');
+  static String get a1_butikk_info_allergen_line => languages.ops_butikk_info_allergen_line;
+  static String get a1_butikk_info_allergen_missing => languages.ops_butikk_info_allergen_missing;
+  static String get a1_butikk_info_idag => languages.ops_butikk_info_idag;
+  static String get a1_butikk_info_stengt => languages.ops_butikk_info_stengt;
+  static String a1_butikk_info_minste(String kr) => languages.ops_butikk_info_minste(kr);
+  static String a1_butikk_info_levering(String kr) => languages.ops_butikk_info_levering(kr);
+  static String get a1_butikk_info_henting => languages.ops_butikk_info_henting;
+  static String get a1_butikk_info_del => languages.ops_butikk_info_del;
+  static String get a1_butikk_info_kopiert => languages.ops_butikk_info_kopiert;
 
   // ── Category sheet (`arkAapent`) ────────────────────────────────────────
-  static String a1_butikk_ark_under(String bydel) =>
-      _t('Åpne nå · $bydel', 'Open now · $bydel');
-  static String get a1_butikk_ark_open => _t('Åpen', 'Open');
+  static String a1_butikk_ark_under(String bydel) => languages.ops_butikk_ark_under(bydel);
+  static String get a1_butikk_ark_open => languages.ops_butikk_ark_open;
 
   // ── Poseautomaten ───────────────────────────────────────────────────────
-  static String get a1_butikk_automat_title =>
-      _t('Poseautomaten', 'The bag machine');
-  static String get a1_butikk_automat_line => _t(
-    'Kveldens overskudd fra butikkene. Alltid verdt minst det dobbelte.',
-    'Tonight\'s surplus from the shops. Always worth at least double.',
-  );
-  static String a1_butikk_automat_igjen(int n) => _t('$n igjen', '$n left');
-  static String a1_butikk_automat_verdi(int kr) =>
-      _t('verdi minst $kr', 'worth at least $kr');
-  static String get a1_butikk_automat_styr => _t(
-    'Styr klypen med pilene · posen lander her',
-    'Steer the claw with the arrows · the bag lands here',
-  );
-  static String get a1_butikk_automat_din =>
-      _t('POSEN ER DIN', 'THE BAG IS YOURS');
-  static String a1_butikk_automat_hentes(String w) =>
-      _t('Hentes $w', 'Pick up $w');
-  static String a1_butikk_automat_sikre(int kr) =>
-      _t('Sikre posen · $kr kr', 'Secure the bag · $kr kr');
-  static String get a1_butikk_automat_igjen_cta =>
-      _t('Prøv igjen', 'Try again');
-  static String get a1_butikk_automat_avslores => _t(
-    'Innholdet avsløres under nordlys ved henting',
-    'The contents are revealed under the northern lights at pickup',
-  );
-  static String a1_butikk_automat_trekk(int kr) =>
-      _t('Trekk i spaken · $kr kr', 'Pull the lever · $kr kr');
-  static String get a1_butikk_automat_se_kurv =>
-      _t('Se posen i kurven', 'See the bag in the basket');
-  static String get a1_butikk_automat_footer => _t(
-    'Ingen nedtelling. Ingen niter. Verdigulvet står på maskinen.',
-    'No countdown. No blanks. The value floor is on the machine.',
-  );
-  static String get a1_butikk_automat_empty =>
-      _t('Ingen poser i automaten i kveld.', 'No bags in the machine tonight.');
+  static String get a1_butikk_automat_title => languages.ops_butikk_automat_title;
+  static String get a1_butikk_automat_line => languages.ops_butikk_automat_line;
+  static String a1_butikk_automat_igjen(int n) => languages.ops_butikk_automat_igjen(n);
+  static String a1_butikk_automat_verdi(int kr) => languages.ops_butikk_automat_verdi(kr);
+  static String get a1_butikk_automat_styr => languages.ops_butikk_automat_styr;
+  static String get a1_butikk_automat_din => languages.ops_butikk_automat_din;
+  static String a1_butikk_automat_hentes(String w) => languages.ops_butikk_automat_hentes(w);
+  static String a1_butikk_automat_sikre(int kr) => languages.ops_butikk_automat_sikre(kr);
+  static String get a1_butikk_automat_igjen_cta => languages.ops_butikk_automat_igjen_cta;
+  static String get a1_butikk_automat_avslores => languages.ops_butikk_automat_avslores;
+  static String a1_butikk_automat_trekk(int kr) => languages.ops_butikk_automat_trekk(kr);
+  static String get a1_butikk_automat_se_kurv => languages.ops_butikk_automat_se_kurv;
+  static String get a1_butikk_automat_footer => languages.ops_butikk_automat_footer;
+  static String get a1_butikk_automat_empty => languages.ops_butikk_automat_empty;
 }

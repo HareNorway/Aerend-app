@@ -13,6 +13,9 @@ import 'package:aerend_customer/screens/bergen/meg/meg_host.dart';
 import 'package:aerend_customer/screens/bergen/poeng/napp_entry.dart';
 import 'package:aerend_customer/screens/bergen/poeng/poeng_entry.dart';
 
+import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
+
+import '../a3/a3_fakes.dart';
 import '../layout/reduced_motion_harness.dart';
 
 /// AGIL-CONTRACT §4.1, kind `dart`: every route in both maps builds without
@@ -67,8 +70,16 @@ void main() {
   setUpAll(() async {
     await bootstrapGlobals();
     OpsCustomerApi.networkEnabled = false;
+    // agil-3's screens read their services through A3Services; the fakes
+    // answer without the network (merge day, AGIL-CONTRACT §6 step 4).
+    A3Services.points = () => FakePointsApi();
+    A3Services.aegil = () => FakeAegilApi();
+    A3Services.aegilRepo = () => FakeAegilRepo();
   });
-  tearDownAll(() => OpsCustomerApi.networkEnabled = true);
+  tearDownAll(() {
+    OpsCustomerApi.networkEnabled = true;
+    A3Services.reset();
+  });
 
   group('route maps', () {
     test('every agil-1 route is a reserved name', () {
@@ -120,7 +131,12 @@ void main() {
         );
         await tester.pump();
         expect(tester.takeException(), isNull, reason: '${entry.key} threw');
+        // Let a screen's first-frame futures (zero-length timers) fire
+        // before the next route replaces it.
+        await tester.pump(const Duration(seconds: 1));
       }
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 2));
     });
   });
 

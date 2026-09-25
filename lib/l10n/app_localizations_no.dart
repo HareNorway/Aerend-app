@@ -3664,4 +3664,2299 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get aegil_disclosure_terms => 'Vilkår';
+
+  @override
+  String get ops_sok_title => 'Hva leter du etter?';
+
+  @override
+  String get ops_sok_subtitle =>
+      'Et ord — så søker jeg. Et ønske — så ordner jeg ærendet.';
+
+  @override
+  String get ops_sok_hint => 'Søk i Bergen — butikker, varer, bydeler';
+
+  @override
+  String get ops_sok_voice => 'Snakk';
+
+  @override
+  String get ops_sok_onske_title => 'Dette høres ut som et ærend';
+
+  @override
+  String get ops_sok_onske_line =>
+      'Kurv med levering på under 20 sekunder — du betaler selv';
+
+  @override
+  String get ops_sok_onske_cta => 'Spør Ægil';
+
+  @override
+  String ops_sok_butikker(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n butikker',
+      one: '1 butikk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ops_sok_produkter(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n produkter',
+      one: '1 produkt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_sok_butikker_label => 'Butikker';
+
+  @override
+  String get ops_sok_produkter_label => 'Produkter';
+
+  @override
+  String ops_sok_treff(int n) {
+    return '$n treff i Bergen';
+  }
+
+  @override
+  String ops_sok_eta(int min) {
+    return '$min min';
+  }
+
+  @override
+  String get ops_sok_add => 'Legg til';
+
+  @override
+  String get ops_sok_see => 'Se';
+
+  @override
+  String get ops_sok_free => 'Gratis';
+
+  @override
+  String get ops_sok_closed => 'Stengt';
+
+  @override
+  String get ops_sok_ask_aegil => 'SPØR ÆGIL';
+
+  @override
+  String ops_sok_compare(String q) {
+    return 'Sammenlikn «$q» på pris og levering';
+  }
+
+  @override
+  String ops_sok_ingen_title(String q) {
+    return 'Ingen treff på «$q» i Bergen ennå';
+  }
+
+  @override
+  String get ops_sok_ingen_line =>
+      'Prøv et annet ord, eller la Ægil lete for deg.';
+
+  @override
+  String get ops_sok_ingen_cta => 'La Ægil finne nærmeste';
+
+  @override
+  String get ops_sok_kategorier => 'Kategorier';
+
+  @override
+  String ops_sok_utforsker(int tried, int total) {
+    return 'Utforsker · $tried av $total prøvd';
+  }
+
+  @override
+  String ops_sok_alle(int n) {
+    return 'Alle $n';
+  }
+
+  @override
+  String get ops_sok_aegil_kicker => 'SPØR ÆGIL';
+
+  @override
+  String get ops_sok_aegil_line => 'Si hva du trenger. Jeg ordner ærendet.';
+
+  @override
+  String get ops_sok_aegil_eks1 => 'Tacokveld for fire under 500 kr';
+
+  @override
+  String get ops_sok_aegil_eks2 => 'Billigste reker i nærheten';
+
+  @override
+  String get ops_sok_aegil_start => 'Start samtale';
+
+  @override
+  String get ops_sok_aegil_skriv => 'Skriv eller snakk';
+
+  @override
+  String get ops_sok_nylig => 'NYLIG';
+
+  @override
+  String get ops_sok_populaert => 'POPULÆRT NÅ';
+
+  @override
+  String ops_sok_oppdrag_kicker(int points) {
+    return 'UKENS OPPDRAG · +$points POENG';
+  }
+
+  @override
+  String get ops_sok_oppdrag_se => 'Se';
+
+  @override
+  String get ops_sok_clear_recent => 'Tøm';
+
+  @override
+  String get ops_kasse_bryggen => 'Bryggen';
+
+  @override
+  String get ops_kasse_kassen => 'Kassen';
+
+  @override
+  String get ops_kasse_ror => 'Ægil ror til bryggen';
+
+  @override
+  String get ops_kasse_levering => 'Levering';
+
+  @override
+  String get ops_kasse_henting => 'Henting';
+
+  @override
+  String get ops_kasse_tom_kicker => 'ÆGIL';
+
+  @override
+  String get ops_kasse_tom_title =>
+      'Kurven er tom — skal vi finne noe i Bergen?';
+
+  @override
+  String get ops_kasse_tom_cta => 'Bla gjennom Bergen';
+
+  @override
+  String get ops_kasse_tom_tilbud => 'Tilbud i kveld';
+
+  @override
+  String get ops_kasse_tom_rett => 'Rett i kurven';
+
+  @override
+  String get ops_kasse_legg_mer => 'Legg til noe mer';
+
+  @override
+  String get ops_kasse_glemte_drikke => 'Glemte du drikke?';
+
+  @override
+  String get ops_kasse_fjern => 'Fjern';
+
+  @override
+  String get ops_kasse_endre => 'Endre';
+
+  @override
+  String get ops_kasse_adr_tittel => 'Leveres til';
+
+  @override
+  String get ops_kasse_adr_velg => 'Velg adresse';
+
+  @override
+  String get ops_kasse_hent_tittel => 'Hentes hos';
+
+  @override
+  String get ops_kasse_se_kart => 'Se fullt kart';
+
+  @override
+  String get ops_kasse_tid_asap => 'Så fort som mulig';
+
+  @override
+  String ops_kasse_tid_innen(String t, int a, int b) {
+    return 'Innen $t · $a–$b min';
+  }
+
+  @override
+  String get ops_kasse_betaling_ved => 'Betales ved bestilling';
+
+  @override
+  String get ops_kasse_vipps => 'Vipps';
+
+  @override
+  String get ops_kasse_kort => 'Kort';
+
+  @override
+  String get ops_kasse_beskjed_bud => 'Beskjed til budet';
+
+  @override
+  String get ops_kasse_beskjed_butikk => 'Beskjed til butikken';
+
+  @override
+  String get ops_kasse_beskjed_hint => 'Porten står åpen …';
+
+  @override
+  String get ops_kasse_flere_valg => 'Flere valg';
+
+  @override
+  String get ops_kasse_hentetid => 'Hentetid';
+
+  @override
+  String get ops_kasse_hentetid_line =>
+      'Butikken pakker til dette klokkeslettet';
+
+  @override
+  String get ops_kasse_tips_title => 'Gi litt ekstra til budet?';
+
+  @override
+  String get ops_kasse_tips_line => 'Alt går uavkortet til budet.';
+
+  @override
+  String get ops_kasse_tips_rad => 'Tips til budet';
+
+  @override
+  String get ops_kasse_sammendrag => 'SAMMENDRAG';
+
+  @override
+  String get ops_kasse_varer => 'Varer';
+
+  @override
+  String get ops_kasse_frakt => 'Levering';
+
+  @override
+  String get ops_kasse_frakt_fri => 'Gratis';
+
+  @override
+  String get ops_kasse_avgifter => 'Avgifter';
+
+  @override
+  String get ops_kasse_rabatt => 'Rabatt';
+
+  @override
+  String ops_kasse_aegil_linjer(String navn, String sum) {
+    return 'Lagt i kurven av Ægil · $navn · $sum';
+  }
+
+  @override
+  String get ops_kasse_angre => 'Angre';
+
+  @override
+  String get ops_kasse_angret => 'Fjernet fra kurven';
+
+  @override
+  String get ops_kasse_doren => 'DØREN · FOR BUDET';
+
+  @override
+  String get ops_kasse_doren_hint => 'Etasje, ring på, inngang, kode …';
+
+  @override
+  String get ops_kasse_tolk => 'Tolk';
+
+  @override
+  String get ops_kasse_kode => 'Kode ved levering';
+
+  @override
+  String get ops_kasse_kode_line => 'Budet må få koden din før posen leveres';
+
+  @override
+  String get ops_kasse_gave_til => 'Gave til';
+
+  @override
+  String get ops_kasse_gave_navn_hint => 'Navn';
+
+  @override
+  String get ops_kasse_overrask => 'Overrask';
+
+  @override
+  String get ops_kasse_overrask_line => 'Ingenting før det ringer på';
+
+  @override
+  String get ops_kasse_si_fra => 'Si fra';
+
+  @override
+  String get ops_kasse_si_fra_line => 'Lenke med sporing og kortet ved døra';
+
+  @override
+  String get ops_kasse_a_betale => 'Å BETALE NÅ';
+
+  @override
+  String get ops_kasse_totalt => 'Totalt';
+
+  @override
+  String get ops_kasse_inkl => 'Alt inkl. mva · ingen skjulte gebyrer';
+
+  @override
+  String ops_kasse_cashback(String kr) {
+    return 'Gir $kr tilbake i Ærend-kroner';
+  }
+
+  @override
+  String get ops_kasse_bergenske => 'Bergenske butikker — kronene blir i byen.';
+
+  @override
+  String ops_kasse_krysser(String bud) {
+    return 'Ærendet krysser Vågen med $bud.';
+  }
+
+  @override
+  String ops_kasse_betal(String kr) {
+    return 'Betal $kr';
+  }
+
+  @override
+  String get ops_kasse_betal_vipps => 'Betal med Vipps';
+
+  @override
+  String ops_kasse_min_ordre(String kr) {
+    return 'Minsteordre er $kr';
+  }
+
+  @override
+  String get ops_kasse_velg_adresse_forst => 'Velg en adresse først';
+
+  @override
+  String get ops_kasse_utenfor => 'Butikken leverer ikke hit';
+
+  @override
+  String get ops_kasse_utenfor_line => 'Du kan hente selv i stedet.';
+
+  @override
+  String get ops_kasse_velg_henting => 'Velg henting';
+
+  @override
+  String get ops_kasse_kort_legacy => 'Kortbetaling åpner den vanlige kassen.';
+
+  @override
+  String get ops_kasse_adr_sheet_title => 'Hvor skal ærendet?';
+
+  @override
+  String get ops_kasse_adr_sheet_line => 'Butikker og priser følger adressen.';
+
+  @override
+  String get ops_kasse_adr_ny => 'Legg til en adresse';
+
+  @override
+  String get ops_kasse_adr_ny_line => 'Hytta, kjæresten, foreldrene …';
+
+  @override
+  String get ops_kasse_adr_dor_kicker => 'HVORDAN FINNER BUDET FRAM?';
+
+  @override
+  String get ops_kasse_adr_dor_line =>
+      'Skriv som til en venn: etasje, ring på, inngang, kode …';
+
+  @override
+  String get ops_kasse_ikke_dekket =>
+      'Vi leverer ikke hit ennå — si fra, så gir vi beskjed';
+
+  @override
+  String get ops_kasse_si_fra_cta => 'Si fra når dere gjør det';
+
+  @override
+  String get ops_kasse_sagt_fra => 'Vi sier fra.';
+
+  @override
+  String get ops_kasse_lev_sheet_title => 'Når vil du ha det?';
+
+  @override
+  String get ops_kasse_lev_middag => 'Til middag';
+
+  @override
+  String get ops_kasse_lev_middag_line =>
+      'Budet venter med å hente til det er ferskt';
+
+  @override
+  String get ops_kasse_lev_kveld => 'Kveldskos';
+
+  @override
+  String get ops_kasse_lev_kveld_line => 'Etter Fløibanen har gått for kvelden';
+
+  @override
+  String get ops_kasse_bruk_dette => 'Bruk dette';
+
+  @override
+  String get ops_kasse_bet_sheet_title => 'Hvordan vil du betale?';
+
+  @override
+  String get ops_kasse_bet_sheet_line =>
+      'Prisen er den samme uansett. Ingen skjulte gebyrer.';
+
+  @override
+  String get ops_kasse_bet_kort => 'Kort (Visa / Mastercard)';
+
+  @override
+  String get ops_kasse_bekreftet => 'Bekreftet';
+
+  @override
+  String get ops_kasse_bekreftet_line => 'Butikken har fått ærendet ditt.';
+
+  @override
+  String get ops_kasse_folg => 'Følg ærendet';
+
+  @override
+  String get ops_kasse_billett_kicker => 'ÆREND-BILLETT';
+
+  @override
+  String get ops_kasse_verv => 'VERV EN VENN';
+
+  @override
+  String ops_kasse_gi_faa(int kr) {
+    return 'Gi $kr kr, få $kr kr';
+  }
+
+  @override
+  String ops_kasse_billett_line(int kr) {
+    return 'Du deler fra dine egne kanaler. Begge får $kr kr når vennens første ordre er levert.';
+  }
+
+  @override
+  String get ops_kasse_del_billett => 'Del billetten';
+
+  @override
+  String get ops_kasse_kopier => 'Kopier';
+
+  @override
+  String get ops_kasse_kopiert => 'Kopiert';
+
+  @override
+  String get ops_kasse_lukk => 'Lukk';
+
+  @override
+  String get ops_kasse_best_sammendrag => 'Sammendrag';
+
+  @override
+  String get ops_kasse_best_detaljer => 'Detaljer';
+
+  @override
+  String get ops_kasse_best_bestilling => 'BESTILLING';
+
+  @override
+  String get ops_kasse_best_betalt_vipps => 'BETALT MED VIPPS';
+
+  @override
+  String get ops_kasse_best_betalt => 'Betalt';
+
+  @override
+  String get ops_kasse_best_kvittering => 'Kvittering';
+
+  @override
+  String get ops_kasse_best_klar => 'Klar';
+
+  @override
+  String get ops_kasse_best_status => 'ORDRESTATUS';
+
+  @override
+  String get ops_kasse_best_din => 'Din bestilling';
+
+  @override
+  String get ops_kasse_best_total => 'Totalsum';
+
+  @override
+  String get ops_kasse_best_betaling => 'Betaling';
+
+  @override
+  String get ops_kasse_best_butikken => 'Butikken';
+
+  @override
+  String get ops_kasse_best_ordrenr => 'ORDRENUMMER';
+
+  @override
+  String get ops_kasse_best_aerend_id => 'ÆREND-ID';
+
+  @override
+  String get ops_kasse_best_tid => 'TIDSSTEMPEL';
+
+  @override
+  String get ops_kasse_best_kvitt => 'KVITTERING';
+
+  @override
+  String get ops_kasse_best_meg => 'Meg · Bestillinger';
+
+  @override
+  String get ops_kasse_best_kundeservice => 'Kontakt kundeservice';
+
+  @override
+  String get ops_kasse_best_se_alt => 'Se alt';
+
+  @override
+  String ops_kasse_best_antall(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n varer',
+      one: '1 vare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_kasse_best_ikke_funnet => 'Fant ikke bestillingen.';
+
+  @override
+  String get ops_kasse_best_kopiert => 'Ordrenummeret er kopiert';
+
+  @override
+  String meg_fra(String name, String bydel) {
+    return '$name fra $bydel';
+  }
+
+  @override
+  String get meg_bydel_sub => 'Bergenhus';
+
+  @override
+  String get meg_premie_boble => 'Premie: gratis levering';
+
+  @override
+  String get meg_gullbillett => 'Gullbilletten';
+
+  @override
+  String get meg_gullbillett_sub => 'Gi 200 · få 200 poeng';
+
+  @override
+  String get meg_del => 'Del';
+
+  @override
+  String meg_gullbillett_kode(int give, int get, String code) {
+    return 'Gi $give poeng, få $get poeng · $code';
+  }
+
+  @override
+  String get meg_ditt_nivaa => 'DITT NIVÅ';
+
+  @override
+  String get meg_poeng_bruke => 'POENG Å BRUKE';
+
+  @override
+  String get meg_hent_premien => 'Hent premien';
+
+  @override
+  String get meg_premiehylla => 'Premiehylla';
+
+  @override
+  String get meg_slik => 'Slik får du poeng';
+
+  @override
+  String get meg_nivaa_note => 'Nivået påvirkes aldri av at du bruker poeng';
+
+  @override
+  String meg_til_neste(int n, String next) {
+    return '$n poeng til $next';
+  }
+
+  @override
+  String meg_venter(int n) {
+    return '$n poeng er på vei';
+  }
+
+  @override
+  String meg_opptjent(int n) {
+    return '$n poeng opptjent siste 12 mnd';
+  }
+
+  @override
+  String get meg_rad_nivaa => 'Nivå';
+
+  @override
+  String get meg_rad_liga => 'Fløyen-ligaen';
+
+  @override
+  String get meg_rad_liga_bli => 'Bli med';
+
+  @override
+  String get meg_rad_oppdrag => 'UKENS OPPDRAG';
+
+  @override
+  String get meg_rad_godta => 'Godta';
+
+  @override
+  String get meg_rad_ikke => 'Ikke dette';
+
+  @override
+  String get meg_rad_favoritter => 'Favoritter';
+
+  @override
+  String get meg_rad_nytt => 'Nytt fra butikkene';
+
+  @override
+  String get meg_rad_hjelp => 'Hjelp og kontakt';
+
+  @override
+  String get meg_rad_konto => 'Konto';
+
+  @override
+  String get meg_rad_bestillinger => 'Bestillinger';
+
+  @override
+  String get meg_rad_varsler => 'Varsler';
+
+  @override
+  String meg_liga_plass(int rank) {
+    return '$rank. plass';
+  }
+
+  @override
+  String meg_favoritter_antall(int n) {
+    return '$n steder';
+  }
+
+  @override
+  String get meg_slik_title => 'Slik får du poeng';
+
+  @override
+  String get meg_fav_title => 'Favoritter';
+
+  @override
+  String get meg_fav_tom => 'Ingen favoritter ennå';
+
+  @override
+  String get meg_fav_tom_sub =>
+      'Trykk på hjertet der du liker deg — eller kast ut i Fjordfiske.';
+
+  @override
+  String get meg_fav_kast => 'Kast ut';
+
+  @override
+  String get meg_fav_fot =>
+      'Favorittene dine dukker opp først i «Bestill igjen» — og gir poeng hver gang.';
+
+  @override
+  String get meg_konto_title => 'Konto';
+
+  @override
+  String get meg_konto_verifisert => 'Vipps-verifisert';
+
+  @override
+  String get meg_konto_adresser => 'Adresser';
+
+  @override
+  String get meg_konto_legg_adresse => 'Legg til adresse';
+
+  @override
+  String get meg_konto_betaling => 'Betaling';
+
+  @override
+  String get meg_konto_vipps_std => 'Standard — raskest i Norge';
+
+  @override
+  String get meg_konto_innstillinger => 'Innstillinger';
+
+  @override
+  String get meg_konto_varsler => 'Varsler om krysningen';
+
+  @override
+  String get meg_konto_varsler_sub => 'Live på låseskjermen';
+
+  @override
+  String get meg_konto_rolig => 'Roligere bevegelse';
+
+  @override
+  String get meg_konto_rolig_sub => 'Færre animasjoner i byen';
+
+  @override
+  String get meg_konto_hjelp => 'Hjelp og personvern';
+
+  @override
+  String get meg_konto_data => 'Dine data lagres i Norge';
+
+  @override
+  String get meg_konto_logg_ut => 'Logg ut';
+
+  @override
+  String get meg_best_title => 'Bestillinger';
+
+  @override
+  String get meg_best_tom => 'Ingen bestillinger ennå';
+
+  @override
+  String get meg_best_tom_sub =>
+      'Når du bestiller, finner du sporing og kvitteringer her.';
+
+  @override
+  String get meg_best_live => 'PÅ VEI NÅ';
+
+  @override
+  String get meg_best_igjen => 'Bestill igjen';
+
+  @override
+  String get meg_best_sporing => 'Vis sporing';
+
+  @override
+  String get meg_varsler_title => 'Varsler';
+
+  @override
+  String get meg_varsler_lukk => 'Lukk';
+
+  @override
+  String get meg_varsler_vis_sporing => 'Vis sporing';
+
+  @override
+  String get meg_varsler_ikke_slike => 'Ikke slike varsler';
+
+  @override
+  String get meg_varsler_fjern => 'Fjern';
+
+  @override
+  String get meg_varsler_tom => 'Ingenting nytt siden sist';
+
+  @override
+  String get meg_varsler_tom_sub => 'Fin utsikt.';
+
+  @override
+  String get meg_varsler_slaa_paa => 'Slå på varsler for tilbud';
+
+  @override
+  String get meg_varsler_angre => 'Angre';
+
+  @override
+  String meg_varsler_fjernet(String t) {
+    return 'Fjernet «$t»';
+  }
+
+  @override
+  String get meg_borte_kicker => 'MENS DU VAR BORTE';
+
+  @override
+  String get meg_borte_title => 'Tre ting fra Ægil';
+
+  @override
+  String get meg_borte_se => 'Se de siste 30 dagene';
+
+  @override
+  String ops_butikk_kat_open(int n) {
+    return '$n åpne nå · Bergen';
+  }
+
+  @override
+  String get ops_butikk_kat_bestill_bilde => 'Bestill fra bilde';
+
+  @override
+  String get ops_butikk_kat_butikker => 'Butikker';
+
+  @override
+  String get ops_butikk_kat_produkter => 'Produkter';
+
+  @override
+  String ops_butikk_kat_pulse(String kat, int n) {
+    return 'Akkurat nå i $kat: $n bestillinger siste time';
+  }
+
+  @override
+  String get ops_butikk_kat_bestiller_naa => 'bestiller nå';
+
+  @override
+  String get ops_butikk_kat_video => 'VIDEO';
+
+  @override
+  String get ops_butikk_kat_f_open => 'Åpen nå';
+
+  @override
+  String get ops_butikk_kat_f_free => 'Gratis levering';
+
+  @override
+  String get ops_butikk_kat_f_fast => 'Under 30 min';
+
+  @override
+  String get ops_butikk_kat_f_top => 'Topprangert';
+
+  @override
+  String get ops_butikk_kat_empty => 'Ingen butikker her ennå.';
+
+  @override
+  String get ops_butikk_kat_empty_products => 'Ingen produkter her ennå.';
+
+  @override
+  String get ops_butikk_kat_free => 'Gratis';
+
+  @override
+  String ops_butikk_kat_eta(int min) {
+    return '$min min';
+  }
+
+  @override
+  String get ops_butikk_gave_idag => 'Rekker fram i dag';
+
+  @override
+  String ops_butikk_gave_innen(String time) {
+    return 'Innen $time';
+  }
+
+  @override
+  String get ops_butikk_gave_aegil => 'La Ægil finne en gave ›';
+
+  @override
+  String get ops_butikk_gave_utstilling => 'Ukens utstilling · Gaver';
+
+  @override
+  String get ops_butikk_gave_anledninger => 'Anledninger';
+
+  @override
+  String get ops_butikk_gave_naerheten => 'Butikker i nærheten';
+
+  @override
+  String get ops_butikk_gave_innpakning => 'GRATIS INNPAKNING';
+
+  @override
+  String ops_butikk_gave_populaert(String bydel) {
+    return 'Populært til bursdag i $bydel';
+  }
+
+  @override
+  String get ops_butikk_mote_utstilling => 'Ukens utstilling · Mote';
+
+  @override
+  String ops_butikk_mote_antall(int n) {
+    return '$n plagg';
+  }
+
+  @override
+  String get ops_butikk_skive_lagre => 'Lagre · si fra hvis prisen faller';
+
+  @override
+  String get ops_butikk_skive_lagret => 'Lagret';
+
+  @override
+  String get ops_butikk_skive_legg => 'Legg til';
+
+  @override
+  String get ops_butikk_skive_hint => 'Dra for å snurre';
+
+  @override
+  String ops_butikk_open_til(String t) {
+    return 'Åpent til $t';
+  }
+
+  @override
+  String ops_butikk_apner(String t) {
+    return 'Åpner $t';
+  }
+
+  @override
+  String get ops_butikk_stengt => 'Stengt nå';
+
+  @override
+  String get ops_butikk_kjokken => 'Kjøkkenet er i gang';
+
+  @override
+  String get ops_butikk_pauset => 'Pause i kjøkkenet';
+
+  @override
+  String ops_butikk_levering(String fee) {
+    return 'Levering $fee';
+  }
+
+  @override
+  String ops_butikk_aerend_idag(int n) {
+    return '$n ærend i dag';
+  }
+
+  @override
+  String ops_butikk_kikker(int n) {
+    return '$n kikker nå';
+  }
+
+  @override
+  String get ops_butikk_seilas => 'SEILASEN DIN';
+
+  @override
+  String get ops_butikk_kjokkenet => 'Kjøkkenet';
+
+  @override
+  String get ops_butikk_din_dor => 'Din dør';
+
+  @override
+  String get ops_butikk_gratis_frakt => 'Gratis frakt';
+
+  @override
+  String get ops_butikk_dessert => 'Dessert';
+
+  @override
+  String get ops_butikk_ti_prosent => '10 %';
+
+  @override
+  String ops_butikk_min(String p_krtoInt) {
+    return 'MIN. $p_krtoInt KR';
+  }
+
+  @override
+  String get ops_butikk_neste => 'NESTE FORDEL';
+
+  @override
+  String ops_butikk_igjen(String p_krtoInt, String navn) {
+    return '$p_krtoInt kr igjen til $navn';
+  }
+
+  @override
+  String get ops_butikk_havn => 'Båten er i havn — alt låst opp';
+
+  @override
+  String get ops_butikk_frakt_naadd => 'Nå fikser jeg gratis frakt for deg';
+
+  @override
+  String get ops_butikk_allergener => 'Allergener';
+
+  @override
+  String get ops_butikk_apningstider => 'Åpningstider';
+
+  @override
+  String get ops_butikk_mer => 'Mer';
+
+  @override
+  String get ops_butikk_del => 'Del';
+
+  @override
+  String get ops_butikk_spor_aegil => 'Spør Ægil';
+
+  @override
+  String get ops_butikk_spor_aegil_line => 'Meny, allergener, hva som går fort';
+
+  @override
+  String get ops_butikk_spesial => 'Ærend spesialtilbud';
+
+  @override
+  String get ops_butikk_kjokkenluka => 'Kjøkkenluka';
+
+  @override
+  String ops_butikk_spar(String p_krtoInt) {
+    return 'Spar $p_krtoInt kr';
+  }
+
+  @override
+  String ops_butikk_kroner(String p_krtoInt) {
+    return '+$p_krtoInt kr';
+  }
+
+  @override
+  String get ops_butikk_mest_bestilt => 'Mest bestilt';
+
+  @override
+  String get ops_butikk_inkl_mva => 'Priser inkl. mva';
+
+  @override
+  String get ops_butikk_ingen_allergener => 'Ingen allergener';
+
+  @override
+  String get ops_butikk_legg_til => 'Legg til';
+
+  @override
+  String get ops_butikk_ny => 'Ny';
+
+  @override
+  String get ops_butikk_i_kurven => 'I kurven';
+
+  @override
+  String get ops_butikk_tom_kurven => 'Tøm kurven';
+
+  @override
+  String ops_butikk_kurv_antall(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n varer',
+      one: '1 vare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_butikk_til_kassen => 'Til kassen';
+
+  @override
+  String get ops_butikk_menu_empty =>
+      'Menyen legges inn av butikken. Prøv igjen om litt.';
+
+  @override
+  String get ops_butikk_not_found => 'Fant ikke butikken.';
+
+  @override
+  String get ops_butikk_drikke_hint =>
+      'Drikke legges inn av butikken denne uken. Vann fra kranen i Bergen er uansett blant landets beste.';
+
+  @override
+  String get ops_butikk_mote_label => 'Mote-butikk';
+
+  @override
+  String ops_butikk_gave_label(String navn) {
+    return 'Gavebutikk · $navn';
+  }
+
+  @override
+  String ops_butikk_anledning_label(String x) {
+    return 'Anledning · $x';
+  }
+
+  @override
+  String get ops_butikk_ukens => 'UKENS';
+
+  @override
+  String get ops_butikk_personalets => 'PERSONALETS FAVORITT';
+
+  @override
+  String get ops_butikk_spor_butikken => 'Spør butikken';
+
+  @override
+  String ops_butikk_til_denne(String navn, String pris) {
+    return 'Til denne: $navn · $pris';
+  }
+
+  @override
+  String get ops_butikk_pluss_legg => '+ Legg til';
+
+  @override
+  String get ops_butikk_lagt_til => 'Lagt til';
+
+  @override
+  String get ops_butikk_til_hvem => 'Til hvem';
+
+  @override
+  String get ops_butikk_merker => 'Merker';
+
+  @override
+  String get ops_butikk_alle => 'Alle';
+
+  @override
+  String get ops_butikk_hyllene => 'Hyllene';
+
+  @override
+  String get ops_butikk_populaer => 'Populær i Bergen';
+
+  @override
+  String get ops_butikk_bergensk => 'Bergensk';
+
+  @override
+  String get ops_butikk_innpakning => 'INNPAKNING';
+
+  @override
+  String ops_butikk_storrelse_hint(String navn) {
+    return 'Usikker på størrelsen? Spør butikken — $navn svarer i Varsler.';
+  }
+
+  @override
+  String get ops_butikk_storrelse_hint_generic =>
+      'Usikker på størrelsen? Spør butikken — de svarer i Varsler.';
+
+  @override
+  String get ops_butikk_melding_sendt => 'Meldingen er sendt til butikken';
+
+  @override
+  String get ops_butikk_melding_hint => 'Hva lurer du på?';
+
+  @override
+  String get ops_butikk_send => 'Send';
+
+  @override
+  String get ops_butikk_klede_farge => 'Farge';
+
+  @override
+  String get ops_butikk_klede_storrelse => 'Størrelse';
+
+  @override
+  String get ops_butikk_klede_paa_lager => 'På lager';
+
+  @override
+  String get ops_butikk_klede_utsolgt => 'Utsolgt';
+
+  @override
+  String get ops_butikk_klede_prov =>
+      'Prøv hjemme. Budet henter returen gratis innen 14 dager.';
+
+  @override
+  String ops_butikk_klede_legg(String pris) {
+    return 'Legg i kurv · $pris';
+  }
+
+  @override
+  String get ops_butikk_klede_velg_str => 'Velg størrelse';
+
+  @override
+  String get ops_butikk_prod_mest_bestilt => 'Mest bestilt i kveld';
+
+  @override
+  String ops_butikk_prod_poeng(int n) {
+    return '+$n poeng';
+  }
+
+  @override
+  String ops_butikk_prod_klar(int min) {
+    return 'Klar på $min min';
+  }
+
+  @override
+  String get ops_butikk_prod_inkl_mva => 'inkl. mva';
+
+  @override
+  String get ops_butikk_prod_storrelse => 'Størrelse';
+
+  @override
+  String get ops_butikk_prod_velg_en => 'Velg én';
+
+  @override
+  String get ops_butikk_prod_tillegg => 'Tillegg';
+
+  @override
+  String get ops_butikk_prod_styrke => 'Styrke';
+
+  @override
+  String get ops_butikk_prod_allergener => 'Allergener';
+
+  @override
+  String ops_butikk_prod_legg(String pris) {
+    return 'Legg til · $pris';
+  }
+
+  @override
+  String get ops_butikk_prod_standard => 'Standard';
+
+  @override
+  String get ops_butikk_info_allergen_line =>
+      'Alle retter merkes med allergener på samme sted, alltid. Spør gjerne budet om noe er uklart.';
+
+  @override
+  String get ops_butikk_info_allergen_missing =>
+      'Butikken har ikke lagt inn allergener ennå — spør butikken før du bestiller.';
+
+  @override
+  String get ops_butikk_info_idag => 'I dag';
+
+  @override
+  String get ops_butikk_info_stengt => 'Stengt';
+
+  @override
+  String ops_butikk_info_minste(String kr) {
+    return 'Minsteordre $kr';
+  }
+
+  @override
+  String ops_butikk_info_levering(String kr) {
+    return 'levering $kr';
+  }
+
+  @override
+  String get ops_butikk_info_henting => 'henting mulig';
+
+  @override
+  String get ops_butikk_info_del => 'Del butikken';
+
+  @override
+  String get ops_butikk_info_kopiert => 'Lenken er kopiert';
+
+  @override
+  String ops_butikk_ark_under(String bydel) {
+    return 'Åpne nå · $bydel';
+  }
+
+  @override
+  String get ops_butikk_ark_open => 'Åpen';
+
+  @override
+  String get ops_butikk_automat_title => 'Poseautomaten';
+
+  @override
+  String get ops_butikk_automat_line =>
+      'Kveldens overskudd fra butikkene. Alltid verdt minst det dobbelte.';
+
+  @override
+  String ops_butikk_automat_igjen(int n) {
+    return '$n igjen';
+  }
+
+  @override
+  String ops_butikk_automat_verdi(int kr) {
+    return 'verdi minst $kr';
+  }
+
+  @override
+  String get ops_butikk_automat_styr =>
+      'Styr klypen med pilene · posen lander her';
+
+  @override
+  String get ops_butikk_automat_din => 'POSEN ER DIN';
+
+  @override
+  String ops_butikk_automat_hentes(String w) {
+    return 'Hentes $w';
+  }
+
+  @override
+  String ops_butikk_automat_sikre(int kr) {
+    return 'Sikre posen · $kr kr';
+  }
+
+  @override
+  String get ops_butikk_automat_igjen_cta => 'Prøv igjen';
+
+  @override
+  String get ops_butikk_automat_avslores =>
+      'Innholdet avsløres under nordlys ved henting';
+
+  @override
+  String ops_butikk_automat_trekk(int kr) {
+    return 'Trekk i spaken · $kr kr';
+  }
+
+  @override
+  String get ops_butikk_automat_se_kurv => 'Se posen i kurven';
+
+  @override
+  String get ops_butikk_automat_footer =>
+      'Ingen nedtelling. Ingen niter. Verdigulvet står på maskinen.';
+
+  @override
+  String get ops_butikk_automat_empty => 'Ingen poser i automaten i kveld.';
+
+  @override
+  String get aegil_lytter => 'Lytter';
+
+  @override
+  String get aegil_leter => 'Leter i Vågen';
+
+  @override
+  String get aegil_fant_tre => 'Fant tre valg';
+
+  @override
+  String get aegil_fant_noe => 'Fant noe';
+
+  @override
+  String get aegil_fikser => 'Fikser kurven';
+
+  @override
+  String get aegil_byttet => 'Byttet';
+
+  @override
+  String get aegil_sammenlikner => 'Sammenlikner';
+
+  @override
+  String get aegil_beklager => 'Beklager…';
+
+  @override
+  String get aegil_det_jeg_vet => 'Det jeg vet';
+
+  @override
+  String aegil_nivaa(String name) {
+    return 'Nivå · $name';
+  }
+
+  @override
+  String get aegil_hilsen =>
+      'Jeg finner det i Vågen, sjekker pris hos bergenske butikker og legger det klart i kurven.';
+
+  @override
+  String get aegil_hilsen_tom =>
+      'Vil du at jeg husker hva du liker? Da kan jeg si fra når det er tilbud på det.';
+
+  @override
+  String get aegil_ja => 'Ja, la oss';
+
+  @override
+  String get aegil_ikke_naa => 'Ikke nå';
+
+  @override
+  String get aegil_forslag_kicker => 'FORSLAG I KVELD';
+
+  @override
+  String get aegil_bla_selv => 'ELLER BLA SELV';
+
+  @override
+  String get aegil_sok_kat => 'Søk og kategorier';
+
+  @override
+  String get aegil_spor => 'Hva trenger du i kveld?';
+
+  @override
+  String get aegil_send => 'Send';
+
+  @override
+  String aegil_varer(int n) {
+    return '$n varer · inkl. levering';
+  }
+
+  @override
+  String get aegil_derfor => 'Derfor:';
+
+  @override
+  String get aegil_legg => 'Legg i kurven';
+
+  @override
+  String get aegil_bytt_butikk => 'Bytt butikk';
+
+  @override
+  String get aegil_kvittering => 'Kvittering';
+
+  @override
+  String get aegil_angre => 'Angre';
+
+  @override
+  String get aegil_funn => 'Funn';
+
+  @override
+  String get aegil_billigst => 'Billigst';
+
+  @override
+  String get aegil_velg => 'Velg';
+
+  @override
+  String get aegil_totaler => 'Alle totaler inkl. levering.';
+
+  @override
+  String get aegil_bytt => 'Bytt';
+
+  @override
+  String get aegil_behold => 'Behold';
+
+  @override
+  String get aegil_grunn => 'Grunn:';
+
+  @override
+  String get aegil_tillatelse =>
+      'Jeg er Ærends assistent, og jeg heter Ægil. Jeg er en AI. Jeg kan finne varer, sammenlikne priser med levering og foreslå kurver. Du betaler alltid selv.';
+
+  @override
+  String get aegil_hva_faar => 'Hva Ægil får gjøre';
+
+  @override
+  String get aegil_alle_nivaaer => 'Alle fem nivåer';
+
+  @override
+  String get aegil_foreslaa => 'Foreslå';
+
+  @override
+  String get aegil_foreslaa_sub =>
+      'Ægil viser kort — du trykker for å legge i kurven';
+
+  @override
+  String get aegil_standard => 'Standard';
+
+  @override
+  String get aegil_handle => 'Handle i kurven';
+
+  @override
+  String get aegil_handle_sub => 'Ægil legger i kurven; du betaler alltid selv';
+
+  @override
+  String get aegil_saa_mye => 'Så mye kan Ægil gjøre';
+
+  @override
+  String get aegil_ikke_funnet => 'Fant ikke noe i Vågen for det.';
+
+  @override
+  String get aegil_ikke_funnet_sub => 'Prøv et annet ord, eller bla selv.';
+
+  @override
+  String get aegil_alder => '18+ · ikke verifisert';
+
+  @override
+  String get aegil_alder_sub =>
+      'Bekreft alderen din med BankID i Konto før jeg kan hjelpe med dette.';
+
+  @override
+  String get aegil_bankid => 'Til Konto · BankID';
+
+  @override
+  String get aegil_allergen =>
+      'Sjekk alltid allergener på varen. Ægil kan ta feil.';
+
+  @override
+  String aegil_ob_poeng(int n) {
+    return '+$n Ægil-poeng';
+  }
+
+  @override
+  String get aegil_ob_ferdig => 'Da vet jeg nok til å begynne.';
+
+  @override
+  String aegil_kurv_bar(int n, int kr, String tid) {
+    return 'Kurv · $n · $kr kr · $tid';
+  }
+
+  @override
+  String get aegil_betal_vipps => 'Betal med Vipps';
+
+  @override
+  String get aegil_minne_title => 'Det Ægil vet om deg';
+
+  @override
+  String get aegil_minne_stemmer => 'Stemmer';
+
+  @override
+  String get aegil_minne_fjern => 'Fjern';
+
+  @override
+  String get aegil_minne_legg => 'Legg til';
+
+  @override
+  String get aegil_minne_varsler => 'VARSLER';
+
+  @override
+  String get aegil_minne_glem => 'Glem alt';
+
+  @override
+  String get aegil_minne_glem_sub =>
+      'Ægil sletter alt den har lært om deg. Nivået ditt beholder du.';
+
+  @override
+  String get aegil_minne_tom => 'Ægil husker ingenting ennå.';
+
+  @override
+  String get aegil_tillit => 'Tillitsregnskap';
+
+  @override
+  String aegil_tillit_spart(int kr) {
+    return 'Spart $kr kr denne måneden';
+  }
+
+  @override
+  String aegil_tillit_funn(int n) {
+    return '$n funn brukt';
+  }
+
+  @override
+  String aegil_tillit_mot(int n) {
+    return '$n ganger sa Ægil fra mot egen interesse';
+  }
+
+  @override
+  String get aegil_brett_title => 'Ægil fant';
+
+  @override
+  String get aegil_brett_legg => 'Legg til';
+
+  @override
+  String get aegil_brett_ikke => 'Ikke for meg';
+
+  @override
+  String get aegil_brett_tom => 'Ingenting nytt akkurat nå.';
+
+  @override
+  String get aegil_greeting => 'Hei! Hva trenger du i kveld?';
+
+  @override
+  String get pts_premiehylla_title => 'Premiehylla';
+
+  @override
+  String get pts_premiehylla_sub => 'Bytt poeng i noe godt fra Bergen';
+
+  @override
+  String get pts_maal_label => 'MÅLET DITT';
+
+  @override
+  String get pts_mine_premier => 'Mine premier';
+
+  @override
+  String get pts_hylla_intro =>
+      'Hylla denne måneden. Prisene står i poeng — aldri i kroner. Sett én premie som mål, så følger Ægil deg dit.';
+
+  @override
+  String get pts_badge_maal => 'MÅL';
+
+  @override
+  String get pts_badge_utsolgt => 'UTSOLGT';
+
+  @override
+  String get pts_hent => 'Hent';
+
+  @override
+  String get pts_sett_maal => 'Sett som mål';
+
+  @override
+  String get pts_er_maal => 'Målet ditt';
+
+  @override
+  String get pts_laast_title => 'Låst ennå';
+
+  @override
+  String get pts_gjelder =>
+      'Premier gjelder i 60 dager fra du henter dem. Utsolgte kommer tilbake neste måned.';
+
+  @override
+  String get pts_nivaa => 'Nivå';
+
+  @override
+  String get pts_poeng => 'poeng';
+
+  @override
+  String pts_igjen(int n) {
+    return '$n igjen';
+  }
+
+  @override
+  String pts_til_laas(int n) {
+    return '$n poeng til';
+  }
+
+  @override
+  String get pts_velger_kicker => 'ÆGIL VELGER';
+
+  @override
+  String get pts_velger_title => 'Premien Ægil valgte';
+
+  @override
+  String get pts_velger_sub => 'Én premie fra hylla di — valgt for deg.';
+
+  @override
+  String get pts_velger_verdi => 'Verdi minst 300 kr';
+
+  @override
+  String get pts_velger_hent => 'Hent premien';
+
+  @override
+  String get pts_velger_bra => 'Bra';
+
+  @override
+  String get pts_velger_ikke => 'Ikke for meg';
+
+  @override
+  String get pts_velger_hopp => 'Hopp over';
+
+  @override
+  String get pts_velger_tilbake => 'Tilbake til Premiehylla';
+
+  @override
+  String get pts_velger_tom => 'Hylla er tom akkurat nå.';
+
+  @override
+  String get pts_liga_title => 'Fløyen-ligaen';
+
+  @override
+  String get pts_liga_vilkaar => 'Vilkår';
+
+  @override
+  String get pts_liga_hele => 'Hele Bergen';
+
+  @override
+  String get pts_liga_bydel => 'Din bydel';
+
+  @override
+  String get pts_liga_pl => 'PL.';
+
+  @override
+  String get pts_liga_klatrer => 'KLATRER';
+
+  @override
+  String get pts_liga_poeng => 'POENG';
+
+  @override
+  String get pts_liga_premier => 'Månedens premier';
+
+  @override
+  String get pts_liga_premier_sub => 'Kan ikke kjøpes på hylla';
+
+  @override
+  String get pts_liga_slutt => 'Se månedsslutten';
+
+  @override
+  String get pts_liga_navn => 'Navn i ligaen';
+
+  @override
+  String get pts_liga_bli_med => 'Bli med';
+
+  @override
+  String get pts_liga_meld_av => 'Meld av';
+
+  @override
+  String get pts_liga_ikke_med => 'Du er ikke med i ligaen ennå.';
+
+  @override
+  String get pts_liga_seremoni_title => 'Månedsslutten';
+
+  @override
+  String get pts_liga_seremoni_sub =>
+      'Den første i måneden deles premiene ut, og ligaen nullstilles. Nivået ditt beholder du.';
+
+  @override
+  String pts_liga_plass(int rank) {
+    return 'Du ligger på $rank. plass';
+  }
+
+  @override
+  String pts_liga_maaned(String p_monthtoUpperCase) {
+    return 'POENG I $p_monthtoUpperCase';
+  }
+
+  @override
+  String get pts_opprykk_kicker => 'NIVÅOPPRYKK';
+
+  @override
+  String get pts_opprykk_gave => 'HER ER NOE TIL DEG';
+
+  @override
+  String get pts_opprykk_valgt =>
+      'Ægil valgte den til deg. Koster ingen poeng.';
+
+  @override
+  String get pts_opprykk_hent => 'Hent';
+
+  @override
+  String get pts_opprykk_hylla => 'Hylla di har fått tre nye premier.';
+
+  @override
+  String get pts_opprykk_se => 'Se hylla';
+
+  @override
+  String get pts_opprykk_hopp => 'Hopp over';
+
+  @override
+  String get pts_opprykk_ferdig => 'Ferdig';
+
+  @override
+  String pts_opprykk_naa(String tier) {
+    return 'Du er nå $tier';
+  }
+
+  @override
+  String get pts_fiske_title => 'Fjordfiske';
+
+  @override
+  String get pts_fiske_sub => 'Du og Ægil fisker i Vågen';
+
+  @override
+  String get pts_fiske_kast => 'Kast ut';
+
+  @override
+  String get pts_fiske_ute => 'Snøret er ute … vent på napp';
+
+  @override
+  String get pts_fiske_dra => 'DRA INN!';
+
+  @override
+  String get pts_fiske_napp => 'Napp!';
+
+  @override
+  String get pts_fiske_plus => '+5 poeng';
+
+  @override
+  String get pts_fiske_slipp => 'Slipp';
+
+  @override
+  String get pts_fiske_legg => 'Legg i kurven';
+
+  @override
+  String get pts_fiske_lagre => 'Lagre';
+
+  @override
+  String get pts_fiske_hent => 'Hent';
+
+  @override
+  String get pts_fiske_fra_hylla => 'Fra hylla di';
+
+  @override
+  String get pts_fiske_agn => 'Agn';
+
+  @override
+  String get pts_fiske_fangst => 'Fangst';
+
+  @override
+  String get pts_fiske_premiefangst => 'Premiefangst';
+
+  @override
+  String get pts_fiske_se_lagret => 'Se det jeg lagret';
+
+  @override
+  String get pts_fiske_i_morgen => 'Kast ut igjen i morgen';
+
+  @override
+  String get pts_fiske_hint => 'Trykk på snøret når det rykker.';
+
+  @override
+  String pts_fiske_snakk(int kast, int av, int lagret) {
+    return 'Kast $kast av $av · $lagret lagret';
+  }
+
+  @override
+  String pts_fiske_slutt(int lagret, int kjopt) {
+    return 'Det var alt for nå. Du lagret $lagret og la $kjopt i kurven.';
+  }
+
+  @override
+  String get pts_napp_dagens => 'Dagens napp: +5';
+
+  @override
+  String get pts_napp_bergensk => 'Bergensk';
+
+  @override
+  String get pts_napp_legg => 'Legg til';
+
+  @override
+  String get pts_napp_ikke_naa => 'Ikke nå';
+
+  @override
+  String get pts_napp_aldri => 'Aldri dette';
+
+  @override
+  String get pts_entry_title => 'Poeng';
+
+  @override
+  String get pts_entry_sub => 'Se hylla og nivået ditt';
+
+  @override
+  String ops_sporing_live(String stadie) {
+    return 'Live · $stadie';
+  }
+
+  @override
+  String get order_status_finding_courier => 'Finner bud';
+
+  @override
+  String ops_sporing_om_min(int n) {
+    return 'om $n min';
+  }
+
+  @override
+  String get ops_sporing_kommer => 'Kommer';
+
+  @override
+  String get ops_sporing_klar_naa => 'Klar nå';
+
+  @override
+  String ops_sporing_klar_kl(String t) {
+    return 'Klar $t';
+  }
+
+  @override
+  String ops_sporing_hentes_hos(String s) {
+    return 'Hentes hos $s';
+  }
+
+  @override
+  String get ops_sporing_star_klar => 'Står klar i disken';
+
+  @override
+  String get ops_sporing_hentet_takk => 'Hentet · takk!';
+
+  @override
+  String get ops_sporing_butikken_paa_vei => 'Butikken er på vei';
+
+  @override
+  String ops_sporing_levert_av(String s) {
+    return 'Levert av $s';
+  }
+
+  @override
+  String ops_sporing_leveres_av(String s) {
+    return 'Leveres av $s';
+  }
+
+  @override
+  String get ops_sporing_levert_for_tiden => 'Levert · før tiden';
+
+  @override
+  String get ops_sporing_avbestilt => 'Avbestilt';
+
+  @override
+  String ops_sporing_gave_venter(String navn) {
+    return '$navn venter på kaien';
+  }
+
+  @override
+  String ops_sporing_steg(int n, int of) {
+    return 'Steg $n av $of';
+  }
+
+  @override
+  String ops_sporing_pluss_poeng(int n) {
+    return '+$n poeng';
+  }
+
+  @override
+  String get ops_sporing_aegil => 'Ægil';
+
+  @override
+  String get ops_sporing_aegil_folger => '· følger ærendet ditt';
+
+  @override
+  String ops_sporing_neste(String navn) {
+    return 'Neste: $navn';
+  }
+
+  @override
+  String get ops_sporing_oppdrag_fullfort => 'Oppdrag fullført';
+
+  @override
+  String get ops_sporing_finner_bud_hint =>
+      'Jeg finner et bud til deg nå — det tar vanligvis et par minutter.';
+
+  @override
+  String get ops_sporing_mottatt => 'MOTTATT';
+
+  @override
+  String get ops_sporing_tilberedes_kicker => 'TILBEREDES';
+
+  @override
+  String get ops_sporing_paa_komfyren => 'På komfyren';
+
+  @override
+  String ops_sporing_min_igjen(int m) {
+    return '$m min igjen';
+  }
+
+  @override
+  String get ops_sporing_klar_kicker => 'KLAR';
+
+  @override
+  String ops_sporing_disken(String navn) {
+    return 'Den står i disken. Si «$navn» så får du den.';
+  }
+
+  @override
+  String get ops_sporing_vis_veien => 'Vis veien';
+
+  @override
+  String get ops_sporing_forseglet => 'Forseglet';
+
+  @override
+  String get ops_sporing_ankommer_om => 'Ankommer om';
+
+  @override
+  String get ops_sporing_haaper => 'Håper det smaker.';
+
+  @override
+  String get ops_sporing_spart_tid => 'SPART TID';
+
+  @override
+  String get ops_sporing_kart_kommer => 'Kartet kommer når budet har hentet.';
+
+  @override
+  String get ops_sporing_ingen_kart_partner =>
+      'Butikken kjører selv — ingen live-posisjon.';
+
+  @override
+  String get ops_sporing_avslutt => 'Avslutt bestillingen';
+
+  @override
+  String get ops_sporing_fjordfiske => 'Fjordfiske';
+
+  @override
+  String get ops_sporing_mens_du_venter => 'mens du venter';
+
+  @override
+  String get ops_sporing_sammendrag => 'Sammendrag';
+
+  @override
+  String get ops_sporing_detaljer => 'Detaljer';
+
+  @override
+  String get ops_sporing_hjelp => 'Hjelp';
+
+  @override
+  String get ops_sporing_bankid => 'BankID-verifisert';
+
+  @override
+  String get ops_sporing_kode_tittel => 'Kode ved levering';
+
+  @override
+  String get ops_sporing_kode_under =>
+      'Vis koden til budet, eller les den opp.';
+
+  @override
+  String get ops_sporing_kode_offline => 'Uten nett vises bare PIN.';
+
+  @override
+  String get ops_sporing_kode_no_door =>
+      'Posen kan ikke settes igjen ved døren.';
+
+  @override
+  String get ops_sporing_kode_laast =>
+      'Koden er låst etter for mange forsøk — budet tar bilde og navn.';
+
+  @override
+  String get ops_sporing_kode_bekreftet => 'Koden ble bekreftet';
+
+  @override
+  String ops_sporing_valg_tittel(String butikk) {
+    return '$butikk har ikke sett ordren';
+  }
+
+  @override
+  String get ops_sporing_valg_line =>
+      'Vent på nytt vindu, eller avbestill med full refusjon. Ingenting skjer før du velger.';
+
+  @override
+  String get ops_sporing_vent => 'Vent';
+
+  @override
+  String get ops_sporing_avbestill => 'Avbestill';
+
+  @override
+  String get ops_sporing_venter => 'Vi venter på butikken.';
+
+  @override
+  String get ops_sporing_refundert =>
+      'Avbestilt — pengene kommer tilbake på Vipps.';
+
+  @override
+  String get ops_sporing_uten_nett => 'Uten nett · viser siste kjente status';
+
+  @override
+  String get ops_sporing_notif_store_on_the_way => 'Butikken er på vei';
+
+  @override
+  String get ops_sporing_notif_store_delivered => 'Levert av butikken';
+
+  @override
+  String ops_sporing_hjelp_ring(String rolle) {
+    return 'Ring $rolle';
+  }
+
+  @override
+  String ops_sporing_hjelp_melding(String rolle) {
+    return 'Melding til $rolle';
+  }
+
+  @override
+  String get ops_sporing_hjelp_ring_kort => 'Ring';
+
+  @override
+  String get ops_sporing_hjelp_send => 'Send melding';
+
+  @override
+  String ops_sporing_hjelp_kort_bud(int min, String siden, String rating) {
+    return 'På vei · $min min unna · sykler siden $siden · $rating';
+  }
+
+  @override
+  String get ops_sporing_hjelp_kort_bud_enkel => 'På vei til deg';
+
+  @override
+  String get ops_sporing_hjelp_kort_butikk => 'Leverer selv i kveld';
+
+  @override
+  String get ops_sporing_hjelp_vanlige => 'VANLIGE SPØRSMÅL';
+
+  @override
+  String get ops_sporing_hjelp_dor => 'Finner ikke døra';
+
+  @override
+  String get ops_sporing_hjelp_dor_line => 'Send veibeskrivelse eller ring';
+
+  @override
+  String get ops_sporing_hjelp_mangler => 'Noe mangler i bestillingen';
+
+  @override
+  String get ops_sporing_hjelp_mangler_line => 'Refusjon på Vipps innen 2 min';
+
+  @override
+  String get ops_sporing_hjelp_kundeservice => 'Snakk med Ærend i Bergen';
+
+  @override
+  String get ops_sporing_hjelp_kundeservice_line =>
+      'Kundeservice · åpent til 23:00';
+
+  @override
+  String get ops_sporing_ring_kobler => 'Kobler til …';
+
+  @override
+  String get ops_sporing_ring_maskert =>
+      'Nummeret er maskert — ingen ser hverandres telefon.';
+
+  @override
+  String get ops_sporing_ring_ingen =>
+      'Ingen linje ennå — ring nummeret under.';
+
+  @override
+  String get ops_sporing_demp => 'Demp';
+
+  @override
+  String get ops_sporing_avslutt_samtale => 'Avslutt';
+
+  @override
+  String get ops_sporing_hoyttaler => 'Høyttaler';
+
+  @override
+  String get ops_sporing_tilbake => 'Tilbake til hjelp';
+
+  @override
+  String get ops_sporing_aktiv => 'Aktiv nå · svarer raskt';
+
+  @override
+  String get ops_sporing_skriver => 'skriver …';
+
+  @override
+  String get ops_sporing_meld_hint => 'Skriv en melding';
+
+  @override
+  String get ops_sporing_send => 'Send';
+
+  @override
+  String ops_sporing_dor_tittel(String navn) {
+    return 'Dette er det $navn ser nå';
+  }
+
+  @override
+  String get ops_sporing_lev_adresse => 'LEVERINGSADRESSE';
+
+  @override
+  String get ops_sporing_veibeskrivelse => 'VEIBESKRIVELSE';
+
+  @override
+  String get ops_sporing_dor_hint =>
+      'Inngang på baksiden, gul dør, 3. etasje …';
+
+  @override
+  String ops_sporing_send_til(String navn) {
+    return 'Send til $navn';
+  }
+
+  @override
+  String ops_sporing_ring_navn(String navn) {
+    return 'Ring $navn';
+  }
+
+  @override
+  String get ops_sporing_skriv_selv => 'Skriv selv';
+
+  @override
+  String get ops_sporing_hva_mangler => 'Hva mangler?';
+
+  @override
+  String get ops_sporing_mangler_line =>
+      'Trykk på det som ikke kom. Vi ordner resten.';
+
+  @override
+  String get ops_sporing_mangler_refusjon =>
+      'Du får pengene tilbake på Vipps innen 2 min — eller ny levering hvis du heller vil det.';
+
+  @override
+  String get ops_sporing_ks_tittel => 'Ærend i Bergen';
+
+  @override
+  String get ops_sporing_ks_line => 'Åpent til 23:00 · svarer innen 2 min';
+
+  @override
+  String get ops_sporing_ks_chat => 'Chat med oss';
+
+  @override
+  String get ops_sporing_ks_chat_line => 'Raskest · Kari og Ola er på vakt';
+
+  @override
+  String get ops_sporing_ks_ring => 'Ring 55 00 12 34';
+
+  @override
+  String get ops_sporing_ks_ring_line => 'Vanlig takst · ca. 1 min ventetid';
+
+  @override
+  String ops_sporing_ks_ordre(String nr) {
+    return 'Ordre #$nr er allerede lagt ved, så du slipper å forklare.';
+  }
+
+  @override
+  String get ops_sporing_ks_nummer => '+4755001234';
+
+  @override
+  String get ops_sporing_sendt_tittel => 'Sendt';
+
+  @override
+  String ops_sporing_sendt_tekst(String rolle) {
+    return '$rolle har fått beskjeden.';
+  }
+
+  @override
+  String get ops_sporing_meldt_tittel => 'Meldt';
+
+  @override
+  String get ops_sporing_ferdig => 'Ferdig';
+
+  @override
+  String get ops_sporing_butikken => 'butikken';
+
+  @override
+  String get ops_sporing_bud => 'bud';
+
+  @override
+  String get ops_sporing_Butikken => 'Butikken';
+
+  @override
+  String get ops_sporing_Budet => 'Budet';
+
+  @override
+  String get ops_sporing_levert_punkt => 'Levert.';
+
+  @override
+  String get ops_sporing_poeng_for_ordren => 'poeng for denne ordren';
+
+  @override
+  String ops_sporing_liga_gap(int n, int plass) {
+    return '$n fra $plass. plass';
+  }
+
+  @override
+  String ops_sporing_forste_gang(int n, String butikk) {
+    return '+$n poeng · første gang hos $butikk';
+  }
+
+  @override
+  String get ops_sporing_en_gang => 'Gjelder én gang per butikk';
+
+  @override
+  String ops_sporing_levert_til_deg(String hvem) {
+    return 'Levert til deg · koden ble bekreftet av $hvem';
+  }
+
+  @override
+  String ops_sporing_levert_til_deg_uten(String hvem) {
+    return 'Levert til deg av $hvem';
+  }
+
+  @override
+  String ops_sporing_takk(String navn) {
+    return 'Takk til $navn';
+  }
+
+  @override
+  String get ops_sporing_hvordan => 'Hvordan gikk det?';
+
+  @override
+  String get ops_sporing_takk_vurdering => 'Takk for vurderingen';
+
+  @override
+  String get ops_sporing_noe_galt => 'Noe galt med bestillingen?';
+
+  @override
+  String get ops_sporing_ikke_funnet => 'Fant ikke bestillingen.';
+
+  @override
+  String get ops_sporing_laster => 'Henter status …';
+
+  @override
+  String get ops_sporing_demo_ny => 'Ny ordre → Bekreftet';
+
+  @override
+  String get ops_sporing_demo_neste => 'Neste stadie';
+
+  @override
+  String get ops_sporing_demo_usett => 'Usett butikk';
+
+  @override
+  String get ops_sporing_demo_kode_ok => 'Kode OK';
+
+  @override
+  String get ops_sporing_demo_pin_feil => 'PIN feil ×3';
+
+  @override
+  String get ops_sporing_demo_offline => 'Uten nett / på nett';
+
+  @override
+  String get ops_utforsk_title => 'Utforsk';
+
+  @override
+  String get ops_utforsk_tab_feed => 'Feed';
+
+  @override
+  String get ops_utforsk_tab_fiske => 'Fjordfiske';
+
+  @override
+  String get ops_utforsk_tab_pose => 'Forundringspose';
+
+  @override
+  String get ops_utforsk_filter_alle => 'Alle';
+
+  @override
+  String get ops_utforsk_kommer_snart => 'Kommer snart';
+
+  @override
+  String get ops_utforsk_drift_title => 'Ærend · Drift';
+
+  @override
+  String ops_utforsk_drift_pinned(String until) {
+    return 'Festet til $until';
+  }
+
+  @override
+  String get ops_utforsk_fiske_intro =>
+      'For kveldene du bare vil se — aldri i veien når du er sulten.';
+
+  @override
+  String ops_utforsk_fiske_napp(int n) {
+    return '$n napp igjen i dag';
+  }
+
+  @override
+  String get ops_utforsk_fiske_line =>
+      'Kast ut — finn ting du ikke visste du ville ha. Høyre lagrer, opp legger i kurven.';
+
+  @override
+  String get ops_utforsk_fiske_cta => 'Kast ut';
+
+  @override
+  String get ops_utforsk_pose_title => 'Forundringsposer i nærheten';
+
+  @override
+  String ops_utforsk_pose_left_today(int n) {
+    return '$n igjen i dag';
+  }
+
+  @override
+  String get ops_utforsk_pose_line =>
+      'Overskudd fra butikkene til en brøkdel. Innholdet avsløres under nordlys ved levering.';
+
+  @override
+  String ops_utforsk_pose_left(int n) {
+    return '$n igjen';
+  }
+
+  @override
+  String ops_utforsk_pose_value(int kr) {
+    return 'verdi minst $kr kr';
+  }
+
+  @override
+  String ops_utforsk_pose_pickup(String window) {
+    return 'Hentes $window';
+  }
+
+  @override
+  String ops_utforsk_pose_price(int kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String get ops_utforsk_pose_secure => 'Sikre en';
+
+  @override
+  String get ops_utforsk_pose_empty =>
+      'Ingen poser i nærheten akkurat nå — butikkene legger ut når de har overskudd.';
+
+  @override
+  String get ops_utforsk_automat => 'Poseautomaten';
+
+  @override
+  String ops_utforsk_automat_line(int kr) {
+    return 'Trekk i spaken · $kr kr';
+  }
+
+  @override
+  String get ops_utforsk_promo_label => 'FORUNDRINGSPOSE · GRØNT & GODT';
+
+  @override
+  String get ops_utforsk_promo_cta => 'Hent posen';
+
+  @override
+  String ops_utforsk_promo_left(int n) {
+    return '$n igjen · ekte antall';
+  }
+
+  @override
+  String get ops_utforsk_feed_empty_title => 'Ingenting nytt her ennå';
+
+  @override
+  String get ops_utforsk_feed_empty_text =>
+      'Følg butikker i nærheten, så dukker de opp her.';
+
+  @override
+  String ops_utforsk_nyheter_chip(String bydel) {
+    return '$bydel · i dag';
+  }
+
+  @override
+  String get ops_utforsk_nyheter_title => 'Nytt fra butikkene';
+
+  @override
+  String get ops_utforsk_nyheter_bergensk => 'Bergensk';
+
+  @override
+  String ops_utforsk_nyheter_order(String price) {
+    return 'Bestill · $price';
+  }
+
+  @override
+  String get ops_utforsk_nyheter_see_store => 'Se butikk';
+
+  @override
+  String get ops_utforsk_nyheter_see => 'Se';
+
+  @override
+  String get ops_utforsk_nyheter_footer =>
+      'Bare butikker i nærheten av deg · ingen reklame';
+
+  @override
+  String get ops_utforsk_nyheter_empty => 'Ingen nyheter fra butikkene i dag.';
 }

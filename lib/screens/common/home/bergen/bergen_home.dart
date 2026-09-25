@@ -14,7 +14,9 @@ import '../../../../networking/ops/ops_customer_api.dart';
 import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/aegil/brett_entry.dart';
 import '../../../bergen/kit/bergen_routes.dart';
+import '../../../bergen/meg/a3_services.dart';
 import '../../../bergen/meg/borte_entry.dart';
+import '../../../bergen/meg/konto_screen.dart' show kPrefA3Rolig;
 import '../../../bergen/poeng/napp_entry.dart';
 import '../../../bergen/poeng/poeng_entry.dart';
 import '../../../snurre/snurre_chat_screen.dart';
@@ -156,6 +158,21 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       if (isDemoApp && widget.isShowDialog) _bloc.openDemoDialog();
     });
     _loadUnderKaien();
+    _refreshSeams();
+  }
+
+  /// agil-3's seams need their data pulled (an ask of agil-1, merge day):
+  /// the Ægil find count behind the relevanskort and "Mens du var borte",
+  /// on cold start and on resume. Konto's calm-motion preference is read
+  /// here too so it holds from the first frame.
+  Future<void> _refreshSeams() async {
+    A3Services.reducedMotion.value = prefGetBool(kPrefA3Rolig);
+    if (isGuestUser()) return;
+    await Future.wait<Object?>([
+      refreshAegilFindCount(),
+      refreshMensDuVarBorte(),
+    ]);
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadUnderKaien() async {
@@ -180,6 +197,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _bloc.callHomeTrackOrderApi();
       _syncCartBadge();
+      _refreshSeams();
     }
   }
 

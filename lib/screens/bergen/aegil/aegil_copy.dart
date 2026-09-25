@@ -1,6 +1,9 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 /// Copy for the Ægil screens (agil-3 Phase 7). Keys `a3_aegil_*`; the
 /// design's wording (`agent`, `Det Ægil vet`, `brett`) verbatim.
+// ignore: unused_import
+import '../../../main.dart' show languages;
+
 abstract final class A3AegilCopy {
   // Header states (agTilstand)
   static const String a3_aegil_lytter = 'Lytter';
@@ -12,7 +15,7 @@ abstract final class A3AegilCopy {
   static const String a3_aegil_sammenlikner = 'Sammenlikner';
   static const String a3_aegil_beklager = 'Beklager…';
   static const String a3_aegil_det_jeg_vet = 'Det jeg vet';
-  static String a3_aegil_nivaa(String name) => 'Nivå · $name';
+  static String a3_aegil_nivaa(String name) => languages.aegil_nivaa(name);
 
   // Hilsen
   static const String a3_aegil_hilsen = 'Jeg finner det i Vågen, sjekker pris hos bergenske butikker og legger det klart i kurven.';
@@ -34,7 +37,7 @@ abstract final class A3AegilCopy {
   ];
 
   // agForslag
-  static String a3_aegil_varer(int n) => '$n varer · inkl. levering';
+  static String a3_aegil_varer(int n) => languages.aegil_varer(n);
   static const String a3_aegil_derfor = 'Derfor:';
   static const String a3_aegil_legg = 'Legg i kurven';
   static const String a3_aegil_bytt_butikk = 'Bytt butikk';
@@ -69,11 +72,11 @@ abstract final class A3AegilCopy {
 
   // Onboarding (agOb1–5)
   static const List<String> a3_aegil_ob_titler = ['Hva liker du?', 'Hvilke butikker?', 'Hvem handler du for?', 'Kosthold', 'Når spiser dere?'];
-  static String a3_aegil_ob_poeng(int n) => '+$n Ægil-poeng';
+  static String a3_aegil_ob_poeng(int n) => languages.aegil_ob_poeng(n);
   static const String a3_aegil_ob_ferdig = 'Da vet jeg nok til å begynne.';
 
   // Kurv-bar
-  static String a3_aegil_kurv_bar(int n, int kr, String tid) => 'Kurv · $n · $kr kr · $tid';
+  static String a3_aegil_kurv_bar(int n, int kr, String tid) => languages.aegil_kurv_bar(n, kr, tid);
   static const String a3_aegil_betal_vipps = 'Betal med Vipps';
 
   // Minne (Det Ægil vet om deg)
@@ -87,9 +90,9 @@ abstract final class A3AegilCopy {
   static const String a3_aegil_minne_glem_sub = 'Ægil sletter alt den har lært om deg. Nivået ditt beholder du.';
   static const String a3_aegil_minne_tom = 'Ægil husker ingenting ennå.';
   static const String a3_aegil_tillit = 'Tillitsregnskap';
-  static String a3_aegil_tillit_spart(int kr) => 'Spart $kr kr denne måneden';
-  static String a3_aegil_tillit_funn(int n) => '$n funn brukt';
-  static String a3_aegil_tillit_mot(int n) => '$n ganger sa Ægil fra mot egen interesse';
+  static String a3_aegil_tillit_spart(int kr) => languages.aegil_tillit_spart(kr);
+  static String a3_aegil_tillit_funn(int n) => languages.aegil_tillit_funn(n);
+  static String a3_aegil_tillit_mot(int n) => languages.aegil_tillit_mot(n);
 
   // Brett (kBrettKort)
   static const String a3_aegil_brett_title = 'Ægil fant';

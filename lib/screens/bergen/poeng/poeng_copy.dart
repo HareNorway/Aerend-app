@@ -2,6 +2,9 @@
 /// Copy for the Points screens (agil-3 Phase 7). Keys `a3_poeng_*`; the
 /// design's wording (`premier`, `velger`, `liga`, `opprykk`, `fiske`,
 /// `Napp-kort`) verbatim. Moved to ARB by agil-1 in its Phase 8.
+// ignore: unused_import
+import '../../../main.dart' show languages;
+
 abstract final class A3PoengCopy {
   // Premiehylla (design ≈L6178)
   static const String a3_poeng_premiehylla_title = 'Premiehylla';
@@ -18,8 +21,8 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_gjelder = 'Premier gjelder i 60 dager fra du henter dem. Utsolgte kommer tilbake neste måned.';
   static const String a3_poeng_nivaa = 'Nivå';
   static const String a3_poeng_poeng = 'poeng';
-  static String a3_poeng_igjen(int n) => '$n igjen';
-  static String a3_poeng_til_laas(int n) => '$n poeng til';
+  static String a3_poeng_igjen(int n) => languages.pts_igjen(n);
+  static String a3_poeng_til_laas(int n) => languages.pts_til_laas(n);
 
   // Ægil velger (≈L6306)
   static const String a3_poeng_velger_kicker = 'ÆGIL VELGER';
@@ -56,8 +59,8 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_liga_ikke_med = 'Du er ikke med i ligaen ennå.';
   static const String a3_poeng_liga_seremoni_title = 'Månedsslutten';
   static const String a3_poeng_liga_seremoni_sub = 'Den første i måneden deles premiene ut, og ligaen nullstilles. Nivået ditt beholder du.';
-  static String a3_poeng_liga_plass(int rank) => 'Du ligger på $rank. plass';
-  static String a3_poeng_liga_maaned(String month) => 'POENG I ${month.toUpperCase()}';
+  static String a3_poeng_liga_plass(int rank) => languages.pts_liga_plass(rank);
+  static String a3_poeng_liga_maaned(String month) => languages.pts_liga_maaned('${month.toUpperCase()}');
 
   // Nivåopprykk (≈L6124)
   static const String a3_poeng_opprykk_kicker = 'NIVÅOPPRYKK';
@@ -68,7 +71,7 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_opprykk_se = 'Se hylla';
   static const String a3_poeng_opprykk_hopp = 'Hopp over';
   static const String a3_poeng_opprykk_ferdig = 'Ferdig';
-  static String a3_poeng_opprykk_naa(String tier) => 'Du er nå $tier';
+  static String a3_poeng_opprykk_naa(String tier) => languages.pts_opprykk_naa(tier);
 
   // Fjordfiske (≈L6436)
   static const String a3_poeng_fiske_title = 'Fjordfiske';
@@ -89,8 +92,8 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_fiske_se_lagret = 'Se det jeg lagret';
   static const String a3_poeng_fiske_i_morgen = 'Kast ut igjen i morgen';
   static const String a3_poeng_fiske_hint = 'Trykk på snøret når det rykker.';
-  static String a3_poeng_fiske_snakk(int kast, int av, int lagret) => 'Kast $kast av $av · $lagret lagret';
-  static String a3_poeng_fiske_slutt(int lagret, int kjopt) => 'Det var alt for nå. Du lagret $lagret og la $kjopt i kurven.';
+  static String a3_poeng_fiske_snakk(int kast, int av, int lagret) => languages.pts_fiske_snakk(kast, av, lagret);
+  static String a3_poeng_fiske_slutt(int lagret, int kjopt) => languages.pts_fiske_slutt(lagret, kjopt);
 
   // Napp-kort (≈L2115)
   static const String a3_poeng_napp_dagens = 'Dagens napp: +5';

@@ -57,7 +57,7 @@ void main() {
 
     test('generate is null for a name no map knows', () {
       expect(
-        BergenRoutes.generate(const RouteSettings(name: '/bergen/fjordfiske')),
+        BergenRoutes.generate(const RouteSettings(name: '/bergen/finnes-ikke')),
         isNull,
       );
       expect(

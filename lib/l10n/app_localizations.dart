@@ -6979,6 +6979,4008 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms'**
   String get aegil_disclosure_terms;
+
+  /// No description provided for @ops_sok_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you looking for?'**
+  String get ops_sok_title;
+
+  /// No description provided for @ops_sok_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A word — and I search. A wish — and I run the errand.'**
+  String get ops_sok_subtitle;
+
+  /// No description provided for @ops_sok_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Bergen — shops, goods, districts'**
+  String get ops_sok_hint;
+
+  /// No description provided for @ops_sok_voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak'**
+  String get ops_sok_voice;
+
+  /// No description provided for @ops_sok_onske_title.
+  ///
+  /// In en, this message translates to:
+  /// **'This sounds like an errand'**
+  String get ops_sok_onske_title;
+
+  /// No description provided for @ops_sok_onske_line.
+  ///
+  /// In en, this message translates to:
+  /// **'A basket with delivery in under 20 seconds — you pay yourself'**
+  String get ops_sok_onske_line;
+
+  /// No description provided for @ops_sok_onske_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Ægil'**
+  String get ops_sok_onske_cta;
+
+  /// No description provided for @ops_sok_butikker.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 shop} other{{n} shops}}'**
+  String ops_sok_butikker(int n);
+
+  /// No description provided for @ops_sok_produkter.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 product} other{{n} products}}'**
+  String ops_sok_produkter(int n);
+
+  /// No description provided for @ops_sok_butikker_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get ops_sok_butikker_label;
+
+  /// No description provided for @ops_sok_produkter_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get ops_sok_produkter_label;
+
+  /// No description provided for @ops_sok_treff.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} hits in Bergen'**
+  String ops_sok_treff(int n);
+
+  /// No description provided for @ops_sok_eta.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} min'**
+  String ops_sok_eta(int min);
+
+  /// No description provided for @ops_sok_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get ops_sok_add;
+
+  /// No description provided for @ops_sok_see.
+  ///
+  /// In en, this message translates to:
+  /// **'See'**
+  String get ops_sok_see;
+
+  /// No description provided for @ops_sok_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get ops_sok_free;
+
+  /// No description provided for @ops_sok_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get ops_sok_closed;
+
+  /// No description provided for @ops_sok_ask_aegil.
+  ///
+  /// In en, this message translates to:
+  /// **'ASK ÆGIL'**
+  String get ops_sok_ask_aegil;
+
+  /// No description provided for @ops_sok_compare.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare «{q}» on price and delivery'**
+  String ops_sok_compare(String q);
+
+  /// No description provided for @ops_sok_ingen_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No hits for «{q}» in Bergen yet'**
+  String ops_sok_ingen_title(String q);
+
+  /// No description provided for @ops_sok_ingen_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another word, or let Ægil look for you.'**
+  String get ops_sok_ingen_line;
+
+  /// No description provided for @ops_sok_ingen_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Let Ægil find the nearest'**
+  String get ops_sok_ingen_cta;
+
+  /// No description provided for @ops_sok_kategorier.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get ops_sok_kategorier;
+
+  /// No description provided for @ops_sok_utforsker.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer · {tried} of {total} tried'**
+  String ops_sok_utforsker(int tried, int total);
+
+  /// No description provided for @ops_sok_alle.
+  ///
+  /// In en, this message translates to:
+  /// **'All {n}'**
+  String ops_sok_alle(int n);
+
+  /// No description provided for @ops_sok_aegil_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'ASK ÆGIL'**
+  String get ops_sok_aegil_kicker;
+
+  /// No description provided for @ops_sok_aegil_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what you need. I run the errand.'**
+  String get ops_sok_aegil_line;
+
+  /// No description provided for @ops_sok_aegil_eks1.
+  ///
+  /// In en, this message translates to:
+  /// **'Taco night for four under 500 kr'**
+  String get ops_sok_aegil_eks1;
+
+  /// No description provided for @ops_sok_aegil_eks2.
+  ///
+  /// In en, this message translates to:
+  /// **'Cheapest shrimp nearby'**
+  String get ops_sok_aegil_eks2;
+
+  /// No description provided for @ops_sok_aegil_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a chat'**
+  String get ops_sok_aegil_start;
+
+  /// No description provided for @ops_sok_aegil_skriv.
+  ///
+  /// In en, this message translates to:
+  /// **'Type or speak'**
+  String get ops_sok_aegil_skriv;
+
+  /// No description provided for @ops_sok_nylig.
+  ///
+  /// In en, this message translates to:
+  /// **'RECENT'**
+  String get ops_sok_nylig;
+
+  /// No description provided for @ops_sok_populaert.
+  ///
+  /// In en, this message translates to:
+  /// **'POPULAR NOW'**
+  String get ops_sok_populaert;
+
+  /// No description provided for @ops_sok_oppdrag_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS WEEK\'S MISSION · +{points} POINTS'**
+  String ops_sok_oppdrag_kicker(int points);
+
+  /// No description provided for @ops_sok_oppdrag_se.
+  ///
+  /// In en, this message translates to:
+  /// **'See'**
+  String get ops_sok_oppdrag_se;
+
+  /// No description provided for @ops_sok_clear_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get ops_sok_clear_recent;
+
+  /// No description provided for @ops_kasse_bryggen.
+  ///
+  /// In en, this message translates to:
+  /// **'Bryggen'**
+  String get ops_kasse_bryggen;
+
+  /// No description provided for @ops_kasse_kassen.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get ops_kasse_kassen;
+
+  /// No description provided for @ops_kasse_ror.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil rows to the quay'**
+  String get ops_kasse_ror;
+
+  /// No description provided for @ops_kasse_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get ops_kasse_levering;
+
+  /// No description provided for @ops_kasse_henting.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup'**
+  String get ops_kasse_henting;
+
+  /// No description provided for @ops_kasse_tom_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'ÆGIL'**
+  String get ops_kasse_tom_kicker;
+
+  /// No description provided for @ops_kasse_tom_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The basket is empty — shall we find something in Bergen?'**
+  String get ops_kasse_tom_title;
+
+  /// No description provided for @ops_kasse_tom_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Bergen'**
+  String get ops_kasse_tom_cta;
+
+  /// No description provided for @ops_kasse_tom_tilbud.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight\'s offers'**
+  String get ops_kasse_tom_tilbud;
+
+  /// No description provided for @ops_kasse_tom_rett.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight to the basket'**
+  String get ops_kasse_tom_rett;
+
+  /// No description provided for @ops_kasse_legg_mer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add something more'**
+  String get ops_kasse_legg_mer;
+
+  /// No description provided for @ops_kasse_glemte_drikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot a drink?'**
+  String get ops_kasse_glemte_drikke;
+
+  /// No description provided for @ops_kasse_fjern.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get ops_kasse_fjern;
+
+  /// No description provided for @ops_kasse_endre.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get ops_kasse_endre;
+
+  /// No description provided for @ops_kasse_adr_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deliver to'**
+  String get ops_kasse_adr_tittel;
+
+  /// No description provided for @ops_kasse_adr_velg.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an address'**
+  String get ops_kasse_adr_velg;
+
+  /// No description provided for @ops_kasse_hent_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up at'**
+  String get ops_kasse_hent_tittel;
+
+  /// No description provided for @ops_kasse_se_kart.
+  ///
+  /// In en, this message translates to:
+  /// **'See the map'**
+  String get ops_kasse_se_kart;
+
+  /// No description provided for @ops_kasse_tid_asap.
+  ///
+  /// In en, this message translates to:
+  /// **'As soon as possible'**
+  String get ops_kasse_tid_asap;
+
+  /// No description provided for @ops_kasse_tid_innen.
+  ///
+  /// In en, this message translates to:
+  /// **'By {t} · {a}–{b} min'**
+  String ops_kasse_tid_innen(String t, int a, int b);
+
+  /// No description provided for @ops_kasse_betaling_ved.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid at order'**
+  String get ops_kasse_betaling_ved;
+
+  /// No description provided for @ops_kasse_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Vipps'**
+  String get ops_kasse_vipps;
+
+  /// No description provided for @ops_kasse_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get ops_kasse_kort;
+
+  /// No description provided for @ops_kasse_beskjed_bud.
+  ///
+  /// In en, this message translates to:
+  /// **'A note for the courier'**
+  String get ops_kasse_beskjed_bud;
+
+  /// No description provided for @ops_kasse_beskjed_butikk.
+  ///
+  /// In en, this message translates to:
+  /// **'A note for the shop'**
+  String get ops_kasse_beskjed_butikk;
+
+  /// No description provided for @ops_kasse_beskjed_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'The gate is open …'**
+  String get ops_kasse_beskjed_hint;
+
+  /// No description provided for @ops_kasse_flere_valg.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get ops_kasse_flere_valg;
+
+  /// No description provided for @ops_kasse_hentetid.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup time'**
+  String get ops_kasse_hentetid;
+
+  /// No description provided for @ops_kasse_hentetid_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop packs for this time'**
+  String get ops_kasse_hentetid_line;
+
+  /// No description provided for @ops_kasse_tips_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the courier a little extra?'**
+  String get ops_kasse_tips_title;
+
+  /// No description provided for @ops_kasse_tips_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Every krone goes to the courier.'**
+  String get ops_kasse_tips_line;
+
+  /// No description provided for @ops_kasse_tips_rad.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip for the courier'**
+  String get ops_kasse_tips_rad;
+
+  /// No description provided for @ops_kasse_sammendrag.
+  ///
+  /// In en, this message translates to:
+  /// **'SUMMARY'**
+  String get ops_kasse_sammendrag;
+
+  /// No description provided for @ops_kasse_varer.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get ops_kasse_varer;
+
+  /// No description provided for @ops_kasse_frakt.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get ops_kasse_frakt;
+
+  /// No description provided for @ops_kasse_frakt_fri.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get ops_kasse_frakt_fri;
+
+  /// No description provided for @ops_kasse_avgifter.
+  ///
+  /// In en, this message translates to:
+  /// **'Fees'**
+  String get ops_kasse_avgifter;
+
+  /// No description provided for @ops_kasse_rabatt.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get ops_kasse_rabatt;
+
+  /// No description provided for @ops_kasse_aegil_linjer.
+  ///
+  /// In en, this message translates to:
+  /// **'Added by Ægil · {navn} · {sum}'**
+  String ops_kasse_aegil_linjer(String navn, String sum);
+
+  /// No description provided for @ops_kasse_angre.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get ops_kasse_angre;
+
+  /// No description provided for @ops_kasse_angret.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from the basket'**
+  String get ops_kasse_angret;
+
+  /// No description provided for @ops_kasse_doren.
+  ///
+  /// In en, this message translates to:
+  /// **'THE DOOR · FOR THE COURIER'**
+  String get ops_kasse_doren;
+
+  /// No description provided for @ops_kasse_doren_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor, doorbell, entrance, code …'**
+  String get ops_kasse_doren_hint;
+
+  /// No description provided for @ops_kasse_tolk.
+  ///
+  /// In en, this message translates to:
+  /// **'Interpret'**
+  String get ops_kasse_tolk;
+
+  /// No description provided for @ops_kasse_kode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code at delivery'**
+  String get ops_kasse_kode;
+
+  /// No description provided for @ops_kasse_kode_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier needs your code before handing over'**
+  String get ops_kasse_kode_line;
+
+  /// No description provided for @ops_kasse_gave_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift for'**
+  String get ops_kasse_gave_til;
+
+  /// No description provided for @ops_kasse_gave_navn_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get ops_kasse_gave_navn_hint;
+
+  /// No description provided for @ops_kasse_overrask.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise'**
+  String get ops_kasse_overrask;
+
+  /// No description provided for @ops_kasse_overrask_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing until the doorbell'**
+  String get ops_kasse_overrask_line;
+
+  /// No description provided for @ops_kasse_si_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell them'**
+  String get ops_kasse_si_fra;
+
+  /// No description provided for @ops_kasse_si_fra_line.
+  ///
+  /// In en, this message translates to:
+  /// **'A tracking link and the card at the door'**
+  String get ops_kasse_si_fra_line;
+
+  /// No description provided for @ops_kasse_a_betale.
+  ///
+  /// In en, this message translates to:
+  /// **'TO PAY NOW'**
+  String get ops_kasse_a_betale;
+
+  /// No description provided for @ops_kasse_totalt.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get ops_kasse_totalt;
+
+  /// No description provided for @ops_kasse_inkl.
+  ///
+  /// In en, this message translates to:
+  /// **'All incl. VAT · no hidden fees'**
+  String get ops_kasse_inkl;
+
+  /// No description provided for @ops_kasse_cashback.
+  ///
+  /// In en, this message translates to:
+  /// **'Gives {kr} back in Ærend-kroner'**
+  String ops_kasse_cashback(String kr);
+
+  /// No description provided for @ops_kasse_bergenske.
+  ///
+  /// In en, this message translates to:
+  /// **'Bergen shops — the kroner stay in town.'**
+  String get ops_kasse_bergenske;
+
+  /// No description provided for @ops_kasse_krysser.
+  ///
+  /// In en, this message translates to:
+  /// **'The errand crosses Vågen with {bud}.'**
+  String ops_kasse_krysser(String bud);
+
+  /// No description provided for @ops_kasse_betal.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {kr}'**
+  String ops_kasse_betal(String kr);
+
+  /// No description provided for @ops_kasse_betal_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay with Vipps'**
+  String get ops_kasse_betal_vipps;
+
+  /// No description provided for @ops_kasse_min_ordre.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order is {kr}'**
+  String ops_kasse_min_ordre(String kr);
+
+  /// No description provided for @ops_kasse_velg_adresse_forst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an address first'**
+  String get ops_kasse_velg_adresse_forst;
+
+  /// No description provided for @ops_kasse_utenfor.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop does not deliver here'**
+  String get ops_kasse_utenfor;
+
+  /// No description provided for @ops_kasse_utenfor_line.
+  ///
+  /// In en, this message translates to:
+  /// **'You can pick it up yourself instead.'**
+  String get ops_kasse_utenfor_line;
+
+  /// No description provided for @ops_kasse_velg_henting.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose pickup'**
+  String get ops_kasse_velg_henting;
+
+  /// No description provided for @ops_kasse_kort_legacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment opens the regular checkout.'**
+  String get ops_kasse_kort_legacy;
+
+  /// No description provided for @ops_kasse_adr_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Where to?'**
+  String get ops_kasse_adr_sheet_title;
+
+  /// No description provided for @ops_kasse_adr_sheet_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops and prices follow the address.'**
+  String get ops_kasse_adr_sheet_line;
+
+  /// No description provided for @ops_kasse_adr_ny.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an address'**
+  String get ops_kasse_adr_ny;
+
+  /// No description provided for @ops_kasse_adr_ny_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The cabin, your partner, your parents …'**
+  String get ops_kasse_adr_ny_line;
+
+  /// No description provided for @ops_kasse_adr_dor_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'HOW DOES THE COURIER FIND YOU?'**
+  String get ops_kasse_adr_dor_kicker;
+
+  /// No description provided for @ops_kasse_adr_dor_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Write as to a friend: floor, doorbell, entrance, code …'**
+  String get ops_kasse_adr_dor_line;
+
+  /// No description provided for @ops_kasse_ikke_dekket.
+  ///
+  /// In en, this message translates to:
+  /// **'We do not deliver here yet — tell us and we will let you know'**
+  String get ops_kasse_ikke_dekket;
+
+  /// No description provided for @ops_kasse_si_fra_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me when you do'**
+  String get ops_kasse_si_fra_cta;
+
+  /// No description provided for @ops_kasse_sagt_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'We will let you know.'**
+  String get ops_kasse_sagt_fra;
+
+  /// No description provided for @ops_kasse_lev_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'When do you want it?'**
+  String get ops_kasse_lev_sheet_title;
+
+  /// No description provided for @ops_kasse_lev_middag.
+  ///
+  /// In en, this message translates to:
+  /// **'For dinner'**
+  String get ops_kasse_lev_middag;
+
+  /// No description provided for @ops_kasse_lev_middag_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier waits until it is fresh'**
+  String get ops_kasse_lev_middag_line;
+
+  /// No description provided for @ops_kasse_lev_kveld.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening treat'**
+  String get ops_kasse_lev_kveld;
+
+  /// No description provided for @ops_kasse_lev_kveld_line.
+  ///
+  /// In en, this message translates to:
+  /// **'After the last Fløibanen of the evening'**
+  String get ops_kasse_lev_kveld_line;
+
+  /// No description provided for @ops_kasse_bruk_dette.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this'**
+  String get ops_kasse_bruk_dette;
+
+  /// No description provided for @ops_kasse_bet_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'How would you like to pay?'**
+  String get ops_kasse_bet_sheet_title;
+
+  /// No description provided for @ops_kasse_bet_sheet_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The price is the same either way. No hidden fees.'**
+  String get ops_kasse_bet_sheet_line;
+
+  /// No description provided for @ops_kasse_bet_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Card (Visa / Mastercard)'**
+  String get ops_kasse_bet_kort;
+
+  /// No description provided for @ops_kasse_bekreftet.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get ops_kasse_bekreftet;
+
+  /// No description provided for @ops_kasse_bekreftet_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop has your errand.'**
+  String get ops_kasse_bekreftet_line;
+
+  /// No description provided for @ops_kasse_folg.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the errand'**
+  String get ops_kasse_folg;
+
+  /// No description provided for @ops_kasse_billett_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'ÆREND TICKET'**
+  String get ops_kasse_billett_kicker;
+
+  /// No description provided for @ops_kasse_verv.
+  ///
+  /// In en, this message translates to:
+  /// **'REFER A FRIEND'**
+  String get ops_kasse_verv;
+
+  /// No description provided for @ops_kasse_gi_faa.
+  ///
+  /// In en, this message translates to:
+  /// **'Give {kr} kr, get {kr} kr'**
+  String ops_kasse_gi_faa(int kr);
+
+  /// No description provided for @ops_kasse_billett_line.
+  ///
+  /// In en, this message translates to:
+  /// **'You share from your own channels. You both get {kr} kr when your friend\'s first order is delivered.'**
+  String ops_kasse_billett_line(int kr);
+
+  /// No description provided for @ops_kasse_del_billett.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the ticket'**
+  String get ops_kasse_del_billett;
+
+  /// No description provided for @ops_kasse_kopier.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get ops_kasse_kopier;
+
+  /// No description provided for @ops_kasse_kopiert.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get ops_kasse_kopiert;
+
+  /// No description provided for @ops_kasse_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get ops_kasse_lukk;
+
+  /// No description provided for @ops_kasse_best_sammendrag.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get ops_kasse_best_sammendrag;
+
+  /// No description provided for @ops_kasse_best_detaljer.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get ops_kasse_best_detaljer;
+
+  /// No description provided for @ops_kasse_best_bestilling.
+  ///
+  /// In en, this message translates to:
+  /// **'ORDER'**
+  String get ops_kasse_best_bestilling;
+
+  /// No description provided for @ops_kasse_best_betalt_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'PAID WITH VIPPS'**
+  String get ops_kasse_best_betalt_vipps;
+
+  /// No description provided for @ops_kasse_best_betalt.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get ops_kasse_best_betalt;
+
+  /// No description provided for @ops_kasse_best_kvittering.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get ops_kasse_best_kvittering;
+
+  /// No description provided for @ops_kasse_best_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get ops_kasse_best_klar;
+
+  /// No description provided for @ops_kasse_best_status.
+  ///
+  /// In en, this message translates to:
+  /// **'ORDER STATUS'**
+  String get ops_kasse_best_status;
+
+  /// No description provided for @ops_kasse_best_din.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order'**
+  String get ops_kasse_best_din;
+
+  /// No description provided for @ops_kasse_best_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get ops_kasse_best_total;
+
+  /// No description provided for @ops_kasse_best_betaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get ops_kasse_best_betaling;
+
+  /// No description provided for @ops_kasse_best_butikken.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop'**
+  String get ops_kasse_best_butikken;
+
+  /// No description provided for @ops_kasse_best_ordrenr.
+  ///
+  /// In en, this message translates to:
+  /// **'ORDER NUMBER'**
+  String get ops_kasse_best_ordrenr;
+
+  /// No description provided for @ops_kasse_best_aerend_id.
+  ///
+  /// In en, this message translates to:
+  /// **'ÆREND-ID'**
+  String get ops_kasse_best_aerend_id;
+
+  /// No description provided for @ops_kasse_best_tid.
+  ///
+  /// In en, this message translates to:
+  /// **'TIMESTAMP'**
+  String get ops_kasse_best_tid;
+
+  /// No description provided for @ops_kasse_best_kvitt.
+  ///
+  /// In en, this message translates to:
+  /// **'RECEIPT'**
+  String get ops_kasse_best_kvitt;
+
+  /// No description provided for @ops_kasse_best_meg.
+  ///
+  /// In en, this message translates to:
+  /// **'Me · Orders'**
+  String get ops_kasse_best_meg;
+
+  /// No description provided for @ops_kasse_best_kundeservice.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact customer service'**
+  String get ops_kasse_best_kundeservice;
+
+  /// No description provided for @ops_kasse_best_se_alt.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get ops_kasse_best_se_alt;
+
+  /// No description provided for @ops_kasse_best_antall.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 item} other{{n} items}}'**
+  String ops_kasse_best_antall(int n);
+
+  /// No description provided for @ops_kasse_best_ikke_funnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find the order.'**
+  String get ops_kasse_best_ikke_funnet;
+
+  /// No description provided for @ops_kasse_best_kopiert.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number copied'**
+  String get ops_kasse_best_kopiert;
+
+  /// No description provided for @meg_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} fra {bydel}'**
+  String meg_fra(String name, String bydel);
+
+  /// No description provided for @meg_bydel_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Bergenhus'**
+  String get meg_bydel_sub;
+
+  /// No description provided for @meg_premie_boble.
+  ///
+  /// In en, this message translates to:
+  /// **'Premie: gratis levering'**
+  String get meg_premie_boble;
+
+  /// No description provided for @meg_gullbillett.
+  ///
+  /// In en, this message translates to:
+  /// **'Gullbilletten'**
+  String get meg_gullbillett;
+
+  /// No description provided for @meg_gullbillett_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Gi 200 · få 200 poeng'**
+  String get meg_gullbillett_sub;
+
+  /// No description provided for @meg_del.
+  ///
+  /// In en, this message translates to:
+  /// **'Del'**
+  String get meg_del;
+
+  /// No description provided for @meg_gullbillett_kode.
+  ///
+  /// In en, this message translates to:
+  /// **'Gi {give} poeng, få {get} poeng · {code}'**
+  String meg_gullbillett_kode(int give, int get, String code);
+
+  /// No description provided for @meg_ditt_nivaa.
+  ///
+  /// In en, this message translates to:
+  /// **'DITT NIVÅ'**
+  String get meg_ditt_nivaa;
+
+  /// No description provided for @meg_poeng_bruke.
+  ///
+  /// In en, this message translates to:
+  /// **'POENG Å BRUKE'**
+  String get meg_poeng_bruke;
+
+  /// No description provided for @meg_hent_premien.
+  ///
+  /// In en, this message translates to:
+  /// **'Hent premien'**
+  String get meg_hent_premien;
+
+  /// No description provided for @meg_premiehylla.
+  ///
+  /// In en, this message translates to:
+  /// **'Premiehylla'**
+  String get meg_premiehylla;
+
+  /// No description provided for @meg_slik.
+  ///
+  /// In en, this message translates to:
+  /// **'Slik får du poeng'**
+  String get meg_slik;
+
+  /// No description provided for @meg_nivaa_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Nivået påvirkes aldri av at du bruker poeng'**
+  String get meg_nivaa_note;
+
+  /// No description provided for @meg_til_neste.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} poeng til {next}'**
+  String meg_til_neste(int n, String next);
+
+  /// No description provided for @meg_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} poeng er på vei'**
+  String meg_venter(int n);
+
+  /// No description provided for @meg_opptjent.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} poeng opptjent siste 12 mnd'**
+  String meg_opptjent(int n);
+
+  /// No description provided for @meg_rad_nivaa.
+  ///
+  /// In en, this message translates to:
+  /// **'Nivå'**
+  String get meg_rad_nivaa;
+
+  /// No description provided for @meg_rad_liga.
+  ///
+  /// In en, this message translates to:
+  /// **'Fløyen-ligaen'**
+  String get meg_rad_liga;
+
+  /// No description provided for @meg_rad_liga_bli.
+  ///
+  /// In en, this message translates to:
+  /// **'Bli med'**
+  String get meg_rad_liga_bli;
+
+  /// No description provided for @meg_rad_oppdrag.
+  ///
+  /// In en, this message translates to:
+  /// **'UKENS OPPDRAG'**
+  String get meg_rad_oppdrag;
+
+  /// No description provided for @meg_rad_godta.
+  ///
+  /// In en, this message translates to:
+  /// **'Godta'**
+  String get meg_rad_godta;
+
+  /// No description provided for @meg_rad_ikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikke dette'**
+  String get meg_rad_ikke;
+
+  /// No description provided for @meg_rad_favoritter.
+  ///
+  /// In en, this message translates to:
+  /// **'Favoritter'**
+  String get meg_rad_favoritter;
+
+  /// No description provided for @meg_rad_nytt.
+  ///
+  /// In en, this message translates to:
+  /// **'Nytt fra butikkene'**
+  String get meg_rad_nytt;
+
+  /// No description provided for @meg_rad_hjelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Hjelp og kontakt'**
+  String get meg_rad_hjelp;
+
+  /// No description provided for @meg_rad_konto.
+  ///
+  /// In en, this message translates to:
+  /// **'Konto'**
+  String get meg_rad_konto;
+
+  /// No description provided for @meg_rad_bestillinger.
+  ///
+  /// In en, this message translates to:
+  /// **'Bestillinger'**
+  String get meg_rad_bestillinger;
+
+  /// No description provided for @meg_rad_varsler.
+  ///
+  /// In en, this message translates to:
+  /// **'Varsler'**
+  String get meg_rad_varsler;
+
+  /// No description provided for @meg_liga_plass.
+  ///
+  /// In en, this message translates to:
+  /// **'{rank}. plass'**
+  String meg_liga_plass(int rank);
+
+  /// No description provided for @meg_favoritter_antall.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} steder'**
+  String meg_favoritter_antall(int n);
+
+  /// No description provided for @meg_slik_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Slik får du poeng'**
+  String get meg_slik_title;
+
+  /// No description provided for @meg_fav_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Favoritter'**
+  String get meg_fav_title;
+
+  /// No description provided for @meg_fav_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingen favoritter ennå'**
+  String get meg_fav_tom;
+
+  /// No description provided for @meg_fav_tom_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Trykk på hjertet der du liker deg — eller kast ut i Fjordfiske.'**
+  String get meg_fav_tom_sub;
+
+  /// No description provided for @meg_fav_kast.
+  ///
+  /// In en, this message translates to:
+  /// **'Kast ut'**
+  String get meg_fav_kast;
+
+  /// No description provided for @meg_fav_fot.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorittene dine dukker opp først i «Bestill igjen» — og gir poeng hver gang.'**
+  String get meg_fav_fot;
+
+  /// No description provided for @meg_konto_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Konto'**
+  String get meg_konto_title;
+
+  /// No description provided for @meg_konto_verifisert.
+  ///
+  /// In en, this message translates to:
+  /// **'Vipps-verifisert'**
+  String get meg_konto_verifisert;
+
+  /// No description provided for @meg_konto_adresser.
+  ///
+  /// In en, this message translates to:
+  /// **'Adresser'**
+  String get meg_konto_adresser;
+
+  /// No description provided for @meg_konto_legg_adresse.
+  ///
+  /// In en, this message translates to:
+  /// **'Legg til adresse'**
+  String get meg_konto_legg_adresse;
+
+  /// No description provided for @meg_konto_betaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Betaling'**
+  String get meg_konto_betaling;
+
+  /// No description provided for @meg_konto_vipps_std.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard — raskest i Norge'**
+  String get meg_konto_vipps_std;
+
+  /// No description provided for @meg_konto_innstillinger.
+  ///
+  /// In en, this message translates to:
+  /// **'Innstillinger'**
+  String get meg_konto_innstillinger;
+
+  /// No description provided for @meg_konto_varsler.
+  ///
+  /// In en, this message translates to:
+  /// **'Varsler om krysningen'**
+  String get meg_konto_varsler;
+
+  /// No description provided for @meg_konto_varsler_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Live på låseskjermen'**
+  String get meg_konto_varsler_sub;
+
+  /// No description provided for @meg_konto_rolig.
+  ///
+  /// In en, this message translates to:
+  /// **'Roligere bevegelse'**
+  String get meg_konto_rolig;
+
+  /// No description provided for @meg_konto_rolig_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Færre animasjoner i byen'**
+  String get meg_konto_rolig_sub;
+
+  /// No description provided for @meg_konto_hjelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Hjelp og personvern'**
+  String get meg_konto_hjelp;
+
+  /// No description provided for @meg_konto_data.
+  ///
+  /// In en, this message translates to:
+  /// **'Dine data lagres i Norge'**
+  String get meg_konto_data;
+
+  /// No description provided for @meg_konto_logg_ut.
+  ///
+  /// In en, this message translates to:
+  /// **'Logg ut'**
+  String get meg_konto_logg_ut;
+
+  /// No description provided for @meg_best_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bestillinger'**
+  String get meg_best_title;
+
+  /// No description provided for @meg_best_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingen bestillinger ennå'**
+  String get meg_best_tom;
+
+  /// No description provided for @meg_best_tom_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Når du bestiller, finner du sporing og kvitteringer her.'**
+  String get meg_best_tom_sub;
+
+  /// No description provided for @meg_best_live.
+  ///
+  /// In en, this message translates to:
+  /// **'PÅ VEI NÅ'**
+  String get meg_best_live;
+
+  /// No description provided for @meg_best_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'Bestill igjen'**
+  String get meg_best_igjen;
+
+  /// No description provided for @meg_best_sporing.
+  ///
+  /// In en, this message translates to:
+  /// **'Vis sporing'**
+  String get meg_best_sporing;
+
+  /// No description provided for @meg_varsler_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Varsler'**
+  String get meg_varsler_title;
+
+  /// No description provided for @meg_varsler_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Lukk'**
+  String get meg_varsler_lukk;
+
+  /// No description provided for @meg_varsler_vis_sporing.
+  ///
+  /// In en, this message translates to:
+  /// **'Vis sporing'**
+  String get meg_varsler_vis_sporing;
+
+  /// No description provided for @meg_varsler_ikke_slike.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikke slike varsler'**
+  String get meg_varsler_ikke_slike;
+
+  /// No description provided for @meg_varsler_fjern.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjern'**
+  String get meg_varsler_fjern;
+
+  /// No description provided for @meg_varsler_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingenting nytt siden sist'**
+  String get meg_varsler_tom;
+
+  /// No description provided for @meg_varsler_tom_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Fin utsikt.'**
+  String get meg_varsler_tom_sub;
+
+  /// No description provided for @meg_varsler_slaa_paa.
+  ///
+  /// In en, this message translates to:
+  /// **'Slå på varsler for tilbud'**
+  String get meg_varsler_slaa_paa;
+
+  /// No description provided for @meg_varsler_angre.
+  ///
+  /// In en, this message translates to:
+  /// **'Angre'**
+  String get meg_varsler_angre;
+
+  /// No description provided for @meg_varsler_fjernet.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjernet «{t}»'**
+  String meg_varsler_fjernet(String t);
+
+  /// No description provided for @meg_borte_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'MENS DU VAR BORTE'**
+  String get meg_borte_kicker;
+
+  /// No description provided for @meg_borte_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tre ting fra Ægil'**
+  String get meg_borte_title;
+
+  /// No description provided for @meg_borte_se.
+  ///
+  /// In en, this message translates to:
+  /// **'Se de siste 30 dagene'**
+  String get meg_borte_se;
+
+  /// No description provided for @ops_butikk_kat_open.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} open now · Bergen'**
+  String ops_butikk_kat_open(int n);
+
+  /// No description provided for @ops_butikk_kat_bestill_bilde.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from a photo'**
+  String get ops_butikk_kat_bestill_bilde;
+
+  /// No description provided for @ops_butikk_kat_butikker.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get ops_butikk_kat_butikker;
+
+  /// No description provided for @ops_butikk_kat_produkter.
+  ///
+  /// In en, this message translates to:
+  /// **'Products'**
+  String get ops_butikk_kat_produkter;
+
+  /// No description provided for @ops_butikk_kat_pulse.
+  ///
+  /// In en, this message translates to:
+  /// **'Right now in {kat}: {n} orders in the last hour'**
+  String ops_butikk_kat_pulse(String kat, int n);
+
+  /// No description provided for @ops_butikk_kat_bestiller_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'ordering now'**
+  String get ops_butikk_kat_bestiller_naa;
+
+  /// No description provided for @ops_butikk_kat_video.
+  ///
+  /// In en, this message translates to:
+  /// **'VIDEO'**
+  String get ops_butikk_kat_video;
+
+  /// No description provided for @ops_butikk_kat_f_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get ops_butikk_kat_f_open;
+
+  /// No description provided for @ops_butikk_kat_f_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get ops_butikk_kat_f_free;
+
+  /// No description provided for @ops_butikk_kat_f_fast.
+  ///
+  /// In en, this message translates to:
+  /// **'Under 30 min'**
+  String get ops_butikk_kat_f_fast;
+
+  /// No description provided for @ops_butikk_kat_f_top.
+  ///
+  /// In en, this message translates to:
+  /// **'Top rated'**
+  String get ops_butikk_kat_f_top;
+
+  /// No description provided for @ops_butikk_kat_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No shops here yet.'**
+  String get ops_butikk_kat_empty;
+
+  /// No description provided for @ops_butikk_kat_empty_products.
+  ///
+  /// In en, this message translates to:
+  /// **'No products here yet.'**
+  String get ops_butikk_kat_empty_products;
+
+  /// No description provided for @ops_butikk_kat_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get ops_butikk_kat_free;
+
+  /// No description provided for @ops_butikk_kat_eta.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} min'**
+  String ops_butikk_kat_eta(int min);
+
+  /// No description provided for @ops_butikk_gave_idag.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrives today'**
+  String get ops_butikk_gave_idag;
+
+  /// No description provided for @ops_butikk_gave_innen.
+  ///
+  /// In en, this message translates to:
+  /// **'By {time}'**
+  String ops_butikk_gave_innen(String time);
+
+  /// No description provided for @ops_butikk_gave_aegil.
+  ///
+  /// In en, this message translates to:
+  /// **'Let Ægil find a gift ›'**
+  String get ops_butikk_gave_aegil;
+
+  /// No description provided for @ops_butikk_gave_utstilling.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s display · Gifts'**
+  String get ops_butikk_gave_utstilling;
+
+  /// No description provided for @ops_butikk_gave_anledninger.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasions'**
+  String get ops_butikk_gave_anledninger;
+
+  /// No description provided for @ops_butikk_gave_naerheten.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops nearby'**
+  String get ops_butikk_gave_naerheten;
+
+  /// No description provided for @ops_butikk_gave_innpakning.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE WRAPPING'**
+  String get ops_butikk_gave_innpakning;
+
+  /// No description provided for @ops_butikk_gave_populaert.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular for birthdays in {bydel}'**
+  String ops_butikk_gave_populaert(String bydel);
+
+  /// No description provided for @ops_butikk_mote_utstilling.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s display · Fashion'**
+  String get ops_butikk_mote_utstilling;
+
+  /// No description provided for @ops_butikk_mote_antall.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} pieces'**
+  String ops_butikk_mote_antall(int n);
+
+  /// No description provided for @ops_butikk_skive_lagre.
+  ///
+  /// In en, this message translates to:
+  /// **'Save · tell me if the price drops'**
+  String get ops_butikk_skive_lagre;
+
+  /// No description provided for @ops_butikk_skive_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get ops_butikk_skive_lagret;
+
+  /// No description provided for @ops_butikk_skive_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get ops_butikk_skive_legg;
+
+  /// No description provided for @ops_butikk_skive_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to spin'**
+  String get ops_butikk_skive_hint;
+
+  /// No description provided for @ops_butikk_open_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Open until {t}'**
+  String ops_butikk_open_til(String t);
+
+  /// No description provided for @ops_butikk_apner.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens {t}'**
+  String ops_butikk_apner(String t);
+
+  /// No description provided for @ops_butikk_stengt.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed now'**
+  String get ops_butikk_stengt;
+
+  /// No description provided for @ops_butikk_kjokken.
+  ///
+  /// In en, this message translates to:
+  /// **'The kitchen is running'**
+  String get ops_butikk_kjokken;
+
+  /// No description provided for @ops_butikk_pauset.
+  ///
+  /// In en, this message translates to:
+  /// **'The kitchen is paused'**
+  String get ops_butikk_pauset;
+
+  /// No description provided for @ops_butikk_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery {fee}'**
+  String ops_butikk_levering(String fee);
+
+  /// No description provided for @ops_butikk_aerend_idag.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} errands today'**
+  String ops_butikk_aerend_idag(int n);
+
+  /// No description provided for @ops_butikk_kikker.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} looking now'**
+  String ops_butikk_kikker(int n);
+
+  /// No description provided for @ops_butikk_seilas.
+  ///
+  /// In en, this message translates to:
+  /// **'YOUR VOYAGE'**
+  String get ops_butikk_seilas;
+
+  /// No description provided for @ops_butikk_kjokkenet.
+  ///
+  /// In en, this message translates to:
+  /// **'The kitchen'**
+  String get ops_butikk_kjokkenet;
+
+  /// No description provided for @ops_butikk_din_dor.
+  ///
+  /// In en, this message translates to:
+  /// **'Your door'**
+  String get ops_butikk_din_dor;
+
+  /// No description provided for @ops_butikk_gratis_frakt.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get ops_butikk_gratis_frakt;
+
+  /// No description provided for @ops_butikk_dessert.
+  ///
+  /// In en, this message translates to:
+  /// **'Dessert'**
+  String get ops_butikk_dessert;
+
+  /// No description provided for @ops_butikk_ti_prosent.
+  ///
+  /// In en, this message translates to:
+  /// **'10 %'**
+  String get ops_butikk_ti_prosent;
+
+  /// No description provided for @ops_butikk_min.
+  ///
+  /// In en, this message translates to:
+  /// **'MIN. {p_krtoInt} KR'**
+  String ops_butikk_min(String p_krtoInt);
+
+  /// No description provided for @ops_butikk_neste.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT PERK'**
+  String get ops_butikk_neste;
+
+  /// No description provided for @ops_butikk_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'{p_krtoInt} kr to {navn}'**
+  String ops_butikk_igjen(String p_krtoInt, String navn);
+
+  /// No description provided for @ops_butikk_havn.
+  ///
+  /// In en, this message translates to:
+  /// **'The boat is in — everything unlocked'**
+  String get ops_butikk_havn;
+
+  /// No description provided for @ops_butikk_frakt_naadd.
+  ///
+  /// In en, this message translates to:
+  /// **'Now I get you free delivery'**
+  String get ops_butikk_frakt_naadd;
+
+  /// No description provided for @ops_butikk_allergener.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens'**
+  String get ops_butikk_allergener;
+
+  /// No description provided for @ops_butikk_apningstider.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening hours'**
+  String get ops_butikk_apningstider;
+
+  /// No description provided for @ops_butikk_mer.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get ops_butikk_mer;
+
+  /// No description provided for @ops_butikk_del.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get ops_butikk_del;
+
+  /// No description provided for @ops_butikk_spor_aegil.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Ægil'**
+  String get ops_butikk_spor_aegil;
+
+  /// No description provided for @ops_butikk_spor_aegil_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu, allergens, what is quick'**
+  String get ops_butikk_spor_aegil_line;
+
+  /// No description provided for @ops_butikk_spesial.
+  ///
+  /// In en, this message translates to:
+  /// **'Ærend specials'**
+  String get ops_butikk_spesial;
+
+  /// No description provided for @ops_butikk_kjokkenluka.
+  ///
+  /// In en, this message translates to:
+  /// **'Kjøkkenluka'**
+  String get ops_butikk_kjokkenluka;
+
+  /// No description provided for @ops_butikk_spar.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {p_krtoInt} kr'**
+  String ops_butikk_spar(String p_krtoInt);
+
+  /// No description provided for @ops_butikk_kroner.
+  ///
+  /// In en, this message translates to:
+  /// **'+{p_krtoInt} kr'**
+  String ops_butikk_kroner(String p_krtoInt);
+
+  /// No description provided for @ops_butikk_mest_bestilt.
+  ///
+  /// In en, this message translates to:
+  /// **'Most ordered'**
+  String get ops_butikk_mest_bestilt;
+
+  /// No description provided for @ops_butikk_inkl_mva.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices incl. VAT'**
+  String get ops_butikk_inkl_mva;
+
+  /// No description provided for @ops_butikk_ingen_allergener.
+  ///
+  /// In en, this message translates to:
+  /// **'No allergens'**
+  String get ops_butikk_ingen_allergener;
+
+  /// No description provided for @ops_butikk_legg_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get ops_butikk_legg_til;
+
+  /// No description provided for @ops_butikk_ny.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get ops_butikk_ny;
+
+  /// No description provided for @ops_butikk_i_kurven.
+  ///
+  /// In en, this message translates to:
+  /// **'In the basket'**
+  String get ops_butikk_i_kurven;
+
+  /// No description provided for @ops_butikk_tom_kurven.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty the basket'**
+  String get ops_butikk_tom_kurven;
+
+  /// No description provided for @ops_butikk_kurv_antall.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 item} other{{n} items}}'**
+  String ops_butikk_kurv_antall(int n);
+
+  /// No description provided for @ops_butikk_til_kassen.
+  ///
+  /// In en, this message translates to:
+  /// **'To checkout'**
+  String get ops_butikk_til_kassen;
+
+  /// No description provided for @ops_butikk_menu_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop is adding its menu. Try again shortly.'**
+  String get ops_butikk_menu_empty;
+
+  /// No description provided for @ops_butikk_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find the shop.'**
+  String get ops_butikk_not_found;
+
+  /// No description provided for @ops_butikk_drikke_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinks are being added by the shop this week. Bergen tap water is among the country\'s best anyway.'**
+  String get ops_butikk_drikke_hint;
+
+  /// No description provided for @ops_butikk_mote_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Fashion shop'**
+  String get ops_butikk_mote_label;
+
+  /// No description provided for @ops_butikk_gave_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift shop · {navn}'**
+  String ops_butikk_gave_label(String navn);
+
+  /// No description provided for @ops_butikk_anledning_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasion · {x}'**
+  String ops_butikk_anledning_label(String x);
+
+  /// No description provided for @ops_butikk_ukens.
+  ///
+  /// In en, this message translates to:
+  /// **'THIS WEEK'**
+  String get ops_butikk_ukens;
+
+  /// No description provided for @ops_butikk_personalets.
+  ///
+  /// In en, this message translates to:
+  /// **'STAFF PICK'**
+  String get ops_butikk_personalets;
+
+  /// No description provided for @ops_butikk_spor_butikken.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the shop'**
+  String get ops_butikk_spor_butikken;
+
+  /// No description provided for @ops_butikk_til_denne.
+  ///
+  /// In en, this message translates to:
+  /// **'With this: {navn} · {pris}'**
+  String ops_butikk_til_denne(String navn, String pris);
+
+  /// No description provided for @ops_butikk_pluss_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add'**
+  String get ops_butikk_pluss_legg;
+
+  /// No description provided for @ops_butikk_lagt_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get ops_butikk_lagt_til;
+
+  /// No description provided for @ops_butikk_til_hvem.
+  ///
+  /// In en, this message translates to:
+  /// **'For whom'**
+  String get ops_butikk_til_hvem;
+
+  /// No description provided for @ops_butikk_merker.
+  ///
+  /// In en, this message translates to:
+  /// **'Brands'**
+  String get ops_butikk_merker;
+
+  /// No description provided for @ops_butikk_alle.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ops_butikk_alle;
+
+  /// No description provided for @ops_butikk_hyllene.
+  ///
+  /// In en, this message translates to:
+  /// **'The shelves'**
+  String get ops_butikk_hyllene;
+
+  /// No description provided for @ops_butikk_populaer.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular in Bergen'**
+  String get ops_butikk_populaer;
+
+  /// No description provided for @ops_butikk_bergensk.
+  ///
+  /// In en, this message translates to:
+  /// **'From Bergen'**
+  String get ops_butikk_bergensk;
+
+  /// No description provided for @ops_butikk_innpakning.
+  ///
+  /// In en, this message translates to:
+  /// **'WRAPPING'**
+  String get ops_butikk_innpakning;
+
+  /// No description provided for @ops_butikk_storrelse_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsure about the size? Ask the shop — {navn} replies in Varsler.'**
+  String ops_butikk_storrelse_hint(String navn);
+
+  /// No description provided for @ops_butikk_storrelse_hint_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsure about the size? Ask the shop — they reply in Varsler.'**
+  String get ops_butikk_storrelse_hint_generic;
+
+  /// No description provided for @ops_butikk_melding_sendt.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message went to the shop'**
+  String get ops_butikk_melding_sendt;
+
+  /// No description provided for @ops_butikk_melding_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like to know?'**
+  String get ops_butikk_melding_hint;
+
+  /// No description provided for @ops_butikk_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get ops_butikk_send;
+
+  /// No description provided for @ops_butikk_klede_farge.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour'**
+  String get ops_butikk_klede_farge;
+
+  /// No description provided for @ops_butikk_klede_storrelse.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get ops_butikk_klede_storrelse;
+
+  /// No description provided for @ops_butikk_klede_paa_lager.
+  ///
+  /// In en, this message translates to:
+  /// **'In stock'**
+  String get ops_butikk_klede_paa_lager;
+
+  /// No description provided for @ops_butikk_klede_utsolgt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold out'**
+  String get ops_butikk_klede_utsolgt;
+
+  /// No description provided for @ops_butikk_klede_prov.
+  ///
+  /// In en, this message translates to:
+  /// **'Try it at home. The courier collects the return for free within 14 days.'**
+  String get ops_butikk_klede_prov;
+
+  /// No description provided for @ops_butikk_klede_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to basket · {pris}'**
+  String ops_butikk_klede_legg(String pris);
+
+  /// No description provided for @ops_butikk_klede_velg_str.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a size'**
+  String get ops_butikk_klede_velg_str;
+
+  /// No description provided for @ops_butikk_prod_mest_bestilt.
+  ///
+  /// In en, this message translates to:
+  /// **'Most ordered tonight'**
+  String get ops_butikk_prod_mest_bestilt;
+
+  /// No description provided for @ops_butikk_prod_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'+{n} points'**
+  String ops_butikk_prod_poeng(int n);
+
+  /// No description provided for @ops_butikk_prod_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready in {min} min'**
+  String ops_butikk_prod_klar(int min);
+
+  /// No description provided for @ops_butikk_prod_inkl_mva.
+  ///
+  /// In en, this message translates to:
+  /// **'incl. VAT'**
+  String get ops_butikk_prod_inkl_mva;
+
+  /// No description provided for @ops_butikk_prod_storrelse.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get ops_butikk_prod_storrelse;
+
+  /// No description provided for @ops_butikk_prod_velg_en.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one'**
+  String get ops_butikk_prod_velg_en;
+
+  /// No description provided for @ops_butikk_prod_tillegg.
+  ///
+  /// In en, this message translates to:
+  /// **'Extras'**
+  String get ops_butikk_prod_tillegg;
+
+  /// No description provided for @ops_butikk_prod_styrke.
+  ///
+  /// In en, this message translates to:
+  /// **'Heat'**
+  String get ops_butikk_prod_styrke;
+
+  /// No description provided for @ops_butikk_prod_allergener.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens'**
+  String get ops_butikk_prod_allergener;
+
+  /// No description provided for @ops_butikk_prod_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add · {pris}'**
+  String ops_butikk_prod_legg(String pris);
+
+  /// No description provided for @ops_butikk_prod_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get ops_butikk_prod_standard;
+
+  /// No description provided for @ops_butikk_info_allergen_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dish carries its allergens in the same place, always. Ask the courier if anything is unclear.'**
+  String get ops_butikk_info_allergen_line;
+
+  /// No description provided for @ops_butikk_info_allergen_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop has not listed allergens yet — ask the shop before ordering.'**
+  String get ops_butikk_info_allergen_missing;
+
+  /// No description provided for @ops_butikk_info_idag.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get ops_butikk_info_idag;
+
+  /// No description provided for @ops_butikk_info_stengt.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get ops_butikk_info_stengt;
+
+  /// No description provided for @ops_butikk_info_minste.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum order {kr}'**
+  String ops_butikk_info_minste(String kr);
+
+  /// No description provided for @ops_butikk_info_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'delivery {kr}'**
+  String ops_butikk_info_levering(String kr);
+
+  /// No description provided for @ops_butikk_info_henting.
+  ///
+  /// In en, this message translates to:
+  /// **'pickup possible'**
+  String get ops_butikk_info_henting;
+
+  /// No description provided for @ops_butikk_info_del.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the shop'**
+  String get ops_butikk_info_del;
+
+  /// No description provided for @ops_butikk_info_kopiert.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get ops_butikk_info_kopiert;
+
+  /// No description provided for @ops_butikk_ark_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now · {bydel}'**
+  String ops_butikk_ark_under(String bydel);
+
+  /// No description provided for @ops_butikk_ark_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get ops_butikk_ark_open;
+
+  /// No description provided for @ops_butikk_automat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The bag machine'**
+  String get ops_butikk_automat_title;
+
+  /// No description provided for @ops_butikk_automat_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Tonight\'s surplus from the shops. Always worth at least double.'**
+  String get ops_butikk_automat_line;
+
+  /// No description provided for @ops_butikk_automat_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left'**
+  String ops_butikk_automat_igjen(int n);
+
+  /// No description provided for @ops_butikk_automat_verdi.
+  ///
+  /// In en, this message translates to:
+  /// **'worth at least {kr}'**
+  String ops_butikk_automat_verdi(int kr);
+
+  /// No description provided for @ops_butikk_automat_styr.
+  ///
+  /// In en, this message translates to:
+  /// **'Steer the claw with the arrows · the bag lands here'**
+  String get ops_butikk_automat_styr;
+
+  /// No description provided for @ops_butikk_automat_din.
+  ///
+  /// In en, this message translates to:
+  /// **'THE BAG IS YOURS'**
+  String get ops_butikk_automat_din;
+
+  /// No description provided for @ops_butikk_automat_hentes.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up {w}'**
+  String ops_butikk_automat_hentes(String w);
+
+  /// No description provided for @ops_butikk_automat_sikre.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure the bag · {kr} kr'**
+  String ops_butikk_automat_sikre(int kr);
+
+  /// No description provided for @ops_butikk_automat_igjen_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get ops_butikk_automat_igjen_cta;
+
+  /// No description provided for @ops_butikk_automat_avslores.
+  ///
+  /// In en, this message translates to:
+  /// **'The contents are revealed under the northern lights at pickup'**
+  String get ops_butikk_automat_avslores;
+
+  /// No description provided for @ops_butikk_automat_trekk.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull the lever · {kr} kr'**
+  String ops_butikk_automat_trekk(int kr);
+
+  /// No description provided for @ops_butikk_automat_se_kurv.
+  ///
+  /// In en, this message translates to:
+  /// **'See the bag in the basket'**
+  String get ops_butikk_automat_se_kurv;
+
+  /// No description provided for @ops_butikk_automat_footer.
+  ///
+  /// In en, this message translates to:
+  /// **'No countdown. No blanks. The value floor is on the machine.'**
+  String get ops_butikk_automat_footer;
+
+  /// No description provided for @ops_butikk_automat_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No bags in the machine tonight.'**
+  String get ops_butikk_automat_empty;
+
+  /// No description provided for @aegil_lytter.
+  ///
+  /// In en, this message translates to:
+  /// **'Lytter'**
+  String get aegil_lytter;
+
+  /// No description provided for @aegil_leter.
+  ///
+  /// In en, this message translates to:
+  /// **'Leter i Vågen'**
+  String get aegil_leter;
+
+  /// No description provided for @aegil_fant_tre.
+  ///
+  /// In en, this message translates to:
+  /// **'Fant tre valg'**
+  String get aegil_fant_tre;
+
+  /// No description provided for @aegil_fant_noe.
+  ///
+  /// In en, this message translates to:
+  /// **'Fant noe'**
+  String get aegil_fant_noe;
+
+  /// No description provided for @aegil_fikser.
+  ///
+  /// In en, this message translates to:
+  /// **'Fikser kurven'**
+  String get aegil_fikser;
+
+  /// No description provided for @aegil_byttet.
+  ///
+  /// In en, this message translates to:
+  /// **'Byttet'**
+  String get aegil_byttet;
+
+  /// No description provided for @aegil_sammenlikner.
+  ///
+  /// In en, this message translates to:
+  /// **'Sammenlikner'**
+  String get aegil_sammenlikner;
+
+  /// No description provided for @aegil_beklager.
+  ///
+  /// In en, this message translates to:
+  /// **'Beklager…'**
+  String get aegil_beklager;
+
+  /// No description provided for @aegil_det_jeg_vet.
+  ///
+  /// In en, this message translates to:
+  /// **'Det jeg vet'**
+  String get aegil_det_jeg_vet;
+
+  /// No description provided for @aegil_nivaa.
+  ///
+  /// In en, this message translates to:
+  /// **'Nivå · {name}'**
+  String aegil_nivaa(String name);
+
+  /// No description provided for @aegil_hilsen.
+  ///
+  /// In en, this message translates to:
+  /// **'Jeg finner det i Vågen, sjekker pris hos bergenske butikker og legger det klart i kurven.'**
+  String get aegil_hilsen;
+
+  /// No description provided for @aegil_hilsen_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Vil du at jeg husker hva du liker? Da kan jeg si fra når det er tilbud på det.'**
+  String get aegil_hilsen_tom;
+
+  /// No description provided for @aegil_ja.
+  ///
+  /// In en, this message translates to:
+  /// **'Ja, la oss'**
+  String get aegil_ja;
+
+  /// No description provided for @aegil_ikke_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikke nå'**
+  String get aegil_ikke_naa;
+
+  /// No description provided for @aegil_forslag_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'FORSLAG I KVELD'**
+  String get aegil_forslag_kicker;
+
+  /// No description provided for @aegil_bla_selv.
+  ///
+  /// In en, this message translates to:
+  /// **'ELLER BLA SELV'**
+  String get aegil_bla_selv;
+
+  /// No description provided for @aegil_sok_kat.
+  ///
+  /// In en, this message translates to:
+  /// **'Søk og kategorier'**
+  String get aegil_sok_kat;
+
+  /// No description provided for @aegil_spor.
+  ///
+  /// In en, this message translates to:
+  /// **'Hva trenger du i kveld?'**
+  String get aegil_spor;
+
+  /// No description provided for @aegil_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get aegil_send;
+
+  /// No description provided for @aegil_varer.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} varer · inkl. levering'**
+  String aegil_varer(int n);
+
+  /// No description provided for @aegil_derfor.
+  ///
+  /// In en, this message translates to:
+  /// **'Derfor:'**
+  String get aegil_derfor;
+
+  /// No description provided for @aegil_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Legg i kurven'**
+  String get aegil_legg;
+
+  /// No description provided for @aegil_bytt_butikk.
+  ///
+  /// In en, this message translates to:
+  /// **'Bytt butikk'**
+  String get aegil_bytt_butikk;
+
+  /// No description provided for @aegil_kvittering.
+  ///
+  /// In en, this message translates to:
+  /// **'Kvittering'**
+  String get aegil_kvittering;
+
+  /// No description provided for @aegil_angre.
+  ///
+  /// In en, this message translates to:
+  /// **'Angre'**
+  String get aegil_angre;
+
+  /// No description provided for @aegil_funn.
+  ///
+  /// In en, this message translates to:
+  /// **'Funn'**
+  String get aegil_funn;
+
+  /// No description provided for @aegil_billigst.
+  ///
+  /// In en, this message translates to:
+  /// **'Billigst'**
+  String get aegil_billigst;
+
+  /// No description provided for @aegil_velg.
+  ///
+  /// In en, this message translates to:
+  /// **'Velg'**
+  String get aegil_velg;
+
+  /// No description provided for @aegil_totaler.
+  ///
+  /// In en, this message translates to:
+  /// **'Alle totaler inkl. levering.'**
+  String get aegil_totaler;
+
+  /// No description provided for @aegil_bytt.
+  ///
+  /// In en, this message translates to:
+  /// **'Bytt'**
+  String get aegil_bytt;
+
+  /// No description provided for @aegil_behold.
+  ///
+  /// In en, this message translates to:
+  /// **'Behold'**
+  String get aegil_behold;
+
+  /// No description provided for @aegil_grunn.
+  ///
+  /// In en, this message translates to:
+  /// **'Grunn:'**
+  String get aegil_grunn;
+
+  /// No description provided for @aegil_tillatelse.
+  ///
+  /// In en, this message translates to:
+  /// **'Jeg er Ærends assistent, og jeg heter Ægil. Jeg er en AI. Jeg kan finne varer, sammenlikne priser med levering og foreslå kurver. Du betaler alltid selv.'**
+  String get aegil_tillatelse;
+
+  /// No description provided for @aegil_hva_faar.
+  ///
+  /// In en, this message translates to:
+  /// **'Hva Ægil får gjøre'**
+  String get aegil_hva_faar;
+
+  /// No description provided for @aegil_alle_nivaaer.
+  ///
+  /// In en, this message translates to:
+  /// **'Alle fem nivåer'**
+  String get aegil_alle_nivaaer;
+
+  /// No description provided for @aegil_foreslaa.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreslå'**
+  String get aegil_foreslaa;
+
+  /// No description provided for @aegil_foreslaa_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil viser kort — du trykker for å legge i kurven'**
+  String get aegil_foreslaa_sub;
+
+  /// No description provided for @aegil_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get aegil_standard;
+
+  /// No description provided for @aegil_handle.
+  ///
+  /// In en, this message translates to:
+  /// **'Handle i kurven'**
+  String get aegil_handle;
+
+  /// No description provided for @aegil_handle_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil legger i kurven; du betaler alltid selv'**
+  String get aegil_handle_sub;
+
+  /// No description provided for @aegil_saa_mye.
+  ///
+  /// In en, this message translates to:
+  /// **'Så mye kan Ægil gjøre'**
+  String get aegil_saa_mye;
+
+  /// No description provided for @aegil_ikke_funnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Fant ikke noe i Vågen for det.'**
+  String get aegil_ikke_funnet;
+
+  /// No description provided for @aegil_ikke_funnet_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Prøv et annet ord, eller bla selv.'**
+  String get aegil_ikke_funnet_sub;
+
+  /// No description provided for @aegil_alder.
+  ///
+  /// In en, this message translates to:
+  /// **'18+ · ikke verifisert'**
+  String get aegil_alder;
+
+  /// No description provided for @aegil_alder_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Bekreft alderen din med BankID i Konto før jeg kan hjelpe med dette.'**
+  String get aegil_alder_sub;
+
+  /// No description provided for @aegil_bankid.
+  ///
+  /// In en, this message translates to:
+  /// **'Til Konto · BankID'**
+  String get aegil_bankid;
+
+  /// No description provided for @aegil_allergen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sjekk alltid allergener på varen. Ægil kan ta feil.'**
+  String get aegil_allergen;
+
+  /// No description provided for @aegil_ob_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'+{n} Ægil-poeng'**
+  String aegil_ob_poeng(int n);
+
+  /// No description provided for @aegil_ob_ferdig.
+  ///
+  /// In en, this message translates to:
+  /// **'Da vet jeg nok til å begynne.'**
+  String get aegil_ob_ferdig;
+
+  /// No description provided for @aegil_kurv_bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Kurv · {n} · {kr} kr · {tid}'**
+  String aegil_kurv_bar(int n, int kr, String tid);
+
+  /// No description provided for @aegil_betal_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Betal med Vipps'**
+  String get aegil_betal_vipps;
+
+  /// No description provided for @aegil_minne_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Det Ægil vet om deg'**
+  String get aegil_minne_title;
+
+  /// No description provided for @aegil_minne_stemmer.
+  ///
+  /// In en, this message translates to:
+  /// **'Stemmer'**
+  String get aegil_minne_stemmer;
+
+  /// No description provided for @aegil_minne_fjern.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjern'**
+  String get aegil_minne_fjern;
+
+  /// No description provided for @aegil_minne_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Legg til'**
+  String get aegil_minne_legg;
+
+  /// No description provided for @aegil_minne_varsler.
+  ///
+  /// In en, this message translates to:
+  /// **'VARSLER'**
+  String get aegil_minne_varsler;
+
+  /// No description provided for @aegil_minne_glem.
+  ///
+  /// In en, this message translates to:
+  /// **'Glem alt'**
+  String get aegil_minne_glem;
+
+  /// No description provided for @aegil_minne_glem_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil sletter alt den har lært om deg. Nivået ditt beholder du.'**
+  String get aegil_minne_glem_sub;
+
+  /// No description provided for @aegil_minne_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil husker ingenting ennå.'**
+  String get aegil_minne_tom;
+
+  /// No description provided for @aegil_tillit.
+  ///
+  /// In en, this message translates to:
+  /// **'Tillitsregnskap'**
+  String get aegil_tillit;
+
+  /// No description provided for @aegil_tillit_spart.
+  ///
+  /// In en, this message translates to:
+  /// **'Spart {kr} kr denne måneden'**
+  String aegil_tillit_spart(int kr);
+
+  /// No description provided for @aegil_tillit_funn.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} funn brukt'**
+  String aegil_tillit_funn(int n);
+
+  /// No description provided for @aegil_tillit_mot.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} ganger sa Ægil fra mot egen interesse'**
+  String aegil_tillit_mot(int n);
+
+  /// No description provided for @aegil_brett_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil fant'**
+  String get aegil_brett_title;
+
+  /// No description provided for @aegil_brett_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Legg til'**
+  String get aegil_brett_legg;
+
+  /// No description provided for @aegil_brett_ikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikke for meg'**
+  String get aegil_brett_ikke;
+
+  /// No description provided for @aegil_brett_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingenting nytt akkurat nå.'**
+  String get aegil_brett_tom;
+
+  /// No description provided for @aegil_greeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hei! Hva trenger du i kveld?'**
+  String get aegil_greeting;
+
+  /// No description provided for @pts_premiehylla_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Premiehylla'**
+  String get pts_premiehylla_title;
+
+  /// No description provided for @pts_premiehylla_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Bytt poeng i noe godt fra Bergen'**
+  String get pts_premiehylla_sub;
+
+  /// No description provided for @pts_maal_label.
+  ///
+  /// In en, this message translates to:
+  /// **'MÅLET DITT'**
+  String get pts_maal_label;
+
+  /// No description provided for @pts_mine_premier.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine premier'**
+  String get pts_mine_premier;
+
+  /// No description provided for @pts_hylla_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Hylla denne måneden. Prisene står i poeng — aldri i kroner. Sett én premie som mål, så følger Ægil deg dit.'**
+  String get pts_hylla_intro;
+
+  /// No description provided for @pts_badge_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'MÅL'**
+  String get pts_badge_maal;
+
+  /// No description provided for @pts_badge_utsolgt.
+  ///
+  /// In en, this message translates to:
+  /// **'UTSOLGT'**
+  String get pts_badge_utsolgt;
+
+  /// No description provided for @pts_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Hent'**
+  String get pts_hent;
+
+  /// No description provided for @pts_sett_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'Sett som mål'**
+  String get pts_sett_maal;
+
+  /// No description provided for @pts_er_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'Målet ditt'**
+  String get pts_er_maal;
+
+  /// No description provided for @pts_laast_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Låst ennå'**
+  String get pts_laast_title;
+
+  /// No description provided for @pts_gjelder.
+  ///
+  /// In en, this message translates to:
+  /// **'Premier gjelder i 60 dager fra du henter dem. Utsolgte kommer tilbake neste måned.'**
+  String get pts_gjelder;
+
+  /// No description provided for @pts_nivaa.
+  ///
+  /// In en, this message translates to:
+  /// **'Nivå'**
+  String get pts_nivaa;
+
+  /// No description provided for @pts_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'poeng'**
+  String get pts_poeng;
+
+  /// No description provided for @pts_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} igjen'**
+  String pts_igjen(int n);
+
+  /// No description provided for @pts_til_laas.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} poeng til'**
+  String pts_til_laas(int n);
+
+  /// No description provided for @pts_velger_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'ÆGIL VELGER'**
+  String get pts_velger_kicker;
+
+  /// No description provided for @pts_velger_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Premien Ægil valgte'**
+  String get pts_velger_title;
+
+  /// No description provided for @pts_velger_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Én premie fra hylla di — valgt for deg.'**
+  String get pts_velger_sub;
+
+  /// No description provided for @pts_velger_verdi.
+  ///
+  /// In en, this message translates to:
+  /// **'Verdi minst 300 kr'**
+  String get pts_velger_verdi;
+
+  /// No description provided for @pts_velger_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Hent premien'**
+  String get pts_velger_hent;
+
+  /// No description provided for @pts_velger_bra.
+  ///
+  /// In en, this message translates to:
+  /// **'Bra'**
+  String get pts_velger_bra;
+
+  /// No description provided for @pts_velger_ikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikke for meg'**
+  String get pts_velger_ikke;
+
+  /// No description provided for @pts_velger_hopp.
+  ///
+  /// In en, this message translates to:
+  /// **'Hopp over'**
+  String get pts_velger_hopp;
+
+  /// No description provided for @pts_velger_tilbake.
+  ///
+  /// In en, this message translates to:
+  /// **'Tilbake til Premiehylla'**
+  String get pts_velger_tilbake;
+
+  /// No description provided for @pts_velger_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Hylla er tom akkurat nå.'**
+  String get pts_velger_tom;
+
+  /// No description provided for @pts_liga_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fløyen-ligaen'**
+  String get pts_liga_title;
+
+  /// No description provided for @pts_liga_vilkaar.
+  ///
+  /// In en, this message translates to:
+  /// **'Vilkår'**
+  String get pts_liga_vilkaar;
+
+  /// No description provided for @pts_liga_hele.
+  ///
+  /// In en, this message translates to:
+  /// **'Hele Bergen'**
+  String get pts_liga_hele;
+
+  /// No description provided for @pts_liga_bydel.
+  ///
+  /// In en, this message translates to:
+  /// **'Din bydel'**
+  String get pts_liga_bydel;
+
+  /// No description provided for @pts_liga_pl.
+  ///
+  /// In en, this message translates to:
+  /// **'PL.'**
+  String get pts_liga_pl;
+
+  /// No description provided for @pts_liga_klatrer.
+  ///
+  /// In en, this message translates to:
+  /// **'KLATRER'**
+  String get pts_liga_klatrer;
+
+  /// No description provided for @pts_liga_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'POENG'**
+  String get pts_liga_poeng;
+
+  /// No description provided for @pts_liga_premier.
+  ///
+  /// In en, this message translates to:
+  /// **'Månedens premier'**
+  String get pts_liga_premier;
+
+  /// No description provided for @pts_liga_premier_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Kan ikke kjøpes på hylla'**
+  String get pts_liga_premier_sub;
+
+  /// No description provided for @pts_liga_slutt.
+  ///
+  /// In en, this message translates to:
+  /// **'Se månedsslutten'**
+  String get pts_liga_slutt;
+
+  /// No description provided for @pts_liga_navn.
+  ///
+  /// In en, this message translates to:
+  /// **'Navn i ligaen'**
+  String get pts_liga_navn;
+
+  /// No description provided for @pts_liga_bli_med.
+  ///
+  /// In en, this message translates to:
+  /// **'Bli med'**
+  String get pts_liga_bli_med;
+
+  /// No description provided for @pts_liga_meld_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Meld av'**
+  String get pts_liga_meld_av;
+
+  /// No description provided for @pts_liga_ikke_med.
+  ///
+  /// In en, this message translates to:
+  /// **'Du er ikke med i ligaen ennå.'**
+  String get pts_liga_ikke_med;
+
+  /// No description provided for @pts_liga_seremoni_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Månedsslutten'**
+  String get pts_liga_seremoni_title;
+
+  /// No description provided for @pts_liga_seremoni_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Den første i måneden deles premiene ut, og ligaen nullstilles. Nivået ditt beholder du.'**
+  String get pts_liga_seremoni_sub;
+
+  /// No description provided for @pts_liga_plass.
+  ///
+  /// In en, this message translates to:
+  /// **'Du ligger på {rank}. plass'**
+  String pts_liga_plass(int rank);
+
+  /// No description provided for @pts_liga_maaned.
+  ///
+  /// In en, this message translates to:
+  /// **'POENG I {p_monthtoUpperCase}'**
+  String pts_liga_maaned(String p_monthtoUpperCase);
+
+  /// No description provided for @pts_opprykk_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'NIVÅOPPRYKK'**
+  String get pts_opprykk_kicker;
+
+  /// No description provided for @pts_opprykk_gave.
+  ///
+  /// In en, this message translates to:
+  /// **'HER ER NOE TIL DEG'**
+  String get pts_opprykk_gave;
+
+  /// No description provided for @pts_opprykk_valgt.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil valgte den til deg. Koster ingen poeng.'**
+  String get pts_opprykk_valgt;
+
+  /// No description provided for @pts_opprykk_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Hent'**
+  String get pts_opprykk_hent;
+
+  /// No description provided for @pts_opprykk_hylla.
+  ///
+  /// In en, this message translates to:
+  /// **'Hylla di har fått tre nye premier.'**
+  String get pts_opprykk_hylla;
+
+  /// No description provided for @pts_opprykk_se.
+  ///
+  /// In en, this message translates to:
+  /// **'Se hylla'**
+  String get pts_opprykk_se;
+
+  /// No description provided for @pts_opprykk_hopp.
+  ///
+  /// In en, this message translates to:
+  /// **'Hopp over'**
+  String get pts_opprykk_hopp;
+
+  /// No description provided for @pts_opprykk_ferdig.
+  ///
+  /// In en, this message translates to:
+  /// **'Ferdig'**
+  String get pts_opprykk_ferdig;
+
+  /// No description provided for @pts_opprykk_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Du er nå {tier}'**
+  String pts_opprykk_naa(String tier);
+
+  /// No description provided for @pts_fiske_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordfiske'**
+  String get pts_fiske_title;
+
+  /// No description provided for @pts_fiske_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Du og Ægil fisker i Vågen'**
+  String get pts_fiske_sub;
+
+  /// No description provided for @pts_fiske_kast.
+  ///
+  /// In en, this message translates to:
+  /// **'Kast ut'**
+  String get pts_fiske_kast;
+
+  /// No description provided for @pts_fiske_ute.
+  ///
+  /// In en, this message translates to:
+  /// **'Snøret er ute … vent på napp'**
+  String get pts_fiske_ute;
+
+  /// No description provided for @pts_fiske_dra.
+  ///
+  /// In en, this message translates to:
+  /// **'DRA INN!'**
+  String get pts_fiske_dra;
+
+  /// No description provided for @pts_fiske_napp.
+  ///
+  /// In en, this message translates to:
+  /// **'Napp!'**
+  String get pts_fiske_napp;
+
+  /// No description provided for @pts_fiske_plus.
+  ///
+  /// In en, this message translates to:
+  /// **'+5 poeng'**
+  String get pts_fiske_plus;
+
+  /// No description provided for @pts_fiske_slipp.
+  ///
+  /// In en, this message translates to:
+  /// **'Slipp'**
+  String get pts_fiske_slipp;
+
+  /// No description provided for @pts_fiske_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Legg i kurven'**
+  String get pts_fiske_legg;
+
+  /// No description provided for @pts_fiske_lagre.
+  ///
+  /// In en, this message translates to:
+  /// **'Lagre'**
+  String get pts_fiske_lagre;
+
+  /// No description provided for @pts_fiske_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Hent'**
+  String get pts_fiske_hent;
+
+  /// No description provided for @pts_fiske_fra_hylla.
+  ///
+  /// In en, this message translates to:
+  /// **'Fra hylla di'**
+  String get pts_fiske_fra_hylla;
+
+  /// No description provided for @pts_fiske_agn.
+  ///
+  /// In en, this message translates to:
+  /// **'Agn'**
+  String get pts_fiske_agn;
+
+  /// No description provided for @pts_fiske_fangst.
+  ///
+  /// In en, this message translates to:
+  /// **'Fangst'**
+  String get pts_fiske_fangst;
+
+  /// No description provided for @pts_fiske_premiefangst.
+  ///
+  /// In en, this message translates to:
+  /// **'Premiefangst'**
+  String get pts_fiske_premiefangst;
+
+  /// No description provided for @pts_fiske_se_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'Se det jeg lagret'**
+  String get pts_fiske_se_lagret;
+
+  /// No description provided for @pts_fiske_i_morgen.
+  ///
+  /// In en, this message translates to:
+  /// **'Kast ut igjen i morgen'**
+  String get pts_fiske_i_morgen;
+
+  /// No description provided for @pts_fiske_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Trykk på snøret når det rykker.'**
+  String get pts_fiske_hint;
+
+  /// No description provided for @pts_fiske_snakk.
+  ///
+  /// In en, this message translates to:
+  /// **'Kast {kast} av {av} · {lagret} lagret'**
+  String pts_fiske_snakk(int kast, int av, int lagret);
+
+  /// No description provided for @pts_fiske_slutt.
+  ///
+  /// In en, this message translates to:
+  /// **'Det var alt for nå. Du lagret {lagret} og la {kjopt} i kurven.'**
+  String pts_fiske_slutt(int lagret, int kjopt);
+
+  /// No description provided for @pts_napp_dagens.
+  ///
+  /// In en, this message translates to:
+  /// **'Dagens napp: +5'**
+  String get pts_napp_dagens;
+
+  /// No description provided for @pts_napp_bergensk.
+  ///
+  /// In en, this message translates to:
+  /// **'Bergensk'**
+  String get pts_napp_bergensk;
+
+  /// No description provided for @pts_napp_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Legg til'**
+  String get pts_napp_legg;
+
+  /// No description provided for @pts_napp_ikke_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Ikke nå'**
+  String get pts_napp_ikke_naa;
+
+  /// No description provided for @pts_napp_aldri.
+  ///
+  /// In en, this message translates to:
+  /// **'Aldri dette'**
+  String get pts_napp_aldri;
+
+  /// No description provided for @pts_entry_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Poeng'**
+  String get pts_entry_title;
+
+  /// No description provided for @pts_entry_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Se hylla og nivået ditt'**
+  String get pts_entry_sub;
+
+  /// No description provided for @ops_sporing_live.
+  ///
+  /// In en, this message translates to:
+  /// **'Live · {stadie}'**
+  String ops_sporing_live(String stadie);
+
+  /// No description provided for @order_status_finding_courier.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding a courier'**
+  String get order_status_finding_courier;
+
+  /// No description provided for @ops_sporing_om_min.
+  ///
+  /// In en, this message translates to:
+  /// **'in {n} min'**
+  String ops_sporing_om_min(int n);
+
+  /// No description provided for @ops_sporing_kommer.
+  ///
+  /// In en, this message translates to:
+  /// **'Arriving'**
+  String get ops_sporing_kommer;
+
+  /// No description provided for @ops_sporing_klar_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready now'**
+  String get ops_sporing_klar_naa;
+
+  /// No description provided for @ops_sporing_klar_kl.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready {t}'**
+  String ops_sporing_klar_kl(String t);
+
+  /// No description provided for @ops_sporing_hentes_hos.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up at {s}'**
+  String ops_sporing_hentes_hos(String s);
+
+  /// No description provided for @ops_sporing_star_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting at the counter'**
+  String get ops_sporing_star_klar;
+
+  /// No description provided for @ops_sporing_hentet_takk.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up · thanks!'**
+  String get ops_sporing_hentet_takk;
+
+  /// No description provided for @ops_sporing_butikken_paa_vei.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop is on its way'**
+  String get ops_sporing_butikken_paa_vei;
+
+  /// No description provided for @ops_sporing_levert_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered by {s}'**
+  String ops_sporing_levert_av(String s);
+
+  /// No description provided for @ops_sporing_leveres_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered by {s}'**
+  String ops_sporing_leveres_av(String s);
+
+  /// No description provided for @ops_sporing_levert_for_tiden.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered · early'**
+  String get ops_sporing_levert_for_tiden;
+
+  /// No description provided for @ops_sporing_avbestilt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get ops_sporing_avbestilt;
+
+  /// No description provided for @ops_sporing_gave_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is waiting on the quay'**
+  String ops_sporing_gave_venter(String navn);
+
+  /// No description provided for @ops_sporing_steg.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {n} of {of}'**
+  String ops_sporing_steg(int n, int of);
+
+  /// No description provided for @ops_sporing_pluss_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'+{n} points'**
+  String ops_sporing_pluss_poeng(int n);
+
+  /// No description provided for @ops_sporing_aegil.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil'**
+  String get ops_sporing_aegil;
+
+  /// No description provided for @ops_sporing_aegil_folger.
+  ///
+  /// In en, this message translates to:
+  /// **'· follows your errand'**
+  String get ops_sporing_aegil_folger;
+
+  /// No description provided for @ops_sporing_neste.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {navn}'**
+  String ops_sporing_neste(String navn);
+
+  /// No description provided for @ops_sporing_oppdrag_fullfort.
+  ///
+  /// In en, this message translates to:
+  /// **'Errand complete'**
+  String get ops_sporing_oppdrag_fullfort;
+
+  /// No description provided for @ops_sporing_finner_bud_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'I am finding you a courier — it usually takes a couple of minutes.'**
+  String get ops_sporing_finner_bud_hint;
+
+  /// No description provided for @ops_sporing_mottatt.
+  ///
+  /// In en, this message translates to:
+  /// **'RECEIVED'**
+  String get ops_sporing_mottatt;
+
+  /// No description provided for @ops_sporing_tilberedes_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'PREPARING'**
+  String get ops_sporing_tilberedes_kicker;
+
+  /// No description provided for @ops_sporing_paa_komfyren.
+  ///
+  /// In en, this message translates to:
+  /// **'On the stove'**
+  String get ops_sporing_paa_komfyren;
+
+  /// No description provided for @ops_sporing_min_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} min left'**
+  String ops_sporing_min_igjen(int m);
+
+  /// No description provided for @ops_sporing_klar_kicker.
+  ///
+  /// In en, this message translates to:
+  /// **'READY'**
+  String get ops_sporing_klar_kicker;
+
+  /// No description provided for @ops_sporing_disken.
+  ///
+  /// In en, this message translates to:
+  /// **'It is at the counter. Say «{navn}» and it is yours.'**
+  String ops_sporing_disken(String navn);
+
+  /// No description provided for @ops_sporing_vis_veien.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the way'**
+  String get ops_sporing_vis_veien;
+
+  /// No description provided for @ops_sporing_forseglet.
+  ///
+  /// In en, this message translates to:
+  /// **'Sealed'**
+  String get ops_sporing_forseglet;
+
+  /// No description provided for @ops_sporing_ankommer_om.
+  ///
+  /// In en, this message translates to:
+  /// **'Arriving in'**
+  String get ops_sporing_ankommer_om;
+
+  /// No description provided for @ops_sporing_haaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Enjoy.'**
+  String get ops_sporing_haaper;
+
+  /// No description provided for @ops_sporing_spart_tid.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME SAVED'**
+  String get ops_sporing_spart_tid;
+
+  /// No description provided for @ops_sporing_kart_kommer.
+  ///
+  /// In en, this message translates to:
+  /// **'The map appears once the courier has picked up.'**
+  String get ops_sporing_kart_kommer;
+
+  /// No description provided for @ops_sporing_ingen_kart_partner.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop drives itself — no live position.'**
+  String get ops_sporing_ingen_kart_partner;
+
+  /// No description provided for @ops_sporing_avslutt.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the order'**
+  String get ops_sporing_avslutt;
+
+  /// No description provided for @ops_sporing_fjordfiske.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordfiske'**
+  String get ops_sporing_fjordfiske;
+
+  /// No description provided for @ops_sporing_mens_du_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'while you wait'**
+  String get ops_sporing_mens_du_venter;
+
+  /// No description provided for @ops_sporing_sammendrag.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get ops_sporing_sammendrag;
+
+  /// No description provided for @ops_sporing_detaljer.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get ops_sporing_detaljer;
+
+  /// No description provided for @ops_sporing_hjelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get ops_sporing_hjelp;
+
+  /// No description provided for @ops_sporing_bankid.
+  ///
+  /// In en, this message translates to:
+  /// **'BankID verified'**
+  String get ops_sporing_bankid;
+
+  /// No description provided for @ops_sporing_kode_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code at delivery'**
+  String get ops_sporing_kode_tittel;
+
+  /// No description provided for @ops_sporing_kode_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the code to the courier, or read it out.'**
+  String get ops_sporing_kode_under;
+
+  /// No description provided for @ops_sporing_kode_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Without a connection only the PIN is shown.'**
+  String get ops_sporing_kode_offline;
+
+  /// No description provided for @ops_sporing_kode_no_door.
+  ///
+  /// In en, this message translates to:
+  /// **'The bag cannot be left at the door.'**
+  String get ops_sporing_kode_no_door;
+
+  /// No description provided for @ops_sporing_kode_laast.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is locked after too many tries — the courier takes a photo and a name.'**
+  String get ops_sporing_kode_laast;
+
+  /// No description provided for @ops_sporing_kode_bekreftet.
+  ///
+  /// In en, this message translates to:
+  /// **'The code was confirmed'**
+  String get ops_sporing_kode_bekreftet;
+
+  /// No description provided for @ops_sporing_valg_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'{butikk} has not seen the order'**
+  String ops_sporing_valg_tittel(String butikk);
+
+  /// No description provided for @ops_sporing_valg_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for a new window, or cancel with a full refund. Nothing happens until you choose.'**
+  String get ops_sporing_valg_line;
+
+  /// No description provided for @ops_sporing_vent.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait'**
+  String get ops_sporing_vent;
+
+  /// No description provided for @ops_sporing_avbestill.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get ops_sporing_avbestill;
+
+  /// No description provided for @ops_sporing_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'We are waiting for the shop.'**
+  String get ops_sporing_venter;
+
+  /// No description provided for @ops_sporing_refundert.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled — the money returns to Vipps.'**
+  String get ops_sporing_refundert;
+
+  /// No description provided for @ops_sporing_uten_nett.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline · showing the last known status'**
+  String get ops_sporing_uten_nett;
+
+  /// No description provided for @ops_sporing_notif_store_on_the_way.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop is on its way'**
+  String get ops_sporing_notif_store_on_the_way;
+
+  /// No description provided for @ops_sporing_notif_store_delivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered by the shop'**
+  String get ops_sporing_notif_store_delivered;
+
+  /// No description provided for @ops_sporing_hjelp_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {rolle}'**
+  String ops_sporing_hjelp_ring(String rolle);
+
+  /// No description provided for @ops_sporing_hjelp_melding.
+  ///
+  /// In en, this message translates to:
+  /// **'Message {rolle}'**
+  String ops_sporing_hjelp_melding(String rolle);
+
+  /// No description provided for @ops_sporing_hjelp_ring_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Call'**
+  String get ops_sporing_hjelp_ring_kort;
+
+  /// No description provided for @ops_sporing_hjelp_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a message'**
+  String get ops_sporing_hjelp_send;
+
+  /// No description provided for @ops_sporing_hjelp_kort_bud.
+  ///
+  /// In en, this message translates to:
+  /// **'On the way · {min} min away · cycling since {siden} · {rating}'**
+  String ops_sporing_hjelp_kort_bud(int min, String siden, String rating);
+
+  /// No description provided for @ops_sporing_hjelp_kort_bud_enkel.
+  ///
+  /// In en, this message translates to:
+  /// **'On the way to you'**
+  String get ops_sporing_hjelp_kort_bud_enkel;
+
+  /// No description provided for @ops_sporing_hjelp_kort_butikk.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivers itself tonight'**
+  String get ops_sporing_hjelp_kort_butikk;
+
+  /// No description provided for @ops_sporing_hjelp_vanlige.
+  ///
+  /// In en, this message translates to:
+  /// **'COMMON QUESTIONS'**
+  String get ops_sporing_hjelp_vanlige;
+
+  /// No description provided for @ops_sporing_hjelp_dor.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot find the door'**
+  String get ops_sporing_hjelp_dor;
+
+  /// No description provided for @ops_sporing_hjelp_dor_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Send directions or call'**
+  String get ops_sporing_hjelp_dor_line;
+
+  /// No description provided for @ops_sporing_hjelp_mangler.
+  ///
+  /// In en, this message translates to:
+  /// **'Something is missing from the order'**
+  String get ops_sporing_hjelp_mangler;
+
+  /// No description provided for @ops_sporing_hjelp_mangler_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund on Vipps within 2 min'**
+  String get ops_sporing_hjelp_mangler_line;
+
+  /// No description provided for @ops_sporing_hjelp_kundeservice.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk to Ærend in Bergen'**
+  String get ops_sporing_hjelp_kundeservice;
+
+  /// No description provided for @ops_sporing_hjelp_kundeservice_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer service · open until 23:00'**
+  String get ops_sporing_hjelp_kundeservice_line;
+
+  /// No description provided for @ops_sporing_ring_kobler.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting …'**
+  String get ops_sporing_ring_kobler;
+
+  /// No description provided for @ops_sporing_ring_maskert.
+  ///
+  /// In en, this message translates to:
+  /// **'The number is masked — nobody sees the other\'s phone.'**
+  String get ops_sporing_ring_maskert;
+
+  /// No description provided for @ops_sporing_ring_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'No line yet — call the number below.'**
+  String get ops_sporing_ring_ingen;
+
+  /// No description provided for @ops_sporing_demp.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get ops_sporing_demp;
+
+  /// No description provided for @ops_sporing_avslutt_samtale.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get ops_sporing_avslutt_samtale;
+
+  /// No description provided for @ops_sporing_hoyttaler.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaker'**
+  String get ops_sporing_hoyttaler;
+
+  /// No description provided for @ops_sporing_tilbake.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to help'**
+  String get ops_sporing_tilbake;
+
+  /// No description provided for @ops_sporing_aktiv.
+  ///
+  /// In en, this message translates to:
+  /// **'Active now · replies quickly'**
+  String get ops_sporing_aktiv;
+
+  /// No description provided for @ops_sporing_skriver.
+  ///
+  /// In en, this message translates to:
+  /// **'typing …'**
+  String get ops_sporing_skriver;
+
+  /// No description provided for @ops_sporing_meld_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message'**
+  String get ops_sporing_meld_hint;
+
+  /// No description provided for @ops_sporing_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get ops_sporing_send;
+
+  /// No description provided for @ops_sporing_dor_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'This is what {navn} sees now'**
+  String ops_sporing_dor_tittel(String navn);
+
+  /// No description provided for @ops_sporing_lev_adresse.
+  ///
+  /// In en, this message translates to:
+  /// **'DELIVERY ADDRESS'**
+  String get ops_sporing_lev_adresse;
+
+  /// No description provided for @ops_sporing_veibeskrivelse.
+  ///
+  /// In en, this message translates to:
+  /// **'DIRECTIONS'**
+  String get ops_sporing_veibeskrivelse;
+
+  /// No description provided for @ops_sporing_dor_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Entrance at the back, yellow door, 3rd floor …'**
+  String get ops_sporing_dor_hint;
+
+  /// No description provided for @ops_sporing_send_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to {navn}'**
+  String ops_sporing_send_til(String navn);
+
+  /// No description provided for @ops_sporing_ring_navn.
+  ///
+  /// In en, this message translates to:
+  /// **'Call {navn}'**
+  String ops_sporing_ring_navn(String navn);
+
+  /// No description provided for @ops_sporing_skriv_selv.
+  ///
+  /// In en, this message translates to:
+  /// **'Write it yourself'**
+  String get ops_sporing_skriv_selv;
+
+  /// No description provided for @ops_sporing_hva_mangler.
+  ///
+  /// In en, this message translates to:
+  /// **'What is missing?'**
+  String get ops_sporing_hva_mangler;
+
+  /// No description provided for @ops_sporing_mangler_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap what did not arrive. We handle the rest.'**
+  String get ops_sporing_mangler_line;
+
+  /// No description provided for @ops_sporing_mangler_refusjon.
+  ///
+  /// In en, this message translates to:
+  /// **'You get the money back on Vipps within 2 min — or a new delivery if you prefer.'**
+  String get ops_sporing_mangler_refusjon;
+
+  /// No description provided for @ops_sporing_ks_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ærend in Bergen'**
+  String get ops_sporing_ks_tittel;
+
+  /// No description provided for @ops_sporing_ks_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Open until 23:00 · replies within 2 min'**
+  String get ops_sporing_ks_line;
+
+  /// No description provided for @ops_sporing_ks_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with us'**
+  String get ops_sporing_ks_chat;
+
+  /// No description provided for @ops_sporing_ks_chat_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Fastest · Kari and Ola are on duty'**
+  String get ops_sporing_ks_chat_line;
+
+  /// No description provided for @ops_sporing_ks_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Call 55 00 12 34'**
+  String get ops_sporing_ks_ring;
+
+  /// No description provided for @ops_sporing_ks_ring_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard rate · about 1 min wait'**
+  String get ops_sporing_ks_ring_line;
+
+  /// No description provided for @ops_sporing_ks_ordre.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{nr} is already attached, so you need not explain.'**
+  String ops_sporing_ks_ordre(String nr);
+
+  /// No description provided for @ops_sporing_ks_nummer.
+  ///
+  /// In en, this message translates to:
+  /// **'+4755001234'**
+  String get ops_sporing_ks_nummer;
+
+  /// No description provided for @ops_sporing_sendt_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get ops_sporing_sendt_tittel;
+
+  /// No description provided for @ops_sporing_sendt_tekst.
+  ///
+  /// In en, this message translates to:
+  /// **'{rolle} has your message.'**
+  String ops_sporing_sendt_tekst(String rolle);
+
+  /// No description provided for @ops_sporing_meldt_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get ops_sporing_meldt_tittel;
+
+  /// No description provided for @ops_sporing_ferdig.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get ops_sporing_ferdig;
+
+  /// No description provided for @ops_sporing_butikken.
+  ///
+  /// In en, this message translates to:
+  /// **'the shop'**
+  String get ops_sporing_butikken;
+
+  /// No description provided for @ops_sporing_bud.
+  ///
+  /// In en, this message translates to:
+  /// **'the courier'**
+  String get ops_sporing_bud;
+
+  /// No description provided for @ops_sporing_Butikken.
+  ///
+  /// In en, this message translates to:
+  /// **'The shop'**
+  String get ops_sporing_Butikken;
+
+  /// No description provided for @ops_sporing_Budet.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier'**
+  String get ops_sporing_Budet;
+
+  /// No description provided for @ops_sporing_levert_punkt.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered.'**
+  String get ops_sporing_levert_punkt;
+
+  /// No description provided for @ops_sporing_poeng_for_ordren.
+  ///
+  /// In en, this message translates to:
+  /// **'points for this order'**
+  String get ops_sporing_poeng_for_ordren;
+
+  /// No description provided for @ops_sporing_liga_gap.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} from {plass}. place'**
+  String ops_sporing_liga_gap(int n, int plass);
+
+  /// No description provided for @ops_sporing_forste_gang.
+  ///
+  /// In en, this message translates to:
+  /// **'+{n} points · first time at {butikk}'**
+  String ops_sporing_forste_gang(int n, String butikk);
+
+  /// No description provided for @ops_sporing_en_gang.
+  ///
+  /// In en, this message translates to:
+  /// **'Once per shop'**
+  String get ops_sporing_en_gang;
+
+  /// No description provided for @ops_sporing_levert_til_deg.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered to you · the code was confirmed by {hvem}'**
+  String ops_sporing_levert_til_deg(String hvem);
+
+  /// No description provided for @ops_sporing_levert_til_deg_uten.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered to you by {hvem}'**
+  String ops_sporing_levert_til_deg_uten(String hvem);
+
+  /// No description provided for @ops_sporing_takk.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks to {navn}'**
+  String ops_sporing_takk(String navn);
+
+  /// No description provided for @ops_sporing_hvordan.
+  ///
+  /// In en, this message translates to:
+  /// **'How did it go?'**
+  String get ops_sporing_hvordan;
+
+  /// No description provided for @ops_sporing_takk_vurdering.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for the rating'**
+  String get ops_sporing_takk_vurdering;
+
+  /// No description provided for @ops_sporing_noe_galt.
+  ///
+  /// In en, this message translates to:
+  /// **'Something wrong with the order?'**
+  String get ops_sporing_noe_galt;
+
+  /// No description provided for @ops_sporing_ikke_funnet.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find the order.'**
+  String get ops_sporing_ikke_funnet;
+
+  /// No description provided for @ops_sporing_laster.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching status …'**
+  String get ops_sporing_laster;
+
+  /// No description provided for @ops_sporing_demo_ny.
+  ///
+  /// In en, this message translates to:
+  /// **'New order → Confirmed'**
+  String get ops_sporing_demo_ny;
+
+  /// No description provided for @ops_sporing_demo_neste.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stage'**
+  String get ops_sporing_demo_neste;
+
+  /// No description provided for @ops_sporing_demo_usett.
+  ///
+  /// In en, this message translates to:
+  /// **'Unseen shop'**
+  String get ops_sporing_demo_usett;
+
+  /// No description provided for @ops_sporing_demo_kode_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'Code OK'**
+  String get ops_sporing_demo_kode_ok;
+
+  /// No description provided for @ops_sporing_demo_pin_feil.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN wrong ×3'**
+  String get ops_sporing_demo_pin_feil;
+
+  /// No description provided for @ops_sporing_demo_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline / online'**
+  String get ops_sporing_demo_offline;
+
+  /// No description provided for @ops_utforsk_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get ops_utforsk_title;
+
+  /// No description provided for @ops_utforsk_tab_feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get ops_utforsk_tab_feed;
+
+  /// No description provided for @ops_utforsk_tab_fiske.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordfiske'**
+  String get ops_utforsk_tab_fiske;
+
+  /// No description provided for @ops_utforsk_tab_pose.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise bag'**
+  String get ops_utforsk_tab_pose;
+
+  /// No description provided for @ops_utforsk_filter_alle.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ops_utforsk_filter_alle;
+
+  /// No description provided for @ops_utforsk_kommer_snart.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get ops_utforsk_kommer_snart;
+
+  /// No description provided for @ops_utforsk_drift_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ærend · Drift'**
+  String get ops_utforsk_drift_title;
+
+  /// No description provided for @ops_utforsk_drift_pinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned until {until}'**
+  String ops_utforsk_drift_pinned(String until);
+
+  /// No description provided for @ops_utforsk_fiske_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'For the evenings you just want to look — never in the way when you are hungry.'**
+  String get ops_utforsk_fiske_intro;
+
+  /// No description provided for @ops_utforsk_fiske_napp.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} bites left today'**
+  String ops_utforsk_fiske_napp(int n);
+
+  /// No description provided for @ops_utforsk_fiske_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast out — find things you did not know you wanted. Right saves, up adds to the basket.'**
+  String get ops_utforsk_fiske_line;
+
+  /// No description provided for @ops_utforsk_fiske_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast out'**
+  String get ops_utforsk_fiske_cta;
+
+  /// No description provided for @ops_utforsk_pose_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprise bags nearby'**
+  String get ops_utforsk_pose_title;
+
+  /// No description provided for @ops_utforsk_pose_left_today.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left today'**
+  String ops_utforsk_pose_left_today(int n);
+
+  /// No description provided for @ops_utforsk_pose_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Surplus from the shops at a fraction. The contents are revealed under the northern lights at delivery.'**
+  String get ops_utforsk_pose_line;
+
+  /// No description provided for @ops_utforsk_pose_left.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left'**
+  String ops_utforsk_pose_left(int n);
+
+  /// No description provided for @ops_utforsk_pose_value.
+  ///
+  /// In en, this message translates to:
+  /// **'worth at least {kr} kr'**
+  String ops_utforsk_pose_value(int kr);
+
+  /// No description provided for @ops_utforsk_pose_pickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up {window}'**
+  String ops_utforsk_pose_pickup(String window);
+
+  /// No description provided for @ops_utforsk_pose_price.
+  ///
+  /// In en, this message translates to:
+  /// **'{kr} kr'**
+  String ops_utforsk_pose_price(int kr);
+
+  /// No description provided for @ops_utforsk_pose_secure.
+  ///
+  /// In en, this message translates to:
+  /// **'Grab one'**
+  String get ops_utforsk_pose_secure;
+
+  /// No description provided for @ops_utforsk_pose_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No bags nearby right now — the shops list them when they have surplus.'**
+  String get ops_utforsk_pose_empty;
+
+  /// No description provided for @ops_utforsk_automat.
+  ///
+  /// In en, this message translates to:
+  /// **'The bag machine'**
+  String get ops_utforsk_automat;
+
+  /// No description provided for @ops_utforsk_automat_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull the lever · {kr} kr'**
+  String ops_utforsk_automat_line(int kr);
+
+  /// No description provided for @ops_utforsk_promo_label.
+  ///
+  /// In en, this message translates to:
+  /// **'SURPRISE BAG · GREENS & GOODIES'**
+  String get ops_utforsk_promo_label;
+
+  /// No description provided for @ops_utforsk_promo_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Get the bag'**
+  String get ops_utforsk_promo_cta;
+
+  /// No description provided for @ops_utforsk_promo_left.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left · real count'**
+  String ops_utforsk_promo_left(int n);
+
+  /// No description provided for @ops_utforsk_feed_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new here yet'**
+  String get ops_utforsk_feed_empty_title;
+
+  /// No description provided for @ops_utforsk_feed_empty_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow shops nearby and they show up here.'**
+  String get ops_utforsk_feed_empty_text;
+
+  /// No description provided for @ops_utforsk_nyheter_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'{bydel} · today'**
+  String ops_utforsk_nyheter_chip(String bydel);
+
+  /// No description provided for @ops_utforsk_nyheter_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New from the shops'**
+  String get ops_utforsk_nyheter_title;
+
+  /// No description provided for @ops_utforsk_nyheter_bergensk.
+  ///
+  /// In en, this message translates to:
+  /// **'From Bergen'**
+  String get ops_utforsk_nyheter_bergensk;
+
+  /// No description provided for @ops_utforsk_nyheter_order.
+  ///
+  /// In en, this message translates to:
+  /// **'Order · {price}'**
+  String ops_utforsk_nyheter_order(String price);
+
+  /// No description provided for @ops_utforsk_nyheter_see_store.
+  ///
+  /// In en, this message translates to:
+  /// **'See shop'**
+  String get ops_utforsk_nyheter_see_store;
+
+  /// No description provided for @ops_utforsk_nyheter_see.
+  ///
+  /// In en, this message translates to:
+  /// **'See'**
+  String get ops_utforsk_nyheter_see;
+
+  /// No description provided for @ops_utforsk_nyheter_footer.
+  ///
+  /// In en, this message translates to:
+  /// **'Only shops near you · no ads'**
+  String get ops_utforsk_nyheter_footer;
+
+  /// No description provided for @ops_utforsk_nyheter_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No news from the shops today.'**
+  String get ops_utforsk_nyheter_empty;
 }
 
 class _AppLocalizationsDelegate

@@ -1,15 +1,18 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
 /// Copy for the Meg screens (agil-3 Phase 7). Keys `a3_meg_*`; the design's
 /// wording (`meg`, `favoritter`, `konto`, `varsler`, `borte`) verbatim.
+// ignore: unused_import
+import '../../../main.dart' show languages;
+
 abstract final class A3MegCopy {
   // Header (≈L5942)
-  static String a3_meg_fra(String name, String bydel) => '$name fra $bydel';
+  static String a3_meg_fra(String name, String bydel) => languages.meg_fra(name, bydel);
   static const String a3_meg_bydel_sub = 'Bergenhus';
   static const String a3_meg_premie_boble = 'Premie: gratis levering';
   static const String a3_meg_gullbillett = 'Gullbilletten';
   static const String a3_meg_gullbillett_sub = 'Gi 200 · få 200 poeng';
   static const String a3_meg_del = 'Del';
-  static String a3_meg_gullbillett_kode(int give, int get, String code) => 'Gi $give poeng, få $get poeng · $code';
+  static String a3_meg_gullbillett_kode(int give, int get, String code) => languages.meg_gullbillett_kode(give, get, code);
 
   // Poeng card
   static const String a3_meg_ditt_nivaa = 'DITT NIVÅ';
@@ -18,9 +21,9 @@ abstract final class A3MegCopy {
   static const String a3_meg_premiehylla = 'Premiehylla';
   static const String a3_meg_slik = 'Slik får du poeng';
   static const String a3_meg_nivaa_note = 'Nivået påvirkes aldri av at du bruker poeng';
-  static String a3_meg_til_neste(int n, String next) => '$n poeng til $next';
-  static String a3_meg_venter(int n) => '$n poeng er på vei';
-  static String a3_meg_opptjent(int n) => '$n poeng opptjent siste 12 mnd';
+  static String a3_meg_til_neste(int n, String next) => languages.meg_til_neste(n, next);
+  static String a3_meg_venter(int n) => languages.meg_venter(n);
+  static String a3_meg_opptjent(int n) => languages.meg_opptjent(n);
 
   // Meg-rader (≈L6031)
   static const String a3_meg_rad_nivaa = 'Nivå';
@@ -35,8 +38,8 @@ abstract final class A3MegCopy {
   static const String a3_meg_rad_konto = 'Konto';
   static const String a3_meg_rad_bestillinger = 'Bestillinger';
   static const String a3_meg_rad_varsler = 'Varsler';
-  static String a3_meg_liga_plass(int rank) => '$rank. plass';
-  static String a3_meg_favoritter_antall(int n) => '$n steder';
+  static String a3_meg_liga_plass(int rank) => languages.meg_liga_plass(rank);
+  static String a3_meg_favoritter_antall(int n) => languages.meg_favoritter_antall(n);
 
   // Slik får du poeng (Ark)
   static const String a3_meg_slik_title = 'Slik får du poeng';
@@ -89,7 +92,7 @@ abstract final class A3MegCopy {
   static const String a3_meg_varsler_slaa_paa = 'Slå på varsler for tilbud';
   static const String a3_meg_varsler_angre = 'Angre';
   static const List<String> a3_meg_varsler_filtre = ['Alle', 'Ordre', 'Tilbud', 'Ægil'];
-  static String a3_meg_varsler_fjernet(String t) => 'Fjernet «$t»';
+  static String a3_meg_varsler_fjernet(String t) => languages.meg_varsler_fjernet(t);
 
   // Mens du var borte (≈L7322)
   static const String a3_meg_borte_kicker = 'MENS DU VAR BORTE';

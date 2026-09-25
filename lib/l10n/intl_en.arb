@@ -1505,5 +1505,2056 @@
   "aegil_disclosure_title": "About Ægil",
   "aegil_disclosure_body": "Ægil is an assistant made by Ærend, not a person. Below level 3 Ægil does nothing with your money without a tap from you, and everything Ægil does can be undone for 7 days. Ærend posts in the feed are never written in Ægil's voice.",
   "aegil_disclosure_short": "Made with AI. Ægil is an assistant made by Ærend, not a person.",
-  "aegil_disclosure_terms": "Terms"
+  "aegil_disclosure_terms": "Terms",
+  "ops_sok_title": "What are you looking for?",
+  "@ops_sok_title": {},
+  "ops_sok_subtitle": "A word — and I search. A wish — and I run the errand.",
+  "@ops_sok_subtitle": {},
+  "ops_sok_hint": "Search Bergen — shops, goods, districts",
+  "@ops_sok_hint": {},
+  "ops_sok_voice": "Speak",
+  "@ops_sok_voice": {},
+  "ops_sok_onske_title": "This sounds like an errand",
+  "@ops_sok_onske_title": {},
+  "ops_sok_onske_line": "A basket with delivery in under 20 seconds — you pay yourself",
+  "@ops_sok_onske_line": {},
+  "ops_sok_onske_cta": "Ask Ægil",
+  "@ops_sok_onske_cta": {},
+  "ops_sok_butikker": "{n, plural, =1{1 shop} other{{n} shops}}",
+  "@ops_sok_butikker": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_produkter": "{n, plural, =1{1 product} other{{n} products}}",
+  "@ops_sok_produkter": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_butikker_label": "Shops",
+  "@ops_sok_butikker_label": {},
+  "ops_sok_produkter_label": "Products",
+  "@ops_sok_produkter_label": {},
+  "ops_sok_treff": "{n} hits in Bergen",
+  "@ops_sok_treff": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_eta": "{min} min",
+  "@ops_sok_eta": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_add": "Add",
+  "@ops_sok_add": {},
+  "ops_sok_see": "See",
+  "@ops_sok_see": {},
+  "ops_sok_free": "Free",
+  "@ops_sok_free": {},
+  "ops_sok_closed": "Closed",
+  "@ops_sok_closed": {},
+  "ops_sok_ask_aegil": "ASK ÆGIL",
+  "@ops_sok_ask_aegil": {},
+  "ops_sok_compare": "Compare «{q}» on price and delivery",
+  "@ops_sok_compare": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sok_ingen_title": "No hits for «{q}» in Bergen yet",
+  "@ops_sok_ingen_title": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sok_ingen_line": "Try another word, or let Ægil look for you.",
+  "@ops_sok_ingen_line": {},
+  "ops_sok_ingen_cta": "Let Ægil find the nearest",
+  "@ops_sok_ingen_cta": {},
+  "ops_sok_kategorier": "Categories",
+  "@ops_sok_kategorier": {},
+  "ops_sok_utforsker": "Explorer · {tried} of {total} tried",
+  "@ops_sok_utforsker": {
+    "placeholders": {
+      "tried": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_alle": "All {n}",
+  "@ops_sok_alle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_aegil_kicker": "ASK ÆGIL",
+  "@ops_sok_aegil_kicker": {},
+  "ops_sok_aegil_line": "Say what you need. I run the errand.",
+  "@ops_sok_aegil_line": {},
+  "ops_sok_aegil_eks1": "Taco night for four under 500 kr",
+  "@ops_sok_aegil_eks1": {},
+  "ops_sok_aegil_eks2": "Cheapest shrimp nearby",
+  "@ops_sok_aegil_eks2": {},
+  "ops_sok_aegil_start": "Start a chat",
+  "@ops_sok_aegil_start": {},
+  "ops_sok_aegil_skriv": "Type or speak",
+  "@ops_sok_aegil_skriv": {},
+  "ops_sok_nylig": "RECENT",
+  "@ops_sok_nylig": {},
+  "ops_sok_populaert": "POPULAR NOW",
+  "@ops_sok_populaert": {},
+  "ops_sok_oppdrag_kicker": "THIS WEEK'S MISSION · +{points} POINTS",
+  "@ops_sok_oppdrag_kicker": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sok_oppdrag_se": "See",
+  "@ops_sok_oppdrag_se": {},
+  "ops_sok_clear_recent": "Clear",
+  "@ops_sok_clear_recent": {},
+  "ops_kasse_bryggen": "Bryggen",
+  "@ops_kasse_bryggen": {},
+  "ops_kasse_kassen": "Checkout",
+  "@ops_kasse_kassen": {},
+  "ops_kasse_ror": "Ægil rows to the quay",
+  "@ops_kasse_ror": {},
+  "ops_kasse_levering": "Delivery",
+  "@ops_kasse_levering": {},
+  "ops_kasse_henting": "Pickup",
+  "@ops_kasse_henting": {},
+  "ops_kasse_tom_kicker": "ÆGIL",
+  "@ops_kasse_tom_kicker": {},
+  "ops_kasse_tom_title": "The basket is empty — shall we find something in Bergen?",
+  "@ops_kasse_tom_title": {},
+  "ops_kasse_tom_cta": "Browse Bergen",
+  "@ops_kasse_tom_cta": {},
+  "ops_kasse_tom_tilbud": "Tonight's offers",
+  "@ops_kasse_tom_tilbud": {},
+  "ops_kasse_tom_rett": "Straight to the basket",
+  "@ops_kasse_tom_rett": {},
+  "ops_kasse_legg_mer": "Add something more",
+  "@ops_kasse_legg_mer": {},
+  "ops_kasse_glemte_drikke": "Forgot a drink?",
+  "@ops_kasse_glemte_drikke": {},
+  "ops_kasse_fjern": "Remove",
+  "@ops_kasse_fjern": {},
+  "ops_kasse_endre": "Change",
+  "@ops_kasse_endre": {},
+  "ops_kasse_adr_tittel": "Deliver to",
+  "@ops_kasse_adr_tittel": {},
+  "ops_kasse_adr_velg": "Choose an address",
+  "@ops_kasse_adr_velg": {},
+  "ops_kasse_hent_tittel": "Pick up at",
+  "@ops_kasse_hent_tittel": {},
+  "ops_kasse_se_kart": "See the map",
+  "@ops_kasse_se_kart": {},
+  "ops_kasse_tid_asap": "As soon as possible",
+  "@ops_kasse_tid_asap": {},
+  "ops_kasse_tid_innen": "By {t} · {a}–{b} min",
+  "@ops_kasse_tid_innen": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      },
+      "a": {
+        "type": "int"
+      },
+      "b": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_kasse_betaling_ved": "Paid at order",
+  "@ops_kasse_betaling_ved": {},
+  "ops_kasse_vipps": "Vipps",
+  "@ops_kasse_vipps": {},
+  "ops_kasse_kort": "Card",
+  "@ops_kasse_kort": {},
+  "ops_kasse_beskjed_bud": "A note for the courier",
+  "@ops_kasse_beskjed_bud": {},
+  "ops_kasse_beskjed_butikk": "A note for the shop",
+  "@ops_kasse_beskjed_butikk": {},
+  "ops_kasse_beskjed_hint": "The gate is open …",
+  "@ops_kasse_beskjed_hint": {},
+  "ops_kasse_flere_valg": "More options",
+  "@ops_kasse_flere_valg": {},
+  "ops_kasse_hentetid": "Pickup time",
+  "@ops_kasse_hentetid": {},
+  "ops_kasse_hentetid_line": "The shop packs for this time",
+  "@ops_kasse_hentetid_line": {},
+  "ops_kasse_tips_title": "Give the courier a little extra?",
+  "@ops_kasse_tips_title": {},
+  "ops_kasse_tips_line": "Every krone goes to the courier.",
+  "@ops_kasse_tips_line": {},
+  "ops_kasse_tips_rad": "Tip for the courier",
+  "@ops_kasse_tips_rad": {},
+  "ops_kasse_sammendrag": "SUMMARY",
+  "@ops_kasse_sammendrag": {},
+  "ops_kasse_varer": "Items",
+  "@ops_kasse_varer": {},
+  "ops_kasse_frakt": "Delivery",
+  "@ops_kasse_frakt": {},
+  "ops_kasse_frakt_fri": "Free",
+  "@ops_kasse_frakt_fri": {},
+  "ops_kasse_avgifter": "Fees",
+  "@ops_kasse_avgifter": {},
+  "ops_kasse_rabatt": "Discount",
+  "@ops_kasse_rabatt": {},
+  "ops_kasse_aegil_linjer": "Added by Ægil · {navn} · {sum}",
+  "@ops_kasse_aegil_linjer": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      },
+      "sum": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_kasse_angre": "Undo",
+  "@ops_kasse_angre": {},
+  "ops_kasse_angret": "Removed from the basket",
+  "@ops_kasse_angret": {},
+  "ops_kasse_doren": "THE DOOR · FOR THE COURIER",
+  "@ops_kasse_doren": {},
+  "ops_kasse_doren_hint": "Floor, doorbell, entrance, code …",
+  "@ops_kasse_doren_hint": {},
+  "ops_kasse_tolk": "Interpret",
+  "@ops_kasse_tolk": {},
+  "ops_kasse_kode": "Code at delivery",
+  "@ops_kasse_kode": {},
+  "ops_kasse_kode_line": "The courier needs your code before handing over",
+  "@ops_kasse_kode_line": {},
+  "ops_kasse_gave_til": "Gift for",
+  "@ops_kasse_gave_til": {},
+  "ops_kasse_gave_navn_hint": "Name",
+  "@ops_kasse_gave_navn_hint": {},
+  "ops_kasse_overrask": "Surprise",
+  "@ops_kasse_overrask": {},
+  "ops_kasse_overrask_line": "Nothing until the doorbell",
+  "@ops_kasse_overrask_line": {},
+  "ops_kasse_si_fra": "Tell them",
+  "@ops_kasse_si_fra": {},
+  "ops_kasse_si_fra_line": "A tracking link and the card at the door",
+  "@ops_kasse_si_fra_line": {},
+  "ops_kasse_a_betale": "TO PAY NOW",
+  "@ops_kasse_a_betale": {},
+  "ops_kasse_totalt": "Total",
+  "@ops_kasse_totalt": {},
+  "ops_kasse_inkl": "All incl. VAT · no hidden fees",
+  "@ops_kasse_inkl": {},
+  "ops_kasse_cashback": "Gives {kr} back in Ærend-kroner",
+  "@ops_kasse_cashback": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_kasse_bergenske": "Bergen shops — the kroner stay in town.",
+  "@ops_kasse_bergenske": {},
+  "ops_kasse_krysser": "The errand crosses Vågen with {bud}.",
+  "@ops_kasse_krysser": {
+    "placeholders": {
+      "bud": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_kasse_betal": "Pay {kr}",
+  "@ops_kasse_betal": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_kasse_betal_vipps": "Pay with Vipps",
+  "@ops_kasse_betal_vipps": {},
+  "ops_kasse_min_ordre": "Minimum order is {kr}",
+  "@ops_kasse_min_ordre": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_kasse_velg_adresse_forst": "Choose an address first",
+  "@ops_kasse_velg_adresse_forst": {},
+  "ops_kasse_utenfor": "The shop does not deliver here",
+  "@ops_kasse_utenfor": {},
+  "ops_kasse_utenfor_line": "You can pick it up yourself instead.",
+  "@ops_kasse_utenfor_line": {},
+  "ops_kasse_velg_henting": "Choose pickup",
+  "@ops_kasse_velg_henting": {},
+  "ops_kasse_kort_legacy": "Card payment opens the regular checkout.",
+  "@ops_kasse_kort_legacy": {},
+  "ops_kasse_adr_sheet_title": "Where to?",
+  "@ops_kasse_adr_sheet_title": {},
+  "ops_kasse_adr_sheet_line": "Shops and prices follow the address.",
+  "@ops_kasse_adr_sheet_line": {},
+  "ops_kasse_adr_ny": "Add an address",
+  "@ops_kasse_adr_ny": {},
+  "ops_kasse_adr_ny_line": "The cabin, your partner, your parents …",
+  "@ops_kasse_adr_ny_line": {},
+  "ops_kasse_adr_dor_kicker": "HOW DOES THE COURIER FIND YOU?",
+  "@ops_kasse_adr_dor_kicker": {},
+  "ops_kasse_adr_dor_line": "Write as to a friend: floor, doorbell, entrance, code …",
+  "@ops_kasse_adr_dor_line": {},
+  "ops_kasse_ikke_dekket": "We do not deliver here yet — tell us and we will let you know",
+  "@ops_kasse_ikke_dekket": {},
+  "ops_kasse_si_fra_cta": "Tell me when you do",
+  "@ops_kasse_si_fra_cta": {},
+  "ops_kasse_sagt_fra": "We will let you know.",
+  "@ops_kasse_sagt_fra": {},
+  "ops_kasse_lev_sheet_title": "When do you want it?",
+  "@ops_kasse_lev_sheet_title": {},
+  "ops_kasse_lev_middag": "For dinner",
+  "@ops_kasse_lev_middag": {},
+  "ops_kasse_lev_middag_line": "The courier waits until it is fresh",
+  "@ops_kasse_lev_middag_line": {},
+  "ops_kasse_lev_kveld": "Evening treat",
+  "@ops_kasse_lev_kveld": {},
+  "ops_kasse_lev_kveld_line": "After the last Fløibanen of the evening",
+  "@ops_kasse_lev_kveld_line": {},
+  "ops_kasse_bruk_dette": "Use this",
+  "@ops_kasse_bruk_dette": {},
+  "ops_kasse_bet_sheet_title": "How would you like to pay?",
+  "@ops_kasse_bet_sheet_title": {},
+  "ops_kasse_bet_sheet_line": "The price is the same either way. No hidden fees.",
+  "@ops_kasse_bet_sheet_line": {},
+  "ops_kasse_bet_kort": "Card (Visa / Mastercard)",
+  "@ops_kasse_bet_kort": {},
+  "ops_kasse_bekreftet": "Confirmed",
+  "@ops_kasse_bekreftet": {},
+  "ops_kasse_bekreftet_line": "The shop has your errand.",
+  "@ops_kasse_bekreftet_line": {},
+  "ops_kasse_folg": "Follow the errand",
+  "@ops_kasse_folg": {},
+  "ops_kasse_billett_kicker": "ÆREND TICKET",
+  "@ops_kasse_billett_kicker": {},
+  "ops_kasse_verv": "REFER A FRIEND",
+  "@ops_kasse_verv": {},
+  "ops_kasse_gi_faa": "Give {kr} kr, get {kr} kr",
+  "@ops_kasse_gi_faa": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_kasse_billett_line": "You share from your own channels. You both get {kr} kr when your friend's first order is delivered.",
+  "@ops_kasse_billett_line": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_kasse_del_billett": "Share the ticket",
+  "@ops_kasse_del_billett": {},
+  "ops_kasse_kopier": "Copy",
+  "@ops_kasse_kopier": {},
+  "ops_kasse_kopiert": "Copied",
+  "@ops_kasse_kopiert": {},
+  "ops_kasse_lukk": "Close",
+  "@ops_kasse_lukk": {},
+  "ops_kasse_best_sammendrag": "Summary",
+  "@ops_kasse_best_sammendrag": {},
+  "ops_kasse_best_detaljer": "Details",
+  "@ops_kasse_best_detaljer": {},
+  "ops_kasse_best_bestilling": "ORDER",
+  "@ops_kasse_best_bestilling": {},
+  "ops_kasse_best_betalt_vipps": "PAID WITH VIPPS",
+  "@ops_kasse_best_betalt_vipps": {},
+  "ops_kasse_best_betalt": "Paid",
+  "@ops_kasse_best_betalt": {},
+  "ops_kasse_best_kvittering": "Receipt",
+  "@ops_kasse_best_kvittering": {},
+  "ops_kasse_best_klar": "Done",
+  "@ops_kasse_best_klar": {},
+  "ops_kasse_best_status": "ORDER STATUS",
+  "@ops_kasse_best_status": {},
+  "ops_kasse_best_din": "Your order",
+  "@ops_kasse_best_din": {},
+  "ops_kasse_best_total": "Total",
+  "@ops_kasse_best_total": {},
+  "ops_kasse_best_betaling": "Payment",
+  "@ops_kasse_best_betaling": {},
+  "ops_kasse_best_butikken": "The shop",
+  "@ops_kasse_best_butikken": {},
+  "ops_kasse_best_ordrenr": "ORDER NUMBER",
+  "@ops_kasse_best_ordrenr": {},
+  "ops_kasse_best_aerend_id": "ÆREND-ID",
+  "@ops_kasse_best_aerend_id": {},
+  "ops_kasse_best_tid": "TIMESTAMP",
+  "@ops_kasse_best_tid": {},
+  "ops_kasse_best_kvitt": "RECEIPT",
+  "@ops_kasse_best_kvitt": {},
+  "ops_kasse_best_meg": "Me · Orders",
+  "@ops_kasse_best_meg": {},
+  "ops_kasse_best_kundeservice": "Contact customer service",
+  "@ops_kasse_best_kundeservice": {},
+  "ops_kasse_best_se_alt": "See all",
+  "@ops_kasse_best_se_alt": {},
+  "ops_kasse_best_antall": "{n, plural, =1{1 item} other{{n} items}}",
+  "@ops_kasse_best_antall": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_kasse_best_ikke_funnet": "Could not find the order.",
+  "@ops_kasse_best_ikke_funnet": {},
+  "ops_kasse_best_kopiert": "Order number copied",
+  "@ops_kasse_best_kopiert": {},
+  "meg_fra": "{name} fra {bydel}",
+  "@meg_fra": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "bydel": {
+        "type": "String"
+      }
+    }
+  },
+  "meg_bydel_sub": "Bergenhus",
+  "@meg_bydel_sub": {},
+  "meg_premie_boble": "Premie: gratis levering",
+  "@meg_premie_boble": {},
+  "meg_gullbillett": "Gullbilletten",
+  "@meg_gullbillett": {},
+  "meg_gullbillett_sub": "Gi 200 · få 200 poeng",
+  "@meg_gullbillett_sub": {},
+  "meg_del": "Del",
+  "@meg_del": {},
+  "meg_gullbillett_kode": "Gi {give} poeng, få {get} poeng · {code}",
+  "@meg_gullbillett_kode": {
+    "placeholders": {
+      "give": {
+        "type": "int"
+      },
+      "get": {
+        "type": "int"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "meg_ditt_nivaa": "DITT NIVÅ",
+  "@meg_ditt_nivaa": {},
+  "meg_poeng_bruke": "POENG Å BRUKE",
+  "@meg_poeng_bruke": {},
+  "meg_hent_premien": "Hent premien",
+  "@meg_hent_premien": {},
+  "meg_premiehylla": "Premiehylla",
+  "@meg_premiehylla": {},
+  "meg_slik": "Slik får du poeng",
+  "@meg_slik": {},
+  "meg_nivaa_note": "Nivået påvirkes aldri av at du bruker poeng",
+  "@meg_nivaa_note": {},
+  "meg_til_neste": "{n} poeng til {next}",
+  "@meg_til_neste": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "next": {
+        "type": "String"
+      }
+    }
+  },
+  "meg_venter": "{n} poeng er på vei",
+  "@meg_venter": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "meg_opptjent": "{n} poeng opptjent siste 12 mnd",
+  "@meg_opptjent": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "meg_rad_nivaa": "Nivå",
+  "@meg_rad_nivaa": {},
+  "meg_rad_liga": "Fløyen-ligaen",
+  "@meg_rad_liga": {},
+  "meg_rad_liga_bli": "Bli med",
+  "@meg_rad_liga_bli": {},
+  "meg_rad_oppdrag": "UKENS OPPDRAG",
+  "@meg_rad_oppdrag": {},
+  "meg_rad_godta": "Godta",
+  "@meg_rad_godta": {},
+  "meg_rad_ikke": "Ikke dette",
+  "@meg_rad_ikke": {},
+  "meg_rad_favoritter": "Favoritter",
+  "@meg_rad_favoritter": {},
+  "meg_rad_nytt": "Nytt fra butikkene",
+  "@meg_rad_nytt": {},
+  "meg_rad_hjelp": "Hjelp og kontakt",
+  "@meg_rad_hjelp": {},
+  "meg_rad_konto": "Konto",
+  "@meg_rad_konto": {},
+  "meg_rad_bestillinger": "Bestillinger",
+  "@meg_rad_bestillinger": {},
+  "meg_rad_varsler": "Varsler",
+  "@meg_rad_varsler": {},
+  "meg_liga_plass": "{rank}. plass",
+  "@meg_liga_plass": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "meg_favoritter_antall": "{n} steder",
+  "@meg_favoritter_antall": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "meg_slik_title": "Slik får du poeng",
+  "@meg_slik_title": {},
+  "meg_fav_title": "Favoritter",
+  "@meg_fav_title": {},
+  "meg_fav_tom": "Ingen favoritter ennå",
+  "@meg_fav_tom": {},
+  "meg_fav_tom_sub": "Trykk på hjertet der du liker deg — eller kast ut i Fjordfiske.",
+  "@meg_fav_tom_sub": {},
+  "meg_fav_kast": "Kast ut",
+  "@meg_fav_kast": {},
+  "meg_fav_fot": "Favorittene dine dukker opp først i «Bestill igjen» — og gir poeng hver gang.",
+  "@meg_fav_fot": {},
+  "meg_konto_title": "Konto",
+  "@meg_konto_title": {},
+  "meg_konto_verifisert": "Vipps-verifisert",
+  "@meg_konto_verifisert": {},
+  "meg_konto_adresser": "Adresser",
+  "@meg_konto_adresser": {},
+  "meg_konto_legg_adresse": "Legg til adresse",
+  "@meg_konto_legg_adresse": {},
+  "meg_konto_betaling": "Betaling",
+  "@meg_konto_betaling": {},
+  "meg_konto_vipps_std": "Standard — raskest i Norge",
+  "@meg_konto_vipps_std": {},
+  "meg_konto_innstillinger": "Innstillinger",
+  "@meg_konto_innstillinger": {},
+  "meg_konto_varsler": "Varsler om krysningen",
+  "@meg_konto_varsler": {},
+  "meg_konto_varsler_sub": "Live på låseskjermen",
+  "@meg_konto_varsler_sub": {},
+  "meg_konto_rolig": "Roligere bevegelse",
+  "@meg_konto_rolig": {},
+  "meg_konto_rolig_sub": "Færre animasjoner i byen",
+  "@meg_konto_rolig_sub": {},
+  "meg_konto_hjelp": "Hjelp og personvern",
+  "@meg_konto_hjelp": {},
+  "meg_konto_data": "Dine data lagres i Norge",
+  "@meg_konto_data": {},
+  "meg_konto_logg_ut": "Logg ut",
+  "@meg_konto_logg_ut": {},
+  "meg_best_title": "Bestillinger",
+  "@meg_best_title": {},
+  "meg_best_tom": "Ingen bestillinger ennå",
+  "@meg_best_tom": {},
+  "meg_best_tom_sub": "Når du bestiller, finner du sporing og kvitteringer her.",
+  "@meg_best_tom_sub": {},
+  "meg_best_live": "PÅ VEI NÅ",
+  "@meg_best_live": {},
+  "meg_best_igjen": "Bestill igjen",
+  "@meg_best_igjen": {},
+  "meg_best_sporing": "Vis sporing",
+  "@meg_best_sporing": {},
+  "meg_varsler_title": "Varsler",
+  "@meg_varsler_title": {},
+  "meg_varsler_lukk": "Lukk",
+  "@meg_varsler_lukk": {},
+  "meg_varsler_vis_sporing": "Vis sporing",
+  "@meg_varsler_vis_sporing": {},
+  "meg_varsler_ikke_slike": "Ikke slike varsler",
+  "@meg_varsler_ikke_slike": {},
+  "meg_varsler_fjern": "Fjern",
+  "@meg_varsler_fjern": {},
+  "meg_varsler_tom": "Ingenting nytt siden sist",
+  "@meg_varsler_tom": {},
+  "meg_varsler_tom_sub": "Fin utsikt.",
+  "@meg_varsler_tom_sub": {},
+  "meg_varsler_slaa_paa": "Slå på varsler for tilbud",
+  "@meg_varsler_slaa_paa": {},
+  "meg_varsler_angre": "Angre",
+  "@meg_varsler_angre": {},
+  "meg_varsler_fjernet": "Fjernet «{t}»",
+  "@meg_varsler_fjernet": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "meg_borte_kicker": "MENS DU VAR BORTE",
+  "@meg_borte_kicker": {},
+  "meg_borte_title": "Tre ting fra Ægil",
+  "@meg_borte_title": {},
+  "meg_borte_se": "Se de siste 30 dagene",
+  "@meg_borte_se": {},
+  "ops_butikk_kat_open": "{n} open now · Bergen",
+  "@ops_butikk_kat_open": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_kat_bestill_bilde": "Order from a photo",
+  "@ops_butikk_kat_bestill_bilde": {},
+  "ops_butikk_kat_butikker": "Shops",
+  "@ops_butikk_kat_butikker": {},
+  "ops_butikk_kat_produkter": "Products",
+  "@ops_butikk_kat_produkter": {},
+  "ops_butikk_kat_pulse": "Right now in {kat}: {n} orders in the last hour",
+  "@ops_butikk_kat_pulse": {
+    "placeholders": {
+      "kat": {
+        "type": "String"
+      },
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_kat_bestiller_naa": "ordering now",
+  "@ops_butikk_kat_bestiller_naa": {},
+  "ops_butikk_kat_video": "VIDEO",
+  "@ops_butikk_kat_video": {},
+  "ops_butikk_kat_f_open": "Open now",
+  "@ops_butikk_kat_f_open": {},
+  "ops_butikk_kat_f_free": "Free delivery",
+  "@ops_butikk_kat_f_free": {},
+  "ops_butikk_kat_f_fast": "Under 30 min",
+  "@ops_butikk_kat_f_fast": {},
+  "ops_butikk_kat_f_top": "Top rated",
+  "@ops_butikk_kat_f_top": {},
+  "ops_butikk_kat_empty": "No shops here yet.",
+  "@ops_butikk_kat_empty": {},
+  "ops_butikk_kat_empty_products": "No products here yet.",
+  "@ops_butikk_kat_empty_products": {},
+  "ops_butikk_kat_free": "Free",
+  "@ops_butikk_kat_free": {},
+  "ops_butikk_kat_eta": "{min} min",
+  "@ops_butikk_kat_eta": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_gave_idag": "Arrives today",
+  "@ops_butikk_gave_idag": {},
+  "ops_butikk_gave_innen": "By {time}",
+  "@ops_butikk_gave_innen": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_gave_aegil": "Let Ægil find a gift ›",
+  "@ops_butikk_gave_aegil": {},
+  "ops_butikk_gave_utstilling": "This week's display · Gifts",
+  "@ops_butikk_gave_utstilling": {},
+  "ops_butikk_gave_anledninger": "Occasions",
+  "@ops_butikk_gave_anledninger": {},
+  "ops_butikk_gave_naerheten": "Shops nearby",
+  "@ops_butikk_gave_naerheten": {},
+  "ops_butikk_gave_innpakning": "FREE WRAPPING",
+  "@ops_butikk_gave_innpakning": {},
+  "ops_butikk_gave_populaert": "Popular for birthdays in {bydel}",
+  "@ops_butikk_gave_populaert": {
+    "placeholders": {
+      "bydel": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_mote_utstilling": "This week's display · Fashion",
+  "@ops_butikk_mote_utstilling": {},
+  "ops_butikk_mote_antall": "{n} pieces",
+  "@ops_butikk_mote_antall": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_skive_lagre": "Save · tell me if the price drops",
+  "@ops_butikk_skive_lagre": {},
+  "ops_butikk_skive_lagret": "Saved",
+  "@ops_butikk_skive_lagret": {},
+  "ops_butikk_skive_legg": "Add",
+  "@ops_butikk_skive_legg": {},
+  "ops_butikk_skive_hint": "Drag to spin",
+  "@ops_butikk_skive_hint": {},
+  "ops_butikk_open_til": "Open until {t}",
+  "@ops_butikk_open_til": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_apner": "Opens {t}",
+  "@ops_butikk_apner": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_stengt": "Closed now",
+  "@ops_butikk_stengt": {},
+  "ops_butikk_kjokken": "The kitchen is running",
+  "@ops_butikk_kjokken": {},
+  "ops_butikk_pauset": "The kitchen is paused",
+  "@ops_butikk_pauset": {},
+  "ops_butikk_levering": "Delivery {fee}",
+  "@ops_butikk_levering": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_aerend_idag": "{n} errands today",
+  "@ops_butikk_aerend_idag": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_kikker": "{n} looking now",
+  "@ops_butikk_kikker": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_seilas": "YOUR VOYAGE",
+  "@ops_butikk_seilas": {},
+  "ops_butikk_kjokkenet": "The kitchen",
+  "@ops_butikk_kjokkenet": {},
+  "ops_butikk_din_dor": "Your door",
+  "@ops_butikk_din_dor": {},
+  "ops_butikk_gratis_frakt": "Free delivery",
+  "@ops_butikk_gratis_frakt": {},
+  "ops_butikk_dessert": "Dessert",
+  "@ops_butikk_dessert": {},
+  "ops_butikk_ti_prosent": "10 %",
+  "@ops_butikk_ti_prosent": {},
+  "ops_butikk_min": "MIN. {p_krtoInt} KR",
+  "@ops_butikk_min": {
+    "placeholders": {
+      "p_krtoInt": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_neste": "NEXT PERK",
+  "@ops_butikk_neste": {},
+  "ops_butikk_igjen": "{p_krtoInt} kr to {navn}",
+  "@ops_butikk_igjen": {
+    "placeholders": {
+      "p_krtoInt": {
+        "type": "String"
+      },
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_havn": "The boat is in — everything unlocked",
+  "@ops_butikk_havn": {},
+  "ops_butikk_frakt_naadd": "Now I get you free delivery",
+  "@ops_butikk_frakt_naadd": {},
+  "ops_butikk_allergener": "Allergens",
+  "@ops_butikk_allergener": {},
+  "ops_butikk_apningstider": "Opening hours",
+  "@ops_butikk_apningstider": {},
+  "ops_butikk_mer": "More",
+  "@ops_butikk_mer": {},
+  "ops_butikk_del": "Share",
+  "@ops_butikk_del": {},
+  "ops_butikk_spor_aegil": "Ask Ægil",
+  "@ops_butikk_spor_aegil": {},
+  "ops_butikk_spor_aegil_line": "Menu, allergens, what is quick",
+  "@ops_butikk_spor_aegil_line": {},
+  "ops_butikk_spesial": "Ærend specials",
+  "@ops_butikk_spesial": {},
+  "ops_butikk_kjokkenluka": "Kjøkkenluka",
+  "@ops_butikk_kjokkenluka": {},
+  "ops_butikk_spar": "Save {p_krtoInt} kr",
+  "@ops_butikk_spar": {
+    "placeholders": {
+      "p_krtoInt": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_kroner": "+{p_krtoInt} kr",
+  "@ops_butikk_kroner": {
+    "placeholders": {
+      "p_krtoInt": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_mest_bestilt": "Most ordered",
+  "@ops_butikk_mest_bestilt": {},
+  "ops_butikk_inkl_mva": "Prices incl. VAT",
+  "@ops_butikk_inkl_mva": {},
+  "ops_butikk_ingen_allergener": "No allergens",
+  "@ops_butikk_ingen_allergener": {},
+  "ops_butikk_legg_til": "Add",
+  "@ops_butikk_legg_til": {},
+  "ops_butikk_ny": "New",
+  "@ops_butikk_ny": {},
+  "ops_butikk_i_kurven": "In the basket",
+  "@ops_butikk_i_kurven": {},
+  "ops_butikk_tom_kurven": "Empty the basket",
+  "@ops_butikk_tom_kurven": {},
+  "ops_butikk_kurv_antall": "{n, plural, =1{1 item} other{{n} items}}",
+  "@ops_butikk_kurv_antall": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_til_kassen": "To checkout",
+  "@ops_butikk_til_kassen": {},
+  "ops_butikk_menu_empty": "The shop is adding its menu. Try again shortly.",
+  "@ops_butikk_menu_empty": {},
+  "ops_butikk_not_found": "Could not find the shop.",
+  "@ops_butikk_not_found": {},
+  "ops_butikk_drikke_hint": "Drinks are being added by the shop this week. Bergen tap water is among the country's best anyway.",
+  "@ops_butikk_drikke_hint": {},
+  "ops_butikk_mote_label": "Fashion shop",
+  "@ops_butikk_mote_label": {},
+  "ops_butikk_gave_label": "Gift shop · {navn}",
+  "@ops_butikk_gave_label": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_anledning_label": "Occasion · {x}",
+  "@ops_butikk_anledning_label": {
+    "placeholders": {
+      "x": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_ukens": "THIS WEEK",
+  "@ops_butikk_ukens": {},
+  "ops_butikk_personalets": "STAFF PICK",
+  "@ops_butikk_personalets": {},
+  "ops_butikk_spor_butikken": "Ask the shop",
+  "@ops_butikk_spor_butikken": {},
+  "ops_butikk_til_denne": "With this: {navn} · {pris}",
+  "@ops_butikk_til_denne": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      },
+      "pris": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_pluss_legg": "+ Add",
+  "@ops_butikk_pluss_legg": {},
+  "ops_butikk_lagt_til": "Added",
+  "@ops_butikk_lagt_til": {},
+  "ops_butikk_til_hvem": "For whom",
+  "@ops_butikk_til_hvem": {},
+  "ops_butikk_merker": "Brands",
+  "@ops_butikk_merker": {},
+  "ops_butikk_alle": "All",
+  "@ops_butikk_alle": {},
+  "ops_butikk_hyllene": "The shelves",
+  "@ops_butikk_hyllene": {},
+  "ops_butikk_populaer": "Popular in Bergen",
+  "@ops_butikk_populaer": {},
+  "ops_butikk_bergensk": "From Bergen",
+  "@ops_butikk_bergensk": {},
+  "ops_butikk_innpakning": "WRAPPING",
+  "@ops_butikk_innpakning": {},
+  "ops_butikk_storrelse_hint": "Unsure about the size? Ask the shop — {navn} replies in Varsler.",
+  "@ops_butikk_storrelse_hint": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_storrelse_hint_generic": "Unsure about the size? Ask the shop — they reply in Varsler.",
+  "@ops_butikk_storrelse_hint_generic": {},
+  "ops_butikk_melding_sendt": "Your message went to the shop",
+  "@ops_butikk_melding_sendt": {},
+  "ops_butikk_melding_hint": "What would you like to know?",
+  "@ops_butikk_melding_hint": {},
+  "ops_butikk_send": "Send",
+  "@ops_butikk_send": {},
+  "ops_butikk_klede_farge": "Colour",
+  "@ops_butikk_klede_farge": {},
+  "ops_butikk_klede_storrelse": "Size",
+  "@ops_butikk_klede_storrelse": {},
+  "ops_butikk_klede_paa_lager": "In stock",
+  "@ops_butikk_klede_paa_lager": {},
+  "ops_butikk_klede_utsolgt": "Sold out",
+  "@ops_butikk_klede_utsolgt": {},
+  "ops_butikk_klede_prov": "Try it at home. The courier collects the return for free within 14 days.",
+  "@ops_butikk_klede_prov": {},
+  "ops_butikk_klede_legg": "Add to basket · {pris}",
+  "@ops_butikk_klede_legg": {
+    "placeholders": {
+      "pris": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_klede_velg_str": "Choose a size",
+  "@ops_butikk_klede_velg_str": {},
+  "ops_butikk_prod_mest_bestilt": "Most ordered tonight",
+  "@ops_butikk_prod_mest_bestilt": {},
+  "ops_butikk_prod_poeng": "+{n} points",
+  "@ops_butikk_prod_poeng": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_prod_klar": "Ready in {min} min",
+  "@ops_butikk_prod_klar": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_prod_inkl_mva": "incl. VAT",
+  "@ops_butikk_prod_inkl_mva": {},
+  "ops_butikk_prod_storrelse": "Size",
+  "@ops_butikk_prod_storrelse": {},
+  "ops_butikk_prod_velg_en": "Choose one",
+  "@ops_butikk_prod_velg_en": {},
+  "ops_butikk_prod_tillegg": "Extras",
+  "@ops_butikk_prod_tillegg": {},
+  "ops_butikk_prod_styrke": "Heat",
+  "@ops_butikk_prod_styrke": {},
+  "ops_butikk_prod_allergener": "Allergens",
+  "@ops_butikk_prod_allergener": {},
+  "ops_butikk_prod_legg": "Add · {pris}",
+  "@ops_butikk_prod_legg": {
+    "placeholders": {
+      "pris": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_prod_standard": "Standard",
+  "@ops_butikk_prod_standard": {},
+  "ops_butikk_info_allergen_line": "Every dish carries its allergens in the same place, always. Ask the courier if anything is unclear.",
+  "@ops_butikk_info_allergen_line": {},
+  "ops_butikk_info_allergen_missing": "The shop has not listed allergens yet — ask the shop before ordering.",
+  "@ops_butikk_info_allergen_missing": {},
+  "ops_butikk_info_idag": "Today",
+  "@ops_butikk_info_idag": {},
+  "ops_butikk_info_stengt": "Closed",
+  "@ops_butikk_info_stengt": {},
+  "ops_butikk_info_minste": "Minimum order {kr}",
+  "@ops_butikk_info_minste": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_info_levering": "delivery {kr}",
+  "@ops_butikk_info_levering": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_info_henting": "pickup possible",
+  "@ops_butikk_info_henting": {},
+  "ops_butikk_info_del": "Share the shop",
+  "@ops_butikk_info_del": {},
+  "ops_butikk_info_kopiert": "Link copied",
+  "@ops_butikk_info_kopiert": {},
+  "ops_butikk_ark_under": "Open now · {bydel}",
+  "@ops_butikk_ark_under": {
+    "placeholders": {
+      "bydel": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_ark_open": "Open",
+  "@ops_butikk_ark_open": {},
+  "ops_butikk_automat_title": "The bag machine",
+  "@ops_butikk_automat_title": {},
+  "ops_butikk_automat_line": "Tonight's surplus from the shops. Always worth at least double.",
+  "@ops_butikk_automat_line": {},
+  "ops_butikk_automat_igjen": "{n} left",
+  "@ops_butikk_automat_igjen": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_automat_verdi": "worth at least {kr}",
+  "@ops_butikk_automat_verdi": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_automat_styr": "Steer the claw with the arrows · the bag lands here",
+  "@ops_butikk_automat_styr": {},
+  "ops_butikk_automat_din": "THE BAG IS YOURS",
+  "@ops_butikk_automat_din": {},
+  "ops_butikk_automat_hentes": "Pick up {w}",
+  "@ops_butikk_automat_hentes": {
+    "placeholders": {
+      "w": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_butikk_automat_sikre": "Secure the bag · {kr} kr",
+  "@ops_butikk_automat_sikre": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_automat_igjen_cta": "Try again",
+  "@ops_butikk_automat_igjen_cta": {},
+  "ops_butikk_automat_avslores": "The contents are revealed under the northern lights at pickup",
+  "@ops_butikk_automat_avslores": {},
+  "ops_butikk_automat_trekk": "Pull the lever · {kr} kr",
+  "@ops_butikk_automat_trekk": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_butikk_automat_se_kurv": "See the bag in the basket",
+  "@ops_butikk_automat_se_kurv": {},
+  "ops_butikk_automat_footer": "No countdown. No blanks. The value floor is on the machine.",
+  "@ops_butikk_automat_footer": {},
+  "ops_butikk_automat_empty": "No bags in the machine tonight.",
+  "@ops_butikk_automat_empty": {},
+  "aegil_lytter": "Lytter",
+  "@aegil_lytter": {},
+  "aegil_leter": "Leter i Vågen",
+  "@aegil_leter": {},
+  "aegil_fant_tre": "Fant tre valg",
+  "@aegil_fant_tre": {},
+  "aegil_fant_noe": "Fant noe",
+  "@aegil_fant_noe": {},
+  "aegil_fikser": "Fikser kurven",
+  "@aegil_fikser": {},
+  "aegil_byttet": "Byttet",
+  "@aegil_byttet": {},
+  "aegil_sammenlikner": "Sammenlikner",
+  "@aegil_sammenlikner": {},
+  "aegil_beklager": "Beklager…",
+  "@aegil_beklager": {},
+  "aegil_det_jeg_vet": "Det jeg vet",
+  "@aegil_det_jeg_vet": {},
+  "aegil_nivaa": "Nivå · {name}",
+  "@aegil_nivaa": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aegil_hilsen": "Jeg finner det i Vågen, sjekker pris hos bergenske butikker og legger det klart i kurven.",
+  "@aegil_hilsen": {},
+  "aegil_hilsen_tom": "Vil du at jeg husker hva du liker? Da kan jeg si fra når det er tilbud på det.",
+  "@aegil_hilsen_tom": {},
+  "aegil_ja": "Ja, la oss",
+  "@aegil_ja": {},
+  "aegil_ikke_naa": "Ikke nå",
+  "@aegil_ikke_naa": {},
+  "aegil_forslag_kicker": "FORSLAG I KVELD",
+  "@aegil_forslag_kicker": {},
+  "aegil_bla_selv": "ELLER BLA SELV",
+  "@aegil_bla_selv": {},
+  "aegil_sok_kat": "Søk og kategorier",
+  "@aegil_sok_kat": {},
+  "aegil_spor": "Hva trenger du i kveld?",
+  "@aegil_spor": {},
+  "aegil_send": "Send",
+  "@aegil_send": {},
+  "aegil_varer": "{n} varer · inkl. levering",
+  "@aegil_varer": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "aegil_derfor": "Derfor:",
+  "@aegil_derfor": {},
+  "aegil_legg": "Legg i kurven",
+  "@aegil_legg": {},
+  "aegil_bytt_butikk": "Bytt butikk",
+  "@aegil_bytt_butikk": {},
+  "aegil_kvittering": "Kvittering",
+  "@aegil_kvittering": {},
+  "aegil_angre": "Angre",
+  "@aegil_angre": {},
+  "aegil_funn": "Funn",
+  "@aegil_funn": {},
+  "aegil_billigst": "Billigst",
+  "@aegil_billigst": {},
+  "aegil_velg": "Velg",
+  "@aegil_velg": {},
+  "aegil_totaler": "Alle totaler inkl. levering.",
+  "@aegil_totaler": {},
+  "aegil_bytt": "Bytt",
+  "@aegil_bytt": {},
+  "aegil_behold": "Behold",
+  "@aegil_behold": {},
+  "aegil_grunn": "Grunn:",
+  "@aegil_grunn": {},
+  "aegil_tillatelse": "Jeg er Ærends assistent, og jeg heter Ægil. Jeg er en AI. Jeg kan finne varer, sammenlikne priser med levering og foreslå kurver. Du betaler alltid selv.",
+  "@aegil_tillatelse": {},
+  "aegil_hva_faar": "Hva Ægil får gjøre",
+  "@aegil_hva_faar": {},
+  "aegil_alle_nivaaer": "Alle fem nivåer",
+  "@aegil_alle_nivaaer": {},
+  "aegil_foreslaa": "Foreslå",
+  "@aegil_foreslaa": {},
+  "aegil_foreslaa_sub": "Ægil viser kort — du trykker for å legge i kurven",
+  "@aegil_foreslaa_sub": {},
+  "aegil_standard": "Standard",
+  "@aegil_standard": {},
+  "aegil_handle": "Handle i kurven",
+  "@aegil_handle": {},
+  "aegil_handle_sub": "Ægil legger i kurven; du betaler alltid selv",
+  "@aegil_handle_sub": {},
+  "aegil_saa_mye": "Så mye kan Ægil gjøre",
+  "@aegil_saa_mye": {},
+  "aegil_ikke_funnet": "Fant ikke noe i Vågen for det.",
+  "@aegil_ikke_funnet": {},
+  "aegil_ikke_funnet_sub": "Prøv et annet ord, eller bla selv.",
+  "@aegil_ikke_funnet_sub": {},
+  "aegil_alder": "18+ · ikke verifisert",
+  "@aegil_alder": {},
+  "aegil_alder_sub": "Bekreft alderen din med BankID i Konto før jeg kan hjelpe med dette.",
+  "@aegil_alder_sub": {},
+  "aegil_bankid": "Til Konto · BankID",
+  "@aegil_bankid": {},
+  "aegil_allergen": "Sjekk alltid allergener på varen. Ægil kan ta feil.",
+  "@aegil_allergen": {},
+  "aegil_ob_poeng": "+{n} Ægil-poeng",
+  "@aegil_ob_poeng": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "aegil_ob_ferdig": "Da vet jeg nok til å begynne.",
+  "@aegil_ob_ferdig": {},
+  "aegil_kurv_bar": "Kurv · {n} · {kr} kr · {tid}",
+  "@aegil_kurv_bar": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "kr": {
+        "type": "int"
+      },
+      "tid": {
+        "type": "String"
+      }
+    }
+  },
+  "aegil_betal_vipps": "Betal med Vipps",
+  "@aegil_betal_vipps": {},
+  "aegil_minne_title": "Det Ægil vet om deg",
+  "@aegil_minne_title": {},
+  "aegil_minne_stemmer": "Stemmer",
+  "@aegil_minne_stemmer": {},
+  "aegil_minne_fjern": "Fjern",
+  "@aegil_minne_fjern": {},
+  "aegil_minne_legg": "Legg til",
+  "@aegil_minne_legg": {},
+  "aegil_minne_varsler": "VARSLER",
+  "@aegil_minne_varsler": {},
+  "aegil_minne_glem": "Glem alt",
+  "@aegil_minne_glem": {},
+  "aegil_minne_glem_sub": "Ægil sletter alt den har lært om deg. Nivået ditt beholder du.",
+  "@aegil_minne_glem_sub": {},
+  "aegil_minne_tom": "Ægil husker ingenting ennå.",
+  "@aegil_minne_tom": {},
+  "aegil_tillit": "Tillitsregnskap",
+  "@aegil_tillit": {},
+  "aegil_tillit_spart": "Spart {kr} kr denne måneden",
+  "@aegil_tillit_spart": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "aegil_tillit_funn": "{n} funn brukt",
+  "@aegil_tillit_funn": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "aegil_tillit_mot": "{n} ganger sa Ægil fra mot egen interesse",
+  "@aegil_tillit_mot": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "aegil_brett_title": "Ægil fant",
+  "@aegil_brett_title": {},
+  "aegil_brett_legg": "Legg til",
+  "@aegil_brett_legg": {},
+  "aegil_brett_ikke": "Ikke for meg",
+  "@aegil_brett_ikke": {},
+  "aegil_brett_tom": "Ingenting nytt akkurat nå.",
+  "@aegil_brett_tom": {},
+  "aegil_greeting": "Hei! Hva trenger du i kveld?",
+  "@aegil_greeting": {},
+  "pts_premiehylla_title": "Premiehylla",
+  "@pts_premiehylla_title": {},
+  "pts_premiehylla_sub": "Bytt poeng i noe godt fra Bergen",
+  "@pts_premiehylla_sub": {},
+  "pts_maal_label": "MÅLET DITT",
+  "@pts_maal_label": {},
+  "pts_mine_premier": "Mine premier",
+  "@pts_mine_premier": {},
+  "pts_hylla_intro": "Hylla denne måneden. Prisene står i poeng — aldri i kroner. Sett én premie som mål, så følger Ægil deg dit.",
+  "@pts_hylla_intro": {},
+  "pts_badge_maal": "MÅL",
+  "@pts_badge_maal": {},
+  "pts_badge_utsolgt": "UTSOLGT",
+  "@pts_badge_utsolgt": {},
+  "pts_hent": "Hent",
+  "@pts_hent": {},
+  "pts_sett_maal": "Sett som mål",
+  "@pts_sett_maal": {},
+  "pts_er_maal": "Målet ditt",
+  "@pts_er_maal": {},
+  "pts_laast_title": "Låst ennå",
+  "@pts_laast_title": {},
+  "pts_gjelder": "Premier gjelder i 60 dager fra du henter dem. Utsolgte kommer tilbake neste måned.",
+  "@pts_gjelder": {},
+  "pts_nivaa": "Nivå",
+  "@pts_nivaa": {},
+  "pts_poeng": "poeng",
+  "@pts_poeng": {},
+  "pts_igjen": "{n} igjen",
+  "@pts_igjen": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "pts_til_laas": "{n} poeng til",
+  "@pts_til_laas": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "pts_velger_kicker": "ÆGIL VELGER",
+  "@pts_velger_kicker": {},
+  "pts_velger_title": "Premien Ægil valgte",
+  "@pts_velger_title": {},
+  "pts_velger_sub": "Én premie fra hylla di — valgt for deg.",
+  "@pts_velger_sub": {},
+  "pts_velger_verdi": "Verdi minst 300 kr",
+  "@pts_velger_verdi": {},
+  "pts_velger_hent": "Hent premien",
+  "@pts_velger_hent": {},
+  "pts_velger_bra": "Bra",
+  "@pts_velger_bra": {},
+  "pts_velger_ikke": "Ikke for meg",
+  "@pts_velger_ikke": {},
+  "pts_velger_hopp": "Hopp over",
+  "@pts_velger_hopp": {},
+  "pts_velger_tilbake": "Tilbake til Premiehylla",
+  "@pts_velger_tilbake": {},
+  "pts_velger_tom": "Hylla er tom akkurat nå.",
+  "@pts_velger_tom": {},
+  "pts_liga_title": "Fløyen-ligaen",
+  "@pts_liga_title": {},
+  "pts_liga_vilkaar": "Vilkår",
+  "@pts_liga_vilkaar": {},
+  "pts_liga_hele": "Hele Bergen",
+  "@pts_liga_hele": {},
+  "pts_liga_bydel": "Din bydel",
+  "@pts_liga_bydel": {},
+  "pts_liga_pl": "PL.",
+  "@pts_liga_pl": {},
+  "pts_liga_klatrer": "KLATRER",
+  "@pts_liga_klatrer": {},
+  "pts_liga_poeng": "POENG",
+  "@pts_liga_poeng": {},
+  "pts_liga_premier": "Månedens premier",
+  "@pts_liga_premier": {},
+  "pts_liga_premier_sub": "Kan ikke kjøpes på hylla",
+  "@pts_liga_premier_sub": {},
+  "pts_liga_slutt": "Se månedsslutten",
+  "@pts_liga_slutt": {},
+  "pts_liga_navn": "Navn i ligaen",
+  "@pts_liga_navn": {},
+  "pts_liga_bli_med": "Bli med",
+  "@pts_liga_bli_med": {},
+  "pts_liga_meld_av": "Meld av",
+  "@pts_liga_meld_av": {},
+  "pts_liga_ikke_med": "Du er ikke med i ligaen ennå.",
+  "@pts_liga_ikke_med": {},
+  "pts_liga_seremoni_title": "Månedsslutten",
+  "@pts_liga_seremoni_title": {},
+  "pts_liga_seremoni_sub": "Den første i måneden deles premiene ut, og ligaen nullstilles. Nivået ditt beholder du.",
+  "@pts_liga_seremoni_sub": {},
+  "pts_liga_plass": "Du ligger på {rank}. plass",
+  "@pts_liga_plass": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "pts_liga_maaned": "POENG I {p_monthtoUpperCase}",
+  "@pts_liga_maaned": {
+    "placeholders": {
+      "p_monthtoUpperCase": {
+        "type": "String"
+      }
+    }
+  },
+  "pts_opprykk_kicker": "NIVÅOPPRYKK",
+  "@pts_opprykk_kicker": {},
+  "pts_opprykk_gave": "HER ER NOE TIL DEG",
+  "@pts_opprykk_gave": {},
+  "pts_opprykk_valgt": "Ægil valgte den til deg. Koster ingen poeng.",
+  "@pts_opprykk_valgt": {},
+  "pts_opprykk_hent": "Hent",
+  "@pts_opprykk_hent": {},
+  "pts_opprykk_hylla": "Hylla di har fått tre nye premier.",
+  "@pts_opprykk_hylla": {},
+  "pts_opprykk_se": "Se hylla",
+  "@pts_opprykk_se": {},
+  "pts_opprykk_hopp": "Hopp over",
+  "@pts_opprykk_hopp": {},
+  "pts_opprykk_ferdig": "Ferdig",
+  "@pts_opprykk_ferdig": {},
+  "pts_opprykk_naa": "Du er nå {tier}",
+  "@pts_opprykk_naa": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "pts_fiske_title": "Fjordfiske",
+  "@pts_fiske_title": {},
+  "pts_fiske_sub": "Du og Ægil fisker i Vågen",
+  "@pts_fiske_sub": {},
+  "pts_fiske_kast": "Kast ut",
+  "@pts_fiske_kast": {},
+  "pts_fiske_ute": "Snøret er ute … vent på napp",
+  "@pts_fiske_ute": {},
+  "pts_fiske_dra": "DRA INN!",
+  "@pts_fiske_dra": {},
+  "pts_fiske_napp": "Napp!",
+  "@pts_fiske_napp": {},
+  "pts_fiske_plus": "+5 poeng",
+  "@pts_fiske_plus": {},
+  "pts_fiske_slipp": "Slipp",
+  "@pts_fiske_slipp": {},
+  "pts_fiske_legg": "Legg i kurven",
+  "@pts_fiske_legg": {},
+  "pts_fiske_lagre": "Lagre",
+  "@pts_fiske_lagre": {},
+  "pts_fiske_hent": "Hent",
+  "@pts_fiske_hent": {},
+  "pts_fiske_fra_hylla": "Fra hylla di",
+  "@pts_fiske_fra_hylla": {},
+  "pts_fiske_agn": "Agn",
+  "@pts_fiske_agn": {},
+  "pts_fiske_fangst": "Fangst",
+  "@pts_fiske_fangst": {},
+  "pts_fiske_premiefangst": "Premiefangst",
+  "@pts_fiske_premiefangst": {},
+  "pts_fiske_se_lagret": "Se det jeg lagret",
+  "@pts_fiske_se_lagret": {},
+  "pts_fiske_i_morgen": "Kast ut igjen i morgen",
+  "@pts_fiske_i_morgen": {},
+  "pts_fiske_hint": "Trykk på snøret når det rykker.",
+  "@pts_fiske_hint": {},
+  "pts_fiske_snakk": "Kast {kast} av {av} · {lagret} lagret",
+  "@pts_fiske_snakk": {
+    "placeholders": {
+      "kast": {
+        "type": "int"
+      },
+      "av": {
+        "type": "int"
+      },
+      "lagret": {
+        "type": "int"
+      }
+    }
+  },
+  "pts_fiske_slutt": "Det var alt for nå. Du lagret {lagret} og la {kjopt} i kurven.",
+  "@pts_fiske_slutt": {
+    "placeholders": {
+      "lagret": {
+        "type": "int"
+      },
+      "kjopt": {
+        "type": "int"
+      }
+    }
+  },
+  "pts_napp_dagens": "Dagens napp: +5",
+  "@pts_napp_dagens": {},
+  "pts_napp_bergensk": "Bergensk",
+  "@pts_napp_bergensk": {},
+  "pts_napp_legg": "Legg til",
+  "@pts_napp_legg": {},
+  "pts_napp_ikke_naa": "Ikke nå",
+  "@pts_napp_ikke_naa": {},
+  "pts_napp_aldri": "Aldri dette",
+  "@pts_napp_aldri": {},
+  "pts_entry_title": "Poeng",
+  "@pts_entry_title": {},
+  "pts_entry_sub": "Se hylla og nivået ditt",
+  "@pts_entry_sub": {},
+  "ops_sporing_live": "Live · {stadie}",
+  "@ops_sporing_live": {
+    "placeholders": {
+      "stadie": {
+        "type": "String"
+      }
+    }
+  },
+  "order_status_finding_courier": "Finding a courier",
+  "@order_status_finding_courier": {},
+  "ops_sporing_om_min": "in {n} min",
+  "@ops_sporing_om_min": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sporing_kommer": "Arriving",
+  "@ops_sporing_kommer": {},
+  "ops_sporing_klar_naa": "Ready now",
+  "@ops_sporing_klar_naa": {},
+  "ops_sporing_klar_kl": "Ready {t}",
+  "@ops_sporing_klar_kl": {
+    "placeholders": {
+      "t": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_hentes_hos": "Pick up at {s}",
+  "@ops_sporing_hentes_hos": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_star_klar": "Waiting at the counter",
+  "@ops_sporing_star_klar": {},
+  "ops_sporing_hentet_takk": "Picked up · thanks!",
+  "@ops_sporing_hentet_takk": {},
+  "ops_sporing_butikken_paa_vei": "The shop is on its way",
+  "@ops_sporing_butikken_paa_vei": {},
+  "ops_sporing_levert_av": "Delivered by {s}",
+  "@ops_sporing_levert_av": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_leveres_av": "Delivered by {s}",
+  "@ops_sporing_leveres_av": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_levert_for_tiden": "Delivered · early",
+  "@ops_sporing_levert_for_tiden": {},
+  "ops_sporing_avbestilt": "Cancelled",
+  "@ops_sporing_avbestilt": {},
+  "ops_sporing_gave_venter": "{navn} is waiting on the quay",
+  "@ops_sporing_gave_venter": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_steg": "Step {n} of {of}",
+  "@ops_sporing_steg": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "of": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sporing_pluss_poeng": "+{n} points",
+  "@ops_sporing_pluss_poeng": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sporing_aegil": "Ægil",
+  "@ops_sporing_aegil": {},
+  "ops_sporing_aegil_folger": "· follows your errand",
+  "@ops_sporing_aegil_folger": {},
+  "ops_sporing_neste": "Next: {navn}",
+  "@ops_sporing_neste": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_oppdrag_fullfort": "Errand complete",
+  "@ops_sporing_oppdrag_fullfort": {},
+  "ops_sporing_finner_bud_hint": "I am finding you a courier — it usually takes a couple of minutes.",
+  "@ops_sporing_finner_bud_hint": {},
+  "ops_sporing_mottatt": "RECEIVED",
+  "@ops_sporing_mottatt": {},
+  "ops_sporing_tilberedes_kicker": "PREPARING",
+  "@ops_sporing_tilberedes_kicker": {},
+  "ops_sporing_paa_komfyren": "On the stove",
+  "@ops_sporing_paa_komfyren": {},
+  "ops_sporing_min_igjen": "{m} min left",
+  "@ops_sporing_min_igjen": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sporing_klar_kicker": "READY",
+  "@ops_sporing_klar_kicker": {},
+  "ops_sporing_disken": "It is at the counter. Say «{navn}» and it is yours.",
+  "@ops_sporing_disken": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_vis_veien": "Show the way",
+  "@ops_sporing_vis_veien": {},
+  "ops_sporing_forseglet": "Sealed",
+  "@ops_sporing_forseglet": {},
+  "ops_sporing_ankommer_om": "Arriving in",
+  "@ops_sporing_ankommer_om": {},
+  "ops_sporing_haaper": "Enjoy.",
+  "@ops_sporing_haaper": {},
+  "ops_sporing_spart_tid": "TIME SAVED",
+  "@ops_sporing_spart_tid": {},
+  "ops_sporing_kart_kommer": "The map appears once the courier has picked up.",
+  "@ops_sporing_kart_kommer": {},
+  "ops_sporing_ingen_kart_partner": "The shop drives itself — no live position.",
+  "@ops_sporing_ingen_kart_partner": {},
+  "ops_sporing_avslutt": "Finish the order",
+  "@ops_sporing_avslutt": {},
+  "ops_sporing_fjordfiske": "Fjordfiske",
+  "@ops_sporing_fjordfiske": {},
+  "ops_sporing_mens_du_venter": "while you wait",
+  "@ops_sporing_mens_du_venter": {},
+  "ops_sporing_sammendrag": "Summary",
+  "@ops_sporing_sammendrag": {},
+  "ops_sporing_detaljer": "Details",
+  "@ops_sporing_detaljer": {},
+  "ops_sporing_hjelp": "Help",
+  "@ops_sporing_hjelp": {},
+  "ops_sporing_bankid": "BankID verified",
+  "@ops_sporing_bankid": {},
+  "ops_sporing_kode_tittel": "Code at delivery",
+  "@ops_sporing_kode_tittel": {},
+  "ops_sporing_kode_under": "Show the code to the courier, or read it out.",
+  "@ops_sporing_kode_under": {},
+  "ops_sporing_kode_offline": "Without a connection only the PIN is shown.",
+  "@ops_sporing_kode_offline": {},
+  "ops_sporing_kode_no_door": "The bag cannot be left at the door.",
+  "@ops_sporing_kode_no_door": {},
+  "ops_sporing_kode_laast": "The code is locked after too many tries — the courier takes a photo and a name.",
+  "@ops_sporing_kode_laast": {},
+  "ops_sporing_kode_bekreftet": "The code was confirmed",
+  "@ops_sporing_kode_bekreftet": {},
+  "ops_sporing_valg_tittel": "{butikk} has not seen the order",
+  "@ops_sporing_valg_tittel": {
+    "placeholders": {
+      "butikk": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_valg_line": "Wait for a new window, or cancel with a full refund. Nothing happens until you choose.",
+  "@ops_sporing_valg_line": {},
+  "ops_sporing_vent": "Wait",
+  "@ops_sporing_vent": {},
+  "ops_sporing_avbestill": "Cancel",
+  "@ops_sporing_avbestill": {},
+  "ops_sporing_venter": "We are waiting for the shop.",
+  "@ops_sporing_venter": {},
+  "ops_sporing_refundert": "Cancelled — the money returns to Vipps.",
+  "@ops_sporing_refundert": {},
+  "ops_sporing_uten_nett": "Offline · showing the last known status",
+  "@ops_sporing_uten_nett": {},
+  "ops_sporing_notif_store_on_the_way": "The shop is on its way",
+  "@ops_sporing_notif_store_on_the_way": {},
+  "ops_sporing_notif_store_delivered": "Delivered by the shop",
+  "@ops_sporing_notif_store_delivered": {},
+  "ops_sporing_hjelp_ring": "Call {rolle}",
+  "@ops_sporing_hjelp_ring": {
+    "placeholders": {
+      "rolle": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_hjelp_melding": "Message {rolle}",
+  "@ops_sporing_hjelp_melding": {
+    "placeholders": {
+      "rolle": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_hjelp_ring_kort": "Call",
+  "@ops_sporing_hjelp_ring_kort": {},
+  "ops_sporing_hjelp_send": "Send a message",
+  "@ops_sporing_hjelp_send": {},
+  "ops_sporing_hjelp_kort_bud": "On the way · {min} min away · cycling since {siden} · {rating}",
+  "@ops_sporing_hjelp_kort_bud": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "siden": {
+        "type": "String"
+      },
+      "rating": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_hjelp_kort_bud_enkel": "On the way to you",
+  "@ops_sporing_hjelp_kort_bud_enkel": {},
+  "ops_sporing_hjelp_kort_butikk": "Delivers itself tonight",
+  "@ops_sporing_hjelp_kort_butikk": {},
+  "ops_sporing_hjelp_vanlige": "COMMON QUESTIONS",
+  "@ops_sporing_hjelp_vanlige": {},
+  "ops_sporing_hjelp_dor": "Cannot find the door",
+  "@ops_sporing_hjelp_dor": {},
+  "ops_sporing_hjelp_dor_line": "Send directions or call",
+  "@ops_sporing_hjelp_dor_line": {},
+  "ops_sporing_hjelp_mangler": "Something is missing from the order",
+  "@ops_sporing_hjelp_mangler": {},
+  "ops_sporing_hjelp_mangler_line": "Refund on Vipps within 2 min",
+  "@ops_sporing_hjelp_mangler_line": {},
+  "ops_sporing_hjelp_kundeservice": "Talk to Ærend in Bergen",
+  "@ops_sporing_hjelp_kundeservice": {},
+  "ops_sporing_hjelp_kundeservice_line": "Customer service · open until 23:00",
+  "@ops_sporing_hjelp_kundeservice_line": {},
+  "ops_sporing_ring_kobler": "Connecting …",
+  "@ops_sporing_ring_kobler": {},
+  "ops_sporing_ring_maskert": "The number is masked — nobody sees the other's phone.",
+  "@ops_sporing_ring_maskert": {},
+  "ops_sporing_ring_ingen": "No line yet — call the number below.",
+  "@ops_sporing_ring_ingen": {},
+  "ops_sporing_demp": "Mute",
+  "@ops_sporing_demp": {},
+  "ops_sporing_avslutt_samtale": "End",
+  "@ops_sporing_avslutt_samtale": {},
+  "ops_sporing_hoyttaler": "Speaker",
+  "@ops_sporing_hoyttaler": {},
+  "ops_sporing_tilbake": "Back to help",
+  "@ops_sporing_tilbake": {},
+  "ops_sporing_aktiv": "Active now · replies quickly",
+  "@ops_sporing_aktiv": {},
+  "ops_sporing_skriver": "typing …",
+  "@ops_sporing_skriver": {},
+  "ops_sporing_meld_hint": "Write a message",
+  "@ops_sporing_meld_hint": {},
+  "ops_sporing_send": "Send",
+  "@ops_sporing_send": {},
+  "ops_sporing_dor_tittel": "This is what {navn} sees now",
+  "@ops_sporing_dor_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_lev_adresse": "DELIVERY ADDRESS",
+  "@ops_sporing_lev_adresse": {},
+  "ops_sporing_veibeskrivelse": "DIRECTIONS",
+  "@ops_sporing_veibeskrivelse": {},
+  "ops_sporing_dor_hint": "Entrance at the back, yellow door, 3rd floor …",
+  "@ops_sporing_dor_hint": {},
+  "ops_sporing_send_til": "Send to {navn}",
+  "@ops_sporing_send_til": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_ring_navn": "Call {navn}",
+  "@ops_sporing_ring_navn": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_skriv_selv": "Write it yourself",
+  "@ops_sporing_skriv_selv": {},
+  "ops_sporing_hva_mangler": "What is missing?",
+  "@ops_sporing_hva_mangler": {},
+  "ops_sporing_mangler_line": "Tap what did not arrive. We handle the rest.",
+  "@ops_sporing_mangler_line": {},
+  "ops_sporing_mangler_refusjon": "You get the money back on Vipps within 2 min — or a new delivery if you prefer.",
+  "@ops_sporing_mangler_refusjon": {},
+  "ops_sporing_ks_tittel": "Ærend in Bergen",
+  "@ops_sporing_ks_tittel": {},
+  "ops_sporing_ks_line": "Open until 23:00 · replies within 2 min",
+  "@ops_sporing_ks_line": {},
+  "ops_sporing_ks_chat": "Chat with us",
+  "@ops_sporing_ks_chat": {},
+  "ops_sporing_ks_chat_line": "Fastest · Kari and Ola are on duty",
+  "@ops_sporing_ks_chat_line": {},
+  "ops_sporing_ks_ring": "Call 55 00 12 34",
+  "@ops_sporing_ks_ring": {},
+  "ops_sporing_ks_ring_line": "Standard rate · about 1 min wait",
+  "@ops_sporing_ks_ring_line": {},
+  "ops_sporing_ks_ordre": "Order #{nr} is already attached, so you need not explain.",
+  "@ops_sporing_ks_ordre": {
+    "placeholders": {
+      "nr": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_ks_nummer": "+4755001234",
+  "@ops_sporing_ks_nummer": {},
+  "ops_sporing_sendt_tittel": "Sent",
+  "@ops_sporing_sendt_tittel": {},
+  "ops_sporing_sendt_tekst": "{rolle} has your message.",
+  "@ops_sporing_sendt_tekst": {
+    "placeholders": {
+      "rolle": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_meldt_tittel": "Reported",
+  "@ops_sporing_meldt_tittel": {},
+  "ops_sporing_ferdig": "Done",
+  "@ops_sporing_ferdig": {},
+  "ops_sporing_butikken": "the shop",
+  "@ops_sporing_butikken": {},
+  "ops_sporing_bud": "the courier",
+  "@ops_sporing_bud": {},
+  "ops_sporing_Butikken": "The shop",
+  "@ops_sporing_Butikken": {},
+  "ops_sporing_Budet": "The courier",
+  "@ops_sporing_Budet": {},
+  "ops_sporing_levert_punkt": "Delivered.",
+  "@ops_sporing_levert_punkt": {},
+  "ops_sporing_poeng_for_ordren": "points for this order",
+  "@ops_sporing_poeng_for_ordren": {},
+  "ops_sporing_liga_gap": "{n} from {plass}. place",
+  "@ops_sporing_liga_gap": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "plass": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_sporing_forste_gang": "+{n} points · first time at {butikk}",
+  "@ops_sporing_forste_gang": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "butikk": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_en_gang": "Once per shop",
+  "@ops_sporing_en_gang": {},
+  "ops_sporing_levert_til_deg": "Delivered to you · the code was confirmed by {hvem}",
+  "@ops_sporing_levert_til_deg": {
+    "placeholders": {
+      "hvem": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_levert_til_deg_uten": "Delivered to you by {hvem}",
+  "@ops_sporing_levert_til_deg_uten": {
+    "placeholders": {
+      "hvem": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_takk": "Thanks to {navn}",
+  "@ops_sporing_takk": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_sporing_hvordan": "How did it go?",
+  "@ops_sporing_hvordan": {},
+  "ops_sporing_takk_vurdering": "Thanks for the rating",
+  "@ops_sporing_takk_vurdering": {},
+  "ops_sporing_noe_galt": "Something wrong with the order?",
+  "@ops_sporing_noe_galt": {},
+  "ops_sporing_ikke_funnet": "Could not find the order.",
+  "@ops_sporing_ikke_funnet": {},
+  "ops_sporing_laster": "Fetching status …",
+  "@ops_sporing_laster": {},
+  "ops_sporing_demo_ny": "New order → Confirmed",
+  "@ops_sporing_demo_ny": {},
+  "ops_sporing_demo_neste": "Next stage",
+  "@ops_sporing_demo_neste": {},
+  "ops_sporing_demo_usett": "Unseen shop",
+  "@ops_sporing_demo_usett": {},
+  "ops_sporing_demo_kode_ok": "Code OK",
+  "@ops_sporing_demo_kode_ok": {},
+  "ops_sporing_demo_pin_feil": "PIN wrong ×3",
+  "@ops_sporing_demo_pin_feil": {},
+  "ops_sporing_demo_offline": "Offline / online",
+  "@ops_sporing_demo_offline": {},
+  "ops_utforsk_title": "Explore",
+  "@ops_utforsk_title": {},
+  "ops_utforsk_tab_feed": "Feed",
+  "@ops_utforsk_tab_feed": {},
+  "ops_utforsk_tab_fiske": "Fjordfiske",
+  "@ops_utforsk_tab_fiske": {},
+  "ops_utforsk_tab_pose": "Surprise bag",
+  "@ops_utforsk_tab_pose": {},
+  "ops_utforsk_filter_alle": "All",
+  "@ops_utforsk_filter_alle": {},
+  "ops_utforsk_kommer_snart": "Coming soon",
+  "@ops_utforsk_kommer_snart": {},
+  "ops_utforsk_drift_title": "Ærend · Drift",
+  "@ops_utforsk_drift_title": {},
+  "ops_utforsk_drift_pinned": "Pinned until {until}",
+  "@ops_utforsk_drift_pinned": {
+    "placeholders": {
+      "until": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_utforsk_fiske_intro": "For the evenings you just want to look — never in the way when you are hungry.",
+  "@ops_utforsk_fiske_intro": {},
+  "ops_utforsk_fiske_napp": "{n} bites left today",
+  "@ops_utforsk_fiske_napp": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_fiske_line": "Cast out — find things you did not know you wanted. Right saves, up adds to the basket.",
+  "@ops_utforsk_fiske_line": {},
+  "ops_utforsk_fiske_cta": "Cast out",
+  "@ops_utforsk_fiske_cta": {},
+  "ops_utforsk_pose_title": "Surprise bags nearby",
+  "@ops_utforsk_pose_title": {},
+  "ops_utforsk_pose_left_today": "{n} left today",
+  "@ops_utforsk_pose_left_today": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_pose_line": "Surplus from the shops at a fraction. The contents are revealed under the northern lights at delivery.",
+  "@ops_utforsk_pose_line": {},
+  "ops_utforsk_pose_left": "{n} left",
+  "@ops_utforsk_pose_left": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_pose_value": "worth at least {kr} kr",
+  "@ops_utforsk_pose_value": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_pose_pickup": "Pick up {window}",
+  "@ops_utforsk_pose_pickup": {
+    "placeholders": {
+      "window": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_utforsk_pose_price": "{kr} kr",
+  "@ops_utforsk_pose_price": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_pose_secure": "Grab one",
+  "@ops_utforsk_pose_secure": {},
+  "ops_utforsk_pose_empty": "No bags nearby right now — the shops list them when they have surplus.",
+  "@ops_utforsk_pose_empty": {},
+  "ops_utforsk_automat": "The bag machine",
+  "@ops_utforsk_automat": {},
+  "ops_utforsk_automat_line": "Pull the lever · {kr} kr",
+  "@ops_utforsk_automat_line": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_promo_label": "SURPRISE BAG · GREENS & GOODIES",
+  "@ops_utforsk_promo_label": {},
+  "ops_utforsk_promo_cta": "Get the bag",
+  "@ops_utforsk_promo_cta": {},
+  "ops_utforsk_promo_left": "{n} left · real count",
+  "@ops_utforsk_promo_left": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ops_utforsk_feed_empty_title": "Nothing new here yet",
+  "@ops_utforsk_feed_empty_title": {},
+  "ops_utforsk_feed_empty_text": "Follow shops nearby and they show up here.",
+  "@ops_utforsk_feed_empty_text": {},
+  "ops_utforsk_nyheter_chip": "{bydel} · today",
+  "@ops_utforsk_nyheter_chip": {
+    "placeholders": {
+      "bydel": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_utforsk_nyheter_title": "New from the shops",
+  "@ops_utforsk_nyheter_title": {},
+  "ops_utforsk_nyheter_bergensk": "From Bergen",
+  "@ops_utforsk_nyheter_bergensk": {},
+  "ops_utforsk_nyheter_order": "Order · {price}",
+  "@ops_utforsk_nyheter_order": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "ops_utforsk_nyheter_see_store": "See shop",
+  "@ops_utforsk_nyheter_see_store": {},
+  "ops_utforsk_nyheter_see": "See",
+  "@ops_utforsk_nyheter_see": {},
+  "ops_utforsk_nyheter_footer": "Only shops near you · no ads",
+  "@ops_utforsk_nyheter_footer": {},
+  "ops_utforsk_nyheter_empty": "No news from the shops today.",
+  "@ops_utforsk_nyheter_empty": {}
 }
