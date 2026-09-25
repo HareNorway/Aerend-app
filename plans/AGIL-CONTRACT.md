@@ -305,6 +305,7 @@ bloc in `lib/screens/feed/*`.
 | route file | `routes/api_agentops.php`, prefix `/api/agentops`, names `agentops.*` | `POST proposals`, `GET proposals/{id}`, `POST proposals/{id}/decide`, `POST runs`, `GET config/{agent}` — the scoped Agent API; **added agil-3 Phase 2:** `GET settlements/partner/{storeId}` → `agentops.settlements.partner`, `GET settlements/courier/{courierId}` → `agentops.settlements.courier` (party-facing read APIs, UI deferred) |
 | admin | `/admin/agentsenter` → `Admin\AgentOpsAdminController`, views `super_admin/agentops/*`, nav parent `Agentsenter` (module_name `agentsenter`) | "Agent centre" |
 | console | `agentops:run {agent}`, `agentops:expire-proposals`, `agentops:seed-policies`, `agentops:settle {period}` | |
+| route (Phase 6) | `GET /api/agentops/offers/{id}/badge` → `agentops.offers.badge` (`agent_offer_from_ai`), `POST /api/agentops/couriers/{id}/whatsapp-consent` → `agentops.couriers.consent` | Bud app fields, UI deferred |
 | copy keys (spec §7, verbatim) | `agent_badge_proposed`, `agent_offer_from_ai`, `order_status_finding_courier`, `courier_pref_whatsapp_alerts`, `settlement_status_proposed/_approved/_paid`, `import_status_draft/_approved/_rejected` | agil-3 uses them as keys in its `*_copy.dart`; agil-1 writes them into ARB in Phase 8 under exactly these names |
 | payout line kind | `delivery_income` | §5.2 |
 | event | `agent.proposal_decided` v1 | §5.3 |
