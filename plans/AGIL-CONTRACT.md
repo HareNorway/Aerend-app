@@ -265,6 +265,7 @@ bloc in `lib/screens/feed/*`.
 | Kind | Name | Notes |
 |---|---|---|
 | column | `ops_feature_flags.value` | json nullable; Sync C |
+| column | `ops_delivery_codes.pin_ciphertext` | text nullable, Laravel `encrypted` cast; Phase 1. The customer's own copy of the PIN for §5.1 `delivery_code.pin` — `pin_hash` cannot give it back. Written by `DeliveryProofService::issueCode`, read only by `CustomerTrackingReadModel`. |
 | table | `ops_customer_tracking_views` | who opened tracking when — feeds "Mens du var borte" and the away summary |
 | route | `GET /api/ops/customer/orders/{orderId}/tracking` → `ops.customer.tracking` | §5.1 payload |
 | route | `GET /api/ops/customer/orders/{orderId}/events?since=` → `ops.customer.tracking.events` | polling fallback |
