@@ -7,6 +7,9 @@ import 'kasse/bestilling_sheet.dart';
 import 'kasse/kurv_screen.dart';
 import 'kit/bergen_routes.dart';
 import 'sok/sok_screen.dart';
+import 'sporing/hjelp_sheet.dart';
+import 'sporing/levert_screen.dart';
+import 'sporing/sporing_screen.dart';
 import 'utforsk/feed_nyheter_screen.dart';
 import 'utforsk/utforsk_screen.dart';
 
@@ -31,6 +34,11 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   // Phase 5
   '/bergen/kurv': (_) => const KurvScreen(embedded: false),
   '/bergen/bestilling': (_) => const BestillingScreen(),
+  // Phase 6
+  '/bergen/sporing': (_) => const SporingScreen(),
+  '/bergen/sporing/hjelp': (_) => const HjelpScreen(),
+  '/bergen/levert': (_) => const LevertScreen(),
+  '/bergen/kundeservice': (_) => const KundeserviceScreen(),
   // Phase 2. `?tab=feed` (agil-3's Meg row "Nytt fra butikkene") is the
   // design's `feed` screen; any other tab opens Utforsk on that segment.
   '/bergen/utforsk': (ctx) {

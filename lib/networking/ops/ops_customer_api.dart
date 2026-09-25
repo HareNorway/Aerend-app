@@ -124,6 +124,45 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> requestCode(int orderId) =>
       _guarded(() => _post('${_base}orders/$orderId/code', const {}));
 
+  // ── the demo panel's real triggers (debug builds only) ───────────────
+
+  /// `POST /api/ops/orders/{id}/transition` — the one write path, driven by
+  /// the demo panel on the local stack.
+  Future<Map<String, dynamic>?> transition(
+    int orderId,
+    String to, {
+    String actorType = 'store',
+  }) async {
+    if (!networkEnabled) return null;
+    try {
+      final json = await _helper.post(
+        'api/ops/orders/$orderId/transition',
+        body: {'to': to, 'actor_type': actorType, 'actor_id': 'demo'},
+      );
+      return json is Map<String, dynamic> ? json : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `ops.proof.pin` — the courier's PIN check, driven by the demo panel.
+  Future<Map<String, dynamic>?> proofPin(
+    int orderId,
+    String pin, {
+    int courierId = 0,
+  }) async {
+    if (!networkEnabled) return null;
+    try {
+      final json = await _helper.post(
+        'api/ops/proof/orders/$orderId/pin',
+        body: {'pin': pin, 'courier_id': courierId},
+      );
+      return json is Map<String, dynamic> ? json : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// `ops.customer.orders`.
   Future<List<Map<String, dynamic>>> orders({int limit = 50}) async {
     final json = await _guarded(

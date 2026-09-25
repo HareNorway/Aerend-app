@@ -42,42 +42,50 @@ class BergenStepper extends StatelessWidget {
                             : BergenTokens.paperWarm),
                 ),
               ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
-                  duration: BergenTokens.motion(
-                    context,
-                    BergenTokens.motionBase,
-                  ),
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: i < current
-                        ? BergenTokens.mintDeep
-                        : i == current
-                        ? BergenTokens.orange
-                        : (onDark
-                              ? BergenTokens.glassFill
-                              : BergenTokens.paperWarm),
-                    border: Border.all(
-                      color: i == current
-                          ? BergenTokens.orangeDeep
-                          : Colors.transparent,
+            // Each step gets a share of the width so four labels ("Klar for
+            // henting") never push the row past its bounds.
+            Expanded(
+              flex: 3,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: BergenTokens.motion(
+                      context,
+                      BergenTokens.motionBase,
+                    ),
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: i < current
+                          ? BergenTokens.mintDeep
+                          : i == current
+                          ? BergenTokens.orange
+                          : (onDark
+                                ? BergenTokens.glassFill
+                                : BergenTokens.paperWarm),
+                      border: Border.all(
+                        color: i == current
+                            ? BergenTokens.orangeDeep
+                            : Colors.transparent,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  steps[i],
-                  style: BergenTokens.text(
-                    BergenTokens.textMicro,
-                    weight: i == current ? FontWeight.w800 : FontWeight.w600,
-                    color: labelColor,
+                  const SizedBox(height: 4),
+                  Text(
+                    steps[i],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: BergenTokens.text(
+                      BergenTokens.textMicro,
+                      weight: i == current ? FontWeight.w800 : FontWeight.w600,
+                      color: labelColor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ],

@@ -871,11 +871,17 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                                 boat: boat,
                                                 onBoat: orderId == 0
                                                     ? null
-                                                    : () => openScreen(
+                                                    : () => BergenRoutes.pushOr(
                                                         context,
-                                                        TrackOrder(
-                                                          orderId: orderId,
-                                                        ),
+                                                        '/bergen/sporing/$orderId',
+                                                        orElse: () =>
+                                                            openScreen(
+                                                              context,
+                                                              TrackOrder(
+                                                                orderId:
+                                                                    orderId,
+                                                              ),
+                                                            ),
                                                       ),
                                                 playIntro: _playIntro,
                                               );

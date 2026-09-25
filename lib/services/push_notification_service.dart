@@ -14,6 +14,7 @@ import '../screens/common/splash/splash.dart';
 import '../screens/feed/postDetail/post_detail.dart';
 import '../screens/feed/storeProfile/store_profile.dart';
 import '../screens/common/wallet/walletTransaction/wallet_transaction.dart';
+import '../screens/bergen/kit/bergen_routes.dart';
 import '../screens/deliveryService/trackOrder/track_order.dart';
 import '../screens/rideService/rideDetail/ride_detail.dart';
 import '../utils/utils.dart';
@@ -49,14 +50,18 @@ class PushNotificationService {
     /// default FCM channel to enable heads up notifications.
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
 
     /// Update the iOS foreground notification presentation options to allow
     /// heads up notifications.
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
-            alert: true, badge: true, sound: true);
+          alert: true,
+          badge: true,
+          sound: true,
+        );
     await initLocalNotification();
     autoRefreshCredentialsInitialize();
   }
@@ -85,12 +90,13 @@ class PushNotificationService {
   }
 
   showNotification(RemoteMessage remote) async {
-    final Map<String, dynamic> notificationData =
-        Map<String, dynamic>.from(remote.data);
+    final Map<String, dynamic> notificationData = Map<String, dynamic>.from(
+      remote.data,
+    );
     logd(tag, notificationData.toString());
 
-    final String? feedPayloadType = notificationData[NotificationConstant.feedType]
-        ?.toString();
+    final String? feedPayloadType =
+        notificationData[NotificationConstant.feedType]?.toString();
     if (feedPayloadType == NotificationConstant.feedNewPost ||
         feedPayloadType == NotificationConstant.feedNewStory) {
       final String title =
@@ -103,8 +109,8 @@ class PushNotificationService {
         message.isNotEmpty
             ? message
             : feedPayloadType == NotificationConstant.feedNewStory
-                ? "New story"
-                : "New post",
+            ? "New story"
+            : "New post",
         NotificationDetails(
           android: AndroidNotificationDetails(
             channel.id,
@@ -129,10 +135,12 @@ class PushNotificationService {
 
     final dynamic rawType =
         notificationData[NotificationConstant.notificationType];
-    final int notificationType =
-        rawType == null ? 0 : int.tryParse(rawType.toString()) ?? 0;
+    final int notificationType = rawType == null
+        ? 0
+        : int.tryParse(rawType.toString()) ?? 0;
 
-    final bool isChatPayload = notificationType == 0 &&
+    final bool isChatPayload =
+        notificationType == 0 &&
         notificationData[NotificationConstant.userId] != null;
 
     String title =
@@ -171,9 +179,7 @@ class PushNotificationService {
       ),
     );
 
-    final bool showTray = notificationType != 0 ||
-        !isChatOpen ||
-        isChatPayload;
+    final bool showTray = notificationType != 0 || !isChatOpen || isChatPayload;
 
     if (showTray) {
       await flutterLocalNotificationsPlugin.show(
@@ -203,9 +209,9 @@ class PushNotificationService {
       handleNotificationClick(message.data, false);
     });
 
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) {
+    FirebaseMessaging.instance.getInitialMessage().then((
+      RemoteMessage? message,
+    ) {
       logd(tag, "getInitialMessage: $message");
       if (message != null) {
         handleNotificationClick(message.data, true);
@@ -224,16 +230,18 @@ class PushNotificationService {
   Future initLocalNotification() async {
     if (Platform.isIOS) {
       // set iOS Local notification.
-      var initializationSettingsAndroid =
-          const AndroidInitializationSettings('ic_notification');
+      var initializationSettingsAndroid = const AndroidInitializationSettings(
+        'ic_notification',
+      );
       var initializationSettingsIOS = const DarwinInitializationSettings(
         requestSoundPermission: true,
         requestBadgePermission: true,
         requestAlertPermission: true,
       );
       var initializationSettings = InitializationSettings(
-          android: initializationSettingsAndroid,
-          iOS: initializationSettingsIOS);
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
       await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (details) {
@@ -241,12 +249,14 @@ class PushNotificationService {
         },
       );
     } else {
-      var initializationSettingsAndroid =
-          const AndroidInitializationSettings('ic_notification');
+      var initializationSettingsAndroid = const AndroidInitializationSettings(
+        'ic_notification',
+      );
       var initializationSettingsIOS = const DarwinInitializationSettings();
       var initializationSettings = InitializationSettings(
-          android: initializationSettingsAndroid,
-          iOS: initializationSettingsIOS);
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
       await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (details) {
@@ -254,17 +264,20 @@ class PushNotificationService {
         },
       );
     }
-    FirebaseMessaging.instance.getToken().then((token) async {
-      debugPrint("$tag FCM getToken: ${token ?? 'null'}");
-      if (token != null) {
-        await prefSetString(prefDeviceToken, token);
-        if (prefGetInt(prefUserId) > 0) {
-          setFCMToken();
-        }
-      }
-    }).catchError((e) {
-      debugPrint("FCM token unavailable (likely iOS Simulator): $e");
-    });
+    FirebaseMessaging.instance
+        .getToken()
+        .then((token) async {
+          debugPrint("$tag FCM getToken: ${token ?? 'null'}");
+          if (token != null) {
+            await prefSetString(prefDeviceToken, token);
+            if (prefGetInt(prefUserId) > 0) {
+              setFCMToken();
+            }
+          }
+        })
+        .catchError((e) {
+          debugPrint("FCM token unavailable (likely iOS Simulator): $e");
+        });
     _requestPermissions();
   }
 
@@ -272,10 +285,7 @@ class PushNotificationService {
     try {
       final dynamic decoded = jsonDecode(payload ?? "{}");
       if (decoded is! Map) return;
-      await handleNotificationClick(
-        Map<String, dynamic>.from(decoded),
-        false,
-      );
+      await handleNotificationClick(Map<String, dynamic>.from(decoded), false);
     } catch (e) {
       debugPrint("$tag _selectNotification decode error: $e");
     }
@@ -301,7 +311,8 @@ class PushNotificationService {
     Widget screen = const Splash();
     bool isChatScreen = false;
 
-    final String? feedPayloadType = nd[NotificationConstant.feedType]?.toString();
+    final String? feedPayloadType = nd[NotificationConstant.feedType]
+        ?.toString();
     if (feedPayloadType == NotificationConstant.feedNewPost) {
       final String? postId = nd[NotificationConstant.postId]?.toString();
       if (postId != null && postId.isNotEmpty) {
@@ -335,9 +346,10 @@ class PushNotificationService {
           chatWithId: nd[NotificationConstant.userId].toString(),
           chatWithName: nd[NotificationConstant.title].toString(),
           chatWithImage: nd[NotificationConstant.userImg].toString(),
-          chatWithServicesName:
-              (nd[NotificationConstant.userServiceName] ?? "").toString(),
-          chatWithUserType: int.tryParse(
+          chatWithServicesName: (nd[NotificationConstant.userServiceName] ?? "")
+              .toString(),
+          chatWithUserType:
+              int.tryParse(
                 (nd[NotificationConstant.userType] ?? "-1").toString(),
               ) ??
               -1,
@@ -345,11 +357,14 @@ class PushNotificationService {
       }
     } else {
       int notificationType = int.parse(
-          (nd[NotificationConstant.notificationType] ?? 0).toString());
-      int orderId =
-          int.parse((nd[NotificationConstant.orderId] ?? 0).toString());
+        (nd[NotificationConstant.notificationType] ?? 0).toString(),
+      );
+      int orderId = int.parse(
+        (nd[NotificationConstant.orderId] ?? 0).toString(),
+      );
       int serviceCategoryId = int.parse(
-          (nd[NotificationConstant.serviceCategoryId] ?? 0).toString());
+        (nd[NotificationConstant.serviceCategoryId] ?? 0).toString(),
+      );
 
       if (notificationType == 6) {
         screen = const WalletTransaction(fromNotification: true);
@@ -360,7 +375,14 @@ class PushNotificationService {
             serviceCategoryId == 4) {
           screen = openRideDetailScreen(orderId, serviceCategoryId);
         } else if (serviceCategoryId >= 5 && serviceCategoryId <= 10) {
-          //food delivery
+          //food delivery — AGIL-1 v2 Phase 6: the Bergen Sporing screen.
+          final bergen = BergenRoutes.generate(
+            RouteSettings(name: '/bergen/sporing/$orderId'),
+          );
+          if (bergen != null) {
+            navigatorKey.currentState?.push(bergen);
+            return;
+          }
           screen = TrackOrder(
             orderId: orderId,
             isFromPlacedOrder: false,
@@ -390,29 +412,25 @@ class PushNotificationService {
     if (Platform.isIOS || Platform.isMacOS) {
       await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
       await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
-              MacOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+            MacOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
     } else if (Platform.isAndroid) {
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+          flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
       final bool isGranted =
           await androidImplementation?.areNotificationsEnabled() ?? false;
       if (!isGranted) {
-        final bool? granted =
-            await androidImplementation?.requestNotificationsPermission();
+        final bool? granted = await androidImplementation
+            ?.requestNotificationsPermission();
         debugPrint("Notification Permission: $granted");
       }
     }
@@ -421,16 +439,19 @@ class PushNotificationService {
   Future<String> autoRefreshCredentialsInitialize() async {
     try {
       AccessCredentials? pushAccessTokenCred;
-      String prefAccountAccessToken =
-          prefGetString(prefServiceAccountAccessToken).trim();
+      String prefAccountAccessToken = prefGetString(
+        prefServiceAccountAccessToken,
+      ).trim();
       if (prefAccountAccessToken.isNotEmpty) {
-        pushAccessTokenCred =
-            AccessCredentials.fromJson(jsonDecode(prefAccountAccessToken));
+        pushAccessTokenCred = AccessCredentials.fromJson(
+          jsonDecode(prefAccountAccessToken),
+        );
       }
 
       if (firebaseProjectId.trim().isEmpty) {
-        String source =
-            await rootBundle.loadString('assets/json/service_account.json');
+        String source = await rootBundle.loadString(
+          'assets/json/service_account.json',
+        );
         final serviceAccount = jsonDecode(source);
         if (serviceAccount['project_id'] != null) {
           firebaseProjectId = serviceAccount['project_id'];
@@ -442,17 +463,18 @@ class PushNotificationService {
         return pushAccessTokenCred.accessToken.data;
       }
 
-      String source =
-          await rootBundle.loadString('assets/json/service_account.json');
+      String source = await rootBundle.loadString(
+        'assets/json/service_account.json',
+      );
       final serviceAccount = jsonDecode(source);
-      var accountCredentials =
-          ServiceAccountCredentials.fromJson(serviceAccount);
+      var accountCredentials = ServiceAccountCredentials.fromJson(
+        serviceAccount,
+      );
 
       AutoRefreshingAuthClient autoRefreshingAuthClient =
-          await clientViaServiceAccount(
-        accountCredentials,
-        ['https://www.googleapis.com/auth/firebase.messaging'],
-      );
+          await clientViaServiceAccount(accountCredentials, [
+            'https://www.googleapis.com/auth/firebase.messaging',
+          ]);
 
       /// initialization
       pushAccessTokenCred = autoRefreshingAuthClient.credentials;
@@ -462,7 +484,9 @@ class PushNotificationService {
         pushAccessTokenCred = cred;
       });
       prefSetString(
-          prefServiceAccountAccessToken, jsonEncode(pushAccessTokenCred));
+        prefServiceAccountAccessToken,
+        jsonEncode(pushAccessTokenCred),
+      );
       return pushAccessTokenCred!.accessToken.data;
     } catch (e) {
       // Invalid/missing service-account JWT must not crash app startup.
