@@ -272,14 +272,14 @@ The self-delivery spec's §5 items are **requirements** here, not suggestions.
 
 ## Phase 7 — Hygiene and the human-only list
 
-- [ ] Delete `lib/screens/tracking/` if not already; triage `flutter analyze` infos on files this plan touched (deprecations only; do not chase the 641 pre-existing).
-- [ ] Story viewer with a broken `media_url` — manual pass on a device; record in `AGIL-1-REMAINING.md` §7.
-- [ ] `[ ] **HUMAN — T1** verify `GET /api/internal/feed-device-tokens` in prod; `**HUMAN — T2**` push E2E per `Hare-AdminPanel/docs/T1_T2_SMOKE_TEST.md`; `**HUMAN — T9**`, `**HUMAN — T10**`. Write status into `AGIL-1-REMAINING.md` §8. Do not attempt.
-- [ ] Composer image-picker manual pass (Hare-Store) — **HUMAN**, out of UI scope, listed so it is not lost.
-- [ ] Update `Hare-AdminPanel/docs/OPS_API.md` with the `customer/*` routes and `docs/OPS_ADMIN_GUIDE.md` "Sporing" note.
+- [x] `lib/screens/tracking/` deleted in Phase 6; the files this plan touched have 0 errors and 0 warnings (the dead null-aware warnings in the Kasse files fixed here); the remaining infos on them are `prefer_const` / `curly_braces` lints, not deprecations. The 641 pre-existing infos elsewhere are untouched.
+- [ ] **HUMAN** — Story viewer with a broken `media_url`: manual pass on a device, not run in this session; recorded in `AGIL-1-REMAINING.md` §7.
+- [ ] **HUMAN — T1** verify `GET /api/internal/feed-device-tokens` in prod; **HUMAN — T2** push E2E per `Hare-AdminPanel/docs/T1_T2_SMOKE_TEST.md`; **HUMAN — T9**, **HUMAN — T10**. Status written into `AGIL-1-REMAINING.md` §8 (not attempted; no prod access, devices or DO rights in this session).
+- [ ] **HUMAN** — Composer image-picker manual pass (Hare-Store), out of UI scope; noted in `AGIL-1-REMAINING.md` §8.
+- [x] `Hare-AdminPanel/docs/OPS_API.md`: the `customer/*` routes (Phase 1) plus `code`, `categories/{slug}/pulse`, `stores/{id}/presence`, `search/trending`, `proof/.../pin` and the order-intake note; `docs/OPS_ADMIN_GUIDE.md`: "Sporing — what the customer sees of all this".
 
 **Acceptance**
-- [ ] Commit `Phase 7: hygiene`. Human items stay unticked with notes.
+- [x] Commit `Phase 7: hygiene`. Human items stay unticked with notes.
 
 ---
 

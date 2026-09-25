@@ -30,11 +30,11 @@ Future<AddressListItem?> showAdresseSheet(
     rows: [
       for (final a in addresses)
         BergenArkRow(
-          label: '${a.type ?? ''} · ${(a.address ?? '').split(',').first}'
+          label: '${a.type} · ${a.address.split(',').first}'
               .replaceFirst(RegExp(r'^ · '), ''),
           value: [
-            if ((a.flatNo ?? '').isNotEmpty) a.flatNo!,
-            if ((a.landmark ?? '').isNotEmpty) a.landmark!,
+            if (a.flatNo.isNotEmpty) a.flatNo,
+            if (a.landmark.isNotEmpty) a.landmark,
           ].join(' · '),
           icon: a.addressId == selectedId
               ? Icons.check_circle_rounded
@@ -226,8 +226,8 @@ Future<int?> showBetalingSheet(BuildContext context, {int? selected}) {
 /// Coverage at address change (geo spec §4): a guarded read; 404 / flag off
 /// skips silently. Returns false only when the answer says "not covered".
 Future<bool> checkCoverage(OpsCustomerApi api, AddressListItem a) async {
-  final lat = double.tryParse('${a.lat ?? ''}');
-  final lng = double.tryParse('${a.long ?? ''}');
+  final lat = double.tryParse(a.lat);
+  final lng = double.tryParse(a.long);
   if (lat == null || lng == null) return true;
   final json = await api.coverage(lat, lng);
   if (json == null) return true;

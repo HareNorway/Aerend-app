@@ -383,6 +383,17 @@ mechanisms until a schema decision is made. It is the first task of
 
 ## 7. Other outstanding UI work
 
+> **Update 2026-09-25 (AGIL-1 v2, Phases 0–7).** The naming debt below is
+> closed: `lib/theme/bergen_tokens.dart` (Sync C), the Bergen mark assets
+> renamed, `test_app/` deleted. The customer's ærend is now end to end on
+> `agil-1`: Utforsk, Søk, Kategori / Butikk / Poseautomaten, Kurv & kasse,
+> Sporing / Hjelp / Levert — every screen reachable by a `/bergen/...` route in
+> `bergen_routes_agil1.dart`, with the differences from the design recorded in
+> `plans/AGIL-1-PLAN-v2.md`'s ledgers. `lib/screens/tracking/` is retired into
+> `lib/screens/bergen/sporing/`. **Story viewer with a broken `media_url`:**
+> still a manual pass on a device — not run in the 2026-09-25 session (no
+> device run in that session); the item stands.
+
 **Bergen reskin naming debt** (customer app). The reskin landed — Bergen palette,
 `AerendBergenAuthTokens`, correct app icon on `#173E48`. Not finished:
 
@@ -448,7 +459,10 @@ commission, 1.55 % payment fee). Marked in `docs/OPS_POLICY_KEYS.md`. Each is on
 `policy_version` it was quoted under.
 
 **Four ops tasks need prod access, a real device, or DO rights** — all
-**PENDING — HUMAN**, none attempted:
+**PENDING — HUMAN**, none attempted. *Status 2026-09-25 (AGIL-1 v2 Phase 7):
+still not attempted — the session had no production access, no devices and no
+DO rights; the runbook is `Hare-AdminPanel/docs/T1_T2_SMOKE_TEST.md`. The
+composer image-picker pass (Hare-Store, §7) is likewise still a human pass.*
 
 - **T1** verify `GET /api/internal/feed-device-tokens` is live in prod. A 404
   means Laravel never deployed the route and needs a `workflow_dispatch` run.

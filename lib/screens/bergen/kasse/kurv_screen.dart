@@ -194,7 +194,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     );
     if (chosen == null || !mounted) return;
     setState(() => _address = chosen);
-    prefSetInt(prefNewDeliveryAddressId, chosen.addressId ?? 0);
+    prefSetInt(prefNewDeliveryAddressId, chosen.addressId);
     final preview = await _api.preview();
     if (mounted) setState(() => _preview = preview);
     // Coverage (geo spec §4): skipped silently when the endpoint is not here.
@@ -207,8 +207,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         label: KasseCopy.a1_kasse_si_fra_cta,
         onTap: () async {
           Navigator.of(context).pop();
-          final lat = double.tryParse('${chosen.lat ?? ''}');
-          final lng = double.tryParse('${chosen.long ?? ''}');
+          final lat = double.tryParse(chosen.lat);
+          final lng = double.tryParse(chosen.long);
           if (lat != null && lng != null)
             await _customer.waitlist(lat, lng, address: chosen.address);
           if (mounted) showBergenToast(context, KasseCopy.a1_kasse_sagt_fra);
@@ -469,7 +469,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                               ? (_preview?.storeAddress ??
                                     _preview?.storeName ??
                                     '')
-                              : (_address?.address?.split(',').first ??
+                              : (_address?.address.split(',').first ??
                                     KasseCopy.a1_kasse_adr_velg),
                           action: _pickup
                               ? KasseCopy.a1_kasse_se_kart
