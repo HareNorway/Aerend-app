@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/points/points_models.dart';
 import '../../../screens/aegil/widgets/aegil_disclosure.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// Ukens oppdrag — one mission, with a decline that works once a week.
 ///

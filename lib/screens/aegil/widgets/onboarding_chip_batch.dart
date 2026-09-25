@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/aegil_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 import 'aegil_disclosure.dart';
 
 /// The onboarding chip-card batch (AGIL-2 Phase 6).

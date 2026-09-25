@@ -1363,7 +1363,7 @@ class HomeV1State extends State<HomeV1>
                                     child: LoadImageSimple(
                                       width: r.sizeValue(40, min: 34, max: 46),
                                       height: r.sizeValue(40, min: 34, max: 46),
-                                      image: 'assets/Logo/reen/mark-coral-navy.png',
+                                      image: 'assets/Logo/aerend_mark_navy.png',
                                     ),
                                   ),
                                 ),

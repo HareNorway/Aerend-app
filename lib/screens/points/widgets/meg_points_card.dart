@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/points/points_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// The Poeng card on "Meg": balance, Nivå with progress, and the expiry notice.
 ///

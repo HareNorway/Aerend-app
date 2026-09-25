@@ -65,7 +65,7 @@ class FeedBrandedHeader extends StatelessWidget {
                 colorFilter: const ColorFilter.mode(
                     Colors.white, BlendMode.srcIn),
                 child: Image.asset(
-                  'assets/Logo/reen-mark-coral.png',
+                  'assets/Logo/aerend_mark_coral.png',
                   filterQuality: FilterQuality.high,
                 ),
               ),

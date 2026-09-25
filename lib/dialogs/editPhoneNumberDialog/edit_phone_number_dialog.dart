@@ -5,7 +5,7 @@ import '../../screens/common/auth/auth_style.dart';
 import '../../screens/common/otpVerify/otp_verify_dl.dart';
 import '../../ui/kit/ae_sheet.dart';
 import '../../theme/design_scale.dart';
-import '../../theme/reen_pre_club_theme.dart';
+import '../../theme/bergen_tokens.dart';
 import '../../utils/utils.dart';
 import 'edit_phone_number_dialog_bloc.dart';
 

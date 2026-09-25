@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/chat_card_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// Chat card types from `designs/Ægil-chatten - tweaks.dc.html` (AGIL-2 Phase 9).
 ///

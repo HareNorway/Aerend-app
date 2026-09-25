@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/points/points_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// A claimable prize on the shelf.
 ///

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
-import '../theme/reen_pre_club_theme.dart';
+import '../theme/bergen_tokens.dart';
 
 /// Opaque navy curtain held over a logout teardown.
 ///

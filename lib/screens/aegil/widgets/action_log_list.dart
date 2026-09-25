@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/against_interest_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// "Mens du var borte" — what Ægil did while the customer was away (AGIL-2 Phase 8).
 ///

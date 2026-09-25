@@ -29,7 +29,7 @@ import '../firebase_options.dart';
 import '../googleApi/geocoding_api_call.dart';
 import '../main.dart';
 import '../redux/store.dart';
-import '../theme/reen_pre_club_theme.dart';
+import '../theme/bergen_tokens.dart';
 import '../screens/common/base_dl.dart';
 import '../screens/common/homeMainV1/home_main_v1.dart';
 import '../screens/common/login/login_dl.dart';

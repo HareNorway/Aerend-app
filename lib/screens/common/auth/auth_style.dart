@@ -9,7 +9,7 @@ import '../../../commonView/customCountryCodePicker/custom_country_code_picker.d
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
 import '../../../commonView/custom_text_field.dart';
 import '../../../theme/design_scale.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../ui/kit/ae_theme.dart';
 import '../../../ui/kit/ae_rise_in.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/against_interest_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// Advice that costs Ærend money, rendered first in the turn (AGIL-2 Phase 8).
 ///

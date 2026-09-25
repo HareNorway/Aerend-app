@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/suggestion_models.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 import 'aegil_disclosure.dart';
 
 /// The suggestion tray (AGIL-2 Phase 7).

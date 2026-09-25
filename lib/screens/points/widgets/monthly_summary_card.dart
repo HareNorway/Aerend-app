@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// The monthly points summary.
 ///

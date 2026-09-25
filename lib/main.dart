@@ -29,6 +29,8 @@ import 'screens/common/vipps/vipps_return_screens.dart';
 import 'services/push_notification_service.dart';
 import 'networking/feed/feed_api_constant.dart';
 import 'utils/utils.dart';
+import 'screens/bergen/bergen_routes_agil1.dart';
+import 'screens/bergen/bergen_routes_agil3.dart';
 
 //Created at 20/05/2021 11:30 AM
 
@@ -275,6 +277,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
           initialRoute: snurreLauncherRouteNameFor(const Splash()),
           routes: {
             snurreLauncherRouteNameFor(const Splash()): (_) => const Splash(),
+            // Sync C (AGIL-CONTRACT §2.2): each branch owns one route map.
+            ...bergenRoutesAgil1(),
+            ...bergenRoutesAgil3(),
           },
           navigatorObservers: [
             snurreRouteObserver,

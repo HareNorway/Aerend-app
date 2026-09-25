@@ -121,7 +121,7 @@ class _HeroCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Image.asset(
-              'assets/Logo/reen/mark-coral-navy.png',
+              'assets/Logo/aerend_mark_navy.png',
               width: 52,
               height: 52,
               fit: BoxFit.cover,

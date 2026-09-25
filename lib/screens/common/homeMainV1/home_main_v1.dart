@@ -4,7 +4,7 @@ import '../../../utils/utils.dart';
 import '../../deliveryService/searchStore/search_store.dart';
 import '../../feed/feed_shell_screen.dart';
 import '../../snurre/snurre_chat_screen.dart';
-import '../account/account.dart';
+import '../../bergen/meg/meg_host.dart';
 import '../home/bergen/bergen_home.dart';
 import '../home/bergen/bergen_nav.dart';
 import '../orderCart/order_cart.dart';
@@ -135,8 +135,8 @@ class HomeMainV1State extends State<HomeMainV1> {
           padding: EdgeInsets.only(bottom: bergenNavReserve(context)),
           child: OrderCart(fromStore: widget.fromStore),
         ),
-        // 3 — Meg
-        const Account(),
+        // 3 — Meg (Sync C seam: agil-3 fills MegScreen)
+        const MegScreen(),
       ],
     );
 

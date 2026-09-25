@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
-import '../../../theme/reen_pre_club_theme.dart';
+import '../../../theme/bergen_tokens.dart';
 
 /// AI disclosure, shown on first use in every surface that can show agent output
 /// (AGIL-2-PLAN §1: "AI disclosure on first use in every surface").

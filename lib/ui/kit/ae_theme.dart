@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme/reen_pre_club_theme.dart';
+import '../../theme/bergen_tokens.dart';
 import '../../theme/sc_saas_theme.dart';
 
 /// Normalize admin/API hex input to `#RRGGBB` or null when invalid/empty.

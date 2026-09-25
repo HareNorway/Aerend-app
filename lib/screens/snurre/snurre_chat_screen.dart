@@ -720,7 +720,7 @@ class _SnurreChatScreenState extends State<SnurreChatScreen> with RouteAware {
           child: ColorFiltered(
             colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
             child: Image.asset(
-              'assets/Logo/reen-mark-coral.png',
+              'assets/Logo/aerend_mark_coral.png',
               width: 52,
               height: 52,
               fit: BoxFit.contain,
