@@ -479,6 +479,33 @@ commission, 1.55 % payment fee). Marked in `docs/OPS_POLICY_KEYS.md`. Each is on
 
 ---
 
+**agil-3 (Agents, Geo, Self-delivery) — spec open questions, status at agil-3 Phase 8.**
+Each ships behind a policy default so the branch is merge-ready; the decision
+changes one `PolicyService::set()` call or one config value, never code.
+
+- **BLOCKED — decision · Agents #1** WhatsApp provider (Meta Cloud vs Twilio). Shipped with `NoneProvider` (manual mode); `AGENTOPS_WHATSAPP_PROVIDER` + credentials unblock `MetaCloudProvider`.
+- **BLOCKED — decision · Agents #2** consent wording for courier outreach (legal). Template text in `docs/AGENTOPS_COURIER_COMMS.md`; auto-outreach stays off until signed off.
+- **BLOCKED — decision · Agents #3** payout rails. Agent C stops at `exported` (CSV); the Vipps Utbetaling agreement is the same blocker as the courier disbursements above.
+- **BLOCKED — decision · Agents #4** dispatch timing (T1 measured from `accepted`). Policy `agt.courier_comms.t1_minutes`; default kept.
+- **BLOCKED — decision · Agents #5** first approval of product drafts (`agt.product_onboarding.first_approval` = `aerend`). Switch to `partner` when partners may approve their own.
+- **BLOCKED — decision · Agents #6** live model (Ollama on the Mac Studio). `AGENTOPS_MODEL_DRIVER=fake` here; `OllamaModelDriver` is one config value away.
+- **BLOCKED — decision · Geo #1** cell scheme. Decided in `docs/GEO_AUDIT.md`: geohash-7 (H3 when a PHP binding exists).
+- **BLOCKED — decision · Geo #2** geocoder fallback (Kartverket only). Policy; a second provider is one client class.
+- **BLOCKED — decision · Geo #3** fee banding by distance. Flat 29 kr kept; the band table is a policy.
+- **BLOCKED — decision · Geo #4** cutover. `geo.engine.cutover` off; the `geo:shadow-compare` report appended to `docs/GEO_AUDIT.md` decides.
+- **BLOCKED — decision · Geo #5** legacy `areas` retirement after cutover.
+- **BLOCKED — decision · Geo #6** Sweden (second country pack, payments). Not built; the pack format is documented.
+- **BLOCKED — decision · Geo #7** presence retention (30 d default, `geo:prune-presence`).
+- **BLOCKED — decision · Self-delivery #1** approval required to enable (default: required).
+- **BLOCKED — decision · Self-delivery #2** tips on self-delivered orders (default: to the store).
+- **BLOCKED — decision · Self-delivery #3** emergency override — not built; support handles it manually.
+- **BLOCKED — decision · Self-delivery #4** defaults (20 min prep / 10 min reminder) — policies `pd.*`.
+- **BLOCKED — decision · Self-delivery #5–#6** v2 butikkmodus identity and T&C — separate spec; nothing built.
+- **BLOCKED — credential · Kassal** `AGENTOPS_KASSAL_API_KEY` (product onboarding by EAN runs on the fixture until set).
+- **BLOCKED — credential · Slack** `AGENTOPS_SLACK_WEBHOOK` for proposal notifications (silent without it).
+
+The four **PENDING — HUMAN** items above (T1, T2, T9, T10) are unchanged.
+
 ## 9. Blocked on the eventual main merge
 
 Not blocked on agil-2 any more — that merge has happened.

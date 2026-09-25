@@ -300,14 +300,30 @@ CTAs, toasts; never re-implement them.
 
 ## Phase 8 — Merge readiness and hand-off
 
-- [ ] `AdminI18nDictionaryTest` green after appending EN entries for every agil-3 admin label (append inside `DICT`; no key that exists with a different value).
-- [ ] Docs complete: `AGENTOPS_ARCHITECTURE.md`, `AGENTOPS_COURIER_COMMS.md` (legal gate), `GEO_AUDIT.md`, `GEO_GUIDE.md`, `PARTNER_DELIVERY_GUIDE.md`; each ends with a "Deferred to later plans" list (Partner UI, Bud UI, v2 butikkmodus, live model, real providers).
-- [ ] Contract §6 steps 1 and 3 run **from this branch**: suites green, `ContractNamesTest` no skips for agil-3, `git diff --name-only agil-1...agil-3` audited against §2, `git merge-tree --write-tree agil-1 agil-3` shows only §2.4 append conflicts. Record the outputs here.
-- [ ] Update `plans/AGIL-1-REMAINING.md` §8 with the status of every spec open question (#1–#6 agents, #1–#7 geo, #1–#6 self-delivery) as `BLOCKED — decision` lines, and the four HUMAN items unchanged.
-- [ ] Report to the agil-1 plan: "agil-3 merge-ready at `<hash>`". agil-1 executes the merge.
+- [x] `AdminI18nDictionaryTest` green after appending EN entries for every agil-3 admin label (append inside `DICT`; no key that exists with a different value).
+- [x] Docs complete: `AGENTOPS_ARCHITECTURE.md`, `AGENTOPS_COURIER_COMMS.md` (legal gate), `GEO_AUDIT.md`, `GEO_GUIDE.md`, `PARTNER_DELIVERY_GUIDE.md`; each ends with a "Deferred to later plans" list (Partner UI, Bud UI, v2 butikkmodus, live model, real providers).
+- [x] Contract §6 steps 1 and 3 run **from this branch**: suites green, `ContractNamesTest` no skips for agil-3, `git diff --name-only agil-1...agil-3` audited against §2, `git merge-tree --write-tree agil-1 agil-3` shows only §2.4 append conflicts. Record the outputs here.
+- [x] Update `plans/AGIL-1-REMAINING.md` §8 with the status of every spec open question (#1–#6 agents, #1–#7 geo, #1–#6 self-delivery) as `BLOCKED — decision` lines, and the four HUMAN items unchanged.
+- [x] Report to the agil-1 plan: "agil-3 merge-ready at `<hash>`". agil-1 executes the merge.
 
+**Recorded outputs (agil-3 Phase 8, 2026-09-25)**
+
+- `AdminI18nDictionaryTest`: OK (4 tests, 38 assertions) after 75 EN entries appended inside `DICT` (19 labels already had an entry with the same wording and were left alone).
+- Docs: all five end with "Deferred to later plans" (`GEO_AUDIT.md` got its list in this phase).
+- Contract §6 step 1 from `agil-3`:
+  - Hare-AdminPanel `phpunit --filter="AgentOps|Geo|PartnerDelivery|DispatchTest|AegilAppTest|FiskeTest|AdminI18nDictionaryTest"` → OK, 238 tests, 2493 assertions, 2 skipped (DispatchTest tripwire, by design).
+  - `ContractNamesTest` → OK, 241 tests, 41 skipped: 36 agil-1 "reserved, not yet built" rows + 5 agil-3 rows that are Asks of agil-1 (`agent` × 4 — the kind greps `AgentRegisterSeeder.php` only; `payout-line-kind delivery_income`). Every other agil-3 row is `built: true` and asserted.
+  - Aerend-app `flutter analyze lib/` → 0 errors (641 pre-existing infos/warnings outside agil-3 folders; `lib/screens/bergen/{poeng,aegil,meg}` clean); `flutter test` → All tests passed (373).
+- Contract §6 step 3:
+  - Hare-AdminPanel `git diff --name-only agil-1...agil-3`: only `app/{AgentOps,Services/AgentOps,Services/Geo,Services/PartnerDelivery,Models/{AgentOps,Geo,PartnerDelivery},Http/Controllers/{AgentOps,Geo,PartnerDelivery,Agent,Points,Admin/*Agent*|*Geo*|*PartnerDelivery*},Http/Middleware/AgentOpsToken.php,Console/Commands/{AgentOps,Geo,PartnerDelivery},Providers/AgentOpsServiceProvider.php}`, `config/{agentops,geo,partner_delivery,points,app}.php`, `database/migrations/2026_10_0*_a3_*`, `database/seeders/AgentOpsRegisterSeeder.php`, `docs/{AGENTOPS_*,GEO_*,PARTNER_DELIVERY_GUIDE}.md`, `resources/views/admin/pages/super_admin/{agentops,geo,partner_delivery}/`, `routes/{api_agentops,api_geo,api_partner_delivery,api_agent,api_points,web}.php`, `tests/Feature/{AgentOps,Geo,PartnerDelivery,Agent,Points,Ops/DispatchTest}`, `tests/fixtures/{agentops,contract/names.agil3.json}`, `public/assets/js/dugnad-i18n.js` (append), `app/Console/Kernel.php` (append), `_tabs.blade.php` (append), `.env.example` (append-only, verified with `git diff` — no removed lines).
+  - Aerend-app `git diff --name-only agil-1...agil-3`: `lib/data/{aegil,points}/`, `lib/screens/bergen/{aegil,meg,poeng}/`, `lib/screens/bergen/bergen_routes_agil3.dart`, `plans/`, `test/{a3,aegil,meg,points}/`.
+  - `git merge-tree --write-tree agil-1 agil-3` → Hare-AdminPanel `206aefadd8fae5929cc89dfe6e0e4b35a91c9d38`, Aerend-app `9aeb7ef8e768c98e10ff8aaa5573043e93bf7772`; both clean (no conflict output).
+- `plans/AGIL-1-REMAINING.md` §8: 18 `BLOCKED — decision` lines + 2 `BLOCKED — credential` lines added for agents #1–#6, geo #1–#7, self-delivery #1–#6; the four HUMAN items unchanged.
+- Remaining / manual list: `plans/AGIL-3-REMAINING.md`.
+
+**agil-3 merge-ready at** Hare-AdminPanel `978b11f` (agil-3), Aerend-app: the `Phase 8: merge-ready` commit on `agil-3` (this file's commit). agil-1 executes the merge.
 **Acceptance**
-- [ ] Commit `Phase 8: merge-ready`. Stop.
+- [x] Commit `Phase 8: merge-ready`. Stop.
 
 ---
 
