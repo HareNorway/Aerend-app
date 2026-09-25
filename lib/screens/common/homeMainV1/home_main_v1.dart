@@ -8,7 +8,7 @@ import '../../bergen/kit/bergen_routes.dart';
 import '../../bergen/meg/meg_host.dart';
 import '../home/bergen/bergen_home.dart';
 import '../home/bergen/bergen_nav.dart';
-import '../orderCart/order_cart.dart';
+import '../../bergen/kasse/kurv_screen.dart';
 
 /// The Bergen shell: Hjem · Utforsk · Kurv · Meg behind the design's pill nav
 /// plus the round search orb (search field + Ægil pill, long-press → Ægil).
@@ -141,11 +141,9 @@ class HomeMainV1State extends State<HomeMainV1> {
         BergenHome(isShowDialog: widget.isShowDialog, orderId: widget.orderId),
         // 1 — Utforsk (AGIL-1 v2 Phase 2: Feed / Fjordfiske / Forundringspose)
         const UtforskScreen(),
-        // 2 — Kurv
-        Padding(
-          padding: EdgeInsets.only(bottom: bergenNavReserve(context)),
-          child: OrderCart(fromStore: widget.fromStore),
-        ),
+        // 2 — Kurv (AGIL-1 v2 Phase 5: the Bergen Kurv; the legacy cart is
+        // still the card-payment checkout behind it)
+        const KurvScreen(),
         // 3 — Meg (Sync C seam: agil-3 fills MegScreen)
         const MegScreen(),
       ],

@@ -1,5 +1,6 @@
-
 import 'package:flutter/material.dart';
+
+import '../../bergen/kasse/kjop_sekvens.dart';
 
 import '../../../theme/bergen_tokens.dart';
 import '../../../theme/sc_saas_theme.dart';
@@ -7,7 +8,6 @@ import '../../../utils/utils.dart';
 import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/settings_design_kit.dart';
 import '../../deliveryService/checkout/checkout_repo.dart';
-import '../../deliveryService/trackOrder/track_order.dart';
 import '../login/login_dl.dart';
 import '../login/vipps_login_helper.dart';
 
@@ -37,8 +37,9 @@ class _VippsPaymentReturnScreenState extends State<VippsPaymentReturnScreen> {
   Future<void> _confirm() async {
     if (mounted) setState(() => _state = _VippsReturnState.pending);
     try {
-      final response =
-          await CheckoutRepo().confirmVippsViaBackend(widget.orderId);
+      final response = await CheckoutRepo().confirmVippsViaBackend(
+        widget.orderId,
+      );
       if (!mounted) return;
 
       if (response['status'] == 1) {
@@ -59,11 +60,12 @@ class _VippsPaymentReturnScreenState extends State<VippsPaymentReturnScreen> {
     }
   }
 
-  /// Unchanged success routing — pushes TrackOrder and clears the stack.
+  /// Success routing: the Bergen purchase sequence (AGIL-1 v2 Phase 5) —
+  /// Bekreftet, then the Sporing route — and clears the stack.
   void _openTracking() {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (_) => TrackOrder(orderId: widget.orderId),
+        builder: (_) => KjopBekreftetScreen(orderId: widget.orderId),
       ),
       (route) => route.isFirst,
     );
@@ -109,10 +111,10 @@ class _VippsPaymentReturnScreenState extends State<VippsPaymentReturnScreen> {
                         ok
                             // TODO(l10n)
                             ? 'Vipps bekreftet betalingen. Butikken har fått '
-                                'bestillingen din. 💜'
+                                  'bestillingen din. 💜'
                             // TODO(l10n)
                             : 'Ingen penger er trukket. Du kan prøve igjen, '
-                                'eller velge en annen betalingsmåte.',
+                                  'eller velge en annen betalingsmåte.',
                         textAlign: TextAlign.center,
                         style: dgText(
                           15,
@@ -197,9 +199,13 @@ class _VippsLoginReturnScreenState extends State<VippsLoginReturnScreen> {
     return const Scaffold(
       backgroundColor: AerendBergenAuthTokens.navy,
       body: DecoratedBox(
-        decoration: BoxDecoration(gradient: AerendBergenAuthTokens.screenGradient),
+        decoration: BoxDecoration(
+          gradient: AerendBergenAuthTokens.screenGradient,
+        ),
         child: Center(
-          child: CircularProgressIndicator(color: AerendBergenAuthTokens.orange),
+          child: CircularProgressIndicator(
+            color: AerendBergenAuthTokens.orange,
+          ),
         ),
       ),
     );

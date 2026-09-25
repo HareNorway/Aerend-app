@@ -32,12 +32,9 @@ class VippsLoginLinkHandler {
     } catch (_) {}
 
     await _sub?.cancel();
-    _sub = _appLinks.uriLinkStream.listen(
-      (uri) {
-        unawaited(handleUri(uri));
-      },
-      onError: (_) {},
-    );
+    _sub = _appLinks.uriLinkStream.listen((uri) {
+      unawaited(handleUri(uri));
+    }, onError: (_) {});
   }
 
   static Future<void> dispose() async {

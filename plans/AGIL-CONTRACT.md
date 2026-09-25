@@ -276,6 +276,8 @@ bloc in `lib/screens/feed/*`.
 | route | `GET /api/ops/search/trending` → `ops.search.trending` | Søk · "Populært nå": product names ordered in the last 7 days, cached 10 min (Phase 3) |
 | route | `GET /api/ops/customer/categories/{slug}/pulse` → `ops.customer.categories.pulse` | Kategori live strip: orders with an event in the last hour for the category's stores, and open stores (Phase 4) |
 | route | `GET /api/ops/customer/stores/{storeId}/presence` → `ops.customer.stores.presence` | "N kikker nå": distinct customers with a tracking view on the store's orders in the last 10 min (Phase 4) |
+| route | `POST /api/ops/customer/orders/{orderId}/code` → `ops.customer.code` | "Kode ved levering": the customer asks for a delivery code on their own order (`DeliveryProofService::assignProof` with `customer_requested_code`); 422 `CODE_TOO_LATE` after `ready` (Phase 5) |
+| class | `App\Services\Ops\OrderIntakeService` + `LegacyOrderObserver` | a legacy booking enters the machine at creation: `order.placed` event, `ops_origin`, `ops_policy_version`, `ops_code`; the observer is one append in `AppServiceProvider` (Phase 5) |
 | flag | `ops.customer.sok`, `ops.customer.butikk`, `ops.customer.kasse`, `ops.customer.sporing`, `ops.customer.utforsk` | one per screen group, off by default |
 | console | `ops:contract-check` | runs the `ContractNamesTest` assertions as a command for merge day |
 | interface | `App\Ops\Dispatch\CandidateSource` (`candidates(int $storeId, Carbon $now): array`) with `OpsCandidateSource` | Sync C |

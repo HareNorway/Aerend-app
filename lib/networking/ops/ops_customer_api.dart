@@ -120,6 +120,10 @@ class OpsCustomerApi {
     if (items != null) 'items': items,
   });
 
+  /// `ops.customer.code` — "Kode ved levering" on the customer's own order.
+  Future<Map<String, dynamic>?> requestCode(int orderId) =>
+      _guarded(() => _post('${_base}orders/$orderId/code', const {}));
+
   /// `ops.customer.orders`.
   Future<List<Map<String, dynamic>>> orders({int limit = 50}) async {
     final json = await _guarded(

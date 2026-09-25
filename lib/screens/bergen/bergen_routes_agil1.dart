@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'butikk/automat_screen.dart';
 import 'butikk/butikk_screen.dart';
 import 'butikk/kategori_screen.dart';
+import 'kasse/bestilling_sheet.dart';
+import 'kasse/kurv_screen.dart';
 import 'kit/bergen_routes.dart';
 import 'sok/sok_screen.dart';
 import 'utforsk/feed_nyheter_screen.dart';
@@ -26,6 +28,14 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   '/bergen/kategori': (_) => const KategoriScreen(),
   '/bergen/butikk': (_) => const ButikkScreen(),
   '/bergen/automat': (_) => const AutomatScreen(),
-  // Phase 2
-  '/bergen/utforsk': (_) => const UtforskScreen(embedded: false),
+  // Phase 5
+  '/bergen/kurv': (_) => const KurvScreen(embedded: false),
+  '/bergen/bestilling': (_) => const BestillingScreen(),
+  // Phase 2. `?tab=feed` (agil-3's Meg row "Nytt fra butikkene") is the
+  // design's `feed` screen; any other tab opens Utforsk on that segment.
+  '/bergen/utforsk': (ctx) {
+    final tab = BergenRoutes.argsOf(ctx)['tab'];
+    if (tab == UtforskScreen.tabFeed) return const FeedNyheterScreen();
+    return UtforskScreen(embedded: false, initialTab: tab);
+  },
 };
