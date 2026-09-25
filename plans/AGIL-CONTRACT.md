@@ -305,11 +305,14 @@ bloc in `lib/screens/feed/*`.
 | enum | `agtp_proposals.proposal_type` ∈ `product_draft courier_outreach settlement_batch geo_placement geo_zone_change geo_eligibility geo_communication geo_launch_brief` | |
 | column | `agtp_proposals.idempotency_key` unique | `agent_key + subject + trigger window` |
 | flag | `agt.product_onboarding`, `agt.courier_comms`, `agt.courier_comms.auto_approve`, `agt.payment_sorting`, `agt.geo` | via `SurfaceFlags::register()`; all off |
-| policy | `agt.courier_comms.t1_minutes` (3), `agt.courier_comms.t2_minutes` (2), `agt.courier_comms.k_per_wave` (3), `agt.courier_comms.w_waves` (2), `agt.courier_comms.quiet_hours` (`["22:00","07:00"]`), `agt.proposal_ttl_hours` (24), `agt.payment_sorting.cadence` (`weekly`) | seeded by `agentops:seed-policies` |
+| policy | `agt.courier_comms.t1_minutes` (3), `agt.courier_comms.t2_minutes` (2), `agt.courier_comms.k_per_wave` (3), `agt.courier_comms.w_waves` (2), `agt.courier_comms.quiet_hours` (`["22:00","07:00"]`), `agt.proposal_ttl_hours` (24), `agt.payment_sorting.cadence` (`weekly`), `agt.product_onboarding.bulk_threshold` (0.9), `agt.product_onboarding.first_approval` (`aerend`) | seeded by `agentops:seed-policies` |
+| 422 codes | `AGTP_TERMINAL`, `AGTP_NO_AUTHORIZATION`, `AGTP_DENYLISTED_DOMAIN`, `AGTP_SCOPE`, `AGTP_DISABLED` (403) | in `App\Services\AgentOps\AgentOpsException` (added agil-3 Phase 0/3) |
+| route (Phase 3) | `POST /api/agentops/imports` → `agentops.imports.store`, `GET imports/{importRef}/drafts` → `agentops.imports.drafts`, `POST imports/{importRef}/approve-bulk` → `agentops.imports.bulk`, `POST drafts/{id}/approve` → `agentops.drafts.approve`, `POST drafts/{id}/reject` → `agentops.drafts.reject` | the Partner app's AI-assisted import (UI deferred); `agtp_product_drafts.import_ref` groups one import |
 | env | `AGENTOPS_API_TOKEN_PRODUCT_ONBOARDING`, `AGENTOPS_API_TOKEN_COURIER_COMMS`, `AGENTOPS_API_TOKEN_PAYMENT_SORTING`, `AGENTOPS_API_TOKEN_GEO`, `AGENTOPS_WHATSAPP_PROVIDER` (`none`), `AGENTOPS_SLACK_WEBHOOK`, `AGENTOPS_KASSAL_API_KEY` | read only in `config/agentops.php` |
-| route file | `routes/api_agentops.php`, prefix `/api/agentops`, names `agentops.*` | `POST proposals`, `GET proposals/{id}`, `POST proposals/{id}/decide`, `POST runs`, `GET config/{agent}` — the scoped Agent API |
+| route file | `routes/api_agentops.php`, prefix `/api/agentops`, names `agentops.*` | `POST proposals`, `GET proposals/{id}`, `POST proposals/{id}/decide`, `POST runs`, `GET config/{agent}` — the scoped Agent API; **added agil-3 Phase 2:** `GET settlements/partner/{storeId}` → `agentops.settlements.partner`, `GET settlements/courier/{courierId}` → `agentops.settlements.courier` (party-facing read APIs, UI deferred) |
 | admin | `/admin/agentsenter` → `Admin\AgentOpsAdminController`, views `super_admin/agentops/*`, nav parent `Agentsenter` (module_name `agentsenter`) | "Agent centre" |
 | console | `agentops:run {agent}`, `agentops:expire-proposals`, `agentops:seed-policies`, `agentops:settle {period}` | |
+| route (Phase 6) | `GET /api/agentops/offers/{id}/badge` → `agentops.offers.badge` (`agent_offer_from_ai`), `POST /api/agentops/couriers/{id}/whatsapp-consent` → `agentops.couriers.consent` | Bud app fields, UI deferred |
 | copy keys (spec §7, verbatim) | `agent_badge_proposed`, `agent_offer_from_ai`, `order_status_finding_courier`, `courier_pref_whatsapp_alerts`, `settlement_status_proposed/_approved/_paid`, `import_status_draft/_approved/_rejected` | agil-3 uses them as keys in its `*_copy.dart`; agil-1 writes them into ARB in Phase 8 under exactly these names |
 | payout line kind | `delivery_income` | §5.2 |
 | event | `agent.proposal_decided` v1 | §5.3 |
@@ -322,7 +325,7 @@ bloc in `lib/screens/feed/*`.
 | column | `*.cell` varchar(16) — **not** `h3`. The monolith is MySQL; the spec's "PostGIS + H3" assumes Postgres. The scheme is the policy `geo.cell_scheme` ∈ `h3_r9 geohash_7`, decided in agil-3 Phase 5 Chunk 0: `h3_r9` only if a maintained PHP binding is available, otherwise `geohash_7` (≈153 m × 153 m, the closest built-in equivalent to H3 r9's ~0.1 km²). Every `cell` column uses the same scheme; `geo_country_packs.cell_scheme` records it. | spec §2.1 "H3 hexagon, resolution 9" |
 | enum | `geo_zones.status` ∈ `draft active paused`; `geo_store_locations.placement_state` ∈ `placed waiting_zone outside_region`; `geo_courier_zone_eligibility.source` ∈ `home adjacent auto_extended approved` | frozen |
 | flag | `geo.engine` (shadow), `geo.engine.cutover`, `geo.customer.coverage`, `geo.courier.eligibility`, `geo.admin.omrader` | all off |
-| policy | `geo.cell_scheme` (`geohash_7`), `geo.max_travel_min` (25), `geo.flat_fee_ore` (2900), `geo.auto_extend_adjacent_only` (true), `geo.presence_retention_days` (30) | seeded by `geo:seed-policies` |
+| policy | `geo.cell_scheme` (`geohash_7`), `geo.max_travel_min` (25), `geo.flat_fee_ore` (2900), `geo.auto_extend_adjacent_only` (true), `geo.presence_retention_days` (30), `geo.auto_apply_templates` (true) | seeded by `geo:seed-policies` |
 | env | `GEO_GEOCODER` (`kartverket`), `GEO_GEOCODER_FALLBACK` (`none`), `GEO_KARTVERKET_BASE_URL`, `GEO_BRREG_BASE_URL` | read only in `config/geo.php` |
 | route file | `routes/api_geo.php`, prefix `/api/geo`, names `geo.*` | `GET coverage?lat=&lng=` (customer), `POST waitlist`, `GET zones`, `POST stores/{id}/place`, `POST stores/{id}/confirm-pin`, `POST couriers/{id}/home`, `GET couriers/{id}/zones` |
 | admin | `/admin/omrader` → `Admin\GeoAdminController`, views `super_admin/geo/*`, nav parent `Områder` (module_name `omrader`) | |
@@ -339,7 +342,7 @@ bloc in `lib/screens/feed/*`.
 | table | `pd_actor_changes` | `delivery_actor_change_log` |
 | derived | `delivery_mode` ∈ `courier_only self_only per_order` — **computed, never stored** | §2.1 |
 | flag | `pd.self_delivery`, `pd.customer.tracking_variant` | off |
-| policy | `pd.default_store_eta_minutes` (20), `pd.reminder_after_ready_minutes` (10), `pd.require_aerend_approval` (true) | seeded by `pd:seed-policies` |
+| policy | `pd.default_store_eta_minutes` (20), `pd.reminder_after_ready_minutes` (10), `pd.require_aerend_approval` (true), `pd.driver_pin_enabled` (false) | seeded by `pd:seed-policies` |
 | route file | `routes/api_partner_delivery.php`, prefix `/api/partner-delivery`, names `pd.*` | `GET/POST settings`, `POST orders/{id}/actor`, `POST orders/{id}/on-the-way`, `POST orders/{id}/delivered`, `GET orders/{id}/delivery-view` |
 | 422 codes | `PD_MIN_ONE_MODE` ("Minst én leveringsmåte må være på"), `PD_COURIER_ALREADY_ACCEPTED` ("Et bud har allerede tatt ordren"), `PD_OUTSIDE_RADIUS`, `PD_ON_THE_WAY_ALREADY`, `PD_PARTNER_DELIVERS` | |
 | admin | `/admin/egenlevering` → `Admin\PartnerDeliveryAdminController`, views `super_admin/partner_delivery/*`, nav child `Egenlevering` under agil-1's `Ærend Drift` parent (found by `module_name = 'drift'`; agil-3's own migration inserts the child row) | |
