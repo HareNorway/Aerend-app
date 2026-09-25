@@ -1,5 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+import 'butikk/automat_screen.dart';
+import 'butikk/butikk_screen.dart';
+import 'butikk/kategori_screen.dart';
 import 'kit/bergen_routes.dart';
 import 'sok/sok_screen.dart';
 import 'utforsk/feed_nyheter_screen.dart';
@@ -19,6 +22,10 @@ import 'utforsk/utforsk_screen.dart';
 Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   // Phase 3
   '/bergen/sok': (_) => const SokScreen(),
+  // Phase 4 — parameters arrive as `RouteSettings.arguments` (see BergenRoutes).
+  '/bergen/kategori': (_) => const KategoriScreen(),
+  '/bergen/butikk': (_) => const ButikkScreen(),
+  '/bergen/automat': (_) => const AutomatScreen(),
   // Phase 2
   '/bergen/utforsk': (_) => const UtforskScreen(embedded: false),
 };

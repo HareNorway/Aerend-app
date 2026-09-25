@@ -282,6 +282,12 @@ class OpsCustomerApi {
         : const [];
   }
 
+  /// A guarded POST to a route the other branch owns: null on 404 / failure.
+  Future<Map<String, dynamic>?> postGuarded(
+    String path,
+    Map<String, dynamic> body,
+  ) => _guarded(() => _post(path, body));
+
   /// `GET /api/geo/coverage?lat=&lng=` (agil-3, guarded by flag and 404).
   Future<Map<String, dynamic>?> coverage(double lat, double lng) => _guarded(
     () => _get('api/geo/coverage', query: {'lat': '$lat', 'lng': '$lng'}),

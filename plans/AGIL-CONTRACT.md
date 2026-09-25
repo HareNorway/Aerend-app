@@ -274,6 +274,8 @@ bloc in `lib/screens/feed/*`.
 | route | `GET /api/ops/customer/orders` → `ops.customer.orders` | the customer's orders with `ops_*` fields, for Bestillinger and "Bestill igjen" |
 | route | `GET /api/ops/customer/away-summary` → `ops.customer.away` | Mens du var borte data (orders half; Ægil half is agil-3) |
 | route | `GET /api/ops/search/trending` → `ops.search.trending` | Søk · "Populært nå": product names ordered in the last 7 days, cached 10 min (Phase 3) |
+| route | `GET /api/ops/customer/categories/{slug}/pulse` → `ops.customer.categories.pulse` | Kategori live strip: orders with an event in the last hour for the category's stores, and open stores (Phase 4) |
+| route | `GET /api/ops/customer/stores/{storeId}/presence` → `ops.customer.stores.presence` | "N kikker nå": distinct customers with a tracking view on the store's orders in the last 10 min (Phase 4) |
 | flag | `ops.customer.sok`, `ops.customer.butikk`, `ops.customer.kasse`, `ops.customer.sporing`, `ops.customer.utforsk` | one per screen group, off by default |
 | console | `ops:contract-check` | runs the `ContractNamesTest` assertions as a command for merge day |
 | interface | `App\Ops\Dispatch\CandidateSource` (`candidates(int $storeId, Carbon $now): array`) with `OpsCandidateSource` | Sync C |

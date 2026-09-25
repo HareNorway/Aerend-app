@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,6 +23,9 @@ abstract final class BergenCart {
     required int productId,
     int quantity = 1,
     String? toast,
+    int sizeId = 0,
+    int colourId = 0,
+    List<int> optionIds = const [],
   }) async {
     if (storeId == 0 || productId == 0) {
       showBergenToast(context, 'Kommer snart');
@@ -34,6 +39,11 @@ abstract final class BergenCart {
     }
     if (!context.mounted) return false;
     HapticFeedback.selectionClick();
+    // The legacy cart call reads the chosen variant from prefs (and clears
+    // them after): set them the same way the old sheets do.
+    prefSetInt('checkedSize', sizeId);
+    prefSetInt('checkedColor', colourId);
+    prefSetString('checkedOptionList', jsonEncode(optionIds));
     try {
       final response = UserOrderCartPojo.fromJson(
         await StoreDetailRepo().callOrderCartApi(storeId, productId, quantity),
