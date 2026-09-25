@@ -6,6 +6,11 @@ checked. Rewritten **2026-09-23** after the branches were merged, and
 updated **2026-09-25**: the customer pre-auth flow and the Bergen Hjem screen
 have both landed (see §3 and §4).
 
+> **Superseded for planning purposes on 2026-09-25.** Everything still open here
+> has been folded into two executable plans in this folder: `AGIL-1-PLAN-v2.md`
+> (branch `agil-1`) and `AGIL-3-PLAN.md` (branch `agil-3`), governed by
+> `AGIL-CONTRACT.md`. This file stays as the record of state on that date.
+
 > 🛑 **Branch policy.** `agil-2` is merged into `agil-1` in all five repos, for
 > combined testing. `agil-1` is the integration branch. **Nothing goes into
 > `main` or `master` in any repo, and nothing is pushed.** `agil-1-backup` holds
@@ -353,36 +358,26 @@ a schema decision.
 
 ## 6. Admin screens
 
-**agil-2's are built. agil-1's are not.**
+**Both halves are built and in the sidebar, as of 2026-09-24.**
 
-**agil-2 — clickable today** (after §2 steps 1–2, or the controllers 500 on
-missing tables): `/admin/poeng-v2` (dashboard, ledger, adjust, rebuild, prizes,
-claims, donations, rules, tier review, missions, league month-end, fraud flags,
-partner proposals) and `/admin/agenter` (register, per-agent kill switch, caps).
-Views at
-`resources/views/admin/pages/super_admin/{points,agents}/index.blade.php`.
+- **agil-1** — seven screens under `/admin/drift` (Nå, Unntak, Butikker + store
+  detail, Bud, Feed, Policy, Finn ordre), in the commercial panel, using the
+  `adm-*` design system. Navigation is `admin_module` rows
+  (`2026_09_24_090000_ops_register_drift_admin_menu`), so they are grantable to
+  restricted admins. `PanelReadModel` is shared with the JSON API the apps poll,
+  so the screens and the apps cannot disagree. 22 tests render every screen
+  through the real layout (`OpsAdminScreenTest`). Guides:
+  `Hare-AdminPanel/docs/OPS_ADMIN_GUIDE.md`, `docs/T1_T2_SMOKE_TEST.md`.
+- **agil-2** — `/admin/poeng-v2` and `/admin/agenter`, moved to the commercial
+  layout, restyled onto `adm-*` (zero Bootstrap classes left), registered as
+  "Poeng & Ægil" in the sidebar, English added.
 
-**agil-1 — no Blade, no Vue, no `web.php` route.** Every one of these is a
-working, tested JSON endpoint with no screen in front of it:
+Both need `php artisan migrate` on the dev DB before the sidebar entries appear.
 
-| Screen | Endpoint | Tested in |
-|---|---|---|
-| **Nå** — orders by state, unseen, waiting couriers, paused stores, problems | `GET /api/ops/panel/now` | `PanelTest` |
-| **Unntak** inbox — SLA timers, claim, resolve, overrides | `GET /api/ops/panel/exceptions`, `.../claim`, `.../resolve`, `POST /api/ops/pickup/orders/{id}/panel-override` | `PanelTest`, `EscalationTest` |
-| **Butikker** — liveness board + store detail | `GET /api/ops/panel/stores`, `/stores/{id}` | `PanelTest`, `DeviceLivenessTest` |
-| **Bud** — shift board + courier detail | `GET /api/ops/panel/couriers` | `PanelTest` |
-| Role landing pages | `GET /api/ops/panel/role-landing` | `PanelTest` |
-| **Policy editor** (reason required → `audit_log`) | `PolicyService::set()` | `PolicyTest` |
-| **Feed** oversight, composer, eligibility, change-log, takeover | `Aerend-Feed /admin/feed/*`; `/api/ops/feed/*`, `/api/ops/change-log` | `AdminFeedOversightTest`, `ProductChangeLogTest`, `admin-feed.test.ts` |
-
-**What it costs today:** support can do all of it, through an API client rather
-than a screen. The override paths — panel scan override, manual state change with
-a reason — are what a human reaches for under time pressure and the worst
-candidates for curl.
-
-**Sizing:** seven screens, read-mostly, against endpoints already shaped for a
-table, with agil-2's two as a working precedent in the same admin. The one new
-piece is Unntak's SLA timers, which want a live-updating view.
+Still open from this section: the `feature_flags` / `ops_feature_flags` split
+(§5 #6) means `ops:flags` does not control the Points surfaces — two rollout
+mechanisms until a schema decision is made. It is the first task of
+`AGIL-1-PLAN-v2.md` Phase 0.
 
 ---
 
@@ -524,24 +519,22 @@ Not blocked on agil-2 any more — that merge has happened.
 
 ## 11. Suggested order
 
-1. **Mount the customer app's widgets** (§3) — `FeedPublisherTabs` and
-   `VaagenCard` into `FeedHome`, `DeliveryCodeCard` and `OpsTrackingStatus` into
-   the order-detail screen. Light props, data already in reach, and it makes the
-   first-priority surfaces visible enough to design-review at all.
-2. **Then design-review the rest of the customer app** against
-   `Ærend Kunde Bergen.dc.html` (§4). Pre-auth and Hjem are done to that
-   standard and are the reference for what "done" looks like; the feed,
-   tracking and Meg surfaces have not been looked at. Unsized until someone
-   looks.
-   path in the product.
-4. **Decide the Partner data source** (§3): store snapshot endpoint, or build
-   state from `eventsSince`. That one decision unblocks 23 screens behind a
-   five-tab shell, and it is a backend call.
-5. **agil-1's seven admin screens** (§6) — the only place where working, tested
-   behaviour is unreachable to the people who need it under pressure.
-6. **Add names to the cross-branch contract** (§5). Seven of seven merge defects
-   were name disagreements; the payloads, which *were* contracted, came through
-   untouched.
-7. The two manual UI passes and the Reen naming cleanup (§7) — cheap, and they
-   close the last surfaces where a test passes for the wrong reason.
-8. Everything else waits on an agreement, a decision, or the `main` merge.
+Retained for the record; the live ordering is now the phase order of the two
+plans named at the top of this file.
+
+1. ~~Mount the customer app's widgets~~ → `AGIL-1-PLAN-v2.md` Phase 2.
+2. ~~Design-review the rest of the customer app~~ → `AGIL-1-PLAN-v2.md`
+   Phases 3–6, which build the remaining Bergen screens to the design rather
+   than reviewing the old ones.
+3. **T1 then T2** — unchanged, human-only, `docs/T1_T2_SMOKE_TEST.md`.
+4. ~~Decide the Partner data source~~ → deferred; Partner and Bud app UI is out
+   of scope for both new plans by decision (Aerend-app is the only Flutter UI
+   target now). The backend endpoint they need is specified in `AGIL-3-PLAN.md`
+   Phase 4 so a later Partner plan is pure UI.
+5. ~~agil-1's seven admin screens~~ → done 2026-09-24 (§6).
+6. ~~Add names to the cross-branch contract~~ → `AGIL-CONTRACT.md` §3 is that
+   registry.
+7. The two manual UI passes and the Reen naming cleanup → `AGIL-1-PLAN-v2.md`
+   Phase 7.
+8. Everything blocked on an agreement or a decision → listed per plan under
+   "Blocked".

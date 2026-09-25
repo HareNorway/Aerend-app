@@ -1,0 +1,313 @@
+# AGIL-1 v2 — the customer's ærend, end to end (agent execution plan)
+
+**Branch:** `agil-1` (continues; the integration branch). Base: the commit that
+carries `plans/AGIL-CONTRACT.md`.
+**Contract:** `plans/AGIL-CONTRACT.md` — **read it first; it is binding and it
+wins over this file.** Its §7 defines what a tick means.
+**Sister plan:** `plans/AGIL-3-PLAN.md` (branch `agil-3`, the three new specs'
+backends and the Points / Ægil / Meg screens). Merge day is contract §6.
+**Predecessors (read for state, not for tasks):** `plans/AGIL-1-PLAN.md`,
+`plans/AGIL-2-PLAN.md`, `plans/AGIL-1-REMAINING.md` (the record of what was
+and was not done as of 2026-09-25).
+**Design (the fasit for every screen here):** `designs/21des/Ærend Kunde Bergen.dc.html`.
+**Specs:** `aerend-app/docs/AEREND ORDER OPS SPEC FINAL STATEv3.md` (order and
+tracking behaviour), `aerend-app/docs/aerend-partner-self-delivery-spec.docx` §5
+(the customer-app requirements — functional, not optional), `aerend-app/docs/aerend-geo-coverage-spec.docx` §4
+(customer coverage), `aerend-app/docs/aerendvstore feed update spec.md`.
+
+> 🛑 **Branch policy.** Nothing goes into `main` or `master` in any repo, and
+> nothing is pushed unless a human says so. UI work is **Aerend-app only** —
+> Hare-Store and Hare-Driver are out of scope for both plans by decision.
+
+---
+
+## 0. Agent operating instructions
+
+**How to read the design file.** It is one 10,691-line HTML prototype. Do not
+read it whole. Map it, then read blocks:
+
+```
+grep -n 'data-screen-label=' "designs/21des/Ærend Kunde Bergen.dc.html"   # 71 markers
+grep -n "skjerm === '" "designs/21des/Ærend Kunde Bergen.dc.html"          # the real screens
+grep -n '<symbol id=' "designs/21des/Ærend Kunde Bergen.dc.html"           # SVG assets
+```
+
+The labels are mostly *components and states*; the real screens are the values
+of `st.skjerm` (`hjem sok agent butikk kategori utforsk automat kurv sporing
+levert meg opprykk premier velger liga fiske feed favoritter konto
+bestillinger`) plus the sheets under `visSheet` / `arkAapent` / `sheetHjelp`.
+The line ranges in each phase below are from the 2026-09-25 inventory; verify
+them with grep before relying on them — the file may have moved.
+
+Three blocks are **dead** and must not be implemented: the `aldri` search overlay
+(≈L4229–4388), `erSporingV1` (≈L5779–5880, flag never defined), and the
+`visRelGammel` / `gammelUtstilling` variants.
+
+**Copy, not ARB.** Every string a screen shows goes in that group's
+`<group>_copy.dart` as `A1Copy.<group>.<key>` (NO and EN), keys prefixed
+`a1_<group>_`. `lib/l10n/*` is untouched until Phase 8 (contract rule 9).
+
+**Tokens.** After Phase 0, colours and type come from `lib/theme/bergen_tokens.dart`
+(`BergenTokens`) and `lib/screens/bergen/kit/`. The design declares no CSS
+variables; its palette is inline hex. The inventory's counts: ink `#23201D`,
+fjord teal `#1E4F5C` (+ gradient partner `#2A6272`), mint `#5CE0B8`, orange
+`#F26D3D` (ramp `#F9A273 #F58A55 #E95C2C #DD5A25 #C4491A`), lantern `#F2C14E`,
+secondary text `#57534B`, muted `#6E6862 #8C847C`, paper `#F5F3EF #E9E2D2
+#FBFAF6`, body `#E2DFD8`, deep teal `#173E48 #0F1F2B`, sea day `#9FC3CC` /
+evening `#3D6B7A` / rain `#6F8790`. Font: Plus Jakarta Sans 200–800 (variable
+weight animates); Inter 400–700 twice. Reduced motion is honoured
+(`prefers-reduced-motion` kill-switch in the design → `MediaQuery.disableAnimations`).
+
+**Data.** Laravel through `lib/networking/*` (`BaseUrl.domain + endPointBaseUrlApi`),
+ops endpoints under `api/ops/...` the way `ops_feed_api.dart` already does. The
+feed service through `lib/networking/feed/*` (unchanged). Redux app-wide
+(`lib/redux/*`, shared file — append only), bloc inside feed. New screen state is
+local bloc/`ChangeNotifier` per screen; only cart and address touch redux.
+
+**Commands for acceptance.**
+- Backend: `cd D:/work/hare/Hare-AdminPanel && bash scripts/rebuild_test_db.sh && php artisan test --filter=<X>`; `php artisan route:list --path=api/ops/customer`; `php artisan test --filter=ContractNamesTest`.
+- Flutter: `cd D:/work/hare/aerend-app/Aerend-app && flutter analyze lib/ && flutter test && flutter test test/contract`.
+- Reachability, every screen phase: `grep -rn "<ScreenClass>(" lib/ --include=*.dart | grep -v "<its own file>"` must show the route map or a parent; and `flutter test test/contract/contract_names_test.dart` asserts every route in `bergen_routes_agil1.dart` builds.
+- Design comparison, every screen: open the design block beside the running app; list the differences in the phase's "Design ledger" table. A screen with an empty ledger row is not compared.
+
+**Conventions.** One commit per task group, message starting with the phase.
+Shared files: contract §2.4. Blocked tasks: contract §7. Do not summarise to the
+user between phases; stop only when the plan is done or fully blocked.
+
+---
+
+## 1. Ownership (summary — the contract is the source)
+
+agil-1 owns in Aerend-app: `lib/screens/bergen/{kit,sok,butikk,kasse,sporing,utforsk,hjelp}/`,
+`lib/screens/common/home/bergen/`, `lib/screens/feed/`, `lib/networking/ops/`,
+`lib/networking/feed/`, `lib/data/{feed,ops}/`, `lib/theme/bergen_tokens.dart`,
+the shell `home_main_v1.dart` (after Sync C), `lib/l10n/` (Phase 8 only). In
+Hare-AdminPanel: `ops_*`, `app/Services/Ops`, `Ops/*` controllers, `api_ops.php`,
+`tests/Feature/Ops`, `tests/Feature/Contract/ContractNamesTest.php`. All of
+Aerend-Feed.
+
+agil-1 does **not** touch: `lib/screens/bergen/{poeng,aegil,meg}/`,
+`lib/screens/{points,aegil,snurre}/`, anything `agtp_ geo_ pd_`, `api_points.php`,
+`api_agent.php`, Hare-Store, Hare-Driver. Needs there go under "Asks of agil-3".
+
+---
+
+## Phase 0 — Contract & substrate → `sync-C`
+
+Everything agil-3 must inherit before it branches. Small, mechanical, tagged.
+
+**Backend**
+- [ ] `2026_10_01_000000_ops2_add_value_to_feature_flags`: `ops_feature_flags.value` json nullable. `App\Points\FeatureFlags::raw()` reads `ops_feature_flags` (via `FeatureFlag::TABLE`), `value` when present else `enabled` cast to bool; `aegil_level_max` reads `value`. `ops:flags on/off` writes both. Delete the config fallback's "table missing" branch only after `MergeReadinessTest::every_rollout_flag_defaults_off` still passes with config cleared. **This closes remaining-defect #6.**
+- [ ] `SurfaceFlags::register(array $flags)` — static registry merged into `FLAGS`/`forStage()`/`isKnown()`; `ops:flags seed` seeds registered keys too. Test: a registered `zz.test` key seeds off, lists, flips, and `isKnown` is true.
+- [ ] `App\Ops\Dispatch\CandidateSource` (`candidates(int $storeId, Carbon $now): array`, `eligible(int $orderId): bool`) + `OpsCandidateSource` (today's logic lifted out of `DispatchService` unchanged) bound in `AppServiceProvider`; `DispatchService` calls it. `eligible()` reads `pd_delivery_actor` with `Schema::hasColumn` and returns true when absent. `DispatchTest` green unchanged, plus one test that a fake `CandidateSource` returning `false` makes `createAssignment` refuse with `PD_PARTNER_DELIVERS`.
+- [ ] `docs/EVENT_CONTRACT.md`: add `order.delivery_actor_changed`, `geo.zone_changed`, `agent.proposal_decided` (v1) per its versioning rule; fixtures in `tests/fixtures/events/`; `EventContractTest` cases that validate the fixtures' shape (no emitter yet — agil-3 emits).
+- [ ] `tests/fixtures/contract/names.agil1.json` with every §3.2 entry; `names.agil3.json` with every §3.3 + §3.4 agil-3 entry (**agil-1 writes both files once**, agil-3 owns the second afterwards). `tests/Feature/Contract/ContractNamesTest.php` per contract §4.1, including the `no-literal` and `no-after` greps. Green with agil-3 entries *skipped*.
+- [ ] `ops:contract-check` console wrapper.
+
+**Aerend-app**
+- [ ] `git mv lib/theme/reen_pre_club_theme.dart lib/theme/bergen_tokens.dart`; class stays `AerendBergenAuthTokens`, add `BergenTokens` (the palette above, sea modes, type scale, radii, motion durations) in the same file; fix the 24 imports; `assets/Logo/reen-mark-coral.png` → `aerend_mark_coral.png`, `assets/Logo/reen/mark-coral-navy.png` → `assets/Logo/aerend_mark_navy.png`, pubspec entry updated, one visual check that the feed header mark is the Bergen Æ. Delete `test_app/`. **This closes the Reen naming debt.**
+- [ ] `lib/screens/bergen/kit/`: `bergen_tokens` re-export, `BergenArk` (the generic `Ark {{ kArkTittel }}` sheet, design ≈L7332–7559: title, subtitle, close, optional copy block with Kopier, list rows, secondary + primary CTA; body is a slot), `BergenSheet` (draggable bottom sheet with the handle-text states "Alle butikker og varer / Slipp — Ægil åpner / Lukk vinduet"), `BergenChip`, `BergenCta3d` (the orange 3D button), `BergenToast`, `BergenUndoPill` ("Angre"), `BergenOfflineBanner` ("Uten nett · viser siste kjente status"), `BergenCard`, `BergenStepper` (4 steps). Widget tests for each.
+- [ ] Seam files exactly as contract §2.2, all as **stubs**: `bergen_routes_agil3.dart` (empty map), `meg/meg_host.dart` (`MegScreen` → `Account()`), `poeng/poeng_entry.dart`, `poeng/napp_entry.dart`, `aegil/aegil_entry.dart`, `aegil/brett_entry.dart`, `meg/borte_entry.dart`. `bergen_routes_agil1.dart` (empty map).
+- [ ] `chore(shared): wire bergen route maps and MegScreen` — `main.dart` spreads both route maps into `MaterialApp.routes`; `home_main_v1.dart` tab 3 renders `MegScreen()`. One append each.
+- [ ] `test/contract/contract_names_test.dart`: every route in both maps builds without throwing; every seam file exports its declared symbols (reflection-free: import and reference).
+- [ ] Demo panel scaffold `lib/screens/bergen/hjelp/demo_panel.dart` behind `kDebugMode` (5-tap on the Hjem wordmark, design ≈L7565): lists scenario triggers as no-ops now; later phases register real triggers. Compiled out of release.
+
+**Acceptance**
+- [ ] `php artisan test` → previous count + new tests, still the same 6 pre-existing unit failures and nothing else; `ContractNamesTest` green (agil-3 entries skipped); `ops:flags list` shows `value` column in play; `MergeReadinessTest` green.
+- [ ] `flutter analyze lib/` 0 errors; `flutter test` green (321 + kit + contract tests); `grep -rl reen_pre_club_theme lib/` empty.
+- [ ] `git tag sync-C` on the phase commit. Write the tag hash into contract §1.
+
+---
+
+## Phase 1 — Customer tracking API (backend)
+
+The app currently reads **no** `ops_state` anywhere. Sporing needs one endpoint
+that already knows about self-delivery and "Finner bud".
+
+- [ ] `2026_10_01_010000_ops2_create_customer_tracking_views`: `ops_customer_tracking_views (id, user_id, order_id, viewed_at)`; model `App\Models\Ops\CustomerTrackingView` with `TABLE`.
+- [ ] `App\Services\Ops\CustomerTrackingReadModel::tracking(int $userId, int $orderId): array` producing exactly contract §5.1: `stage` derived from `state` × `delivery_actor`; `delivery_actor` from `pd_delivery_actor` guarded; `courier` null for partner; `finding_courier` per the four-condition rule with `agtp_proposals` guarded by `Schema::hasTable`; ETA for partner from `pd_store_eta_minutes` + the `picked_up` event's `occurred_at`; `contact.*_target`; `live_position` from `ops_courier_locations` for courier orders only; `unseen_by_store`. Records a `ops_customer_tracking_views` row.
+- [ ] `App\Http\Controllers\Ops\CustomerController` + routes in `api_ops.php` under `customer/`: `tracking`, `tracking.events` (delegates to the existing events feed filtered to the order), `contact` (creates an `ops_relay_calls` row or a message row via the existing relay/notification services, target by contract rule), `problem` (`kind ∈ {door, missing, wait, cancel}` → `ProblemService::report` with `WRONG_ADDRESS` / a new problem *payload* not type; `cancel` → `OrderTransitionService` to `cancelled` with `actor_type = customer`, refused after `ready`), `orders` (the customer's orders with `ops_*` columns for Bestillinger and "Bestill igjen"), `away-summary` (orders delivered / changed since the last tracking view). All under the app's existing customer auth middleware (find it on `api_points.php`'s `me/*` routes and reuse it).
+- [ ] Tests `tests/Feature/Ops/CustomerTrackingTest.php`: stage table for both actors (8 states × 2), `finding_courier` true/false matrix with the `agtp_proposals` table present (create it in the test with `Schema::create` in a transaction) and absent, contact routing, a customer cannot read another customer's order (403), `unseen_by_store`, away summary. `no-literal` grep clean.
+- [ ] Registry entries asserted, not skipped.
+
+**Acceptance**
+- [ ] `php artisan test --filter=CustomerTrackingTest` green; full suite unchanged otherwise; `route:list --path=api/ops/customer` shows the six routes.
+- [ ] Commit `Phase 1: customer tracking API`.
+
+---
+
+## Phase 2 — Utforsk, the feed tabs, and the Hjem entry points
+
+Mount what exists, build the Utforsk screen, and make every card on the Hjem go
+somewhere.
+
+**Screens** (`utforsk` ≈L4389–4635; `feed` ≈L6643)
+- [ ] `lib/screens/bergen/utforsk/utforsk_screen.dart` at `/bergen/utforsk`, tab 1 of the shell: tabs **Feed** (unread badge) / **Fjordfiske** / **Forundringspose**; shop filter chips; pinned "Ærend · Drift" notice ("Mye regn i kveld — vi legger 5 min på alle tider", source: `GET /api/ops/store/availability` weather/pause note, else hidden); the Feed tab body is the existing `FeedHome` with `FeedPublisherTabs` **mounted** (state already in `FeedHomeState`) and `VaagenCard` **mounted** above the first post when `vaagenAvailable`; posts keep `FeedPostCard`; `Feed-media` (≈L4439) = the existing media slot plus optional autoplay video per `feedAutoplay`; the Fjordfiske tab body is `Navigator.pushNamed('/bergen/fjordfiske')` behind a landing card ("3 napp igjen i dag", "Kast ut") — the screen is agil-3's; the Forundringspose tab lists bags from `GET /api/ops/products?kind=pose` with pickup windows and a "Poseautomaten" link to `/bergen/automat` (Phase 4).
+- [ ] `lib/screens/bergen/utforsk/feed_nyheter_screen.dart` — `feed` "Nytt fra butikkene" (≈L6643): Bergenhus posts with "Bestill · 89 kr", footer "Bare butikker i nærheten av deg · ingen reklame". Reached from Meg's row (agil-3 pushes `/bergen/utforsk?tab=feed`).
+- [ ] Hjem entry points (`lib/screens/common/home/bergen/`): `Kategorirad` "Åpne" → `/bergen/kategori/{slug}`; `Vindu · kategoriene` houses → same; `Utforsk-kort` ×2 → `/bergen/utforsk`; `Forundringspose` card "Sikre en" → `/bergen/automat`; shop cards → `/bergen/butikk/{id}`; product cards → the product sheet; `Fjordfiske-knapp` → `/bergen/fjordfiske`; the bobbers → `showNappKort(context, NappOffer(...))` (seam); `Ægil-relevanskort` shows only when `aegilFindCount() > 0` and taps `showAegilBrett` (seam); the Ægil greeting → `kAegilRoute`; the Points card → `poengEntryCard` + `kPoengRoute`; `mensDuVarBorteCard(context)` rendered at the top of the sheet when non-null; the bell → `/bergen/meg/varsler` (agil-3). "UNDER KAIEN" find (≈L2141 region) reads `GET /api/agent/suggestions?context=under_kaien` (agil-2 route; guarded 404 → hidden).
+- [ ] Search field in the nav ("Søk i Bergen — butikker, varer, bydeler") → `/bergen/sok` with the typed text.
+- [ ] Copy: `utforsk_copy.dart`. Widget tests for the tabs and the mounted cards; reachability greps.
+
+**Design ledger** (fill during comparison)
+
+| Screen | Design block | Differences accepted / to fix |
+|---|---|---|
+| Utforsk | ≈L4389 | |
+| Nytt fra butikkene | ≈L6643 | |
+| Hjem entry points | ≈L1895–2600 | |
+
+**Acceptance**
+- [ ] `FeedPublisherTabs`, `VaagenCard` each used by ≥1 file other than their own; every Hjem card has a `Navigator` target or a seam call; `flutter test` green; `/bergen/utforsk` in `bergen_routes_agil1.dart`.
+- [ ] Commit `Phase 2: Utforsk and Hjem entry points`.
+
+---
+
+## Phase 3 — Søk
+
+`sok` ≈L4067–4228 (ignore the `aldri` overlay after it).
+
+- [ ] `lib/screens/bergen/sok/sok_screen.dart` at `/bergen/sok`: header "Hva leter du etter? Et ord — så søker jeg. Et ønske — så ordner jeg ærendet."; field with voice affordance; empty state = **Søk · Spør Ægil** card (≈L4183; "Start samtale" → `kAegilRoute`, "Skriv eller snakk" focuses the field) + **Nylige søk** (≈L4198, local storage, last 8) + **Populært nå** (≈L4206, `GET /api/ops/search/trending` — add to `api_ops.php` reading `ops_order_events` product names last 7 days, cached 10 min) + **Ukens oppdrag** banner (≈L4215, reads `GET /api/points/me/mission` — agil-2's route, guarded; "Se" → `/bergen/meg`).
+- [ ] Results **Søk · treff** (≈L4109): "Butikker {n}" (name, category, ETA, rating, fee) and "Produkter {n}" (name, shop, price, add) from the app's existing search endpoint (find it in `api_constant.dart`; wrap in `ops_customer_api.dart`); states `sokVanlig` ("SPØR ÆGIL – Sammenlikn «x» på pris og levering" → `kAegilRoute` with the query), `sokIngen` ("Ingen treff på «x» i Bergen ennå… La Ægil finne nærmeste"), `sokTom`.
+- [ ] Wish banner (`sokOnske`): when the query has ≥4 words or a number + "kr" → "Dette høres ut som et ærend – Spør Ægil" → `kAegilRoute` with the query.
+- [ ] Copy `sok_copy.dart`; tests: each state renders, trending falls back to empty on 404, tap targets navigate.
+
+**Design ledger**
+
+| Screen | Design block | Differences |
+|---|---|---|
+| Søk empty | ≈L4067 | |
+| Søk · treff | ≈L4109 | |
+| wish banner | ≈L4090 | |
+
+**Acceptance**
+- [ ] `/bergen/sok` reachable from the nav field and from Hjem; `flutter test` green; commit `Phase 3: Søk`.
+
+---
+
+## Phase 4 — Butikk & kategori
+
+The biggest phase. Four screens and four sheets.
+
+- [ ] **Kategori** `lib/screens/bergen/butikk/kategori_screen.dart` at `/bergen/kategori/{slug}` (≈L4748–4856): "{n} åpne nå · Bergen", title, "Bestill fra bilde" (Mat only → C3 is agil-3's; button pushes `kAegilRoute` with `intent=photo`), Butikker / Produkter tabs, live strip "Akkurat nå i X: N bestillinger siste time" (`GET /api/ops/panel/...` is admin-scoped — add `GET /api/ops/customer/categories/{slug}/pulse` to Phase 1's controller), shop cards ("bestiller nå", VIDEO badge, ETA, fee), product grid, filter chips (Åpen nå / Gratis levering / Under 30 min / Topprangert), subcategory icons. Variants: **Gaver-kategori** (≈L4774: "Rekker fram i dag · Innen 18:15", "La Ægil finne en gave ›" → `kAegilRoute` gift intent, Anledninger, "GRATIS INNPAKNING" badge, "Populært til bursdag") and **Mote-utstilling** (≈L4825: the Dreieskiven turntable).
+- [ ] **Dreieskiven** `dreieskiven.dart` (≈L2762): pointer-driven turntable, front item shows price, heart "Lagre · si fra hvis prisen faller" → `POST /api/agent/availability-subscriptions` (agil-2 route, guarded), name / quote / who / add. Reused by Kategori Mote, the fashion store page, and Gaver.
+- [ ] **Restaurant store page** `butikk_screen.dart` at `/bergen/butikk/{id}` (`erButikk` ≈L3035–3520): hero (name, distance, "Åpent til", "Kjøkkenet er i gang 17:31" from `ops_store_hours` + availability), Casa Maria variant (EST., ETA, fee, "38 ærend i dag"), **Seilas · Burger King** progress (≈L3143: Kjøkkenet → Din dør, thresholds MIN 150 / Gratis frakt / Dessert / 10 % / 800 kr, "NESTE FORDEL", "Båten er i havn"), info buttons Allergener / Åpningstider / Mer / Del → the Info sheet, "Spør Ægil" → `kAegilRoute` store intent, **Kjøkkenluka** (≈L3246: swipe rail of 3 specials with before/after, "Spar X kr", "+Y kr" = 7 % Ærend-kroner from `points.*` policy via `GET /api/points/rules` guarded), category tabs, "Mest bestilt · Priser inkl. mva" menu with allergens, mini basket + floating basket bar (redux cart).
+- [ ] **Fashion / gift store page** `mote_butikk_screen.dart` (`{{ butSideLabel }}` ≈L2705–3033): label resolution "Mote-butikk" / "Gavebutikk · {navn}" / "Anledning · {x}"; hero ("12 kikker nå" from `GET /api/ops/customer/stores/{id}/presence`, add in Phase 1's controller, count of tracking views last 10 min — honest, not invented); "Ukens utstilling · Mote" Dreieskiven; PERSONALETS FAVORITT; "Til denne:" cross-sell; brand filter chips; shelf products with −% and points badge; "Usikker på størrelsen? Spør butikken" → `ops.customer.contact` with target store; gift variant (La Ægil finne en gave, Til hvem chips, INNPAKNING); mini basket + bar.
+- [ ] **Klede sheet** `klede_sheet.dart` (`visKlede` ≈L2630): colour, size with stock, quantity, "Prøv hjemme. Budet henter returen gratis innen 14 dager.", "Legg i kurv · X kr".
+- [ ] **Food product sheet** `produkt_sheet.dart` (`visProdukt` ≈L7211): "Mest bestilt i kveld", points, "Klar på 12 min", size (Liten −20 / Vanlig / Stor +29), add-ons, strength, allergens, quantity, "Legg til · X kr".
+- [ ] **Info sheet** (≈L6913 region: Allergener / Åpningstider / Mer) via `BergenArk`; **category sheet** (`arkAapent` ≈L7143).
+- [ ] **Poseautomaten** `automat_screen.dart` at `/bergen/automat` (`automat` ≈L4636): claw machine "Trekk i spaken · 99 kr", "Ingen nedtelling. Ingen nitter.", bag reveal, add to cart; bags from the same endpoint as Phase 2.
+- [ ] Copy `butikk_copy.dart`; tests per screen and sheet; reachability from Hjem (Phase 2 links) and Søk results.
+
+**Design ledger**
+
+| Screen | Design block | Differences |
+|---|---|---|
+| Kategori (+ Gaver, Mote) | ≈L4748 | |
+| Restaurant store page | ≈L3035 | |
+| Fashion / gift store page | ≈L2705 | |
+| Klede sheet | ≈L2630 | |
+| Food product sheet | ≈L7211 | |
+| Poseautomaten | ≈L4636 | |
+
+**Acceptance**
+- [ ] All six routes in `bergen_routes_agil1.dart` and reachable from Hjem or Søk; add-to-cart from every product surface changes the nav pill count; `flutter test` green; commit `Phase 4: Butikk og kategori`.
+
+---
+
+## Phase 5 — Kurv & kasse
+
+`kurv` ≈L4973–5250, sheets ≈L6913–7142, purchase sequence `kjopSteg2–4`.
+
+- [ ] **Kurv** `kurv_screen.dart` at `/bergen/kurv`, tab 2 of the shell: **Seilas · kassen** header (≈L4976: "Bryggen → Kassen", "Ægil ror til bryggen"); Levering / Henting toggle; lines with quantity; empty state ("Kurven er tom — skal vi finne noe i Bergen?", "Bla gjennom Bergen", "Tilbud i kveld"); "Legg til noe mer – Glemte du drikke?" from the store's drinks category; Endre rows (address / time / payment "Betales ved bestilling"); "Beskjed til budet" + "Flere valg"; pickup note; tips 0/15/25/40 ("Alt går uavkortet til budet"); SAMMENDRAG incl. "Lagt i kurven av Ægil … 312 kr · Angre" (reads the cart's `added_by = aegil` lines — agil-3 writes them through the existing cart API; agil-1 just renders + `BergenUndoPill`); "DØREN · FOR BUDET" note with the "Tolk" chip (**C4, agil-3 — the chip pushes `kAegilRoute` with `intent=door`; no local logic**) and "Kode ved levering" toggle → `ops_delivery_codes` via the existing checkout; gift recipient "Overrask / Si fra"; "Å BETALE NÅ" total with "Gir N kr tilbake i Ærend-kroner"; footer "Ærendet krysser Vågen med {bud}" only once a courier is assigned; pay button = the existing Vipps flow (`endPointVippsInitiate`).
+- [ ] Sheets via `BergenArk`: **Adresse** ("Hvor skal ærendet?" + door note), **Ny adresse** (uses the existing address drawer `ae_address_drawer.dart` inside), **Levering** ("Når vil du ha det?" Så fort som mulig / 18:30 / 19:30 — slots from `ops_store_hours`), **Betaling** (Vipps / Visa / Apple Pay / Google Pay from the existing card list).
+- [ ] **Coverage at address change** (geo spec §4): call `GET /api/geo/coverage?lat=&lng=` when flag `geo.customer.coverage` is on; **404 or flag off → skip silently** (agil-3's endpoint may not exist on this branch yet). Not covered → "Vi leverer ikke hit ennå — si fra, så gir vi beskjed" with one-tap `POST /api/geo/waitlist`.
+- [ ] **Self-delivery checkout rule** (spec §8.2): a 422 `PD_OUTSIDE_RADIUS` from checkout shows "Butikken leverer ikke hit" and offers pickup. The customer's fee line is unchanged whoever delivers (spec §5).
+- [ ] **Purchase sequence** `kjop_sekvens.dart` (`kjopSteg2–4` ≈L5249): steps 2–3 are placeholders in the design — implement as the Vipps return → "Bekreftet" transition; step 4 **Levert · vervebillett** ("ÆREND-BILLETT {kode} – Gi 100 kr, få 100 kr", "Del billetten" / "Kopier", code from `GET /api/points/me/referral`, guarded) shown once per order after Levert.
+- [ ] **Bestillingsdetaljer** `bestilling_sheet.dart` at `/bergen/bestilling/{id}` (≈L5641): Sammendrag / Detaljer tabs, Vipps timestamp, ORDRENUMMER + ÆREND-ID, store address, "Kvittering", "Meg · Bestillinger" (→ `/bergen/meg/bestillinger`, agil-3), "Kontakt kundeservice" (→ `/bergen/kundeservice`). Data: `ops.customer.orders`.
+- [ ] Copy `kasse_copy.dart`; tests: empty / filled / pickup / gift; tip math; Ægil-added line renders and Angre removes; coverage call skipped on 404; 422 handling.
+
+**Design ledger**
+
+| Screen | Design block | Differences |
+|---|---|---|
+| Kurv | ≈L4973 | |
+| four sheets | ≈L6913–7142 | |
+| Levert · vervebillett | ≈L5249 | |
+| Bestillingsdetaljer | ≈L5641 | |
+
+**Acceptance**
+- [ ] Order placed end to end on the local stack (`php artisan serve` + Vipps test env) lands in `ops_order_events` with `ops_origin = app` and `policy_version`; commit `Phase 5: Kurv og kasse`.
+
+---
+
+## Phase 6 — Sporing, Hjelp, Levert
+
+The self-delivery spec's §5 items are **requirements** here, not suggestions.
+
+- [ ] **Sporing** `sporing_screen.dart` at `/bergen/sporing/{id}` (≈L5287–5760, plus `spHentKlar` ≈L5500 and `spPaaVei` ≈L5457): data from `ops.customer.tracking` polled every 10 s, or the events channel when broadcasting is on (`private-customer.{id}`); top line "Live · {stadie}", ETA, "om N min"; **Sporing · stadier** stepper (`BergenStepper`, labels by `mode`); **stadieskifte** overlay ("Steg N av 4", "+X poeng" — points from `GET /api/points/me` delta, guarded) on every stage change; stage cards **Bekreftet** (receipt), **Tilberedes** (ticket, "På komfyren · 6 min igjen" from `ops_predicted_ready_at`), **På vei** (map with the route; live marker only when `live_position != null`; bike or car from `courier.vehicle`), **Klar for henting** (pickup variant: "Den står i disken. Si «{navn}»", "Vis veien" → map sheet `kArkErKart`), **Levert**; **Ægil-veileder** line ("Ægil · følger ærendet ditt" + `spNesteHint`); **Avslutt** ("Avslutt bestillingen" at stage 3 → `/bergen/levert/{id}`; before that "Fjordfiske mens du venter" → `/bergen/fjordfiske`); gift variant "{navn} venter på kaien".
+- [ ] **Completion layer** (≈L7294–7326): **Bud-identitet** pill (courier initial + "BankID-verifisert" when `courier.verified`, or the store icon when `delivery_actor == partner`); **Leveringskode** (7×7 visual code from `qr_payload` + PIN; offline → PIN only, "Uten nett vises bare PIN."); **Valg som venter** ("Torgboden har ikke sett ordren" when `unseen_by_store`; Vent → no-op + toast, Avbestill → `ops.customer.problem kind=cancel` → full refund copy); `BergenOfflineBanner` on connectivity loss with the last payload.
+- [ ] **Self-delivery variants** (spec §5, every line): label "Leveres av {butikknavn}" and no courier identity when `partner`; stages from the store-emitted statuses (server-derived — assert the app never maps states itself); ETA from the store estimate; **no live map** (route/destination only, no marker); contact routing "Ring butikken" / "Melding til butikken"; "Finner ikke døra" and "Noe mangler" route to the store; PIN shown as today; no courier notifications ("Butikken er på vei" variant — the notification copy keys `a1_sporing_notif_store_*`).
+- [ ] **"Finner bud"** (agents spec §7): when `finding_courier`, the top line reads the `order_status_finding_courier` copy ("Finner bud") and the Ægil-veileder hint says a courier is being found; never for partner orders.
+- [ ] **Hjelp sheet** `hjelp_sheet.dart` at `/bergen/sporing/{id}/hjelp` (`sheetHjelp` ≈L7000–7130): main (contact card "På vei · 4 min unna · sykler siden mars · 4,9" when courier, store card when partner; Ring / Send melding), **Ring {{ kontaktRolle }}** (in-app call UI: Demp / Avslutt / Høyttaler → `ops.customer.contact kind=call`, which today creates the relay record and, with no provider, shows the store/courier number masked per `ops_relay_calls`), **Melding til {{ kontaktRolle }}** (thread with typing indicator → `ops.customer.contact kind=message`), **Finner ikke døra** ("Dette er det {navn} ser nå", address, directions, Send / Ring / Skriv selv → `problem kind=door`), **Noe mangler** (tap the missing items → `problem kind=missing`; "Vipps-refusjon innen 2 min eller ny levering"), **Kundeservice** (≈L7114: hours, chat, 55 00 12 34, "Ordre #… er allerede lagt ved" → the existing live chat), **Bekreftet** (sent confirmation, "Ferdig"). `kontaktRolle` = "butikken" when partner else "bud".
+- [ ] **Kundeservice** standalone at `/bergen/kundeservice` (same body, no order attached) — reached from Bestillingsdetaljer and Meg (agil-3 pushes it).
+- [ ] **Levert** `levert_screen.dart` at `/bergen/levert/{id}` (≈L5881–5940): "18:11 Levert. Håper det smaker. to minutter før tiden" (from `promised_end` vs the delivered event), **Poeng for denne ordren** line (≈L5912: "+34 poeng", league gap, first-time bonus, "Du støttet en familiedrevet butikk…" — from `GET /api/points/me/ledger?order={id}`, guarded; hidden on 404), "Levert til deg · koden ble bekreftet av {bud|butikken}", "Takk til {bud}" (courier only), "Hvordan gikk det?" (existing rating), "Noe galt med bestillingen?" → Hjelp, "Ferdig".
+- [ ] Retire `lib/screens/tracking/*`: `DeliveryCodeCard` and `OpsTrackingStatus` become the Leveringskode card and the stepper's status line inside `sporing/`; delete the old files and their tests once the new ones cover the same assertions.
+- [ ] Wire the existing order-detail entry (`deliveries_order_detail.dart`) and push notifications (`push_notification_service.dart` order types) to `/bergen/sporing/{id}`; the Hjem's "PÅ VEI NÅ" notification row too.
+- [ ] Demo panel triggers: new order → Bekreftet; next stage; unseen shop; code OK; PIN wrong ×3; offline/online (the design's `kDemoRader` list) — each drives the real endpoints on the local stack, not fake state.
+- [ ] Copy `sporing_copy.dart`; tests: stage rendering for all 8 states × 2 actors × 2 modes; partner variant assertions (no courier widget, no marker, store contact targets); Finner bud; Hjelp states; Levert.
+
+**Design ledger**
+
+| Screen | Design block | Differences |
+|---|---|---|
+| Sporing stages | ≈L5287–5760 | |
+| completion layer | ≈L7294 | |
+| Hjelp sheet states | ≈L7000–7130 | |
+| Levert | ≈L5881 | |
+
+**Acceptance**
+- [ ] On the local stack, drive an order through every state with the Partner endpoints (`api_ops.php` transitions) and watch the screen change; repeat with `pd_delivery_actor = partner` **after** agil-3 merges (until then, assert the guarded default path). `flutter test` green; commit `Phase 6: Sporing, Hjelp og Levert`.
+
+---
+
+## Phase 7 — Hygiene and the human-only list
+
+- [ ] Delete `lib/screens/tracking/` if not already; triage `flutter analyze` infos on files this plan touched (deprecations only; do not chase the 641 pre-existing).
+- [ ] Story viewer with a broken `media_url` — manual pass on a device; record in `AGIL-1-REMAINING.md` §7.
+- [ ] `[ ] **HUMAN — T1** verify `GET /api/internal/feed-device-tokens` in prod; `**HUMAN — T2**` push E2E per `Hare-AdminPanel/docs/T1_T2_SMOKE_TEST.md`; `**HUMAN — T9**`, `**HUMAN — T10**`. Write status into `AGIL-1-REMAINING.md` §8. Do not attempt.
+- [ ] Composer image-picker manual pass (Hare-Store) — **HUMAN**, out of UI scope, listed so it is not lost.
+- [ ] Update `Hare-AdminPanel/docs/OPS_API.md` with the `customer/*` routes and `docs/OPS_ADMIN_GUIDE.md` "Sporing" note.
+
+**Acceptance**
+- [ ] Commit `Phase 7: hygiene`. Human items stay unticked with notes.
+
+---
+
+## Phase 8 — Merge day, l10n, design review, close
+
+Runs **after** agil-3 reports merge-ready (its Phase 8).
+
+- [ ] Execute contract §6 step by step; every step's command and result recorded here. Stop and report on any conflict outside §2.4.
+- [ ] **l10n consolidation**: move every `A1Copy` and `A3Copy` key into `intl_no.arb` / `intl_en.arb` under `ops_<group>_*` / `pts_*` / `aegil_*` (and the spec §7 keys verbatim: `agent_badge_proposed order_status_finding_courier …`); `flutter gen-l10n`; replace the copy classes with `AppLocalizations` lookups; delete the copy files; `flutter test` green. One commit.
+- [ ] **Design review ledger** — one row per screen in this plan and in agil-3's Phase 7, opened beside the design, differences listed and either fixed or accepted with a reason. The ledger is the acceptance artifact; a screen without a row is not done.
+- [ ] Flags: `ops:flags list` shows every new key off; document the rollout order in `docs/OPS_ROLLBACK.md` §5 (customer stages after storefront).
+- [ ] Update `plans/AGIL-1-REMAINING.md` to the post-merge state (or retire it with a pointer).
+
+**Acceptance**
+- [ ] Both suites green on the merged tree; `ContractNamesTest` no skips; `ops:contract-check` exit 0; commit `Phase 8: merge, l10n, review`.
+
+---
+
+## Asks of agil-3 (do not do these here)
+
+- `GET /api/agent/suggestions?context=under_kaien` and `GET /api/agent/suggestions/{id}` must return the `NappOffer` shape (contract §5.4).
+- `GET /api/points/me/ledger?order={id}` must return the per-order line the Levert screen shows, or a documented 404.
+- `agtp_proposals` of type `courier_outreach` must set `subject_type = order`, `subject_id = <order id>` so `finding_courier` can be derived.
+- The Meg "Nytt fra butikkene" row pushes `/bergen/utforsk?tab=feed`; "Hjelp og kontakt" pushes `/bergen/kundeservice`; Bestillinger rows push `/bergen/sporing/{id}` or `/bergen/bestilling/{id}`.
+
+## Blocked / deferred
+
+- **Vipps payout, policy placeholders, Points migration cutover** — unchanged from `AGIL-1-REMAINING.md` §8; not this plan's.
+- **Partner and Bud app UI** — out of scope by decision; the self-delivery Partner screens are a later plan.
+- **C3 "Bestill fra bilde" and C4 "Tolk" door notes** — agent functions; agil-3 owns the agent, agil-1 only pushes the intent.
+- **Live map for partner-delivered orders** — v2 "butikkmodus" (spec §7.2), not this plan.
