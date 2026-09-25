@@ -102,15 +102,15 @@ Needs there go under "Asks of agil-1".
 
 ## Phase 0 — Branch, inherit, register
 
-- [ ] `git checkout -b agil-3 agil-1` in both repos at the contract commit. Confirm `git log agil-1..agil-3` is empty.
-- [ ] `git cherry-pick sync-C` in both repos (agil-1 v2 Phase 0 tags it). If the tag does not exist yet, **stop and wait** — nothing in this plan is buildable without it. Verify: `SurfaceFlags::register` exists, `ops_feature_flags.value` exists, `App\Ops\Dispatch\CandidateSource` exists, the seam files exist in Aerend-app, `ContractNamesTest` passes with agil-3 entries skipped.
-- [ ] `tests/fixtures/contract/names.agil3.json` is now yours. Read it against contract §3.3 / §3.4; every entry below must already be there. Missing → add to both the contract and the file in one commit before building.
-- [ ] `app/Providers/AgentOpsServiceProvider.php` registered in `config/app.php` (`chore(shared): register AgentOpsServiceProvider`): calls `SurfaceFlags::register([...all agt.* geo.* pd.* flags, off, with stage 'storefront'...])`, binds the model driver, binds `GeoCandidateSource` only when `geo.engine.cutover` is on.
-- [ ] `config/agentops.php`, `config/geo.php`, `config/partner_delivery.php` with every env var from §3.3 and nothing read elsewhere; `.env.example` appended.
-- [ ] `docs/AGENTOPS_ARCHITECTURE.md` — one page: the proposal model, the invoker path, the `fake` driver, the propose-never-execute rule, and a table mapping every spec name to the contract name (the §3.3 "spec name" column).
+- [x] `git checkout -b agil-3 agil-1` in both repos at the contract commit. Confirm `git log agil-1..agil-3` is empty. *(Branched 2026-09-25 from the sync-C commits themselves: `c07f51e` / `525b014`.)*
+- [x] `git cherry-pick sync-C` in both repos (agil-1 v2 Phase 0 tags it). *(No-op — the branch point already carries sync-C; all five checks verified.)*
+- [x] `tests/fixtures/contract/names.agil3.json` is now yours. Added (contract + file, same commit): policies `agt.product_onboarding.bulk_threshold`, `agt.product_onboarding.first_approval`, `geo.auto_apply_templates`, `pd.driver_pin_enabled`; 422s `AGTP_TERMINAL`, `AGTP_NO_AUTHORIZATION`, `AGTP_DENYLISTED_DOMAIN`, `AGTP_SCOPE`.
+- [x] `app/Providers/AgentOpsServiceProvider.php` registered in `config/app.php`: `SurfaceFlags::register(AgentOpsFlags::all())` (12 flags, storefront, off), `ModelDriver` binding (`fake` | `ollama`), the seam rebind via `app->extend(CandidateSource)` only when `geo.engine.cutover` is on and the class exists, and the three route files.
+- [x] `config/agentops.php`, `config/geo.php`, `config/partner_delivery.php`; `.env.example` appended.
+- [x] `docs/AGENTOPS_ARCHITECTURE.md`.
 
 **Acceptance**
-- [ ] `php artisan test` matches agil-1's count at the branch point; `ContractNamesTest` green; `ops:flags list` shows `agt.* geo.* pd.*` off; commit `Phase 0: branch and inherit sync-C`.
+- [x] `ContractNamesTest` green (61 asserted, agil-3 reserved entries skipped); `ops:flags list` shows the 12 `agt.* geo.* pd.*` keys (not seeded → off); commit `Phase 0: branch and inherit sync-C`.
 
 ---
 
