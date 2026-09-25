@@ -113,9 +113,9 @@ Everything agil-3 must inherit before it branches. Small, mechanical, tagged.
 - [x] Demo panel scaffold `lib/screens/bergen/hjelp/demo_panel.dart` behind `kDebugMode` (5-tap on the Hjem wordmark, design ≈L7565): lists scenario triggers as no-ops now; later phases register real triggers. Compiled out of release.
 
 **Acceptance**
-- [ ] `php artisan test` → previous count + new tests, still the same 6 pre-existing unit failures and nothing else; `ContractNamesTest` green (agil-3 entries skipped); `ops:flags list` shows `value` column in play; `MergeReadinessTest` green.
-- [ ] `flutter analyze lib/` 0 errors; `flutter test` green (321 + kit + contract tests); `grep -rl reen_pre_club_theme lib/` empty.
-- [ ] `git tag sync-C` on the phase commit. Write the tag hash into contract §1.
+- [x] `php artisan test` → previous count + new tests, still the same 6 pre-existing unit failures and nothing else; `ContractNamesTest` green (agil-3 entries skipped); `ops:flags list` shows `value` column in play; `MergeReadinessTest` green.
+- [x] `flutter analyze lib/` 0 errors; `flutter test` green (321 + kit + contract tests); `grep -rl reen_pre_club_theme lib/` empty.
+- [x] `git tag sync-C` on the phase commit. Write the tag hash into contract §1.
 
 ---
 

@@ -67,8 +67,10 @@ a test on each branch asserts the registry against reality.
 | `agil-1` | continues from `53c788f`+ | `AGIL-1-PLAN-v2.md` | Integration branch. The customer's ærend end to end — search, store, cart, checkout, tracking — the customer tracking API, the shared UI kit, l10n consolidation, hygiene. |
 | `agil-3` | `git checkout -b agil-3 agil-1` at the commit that carries this file | `AGIL-3-PLAN.md` | The three new specs' backends and admin modules; the Points, Ægil and Meg customer screens. |
 
-**Sync C** — agil-1 v2 Phase 0 ends with `git tag sync-C`. It contains, and
-nothing else:
+**Sync C** — agil-1 v2 Phase 0 ends with `git tag sync-C`. **Tagged 2026-09-25:**
+Hare-AdminPanel `c07f51ee47a3c0661cd4c529ebdcc21de64270b0`, Aerend-app
+`525b01444b767e592317f87b38ac3c3767749d1b` (both on `agil-1`; `agil-3` was
+branched from these commits the same day). It contains, and nothing else:
 
 - `ops_feature_flags.value` (json, nullable) and `App\Points\FeatureFlags`
   repointed to `ops_feature_flags` — ending the two-mechanism split.
