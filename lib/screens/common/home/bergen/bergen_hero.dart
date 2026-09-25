@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
+import '../../../bergen/hjelp/demo_panel.dart';
 import 'bergen_floats.dart';
 import 'bergen_kit.dart';
 import 'bergen_painters.dart';
@@ -27,6 +28,8 @@ class BergenHero extends StatefulWidget {
     required this.onFloatNever,
     required this.onFjordfiske,
     required this.onBag,
+    this.onFloatTap,
+    this.onGreetingTap,
     this.showLantern = false,
     this.boat,
     this.onBoat,
@@ -41,6 +44,14 @@ class BergenHero extends StatefulWidget {
   final ValueChanged<BergenFloatItem> onFloatNever;
   final VoidCallback onFjordfiske;
   final VoidCallback onBag;
+
+  /// A bobber tap, when the card that rises from the water is somebody
+  /// else's (AGIL-CONTRACT §2.2 `showNappKort` seam). Null keeps the hero's
+  /// own Napp card.
+  final ValueChanged<BergenFloatItem>? onFloatTap;
+
+  /// The greeting line → Ægil (`kAegilRoute`).
+  final VoidCallback? onGreetingTap;
 
   /// `vsNyLykt` — a lantern on the quay for something new in town.
   final bool showLantern;
@@ -172,7 +183,9 @@ class _BergenHeroState extends State<BergenHero> {
                 selected: _selected?.id == e.value.id,
                 dimmed: _selected != null && _selected?.id != e.value.id,
                 showCatchBadge: e.key == 0 && !_catchToast,
-                onTap: () => _selectFloat(e.value),
+                onTap: () => widget.onFloatTap == null
+                    ? _selectFloat(e.value)
+                    : widget.onFloatTap!(e.value),
               ),
             ),
             if (_selected != null) _rodLine(context),
@@ -458,7 +471,8 @@ class _BergenHeroState extends State<BergenHero> {
       left: 32 * s,
       right: 92 * s,
       top: 24 * s,
-      child: IgnorePointer(
+      child: DemoPanelTapTarget(
+        onTap: widget.onGreetingTap,
         child: OnbTimeline(
           durationMs: 850,
           builder: (context, t, _) {

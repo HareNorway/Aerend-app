@@ -1,0 +1,229 @@
+import '../../utils/utils.dart';
+import '../api_base_helper.dart';
+
+/// The customer app's calls into the monolith's `ops.customer.*` routes and
+/// the few other ops / points / agent reads the Bergen screens make
+/// (AGIL-CONTRACT §3.2; `lib/networking/ops/ops_customer_api.dart`).
+///
+/// Auth is the house `user_id` + `access_token` pair from prefs, sent as query
+/// parameters the way every other customer endpoint takes them. Reads that
+/// belong to the other branch (`/api/points/...`, `/api/agent/...`, `/api/geo/...`)
+/// are *guarded*: a 404, a missing route or any failure returns null and the
+/// screen hides the element — the endpoint may not be on this tree yet.
+class OpsCustomerApi {
+  OpsCustomerApi({ApiBaseHelper? helper})
+    : _helper = helper ?? ApiBaseHelper(baseUrl: BaseUrl.domain);
+
+  final ApiBaseHelper _helper;
+
+  static const String _base = 'api/ops/customer/';
+
+  /// `user_id` + `access_token`, or null for a guest.
+  static Map<String, String>? authParams() {
+    final id = prefGetInt(prefUserId);
+    final token = prefGetString(prefAccessToken).trim();
+    if (id == 0 || token.isEmpty) return null;
+    return {'user_id': '$id', 'access_token': token};
+  }
+
+  static String _qs(Map<String, String> params) => params.entries
+      .map(
+        (e) =>
+            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}',
+      )
+      .join('&');
+
+  Future<Map<String, dynamic>?> _get(
+    String path, {
+    Map<String, String> query = const {},
+  }) async {
+    final auth = authParams();
+    if (auth == null) return null;
+    final json = await _helper.get('$path?${_qs({...auth, ...query})}');
+    return json is Map<String, dynamic> ? json : null;
+  }
+
+  Future<Map<String, dynamic>?> _post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final auth = authParams();
+    if (auth == null) return null;
+    final json = await _helper.post('$path?${_qs(auth)}', body: body);
+    return json is Map<String, dynamic> ? json : null;
+  }
+
+  /// Null on 404 / missing / any failure: the caller hides the element.
+  Future<Map<String, dynamic>?> _guarded(
+    Future<Map<String, dynamic>?> Function() call,
+  ) async {
+    try {
+      final json = await call();
+      if (json == null) return null;
+      // The house envelope: status 0 is a rejection, not data.
+      if (json['status'] == 0) return null;
+      return json;
+    } on AppException {
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ── ops.customer.* (agil-1, Phase 1) ───────────────────────────────────
+
+  /// `ops.customer.tracking` — AGIL-CONTRACT §5.1. Throws on failure so the
+  /// Sporing screen can show the offline banner with its last payload.
+  Future<Map<String, dynamic>> tracking(int orderId) async {
+    final json = await _get('${_base}orders/$orderId/tracking');
+    if (json == null) throw UnauthorisedException('Ikke innlogget');
+    return json;
+  }
+
+  /// `ops.customer.tracking.events` — the polling fallback.
+  Future<Map<String, dynamic>?> events(int orderId, {int since = 0}) =>
+      _guarded(
+        () =>
+            _get('${_base}orders/$orderId/events', query: {'since': '$since'}),
+      );
+
+  /// `ops.customer.contact` — `kind` is `call` or `message`.
+  Future<Map<String, dynamic>?> contact(
+    int orderId, {
+    required String kind,
+    String? message,
+  }) => _post('${_base}orders/$orderId/contact', {
+    'kind': kind,
+    if (message != null) 'message': message,
+  });
+
+  /// `ops.customer.problem` — `kind` ∈ door, missing, wait, cancel.
+  Future<Map<String, dynamic>?> problem(
+    int orderId, {
+    required String kind,
+    String? words,
+    List<String>? items,
+  }) => _post('${_base}orders/$orderId/problem', {
+    'kind': kind,
+    if (words != null) 'words': words,
+    if (items != null) 'items': items,
+  });
+
+  /// `ops.customer.orders`.
+  Future<List<Map<String, dynamic>>> orders({int limit = 50}) async {
+    final json = await _guarded(
+      () => _get('${_base}orders', query: {'limit': '$limit'}),
+    );
+    final list = json?['orders'];
+    return list is List
+        ? list.whereType<Map<String, dynamic>>().toList()
+        : const [];
+  }
+
+  /// `ops.customer.away`.
+  Future<Map<String, dynamic>?> awaySummary() =>
+      _guarded(() => _get('${_base}away-summary'));
+
+  // ── other agil-1 reads (Phase 2+) ───────────────────────────────────────
+
+  /// Forundringsposer: `GET /api/ops/products?kind=pose`. Empty on failure.
+  Future<List<Map<String, dynamic>>> poser() async {
+    final json = await _guarded(() async {
+      final j = await _helper.get('api/ops/products?kind=pose');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['products'];
+    return list is List
+        ? list.whereType<Map<String, dynamic>>().toList()
+        : const [];
+  }
+
+  /// The pinned "Ærend · Drift" notice for Utforsk. The availability endpoint
+  /// is per store and carries no weather note today, so this is null — the
+  /// notice stays hidden (plan Phase 2: "else hidden").
+  Future<Map<String, dynamic>?> driftNotice({int? storeId}) async {
+    if (storeId == null) return null;
+    final json = await _guarded(() async {
+      final j = await _helper.get(
+        'api/ops/store/availability?store_id=$storeId',
+      );
+      return j is Map<String, dynamic> ? j : null;
+    });
+    if (json == null || json['note'] == null) return null;
+    return json;
+  }
+
+  // ── guarded cross-branch reads ──────────────────────────────────────────
+
+  /// "UNDER KAIEN" finds — agil-2's suggestions tray, `context=under_kaien`.
+  /// Hidden on 404 or any failure.
+  Future<List<Map<String, dynamic>>> underKaien() async {
+    final json = await _guarded(
+      () => _get('api/agent/me/suggestions', query: {'context': 'under_kaien'}),
+    );
+    final list = json?['suggestions'];
+    return list is List
+        ? list.whereType<Map<String, dynamic>>().toList()
+        : const [];
+  }
+
+  /// `GET /api/points/me/mission` (agil-2's route), guarded.
+  Future<Map<String, dynamic>?> mission() =>
+      _guarded(() => _get('api/points/mission'));
+
+  /// `GET /api/points/me` (guarded) — the Sporing stage overlay's "+X poeng".
+  Future<Map<String, dynamic>?> pointsMe() =>
+      _guarded(() => _get('api/points/me'));
+
+  /// `GET /api/points/me/ledger?order={id}` (guarded) — Levert's points line.
+  Future<Map<String, dynamic>?> pointsForOrder(int orderId) => _guarded(
+    () => _get('api/points/me/ledger', query: {'order': '$orderId'}),
+  );
+
+  /// `GET /api/points/me/referral` (guarded) — the vervebillett code.
+  Future<Map<String, dynamic>?> referral() =>
+      _guarded(() => _get('api/points/me/referral'));
+
+  /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage.
+  Future<Map<String, dynamic>?> pointsRules() =>
+      _guarded(() => _get('api/points/rules'));
+
+  /// `GET /api/ops/search/trending` (agil-1, Phase 3). Empty on failure.
+  Future<List<String>> trending() async {
+    final json = await _guarded(() async {
+      final j = await _helper.get('api/ops/search/trending');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['terms'];
+    return list is List
+        ? list.map((e) => '$e').where((e) => e.isNotEmpty).toList()
+        : const [];
+  }
+
+  /// `GET /api/geo/coverage?lat=&lng=` (agil-3, guarded by flag and 404).
+  Future<Map<String, dynamic>?> coverage(double lat, double lng) => _guarded(
+    () => _get('api/geo/coverage', query: {'lat': '$lat', 'lng': '$lng'}),
+  );
+
+  /// `POST /api/geo/waitlist` (agil-3, guarded).
+  Future<Map<String, dynamic>?> waitlist(
+    double lat,
+    double lng, {
+    String? address,
+  }) => _guarded(
+    () => _post('api/geo/waitlist', {
+      'lat': lat,
+      'lng': lng,
+      if (address != null) 'address': address,
+    }),
+  );
+
+  /// `GET /api/ops/customer/categories/{slug}/pulse` (agil-1, Phase 4), guarded.
+  Future<Map<String, dynamic>?> categoryPulse(String slug) => _guarded(
+    () => _get('${_base}categories/${Uri.encodeComponent(slug)}/pulse'),
+  );
+
+  /// `GET /api/ops/customer/stores/{id}/presence` (agil-1, Phase 4), guarded.
+  Future<Map<String, dynamic>?> storePresence(int storeId) =>
+      _guarded(() => _get('${_base}stores/$storeId/presence'));
+}

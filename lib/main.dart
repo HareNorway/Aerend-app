@@ -31,6 +31,7 @@ import 'networking/feed/feed_api_constant.dart';
 import 'utils/utils.dart';
 import 'screens/bergen/bergen_routes_agil1.dart';
 import 'screens/bergen/bergen_routes_agil3.dart';
+import 'screens/bergen/kit/bergen_routes.dart';
 
 //Created at 20/05/2021 11:30 AM
 
@@ -342,6 +343,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 builder: (context) => RedeemCode(discountCode: code),
               );
             }
+
+            // agil-1 Phase 2 (AGIL-CONTRACT §3.4): `/bergen/...` names with a
+            // query or a trailing id resolve to the branch route maps.
+            final bergenRoute = BergenRoutes.generate(settings);
+            if (bergenRoute != null) return bergenRoute;
 
             return null;
           },

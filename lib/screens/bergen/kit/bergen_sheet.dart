@@ -61,7 +61,8 @@ class BergenSheet extends StatelessWidget {
         initialExtent: initialChildSize,
         builder: (context, extent) => BergenSheet(
           onDark: onDark,
-          handle: (handleFor ??
+          handle:
+              (handleFor ??
               (e) => defaultHandleFor(e, minChildSize, maxChildSize))(extent),
           padding: EdgeInsets.zero,
           child: body(context, controller),

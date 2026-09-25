@@ -90,7 +90,9 @@ void main() {
     testWidgets('disabled when onPressed is null', (tester) async {
       await tester.pumpWidget(_app(const BergenCta3d(label: 'Vent')));
       final semantics = tester.widget<Semantics>(
-        find.ancestor(of: find.text('Vent'), matching: find.byType(Semantics)).first,
+        find
+            .ancestor(of: find.text('Vent'), matching: find.byType(Semantics))
+            .first,
       );
       expect(semantics.properties.enabled, isFalse);
       expect(semantics.properties.button, isTrue);
@@ -131,7 +133,9 @@ void main() {
         expect(find.text(s), findsOneWidget);
       }
       final stepper = tester.widget<Semantics>(
-        find.ancestor(of: find.text('Klar'), matching: find.byType(Semantics)).first,
+        find
+            .ancestor(of: find.text('Klar'), matching: find.byType(Semantics))
+            .first,
       );
       expect(stepper.properties.label, 'Steg 3 av 4: På vei');
     });
@@ -281,7 +285,10 @@ void main() {
               BergenArkRow(label: 'Ring butikken', onTap: () => row++),
             ],
             primary: BergenArkAction(label: 'Ferdig', onTap: () => primary++),
-            secondary: BergenArkAction(label: 'Hjelp', onTap: () => secondary++),
+            secondary: BergenArkAction(
+              label: 'Hjelp',
+              onTap: () => secondary++,
+            ),
           ),
         ),
       );

@@ -9,7 +9,7 @@ import '../api_base_helper.dart';
 /// client would hide that.
 class OpsFeedApi {
   OpsFeedApi({ApiBaseHelper? helper})
-      : _helper = helper ?? ApiBaseHelper(baseUrl: BaseUrl.domain);
+    : _helper = helper ?? ApiBaseHelper(baseUrl: BaseUrl.domain);
 
   final ApiBaseHelper _helper;
 

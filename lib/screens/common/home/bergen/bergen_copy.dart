@@ -116,6 +116,14 @@ abstract final class BergenCopy {
   static String get noProductsYet =>
       _t('Ingen varer her ennå', 'No items here yet');
 
+  // ── Ægil-relevanskort (design ≈L2452) ─────────────────────────────────────
+  static String aegilFinds(int n) => _t(
+    n == 1 ? 'Ægil har 1 funn til deg' : 'Ægil har $n funn til deg',
+    n == 1 ? 'Ægil has 1 find for you' : 'Ægil has $n finds for you',
+  );
+  static String get aegilFindsLine =>
+      _t('Trykk for å se brettet', 'Tap to see the board');
+
   // ── Under kaien ───────────────────────────────────────────────────────────
   static String get underQuay => _t('UNDER KAIEN', 'UNDER THE QUAY');
   static String get underQuayLine => _t(

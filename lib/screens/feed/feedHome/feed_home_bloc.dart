@@ -38,6 +38,10 @@ class FeedHomeBloc extends Bloc {
 
   Stream<FeedHomeState> get stateStream => _stateSubject.stream;
 
+  /// The repo, for reads the screen makes beside the paged feed (the
+  /// «Publisert av Ærend» tab — AGIL-1 v2 Phase 2).
+  FeedRepo get repo => _repo;
+
   FeedHomeState get currentState => _stateSubject.value;
 
   final Set<String> _likeInFlight = {};

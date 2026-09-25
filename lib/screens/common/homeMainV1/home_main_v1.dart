@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../utils/utils.dart';
 import '../../deliveryService/searchStore/search_store.dart';
-import '../../feed/feed_shell_screen.dart';
+import '../../bergen/utforsk/utforsk_screen.dart';
 import '../../snurre/snurre_chat_screen.dart';
+import '../../bergen/kit/bergen_routes.dart';
 import '../../bergen/meg/meg_host.dart';
 import '../home/bergen/bergen_home.dart';
 import '../home/bergen/bergen_nav.dart';
@@ -113,7 +114,17 @@ class HomeMainV1State extends State<HomeMainV1> {
   void openSearchTab({String keyword = ''}) {
     final trimmed = keyword.trim();
     searchLaunchKeyword.value = trimmed;
-    openScreen(context, SearchStore(latLng: prefGetLatLng(), keyword: trimmed));
+    // AGIL-1 v2 Phase 2/3: the Bergen Søk screen, with the typed text; the
+    // legacy search until that route lands.
+    BergenRoutes.pushOr(
+      context,
+      '/bergen/sok',
+      arguments: {'q': trimmed},
+      orElse: () => openScreen(
+        context,
+        SearchStore(latLng: prefGetLatLng(), keyword: trimmed),
+      ),
+    );
   }
 
   void _openAegil(String draft) {
@@ -128,8 +139,8 @@ class HomeMainV1State extends State<HomeMainV1> {
       children: [
         // 0 — Hjem
         BergenHome(isShowDialog: widget.isShowDialog, orderId: widget.orderId),
-        // 1 — Utforsk (feed)
-        const FeedShellScreen(),
+        // 1 — Utforsk (AGIL-1 v2 Phase 2: Feed / Fjordfiske / Forundringspose)
+        const UtforskScreen(),
         // 2 — Kurv
         Padding(
           padding: EdgeInsets.only(bottom: bergenNavReserve(context)),

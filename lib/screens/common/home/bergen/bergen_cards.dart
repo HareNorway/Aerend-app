@@ -615,6 +615,24 @@ class _ArcPainter extends CustomPainter {
 
 /// `Under kaien` — the underwater zone revealed when the sheet is pushed up:
 /// kelp, drifting fish, three glass cards with Ægil's finds.
+/// What the first Under kaien card shows when agil-2's suggestions tray has
+/// a real find for `context=under_kaien`; null keeps the design's sample.
+class BergenUnderQuayOffer {
+  const BergenUnderQuayOffer({
+    required this.id,
+    required this.title,
+    required this.price,
+    required this.store,
+    this.sub = '',
+  });
+
+  final String id;
+  final String title;
+  final String price;
+  final String store;
+  final String sub;
+}
+
 class BergenUnderQuay extends StatelessWidget {
   const BergenUnderQuay({
     super.key,
@@ -622,10 +640,14 @@ class BergenUnderQuay extends StatelessWidget {
     required this.onOffer,
     required this.onBag,
     required this.onShipping,
+    this.offer,
   });
 
   /// `kaien` — cards lift and brighten once the sheet reaches the bottom.
   final bool revealed;
+
+  /// A real find from `GET /api/agent/me/suggestions?context=under_kaien`.
+  final BergenUnderQuayOffer? offer;
   final VoidCallback onOffer;
   final VoidCallback onBag;
   final VoidCallback onShipping;
@@ -1023,11 +1045,13 @@ class BergenUnderQuay extends StatelessWidget {
                                 width: 44 * s,
                                 height: 34 * s,
                               ),
-                              title: 'Reker, 1 kg',
-                              price: '299 kr',
+                              title: offer?.title ?? 'Reker, 1 kg',
+                              price: offer?.price ?? '299 kr',
                               priceColor: const Color(0xFFFFB27A),
-                              sub: '· ${BergenCopy.before} 349',
-                              link: 'Torgboden',
+                              sub: offer == null
+                                  ? '· ${BergenCopy.before} 349'
+                                  : offer!.sub,
+                              link: offer?.store ?? 'Torgboden',
                               delay: 100,
                               bob: 5200,
                               onTap: onOffer,

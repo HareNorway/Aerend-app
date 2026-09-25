@@ -118,7 +118,9 @@ class BergenArk extends StatelessWidget {
             Container(
               padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
               decoration: BoxDecoration(
-                color: onDark ? BergenTokens.glassFill : BergenTokens.paperBright,
+                color: onDark
+                    ? BergenTokens.glassFill
+                    : BergenTokens.paperBright,
                 borderRadius: BorderRadius.circular(BergenTokens.radiusButton),
                 border: Border.all(color: soft),
               ),

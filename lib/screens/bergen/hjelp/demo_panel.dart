@@ -27,7 +27,10 @@ abstract final class BergenDemoPanel {
     const DemoScenario(id: 'vaer_sol', label: 'Vær: sol'),
     const DemoScenario(id: 'vaer_natt', label: 'Vær: natt'),
     const DemoScenario(id: 'sporing_finner_bud', label: 'Sporing: finner bud'),
-    const DemoScenario(id: 'sporing_partner', label: 'Sporing: butikken leverer'),
+    const DemoScenario(
+      id: 'sporing_partner',
+      label: 'Sporing: butikken leverer',
+    ),
     const DemoScenario(id: 'uten_nett', label: 'Uten nett'),
     const DemoScenario(id: 'borte', label: 'Mens du var borte'),
     const DemoScenario(id: 'napp', label: 'Napp på kroken'),
@@ -73,9 +76,12 @@ abstract final class BergenDemoPanel {
 /// Counts taps on a child and opens the demo panel at [BergenDemoPanel.tapsToOpen].
 /// Wrap the Hjem wordmark in it; in release it is a plain pass-through.
 class DemoPanelTapTarget extends StatefulWidget {
-  const DemoPanelTapTarget({super.key, required this.child});
+  const DemoPanelTapTarget({super.key, required this.child, this.onTap});
 
   final Widget child;
+
+  /// The child's own tap, forwarded on every tap (the count is a side channel).
+  final VoidCallback? onTap;
 
   @override
   State<DemoPanelTapTarget> createState() => _DemoPanelTapTargetState();
@@ -86,6 +92,7 @@ class _DemoPanelTapTargetState extends State<DemoPanelTapTarget> {
   DateTime? _last;
 
   void _onTap() {
+    widget.onTap?.call();
     final now = DateTime.now();
     if (_last == null || now.difference(_last!) > BergenTokens.motionToast) {
       _taps = 0;
@@ -101,6 +108,10 @@ class _DemoPanelTapTargetState extends State<DemoPanelTapTarget> {
   @override
   Widget build(BuildContext context) {
     if (!kDebugMode) return widget.child;
-    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: _onTap, child: widget.child);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _onTap,
+      child: widget.child,
+    );
   }
 }

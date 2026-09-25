@@ -10,6 +10,13 @@ import '../../../deliveryService/home/ds_home.dart';
 import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../deliveryService/trackOrder/track_order.dart';
+import '../../../../networking/ops/ops_customer_api.dart';
+import '../../../bergen/aegil/aegil_entry.dart';
+import '../../../bergen/aegil/brett_entry.dart';
+import '../../../bergen/kit/bergen_routes.dart';
+import '../../../bergen/meg/borte_entry.dart';
+import '../../../bergen/poeng/napp_entry.dart';
+import '../../../bergen/poeng/poeng_entry.dart';
 import '../../../snurre/snurre_chat_screen.dart';
 import '../../auth/onboarding_kit.dart';
 import '../../homeMainV1/home_main_v1.dart';
@@ -110,6 +117,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   static bool _introPlayed = false;
   late final bool _playIntro;
 
+  /// "UNDER KAIEN" — a real find from agil-2's suggestions tray, else the
+  /// design's sample (AGIL-1 v2 Phase 2; guarded 404 → sample).
+  BergenUnderQuayOffer? _underKaien;
+
   @override
   void initState() {
     super.initState();
@@ -125,6 +136,24 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       if (!mounted) return;
       runPostOrderFeedback(context, widget.orderId);
       if (isDemoApp && widget.isShowDialog) _bloc.openDemoDialog();
+    });
+    _loadUnderKaien();
+  }
+
+  Future<void> _loadUnderKaien() async {
+    if (isGuestUser()) return;
+    final finds = await OpsCustomerApi().underKaien();
+    if (!mounted || finds.isEmpty) return;
+    final f = finds.first;
+    final ore = (f['price_ore'] as num?)?.toInt();
+    setState(() {
+      _underKaien = BergenUnderQuayOffer(
+        id: '${f['id'] ?? ''}',
+        title: '${f['title'] ?? f['product_name'] ?? f['name'] ?? ''}',
+        price: ore != null ? '${ore ~/ 100} kr' : '${f['price_text'] ?? ''}',
+        store: '${f['store_name'] ?? f['store'] ?? ''}',
+        sub: '${f['reason'] ?? ''}',
+      );
     });
   }
 
@@ -167,7 +196,71 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   void _openAegil() {
     HapticFeedback.mediumImpact();
-    openScreen(context, const SnurreChatScreen());
+    // AGIL-CONTRACT §2.2: the greeting pushes `kAegilRoute`; the legacy chat
+    // until agil-3's screen is on this tree.
+    BergenRoutes.pushOr(
+      context,
+      kAegilRoute,
+      orElse: () => openScreen(context, const SnurreChatScreen()),
+    );
+  }
+
+  void _openAutomat() => BergenRoutes.push(context, '/bergen/automat');
+
+  void _openFjordfiske() => BergenRoutes.push(context, '/bergen/fjordfiske');
+
+  /// A bobber → the Napp card (seam, AGIL-CONTRACT §5.4).
+  void _onFloatTap(BergenFloatItem f) {
+    HapticFeedback.selectionClick();
+    showNappKort(
+      context,
+      NappOffer(
+        id: f.id,
+        title: f.title,
+        storeName: f.store,
+        priceOre: (f.price * 100).round(),
+        reason: f.reason,
+        kind: switch (f.kind) {
+          BergenFloatKind.offer => 'tilbud',
+          BergenFloatKind.fresh => 'ny',
+          BergenFloatKind.rhythm => 'rytme',
+        },
+      ),
+    );
+  }
+
+  void _onUnderKaienOffer() {
+    final o = _underKaien;
+    if (o == null) {
+      _comingSoon();
+      return;
+    }
+    showNappKort(
+      context,
+      NappOffer(
+        id: o.id,
+        title: o.title,
+        storeName: o.store,
+        priceOre:
+            (int.tryParse(o.price.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0) *
+            100,
+        reason: o.sub,
+        kind: 'tilbud',
+      ),
+    );
+  }
+
+  static String slugOf(String name) {
+    final lower = name
+        .trim()
+        .toLowerCase()
+        .replaceAll('æ', 'ae')
+        .replaceAll('ø', 'o')
+        .replaceAll('å', 'a');
+    final slug = lower
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return slug.isEmpty ? 'kategori' : slug;
   }
 
   void _comingSoon() => openSimpleSnackbar(BergenCopy.comingSoon);
@@ -533,7 +626,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       return;
     }
     setSelectedServiceInPref(cat.id, cat.name, cat.iconUrl ?? '');
-    openScreen(context, const DSHome());
+    BergenRoutes.pushOr(
+      context,
+      '/bergen/kategori/${slugOf(cat.name)}',
+      arguments: {'id': '${cat.id}', 'name': cat.name},
+      orElse: () => openScreen(context, const DSHome()),
+    );
   }
 
   void _openStore(BergenStoreCard s) {
@@ -541,7 +639,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       _comingSoon();
       return;
     }
-    openScreen(context, StoreDetail(storeId: s.id, storeName: s.name));
+    BergenRoutes.pushOr(
+      context,
+      '/bergen/butikk/${s.id}',
+      arguments: {'name': s.name},
+      orElse: () =>
+          openScreen(context, StoreDetail(storeId: s.id, storeName: s.name)),
+    );
   }
 
   void _openProduct(BergenProductCard p) {
@@ -549,7 +653,16 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       _comingSoon();
       return;
     }
-    openScreen(context, StoreDetail(storeId: p.storeId, storeName: p.store));
+    // The store page opens the product sheet for `product_id` (Phase 4).
+    BergenRoutes.pushOr(
+      context,
+      '/bergen/butikk/${p.storeId}',
+      arguments: {'name': p.store, 'product_id': '${p.id}'},
+      orElse: () => openScreen(
+        context,
+        StoreDetail(storeId: p.storeId, storeName: p.store),
+      ),
+    );
   }
 
   Future<void> _addProduct(int storeId, int productId, String name) async {
@@ -742,8 +855,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                                 onFloatAdd: _onFloatAdd,
                                                 onFloatSunk: _onFloatSunk,
                                                 onFloatNever: _onFloatNever,
-                                                onFjordfiske: _comingSoon,
-                                                onBag: _comingSoon,
+                                                onFjordfiske: _openFjordfiske,
+                                                onBag: _openAutomat,
+                                                onFloatTap: _onFloatTap,
+                                                onGreetingTap: _openAegil,
                                                 showLantern:
                                                     hour >= 16 || hour < 8,
                                                 boat: boat,
@@ -821,8 +936,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               SizedBox(width: 10 * s),
                               _Bell(
                                 count: home?.totalUnreadMessage ?? 0,
-                                onTap: () =>
-                                    openScreen(context, const Notifications()),
+                                onTap: () => BergenRoutes.pushOr(
+                                  context,
+                                  '/bergen/meg/varsler',
+                                  orElse: () => openScreen(
+                                    context,
+                                    const Notifications(),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -869,16 +990,43 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 onTap: _handleTap,
               ),
               SizedBox(height: 6 * s),
+              // Seam (AGIL-CONTRACT §2.2): the cold-start card, when agil-3
+              // has something to say.
+              if (mensDuVarBorteCard(context) case final borte?) ...[
+                borte,
+                SizedBox(height: 10 * s),
+              ],
               BergenCategoryRad(
                 categories: categories,
                 index: catIndex,
                 onIndexChanged: (i) => setState(() => _catIndex = i),
                 onOpen: _openCategory,
               ),
+              SizedBox(height: 10 * s),
+              Row(
+                children: [
+                  // Seam: the Points card → `kPoengRoute`.
+                  GestureDetector(
+                    key: const Key('hjem-poeng-entry'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => BergenRoutes.push(context, kPoengRoute),
+                    child: poengEntryCard(context),
+                  ),
+                  SizedBox(width: 8 * s),
+                  // Seam: Ægil-relevanskort, only when Ægil has finds.
+                  if (aegilFindCount() > 0)
+                    Expanded(
+                      child: _AegilFindsCard(
+                        count: aegilFindCount(),
+                        onTap: () => showAegilBrett(context),
+                      ),
+                    ),
+                ],
+              ),
               if (_showSurprise) ...[
                 SizedBox(height: 12 * s),
-                // TODO(api): Forundringspose — no bag endpoint yet.
-                BergenSurpriseCard(onTap: _comingSoon),
+                // "Sikre en" → Poseautomaten (Phase 4).
+                BergenSurpriseCard(onTap: _openAutomat),
               ],
               BergenSectionHeader(
                 title: BergenCopy.storesIn(district),
@@ -926,15 +1074,80 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           ),
         ),
         SizedBox(height: 16 * s),
-        // TODO(api): Under kaien finds — design sample cards.
+        // Under kaien: the first card is a real find when the suggestions
+        // tray has one (guarded read); the design's sample otherwise.
         BergenUnderQuay(
           revealed: _kaien,
-          onOffer: _comingSoon,
-          onBag: _comingSoon,
+          offer: _underKaien,
+          onOffer: _onUnderKaienOffer,
+          onBag: _openAutomat,
           onShipping: _comingSoon,
         ),
         SizedBox(height: bergenNavReserve(context) + 8 * s),
       ],
+    );
+  }
+}
+
+// ── Ægil-relevanskort (design ≈L2452) ─────────────────────────────────────
+
+class _AegilFindsCard extends StatelessWidget {
+  const _AegilFindsCard({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return OnbPressable(
+      onTap: onTap,
+      pressScale: .985,
+      child: Container(
+        key: const Key('hjem-aegil-relevans'),
+        padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 9 * s),
+        decoration: BoxDecoration(
+          color: const Color(0x14FFFFFF),
+          borderRadius: BorderRadius.circular(18 * s),
+          border: Border.all(color: const Color(0x2EFFFFFF)),
+        ),
+        child: Row(
+          children: [
+            Image.asset(BergenAssets.aegilPopup, width: 32 * s, height: 32 * s),
+            SizedBox(width: 10 * s),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    BergenCopy.aegilFinds(count),
+                    style: bText(
+                      context,
+                      12.5,
+                      weight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    BergenCopy.aegilFindsLine,
+                    style: bText(
+                      context,
+                      10.5,
+                      weight: FontWeight.w600,
+                      color: BergenColors.skyText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18 * s,
+              color: const Color(0x8CFFFFFF),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

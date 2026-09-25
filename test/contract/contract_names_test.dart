@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/l10n/app_localizations.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_entry.dart';
 import 'package:aerend_customer/screens/bergen/aegil/brett_entry.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
@@ -10,6 +11,8 @@ import 'package:aerend_customer/screens/bergen/meg/borte_entry.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_host.dart';
 import 'package:aerend_customer/screens/bergen/poeng/napp_entry.dart';
 import 'package:aerend_customer/screens/bergen/poeng/poeng_entry.dart';
+
+import '../layout/reduced_motion_harness.dart';
 
 /// AGIL-CONTRACT §4.1, kind `dart`: every route in both maps builds without
 /// throwing, every registered route name lives in the right map, and every
@@ -57,6 +60,9 @@ bool _matchesReserved(String registered, String reserved) {
 }
 
 void main() {
+  // The Bergen screens read prefs (auth, language) as they build.
+  setUpAll(bootstrapGlobals);
+
   group('route maps', () {
     test('every agil-1 route is a reserved name', () {
       for (final name in bergenRoutesAgil1().keys) {
@@ -96,8 +102,14 @@ void main() {
     ) async {
       final routes = {...bergenRoutesAgil1(), ...bergenRoutesAgil3()};
       for (final entry in routes.entries) {
+        // The app always provides the localizations; a screen that mounts
+        // the feed reads them as it builds.
         await tester.pumpWidget(
-          MaterialApp(home: Builder(builder: entry.value)),
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(builder: entry.value),
+          ),
         );
         await tester.pump();
         expect(tester.takeException(), isNull, reason: '${entry.key} threw');
