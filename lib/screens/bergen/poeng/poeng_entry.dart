@@ -8,5 +8,7 @@ const String kPoengRoute = '/bergen/poeng';
 
 /// The Points card the Hjem renders (AGIL-CONTRACT §2.2 seam). Sync C stub:
 /// a placeholder chip. agil-3 replaces the body with the real balance card.
-Widget poengEntryCard(BuildContext context) =>
-    const BergenChip(label: 'Poeng', icon: Icons.stars_rounded);
+Widget poengEntryCard(BuildContext context) => const BergenChip(
+  label: 'Poeng',
+  icon: Icons.stars_rounded,
+);
