@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'kit/bergen_routes.dart';
+import 'sok/sok_screen.dart';
 import 'utforsk/feed_nyheter_screen.dart';
 import 'utforsk/utforsk_screen.dart';
 
@@ -16,6 +17,8 @@ import 'utforsk/utforsk_screen.dart';
 /// /bergen/sporing/{id}, /bergen/sporing/{id}/hjelp, /bergen/levert/{id},
 /// /bergen/utforsk, /bergen/kundeservice.
 Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
+  // Phase 3
+  '/bergen/sok': (_) => const SokScreen(),
   // Phase 2
   '/bergen/utforsk': (_) => const UtforskScreen(embedded: false),
 };

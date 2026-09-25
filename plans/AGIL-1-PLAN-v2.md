@@ -166,21 +166,21 @@ somewhere.
 
 `sok` ≈L4067–4228 (ignore the `aldri` overlay after it).
 
-- [ ] `lib/screens/bergen/sok/sok_screen.dart` at `/bergen/sok`: header "Hva leter du etter? Et ord — så søker jeg. Et ønske — så ordner jeg ærendet."; field with voice affordance; empty state = **Søk · Spør Ægil** card (≈L4183; "Start samtale" → `kAegilRoute`, "Skriv eller snakk" focuses the field) + **Nylige søk** (≈L4198, local storage, last 8) + **Populært nå** (≈L4206, `GET /api/ops/search/trending` — add to `api_ops.php` reading `ops_order_events` product names last 7 days, cached 10 min) + **Ukens oppdrag** banner (≈L4215, reads `GET /api/points/me/mission` — agil-2's route, guarded; "Se" → `/bergen/meg`).
-- [ ] Results **Søk · treff** (≈L4109): "Butikker {n}" (name, category, ETA, rating, fee) and "Produkter {n}" (name, shop, price, add) from the app's existing search endpoint (find it in `api_constant.dart`; wrap in `ops_customer_api.dart`); states `sokVanlig` ("SPØR ÆGIL – Sammenlikn «x» på pris og levering" → `kAegilRoute` with the query), `sokIngen` ("Ingen treff på «x» i Bergen ennå… La Ægil finne nærmeste"), `sokTom`.
-- [ ] Wish banner (`sokOnske`): when the query has ≥4 words or a number + "kr" → "Dette høres ut som et ærend – Spør Ægil" → `kAegilRoute` with the query.
-- [ ] Copy `sok_copy.dart`; tests: each state renders, trending falls back to empty on 404, tap targets navigate.
+- [x] `lib/screens/bergen/sok/sok_screen.dart` at `/bergen/sok`: header "Hva leter du etter? Et ord — så søker jeg. Et ønske — så ordner jeg ærendet."; field with voice affordance; empty state = **Søk · Spør Ægil** card (≈L4183; "Start samtale" → `kAegilRoute`, "Skriv eller snakk" focuses the field) + **Nylige søk** (≈L4198, local storage, last 8) + **Populært nå** (≈L4206, `GET /api/ops/search/trending` — add to `api_ops.php` reading `ops_order_events` product names last 7 days, cached 10 min) + **Ukens oppdrag** banner (≈L4215, reads `GET /api/points/me/mission` — agil-2's route, guarded; "Se" → `/bergen/meg`).
+- [x] Results **Søk · treff** (≈L4109): "Butikker {n}" (name, category, ETA, rating, fee) and "Produkter {n}" (name, shop, price, add) from the app's existing search endpoint (find it in `api_constant.dart`; wrap in `ops_customer_api.dart`); states `sokVanlig` ("SPØR ÆGIL – Sammenlikn «x» på pris og levering" → `kAegilRoute` with the query), `sokIngen` ("Ingen treff på «x» i Bergen ennå… La Ægil finne nærmeste"), `sokTom`.
+- [x] Wish banner (`sokOnske`): when the query has ≥4 words or a number + "kr" → "Dette høres ut som et ærend – Spør Ægil" → `kAegilRoute` with the query.
+- [x] Copy `sok_copy.dart` (`SokCopy`, `a1_sok_*`); tests `test/bergen/sok_test.dart`: each state renders, trending / mission fall back to hidden, the wish rule (the design's L7806 rule: ≥4 words, a `?`, or an errand word), recent searches capped at 8 in local storage. Backend: `GET /api/ops/search/trending` → `ops.search.trending` (registered in the contract §3.2 and `names.agil1.json`, `SearchTrendingTest`); the five `ops.customer.*` flags are now in `SurfaceFlags` (stage storefront, off) and asserted. Note: agil-2's mission route on this tree is `GET /api/points/mission` (not `me/mission`); the suggestions route is `agent/me/suggestions`. `OpsCustomerApi.networkEnabled` is a test-only kill-switch the route-build contract test flips (a screen that starts a request in `initState` would leave a Dio timer pending).
 
 **Design ledger**
 
 | Screen | Design block | Differences |
 |---|---|---|
-| Søk empty | ≈L4067 | |
-| Søk · treff | ≈L4109 | |
-| wish banner | ≈L4090 | |
+| Søk empty | ≈L4067 | Compared code-side. Same: the two-line header, white field with the orange search glyph and the orange mic orb, Kategorier row with "Alle N", the Spør Ægil card (kicker, line, two «examples», Start samtale / Skriv eller snakk), NYLIG, POPULÆRT NÅ, UKENS OPPDRAG · +N POENG with Se. **Differences accepted:** (1) the design's Fløyen cable-car scene behind the header (`vaerKlokke`, 290 px) is a flat gradient band — the scene is decorative and the assets are not in the app; (2) "Utforsker · 3 av 5 prøvd" is not shown (no per-customer category-tried count); (3) the mic focuses the field — no speech plugin in the app (design: "Skriv eller snakk"); (4) recent-search rows go to the field, not straight to a store (`tilButikk` in the design is a sample). |
+| Søk · treff | ≈L4109 | Same: "N treff i Bergen", Butikker (n) rows with banner/name/meta, Produkter (n) rows with image/name/shop/price/Legg til, SPØR ÆGIL compare footer, `sokIngen` card with "La Ægil finne nærmeste". **Differences:** fee (`frakt`) is not on the store search response — omitted rather than invented; category on a store row is the legacy `store_products` line. Max 4 stores / 6 products as in the design. |
+| wish banner | ≈L4090 | Same title, line, Spør Ægil CTA; pushes `kAegilRoute` with `q` (legacy Snurre chat with the draft until merge day). |
 
 **Acceptance**
-- [ ] `/bergen/sok` reachable from the nav field and from Hjem; `flutter test` green; commit `Phase 3: Søk`.
+- [x] `/bergen/sok` reachable from the nav field (`openSearchTab` → `BergenRoutes.pushOr('/bergen/sok')`, now resolving) and from Hjem (the same orb); `flutter test` green (369); commit `Phase 3: Søk`.
 
 ---
 

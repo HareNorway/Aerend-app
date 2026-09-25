@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/l10n/app_localizations.dart';
+import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_entry.dart';
 import 'package:aerend_customer/screens/bergen/aegil/brett_entry.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
@@ -60,8 +61,14 @@ bool _matchesReserved(String registered, String reserved) {
 }
 
 void main() {
-  // The Bergen screens read prefs (auth, language) as they build.
-  setUpAll(bootstrapGlobals);
+  // The Bergen screens read prefs (auth, language) as they build, and some
+  // start a request in initState — answered as offline here, so no real
+  // socket timer outlives the fake-async test zone.
+  setUpAll(() async {
+    await bootstrapGlobals();
+    OpsCustomerApi.networkEnabled = false;
+  });
+  tearDownAll(() => OpsCustomerApi.networkEnabled = true);
 
   group('route maps', () {
     test('every agil-1 route is a reserved name', () {
@@ -140,7 +147,10 @@ void main() {
         kind: 'tilbud',
       );
       expect(offer.kind, 'tilbud');
-      expect(showNappKort, isA<Future<void> Function(BuildContext, NappOffer)>());
+      expect(
+        showNappKort,
+        isA<Future<void> Function(BuildContext, NappOffer)>(),
+      );
     });
 
     test('aegil_entry: kAegilRoute and aegilGreeting', () {
@@ -148,10 +158,13 @@ void main() {
       expect(aegilGreeting, isA<Widget Function(BuildContext)>());
     });
 
-    test('brett_entry: aegilFindCount is 0 in the stub, showAegilBrett exists', () {
-      expect(aegilFindCount(), 0);
-      expect(showAegilBrett, isA<Future<void> Function(BuildContext)>());
-    });
+    test(
+      'brett_entry: aegilFindCount is 0 in the stub, showAegilBrett exists',
+      () {
+        expect(aegilFindCount(), 0);
+        expect(showAegilBrett, isA<Future<void> Function(BuildContext)>());
+      },
+    );
 
     test('borte_entry: mensDuVarBorteCard exists', () {
       expect(mensDuVarBorteCard, isA<Widget? Function(BuildContext)>());

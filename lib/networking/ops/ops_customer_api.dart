@@ -1,3 +1,7 @@
+import '../../data/ops/sok_models.dart';
+import '../../screens/deliveryService/home/ds_home_store_list_pojo.dart';
+import '../../screens/deliveryService/searchStore/search_store_dl.dart';
+import '../../screens/deliveryService/searchStore/search_store_repo.dart';
 import '../../utils/utils.dart';
 import '../api_base_helper.dart';
 
@@ -17,6 +21,12 @@ class OpsCustomerApi {
   final ApiBaseHelper _helper;
 
   static const String _base = 'api/ops/customer/';
+
+  /// False makes every call answer as if offline (null / empty) without
+  /// touching the network. The route-build contract test flips it: a screen
+  /// that starts a request in `initState` would otherwise leave a Dio timeout
+  /// timer pending in the fake-async test zone.
+  static bool networkEnabled = true;
 
   /// `user_id` + `access_token`, or null for a guest.
   static Map<String, String>? authParams() {
@@ -38,7 +48,7 @@ class OpsCustomerApi {
     Map<String, String> query = const {},
   }) async {
     final auth = authParams();
-    if (auth == null) return null;
+    if (auth == null || !networkEnabled) return null;
     final json = await _helper.get('$path?${_qs({...auth, ...query})}');
     return json is Map<String, dynamic> ? json : null;
   }
@@ -48,7 +58,7 @@ class OpsCustomerApi {
     Map<String, dynamic> body,
   ) async {
     final auth = authParams();
-    if (auth == null) return null;
+    if (auth == null || !networkEnabled) return null;
     final json = await _helper.post('$path?${_qs(auth)}', body: body);
     return json is Map<String, dynamic> ? json : null;
   }
@@ -57,6 +67,7 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> _guarded(
     Future<Map<String, dynamic>?> Function() call,
   ) async {
+    if (!networkEnabled) return null;
     try {
       final json = await call();
       if (json == null) return null;
@@ -187,6 +198,77 @@ class OpsCustomerApi {
   /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage.
   Future<Map<String, dynamic>?> pointsRules() =>
       _guarded(() => _get('api/points/rules'));
+
+  /// Søk · treff: the app's existing `search-store` and `search-product`
+  /// endpoints (`api_constant.dart`), mapped for the Bergen screen. Either
+  /// half failing leaves the other; both failing is an empty result.
+  Future<SokTreff> search(String query, {double? lat, double? lng}) async {
+    final q = query.trim();
+    if (q.length < 2 || !networkEnabled) return const SokTreff();
+    final pos = prefGetLatLng();
+    final la = lat ?? pos.latitude;
+    final ln = lng ?? pos.longitude;
+    final repo = SearchStoreRepo();
+
+    final stores = <SokButikk>[];
+    final products = <SokProdukt>[];
+    try {
+      final pojo = DsHomeStoreListPojo.fromJson(
+        await repo.callSearchStoreApi(la, ln, q),
+      );
+      for (final s in pojo.storeList ?? const <StoreListItem>[]) {
+        if (s.storeId == null) continue;
+        stores.add(
+          SokButikk(
+            id: s.storeId!,
+            name: s.storeName ?? '',
+            category: (s.storeProducts ?? '').isEmpty ? null : s.storeProducts,
+            etaMinutes: (s.orderDeliveryTime ?? 0) > 0
+                ? s.orderDeliveryTime
+                : null,
+            rating: s.averageRatings == null ? null : '${s.averageRatings}',
+            feeText: null,
+            bannerUrl: (s.storeBanner ?? '').isEmpty ? null : s.storeBanner,
+            open: (s.storeStatus ?? 1) == 1,
+          ),
+        );
+      }
+    } catch (_) {
+      // Half a result is better than none; see above.
+    }
+    try {
+      final pojo = SearchProductPojo.fromJson(
+        await repo.callSearchProductApi(la, ln, 1, q),
+      );
+      for (final p in pojo.productList) {
+        final id = p.productId;
+        if (id == 0) continue;
+        final amount = double.tryParse('${p.productAmount ?? ''}') ?? 0;
+        final discount = double.tryParse('${p.discountAmount ?? ''}');
+        products.add(
+          SokProdukt(
+            id: id,
+            name: p.productName,
+            storeId: p.storeId,
+            storeName: p.storeName,
+            price: discount != null && discount > 0 && discount < amount
+                ? discount
+                : amount,
+            wasPrice: discount != null && discount > 0 && discount < amount
+                ? amount
+                : null,
+            imageUrl: p.productImage.isEmpty ? null : p.productImage,
+          ),
+        );
+      }
+    } catch (_) {
+      // Same.
+    }
+    return SokTreff(
+      butikker: stores.take(4).toList(),
+      produkter: products.take(6).toList(),
+    );
+  }
 
   /// `GET /api/ops/search/trending` (agil-1, Phase 3). Empty on failure.
   Future<List<String>> trending() async {

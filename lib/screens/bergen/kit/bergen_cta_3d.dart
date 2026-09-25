@@ -50,13 +50,19 @@ class _BergenCta3dState extends State<BergenCta3d> {
             Icon(widget.icon, size: 18, color: Colors.white),
             const SizedBox(width: 8),
           ],
-          Text(
-            widget.label,
-            style: BergenTokens.display(
-              BergenTokens.textBody,
-              weight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacingEm: -0.01,
+          // Flexible: a label longer than the space it is given ellipsises
+          // instead of overflowing the face.
+          Flexible(
+            child: Text(
+              widget.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: BergenTokens.display(
+                BergenTokens.textBody,
+                weight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacingEm: -0.01,
+              ),
             ),
           ),
         ],

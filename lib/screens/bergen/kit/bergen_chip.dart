@@ -61,12 +61,16 @@ class BergenChip extends StatelessWidget {
                   Icon(icon, size: 16, color: fg),
                   const SizedBox(width: 6),
                 ],
-                Text(
-                  label,
-                  style: BergenTokens.text(
-                    BergenTokens.textSmall,
-                    weight: FontWeight.w700,
-                    color: fg,
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: BergenTokens.text(
+                      BergenTokens.textSmall,
+                      weight: FontWeight.w700,
+                      color: fg,
+                    ),
                   ),
                 ),
               ],

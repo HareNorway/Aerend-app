@@ -69,6 +69,24 @@ const List<String> _kLive = [
   '4 åpne nå',
 ];
 
+/// `/bergen/kategori/{slug}` from a category name — the app's categories
+/// carry no slug of their own, so the name is the key (Phase 4 resolves it by
+/// `id` when the arguments carry one).
+abstract final class BergenHomeSlug {
+  static String of(String name) {
+    final lower = name
+        .trim()
+        .toLowerCase()
+        .replaceAll('æ', 'ae')
+        .replaceAll('ø', 'o')
+        .replaceAll('å', 'a');
+    final slug = lower
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return slug.isEmpty ? 'kategori' : slug;
+  }
+}
+
 class BergenHome extends StatefulWidget {
   const BergenHome({super.key, this.orderId = 0, this.isShowDialog = false});
 
@@ -250,18 +268,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
-  static String slugOf(String name) {
-    final lower = name
-        .trim()
-        .toLowerCase()
-        .replaceAll('æ', 'ae')
-        .replaceAll('ø', 'o')
-        .replaceAll('å', 'a');
-    final slug = lower
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'^-+|-+$'), '');
-    return slug.isEmpty ? 'kategori' : slug;
-  }
+  static String slugOf(String name) => BergenHomeSlug.of(name);
 
   void _comingSoon() => openSimpleSnackbar(BergenCopy.comingSoon);
 

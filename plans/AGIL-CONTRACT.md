@@ -273,6 +273,7 @@ bloc in `lib/screens/feed/*`.
 | route | `POST /api/ops/customer/orders/{orderId}/problem` → `ops.customer.problem` | Finner ikke døra / Noe mangler / Valg som venter (wait or cancel) |
 | route | `GET /api/ops/customer/orders` → `ops.customer.orders` | the customer's orders with `ops_*` fields, for Bestillinger and "Bestill igjen" |
 | route | `GET /api/ops/customer/away-summary` → `ops.customer.away` | Mens du var borte data (orders half; Ægil half is agil-3) |
+| route | `GET /api/ops/search/trending` → `ops.search.trending` | Søk · "Populært nå": product names ordered in the last 7 days, cached 10 min (Phase 3) |
 | flag | `ops.customer.sok`, `ops.customer.butikk`, `ops.customer.kasse`, `ops.customer.sporing`, `ops.customer.utforsk` | one per screen group, off by default |
 | console | `ops:contract-check` | runs the `ContractNamesTest` assertions as a command for merge day |
 | interface | `App\Ops\Dispatch\CandidateSource` (`candidates(int $storeId, Carbon $now): array`) with `OpsCandidateSource` | Sync C |
