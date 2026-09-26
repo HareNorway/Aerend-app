@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/data/feed/feed_tab_item.dart';
+import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/kit/bergen_routes.dart';
+import 'package:aerend_customer/screens/bergen/utforsk/feed_post_card.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_copy.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_screen.dart';
 
@@ -22,6 +25,20 @@ class _FakeApi extends OpsCustomerApi {
 
   @override
   Future<Map<String, dynamic>?> driftNotice({int? storeId}) async => drift;
+
+  @override
+  Future<List<Map<String, dynamic>>> orders({int limit = 50}) async => const [];
+}
+
+/// An empty feed: these tests are about the shell around the Feed tab.
+class _EmptyRepo extends FeedRepo {
+  @override
+  Future<FeedTabPage> fetchFeedTab({
+    required String tab,
+    String? cursor,
+    int? limit,
+    String? bydel,
+  }) async => const FeedTabPage(tab: 'naerheten', label: 'I nærheten', items: []);
 }
 
 Widget _app(Widget child) => MaterialApp(home: child);
@@ -34,7 +51,11 @@ void _frame(WidgetTester tester) {
 }
 
 void main() {
-  setUpAll(bootstrapGlobals);
+  setUpAll(() async {
+    await bootstrapGlobals();
+    OpsCustomerApi.networkEnabled = false;
+    FeedPostCard.loadImages = false;
+  });
 
   group('BergenRoutes', () {
     test('resolves a query and a trailing parameter to the registered key', () {
@@ -78,19 +99,17 @@ void main() {
       _frame(tester);
       await tester.pumpWidget(
         _app(
-          UtforskScreen(
-            api: _FakeApi(),
-            feedBuilder: (_) => const Text('feed-body'),
-          ),
+          UtforskScreen(api: _FakeApi(), feedRepo: _EmptyRepo()),
         ),
       );
+      await tester.pump();
       await tester.pump();
 
       expect(find.byKey(const Key('a1_utforsk_title')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_tab_feed')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_tab_fiske')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_tab_pose')), findsOneWidget);
-      expect(find.text('feed-body'), findsOneWidget);
+      expect(find.byKey(const Key('a1_feed_list')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_filters')), findsOneWidget);
       // No Drift note from the API → the notice is hidden.
       expect(find.byKey(const Key('a1_utforsk_drift')), findsNothing);
@@ -107,7 +126,7 @@ void main() {
                 'pinned_until': '20:00',
               },
             ),
-            feedBuilder: (_) => const SizedBox(),
+            feedRepo: _EmptyRepo(),
           ),
         ),
       );
@@ -125,7 +144,7 @@ void main() {
           UtforskScreen(
             api: _FakeApi(),
             initialTab: UtforskScreen.tabPose,
-            feedBuilder: (_) => const SizedBox(),
+            feedRepo: _EmptyRepo(),
           ),
         ),
       );
@@ -158,7 +177,7 @@ void main() {
               ],
             ),
             initialTab: UtforskScreen.tabPose,
-            feedBuilder: (_) => const SizedBox(),
+            feedRepo: _EmptyRepo(),
           ),
         ),
       );
@@ -178,7 +197,7 @@ void main() {
       _frame(tester);
       await tester.pumpWidget(
         _app(
-          UtforskScreen(api: _FakeApi(), feedBuilder: (_) => const SizedBox()),
+          UtforskScreen(api: _FakeApi(), feedRepo: _EmptyRepo()),
         ),
       );
       await tester.pump();

@@ -10981,6 +10981,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No news from the shops today.'**
   String get ops_utforsk_nyheter_empty;
+
+  /// No description provided for @ops_feed_orb_alle.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ops_feed_orb_alle;
+
+  /// No description provided for @ops_feed_orb_restaurant.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant'**
+  String get ops_feed_orb_restaurant;
+
+  /// No description provided for @ops_feed_orb_fisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & fish'**
+  String get ops_feed_orb_fisk;
+
+  /// No description provided for @ops_feed_orb_bakeri.
+  ///
+  /// In en, this message translates to:
+  /// **'Bakery'**
+  String get ops_feed_orb_bakeri;
+
+  /// No description provided for @ops_feed_orb_gront.
+  ///
+  /// In en, this message translates to:
+  /// **'Greens'**
+  String get ops_feed_orb_gront;
+
+  /// No description provided for @ops_feed_orb_mote.
+  ///
+  /// In en, this message translates to:
+  /// **'Fashion'**
+  String get ops_feed_orb_mote;
+
+  /// No description provided for @ops_feed_follow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get ops_feed_follow;
+
+  /// No description provided for @ops_feed_following.
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get ops_feed_following;
+
+  /// No description provided for @ops_feed_follow_toast.
+  ///
+  /// In en, this message translates to:
+  /// **'You follow {name} — push is off until you turn it on'**
+  String ops_feed_follow_toast(String name);
+
+  /// No description provided for @ops_feed_unfollow_toast.
+  ///
+  /// In en, this message translates to:
+  /// **'You no longer follow {name}'**
+  String ops_feed_unfollow_toast(String name);
+
+  /// No description provided for @ops_feed_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get ops_feed_share;
+
+  /// No description provided for @ops_feed_share_text.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} at {store} — on Ærend'**
+  String ops_feed_share_text(String store, String title);
+
+  /// No description provided for @ops_feed_published_by_aerend.
+  ///
+  /// In en, this message translates to:
+  /// **'published by Ærend'**
+  String get ops_feed_published_by_aerend;
+
+  /// No description provided for @ops_feed_distance_m.
+  ///
+  /// In en, this message translates to:
+  /// **'{m} m'**
+  String ops_feed_distance_m(int m);
+
+  /// No description provided for @ops_feed_distance_km.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km'**
+  String ops_feed_distance_km(String km);
+
+  /// No description provided for @ops_feed_status_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open · {eta}'**
+  String ops_feed_status_open(String eta);
+
+  /// No description provided for @ops_feed_status_open_plain.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get ops_feed_status_open_plain;
+
+  /// No description provided for @ops_feed_status_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get ops_feed_status_closed;
+
+  /// No description provided for @ops_feed_eta.
+  ///
+  /// In en, this message translates to:
+  /// **'{a}–{b} min'**
+  String ops_feed_eta(int a, int b);
+
+  /// No description provided for @ops_feed_cta_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get ops_feed_cta_add;
+
+  /// No description provided for @ops_feed_cta_add_again.
+  ///
+  /// In en, this message translates to:
+  /// **'Order again'**
+  String get ops_feed_cta_add_again;
+
+  /// No description provided for @ops_feed_cta_store.
+  ///
+  /// In en, this message translates to:
+  /// **'See the shop'**
+  String get ops_feed_cta_store;
+
+  /// No description provided for @ops_feed_cta_post.
+  ///
+  /// In en, this message translates to:
+  /// **'See the post'**
+  String get ops_feed_cta_post;
+
+  /// No description provided for @ops_feed_price.
+  ///
+  /// In en, this message translates to:
+  /// **'{kr} kr'**
+  String ops_feed_price(int kr);
+
+  /// No description provided for @ops_feed_price_from.
+  ///
+  /// In en, this message translates to:
+  /// **'from {kr} kr'**
+  String ops_feed_price_from(int kr);
+
+  /// No description provided for @ops_feed_hint_ordered_days.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =0{You ordered from here today} =1{You ordered from here yesterday} other{You ordered from here {n} days ago}}'**
+  String ops_feed_hint_ordered_days(int n);
+
+  /// No description provided for @ops_feed_hint_ordered_weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{You ordered from here a week ago} =2{You ordered from here two weeks ago} other{You ordered from here {n} weeks ago}}'**
+  String ops_feed_hint_ordered_weeks(int n);
+
+  /// No description provided for @ops_feed_badge_tilbud.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get ops_feed_badge_tilbud;
+
+  /// No description provided for @ops_feed_badge_ny_i_hyllene.
+  ///
+  /// In en, this message translates to:
+  /// **'New on the shelf'**
+  String get ops_feed_badge_ny_i_hyllene;
+
+  /// No description provided for @ops_feed_badge_dagens_rett.
+  ///
+  /// In en, this message translates to:
+  /// **'Dish of the day'**
+  String get ops_feed_badge_dagens_rett;
+
+  /// No description provided for @ops_feed_badge_ny_pa_aerend.
+  ///
+  /// In en, this message translates to:
+  /// **'New on Ærend'**
+  String get ops_feed_badge_ny_pa_aerend;
+
+  /// No description provided for @ops_feed_badge_nytt_i_hyllene.
+  ///
+  /// In en, this message translates to:
+  /// **'New on the shelves'**
+  String get ops_feed_badge_nytt_i_hyllene;
+
+  /// No description provided for @ops_feed_badge_tilbud_i_naerheten.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer nearby'**
+  String get ops_feed_badge_tilbud_i_naerheten;
+
+  /// No description provided for @ops_feed_badge_apent_sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Open late'**
+  String get ops_feed_badge_apent_sent;
+
+  /// No description provided for @ops_feed_badge_populaert_i_kveld.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular tonight'**
+  String get ops_feed_badge_populaert_i_kveld;
+
+  /// No description provided for @ops_feed_badge_butikk_i_fokus.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop in focus'**
+  String get ops_feed_badge_butikk_i_fokus;
+
+  /// No description provided for @ops_feed_badge_drift.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get ops_feed_badge_drift;
+
+  /// No description provided for @ops_feed_badge_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Fresh today'**
+  String get ops_feed_badge_today;
+
+  /// No description provided for @ops_feed_badge_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get ops_feed_badge_generic;
+
+  /// No description provided for @ops_feed_video_muted.
+  ///
+  /// In en, this message translates to:
+  /// **'muted'**
+  String get ops_feed_video_muted;
+
+  /// No description provided for @ops_feed_video_muted_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'muted · tap to stop'**
+  String get ops_feed_video_muted_stop;
+
+  /// No description provided for @ops_feed_video_play.
+  ///
+  /// In en, this message translates to:
+  /// **'Play video'**
+  String get ops_feed_video_play;
+
+  /// No description provided for @ops_feed_time_today.
+  ///
+  /// In en, this message translates to:
+  /// **'today {time}'**
+  String ops_feed_time_today(String time);
+
+  /// No description provided for @ops_feed_time_yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get ops_feed_time_yesterday;
+
+  /// No description provided for @ops_feed_time_minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min ago'**
+  String ops_feed_time_minutes(int n);
+
+  /// No description provided for @ops_feed_time_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} h ago'**
+  String ops_feed_time_hours(int n);
+
+  /// No description provided for @ops_feed_time_days.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} d ago'**
+  String ops_feed_time_days(int n);
+
+  /// No description provided for @ops_feed_empty_cat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts in this category today'**
+  String get ops_feed_empty_cat_title;
+
+  /// No description provided for @ops_feed_empty_cat_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another category — or see all.'**
+  String get ops_feed_empty_cat_text;
+
+  /// No description provided for @ops_feed_empty_cat_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all categories'**
+  String get ops_feed_empty_cat_cta;
+
+  /// No description provided for @ops_feed_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The shops have not posted anything today'**
+  String get ops_feed_empty_title;
+
+  /// No description provided for @ops_feed_empty_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow a few, and the new things gather here.'**
+  String get ops_feed_empty_text;
+
+  /// No description provided for @ops_feed_empty_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'See what is nearby'**
+  String get ops_feed_empty_cta;
+
+  /// No description provided for @ops_feed_error_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The feed did not answer'**
+  String get ops_feed_error_title;
+
+  /// No description provided for @ops_feed_error_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get ops_feed_error_text;
+
+  /// No description provided for @ops_feed_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get ops_feed_retry;
+
+  /// No description provided for @ops_feed_promo_price.
+  ///
+  /// In en, this message translates to:
+  /// **'{kr} kr · worth at least {value} kr'**
+  String ops_feed_promo_price(int kr, int value);
+
+  /// No description provided for @ops_feed_open_store.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {store}'**
+  String ops_feed_open_store(String store);
+
+  /// No description provided for @ops_feed_likes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} likes'**
+  String ops_feed_likes(int n);
+
+  /// No description provided for @ops_feed_comments.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} comments'**
+  String ops_feed_comments(int n);
+
+  /// No description provided for @ops_feed_status_opens.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens {time}'**
+  String ops_feed_status_opens(String time);
+
+  /// No description provided for @ops_feed_store_initials_label.
+  ///
+  /// In en, this message translates to:
+  /// **'{store}'**
+  String ops_feed_store_initials_label(String store);
 }
 
 class _AppLocalizationsDelegate

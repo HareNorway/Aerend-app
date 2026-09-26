@@ -26,6 +26,9 @@ class FeedTabItem {
     this.isLiked = false,
     this.publishedAt,
     this.expiresAt,
+    this.storeProductId,
+    this.priceOre,
+    this.attributedOrderCount = 0,
   });
 
   static const String publisherStore = 'store';
@@ -59,7 +62,26 @@ class FeedTabItem {
   final DateTime? publishedAt;
   final DateTime? expiresAt;
 
+  /// The one store product this post is about, and its cached price in øre.
+  /// Null when the post is not about a product — the card then leads to the
+  /// store rather than straight into the cart.
+  final int? storeProductId;
+  final int? priceOre;
+  final int attributedOrderCount;
+
   bool get isFromAerend => publisherType == publisherAerend;
+
+  /// A product the customer can add straight from the card.
+  bool get hasProduct =>
+      storeProductId != null && storeProductId! > 0 && store != null;
+
+  /// Published today, in the device's local day.
+  bool get isFromToday {
+    final at = publishedAt?.toLocal();
+    if (at == null) return false;
+    final now = DateTime.now();
+    return at.year == now.year && at.month == now.month && at.day == now.day;
+  }
 
   /// What to show as the card's title: the headline if there is one, else the
   /// caption. A card with neither is not worth rendering, and the server does
@@ -91,6 +113,10 @@ class FeedTabItem {
       isLiked: json['is_liked'] as bool? ?? false,
       publishedAt: parseFeedDateTimeOrNull(json['published_at']),
       expiresAt: parseFeedDateTimeOrNull(json['expires_at']),
+      storeProductId: int.tryParse('${json['store_product_id'] ?? ''}'),
+      priceOre: (json['price_ore'] as num?)?.toInt(),
+      attributedOrderCount:
+          (json['attributed_order_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

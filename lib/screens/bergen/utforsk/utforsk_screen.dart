@@ -1,37 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../data/feed/feed_post.dart';
+import '../../../data/feed/feed_tab_item.dart';
+import '../../../networking/feed/feed_repo.dart';
+import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/home/bergen/bergen_nav.dart';
 import '../../common/home/bergen/bergen_painters.dart';
-import '../../feed/feedHome/feed_home.dart';
 import '../kit/bergen_kit.dart';
-import 'feed_nyheter_screen.dart';
+import 'feed_icons.dart';
+import 'feed_tab.dart';
 import 'utforsk_copy.dart';
 
 /// `utforsk` (≈L4389–4635 in `Ærend Kunde Bergen.dc.html`) — tab 1 of the
 /// shell, and `/bergen/utforsk` (`?tab=feed|fiske|pose`).
 ///
-/// Three segments behind one orange thumb: **Feed** (the existing [FeedHome]
-/// with the publisher tabs and Vågen mounted, plus the shop filter chips and
-/// the pinned Drift notice), **Fjordfiske** (a landing card — the game itself
-/// is agil-3's `/bergen/fjordfiske`) and **Forundringspose** (bags from
+/// Three segments behind one orange thumb: **Feed** ([UtforskFeedTab]: the
+/// category orbs, the pinned Drift notice, the post cards and the bag promo),
+/// **Fjordfiske** (a landing card — the game itself is agil-3's
+/// `/bergen/fjordfiske`) and **Forundringspose** (bags from
 /// `GET /api/ops/products?kind=pose`, and the way to Poseautomaten).
 class UtforskScreen extends StatefulWidget {
   const UtforskScreen({
     super.key,
     this.initialTab,
     this.api,
+    this.feedRepo,
+    this.butikkApi,
     this.embedded = true,
-    this.feedBuilder,
   });
 
-  /// Tests replace the [FeedHome] body (it needs a signed-in feed session).
-  final WidgetBuilder? feedBuilder;
+  /// Injected in tests: the feed service and the store reads behind the cards.
+  final FeedRepo? feedRepo;
+  final OpsButikkApi? butikkApi;
 
   /// `feed` | `fiske` | `pose`; overrides the route's `?tab=`.
   final String? initialTab;
@@ -50,15 +53,8 @@ class UtforskScreen extends StatefulWidget {
   /// posts newer than this.
   static const String prefFeedSeenAt = 'a1_utforsk_feed_seen_at';
 
-  /// The shop filter chips (design `STORIES`): a slug and a label.
-  static const List<(String, String)> filters = [
-    ('alle', 'Alle'),
-    ('restaurant', 'Restaurant'),
-    ('fisk', 'Fisk'),
-    ('bakeri', 'Bakeri'),
-    ('gront', 'Grønt'),
-    ('mote', 'Mote'),
-  ];
+  /// The category orbs (design `STORIES`), by slug.
+  static const List<String> filters = UtforskFeedTab.orbs;
 
   @override
   State<UtforskScreen> createState() => _UtforskScreenState();
@@ -66,7 +62,6 @@ class UtforskScreen extends StatefulWidget {
 
 class _UtforskScreenState extends State<UtforskScreen> {
   late String _tab;
-  String _filter = 'alle';
   int _unread = 0;
   bool _routeRead = false;
 
@@ -123,7 +118,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
   }
 
   /// `feedUlest`: posts published since the Feed segment was last open.
-  void _onPostsLoaded(List<FeedPost> posts) {
+  void _onPostsLoaded(List<FeedTabItem> posts) {
     final raw = prefGetString(UtforskScreen.prefFeedSeenAt);
     final seenAt = raw.isEmpty ? null : DateTime.tryParse(raw);
     var unread = 0;
@@ -228,13 +223,13 @@ class _UtforskScreenState extends State<UtforskScreen> {
                             poser: _poser,
                             bottomReserve: bottomReserve,
                           ),
-                          _ => _FeedTab(
-                            filter: _filter,
-                            onFilter: (f) => setState(() => _filter = f),
+                          _ => UtforskFeedTab(
                             drift: _drift,
                             onPostsLoaded: _onPostsLoaded,
                             bottomReserve: bottomReserve,
-                            feedBuilder: widget.feedBuilder,
+                            repo: widget.feedRepo,
+                            api: widget.api,
+                            butikkApi: widget.butikkApi,
                           ),
                         },
                       ),
@@ -266,23 +261,18 @@ class _Segments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    final items = <(String, String, IconData, double)>[
-      (
-        UtforskScreen.tabFeed,
-        UtforskCopy.a1_utforsk_tab_feed,
-        Icons.view_agenda_outlined,
-        1,
-      ),
+    final items = <(String, String, String, double)>[
+      (UtforskScreen.tabFeed, UtforskCopy.a1_utforsk_tab_feed, FeedIcons.segFeed, 1),
       (
         UtforskScreen.tabFiske,
         UtforskCopy.a1_utforsk_tab_fiske,
-        Icons.phishing_rounded,
+        FeedIcons.segFiske,
         1,
       ),
       (
         UtforskScreen.tabPose,
         UtforskCopy.a1_utforsk_tab_pose,
-        Icons.shopping_bag_outlined,
+        FeedIcons.segPose,
         1.25,
       ),
     ];
@@ -295,6 +285,14 @@ class _Segments extends StatelessWidget {
         color: const Color(0x47000000),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: const Color(0x1FFFFFFF)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x59000000),
+            offset: Offset(0, 2),
+            blurRadius: 4,
+            blurStyle: BlurStyle.inner,
+          ),
+        ],
       ),
       child: LayoutBuilder(
         builder: (context, c) {
@@ -318,19 +316,35 @@ class _Segments extends StatelessWidget {
                   top: 0,
                   bottom: 0,
                   width: thumbW,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: kBergenOrangeGradient,
-                      borderRadius: BorderRadius.circular(999),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0xE6F26D3D),
-                          offset: Offset(0, 4),
-                          blurRadius: 10,
-                          spreadRadius: -4,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0xFFF9A273),
+                                Color(0xFFF26D3D),
+                                Color(0xFFDD5A25),
+                              ],
+                              stops: [0, .56, 1],
+                            ),
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0xE6F26D3D),
+                                offset: Offset(0, 4),
+                                blurRadius: 10,
+                                spreadRadius: -4,
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      bergenInsetTop(radius: 999, alpha: .4),
+                    ],
                   ),
                 ),
                 Row(
@@ -348,12 +362,12 @@ class _Segments extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
+                                  feedIcon(
                                     items[i].$3,
-                                    size: 13 * s,
+                                    13 * s,
                                     color: active == items[i].$1
                                         ? Colors.white
-                                        : const Color(0xB3FFFFFF),
+                                        : const Color(0x99FFFFFF),
                                   ),
                                   SizedBox(width: 5 * s),
                                   Text(
@@ -365,7 +379,7 @@ class _Segments extends StatelessWidget {
                                       weight: FontWeight.w800,
                                       color: active == items[i].$1
                                           ? Colors.white
-                                          : const Color(0xB3FFFFFF),
+                                          : const Color(0x99FFFFFF),
                                     ),
                                   ),
                                   if (items[i].$1 == UtforskScreen.tabFeed &&
@@ -415,195 +429,6 @@ class _Segments extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-// ── Feed tab ──────────────────────────────────────────────────────────────
-
-class _FeedTab extends StatelessWidget {
-  const _FeedTab({
-    required this.filter,
-    required this.onFilter,
-    required this.drift,
-    required this.onPostsLoaded,
-    required this.bottomReserve,
-    this.feedBuilder,
-  });
-
-  final String filter;
-  final ValueChanged<String> onFilter;
-  final Map<String, dynamic>? drift;
-  final ValueChanged<List<FeedPost>> onPostsLoaded;
-  final double bottomReserve;
-  final WidgetBuilder? feedBuilder;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return Column(
-      children: [
-        SizedBox(
-          height: 44 * s,
-          child: ListView(
-            key: const Key('a1_utforsk_filters'),
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.fromLTRB(16 * s, 8 * s, 16 * s, 0),
-            children: [
-              for (final (slug, label) in UtforskScreen.filters) ...[
-                BergenChip(
-                  label: slug == 'alle'
-                      ? UtforskCopy.a1_utforsk_filter_alle
-                      : label,
-                  selected: filter == slug,
-                  onDark: true,
-                  onTap: () => onFilter(slug),
-                ),
-                SizedBox(width: 8 * s),
-              ],
-              // "Nytt fra butikkene" — the design's `feed` screen.
-              BergenChip(
-                key: const Key('a1_utforsk_nyheter_link'),
-                label: UtforskCopy.a1_utforsk_nyheter_title,
-                icon: Icons.storefront_outlined,
-                onDark: true,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    settings: const RouteSettings(
-                      name: '/bergen/utforsk?tab=feed',
-                    ),
-                    builder: (_) => const FeedNyheterScreen(),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (drift != null) _DriftNotice(note: drift!),
-        Expanded(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: Padding(
-              padding: EdgeInsets.only(bottom: bottomReserve),
-              child:
-                  feedBuilder?.call(context) ??
-                  FeedHome(
-                    embedInShell: true,
-                    showPublisherTabs: true,
-                    showVaagen: true,
-                    categoryFilter: filter == 'alle' ? null : filter,
-                    onPostsLoaded: onPostsLoaded,
-                  ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// The pinned "Ærend · Drift" notice (`visDrift`). Shown only when the
-/// availability read carries a note; hidden otherwise.
-class _DriftNotice extends StatelessWidget {
-  const _DriftNotice({required this.note});
-
-  final Map<String, dynamic> note;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final until = '${note['pinned_until'] ?? ''}';
-    return Container(
-      key: const Key('a1_utforsk_drift'),
-      margin: EdgeInsets.fromLTRB(16 * s, 12 * s, 16 * s, 0),
-      padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF25606F), Color(0xFF1E4F5C), Color(0xFF173E48)],
-          stops: [0, .6, 1],
-        ),
-        borderRadius: BorderRadius.circular(22 * s),
-        border: Border.all(color: const Color(0x2EFFFFFF)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40 * s,
-            height: 40 * s,
-            decoration: BoxDecoration(
-              color: const Color(0x24FFFFFF),
-              borderRadius: BorderRadius.circular(14 * s),
-              border: Border.all(color: const Color(0x47FFFFFF)),
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                AerendBergenAuthTokens.mark,
-                width: 24 * s,
-                height: 15 * s,
-              ),
-            ),
-          ),
-          SizedBox(width: 12 * s),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        UtforskCopy.a1_utforsk_drift_title,
-                        style: bDisplay(
-                          context,
-                          14.5,
-                          weight: FontWeight.w700,
-                          color: BergenTokens.paper,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (until.isNotEmpty) ...[
-                      SizedBox(width: 6 * s),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8 * s,
-                          vertical: 2 * s,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x38F2C14E),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          UtforskCopy.a1_utforsk_drift_pinned(until),
-                          style: bText(
-                            context,
-                            9.5,
-                            weight: FontWeight.w800,
-                            color: BergenTokens.lantern,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                SizedBox(height: 2 * s),
-                Text(
-                  '${note['note']}',
-                  style: bText(
-                    context,
-                    12.5,
-                    weight: FontWeight.w500,
-                    color: const Color(0xFFDCE9EC),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

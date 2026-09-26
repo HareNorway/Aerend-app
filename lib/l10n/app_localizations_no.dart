@@ -5959,4 +5959,248 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_utforsk_nyheter_empty => 'Ingen nyheter fra butikkene i dag.';
+
+  @override
+  String get ops_feed_orb_alle => 'Alle';
+
+  @override
+  String get ops_feed_orb_restaurant => 'Restaurant';
+
+  @override
+  String get ops_feed_orb_fisk => 'Mat & fisk';
+
+  @override
+  String get ops_feed_orb_bakeri => 'Bakeri';
+
+  @override
+  String get ops_feed_orb_gront => 'Grønt';
+
+  @override
+  String get ops_feed_orb_mote => 'Mote';
+
+  @override
+  String get ops_feed_follow => 'Følg';
+
+  @override
+  String get ops_feed_following => 'Følger';
+
+  @override
+  String ops_feed_follow_toast(String name) {
+    return 'Du følger $name — push er av til du slår det på';
+  }
+
+  @override
+  String ops_feed_unfollow_toast(String name) {
+    return 'Du følger ikke $name lenger';
+  }
+
+  @override
+  String get ops_feed_share => 'Del';
+
+  @override
+  String ops_feed_share_text(String store, String title) {
+    return '$title hos $store — på Ærend';
+  }
+
+  @override
+  String get ops_feed_published_by_aerend => 'publisert av Ærend';
+
+  @override
+  String ops_feed_distance_m(int m) {
+    return '$m m';
+  }
+
+  @override
+  String ops_feed_distance_km(String km) {
+    return '$km km';
+  }
+
+  @override
+  String ops_feed_status_open(String eta) {
+    return 'Åpen · $eta';
+  }
+
+  @override
+  String get ops_feed_status_open_plain => 'Åpen';
+
+  @override
+  String get ops_feed_status_closed => 'Stengt';
+
+  @override
+  String ops_feed_eta(int a, int b) {
+    return '$a–$b min';
+  }
+
+  @override
+  String get ops_feed_cta_add => 'Legg til';
+
+  @override
+  String get ops_feed_cta_add_again => 'Bestill igjen';
+
+  @override
+  String get ops_feed_cta_store => 'Se butikken';
+
+  @override
+  String get ops_feed_cta_post => 'Se innlegget';
+
+  @override
+  String ops_feed_price(int kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String ops_feed_price_from(int kr) {
+    return 'fra $kr kr';
+  }
+
+  @override
+  String ops_feed_hint_ordered_days(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Du bestilte herfra for $n dager siden',
+      one: 'Du bestilte herfra i går',
+      zero: 'Du bestilte herfra i dag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ops_feed_hint_ordered_weeks(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'Du bestilte herfra for $n uker siden',
+      two: 'Du bestilte herfra for to uker siden',
+      one: 'Du bestilte herfra for en uke siden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_feed_badge_tilbud => 'Tilbud';
+
+  @override
+  String get ops_feed_badge_ny_i_hyllene => 'Ny i hyllene';
+
+  @override
+  String get ops_feed_badge_dagens_rett => 'Dagens rett';
+
+  @override
+  String get ops_feed_badge_ny_pa_aerend => 'Ny på Ærend';
+
+  @override
+  String get ops_feed_badge_nytt_i_hyllene => 'Nytt i hyllene';
+
+  @override
+  String get ops_feed_badge_tilbud_i_naerheten => 'Tilbud i nærheten';
+
+  @override
+  String get ops_feed_badge_apent_sent => 'Åpent sent';
+
+  @override
+  String get ops_feed_badge_populaert_i_kveld => 'Populært i kveld';
+
+  @override
+  String get ops_feed_badge_butikk_i_fokus => 'Butikk i fokus';
+
+  @override
+  String get ops_feed_badge_drift => 'Drift';
+
+  @override
+  String get ops_feed_badge_today => 'Fersk i dag';
+
+  @override
+  String get ops_feed_badge_generic => 'Nytt';
+
+  @override
+  String get ops_feed_video_muted => 'stumt';
+
+  @override
+  String get ops_feed_video_muted_stop => 'stumt · trykk for å stoppe';
+
+  @override
+  String get ops_feed_video_play => 'Spill av video';
+
+  @override
+  String ops_feed_time_today(String time) {
+    return 'i dag $time';
+  }
+
+  @override
+  String get ops_feed_time_yesterday => 'i går';
+
+  @override
+  String ops_feed_time_minutes(int n) {
+    return 'for $n min';
+  }
+
+  @override
+  String ops_feed_time_hours(int n) {
+    return 'for $n t';
+  }
+
+  @override
+  String ops_feed_time_days(int n) {
+    return 'for $n d';
+  }
+
+  @override
+  String get ops_feed_empty_cat_title =>
+      'Ingen innlegg i denne kategorien i dag';
+
+  @override
+  String get ops_feed_empty_cat_text =>
+      'Prøv en annen kategori — eller se alle.';
+
+  @override
+  String get ops_feed_empty_cat_cta => 'Vis alle kategorier';
+
+  @override
+  String get ops_feed_empty_title => 'Butikkene har ikke lagt ut noe i dag';
+
+  @override
+  String get ops_feed_empty_text => 'Følg noen, så samles det nye her.';
+
+  @override
+  String get ops_feed_empty_cta => 'Se hva som er i nærheten';
+
+  @override
+  String get ops_feed_error_title => 'Feeden svarte ikke';
+
+  @override
+  String get ops_feed_error_text => 'Sjekk nettet og prøv igjen.';
+
+  @override
+  String get ops_feed_retry => 'Prøv igjen';
+
+  @override
+  String ops_feed_promo_price(int kr, int value) {
+    return '$kr kr · verdi minst $value kr';
+  }
+
+  @override
+  String ops_feed_open_store(String store) {
+    return 'Åpne $store';
+  }
+
+  @override
+  String ops_feed_likes(int n) {
+    return '$n liker';
+  }
+
+  @override
+  String ops_feed_comments(int n) {
+    return '$n kommentarer';
+  }
+
+  @override
+  String ops_feed_status_opens(String time) {
+    return 'Åpner $time';
+  }
+
+  @override
+  String ops_feed_store_initials_label(String store) {
+    return '$store';
+  }
 }

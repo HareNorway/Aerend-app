@@ -5968,4 +5968,247 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ops_utforsk_nyheter_empty => 'No news from the shops today.';
+
+  @override
+  String get ops_feed_orb_alle => 'All';
+
+  @override
+  String get ops_feed_orb_restaurant => 'Restaurant';
+
+  @override
+  String get ops_feed_orb_fisk => 'Food & fish';
+
+  @override
+  String get ops_feed_orb_bakeri => 'Bakery';
+
+  @override
+  String get ops_feed_orb_gront => 'Greens';
+
+  @override
+  String get ops_feed_orb_mote => 'Fashion';
+
+  @override
+  String get ops_feed_follow => 'Follow';
+
+  @override
+  String get ops_feed_following => 'Following';
+
+  @override
+  String ops_feed_follow_toast(String name) {
+    return 'You follow $name — push is off until you turn it on';
+  }
+
+  @override
+  String ops_feed_unfollow_toast(String name) {
+    return 'You no longer follow $name';
+  }
+
+  @override
+  String get ops_feed_share => 'Share';
+
+  @override
+  String ops_feed_share_text(String store, String title) {
+    return '$title at $store — on Ærend';
+  }
+
+  @override
+  String get ops_feed_published_by_aerend => 'published by Ærend';
+
+  @override
+  String ops_feed_distance_m(int m) {
+    return '$m m';
+  }
+
+  @override
+  String ops_feed_distance_km(String km) {
+    return '$km km';
+  }
+
+  @override
+  String ops_feed_status_open(String eta) {
+    return 'Open · $eta';
+  }
+
+  @override
+  String get ops_feed_status_open_plain => 'Open';
+
+  @override
+  String get ops_feed_status_closed => 'Closed';
+
+  @override
+  String ops_feed_eta(int a, int b) {
+    return '$a–$b min';
+  }
+
+  @override
+  String get ops_feed_cta_add => 'Add';
+
+  @override
+  String get ops_feed_cta_add_again => 'Order again';
+
+  @override
+  String get ops_feed_cta_store => 'See the shop';
+
+  @override
+  String get ops_feed_cta_post => 'See the post';
+
+  @override
+  String ops_feed_price(int kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String ops_feed_price_from(int kr) {
+    return 'from $kr kr';
+  }
+
+  @override
+  String ops_feed_hint_ordered_days(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'You ordered from here $n days ago',
+      one: 'You ordered from here yesterday',
+      zero: 'You ordered from here today',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ops_feed_hint_ordered_weeks(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: 'You ordered from here $n weeks ago',
+      two: 'You ordered from here two weeks ago',
+      one: 'You ordered from here a week ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_feed_badge_tilbud => 'Offer';
+
+  @override
+  String get ops_feed_badge_ny_i_hyllene => 'New on the shelf';
+
+  @override
+  String get ops_feed_badge_dagens_rett => 'Dish of the day';
+
+  @override
+  String get ops_feed_badge_ny_pa_aerend => 'New on Ærend';
+
+  @override
+  String get ops_feed_badge_nytt_i_hyllene => 'New on the shelves';
+
+  @override
+  String get ops_feed_badge_tilbud_i_naerheten => 'Offer nearby';
+
+  @override
+  String get ops_feed_badge_apent_sent => 'Open late';
+
+  @override
+  String get ops_feed_badge_populaert_i_kveld => 'Popular tonight';
+
+  @override
+  String get ops_feed_badge_butikk_i_fokus => 'Shop in focus';
+
+  @override
+  String get ops_feed_badge_drift => 'Operations';
+
+  @override
+  String get ops_feed_badge_today => 'Fresh today';
+
+  @override
+  String get ops_feed_badge_generic => 'New';
+
+  @override
+  String get ops_feed_video_muted => 'muted';
+
+  @override
+  String get ops_feed_video_muted_stop => 'muted · tap to stop';
+
+  @override
+  String get ops_feed_video_play => 'Play video';
+
+  @override
+  String ops_feed_time_today(String time) {
+    return 'today $time';
+  }
+
+  @override
+  String get ops_feed_time_yesterday => 'yesterday';
+
+  @override
+  String ops_feed_time_minutes(int n) {
+    return '$n min ago';
+  }
+
+  @override
+  String ops_feed_time_hours(int n) {
+    return '$n h ago';
+  }
+
+  @override
+  String ops_feed_time_days(int n) {
+    return '$n d ago';
+  }
+
+  @override
+  String get ops_feed_empty_cat_title => 'No posts in this category today';
+
+  @override
+  String get ops_feed_empty_cat_text => 'Try another category — or see all.';
+
+  @override
+  String get ops_feed_empty_cat_cta => 'Show all categories';
+
+  @override
+  String get ops_feed_empty_title => 'The shops have not posted anything today';
+
+  @override
+  String get ops_feed_empty_text =>
+      'Follow a few, and the new things gather here.';
+
+  @override
+  String get ops_feed_empty_cta => 'See what is nearby';
+
+  @override
+  String get ops_feed_error_title => 'The feed did not answer';
+
+  @override
+  String get ops_feed_error_text => 'Check your connection and try again.';
+
+  @override
+  String get ops_feed_retry => 'Try again';
+
+  @override
+  String ops_feed_promo_price(int kr, int value) {
+    return '$kr kr · worth at least $value kr';
+  }
+
+  @override
+  String ops_feed_open_store(String store) {
+    return 'Open $store';
+  }
+
+  @override
+  String ops_feed_likes(int n) {
+    return '$n likes';
+  }
+
+  @override
+  String ops_feed_comments(int n) {
+    return '$n comments';
+  }
+
+  @override
+  String ops_feed_status_opens(String time) {
+    return 'Opens $time';
+  }
+
+  @override
+  String ops_feed_store_initials_label(String store) {
+    return '$store';
+  }
 }

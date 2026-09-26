@@ -960,14 +960,18 @@ class _GaverBlock extends StatelessWidget {
           if (today) ...[
             Row(
               children: [
-                Text(
-                  ButikkCopy.a1_butikk_gave_idag,
-                  key: const Key('a1_butikk_gave_idag'),
-                  style: bDisplay(
-                    context,
-                    16,
-                    weight: FontWeight.w800,
-                    color: BergenTokens.ink,
+                Flexible(
+                  child: Text(
+                    ButikkCopy.a1_butikk_gave_idag,
+                    key: const Key('a1_butikk_gave_idag'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: bDisplay(
+                      context,
+                      16,
+                      weight: FontWeight.w800,
+                      color: BergenTokens.ink,
+                    ),
                   ),
                 ),
                 SizedBox(width: 8 * s),
@@ -982,6 +986,7 @@ class _GaverBlock extends StatelessWidget {
                   ),
                   child: Text(
                     ButikkCopy.a1_butikk_gave_innen(cutoff),
+                    maxLines: 1,
                     style: bText(
                       context,
                       10,
