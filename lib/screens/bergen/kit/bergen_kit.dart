@@ -7,6 +7,7 @@ export 'bergen_ark.dart';
 export 'bergen_card.dart';
 export 'bergen_cart.dart';
 export 'bergen_chip.dart';
+export 'bergen_css_shadow.dart';
 export 'bergen_cta_3d.dart';
 export 'bergen_offline_banner.dart';
 export 'bergen_routes.dart';

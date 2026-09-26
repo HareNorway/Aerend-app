@@ -411,42 +411,53 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
       onCta = _load;
     }
 
-    return Container(
+    return Padding(
       key: const Key('a1_feed_empty'),
-      margin: EdgeInsets.only(top: 14 * s),
-      padding: EdgeInsets.fromLTRB(18 * s, 22 * s, 18 * s, 22 * s),
-      decoration: _glass(24 * s),
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(22 * s),
-            child: Image.asset(
-              'assets/images/dashboard/find.png',
-              width: 76 * s,
-              height: 76 * s,
-              fit: BoxFit.cover,
-            ),
+      padding: EdgeInsets.only(top: 14 * s),
+      child: BergenCssShadow(
+        radius: 24 * s,
+        shadows: _glassShadow,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(18 * s, 22 * s, 18 * s, 22 * s),
+          decoration: _glass(24 * s),
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(22 * s),
+                child: Image.asset(
+                  'assets/images/dashboard/find.png',
+                  width: 76 * s,
+                  height: 76 * s,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              SizedBox(height: 10 * s),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: bDisplay(
+                  context,
+                  15,
+                  weight: FontWeight.w800,
+                  height: 1.3,
+                ),
+              ),
+              SizedBox(height: 4 * s),
+              Text(
+                text,
+                textAlign: TextAlign.center,
+                style: bText(
+                  context,
+                  12.5,
+                  weight: FontWeight.w500,
+                  color: const Color(0xFFDCE9EC),
+                ),
+              ),
+              SizedBox(height: 12 * s),
+              _OrangePill(label: cta, height: 42, onTap: onCta),
+            ],
           ),
-          SizedBox(height: 10 * s),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: bDisplay(context, 15, weight: FontWeight.w800, height: 1.3),
-          ),
-          SizedBox(height: 4 * s),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: bText(
-              context,
-              12.5,
-              weight: FontWeight.w500,
-              color: const Color(0xFFDCE9EC),
-            ),
-          ),
-          SizedBox(height: 12 * s),
-          _OrangePill(label: cta, height: 42, onTap: onCta),
-        ],
+        ),
       ),
     );
   }
@@ -469,116 +480,128 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
       onTap: () => BergenRoutes.push(context, '/bergen/automat'),
       pressDy: 0,
       pressScale: .985,
-      child: Container(
-        margin: EdgeInsets.only(top: 12 * s),
-        clipBehavior: Clip.antiAlias,
-        decoration: _glass(20 * s),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -30 * s,
-              left: -20 * s,
-              child: IgnorePointer(
-                child: Container(
-                  width: 160 * s,
-                  height: 160 * s,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [Color(0x595CE0B8), Color(0x005CE0B8)],
-                      stops: [0, .7],
+      child: Padding(
+        padding: EdgeInsets.only(top: 12 * s),
+        child: BergenCssShadow(
+          radius: 20 * s,
+          shadows: _glassShadow,
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: _glass(20 * s),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -30 * s,
+                  left: -20 * s,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 160 * s,
+                      height: 160 * s,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [Color(0x595CE0B8), Color(0x005CE0B8)],
+                          stops: [0, .7],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(14 * s),
-              child: Row(
-                children: [
-                  _Bob(
-                    child: bergenSvg('bag3d', width: 70 * s, height: 70 * s),
-                  ),
-                  SizedBox(width: 14 * s),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: bText(
-                            context,
-                            10.5,
-                            weight: FontWeight.w800,
-                            letterSpacingEm: .04,
-                            color: const Color(0xFF9FE0C8),
-                          ),
+                Padding(
+                  padding: EdgeInsets.all(14 * s),
+                  child: Row(
+                    children: [
+                      _Bob(
+                        child: bergenSvg(
+                          'bag3d',
+                          width: 70 * s,
+                          height: 70 * s,
                         ),
-                        SizedBox(height: 3 * s),
-                        Text(
-                          valueKr > 0
-                              ? UtforskCopy.a1_feed_promo_price(
-                                  priceKr,
-                                  valueKr,
-                                )
-                              : UtforskCopy.a1_utforsk_pose_price(priceKr),
-                          style: bDisplay(
-                            context,
-                            17,
-                            weight: FontWeight.w800,
-                            letterSpacingEm: -0.015,
-                            height: 1.15,
-                          ),
-                        ),
-                        if (window.isNotEmpty) ...[
-                          SizedBox(height: 4 * s),
-                          Text(
-                            UtforskCopy.a1_utforsk_pose_pickup(window),
-                            style: bText(
-                              context,
-                              12,
-                              weight: FontWeight.w600,
-                              color: const Color(0xFFDCE9EC),
-                            ),
-                          ),
-                        ],
-                        SizedBox(height: 10 * s),
-                        Row(
+                      ),
+                      SizedBox(width: 14 * s),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _OrangePill(
-                              label: UtforskCopy.a1_utforsk_promo_cta,
-                              height: 36,
-                              onTap: () =>
-                                  BergenRoutes.push(context, '/bergen/automat'),
+                            Text(
+                              label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: bText(
+                                context,
+                                10.5,
+                                weight: FontWeight.w800,
+                                letterSpacingEm: .04,
+                                color: const Color(0xFF9FE0C8),
+                              ),
                             ),
-                            if (left != null) ...[
-                              SizedBox(width: 9 * s),
-                              Flexible(
-                                child: Text(
-                                  UtforskCopy.a1_utforsk_promo_left(left),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: bText(
-                                    context,
-                                    11.5,
-                                    weight: FontWeight.w700,
-                                    color: const Color(0xFF9FD3DE),
-                                  ),
+                            SizedBox(height: 3 * s),
+                            Text(
+                              valueKr > 0
+                                  ? UtforskCopy.a1_feed_promo_price(
+                                      priceKr,
+                                      valueKr,
+                                    )
+                                  : UtforskCopy.a1_utforsk_pose_price(priceKr),
+                              style: bDisplay(
+                                context,
+                                17,
+                                weight: FontWeight.w800,
+                                letterSpacingEm: -0.015,
+                                height: 1.15,
+                              ),
+                            ),
+                            if (window.isNotEmpty) ...[
+                              SizedBox(height: 4 * s),
+                              Text(
+                                UtforskCopy.a1_utforsk_pose_pickup(window),
+                                style: bText(
+                                  context,
+                                  12,
+                                  weight: FontWeight.w600,
+                                  color: const Color(0xFFDCE9EC),
                                 ),
                               ),
                             ],
+                            SizedBox(height: 10 * s),
+                            Row(
+                              children: [
+                                _OrangePill(
+                                  label: UtforskCopy.a1_utforsk_promo_cta,
+                                  height: 36,
+                                  onTap: () => BergenRoutes.push(
+                                    context,
+                                    '/bergen/automat',
+                                  ),
+                                ),
+                                if (left != null) ...[
+                                  SizedBox(width: 9 * s),
+                                  Flexible(
+                                    child: Text(
+                                      UtforskCopy.a1_utforsk_promo_left(left),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: bText(
+                                        context,
+                                        11.5,
+                                        weight: FontWeight.w700,
+                                        color: const Color(0xFF9FD3DE),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                bergenInsetTop(radius: 20 * s, alpha: .28),
+              ],
             ),
-            bergenInsetTop(radius: 20 * s, alpha: .28),
-          ],
+          ),
         ),
       ),
     );
@@ -592,16 +615,17 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
       colors: [Color(0x24FFFFFF), Color(0x0FFFFFFF)],
     ),
     border: Border.all(color: const Color(0x33FFFFFF)),
-    boxShadow: const [
-      BoxShadow(
-        color: Color(0xD904121A),
-        offset: Offset(0, 24),
-        blurRadius: 40,
-        spreadRadius: -22,
-        blurStyle: BlurStyle.outer,
-      ),
-    ],
   );
+
+  /// `0 24px 40px -22px rgba(4,18,26,.85)` — outside the glass only.
+  static const List<BoxShadow> _glassShadow = [
+    BoxShadow(
+      color: Color(0xD904121A),
+      offset: Offset(0, 24),
+      blurRadius: 40,
+      spreadRadius: -22,
+    ),
+  ];
 }
 
 // ── Orb ─────────────────────────────────────────────────────────────────────
@@ -698,22 +722,18 @@ class _Orb extends StatelessWidget {
                                 offset: Offset(0, 12),
                                 blurRadius: 18,
                                 spreadRadius: -6,
-                                blurStyle: BlurStyle.outer,
                               ),
                             ]
                           : const [
                               BoxShadow(
                                 color: Color(0xD90B262D),
                                 offset: Offset(0, 2),
-                                blurRadius: 1,
-                                blurStyle: BlurStyle.outer,
                               ),
                               BoxShadow(
                                 color: Color(0xBF0F2D37),
                                 offset: Offset(0, 7),
                                 blurRadius: 11,
                                 spreadRadius: -5,
-                                blurStyle: BlurStyle.outer,
                               ),
                             ],
                     ),
@@ -743,7 +763,6 @@ class _Orb extends StatelessWidget {
                                     offset: Offset(0, 3),
                                     blurRadius: 6,
                                     spreadRadius: -2,
-                                    blurStyle: BlurStyle.outer,
                                   ),
                                 ],
                               ),
@@ -815,7 +834,6 @@ class FeedDriftNotice extends StatelessWidget {
             offset: Offset(0, 20),
             blurRadius: 34,
             spreadRadius: -18,
-            blurStyle: BlurStyle.outer,
           ),
         ],
       ),
@@ -982,18 +1000,12 @@ class _OrangePill extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: const Color(0x4DFFFFFF)),
           boxShadow: const [
-            BoxShadow(
-              color: Color(0x8CA03C14),
-              offset: Offset(0, 3),
-              blurRadius: 1,
-              blurStyle: BlurStyle.outer,
-            ),
+            BoxShadow(color: Color(0x8CA03C14), offset: Offset(0, 3)),
             BoxShadow(
               color: Color(0xCCF26D3D),
               offset: Offset(0, 12),
               blurRadius: 22,
               spreadRadius: -10,
-              blurStyle: BlurStyle.outer,
             ),
           ],
         ),

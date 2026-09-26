@@ -261,46 +261,45 @@ class _FeedPostCardState extends State<FeedPostCard>
     final item = widget.item;
     final h = FeedPostCard.mediaHeightFor(item) * s;
 
-    return Container(
+    return Padding(
       key: Key('a1_feed_post_${item.id}'),
-      margin: EdgeInsets.only(top: 14 * s),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26 * s),
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0x24FFFFFF), Color(0x0FFFFFFF)],
-        ),
-        border: Border.all(color: const Color(0x33FFFFFF)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x4004121A),
-            offset: Offset(0, 2),
-            blurRadius: 1,
-            blurStyle: BlurStyle.outer,
-          ),
+      padding: EdgeInsets.only(top: 14 * s),
+      child: BergenCssShadow(
+        radius: 26 * s,
+        shadows: const [
+          BoxShadow(color: Color(0x4004121A), offset: Offset(0, 2)),
           BoxShadow(
             color: Color(0xD904121A),
             offset: Offset(0, 28),
             blurRadius: 44,
             spreadRadius: -22,
-            blurStyle: BlurStyle.outer,
           ),
         ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26 * s),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(26 * s),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0x24FFFFFF), Color(0x0FFFFFFF)],
+            ),
+            border: Border.all(color: const Color(0x33FFFFFF)),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(26 * s),
+            child: Stack(
               children: [
-                SizedBox(height: h, child: _media(context, h)),
-                _body(context),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: h, child: _media(context, h)),
+                    _body(context),
+                  ],
+                ),
+                bergenInsetTop(radius: 26 * s, alpha: .28),
               ],
             ),
-            bergenInsetTop(radius: 26 * s, alpha: .28),
-          ],
+          ),
         ),
       ),
     );
@@ -538,7 +537,6 @@ class _FeedPostCardState extends State<FeedPostCard>
                   offset: Offset(0, 6),
                   blurRadius: 12,
                   spreadRadius: -6,
-                  blurStyle: BlurStyle.outer,
                 ),
               ],
             ),
@@ -595,34 +593,36 @@ class _FeedPostCardState extends State<FeedPostCard>
         onTap: widget.onFollow,
         pressDy: 0,
         pressScale: .94,
-        child: AnimatedContainer(
-          key: Key('a1_feed_follow_${widget.item.id}'),
-          duration: BergenTokens.motion(
-            context,
-            const Duration(milliseconds: 200),
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 6 * s),
-          decoration: BoxDecoration(
-            gradient: on ? _orange : null,
-            color: on ? null : const Color(0x33FFFFFF),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: on ? const Color(0x59FFFFFF) : const Color(0x8CFFFFFF),
-              width: 1.5,
+        child: BergenCssShadow(
+          radius: 999,
+          shadows: const [
+            BoxShadow(
+              color: Color(0x99000A10),
+              offset: Offset(0, 6),
+              blurRadius: 14,
+              spreadRadius: -8,
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x99000A10),
-                offset: Offset(0, 6),
-                blurRadius: 14,
-                spreadRadius: -8,
-                blurStyle: BlurStyle.outer,
+          ],
+          child: AnimatedContainer(
+            key: Key('a1_feed_follow_${widget.item.id}'),
+            duration: BergenTokens.motion(
+              context,
+              const Duration(milliseconds: 200),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 6 * s),
+            decoration: BoxDecoration(
+              gradient: on ? _orange : null,
+              color: on ? null : const Color(0x33FFFFFF),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: on ? const Color(0x59FFFFFF) : const Color(0x8CFFFFFF),
+                width: 1.5,
               ),
-            ],
-          ),
-          child: Text(
-            on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
-            style: bText(context, 11.5, weight: FontWeight.w800),
+            ),
+            child: Text(
+              on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
+              style: bText(context, 11.5, weight: FontWeight.w800),
+            ),
           ),
         ),
       ),
@@ -719,44 +719,46 @@ class _FeedPostCardState extends State<FeedPostCard>
         onTap: onTap,
         pressDy: 0,
         pressScale: .9,
-        child: Container(
-          width: 44 * s,
-          padding: EdgeInsets.fromLTRB(0, 7 * s, 0, 5 * s),
-          decoration: BoxDecoration(
-            color: const Color(0x57FFFFFF),
-            borderRadius: BorderRadius.circular(16 * s),
-            border: Border.all(color: const Color(0x80FFFFFF)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x99000A10),
-                offset: Offset(0, 10),
-                blurRadius: 18,
-                spreadRadius: -8,
-                blurStyle: BlurStyle.outer,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              icon,
-              SizedBox(height: 1 * s),
-              Text(
-                label,
-                style: bText(
-                  context,
-                  labelSize,
-                  weight: FontWeight.w800,
-                  shadows: const [
-                    Shadow(
-                      color: Color(0x80000A10),
-                      blurRadius: 4,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
+        child: BergenCssShadow(
+          radius: 16 * s,
+          shadows: const [
+            BoxShadow(
+              color: Color(0x99000A10),
+              offset: Offset(0, 10),
+              blurRadius: 18,
+              spreadRadius: -8,
+            ),
+          ],
+          child: Container(
+            width: 44 * s,
+            padding: EdgeInsets.fromLTRB(0, 7 * s, 0, 5 * s),
+            decoration: BoxDecoration(
+              color: const Color(0x57FFFFFF),
+              borderRadius: BorderRadius.circular(16 * s),
+              border: Border.all(color: const Color(0x80FFFFFF)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                icon,
+                SizedBox(height: 1 * s),
+                Text(
+                  label,
+                  style: bText(
+                    context,
+                    labelSize,
+                    weight: FontWeight.w800,
+                    shadows: const [
+                      Shadow(
+                        color: Color(0x80000A10),
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -774,27 +776,29 @@ class _FeedPostCardState extends State<FeedPostCard>
         pressDy: 0,
         pressScale: .92,
         child: _Glow(
-          child: Container(
-            width: 60 * s,
-            height: 60 * s,
-            decoration: BoxDecoration(
-              color: const Color(0x4DFFFFFF),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0x8CFFFFFF)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x99000A10),
-                  offset: Offset(0, 12),
-                  blurRadius: 22,
-                  spreadRadius: -10,
-                  blurStyle: BlurStyle.outer,
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Padding(
-              padding: EdgeInsets.only(left: 3 * s),
-              child: feedIcon(FeedIcons.play, 22 * s),
+          child: BergenCssShadow(
+            radius: 999,
+            shadows: const [
+              BoxShadow(
+                color: Color(0x99000A10),
+                offset: Offset(0, 12),
+                blurRadius: 22,
+                spreadRadius: -10,
+              ),
+            ],
+            child: Container(
+              width: 60 * s,
+              height: 60 * s,
+              decoration: BoxDecoration(
+                color: const Color(0x4DFFFFFF),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0x8CFFFFFF)),
+              ),
+              alignment: Alignment.center,
+              child: Padding(
+                padding: EdgeInsets.only(left: 3 * s),
+                child: feedIcon(FeedIcons.play, 22 * s),
+              ),
             ),
           ),
         ),
@@ -1040,77 +1044,68 @@ class _FeedPostCardState extends State<FeedPostCard>
         onTap: widget.onCta,
         pressDy: 2,
         pressScale: .98,
-        child: Container(
-          height: 46 * s,
-          decoration: BoxDecoration(
-            gradient: primary
-                ? _orange
-                : const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0x2EFFFFFF), Color(0x14FFFFFF)],
+        child: BergenCssShadow(
+          radius: 999,
+          shadows: primary
+              ? const [
+                  BoxShadow(color: Color(0x8CA03C14), offset: Offset(0, 4)),
+                  BoxShadow(
+                    color: Color(0xCCF26D3D),
+                    offset: Offset(0, 14),
+                    blurRadius: 24,
+                    spreadRadius: -10,
                   ),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: primary
-                  ? const Color(0x4DFFFFFF)
-                  : const Color(0x38FFFFFF),
-            ),
-            boxShadow: primary
-                ? const [
-                    BoxShadow(
-                      color: Color(0x8CA03C14),
-                      offset: Offset(0, 4),
-                      blurRadius: 1,
-                      blurStyle: BlurStyle.outer,
+                ]
+              : const [
+                  BoxShadow(color: Color(0x6604121A), offset: Offset(0, 3)),
+                  BoxShadow(
+                    color: Color(0xE604121A),
+                    offset: Offset(0, 12),
+                    blurRadius: 20,
+                    spreadRadius: -14,
+                  ),
+                ],
+          child: Container(
+            height: 46 * s,
+            decoration: BoxDecoration(
+              gradient: primary
+                  ? _orange
+                  : const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x2EFFFFFF), Color(0x14FFFFFF)],
                     ),
-                    BoxShadow(
-                      color: Color(0xCCF26D3D),
-                      offset: Offset(0, 14),
-                      blurRadius: 24,
-                      spreadRadius: -10,
-                      blurStyle: BlurStyle.outer,
-                    ),
-                  ]
-                : const [
-                    BoxShadow(
-                      color: Color(0x6604121A),
-                      offset: Offset(0, 3),
-                      blurRadius: 1,
-                      blurStyle: BlurStyle.outer,
-                    ),
-                    BoxShadow(
-                      color: Color(0xE604121A),
-                      offset: Offset(0, 12),
-                      blurRadius: 20,
-                      spreadRadius: -14,
-                      blurStyle: BlurStyle.outer,
-                    ),
-                  ],
-          ),
-          child: Stack(
-            children: [
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (icon) ...[
-                      feedIcon(FeedIcons.bag, 16 * s),
-                      SizedBox(width: 8 * s),
-                    ],
-                    Flexible(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: bText(context, 14, weight: FontWeight.w800),
-                      ),
-                    ),
-                  ],
-                ),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: primary
+                    ? const Color(0x4DFFFFFF)
+                    : const Color(0x38FFFFFF),
               ),
-              bergenInsetTop(radius: 999, alpha: primary ? .45 : .28),
-            ],
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (icon) ...[
+                        feedIcon(FeedIcons.bag, 16 * s),
+                        SizedBox(width: 8 * s),
+                      ],
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: bText(context, 14, weight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                bergenInsetTop(radius: 999, alpha: primary ? .45 : .28),
+              ],
+            ),
           ),
         ),
       ),
