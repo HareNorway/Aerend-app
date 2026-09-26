@@ -29,25 +29,50 @@ void main() {
     await t.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets('Premiehylla: goal, mine premier, shelf in points, badges, locked, 60-day rule', (tester) async {
+  testWidgets('Premiehylla: header, Nivå, goal, Mine premier, the shelf, locked, 60-day note', (tester) async {
+    tester.view.physicalSize = const Size(800, 4000);
+    tester.view.devicePixelRatio = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final api = FakePointsApi();
     await tester.pumpWidget(a3App(PremiehyllaScreen(api: api)));
     await settle(tester);
 
-    expect(find.text('Fløibanen tur-retur'), findsWidgets);
-    expect(find.text('46 %'), findsOneWidget);
-    expect(find.textContaining('Mine premier · 1'), findsOneWidget);
+    expect(find.byKey(const Key('hylla-hero')), findsOneWidget);
+    expect(find.text('420 poeng'), findsOneWidget);
+    expect(find.text('Premiehylla'), findsOneWidget);
+    expect(find.byKey(const Key('hylla-nivaa')), findsOneWidget);
+    expect(find.text('480 poeng til fløibanen tur-retur'), findsOneWidget);
+    expect(find.text('46%'), findsOneWidget);
+    expect(find.text('Mine premier'), findsOneWidget);
+    expect(find.text('KLAR'), findsOneWidget);
+    expect(find.text('Åpent på Fløyen'), findsOneWidget);
+    expect(find.text('1 klare å hente'), findsOneWidget);
     expect(find.text('300 poeng'), findsOneWidget);
     expect(find.text('MÅL'), findsOneWidget);
     expect(find.text('UTSOLGT'), findsOneWidget);
-    expect(find.text('900 igjen'), findsOneWidget);
+    expect(find.text('480 poeng igjen'), findsOneWidget);
+    expect(find.text('Dette er målet ditt'), findsOneWidget);
+    expect(find.text('Utsolgt denne måneden'), findsOneWidget);
+    expect(find.byKey(const Key('hylla-velger')), findsOneWidget);
+    expect(find.text('Låst til Ulriken'), findsOneWidget);
     expect(find.text('Middag på Bryggen'), findsOneWidget);
     expect(find.textContaining('60 dager'), findsOneWidget);
-    expect(find.textContaining(RegExp(r'd kr')), findsNothing);
 
-    await tester.tap(find.text('Sett som mål').first);
+    await tester.tap(find.byKey(const Key('hylla-maal-7')));
     await settle(tester);
     expect(api.calls, contains('goal:7'));
+    await tester.pump(const Duration(seconds: 4));
+
+    await tester.tap(find.byKey(const Key('hylla-kn-7')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('hylla-krev-sheet')), findsOneWidget);
+    expect(find.text('Hent for 300 poeng'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('hylla-krev-cta')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(api.calls, contains('claim:7'));
     await tester.pump(const Duration(seconds: 4));
   });
 

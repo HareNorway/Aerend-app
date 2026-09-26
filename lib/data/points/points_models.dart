@@ -158,6 +158,7 @@ class CustomerPrefs {
 class Prize {
   const Prize({
     required this.id,
+    this.slug,
     required this.name,
     required this.pointPrice,
     required this.tierBand,
@@ -172,6 +173,9 @@ class Prize {
   });
 
   final int id;
+
+  /// Catalogue key (`pts_prizes.slug`) — picks the design tint and icon.
+  final String? slug;
   final String name;
   final String? line;
   final String? partnerName;
@@ -186,6 +190,7 @@ class Prize {
 
   factory Prize.fromJson(Map<String, dynamic> json) => Prize(
         id: _int(json['id']),
+        slug: json['slug'] as String?,
         name: (json['name'] as String?) ?? '',
         line: json['line'] as String?,
         partnerName: json['partner_name'] as String?,
@@ -212,11 +217,13 @@ class PrizePreview {
     required this.tierName,
     required this.pointsToUnlock,
     this.teaser,
+    this.slug,
   });
 
   final int id;
   final String name;
   final String? teaser;
+  final String? slug;
   final int pointPrice;
   final String tierName;
 
@@ -230,6 +237,7 @@ class PrizePreview {
         id: _int(json['id']),
         name: (json['name'] as String?) ?? '',
         teaser: json['teaser'] as String?,
+        slug: json['slug'] as String?,
         pointPrice: _int(json['point_price']),
         tierName: (json['tier_name'] as String?) ?? '',
         pointsToUnlock: _int(json['points_to_unlock']),

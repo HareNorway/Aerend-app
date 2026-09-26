@@ -8,6 +8,7 @@ import '../../../data/points/league_models.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
+import '../poeng/prize_art.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
@@ -603,30 +604,6 @@ class _NivaaDetail extends StatelessWidget {
   final List<PrizePreview> opens;
   final VoidCallback? onOpenPremiehylla;
 
-  static const List<List<Color>> _tints = [
-    [Color(0xFFCFE3E8), Color(0xFF2B5F6D)],
-    [Color(0xFFFBE0C4), Color(0xFFC07A3A)],
-    [Color(0xFFDCE9EC), Color(0xFF5C8391)],
-  ];
-
-  /// The design's icon per prize and its size in the tile (`iw × ih` scaled .5).
-  static (String, double, double) _icon(String name) {
-    final n = name.toLowerCase();
-    if (n.contains('båt') || n.contains('baat') || n.contains('skip')) return ('meg_langskip3d', 48, 25);
-    if (n.contains('fisk') || n.contains('reke') || n.contains('suppe')) return ('meg_ico_fisk', 50, 33);
-    if (n.contains('middag') || n.contains('mat') || n.contains('pizza') || n.contains('bolle') || n.contains('kaffe')) return ('meg_ico_mat', 37, 35);
-    if (n.contains('gave') || n.contains('bok') || n.contains('keramikk')) return ('meg_ico_gaver', 35, 37);
-    return ('meg_varde3d', 29, 36);
-  }
-
-  /// Tile tint per prize (design PREMIER `tint`, 160deg).
-  static List<Color> _tint(String name, int i) {
-    final n = name.toLowerCase();
-    if (n.contains('båt') || n.contains('baat')) return const [Color(0xFFCFE3E8), Color(0xFF2B5F6D)];
-    if (n.contains('middag') || n.contains('mat') || n.contains('pizza')) return const [Color(0xFFFBE0C4), Color(0xFFC07A3A)];
-    if (n.contains('fløy') || n.contains('floy') || n.contains('fjell')) return const [Color(0xFFDCE9EC), Color(0xFF5C8391)];
-    return _tints[i % _tints.length];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -724,7 +701,7 @@ class _NivaaDetail extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(begin: const Alignment(-.34, -.94), end: const Alignment(.34, .94), colors: _tint(p.name, i)),
+              gradient: PrizeArt.of(slug: p.slug, name: p.name).gradient,
               border: Border.all(color: Colors.white.withValues(alpha: .35)),
               boxShadow: const [BoxShadow(color: Color.fromRGBO(60, 40, 15, .45), offset: Offset(0, 4), blurRadius: 9, spreadRadius: -5)],
             ),
@@ -740,8 +717,8 @@ class _NivaaDetail extends StatelessWidget {
                 ),
                 Center(
                   child: Builder(builder: (_) {
-                    final (asset, w, h) = _icon(p.name);
-                    return bergenSvg(asset, width: w, height: h);
+                    final art = PrizeArt.of(slug: p.slug, name: p.name);
+                    return bergenSvg(art.icon, width: art.width * .5, height: art.height * .5);
                   }),
                 ),
               ],

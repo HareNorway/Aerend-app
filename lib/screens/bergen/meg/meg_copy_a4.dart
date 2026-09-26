@@ -233,6 +233,48 @@ abstract final class A4MegCopy {
   static const String a4_meg_betaling_kort = 'Kort og betalingsmåter';
   static const String a4_meg_adresser_linje = 'Dørteksten tolkes til chips. Samtykke styrer om budene ser den.';
 
+  // Premiehylla (design `Premiehylla` ≈L6177)
+  static const String a4_hylla_title = 'Premiehylla';
+  static const String a4_hylla_sub = 'Bytt poeng i noe godt fra Bergen';
+  static const String a4_hylla_maalet_ditt = 'MÅLET DITT';
+  static const String a4_hylla_sett_maal = 'Sett en premie som mål';
+  static String a4_hylla_klar(String label) => '$label er klar å hente';
+  static String a4_hylla_til(int n, String label) => '${_nf(n)} poeng til ${label.toLowerCase()}';
+  static const String a4_hylla_mine = 'Mine premier';
+  static String a4_hylla_aapent(String tier) => 'Åpent på $tier';
+  static String a4_hylla_klare(int n) => '$n klare å hente';
+  static const String a4_hylla_intro = 'Hylla denne måneden. Prisene står i poeng — aldri i kroner. Sett én premie som mål, så følger Ægil deg dit.';
+  static const String a4_hylla_hent = 'Hent';
+  static const String a4_hylla_sett_som_maal = 'Sett som mål';
+  static const String a4_hylla_er_maal_kn = 'Dette er målet ditt';
+  static const String a4_hylla_er_maal = 'Er allerede målet ditt';
+  static String a4_hylla_satt_maal(int igjen) => 'Satt som mål · ${_nf(igjen < 0 ? 0 : igjen)} poeng igjen';
+  static const String a4_hylla_utsolgt_mnd = 'Utsolgt denne måneden';
+  static String a4_hylla_utsolgt_toast(String name) => '$name er utsolgt denne måneden';
+  static String a4_hylla_igjen(int n) => '${_nf(n)} poeng igjen';
+  static const String a4_hylla_velger = 'Ægil velger';
+  static const String a4_hylla_velger_linje = 'Verdi minst 300 kr · en premie som passer deg';
+  static String a4_hylla_fra(int n) => 'Fra ${_nf(n)} poeng';
+  static const String a4_hylla_velger_pris_tom = 'Ægil ser på hylla';
+  static const String a4_hylla_la_aegil = 'La Ægil velge';
+  static String a4_hylla_laast(String next) => 'Låst til $next';
+  static String a4_hylla_laast_sub(String next) => 'Disse legger seg på hylla di når du når $next. Poengene du bruker nå senker aldri metallet ditt.';
+  static String a4_hylla_krav(String tier, int til) => 'Fra $tier · ${_nf(til)} poeng til';
+  static const String a4_hylla_60 = 'Premier gjelder i 60 dager fra du henter dem. Utsolgte kommer tilbake neste måned.';
+  static const String a4_hylla_dette_skjer = 'Dette skjer';
+  static const String a4_hylla_gyldighet = 'Gyldighet';
+  static const String a4_hylla_60_dager = 'Gjelder i 60 dager';
+  static const String a4_hylla_poeng_etter = 'Poeng etter';
+  static String a4_hylla_hent_for(int n) => 'Hent for ${_nf(n)} poeng';
+  static String a4_hylla_hentet(String name) => '$name ligger under Mine premier';
+  static const String a4_hylla_feil = 'Kunne ikke hente premien akkurat nå.';
+  static const String a4_hylla_baat_linje = 'Båten din legges i Vågen på Hjem, med navnet på skroget. Navnet blir sett over av et menneske før båten legges ut.';
+  static const String a4_hylla_baat_hint = 'Gi båten et navn';
+  static const String a4_hylla_baat_skjer = 'Båten din legges i Vågen';
+  static const String a4_hylla_baat_gyldig = 'Ligger der så lenge du er på Platina';
+  static const String a4_hylla_baat_cta = 'Legg båten i Vågen';
+  static const String a4_hylla_baat_navn_forst = 'Gi båten et navn først';
+
   static String _nf(int n) {
     final s = n.abs().toString();
     final b = StringBuffer();
