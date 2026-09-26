@@ -64,6 +64,7 @@ dependencies:
   showcaseview: ^3.0.0
   liquid_swipe: ^3.0.0
   cached_network_image: ^3.2.3
+  video_player: ^2.9.2
   readmore: ^3.0.0
   step_progress_indicator: any
   json_annotation: ^4.9.0
