@@ -6537,4 +6537,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ops_butikk_prod_lukk => 'Close';
+
+  @override
+  String get ops_butikk_bare_for_deg => 'Just for you';
+
+  @override
+  String get ops_butikk_spesial_under =>
+      'The price applies to this order · the store sets the offer itself';
+
+  @override
+  String ops_butikk_lev_min(int min) {
+    return 'Delivery $min min';
+  }
+
+  @override
+  String get ops_butikk_om_stedet => 'About';
+
+  @override
+  String get ops_butikk_alt => 'All';
+
+  @override
+  String get ops_butikk_sok_meny => 'Search the menu …';
+
+  @override
+  String get ops_butikk_tom => 'Clear';
+
+  @override
+  String ops_butikk_varer_i_kurven(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n items in the basket',
+      one: '1 item in the basket',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_butikk_endre_kurv => 'Change quantities or remove items';
+
+  @override
+  String ops_butikk_ut_av_kurven(String navn) {
+    return '$navn is out of the basket';
+  }
+
+  @override
+  String ops_butikk_til_navn(String navn) {
+    return 'to $navn';
+  }
+
+  @override
+  String get ops_butikk_gratis_levering => 'free delivery';
+
+  @override
+  String get ops_butikk_minstebestilling => 'the minimum order';
+
+  @override
+  String ops_butikk_ingen_treff_meny(String q) {
+    return 'No dishes match “$q”';
+  }
+
+  @override
+  String ops_butikk_sum_kr(String kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String ops_butikk_av_mal(String kr) {
+    return ' / $kr kr';
+  }
+
+  @override
+  String ops_butikk_stk(int n) {
+    return '$n pcs';
+  }
 }

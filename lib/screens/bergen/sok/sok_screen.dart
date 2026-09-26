@@ -258,20 +258,26 @@ class SokScreenState extends State<SokScreen> {
     orElse: () => showBergenToast(context, BergenRoutes.kommerSnart),
   );
 
-  /// A hit's card and its pill open the product sheet (`produkt`), where the
-  /// customer picks options and adds — never a silent add from the grid.
+  /// A hit opens its store with the product sheet on top (`gaa('butikk')` +
+  /// `produkt`), so «Legg til» lands the customer on the store page with the
+  /// basket bar. Without the route, the sheet alone.
   void _openProduct(SokProdukt p) {
     FocusManager.instance.primaryFocus?.unfocus();
-    showProduktSheet(
+    BergenRoutes.pushOr(
       context,
-      item: BergenMenuItem(
-        id: p.id,
-        name: p.name,
-        storeId: p.storeId,
-        storeName: p.storeName,
-        price: p.price,
-        wasPrice: p.wasPrice,
-        imageUrl: p.imageUrl,
+      '/bergen/butikk/${p.storeId}',
+      arguments: {'name': p.storeName, 'product_id': '${p.id}'},
+      orElse: () => showProduktSheet(
+        context,
+        item: BergenMenuItem(
+          id: p.id,
+          name: p.name,
+          storeId: p.storeId,
+          storeName: p.storeName,
+          price: p.price,
+          wasPrice: p.wasPrice,
+          imageUrl: p.imageUrl,
+        ),
       ),
     );
   }

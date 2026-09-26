@@ -198,6 +198,7 @@ class BergenMenuItem {
     this.hasSizes = false,
     this.hasColours = false,
     this.rating,
+    this.allergens = const [],
   });
 
   final int id;
@@ -212,6 +213,14 @@ class BergenMenuItem {
   final bool hasSizes;
   final bool hasColours;
   final String? rating;
+
+  /// The store's allergen text split on , / ; — empty when not listed.
+  final List<String> allergens;
+
+  static List<String> splitAllergens(String raw) => [
+    for (final a in raw.split(RegExp(r'[,/;·\n]+')))
+      if (a.trim().isNotEmpty) a.trim(),
+  ];
 
   double get savedKr =>
       wasPrice == null ? 0 : (wasPrice! - price).clamp(0, double.infinity);
@@ -246,6 +255,7 @@ class BergenMenuItem {
       rating: p.rateCount > 0
           ? (p.rateSum / p.rateCount).toStringAsFixed(1).replaceAll('.', ',')
           : null,
+      allergens: splitAllergens(p.allergens),
     );
   }
 }

@@ -6546,4 +6546,78 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_butikk_prod_lukk => 'Lukk';
+
+  @override
+  String get ops_butikk_bare_for_deg => 'Bare for deg';
+
+  @override
+  String get ops_butikk_spesial_under =>
+      'Prisen gjelder i denne bestillingen · butikken setter tilbudet selv';
+
+  @override
+  String ops_butikk_lev_min(int min) {
+    return 'Levering $min min';
+  }
+
+  @override
+  String get ops_butikk_om_stedet => 'Om stedet';
+
+  @override
+  String get ops_butikk_alt => 'Alt';
+
+  @override
+  String get ops_butikk_sok_meny => 'Søk i menyen …';
+
+  @override
+  String get ops_butikk_tom => 'Tøm';
+
+  @override
+  String ops_butikk_varer_i_kurven(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n varer i kurven',
+      one: '1 vare i kurven',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ops_butikk_endre_kurv => 'Endre antall eller fjern varer';
+
+  @override
+  String ops_butikk_ut_av_kurven(String navn) {
+    return '$navn er tatt ut av kurven';
+  }
+
+  @override
+  String ops_butikk_til_navn(String navn) {
+    return 'til $navn';
+  }
+
+  @override
+  String get ops_butikk_gratis_levering => 'gratis levering';
+
+  @override
+  String get ops_butikk_minstebestilling => 'minstebestillingen';
+
+  @override
+  String ops_butikk_ingen_treff_meny(String q) {
+    return 'Ingen retter matcher «$q»';
+  }
+
+  @override
+  String ops_butikk_sum_kr(String kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String ops_butikk_av_mal(String kr) {
+    return ' / $kr kr';
+  }
+
+  @override
+  String ops_butikk_stk(int n) {
+    return '$n stk.';
+  }
 }

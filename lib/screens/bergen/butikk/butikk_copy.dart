@@ -98,6 +98,23 @@ abstract final class ButikkCopy {
   static String get a1_butikk_menu_empty => languages.ops_butikk_menu_empty;
   static String get a1_butikk_not_found => languages.ops_butikk_not_found;
   static String get a1_butikk_drikke_hint => languages.ops_butikk_drikke_hint;
+  static String get a1_butikk_bare_for_deg => languages.ops_butikk_bare_for_deg;
+  static String get a1_butikk_spesial_under => languages.ops_butikk_spesial_under;
+  static String a1_butikk_lev_min(int min) => languages.ops_butikk_lev_min(min);
+  static String get a1_butikk_om_stedet => languages.ops_butikk_om_stedet;
+  static String get a1_butikk_alt => languages.ops_butikk_alt;
+  static String get a1_butikk_sok_meny => languages.ops_butikk_sok_meny;
+  static String get a1_butikk_tom => languages.ops_butikk_tom;
+  static String a1_butikk_varer_i_kurven(int n) => languages.ops_butikk_varer_i_kurven(n);
+  static String get a1_butikk_endre_kurv => languages.ops_butikk_endre_kurv;
+  static String a1_butikk_ut_av_kurven(String navn) => languages.ops_butikk_ut_av_kurven(navn);
+  static String a1_butikk_til_navn(String navn) => languages.ops_butikk_til_navn(navn);
+  static String get a1_butikk_gratis_levering => languages.ops_butikk_gratis_levering;
+  static String get a1_butikk_minstebestilling => languages.ops_butikk_minstebestilling;
+  static String a1_butikk_ingen_treff_meny(String q) => languages.ops_butikk_ingen_treff_meny(q);
+  static String a1_butikk_sum_kr(String kr) => languages.ops_butikk_sum_kr(kr);
+  static String a1_butikk_av_mal(String kr) => languages.ops_butikk_av_mal(kr);
+  static String a1_butikk_stk(int n) => languages.ops_butikk_stk(n);
 
   // ── Mote / gave page ────────────────────────────────────────────────────
   static String get a1_butikk_mote_label => languages.ops_butikk_mote_label;

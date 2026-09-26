@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aerend_customer/data/ops/sok_models.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
+import 'package:aerend_customer/screens/bergen/butikk/butikk_screen.dart';
 import 'package:aerend_customer/screens/bergen/sok/sok_screen.dart';
 import 'package:aerend_customer/utils/utils.dart';
 import 'package:aerend_customer/screens/common/home/bergen/bergen_nav.dart';
@@ -336,7 +337,7 @@ void main() {
     expect(field.text, isEmpty);
   });
 
-  testWidgets('tapping a product opens the product sheet, not the cart', (
+  testWidgets('tapping a product opens its store for the sheet, not the cart', (
     tester,
   ) async {
     _frame(tester);
@@ -365,13 +366,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.byKey(const Key('a1_butikk_produkt_sheet')), findsOneWidget);
-    expect(find.byKey(const Key('a1_butikk_produkt_navn')), findsOneWidget);
+    // `gaa('butikk')` + `produkt`: the store route, asked to open product 56.
+    final butikk = tester.widget<ButikkScreen>(find.byType(ButikkScreen));
+    expect(butikk, isNotNull);
+    final route = ModalRoute.of(tester.element(find.byType(ButikkScreen)))!;
+    final args = route.settings.arguments as Map;
+    expect(args['product_id'], '56');
+    expect(route.settings.name, endsWith('/bergen/butikk/6'));
     expect(prefGetInt(prefCartCount), 0);
-
-    await tester.tap(find.byKey(const Key('a1_butikk_produkt_lukk')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byKey(const Key('a1_butikk_produkt_sheet')), findsNothing);
   });
 }

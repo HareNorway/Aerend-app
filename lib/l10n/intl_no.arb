@@ -2203,5 +2203,22 @@
   "ops_butikk_prod_valgt": "{n} valgt",
   "ops_butikk_prod_allergen_linje": "Allergener: {liste}",
   "ops_butikk_prod_i_kurven": "{navn} er lagt i kurven",
-  "ops_butikk_prod_lukk": "Lukk"
+  "ops_butikk_prod_lukk": "Lukk",
+  "ops_butikk_bare_for_deg": "Bare for deg",
+  "ops_butikk_spesial_under": "Prisen gjelder i denne bestillingen · butikken setter tilbudet selv",
+  "ops_butikk_lev_min": "Levering {min} min",
+  "ops_butikk_om_stedet": "Om stedet",
+  "ops_butikk_alt": "Alt",
+  "ops_butikk_sok_meny": "Søk i menyen …",
+  "ops_butikk_tom": "Tøm",
+  "ops_butikk_varer_i_kurven": "{n, plural, =1{1 vare i kurven} other{{n} varer i kurven}}",
+  "ops_butikk_endre_kurv": "Endre antall eller fjern varer",
+  "ops_butikk_ut_av_kurven": "{navn} er tatt ut av kurven",
+  "ops_butikk_til_navn": "til {navn}",
+  "ops_butikk_gratis_levering": "gratis levering",
+  "ops_butikk_minstebestilling": "minstebestillingen",
+  "ops_butikk_ingen_treff_meny": "Ingen retter matcher «{q}»",
+  "ops_butikk_sum_kr": "{kr} kr",
+  "ops_butikk_av_mal": " / {kr} kr",
+  "ops_butikk_stk": "{n} stk."
 }

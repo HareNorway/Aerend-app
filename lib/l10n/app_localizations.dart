@@ -11893,6 +11893,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get ops_butikk_prod_lukk;
+
+  /// No description provided for @ops_butikk_bare_for_deg.
+  ///
+  /// In en, this message translates to:
+  /// **'Just for you'**
+  String get ops_butikk_bare_for_deg;
+
+  /// No description provided for @ops_butikk_spesial_under.
+  ///
+  /// In en, this message translates to:
+  /// **'The price applies to this order · the store sets the offer itself'**
+  String get ops_butikk_spesial_under;
+
+  /// No description provided for @ops_butikk_lev_min.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery {min} min'**
+  String ops_butikk_lev_min(int min);
+
+  /// No description provided for @ops_butikk_om_stedet.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get ops_butikk_om_stedet;
+
+  /// No description provided for @ops_butikk_alt.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ops_butikk_alt;
+
+  /// No description provided for @ops_butikk_sok_meny.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the menu …'**
+  String get ops_butikk_sok_meny;
+
+  /// No description provided for @ops_butikk_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get ops_butikk_tom;
+
+  /// No description provided for @ops_butikk_varer_i_kurven.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 item in the basket} other{{n} items in the basket}}'**
+  String ops_butikk_varer_i_kurven(int n);
+
+  /// No description provided for @ops_butikk_endre_kurv.
+  ///
+  /// In en, this message translates to:
+  /// **'Change quantities or remove items'**
+  String get ops_butikk_endre_kurv;
+
+  /// No description provided for @ops_butikk_ut_av_kurven.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is out of the basket'**
+  String ops_butikk_ut_av_kurven(String navn);
+
+  /// No description provided for @ops_butikk_til_navn.
+  ///
+  /// In en, this message translates to:
+  /// **'to {navn}'**
+  String ops_butikk_til_navn(String navn);
+
+  /// No description provided for @ops_butikk_gratis_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'free delivery'**
+  String get ops_butikk_gratis_levering;
+
+  /// No description provided for @ops_butikk_minstebestilling.
+  ///
+  /// In en, this message translates to:
+  /// **'the minimum order'**
+  String get ops_butikk_minstebestilling;
+
+  /// No description provided for @ops_butikk_ingen_treff_meny.
+  ///
+  /// In en, this message translates to:
+  /// **'No dishes match “{q}”'**
+  String ops_butikk_ingen_treff_meny(String q);
+
+  /// No description provided for @ops_butikk_sum_kr.
+  ///
+  /// In en, this message translates to:
+  /// **'{kr} kr'**
+  String ops_butikk_sum_kr(String kr);
+
+  /// No description provided for @ops_butikk_av_mal.
+  ///
+  /// In en, this message translates to:
+  /// **' / {kr} kr'**
+  String ops_butikk_av_mal(String kr);
+
+  /// No description provided for @ops_butikk_stk.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} pcs'**
+  String ops_butikk_stk(int n);
 }
 
 class _AppLocalizationsDelegate

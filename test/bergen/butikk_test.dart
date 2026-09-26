@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/ops/butikk_models.dart';
+import 'package:aerend_customer/data/ops/kasse_models.dart';
 import 'package:aerend_customer/networking/ops/ops_butikk_api.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
+import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/butikk/automat_screen.dart';
 import 'package:aerend_customer/screens/bergen/butikk/butikk_copy.dart';
@@ -88,6 +90,46 @@ StoreListItem _store(String name, {int id = 7, int eta = 25}) =>
       'store_status': 1,
       'distance': 1.2,
     });
+
+/// The cart: lines by cart id; −/+/remove change it like the API would.
+class _FakeKasse extends OpsKasseApi {
+  _FakeKasse([List<KurvLine> lines = const []]) : lines = [...lines];
+
+  List<KurvLine> lines;
+  final List<String> calls = [];
+
+  @override
+  Future<KurvState> cart() async => KurvState(lines: [...lines]);
+
+  @override
+  Future<bool> changeQuantity(int cartId, int quantity) async {
+    calls.add('qty $cartId $quantity');
+    lines = [
+      for (final l in lines)
+        l.cartId == cartId
+            ? KurvLine(
+                cartId: l.cartId,
+                productId: l.productId,
+                name: l.name,
+                quantity: quantity,
+                unitPrice: l.unitPrice,
+                storeId: l.storeId,
+              )
+            : l,
+    ];
+    return true;
+  }
+
+  @override
+  Future<bool> remove(int cartId) async {
+    calls.add('remove $cartId');
+    lines = [
+      for (final l in lines)
+        if (l.cartId != cartId) l,
+    ];
+    return true;
+  }
+}
 
 BergenMenuItem _item(
   int id,
@@ -291,7 +333,17 @@ void main() {
   });
 
   group('Butikk (restaurant)', () {
-    testWidgets('hero, voyage, Kjøkkenluka, menu and info chips', (
+    String plain(WidgetTester t, String key) => t
+        .widget<RichText>(
+          find.descendant(
+            of: find.byKey(Key(key)),
+            matching: find.byType(RichText),
+          ),
+        )
+        .text
+        .toPlainText();
+
+    testWidgets('hero, voyage, Kjøkkenluka, orbs, menu and info tiles', (
       tester,
     ) async {
       _frame(tester);
@@ -301,37 +353,212 @@ void main() {
             storeId: 7,
             preloaded: _restaurant(),
             api: _FakeButikk(),
-            customerApi: _FakeCustomer(presence: {'viewers_now': 3}),
+            customerApi: _FakeCustomer(),
+            kasseApi: _FakeKasse(),
           ),
         ),
       );
       await tester.pump();
-      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.byKey(const Key('a1_butikk_navn')), findsOneWidget);
       expect(find.byKey(const Key('a1_butikk_seilas')), findsOneWidget);
+      // The real thresholds: MIN 150 first, the free-delivery 300 the goal.
+      expect(plain(tester, 'a1_butikk_seilas_sum'), '0 / 300 kr');
       expect(
-        find.text('0 kr / 300 kr'),
-        findsOneWidget,
-        reason: 'the real free-delivery threshold is the goal',
+        plain(tester, 'a1_butikk_neste'),
+        '150 kr ${ButikkCopy.a1_butikk_til_navn(ButikkCopy.a1_butikk_minstebestilling)}',
       );
       expect(
         find.byKey(const Key('a1_butikk_kjokkenluka')),
         findsOneWidget,
         reason: 'one discounted item → a special',
       );
-      expect(find.byKey(const Key('a1_butikk_menu_1')), findsOneWidget);
-      expect(find.byKey(const Key('a1_butikk_kikker')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_kat_0')), findsOneWidget);
       expect(
         find.byKey(const Key('a1_butikk_kurvbar')),
         findsNothing,
-        reason: 'no lines yet',
+        reason: 'an empty cart has no bar',
       );
 
       await tester.tap(find.byKey(const Key('a1_butikk_info_t')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
       expect(find.byKey(const Key('a1_butikk_info_sheet')), findsOneWidget);
       expect(find.text('10:00–22:30'), findsOneWidget);
+    });
+
+    testWidgets('the menu: the orbs filter, the search pill finds dishes', (
+      tester,
+    ) async {
+      _frame(tester);
+      await tester.pumpWidget(
+        _app(
+          ButikkScreen(
+            storeId: 7,
+            preloaded: _restaurant(),
+            api: _FakeButikk(),
+            customerApi: _FakeCustomer(),
+            kasseApi: _FakeKasse(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      await tester.dragUntilVisible(
+        find.byKey(const Key('a1_butikk_menu_3')),
+        find.byKey(const Key('a1_butikk_scroll')),
+        const Offset(0, -200),
+      );
+      expect(find.byKey(const Key('a1_butikk_menu_1')), findsOneWidget);
+
+      // Tilbehør (orb 2) leaves only the fries.
+      await tester.ensureVisible(find.byKey(const Key('a1_butikk_kat_0')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('a1_butikk_kat_2')));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.byKey(const Key('a1_butikk_menu_1')), findsNothing);
+      expect(find.byKey(const Key('a1_butikk_menu_3')), findsOneWidget);
+
+      await tester.ensureVisible(
+        find.byKey(const Key('a1_butikk_meny_sok_knapp')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('a1_butikk_meny_sok_knapp')));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.enterText(
+        find.byKey(const Key('a1_butikk_meny_sok')),
+        'crispy',
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const Key('a1_butikk_menu_2')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_menu_3')), findsNothing);
+    });
+
+    testWidgets('the basket: the bar, the steppers, the mini list, the total', (
+      tester,
+    ) async {
+      _frame(tester);
+      final kasse = _FakeKasse([
+        const KurvLine(
+          cartId: 91,
+          productId: 1,
+          name: 'Dobbel cheeseburger',
+          quantity: 1,
+          unitPrice: 149,
+          storeId: 7,
+        ),
+        const KurvLine(
+          cartId: 92,
+          productId: 55,
+          name: 'Other store',
+          quantity: 1,
+          unitPrice: 999,
+          storeId: 8,
+        ),
+      ]);
+      await tester.pumpWidget(
+        _app(
+          ButikkScreen(
+            storeId: 7,
+            preloaded: _restaurant(),
+            api: _FakeButikk(),
+            customerApi: _FakeCustomer(),
+            kasseApi: kasse,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // Only this store's line; 149 + 39 delivery (under the 300 threshold).
+      expect(find.byKey(const Key('a1_butikk_kurvbar')), findsOneWidget);
+      expect(find.text(ButikkCopy.a1_butikk_varer_i_kurven(1)), findsOneWidget);
+      expect(find.text(ButikkCopy.kr(188)), findsOneWidget);
+      expect(plain(tester, 'a1_butikk_seilas_sum'), '149 / 300 kr');
+
+      // The grid shows the stepper for the dish in the cart.
+      await tester.dragUntilVisible(
+        find.byKey(const Key('a1_butikk_plus_1')),
+        find.byKey(const Key('a1_butikk_scroll')),
+        const Offset(0, -200),
+      );
+      expect(find.byKey(const Key('a1_butikk_qty_1')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('a1_butikk_minus_1')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(kasse.calls, ['remove 91']);
+      expect(find.byKey(const Key('a1_butikk_kurvbar')), findsNothing);
+    });
+
+    testWidgets('the mini list changes quantities and empties the basket', (
+      tester,
+    ) async {
+      _frame(tester);
+      final kasse = _FakeKasse([
+        const KurvLine(
+          cartId: 91,
+          productId: 1,
+          name: 'Dobbel cheeseburger',
+          quantity: 2,
+          unitPrice: 149,
+          storeId: 7,
+        ),
+      ]);
+      await tester.pumpWidget(
+        _app(
+          ButikkScreen(
+            storeId: 7,
+            preloaded: _restaurant(),
+            api: _FakeButikk(),
+            customerApi: _FakeCustomer(),
+            kasseApi: kasse,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      // 298 kr: under 300, so still 39 in delivery; the boat nearly there.
+      expect(find.text(ButikkCopy.kr(337)), findsOneWidget);
+      await tester.tap(find.byKey(const Key('a1_butikk_kurvbar_toggle')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('a1_butikk_minikurv')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('a1_butikk_linje_plus_91')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(kasse.calls, ['qty 91 3']);
+      // 447 kr is past the free-delivery threshold: no fee, Ægil says so.
+      expect(find.text(ButikkCopy.kr(447)), findsWidgets);
+      expect(find.byKey(const Key('a1_butikk_frakt_naadd')), findsOneWidget);
+      expect(plain(tester, 'a1_butikk_neste'), ButikkCopy.a1_butikk_havn);
+
+      await tester.tap(find.byKey(const Key('a1_butikk_tom_kurven')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('a1_butikk_kurvbar')), findsNothing);
+    });
+
+    testWidgets('the restaurant page respects reduced motion', (tester) async {
+      _frame(tester);
+      await expectRespectsReducedMotion(
+        tester,
+        () => ButikkScreen(
+          storeId: 7,
+          preloaded: _restaurant(),
+          api: _FakeButikk(),
+          customerApi: _FakeCustomer(),
+          kasseApi: _FakeKasse([
+            const KurvLine(
+              cartId: 91,
+              productId: 1,
+              name: 'Dobbel cheeseburger',
+              quantity: 1,
+              unitPrice: 149,
+              storeId: 7,
+            ),
+          ]),
+        ),
+      );
     });
 
     testWidgets('a missing store says so', (tester) async {

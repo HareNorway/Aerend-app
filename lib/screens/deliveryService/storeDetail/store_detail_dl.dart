@@ -559,6 +559,7 @@ class ProductListItem {
   int? _discountPercent;
   dynamic _offerDiscount;
   String? _description;
+  String? _allergens;
   int? _rateSum;
   int? _rateCount;
   List<CustomizeItem>? _customizeList;
@@ -584,6 +585,9 @@ class ProductListItem {
   int get brandId => _brandId ?? 0;
 
   String get description => _description ?? "";
+
+  /// The store's allergen text ("Hvete, Egg"), when it listed any.
+  String get allergens => _allergens ?? "";
 
   dynamic get productAmount => _productAmount;
 
@@ -683,6 +687,7 @@ class ProductListItem {
     _discountPercent = json["discount_percent"];
     _offerDiscount = json["offer_discount"];
     _description = json["description"];
+    _allergens = json["allergens"]?.toString();
     _rateSum = json["rate_sum"];
     _rateCount = json["rate_count"];
     if (json["customize_list"] != null) {
