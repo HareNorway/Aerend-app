@@ -25,6 +25,8 @@ abstract final class A3Services {
   /// legacy address and card lists (agil-4); tests swap these.
   static Future<String?> Function() addressLine = _defaultAddressLine;
   static Future<String?> Function() paymentLine = _defaultPaymentLine;
+  static Future<List<String>> Function() addresses = _defaultAddresses;
+  static Future<List<String>> Function() cards = _defaultCards;
 
   @visibleForTesting
   static void reset() {
@@ -34,7 +36,25 @@ abstract final class A3Services {
     reducedMotion.value = false;
     addressLine = _defaultAddressLine;
     paymentLine = _defaultPaymentLine;
+    addresses = _defaultAddresses;
+    cards = _defaultCards;
   }
+}
+
+Future<List<String>> _defaultAddresses() async {
+  final pojo = AddressListPojo.fromJson(await ManageAddressRepo().callAddressListApi());
+  return [
+    for (final a in pojo.addressList)
+      if (a.address.trim().isNotEmpty) a.flatNo.trim().isEmpty ? a.address : '${a.address}, ${a.flatNo.trim()}',
+  ];
+}
+
+Future<List<String>> _defaultCards() async {
+  final model = CardModel.fromJson(await ManageCardRepo().getCardList());
+  return [
+    for (final c in model.cardList)
+      if (c.cardNumber.replaceAll(RegExp(r'\D'), '').length >= 4) 'Visa •• ${c.cardNumber.replaceAll(RegExp(r'\D'), '').substring(c.cardNumber.replaceAll(RegExp(r'\D'), '').length - 4)}',
+  ];
 }
 
 Future<String?> _defaultAddressLine() async {

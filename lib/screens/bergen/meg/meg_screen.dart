@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
@@ -12,7 +13,8 @@ import '../../../utils/shared_pref_utill.dart';
 import '../../aegil/widgets/aegil_settings_panel.dart';
 import '../../common/manageAddress/manage_address.dart';
 import '../../common/manageCard/manage_card.dart';
-import '../../common/selectLanguageAndCurrency/select_language_and_currency.dart';
+import '../../common/manageAddress/add_new_address.dart';
+import '../../../utils/utils.dart' show setChangedLanguage;
 import '../kit/bergen_kit.dart';
 import 'a3_scaffold.dart';
 import 'a3_services.dart';
@@ -130,8 +132,84 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   bool get _hasDeliveryGift =>
       _claims.any((c) => c.isGift && c.state == 'claimed');
 
+  String get _code => _referral?.code ?? a3Pref(prefReferralCode);
+
+  Future<void> _copyCode() async {
+    await Clipboard.setData(ClipboardData(text: _code));
+    if (mounted)
+      showBergenToast(
+        context,
+        A4MegCopy.a4_meg_kopiert(_code),
+        icon: Icons.copy_rounded,
+      );
+  }
+
+  Future<void> _openBillett() async {
+    final r = _referral ?? Referral(code: _code);
+    await MegSheets.billett(
+      context,
+      referral: r,
+      onCopy: _copyCode,
+      onShare: _share,
+    );
+  }
+
+  Future<void> _openNivaa() async {
+    final b = _balance;
+    if (b == null) return;
+    await MegSheets.nivaa(
+      context,
+      b,
+      opens: _shelf?.previews ?? const [],
+      onOpenPremiehylla: () => _go('/bergen/premiehylla'),
+    );
+  }
+
+  Future<void> _openAdresser() async {
+    final list = await a3Try(A3Services.addresses) ?? const <String>[];
+    if (!mounted) return;
+    await MegSheets.adresser(
+      context,
+      addresses: list,
+      onManage: () => _push(const ManageAddress()),
+      onAdd: () => _push(const AddNewAddress()),
+    );
+  }
+
+  Future<void> _openBetaling() async {
+    final list = await a3Try(A3Services.cards) ?? const <String>[];
+    if (!mounted) return;
+    await MegSheets.betaling(
+      context,
+      cards: list,
+      onManage: () => _push(const ManageCard()),
+    );
+  }
+
+  Future<void> _openSpraak() async {
+    final code = await MegSheets.spraak(context, current: _safeLanguage());
+    if (code == null || !mounted || code == _safeLanguage()) return;
+    setChangedLanguage(
+      context,
+      code,
+      this,
+      nextAction: () {
+        if (mounted) setState(() {});
+      },
+    );
+  }
+
   Future<void> _share() async {
-    final code = _referral?.code ?? a3Pref(prefReferralCode);
+    final code = _code;
+    final text = A4MegCopy.a4_meg_del_tekst(
+      _referral?.pointsForThem ?? 200,
+      code,
+      _referral?.link,
+    );
+    try {
+      await Share.share(text, subject: A4MegCopy.a4_meg_gullbilletten);
+      return;
+    } catch (_) {}
     await Clipboard.setData(ClipboardData(text: _referral?.link ?? code));
     if (mounted)
       showBergenToast(
@@ -344,6 +422,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     give: give,
                                     get: get,
                                     onDel: _share,
+                                    onOpen: _openBillett,
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -367,12 +446,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                 goal: _goal,
                                 onOpenPremiehylla: () =>
                                     _go('/bergen/premiehylla'),
-                                onOpenNivaa: () => MegSheets.nivaa(
-                                  context,
-                                  b,
-                                  onOpenPremiehylla: () =>
-                                      _go('/bergen/premiehylla'),
-                                ),
+                                onOpenNivaa: _openNivaa,
                                 onOpenSlik: () =>
                                     MegSheets.slikPoeng(context, b),
                                 onHentPremie: () => _goal?.prizeId != null
@@ -407,12 +481,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                             b.pointsToNextTier!,
                                             b.nextTierName!,
                                           ),
-                                    onTap: () => MegSheets.nivaa(
-                                      context,
-                                      b,
-                                      onOpenPremiehylla: () =>
-                                          _go('/bergen/premiehylla'),
-                                    ),
+                                    onTap: _openNivaa,
                                   ),
                                 _MegRow(
                                   key: const Key('meg-rad-liga'),
@@ -461,6 +530,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     onPressed: _share,
                                   ),
                                   showChevron: false,
+                                  onTap: _openBillett,
                                 ),
                               ],
                             ),
@@ -534,7 +604,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                           _addressLine!.isEmpty
                                       ? A4MegCopy.a4_meg_adresser_tom
                                       : '$_addressLine · ${A4MegCopy.a4_meg_adresser_bare}',
-                                  onTap: () => _push(const ManageAddress()),
+                                  onTap: _openAdresser,
                                 ),
                                 _MegRow(
                                   key: const Key('meg-rad-betaling'),
@@ -547,7 +617,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                           _paymentLine!.isEmpty
                                       ? A4MegCopy.a4_meg_betaling_vipps
                                       : '${A4MegCopy.a4_meg_betaling_vipps} · $_paymentLine',
-                                  onTap: () => _push(const ManageCard()),
+                                  onTap: _openBetaling,
                                 ),
                                 _MegRow(
                                   key: const Key('meg-rad-varsler'),
@@ -585,11 +655,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   ),
                                   title: A4MegCopy.a4_meg_spraak,
                                   subtitle: lang,
-                                  onTap: () => _push(
-                                    const SelectLanguageAndCurrency(
-                                      isFromHome: true,
-                                    ),
-                                  ),
+                                  onTap: _openSpraak,
                                 ),
                                 _MegRow(
                                   key: const Key('meg-rad-favoritter'),
@@ -667,84 +733,95 @@ class _GullbillettCard extends StatelessWidget {
     required this.give,
     required this.get,
     required this.onDel,
+    required this.onOpen,
   });
 
   final int give;
   final int get;
   final VoidCallback onDel;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
-    return MegShine(
+    return GestureDetector(
       key: const Key('meg-gullbillett'),
-      borderRadius: BorderRadius.circular(999),
-      bandFraction: .28,
-      opacity: .5,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFFDF4), Color(0xFFF6EFDC)],
-          ),
-          border: Border.all(color: Colors.white.withValues(alpha: .95)),
-          boxShadow: const [
-            BoxShadow(color: Color(0xFFE7DCC0), offset: Offset(0, 1.5)),
-            BoxShadow(
-              color: Color.fromRGBO(150, 115, 25, .22),
-              offset: Offset(0, 3),
+      behavior: HitTestBehavior.opaque,
+      onTap: onOpen,
+      child: MegShine(
+        borderRadius: BorderRadius.circular(999),
+        bandFraction: .28,
+        opacity: .5,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFFFFDF4), Color(0xFFF6EFDC)],
             ),
-            BoxShadow(color: Color.fromRGBO(120, 85, 10, .25), offset: Offset(0, 6), blurRadius: 10, spreadRadius: -4),
-          ],
-        ),
-        child: Row(
-          children: [
-            const _TicketStub(width: 46, height: 32, animate: false),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    A4MegCopy.a4_meg_gullbilletten,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BergenTokens.display(
-                      13,
-                      weight: FontWeight.w800,
-                      color: const Color(0xFF3A2708),
-                      letterSpacingEm: -0.01,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    A4MegCopy.a4_meg_gi_faa(give, get),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: BergenTokens.text(
-                      10,
-                      weight: FontWeight.w700,
-                      color: const Color(0xFF8A6A2A),
-                      height: 1.1,
-                    ),
-                  ),
-                ],
+            border: Border.all(color: Colors.white.withValues(alpha: .95)),
+            boxShadow: const [
+              BoxShadow(color: Color(0xFFE7DCC0), offset: Offset(0, 1.5)),
+              BoxShadow(
+                color: Color.fromRGBO(150, 115, 25, .22),
+                offset: Offset(0, 3),
               ),
-            ),
-            const SizedBox(width: 6),
-            MegPill(
-              key: const Key('meg-del'),
-              label: A4MegCopy.a4_meg_del,
-              icon: Icons.ios_share_rounded,
-              expand: false,
-              height: 34,
-              fontSize: 12.5,
-              onPressed: onDel,
-            ),
-          ],
+              BoxShadow(
+                color: Color.fromRGBO(120, 85, 10, .25),
+                offset: Offset(0, 6),
+                blurRadius: 10,
+                spreadRadius: -4,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const _TicketStub(width: 46, height: 32, animate: false),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      A4MegCopy.a4_meg_gullbilletten,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: BergenTokens.display(
+                        13,
+                        weight: FontWeight.w800,
+                        color: const Color(0xFF3A2708),
+                        letterSpacingEm: -0.01,
+                        height: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      A4MegCopy.a4_meg_gi_faa(give, get),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: BergenTokens.text(
+                        10,
+                        weight: FontWeight.w700,
+                        color: const Color(0xFF8A6A2A),
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              MegPill(
+                key: const Key('meg-del'),
+                label: A4MegCopy.a4_meg_del,
+                icon: Icons.ios_share_rounded,
+                expand: false,
+                height: 34,
+                fontSize: 12.5,
+                onPressed: onDel,
+              ),
+            ],
+          ),
         ),
       ),
     );

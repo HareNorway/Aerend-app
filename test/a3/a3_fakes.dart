@@ -81,6 +81,7 @@ class FakePointsApi implements PointsAppApi {
   Mission? missionValue;
   AegilPick? pickValue;
   List<EarnResult> earnValues;
+  Referral? referralValue;
   final List<String> calls = [];
 
   @override
@@ -218,7 +219,7 @@ class FakePointsApi implements PointsAppApi {
 
   @override
   Future<Referral?> referral() async =>
-      const Referral(code: 'KARI200', link: 'https://aerend.no/r/KARI200');
+      referralValue ?? const Referral(code: 'KARI200', link: 'https://aerend.no/r/KARI200');
 
   @override
   Future<AegilPick?> pick() async {

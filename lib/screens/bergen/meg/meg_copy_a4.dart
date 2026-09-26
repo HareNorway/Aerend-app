@@ -18,6 +18,7 @@ abstract final class A4MegCopy {
   static String a4_meg_gi_faa(int give, int get) => 'Gi $give · få $get poeng';
   static String a4_meg_gi_faa_kode(int give, int get, String code) => 'Gi $give poeng, få $get poeng · $code';
   static const String a4_meg_del = 'Del';
+  static String a4_meg_del_tekst(int points, String code, String? link) => 'Her er en gullbillett til Ærend: bruk koden $code, så får vi $points poeng hver når din første bestilling er levert.${link == null ? '' : ' $link'}';
   static String a4_meg_kopiert(String code) => 'Gullbilletten $code er kopiert';
 
   // Poeng card
@@ -176,6 +177,60 @@ abstract final class A4MegCopy {
   static const String a4_meg_menneske_sub = 'Svar innen 2 timer';
   static const String a4_meg_om_aegil = 'Om Ægil';
   static const String a4_meg_om_aegil_linje = 'Ægil er en assistent laget av Ærend, ikke et menneske. Ægil gjør ingenting med pengene dine uten et trykk fra deg under nivå 3, og alt Ægil gjør kan angres i 7 dager. Ærend-innlegg i feeden skrives aldri i Ægils stemme.';
+
+  // Ark · Gullbilletten din (billett) / Vilkår
+  static const String a4_meg_billett_title = 'Gullbilletten din';
+  static String a4_meg_billett_linje(int them, int me) => 'Gi $them poeng, få $me poeng når vennen din får sin første bestilling levert. Poengene lander på begge samtidig.';
+  static const String a4_meg_delingskode = 'DIN DELINGSKODE';
+  static const String a4_meg_vilkaar = 'Vilkår';
+  static const String a4_meg_del_billetten = 'Del gullbilletten';
+  static const String a4_meg_billettene_dine = 'BILLETTENE DINE';
+  static const String a4_meg_ingen_grense = 'Ingen grense';
+  static String a4_meg_maks_mnd(int n) => 'Maks $n i måneden';
+  static const String a4_meg_venner_vervet = 'venner vervet';
+  static String a4_meg_vervet_poeng(int points, int per) => '${_nf(points)} poeng hentet inn · $per for hver ny';
+  static const String a4_meg_ingen_merke = 'INGEN MERKE ENNÅ';
+  static String a4_meg_naadd(String name) => '${name.toUpperCase()} NÅDD';
+  static String a4_meg_neste_billett(String name, int at, int bonus) => '$name ved $at vervede · +${_nf(bonus)} bonus';
+  static const String a4_meg_toppen = 'Du har nådd toppen av billettstigen';
+  static String a4_meg_igjen(int n) => '$n igjen';
+  static const String a4_meg_neste_venn = 'Neste venn';
+  static const String a4_meg_lastet_ned = 'Lastet ned';
+  static String a4_meg_verv_mnd(int n, int cap) => n == 0 ? 'Ingen vervet denne måneden ennå — del billetten, så teller neste bestilling.' : 'Du har vervet $n denne måneden${cap > 0 ? ' av maks $cap' : ''}.';
+  static const String a4_meg_vilkaar_title = 'Vilkår for poeng';
+  static const String a4_meg_vilkaar_linje = 'Poeng er ikke penger og kan ikke veksles i kroner.';
+  static const List<List<String>> a4_meg_vilkaar_rader = [
+    ['Verving', '200 poeng til hver når vennens første ordre over 200 kr er levert'],
+    ['Billettstigen', 'Bonus ved 3, 10, 25 og 50 vervede — én gang per trinn'],
+    ['Poeng', 'Utløper 12 måneder etter at de er tjent'],
+    ['Ligaen', 'Krever at du melder deg på, og viser bare navnet du selv velger'],
+  ];
+
+  // Ark · Nivå (detail)
+  static String a4_meg_poeng_til(String next) => 'poeng til $next';
+  static const String a4_meg_hoyeste_linje = 'poeng opptjent — høyeste nivå';
+  static String a4_meg_opptjent_12(int n) => 'Opptjent siste 12 måneder: ${_nf(n)}';
+  static const String a4_meg_da_aapner = 'Da åpner disse på hylla di:';
+  static const String a4_meg_hele_hylla = 'Hele hylla er åpen for deg.';
+  static String a4_meg_vurdering(String date, String tier) => 'Neste vurdering $date · du beholder $tier fram til da.';
+  static const String a4_meg_nivaa_note_punkt = 'Nivået påvirkes aldri av at du bruker poeng.';
+
+  // Ark · Ukeshandel / Hjelp / Språk / Betaling / Adresser
+  static const String a4_meg_aegil_la_til = 'Ægil la til';
+  static const String a4_meg_kjopt = 'Kjøpt';
+  static const String a4_meg_om_aegil_sub = 'AI-opplysning og vilkår';
+  static const List<List<String>> a4_meg_spraak_valg = [
+    ['no', 'Norsk bokmål'],
+    ['en', 'English'],
+    ['sv', 'Svenska'],
+    ['da', 'Dansk'],
+    ['es', 'Español'],
+  ];
+  static const String a4_meg_betaling_linje = 'Vipps er standard. Kort brukes bare hvis Vipps feiler.';
+  static const String a4_meg_betaling_standard = 'Standard — raskest i Norge';
+  static const String a4_meg_reserve = 'Reserve';
+  static const String a4_meg_betaling_kort = 'Kort og betalingsmåter';
+  static const String a4_meg_adresser_linje = 'Dørteksten tolkes til chips. Samtykke styrer om budene ser den.';
 
   static String _nf(int n) {
     final s = n.abs().toString();

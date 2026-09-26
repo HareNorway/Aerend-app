@@ -20,6 +20,7 @@ class PointsBalance {
     this.expiringFirstAt,
     this.policyVersion = '',
     this.tiers = const [],
+    this.protectedUntil,
   });
 
   /// Spendable now.
@@ -46,6 +47,9 @@ class PointsBalance {
 
   /// The whole ladder (agil-4): Bronse → Sølv → Gull → Platina with thresholds.
   final List<TierStep> tiers;
+
+  /// The tier is safe until this date; the next annual review follows it.
+  final DateTime? protectedUntil;
 
   bool get hasExpiryNotice => expiringAmount > 0;
 
@@ -83,6 +87,7 @@ class PointsBalance {
           .whereType<Map>()
           .map((e) => TierStep.fromJson(e.cast<String, dynamic>()))
           .toList(),
+      protectedUntil: _date(tier['protected_until']),
     );
   }
 }

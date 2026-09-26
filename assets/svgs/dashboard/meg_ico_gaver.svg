@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="8 0 40 42"><defs><linearGradient id="ic-gave" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#F8DC96"></stop><stop offset="1" stop-color="#D6A84E"></stop></linearGradient>
+<linearGradient id="ic-baand" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#DCA8E8"></stop><stop offset="1" stop-color="#A46EBC"></stop></linearGradient></defs><g id="ico-gaver">
+      <ellipse cx="28" cy="40" rx="14" ry="3" fill="rgba(12,28,36,.24)"></ellipse>
+      <rect x="14" y="19" width="28" height="18" rx="2.5" fill="url(#ic-gave)"></rect>
+      <path d="M14 24 h28 v-2.5 h-28 Z" fill="rgba(255,255,255,.14)"></path>
+      <rect x="11.5" y="12" width="33" height="7.5" rx="2" fill="#FBE4A2"></rect>
+      <rect x="11.5" y="17.5" width="33" height="2" fill="rgba(150,110,40,.2)"></rect>
+      <rect x="25.5" y="12" width="5" height="25" fill="url(#ic-baand)"></rect>
+      <path d="M28 12 C21 11 19 4 24.5 4 C27.5 4 28 8.5 28 12 Z M28 12 C35 11 37 4 31.5 4 C28.5 4 28 8.5 28 12 Z" fill="url(#ic-baand)"></path>
+      <path d="M13 13.5 H43" stroke="rgba(255,255,255,.4)" stroke-width="1.1" stroke-linecap="round"></path>
+    </g></svg>

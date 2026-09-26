@@ -239,4 +239,118 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byKey(const Key('meg-innstillinger-rader')), findsOneWidget);
   });
+
+  testWidgets('Gullbilletten sheet: code, board, ladder step, friend tickets, Vilkår', (tester) async {
+    tall(tester);
+    final p = api();
+    p.referralValue = const Referral(
+      code: 'DIDRIK-BGO',
+      link: 'https://aerend.no/verv/DIDRIK-BGO',
+      qualifiedTotal: 3,
+      pointsEarned: 700,
+      ladder: [VervStep(at: 3, name: 'Bronsebillett', bonus: 100), VervStep(at: 10, name: 'Sølvbillett', bonus: 500)],
+      friends: [VervFriend(name: 'Kari', status: 'delivered'), VervFriend(name: 'Ola', status: 'downloaded')],
+    );
+    await tester.pumpWidget(app(p));
+    await settle(tester);
+
+    await tester.tap(find.byKey(const Key('meg-gullbillett')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.byKey(const Key('meg-billett-sheet')), findsOneWidget);
+    expect(find.text('Gullbilletten din'), findsOneWidget);
+    expect(find.text('DIN DELINGSKODE'), findsOneWidget);
+    expect(find.text('DIDRIK-BGO'), findsOneWidget);
+    expect(find.text('BILLETTENE DINE'), findsOneWidget);
+    expect(find.byKey(const Key('meg-billett-antall')), findsOneWidget);
+    expect(find.text('700 poeng hentet inn · 200 for hver ny'), findsOneWidget);
+    expect(find.text('BRONSEBILLETT NÅDD'), findsOneWidget);
+    expect(find.text('Sølvbillett ved 10 vervede · +500 bonus'), findsOneWidget);
+    expect(find.text('7 igjen'), findsOneWidget);
+    expect(find.text('Neste venn'), findsOneWidget);
+    expect(find.text('Kari'), findsWidgets);
+    expect(find.text('Ola'), findsOneWidget);
+    expect(find.text('Lastet ned'), findsOneWidget);
+    expect(find.text('Del gullbilletten'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('meg-billett-vilkaar')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('meg-vilkaar-sheet')), findsOneWidget);
+    expect(find.text('Vilkår for poeng'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Nivå sheet: medal ladder with thresholds and NÅ, the detail card and the prizes that open', (tester) async {
+    tall(tester);
+    final p = api();
+    p.shelfValue = const Premiehylla(
+      prizes: [kPrize],
+      previews: [
+        PrizePreview(id: 1, name: 'Din egen båt i Vågen', pointPrice: 2500, tierName: 'Platina', pointsToUnlock: 2400),
+        PrizePreview(id: 2, name: 'Middag for to på Bryggen', pointPrice: 2200, tierName: 'Platina', pointsToUnlock: 2400),
+        PrizePreview(id: 3, name: 'Fløybanen for to', pointPrice: 2000, tierName: 'Platina', pointsToUnlock: 2400),
+      ],
+    );
+    await tester.pumpWidget(app(p));
+    await settle(tester);
+
+    await tester.tap(find.byKey(const Key('meg-nivaa-open')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.byKey(const Key('meg-nivaa-sheet')), findsOneWidget);
+    expect(find.text('Du er på Gull.'), findsOneWidget);
+    expect(find.byKey(const Key('meg-medal-ladder')), findsOneWidget);
+    expect(find.text('1 000'), findsOneWidget);
+    expect(find.text('3 000'), findsOneWidget);
+    expect(find.text('6 000'), findsOneWidget);
+    expect(find.text('NÅ'), findsOneWidget);
+    expect(find.text('poeng til Platina'), findsOneWidget);
+    expect(find.text('Opptjent siste 12 måneder: 3 600'), findsOneWidget);
+    expect(find.text('Da åpner disse på hylla di:'), findsOneWidget);
+    expect(find.text('Din egen båt i Vågen'), findsOneWidget);
+    expect(find.text('Middag for to på Bryggen'), findsOneWidget);
+    expect(find.text('Fløybanen for to'), findsOneWidget);
+    expect(find.text('Nivået påvirkes aldri av at du bruker poeng.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Adresser, Betaling and Språk open as sheets', (tester) async {
+    tall(tester);
+    A3Services.addresses = () async => ['Nygårdsgaten 5', 'Strandkaien 2'];
+    A3Services.cards = () async => ['Visa •• 4471'];
+    await tester.pumpWidget(app(api()));
+    await settle(tester);
+
+    Future<void> open(String key) async {
+      await tester.ensureVisible(find.byKey(Key(key)));
+      await tester.tap(find.byKey(Key(key)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+    }
+
+    Future<void> close() async {
+      await tester.tap(find.byKey(const Key('meg-ark-lukk')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+    }
+
+    await open('meg-rad-adresser');
+    expect(find.byKey(const Key('meg-adresser-sheet')), findsOneWidget);
+    expect(find.text('Strandkaien 2'), findsOneWidget);
+    expect(find.byKey(const Key('adresser-legg')), findsOneWidget);
+    await close();
+
+    await open('meg-rad-betaling');
+    expect(find.byKey(const Key('meg-betaling-sheet')), findsOneWidget);
+    expect(find.text('Reserve'), findsOneWidget);
+    await close();
+
+    await open('meg-rad-spraak');
+    expect(find.byKey(const Key('meg-spraak-sheet')), findsOneWidget);
+    expect(find.text('English'), findsOneWidget);
+    await close();
+  });
 }

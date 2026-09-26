@@ -93,3 +93,14 @@ Design: `designs/21des/Ærend Kunde Bergen.dc.html`, block `meg` ≈L5912–6124
   recurring agreement and a basket model; the sheet explains it.
 - Navn i ligaen inside the Liga screen's standings (the table already prints
   `LeagueStanding.label`).
+
+## Phase 3 — The Meg sheets (Ark) to design
+
+- [x] `meg_ark.dart`: the design's Ark shell (cream frosted sheet, 19px title, 38×38 close square, white rows, the gold code card, 52px secondary/primary pills).
+- [x] Gullbilletten din: code card with Kopier, BILLETTENE DINE (lifetime count, points, the ladder step with tick bar, Neste venn + friend tickets with lastet ned / levert), Vilkår / Del gullbilletten (system share sheet).
+- [x] Nivå: 46px medal ladder with thresholds and NÅ, the detail card (distance, bar, 12-month earnings, the three prizes the next tier opens with the design's 3D icons, next review, the promise).
+- [x] Slik får du poeng, Navn i ligaen, Krev alltid kode, Anledninger (+ Legg til), Ukeshandel, Fast bestilling, Hjelp / Om Ægil, Vilkår, Språk (switches the app), Betaling, Adresser — all on the same shell.
+- [x] Backend (`2421852`): Gullbillett ladder bonuses (`points.keys.verving_trapp`, 3/10/25/50 → 100/500/1500/4000, once per step) and `qualified_total`, `points_earned`, `ladder`, `friends` on `points/me/referral`; `VervingLadderTest`.
+- [x] Prize icons exported from the design (`meg_langskip3d`, `meg_ico_mat`, `meg_ico_fisk`, `meg_ico_gaver`, `meg_varde3d`).
+
+Ledger: the design's "Ingen grense" chip shows "Maks N i måneden" because the backend caps qualified referrals per month; "Billett sendt" tickets are not shown (shares are not tracked, only claims); the bydel momentum line ("Du verver flest på Møhlenpris") is replaced by this month's count until a bydel ranking of referrers exists; Vilkår states the real 12-month expiry.
