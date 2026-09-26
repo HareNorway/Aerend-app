@@ -39,6 +39,8 @@ import 'fiske_sjo.dart';
 /// Slipp. Every reel earns through `points/me/earn?rule=dagens_napp`, capped
 /// per day by the server; the cap is read before the first cast from
 /// `ops.customer.fiske` and shown honestly (the hint line) when it is hit.
+/// The screen opens straight from the Utforsk segment (design `segFiske`)
+/// and from Hjem; the prototype has no landing card in the flow.
 ///
 /// ## Design ledger — every property, design → Flutter
 ///

@@ -141,7 +141,11 @@ Append a line; the owner ticks it when done.
       screen by its old keys). `poeng_copy.dart`'s `a3_poeng_fiske_*` and the
       `pts_fiske_*` ARB keys are untouched. The game reads the daily cap from
       agil-1's `ops.customer.fiske` (AGIL-CONTRACT §3.2) and calls agil-3's
-      `showNappKort` seam for the day's first catch.
+      `showNappKort` seam for the day's first catch. The Utforsk «Fjordfiske»
+      segment is a door (design `segFiske` → `skjerm:'fiske'`), not a tab: it
+      pushes `/bergen/fjordfiske` and keeps the Feed beneath; the landing card
+      the markup carries is behind `aldriFiskeLanding` (always false) and is
+      not built. `ops_utforsk_fiske_*` keys stay in the ARB unused.
 - [ ] agil-1 → `agil-ui-meg`: `PointsAppApi.pick()`'s prize map carries no
       per-prize tint / art; the Premiefangst card tints by `tier_band` and picks
       art by `type` until the shelf payload names them.

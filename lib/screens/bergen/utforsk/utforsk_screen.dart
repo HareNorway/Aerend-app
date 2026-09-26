@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/feed/feed_tab_item.dart';
-import '../../../data/ops/fiske_models.dart';
 import '../../../networking/feed/feed_repo.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
@@ -20,9 +19,14 @@ import 'utforsk_copy.dart';
 ///
 /// Three segments behind one orange thumb: **Feed** ([UtforskFeedTab]: the
 /// category orbs, the pinned Drift notice, the post cards and the bag promo),
-/// **Fjordfiske** (a landing card — the game itself is agil-3's
-/// `/bergen/fjordfiske`) and **Forundringspose** (bags from
+/// **Fjordfiske** and **Forundringspose** (bags from
 /// `GET /api/ops/products?kind=pose`, and the way to Poseautomaten).
+///
+/// The Fjordfiske segment is a door, not a tab: the design's `segFiske` sets
+/// `skjerm: 'fiske'` at once (L8362), so tapping it pushes `/bergen/fjordfiske`
+/// and the segment stays lit over the Feed content beneath
+/// (`utfFeed: seg !== 'pose'`). The landing card in the markup (L4512) sits
+/// behind `aldriFiskeLanding`, which is always false — it is never shown.
 class UtforskScreen extends StatefulWidget {
   const UtforskScreen({
     super.key,
@@ -69,11 +73,6 @@ class _UtforskScreenState extends State<UtforskScreen> {
   List<Map<String, dynamic>>? _poser;
   Map<String, dynamic>? _drift;
 
-  /// `ops.customer.fiske`: the daily-catch cap the landing card shows as
-  /// «N napp igjen i dag» — the same count the earn endpoint caps on. Null
-  /// (offline, guest) hides the chip rather than inventing a number.
-  FiskeDay? _fiskeDay;
-
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
 
   @override
@@ -81,7 +80,6 @@ class _UtforskScreenState extends State<UtforskScreen> {
     super.initState();
     _tab = widget.initialTab ?? UtforskScreen.tabFeed;
     _loadDrift();
-    _loadFiskeDay();
   }
 
   @override
@@ -94,6 +92,13 @@ class _UtforskScreenState extends State<UtforskScreen> {
       if (fromRoute != null && fromRoute.isNotEmpty) _tab = fromRoute;
     }
     if (_tab == UtforskScreen.tabPose) _loadPoser();
+    // `?tab=fiske` (the Hjem card, Meg's rows): the game opens over Utforsk,
+    // as the design's `tilFjordfiske` does.
+    if (_tab == UtforskScreen.tabFiske) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) BergenRoutes.push(context, '/bergen/fjordfiske');
+      });
+    }
     if (_tab == UtforskScreen.tabFeed) _markFeedSeen();
   }
 
@@ -103,12 +108,6 @@ class _UtforskScreenState extends State<UtforskScreen> {
     setState(() => _drift = note);
   }
 
-  Future<void> _loadFiskeDay() async {
-    final day = await _api.fiske();
-    if (!mounted || day == null) return;
-    setState(() => _fiskeDay = day);
-  }
-
   Future<void> _loadPoser() async {
     final list = await _api.poser();
     if (!mounted) return;
@@ -116,6 +115,13 @@ class _UtforskScreenState extends State<UtforskScreen> {
   }
 
   void _select(String tab) {
+    if (tab == UtforskScreen.tabFiske) {
+      // Design `segFiske`: the segment lights up and the game opens — every
+      // tap, also when it is already the lit segment.
+      if (_tab != tab) setState(() => _tab = tab);
+      BergenRoutes.push(context, '/bergen/fjordfiske');
+      return;
+    }
     if (tab == _tab) return;
     setState(() => _tab = tab);
     if (tab == UtforskScreen.tabPose && _poser == null) _loadPoser();
@@ -226,13 +232,15 @@ class _UtforskScreenState extends State<UtforskScreen> {
                         context,
                         BergenTokens.motionBase,
                       ),
+                      // Feed content under both the Feed and the Fjordfiske
+                      // segment (design `utfFeed: seg !== 'pose'`).
                       child: KeyedSubtree(
-                        key: ValueKey(_tab),
+                        key: ValueKey(
+                          _tab == UtforskScreen.tabPose
+                              ? UtforskScreen.tabPose
+                              : UtforskScreen.tabFeed,
+                        ),
                         child: switch (_tab) {
-                          UtforskScreen.tabFiske => _FiskeTab(
-                            bottomReserve: bottomReserve,
-                            nappLeft: _fiskeDay?.left,
-                          ),
                           UtforskScreen.tabPose => _PoseTab(
                             poser: _poser,
                             bottomReserve: bottomReserve,
@@ -444,200 +452,6 @@ class _Segments extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-// ── Fjordfiske tab ────────────────────────────────────────────────────────
-
-class _FiskeTab extends StatelessWidget {
-  const _FiskeTab({required this.bottomReserve, this.nappLeft});
-
-  final double bottomReserve;
-
-  /// Daily catches left (`ops.customer.fiske`); null hides the chip.
-  final int? nappLeft;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        16 * s,
-        12 * s,
-        16 * s,
-        bottomReserve + 16 * s,
-      ),
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6 * s),
-          child: Text(
-            UtforskCopy.a1_utforsk_fiske_intro,
-            style: bText(
-              context,
-              12,
-              weight: FontWeight.w600,
-              color: const Color(0xFFDCE9EC),
-            ),
-          ),
-        ),
-        SizedBox(height: 10 * s),
-        OnbPressable(
-          onTap: () => BergenRoutes.push(context, '/bergen/fjordfiske'),
-          pressScale: .985,
-          child: Container(
-            key: const Key('a1_utforsk_fiske_landing'),
-            constraints: BoxConstraints(minHeight: 168 * s),
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26 * s),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFFFFFFF),
-                  Color(0xFFF7F3EA),
-                  Color(0xFFDCE9EC),
-                ],
-                stops: [0, .52, 1],
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x73231D1D),
-                  offset: Offset(0, 18),
-                  blurRadius: 26,
-                  spreadRadius: -14,
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 58 * s,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(26 * s),
-                      ),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x003A7D8C), Color(0x8C2E6978)],
-                      ),
-                    ),
-                  ),
-                ),
-                for (final (right, bottom, asset) in [
-                  (104.0, 34.0, 'ico_fisk'),
-                  (70.0, 40.0, 'ico_gaver'),
-                  (36.0, 34.0, 'ico_mat'),
-                ])
-                  Positioned(
-                    right: right * s,
-                    bottom: bottom * s,
-                    child: Container(
-                      width: 46 * s,
-                      height: 62 * s,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10 * s),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFFFFF), Color(0xFFE9E2D2)],
-                        ),
-                        border: Border.all(color: const Color(0xF2FFFFFF)),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x991E4F5C),
-                            offset: Offset(0, 10),
-                            blurRadius: 18,
-                            spreadRadius: -8,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: bergenSvg(asset, width: 28 * s, height: 26 * s),
-                      ),
-                    ),
-                  ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(16 * s, 14 * s, 16 * s, 16 * s),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          children: [
-                            Text(
-                              'Fjordfiske',
-                              style: bDisplay(
-                                context,
-                                18,
-                                weight: FontWeight.w800,
-                                color: BergenTokens.ink,
-                              ),
-                            ),
-                            if (nappLeft != null) ...[
-                              SizedBox(width: 7 * s),
-                              Container(
-                                key: const Key('a1_utforsk_fiske_napp'),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 8 * s,
-                                  vertical: 3 * s,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0x241E4F5C),
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                                child: Text(
-                                  UtforskCopy.a1_utforsk_fiske_napp(nappLeft!),
-                                  style: bText(
-                                    context,
-                                    9.5,
-                                    weight: FontWeight.w800,
-                                    color: BergenTokens.teal,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 3 * s),
-                      SizedBox(
-                        width: 180 * s,
-                        child: Text(
-                          UtforskCopy.a1_utforsk_fiske_line,
-                          style: bText(
-                            context,
-                            11.5,
-                            weight: FontWeight.w600,
-                            color: const Color(0xFF4E5A5E),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 12 * s),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: BergenCta3d(
-                          label: UtforskCopy.a1_utforsk_fiske_cta,
-                          expand: false,
-                          onPressed: () =>
-                              BergenRoutes.push(context, '/bergen/fjordfiske'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

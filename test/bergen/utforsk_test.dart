@@ -5,14 +5,16 @@ import 'package:aerend_customer/data/feed/feed_tab_item.dart';
 import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/kit/bergen_routes.dart';
+import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/feed_post_card.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_copy.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_screen.dart';
 
+import '../a3/a3_fakes.dart';
 import '../layout/reduced_motion_harness.dart';
 
 /// AGIL-1 v2 Phase 2: the Utforsk screen's three segments, the bag tab's
-/// honest empty state, the Fjordfiske landing, and the `/bergen/...` route
+/// honest empty state, the Fjordfiske segment (a door to the game), and the `/bergen/...` route
 /// resolver both branches push through.
 class _FakeApi extends OpsCustomerApi {
   _FakeApi({this.bags = const [], this.drift});
@@ -191,22 +193,35 @@ void main() {
       expect(find.byKey(const Key('a1_utforsk_pose_empty')), findsNothing);
     });
 
-    testWidgets('tapping the Fjordfiske segment shows the landing card', (
+    testWidgets('tapping the Fjordfiske segment opens the game over the feed', (
       tester,
     ) async {
       _frame(tester);
+      A3Services.points = () => FakePointsApi();
+      A3Services.aegil = () => FakeAegilApi();
+      addTearDown(A3Services.reset);
       await tester.pumpWidget(
-        _app(
-          UtforskScreen(api: _FakeApi(), feedRepo: _EmptyRepo()),
+        MaterialApp(
+          onGenerateRoute: BergenRoutes.generate,
+          home: UtforskScreen(api: _FakeApi(), feedRepo: _EmptyRepo()),
         ),
       );
       await tester.pump();
 
       await tester.tap(find.byKey(const Key('a1_utforsk_tab_fiske')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      expect(find.byKey(const Key('a1_utforsk_fiske_landing')), findsOneWidget);
-      expect(find.text(UtforskCopy.a1_utforsk_fiske_cta), findsOneWidget);
+      // The design's `segFiske`: the game, not a landing card.
+      expect(find.byKey(const Key('a1_fiske_screen')), findsOneWidget);
+      expect(find.byKey(const Key('a1_utforsk_fiske_landing')), findsNothing);
+
+      // Back: the segment stays lit, the Feed content is beneath.
+      await tester.tap(find.byKey(const Key('a1_fiske_tilbake')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('a1_fiske_screen')), findsNothing);
+      expect(find.byKey(const Key('a1_feed_list')), findsOneWidget);
     });
 
     testWidgets('the route carries ?tab= into the screen', (tester) async {

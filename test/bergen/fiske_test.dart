@@ -11,8 +11,9 @@ import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/fiske/fiske_copy.dart';
 import 'package:aerend_customer/screens/bergen/fiske/fiske_game.dart';
 import 'package:aerend_customer/screens/bergen/fiske/fjordfiske_screen.dart';
+import 'package:aerend_customer/screens/bergen/kit/bergen_routes.dart';
+import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/feed_post_card.dart';
-import 'package:aerend_customer/screens/bergen/utforsk/utforsk_copy.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_screen.dart';
 
 import '../a3/a3_fakes.dart';
@@ -415,25 +416,15 @@ void main() {
     });
   });
 
-  group('Utforsk landing', () {
-    testWidgets('«N napp igjen i dag» comes from ops.customer.fiske, and hides without it', (tester) async {
+  group('Utforsk · Fjordfiske segment', () {
+    testWidgets('?tab=fiske opens the game over Utforsk, like the design\'s tilFjordfiske', (tester) async {
       _frame(tester);
+      A3Services.points = () => FakePointsApi();
+      A3Services.aegil = () => FakeAegilApi(suggestionValue: const [_s1]);
+      addTearDown(A3Services.reset);
       await tester.pumpWidget(
         MaterialApp(
-          home: UtforskScreen(
-            api: _FakeOps(day: const FiskeDay(today: 3, max: 5, left: 2, capped: false)),
-            feedRepo: _EmptyRepo(),
-            initialTab: UtforskScreen.tabFiske,
-          ),
-        ),
-      );
-      await _settle(tester);
-      expect(find.byKey(const Key('a1_utforsk_fiske_napp')), findsOneWidget);
-      expect(find.text(UtforskCopy.a1_utforsk_fiske_napp(2)), findsOneWidget);
-
-      await tester.pumpWidget(const SizedBox());
-      await tester.pumpWidget(
-        MaterialApp(
+          onGenerateRoute: BergenRoutes.generate,
           home: UtforskScreen(
             api: _FakeOps(),
             feedRepo: _EmptyRepo(),
@@ -442,6 +433,8 @@ void main() {
         ),
       );
       await _settle(tester);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('a1_fiske_screen')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_fiske_napp')), findsNothing);
     });
   });
