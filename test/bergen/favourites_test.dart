@@ -91,7 +91,12 @@ void main() {
       await tester.pump();
       expect(find.byIcon(Icons.favorite_rounded), findsWidgets);
       expect(api.calls, contains('+40'));
-      await tester.pump(const Duration(milliseconds: 500));
+      // Every frame of the popp, not just its end: the curve overshoots.
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pump(const Duration(milliseconds: 20));
       expect(find.text(FavCopy.lagtTil), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 4));

@@ -47,11 +47,16 @@ class _BergenFavHeartState extends State<BergenFavHeart>
     vsync: this,
     duration: const Duration(milliseconds: 420),
   );
+  // CSS applies animation-timing-function to each keyframe step, so the
+  // curve goes on every segment and the controller runs linearly. (On the
+  // whole sequence the overshoot would push t past 1.0, which TweenSequence
+  // asserts against.)
+  static const _popp = Cubic(.34, 1.56, .64, 1);
   late final Animation<double> _scale = TweenSequence<double>([
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.16), weight: 35),
-    TweenSequenceItem(tween: Tween(begin: 1.16, end: .96), weight: 35),
-    TweenSequenceItem(tween: Tween(begin: .96, end: 1.0), weight: 30),
-  ]).animate(CurvedAnimation(parent: _pop, curve: const Cubic(.34, 1.56, .64, 1)));
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.16).chain(CurveTween(curve: _popp)), weight: 35),
+    TweenSequenceItem(tween: Tween(begin: 1.16, end: .96).chain(CurveTween(curve: _popp)), weight: 35),
+    TweenSequenceItem(tween: Tween(begin: .96, end: 1.0).chain(CurveTween(curve: _popp)), weight: 30),
+  ]).animate(_pop);
 
   bool _busy = false;
 
