@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/feed/feed_tab_item.dart';
+import '../../../data/ops/fiske_models.dart';
 import '../../../networking/feed/feed_repo.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
@@ -68,6 +69,11 @@ class _UtforskScreenState extends State<UtforskScreen> {
   List<Map<String, dynamic>>? _poser;
   Map<String, dynamic>? _drift;
 
+  /// `ops.customer.fiske`: the daily-catch cap the landing card shows as
+  /// «N napp igjen i dag» — the same count the earn endpoint caps on. Null
+  /// (offline, guest) hides the chip rather than inventing a number.
+  FiskeDay? _fiskeDay;
+
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
 
   @override
@@ -75,6 +81,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
     super.initState();
     _tab = widget.initialTab ?? UtforskScreen.tabFeed;
     _loadDrift();
+    _loadFiskeDay();
   }
 
   @override
@@ -94,6 +101,12 @@ class _UtforskScreenState extends State<UtforskScreen> {
     final note = await _api.driftNotice();
     if (!mounted || note == null) return;
     setState(() => _drift = note);
+  }
+
+  Future<void> _loadFiskeDay() async {
+    final day = await _api.fiske();
+    if (!mounted || day == null) return;
+    setState(() => _fiskeDay = day);
   }
 
   Future<void> _loadPoser() async {
@@ -218,6 +231,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
                         child: switch (_tab) {
                           UtforskScreen.tabFiske => _FiskeTab(
                             bottomReserve: bottomReserve,
+                            nappLeft: _fiskeDay?.left,
                           ),
                           UtforskScreen.tabPose => _PoseTab(
                             poser: _poser,
@@ -437,9 +451,12 @@ class _Segments extends StatelessWidget {
 // ── Fjordfiske tab ────────────────────────────────────────────────────────
 
 class _FiskeTab extends StatelessWidget {
-  const _FiskeTab({required this.bottomReserve});
+  const _FiskeTab({required this.bottomReserve, this.nappLeft});
 
   final double bottomReserve;
+
+  /// Daily catches left (`ops.customer.fiske`); null hides the chip.
+  final int? nappLeft;
 
   @override
   Widget build(BuildContext context) {
@@ -564,27 +581,29 @@ class _FiskeTab extends StatelessWidget {
                                 color: BergenTokens.ink,
                               ),
                             ),
-                            SizedBox(width: 7 * s),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8 * s,
-                                vertical: 3 * s,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0x241E4F5C),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              // TODO(api): napp left today — agil-3's game state.
-                              child: Text(
-                                UtforskCopy.a1_utforsk_fiske_napp(3),
-                                style: bText(
-                                  context,
-                                  9.5,
-                                  weight: FontWeight.w800,
-                                  color: BergenTokens.teal,
+                            if (nappLeft != null) ...[
+                              SizedBox(width: 7 * s),
+                              Container(
+                                key: const Key('a1_utforsk_fiske_napp'),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8 * s,
+                                  vertical: 3 * s,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0x241E4F5C),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  UtforskCopy.a1_utforsk_fiske_napp(nappLeft!),
+                                  style: bText(
+                                    context,
+                                    9.5,
+                                    weight: FontWeight.w800,
+                                    color: BergenTokens.teal,
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:aerend_customer/data/points/points_models.dart';
 
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/poeng/aegil_velger_screen.dart';
-import 'package:aerend_customer/screens/bergen/poeng/fjordfiske_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/liga_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/napp_entry.dart';
 import 'package:aerend_customer/screens/bergen/poeng/opprykk_screen.dart';
@@ -102,41 +100,6 @@ void main() {
     expect(find.text('Du er nå Ulriken'), findsOneWidget);
     expect(find.text('Gratis levering'), findsOneWidget);
     expect(find.text('Ferdig'), findsOneWidget);
-  });
-
-  testWidgets('Fjordfiske: cast → bite → reel → catch card → save; 4th catch is a Premiefangst', (tester) async {
-    final points = FakePointsApi();
-    final aegil = FakeAegilApi();
-    await tester.pumpWidget(a3App(FjordfiskeScreen(points: points, aegil: aegil, random: Random(1), prizeEvery: 2)));
-    await settle(tester);
-
-    expect(aegil.calls, contains('suggestions:fiske'));
-    await tester.tap(find.byKey(const Key('fiske-kast')));
-    await tester.pump();
-    expect(find.byKey(const Key('fiske-ute')), findsOneWidget);
-    await tester.pump(const Duration(seconds: 3));
-    expect(find.byKey(const Key('fiske-napp')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('fiske-dra')));
-    await settle(tester);
-    expect(points.calls, contains('earn:1'));
-    expect(find.byKey(const Key('fiske-fangst')), findsOneWidget);
-    expect(find.text('Reker fra Torgboden'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('fiske-lagre')));
-    await settle(tester);
-    expect(aegil.calls, contains('add:11'));
-    await tester.pump(const Duration(seconds: 4));
-
-    // Second cast is the prize catch (prizeEvery: 2).
-    await tester.tap(find.byKey(const Key('fiske-kast')));
-    await tester.pump(const Duration(seconds: 3));
-    await tester.tap(find.byKey(const Key('fiske-dra')));
-    await settle(tester);
-    expect(points.calls, contains('pick'));
-    expect(find.byKey(const Key('fiske-premiefangst')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('fiske-hent')));
-    await settle(tester);
-    expect(points.calls, contains('claim:7'));
-    await tester.pump(const Duration(seconds: 4));
   });
 
   testWidgets('Napp-kort: Legg til adds through the API, Aldri dette marks never', (tester) async {

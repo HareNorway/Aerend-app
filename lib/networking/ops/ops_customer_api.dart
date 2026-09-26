@@ -1,3 +1,4 @@
+import '../../data/ops/fiske_models.dart';
 import '../../data/ops/sok_models.dart';
 import '../../screens/deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../screens/deliveryService/searchStore/search_store_dl.dart';
@@ -177,6 +178,15 @@ class OpsCustomerApi {
   /// `ops.customer.away`.
   Future<Map<String, dynamic>?> awaySummary() =>
       _guarded(() => _get('${_base}away-summary'));
+
+  /// `ops.customer.fiske` — Fjordfiske today: how many daily-catch points
+  /// are taken and left (the count `points/me/earn` caps on) and the prize
+  /// cadence. Null when offline or logged out: the screens then show no
+  /// number rather than a guessed one.
+  Future<FiskeDay?> fiske() async {
+    final json = await _guarded(() => _get('${_base}fiske'));
+    return json == null ? null : FiskeDay.fromJson(json);
+  }
 
   // ── other agil-1 reads (Phase 2+) ───────────────────────────────────────
 

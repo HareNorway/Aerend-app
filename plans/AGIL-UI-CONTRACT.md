@@ -131,6 +131,20 @@ Append a line; the owner ticks it when done.
       prototype shows «1 · 899 kr». agil-1 will change the pill (nav is
       agil-1's); `agil-ui-meg`'s checkout must keep `BergenCart.syncBadge`
       calls as they are.
+- [x] **Fjordfiske is agil-1's (decided 2026-09-26).** `lib/screens/bergen/fiske/**`
+      is owned by `agil-1` (screen, copy facade `FiskeCopy`, keys `ops_fiske_*`,
+      tests in `test/bergen/fiske_test.dart`). The screen moved out of
+      `poeng/fjordfiske_screen.dart`; the route name `/bergen/fjordfiske` and its
+      registration in `bergen_routes_agil3.dart` stay where they are (only the
+      import path changed). agil-1 also removed the moved screen's widget test
+      block from `test/points/a3_points_screens_test.dart` (it tested the old
+      screen by its old keys). `poeng_copy.dart`'s `a3_poeng_fiske_*` and the
+      `pts_fiske_*` ARB keys are untouched. The game reads the daily cap from
+      agil-1's `ops.customer.fiske` (AGIL-CONTRACT §3.2) and calls agil-3's
+      `showNappKort` seam for the day's first catch.
+- [ ] agil-1 → `agil-ui-meg`: `PointsAppApi.pick()`'s prize map carries no
+      per-prize tint / art; the Premiefangst card tints by `tier_band` and picks
+      art by `type` until the shelf payload names them.
 
 ## 6. Merge day
 

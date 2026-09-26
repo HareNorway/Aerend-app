@@ -8,7 +8,7 @@ import 'meg/favoritter_screen.dart';
 import 'meg/konto_screen.dart';
 import 'meg/meg_screen.dart';
 import 'meg/varsler_panel.dart';
-import 'poeng/fjordfiske_screen.dart';
+import 'fiske/fjordfiske_screen.dart';
 import 'poeng/liga_screen.dart';
 import 'poeng/opprykk_screen.dart';
 import 'poeng/poeng_screen.dart';
