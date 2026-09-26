@@ -139,6 +139,15 @@ AddressListItem _address(int id) => AddressListItem.fromJson({
 
 Widget _app(Widget child) => MaterialApp(home: child);
 
+/// «Dra for å betale»: drag the knob past 62 % and release.
+Future<void> _dragToPay(WidgetTester tester) async {
+  final slider = find.byKey(const Key('a1_kasse_betal'));
+  final box = tester.getRect(slider);
+  await tester.dragFrom(Offset(box.left + 30, box.center.dy), Offset(box.width - 40, 0));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 600));
+}
+
 void _frame(WidgetTester tester) {
   tester.view.physicalSize = const Size(390, 844);
   tester.view.devicePixelRatio = 1;
@@ -254,7 +263,7 @@ void main() {
       const Offset(0, -300),
     );
     await tester.pump();
-    expect(find.text('306 kr'), findsWidgets);
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '306');
     expect(find.byKey(const Key('a1_kasse_frakt')), findsOneWidget);
   });
 
@@ -276,7 +285,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('a1_kasse_henting')));
     await tester.pump();
-    expect(find.text(KasseCopy.a1_kasse_hent_tittel), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_hent_selv), findsOneWidget);
     await tester.dragUntilVisible(
       find.byKey(const Key('a1_kasse_total')),
       find.byType(ListView).first,
@@ -284,11 +293,11 @@ void main() {
     );
     await tester.pump();
     expect(find.byKey(const Key('a1_kasse_frakt')), findsNothing);
-    expect(find.text('149 kr'), findsWidgets);
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '149');
   });
 
   testWidgets(
-    'tips add to the total and the gift toggle shows Overrask / Si fra',
+    'Flere valg opens the tips card and a tip adds to the total',
     (tester) async {
       _frame(tester);
       final api = _FakeKasse(
@@ -326,17 +335,8 @@ void main() {
       );
       await tester.pump();
       expect(find.byKey(const Key('a1_kasse_tips_rad')), findsOneWidget);
-      expect(find.text('125 kr'), findsWidgets);
+      expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '125');
 
-      await tester.dragUntilVisible(
-        find.byKey(const Key('a1_kasse_gave_switch')),
-        find.byType(ListView).first,
-        const Offset(0, 200),
-      );
-      await tester.tap(find.byKey(const Key('a1_kasse_gave_switch')));
-      await tester.pump();
-      expect(find.text(KasseCopy.a1_kasse_overrask), findsOneWidget);
-      expect(find.text(KasseCopy.a1_kasse_si_fra), findsOneWidget);
     },
   );
 
@@ -411,13 +411,12 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    await tester.tap(find.byKey(const Key('a1_kasse_betal')));
-    await tester.pump();
-    await tester.pumpAndSettle();
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text(KasseCopy.a1_kasse_utenfor), findsOneWidget);
     await tester.tap(find.text(KasseCopy.a1_kasse_velg_henting));
-    await tester.pumpAndSettle();
-    expect(find.text(KasseCopy.a1_kasse_hent_tittel), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text(KasseCopy.a1_kasse_hent_selv), findsOneWidget);
     expect(api.lastPlace?['pickup'], isFalse);
   });
 
@@ -451,10 +450,12 @@ void main() {
       find.byType(ListView).first,
       const Offset(0, -200),
     );
+    // Clear the floating slider.
+    await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.byKey(const Key('a1_kasse_kode_switch')));
     await tester.pump();
-    await tester.tap(find.byKey(const Key('a1_kasse_betal')));
-    await tester.pump();
+    await _dragToPay(tester);
     await tester.pump();
     expect(api.lastPlace?['storeId'], 7);
     expect(api.lastPlace?['addressId'], 5);
@@ -551,4 +552,24 @@ void main() {
       );
     },
   );
+
+  testWidgets('Kurv respects reduced motion (filled and empty)', (tester) async {
+    _frame(tester);
+    await expectRespectsReducedMotion(
+      tester,
+      () => KurvScreen(
+        embedded: false,
+        api: _FakeKasse(
+          state: KurvState(lines: [_line(1, 'Burger', 149)], storeId: 7),
+          previewPojo: _preview(),
+          addressList: [_address(5)],
+        ),
+        customerApi: _FakeCustomer(),
+      ),
+    );
+    await expectRespectsReducedMotion(
+      tester,
+      () => KurvScreen(embedded: false, api: _FakeKasse(), customerApi: _FakeCustomer()),
+    );
+  });
 }

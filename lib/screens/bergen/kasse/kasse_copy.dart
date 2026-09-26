@@ -150,4 +150,48 @@ abstract final class KasseCopy {
   static String a1_kasse_best_antall(int n) => languages.ops_kasse_best_antall(n);
   static String get a1_kasse_best_ikke_funnet => languages.ops_kasse_best_ikke_funnet;
   static String get a1_kasse_best_kopiert => languages.ops_kasse_best_kopiert;
+
+  // ── Kurv 1:1 (design ≈L4973–5242): the slider, Flere valg, pickup notes ─
+  static String get a1_kasse_dra_betal => languages.ops_kasse_dra_betal;
+  static String get a1_kasse_slipp_betal => languages.ops_kasse_slipp_betal;
+  static String a1_kasse_dra_betal_label(String kr) => languages.ops_kasse_dra_betal_label(kr);
+  static String get a1_kasse_flere_under_lev => languages.ops_kasse_flere_under_lev;
+  static String get a1_kasse_flere_under_hent => languages.ops_kasse_flere_under_hent;
+  static List<String> get a1_kasse_hent_chips => [
+    languages.ops_kasse_hent_chip_bestikk,
+    languages.ops_kasse_hent_chip_servietter,
+    languages.ops_kasse_hent_chip_ring,
+    languages.ops_kasse_hent_chip_poser,
+  ];
+  static String a1_kasse_hent_beskjed_hint(String butikk) => languages.ops_kasse_hent_beskjed_hint(butikk);
+  static String a1_kasse_hent_kvitt_klar(String tid, String navn) => languages.ops_kasse_hent_kvitt_klar(tid, navn);
+  static String a1_kasse_hent_kvitt_n(int n, String tid) => languages.ops_kasse_hent_kvitt_n(n, tid);
+  static String get a1_kasse_dor_del => languages.ops_kasse_dor_del;
+  static String get a1_kasse_dor_delt => languages.ops_kasse_dor_delt;
+  static String get a1_kasse_dor_ikke_delt => languages.ops_kasse_dor_ikke_delt;
+  static String a1_kasse_kode_over(String kr) => languages.ops_kasse_kode_over(kr);
+  static String get a1_kasse_kode_under => languages.ops_kasse_kode_under;
+  static String get a1_kasse_en_mindre => languages.ops_kasse_en_mindre;
+  static String get a1_kasse_en_mer => languages.ops_kasse_en_mer;
+  static String a1_kasse_stk_pris(int n, String pris) => languages.ops_kasse_stk_pris(n, pris);
+  static String get a1_kasse_hent_selv => languages.ops_kasse_hent_selv;
+  static String get a1_kasse_frakt_chip_hent => languages.ops_kasse_frakt_chip_hent;
+  static String a1_kasse_poeng_linje(int n) => languages.ops_kasse_poeng_linje(n);
+  static String get a1_kasse_tom_beskjed_rad => languages.ops_kasse_tom_beskjed_rad;
+  static String get a1_kasse_ror_avgang => languages.ops_kasse_ror_avgang;
+
+  /// `l.pris.toLocaleString('nb-NO')` — 1 360, no decimals unless needed.
+  static String tall(num v) {
+    final whole = v == v.roundToDouble();
+    final s = whole ? v.toInt().toString() : v.toStringAsFixed(2);
+    final parts = s.split('.');
+    final out = StringBuffer();
+    final digits = parts[0];
+    for (var i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) out.write(' ');
+      out.write(digits[i]);
+    }
+    if (parts.length > 1) out.write(',${parts[1]}');
+    return out.toString();
+  }
 }

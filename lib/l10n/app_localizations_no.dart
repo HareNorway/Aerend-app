@@ -6386,4 +6386,102 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_fiske_eta_kommer => 'Leveres i kveld';
+
+  @override
+  String get ops_kasse_dra_betal => 'Dra for å betale';
+
+  @override
+  String get ops_kasse_slipp_betal => 'Slipp for å betale';
+
+  @override
+  String ops_kasse_dra_betal_label(String kr) {
+    return 'Dra for å betale $kr kroner';
+  }
+
+  @override
+  String get ops_kasse_flere_under_lev =>
+      'Tips, dørbeskjed og kode ved levering';
+
+  @override
+  String get ops_kasse_flere_under_hent => 'Beskjed til butikken og hentetid';
+
+  @override
+  String get ops_kasse_hent_chip_bestikk => 'Ingen bestikk';
+
+  @override
+  String get ops_kasse_hent_chip_servietter => 'Ekstra servietter';
+
+  @override
+  String get ops_kasse_hent_chip_ring => 'Ring når klar';
+
+  @override
+  String get ops_kasse_hent_chip_poser => 'Del i to poser';
+
+  @override
+  String ops_kasse_hent_beskjed_hint(String butikk) {
+    return 'Noe annet $butikk bør vite?';
+  }
+
+  @override
+  String ops_kasse_hent_kvitt_klar(String tid, String navn) {
+    return 'Klar til henting $tid · si «$navn» i disken';
+  }
+
+  @override
+  String ops_kasse_hent_kvitt_n(int n, String tid) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n beskjeder',
+      one: '1 beskjed',
+    );
+    return '$_temp0 følger ordren · klar $tid';
+  }
+
+  @override
+  String get ops_kasse_dor_del => 'Del dørnotatet med budene dine';
+
+  @override
+  String get ops_kasse_dor_delt =>
+      'Dørnotatet deles med budene dine · kan skrus av';
+
+  @override
+  String get ops_kasse_dor_ikke_delt => 'Dørnotatet deles ikke med budene';
+
+  @override
+  String ops_kasse_kode_over(String kr) {
+    return 'Kreves for bestillinger over $kr kr · budet må se koden din';
+  }
+
+  @override
+  String get ops_kasse_kode_under =>
+      'Budet leverer bare til deg · ikke ved døren';
+
+  @override
+  String get ops_kasse_en_mindre => 'Én mindre';
+
+  @override
+  String get ops_kasse_en_mer => 'Én mer';
+
+  @override
+  String ops_kasse_stk_pris(int n, String pris) {
+    return '$n stk. · $pris kr per stk.';
+  }
+
+  @override
+  String get ops_kasse_hent_selv => 'Du henter selv i disken';
+
+  @override
+  String get ops_kasse_frakt_chip_hent => 'Gratis — du henter selv';
+
+  @override
+  String ops_kasse_poeng_linje(int n) {
+    return 'Gir $n poeng tilbake';
+  }
+
+  @override
+  String get ops_kasse_tom_beskjed_rad => 'Beskjed til budet';
+
+  @override
+  String get ops_kasse_ror_avgang => 'Ægil ror over Vågen';
 }

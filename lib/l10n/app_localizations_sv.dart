@@ -6382,4 +6382,104 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get ops_fiske_eta_kommer => 'Delivered tonight';
+
+  @override
+  String get ops_kasse_dra_betal => 'Drag to pay';
+
+  @override
+  String get ops_kasse_slipp_betal => 'Release to pay';
+
+  @override
+  String ops_kasse_dra_betal_label(String kr) {
+    return 'Drag to pay $kr kroner';
+  }
+
+  @override
+  String get ops_kasse_flere_under_lev =>
+      'Tips, a door note and a delivery code';
+
+  @override
+  String get ops_kasse_flere_under_hent =>
+      'A note to the store and pickup time';
+
+  @override
+  String get ops_kasse_hent_chip_bestikk => 'No cutlery';
+
+  @override
+  String get ops_kasse_hent_chip_servietter => 'Extra napkins';
+
+  @override
+  String get ops_kasse_hent_chip_ring => 'Call when ready';
+
+  @override
+  String get ops_kasse_hent_chip_poser => 'Split into two bags';
+
+  @override
+  String ops_kasse_hent_beskjed_hint(String butikk) {
+    return 'Anything else $butikk should know?';
+  }
+
+  @override
+  String ops_kasse_hent_kvitt_klar(String tid, String navn) {
+    return 'Ready for pickup $tid · say “$navn” at the counter';
+  }
+
+  @override
+  String ops_kasse_hent_kvitt_n(int n, String tid) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n notes',
+      one: '1 note',
+    );
+    return '$_temp0 travel with the order · ready $tid';
+  }
+
+  @override
+  String get ops_kasse_dor_del => 'Share the door note with your couriers';
+
+  @override
+  String get ops_kasse_dor_delt =>
+      'The door note is shared with your couriers · can be turned off';
+
+  @override
+  String get ops_kasse_dor_ikke_delt =>
+      'The door note is not shared with couriers';
+
+  @override
+  String ops_kasse_kode_over(String kr) {
+    return 'Required for orders over $kr kr · the courier must see your code';
+  }
+
+  @override
+  String get ops_kasse_kode_under =>
+      'The courier hands it to you only · never at the door';
+
+  @override
+  String get ops_kasse_en_mindre => 'One less';
+
+  @override
+  String get ops_kasse_en_mer => 'One more';
+
+  @override
+  String ops_kasse_stk_pris(int n, String pris) {
+    return '$n pcs · $pris kr each';
+  }
+
+  @override
+  String get ops_kasse_hent_selv => 'You pick up at the counter';
+
+  @override
+  String get ops_kasse_frakt_chip_hent => 'Free — you pick up';
+
+  @override
+  String ops_kasse_poeng_linje(int n) {
+    return 'Earns $n points back';
+  }
+
+  @override
+  String get ops_kasse_tom_beskjed_rad => 'Note to the courier';
+
+  @override
+  String get ops_kasse_ror_avgang => 'Ægil rows across Vågen';
 }

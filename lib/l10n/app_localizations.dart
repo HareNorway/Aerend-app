@@ -11665,6 +11665,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delivered tonight'**
   String get ops_fiske_eta_kommer;
+
+  /// No description provided for @ops_kasse_dra_betal.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to pay'**
+  String get ops_kasse_dra_betal;
+
+  /// No description provided for @ops_kasse_slipp_betal.
+  ///
+  /// In en, this message translates to:
+  /// **'Release to pay'**
+  String get ops_kasse_slipp_betal;
+
+  /// No description provided for @ops_kasse_dra_betal_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to pay {kr} kroner'**
+  String ops_kasse_dra_betal_label(String kr);
+
+  /// No description provided for @ops_kasse_flere_under_lev.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips, a door note and a delivery code'**
+  String get ops_kasse_flere_under_lev;
+
+  /// No description provided for @ops_kasse_flere_under_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'A note to the store and pickup time'**
+  String get ops_kasse_flere_under_hent;
+
+  /// No description provided for @ops_kasse_hent_chip_bestikk.
+  ///
+  /// In en, this message translates to:
+  /// **'No cutlery'**
+  String get ops_kasse_hent_chip_bestikk;
+
+  /// No description provided for @ops_kasse_hent_chip_servietter.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra napkins'**
+  String get ops_kasse_hent_chip_servietter;
+
+  /// No description provided for @ops_kasse_hent_chip_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Call when ready'**
+  String get ops_kasse_hent_chip_ring;
+
+  /// No description provided for @ops_kasse_hent_chip_poser.
+  ///
+  /// In en, this message translates to:
+  /// **'Split into two bags'**
+  String get ops_kasse_hent_chip_poser;
+
+  /// No description provided for @ops_kasse_hent_beskjed_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything else {butikk} should know?'**
+  String ops_kasse_hent_beskjed_hint(String butikk);
+
+  /// No description provided for @ops_kasse_hent_kvitt_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for pickup {tid} · say “{navn}” at the counter'**
+  String ops_kasse_hent_kvitt_klar(String tid, String navn);
+
+  /// No description provided for @ops_kasse_hent_kvitt_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 note} other{{n} notes}} travel with the order · ready {tid}'**
+  String ops_kasse_hent_kvitt_n(int n, String tid);
+
+  /// No description provided for @ops_kasse_dor_del.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the door note with your couriers'**
+  String get ops_kasse_dor_del;
+
+  /// No description provided for @ops_kasse_dor_delt.
+  ///
+  /// In en, this message translates to:
+  /// **'The door note is shared with your couriers · can be turned off'**
+  String get ops_kasse_dor_delt;
+
+  /// No description provided for @ops_kasse_dor_ikke_delt.
+  ///
+  /// In en, this message translates to:
+  /// **'The door note is not shared with couriers'**
+  String get ops_kasse_dor_ikke_delt;
+
+  /// No description provided for @ops_kasse_kode_over.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for orders over {kr} kr · the courier must see your code'**
+  String ops_kasse_kode_over(String kr);
+
+  /// No description provided for @ops_kasse_kode_under.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier hands it to you only · never at the door'**
+  String get ops_kasse_kode_under;
+
+  /// No description provided for @ops_kasse_en_mindre.
+  ///
+  /// In en, this message translates to:
+  /// **'One less'**
+  String get ops_kasse_en_mindre;
+
+  /// No description provided for @ops_kasse_en_mer.
+  ///
+  /// In en, this message translates to:
+  /// **'One more'**
+  String get ops_kasse_en_mer;
+
+  /// No description provided for @ops_kasse_stk_pris.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} pcs · {pris} kr each'**
+  String ops_kasse_stk_pris(int n, String pris);
+
+  /// No description provided for @ops_kasse_hent_selv.
+  ///
+  /// In en, this message translates to:
+  /// **'You pick up at the counter'**
+  String get ops_kasse_hent_selv;
+
+  /// No description provided for @ops_kasse_frakt_chip_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Free — you pick up'**
+  String get ops_kasse_frakt_chip_hent;
+
+  /// No description provided for @ops_kasse_poeng_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Earns {n} points back'**
+  String ops_kasse_poeng_linje(int n);
+
+  /// No description provided for @ops_kasse_tom_beskjed_rad.
+  ///
+  /// In en, this message translates to:
+  /// **'Note to the courier'**
+  String get ops_kasse_tom_beskjed_rad;
+
+  /// No description provided for @ops_kasse_ror_avgang.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil rows across Vågen'**
+  String get ops_kasse_ror_avgang;
 }
 
 class _AppLocalizationsDelegate
