@@ -67,11 +67,11 @@ class MegPill extends StatelessWidget {
                     ? const [
                         BoxShadow(color: Color(0xFFC4491A), offset: Offset(0, 1.5)),
                         BoxShadow(color: Color.fromRGBO(120, 45, 15, .42), offset: Offset(0, 3)),
-                        BoxShadow(color: Color.fromRGBO(200, 70, 25, .8), offset: Offset(0, 8), blurRadius: 12, spreadRadius: -8),
+                        BoxShadow(color: Color.fromRGBO(200, 70, 25, .35), offset: Offset(0, 5), blurRadius: 8, spreadRadius: -3),
                       ]
                     : const [
                         BoxShadow(color: Color.fromRGBO(150, 60, 15, .8), offset: Offset(0, 3)),
-                        BoxShadow(color: Color.fromRGBO(120, 50, 10, .9), offset: Offset(0, 14), blurRadius: 22, spreadRadius: -12),
+                        BoxShadow(color: Color.fromRGBO(120, 50, 10, .35), offset: Offset(0, 6), blurRadius: 10, spreadRadius: -3),
                       ],
           ),
           child: Row(
@@ -112,7 +112,7 @@ class MegPillGhost extends StatelessWidget {
             borderRadius: BorderRadius.circular(999),
             boxShadow: const [
               BoxShadow(color: Color(0xFFE7DCC0), offset: Offset(0, 1.5)),
-              BoxShadow(color: Color(0x33000000), offset: Offset(0, 6), blurRadius: 10, spreadRadius: -6),
+              BoxShadow(color: Color(0x1F000000), offset: Offset(0, 4), blurRadius: 8, spreadRadius: -3),
             ],
           ),
           child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: Text(label, maxLines: 1, style: BergenTokens.display(BergenTokens.textSmall, weight: FontWeight.w800, color: BergenTokens.ink)))),
