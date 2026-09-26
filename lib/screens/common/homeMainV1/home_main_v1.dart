@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../../utils/utils.dart';
-import '../../deliveryService/searchStore/search_store.dart';
 import '../../bergen/utforsk/utforsk_screen.dart';
 import '../../snurre/snurre_chat_screen.dart';
-import '../../bergen/kit/bergen_routes.dart';
 import '../../bergen/meg/meg_host.dart';
+import '../../bergen/sok/sok_screen.dart';
 import '../home/bergen/bergen_home.dart';
 import '../home/bergen/bergen_nav.dart';
 import '../../bergen/kasse/kurv_screen.dart';
 
 /// The Bergen shell: Hjem · Utforsk · Kurv · Meg behind the design's pill nav
 /// plus the round search orb (search field + Ægil pill, long-press → Ægil).
+/// The orb opens Søk over the current tab — the nav's field types into it —
+/// and, turned into an X, closes it again (`gaa(skjerm==='sok'?'hjem':'sok')`).
 class HomeMainV1 extends StatefulWidget {
   final bool isShowDialog;
   final bool fromStore;
@@ -50,6 +51,11 @@ class HomeMainV1State extends State<HomeMainV1> {
   /// Keyword handed to the search screen when it is opened from Hjem.
   final ValueNotifier<String> searchLaunchKeyword = ValueNotifier('');
 
+  /// Søk: open while the nav is in search mode; the nav's field is its query.
+  final ValueNotifier<bool> sokOpen = ValueNotifier(false);
+  final TextEditingController _sokField = TextEditingController();
+  final GlobalKey<SokScreenState> _sokKey = GlobalKey();
+
   /// Search is no longer a tab; kept for callers that still switch to it —
   /// [switchToTab] with this value opens the search screen instead.
   static const int searchTabIndex = -1;
@@ -78,6 +84,8 @@ class HomeMainV1State extends State<HomeMainV1> {
     controller.dispose();
     badgeCountNotifier.dispose();
     searchLaunchKeyword.dispose();
+    sokOpen.dispose();
+    _sokField.dispose();
     super.dispose();
   }
 
@@ -87,6 +95,7 @@ class HomeMainV1State extends State<HomeMainV1> {
       openSearchTab();
       return;
     }
+    sokOpen.value = false;
     final target = index.clamp(0, BergenTab.values.length - 1);
     if (animate) {
       controller.animateToPage(
@@ -110,21 +119,15 @@ class HomeMainV1State extends State<HomeMainV1> {
     switchToTab(BergenTab.home.index);
   }
 
-  /// Opens the store search (the design's search orb) with an optional query.
+  /// Opens Søk (the design's search orb) with an optional query.
   void openSearchTab({String keyword = ''}) {
     final trimmed = keyword.trim();
     searchLaunchKeyword.value = trimmed;
-    // AGIL-1 v2 Phase 2/3: the Bergen Søk screen, with the typed text; the
-    // legacy search until that route lands.
-    BergenRoutes.pushOr(
-      context,
-      '/bergen/sok',
-      arguments: {'q': trimmed},
-      orElse: () => openScreen(
-        context,
-        SearchStore(latLng: prefGetLatLng(), keyword: trimmed),
-      ),
+    _sokField.value = TextEditingValue(
+      text: trimmed,
+      selection: TextSelection.collapsed(offset: trimmed.length),
     );
+    sokOpen.value = true;
   }
 
   void _openAegil(String draft) {
@@ -155,6 +158,18 @@ class HomeMainV1State extends State<HomeMainV1> {
         fit: StackFit.expand,
         children: [
           Positioned.fill(child: pageView),
+          ValueListenableBuilder<bool>(
+            valueListenable: sokOpen,
+            builder: (context, open, _) => open
+                ? Positioned.fill(
+                    child: SokScreen(
+                      key: _sokKey,
+                      controller: _sokField,
+                      onClose: () => sokOpen.value = false,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
           Positioned(
             left: 0,
             right: 0,
@@ -163,9 +178,11 @@ class HomeMainV1State extends State<HomeMainV1> {
               index: selectedPos,
               onTab: (i) => switchToTab(i),
               cartCount: badgeCountNotifier,
-              onSearch: (q) => openSearchTab(keyword: q),
+              onSearch: (_) => _sokKey.currentState?.submit(),
               onAegil: _openAegil,
               showHint: selectedPos == BergenTab.home.index,
+              searchController: _sokField,
+              searchOpen: sokOpen,
             ),
           ),
         ],
@@ -174,6 +191,10 @@ class HomeMainV1State extends State<HomeMainV1> {
 
     return WillPopScope(
       onWillPop: () {
+        if (sokOpen.value) {
+          sokOpen.value = false;
+          return Future.value(false);
+        }
         DateTime now = DateTime.now();
         if (currentTime == null ||
             now.difference(currentTime!) > const Duration(seconds: 2)) {

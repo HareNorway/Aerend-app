@@ -6512,4 +6512,9 @@ class AppLocalizationsNo extends AppLocalizations {
   String ops_hjem_ark_legg(String navn) {
     return 'Legg $navn i kurven';
   }
+
+  @override
+  String ops_sok_onske_ask(String q) {
+    return 'Spør Ægil: «$q»';
+  }
 }

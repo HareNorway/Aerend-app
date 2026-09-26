@@ -3838,5 +3838,13 @@
   "ops_hjem_ark_ingen_varer": "No products here yet — see the stores above.",
   "@ops_hjem_ark_ingen_varer": {},
   "ops_hjem_ark_legg": "Add {navn} to the basket",
-  "@ops_hjem_ark_legg": {"placeholders": {"navn": {"type": "String"}}}
+  "@ops_hjem_ark_legg": {"placeholders": {"navn": {"type": "String"}}},
+  "ops_sok_onske_ask": "Ask Ægil: “{q}”",
+  "@ops_sok_onske_ask": {
+    "placeholders": {
+      "q": {
+        "type": "String"
+      }
+    }
+  }
 }

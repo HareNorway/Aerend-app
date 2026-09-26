@@ -6525,4 +6525,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String ops_hjem_ark_legg(String navn) {
     return 'Add $navn to the basket';
   }
+
+  @override
+  String ops_sok_onske_ask(String q) {
+    return 'Ask Ægil: “$q”';
+  }
 }

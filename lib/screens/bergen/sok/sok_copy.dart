@@ -18,6 +18,7 @@ abstract final class SokCopy {
   static String get a1_sok_onske_title => languages.ops_sok_onske_title;
   static String get a1_sok_onske_line => languages.ops_sok_onske_line;
   static String get a1_sok_onske_cta => languages.ops_sok_onske_cta;
+  static String a1_sok_onske_ask(String q) => languages.ops_sok_onske_ask(q);
 
   // results (`Søk · treff`)
   static String a1_sok_butikker(int n) => languages.ops_sok_butikker(n);

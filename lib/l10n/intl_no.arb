@@ -2195,5 +2195,6 @@
   "ops_hjem_ark_gratis_levering": "Gratis levering",
   "ops_hjem_ark_levering": "{fee} levering",
   "ops_hjem_ark_ingen_varer": "Ingen varer her ennå — se butikkene over.",
-  "ops_hjem_ark_legg": "Legg {navn} i kurven"
+  "ops_hjem_ark_legg": "Legg {navn} i kurven",
+  "ops_sok_onske_ask": "Spør Ægil: «{q}»"
 }

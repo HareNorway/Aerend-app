@@ -35,6 +35,8 @@ class BergenBottomNav extends StatefulWidget {
     required this.onSearch,
     required this.onAegil,
     this.showHint = true,
+    this.searchController,
+    this.searchOpen,
   });
 
   final int index;
@@ -51,24 +53,63 @@ class BergenBottomNav extends StatefulWidget {
   /// `aegilHint` — the one-off "Søk i Bergen" bubble above the orb.
   final bool showHint;
 
+  /// The search field's text, shared with the Søk screen it drives.
+  final TextEditingController? searchController;
+
+  /// Search mode, when the owner shows Søk while it is on. Submitting then
+  /// stays in search mode (the design's Enter never closes Søk).
+  final ValueNotifier<bool>? searchOpen;
+
   @override
   State<BergenBottomNav> createState() => _BergenBottomNavState();
 }
 
 class _BergenBottomNavState extends State<BergenBottomNav> {
-  bool _search = false;
-  final TextEditingController _query = TextEditingController();
+  bool _ownSearch = false;
+  TextEditingController? _ownQuery;
   final FocusNode _focus = FocusNode();
   Timer? _hold;
   bool _held = false;
   int _lastCount = 0;
   int _pulse = 0;
 
+  bool get _search => widget.searchOpen?.value ?? _ownSearch;
+
+  TextEditingController get _query =>
+      widget.searchController ?? (_ownQuery ??= TextEditingController());
+
   @override
   void initState() {
     super.initState();
     _lastCount = widget.cartCount.value;
     widget.cartCount.addListener(_onCount);
+    widget.searchOpen?.addListener(_onOpen);
+  }
+
+  @override
+  void didUpdateWidget(BergenBottomNav oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchOpen != widget.searchOpen) {
+      oldWidget.searchOpen?.removeListener(_onOpen);
+      widget.searchOpen?.addListener(_onOpen);
+    }
+  }
+
+  /// The owner opened or closed search mode (the orb, or [openSearch]).
+  void _onOpen() {
+    if (!mounted) return;
+    setState(() {});
+    if (_search) {
+      _focusSoon();
+    } else {
+      _focus.unfocus();
+    }
+  }
+
+  void _focusSoon() {
+    Future<void>.delayed(const Duration(milliseconds: 260), () {
+      if (mounted && _search) _focus.requestFocus();
+    });
   }
 
   void _onCount() {
@@ -79,21 +120,26 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
   @override
   void dispose() {
     widget.cartCount.removeListener(_onCount);
+    widget.searchOpen?.removeListener(_onOpen);
     _hold?.cancel();
-    _query.dispose();
+    _ownQuery?.dispose();
     _focus.dispose();
     super.dispose();
   }
 
   void _toggleSearch() {
-    setState(() => _search = !_search);
-    if (_search) {
-      Future<void>.delayed(const Duration(milliseconds: 260), () {
-        if (mounted && _search) _focus.requestFocus();
-      });
+    final open = !_search;
+    if (!open) _query.clear();
+    final owner = widget.searchOpen;
+    if (owner != null) {
+      owner.value = open; // [_onOpen] follows.
+      return;
+    }
+    setState(() => _ownSearch = open);
+    if (open) {
+      _focusSoon();
     } else {
       _focus.unfocus();
-      _query.clear();
     }
   }
 
@@ -101,7 +147,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
     final q = _query.text.trim();
     if (q.isEmpty) return;
     widget.onSearch(q);
-    _toggleSearch();
+    if (widget.searchOpen == null) _toggleSearch();
   }
 
   @override
@@ -336,10 +382,10 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
           SizedBox(width: 9 * s),
           Expanded(
             child: TextField(
+              key: const Key('a1_sok_field'),
               controller: _query,
               focusNode: _focus,
               onSubmitted: (_) => _submit(),
-              onChanged: (_) => setState(() {}),
               textInputAction: TextInputAction.search,
               cursorColor: BergenColors.mint,
               style: bDisplay(context, 14, weight: FontWeight.w700),
@@ -354,10 +400,13 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               ),
             ),
           ),
-          if (_query.text.isNotEmpty)
-            GestureDetector(
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _query,
+            builder: (context, v, child) =>
+                v.text.isEmpty ? const SizedBox.shrink() : child!,
+            child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => setState(_query.clear),
+              onTap: _query.clear,
               child: Container(
                 width: 24 * s,
                 height: 24 * s,
@@ -373,6 +422,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
                 ),
               ),
             ),
+          ),
           Container(width: 1, height: 26 * s, color: const Color(0x1F23201D)),
           SizedBox(width: 6 * s),
           OnbPressable(

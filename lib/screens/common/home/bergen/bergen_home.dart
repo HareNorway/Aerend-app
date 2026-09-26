@@ -64,7 +64,7 @@ const double _kSheetSlide = 212; // max parallax translate
 const double _kSheetRadius = 30;
 
 /// Design's `LIVE` placeholders per category slot. TODO(api): open-now counts.
-const List<String> _kLive = [
+const List<String> kBergenLive = [
   '24 åpne nå',
   '9 åpne nå',
   'Åpner 10:00',
@@ -379,7 +379,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           BergenCategory(
             id: 0,
             name: _placeholderCategoryName(i),
-            liveText: _kLive[i],
+            liveText: kBergenLive[i],
             iconAsset: BergenCategoryLook.all[i].icon,
             look: BergenCategoryLook.all[i],
           ),
@@ -390,7 +390,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         BergenCategory(
           id: services[i].serviceCategoryId,
           name: services[i].serviceCategoryName,
-          liveText: _kLive[i % _kLive.length],
+          liveText: kBergenLive[i % kBergenLive.length],
           iconUrl: services[i].serviceCategoryIcon.isEmpty
               ? null
               : services[i].serviceCategoryIcon,

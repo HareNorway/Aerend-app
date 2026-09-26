@@ -11845,6 +11845,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add {navn} to the basket'**
   String ops_hjem_ark_legg(String navn);
+
+  /// No description provided for @ops_sok_onske_ask.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask Ægil: “{q}”'**
+  String ops_sok_onske_ask(String q);
 }
 
 class _AppLocalizationsDelegate

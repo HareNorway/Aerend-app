@@ -366,6 +366,30 @@ class OpsCustomerApi {
         : const [];
   }
 
+  /// `GET /api/ops/search/trending` with the week's counts (`items`), falling
+  /// back to the bare `terms`. Empty on failure.
+  Future<List<SokTrend>> trendingItems() async {
+    final json = await _guarded(() async {
+      final j = await _helper.get('api/ops/search/trending');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final items = json?['items'];
+    if (items is List && items.isNotEmpty) {
+      return [
+        for (final e in items)
+          if (e is Map && '${e['term'] ?? ''}'.isNotEmpty)
+            SokTrend('${e['term']}', (e['count'] as num?)?.toInt()),
+      ];
+    }
+    final terms = json?['terms'];
+    return terms is List
+        ? [
+            for (final t in terms)
+              if ('$t'.isNotEmpty) SokTrend('$t'),
+          ]
+        : const [];
+  }
+
   /// A guarded POST to a route the other branch owns: null on 404 / failure.
   Future<Map<String, dynamic>?> postGuarded(
     String path,

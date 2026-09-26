@@ -51,3 +51,12 @@ class SokTreff {
   int get total => butikker.length + produkter.length;
   bool get isEmpty => total == 0;
 }
+
+/// One "Populært nå" row: the term and how many were ordered this week
+/// (null when the backend only sent the term).
+class SokTrend {
+  const SokTrend(this.term, [this.count]);
+
+  final String term;
+  final int? count;
+}
