@@ -6,6 +6,7 @@ import 'package:aerend_customer/data/ops/sok_models.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/sok/sok_screen.dart';
+import 'package:aerend_customer/utils/utils.dart';
 import 'package:aerend_customer/screens/common/home/bergen/bergen_nav.dart';
 
 import '../layout/reduced_motion_harness.dart';
@@ -333,5 +334,44 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(open.value, isFalse);
     expect(field.text, isEmpty);
+  });
+
+  testWidgets('tapping a product opens the product sheet, not the cart', (
+    tester,
+  ) async {
+    _frame(tester);
+    OpsCustomerApi.networkEnabled = false;
+    addTearDown(() => OpsCustomerApi.networkEnabled = true);
+    final api = _FakeApi(
+      treff: const SokTreff(
+        produkter: [
+          SokProdukt(
+            id: 56,
+            name: 'Classic Fries',
+            storeId: 6,
+            storeName: 'Holy Cow',
+            price: 59,
+          ),
+        ],
+      ),
+    );
+    await tester.pumpWidget(_app(SokScreen(api: api)));
+    await tester.pump();
+    await tester.enterText(find.byKey(const Key('a1_sok_field')), 'fries');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.tap(find.text('Classic Fries'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.byKey(const Key('a1_butikk_produkt_sheet')), findsOneWidget);
+    expect(find.byKey(const Key('a1_butikk_produkt_navn')), findsOneWidget);
+    expect(prefGetInt(prefCartCount), 0);
+
+    await tester.tap(find.byKey(const Key('a1_butikk_produkt_lukk')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const Key('a1_butikk_produkt_sheet')), findsNothing);
   });
 }

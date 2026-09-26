@@ -2196,5 +2196,12 @@
   "ops_hjem_ark_levering": "{fee} levering",
   "ops_hjem_ark_ingen_varer": "Ingen varer her ennå — se butikkene over.",
   "ops_hjem_ark_legg": "Legg {navn} i kurven",
-  "ops_sok_onske_ask": "Spør Ægil: «{q}»"
+  "ops_sok_onske_ask": "Spør Ægil: «{q}»",
+  "ops_butikk_prod_legg_kort": "Legg til",
+  "ops_butikk_prod_sum": "· {pris}",
+  "ops_butikk_prod_valgfritt": "Valgfritt",
+  "ops_butikk_prod_valgt": "{n} valgt",
+  "ops_butikk_prod_allergen_linje": "Allergener: {liste}",
+  "ops_butikk_prod_i_kurven": "{navn} er lagt i kurven",
+  "ops_butikk_prod_lukk": "Lukk"
 }

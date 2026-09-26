@@ -3846,5 +3846,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "ops_butikk_prod_legg_kort": "Add",
+  "@ops_butikk_prod_legg_kort": {},
+  "ops_butikk_prod_sum": "· {pris}",
+  "@ops_butikk_prod_sum": {"placeholders": {"pris": {"type": "String"}}},
+  "ops_butikk_prod_valgfritt": "Optional",
+  "@ops_butikk_prod_valgfritt": {},
+  "ops_butikk_prod_valgt": "{n} selected",
+  "@ops_butikk_prod_valgt": {"placeholders": {"n": {"type": "int"}}},
+  "ops_butikk_prod_allergen_linje": "Allergens: {liste}",
+  "@ops_butikk_prod_allergen_linje": {"placeholders": {"liste": {"type": "String"}}},
+  "ops_butikk_prod_i_kurven": "{navn} is in your basket",
+  "@ops_butikk_prod_i_kurven": {"placeholders": {"navn": {"type": "String"}}},
+  "ops_butikk_prod_lukk": "Close",
+  "@ops_butikk_prod_lukk": {}
 }

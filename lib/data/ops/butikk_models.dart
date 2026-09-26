@@ -333,3 +333,52 @@ class BergenVariant {
   final double priceDelta;
   final bool inStock;
 }
+
+/// `ops.customer.product` — what the product sheet shows beyond the menu
+/// row: description, allergens, prep time, «Mest bestilt i kveld».
+class BergenProductDetail {
+  const BergenProductDetail({
+    this.description,
+    this.imageUrl,
+    this.allergens = const [],
+    this.vegan = false,
+    this.halal = false,
+    this.hasSizes = false,
+    this.readyMinutes,
+    this.mostOrdered = false,
+    this.pointsPer10Kr,
+  });
+
+  final String? description;
+  final String? imageUrl;
+  /// `points.kjop_per_10kr`: "+N poeng" = whole 10 kr × this (KjopRule).
+  final int? pointsPer10Kr;
+  final List<String> allergens;
+  final bool vegan;
+  final bool halal;
+  final bool hasSizes;
+  final int? readyMinutes;
+  final bool mostOrdered;
+
+  factory BergenProductDetail.fromJson(Map<String, dynamic> json) {
+    String? text(dynamic v) {
+      final t = '${v ?? ''}'.trim();
+      return t.isEmpty ? null : t;
+    }
+
+    final allergens = json['allergens'];
+    return BergenProductDetail(
+      description: text(json['description']),
+      imageUrl: text(json['image']),
+      allergens: allergens is List
+          ? [for (final a in allergens) if ('$a'.trim().isNotEmpty) '$a'.trim()]
+          : const [],
+      vegan: json['vegan'] == true,
+      halal: json['halal'] == true,
+      hasSizes: json['has_sizes'] == true,
+      readyMinutes: (json['ready_minutes'] as num?)?.toInt(),
+      mostOrdered: json['most_ordered'] == true,
+      pointsPer10Kr: (json['points_per_10kr'] as num?)?.toInt(),
+    );
+  }
+}

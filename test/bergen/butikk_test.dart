@@ -381,6 +381,136 @@ void main() {
   });
 
   group('sheets', () {
+    Widget sheet({
+      BergenProductOptions opts = const BergenProductOptions(),
+      BergenProductDetail? detail,
+    }) => _app(
+      Scaffold(
+        body: Align(
+          alignment: Alignment.bottomCenter,
+          child: ProduktSheet(
+            item: _item(56, 'Classic Fries', 59),
+            api: _FakeButikk(),
+            customerApi: _FakeCustomer(),
+            options: opts,
+            detail: detail,
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('the product sheet shows ops.customer.product', (tester) async {
+      _frame(tester);
+      await tester.pumpWidget(
+        sheet(
+          detail: const BergenProductDetail(
+            description: 'Crispy og litt salt.',
+            allergens: ['Hvete', 'Melk'],
+            readyMinutes: 15,
+            mostOrdered: true,
+            pointsPer10Kr: 1,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+
+      // The menu row's own description wins over the detail's.
+      expect(find.text('Beskrivelse'), findsOneWidget);
+      expect(find.text(ButikkCopy.a1_butikk_prod_klar(15)), findsOneWidget);
+      expect(find.text(ButikkCopy.a1_butikk_prod_mest_bestilt), findsOneWidget);
+      // Kjøp: whole 10 kr × 1 → 59 kr earns 5.
+      expect(find.text(ButikkCopy.a1_butikk_prod_poeng(5)), findsOneWidget);
+      expect(
+        find.text(ButikkCopy.a1_butikk_prod_allergen_linje('Hvete, Melk')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('without the detail the sheet hides what it does not know', (
+      tester,
+    ) async {
+      _frame(tester);
+      await tester.pumpWidget(sheet());
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text(ButikkCopy.a1_butikk_prod_mest_bestilt), findsNothing);
+      expect(find.textContaining('poeng'), findsNothing);
+      expect(
+        find.text(ButikkCopy.a1_butikk_info_allergen_missing),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('single groups are cards, a strength group is the segment', (
+      tester,
+    ) async {
+      _frame(tester);
+      await tester.pumpWidget(
+        sheet(
+          opts: const BergenProductOptions(
+            groups: [
+              BergenOptionGroup(
+                name: 'Velg Kjøtt',
+                single: true,
+                required: true,
+                options: [
+                  BergenVariant(id: 20, name: 'Kylling'),
+                  BergenVariant(id: 21, name: 'Biff', priceDelta: 16),
+                ],
+              ),
+              BergenOptionGroup(
+                name: 'Styrke',
+                single: true,
+                options: [
+                  BergenVariant(id: 30, name: 'Mild'),
+                  BergenVariant(id: 31, name: 'Medium'),
+                  BergenVariant(id: 32, name: 'Hot'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      String sum() => tester
+          .widget<Text>(find.byKey(const Key('a1_butikk_produkt_sum')))
+          .data!;
+
+      // Required and strength groups open on their first choice.
+      expect(sum(), ButikkCopy.a1_butikk_prod_sum('59 kr'));
+      expect(find.text('Mild'), findsNWidgets(2)); // the segment + its label
+      await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_21')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(sum(), ButikkCopy.a1_butikk_prod_sum('75 kr'));
+      await tester.ensureVisible(
+        find.byKey(const Key('a1_butikk_prod_opt_32')),
+      );
+      await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_32')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Hot'), findsNWidgets(2));
+    });
+
+    testWidgets('the product sheet respects reduced motion', (tester) async {
+      _frame(tester);
+      await expectRespectsReducedMotion(
+        tester,
+        () => Align(
+          alignment: Alignment.bottomCenter,
+          child: ProduktSheet(
+            item: _item(56, 'Classic Fries', 59),
+            api: _FakeButikk(),
+            customerApi: _FakeCustomer(),
+            options: const BergenProductOptions(),
+            detail: const BergenProductDetail(
+              readyMinutes: 15,
+              mostOrdered: true,
+              pointsPer10Kr: 1,
+            ),
+          ),
+        ),
+      );
+    });
+
     testWidgets('the product sheet sums size and quantity', (tester) async {
       _frame(tester);
       const opts = BergenProductOptions(
@@ -401,7 +531,8 @@ void main() {
       await tester.pumpWidget(
         _app(
           Scaffold(
-            body: SingleChildScrollView(
+            body: Align(
+              alignment: Alignment.bottomCenter,
               child: ProduktSheet(
                 item: _item(1, 'Dobbel cheeseburger', 149),
                 api: _FakeButikk(),
@@ -412,26 +543,24 @@ void main() {
           ),
         ),
       );
-      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
-      expect(
-        find.text(ButikkCopy.a1_butikk_prod_legg('149 kr')),
-        findsOneWidget,
-      );
+      String sum() => tester
+          .widget<Text>(find.byKey(const Key('a1_butikk_produkt_sum')))
+          .data!;
+      expect(sum(), ButikkCopy.a1_butikk_prod_sum('149 kr'));
       await tester.tap(find.byKey(const Key('a1_butikk_prod_size_3')));
-      await tester.pump();
-      expect(
-        find.text(ButikkCopy.a1_butikk_prod_legg('178 kr')),
-        findsOneWidget,
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(sum(), ButikkCopy.a1_butikk_prod_sum('178 kr'));
+      await tester.ensureVisible(
+        find.byKey(const Key('a1_butikk_prod_opt_10')),
       );
       await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_10')));
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const Key('a1_butikk_qty_plus')));
-      await tester.pump();
-      expect(
-        find.text(ButikkCopy.a1_butikk_prod_legg('386 kr')),
-        findsOneWidget,
-      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(sum(), ButikkCopy.a1_butikk_prod_sum('386 kr'));
+      expect(find.text(ButikkCopy.a1_butikk_prod_valgt(1)), findsOneWidget);
     });
 
     testWidgets(

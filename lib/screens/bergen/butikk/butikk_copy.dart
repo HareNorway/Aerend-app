@@ -146,6 +146,13 @@ abstract final class ButikkCopy {
   static String get a1_butikk_prod_allergener => languages.ops_butikk_prod_allergener;
   static String a1_butikk_prod_legg(String pris) => languages.ops_butikk_prod_legg(pris);
   static String get a1_butikk_prod_standard => languages.ops_butikk_prod_standard;
+  static String get a1_butikk_prod_legg_kort => languages.ops_butikk_prod_legg_kort;
+  static String a1_butikk_prod_sum(String pris) => languages.ops_butikk_prod_sum(pris);
+  static String get a1_butikk_prod_valgfritt => languages.ops_butikk_prod_valgfritt;
+  static String a1_butikk_prod_valgt(int n) => languages.ops_butikk_prod_valgt(n);
+  static String a1_butikk_prod_allergen_linje(String liste) => languages.ops_butikk_prod_allergen_linje(liste);
+  static String a1_butikk_prod_i_kurven(String navn) => languages.ops_butikk_prod_i_kurven(navn);
+  static String get a1_butikk_prod_lukk => languages.ops_butikk_prod_lukk;
 
   // ── Info sheet ──────────────────────────────────────────────────────────
   static String get a1_butikk_info_allergen_line => languages.ops_butikk_info_allergen_line;

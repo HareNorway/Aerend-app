@@ -1,4 +1,5 @@
 import '../../data/ops/butikk_models.dart';
+import '../api_base_helper.dart';
 import '../../screens/common/home/bergen/bergen_store_repo.dart';
 import '../../screens/common/home/home_dl.dart';
 import '../../screens/common/home/home_repo.dart';
@@ -100,6 +101,24 @@ class OpsButikkApi {
       // Fall through.
     }
     return const BergenProductOptions();
+  }
+
+  /// `GET /api/ops/customer/products/{id}` (`ops.customer.product`): the
+  /// description, allergens, prep time and «Mest bestilt». Null on failure —
+  /// the sheet then shows what the menu row carries.
+  Future<BergenProductDetail?> productDetail(int productId) async {
+    if (_off) return null;
+    try {
+      final json = await ApiBaseHelper(baseUrl: BaseUrl.domain).get(
+        'api/ops/customer/products/$productId',
+      );
+      if (json is Map<String, dynamic> && json['id'] != null) {
+        return BergenProductDetail.fromJson(json);
+      }
+    } catch (_) {
+      // Fall through.
+    }
+    return null;
   }
 
   /// `POST /api/agent/availability-subscriptions` (agil-2, guarded): "si fra

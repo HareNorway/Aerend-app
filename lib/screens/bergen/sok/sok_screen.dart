@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../data/ops/butikk_models.dart';
 import '../../../data/ops/sok_models.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
@@ -15,6 +16,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/home/bergen/bergen_nav.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
+import '../butikk/produkt_sheet.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
@@ -256,6 +258,24 @@ class SokScreenState extends State<SokScreen> {
     orElse: () => showBergenToast(context, BergenRoutes.kommerSnart),
   );
 
+  /// A hit's card and its pill open the product sheet (`produkt`), where the
+  /// customer picks options and adds — never a silent add from the grid.
+  void _openProduct(SokProdukt p) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    showProduktSheet(
+      context,
+      item: BergenMenuItem(
+        id: p.id,
+        name: p.name,
+        storeId: p.storeId,
+        storeName: p.storeName,
+        price: p.price,
+        wasPrice: p.wasPrice,
+        imageUrl: p.imageUrl,
+      ),
+    );
+  }
+
   /// `aapneKat(n)`; the category counts toward "Utforsker · n av 5".
   void _openCategory(String name) {
     final slug = BergenHomeSlug.of(name);
@@ -418,11 +438,7 @@ class SokScreenState extends State<SokScreen> {
                     _Results(
                       treff: treff,
                       onStore: (b) => _openStore(b.id, b.name),
-                      onProduct: (p) => BergenCart.add(
-                        context,
-                        storeId: p.storeId,
-                        productId: p.id,
-                      ),
+                      onProduct: _openProduct,
                     ),
                   if (vanlig) _CompareCard(query: q, onTap: () => _askAegil()),
                   if (ingen) _NoHits(query: q, onAsk: () => _askAegil()),

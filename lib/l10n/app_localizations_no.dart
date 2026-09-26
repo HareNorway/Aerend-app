@@ -6517,4 +6517,33 @@ class AppLocalizationsNo extends AppLocalizations {
   String ops_sok_onske_ask(String q) {
     return 'Spør Ægil: «$q»';
   }
+
+  @override
+  String get ops_butikk_prod_legg_kort => 'Legg til';
+
+  @override
+  String ops_butikk_prod_sum(String pris) {
+    return '· $pris';
+  }
+
+  @override
+  String get ops_butikk_prod_valgfritt => 'Valgfritt';
+
+  @override
+  String ops_butikk_prod_valgt(int n) {
+    return '$n valgt';
+  }
+
+  @override
+  String ops_butikk_prod_allergen_linje(String liste) {
+    return 'Allergener: $liste';
+  }
+
+  @override
+  String ops_butikk_prod_i_kurven(String navn) {
+    return '$navn er lagt i kurven';
+  }
+
+  @override
+  String get ops_butikk_prod_lukk => 'Lukk';
 }

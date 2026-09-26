@@ -11851,6 +11851,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask Ægil: “{q}”'**
   String ops_sok_onske_ask(String q);
+
+  /// No description provided for @ops_butikk_prod_legg_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get ops_butikk_prod_legg_kort;
+
+  /// No description provided for @ops_butikk_prod_sum.
+  ///
+  /// In en, this message translates to:
+  /// **'· {pris}'**
+  String ops_butikk_prod_sum(String pris);
+
+  /// No description provided for @ops_butikk_prod_valgfritt.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get ops_butikk_prod_valgfritt;
+
+  /// No description provided for @ops_butikk_prod_valgt.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} selected'**
+  String ops_butikk_prod_valgt(int n);
+
+  /// No description provided for @ops_butikk_prod_allergen_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens: {liste}'**
+  String ops_butikk_prod_allergen_linje(String liste);
+
+  /// No description provided for @ops_butikk_prod_i_kurven.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is in your basket'**
+  String ops_butikk_prod_i_kurven(String navn);
+
+  /// No description provided for @ops_butikk_prod_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get ops_butikk_prod_lukk;
 }
 
 class _AppLocalizationsDelegate
