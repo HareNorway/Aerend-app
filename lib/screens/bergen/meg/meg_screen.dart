@@ -19,6 +19,7 @@ import '../kit/bergen_kit.dart';
 import 'a3_scaffold.dart';
 import 'a3_services.dart';
 import 'borte_entry.dart';
+import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
 import 'meg_hero.dart';
 import 'meg_mark.dart';
@@ -394,9 +395,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   child: Text(
                                     '${A4MegCopy.a4_meg_bydel} · ${A4MegCopy.a4_meg_region}',
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
+                                    style: megInter(11, FontWeight.w700,
                                       color: Colors.white.withValues(
                                         alpha: .66,
                                       ),
@@ -421,7 +420,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   child: _GullbillettCard(
                                     give: give,
                                     get: get,
-                                    onDel: _share,
+                                    onDel: _openBillett,
                                     onOpen: _openBillett,
                                   ),
                                 ),
@@ -527,7 +526,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     label: A4MegCopy.a4_meg_del,
                                     icon: Icons.ios_share_rounded,
                                     expand: false,
-                                    onPressed: _share,
+                                    onPressed: _openBillett,
                                   ),
                                   showChevron: false,
                                   onTap: _openBillett,
@@ -989,16 +988,14 @@ class _PremieChip extends StatelessWidget {
           color: const Color(0xFF3F8F5F).withValues(alpha: .45),
         ),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.landscape_rounded, size: 11, color: BergenTokens.mint),
-          SizedBox(width: 4),
+          const Icon(Icons.landscape_rounded, size: 11, color: BergenTokens.mint),
+          const SizedBox(width: 4),
           Text(
             A4MegCopy.a4_meg_premie_levering,
-            style: TextStyle(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w800,
+            style: megInter(9.5, FontWeight.w800,
               color: BergenTokens.mint,
             ),
           ),

@@ -21,6 +21,8 @@ class PointsBalance {
     this.policyVersion = '',
     this.tiers = const [],
     this.protectedUntil,
+    this.reviewAt,
+    this.keepGap = 0,
   });
 
   /// Spendable now.
@@ -50,6 +52,23 @@ class PointsBalance {
 
   /// The tier is safe until this date; the next annual review follows it.
   final DateTime? protectedUntil;
+
+  /// The next annual review (`tier.review_at`) and the points still needed so
+  /// the tier holds on that day (`tier.keep_gap`).
+  final DateTime? reviewAt;
+  final int keepGap;
+
+  /// How far through the current tier (design `NV.pct`): 0 at its threshold,
+  /// 1 at the next one. Uses the ladder when the API sent it.
+  double get tierProgress {
+    if (nextTierName == null) return 1;
+    final here = tiers.where((t) => t.index == tier).firstOrNull;
+    final next = tiers.where((t) => t.index == tier + 1).firstOrNull;
+    if (here != null && next != null && next.threshold > here.threshold) {
+      return ((earned12m - here.threshold) / (next.threshold - here.threshold)).clamp(0.0, 1.0);
+    }
+    return progressToNextTier();
+  }
 
   bool get hasExpiryNotice => expiringAmount > 0;
 
@@ -88,6 +107,8 @@ class PointsBalance {
           .map((e) => TierStep.fromJson(e.cast<String, dynamic>()))
           .toList(),
       protectedUntil: _date(tier['protected_until']),
+      reviewAt: _date(tier['review_at']),
+      keepGap: _int(tier['keep_gap']),
     );
   }
 }

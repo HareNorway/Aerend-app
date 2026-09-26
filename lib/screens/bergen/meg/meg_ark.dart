@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../kit/bergen_kit.dart';
 import 'meg_shine.dart';
@@ -9,6 +10,11 @@ import 'meg_shine.dart';
 /// open — `rgba(245,243,239,.94)` + blur, 28px top corners, the title (19px),
 /// the line under it, the 38×38 close square, a scrolling body with 8px gaps,
 /// and the two 52px footer pills (white secondary, dark primary).
+/// Inter at the design's exact size — every small label on the Meg tab and its
+/// sheets (a bare TextStyle would fall back to Roboto).
+TextStyle megInter(double size, FontWeight weight, {Color? color, double? letterSpacing, double? height, List<FontFeature>? fontFeatures}) =>
+    GoogleFonts.inter(fontSize: size, fontWeight: weight, color: color, letterSpacing: letterSpacing, height: height, fontFeatures: fontFeatures);
+
 abstract final class MegArkInk {
   static const Color ink = Color(0xFF23201D);
   static const Color sub = Color(0xFF57534B);
@@ -361,7 +367,7 @@ class MegArkCodeCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(label, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, letterSpacing: 1.3, color: Color(0xFF3F2C06))),
+                      Text(label, style: megInter(9.5, FontWeight.w800, letterSpacing: 1.3, color: Color(0xFF3F2C06))),
                       const SizedBox(height: 3),
                       FittedBox(
                         fit: BoxFit.scaleDown,
@@ -384,12 +390,12 @@ class MegArkCodeCard extends StatelessWidget {
                       BoxShadow(color: Color.fromRGBO(20, 14, 4, .5), offset: Offset(0, 3)),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.copy_rounded, size: 13, color: Color(0xFFFBE8B4)),
+                      const Icon(Icons.copy_rounded, size: 13, color: Color(0xFFFBE8B4)),
                       SizedBox(width: 5),
-                      Text('Kopier', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFFFBE8B4))),
+                      Text('Kopier', style: megInter(11.5, FontWeight.w800, color: Color(0xFFFBE8B4))),
                     ],
                   ),
                 ),

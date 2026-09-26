@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../data/points/points_models.dart';
 import '../kit/bergen_kit.dart';
+import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
 import 'meg_mark.dart';
 import 'meg_pill.dart';
@@ -76,9 +77,7 @@ class MegNivaaCard extends StatelessWidget {
                     children: [
                       Text(
                         A4MegCopy.a4_meg_ditt_nivaa,
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
+                        style: megInter(10, FontWeight.w800,
                           letterSpacing: 1.2,
                           color: Colors.white.withValues(alpha: .55),
                         ),
@@ -190,9 +189,7 @@ class MegNivaaCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   A4MegCopy.a4_meg_poeng_bruke,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
+                  style: megInter(11, FontWeight.w800,
                     letterSpacing: .9,
                     color: Colors.white.withValues(alpha: .55),
                   ),
@@ -296,9 +293,7 @@ class MegNivaaCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         '${g.percent}%',
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
+                        style: megInter(10.5, FontWeight.w800,
                           color: BergenTokens.mint,
                           fontFeatures: [FontFeature.tabularFigures()],
                         ),
@@ -400,9 +395,7 @@ class _MintChip extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          fontSize: 9.5,
-          fontWeight: FontWeight.w800,
+        style: megInter(9.5, FontWeight.w800,
           color: BergenTokens.mint,
         ),
       ),
@@ -433,9 +426,7 @@ class MegLadder extends StatelessWidget {
           ];
     final current = balance.tier;
     final rungs = steps.length;
-    final pct = balance.nextTierName == null
-        ? 1.0
-        : balance.progressToNextTier();
+    final pct = balance.tierProgress;
     final progress = rungs <= 1
         ? 1.0
         : ((current + pct) / (rungs - 1)).clamp(0.0, 1.0);
@@ -575,9 +566,7 @@ class _Rung extends StatelessWidget {
                 textAlign: TextAlign.center,
                 softWrap: false,
                 overflow: TextOverflow.visible,
-                style: TextStyle(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w800,
+                style: megInter(8.5, FontWeight.w800,
                   letterSpacing: .3,
                   height: 1.1,
                   color: current

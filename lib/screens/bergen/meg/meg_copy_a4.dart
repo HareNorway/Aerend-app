@@ -212,7 +212,8 @@ abstract final class A4MegCopy {
   static String a4_meg_opptjent_12(int n) => 'Opptjent siste 12 måneder: ${_nf(n)}';
   static const String a4_meg_da_aapner = 'Da åpner disse på hylla di:';
   static const String a4_meg_hele_hylla = 'Hele hylla er åpen for deg.';
-  static String a4_meg_vurdering(String date, String tier) => 'Neste vurdering $date · du beholder $tier fram til da.';
+  static String a4_meg_vurdering(String date, String tier) => 'Neste vurdering $date · du holder $tier.';
+  static String a4_meg_vurdering_gap(String date, int gap, String tier) => 'Neste vurdering $date · du er ${_nf(gap)} poeng unna å bli på $tier.';
   static const String a4_meg_nivaa_note_punkt = 'Nivået påvirkes aldri av at du bruker poeng.';
 
   // Ark · Ukeshandel / Hjelp / Språk / Betaling / Adresser

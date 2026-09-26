@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
@@ -430,7 +431,7 @@ class _ArkKicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
-      child: Text(text, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: .7, color: MegArkInk.faint)),
+      child: Text(text, style: megInter(11, FontWeight.w800, letterSpacing: .7, color: MegArkInk.faint)),
     );
   }
 }
@@ -477,7 +478,7 @@ class MegMedalLadder extends StatelessWidget {
     final steps = balance.tiers;
     if (steps.isEmpty) return const SizedBox.shrink();
     final n = steps.length;
-    final pct = balance.nextTierName == null ? 1.0 : balance.progressToNextTier();
+    final pct = balance.tierProgress;
     final fill = n <= 1 ? 1.0 : ((balance.tier + pct) / (n - 1)).clamp(0.0, 1.0);
 
     return LayoutBuilder(
@@ -582,13 +583,13 @@ class _LadderMedal extends StatelessWidget {
         const SizedBox(height: 6),
         Text(step.name, maxLines: 1, style: BergenTokens.text(11.5, weight: FontWeight.w800, color: current ? MegArkInk.ink : (reached ? const Color(0xFF4E4943) : MegArkInk.muted))),
         const SizedBox(height: 4),
-        Text(step.threshold == 0 ? '0' : A4MegCopy.nf(step.threshold), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: MegArkInk.faint)),
+        Text(step.threshold == 0 ? '0' : A4MegCopy.nf(step.threshold), style: megInter(10, FontWeight.w800, color: MegArkInk.faint)),
         const SizedBox(height: 5),
         Container(
           constraints: const BoxConstraints(minHeight: 16),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(color: current ? MegArkInk.ink : Colors.transparent, borderRadius: BorderRadius.circular(999)),
-          child: Text(current ? A4MegCopy.a4_meg_naa : '', style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, letterSpacing: .9, color: Color(0xFFFFF7E4))),
+          child: Text(current ? A4MegCopy.a4_meg_naa : '', style: megInter(8.5, FontWeight.w800, letterSpacing: .9, color: Color(0xFFFFF7E4))),
         ),
       ],
     );
@@ -608,20 +609,30 @@ class _NivaaDetail extends StatelessWidget {
     [Color(0xFFDCE9EC), Color(0xFF5C8391)],
   ];
 
-  static String _icon(String name) {
+  /// The design's icon per prize and its size in the tile (`iw × ih` scaled .5).
+  static (String, double, double) _icon(String name) {
     final n = name.toLowerCase();
-    if (n.contains('båt') || n.contains('baat') || n.contains('skip')) return 'meg_langskip3d';
-    if (n.contains('fisk') || n.contains('reke') || n.contains('suppe')) return 'meg_ico_fisk';
-    if (n.contains('middag') || n.contains('mat') || n.contains('pizza') || n.contains('bolle') || n.contains('kaffe')) return 'meg_ico_mat';
-    if (n.contains('gave') || n.contains('bok') || n.contains('keramikk')) return 'meg_ico_gaver';
-    return 'meg_varde3d';
+    if (n.contains('båt') || n.contains('baat') || n.contains('skip')) return ('meg_langskip3d', 48, 25);
+    if (n.contains('fisk') || n.contains('reke') || n.contains('suppe')) return ('meg_ico_fisk', 50, 33);
+    if (n.contains('middag') || n.contains('mat') || n.contains('pizza') || n.contains('bolle') || n.contains('kaffe')) return ('meg_ico_mat', 37, 35);
+    if (n.contains('gave') || n.contains('bok') || n.contains('keramikk')) return ('meg_ico_gaver', 35, 37);
+    return ('meg_varde3d', 29, 36);
+  }
+
+  /// Tile tint per prize (design PREMIER `tint`, 160deg).
+  static List<Color> _tint(String name, int i) {
+    final n = name.toLowerCase();
+    if (n.contains('båt') || n.contains('baat')) return const [Color(0xFFCFE3E8), Color(0xFF2B5F6D)];
+    if (n.contains('middag') || n.contains('mat') || n.contains('pizza')) return const [Color(0xFFFBE0C4), Color(0xFFC07A3A)];
+    if (n.contains('fløy') || n.contains('floy') || n.contains('fjell')) return const [Color(0xFFDCE9EC), Color(0xFF5C8391)];
+    return _tints[i % _tints.length];
   }
 
   @override
   Widget build(BuildContext context) {
     final b = balance;
     final hasNext = b.nextTierName != null && b.pointsToNextTier != null;
-    final pct = hasNext ? b.progressToNextTier() : 1.0;
+    final pct = b.tierProgress;
     final three = opens.take(3).toList();
 
     return MegArkCard(
@@ -641,6 +652,7 @@ class _NivaaDetail extends StatelessWidget {
           const SizedBox(height: 9),
           Container(
             height: 9,
+            width: double.infinity,
             decoration: BoxDecoration(color: MegArkInk.ink.withValues(alpha: .12), borderRadius: BorderRadius.circular(99)),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
@@ -677,8 +689,14 @@ class _NivaaDetail extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (b.protectedUntil != null) ...[
-                  Text(A4MegCopy.a4_meg_vurdering(MegSheets.pretty(b.protectedUntil!.toIso8601String()), b.tierName), style: BergenTokens.text(12, weight: FontWeight.w700, color: MegArkInk.sub, height: 1.45)),
+                if (b.reviewAt != null && b.tier > 0) ...[
+                  Text(
+                    b.keepGap > 0
+                        ? A4MegCopy.a4_meg_vurdering_gap(MegSheets.pretty(b.reviewAt!.toIso8601String()), b.keepGap, b.tierName)
+                        : A4MegCopy.a4_meg_vurdering(MegSheets.pretty(b.reviewAt!.toIso8601String()), b.tierName),
+                    key: const Key('nivaa-vurdering'),
+                    style: BergenTokens.text(12, weight: FontWeight.w700, color: MegArkInk.sub, height: 1.45),
+                  ),
                   const SizedBox(height: 7),
                 ],
                 Text(A4MegCopy.a4_meg_nivaa_note_punkt, style: BergenTokens.text(12, weight: FontWeight.w800, color: MegArkInk.green, height: 1.45)),
@@ -706,7 +724,7 @@ class _NivaaDetail extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(begin: const Alignment(-.5, -1), end: const Alignment(.5, 1), colors: _tints[i % _tints.length]),
+              gradient: LinearGradient(begin: const Alignment(-.34, -.94), end: const Alignment(.34, .94), colors: _tint(p.name, i)),
               border: Border.all(color: Colors.white.withValues(alpha: .35)),
               boxShadow: const [BoxShadow(color: Color.fromRGBO(60, 40, 15, .45), offset: Offset(0, 4), blurRadius: 9, spreadRadius: -5)],
             ),
@@ -720,7 +738,12 @@ class _NivaaDetail extends StatelessWidget {
                     ),
                   ),
                 ),
-                Center(child: bergenSvg(_icon(p.name), height: 36)),
+                Center(
+                  child: Builder(builder: (_) {
+                    final (asset, w, h) = _icon(p.name);
+                    return bergenSvg(asset, width: w, height: h);
+                  }),
+                ),
               ],
             ),
           ),
@@ -768,7 +791,7 @@ class _BillettBoard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Expanded(child: Text(A4MegCopy.a4_meg_billettene_dine, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: .66, color: Color(0xFF7A5A16)))),
+              Expanded(child: Text(A4MegCopy.a4_meg_billettene_dine, style: megInter(11, FontWeight.w800, letterSpacing: .66, color: Color(0xFF7A5A16)))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
@@ -776,7 +799,7 @@ class _BillettBoard extends StatelessWidget {
                   gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFF8E4), Color(0xFFEFDBA4)]),
                   boxShadow: const [BoxShadow(color: Color.fromRGBO(150, 110, 20, .35), offset: Offset(0, 1.5))],
                 ),
-                child: Text(r.monthlyCap > 0 ? A4MegCopy.a4_meg_maks_mnd(r.monthlyCap) : A4MegCopy.a4_meg_ingen_grense, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF3A2708))),
+                child: Text(r.monthlyCap > 0 ? A4MegCopy.a4_meg_maks_mnd(r.monthlyCap) : A4MegCopy.a4_meg_ingen_grense, style: megInter(10, FontWeight.w800, color: Color(0xFF3A2708))),
               ),
             ],
           ),
@@ -792,9 +815,9 @@ class _BillettBoard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(A4MegCopy.a4_meg_venner_vervet, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF3F2C06), height: 1.2)),
+                      Text(A4MegCopy.a4_meg_venner_vervet, style: megInter(12.5, FontWeight.w800, color: Color(0xFF3F2C06), height: 1.2)),
                       const SizedBox(height: 2),
-                      Text(A4MegCopy.a4_meg_vervet_poeng(points, r.pointsForMe), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF5A4010))),
+                      Text(A4MegCopy.a4_meg_vervet_poeng(points, r.pointsForMe), style: megInter(10.5, FontWeight.w700, color: Color(0xFF5A4010))),
                     ],
                   ),
                 ),
@@ -831,7 +854,7 @@ class _BillettBoard extends StatelessWidget {
                   decoration: const BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(center: Alignment(-.32, -.44), colors: [Color(0xFFFFF6DE), Color(0xFFD69A23)])),
                 ),
                 const SizedBox(width: 9),
-                Expanded(child: Text(A4MegCopy.a4_meg_verv_mnd(r.qualifiedThisMonth, r.monthlyCap), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF3A2708), height: 1.4))),
+                Expanded(child: Text(A4MegCopy.a4_meg_verv_mnd(r.qualifiedThisMonth, r.monthlyCap), style: megInter(11, FontWeight.w800, color: Color(0xFF3A2708), height: 1.4))),
               ],
             ),
           ),
@@ -857,11 +880,18 @@ class _LadderStep extends StatelessWidget {
     final metal = naa == null ? null : (naa!.at >= 25 ? medalFor('Gull') : (naa!.at >= 10 ? medalFor('Sølv') : medalFor('Bronse')));
 
     return Container(
+      key: const Key('meg-billett-stige'),
       padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFF8E4), Color(0xFFF2E2B6)]),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .95), width: 1.5)),
+        // linear-gradient(180deg,#FFF8E4,#F2E2B6) with the inset top light and
+        // the inset bottom shade (inset 0 -2px 4px rgba(120,80,10,.18)).
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.white, Color(0xFFFFF8E4), Color(0xFFF5E8C3), Color(0xFFF2E2B6), Color(0xFFE6D19C)],
+          stops: [0, .025, .6, .94, 1],
+        ),
       ),
       child: Column(
         children: [
@@ -872,37 +902,51 @@ class _LadderStep extends StatelessWidget {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: metal == null ? const Color.fromRGBO(120, 80, 10, .12) : null,
+                  // No step yet: rgba(120,80,10,.12) on the cream, drawn opaque so the
+                  // shadow cannot show through (CSS never paints it under the fill).
+                  color: metal == null ? const Color(0xFFEBDDBA) : null,
                   gradient: metal == null ? null : RadialGradient(center: const Alignment(-.32, -.48), colors: metal.gradient, stops: metal.stops),
-                  boxShadow: const [BoxShadow(color: Color.fromRGBO(120, 80, 10, .8), offset: Offset(0, 2), blurRadius: 5, spreadRadius: -2)],
+                  boxShadow: metal == null ? null : const [BoxShadow(color: Color.fromRGBO(120, 80, 10, .55), offset: Offset(0, 2), blurRadius: 4, spreadRadius: -2)],
                 ),
-                child: Icon(Icons.star_border_rounded, size: 17, color: metal == null ? const Color(0xFF7A5A16) : (naa!.at >= 10 ? const Color(0xFF3A2708) : const Color(0xFFFFF3E4))),
+                child: Center(child: _Star(color: metal == null ? const Color(0xFF7A5A16) : (naa!.at >= 10 ? const Color(0xFF3A2708) : const Color(0xFFFFF3E4)))),
               ),
               const SizedBox(width: 9),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(naa == null ? A4MegCopy.a4_meg_ingen_merke : A4MegCopy.a4_meg_naadd(naa!.name), style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, letterSpacing: .95, color: Color(0xFF7A5A16))),
+                    Text(naa == null ? A4MegCopy.a4_meg_ingen_merke : A4MegCopy.a4_meg_naadd(naa!.name), style: megInter(9.5, FontWeight.w800, letterSpacing: .95, color: Color(0xFF7A5A16))),
                     const SizedBox(height: 2),
                     Text(
                       neste == null ? A4MegCopy.a4_meg_toppen : A4MegCopy.a4_meg_neste_billett(neste!.name, neste!.at, neste!.bonus),
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF3A2708), height: 1.25),
+                      style: megInter(12, FontWeight.w800, color: Color(0xFF3A2708), height: 1.25),
                     ),
                   ],
                 ),
               ),
-              if (neste != null) Text(A4MegCopy.a4_meg_igjen(neste!.at - total), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF5A4010))),
+              if (neste != null) Text(A4MegCopy.a4_meg_igjen(neste!.at - total), style: megInter(11, FontWeight.w800, color: Color(0xFF5A4010))),
             ],
           ),
           const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, c) => Container(
+              key: const Key('meg-billett-stige-bar'),
               height: 9,
-              decoration: BoxDecoration(color: const Color.fromRGBO(120, 80, 10, .14), borderRadius: BorderRadius.circular(99)),
+              width: c.maxWidth,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(99),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color.fromRGBO(120, 80, 10, .26), Color.fromRGBO(120, 80, 10, .14), Color.fromRGBO(120, 80, 10, .12)],
+                  stops: [0, .45, 1],
+                ),
+              ),
               child: Stack(
                 children: [
                   Container(
+                    height: 9,
                     width: c.maxWidth * pct,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(99),
@@ -992,12 +1036,12 @@ class _FriendTicket extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 17),
-              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF4A3208))),
+              Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: megInter(12.5, FontWeight.w800, color: Color(0xFF4A3208))),
               const SizedBox(height: 5),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                 decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(120, 80, 10, .14)),
-                child: Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Color(0xFF5A4010))),
+                child: Text(status, maxLines: 1, overflow: TextOverflow.ellipsis, style: megInter(9, FontWeight.w800, color: Color(0xFF5A4010))),
               ),
             ],
           ),
@@ -1007,6 +1051,23 @@ class _FriendTicket extends StatelessWidget {
 
     final shown = delivered ? MegShine(borderRadius: BorderRadius.circular(13), period: const Duration(milliseconds: 4400), delay: Duration.zero, opacity: .5, child: body) : body;
     return GestureDetector(key: kind == _Kind.next ? const Key('meg-billett-neste') : null, onTap: onTap, child: shown);
+  }
+}
+
+/// The design's outline star (`M12 3l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.2l5.9-.8z`).
+class _Star extends StatelessWidget {
+  const _Star({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final hex = '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
+    return SvgPicture.string(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.2l5.9-.8z" fill="none" stroke="$hex" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      width: 16,
+      height: 16,
+    );
   }
 }
 

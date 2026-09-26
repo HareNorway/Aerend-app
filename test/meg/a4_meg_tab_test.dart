@@ -38,7 +38,7 @@ void main() {
     await t.pump(const Duration(milliseconds: 50));
   }
 
-  const balance = PointsBalance(
+  final balance = PointsBalance(
     available: 1340,
     pending: 30,
     earned12m: 3600,
@@ -47,6 +47,8 @@ void main() {
     tierName: 'Gull',
     nextTierName: 'Platina',
     pointsToNextTier: 2400,
+    reviewAt: DateTime(2027, 3, 14),
+    keepGap: 400,
     tiers: [
       TierStep(index: 0, name: 'Bronse', threshold: 0),
       TierStep(index: 1, name: 'Sølv', threshold: 1000),
@@ -313,7 +315,29 @@ void main() {
     expect(find.text('Din egen båt i Vågen'), findsOneWidget);
     expect(find.text('Middag for to på Bryggen'), findsOneWidget);
     expect(find.text('Fløybanen for to'), findsOneWidget);
+    expect(find.text('Neste vurdering 14. mars · du er 400 poeng unna å bli på Gull.'), findsOneWidget);
     expect(find.text('Nivået påvirkes aldri av at du bruker poeng.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Del in the hero and in the Gullbilletten row open the Gullbilletten sheet', (tester) async {
+    tall(tester);
+    final p = api()..referralValue = const Referral(code: 'KARI200', ladder: [VervStep(at: 3, name: 'Bronsebillett', bonus: 100)]);
+    await tester.pumpWidget(app(p));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('meg-del')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('meg-billett-sheet')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('meg-ark-lukk')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.ensureVisible(find.byKey(const Key('meg-del-2')));
+    await tester.tap(find.byKey(const Key('meg-del-2')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('meg-billett-sheet')), findsOneWidget);
+    expect(find.byKey(const Key('meg-billett-stige')), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
   });
 
