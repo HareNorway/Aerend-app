@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+export '../kit/bergen_css.dart';
+
 import '../../common/home/bergen/bergen_kit.dart';
 
 /// The design frame for Fjordfiske: 390 × 844 with no status bar. The
@@ -96,22 +98,3 @@ class FiskeScope extends InheritedWidget {
       old.safeBottom != safeBottom;
 }
 
-/// CSS `linear-gradient(<deg>, …)` → the two alignments Flutter wants.
-LinearGradient cssLinear(
-  double deg,
-  List<Color> colors, [
-  List<double>? stops,
-]) {
-  final r = deg * math.pi / 180;
-  final dx = math.sin(r);
-  final dy = -math.cos(r);
-  return LinearGradient(
-    begin: Alignment(-dx, -dy),
-    end: Alignment(dx, dy),
-    colors: colors,
-    stops: stops,
-  );
-}
-
-/// CSS `rgba(r,g,b,a)`.
-Color rgba(int r, int g, int b, double a) => Color.fromRGBO(r, g, b, a);
