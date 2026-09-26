@@ -99,7 +99,9 @@ class FeedPostCard extends StatefulWidget {
     final m = item.media;
     if (m.width <= 0 || m.height <= 0) return 230;
     final h = 358 * m.height / m.width;
-    return h.clamp(200.0, 260.0);
+    // The design's cards run 220–250px; below ~228 the header and the rail
+    // meet, so a wide video crops rather than shrinks.
+    return h.clamp(230.0, 256.0);
   }
 
   /// `400 m` / `1,4 km`.
@@ -271,12 +273,18 @@ class _FeedPostCardState extends State<FeedPostCard>
         ),
         border: Border.all(color: const Color(0x33FFFFFF)),
         boxShadow: const [
-          BoxShadow(color: Color(0x4004121A), offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x4004121A),
+            offset: Offset(0, 2),
+            blurRadius: 1,
+            blurStyle: BlurStyle.outer,
+          ),
           BoxShadow(
             color: Color(0xD904121A),
             offset: Offset(0, 28),
             blurRadius: 44,
             spreadRadius: -22,
+            blurStyle: BlurStyle.outer,
           ),
         ],
       ),
@@ -305,7 +313,8 @@ class _FeedPostCardState extends State<FeedPostCard>
     final item = widget.item;
     final video = item.media.isVideo;
     final poster = item.media.posterUrl(FeedCloudinaryConfig.cloudName);
-    final playing = widget.playing && _video != null && _video!.value.isInitialized;
+    final playing =
+        widget.playing && _video != null && _video!.value.isInitialized;
 
     return Stack(
       fit: StackFit.expand,
@@ -361,19 +370,10 @@ class _FeedPostCardState extends State<FeedPostCard>
           right: 10 * s,
           child: _header(context),
         ),
-        Positioned(
-          top: 58 * s,
-          left: 12 * s,
-          child: _badge(context),
-        ),
-        Positioned(
-          right: 10 * s,
-          bottom: 12 * s,
-          child: _rail(context),
-        ),
+        Positioned(top: 58 * s, left: 12 * s, child: _badge(context)),
+        Positioned(right: 10 * s, bottom: 12 * s, child: _rail(context)),
         if (video) ...[
-          if (!widget.playing)
-            Center(child: _playButton(context)),
+          if (!widget.playing) Center(child: _playButton(context)),
           Positioned(
             right: 64 * s,
             top: 60 * s,
@@ -408,7 +408,11 @@ class _FeedPostCardState extends State<FeedPostCard>
     final item = widget.item;
     final store = widget.store;
     final shadow = [
-      const Shadow(color: Color(0x99000A10), blurRadius: 6, offset: Offset(0, 1)),
+      const Shadow(
+        color: Color(0x99000A10),
+        blurRadius: 6,
+        offset: Offset(0, 1),
+      ),
     ];
     final metaParts = <String>[
       if ((item.bydel ?? item.locationName ?? '').isNotEmpty)
@@ -534,6 +538,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                   offset: Offset(0, 6),
                   blurRadius: 12,
                   spreadRadius: -6,
+                  blurStyle: BlurStyle.outer,
                 ),
               ],
             ),
@@ -611,6 +616,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                 offset: Offset(0, 6),
                 blurRadius: 14,
                 spreadRadius: -8,
+                blurStyle: BlurStyle.outer,
               ),
             ],
           ),
@@ -644,7 +650,11 @@ class _FeedPostCardState extends State<FeedPostCard>
           11,
           weight: FontWeight.w800,
           shadows: const [
-            Shadow(color: Color(0x66000A10), blurRadius: 4, offset: Offset(0, 1)),
+            Shadow(
+              color: Color(0x66000A10),
+              blurRadius: 4,
+              offset: Offset(0, 1),
+            ),
           ],
         ),
       ),
@@ -722,6 +732,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                 offset: Offset(0, 10),
                 blurRadius: 18,
                 spreadRadius: -8,
+                blurStyle: BlurStyle.outer,
               ),
             ],
           ),
@@ -776,6 +787,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                   offset: Offset(0, 12),
                   blurRadius: 22,
                   spreadRadius: -10,
+                  blurStyle: BlurStyle.outer,
                 ),
               ],
             ),
@@ -914,7 +926,10 @@ class _FeedPostCardState extends State<FeedPostCard>
             SizedBox(height: 10 * s),
             Container(
               key: Key('a1_feed_hint_${item.id}'),
-              padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 8 * s),
+              padding: EdgeInsets.symmetric(
+                horizontal: 11 * s,
+                vertical: 8 * s,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0x1F5CE0B8),
                 borderRadius: BorderRadius.circular(14 * s),
@@ -1037,25 +1052,39 @@ class _FeedPostCardState extends State<FeedPostCard>
                   ),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: primary ? const Color(0x4DFFFFFF) : const Color(0x38FFFFFF),
+              color: primary
+                  ? const Color(0x4DFFFFFF)
+                  : const Color(0x38FFFFFF),
             ),
             boxShadow: primary
                 ? const [
-                    BoxShadow(color: Color(0x8CA03C14), offset: Offset(0, 4)),
+                    BoxShadow(
+                      color: Color(0x8CA03C14),
+                      offset: Offset(0, 4),
+                      blurRadius: 1,
+                      blurStyle: BlurStyle.outer,
+                    ),
                     BoxShadow(
                       color: Color(0xCCF26D3D),
                       offset: Offset(0, 14),
                       blurRadius: 24,
                       spreadRadius: -10,
+                      blurStyle: BlurStyle.outer,
                     ),
                   ]
                 : const [
-                    BoxShadow(color: Color(0x6604121A), offset: Offset(0, 3)),
+                    BoxShadow(
+                      color: Color(0x6604121A),
+                      offset: Offset(0, 3),
+                      blurRadius: 1,
+                      blurStyle: BlurStyle.outer,
+                    ),
                     BoxShadow(
                       color: Color(0xE604121A),
                       offset: Offset(0, 12),
                       blurRadius: 20,
                       spreadRadius: -14,
+                      blurStyle: BlurStyle.outer,
                     ),
                   ],
           ),
@@ -1131,9 +1160,10 @@ class _GlowState extends State<_Glow> with SingleTickerProviderStateMixin {
     final c = _c;
     if (c == null) return widget.child;
     return FadeTransition(
-      opacity: Tween<double>(begin: .7, end: 1).animate(
-        CurvedAnimation(parent: c, curve: Curves.easeInOut),
-      ),
+      opacity: Tween<double>(
+        begin: .7,
+        end: 1,
+      ).animate(CurvedAnimation(parent: c, curve: Curves.easeInOut)),
       child: widget.child,
     );
   }

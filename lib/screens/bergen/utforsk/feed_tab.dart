@@ -224,9 +224,7 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
   }
 
   void _share(FeedTabItem item) {
-    Share.share(
-      UtforskCopy.a1_feed_share_text(item.title, item.publisherName),
-    );
+    Share.share(UtforskCopy.a1_feed_share_text(item.title, item.publisherName));
   }
 
   void _cta(FeedTabItem item) {
@@ -358,7 +356,10 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
             pressDy: 0,
             pressScale: .96,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 4 * s),
+              padding: EdgeInsets.symmetric(
+                horizontal: 10 * s,
+                vertical: 4 * s,
+              ),
               decoration: BoxDecoration(
                 color: const Color(0x295CE0B8),
                 borderRadius: BorderRadius.circular(999),
@@ -495,7 +496,9 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
               padding: EdgeInsets.all(14 * s),
               child: Row(
                 children: [
-                  _Bob(child: bergenSvg('bag3d', width: 70 * s, height: 70 * s)),
+                  _Bob(
+                    child: bergenSvg('bag3d', width: 70 * s, height: 70 * s),
+                  ),
                   SizedBox(width: 14 * s),
                   Expanded(
                     child: Column(
@@ -516,7 +519,10 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
                         SizedBox(height: 3 * s),
                         Text(
                           valueKr > 0
-                              ? UtforskCopy.a1_feed_promo_price(priceKr, valueKr)
+                              ? UtforskCopy.a1_feed_promo_price(
+                                  priceKr,
+                                  valueKr,
+                                )
                               : UtforskCopy.a1_utforsk_pose_price(priceKr),
                           style: bDisplay(
                             context,
@@ -592,6 +598,7 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
         offset: Offset(0, 24),
         blurRadius: 40,
         spreadRadius: -22,
+        blurStyle: BlurStyle.outer,
       ),
     ],
   );
@@ -648,7 +655,9 @@ class _Orb extends StatelessWidget {
                   curve: curve,
                   child: AnimatedContainer(
                     duration: duration,
-                    curve: curve,
+                    // The decoration lerps shadows; an overshooting curve
+                    // would take a blur radius below zero mid-flight.
+                    curve: Curves.easeOutCubic,
                     width: 52 * s,
                     height: 52 * s,
                     decoration: BoxDecoration(
@@ -671,8 +680,14 @@ class _Orb extends StatelessWidget {
                             ),
                       boxShadow: active
                           ? const [
-                              BoxShadow(color: Color(0xFF12333D), spreadRadius: 3),
-                              BoxShadow(color: Color(0x59000000), spreadRadius: 4),
+                              BoxShadow(
+                                color: Color(0xFF12333D),
+                                spreadRadius: 3,
+                              ),
+                              BoxShadow(
+                                color: Color(0x59000000),
+                                spreadRadius: 4,
+                              ),
                               BoxShadow(
                                 color: Color(0xFFC4491A),
                                 offset: Offset(0, 3),
@@ -683,27 +698,29 @@ class _Orb extends StatelessWidget {
                                 offset: Offset(0, 12),
                                 blurRadius: 18,
                                 spreadRadius: -6,
+                                blurStyle: BlurStyle.outer,
                               ),
                             ]
                           : const [
                               BoxShadow(
                                 color: Color(0xD90B262D),
                                 offset: Offset(0, 2),
+                                blurRadius: 1,
+                                blurStyle: BlurStyle.outer,
                               ),
                               BoxShadow(
                                 color: Color(0xBF0F2D37),
                                 offset: Offset(0, 7),
                                 blurRadius: 11,
                                 spreadRadius: -5,
+                                blurStyle: BlurStyle.outer,
                               ),
                             ],
                     ),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        Center(
-                          child: feedIcon(FeedIcons.orb(slug), 26 * s),
-                        ),
+                        Center(child: feedIcon(FeedIcons.orb(slug), 26 * s)),
                         bergenInsetTop(radius: 999, alpha: active ? .45 : .28),
                         if (hasNew)
                           Positioned(
@@ -726,6 +743,7 @@ class _Orb extends StatelessWidget {
                                     offset: Offset(0, 3),
                                     blurRadius: 6,
                                     spreadRadius: -2,
+                                    blurStyle: BlurStyle.outer,
                                   ),
                                 ],
                               ),
@@ -797,6 +815,7 @@ class FeedDriftNotice extends StatelessWidget {
             offset: Offset(0, 20),
             blurRadius: 34,
             spreadRadius: -18,
+            blurStyle: BlurStyle.outer,
           ),
         ],
       ),
@@ -963,12 +982,18 @@ class _OrangePill extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: const Color(0x4DFFFFFF)),
           boxShadow: const [
-            BoxShadow(color: Color(0x8CA03C14), offset: Offset(0, 3)),
+            BoxShadow(
+              color: Color(0x8CA03C14),
+              offset: Offset(0, 3),
+              blurRadius: 1,
+              blurStyle: BlurStyle.outer,
+            ),
             BoxShadow(
               color: Color(0xCCF26D3D),
               offset: Offset(0, 12),
               blurRadius: 22,
               spreadRadius: -10,
+              blurStyle: BlurStyle.outer,
             ),
           ],
         ),
