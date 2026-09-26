@@ -145,6 +145,14 @@ Append a line; the owner ticks it when done.
 - [ ] agil-1 → `agil-ui-meg`: `PointsAppApi.pick()`'s prize map carries no
       per-prize tint / art; the Premiefangst card tints by `tier_band` and picks
       art by `type` until the shelf payload names them.
+- [x] agil-1 → `agil-ui-meg` (done by agil-1, 2026-09-26, seam defect):
+      `app/Points/Sources/WebhookSignalSource.php` read `ops_feed_inbox.payload`
+      as the bare payload, but `FeedBridge::claimInbound` stores the whole
+      envelope, so no real feed post ever became a suggestion. The reader now
+      unwraps a stored envelope; `tests/Feature/Ops/FeedSignalSeamTest` guards
+      the seam. Local dev: the tray fills only after
+      `POINTS_SIGNAL_SOURCE=webhook php artisan agent:match-daily --user=<id>`
+      with inbox rows and the customer's category likes (chips) in place.
 
 ## 6. Merge day
 
