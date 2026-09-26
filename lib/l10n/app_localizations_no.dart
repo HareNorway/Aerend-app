@@ -5851,22 +5851,6 @@ class AppLocalizationsNo extends AppLocalizations {
   }
 
   @override
-  String get ops_utforsk_fiske_intro =>
-      'For kveldene du bare vil se — aldri i veien når du er sulten.';
-
-  @override
-  String ops_utforsk_fiske_napp(int n) {
-    return '$n napp igjen i dag';
-  }
-
-  @override
-  String get ops_utforsk_fiske_line =>
-      'Kast ut — finn ting du ikke visste du ville ha. Høyre lagrer, opp legger i kurven.';
-
-  @override
-  String get ops_utforsk_fiske_cta => 'Kast ut';
-
-  @override
   String get ops_utforsk_pose_title => 'Forundringsposer i nærheten';
 
   @override

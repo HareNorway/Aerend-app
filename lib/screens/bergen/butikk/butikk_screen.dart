@@ -9,6 +9,7 @@ import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
+import '../kit/bergen_fav_heart.dart';
 import '../kit/bergen_kit.dart';
 import 'butikk_copy.dart';
 import 'info_sheet.dart';
@@ -326,6 +327,17 @@ class _RestaurantButikkBodyState extends State<RestaurantButikkBody> {
                             color: Colors.white,
                           ),
                         ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 16 * s,
+                      top: safeTop + 10 * s,
+                      child: BergenFavHeart(
+                        key: const Key('a1_butikk_fav'),
+                        storeId: store.id,
+                        size: 40 * s,
+                        iconSize: 20 * s,
+                        onDark: true,
                       ),
                     ),
                     Positioned(

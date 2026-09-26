@@ -22,12 +22,6 @@ abstract final class UtforskCopy {
   static String get a1_utforsk_drift_title => languages.ops_utforsk_drift_title;
   static String a1_utforsk_drift_pinned(String until) => languages.ops_utforsk_drift_pinned(until);
 
-  // ── Fjordfiske landing ──────────────────────────────────────────────────
-  static String get a1_utforsk_fiske_intro => languages.ops_utforsk_fiske_intro;
-  static String a1_utforsk_fiske_napp(int n) => languages.ops_utforsk_fiske_napp(n);
-  static String get a1_utforsk_fiske_line => languages.ops_utforsk_fiske_line;
-  static String get a1_utforsk_fiske_cta => languages.ops_utforsk_fiske_cta;
-
   // ── Forundringspose tab ─────────────────────────────────────────────────
   static String get a1_utforsk_pose_title => languages.ops_utforsk_pose_title;
   static String a1_utforsk_pose_left_today(int n) => languages.ops_utforsk_pose_left_today(n);

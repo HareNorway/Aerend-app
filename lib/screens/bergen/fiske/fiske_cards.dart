@@ -6,6 +6,7 @@ import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/suggestion_models.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
+import '../poeng/prize_art.dart';
 import 'fiske_copy.dart';
 import 'fiske_frame.dart';
 import 'fiske_game.dart';
@@ -460,7 +461,8 @@ List<Color> fiskeMetal(int band) => switch (band) {
   _ => const [Color(0xFFF6DCC8), Color(0xFFC98A62), Color(0xFF8E5B38)],
 };
 
-/// The prize hero tint per band (design `PREMIER[].tint`, one per band).
+/// The prize hero tint per band: only for a pick with no slug and no name the
+/// per-prize art ([PrizeArt]) can place.
 List<Color> fiskePrizeTint(int band) => switch (band) {
   >= 3 => const [Color(0xFFDCE9EC), Color(0xFF5C8391)],
   2 => const [Color(0xFFCFE3E8), Color(0xFF6FA3B2)],
@@ -487,13 +489,16 @@ class FiskePremieCard extends StatelessWidget {
     final prize = pick.prize ?? const <String, dynamic>{};
     final band = (prize['tier_band'] as num?)?.toInt() ?? 0;
     final tier = (prize['tier_name'] as String?) ?? '';
-    final type = (prize['type'] as String?) ?? '';
-    final (asset, w, h) = switch (type) {
-      'delivery' || 'auto' => ('longship3d', 96.0, 50.0),
-      'donation' || 'gave' || 'club' => ('varde3d', 58.0, 72.0),
-      'food' || 'kode' => ('ico_mat', 74.0, 70.0),
-      _ => ('ico_gaver', 70.0, 74.0),
-    };
+    // Per prize, as the design's PREMIER list and Premiehylla draw it: the
+    // shelf card the pick returns carries the slug and the name.
+    final art = PrizeArt.of(
+      slug: prize['slug'] as String?,
+      name: (prize['name'] as String?) ?? '',
+    );
+    final (asset, w, h) = (art.icon, art.width, art.height);
+    final tint = (prize['slug'] == null && prize['name'] == null)
+        ? fiskePrizeTint(band)
+        : art.tint;
     final metal = fiskeMetal(band);
     final price = pick.pointPrice;
     return _CardShell(
@@ -505,7 +510,7 @@ class FiskePremieCard extends StatelessWidget {
           Stack(
             children: [
               _Hero(
-                tint: fiskePrizeTint(band),
+                tint: tint,
                 // `left:50%;top:50%;translate(-50%,-46%)`.
                 art: bergenSvg(asset),
                 artRect: Rect.fromLTWH(125 - w / 2, 75 - h * .46, w, h),

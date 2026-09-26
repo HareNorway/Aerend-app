@@ -1,64 +1,119 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../utils/shared_pref_utill.dart';
-import '../../deliveryService/favouriteStore/favourite_store_screen.dart';
+import '../../../data/ops/favourite_stores.dart';
+import '../kit/bergen_fav_heart.dart';
 import 'a3_scaffold.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_copy.dart';
 
-/// Favoritter (design `favoritter` ≈L5960): the intro, the empty state with
-/// "Kast ut" (→ Fjordfiske), the list through the existing
-/// [FavouriteStoreScreen] (favourite-store-lists), and the footer line about
-/// "Bestill igjen".
-class FavoritterScreen extends StatelessWidget {
+/// Favoritter (design `favoritter` ≈L5960): the intro and "Kast ut"
+/// (→ Fjordfiske) while there are none, otherwise one row per hearted store
+/// (`favListe`: name, meta, its heart to un-heart, tap to open the store),
+/// then the footer line about "Bestill igjen".
+///
+/// Reads `ops.customer.favourites` through [FavouriteStores], the same list
+/// every Bergen heart writes, so a store hearted on Hjem, on its page or in
+/// Fjordfiske is here whatever its service category.
+class FavoritterScreen extends StatefulWidget {
   const FavoritterScreen({super.key});
 
-  LatLng _here() {
-    double read(String key) {
-      try {
-        return double.tryParse(prefGetString(key)) ?? 0;
-      } catch (_) {
-        return 0;
-      }
-    }
+  @override
+  State<FavoritterScreen> createState() => _FavoritterScreenState();
+}
 
-    final lat = read('latitude');
-    final lng = read('longitude');
-    return (lat == 0 && lng == 0) ? const LatLng(60.3913, 5.3221) : LatLng(lat, lng);
+class _FavoritterScreenState extends State<FavoritterScreen> {
+  final FavouriteStores _favs = FavouriteStores.instance;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _favs.refresh().whenComplete(() {
+      if (mounted) setState(() => _loading = false);
+    });
   }
+
+  String _meta(FavouriteStore s) => [
+    if (s.etaMinutes != null) '${s.etaMinutes} min',
+    s.open ? 'Åpen nå' : 'Stengt nå',
+    if (s.rating != null && s.rating! > 0) '★ ${s.rating!.toStringAsFixed(1)}',
+  ].join(' · ');
+
+  void _open(FavouriteStore s) => BergenRoutes.pushOr(
+    context,
+    '/bergen/butikk/${s.storeId}',
+    arguments: {'name': s.name},
+    orElse: () => showBergenToast(context, BergenRoutes.kommerSnart),
+  );
 
   @override
   Widget build(BuildContext context) {
     return A3Scaffold(
       title: A3MegCopy.a3_meg_fav_title,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          BergenCard(
-            onDark: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(A3MegCopy.a3_meg_fav_tom, key: const Key('fav-intro'), style: BergenTokens.display(BergenTokens.textSection, color: Colors.white)),
-                const SizedBox(height: 4),
-                Text(A3MegCopy.a3_meg_fav_tom_sub, style: BergenTokens.text(BergenTokens.textSmall, color: A3Ink.sub)),
-                const SizedBox(height: 10),
-                BergenCta3d(key: const Key('fav-kast'), label: A3MegCopy.a3_meg_fav_kast, icon: Icons.phishing_rounded, onPressed: () => Navigator.of(context).pushNamed('/bergen/fjordfiske')),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          A3Row(
-            key: const Key('fav-liste'),
-            title: A3MegCopy.a3_meg_fav_title,
-            subtitle: 'Butikkene du har merket med hjerte',
-            icon: Icons.favorite_rounded,
-            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => FavouriteStoreScreen(selectedLatLng: _here()))),
-          ),
-          const SizedBox(height: 8),
-          Text(A3MegCopy.a3_meg_fav_fot, style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w600, color: A3Ink.muted)),
-        ],
+      child: ValueListenableBuilder<Set<int>>(
+        valueListenable: _favs.ids,
+        builder: (context, ids, _) {
+          // A row un-hearted here leaves at once; the server list follows.
+          final stores = _favs.stores.where((s) => ids.contains(s.storeId)).toList();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (stores.isEmpty && !_loading)
+                BergenCard(
+                  onDark: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(A3MegCopy.a3_meg_fav_tom, key: const Key('fav-intro'), style: BergenTokens.display(BergenTokens.textSection, color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text(A3MegCopy.a3_meg_fav_tom_sub, style: BergenTokens.text(BergenTokens.textSmall, color: A3Ink.sub)),
+                      const SizedBox(height: 10),
+                      BergenCta3d(key: const Key('fav-kast'), label: A3MegCopy.a3_meg_fav_kast, icon: Icons.phishing_rounded, onPressed: () => Navigator.of(context).pushNamed('/bergen/fjordfiske')),
+                    ],
+                  ),
+                ),
+              if (stores.isEmpty && _loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                ),
+              if (stores.isNotEmpty)
+                Column(
+                  key: const Key('fav-liste'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final s in stores)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: BergenCard(
+                          key: Key('fav-store-${s.storeId}'),
+                          onDark: true,
+                          onTap: () => _open(s),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.display(BergenTokens.textBody, color: Colors.white)),
+                                    const SizedBox(height: 2),
+                                    Text(_meta(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(BergenTokens.textSmall, color: A3Ink.sub)),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              BergenFavHeart(storeId: s.storeId, size: 36, iconSize: 18, onDark: true),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              const SizedBox(height: 8),
+              Text(A3MegCopy.a3_meg_fav_fot, style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w600, color: A3Ink.muted)),
+            ],
+          );
+        },
       ),
     );
   }

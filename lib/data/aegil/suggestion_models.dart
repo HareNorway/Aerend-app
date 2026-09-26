@@ -14,6 +14,10 @@ class Suggestion {
     this.category,
     this.postId,
     this.expiresAt,
+    this.bydel,
+    this.storeName,
+    this.etaMinutes,
+    this.priceOre,
   });
 
   final int id;
@@ -33,6 +37,13 @@ class Suggestion {
   final String? postId;
   final DateTime? expiresAt;
 
+  /// Card facts (Fjordfiske): the post's district, and the store name, delivery
+  /// minutes and today's price in øre read live by the server. Null when unknown.
+  final String? bydel;
+  final String? storeName;
+  final int? etaMinutes;
+  final int? priceOre;
+
   factory Suggestion.fromJson(Map<String, dynamic> json) => Suggestion(
         id: (json['id'] as num?)?.toInt() ?? 0,
         reasonCode: (json['reason_code'] as String?) ?? '',
@@ -47,6 +58,10 @@ class Suggestion {
         expiresAt: json['expires_at'] is String
             ? DateTime.tryParse(json['expires_at'] as String)
             : null,
+        bydel: json['bydel'] as String?,
+        storeName: json['store_name'] as String?,
+        etaMinutes: (json['eta_minutes'] as num?)?.toInt(),
+        priceOre: (json['price_ore'] as num?)?.toInt(),
       );
 }
 

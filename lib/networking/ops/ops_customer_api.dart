@@ -188,6 +188,20 @@ class OpsCustomerApi {
     return json == null ? null : FiskeDay.fromJson(json);
   }
 
+  /// `ops.customer.favourites` — the customer's favourite stores, newest
+  /// first (`store_ids` plus a row per store). Null when offline or logged out.
+  Future<Map<String, dynamic>?> favourites() =>
+      _guarded(() => _get('${_base}favourites'));
+
+  /// `ops.customer.favourites.set` — heart or un-heart one store. Null when
+  /// the write did not land (offline, logged out, unknown store).
+  Future<Map<String, dynamic>?> setFavourite(int storeId, bool favourite) =>
+      _guarded(
+        () => _post('${_base}favourites/$storeId', {
+          'is_favourite': favourite ? 1 : 0,
+        }),
+      );
+
   // ── other agil-1 reads (Phase 2+) ───────────────────────────────────────
 
   /// Forundringsposer: `GET /api/ops/products?kind=pose`. Empty on failure.

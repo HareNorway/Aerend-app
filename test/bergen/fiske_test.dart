@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
@@ -8,6 +9,7 @@ import 'package:aerend_customer/data/ops/butikk_models.dart';
 import 'package:aerend_customer/data/ops/fiske_models.dart';
 import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
+import 'package:aerend_customer/screens/bergen/fiske/fiske_cards.dart';
 import 'package:aerend_customer/screens/bergen/fiske/fiske_copy.dart';
 import 'package:aerend_customer/screens/bergen/fiske/fiske_game.dart';
 import 'package:aerend_customer/screens/bergen/fiske/fjordfiske_screen.dart';
@@ -123,6 +125,37 @@ void main() {
     await bootstrapGlobals();
     OpsCustomerApi.networkEnabled = false;
     FeedPostCard.loadImages = false;
+  });
+
+  group('Premiefangst art (note point 8)', () {
+    String? artOf(WidgetTester t) {
+      final svg = t.widget<SvgPicture>(
+        find.descendant(
+          of: find.byKey(const Key('a1_fiske_premiefangst')),
+          matching: find.byType(SvgPicture),
+        ).first,
+      );
+      final loader = svg.bytesLoader;
+      return loader is SvgAssetLoader ? loader.assetName : null;
+    }
+
+    Widget card(Map<String, dynamic> prize) => MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: FiskePremieCard(pick: AegilPick(prize: prize, reason: 'Fordi')),
+        ),
+      ),
+    );
+
+    testWidgets('the art follows the prize slug, as on Premiehylla', (t) async {
+      await t.pumpWidget(card({'id': 2, 'slug': 'kanelboller', 'name': 'Kanelboller', 'point_price': 150, 'tier_band': 0, 'tier_name': 'Bronse'}));
+      expect(artOf(t), contains('meg_ico_mat'));
+
+      await t.pumpWidget(card({'id': 1, 'slug': 'gratis-levering', 'name': 'Gratis levering', 'point_price': 100, 'tier_band': 0, 'tier_name': 'Bronse'}));
+      await t.pump();
+      expect(artOf(t), contains('longship3d'));
+      expect(find.text('Bronse'), findsOneWidget);
+    });
   });
 
   group('FiskePrizeRules (design fiskePremieVelg)', () {

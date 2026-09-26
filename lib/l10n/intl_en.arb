@@ -3441,20 +3441,6 @@
       }
     }
   },
-  "ops_utforsk_fiske_intro": "For the evenings you just want to look — never in the way when you are hungry.",
-  "@ops_utforsk_fiske_intro": {},
-  "ops_utforsk_fiske_napp": "{n} bites left today",
-  "@ops_utforsk_fiske_napp": {
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "ops_utforsk_fiske_line": "Cast out — find things you did not know you wanted. Right saves, up adds to the basket.",
-  "@ops_utforsk_fiske_line": {},
-  "ops_utforsk_fiske_cta": "Cast out",
-  "@ops_utforsk_fiske_cta": {},
   "ops_utforsk_pose_title": "Surprise bags nearby",
   "@ops_utforsk_pose_title": {},
   "ops_utforsk_pose_left_today": "{n} left today",

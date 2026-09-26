@@ -71,8 +71,9 @@ void main() {
 
     await tester.pumpWidget(a3App(const FavoritterScreen()));
     await settle(tester);
+    // Logged out / none yet: the empty state with Kast ut, no list.
     expect(find.byKey(const Key('fav-kast')), findsOneWidget);
-    expect(find.byKey(const Key('fav-liste')), findsOneWidget);
+    expect(find.byKey(const Key('fav-liste')), findsNothing);
   });
 
   test('mensDuVarBorteCard is null with nothing to say', () {

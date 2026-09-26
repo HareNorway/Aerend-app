@@ -10814,30 +10814,6 @@ abstract class AppLocalizations {
   /// **'Pinned until {until}'**
   String ops_utforsk_drift_pinned(String until);
 
-  /// No description provided for @ops_utforsk_fiske_intro.
-  ///
-  /// In en, this message translates to:
-  /// **'For the evenings you just want to look — never in the way when you are hungry.'**
-  String get ops_utforsk_fiske_intro;
-
-  /// No description provided for @ops_utforsk_fiske_napp.
-  ///
-  /// In en, this message translates to:
-  /// **'{n} bites left today'**
-  String ops_utforsk_fiske_napp(int n);
-
-  /// No description provided for @ops_utforsk_fiske_line.
-  ///
-  /// In en, this message translates to:
-  /// **'Cast out — find things you did not know you wanted. Right saves, up adds to the basket.'**
-  String get ops_utforsk_fiske_line;
-
-  /// No description provided for @ops_utforsk_fiske_cta.
-  ///
-  /// In en, this message translates to:
-  /// **'Cast out'**
-  String get ops_utforsk_fiske_cta;
-
   /// No description provided for @ops_utforsk_pose_title.
   ///
   /// In en, this message translates to:

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
+import '../../../bergen/kit/bergen_fav_heart.dart';
 import 'bergen_kit.dart';
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
@@ -421,18 +422,10 @@ class _StoreCardBody extends StatelessWidget {
                     Positioned(
                       right: 8 * s,
                       top: 8 * s,
-                      child: Container(
-                        width: 30 * s,
-                        height: 30 * s,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .72),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.favorite_border_rounded,
-                          size: 15 * s,
-                          color: BergenColors.ink,
-                        ),
+                      child: BergenFavHeart(
+                        storeId: store.id,
+                        size: 30 * s,
+                        iconSize: 15 * s,
                       ),
                     ),
                   ],

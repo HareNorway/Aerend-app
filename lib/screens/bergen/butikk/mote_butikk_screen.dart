@@ -8,6 +8,7 @@ import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
+import '../kit/bergen_fav_heart.dart';
 import '../kit/bergen_kit.dart';
 import 'butikk_copy.dart';
 import 'dreieskiven.dart';
@@ -259,6 +260,14 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
                             weight: FontWeight.w800,
                             color: const Color(0xE6FFFFFF),
                           ),
+                        ),
+                        SizedBox(width: 10 * s),
+                        BergenFavHeart(
+                          key: const Key('a1_butikk_mote_fav'),
+                          storeId: store.id,
+                          size: 40 * s,
+                          iconSize: 20 * s,
+                          onDark: true,
                         ),
                       ],
                     ),

@@ -5844,22 +5844,6 @@ class AppLocalizationsDa extends AppLocalizations {
   }
 
   @override
-  String get ops_utforsk_fiske_intro =>
-      'For the evenings you just want to look — never in the way when you are hungry.';
-
-  @override
-  String ops_utforsk_fiske_napp(int n) {
-    return '$n bites left today';
-  }
-
-  @override
-  String get ops_utforsk_fiske_line =>
-      'Cast out — find things you did not know you wanted. Right saves, up adds to the basket.';
-
-  @override
-  String get ops_utforsk_fiske_cta => 'Cast out';
-
-  @override
   String get ops_utforsk_pose_title => 'Surprise bags nearby';
 
   @override

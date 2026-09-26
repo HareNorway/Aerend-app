@@ -14,7 +14,7 @@ import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../theme/bergen_tokens.dart';
 import '../../common/home/bergen/bergen_kit.dart';
-import '../../deliveryService/storeDetail/store_detail_repo.dart';
+import '../../../data/ops/favourite_stores.dart';
 import '../kit/bergen_kit.dart';
 import '../meg/a3_services.dart';
 import '../poeng/napp_entry.dart';
@@ -153,20 +153,20 @@ import 'fiske_sjo.dart';
 /// 12px 14px rgba(20,25,30,.45))` is off the bobbing layer; `myntOpp`'s
 /// `translate(-50%, …)` (a centring offset on a `left:10px` pill, which
 /// clips half the pill in the prototype) keeps only the vertical track; the
-/// suggestion payload has no `bydel` / `eta` / `pris` — the district falls
-/// back to «Bergen», the eta to «Leveres i kveld», the store and price come
-/// from `ops_butikk_api.store()` (the store name and, when the
-/// `store_product_id` is on its menu, the price); the Forundringspose /
-/// burger art of the design deck has no category here.
+/// district, store, eta and price come from the suggestion itself (`bydel`,
+/// `store_name`, `eta_minutes`, `price_ore`, read live by the server); only
+/// where the server has none does the district fall back to «Bergen», the eta
+/// to the store read or «Leveres i kveld», and the price to the store menu;
+/// the Forundringspose / burger art of the design deck has no category here.
 ///
 /// **Premiefangst** — same shell; `Fra hylla di` pill `#0F1F2B 10px 800
 /// white`; band pill `rgba(255,255,255,.9) 9.5px 800` with the 16px metal
 /// disc (`nivMetall`: Bronse / Sølv / Gull / Platina radial by `tier_band`);
 /// art centred (`translate(-50%,-46%)`, `pIw×pIh`, `bob 4s`); name `PJS 16px`,
 /// points `12.5px 800 #B9441A` "{pris} poeng · du har {har}", how `11px 600
-/// #57534B lh1.4` → [FiskePremieCard]. *Deviations:* the tint is per band
-/// (the design tints per prize); the art is by prize `type`; the band name
-/// is the app's `tier_name`.
+/// #57534B lh1.4` → [FiskePremieCard]. Tint and art are per prize, from the
+/// pick's `slug` through [PrizeArt] (the same table Premiehylla draws with);
+/// the band name is the app's `tier_name`, which the pick always carries.
 ///
 /// **Ferdig** — `top:224; 24/24; r28; padding 18; rgba(255,255,255,.88) blur
 /// 30; 1px #FFF; inset 0 2px 0 #FFF, 0 30px 50px −20px rgba(10,30,40,.7);
@@ -228,11 +228,11 @@ import 'fiske_sjo.dart';
 /// * **Water.** The baked value-noise wobble reads a touch denser than the
 ///   prototype's `feTurbulence` displacement, and the caustics are fainter;
 ///   the drift, layer count, opacities and the perspective match.
-/// * **Cards.** The district badge reads «Bergen» and the eta is the store's
-///   delivery minutes (no `bydel`/`eta` in the suggestion payload); the prize
-///   card shows the tier pill only when `pick()` carries `tier_name`. The
-///   `Napp!` pill and the `+5 poeng` coin stack at the same corner, as in the
-///   design, until the coin fades (1.7 s).
+/// * **Cards.** The deck is `?context=fiske`: the tray, then the day's next
+///   pooled suggestions, up to the server's `agent.fiske_deck_size` (8, the
+///   design deck); a customer with a thin pool sees fewer. The `Napp!` pill
+///   and the `+5 poeng` coin stack at the same corner, as in the design,
+///   until the coin fades (1.7 s).
 /// * **Type.** `vekt` plays only its opacity half (static font faces).
 /// * **Weather.** The app follows the time of day (Hjem's rule); the
 ///   prototype's default prop is regn — the two only match in the afternoon.
@@ -384,15 +384,25 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
     final built = FiskeCatch(
       suggestion: s,
       name: s.headline ?? item?.name ?? s.reason,
-      storeName: store?.name,
-      priceKr: item?.price.round(),
+      // The suggestion's own card facts first (read live by the server), the
+      // store read only where the server had nothing.
+      storeName: s.storeName ?? store?.name,
+      priceKr: s.priceOre != null
+          ? (s.priceOre! / 100).round()
+          : item?.price.round(),
       productId: s.storeProductId,
-      bydel: null,
-      eta: store?.deliveryMinutes == null
-          ? null
-          : '${store!.deliveryMinutes} min',
+      bydel: s.bydel,
+      eta: s.etaMinutes != null
+          ? '${s.etaMinutes} min'
+          : (store?.deliveryMinutes == null
+                ? null
+                : '${store!.deliveryMinutes} min'),
     );
-    if (store != null || s.storeId == null) _catches[s.id] = built;
+    final complete =
+        s.storeName != null &&
+        s.etaMinutes != null &&
+        (s.priceOre != null || s.storeProductId == null);
+    if (complete || store != null || s.storeId == null) _catches[s.id] = built;
     return built;
   }
 
@@ -527,12 +537,12 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
       await a3Try(() => _aegil.add(s.id));
       final storeId = s.storeId;
       if (storeId != null) {
+        // The same favourites every Bergen heart writes (ops.customer.favourites).
         final save =
             widget.saveFavourite ??
             (int id) async {
               if (!OpsCustomerApi.networkEnabled) return false;
-              await StoreDetailRepo().callAddFavourite(id, 1);
-              return true;
+              return FavouriteStores.instance.set(id, true);
             };
         await a3Try(() => save(storeId));
       }
