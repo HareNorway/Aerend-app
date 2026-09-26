@@ -8,6 +8,7 @@ import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:aerend_customer/data/aegil/aegil_app_repo.dart';
 import 'package:aerend_customer/data/aegil/aegil_models.dart';
 import 'package:aerend_customer/data/aegil/aegil_repo.dart';
+import 'package:aerend_customer/data/aegil/chat_card_models.dart';
 import 'package:aerend_customer/data/aegil/suggestion_models.dart';
 import 'package:aerend_customer/data/points/league_models.dart';
 import 'package:aerend_customer/data/points/points_app_repo.dart';
@@ -80,6 +81,7 @@ class FakePointsApi implements PointsAppApi {
   Mission? missionValue;
   AegilPick? pickValue;
   List<EarnResult> earnValues;
+  Referral? referralValue;
   final List<String> calls = [];
 
   @override
@@ -217,7 +219,7 @@ class FakePointsApi implements PointsAppApi {
 
   @override
   Future<Referral?> referral() async =>
-      const Referral(code: 'KARI200', link: 'https://aerend.no/r/KARI200');
+      referralValue ?? const Referral(code: 'KARI200', link: 'https://aerend.no/r/KARI200');
 
   @override
   Future<AegilPick?> pick() async {
@@ -251,6 +253,37 @@ class FakePointsApi implements PointsAppApi {
       capped: catchNumber >= 5,
     );
   }
+
+  // agil-4
+  CustomerPrefs prefsValue = const CustomerPrefs(alwaysCode: false, notificationsUnseen: 2, favourites: 2);
+
+  @override
+  Future<Mission?> acceptMission() async {
+    calls.add('accept');
+    final m = await mission();
+    return m == null ? null : Mission(id: m.id, title: m.title, body: m.body, points: m.points, state: m.state, progress: m.progress, target: m.target, wordingSource: m.wordingSource, accepted: true);
+  }
+
+  @override
+  Future<League?> setLeagueName({String? name, String? visibility}) async {
+    calls.add('leaguename:$name:$visibility');
+    return league();
+  }
+
+  @override
+  Future<CustomerPrefs?> prefs() async => prefsValue;
+
+  @override
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false}) async {
+    calls.add('prefs:$alwaysCode:$markNotificationsSeen');
+    prefsValue = CustomerPrefs(
+      alwaysCode: alwaysCode ?? prefsValue.alwaysCode,
+      notificationsUnseen: markNotificationsSeen ? 0 : prefsValue.notificationsUnseen,
+      favourites: prefsValue.favourites,
+    );
+    return prefsValue;
+  }
+
 }
 
 const kSuggestion = Suggestion(
@@ -345,6 +378,29 @@ class FakeAegilApi implements AegilAppApi {
     calls.add('door:$note');
     return note;
   }
+
+  // agil-4
+  List<Occasion> occasionsValue = const [Occasion(id: 1, person: 'Mamma', date: '2000-03-14', label: 'Bursdag', next: '2027-03-14', remindOn: '2027-03-07')];
+
+  @override
+  Future<List<Occasion>> occasions() async => occasionsValue;
+
+  @override
+  Future<List<Occasion>> addOccasion({required String person, required String date, String? label}) async {
+    calls.add('occasion:$person:$date');
+    occasionsValue = [...occasionsValue, Occasion(id: occasionsValue.length + 1, person: person, date: date, label: label)];
+    return occasionsValue;
+  }
+
+  @override
+  Future<List<Occasion>> removeOccasion(int id) async {
+    calls.add('occasion-remove:$id');
+    occasionsValue = occasionsValue.where((o) => o.id != id).toList();
+    return occasionsValue;
+  }
+
+  @override
+  Future<List<ShoppingListItem>> shoppingList() async => const [ShoppingListItem(id: 1, text: 'Melk', qty: 2, done: false, source: 'user', addedByAgent: false)];
 }
 
 class FakeAegilRepo extends AegilRepo {

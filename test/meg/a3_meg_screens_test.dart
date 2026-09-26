@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/meg/bestillinger_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/borte_entry.dart';
 import 'package:aerend_customer/screens/bergen/meg/favoritter_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/konto_screen.dart';
-import 'package:aerend_customer/screens/bergen/meg/meg_host.dart';
-import 'package:aerend_customer/screens/bergen/meg/meg_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/varsler_panel.dart';
 import 'package:aerend_customer/screens/common/notifications/notifications_dl.dart';
 
@@ -27,36 +24,6 @@ void main() {
     await t.pump();
     await t.pump(const Duration(milliseconds: 50));
   }
-
-  testWidgets('Meg: header, Gullbilletten, Poeng card, rows, Slik får du poeng, borte card', (tester) async {
-    setMensDuVarBorteForTest(const [AwayItem(id: 1, text: 'La reker i kurven', action: 'basket.add', undoable: true), AwayItem(id: 2, text: 'Sa fra om billigere melk', action: 'against_interest')]);
-    final api = FakePointsApi();
-    await tester.pumpWidget(a3App(MegScreenBody(api: api)));
-    await settle(tester);
-
-    expect(find.text('Kari fra Bergenhus'), findsOneWidget);
-    expect(find.byKey(const Key('meg-gullbillett')), findsOneWidget);
-    expect(find.textContaining('KARI200'), findsOneWidget);
-    expect(find.byKey(const Key('meg-rad-nivaa')), findsOneWidget);
-    expect(find.byKey(const Key('meg-rad-liga')), findsOneWidget);
-    expect(find.text('14. plass'), findsOneWidget);
-    expect(find.text('UKENS OPPDRAG'), findsOneWidget);
-    expect(find.byKey(const Key('meg-rad-favoritter')), findsOneWidget);
-    expect(find.byKey(const Key('meg-rad-konto')), findsOneWidget);
-    expect(find.byKey(const Key('meg-rad-bestillinger')), findsOneWidget);
-    expect(find.text('1 poeng per 10 kr du handler'), findsOneWidget);
-    expect(find.text('Nivået påvirkes aldri av at du bruker poeng'), findsWidgets);
-    expect(find.byKey(const Key('borte-card')), findsOneWidget);
-    expect(find.text('2 ting fra Ægil'), findsOneWidget);
-  });
-
-  testWidgets('MegScreen seam renders the Meg body', (tester) async {
-    A3Services.points = () => FakePointsApi();
-    A3Services.aegil = () => FakeAegilApi();
-    await tester.pumpWidget(a3App(const MegScreen()));
-    await settle(tester);
-    expect(find.byKey(const Key('meg-gullbillett')), findsOneWidget);
-  });
 
   testWidgets('Konto: rows and the reduced-motion switch', (tester) async {
     await tester.pumpWidget(a3App(const KontoScreen()));

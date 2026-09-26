@@ -7,6 +7,7 @@ class LeagueStanding {
     required this.userId,
     required this.points,
     this.bydel,
+    this.name,
   });
 
   final int rank;
@@ -14,11 +15,17 @@ class LeagueStanding {
   final int points;
   final String? bydel;
 
+  /// The chosen league name the viewer may see, else "Klatrer N" (agil-4).
+  final String? name;
+
+  String get label => name ?? 'Klatrer $rank';
+
   factory LeagueStanding.fromJson(Map<String, dynamic> json) => LeagueStanding(
         rank: (json['rank'] as num?)?.toInt() ?? 0,
         userId: (json['user_id'] as num?)?.toInt() ?? 0,
         points: (json['points'] as num?)?.toInt() ?? 0,
         bydel: json['bydel'] as String?,
+        name: json['name'] as String?,
       );
 }
 
@@ -34,6 +41,8 @@ class League {
     this.optedIn = false,
     this.tierBlind = true,
     this.capPerOrder = 200,
+    this.displayName,
+    this.visibility = 'alle',
   });
 
   final String month;
@@ -55,6 +64,11 @@ class League {
 
   /// points.league_cap_per_order — one enormous order cannot buy a month.
   final int capPerOrder;
+
+  /// "Navn i ligaen" (agil-4): the viewer's own chosen name and who may see it
+  /// (`alle` | `bydel` | `skjult`).
+  final String? displayName;
+  final String visibility;
 
   bool get isClosed => state == 'closed';
 
@@ -81,6 +95,8 @@ class League {
       optedIn: json['opted_in'] as bool? ?? false,
       tierBlind: json['tier_blind'] as bool? ?? true,
       capPerOrder: (json['cap_per_order'] as num?)?.toInt() ?? 200,
+      displayName: (league['profile'] as Map?)?['display_name'] as String?,
+      visibility: ((league['profile'] as Map?)?['visibility'] as String?) ?? 'alle',
     );
   }
 }

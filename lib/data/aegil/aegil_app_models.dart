@@ -172,6 +172,10 @@ class Referral {
     this.pointsForThem = 200,
     this.qualifiedThisMonth = 0,
     this.monthlyCap = 5,
+    this.qualifiedTotal = 0,
+    this.pointsEarned = 0,
+    this.ladder = const [],
+    this.friends = const [],
   });
 
   final String code;
@@ -181,6 +185,13 @@ class Referral {
   final int qualifiedThisMonth;
   final int monthlyCap;
 
+  /// agil-4: lifetime qualified referrals, points they brought in, the
+  /// Gullbillett ladder and the friends who used the code.
+  final int qualifiedTotal;
+  final int pointsEarned;
+  final List<VervStep> ladder;
+  final List<VervFriend> friends;
+
   factory Referral.fromJson(Map<String, dynamic> json) => Referral(
     code: (json['code'] as String?) ?? '',
     link: json['link'] as String?,
@@ -188,6 +199,10 @@ class Referral {
     pointsForThem: (json['points_for_them'] as num?)?.toInt() ?? 200,
     qualifiedThisMonth: (json['qualified_this_month'] as num?)?.toInt() ?? 0,
     monthlyCap: (json['monthly_cap'] as num?)?.toInt() ?? 5,
+    qualifiedTotal: (json['qualified_total'] as num?)?.toInt() ?? 0,
+    pointsEarned: (json['points_earned'] as num?)?.toInt() ?? 0,
+    ladder: ((json['ladder'] as List?) ?? const []).whereType<Map>().map((e) => VervStep.fromJson(e.cast<String, dynamic>())).toList(),
+    friends: ((json['friends'] as List?) ?? const []).whereType<Map>().map((e) => VervFriend.fromJson(e.cast<String, dynamic>())).toList(),
   );
 }
 
@@ -229,4 +244,70 @@ class EarnResult {
     capped: json['capped'] == true,
     duplicate: json['duplicate'] == true,
   );
+}
+
+/// "Anledninger" (agil-4): a person and a date, one reminder `leadDays` before.
+class Occasion {
+  const Occasion({
+    required this.id,
+    required this.person,
+    required this.date,
+    this.label,
+    this.next,
+    this.remindOn,
+    this.leadDays = 7,
+    this.yearly = true,
+  });
+
+  final int id;
+  final String person;
+  final String date;
+  final String? label;
+  final String? next;
+  final String? remindOn;
+  final int leadDays;
+  final bool yearly;
+
+  factory Occasion.fromJson(Map<String, dynamic> json) => Occasion(
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        person: (json['person'] as String?) ?? '',
+        date: (json['date'] as String?) ?? '',
+        label: json['label'] as String?,
+        next: json['next'] as String?,
+        remindOn: json['remind_on'] as String?,
+        leadDays: (json['lead_days'] as num?)?.toInt() ?? 7,
+        yearly: json['yearly'] != false,
+      );
+}
+
+/// One step on the Gullbillett ladder (`points.keys.verving_trapp`).
+class VervStep {
+  const VervStep({required this.at, required this.name, required this.bonus});
+
+  final int at;
+  final String name;
+  final int bonus;
+
+  factory VervStep.fromJson(Map<String, dynamic> json) => VervStep(
+        at: (json['at'] as num?)?.toInt() ?? 0,
+        name: (json['name'] as String?) ?? '',
+        bonus: (json['bonus'] as num?)?.toInt() ?? 0,
+      );
+}
+
+/// A friend who used the code: `downloaded` (claimed) or `delivered` (qualified).
+class VervFriend {
+  const VervFriend({required this.name, required this.status, this.at});
+
+  final String name;
+  final String status;
+  final String? at;
+
+  bool get delivered => status == 'delivered';
+
+  factory VervFriend.fromJson(Map<String, dynamic> json) => VervFriend(
+        name: (json['name'] as String?) ?? '',
+        status: (json['status'] as String?) ?? 'downloaded',
+        at: json['at'] as String?,
+      );
 }

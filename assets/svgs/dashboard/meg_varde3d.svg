@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 60"><defs><radialGradient id="g-stein" cx="0.35" cy="0.3" r="0.9"><stop offset="0" stop-color="#C4BAAA"></stop><stop offset="1" stop-color="#776D5F"></stop></radialGradient></defs><g id="varde3d">
+      <ellipse cx="24" cy="52" rx="17" ry="7" fill="url(#g-stein)"></ellipse>
+      <ellipse cx="24" cy="53.5" rx="17" ry="5.5" fill="rgba(30,26,20,.28)"></ellipse>
+      <ellipse cx="24" cy="50" rx="16" ry="6.5" fill="url(#g-stein)"></ellipse>
+      <ellipse cx="23" cy="41" rx="12.5" ry="6" fill="url(#g-stein)"></ellipse>
+      <ellipse cx="23" cy="43.5" rx="12" ry="3" fill="rgba(30,26,20,.22)"></ellipse>
+      <ellipse cx="25" cy="32" rx="9.5" ry="5.2" fill="url(#g-stein)"></ellipse>
+      <ellipse cx="24" cy="34.5" rx="9" ry="2.6" fill="rgba(30,26,20,.2)"></ellipse>
+      <ellipse cx="24" cy="24" rx="6" ry="4.4" fill="url(#g-stein)"></ellipse>
+      <path d="M10 50 C12 46 16 44 18 44M13 40 C15 37 18 36 19 36" stroke="rgba(255,255,255,.4)" stroke-width="1.4" stroke-linecap="round" fill="none"></path>
+    </g></svg>

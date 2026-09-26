@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="12 5 32 36"><defs><linearGradient id="ic-tre" gradientUnits="userSpaceOnUse" x1="10" y1="4" x2="30" y2="48"><stop offset="0" stop-color="#F0CE96"></stop><stop offset="0.5" stop-color="#D8A868"></stop><stop offset="1" stop-color="#A87C40"></stop></linearGradient>
+<linearGradient id="ic-stolstoff" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#FBF1DE"></stop><stop offset="1" stop-color="#DAC3A2"></stop></linearGradient></defs><g id="ico-interior">
+      <ellipse cx="30" cy="45.5" rx="19" ry="3.4" fill="rgba(12,28,36,.24)"></ellipse>
+      <path d="M13.5 36 L11.5 45M46.5 36 L48.5 45" stroke="url(#ic-tre)" stroke-width="3.6" stroke-linecap="round"></path>
+      <path d="M15 28 V15.6 C15 11.6 17.8 9 22 9 H38 C42.2 9 45 11.6 45 15.6 V28 Z" fill="url(#ic-tre)"></path>
+      <path d="M17.6 27 V16.2 C17.6 13.4 19.4 11.8 22.4 11.8 H37.6 C40.6 11.8 42.4 13.4 42.4 16.2 V27 Z" fill="url(#ic-stolstoff)"></path>
+      <path d="M17.6 27 V16.2 C17.6 13.4 19.4 11.8 22.4 11.8 H26 V27 Z" fill="rgba(255,255,255,.42)"></path>
+      <rect x="10.5" y="26.5" width="39" height="10.5" rx="4.6" fill="url(#ic-stolstoff)"></rect>
+      <path d="M10.5 31.1 C18 33.4 42 33.4 49.5 31.1 V32.4 C42 34.7 18 34.7 10.5 32.4 Z" fill="rgba(120,92,58,.18)"></path>
+      <path d="M9.4 24 V36" stroke="url(#ic-tre)" stroke-width="5" stroke-linecap="round"></path>
+      <path d="M50.6 24 V36" stroke="url(#ic-tre)" stroke-width="5" stroke-linecap="round"></path>
+      <path d="M9.4 26 V31" stroke="rgba(255,255,255,.34)" stroke-width="1.4" stroke-linecap="round"></path>
+      <path d="M13 28.6 H47" stroke="rgba(255,255,255,.38)" stroke-width="1.2" stroke-linecap="round"></path>
+    </g></svg>

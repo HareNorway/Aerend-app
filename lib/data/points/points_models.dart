@@ -19,6 +19,10 @@ class PointsBalance {
     this.expiringWindowDays = 30,
     this.expiringFirstAt,
     this.policyVersion = '',
+    this.tiers = const [],
+    this.protectedUntil,
+    this.reviewAt,
+    this.keepGap = 0,
   });
 
   /// Spendable now.
@@ -42,6 +46,29 @@ class PointsBalance {
   final DateTime? expiringFirstAt;
 
   final String policyVersion;
+
+  /// The whole ladder (agil-4): Bronse → Sølv → Gull → Platina with thresholds.
+  final List<TierStep> tiers;
+
+  /// The tier is safe until this date; the next annual review follows it.
+  final DateTime? protectedUntil;
+
+  /// The next annual review (`tier.review_at`) and the points still needed so
+  /// the tier holds on that day (`tier.keep_gap`).
+  final DateTime? reviewAt;
+  final int keepGap;
+
+  /// How far through the current tier (design `NV.pct`): 0 at its threshold,
+  /// 1 at the next one. Uses the ladder when the API sent it.
+  double get tierProgress {
+    if (nextTierName == null) return 1;
+    final here = tiers.where((t) => t.index == tier).firstOrNull;
+    final next = tiers.where((t) => t.index == tier + 1).firstOrNull;
+    if (here != null && next != null && next.threshold > here.threshold) {
+      return ((earned12m - here.threshold) / (next.threshold - here.threshold)).clamp(0.0, 1.0);
+    }
+    return progressToNextTier();
+  }
 
   bool get hasExpiryNotice => expiringAmount > 0;
 
@@ -75,6 +102,54 @@ class PointsBalance {
       expiringWindowDays: _int(expiring['window_days'], fallback: 30),
       expiringFirstAt: _date(expiring['first_expires_at']),
       policyVersion: (json['policy_version'] as String?) ?? '',
+      tiers: ((json['tiers'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => TierStep.fromJson(e.cast<String, dynamic>()))
+          .toList(),
+      protectedUntil: _date(tier['protected_until']),
+      reviewAt: _date(tier['review_at']),
+      keepGap: _int(tier['keep_gap']),
+    );
+  }
+}
+
+/// One rung of the Nivå ladder (`points/me` → `tiers[]`).
+class TierStep {
+  const TierStep({required this.index, required this.name, required this.threshold});
+
+  final int index;
+  final String name;
+  final int threshold;
+
+  factory TierStep.fromJson(Map<String, dynamic> json) => TierStep(
+        index: _int(json['index']),
+        name: (json['name'] as String?) ?? '',
+        threshold: _int(json['threshold']),
+      );
+}
+
+/// The Meg tab's preferences and row counts (`points/me/prefs`, agil-4).
+class CustomerPrefs {
+  const CustomerPrefs({
+    this.alwaysCode = false,
+    this.notificationsSeenAt,
+    this.notificationsUnseen = 0,
+    this.favourites = 0,
+  });
+
+  final bool alwaysCode;
+  final DateTime? notificationsSeenAt;
+  final int notificationsUnseen;
+  final int favourites;
+
+  factory CustomerPrefs.fromJson(Map<String, dynamic> json) {
+    final prefs = (json['prefs'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final counts = (json['counts'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return CustomerPrefs(
+      alwaysCode: prefs['always_code'] == true,
+      notificationsSeenAt: _date(prefs['notifications_seen_at']),
+      notificationsUnseen: _int(counts['notifications_unseen']),
+      favourites: _int(counts['favourites']),
     );
   }
 }
@@ -83,6 +158,7 @@ class PointsBalance {
 class Prize {
   const Prize({
     required this.id,
+    this.slug,
     required this.name,
     required this.pointPrice,
     required this.tierBand,
@@ -97,6 +173,9 @@ class Prize {
   });
 
   final int id;
+
+  /// Catalogue key (`pts_prizes.slug`) — picks the design tint and icon.
+  final String? slug;
   final String name;
   final String? line;
   final String? partnerName;
@@ -111,6 +190,7 @@ class Prize {
 
   factory Prize.fromJson(Map<String, dynamic> json) => Prize(
         id: _int(json['id']),
+        slug: json['slug'] as String?,
         name: (json['name'] as String?) ?? '',
         line: json['line'] as String?,
         partnerName: json['partner_name'] as String?,
@@ -137,11 +217,13 @@ class PrizePreview {
     required this.tierName,
     required this.pointsToUnlock,
     this.teaser,
+    this.slug,
   });
 
   final int id;
   final String name;
   final String? teaser;
+  final String? slug;
   final int pointPrice;
   final String tierName;
 
@@ -155,6 +237,7 @@ class PrizePreview {
         id: _int(json['id']),
         name: (json['name'] as String?) ?? '',
         teaser: json['teaser'] as String?,
+        slug: json['slug'] as String?,
         pointPrice: _int(json['point_price']),
         tierName: (json['tier_name'] as String?) ?? '',
         pointsToUnlock: _int(json['points_to_unlock']),
@@ -260,6 +343,7 @@ class Mission {
     this.progress = 0,
     this.target = 1,
     this.wordingSource = 'template',
+    this.accepted = false,
   });
 
   final int id;
@@ -273,6 +357,9 @@ class Mission {
   /// 'template' or 'agent' — Phase 7 lets Ægil reword a mission.
   final String wordingSource;
 
+  /// "Godta" pressed (agil-4). Assignment already makes a mission active.
+  final bool accepted;
+
   double get fraction => target <= 0 ? 0 : (progress / target).clamp(0.0, 1.0);
 
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
@@ -284,6 +371,7 @@ class Mission {
         progress: _int(json['progress']),
         target: _int(json['target'], fallback: 1),
         wordingSource: (json['wording_source'] as String?) ?? 'template',
+        accepted: json['accepted'] == true,
       );
 }
 
@@ -319,11 +407,15 @@ class Premiehylla {
   const Premiehylla({
     this.prizes = const [],
     this.previews = const [],
+    this.locked = const [],
     this.goal,
   });
 
   final List<Prize> prizes;
   final List<PrizePreview> previews;
+
+  /// "Låst til …" (design LAAST): the cheapest prizes from any higher tier.
+  final List<PrizePreview> locked;
   final PointGoal? goal;
 
   factory Premiehylla.fromJson(Map<String, dynamic> json) => Premiehylla(
@@ -332,6 +424,10 @@ class Premiehylla {
             .map((e) => Prize.fromJson(e.cast<String, dynamic>()))
             .toList(),
         previews: ((json['previews'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((e) => PrizePreview.fromJson(e.cast<String, dynamic>()))
+            .toList(),
+        locked: ((json['locked'] as List?) ?? const [])
             .whereType<Map>()
             .map((e) => PrizePreview.fromJson(e.cast<String, dynamic>()))
             .toList(),
