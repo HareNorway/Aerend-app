@@ -15,12 +15,13 @@ class PrizeArt {
 
   LinearGradient get gradient => LinearGradient(begin: const Alignment(-.34, -.94), end: const Alignment(.34, .94), colors: tint);
 
-  static const _boat = ('meg_langskip3d', 96.0, 50.0);
+  // The Hjem's own 3D assets where the design reuses the same drawing.
+  static const _boat = ('longship3d', 96.0, 50.0);
   static const _mat = ('meg_ico_mat', 74.0, 70.0);
   static const _fisk = ('meg_ico_fisk', 100.0, 66.0);
   static const _gaver = ('meg_ico_gaver', 70.0, 74.0);
   static const _interior = ('meg_ico_interior', 64.0, 72.0);
-  static const _pose = ('meg_pose3d', 72.0, 72.0);
+  static const _pose = ('bag3d', 72.0, 72.0);
   static const _varde = ('meg_varde3d', 58.0, 72.0);
 
   static PrizeArt _a(int a, int b, (String, double, double) i) => PrizeArt(tint: [Color(a), Color(b)], icon: i.$1, width: i.$2, height: i.$3);

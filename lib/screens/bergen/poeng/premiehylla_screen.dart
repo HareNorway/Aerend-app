@@ -202,6 +202,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     final goal = shelf?.goal;
     final prizes = shelf?.prizes ?? const <Prize>[];
     final previews = shelf?.previews ?? const <PrizePreview>[];
+    final locked = (shelf?.locked.isNotEmpty ?? false) ? shelf!.locked : previews;
     final klare = prizes.where((p) => p.inStock && p.affordable).length;
     final byId = {for (final p in prizes) p.id: p};
     final cheapest = prizes.where((p) => p.inStock).map((p) => p.pointPrice).fold<int?>(null, (a, v) => a == null || v < a ? v : a);
@@ -332,16 +333,16 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
             _VelgerCard(key: const Key('hylla-velger'), fromPoints: cheapest, onTap: _openVelger),
           ],
         ),
-        if (previews.isNotEmpty && b?.nextTierName != null) ...[
+        if (locked.isNotEmpty && b != null) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 20, 4, 2),
-            child: Text(A4MegCopy.a4_hylla_laast(b!.nextTierName!), style: BergenTokens.display(15, weight: FontWeight.w800, color: Colors.white)),
+            child: Text(A4MegCopy.a4_hylla_laast(locked.first.tierName), style: BergenTokens.display(15, weight: FontWeight.w800, color: Colors.white)),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 2, 4, 10),
-            child: Text(A4MegCopy.a4_hylla_laast_sub(b.nextTierName!), style: megInter(11, FontWeight.w600, color: Colors.white.withValues(alpha: .62), height: 1.45)),
+            child: Text(A4MegCopy.a4_hylla_laast_sub(locked.first.tierName), style: megInter(11, FontWeight.w600, color: Colors.white.withValues(alpha: .62), height: 1.45)),
           ),
-          for (final p in previews)
+          for (final p in locked)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _LockedRow(key: Key('hylla-laast-${p.id}'), preview: p, art: PrizeArt.of(slug: p.slug, name: p.name), onTap: () => MegSheets.nivaa(context, b, opens: previews)),

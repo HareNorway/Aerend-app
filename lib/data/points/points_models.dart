@@ -407,11 +407,15 @@ class Premiehylla {
   const Premiehylla({
     this.prizes = const [],
     this.previews = const [],
+    this.locked = const [],
     this.goal,
   });
 
   final List<Prize> prizes;
   final List<PrizePreview> previews;
+
+  /// "Låst til …" (design LAAST): the cheapest prizes from any higher tier.
+  final List<PrizePreview> locked;
   final PointGoal? goal;
 
   factory Premiehylla.fromJson(Map<String, dynamic> json) => Premiehylla(
@@ -420,6 +424,10 @@ class Premiehylla {
             .map((e) => Prize.fromJson(e.cast<String, dynamic>()))
             .toList(),
         previews: ((json['previews'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((e) => PrizePreview.fromJson(e.cast<String, dynamic>()))
+            .toList(),
+        locked: ((json['locked'] as List?) ?? const [])
             .whereType<Map>()
             .map((e) => PrizePreview.fromJson(e.cast<String, dynamic>()))
             .toList(),
