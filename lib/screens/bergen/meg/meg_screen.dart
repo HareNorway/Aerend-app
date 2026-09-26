@@ -22,6 +22,7 @@ import 'meg_hero.dart';
 import 'meg_mark.dart';
 import 'meg_nivaa_card.dart';
 import 'meg_pill.dart';
+import 'meg_shine.dart';
 import 'meg_sheets.dart';
 import 'varsler_panel.dart';
 
@@ -254,9 +255,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Flexible(child: Text('${A4MegCopy.a4_meg_bydel} · ${A4MegCopy.a4_meg_region}', overflow: TextOverflow.ellipsis, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w700, color: A3Ink.sub))),
+                                Flexible(child: Text('${A4MegCopy.a4_meg_bydel} · ${A4MegCopy.a4_meg_region}', overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: .66)))),
                                 const SizedBox(width: 8),
-                                if (_hasDeliveryGift) const Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: BergenChip(label: A4MegCopy.a4_meg_premie_levering, selected: true, icon: Icons.local_shipping_rounded))),
+                                if (_hasDeliveryGift) const Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _PremieChip())),
                               ],
                             ),
                             const SizedBox(height: 12),
@@ -264,7 +265,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               children: [
                                 Expanded(child: _GullbillettCard(give: give, get: get, onDel: _share)),
                                 const SizedBox(width: 10),
-                                _RoundButton(key: const Key('meg-innstillinger'), icon: Icons.tune_rounded, onTap: () => _go('/bergen/meg/konto')),
+                                _RoundButton(key: const Key('meg-innstillinger'), icon: Icons.light_mode_outlined, onTap: () => _go('/bergen/meg/konto')),
                               ],
                             ),
                             if (borte != null) ...[const SizedBox(height: 12), borte],
@@ -289,7 +290,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                 if (b != null)
                                   _MegRow(
                                     key: const Key('meg-rad-nivaa'),
-                                    leading: MegMedal(name: b.tierName, size: 34),
+                                    leading: MegMedal(name: b.tierName, size: 34, animate: false),
                                     title: '${A4MegCopy.a4_meg_rad_nivaa} · ${b.tierName}',
                                     subtitle: A4MegCopy.a4_meg_nivaa_note,
                                     trailingText: b.nextTierName == null || b.pointsToNextTier == null ? A4MegCopy.a4_meg_hoyeste : A4MegCopy.a4_meg_avstand(b.pointsToNextTier!, b.nextTierName!),
@@ -307,7 +308,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                 if (m != null) _MissionRow(mission: m, onGodta: _godta, onIkke: _ikkeDette),
                                 _MegRow(
                                   key: const Key('meg-rad-gullbillett'),
-                                  leading: const _Ticket(),
+                                  leading: const _TicketStub(width: 40, height: 28, radius: 7, animate: false),
                                   title: A4MegCopy.a4_meg_gullbilletten,
                                   subtitle: A4MegCopy.a4_meg_gi_faa_kode(give, get, code),
                                   trailing: MegPill(key: const Key('meg-del-2'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, onPressed: _share),
@@ -439,7 +440,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   }
 }
 
-/// The gold ticket (design "Gullbilletten · Gi 200 · få 200 poeng · Del").
+/// The gold ticket (design "Gullbilletten · Gi 200 · få 200 poeng · Del"): the
+/// cream pill on its ridge, the perforated ticket with the Æ mark and the
+/// shine sweep, the two text lines and the Del cta3d.
 class _GullbillettCard extends StatelessWidget {
   const _GullbillettCard({required this.give, required this.get, required this.onDel});
 
@@ -451,31 +454,131 @@ class _GullbillettCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const Key('meg-gullbillett'),
-      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(colors: [Color(0xFFFFF7E4), Color(0xFFF2D591)]),
-        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 10, offset: Offset(0, 4))],
+        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFDF4), Color(0xFFF6EFDC)]),
+        border: Border.all(color: Colors.white.withValues(alpha: .95)),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFE7DCC0), offset: Offset(0, 1.5)),
+          BoxShadow(color: Color.fromRGBO(150, 115, 25, .22), offset: Offset(0, 3)),
+          BoxShadow(color: Color.fromRGBO(120, 85, 10, .7), offset: Offset(0, 10), blurRadius: 16, spreadRadius: -11),
+        ],
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 28,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), gradient: const LinearGradient(colors: [Color(0xFFF2C14E), Color(0xFFC99B2A)])),
-            child: const Center(child: MegMark(color: Color(0xFF3A2708), size: 26)),
-          ),
+          const _TicketStub(width: 46, height: 32),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(A4MegCopy.a4_meg_gullbilletten, style: BergenTokens.display(BergenTokens.textSmall, weight: FontWeight.w800, color: const Color(0xFF3A2708))),
-                Text(A4MegCopy.a4_meg_gi_faa(give, get), style: BergenTokens.text(10, weight: FontWeight.w700, color: const Color(0xFF8A6A2A))),
+                Text(A4MegCopy.a4_meg_gullbilletten, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.display(13, weight: FontWeight.w800, color: const Color(0xFF3A2708), letterSpacingEm: -0.01, height: 1.1)),
+                const SizedBox(height: 2),
+                Text(A4MegCopy.a4_meg_gi_faa(give, get), maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(10, weight: FontWeight.w700, color: const Color(0xFF8A6A2A), height: 1.1)),
               ],
             ),
           ),
-          MegPill(key: const Key('meg-del'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, height: 38, fontSize: BergenTokens.textSmall, onPressed: onDel),
+          const SizedBox(width: 6),
+          MegPill(key: const Key('meg-del'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, height: 34, fontSize: 12.5, onPressed: onDel),
+        ],
+      ),
+    );
+  }
+}
+
+/// The small perforated gold ticket (design: 46×32, notches, dashed tear line,
+/// the Æ mark, three printed lines, the shine sweep).
+class _TicketStub extends StatelessWidget {
+  const _TicketStub({required this.width, required this.height, this.radius = 8, this.animate = true});
+
+  final double width;
+  final double height;
+  final double radius;
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) {
+    final k = width / 46;
+    final body = Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: const LinearGradient(begin: Alignment(-.7, -1), end: Alignment(.7, 1), colors: [Color(0xFFFFF6D8), Color(0xFFF2D591), Color(0xFFD9A93A)], stops: [0, .46, 1]),
+        border: Border.all(color: const Color(0xFFB4871E).withValues(alpha: .45)),
+        boxShadow: const [BoxShadow(color: Color.fromRGBO(120, 85, 10, .75), offset: Offset(0, 5), blurRadius: 10, spreadRadius: -5)],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Stack(
+          children: [
+            // inset highlight / inset bottom shade
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .9), Colors.white.withValues(alpha: 0), Colors.transparent, const Color(0xFF785508).withValues(alpha: .24)], stops: const [0, .08, .75, 1]),
+                ),
+              ),
+            ),
+            Positioned(left: -4 * k, top: height / 2 - 4 * k, child: _notch(8 * k, const Color(0xFFFBF7EB))),
+            Positioned(right: -4 * k, top: height / 2 - 4 * k, child: _notch(8 * k, const Color(0xFFF6EFDC))),
+            Positioned(left: 28 * k, top: 4 * k, bottom: 4 * k, child: CustomPaint(size: Size(1.5, height - 8 * k), painter: _DashedLine(color: const Color(0xFF785508).withValues(alpha: .45)))),
+            Positioned(left: 3 * k, top: height / 2 - 9 * k, child: MegMark(color: const Color(0xFF5A4010), accent: const Color(0xFFC4491A), size: 22 * k)),
+            Positioned(left: 33 * k, top: 8 * k, child: _line(6 * k, .45)),
+            Positioned(left: 33 * k, top: 14 * k, child: _line(6 * k, .3)),
+            Positioned(left: 33 * k, top: 20 * k, child: _line(4 * k, .2)),
+          ],
+        ),
+      ),
+    );
+    return animate ? MegShine(borderRadius: BorderRadius.circular(radius), child: body) : body;
+  }
+
+  Widget _notch(double d, Color c) => Container(width: d, height: d, decoration: BoxDecoration(shape: BoxShape.circle, color: c));
+
+  Widget _line(double w, double a) => Container(width: w, height: 2, decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), color: const Color(0xFF5A4010).withValues(alpha: a)));
+}
+
+class _DashedLine extends CustomPainter {
+  const _DashedLine({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.5;
+    var y = 0.0;
+    while (y < size.height) {
+      canvas.drawLine(Offset(0, y), Offset(0, (y + 2).clamp(0, size.height)), paint);
+      y += 4;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedLine old) => old.color != color;
+}
+/// "Premie: gratis levering" (design: the green-mint pill with the varde).
+class _PremieChip extends StatelessWidget {
+  const _PremieChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(9, 3, 9, 3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: const Color(0xFF3F8F5F).withValues(alpha: .14),
+        border: Border.all(color: const Color(0xFF3F8F5F).withValues(alpha: .45)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.landscape_rounded, size: 11, color: BergenTokens.mint),
+          SizedBox(width: 4),
+          Text(A4MegCopy.a4_meg_premie_levering, style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: BergenTokens.mint)),
         ],
       ),
     );
@@ -492,12 +595,17 @@ class _RoundButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(color: BergenTokens.glassFill, borderRadius: BorderRadius.circular(16), border: Border.all(color: BergenTokens.glassBorder)),
-        child: Icon(icon, color: BergenTokens.mint, size: 20),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .16), Colors.white.withValues(alpha: .07)]),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: .26)),
+          boxShadow: const [BoxShadow(color: Color.fromRGBO(4, 18, 26, .8), offset: Offset(0, 10), blurRadius: 18, spreadRadius: -12)],
+        ),
+        child: Icon(icon, color: BergenTokens.mint, size: 17),
       ),
     );
   }
@@ -521,28 +629,10 @@ class _Group extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .13), Colors.white.withValues(alpha: .06)]),
         border: Border.all(color: Colors.white.withValues(alpha: .18)),
+        boxShadow: const [BoxShadow(color: Color.fromRGBO(4, 18, 26, .9), offset: Offset(0, 18), blurRadius: 32, spreadRadius: -18)],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       child: Column(children: kids),
-    );
-  }
-}
-
-/// The small gold ticket used by the Gullbilletten row.
-class _Ticket extends StatelessWidget {
-  const _Ticket();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(11),
-        gradient: const LinearGradient(colors: [Color(0xFFFFF7E4), Color(0xFFF2D591)]),
-        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2))],
-      ),
-      child: const Center(child: MegMark(color: Color(0xFF3A2708), size: 20)),
     );
   }
 }

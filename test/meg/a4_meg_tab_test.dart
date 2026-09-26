@@ -78,7 +78,7 @@ void main() {
 
     expect(find.byKey(const Key('meg-nivaa-card')), findsOneWidget);
     expect(find.text('GULL'), findsOneWidget);
-    expect(find.text('2 400 poeng til Platina'), findsOneWidget);
+    expect(find.textContaining('2 400 poeng til Platina'), findsOneWidget);
     expect(find.byKey(const Key('meg-ladder')), findsOneWidget);
     for (final n in ['Bronse', 'Sølv', 'Gull', 'Platina']) {
       expect(find.text(n), findsWidgets, reason: n);
@@ -87,7 +87,7 @@ void main() {
     expect(find.text('Opptjent i alt: 3 600 poeng'), findsOneWidget);
     expect(find.text('+30 kommer når ordren er levert'), findsOneWidget);
     expect(find.textContaining('Mål: gratis pizza fra casa maria · 20 poeng igjen'), findsOneWidget);
-    expect(find.text('99 %'), findsOneWidget);
+    expect(find.text('99%'), findsOneWidget);
     expect(find.byKey(const Key('meg-open-premiehylla')), findsOneWidget);
   });
 
