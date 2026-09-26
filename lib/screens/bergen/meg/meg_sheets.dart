@@ -10,6 +10,7 @@ import '../kit/bergen_kit.dart';
 import 'a3_scaffold.dart';
 import 'meg_copy_a4.dart';
 import 'meg_nivaa_card.dart';
+import 'meg_pill.dart';
 
 /// The Ark sheets the Meg tab opens (design `kArkVals`): Slik får du poeng,
 /// Nivå, Navn i ligaen, Krev alltid kode, Anledninger, Ukeshandel / nivå 4,
@@ -115,7 +116,7 @@ abstract final class MegSheets {
                 trailing: Icon(syn == s[0] ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, color: syn == s[0] ? BergenTokens.mint : A3Ink.muted),
               ),
             const SizedBox(height: 8),
-            BergenCta3d(
+            MegPill(
               key: const Key('liga-navn-lagre'),
               label: league.optedIn ? A4MegCopy.a4_meg_lagre : A4MegCopy.a4_meg_bli_med,
               icon: Icons.emoji_events_rounded,
@@ -222,7 +223,7 @@ abstract final class MegSheets {
                 if (picked != null) setState(() => date = picked);
               },
             ),
-            BergenCta3d(
+            MegPill(
               key: const Key('anledning-lagre'),
               label: A4MegCopy.a4_meg_lagre,
               onPressed: () async {

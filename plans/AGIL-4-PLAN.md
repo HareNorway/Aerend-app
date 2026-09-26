@@ -70,9 +70,9 @@ Design: `designs/21des/Ærend Kunde Bergen.dc.html`, block `meg` ≈L5912–6124
 
 | Block | Design | Differences accepted / to fix |
 |---|---|---|
-| Hero | ≈L5912 | Brann stadion is not exported; the Hjem mountains + Bryggen skyline stand in. Ægil pose `popup.png`. |
+| Hero | ≈L5912 | The design's `#sc-ulr1` scene (Ulriken, Fløibanen, varde, houses, Brann stadion) exported to `assets/svgs/dashboard/meg_stadium.svg`; Ægil pose `popup.png`. |
 | Header | ≈L5942 | Bydel/region are copy constants (Møhlenpris · Bergenhus) until agil-1 exposes the zone name. |
-| Poeng | ≈L5978 | Medals are drawn (radial metal + Æ) rather than the SVG coin; "Opptjent i alt" uses `lifetime`. |
+| Poeng | ≈L5978 | Medals are the radial metal with the design's `#merke-ink` Æ mark (`MegMark`); every orange button is `MegPill`, the bottom-nav pill's gradient and shadow; "Opptjent i alt" uses `lifetime`. |
 | Meg-rader | ≈L6031 | Ægil sparte deg (Tillitsregnskap) row lives on Det Ægil vet; not repeated here. |
 | Krev alltid kode | `kodeInnst` | Shows "Av · kreves over 300 kr" per design; ops hardcodes 1500 kr and does not yet read the preference (Ask of agil-1). |
 | Betaling | `betaling` | "Vipps · Visa •• 4471" from the card list; no saved-Vipps method exists. |

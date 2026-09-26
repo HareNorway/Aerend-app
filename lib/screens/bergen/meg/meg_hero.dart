@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenAssets, bergenSvg;
-import '../../common/home/bergen/bergen_painters.dart';
 import '../kit/bergen_kit.dart';
 
-/// The Meg header scene (design `meg` ≈L5912): the Bergen sky, the mountains
-/// and the Bryggen skyline from the Hjem kit, with Ægil and the goal bubble
-/// ("20 poeng til gratis pizza."). The design draws Brann stadion here; the
-/// app reuses the Hjem scene until that illustration is exported.
+/// The Meg header scene (design `meg` ≈L5912, symbol `#sc-ulr1`): Ulriken,
+/// the Fløibanen wires, the varde, the houses and Brann stadion, exported
+/// from the design file to `assets/svgs/dashboard/meg_stadium.svg`, with
+/// Ægil and the goal bubble ("20 poeng til gratis pizza.").
 class MegHero extends StatelessWidget {
   const MegHero({super.key, required this.bubble, this.height = 210});
 
@@ -33,25 +32,11 @@ class MegHero extends StatelessWidget {
               ),
             ),
           ),
+          Positioned.fill(child: bergenSvg('meg_stadium', fit: BoxFit.cover)),
           Positioned(
-            left: -20,
-            right: -20,
-            bottom: 52,
-            child: Opacity(opacity: .9, child: bergenSvg('scene_mountains', height: 120, fit: BoxFit.fill)),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: const SizedBox(
-              height: 76,
-              child: CustomPaint(painter: BergenHousesPainter(dim: .1)),
-            ),
-          ),
-          Positioned(
-            right: 12,
-            bottom: 22,
-            width: 220,
+            right: 8,
+            top: 44,
+            width: 190,
             child: AegilSays(
               asset: BergenAssets.aegilPopup,
               text: bubble,

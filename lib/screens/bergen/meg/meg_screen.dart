@@ -19,7 +19,9 @@ import 'a3_services.dart';
 import 'borte_entry.dart';
 import 'meg_copy_a4.dart';
 import 'meg_hero.dart';
+import 'meg_mark.dart';
 import 'meg_nivaa_card.dart';
+import 'meg_pill.dart';
 import 'meg_sheets.dart';
 import 'varsler_panel.dart';
 
@@ -305,10 +307,10 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                 if (m != null) _MissionRow(mission: m, onGodta: _godta, onIkke: _ikkeDette),
                                 _MegRow(
                                   key: const Key('meg-rad-gullbillett'),
-                                  leading: const _IconBox(icon: Icons.confirmation_number_rounded, color: BergenTokens.lantern),
+                                  leading: const _Ticket(),
                                   title: A4MegCopy.a4_meg_gullbilletten,
                                   subtitle: A4MegCopy.a4_meg_gi_faa_kode(give, get, code),
-                                  trailing: BergenCta3d(key: const Key('meg-del-2'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, onPressed: _share),
+                                  trailing: MegPill(key: const Key('meg-del-2'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, onPressed: _share),
                                   showChevron: false,
                                 ),
                               ],
@@ -461,7 +463,7 @@ class _GullbillettCard extends StatelessWidget {
             width: 40,
             height: 28,
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), gradient: const LinearGradient(colors: [Color(0xFFF2C14E), Color(0xFFC99B2A)])),
-            child: const Center(child: Text('Æ', style: TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF3A2708)))),
+            child: const Center(child: MegMark(color: Color(0xFF3A2708), size: 26)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -473,7 +475,7 @@ class _GullbillettCard extends StatelessWidget {
               ],
             ),
           ),
-          BergenCta3d(key: const Key('meg-del'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, onPressed: onDel),
+          MegPill(key: const Key('meg-del'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, height: 38, fontSize: BergenTokens.textSmall, onPressed: onDel),
         ],
       ),
     );
@@ -522,6 +524,25 @@ class _Group extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       child: Column(children: kids),
+    );
+  }
+}
+
+/// The small gold ticket used by the Gullbilletten row.
+class _Ticket extends StatelessWidget {
+  const _Ticket();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(11),
+        gradient: const LinearGradient(colors: [Color(0xFFFFF7E4), Color(0xFFF2D591)]),
+        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 2))],
+      ),
+      child: const Center(child: MegMark(color: Color(0xFF3A2708), size: 20)),
     );
   }
 }
@@ -597,7 +618,7 @@ class _MegRow extends StatelessWidget {
                 child: Text(trailingText!, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w800, color: trailingAccent ? BergenTokens.mint : A3Ink.sub)),
               ),
             ],
-            if (badge != null) ...[const SizedBox(width: 8), BergenCta3d(label: badge!, expand: false, onPressed: onTap)],
+            if (badge != null) ...[const SizedBox(width: 8), MegPill(label: badge!, expand: false, height: 38, fontSize: BergenTokens.textSmall, onPressed: onTap)],
             if (count != null && count! > 0) ...[
               const SizedBox(width: 8),
               Container(
@@ -661,23 +682,9 @@ class _MissionRow extends StatelessWidget {
           else
             Row(
               children: [
-                Expanded(flex: 3, child: BergenCta3d(key: const Key('meg-godta'), label: A4MegCopy.a4_meg_godta, onPressed: onGodta)),
+                Expanded(flex: 3, child: MegPill(key: const Key('meg-godta'), label: A4MegCopy.a4_meg_godta, onPressed: onGodta)),
                 const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: OutlinedButton(
-                    key: const Key('meg-ikke-dette'),
-                    onPressed: onIkke,
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: BergenTokens.ink,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                      side: BorderSide.none,
-                    ),
-                    child: Text(A4MegCopy.a4_meg_ikke_dette, style: BergenTokens.display(BergenTokens.textSmall, weight: FontWeight.w800, color: BergenTokens.ink)),
-                  ),
-                ),
+                Expanded(flex: 2, child: MegPillGhost(key: const Key('meg-ikke-dette'), label: A4MegCopy.a4_meg_ikke_dette, onPressed: onIkke)),
               ],
             ),
         ],

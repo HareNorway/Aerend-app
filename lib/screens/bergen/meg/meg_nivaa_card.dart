@@ -4,6 +4,8 @@ import '../../../data/points/points_models.dart';
 import '../kit/bergen_kit.dart';
 import 'a3_scaffold.dart';
 import 'meg_copy_a4.dart';
+import 'meg_mark.dart';
+import 'meg_pill.dart';
 
 /// The Poeng card (design `Poeng` ≈L5978): the medal, DITT NIVÅ, the distance
 /// to the next tier, the four-rung ladder, POENG Å BRUKE with "Opptjent i alt",
@@ -80,7 +82,7 @@ class MegNivaaCard extends StatelessWidget {
                 width: 26,
                 height: 26,
                 decoration: const BoxDecoration(shape: BoxShape.circle, color: BergenTokens.lantern),
-                child: const Icon(Icons.stars_rounded, size: 16, color: Color(0xFF5A4010)),
+                child: const Center(child: MegMark(color: Color(0xFF5A4010), size: 15)),
               ),
               const SizedBox(width: 8),
               Expanded(child: Text(A4MegCopy.a4_meg_poeng_bruke, style: _kicker)),
@@ -138,7 +140,7 @@ class MegNivaaCard extends StatelessWidget {
                   ),
                   if (g.reached) ...[
                     const SizedBox(height: 10),
-                    BergenCta3d(key: const Key('meg-hent-premien'), label: A4MegCopy.a4_meg_hent_premien, icon: Icons.redeem_rounded, onPressed: onHentPremie ?? onOpenPremiehylla),
+                    MegPill(key: const Key('meg-hent-premien'), label: A4MegCopy.a4_meg_hent_premien, icon: Icons.redeem_rounded, onPressed: onHentPremie ?? onOpenPremiehylla),
                   ],
                 ],
               ),
@@ -147,7 +149,7 @@ class MegNivaaCard extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: BergenCta3d(key: const Key('meg-open-premiehylla'), label: A4MegCopy.a4_meg_premiehylla, icon: Icons.chevron_right_rounded, onPressed: onOpenPremiehylla)),
+              Expanded(child: MegPill(key: const Key('meg-open-premiehylla'), label: A4MegCopy.a4_meg_premiehylla, icon: Icons.chevron_right_rounded, height: 52, fontSize: BergenTokens.textSection, onPressed: onOpenPremiehylla)),
               const SizedBox(width: 12),
               TextButton(
                 key: const Key('meg-open-slik'),
@@ -265,9 +267,7 @@ class MegMedal extends StatelessWidget {
         border: Border.all(color: m.ring, width: 2),
         boxShadow: [BoxShadow(color: glow ? m.accent.withValues(alpha: .6) : Colors.black26, blurRadius: glow ? 14 : 8, offset: const Offset(0, 4))],
       ),
-      child: Center(
-        child: Text('Æ', style: BergenTokens.display(size * .42, weight: FontWeight.w800, color: m.ink)),
-      ),
+      child: Center(child: MegMark(color: m.ink, size: size * .6)),
     );
   }
 }
