@@ -11353,6 +11353,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{store}'**
   String ops_feed_store_initials_label(String store);
+
+  /// No description provided for @ops_fiske_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordfiske'**
+  String get ops_fiske_title;
+
+  /// No description provided for @ops_fiske_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'You and Ægil fish in Vågen'**
+  String get ops_fiske_sub;
+
+  /// No description provided for @ops_fiske_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast {kast} of {av} · {lagret} saved'**
+  String ops_fiske_status(int kast, int av, int lagret);
+
+  /// No description provided for @ops_fiske_aegil.
+  ///
+  /// In en, this message translates to:
+  /// **'ÆGIL'**
+  String get ops_fiske_aegil;
+
+  /// No description provided for @ops_fiske_tilbake.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get ops_fiske_tilbake;
+
+  /// No description provided for @ops_fiske_snakk_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'The bait is ready. Cast out, and we\'ll see what Vågen has tonight.'**
+  String get ops_fiske_snakk_klar;
+
+  /// No description provided for @ops_fiske_snakk_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy now … I can feel something down there.'**
+  String get ops_fiske_snakk_venter;
+
+  /// No description provided for @ops_fiske_snakk_napp.
+  ///
+  /// In en, this message translates to:
+  /// **'A BITE! Reel in now, before it gets away!'**
+  String get ops_fiske_snakk_napp;
+
+  /// No description provided for @ops_fiske_snakk_fangst.
+  ///
+  /// In en, this message translates to:
+  /// **'Look! {navn} from {butikk}. Do you want it?'**
+  String ops_fiske_snakk_fangst(String navn, String butikk);
+
+  /// No description provided for @ops_fiske_snakk_fangst_uten.
+  ///
+  /// In en, this message translates to:
+  /// **'Look! {navn}. Do you want it?'**
+  String ops_fiske_snakk_fangst_uten(String navn);
+
+  /// No description provided for @ops_fiske_snakk_premie.
+  ///
+  /// In en, this message translates to:
+  /// **'Look — a prize you can claim right now.'**
+  String get ops_fiske_snakk_premie;
+
+  /// No description provided for @ops_fiske_snakk_premie_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal! {navn} can be claimed now.'**
+  String ops_fiske_snakk_premie_maal(String navn);
+
+  /// No description provided for @ops_fiske_snakk_mistet.
+  ///
+  /// In en, this message translates to:
+  /// **'It got away. Happens to the best of us – cast out again.'**
+  String get ops_fiske_snakk_mistet;
+
+  /// No description provided for @ops_fiske_snakk_din.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s yours.'**
+  String get ops_fiske_snakk_din;
+
+  /// No description provided for @ops_fiske_kast.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast out'**
+  String get ops_fiske_kast;
+
+  /// No description provided for @ops_fiske_kast_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast out again'**
+  String get ops_fiske_kast_igjen;
+
+  /// No description provided for @ops_fiske_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'Line is out … wait for a bite'**
+  String get ops_fiske_venter;
+
+  /// No description provided for @ops_fiske_dra.
+  ///
+  /// In en, this message translates to:
+  /// **'REEL IN!'**
+  String get ops_fiske_dra;
+
+  /// No description provided for @ops_fiske_slipp.
+  ///
+  /// In en, this message translates to:
+  /// **'Release'**
+  String get ops_fiske_slipp;
+
+  /// No description provided for @ops_fiske_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to basket'**
+  String get ops_fiske_legg;
+
+  /// No description provided for @ops_fiske_lagre.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get ops_fiske_lagre;
+
+  /// No description provided for @ops_fiske_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim'**
+  String get ops_fiske_hent;
+
+  /// No description provided for @ops_fiske_sett_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as goal'**
+  String get ops_fiske_sett_maal;
+
+  /// No description provided for @ops_fiske_er_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'Your goal'**
+  String get ops_fiske_er_maal;
+
+  /// No description provided for @ops_fiske_hint_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick bait below · every bite gives +{n} points'**
+  String ops_fiske_hint_klar(int n);
+
+  /// No description provided for @ops_fiske_hint_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep an eye on the float'**
+  String get ops_fiske_hint_venter;
+
+  /// No description provided for @ops_fiske_hint_napp.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap before the bar runs out!'**
+  String get ops_fiske_hint_napp;
+
+  /// No description provided for @ops_fiske_hint_fangst.
+  ///
+  /// In en, this message translates to:
+  /// **'Release · Add to basket · Save for later'**
+  String get ops_fiske_hint_fangst;
+
+  /// No description provided for @ops_fiske_hint_premie.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim · Set as goal · Release'**
+  String get ops_fiske_hint_premie;
+
+  /// No description provided for @ops_fiske_hint_capped.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s {max} fishing points are taken — the rest is just for fun.'**
+  String ops_fiske_hint_capped(int max);
+
+  /// No description provided for @ops_fiske_plus.
+  ///
+  /// In en, this message translates to:
+  /// **'+{n} points'**
+  String ops_fiske_plus(int n);
+
+  /// No description provided for @ops_fiske_napp.
+  ///
+  /// In en, this message translates to:
+  /// **'Bite!'**
+  String get ops_fiske_napp;
+
+  /// No description provided for @ops_fiske_fra_hylla.
+  ///
+  /// In en, this message translates to:
+  /// **'From your shelf'**
+  String get ops_fiske_fra_hylla;
+
+  /// No description provided for @ops_fiske_poeng_har.
+  ///
+  /// In en, this message translates to:
+  /// **'{pris} points · you have {har}'**
+  String ops_fiske_poeng_har(String pris, String har);
+
+  /// No description provided for @ops_fiske_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'{pris} points'**
+  String ops_fiske_poeng(String pris);
+
+  /// No description provided for @ops_fiske_ferdig_title.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s all for now.'**
+  String get ops_fiske_ferdig_title;
+
+  /// No description provided for @ops_fiske_ferdig_line.
+  ///
+  /// In en, this message translates to:
+  /// **'You saved {lagret} and put {kjopt} in the basket. Want to see what you saved?'**
+  String ops_fiske_ferdig_line(int lagret, int kjopt);
+
+  /// No description provided for @ops_fiske_se_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'See what I saved'**
+  String get ops_fiske_se_lagret;
+
+  /// No description provided for @ops_fiske_i_morgen.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast out again tomorrow'**
+  String get ops_fiske_i_morgen;
+
+  /// No description provided for @ops_fiske_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new in Vågen — but the line was out.'**
+  String get ops_fiske_tom;
+
+  /// No description provided for @ops_fiske_agn_alle.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get ops_fiske_agn_alle;
+
+  /// No description provided for @ops_fiske_agn_fisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Food & fish'**
+  String get ops_fiske_agn_fisk;
+
+  /// No description provided for @ops_fiske_agn_mat.
+  ///
+  /// In en, this message translates to:
+  /// **'Bakery'**
+  String get ops_fiske_agn_mat;
+
+  /// No description provided for @ops_fiske_agn_mote.
+  ///
+  /// In en, this message translates to:
+  /// **'Fashion'**
+  String get ops_fiske_agn_mote;
+
+  /// No description provided for @ops_fiske_agn_interior.
+  ///
+  /// In en, this message translates to:
+  /// **'Interior'**
+  String get ops_fiske_agn_interior;
+
+  /// No description provided for @ops_fiske_agn_gaver.
+  ///
+  /// In en, this message translates to:
+  /// **'Gifts'**
+  String get ops_fiske_agn_gaver;
+
+  /// No description provided for @ops_fiske_toast_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get ops_fiske_toast_lagret;
+
+  /// No description provided for @ops_fiske_toast_din.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is yours'**
+  String ops_fiske_toast_din(String navn);
+
+  /// No description provided for @ops_fiske_toast_kunne_ikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not claim'**
+  String get ops_fiske_toast_kunne_ikke;
+
+  /// No description provided for @ops_fiske_toast_satt_maal.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as goal · {navn}'**
+  String ops_fiske_toast_satt_maal(String navn);
+
+  /// No description provided for @ops_fiske_bydel_bergen.
+  ///
+  /// In en, this message translates to:
+  /// **'Bergen'**
+  String get ops_fiske_bydel_bergen;
+
+  /// No description provided for @ops_fiske_eta_kommer.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered tonight'**
+  String get ops_fiske_eta_kommer;
 }
 
 class _AppLocalizationsDelegate

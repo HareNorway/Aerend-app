@@ -6203,4 +6203,187 @@ class AppLocalizationsNo extends AppLocalizations {
   String ops_feed_store_initials_label(String store) {
     return '$store';
   }
+
+  @override
+  String get ops_fiske_title => 'Fjordfiske';
+
+  @override
+  String get ops_fiske_sub => 'Du og Ægil fisker i Vågen';
+
+  @override
+  String ops_fiske_status(int kast, int av, int lagret) {
+    return 'Kast $kast av $av · $lagret lagret';
+  }
+
+  @override
+  String get ops_fiske_aegil => 'ÆGIL';
+
+  @override
+  String get ops_fiske_tilbake => 'Tilbake';
+
+  @override
+  String get ops_fiske_snakk_klar =>
+      'Jeg har agnet klart. Kast ut, så ser vi hva Vågen byr på i kveld.';
+
+  @override
+  String get ops_fiske_snakk_venter => 'Rolig nå … jeg kjenner noe der nede.';
+
+  @override
+  String get ops_fiske_snakk_napp => 'NAPP! Dra inn nå, før den slipper!';
+
+  @override
+  String ops_fiske_snakk_fangst(String navn, String butikk) {
+    return 'Se her! $navn fra $butikk. Vil du ha den?';
+  }
+
+  @override
+  String ops_fiske_snakk_fangst_uten(String navn) {
+    return 'Se her! $navn. Vil du ha den?';
+  }
+
+  @override
+  String get ops_fiske_snakk_premie => 'Se her — en premie du kan hente nå.';
+
+  @override
+  String ops_fiske_snakk_premie_maal(String navn) {
+    return 'Målet ditt! $navn kan hentes nå.';
+  }
+
+  @override
+  String get ops_fiske_snakk_mistet =>
+      'Den slapp. Det skjer selv de beste – kast ut igjen.';
+
+  @override
+  String get ops_fiske_snakk_din => 'Den er din.';
+
+  @override
+  String get ops_fiske_kast => 'Kast ut';
+
+  @override
+  String get ops_fiske_kast_igjen => 'Kast ut igjen';
+
+  @override
+  String get ops_fiske_venter => 'Snøret er ute … vent på napp';
+
+  @override
+  String get ops_fiske_dra => 'DRA INN!';
+
+  @override
+  String get ops_fiske_slipp => 'Slipp';
+
+  @override
+  String get ops_fiske_legg => 'Legg i kurven';
+
+  @override
+  String get ops_fiske_lagre => 'Lagre';
+
+  @override
+  String get ops_fiske_hent => 'Hent';
+
+  @override
+  String get ops_fiske_sett_maal => 'Sett som mål';
+
+  @override
+  String get ops_fiske_er_maal => 'Målet ditt';
+
+  @override
+  String ops_fiske_hint_klar(int n) {
+    return 'Velg agn under · hvert napp gir +$n poeng';
+  }
+
+  @override
+  String get ops_fiske_hint_venter => 'Hold øye med duppen';
+
+  @override
+  String get ops_fiske_hint_napp => 'Trykk før streken går ut!';
+
+  @override
+  String get ops_fiske_hint_fangst =>
+      'Slipp · Legg i kurven · Lagre til senere';
+
+  @override
+  String get ops_fiske_hint_premie => 'Hent · Sett som mål · Slipp';
+
+  @override
+  String ops_fiske_hint_capped(int max) {
+    return 'Dagens $max fiskepoeng er tatt — resten er bare for moro.';
+  }
+
+  @override
+  String ops_fiske_plus(int n) {
+    return '+$n poeng';
+  }
+
+  @override
+  String get ops_fiske_napp => 'Napp!';
+
+  @override
+  String get ops_fiske_fra_hylla => 'Fra hylla di';
+
+  @override
+  String ops_fiske_poeng_har(String pris, String har) {
+    return '$pris poeng · du har $har';
+  }
+
+  @override
+  String ops_fiske_poeng(String pris) {
+    return '$pris poeng';
+  }
+
+  @override
+  String get ops_fiske_ferdig_title => 'Det var alt for nå.';
+
+  @override
+  String ops_fiske_ferdig_line(int lagret, int kjopt) {
+    return 'Du lagret $lagret og la $kjopt i kurven. Vil du se det du lagret?';
+  }
+
+  @override
+  String get ops_fiske_se_lagret => 'Se det jeg lagret';
+
+  @override
+  String get ops_fiske_i_morgen => 'Kast ut igjen i morgen';
+
+  @override
+  String get ops_fiske_tom => 'Ingenting nytt i Vågen — men snøret var ute.';
+
+  @override
+  String get ops_fiske_agn_alle => 'Alle';
+
+  @override
+  String get ops_fiske_agn_fisk => 'Mat & fisk';
+
+  @override
+  String get ops_fiske_agn_mat => 'Bakeri';
+
+  @override
+  String get ops_fiske_agn_mote => 'Mote';
+
+  @override
+  String get ops_fiske_agn_interior => 'Interiør';
+
+  @override
+  String get ops_fiske_agn_gaver => 'Gaver';
+
+  @override
+  String get ops_fiske_toast_lagret => 'Lagret';
+
+  @override
+  String ops_fiske_toast_din(String navn) {
+    return '$navn er din';
+  }
+
+  @override
+  String get ops_fiske_toast_kunne_ikke => 'Kunne ikke hente';
+
+  @override
+  String ops_fiske_toast_satt_maal(String navn) {
+    return 'Satt som mål · $navn';
+  }
+
+  @override
+  String get ops_fiske_bydel_bergen => 'Bergen';
+
+  @override
+  String get ops_fiske_eta_kommer => 'Leveres i kveld';
 }

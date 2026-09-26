@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 60"><defs><linearGradient id="bg-bun" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#F0BE79"></stop><stop offset="1" stop-color="#C98F45"></stop></linearGradient><linearGradient id="bg-bunn" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#E5B172"></stop><stop offset="1" stop-color="#B9803C"></stop></linearGradient><linearGradient id="bg-kjott" x1="0" y1="0" x2="0.2" y2="1"><stop offset="0" stop-color="#8A5432"></stop><stop offset="1" stop-color="#4E2C16"></stop></linearGradient><linearGradient id="bg-ost" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#F9CE5E"></stop><stop offset="1" stop-color="#E0A32C"></stop></linearGradient><linearGradient id="bg-salat" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#8FCB6A"></stop><stop offset="1" stop-color="#4E8F3A"></stop></linearGradient></defs><g id="ico-burger">
+      <ellipse cx="32" cy="56" rx="25" ry="4" fill="rgba(40,16,4,.28)"></ellipse>
+      <path d="M7 26 C7 12 20 5 32 5 C44 5 57 12 57 26 Z" fill="url(#bg-bun)"></path>
+      <path d="M7 26 C7 12 20 5 32 5 C36 5 40 6 43 8 C24 10 12 17 11 26 Z" fill="rgba(255,255,255,.34)"></path>
+      <g fill="rgba(255,255,255,.85)"><ellipse cx="21" cy="15" rx="2.6" ry="1.5" transform="rotate(-18 21 15)"></ellipse><ellipse cx="33" cy="11" rx="2.6" ry="1.5"></ellipse><ellipse cx="44" cy="16" rx="2.6" ry="1.5" transform="rotate(18 44 16)"></ellipse><ellipse cx="27" cy="20" rx="2.4" ry="1.4" transform="rotate(-8 27 20)"></ellipse><ellipse cx="39" cy="21" rx="2.4" ry="1.4" transform="rotate(10 39 21)"></ellipse></g>
+      <path d="M6 26 H58 C60 26 60 31 58 31 H6 C4 31 4 26 6 26 Z" fill="url(#bg-salat)"></path>
+      <path d="M8 30 C12 34 18 29 22 33 C26 36 31 30 36 33 C41 36 46 30 51 33 C54 35 57 33 57 31 H7 Z" fill="url(#bg-salat)"></path>
+      <rect x="7" y="33" width="50" height="8" rx="4" fill="url(#bg-kjott)"></rect>
+      <path d="M9 40 L14 46 H50 L55 40 Z" fill="url(#bg-ost)"></path>
+      <path d="M9 41 C14 44 20 41 26 44 C31 46 38 42 44 45 C48 47 52 44 55 41" stroke="rgba(180,120,20,.35)" stroke-width="1.2" fill="none"></path>
+      <path d="M9 44 C9 51 16 55 32 55 C48 55 55 51 55 44 Z" fill="url(#bg-bunn)"></path>
+    </g></svg>
