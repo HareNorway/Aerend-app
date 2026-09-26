@@ -696,12 +696,7 @@ class _GullbillettCard extends StatelessWidget {
               color: Color.fromRGBO(150, 115, 25, .22),
               offset: Offset(0, 3),
             ),
-            BoxShadow(
-              color: Color.fromRGBO(120, 85, 10, .7),
-              offset: Offset(0, 10),
-              blurRadius: 16,
-              spreadRadius: -11,
-            ),
+            BoxShadow(color: Color.fromRGBO(120, 85, 10, .25), offset: Offset(0, 6), blurRadius: 10, spreadRadius: -4),
           ],
         ),
         child: Row(
@@ -961,14 +956,6 @@ class _RoundButton extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white.withValues(alpha: .26)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(4, 18, 26, .8),
-              offset: Offset(0, 10),
-              blurRadius: 18,
-              spreadRadius: -12,
-            ),
-          ],
         ),
         child: Icon(icon, color: BergenTokens.mint, size: 17),
       ),
@@ -1002,14 +989,6 @@ class _Group extends StatelessWidget {
           ],
         ),
         border: Border.all(color: Colors.white.withValues(alpha: .18)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(4, 18, 26, .9),
-            offset: Offset(0, 18),
-            blurRadius: 32,
-            spreadRadius: -18,
-          ),
-        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       child: Column(children: kids),

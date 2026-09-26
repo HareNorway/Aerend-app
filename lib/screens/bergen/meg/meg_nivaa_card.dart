@@ -58,14 +58,6 @@ class MegNivaaCard extends StatelessWidget {
           ],
         ),
         border: Border.all(color: Colors.white.withValues(alpha: .2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(4, 18, 26, .9),
-            offset: Offset(0, 24),
-            blurRadius: 34,
-            spreadRadius: -20,
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
