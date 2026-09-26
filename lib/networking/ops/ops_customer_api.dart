@@ -284,7 +284,9 @@ class OpsCustomerApi {
       _guarded(() => _get('api/points/rules'));
 
   /// Søk · treff: the app's existing `search-store` and `search-product`
-  /// endpoints (`api_constant.dart`), mapped for the Bergen screen. Either
+  /// endpoints (`api_constant.dart`), mapped for the Bergen screen. Across
+  /// every category (`service_category_id: 0`), not the one last picked on
+  /// Hjem. Either
   /// half failing leaves the other; both failing is an empty result.
   Future<SokTreff> search(String query, {double? lat, double? lng}) async {
     final q = query.trim();
@@ -298,7 +300,7 @@ class OpsCustomerApi {
     final products = <SokProdukt>[];
     try {
       final pojo = DsHomeStoreListPojo.fromJson(
-        await repo.callSearchStoreApi(la, ln, q),
+        await repo.callSearchStoreApi(la, ln, q, serviceCatId: 0),
       );
       for (final s in pojo.storeList ?? const <StoreListItem>[]) {
         if (s.storeId == null) continue;
@@ -322,7 +324,7 @@ class OpsCustomerApi {
     }
     try {
       final pojo = SearchProductPojo.fromJson(
-        await repo.callSearchProductApi(la, ln, 1, q),
+        await repo.callSearchProductApi(la, ln, 1, q, serviceCatId: 0),
       );
       for (final p in pojo.productList) {
         final id = p.productId;
