@@ -49,9 +49,23 @@ class MegNivaaCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
-        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .14), Colors.white.withValues(alpha: .06)]),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: .14),
+            Colors.white.withValues(alpha: .06),
+          ],
+        ),
         border: Border.all(color: Colors.white.withValues(alpha: .2)),
-        boxShadow: const [BoxShadow(color: Color.fromRGBO(4, 18, 26, .9), offset: Offset(0, 24), blurRadius: 34, spreadRadius: -20)],
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(4, 18, 26, .9),
+            offset: Offset(0, 24),
+            blurRadius: 34,
+            spreadRadius: -20,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -68,7 +82,15 @@ class MegNivaaCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(A4MegCopy.a4_meg_ditt_nivaa, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.2, color: Colors.white.withValues(alpha: .55))),
+                      Text(
+                        A4MegCopy.a4_meg_ditt_nivaa,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          color: Colors.white.withValues(alpha: .55),
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       ShaderMask(
                         blendMode: BlendMode.srcIn,
@@ -76,27 +98,67 @@ class MegNivaaCard extends StatelessWidget {
                         child: Text(
                           b.tierName.toUpperCase(),
                           key: const Key('meg-tier-name'),
-                          style: BergenTokens.display(30, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.035, height: 1),
+                          style: BergenTokens.display(
+                            30,
+                            weight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacingEm: -0.035,
+                            height: 1,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 5),
                       if (b.nextTierName == null || b.pointsToNextTier == null)
-                        Text(A4MegCopy.a4_meg_hoyeste, key: const Key('meg-tier-progress-line'), style: BergenTokens.text(11.5, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .7)))
+                        Text(
+                          A4MegCopy.a4_meg_hoyeste,
+                          key: const Key('meg-tier-progress-line'),
+                          style: BergenTokens.text(
+                            11.5,
+                            weight: FontWeight.w800,
+                            color: Colors.white.withValues(alpha: .7),
+                          ),
+                        )
                       else
                         Text.rich(
                           key: const Key('meg-tier-progress-line'),
                           TextSpan(
                             children: [
-                              TextSpan(text: '${A4MegCopy.nf(b.pointsToNextTier!)} ', style: BergenTokens.display(15, weight: FontWeight.w800, color: BergenTokens.mint, letterSpacingEm: -0.02)),
-                              TextSpan(text: 'poeng til ', style: BergenTokens.text(11.5, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .7))),
-                              TextSpan(text: b.nextTierName, style: BergenTokens.text(11.5, weight: FontWeight.w800, color: Colors.white)),
+                              TextSpan(
+                                text: '${A4MegCopy.nf(b.pointsToNextTier!)} ',
+                                style: BergenTokens.display(
+                                  15,
+                                  weight: FontWeight.w800,
+                                  color: BergenTokens.mint,
+                                  letterSpacingEm: -0.02,
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'poeng til ',
+                                style: BergenTokens.text(
+                                  11.5,
+                                  weight: FontWeight.w800,
+                                  color: Colors.white.withValues(alpha: .7),
+                                ),
+                              ),
+                              TextSpan(
+                                text: b.nextTierName,
+                                style: BergenTokens.text(
+                                  11.5,
+                                  weight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right_rounded, size: 18, color: Colors.white.withValues(alpha: .45)),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: Colors.white.withValues(alpha: .45),
+                ),
               ],
             ),
           ),
@@ -110,19 +172,50 @@ class MegNivaaCard extends StatelessWidget {
                 height: 30,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: RadialGradient(center: Alignment(-.32, -.44), colors: [Color(0xFFFBE8B4), Color(0xFFE0A32C), Color(0xFFB77F1C)], stops: [0, .62, 1]),
-                  boxShadow: [BoxShadow(color: Color.fromRGBO(120, 80, 10, .65), offset: Offset(0, 2), blurRadius: 4, spreadRadius: -1)],
+                  gradient: RadialGradient(
+                    center: Alignment(-.32, -.44),
+                    colors: [
+                      Color(0xFFFBE8B4),
+                      Color(0xFFE0A32C),
+                      Color(0xFFB77F1C),
+                    ],
+                    stops: [0, .62, 1],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.fromRGBO(120, 80, 10, .65),
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                      spreadRadius: -1,
+                    ),
+                  ],
                 ),
-                child: const Center(child: MegMark(color: Color(0xFF7C5A18), size: 16)),
+                child: const Center(
+                  child: MegMark(color: Color(0xFF7C5A18), size: 16),
+                ),
               ),
               const SizedBox(width: 9),
-              Expanded(child: Text(A4MegCopy.a4_meg_poeng_bruke, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: .9, color: Colors.white.withValues(alpha: .55)))),
+              Expanded(
+                child: Text(
+                  A4MegCopy.a4_meg_poeng_bruke,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: .9,
+                    color: Colors.white.withValues(alpha: .55),
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
               Flexible(
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerRight,
-                  child: _MintChip(A4MegCopy.a4_meg_opptjent(b.lifetime > 0 ? b.lifetime : b.earned12m)),
+                  child: _MintChip(
+                    A4MegCopy.a4_meg_opptjent(
+                      b.lifetime > 0 ? b.lifetime : b.earned12m,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -132,14 +225,46 @@ class MegNivaaCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(A4MegCopy.nf(b.available), key: const Key('meg-available-points'), style: BergenTokens.display(42, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.04, height: 1)))),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    A4MegCopy.nf(b.available),
+                    key: const Key('meg-available-points'),
+                    style: BergenTokens.display(
+                      42,
+                      weight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacingEm: -0.04,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(width: 7),
-              Text(A4MegCopy.a4_meg_poeng, style: BergenTokens.display(16, weight: FontWeight.w800, color: Colors.white.withValues(alpha: .55), letterSpacingEm: -0.02)),
+              Text(
+                A4MegCopy.a4_meg_poeng,
+                style: BergenTokens.display(
+                  16,
+                  weight: FontWeight.w800,
+                  color: Colors.white.withValues(alpha: .55),
+                  letterSpacingEm: -0.02,
+                ),
+              ),
             ],
           ),
           if (b.pending > 0) ...[
             const SizedBox(height: 6),
-            Text(A4MegCopy.a4_meg_kommer(b.pending), key: const Key('meg-pending-line'), style: BergenTokens.text(11.5, weight: FontWeight.w600, color: Colors.white.withValues(alpha: .55))),
+            Text(
+              A4MegCopy.a4_meg_kommer(b.pending),
+              key: const Key('meg-pending-line'),
+              style: BergenTokens.text(
+                11.5,
+                weight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: .55),
+              ),
+            ),
           ],
           if (g != null) ...[
             const SizedBox(height: 13),
@@ -149,7 +274,11 @@ class MegNivaaCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: .22),
                 borderRadius: BorderRadius.circular(18),
-                border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: .14))),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.white.withValues(alpha: .14),
+                  ),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,34 +289,64 @@ class MegNivaaCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          g.reached ? A4MegCopy.a4_meg_maal_klar(g.label) : A4MegCopy.a4_meg_maal(g.label, g.remaining),
+                          g.reached
+                              ? A4MegCopy.a4_meg_maal_klar(g.label)
+                              : A4MegCopy.a4_meg_maal(g.label, g.remaining),
                           key: const Key('meg-goal-label'),
-                          style: BergenTokens.text(11.5, weight: FontWeight.w800, color: Colors.white, height: 1.35),
+                          style: BergenTokens.text(
+                            11.5,
+                            weight: FontWeight.w800,
+                            color: Colors.white,
+                            height: 1.35,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('${g.percent}%', style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: BergenTokens.mint, fontFeatures: [FontFeature.tabularFigures()])),
+                      Text(
+                        '${g.percent}%',
+                        style: const TextStyle(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          color: BergenTokens.mint,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 9),
                   Container(
                     height: 9,
-                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: .3), borderRadius: BorderRadius.circular(99)),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: .3),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
                     child: FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: (g.percent / 100).clamp(0.0, 1.0),
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(99),
-                          gradient: const LinearGradient(colors: [Color(0xFFF2C14E), Color(0xFFF26D3D)]),
-                          border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .6))),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFF2C14E), Color(0xFFF26D3D)],
+                          ),
+                          border: Border(
+                            top: BorderSide(
+                              color: Colors.white.withValues(alpha: .6),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                   if (g.reached) ...[
                     const SizedBox(height: 12),
-                    MegPill(key: const Key('meg-hent-premien'), label: A4MegCopy.a4_meg_hent_premien, height: 46, fontSize: 13.5, onPressed: onHentPremie ?? onOpenPremiehylla),
+                    MegPill(
+                      key: const Key('meg-hent-premien'),
+                      label: A4MegCopy.a4_meg_hent_premien,
+                      height: 46,
+                      fontSize: 13.5,
+                      onPressed: onHentPremie ?? onOpenPremiehylla,
+                    ),
                   ],
                 ],
               ),
@@ -196,13 +355,32 @@ class MegNivaaCard extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: MegPill(key: const Key('meg-open-premiehylla'), label: A4MegCopy.a4_meg_premiehylla, icon: Icons.chevron_right_rounded, height: 48, fontSize: 13.5, style: MegPillStyle.nav, onPressed: onOpenPremiehylla)),
+              Expanded(
+                child: MegPill(
+                  key: const Key('meg-open-premiehylla'),
+                  label: A4MegCopy.a4_meg_premiehylla,
+                  icon: Icons.chevron_right_rounded,
+                  height: 48,
+                  fontSize: 13.5,
+                  style: MegPillStyle.nav,
+                  onPressed: onOpenPremiehylla,
+                ),
+              ),
               const SizedBox(width: 12),
               GestureDetector(
                 key: const Key('meg-open-slik'),
                 behavior: HitTestBehavior.opaque,
                 onTap: onOpenSlik,
-                child: Text(A4MegCopy.a4_meg_slik, textAlign: TextAlign.center, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: BergenTokens.mint, height: 1.25)),
+                child: Text(
+                  A4MegCopy.a4_meg_slik,
+                  textAlign: TextAlign.center,
+                  style: BergenTokens.text(
+                    12.5,
+                    weight: FontWeight.w800,
+                    color: BergenTokens.mint,
+                    height: 1.25,
+                  ),
+                ),
               ),
             ],
           ),
@@ -224,9 +402,18 @@ class _MintChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF5CE0B8).withValues(alpha: .14),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFF5CE0B8).withValues(alpha: .35)),
+        border: Border.all(
+          color: const Color(0xFF5CE0B8).withValues(alpha: .35),
+        ),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: BergenTokens.mint)),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 9.5,
+          fontWeight: FontWeight.w800,
+          color: BergenTokens.mint,
+        ),
+      ),
     );
   }
 }
@@ -243,11 +430,23 @@ class MegLadder extends StatelessWidget {
   Widget build(BuildContext context) {
     final steps = balance.tiers.isNotEmpty
         ? balance.tiers
-        : [TierStep(index: balance.tier, name: balance.tierName, threshold: 0), if (balance.nextTierName != null) TierStep(index: balance.tier + 1, name: balance.nextTierName!, threshold: 0)];
+        : [
+            TierStep(index: balance.tier, name: balance.tierName, threshold: 0),
+            if (balance.nextTierName != null)
+              TierStep(
+                index: balance.tier + 1,
+                name: balance.nextTierName!,
+                threshold: 0,
+              ),
+          ];
     final current = balance.tier;
     final rungs = steps.length;
-    final pct = balance.nextTierName == null ? 1.0 : balance.progressToNextTier();
-    final progress = rungs <= 1 ? 1.0 : ((current + pct) / (rungs - 1)).clamp(0.0, 1.0);
+    final pct = balance.nextTierName == null
+        ? 1.0
+        : balance.progressToNextTier();
+    final progress = rungs <= 1
+        ? 1.0
+        : ((current + pct) / (rungs - 1)).clamp(0.0, 1.0);
 
     return SizedBox(
       key: const Key('meg-ladder'),
@@ -261,7 +460,10 @@ class MegLadder extends StatelessWidget {
               top: 14,
               child: Container(
                 height: 6,
-                decoration: BoxDecoration(color: Colors.black.withValues(alpha: .32), borderRadius: BorderRadius.circular(99)),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .32),
+                  borderRadius: BorderRadius.circular(99),
+                ),
               ),
             ),
             Positioned(
@@ -272,8 +474,21 @@ class MegLadder extends StatelessWidget {
                 width: (c.maxWidth - 28) * progress,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(99),
-                  gradient: const LinearGradient(colors: [Color(0xFFC98A62), Color(0xFFC7CDD1), Color(0xFFF2C14E), Color(0xFFDDE5EA)], stops: [0, .38, .74, 1]),
-                  boxShadow: const [BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 10)],
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFC98A62),
+                      Color(0xFFC7CDD1),
+                      Color(0xFFF2C14E),
+                      Color(0xFFDDE5EA),
+                    ],
+                    stops: [0, .38, .74, 1],
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color.fromRGBO(242, 193, 78, .6),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -281,7 +496,14 @@ class MegLadder extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [for (final s in steps) _Rung(name: s.name, done: s.index < current, current: s.index == current)],
+                children: [
+                  for (final s in steps)
+                    _Rung(
+                      name: s.name,
+                      done: s.index < current,
+                      current: s.index == current,
+                    ),
+                ],
               ),
             ),
           ],
@@ -317,14 +539,36 @@ class _Rung extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: locked ? Colors.white.withValues(alpha: .14) : null,
-              gradient: locked ? null : RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
-              border: Border.all(color: current ? Colors.white : (locked ? Colors.white.withValues(alpha: .2) : m.ring), width: current ? 2 : 1.5),
-              boxShadow: current ? const [BoxShadow(color: Color.fromRGBO(242, 193, 78, .8), blurRadius: 14)] : null,
+              gradient: locked
+                  ? null
+                  : RadialGradient(
+                      center: const Alignment(-.32, -.48),
+                      colors: m.gradient,
+                      stops: m.stops,
+                    ),
+              border: Border.all(
+                color: current
+                    ? Colors.white
+                    : (locked ? Colors.white.withValues(alpha: .2) : m.ring),
+                width: current ? 2 : 1.5,
+              ),
+              boxShadow: current
+                  ? const [
+                      BoxShadow(
+                        color: Color.fromRGBO(242, 193, 78, .8),
+                        blurRadius: 14,
+                      ),
+                    ]
+                  : null,
             ),
             child: Center(
               child: current
                   ? MegMark(color: m.ink, size: 15)
-                  : Icon(done ? Icons.check_rounded : Icons.lock_rounded, size: done ? 11 : 9, color: ink),
+                  : Icon(
+                      done ? Icons.check_rounded : Icons.lock_rounded,
+                      size: done ? 11 : 9,
+                      color: ink,
+                    ),
             ),
           ),
           const SizedBox(height: 3),
@@ -335,11 +579,19 @@ class _Rung extends StatelessWidget {
               minWidth: 64,
               maxWidth: 64,
               child: Text(
-              name,
-              textAlign: TextAlign.center,
-              softWrap: false,
-              overflow: TextOverflow.visible,
-              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, letterSpacing: .3, height: 1.1, color: current ? Colors.white : Colors.white.withValues(alpha: done ? .7 : .4)),
+                name,
+                textAlign: TextAlign.center,
+                softWrap: false,
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: .3,
+                  height: 1.1,
+                  color: current
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: done ? .7 : .4),
+                ),
               ),
             ),
           ),
@@ -351,7 +603,12 @@ class _Rung extends StatelessWidget {
 
 /// The medal (design `nivMetall` + the Poeng card's medal block).
 class MegMedal extends StatelessWidget {
-  const MegMedal({super.key, required this.name, this.size = 64, this.animate = true});
+  const MegMedal({
+    super.key,
+    required this.name,
+    this.size = 64,
+    this.animate = true,
+  });
 
   final String name;
   final double size;
@@ -365,9 +622,20 @@ class MegMedal extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
+        gradient: RadialGradient(
+          center: const Alignment(-.32, -.48),
+          colors: m.gradient,
+          stops: m.stops,
+        ),
         border: Border.all(color: m.ring, width: 2),
-        boxShadow: const [BoxShadow(color: Color.fromRGBO(3, 16, 24, .8), offset: Offset(0, 6), blurRadius: 12, spreadRadius: -4)],
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(3, 16, 24, .8),
+            offset: Offset(0, 6),
+            blurRadius: 12,
+            spreadRadius: -4,
+          ),
+        ],
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -376,14 +644,28 @@ class MegMedal extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .55), Colors.white.withValues(alpha: 0), Colors.transparent, const Color(0xFF5A3C0A).withValues(alpha: .28)], stops: const [0, .08, .7, 1]),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: .55),
+                    Colors.white.withValues(alpha: 0),
+                    Colors.transparent,
+                    const Color(0xFF5A3C0A).withValues(alpha: .28),
+                  ],
+                  stops: const [0, .08, .7, 1],
+                ),
               ),
             ),
           ),
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.all(size * .094),
-              child: CustomPaint(painter: _DashedRing(color: const Color(0xFF5A3C0A).withValues(alpha: .35))),
+              child: CustomPaint(
+                painter: _DashedRing(
+                  color: const Color(0xFF5A3C0A).withValues(alpha: .35),
+                ),
+              ),
             ),
           ),
           MegMark(color: m.ink, size: size * .69),
@@ -391,20 +673,33 @@ class MegMedal extends StatelessWidget {
       ),
     );
 
-    return SizedBox(
+    final medal = SizedBox(
       width: size + 12,
       height: size + 12,
       child: Stack(
         alignment: Alignment.center,
         children: [
           if (animate) MegSpinRing(size: size + 12),
-          Container(width: size + 8, height: size + 8, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF1E4F5C))),
-          if (animate)
-            MegShine(borderRadius: BorderRadius.circular(size), period: const Duration(milliseconds: 3400), delay: const Duration(milliseconds: 600), bandFraction: .36, opacity: .9, child: coin)
-          else
-            coin,
+          Container(
+            width: size + 8,
+            height: size + 8,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFF1E4F5C),
+            ),
+          ),
+          coin,
         ],
       ),
+    );
+    if (!animate) return medal;
+    return MegShine(
+      borderRadius: BorderRadius.circular(size + 12),
+      period: const Duration(milliseconds: 3400),
+      delay: const Duration(milliseconds: 600),
+      bandFraction: .36,
+      opacity: .5,
+      child: medal,
     );
   }
 }
@@ -425,7 +720,13 @@ class _DashedRing extends CustomPainter {
     const dashes = 28;
     const pi = 3.141592653589793;
     for (var i = 0; i < dashes; i++) {
-      canvas.drawArc(Rect.fromCircle(center: c, radius: r), i * 2 * pi / dashes, pi / dashes, false, paint);
+      canvas.drawArc(
+        Rect.fromCircle(center: c, radius: r),
+        i * 2 * pi / dashes,
+        pi / dashes,
+        false,
+        paint,
+      );
     }
   }
 
@@ -434,7 +735,13 @@ class _DashedRing extends CustomPainter {
 }
 
 class MedalStyle {
-  const MedalStyle({required this.gradient, required this.stops, required this.ink, required this.ring, required this.accent});
+  const MedalStyle({
+    required this.gradient,
+    required this.stops,
+    required this.ink,
+    required this.ring,
+    required this.accent,
+  });
 
   final List<Color> gradient;
   final List<double> stops;
@@ -448,15 +755,44 @@ MedalStyle medalFor(String name) {
   switch (name.toLowerCase()) {
     case 'platina':
     case 'ulriken':
-      return const MedalStyle(gradient: [Color(0xFFFFFFFF), Color(0xFFE8EDF0), Color(0xFFAEB9C2), Color(0xFF8C98A3)], stops: [0, .48, .76, 1], ink: Color(0xFF263038), ring: Color(0x998C98A3), accent: Color(0xFFDCE3E6));
+      return const MedalStyle(
+        gradient: [
+          Color(0xFFFFFFFF),
+          Color(0xFFE8EDF0),
+          Color(0xFFAEB9C2),
+          Color(0xFF8C98A3),
+        ],
+        stops: [0, .48, .76, 1],
+        ink: Color(0xFF263038),
+        ring: Color(0x998C98A3),
+        accent: Color(0xFFDCE3E6),
+      );
     case 'gull':
     case 'rundemanen':
-      return const MedalStyle(gradient: [Color(0xFFFFFCF0), Color(0xFFF2D591), Color(0xFFC99B2A)], stops: [0, .55, 1], ink: Color(0xFF5A4010), ring: Color(0x99C99B2A), accent: Color(0xFFF2C14E));
+      return const MedalStyle(
+        gradient: [Color(0xFFFFFCF0), Color(0xFFF2D591), Color(0xFFC99B2A)],
+        stops: [0, .55, 1],
+        ink: Color(0xFF5A4010),
+        ring: Color(0x99C99B2A),
+        accent: Color(0xFFF2C14E),
+      );
     case 'sølv':
     case 'solv':
     case 'løvstakken':
-      return const MedalStyle(gradient: [Color(0xFFFFFFFF), Color(0xFFDCE3E6), Color(0xFF9AA8AE)], stops: [0, .55, 1], ink: Color(0xFF2A3538), ring: Color(0x999AA8AE), accent: Color(0xFFCBD6DA));
+      return const MedalStyle(
+        gradient: [Color(0xFFFFFFFF), Color(0xFFDCE3E6), Color(0xFF9AA8AE)],
+        stops: [0, .55, 1],
+        ink: Color(0xFF2A3538),
+        ring: Color(0x999AA8AE),
+        accent: Color(0xFFCBD6DA),
+      );
     default:
-      return const MedalStyle(gradient: [Color(0xFFF6DCC8), Color(0xFFC98A62), Color(0xFF8E5B38)], stops: [0, .58, 1], ink: Color(0xFF4A2A16), ring: Color(0x998E5B38), accent: Color(0xFFE0A47E));
+      return const MedalStyle(
+        gradient: [Color(0xFFF6DCC8), Color(0xFFC98A62), Color(0xFF8E5B38)],
+        stops: [0, .58, 1],
+        ink: Color(0xFF4A2A16),
+        ring: Color(0x998E5B38),
+        accent: Color(0xFFE0A47E),
+      );
   }
 }

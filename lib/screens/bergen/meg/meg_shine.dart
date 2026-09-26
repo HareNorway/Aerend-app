@@ -16,7 +16,7 @@ class MegShine extends StatefulWidget {
     this.delay = const Duration(milliseconds: 1200),
     this.bandFraction = .34,
     this.borderRadius,
-    this.opacity = .85,
+    this.opacity = .45,
   });
 
   final Widget child;
@@ -30,8 +30,12 @@ class MegShine extends StatefulWidget {
   State<MegShine> createState() => _MegShineState();
 }
 
-class _MegShineState extends State<MegShine> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: widget.period);
+class _MegShineState extends State<MegShine>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  );
   bool _started = false;
   Timer? _delay;
 
@@ -66,23 +70,48 @@ class _MegShineState extends State<MegShine> with SingleTickerProviderStateMixin
               child: AnimatedBuilder(
                 animation: _c,
                 builder: (context, _) {
-                  // cubic-bezier(.4,0,.2,1): ease in-out, from just off the left to just off the right.
-                  final t = Curves.easeInOut.transform(_c.value);
-                  final x = -widget.bandFraction + t * (1 + widget.bandFraction * 2);
-                  return FractionallySizedBox(
-                    alignment: Alignment(-1 + 2 * x.clamp(0.0, 1.0), 0),
-                    widthFactor: widget.bandFraction,
-                    child: Transform(
-                      transform: Matrix4.skewX(-.2),
-                      alignment: Alignment.center,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.white.withValues(alpha: 0), Colors.white.withValues(alpha: widget.opacity), Colors.white.withValues(alpha: 0)],
+                  // skinnSveip: translateX(-140%) → 240% of the band, skewX(-18deg),
+                  // opacity 0 → .7 at 20% → 0, cubic-bezier(.4,0,.2,1).
+                  final v = _c.value;
+                  final t = Curves.easeInOut.transform(v);
+                  final fade = v < .2 ? v / .2 : 1 - (v - .2) / .8;
+                  return LayoutBuilder(
+                    builder: (context, c) {
+                      final w = c.maxWidth;
+                      final bw = w * widget.bandFraction;
+                      final x = -1.4 * bw + t * 3.8 * bw;
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            left: x,
+                            top: -c.maxHeight * .3,
+                            bottom: -c.maxHeight * .3,
+                            width: bw,
+                            child: Opacity(
+                              opacity: (fade * .7).clamp(0.0, 1.0),
+                              child: Transform(
+                                transform: Matrix4.skewX(-.31),
+                                alignment: Alignment.center,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.white.withValues(alpha: 0),
+                                        Colors.white.withValues(
+                                          alpha: widget.opacity,
+                                        ),
+                                        Colors.white.withValues(alpha: 0),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
@@ -96,7 +125,11 @@ class _MegShineState extends State<MegShine> with SingleTickerProviderStateMixin
 
 /// `medSnurr`: the conic arc of light turning behind the medal (inset -6px).
 class MegSpinRing extends StatefulWidget {
-  const MegSpinRing({super.key, required this.size, this.period = const Duration(milliseconds: 3200)});
+  const MegSpinRing({
+    super.key,
+    required this.size,
+    this.period = const Duration(milliseconds: 3200),
+  });
 
   final double size;
   final Duration period;
@@ -105,8 +138,12 @@ class MegSpinRing extends StatefulWidget {
   State<MegSpinRing> createState() => _MegSpinRingState();
 }
 
-class _MegSpinRingState extends State<MegSpinRing> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: widget.period);
+class _MegSpinRingState extends State<MegSpinRing>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: widget.period,
+  );
   bool _started = false;
 
   @override
@@ -114,7 +151,8 @@ class _MegSpinRingState extends State<MegSpinRing> with SingleTickerProviderStat
     super.didChangeDependencies();
     if (_started) return;
     _started = true;
-    if (BergenTokens.motion(context, widget.period) != Duration.zero) _c.repeat();
+    if (BergenTokens.motion(context, widget.period) != Duration.zero)
+      _c.repeat();
   }
 
   @override
@@ -135,7 +173,12 @@ class _MegSpinRingState extends State<MegSpinRing> with SingleTickerProviderStat
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             gradient: SweepGradient(
-              colors: [Color(0x00F2C14E), Color(0xF2FFF0BE), Color(0x00F2C14E), Color(0x00F2C14E)],
+              colors: [
+                Color(0x00F2C14E),
+                Color(0xF2FFF0BE),
+                Color(0x00F2C14E),
+                Color(0x00F2C14E),
+              ],
               stops: [0, .167, .36, 1],
             ),
           ),
