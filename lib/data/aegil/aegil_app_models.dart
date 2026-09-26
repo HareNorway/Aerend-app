@@ -230,3 +230,37 @@ class EarnResult {
     duplicate: json['duplicate'] == true,
   );
 }
+
+/// "Anledninger" (agil-4): a person and a date, one reminder `leadDays` before.
+class Occasion {
+  const Occasion({
+    required this.id,
+    required this.person,
+    required this.date,
+    this.label,
+    this.next,
+    this.remindOn,
+    this.leadDays = 7,
+    this.yearly = true,
+  });
+
+  final int id;
+  final String person;
+  final String date;
+  final String? label;
+  final String? next;
+  final String? remindOn;
+  final int leadDays;
+  final bool yearly;
+
+  factory Occasion.fromJson(Map<String, dynamic> json) => Occasion(
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        person: (json['person'] as String?) ?? '',
+        date: (json['date'] as String?) ?? '',
+        label: json['label'] as String?,
+        next: json['next'] as String?,
+        remindOn: json['remind_on'] as String?,
+        leadDays: (json['lead_days'] as num?)?.toInt() ?? 7,
+        yearly: json['yearly'] != false,
+      );
+}

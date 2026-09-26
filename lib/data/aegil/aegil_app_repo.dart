@@ -2,6 +2,7 @@ import '../../networking/api_base_helper.dart';
 import '../../utils/shared_pref_utill.dart';
 import '../../utils/utils.dart';
 import 'aegil_app_models.dart';
+import 'chat_card_models.dart';
 import 'suggestion_models.dart';
 
 /// The Ægil screen's calls (agil-3 Phase 7): chat turns, the suggestion
@@ -20,6 +21,12 @@ abstract class AegilAppApi {
   Future<TrustLedger?> trustLedger();
   Future<AegilTurn?> photoOrder(List<String> items);
   Future<String?> doorNote(String note);
+
+  // agil-4: the Meg tab.
+  Future<List<Occasion>> occasions();
+  Future<List<Occasion>> addOccasion({required String person, required String date, String? label});
+  Future<List<Occasion>> removeOccasion(int id);
+  Future<List<ShoppingListItem>> shoppingList();
 }
 
 class AegilAppRepo implements AegilAppApi {
@@ -128,6 +135,51 @@ class AegilAppRepo implements AegilAppApi {
       return json?['courier_line'] as String?;
     } catch (_) {
       return null;
+    }
+  }
+
+  List<Occasion> _occasionList(Map<String, dynamic>? json) => ((json?['occasions'] as List?) ?? const [])
+      .whereType<Map>()
+      .map((e) => Occasion.fromJson(e.cast<String, dynamic>()))
+      .toList();
+
+  @override
+  Future<List<Occasion>> occasions() async {
+    try {
+      return _occasionList(_ok(await _api.get('me/occasions?${_query(_auth())}')));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<List<Occasion>> addOccasion({required String person, required String date, String? label}) async {
+    try {
+      return _occasionList(_ok(await _api.post('me/occasions', body: {..._auth(), 'person': person, 'date': date, if (label != null) 'label': label})));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<List<Occasion>> removeOccasion(int id) async {
+    try {
+      return _occasionList(_ok(await _api.delete('me/occasions/$id?${_query(_auth())}')));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<List<ShoppingListItem>> shoppingList() async {
+    try {
+      final json = _ok(await _api.get('me/shopping-list?${_query(_auth())}'));
+      return ((json?['items'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => ShoppingListItem.fromJson(e.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return const [];
     }
   }
 }

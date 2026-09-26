@@ -19,6 +19,7 @@ class PointsBalance {
     this.expiringWindowDays = 30,
     this.expiringFirstAt,
     this.policyVersion = '',
+    this.tiers = const [],
   });
 
   /// Spendable now.
@@ -42,6 +43,9 @@ class PointsBalance {
   final DateTime? expiringFirstAt;
 
   final String policyVersion;
+
+  /// The whole ladder (agil-4): Bronse → Sølv → Gull → Platina with thresholds.
+  final List<TierStep> tiers;
 
   bool get hasExpiryNotice => expiringAmount > 0;
 
@@ -75,6 +79,51 @@ class PointsBalance {
       expiringWindowDays: _int(expiring['window_days'], fallback: 30),
       expiringFirstAt: _date(expiring['first_expires_at']),
       policyVersion: (json['policy_version'] as String?) ?? '',
+      tiers: ((json['tiers'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => TierStep.fromJson(e.cast<String, dynamic>()))
+          .toList(),
+    );
+  }
+}
+
+/// One rung of the Nivå ladder (`points/me` → `tiers[]`).
+class TierStep {
+  const TierStep({required this.index, required this.name, required this.threshold});
+
+  final int index;
+  final String name;
+  final int threshold;
+
+  factory TierStep.fromJson(Map<String, dynamic> json) => TierStep(
+        index: _int(json['index']),
+        name: (json['name'] as String?) ?? '',
+        threshold: _int(json['threshold']),
+      );
+}
+
+/// The Meg tab's preferences and row counts (`points/me/prefs`, agil-4).
+class CustomerPrefs {
+  const CustomerPrefs({
+    this.alwaysCode = false,
+    this.notificationsSeenAt,
+    this.notificationsUnseen = 0,
+    this.favourites = 0,
+  });
+
+  final bool alwaysCode;
+  final DateTime? notificationsSeenAt;
+  final int notificationsUnseen;
+  final int favourites;
+
+  factory CustomerPrefs.fromJson(Map<String, dynamic> json) {
+    final prefs = (json['prefs'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final counts = (json['counts'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return CustomerPrefs(
+      alwaysCode: prefs['always_code'] == true,
+      notificationsSeenAt: _date(prefs['notifications_seen_at']),
+      notificationsUnseen: _int(counts['notifications_unseen']),
+      favourites: _int(counts['favourites']),
     );
   }
 }
@@ -260,6 +309,7 @@ class Mission {
     this.progress = 0,
     this.target = 1,
     this.wordingSource = 'template',
+    this.accepted = false,
   });
 
   final int id;
@@ -273,6 +323,9 @@ class Mission {
   /// 'template' or 'agent' — Phase 7 lets Ægil reword a mission.
   final String wordingSource;
 
+  /// "Godta" pressed (agil-4). Assignment already makes a mission active.
+  final bool accepted;
+
   double get fraction => target <= 0 ? 0 : (progress / target).clamp(0.0, 1.0);
 
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
@@ -284,6 +337,7 @@ class Mission {
         progress: _int(json['progress']),
         target: _int(json['target'], fallback: 1),
         wordingSource: (json['wording_source'] as String?) ?? 'template',
+        accepted: json['accepted'] == true,
       );
 }
 

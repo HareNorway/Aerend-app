@@ -23,6 +23,12 @@ abstract class PointsAppApi {
   Future<Referral?> referral();
   Future<AegilPick?> pick();
   Future<EarnResult?> earn({required int catchNumber, int? suggestionId});
+
+  // agil-4: the Meg tab.
+  Future<Mission?> acceptMission();
+  Future<League?> setLeagueName({String? name, String? visibility});
+  Future<CustomerPrefs?> prefs();
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false});
 }
 
 class PointsAppRepo implements PointsAppApi {
@@ -120,6 +126,55 @@ class PointsAppRepo implements PointsAppApi {
         if (suggestionId != null) 'suggestion_id': suggestionId,
       }));
       return json == null ? null : EarnResult.fromJson(json);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<Mission?> acceptMission() async {
+    try {
+      final json = _ok(await _api.post('mission/accept', body: _auth()));
+      final m = json?['mission'];
+      return m is Map ? Mission.fromJson(m.cast<String, dynamic>()) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<League?> setLeagueName({String? name, String? visibility}) async {
+    try {
+      final json = _ok(await _api.post('league/name', body: {
+        ..._auth(),
+        if (name != null) 'display_name': name,
+        if (visibility != null) 'visibility': visibility,
+      }));
+      return json == null ? null : League.fromJson(json);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CustomerPrefs?> prefs() async {
+    try {
+      final json = _ok(await _api.get('me/prefs?${_query(_auth())}'));
+      return json == null ? null : CustomerPrefs.fromJson(json);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false}) async {
+    try {
+      final json = _ok(await _api.post('me/prefs', body: {
+        ..._auth(),
+        if (alwaysCode != null) 'always_code': alwaysCode ? 1 : 0,
+        if (markNotificationsSeen) 'mark_notifications_seen': 1,
+      }));
+      return json == null ? null : CustomerPrefs.fromJson(json);
     } catch (_) {
       return null;
     }
