@@ -204,6 +204,23 @@ class OpsCustomerApi {
 
   // ── other agil-1 reads (Phase 2+) ───────────────────────────────────────
 
+  /// «Populært i {kategori}» (the Hjem Ark):
+  /// `GET /api/ops/products?kind=populaert&service_category_id=` — the
+  /// category's live products, most ordered in the last 7 days first.
+  /// Empty on failure.
+  Future<List<Map<String, dynamic>>> populaert(int categoryId) async {
+    final json = await _guarded(() async {
+      final j = await _helper.get(
+        'api/ops/products?kind=populaert&service_category_id=$categoryId',
+      );
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['products'];
+    return list is List
+        ? list.whereType<Map<String, dynamic>>().toList()
+        : const [];
+  }
+
   /// Forundringsposer: `GET /api/ops/products?kind=pose`. Empty on failure.
   Future<List<Map<String, dynamic>>> poser() async {
     final json = await _guarded(() async {

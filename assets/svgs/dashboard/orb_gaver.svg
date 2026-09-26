@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 44"><defs><linearGradient id="g-gave" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E9BC66"></stop><stop offset="1" stop-color="#B4823A"></stop></linearGradient></defs><g id="orb-gaver">
+      <rect x="9" y="18" width="30" height="20" rx="3.5" fill="url(#g-gave)"></rect>
+      <rect x="7" y="13" width="34" height="7" rx="2.5" fill="#E9BC66"></rect>
+      <rect x="21.5" y="13" width="5" height="25" fill="#8E5C92"></rect>
+      <path d="M24 13 C18 12 16 5 21 5 C24 5 24 10 24 13 Z M24 13 C30 12 32 5 27 5 C24 5 24 10 24 13 Z" fill="#8E5C92"></path>
+      <path d="M10 20 H38" stroke="rgba(255,255,255,.3)" stroke-width="1.2"></path>
+    </g></svg>

@@ -11791,6 +11791,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ægil rows across Vågen'**
   String get ops_kasse_ror_avgang;
+
+  /// No description provided for @ops_hjem_ark_butikker.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 store} other{{n} stores}}'**
+  String ops_hjem_ark_butikker(int n);
+
+  /// No description provided for @ops_hjem_ark_under.
+  ///
+  /// In en, this message translates to:
+  /// **'{live} · {butikker}'**
+  String ops_hjem_ark_under(String live, String butikker);
+
+  /// No description provided for @ops_hjem_ark_populaert.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular in {kat}'**
+  String ops_hjem_ark_populaert(String kat);
+
+  /// No description provided for @ops_hjem_ark_mer.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get ops_hjem_ark_mer;
+
+  /// No description provided for @ops_hjem_ark_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get ops_hjem_ark_lukk;
+
+  /// No description provided for @ops_hjem_ark_gratis_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'Free delivery'**
+  String get ops_hjem_ark_gratis_levering;
+
+  /// No description provided for @ops_hjem_ark_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'{fee} delivery'**
+  String ops_hjem_ark_levering(String fee);
+
+  /// No description provided for @ops_hjem_ark_ingen_varer.
+  ///
+  /// In en, this message translates to:
+  /// **'No products here yet — see the stores above.'**
+  String get ops_hjem_ark_ingen_varer;
+
+  /// No description provided for @ops_hjem_ark_legg.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {navn} to the basket'**
+  String ops_hjem_ark_legg(String navn);
 }
 
 class _AppLocalizationsDelegate

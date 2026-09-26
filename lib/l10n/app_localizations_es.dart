@@ -6481,4 +6481,48 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ops_kasse_ror_avgang => 'Ægil rows across Vågen';
+
+  @override
+  String ops_hjem_ark_butikker(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n stores',
+      one: '1 store',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ops_hjem_ark_under(String live, String butikker) {
+    return '$live · $butikker';
+  }
+
+  @override
+  String ops_hjem_ark_populaert(String kat) {
+    return 'Popular in $kat';
+  }
+
+  @override
+  String get ops_hjem_ark_mer => 'More';
+
+  @override
+  String get ops_hjem_ark_lukk => 'Close';
+
+  @override
+  String get ops_hjem_ark_gratis_levering => 'Free delivery';
+
+  @override
+  String ops_hjem_ark_levering(String fee) {
+    return '$fee delivery';
+  }
+
+  @override
+  String get ops_hjem_ark_ingen_varer =>
+      'No products here yet — see the stores above.';
+
+  @override
+  String ops_hjem_ark_legg(String navn) {
+    return 'Add $navn to the basket';
+  }
 }

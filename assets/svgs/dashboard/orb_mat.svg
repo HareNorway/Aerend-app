@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 48"><defs><linearGradient id="g-metal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"></stop><stop offset="1" stop-color="#AEB6BE"></stop></linearGradient></defs><g id="orb-mat">
+      <path d="M17 10 v9 a3.5 3.5 0 0 0 7 0 v-9 M20.5 10 V38" stroke="url(#g-metal)" stroke-width="3" stroke-linecap="round" fill="none"></path>
+      <path d="M31 10 c-2.4 3-3.6 6.5-3.6 10 0 3 1.5 5 3.6 5 V38" stroke="url(#g-metal)" stroke-width="3" stroke-linecap="round" fill="none"></path>
+    </g></svg>

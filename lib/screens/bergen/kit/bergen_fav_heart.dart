@@ -27,12 +27,21 @@ class BergenFavHeart extends StatefulWidget {
     this.size = 30,
     this.iconSize = 15,
     this.onDark = false,
+    this.fill,
+    this.border,
+    this.strokeInk,
   });
 
   final int storeId;
   final double size;
   final double iconSize;
   final bool onDark;
+
+  /// Overrides for a surface that draws its own chip (the Hjem Ark's glass
+  /// heart: `rgba(255,255,255,.5)`, `1px rgba(255,255,255,.55)`).
+  final Color? fill;
+  final Color? border;
+  final Color? strokeInk;
 
   @override
   State<BergenFavHeart> createState() => _BergenFavHeartState();
@@ -111,10 +120,13 @@ class _BergenFavHeartState extends State<BergenFavHeart>
               height: widget.size,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: widget.onDark
-                    ? const Color(0x59000000)
-                    : Colors.white.withValues(alpha: .72),
-                border: widget.onDark
+                color: widget.fill ??
+                    (widget.onDark
+                        ? const Color(0x59000000)
+                        : Colors.white.withValues(alpha: .72)),
+                border: widget.border != null
+                    ? Border.all(color: widget.border!)
+                    : widget.onDark
                     ? Border.all(color: const Color(0x40FFFFFF))
                     : null,
               ),
@@ -125,7 +137,8 @@ class _BergenFavHeartState extends State<BergenFavHeart>
                   size: widget.iconSize,
                   color: on
                       ? _orange
-                      : (widget.onDark ? Colors.white : _ink),
+                      : (widget.strokeInk ??
+                            (widget.onDark ? Colors.white : _ink)),
                 ),
               ),
             ),

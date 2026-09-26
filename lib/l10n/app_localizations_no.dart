@@ -6468,4 +6468,48 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kasse_ror_avgang => 'Ægil ror over Vågen';
+
+  @override
+  String ops_hjem_ark_butikker(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n butikker',
+      one: '1 butikk',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ops_hjem_ark_under(String live, String butikker) {
+    return '$live · $butikker';
+  }
+
+  @override
+  String ops_hjem_ark_populaert(String kat) {
+    return 'Populært i $kat';
+  }
+
+  @override
+  String get ops_hjem_ark_mer => 'Mer';
+
+  @override
+  String get ops_hjem_ark_lukk => 'Lukk';
+
+  @override
+  String get ops_hjem_ark_gratis_levering => 'Gratis levering';
+
+  @override
+  String ops_hjem_ark_levering(String fee) {
+    return '$fee levering';
+  }
+
+  @override
+  String get ops_hjem_ark_ingen_varer =>
+      'Ingen varer her ennå — se butikkene over.';
+
+  @override
+  String ops_hjem_ark_legg(String navn) {
+    return 'Legg $navn i kurven';
+  }
 }

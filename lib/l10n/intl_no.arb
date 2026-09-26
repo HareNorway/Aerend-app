@@ -2186,5 +2186,14 @@
   "ops_kasse_frakt_chip_hent": "Gratis — du henter selv",
   "ops_kasse_poeng_linje": "Gir {n} poeng tilbake",
   "ops_kasse_tom_beskjed_rad": "Beskjed til budet",
-  "ops_kasse_ror_avgang": "Ægil ror over Vågen"
+  "ops_kasse_ror_avgang": "Ægil ror over Vågen",
+  "ops_hjem_ark_butikker": "{n, plural, =1{1 butikk} other{{n} butikker}}",
+  "ops_hjem_ark_under": "{live} · {butikker}",
+  "ops_hjem_ark_populaert": "Populært i {kat}",
+  "ops_hjem_ark_mer": "Mer",
+  "ops_hjem_ark_lukk": "Lukk",
+  "ops_hjem_ark_gratis_levering": "Gratis levering",
+  "ops_hjem_ark_levering": "{fee} levering",
+  "ops_hjem_ark_ingen_varer": "Ingen varer her ennå — se butikkene over.",
+  "ops_hjem_ark_legg": "Legg {navn} i kurven"
 }

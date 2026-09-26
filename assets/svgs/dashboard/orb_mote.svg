@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 44"><defs><linearGradient id="g-tre" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D2A468"></stop><stop offset="1" stop-color="#8F6432"></stop></linearGradient></defs><g id="orb-mote">
+      <circle cx="24" cy="9" r="4" fill="none" stroke="#9FA8B2" stroke-width="2.6"></circle>
+      <path d="M24 13 L8 30 C7 31.5 8 34 10 34 H38 C40 34 41 31.5 40 30 Z" fill="url(#g-tre)"></path>
+      <path d="M24 13 L8 30" stroke="rgba(255,255,255,.4)" stroke-width="1.4"></path>
+    </g></svg>

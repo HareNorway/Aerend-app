@@ -34,6 +34,7 @@ import 'bergen_category_rad.dart';
 import 'bergen_copy.dart';
 import 'bergen_floats.dart';
 import 'bergen_hero.dart';
+import 'bergen_hjem_ark.dart';
 import 'bergen_kit.dart';
 import 'bergen_nav.dart';
 import 'bergen_painters.dart';
@@ -122,6 +123,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// Focused category (`i`) and the per-category store cache.
   int _catIndex = 0;
   final Map<int, List<BergenStoreCard>> _storesByCat = {};
+
+  /// The Ark (design `st.ark`): both «Se alle» open it.
+  bool _arkOpen = false;
   final Set<int> _storesLoading = {};
   int _storesRequestSeq = 0;
 
@@ -659,6 +663,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
+  void _openArk() {
+    HapticFeedback.selectionClick();
+    setState(() => _arkOpen = true);
+  }
+
+  void _closeArk() => setState(() => _arkOpen = false);
+
+  Future<List<HjemArkProduct>> _loadPopulaert(int categoryId) async {
+    final list = await OpsCustomerApi().populaert(categoryId);
+    return [for (final j in list) HjemArkProduct.fromJson(j)];
+  }
+
   void _openStore(BergenStoreCard s) {
     if (s.id == 0) {
       _comingSoon();
@@ -979,6 +995,56 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             ],
                           ),
                         ),
+
+                        // ── Ark (design L7146): both «Se alle» ──────────
+                        if (_arkOpen) ...[
+                          // A tap above the sheet closes it too.
+                          Positioned.fill(
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: _closeArk,
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: safeTop + 96 * s,
+                            bottom: 0,
+                            child: PopScope(
+                              canPop: false,
+                              onPopInvokedWithResult: (didPop, _) {
+                                if (!didPop) _closeArk();
+                              },
+                              child: HjemArk(
+                                categories: categories,
+                                index: catIndex,
+                                stores: stores,
+                                openCount: stores.where((x) => x.open).length,
+                                loadProducts: _loadPopulaert,
+                                onIndexChanged: (i) =>
+                                    setState(() => _catIndex = i),
+                                onClose: _closeArk,
+                                onMore: () {
+                                  _closeArk();
+                                  _toExplore();
+                                },
+                                onOpenStore: _openStore,
+                                onOpenProduct: (p) => _openProduct(
+                                  BergenProductCard(
+                                    id: p.id,
+                                    name: p.name,
+                                    store: p.storeName,
+                                    priceText: p.priceText,
+                                    price: p.priceOre / 100,
+                                    storeId: p.storeId,
+                                  ),
+                                ),
+                                onAdd: (p) =>
+                                    _addProduct(p.storeId, p.id, p.name),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -1069,7 +1135,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   count: categories.length,
                   index: catIndex,
                 ),
-                onSeeAll: () => _openCategory(focused),
+                onSeeAll: _openArk,
                 topPad: 16,
               ),
               SizedBox(height: 10 * s),
@@ -1092,7 +1158,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 pill: BergenCopy.bergenhus,
                 pillDot: BergenColors.gold,
                 pulse: false,
-                onSeeAll: _toExplore,
+                onSeeAll: _openArk,
                 topPad: 18,
               ),
               SizedBox(height: 10 * s),
