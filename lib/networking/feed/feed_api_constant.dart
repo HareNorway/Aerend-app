@@ -5,8 +5,10 @@ import '../api_constant.dart';
 class FeedBaseUrl {
   static String _override = '';
 
+  // static const String prodDomain =
+  //     'https://aerend-feed-88chd.ondigitalocean.app/';
   static const String prodDomain =
-      'https://aerend-feed-88chd.ondigitalocean.app/';
+      'http://127.0.0.1:3000/';
   // static const String prodDomain =
       // 'http://172.16.37.180:3000/';
   static const String localIOS = 'http://localhost:3000/';
