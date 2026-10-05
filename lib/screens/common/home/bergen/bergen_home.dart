@@ -15,14 +15,21 @@ import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/hjem/hjem_harness.dart';
 import '../../../bergen/hjem/hjem_header.dart';
 import '../../../bergen/hjem/hjem_hero.dart';
-import '../../auth/launch/lf_css.dart' show LfFrame;
+import '../../auth/launch/lf_css.dart' show LfFrame, lfFlow;
+import '../../../bergen/hjem/hjem_hjul.dart';
+import '../../../bergen/hjem/hjem_kort.dart';
+import '../../../bergen/hjem/hjem_tilbud.dart';
+import '../../../bergen/hjem/hjem_vann.dart';
+import '../../../bergen/hjem/hjem_vindu.dart';
+import '../../../bergen/hjem/hjem_snart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../bergen/aegil/brett_entry.dart';
 import '../../../bergen/kit/bergen_routes.dart';
 import '../../../bergen/meg/a3_services.dart';
 import '../../../bergen/meg/borte_entry.dart';
+import '../../../../data/aegil/aegil_app_models.dart' show AwayItem;
 import '../../../bergen/meg/konto_screen.dart' show kPrefA3Rolig;
 import '../../../bergen/poeng/napp_entry.dart';
-import '../../../bergen/poeng/poeng_entry.dart';
 import '../../../snurre/snurre_chat_screen.dart';
 import '../../auth/onboarding_kit.dart';
 import '../../homeMainV1/home_main_v1.dart';
@@ -119,12 +126,24 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// `dragY` / `drar` — pull handle state.
   double _dragY = 0;
   bool _dragging = false;
+
+  /// `sone: 'vindu'` — the window over the water (a tap on the handle).
+  bool _vindu = false;
+
+  /// True while the sheet and hero glide between the two zones.
+  bool _soneBytt = false;
+  double _stripeDy = 0;
   double _dragStartDy = 0;
   bool _armed = false;
   DateTime _lock = DateTime.fromMillisecondsSinceEpoch(0);
 
   /// Focused category (`i`) and the per-category store cache.
   int _catIndex = 0;
+
+  /// The wheel's focused slot (`i`, 0–4) and the coming-soon slots the user
+  /// asked to hear about (`snartVarsle`).
+  int _hjulI = 0;
+  Set<int> _snartVarsle = {};
   final Map<int, List<BergenStoreCard>> _storesByCat = {};
 
   /// The Ark (design `st.ark`): both «Se alle» open it.
@@ -156,6 +175,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _bloc = HomeBloc(context, this, false);
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
+    _lastSnart();
     _trackTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       _bloc.callHomeTrackOrderApi();
     });
@@ -169,6 +189,41 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     if (kDebugMode) {
       HjemHarness.load().then((_) {
         if (mounted) setState(() {});
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (!mounted) return;
+          final y = HjemHarness.scroll;
+          if (y != null && _scroll.hasClients) {
+            _scroll.jumpTo(y.clamp(0.0, _scroll.position.maxScrollExtent));
+          }
+          if (HjemHarness.vindu) _settVindu(true);
+          if (HjemHarness.borte) {
+            // ignore: invalid_use_of_visible_for_testing_member
+            setMensDuVarBorteForTest(const [
+              AwayItem(
+                id: 1,
+                text: 'Ægil la 4 ting i kurven mandag (312 kr)',
+                action: 'basket.add',
+                undoable: true,
+              ),
+              AwayItem(
+                id: 2,
+                text: 'Fant reker 30 kr billigere hos Torgboden',
+                action: 'price.watch',
+              ),
+              AwayItem(
+                id: 3,
+                text: 'Sandviken Bakeri åpnet i nabolaget',
+                action: 'store.new',
+              ),
+            ]);
+            setState(() {});
+          }
+          final k = HjemHarness.snart;
+          if (k != null) {
+            setState(() => _hjulI = k);
+            _openSnart(k);
+          }
+        });
       });
     }
   }
@@ -285,7 +340,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     final forced = HjemHarness.vaer;
     if (forced != null) return forced;
     if (identical(look, BergenWeatherLook.sol)) return HjemVaer.sol;
-    if (identical(look, BergenWeatherLook.solnedgang)) return HjemVaer.solnedgang;
+    if (identical(look, BergenWeatherLook.solnedgang)) {
+      return HjemVaer.solnedgang;
+    }
     if (identical(look, BergenWeatherLook.natt)) return HjemVaer.natt;
     return HjemVaer.regn;
   }
@@ -356,7 +413,23 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   void _handleTap() {
     if (_dragging || DateTime.now().isBefore(_lock)) return;
-    _openAegil();
+    _settVindu(!_vindu);
+  }
+
+  /// `toggleVindu`.
+  void _settVindu(bool v) {
+    _lock = DateTime.now().add(const Duration(milliseconds: 700));
+    if (v && _scroll.hasClients) _scroll.jumpTo(0);
+    setState(() {
+      _vindu = v;
+      _soneBytt = true;
+      _kaien = false;
+      _dragY = 0;
+      _k = 0;
+    });
+    Future.delayed(const Duration(milliseconds: 360), () {
+      if (mounted) setState(() => _soneBytt = false);
+    });
   }
 
   // ── Data mapping ────────────────────────────────────────────────────────
@@ -395,6 +468,56 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               BergenCategoryLook.all[i % BergenCategoryLook.all.length],
         ),
     ];
+  }
+
+  /// API categories by wheel slot (the first one per slot).
+  Map<int, BergenCategory> _slots(List<BergenCategory> categories) {
+    final m = <int, BergenCategory>{};
+    for (final c in categories) {
+      m.putIfAbsent(hjemHjulIkon(c.name), () => c);
+    }
+    return m;
+  }
+
+  void _velgHjul(
+    int k,
+    List<BergenCategory> categories,
+    Map<int, BergenCategory> slots,
+  ) {
+    final c = slots[k];
+    setState(() {
+      _hjulI = k;
+      if (c != null) _catIndex = categories.indexOf(c);
+    });
+  }
+
+  static const _kSnartPref = 'hjem_snart_varsle';
+
+  Future<void> _lastSnart() async {
+    final p = await SharedPreferences.getInstance();
+    final v = p.getStringList(_kSnartPref) ?? const [];
+    if (mounted) {
+      setState(() => _snartVarsle = {for (final x in v) ?int.tryParse(x)});
+    }
+  }
+
+  void _settSnart(int k, bool v) {
+    setState(() => v ? _snartVarsle.add(k) : _snartVarsle.remove(k));
+    // TODO(api): no backend for "notify me when a category opens"; kept on
+    // the device.
+    SharedPreferences.getInstance().then(
+      (p) => p.setStringList(_kSnartPref, [for (final x in _snartVarsle) '$x']),
+    );
+  }
+
+  void _openSnart(int k) {
+    visKommerSnart(
+      context,
+      k: k,
+      varsles: _snartVarsle.contains(k),
+      onVarsle: (v) => _settSnart(k, v),
+      onRestauranter: () => setState(() => _hjulI = 0),
+    );
   }
 
   String _placeholderCategoryName(int i) =>
@@ -525,6 +648,119 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     ];
   }
 
+  /// Ærend-tilbud: the discounted products in the swipe feed, as coupons;
+  /// the prototype's coupons while there are none.
+  List<HjemTilbud> _tilbud(List<SwipeCardModel> swipe) {
+    const stubs = [
+      HjemStub.oransje,
+      HjemStub.gull,
+      HjemStub.teal,
+      HjemStub.mint,
+    ];
+    const eyebrows = ['Dagens kupp', 'Kun i kveld', 'Tilbud', 'Tilbud'];
+    final deals = swipe
+        .where((p) => p.originalAmount > p.amount && p.amount > 0)
+        .take(4)
+        .toList();
+    if (deals.isNotEmpty) {
+      return [
+        for (var k = 0; k < deals.length; k++)
+          () {
+            final p = deals[k];
+            final spar = p.originalAmount - p.amount;
+            final pst = p.discountPercent > 0
+                ? p.discountPercent
+                : (spar / p.originalAmount * 100).round();
+            return HjemTilbud(
+              eyebrow: eyebrows[k],
+              navn: p.productName,
+              butikk: p.storeName,
+              meta: p.distance > 0
+                  ? '${p.distance.toStringAsFixed(1).replaceAll('.', ',')} km unna'
+                  : 'Bergen',
+              logoUrl: p.storeLogo.isEmpty ? null : p.storeLogo,
+              fotoUrl: p.productImage.isEmpty ? null : p.productImage,
+              ny: _kr(p.amount),
+              gml: _kr(p.originalAmount),
+              verdi: '−$pst %',
+              under: 'Spar ${_kr(spar)}',
+              verdiStr: k == 0 ? 22 : 28,
+              stub: stubs[k % stubs.length],
+              onTap: () => _openProduct(
+                BergenProductCard(
+                  id: p.productId,
+                  name: p.productName,
+                  store: p.storeName,
+                  priceText: _kr(p.amount),
+                  price: p.amount,
+                  storeId: p.storeId,
+                ),
+              ),
+            );
+          }(),
+      ];
+    }
+    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+    return [
+      HjemTilbud(
+        eyebrow: 'Dagens kupp',
+        navn: 'Crispy chicken',
+        butikk: 'Burger King',
+        meta: 'Bergen Storsenter · 25 min',
+        logoAsset: BergenAssets.bkLogo,
+        fotoAsset: BergenAssets.bkWhopper,
+        ny: '89 kr',
+        gml: '129 kr',
+        verdi: '−30 %',
+        under: 'Spar 40 kr',
+        verdiStr: 22,
+        stub: HjemStub.oransje,
+        onTap: _comingSoon,
+      ),
+      HjemTilbud(
+        eyebrow: 'Kun i kveld',
+        navn: 'Pommes frites, stor',
+        butikk: 'Burger King',
+        meta: 'Bergen Storsenter · 25 min',
+        logoAsset: BergenAssets.bkLogo,
+        ny: '59 kr',
+        gml: '118 kr',
+        verdi: '2 for 1',
+        under: 'Betal for én',
+        verdiStr: 24,
+        stub: HjemStub.gull,
+        onTap: _comingSoon,
+      ),
+      HjemTilbud(
+        eyebrow: 'Fersk i dag',
+        navn: 'Fiskesuppe for to',
+        butikk: 'Nordnes Fisk',
+        meta: 'Nordnes · 30 min',
+        ny: '164 kr',
+        gml: '219 kr',
+        verdi: '−25 %',
+        under: 'Spar 55 kr',
+        verdiStr: 24,
+        stub: HjemStub.teal,
+        onTap: _comingSoon,
+      ),
+      HjemTilbud(
+        eyebrow: 'Ut av ovnen',
+        navn: 'Seks kanelboller',
+        butikk: 'Sandviken Bakeri',
+        meta: 'Sandviken · 20 min',
+        ny: '129 kr',
+        gml: 'Levering 0 kr',
+        gmlStrek: false,
+        verdi: 'Fri frakt',
+        under: 'Spar 39 kr',
+        verdiStr: 20,
+        stub: HjemStub.mint,
+        onTap: _comingSoon,
+      ),
+    ];
+  }
+
   /// Norwegian kroner: "149 kr", "139,30 kr".
   static String _kr(double v) =>
       '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2).replaceAll('.', ',')} kr';
@@ -640,6 +876,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   bool get _showSurprise {
     if (isGuestUser()) return false;
+    if (HjemHarness.pose) return true;
     final t = DateTime.now().hour;
     return (t >= 11 && t < 14) || (t >= 16 && t < 21);
   }
@@ -764,8 +1001,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         }
         final home = _lastHome;
         final categories = _categories(home);
+        final slots = _slots(categories);
         final catIndex = _catIndex.clamp(0, categories.length - 1);
-        final focused = categories[catIndex];
+        final focused = slots[_hjulI] ?? slots[0] ?? categories[catIndex];
         _ensureStores(focused);
 
         return StreamBuilder<ApiResponse<HareSwipeListPojo>>(
@@ -788,9 +1026,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
                 final heroOpacity = (1 - ((_k / s) - 120).clamp(0.0, 92.0) / 92)
                     .clamp(0.0, 1.0);
-                final sheetTop = safeTop + (_kSheetTop + _dragY) * s - _k;
-                final heroH =
-                    (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
+                // Vindu's stripe keeps its distance from the bottom (640 of
+                // the 844 frame); the scene runs 34px under it.
+                final vinduTop = screenH - (844 - 640) * s;
+                final sheetTop = _vindu
+                    ? vinduTop + _stripeDy * s
+                    : safeTop + (_kSheetTop + _dragY) * s - _k;
+                final heroH = _vindu
+                    ? vinduTop + 34 * s - safeTop
+                    : (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
+                final restLive = stores.isNotEmpty && focused == slots[0]
+                    ? '${stores.where((e) => e.open).length} åpne nå'
+                    : kBergenLive[0];
 
                 return OnbTimeline(
                   durationMs: 340,
@@ -852,10 +1099,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                Positioned(
+                                AnimatedPositioned(
+                                  duration: Duration(
+                                    milliseconds: _soneBytt ? 340 : 0,
+                                  ),
+                                  curve: const Cubic(.2, .9, .3, 1),
                                   left: 0,
                                   right: 0,
-                                  top: _kHeroTop * s - _k,
+                                  top: _vindu ? 0 : _kHeroTop * s - _k,
                                   height: heroH,
                                   child: IgnorePointer(
                                     ignoring: heroOpacity < .05,
@@ -872,6 +1123,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                           onFjordfiske: _openFjordfiske,
                                           playIntro: _playIntro,
                                           extraHeight: _dragY > 0 ? _dragY : 0,
+                                          vindu: _vindu,
                                         ),
                                       ),
                                     ),
@@ -905,40 +1157,160 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               storesLoading: _storesLoading.contains(
                                 focused.id,
                               ),
+                              slots: slots,
+                              tilbud: _tilbud(swipe),
                             ),
                           ),
                         ),
 
                         // ── Header row (`visKromOver`) ─────────────────
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          top: safeTop + _kHeaderTop * s,
-                          height: 56 * s,
-                          child: LfFrame(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                        if (!_vindu)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: safeTop + _kHeaderTop * s,
+                            height: 56 * s,
+                            child: LfFrame(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: StreamBuilder<AddressListItem?>(
+                                  stream: _bloc.deliveryAddress,
+                                  builder: (context, snap) {
+                                    final raw = snap.data?.address ?? '';
+                                    return HjemHeader(
+                                      address: raw.isEmpty
+                                          ? ''
+                                          : raw.split(',').first.trim(),
+                                      type: hjemAdrType(snap.data?.type ?? ''),
+                                      eta: null,
+                                      unread:
+                                          HjemHarness.unread ??
+                                          home?.totalUnreadMessage ??
+                                          0,
+                                      onAddress: _openAddressSheet,
+                                      onBell: () => BergenRoutes.pushOr(
+                                        context,
+                                        '/bergen/meg/varsler',
+                                        orElse: () => openScreen(
+                                          context,
+                                          const Notifications(),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Seam (AGIL-CONTRACT §2.2): the cold-start "Mens du
+                        // var borte" card over the scene (design L9017, top
+                        // 118), when agil-3 has something to say.
+                        if (!_vindu)
+                          if (mensDuVarBorteCard(context) case final borte?)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              top: safeTop + 118 * s,
+                              child: lfFlow(
+                                390,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: borte,
+                                ),
+                              ),
+                            ),
+
+                        // ── Vindu: chrome, search and the category stickers
+                        if (_vindu) ...[
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            top: safeTop,
+                            height: heroH,
+                            child: LfFrame(
                               child: StreamBuilder<AddressListItem?>(
                                 stream: _bloc.deliveryAddress,
                                 builder: (context, snap) {
                                   final raw = snap.data?.address ?? '';
-                                  return HjemHeader(
-                                    address: raw.isEmpty ? '' : raw.split(',').first.trim(),
-                                    type: hjemAdrType(snap.data?.type ?? ''),
-                                    eta: null,
-                                    unread: HjemHarness.unread ?? home?.totalUnreadMessage ?? 0,
-                                    onAddress: _openAddressSheet,
-                                    onBell: () => BergenRoutes.pushOr(
+                                  return HjemVinduLag(
+                                    vaer: _hjemVaer(look),
+                                    adresse: raw.isEmpty
+                                        ? 'Velg adresse'
+                                        : raw.split(',').first.trim(),
+                                    uleste:
+                                        HjemHarness.unread ??
+                                        home?.totalUnreadMessage ??
+                                        0,
+                                    live: [
+                                      restLive,
+                                      for (var k = 1; k < 5; k++)
+                                        'Kommer snart',
+                                    ],
+                                    opacity: (1 + _stripeDy / 90).clamp(
+                                      0.0,
+                                      1.0,
+                                    ),
+                                    onAdresse: _openAddressSheet,
+                                    onBjelle: () => BergenRoutes.pushOr(
                                       context,
                                       '/bergen/meg/varsler',
-                                      orElse: () => openScreen(context, const Notifications()),
+                                      orElse: () => openScreen(
+                                        context,
+                                        const Notifications(),
+                                      ),
                                     ),
+                                    onSok: () => BergenRoutes.pushOr(
+                                      context,
+                                      '/bergen/sok',
+                                      orElse: _comingSoon,
+                                    ),
+                                    onAegil: _openAegil,
+                                    onKategori: (k) {
+                                      _velgHjul(k, categories, slots);
+                                      _settVindu(false);
+                                    },
                                   );
                                 },
                               ),
                             ),
                           ),
-                        ),
+                          AnimatedPositioned(
+                            duration: Duration(
+                              milliseconds: _soneBytt ? 340 : 0,
+                            ),
+                            curve: const Cubic(.2, .9, .3, 1),
+                            left: 0,
+                            right: 0,
+                            top: sheetTop,
+                            child: lfFlow(
+                              390,
+                              HjemVinduStripe(
+                                onToggle: () => _settVindu(false),
+                                onDragStart: (_) =>
+                                    setState(() => _stripeDy = 0),
+                                onDragUpdate: (d) => setState(
+                                  () => _stripeDy = (_stripeDy + d.delta.dy / s)
+                                      .clamp(-160.0, 0.0),
+                                ),
+                                onDragEnd: (d) {
+                                  final opp =
+                                      _stripeDy < -70 ||
+                                      (d.primaryVelocity ?? 0) < -400;
+                                  setState(() => _stripeDy = 0);
+                                  if (opp) _settVindu(false);
+                                },
+                                // UI-TEMP: the sample "Bestill igjen" shops
+                                // have no store behind them yet.
+                                onButikk: _comingSoon,
+                              ),
+                            ),
+                          ),
+                        ],
 
                         // ── Ark (design L7146): both «Se alle» ──────────
                         if (_arkOpen) ...[
@@ -1009,6 +1381,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     required List<BergenStoreCard> stores,
     required List<BergenProductCard> products,
     required bool storesLoading,
+    required Map<int, BergenCategory> slots,
+    required List<HjemTilbud> tilbud,
   }) {
     final s = context.bs;
     final district = focused.look?.district ?? BergenCopy.bergenhus;
@@ -1031,58 +1405,67 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 onTap: _handleTap,
               ),
               SizedBox(height: 6 * s),
-              // Seam (AGIL-CONTRACT §2.2): the cold-start card, when agil-3
-              // has something to say.
-              if (mensDuVarBorteCard(context) case final borte?) ...[
-                borte,
-                SizedBox(height: 10 * s),
-              ],
-              BergenCategoryRad(
-                categories: categories,
-                index: catIndex,
-                onIndexChanged: (i) => setState(() => _catIndex = i),
-                onOpen: _openCategory,
-              ),
-              SizedBox(height: 10 * s),
-              Row(
-                children: [
-                  // Seam: the Points card → `kPoengRoute`.
-                  GestureDetector(
-                    key: const Key('hjem-poeng-entry'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => BergenRoutes.push(context, kPoengRoute),
-                    child: poengEntryCard(context),
+            ],
+          ),
+        ),
+        // Kategorirad: the full frame width (margin 4px -16px 0).
+        Padding(
+          padding: EdgeInsets.only(top: 4 * s),
+          child: lfFlow(
+            390,
+            HjemKategoriHjul(
+              kategorier: [
+                for (var k = 0; k < 5; k++)
+                  HjemHjulKat(
+                    navn: kHjemKatNavn[k],
+                    live: k == 0 && stores.isNotEmpty && focused == slots[0]
+                        ? '$openCount åpne nå'
+                        : kBergenLive[k],
+                    ikon: k,
+                    snart: k != 0,
+                    varsles: _snartVarsle.contains(k),
                   ),
-                  SizedBox(width: 8 * s),
-                  // Seam: Ægil-relevanskort, only when Ægil has finds.
-                  if (aegilFindCount() > 0)
-                    Expanded(
-                      child: _AegilFindsCard(
-                        count: aegilFindCount(),
-                        onTap: () => showAegilBrett(context),
-                      ),
-                    ),
-                ],
-              ),
-              if (_showSurprise) ...[
-                SizedBox(height: 12 * s),
-                // "Sikre en" → Poseautomaten (Phase 4).
-                BergenSurpriseCard(onTap: _openAutomat),
               ],
-              BergenSectionHeader(
-                title: BergenCopy.storesIn(district),
-                pill: openCount > 0
-                    ? BergenCopy.openNow(openCount)
-                    : BergenCopy.bergensk,
-                pillDot: BergenColors.mint,
-                dots: BergenCategoryDots(
-                  count: categories.length,
-                  index: catIndex,
-                ),
-                onSeeAll: _openArk,
-                topPad: 16,
-              ),
+              index: _hjulI,
+              onIndex: (k) => _velgHjul(k, categories, slots),
+              onOpen: (k) {
+                final c = slots[k];
+                if (c != null) _openCategory(c);
+              },
+              onSnart: _openSnart,
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16 * s),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               SizedBox(height: 10 * s),
+              lfFlow(
+                358,
+                HjemHurtigInngang(
+                  // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+                  linje: 'Fiskesuppe · Torgboden · 347 kr',
+                  onTap: () => BergenRoutes.pushOr(
+                    context,
+                    '/bergen/hurtig',
+                    orElse: _comingSoon,
+                  ),
+                ),
+              ),
+              lfFlow(
+                358,
+                HjemSeksjonHode(
+                  tittel: BergenCopy.storesIn(district),
+                  chip: HjemChip.bergensk,
+                  chipTekst: BergenCopy.bergensk,
+                  prikker: 5,
+                  prikk: _hjulI,
+                  onSeAlle: _openArk,
+                ),
+              ),
+              SizedBox(height: 8 * s),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 360),
                 switchInCurve: const Cubic(.2, .9, .3, 1),
@@ -1092,18 +1475,48 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   onOpen: _openStore,
                 ),
               ),
-              SizedBox(height: 14 * s),
-              BergenExploreCard(
-                onTap: _toExplore,
-                line: BergenCopy.exploreLine,
+              Padding(
+                padding: EdgeInsets.only(top: 12 * s, bottom: 2 * s),
+                child: lfFlow(
+                  358,
+                  HjemUtforskKort(
+                    linje: BergenCopy.exploreLine,
+                    onTap: _toExplore,
+                  ),
+                ),
               ),
-              BergenSectionHeader(
-                title: BergenCopy.popularTonight,
-                pill: BergenCopy.bergenhus,
-                pillDot: BergenColors.gold,
-                pulse: false,
-                onSeeAll: _openArk,
-                topPad: 18,
+              Padding(
+                padding: EdgeInsets.only(top: 22 * s),
+                child: lfFlow(
+                  358,
+                  HjemTilbudRad(tilbud: tilbud, onMysterie: _comingSoon),
+                ),
+              ),
+              if (_showSurprise)
+                Padding(
+                  padding: EdgeInsets.only(top: 22 * s),
+                  child: lfFlow(
+                    358,
+                    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+                    HjemPoseKort(
+                      tittel: 'Det som er igjen i kveld',
+                      igjen: '2 igjen i kveld',
+                      verdi: 'verdi minst 250 kr',
+                      under: 'Sandviken Bakeri · hentes 16–18',
+                      kr: '99',
+                      onTap: _toExplore,
+                    ),
+                  ),
+                ),
+              lfFlow(
+                358,
+                HjemSeksjonHode(
+                  tittel: BergenCopy.popularTonight,
+                  chip: HjemChip.bydel,
+                  chipTekst: BergenCopy.bergenhus,
+                  topp: 26,
+                  onSeAlle: _openArk,
+                ),
               ),
               SizedBox(height: 10 * s),
               BergenProductRail(
@@ -1130,69 +1543,6 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   }
 }
 
-// ── Ægil-relevanskort (design ≈L2452) ─────────────────────────────────────
-
-class _AegilFindsCard extends StatelessWidget {
-  const _AegilFindsCard({required this.count, required this.onTap});
-
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return OnbPressable(
-      onTap: onTap,
-      pressScale: .985,
-      child: Container(
-        key: const Key('hjem-aegil-relevans'),
-        padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 9 * s),
-        decoration: BoxDecoration(
-          color: const Color(0x14FFFFFF),
-          borderRadius: BorderRadius.circular(18 * s),
-          border: Border.all(color: const Color(0x2EFFFFFF)),
-        ),
-        child: Row(
-          children: [
-            Image.asset(BergenAssets.aegilPopup, width: 32 * s, height: 32 * s),
-            SizedBox(width: 10 * s),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    BergenCopy.aegilFinds(count),
-                    style: bText(
-                      context,
-                      12.5,
-                      weight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    BergenCopy.aegilFindsLine,
-                    style: bText(
-                      context,
-                      10.5,
-                      weight: FontWeight.w600,
-                      color: BergenColors.skyText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 18 * s,
-              color: const Color(0x8CFFFFFF),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ── Sheet shell ───────────────────────────────────────────────────────────
 
 class _Sheet extends StatelessWidget {
@@ -1205,61 +1555,65 @@ class _Sheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final r = Radius.circular(_kSheetRadius * s);
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(topLeft: r, topRight: r),
-        gradient: kBergenScreenGradient,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0xCC04121A),
-            offset: Offset(0, -24),
-            blurRadius: 50,
-            spreadRadius: -18,
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(topLeft: r, topRight: r),
-        child: Stack(
-          children: [
-            // radial highlights + bottom shade
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Stack(
-                  children: [
-                    bergenRadial(
-                      center: const Offset(.14, 0),
-                      radii: const Offset(.8, .6),
-                      colors: const [Color(0x47FFFFFF), Color(0x00FFFFFF)],
-                      stops: const [0, .6],
-                    ),
-                    bergenRadial(
-                      center: const Offset(.5, 1),
-                      radii: const Offset(.9, .4),
-                      colors: const [Color(0x8006141C), Color(0x0006141C)],
-                      stops: const [0, .6],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            bergenInsetTop(radius: _kSheetRadius * s, alpha: .4),
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(topLeft: r, topRight: r),
-                  border: Border.all(color: const Color(0x1AFFFFFF)),
-                ),
-              ),
-            ),
-            SingleChildScrollView(
-              controller: controller,
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              child: child,
+    return HjemVann(
+      controller: controller,
+      s: s,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(topLeft: r, topRight: r),
+          gradient: kBergenScreenGradient,
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0xCC04121A),
+              offset: Offset(0, -24),
+              blurRadius: 50,
+              spreadRadius: -18,
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.only(topLeft: r, topRight: r),
+          child: Stack(
+            children: [
+              // radial highlights + bottom shade
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Stack(
+                    children: [
+                      bergenRadial(
+                        center: const Offset(.14, 0),
+                        radii: const Offset(.8, .6),
+                        colors: const [Color(0x47FFFFFF), Color(0x00FFFFFF)],
+                        stops: const [0, .6],
+                      ),
+                      bergenRadial(
+                        center: const Offset(.5, 1),
+                        radii: const Offset(.9, .4),
+                        colors: const [Color(0x8006141C), Color(0x0006141C)],
+                        stops: const [0, .6],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              bergenInsetTop(radius: _kSheetRadius * s, alpha: .4),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: r, topRight: r),
+                    border: Border.all(color: const Color(0x1AFFFFFF)),
+                  ),
+                ),
+              ),
+              SingleChildScrollView(
+                controller: controller,
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                child: child,
+              ),
+            ],
+          ),
         ),
       ),
     );

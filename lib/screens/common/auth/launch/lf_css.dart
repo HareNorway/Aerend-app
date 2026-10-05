@@ -389,6 +389,14 @@ class LfFrame extends StatelessWidget {
   }
 }
 
+/// Lays [child] out [designWidth] px wide (any height) and scales it to the
+/// width it is given, for design-px sections inside a flowing list.
+Widget lfFlow(double designWidth, Widget child) => FittedBox(
+  fit: BoxFit.fitWidth,
+  alignment: Alignment.topLeft,
+  child: SizedBox(width: designWidth, child: child),
+);
+
 // ── Keyframes ───────────────────────────────────────────────────────────────
 
 /// Progress of a one-shot animation with fill-mode both.

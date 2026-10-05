@@ -63,6 +63,7 @@ class HjemHero extends StatefulWidget {
     this.nappAvailable = true,
     this.playIntro = false,
     this.extraHeight = 0,
+    this.vindu = false,
   });
 
   final HjemVaer vaer;
@@ -83,6 +84,11 @@ class HjemHero extends StatefulWidget {
 
   /// `dY` while the sheet is dragged down.
   final double extraHeight;
+
+  /// `sone: 'vindu'` — the scene fills the screen down to the cream stripe:
+  /// no floats, raft, quay or Fjordfiske pill; Ægil small out on the water
+  /// to the left (right 300, top 522, 32px, `aegBob`).
+  final bool vindu;
 
   @override
   State<HjemHero> createState() => _HjemHeroState();
@@ -152,7 +158,7 @@ class _HjemHeroState extends State<HjemHero> {
 
   /// `sjoRipple` for the hero: every 1.9–3.7 s a random float rings.
   void _onWaterTick(double t) {
-    if (t < _nextFloatRipple || _vis.isEmpty) return;
+    if (t < _nextFloatRipple || _vis.isEmpty || widget.vindu) return;
     _nextFloatRipple = t + 1.9 + _rnd.nextDouble() * 1.8;
     final n = _rnd.nextInt(_vis.length);
     final p = _floatPos(n);
@@ -162,6 +168,13 @@ class _HjemHeroState extends State<HjemHero> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.vindu) return _scene(context, 0);
+    // Vindu: Ægil keeps his distance above the stripe (674 − 522).
+    return LayoutBuilder(builder: (context, box) => _scene(context, box.maxHeight - 674));
+  }
+
+  /// [dy] moves the bottom-anchored vindu pieces (Ægil, his hat, the rod).
+  Widget _scene(BuildContext context, double dy) {
     final v = widget.vaer;
     final regn = v == HjemVaer.regn;
     final vis = _vis;
@@ -174,10 +187,14 @@ class _HjemHeroState extends State<HjemHero> {
       hook = Offset(p.dx - 36 + 72 * .84 - 230, p.dy - 8 + 29 - 120);
     }
     final rearOp = _intro ? 0.0 : 1.0;
+    final vi = widget.vindu;
+    // Ægil and the rod box (`aegRight`/`aegTop`, rod at right-24, top-26).
+    final aegL = vi ? 390 - 300 - 32.0 : 390 - 24 - 58.0, aegT = vi ? 522.0 + dy : 146.0, aegW = vi ? 32.0 : 58.0;
+    final stangL = 390 - (vi ? 300 : 24) + 24 - 160.0, stangT = aegT - 26;
 
     return SizedBox(
       width: 390,
-      height: kHjemHeroH + widget.extraHeight,
+      height: vi ? null : kHjemHeroH + widget.extraHeight,
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [
@@ -200,28 +217,13 @@ class _HjemHeroState extends State<HjemHero> {
                 Positioned.fill(child: ColoredBox(color: v.seaBase)),
                 Positioned.fill(
                   child: RepaintBoundary(
-                    child: SjoWater(
-                      palette: v.sea,
-                      regn: v.regn,
-                      reflection: v.bryggen,
-                      reflectionHeight: _kWater,
-                      fogColor: v.fog,
-                      ripples: _ripples,
-                      onTick: _onWaterTick,
-                    ),
+                    child: SjoWater(palette: v.sea, regn: v.regn, reflection: v.bryggen, reflectionHeight: _kWater, fogColor: v.fog, ripples: _ripples, onTick: _onWaterTick),
                   ),
                 ),
                 const Positioned.fill(
                   child: CssBox(
                     bg: [
-                      CssRadial(
-                        [Color(0x00000000), Color(0x00000000), Color.fromRGBO(3, 14, 20, .3)],
-                        stops: [0, .58, 1],
-                        rx: 1.1,
-                        ry: .9,
-                        cx: .5,
-                        cy: .3,
-                      ),
+                      CssRadial([Color(0x00000000), Color(0x00000000), Color.fromRGBO(3, 14, 20, .3)], stops: [0, .58, 1], rx: 1.1, ry: .9, cx: .5, cy: .3),
                     ],
                   ),
                 ),
@@ -232,11 +234,7 @@ class _HjemHeroState extends State<HjemHero> {
                   height: 28,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color.fromRGBO(8, 24, 32, .28), Color.fromRGBO(8, 24, 32, 0)],
-                      ),
+                      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(8, 24, 32, .28), Color.fromRGBO(8, 24, 32, 0)]),
                     ),
                   ),
                 ),
@@ -247,116 +245,112 @@ class _HjemHeroState extends State<HjemHero> {
           // Ægil's rain hat (`erRegn`).
           if (regn)
             Positioned(
-              right: 38,
-              top: 170,
-              child: AnimatedOpacity(
-                opacity: rearOp,
-                duration: const Duration(milliseconds: 450),
-                child: SvgPicture.string(_kHatt, width: 24, height: 12),
-              ),
+              right: vi ? 304 : 38,
+              top: vi ? 520 + dy : 170,
+              child: AnimatedOpacity(opacity: rearOp, duration: const Duration(milliseconds: 450), child: SvgPicture.string(_kHatt, width: 24, height: 12)),
             ),
-          // Quay under Ægil (`aegKaiTop` 196).
-          ..._kai(),
+          // Quay under Ægil (`aegKaiTop` 196; 999 in vindu).
+          if (!vi) ..._kai(),
           // Ægil's shadow, Ægil (rear) and the rod.
-          Positioned(
-            right: 22,
-            top: 146 + 52,
-            width: 58,
-            height: 9,
-            child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: rearOp,
-                duration: const Duration(milliseconds: 450),
-                child: const CssBox(
-                  bg: [
-                    CssRadial([Color.fromRGBO(20, 40, 50, .35), Color.fromRGBO(20, 40, 50, .2), Color.fromRGBO(20, 40, 50, 0)], stops: [0, .55, 1]),
-                  ],
+          if (!vi)
+            Positioned(
+              right: 22,
+              top: 146 + 52,
+              width: 58,
+              height: 9,
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  opacity: rearOp,
+                  duration: const Duration(milliseconds: 450),
+                  child: const CssBox(
+                    bg: [
+                      CssRadial([Color.fromRGBO(20, 40, 50, .35), Color.fromRGBO(20, 40, 50, .2), Color.fromRGBO(20, 40, 50, 0)], stops: [0, .55, 1]),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
           Positioned(
-            left: 230,
-            top: 120,
+            left: stangL,
+            top: stangT,
             width: 160,
             height: 120,
             child: IgnorePointer(
               child: AnimatedOpacity(
                 opacity: rearOp,
                 duration: const Duration(milliseconds: 450),
-                child: HjemFiskestang(
-                  hook: hook,
-                  selectedAt: _valgtAt,
-                  onWater: (x, y, a) => _ripples.add(x + 230, y + 120 - _kWater, a),
-                ),
+                child: HjemFiskestang(hook: hook, selectedAt: _valgtAt, onWater: (x, y, a) => _ripples.add(x + stangL, y + stangT - _kWater, a)),
               ),
             ),
           ),
           Positioned(
-            right: 24,
-            top: 146,
-            width: 58,
-            height: 58,
+            left: aegL,
+            top: aegT,
+            width: aegW,
+            height: aegW,
             child: IgnorePointer(
               child: AnimatedOpacity(
                 opacity: rearOp,
                 duration: const Duration(milliseconds: 450),
-                child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
+                child: vi
+                    ? LfLoop(
+                        // aegBob 3.4s
+                        builder: (context, t, child) => Transform.translate(offset: Offset(0, kf((t / 3400) % 1.0, const [0, .5, 1], const [0, -2.5, 0], cssEaseInOut)), child: child),
+                        child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
+                      )
+                    : Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
               ),
             ),
           ),
-          // Tap target over Ægil (60×62, margin -6 -2 0 0).
+          // Tap target over Ægil (margin -6 -2 0 0).
           Positioned(
-            right: 24 - 2,
-            top: 146 - 6,
-            width: 60,
-            height: 62,
+            left: aegL,
+            top: aegT - 6,
+            width: aegW + 2,
+            height: aegW + 4,
             child: IgnorePointer(
               ignoring: _intro,
               child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onFjordfiske),
             ),
           ),
           // Fjordfiske-knapp (right 124, top 196-14).
-          Positioned(
-            right: 124,
-            top: 196 - 14,
-            width: 180,
-            height: 46,
-            child: IgnorePointer(
-              ignoring: _intro,
-              child: AnimatedOpacity(
-                opacity: rearOp,
-                duration: const Duration(milliseconds: 450),
-                child: _FjordfiskeKnapp(onTap: widget.onFjordfiske),
-              ),
-            ),
-          ),
-          // Forundringspose · vannet.
-          Positioned(left: 12, top: 94, width: 128, height: 122, child: _PoseFlate(onTap: widget.onPose)),
-          // Floats (`dupper`).
-          for (var n = 0; n < vis.length; n++)
-            AnimatedPositioned(
-              key: ValueKey('dupp-${vis[n].id}'),
-              duration: const Duration(milliseconds: 750),
-              curve: const Cubic(.45, .05, .3, 1),
-              left: _floatPos(n).dx - 36,
-              top: _floatPos(n).dy - 8,
-              width: 72,
-              height: 58,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 400),
-                opacity: valgt != null && valgt.id != vis[n].id ? .22 : 1,
-                child: _Dupp(
-                  item: vis[n],
-                  n: n,
-                  napp: n == 0 && widget.nappAvailable,
-                  onTap: () => _velg(vis[n]),
+          if (!vi)
+            Positioned(
+              right: 124,
+              top: 196 - 14,
+              width: 180,
+              height: 46,
+              child: IgnorePointer(
+                ignoring: _intro,
+                child: AnimatedOpacity(
+                  opacity: rearOp,
+                  duration: const Duration(milliseconds: 450),
+                  child: _FjordfiskeKnapp(onTap: widget.onFjordfiske),
                 ),
               ),
             ),
+          // Forundringspose · vannet.
+          if (!vi) Positioned(left: 12, top: 94, width: 128, height: 122, child: _PoseFlate(onTap: widget.onPose)),
+          // Floats (`dupper`).
+          if (!vi)
+            for (var n = 0; n < vis.length; n++)
+              AnimatedPositioned(
+                key: ValueKey('dupp-${vis[n].id}'),
+                duration: const Duration(milliseconds: 750),
+                curve: const Cubic(.45, .05, .3, 1),
+                left: _floatPos(n).dx - 36,
+                top: _floatPos(n).dy - 8,
+                width: 72,
+                height: 58,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 400),
+                  opacity: valgt != null && valgt.id != vis[n].id ? .22 : 1,
+                  child: _Dupp(item: vis[n], n: n, napp: n == 0 && widget.nappAvailable, onTap: () => _velg(vis[n])),
+                ),
+              ),
           if (_intro) ..._intro0(),
           // Napp-kort (rises 600 ms after a float is chosen).
-          if (valgt != null && _kort) ...[
+          if (valgt != null && _kort && !vi) ...[
             Positioned.fill(
               child: GestureDetector(
                 onTap: _lukk,
@@ -365,11 +359,7 @@ class _HjemHeroState extends State<HjemHero> {
                   builder: (context, t, child) => Opacity(opacity: cssEaseOut.transform(kfP(t, 0, 300)), child: child),
                   child: const DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color.fromRGBO(6, 20, 28, .05), Color.fromRGBO(6, 20, 28, .42)],
-                      ),
+                      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(6, 20, 28, .05), Color.fromRGBO(6, 20, 28, .42)]),
                     ),
                   ),
                 ),
@@ -444,20 +434,13 @@ class _HjemHeroState extends State<HjemHero> {
               final o = kf(p, const [0, .08, .7, 1], const [0, .9, .8, 0]);
               return Opacity(
                 opacity: o.clamp(0.0, 1.0),
-                child: Transform(
-                  transform: Matrix4.translationValues(0, y, 0)..scaleByDouble(1, sy, 1, 1),
-                  child: child,
-                ),
+                child: Transform(transform: Matrix4.translationValues(0, y, 0)..scaleByDouble(1, sy, 1, 1), child: child),
               );
             },
             child: const DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(2)),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0x00FFFFFF), Color(0xCCFFFFFF)],
-                ),
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x00FFFFFF), Color(0xCCFFFFFF)]),
               ),
             ),
           ),
@@ -484,11 +467,7 @@ class _HjemHeroState extends State<HjemHero> {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(bottomLeft: Radius.circular(4)),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF1C1A17), Color.fromRGBO(28, 26, 23, .6)],
-            ),
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1C1A17), Color.fromRGBO(28, 26, 23, .6)]),
           ),
         ),
       ),
@@ -501,11 +480,7 @@ class _HjemHeroState extends State<HjemHero> {
       child: IgnorePointer(
         child: DecoratedBox(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color.fromRGBO(8, 24, 32, .45), Color.fromRGBO(8, 24, 32, 0)],
-            ),
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(8, 24, 32, .45), Color.fromRGBO(8, 24, 32, 0)]),
           ),
         ),
       ),
@@ -559,7 +534,9 @@ class _HjemHeroState extends State<HjemHero> {
               );
             },
             child: const CssBox(
-              bg: [CssRadial([Color.fromRGBO(20, 40, 50, .4), Color.fromRGBO(20, 40, 50, .2), Color.fromRGBO(20, 40, 50, 0)], stops: [0, .55, 1])],
+              bg: [
+                CssRadial([Color.fromRGBO(20, 40, 50, .4), Color.fromRGBO(20, 40, 50, .2), Color.fromRGBO(20, 40, 50, 0)], stops: [0, .55, 1]),
+              ],
             ),
           ),
         ),
@@ -609,17 +586,9 @@ class _HjemHeroState extends State<HjemHero> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 238),
                 child: CssBox(
-                  radius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                    bottomRight: Radius.circular(5),
-                    bottomLeft: Radius.circular(16),
-                  ),
+                  radius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16), bottomRight: Radius.circular(5), bottomLeft: Radius.circular(16)),
                   bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .95))],
-                  shadows: const [
-                    CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .9)),
-                    CssShadow(0, 14, 24, -12, Color.fromRGBO(15, 31, 43, .5)),
-                  ],
+                  shadows: const [CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .9)), CssShadow(0, 14, 24, -12, Color.fromRGBO(15, 31, 43, .5))],
                   padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
                   child: Text(
                     HjemHeroCopy.intro,
@@ -670,12 +639,7 @@ class _PlankerPainter extends CustomPainter {
     canvas.drawRect(
       r,
       Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF6A5A44), Color(0xFF4A3C2A), Color(0xFF2C2114)],
-          stops: [0, .4, 1],
-        ).createShader(r),
+        ..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF6A5A44), Color(0xFF4A3C2A), Color(0xFF2C2114)], stops: [0, .4, 1]).createShader(r),
     );
     final g = Paint()..color = const Color.fromRGBO(0, 0, 0, .22);
     for (double x = 18; x < size.width; x += 19) {
@@ -699,7 +663,10 @@ Widget _skvulp({required double durMs, double delayMs = 0, required Widget child
     if (p == null) return const SizedBox.shrink();
     final s = .55 + (1.6 - .55) * cssEaseOut.transform(p);
     final o = p < .18 ? kf(p, const [0, .18], const [0, .5], cssEaseOut) : kf(p, const [.18, 1], const [.5, 0], cssEaseOut);
-    return Opacity(opacity: o.clamp(0.0, 1.0), child: Transform.scale(scale: s, child: c));
+    return Opacity(
+      opacity: o.clamp(0.0, 1.0),
+      child: Transform.scale(scale: s, child: c),
+    );
   },
   child: child,
 );
@@ -710,7 +677,10 @@ Widget _ringUt({required double durMs, double delayMs = 0, required Widget child
     final p = kfLoop(t, delayMs, durMs);
     if (p == null) return const SizedBox.shrink();
     final e = cssEaseOut.transform(p);
-    return Opacity(opacity: (.8 * (1 - e)).clamp(0.0, 1.0), child: Transform.scale(scale: .4 + 1.4 * e, child: c));
+    return Opacity(
+      opacity: (.8 * (1 - e)).clamp(0.0, 1.0),
+      child: Transform.scale(scale: .4 + 1.4 * e, child: c),
+    );
   },
   child: child,
 );
@@ -743,14 +713,14 @@ Widget _glans() => LfLoop(
     final p = (t / 3800) % 1.0;
     final o = kf(p, const [0, .5, 1], const [.5, .85, .5], cssEaseInOut);
     final x = kf(p, const [0, .5, 1], const [0, 1.5, 0], cssEaseInOut);
-    return Opacity(opacity: o, child: Transform.translate(offset: Offset(x, 0), child: c));
+    return Opacity(
+      opacity: o,
+      child: Transform.translate(offset: Offset(x, 0), child: c),
+    );
   },
   child: const DecoratedBox(
     decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Color(0x00FFFFFF), Color(0xB3FFFFFF), Color(0xB3FFFFFF), Color(0x00FFFFFF)],
-        stops: [0, .3, .7, 1],
-      ),
+      gradient: LinearGradient(colors: [Color(0x00FFFFFF), Color(0xB3FFFFFF), Color(0xB3FFFFFF), Color(0x00FFFFFF)], stops: [0, .3, .7, 1]),
     ),
   ),
 );
@@ -800,7 +770,10 @@ class _Dupp extends StatelessWidget {
           ms: 1200,
           builder: (context, t, child) {
             final p = const Cubic(.2, .9, .3, 1).transform(kfP(t, 500, 700));
-            return Opacity(opacity: p.clamp(0.0, 1.0), child: Transform.translate(offset: Offset(120 * (1 - p), 0), child: child));
+            return Opacity(
+              opacity: p.clamp(0.0, 1.0),
+              child: Transform.translate(offset: Offset(120 * (1 - p), 0), child: child),
+            );
           },
           child: Stack(
             clipBehavior: Clip.none,
@@ -810,7 +783,11 @@ class _Dupp extends StatelessWidget {
                 top: 40,
                 width: 62,
                 height: 16,
-                child: CssBox(bg: [CssRadial([Color.fromRGBO(4, 20, 28, .4), Color.fromRGBO(4, 20, 28, 0)], stops: [0, .72])]),
+                child: CssBox(
+                  bg: [
+                    CssRadial([Color.fromRGBO(4, 20, 28, .4), Color.fromRGBO(4, 20, 28, 0)], stops: [0, .72]),
+                  ],
+                ),
               ),
               Positioned(
                 left: 3,
@@ -820,7 +797,9 @@ class _Dupp extends StatelessWidget {
                 child: _skvulp(
                   durMs: 5000,
                   child: const DecoratedBox(
-                    decoration: ShapeDecoration(shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, .5), width: 1.2))),
+                    decoration: ShapeDecoration(
+                      shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, .5), width: 1.2)),
+                    ),
                   ),
                 ),
               ),
@@ -834,17 +813,15 @@ class _Dupp extends StatelessWidget {
                     durMs: 4000,
                     delayMs: 1200,
                     child: const DecoratedBox(
-                      decoration: ShapeDecoration(shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(255, 255, 255, .85), width: 1.5))),
+                      decoration: ShapeDecoration(
+                        shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(255, 255, 255, .85), width: 1.5)),
+                      ),
                     ),
                   ),
                 ),
               Positioned.fill(
                 child: LfLoop(
-                  builder: (context, t, child) => Transform(
-                    alignment: const FractionalOffset(.5, .85),
-                    transform: _drift(t, driftMs, driftDelay),
-                    child: child,
-                  ),
+                  builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, .85), transform: _drift(t, driftMs, driftDelay), child: child),
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -879,7 +856,11 @@ class _Dupp extends StatelessWidget {
                           top: 14,
                           width: 34,
                           height: 9,
-                          child: CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(40, 20, 6, .55), Color.fromRGBO(40, 20, 6, 0)])]),
+                          child: CssBox(
+                            bg: [
+                              CssRadial.closestSide([Color.fromRGBO(40, 20, 6, .55), Color.fromRGBO(40, 20, 6, 0)]),
+                            ],
+                          ),
                         ),
                         Positioned(
                           left: 18,
@@ -918,21 +899,8 @@ class _Dupp extends StatelessWidget {
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: LfLoop(
-                            builder: (context, t, child) => Transform(
-                              alignment: const FractionalOffset(.5, 1.2),
-                              transform: _flagg(t, flagMs, flagDelay),
-                              child: child,
-                            ),
-                            child: _Flagg(
-                              type: et.$1,
-                              bg: et.$2,
-                              pris: pris,
-                              forPris: forPris,
-                              tx: et.$3,
-                              sub: et.$4,
-                              kant: et.$5,
-                              napp: napp,
-                            ),
+                            builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, flagMs, flagDelay), child: child),
+                            child: _Flagg(type: et.$1, bg: et.$2, pris: pris, forPris: forPris, tx: et.$3, sub: et.$4, kant: et.$5, napp: napp),
                           ),
                         ),
                       ),
@@ -949,17 +917,7 @@ class _Dupp extends StatelessWidget {
 }
 
 class _Flagg extends StatelessWidget {
-  const _Flagg({
-    required this.type,
-    required this.bg,
-    required this.pris,
-    required this.forPris,
-    required this.tx,
-    required this.sub,
-    required this.kant,
-    this.napp = false,
-    this.big = false,
-  });
+  const _Flagg({required this.type, required this.bg, required this.pris, required this.forPris, required this.tx, required this.sub, required this.kant, this.napp = false, this.big = false});
 
   final String type;
   final List<Color> bg;
@@ -1009,11 +967,7 @@ class _Flagg extends StatelessWidget {
                     const SizedBox(width: 3),
                     Text(
                       forPris,
-                      style: inter(8.5, weight: FontWeight.w700, color: sub).copyWith(
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: sub,
-                        fontFeatures: num,
-                      ),
+                      style: inter(8.5, weight: FontWeight.w700, color: sub).copyWith(decoration: TextDecoration.lineThrough, decorationColor: sub, fontFeatures: num),
                     ),
                   ],
                 ],
@@ -1032,11 +986,7 @@ class _Flagg extends StatelessWidget {
               height: 4,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(1)),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFC9D2D6), Color(0xFF7F8B90)],
-                ),
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFC9D2D6), Color(0xFF7F8B90)]),
               ),
             ),
           ),
@@ -1047,20 +997,18 @@ class _Flagg extends StatelessWidget {
             top: -9,
             child: LfOnce(
               ms: 500,
-              builder: (context, t, child) => Transform.scale(
-                scale: kf(t / 500, const [0, .35, .7, 1], const [1, 1.16, .96, 1], const Cubic(.34, 1.56, .64, 1)),
-                child: child,
-              ),
+              builder: (context, t, child) => Transform.scale(scale: kf(t / 500, const [0, .35, .7, 1], const [1, 1.16, .96, 1], const Cubic(.34, 1.56, .64, 1)), child: child),
               child: CssBox(
                 radius: BorderRadius.circular(999),
-                bg: const [CssLinear(180, [Color(0xFF7EEBC9), Color(0xFF2FB893)])],
-                shadows: const [
-                  CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .6)),
-                  CssShadow(0, 1.5, 0, 0, Color(0xFF1E8A6C)),
-                  CssShadow(0, 4, 8, -3, Color.fromRGBO(3, 16, 24, .6)),
+                bg: const [
+                  CssLinear(180, [Color(0xFF7EEBC9), Color(0xFF2FB893)]),
                 ],
+                shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .6)), CssShadow(0, 1.5, 0, 0, Color(0xFF1E8A6C)), CssShadow(0, 4, 8, -3, Color.fromRGBO(3, 16, 24, .6))],
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                child: Text('+5', style: inter(9, weight: FontWeight.w800, height: 1.2, color: const Color(0xFF0F1F2B))),
+                child: Text(
+                  '+5',
+                  style: inter(9, weight: FontWeight.w800, height: 1.2, color: const Color(0xFF0F1F2B)),
+                ),
               ),
             ),
           ),
@@ -1089,7 +1037,13 @@ class _PoseFlate extends StatelessWidget {
           final sc = kf(p, const [0, .5, 1], const [.2, 1, .2], cssEaseInOut);
           final r = kf(p, const [0, .5, 1], const [0, 45, 0], cssEaseInOut);
           final o = kf(p, const [0, .5, 1], const [0, 1, 0], cssEaseInOut);
-          return Opacity(opacity: o, child: Transform.rotate(angle: rad(r), child: Transform.scale(scale: sc, child: child)));
+          return Opacity(
+            opacity: o,
+            child: Transform.rotate(
+              angle: rad(r),
+              child: Transform.scale(scale: sc, child: child),
+            ),
+          );
         },
         child: CustomPaint(painter: _StjernePainter(c)),
       ),
@@ -1129,7 +1083,11 @@ class _PoseFlate extends StatelessWidget {
                     final p = (t / 3200) % 1.0;
                     return Opacity(opacity: kf(p, const [0, .5, 1], const [.55, 1, .55], cssEaseInOut), child: child);
                   },
-                  child: const CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(255, 206, 120, .4), Color.fromRGBO(255, 206, 120, 0)])]),
+                  child: const CssBox(
+                    bg: [
+                      CssRadial.closestSide([Color.fromRGBO(255, 206, 120, .4), Color.fromRGBO(255, 206, 120, 0)]),
+                    ],
+                  ),
                 ),
               ),
               Positioned(
@@ -1141,7 +1099,9 @@ class _PoseFlate extends StatelessWidget {
                   durMs: 5000,
                   delayMs: 600,
                   child: const DecoratedBox(
-                    decoration: ShapeDecoration(shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, .5), width: 1))),
+                    decoration: ShapeDecoration(
+                      shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, .5), width: 1)),
+                    ),
                   ),
                 ),
               ),
@@ -1154,18 +1114,16 @@ class _PoseFlate extends StatelessWidget {
                   durMs: 4000,
                   delayMs: 1200,
                   child: const DecoratedBox(
-                    decoration: ShapeDecoration(shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(255, 255, 255, .85), width: 1))),
+                    decoration: ShapeDecoration(
+                      shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(255, 255, 255, .85), width: 1)),
+                    ),
                   ),
                 ),
               ),
             ]),
             Positioned.fill(
               child: LfLoop(
-                builder: (context, t, child) => Transform(
-                  alignment: const FractionalOffset(.4, .85),
-                  transform: _drift(t, 6000, 400),
-                  child: child,
-                ),
+                builder: (context, t, child) => Transform(alignment: const FractionalOffset(.4, .85), transform: _drift(t, 6000, 400), child: child),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -1188,11 +1146,7 @@ class _PoseFlate extends StatelessWidget {
                       width: 104,
                       child: Center(
                         child: LfLoop(
-                          builder: (context, t, child) => Transform(
-                            alignment: const FractionalOffset(.5, 1.2),
-                            transform: _flagg(t, 5200, -600),
-                            child: child,
-                          ),
+                          builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, 5200, -600), child: child),
                           child: const _Flagg(
                             type: HjemHeroCopy.poseType,
                             bg: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
@@ -1217,16 +1171,14 @@ class _PoseFlate extends StatelessWidget {
                             final p = (t / 2600) % 1.0;
                             return Opacity(opacity: kf(p, const [0, .5, 1], const [.55, 1, .55], cssEaseInOut), child: child);
                           },
-                          child: const CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(255, 220, 150, .75), Color.fromRGBO(255, 220, 150, 0)])]),
+                          child: const CssBox(
+                            bg: [
+                              CssRadial.closestSide([Color.fromRGBO(255, 220, 150, .75), Color.fromRGBO(255, 220, 150, 0)]),
+                            ],
+                          ),
                         ),
                       ),
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        width: 56,
-                        height: 62,
-                        child: SvgPicture.asset('assets/svgs/hjem/hjem_pose.svg', width: 56, height: 62),
-                      ),
+                      Positioned(left: 0, top: 0, width: 56, height: 62, child: SvgPicture.asset('assets/svgs/hjem/hjem_pose.svg', width: 56, height: 62)),
                       Positioned(
                         left: 41,
                         top: 25,
@@ -1235,21 +1187,21 @@ class _PoseFlate extends StatelessWidget {
                         child: LfLoop(
                           builder: (context, t, child) {
                             final p = (t / 3400) % 1.0;
-                            return Transform.rotate(
-                              alignment: Alignment.topCenter,
-                              angle: rad(kf(p, const [0, .5, 1], const [-10, 12, -10], cssEaseInOut)),
-                              child: child,
-                            );
+                            return Transform.rotate(alignment: Alignment.topCenter, angle: rad(kf(p, const [0, .5, 1], const [-10, 12, -10], cssEaseInOut)), child: child);
                           },
                           child: CssBox(
                             radius: BorderRadius.circular(7),
-                            bg: const [CssLinear(180, [Color(0xFFFFE7A8), Color(0xFFE9AC3C)])],
+                            bg: const [
+                              CssLinear(180, [Color(0xFFFFE7A8), Color(0xFFE9AC3C)]),
+                            ],
                             shadows: const [
                               CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .7)),
                               CssShadow(0, 1.5, 0, 0, Color(0xFFA87418)),
                               CssShadow(0, 4, 6, -2, Color.fromRGBO(3, 16, 24, .6)),
                             ],
-                            child: Center(child: Text('?', style: jakarta(9, height: 1, color: const Color(0xFF5A3C10)))),
+                            child: Center(
+                              child: Text('?', style: jakarta(9, height: 1, color: const Color(0xFF5A3C10))),
+                            ),
                           ),
                         ),
                       ),
@@ -1320,7 +1272,11 @@ class _FjordfiskeKnapp extends StatelessWidget {
               right: 4,
               top: 31,
               height: 16,
-              child: CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(4, 20, 28, .55), Color.fromRGBO(4, 20, 28, 0)])]),
+              child: CssBox(
+                bg: [
+                  CssRadial.closestSide([Color.fromRGBO(4, 20, 28, .55), Color.fromRGBO(4, 20, 28, 0)]),
+                ],
+              ),
             ),
             for (final (d, w, a) in const [(0.0, 1.3, .55), (2000.0, 1.0, .4)])
               Positioned(
@@ -1332,17 +1288,17 @@ class _FjordfiskeKnapp extends StatelessWidget {
                   durMs: 4000,
                   delayMs: d,
                   child: DecoratedBox(
-                    decoration: ShapeDecoration(shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, a), width: w))),
+                    decoration: ShapeDecoration(
+                      shape: OvalBorder(
+                        side: BorderSide(color: Color.fromRGBO(214, 242, 250, a), width: w),
+                      ),
+                    ),
                   ),
                 ),
               ),
             Positioned.fill(
               child: LfLoop(
-                builder: (context, t, child) => Transform(
-                  alignment: const FractionalOffset(.5, .8),
-                  transform: _drift(t, 6000, 0),
-                  child: child,
-                ),
+                builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, .8), transform: _drift(t, 6000, 0), child: child),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -1354,7 +1310,9 @@ class _FjordfiskeKnapp extends StatelessWidget {
                       child: CssBox(
                         radius: BorderRadius.circular(19),
                         clip: true,
-                        bg: const [CssLinear(180, [Color(0xFF438C9D), Color(0xFF2A6474), Color(0xFF1E4F5C)], [0, .46, 1])],
+                        bg: const [
+                          CssLinear(180, [Color(0xFF438C9D), Color(0xFF2A6474), Color(0xFF1E4F5C)], [0, .46, 1]),
+                        ],
                         shadows: const [
                           CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .38)),
                           CssShadow.inset(0, -2, 0, 0, Color.fromRGBO(0, 0, 0, .18)),
@@ -1387,11 +1345,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
                               bottom: 0,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [Color.fromRGBO(60, 140, 160, .4), Color.fromRGBO(10, 40, 52, .75)],
-                                  ),
+                                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(60, 140, 160, .4), Color.fromRGBO(10, 40, 52, .75)]),
                                   border: Border(top: BorderSide(color: Color.fromRGBO(226, 248, 252, .7))),
                                 ),
                               ),
@@ -1413,7 +1367,10 @@ class _FjordfiskeKnapp extends StatelessWidget {
                           const st = <double>[0, .2, .4, .62, .68, .74, .8, .88, 1];
                           final y = kf(p, st, const [0, 1.5, 0, 0, 6, -1, 3, 0, 0], cssEaseInOut);
                           final r = kf(p, st, const [0, -4, 3, 0, -8, 4, -2, 0, 0], cssEaseInOut);
-                          return Transform.translate(offset: Offset(0, y), child: Transform.rotate(angle: rad(r), child: child));
+                          return Transform.translate(
+                            offset: Offset(0, y),
+                            child: Transform.rotate(angle: rad(r), child: child),
+                          );
                         },
                         child: Stack(
                           clipBehavior: Clip.none,
@@ -1452,13 +1409,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
                                 radius: BorderRadius.circular(13),
                                 clip: true,
                                 bg: const [
-                                  CssLinear(180, [
-                                    Color(0xFFFF9466),
-                                    Color(0xFFE95C2C),
-                                    Color(0xFFC9461C),
-                                    Color(0xFFF8F6F1),
-                                    Color(0xFFD3DFE3),
-                                  ], [0, .47, .5, .52, 1]),
+                                  CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C), Color(0xFFC9461C), Color(0xFFF8F6F1), Color(0xFFD3DFE3)], [0, .47, .5, .52, 1]),
                                 ],
                                 shadows: const [
                                   CssShadow.inset(-4, -5, 7, 0, Color.fromRGBO(10, 30, 40, .35)),
@@ -1475,7 +1426,11 @@ class _FjordfiskeKnapp extends StatelessWidget {
                                       height: 6,
                                       child: Transform.rotate(
                                         angle: rad(-25),
-                                        child: const CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(255, 255, 255, .95), Color.fromRGBO(255, 255, 255, 0)])]),
+                                        child: const CssBox(
+                                          bg: [
+                                            CssRadial.closestSide([Color.fromRGBO(255, 255, 255, .95), Color.fromRGBO(255, 255, 255, 0)]),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1495,9 +1450,12 @@ class _FjordfiskeKnapp extends StatelessWidget {
                           Text(
                             HjemHeroCopy.fjordfiske,
                             softWrap: false,
-                            style: jakarta(13, em: -.01, height: 1.05, shadows: const [
-                              Shadow(color: Color.fromRGBO(3, 16, 24, .35), offset: Offset(0, 1), blurRadius: 2),
-                            ]),
+                            style: jakarta(
+                              13,
+                              em: -.01,
+                              height: 1.05,
+                              shadows: const [Shadow(color: Color.fromRGBO(3, 16, 24, .35), offset: Offset(0, 1), blurRadius: 2)],
+                            ),
                           ),
                           Text(
                             HjemHeroCopy.fjordfiskeSub,
@@ -1514,7 +1472,9 @@ class _FjordfiskeKnapp extends StatelessWidget {
                       height: 24,
                       child: CssBox(
                         radius: BorderRadius.circular(999),
-                        bg: const [CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)])],
+                        bg: const [
+                          CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
+                        ],
                         shadows: const [
                           CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .5)),
                           CssShadow(0, 2, 0, 0, Color(0xFFA63A12)),
@@ -1543,14 +1503,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
 // ── Napp-kort (L2484) ───────────────────────────────────────────────────────
 
 class HjemNappKort extends StatelessWidget {
-  const HjemNappKort({
-    super.key,
-    required this.item,
-    required this.onClose,
-    required this.onAdd,
-    required this.onIkkeNaa,
-    required this.onAldri,
-  });
+  const HjemNappKort({super.key, required this.item, required this.onClose, required this.onAdd, required this.onIkkeNaa, required this.onAldri});
 
   final BergenFloatItem item;
   final VoidCallback onClose, onAdd, onIkkeNaa, onAldri;
@@ -1564,14 +1517,19 @@ class HjemNappKort extends StatelessWidget {
       ms: 450,
       builder: (context, t, child) {
         final p = const Cubic(.2, .9, .3, 1).transform(kfP(t, 0, 450));
-        return Opacity(opacity: p.clamp(0.0, 1.0), child: Transform.translate(offset: Offset(0, 60 * (1 - p)), child: child));
+        return Opacity(
+          opacity: p.clamp(0.0, 1.0),
+          child: Transform.translate(offset: Offset(0, 60 * (1 - p)), child: child),
+        );
       },
       child: Semantics(
         container: true,
         label: '${item.title}. ${item.reason}',
         child: CssBox(
           radius: BorderRadius.circular(24),
-          bg: const [CssLinear(180, [Color.fromRGBO(52, 112, 128, .9), Color.fromRGBO(24, 64, 76, .94)])],
+          bg: const [
+            CssLinear(180, [Color.fromRGBO(52, 112, 128, .9), Color.fromRGBO(24, 64, 76, .94)]),
+          ],
           shadows: const [
             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
             CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
@@ -1612,7 +1570,11 @@ class HjemNappKort extends StatelessWidget {
                                   top: 50,
                                   width: 56,
                                   height: 10,
-                                  child: CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(4, 20, 28, .5), Color.fromRGBO(4, 20, 28, 0)])]),
+                                  child: CssBox(
+                                    bg: [
+                                      CssRadial.closestSide([Color.fromRGBO(4, 20, 28, .5), Color.fromRGBO(4, 20, 28, 0)]),
+                                    ],
+                                  ),
                                 ),
                                 Positioned(
                                   left: 8,
@@ -1620,11 +1582,7 @@ class HjemNappKort extends StatelessWidget {
                                   width: 62,
                                   height: 52,
                                   child: LfLoop(
-                                    builder: (context, t, child) => Transform(
-                                      alignment: const FractionalOffset(.5, .85),
-                                      transform: _drift(t, 5000, 0),
-                                      child: child,
-                                    ),
+                                    builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, .85), transform: _drift(t, 5000, 0), child: child),
                                     child: SvgPicture.asset('assets/svgs/hjem/${dupp._vare}.svg', width: 62, height: 52),
                                   ),
                                 ),
@@ -1657,12 +1615,12 @@ class HjemNappKort extends StatelessWidget {
                                   CssBox(
                                     radius: BorderRadius.circular(6),
                                     bg: [CssLinear(180, et.$2)],
-                                    shadows: [
-                                      const CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .5)),
-                                      CssShadow(0, 1.5, 0, 0, et.$5),
-                                    ],
+                                    shadows: [const CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .5)), CssShadow(0, 1.5, 0, 0, et.$5)],
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    child: Text(et.$1, style: inter(8.5, weight: FontWeight.w800, em: .08, height: 1.2, color: et.$3)),
+                                    child: Text(
+                                      et.$1,
+                                      style: inter(8.5, weight: FontWeight.w800, em: .08, height: 1.2, color: et.$3),
+                                    ),
                                   ),
                                   if (item.bergensk)
                                     CssBox(
@@ -1670,7 +1628,10 @@ class HjemNappKort extends StatelessWidget {
                                       bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .12))],
                                       shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18))],
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      child: Text('BERGENSK', style: inter(8.5, weight: FontWeight.w800, em: .08, height: 1.2, color: const Color(0xFFDCE9EC))),
+                                      child: Text(
+                                        'BERGENSK',
+                                        style: inter(8.5, weight: FontWeight.w800, em: .08, height: 1.2, color: const Color(0xFFDCE9EC)),
+                                      ),
                                     ),
                                 ],
                               ),
@@ -1687,10 +1648,11 @@ class HjemNappKort extends StatelessWidget {
                                       padding: const EdgeInsets.only(bottom: 2),
                                       child: Text(
                                         '$forPris kr',
-                                        style: inter(11, weight: FontWeight.w700, color: const Color(0xFFBFD6DD)).copyWith(
-                                          decoration: TextDecoration.lineThrough,
-                                          decorationColor: const Color(0xFFBFD6DD),
-                                        ),
+                                        style: inter(
+                                          11,
+                                          weight: FontWeight.w700,
+                                          color: const Color(0xFFBFD6DD),
+                                        ).copyWith(decoration: TextDecoration.lineThrough, decorationColor: const Color(0xFFBFD6DD)),
                                       ),
                                     ),
                                 ],
@@ -1727,18 +1689,16 @@ class HjemNappKort extends StatelessWidget {
                         flex: 15,
                         child: _KortKnapp(
                           onTap: onAdd,
-                          bg: const [CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)])],
+                          bg: const [
+                            CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
+                          ],
                           up: const [
                             CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .45)),
                             CssShadow.inset(0, -2, 0, 0, Color.fromRGBO(0, 0, 0, .08)),
                             CssShadow(0, 3, 0, 0, Color(0xFFA63A12)),
                             CssShadow(0, 12, 16, -8, Color.fromRGBO(3, 16, 24, .75)),
                           ],
-                          down: const [
-                            CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
-                            CssShadow(0, 1, 0, 0, Color(0xFFA63A12)),
-                            CssShadow(0, 4, 8, -4, Color.fromRGBO(3, 16, 24, .6)),
-                          ],
+                          down: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .4)), CssShadow(0, 1, 0, 0, Color(0xFFA63A12)), CssShadow(0, 4, 8, -4, Color.fromRGBO(3, 16, 24, .6))],
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -1758,7 +1718,9 @@ class HjemNappKort extends StatelessWidget {
                         flex: 10,
                         child: _KortKnapp(
                           onTap: onIkkeNaa,
-                          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .08)])],
+                          bg: const [
+                            CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .08)]),
+                          ],
                           up: const [
                             CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
                             CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
@@ -1773,11 +1735,11 @@ class HjemNappKort extends StatelessWidget {
                         child: _KortKnapp(
                           onTap: onAldri,
                           bg: const [CssSolid(Color.fromRGBO(6, 22, 30, .28))],
-                          up: const [
-                            CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
-                            CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(0, 0, 0, .18)),
-                          ],
-                          child: Text(HjemHeroCopy.aldri, style: inter(12.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DD))),
+                          up: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)), CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(0, 0, 0, .18))],
+                          child: Text(
+                            HjemHeroCopy.aldri,
+                            style: inter(12.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DD)),
+                          ),
                         ),
                       ),
                     ],
@@ -1793,7 +1755,9 @@ class HjemNappKort extends StatelessWidget {
                     width: 28,
                     height: 28,
                     radius: BorderRadius.circular(999),
-                    bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
+                    bg: const [
+                      CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)]),
+                    ],
                     shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3))],
                     child: Center(
                       child: SvgPicture.string(

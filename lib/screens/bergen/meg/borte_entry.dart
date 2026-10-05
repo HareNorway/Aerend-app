@@ -5,6 +5,8 @@ import '../../../data/aegil/aegil_app_repo.dart';
 import 'a3_services.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_copy.dart';
+import '../../common/auth/launch/lf_css.dart';
+import '../../common/auth/launch/lf_motion.dart';
 
 List<AwayItem> _away = const [];
 
@@ -41,43 +43,106 @@ class _BorteCard extends StatefulWidget {
 class _BorteCardState extends State<_BorteCard> {
   late List<AwayItem> _items = widget.items;
 
+  void _lukk() {
+    setState(() => _items = const []);
+    _away = const [];
+  }
+
+  // Launch design "Mens du var borte" (L9017): a teal card with Ægil, a
+  // close key, one line per thing and "Se de siste 30 dagene".
   @override
   Widget build(BuildContext context) {
     if (_items.isEmpty) return const SizedBox.shrink();
-    return BergenCard(
-      key: const Key('borte-card'),
-      onDark: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(A3MegCopy.a3_meg_borte_kicker, style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w800, color: BergenTokens.inkMuted).copyWith(letterSpacing: 1.2)),
-          Text(_items.length == 3 ? A3MegCopy.a3_meg_borte_title : '${_items.length} ting fra Ægil', style: BergenTokens.display(BergenTokens.textSection, color: BergenTokens.ink)),
-          const SizedBox(height: 8),
-          for (final a in _items)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  const Icon(Icons.auto_awesome_rounded, size: 16, color: BergenTokens.teal),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(a.text, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w600, color: BergenTokens.ink))),
-                  if (a.undoable)
-                    TextButton(
-                      onPressed: () {
-                        setState(() => _items = _items.where((x) => x.id != a.id).toList());
-                        _away = _items;
-                        showBergenUndo(context, message: 'Angret', onUndo: () => setState(() => _items = [..._items, a]));
-                      },
-                      child: Text(A3MegCopy.a3_meg_varsler_angre, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w800, color: BergenTokens.orange)),
-                    ),
-                ],
-              ),
-            ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pushNamed('/bergen/meg/varsler'),
-            child: Text(A3MegCopy.a3_meg_borte_se, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w800, color: BergenTokens.orange)),
+    const hvit = Color(0xFFF5F3EF);
+    return LfOnce(
+      // skjermInn .34s cubic(.2,.9,.3,1)
+      ms: 340,
+      builder: (context, t, child) {
+        final e = const Cubic(.2, .9, .3, 1).transform(kfP(t, 0, 340));
+        final sk = .985 + .015 * e;
+        return Opacity(
+          opacity: e,
+          child: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..translateByDouble(0, 10 * (1 - e), 0, 1)
+              ..scaleByDouble(sk, sk, 1, 1),
+            child: child,
           ),
-        ],
+        );
+      },
+      child: CssBox(
+        key: const Key('borte-card'),
+        radius: BorderRadius.circular(24),
+        bg: const [CssLinear(160, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .6, 1])],
+        shadows: const [CssShadow(0, 24, 44, -22, Color.fromRGBO(8, 24, 32, .6))],
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.asset('assets/images/dashboard/invitation.png', width: 38, height: 38, fit: BoxFit.contain),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(A3MegCopy.a3_meg_borte_kicker, style: inter(11, weight: FontWeight.w800, color: const Color(0xFFB9CBD5))),
+                      Text(
+                        _items.length == 3 ? A3MegCopy.a3_meg_borte_title : '${_items.length} ting fra Ægil',
+                        style: jakarta(16, color: hvit),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _lukk,
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(color: const Color.fromRGBO(255, 255, 255, .14), borderRadius: BorderRadius.circular(12)),
+                    alignment: Alignment.center,
+                    child: Text('✕', style: inter(13, color: hvit)),
+                  ),
+                ),
+              ],
+            ),
+            for (final a in _items)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .14)))),
+                child: Text.rich(
+                  TextSpan(
+                    text: a.text,
+                    style: inter(13, color: hvit),
+                    children: [
+                      if (a.undoable) ...[
+                        const TextSpan(text: ' · '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.baseline,
+                          baseline: TextBaseline.alphabetic,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _items = _items.where((x) => x.id != a.id).toList());
+                              _away = _items;
+                              showBergenUndo(context, message: 'Angret', onUndo: () => setState(() => _items = [..._items, a]));
+                            },
+                            child: Text(A3MegCopy.a3_meg_varsler_angre, style: inter(13, weight: FontWeight.w800, color: const Color(0xFF5CE0B8))),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: () => Navigator.of(context).pushNamed('/bergen/meg/varsler'),
+              child: Text(A3MegCopy.a3_meg_borte_se, style: inter(12, weight: FontWeight.w800, color: const Color(0xFF5CE0B8))),
+            ),
+          ],
+        ),
       ),
     );
   }

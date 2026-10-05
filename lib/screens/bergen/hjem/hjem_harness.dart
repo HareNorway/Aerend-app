@@ -14,6 +14,21 @@ abstract final class HjemHarness {
   static bool demoFloats = false;
   static int? unread;
 
+  /// Scroll the sheet this far (device px) once loaded.
+  static double? scroll;
+
+  /// Open the Kommer snart sheet for this wheel slot.
+  static int? snart;
+
+  /// Show the Forundringspose card whatever the hour.
+  static bool pose = false;
+
+  /// Open the window (`sone: 'vindu'`).
+  static bool vindu = false;
+
+  /// Show "Mens du var borte" with the prototype's three lines.
+  static bool borte = false;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -23,12 +38,22 @@ abstract final class HjemHarness {
         vaer = null;
         demoFloats = false;
         unread = null;
+        scroll = null;
+        snart = null;
+        pose = false;
+        vindu = false;
+        borte = false;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
       vaer = m['vaer'] == null ? null : HjemVaer.values.byName(m['vaer'] as String);
       demoFloats = m['demoFloats'] == true;
       unread = m['unread'] as int?;
+      scroll = (m['scroll'] as num?)?.toDouble();
+      snart = m['snart'] as int?;
+      pose = m['pose'] == true;
+      vindu = m['vindu'] == true;
+      borte = m['borte'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }
