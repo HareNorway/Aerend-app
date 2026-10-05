@@ -22,6 +22,7 @@ import 'package:intercom_flutter/intercom_flutter.dart';
 
 import 'firebase_options.dart';
 import 'redux/store.dart';
+import 'screens/common/auth/launch/launch_onboarding.dart' show lfSetInviterName;
 import 'screens/common/login/login.dart';
 import 'screens/common/splash/splash.dart';
 import 'screens/common/vipps/vipps_login_link_handler.dart';
@@ -353,6 +354,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 // "Du er vervet" card on the onboarding landing.
                 prefSetString(prefPendingReferCode, code.trim().toUpperCase());
                 prefSetBool(prefPendingReferFromLink, true);
+                lfSetInviterName(uri.queryParameters['from'] ?? '');
                 return MaterialPageRoute(builder: (context) => const Login());
               }
               return MaterialPageRoute(

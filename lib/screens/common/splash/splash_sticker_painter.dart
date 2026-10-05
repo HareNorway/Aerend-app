@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Painters for the 3D-sticker Æ mark on the splash — a 1:1 port of the
 // `<symbol id="merke">` art and the `spGlattUt` sheen overlay in
@@ -263,7 +264,15 @@ class SplashSheenPainter extends CustomPainter {
     required this.translateX,
     required this.opacity,
     this.bandWidth = 44,
+    this.bandX = -76,
+    this.bandAlpha = .9,
   });
+
+  /// `<rect x>` of the band (-76 on the splash, -70 on the loader).
+  final double bandX;
+
+  /// Peak alpha of `#last-sheen` (`.9`).
+  final double bandAlpha;
 
   final double translateX;
   final double opacity;
@@ -287,7 +296,7 @@ class SplashSheenPainter extends CustomPainter {
     );
     canvas.translate(translateX, 0);
     canvas.skew(math.tan(-18 * math.pi / 180), 0);
-    final band = Rect.fromLTWH(-76, -40, bandWidth, 200);
+    final band = Rect.fromLTWH(bandX, -40, bandWidth, 200);
     canvas.drawRect(
       band,
       Paint()
@@ -296,7 +305,7 @@ class SplashSheenPainter extends CustomPainter {
           const Offset(1, 0),
           [
             _white.withValues(alpha: 0),
-            _white.withValues(alpha: .9),
+            _white.withValues(alpha: bandAlpha),
             _white.withValues(alpha: 0),
           ],
           const [0, .5, 1],
@@ -313,7 +322,122 @@ class SplashSheenPainter extends CustomPainter {
   bool shouldRepaint(SplashSheenPainter oldDelegate) =>
       oldDelegate.translateX != translateX ||
       oldDelegate.opacity != opacity ||
-      oldDelegate.bandWidth != bandWidth;
+      oldDelegate.bandWidth != bandWidth ||
+      oldDelegate.bandX != bandX;
+}
+
+/// `Splash · klistremerke` — the Æ drawn stroke by stroke (`spmTegn`, each
+/// path with `pathLength="1"`). [t] is the splash clock in ms.
+class SplashStrokeDrawPainter extends CustomPainter {
+  const SplashStrokeDrawPainter({required this.t});
+
+  final double t;
+
+  static Path _p(List<double> xy) {
+    final p = Path()..moveTo(xy[0], xy[1]);
+    for (var i = 2; i < xy.length; i += 2) {
+      p.lineTo(xy[i], xy[i + 1]);
+    }
+    return p;
+  }
+
+  // (points, colour, width, durMs, delayMs) — prototype L1857.
+  static final List<(Path, Color, double, double, double)> _strokes = [
+    (_p([14, 90, 60, 16, 60, 90]), _white, 25, 520, 340),
+    (_p([34, 58, 60, 58]), _white, 25, 170, 800),
+    (_p([62, 16, 104, 16]), _white, 25, 180, 900),
+    (_p([62, 53, 96, 53]), _white, 25, 160, 990),
+    (_p([62, 90, 104, 90]), _white, 25, 180, 1070),
+    (_p([14, 90, 60, 16, 60, 90]), const Color(0xFF3A7D8C), 15, 520, 400),
+    (_p([34, 58, 60, 58]), const Color(0xFF3A7D8C), 15, 170, 860),
+    (_p([62, 16, 104, 16]), const Color(0xFF3A7D8C), 15, 180, 960),
+    (_p([62, 53, 96, 53]), const Color(0xFF3A7D8C), 15, 160, 1050),
+    (_p([62, 90, 104, 90]), const Color(0xFF3A7D8C), 15, 180, 1130),
+    (_p([8, 60, -14, 60]), _white, 16, 200, 1240),
+    (_p([4, 76, -8, 76]), _white, 16, 180, 1300),
+    (_p([8, 60, -14, 60]), const Color(0xFFF26D3D), 6.5, 200, 1280),
+    (_p([4, 76, -8, 76]), const Color(0xFFF26D3D), 6.5, 180, 1340),
+  ];
+
+  static const Cubic _ease = Cubic(.65, 0, .25, 1);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    _enterMarkSpace(canvas, size);
+    for (final (path, color, width, dur, delay) in _strokes) {
+      final raw = (t - delay) / dur;
+      if (raw <= 0) continue;
+      final p = _ease.transform(raw.clamp(0.0, 1.0));
+      final paint = _stroke(color, width);
+      for (final m in path.computeMetrics()) {
+        canvas.drawPath(m.extractPath(0, m.length * p), paint);
+      }
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(SplashStrokeDrawPainter oldDelegate) => oldDelegate.t != t;
+}
+
+/// The loader's flipped card back: `#last-paper` + `#last-paper-lines`
+/// masked by the sticker outline, and the mirrored "ÆREND" stamp.
+class LasterBackPainter extends CustomPainter {
+  const LasterBackPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    _enterMarkSpace(canvas, size);
+    canvas.saveLayer(_maskRect, Paint());
+    _drawMarkMask(canvas);
+    canvas.saveLayer(_maskRect, Paint()..blendMode = BlendMode.srcIn);
+    const r = Rect.fromLTWH(-30, -20, 180, 150);
+    canvas.drawRect(
+      r,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          r.topLeft,
+          r.bottomRight,
+          const [Color(0xFFFAF8F3), Color(0xFFDDE3E6), Color(0xFFA9B3BA)],
+          const [0, .5, 1],
+        ),
+    );
+    // 7×7 pattern rotated 45°, a 1.4px line per tile, at opacity .5.
+    canvas.save();
+    canvas.clipRect(r);
+    canvas.rotate(math.pi / 4);
+    final line = Paint()..color = const Color.fromRGBO(15, 31, 43, .07 * .5);
+    for (double y = -300; y < 300; y += 7) {
+      canvas.drawRect(Rect.fromLTWH(-300, y, 600, 1.4), line);
+    }
+    canvas.restore();
+    canvas.restore();
+    canvas.restore();
+    // `<text x=84 y=58 text-anchor=middle … transform="scale(-1,1) translate(-168,0)">`
+    final tp = TextPainter(
+      text: TextSpan(
+        text: 'ÆREND',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 7.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
+          color: const Color.fromRGBO(15, 31, 43, .32),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    canvas.save();
+    canvas.scale(-1, 1);
+    canvas.translate(-168, 0);
+    tp.paint(canvas, Offset(84 - tp.width / 2, 58 - tp.height * .78));
+    canvas.restore();
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(LasterBackPainter oldDelegate) => false;
 }
 
 /// CSS `radial-gradient(<rx> <ry> at <cx> <cy>, …)` over the whole box.

@@ -60,6 +60,12 @@ class BergenBottomNav extends StatefulWidget {
   /// stays in search mode (the design's Enter never closes Søk).
   final ValueNotifier<bool>? searchOpen;
 
+  /// The Meg tab, for effects that fly to it (onboarding `myntRegn`).
+  static final GlobalKey megTabKey = GlobalKey(debugLabel: 'megTab');
+
+  /// Bumps the Meg tab (scale 1 → 1.18 → 1, 480ms) when incremented.
+  static final ValueNotifier<int> megBump = ValueNotifier<int>(0);
+
   @override
   State<BergenBottomNav> createState() => _BergenBottomNavState();
 }
@@ -211,7 +217,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
                   SizedBox(width: 3 * s),
                   _tab(context, 2, BergenCopy.navCart, _CartIcon(), cart: true),
                   SizedBox(width: 3 * s),
-                  _tab(context, 3, BergenCopy.navMe, _MeIcon()),
+                  _tab(context, 3, BergenCopy.navMe, _MeIcon(), meg: true),
                 ],
               ),
             ),
@@ -235,12 +241,16 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
     String label,
     Widget icon, {
     bool cart = false,
+    bool meg = false,
   }) {
     final s = context.bs;
     final on = widget.index == i;
     final color = on ? Colors.white : const Color(0xC7FFFFFF);
+    Widget wrapMeg(Widget w) => meg
+        ? KeyedSubtree(key: BergenBottomNav.megTabKey, child: _MegBump(child: w))
+        : w;
     return Expanded(
-      child: OnbPressable(
+      child: wrapMeg(OnbPressable(
         onTap: () => widget.onTab(i),
         pressScale: .94,
         child: Stack(
@@ -368,7 +378,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               ),
           ],
         ),
-      ),
+      )),
     );
   }
 
@@ -674,6 +684,35 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
 }
 
 // ── Nav icons (the design's inline SVG paths) ───────────────────────────────
+
+/// `myntRegn`'s landing bump on the Meg tab.
+class _MegBump extends StatelessWidget {
+  const _MegBump({required this.child});
+
+  final Widget child;
+
+  static const Cubic _c = Cubic(.3, 1.5, .5, 1);
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: BergenBottomNav.megBump,
+      child: child,
+      builder: (context, n, child) => n == 0
+          ? child!
+          : TweenAnimationBuilder<double>(
+              key: ValueKey(n),
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 480),
+              child: child,
+              builder: (context, v, child) {
+                final k = v <= .5 ? _c.transform(v * 2) : 1 - _c.transform((v - .5) * 2);
+                return Transform.scale(scale: 1 + .18 * k, child: child);
+              },
+            ),
+    );
+  }
+}
 
 class _HomeIcon extends StatelessWidget {
   @override

@@ -11,6 +11,7 @@ import '../../../blocs/bloc.dart';
 import '../../../dialogs/simple_dialog_util.dart';
 import '../../../utils/utils.dart';
 import '../homeMainV1/home_main_v1.dart';
+import '../auth/launch/launch_onboarding.dart' show lfHarnessForced;
 import '../login/login.dart';
 // Language/currency pre-login screen skipped — NOK is the only currency;
 // language is chosen via the NO/EN toggle on Login.
@@ -68,11 +69,11 @@ class SplashBloc extends Bloc {
     _navigated = true;
     _pendingScreen = null;
     _pendingHandoff = false;
-    if (handoff) {
-      openScreenWithClearPreviousHandoff(context, screen);
-    } else {
-      openScreenWithClearPrevious(context, screen);
-    }
+    // Launch splash: the next screen cross-fades in (`spxUt`).
+    Navigator.of(context).pushAndRemoveUntil(
+      lfSplashFadeRoute(screen),
+      (route) => false,
+    );
   }
 
   /// Called once — when the splash animation reaches its exit, when the user
@@ -94,7 +95,7 @@ class SplashBloc extends Bloc {
     _openScreen(HomeMainV1(isShowDialog: isShowDialog));
   }
 
-  splashAction() {
+  Future<void> splashAction() async {
     FirebaseMessaging.instance.getToken().then((token) async {
       if (token == null || token.isEmpty) return;
       prefSetString(prefDeviceToken, token);
@@ -109,12 +110,16 @@ class SplashBloc extends Bloc {
 
     // Cold-start flow: Splash → Login (landing) → Vilkår → Konto / provider
     // → Telefon → Kode → Ferdig → Home.
+    if (kDebugMode && await lfHarnessForced()) {
+      _openScreen(const Login(fromSplash: true), handoff: true);
+      return;
+    }
     if (isLoggedIn()) {
       prefSetBool(prefIsGuestMode, false);
       callRunningServiceApi();
     } else {
       prefSetBool(prefIsGuestMode, false);
-      _openScreen(const Login(), handoff: true);
+      _openScreen(const Login(fromSplash: true), handoff: true);
     }
   }
 
@@ -208,7 +213,7 @@ class SplashBloc extends Bloc {
     if (isLoggedIn()) {
       _openScreen(const HomeMainV1(isShowDialog: true));
     } else {
-      _openScreen(const Login(), handoff: true);
+      _openScreen(const Login(fromSplash: true), handoff: true);
     }
   }
 

@@ -106,6 +106,7 @@ flutter:
     - assets/images/
     - assets/images/home/
     - assets/images/aegil/
+    - assets/images/onboarding/
     - assets/images/dashboard/
     - assets/images/products/
     - assets/images/service-category/
@@ -125,6 +126,9 @@ flutter:
     - assets/mapStyle/
     - assets/flags/
     - assets/json/
+
+  shaders:
+    - shaders/sjo.frag
 
   fonts:
     - family: CustomIcons
