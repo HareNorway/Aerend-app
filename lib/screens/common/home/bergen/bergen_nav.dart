@@ -842,7 +842,10 @@ class _NavPilleState extends State<_NavPille> with SingleTickerProviderStateMixi
     final rolig = MediaQuery.disableAnimationsOf(context);
     return LayoutBuilder(
       builder: (context, box) {
-        final w = (box.maxWidth - 23 * s) / 4;
+        // The box is already inside the nav's 7px padding, so the design's
+        // left 7 / (100% − 23px) / 4 become 0 / (inner − 3 gaps × 3px) / 4:
+        // the pill lines up with the tab it sits behind.
+        final w = (box.maxWidth - 9 * s) / 4;
         return TweenAnimationBuilder<double>(
           tween: Tween(end: widget.index * (w + 3 * s)),
           duration: Duration(milliseconds: rolig ? 0 : 520),
@@ -850,7 +853,7 @@ class _NavPilleState extends State<_NavPille> with SingleTickerProviderStateMixi
           builder: (context, x, child) => Stack(
             children: [
               Positioned(
-                left: 7 * s + x,
+                left: x,
                 top: (box.maxHeight - 52 * s) / 2,
                 width: w,
                 height: 52 * s,
