@@ -204,6 +204,16 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
         alignment: Alignment.center,
         children: [
           bergenInsetTop(radius: 999, alpha: .3),
+          // The one orange pill that glides between the tabs (`navPill`).
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 350),
+                opacity: _search ? 0 : 1,
+                child: _NavPille(index: widget.index, s: s),
+              ),
+            ),
+          ),
           IgnorePointer(
             ignoring: _search,
             child: AnimatedOpacity(
@@ -245,7 +255,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
   }) {
     final s = context.bs;
     final on = widget.index == i;
-    final color = on ? Colors.white : const Color(0xC7FFFFFF);
+    final color = on ? Colors.white : const Color.fromRGBO(255, 255, 255, .78);
     Widget wrapMeg(Widget w) => meg
         ? KeyedSubtree(key: BergenBottomNav.megTabKey, child: _MegBump(child: w))
         : w;
@@ -261,28 +271,13 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               duration: const Duration(milliseconds: 280),
               width: double.infinity,
               padding: EdgeInsets.fromLTRB(4 * s, 7 * s, 4 * s, 6 * s),
+              // Tabs are transparent; the pill behind them moves (`fane`).
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18 * s),
-                gradient: on ? kBergenNavActiveGradient : null,
-                boxShadow: on
-                    ? [
-                        const BoxShadow(
-                          color: Color.fromRGBO(150, 60, 15, .85),
-                          offset: Offset(0, 2.5),
-                        ),
-                        BoxShadow(
-                          color: const Color.fromRGBO(4, 18, 26, .8),
-                          offset: Offset(0, 9 * s),
-                          blurRadius: onbBlur(15 * s),
-                          spreadRadius: -7 * s,
-                        ),
-                      ]
-                    : null,
               ),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  if (on) bergenInsetTop(radius: 18 * s, alpha: .4),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -810,4 +805,94 @@ class _StrokePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_StrokePainter old) => old.color != color;
+}
+
+
+/// `navPill`: left 7, 52 high, (100% − 23)/4 wide; glides
+/// `translateX(i × (w + 3))` over .52s cubic(.32,1.28,.42,1) and squashes
+/// (520ms) as it leaves.
+class _NavPille extends StatefulWidget {
+  const _NavPille({required this.index, required this.s});
+
+  final int index;
+  final double s;
+
+  @override
+  State<_NavPille> createState() => _NavPilleState();
+}
+
+class _NavPilleState extends State<_NavPille> with SingleTickerProviderStateMixin {
+  late final AnimationController _sq = AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+
+  @override
+  void didUpdateWidget(_NavPille old) {
+    super.didUpdateWidget(old);
+    if (old.index != widget.index && !MediaQuery.disableAnimationsOf(context)) _sq.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _sq.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.s;
+    final rolig = MediaQuery.disableAnimationsOf(context);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final w = (box.maxWidth - 23 * s) / 4;
+        return TweenAnimationBuilder<double>(
+          tween: Tween(end: widget.index * (w + 3 * s)),
+          duration: Duration(milliseconds: rolig ? 0 : 520),
+          curve: const Cubic(.32, 1.28, .42, 1),
+          builder: (context, x, child) => Stack(
+            children: [
+              Positioned(
+                left: 7 * s + x,
+                top: (box.maxHeight - 52 * s) / 2,
+                width: w,
+                height: 52 * s,
+                child: AnimatedBuilder(
+                  animation: _sq,
+                  builder: (context, child) {
+                    final p = const Cubic(.3, .7, .3, 1).transform(_sq.value);
+                    final sx = onbKf(p, const [0, .35, .7, 1], const [1, 1.22, .96, 1], Curves.linear);
+                    final sy = onbKf(p, const [0, .35, .7, 1], const [1, .9, 1.03, 1], Curves.linear);
+                    return Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.diagonal3Values(sx, sy, 1),
+                      child: child,
+                    );
+                  },
+                  child: child,
+                ),
+              ),
+            ],
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18 * s),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFF58A55), Color(0xFFE95C2C)],
+              ),
+              boxShadow: [
+                const BoxShadow(color: Color.fromRGBO(150, 60, 15, .85), offset: Offset(0, 2.5)),
+                BoxShadow(
+                  color: const Color.fromRGBO(4, 18, 26, .8),
+                  offset: Offset(0, 9 * s),
+                  blurRadius: onbBlur(15 * s),
+                  spreadRadius: -7 * s,
+                ),
+              ],
+            ),
+            child: Stack(children: [bergenInsetTop(radius: 18 * s, alpha: .4)]),
+          ),
+        );
+      },
+    );
+  }
 }

@@ -29,6 +29,9 @@ abstract final class HjemHarness {
   /// Show "Mens du var borte" with the prototype's three lines.
   static bool borte = false;
 
+  /// Switch to this tab a moment after loading.
+  static int? fane;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -43,6 +46,7 @@ abstract final class HjemHarness {
         pose = false;
         vindu = false;
         borte = false;
+        fane = null;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -54,6 +58,7 @@ abstract final class HjemHarness {
       pose = m['pose'] == true;
       vindu = m['vindu'] == true;
       borte = m['borte'] == true;
+      fane = m['fane'] as int?;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

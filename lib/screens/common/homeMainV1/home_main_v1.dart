@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../utils/utils.dart';
@@ -6,7 +8,13 @@ import '../../snurre/snurre_chat_screen.dart';
 import '../../bergen/meg/meg_host.dart';
 import '../../bergen/sok/sok_screen.dart';
 import '../home/bergen/bergen_home.dart';
+import '../home/bergen/bergen_kit.dart' show kBergenScreenGradient, BergenScale;
 import '../home/bergen/bergen_nav.dart';
+import '../../bergen/kit/fane_bytte.dart';
+import '../../bergen/kit/live_aerend.dart';
+import '../../bergen/kit/bergen_routes.dart';
+import '../auth/launch/lf_css.dart' show lfFlow;
+import '../../deliveryService/trackOrder/track_order.dart';
 import '../../bergen/kasse/kurv_screen.dart';
 
 /// The Bergen shell: Hjem · Utforsk · Kurv · Meg behind the design's pill nav
@@ -97,15 +105,7 @@ class HomeMainV1State extends State<HomeMainV1> {
     }
     sokOpen.value = false;
     final target = index.clamp(0, BergenTab.values.length - 1);
-    if (animate) {
-      controller.animateToPage(
-        target,
-        duration: const Duration(milliseconds: 420),
-        curve: const Cubic(.2, .9, .3, 1),
-      );
-    } else if (controller.hasClients) {
-      controller.jumpToPage(target);
-    }
+    // The change itself animates in [BergenFaneBytte] (`faneBytt`).
     setState(() => selectedPos = target);
   }
 
@@ -136,20 +136,20 @@ class HomeMainV1State extends State<HomeMainV1> {
 
   @override
   Widget build(BuildContext context) {
-    final pageView = PageView(
-      controller: controller,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
+    final pageView = BergenFaneBytte(
+      index: selectedPos,
+      background: kBergenScreenGradient,
+      builder: (context, i) => switch (i) {
         // 0 — Hjem
-        BergenHome(isShowDialog: widget.isShowDialog, orderId: widget.orderId),
+        0 => BergenHome(isShowDialog: widget.isShowDialog, orderId: widget.orderId),
         // 1 — Utforsk (AGIL-1 v2 Phase 2: Feed / Fjordfiske / Forundringspose)
-        const UtforskScreen(),
+        1 => const UtforskScreen(),
         // 2 — Kurv (AGIL-1 v2 Phase 5: the Bergen Kurv; the legacy cart is
         // still the card-payment checkout behind it)
-        const KurvScreen(),
+        2 => const KurvScreen(),
         // 3 — Meg (Sync C seam: agil-3 fills MegScreen)
-        const MegScreen(),
-      ],
+        _ => const MegScreen(),
+      },
     );
 
     final scaffold = Scaffold(
@@ -169,6 +169,35 @@ class HomeMainV1State extends State<HomeMainV1> {
                     ),
                   )
                 : const SizedBox.shrink(),
+          ),
+          // Live-ærend (L9598): left 14, 14 above the nav pill.
+          ValueListenableBuilder(
+            valueListenable: hjemLiveOrdre,
+            builder: (context, ordre, _) => ValueListenableBuilder<bool>(
+              valueListenable: sokOpen,
+              builder: (context, sok, _) {
+                if (ordre == null || sok) return const SizedBox.shrink();
+                final s = context.bs;
+                final navBunn = math.max(MediaQuery.paddingOf(context).bottom, 16 * s);
+                return Positioned(
+                  left: 14 * s,
+                  bottom: navBunn + 62 * s + 14 * s,
+                  width: 234 * s,
+                  height: 64 * s,
+                  child: lfFlow(
+                    234,
+                    HjemLiveAerend(
+                      data: ordre.data,
+                      onTap: () => BergenRoutes.pushOr(
+                        context,
+                        '/bergen/sporing/${ordre.orderId}',
+                        orElse: () => openScreen(context, TrackOrder(orderId: ordre.orderId)),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
           Positioned(
             left: 0,

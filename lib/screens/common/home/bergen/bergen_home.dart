@@ -21,6 +21,7 @@ import '../../../bergen/hjem/hjem_kort.dart';
 import '../../../bergen/hjem/hjem_tilbud.dart';
 import '../../../bergen/hjem/hjem_vann.dart';
 import '../../../bergen/hjem/hjem_vindu.dart';
+import '../../../bergen/kit/live_aerend.dart';
 import '../../../bergen/hjem/hjem_snart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../bergen/aegil/brett_entry.dart';
@@ -116,6 +117,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   final BergenStoreRepo _storeRepo = BergenStoreRepo();
   final ScrollController _scroll = ScrollController();
   Timer? _trackTimer;
+  StreamSubscription<ApiResponse<HomeTrackOrderPojo>>? _trackSub;
 
   /// `arkScroll` — clamped scroll offset that drives the parallax.
   double _k = 0;
@@ -176,6 +178,23 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
     _lastSnart();
+    // Live-ærend: the shell's pill follows the order under way.
+    _trackSub = _bloc.subjectTrackOrder.stream.listen((r) {
+      if (r.status != Status.completed) return;
+      final t = r.data;
+      final id = t?.orderId ?? 0;
+      if (id == 0) {
+        hjemLiveOrdre.value = null;
+        return;
+      }
+      final min = t!.remainingTime;
+      // UI-TEMP: home-track-order gives no stage, only the minutes left;
+      // the stage is estimated from them until Step 8 wires the tracking.
+      hjemLiveOrdre.value = (
+        orderId: id,
+        data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60),
+      );
+    });
     _trackTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       _bloc.callHomeTrackOrderApi();
     });
@@ -196,6 +215,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             _scroll.jumpTo(y.clamp(0.0, _scroll.position.maxScrollExtent));
           }
           if (HjemHarness.vindu) _settVindu(true);
+          final fane = HjemHarness.fane;
+          if (fane != null) {
+            debugPrint('HJEM_FANE');
+            context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(fane);
+          }
           if (HjemHarness.borte) {
             // ignore: invalid_use_of_visible_for_testing_member
             setMensDuVarBorteForTest(const [
@@ -272,6 +296,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _trackTimer?.cancel();
+    _trackSub?.cancel();
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
     _bloc.dispose();
