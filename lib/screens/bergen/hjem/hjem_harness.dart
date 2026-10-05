@@ -35,6 +35,19 @@ abstract final class HjemHarness {
   /// Focus this wheel slot.
   static int? hjul;
 
+  /// Open the address sheet (`'adresse'`) or the new-place sheet (`'ny'`).
+  static String? adresse;
+
+  /// Coverage for every address (`'dekket'`, `'pauset'`, `'ikke'`) while
+  /// `/api/geo/coverage` is off locally.
+  static String? dekning;
+
+  /// Typed into the address search / the door note when the sheet opens.
+  static String? adrSok, adrDor;
+
+  /// Pick the first address suggestion.
+  static bool adrVelg = false;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -51,6 +64,11 @@ abstract final class HjemHarness {
         borte = false;
         fane = null;
         hjul = null;
+        adresse = null;
+        dekning = null;
+        adrSok = null;
+        adrDor = null;
+        adrVelg = false;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -64,6 +82,11 @@ abstract final class HjemHarness {
       borte = m['borte'] == true;
       fane = m['fane'] as int?;
       hjul = m['hjul'] as int?;
+      adresse = m['adresse'] as String?;
+      dekning = m['dekning'] as String?;
+      adrSok = m['adrSok'] as String?;
+      adrDor = m['adrDor'] as String?;
+      adrVelg = m['adrVelg'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

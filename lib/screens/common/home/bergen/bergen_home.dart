@@ -35,13 +35,14 @@ import '../../../bergen/poeng/napp_entry.dart';
 import '../../../snurre/snurre_chat_screen.dart';
 import '../../auth/onboarding_kit.dart';
 import '../../homeMainV1/home_main_v1.dart';
-import '../../location/add_location.dart';
 import '../../manageAddress/manage_address_dl.dart';
 import '../../notifications/notifications.dart';
 import '../../swipeAerend/swipe_aerend_dl.dart';
 import '../home_bloc.dart';
 import '../home_dl.dart';
 import '../home_post_order_feedback.dart';
+import '../../../bergen/adresse/adr_ark.dart' show AdrArkProve, visAdresseArk;
+import 'bergen_adr_kilde.dart';
 import 'bergen_cards.dart';
 import 'bergen_category_rad.dart';
 import 'bergen_copy.dart';
@@ -170,12 +171,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// design's sample (AGIL-1 v2 Phase 2; guarded 404 → sample).
   BergenUnderQuayOffer? _underKaien;
 
+  late final BergenAdrKilde _adrKilde;
+  StreamSubscription<AddressListItem?>? _adrSub;
+  String? _hodeEta;
+
   @override
   void initState() {
     super.initState();
     _playIntro = !_introPlayed;
     _introPlayed = true;
     _bloc = HomeBloc(context, this, false);
+    _adrKilde = BergenAdrKilde(_bloc);
+    _adrSub = _bloc.deliveryAddress.listen(_hentHodeEta);
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
     _lastSnart();
@@ -249,6 +256,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             ]);
             setState(() {});
           }
+          if (HjemHarness.adresse case final a?) {
+            AdrArkProve.sok = HjemHarness.adrSok;
+            AdrArkProve.dor = HjemHarness.adrDor;
+            AdrArkProve.velg = HjemHarness.adrVelg;
+            _openAddressSheet(ny: a == 'ny');
+          }
           final k = HjemHarness.snart;
           if (k != null) {
             setState(() => _hjulI = k);
@@ -304,6 +317,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     _trackTimer?.cancel();
     _trackSub?.cancel();
+    _adrSub?.cancel();
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
     _bloc.dispose();
@@ -1001,18 +1015,20 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     openSimpleSnackbar(BergenCopy.aegilRemembers);
   }
 
-  Future<void> _openAddressSheet() async {
+  Future<void> _openAddressSheet({bool ny = false}) async {
     if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.address)) {
       return;
     }
     if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: const Color(0x520F1F2B),
-      builder: (_) => _AddressSheet(bloc: _bloc),
-    );
+    await visAdresseArk(context, _adrKilde, ny: ny);
+  }
+
+  /// The header's "· 25–35 min" follows coverage for the chosen place.
+  void _hentHodeEta(AddressListItem? a) {
+    if (a == null || a.addressId == 0) return;
+    _adrKilde.dekning(a).then((d) {
+      if (mounted) setState(() => _hodeEta = d?.hodeEta);
+    });
   }
 
   // ── Build ───────────────────────────────────────────────────────────────
@@ -1248,7 +1264,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                           ? ''
                                           : raw.split(',').first.trim(),
                                       type: hjemAdrType(snap.data?.type ?? ''),
-                                      eta: null,
+                                      eta: _hodeEta,
                                       unread:
                                           HjemHarness.unread ??
                                           home?.totalUnreadMessage ??
@@ -1846,390 +1862,4 @@ class _ChevronPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ChevronPainter old) => old.color != color;
-}
-
-// ── Header widgets ────────────────────────────────────────────────────────
-
-class _AddressSheet extends StatefulWidget {
-  const _AddressSheet({required this.bloc});
-  final HomeBloc bloc;
-
-  @override
-  State<_AddressSheet> createState() => _AddressSheetState();
-}
-
-class _AddressSheetState extends State<_AddressSheet> {
-  bool _locating = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final bottom = MediaQuery.paddingOf(context).bottom;
-    return OnbTimeline(
-      durationMs: 380,
-      builder: (context, t, child) {
-        // arkOpp .38s cubic-bezier(.2,.9,.3,1)
-        final e = const Cubic(.2, .9, .3, 1).transform(onbP(t, 0, 380));
-        return Transform.translate(
-          offset: Offset(0, (1 - e) * 26 * s),
-          child: Opacity(opacity: .6 + .4 * e, child: child),
-        );
-      },
-      child: Container(
-        padding: EdgeInsets.fromLTRB(16 * s, 0, 16 * s, 22 * s + bottom),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
-            stops: [0, .5, 1],
-          ),
-          border: const Border(top: BorderSide(color: Color(0x66FFFFFF))),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x8C0F1F2B),
-              offset: Offset(0, -24),
-              blurRadius: 50,
-              spreadRadius: -20,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              behavior: HitTestBehavior.opaque,
-              child: Center(
-                child: Container(
-                  margin: EdgeInsets.only(top: 10 * s),
-                  width: 44 * s,
-                  height: 5 * s,
-                  decoration: BoxDecoration(
-                    color: const Color(0x59FFFFFF),
-                    borderRadius: BorderRadius.circular(3 * s),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 14 * s),
-            Text(
-              BergenCopy.addressSheetTitle,
-              style: bDisplay(context, 18, letterSpacingEm: -.02),
-            ),
-            SizedBox(height: 2 * s),
-            Text(
-              BergenCopy.addressSheetLine,
-              style: bText(
-                context,
-                11.5,
-                weight: FontWeight.w600,
-                color: const Color(0x9EFFFFFF),
-              ),
-            ),
-            SizedBox(height: 12 * s),
-            StreamBuilder<List<AddressListItem>?>(
-              stream: widget.bloc.addressList,
-              builder: (context, listSnap) {
-                final list = listSnap.data ?? const <AddressListItem>[];
-                return StreamBuilder<AddressListItem?>(
-                  stream: widget.bloc.deliveryAddress,
-                  builder: (context, selSnap) {
-                    final selectedId =
-                        selSnap.data?.addressId ??
-                        prefGetInt(prefNewDeliveryAddressId);
-                    return ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.sizeOf(context).height * .5,
-                      ),
-                      child: ListView(
-                        shrinkWrap: true,
-                        padding: EdgeInsets.zero,
-                        physics: const BouncingScrollPhysics(),
-                        children: [
-                          if (list.isEmpty)
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8 * s),
-                              child: Text(
-                                BergenCopy.noAddresses,
-                                textAlign: TextAlign.center,
-                                style: bText(
-                                  context,
-                                  12,
-                                  weight: FontWeight.w600,
-                                  color: const Color(0x9EFFFFFF),
-                                ),
-                              ),
-                            ),
-                          for (var i = 0; i < list.length; i++)
-                            Padding(
-                              padding: EdgeInsets.only(top: i == 0 ? 0 : 8 * s),
-                              child: _AddressRow(
-                                item: list[i],
-                                selected: list[i].addressId == selectedId,
-                                onTap: () {
-                                  widget.bloc.updateDeliveryAddress(
-                                    addressId: list[i].addressId,
-                                  );
-                                  Navigator.pop(context);
-                                },
-                                onDelete: list.length > 1
-                                    ? () => widget.bloc.deleteAddress(
-                                        list[i].addressId,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 8 * s),
-            _AddressAction(
-              icon: Icons.my_location_rounded,
-              label: BergenCopy.currentLocation,
-              busy: _locating,
-              onTap: () {
-                if (_locating) return;
-                setState(() => _locating = true);
-                widget.bloc.getCurrentLocation();
-              },
-            ),
-            SizedBox(height: 8 * s),
-            _AddressAction(
-              icon: Icons.add_rounded,
-              label: BergenCopy.newAddress,
-              onTap: () {
-                Navigator.pop(context);
-                openScreen(context, const AddLocation());
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AddressRow extends StatelessWidget {
-  const _AddressRow({
-    required this.item,
-    required this.selected,
-    required this.onTap,
-    this.onDelete,
-  });
-
-  final AddressListItem item;
-  final bool selected;
-  final VoidCallback onTap;
-  final VoidCallback? onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final type = item.type.trim();
-    final label = type.isEmpty
-        ? item.address
-        : '${type[0].toUpperCase()}${type.substring(1)} · ${item.address.split(',').first.trim()}';
-    final sub = [
-      if (item.address.contains(','))
-        item.address.split(',').skip(1).join(',').trim(),
-      if (item.flatNo.isNotEmpty) item.flatNo,
-      if (item.landmark.isNotEmpty) item.landmark,
-    ].join(' · ');
-    final IconData icon = type.toLowerCase() == 'home'
-        ? Icons.home_outlined
-        : type.toLowerCase() == 'work' || type.toLowerCase() == 'office'
-        ? Icons.work_outline_rounded
-        : Icons.place_outlined;
-
-    return OnbPressable(
-      onTap: onTap,
-      pressDy: 0,
-      pressScale: .985,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20 * s),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              selected ? const Color(0x2E5CE0B8) : const Color(0x1FFFFFFF),
-              const Color(0x0DFFFFFF),
-            ],
-          ),
-          border: Border.all(color: const Color(0x33FFFFFF)),
-          boxShadow: selected
-              ? const [BoxShadow(color: Color(0x4D5CE0B8), blurRadius: 18)]
-              : const [],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36 * s,
-              height: 36 * s,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12 * s),
-                color: const Color(0x1FFFFFFF),
-                border: Border.all(color: const Color(0x2EFFFFFF)),
-              ),
-              child: Icon(icon, size: 17 * s, color: BergenColors.mint),
-            ),
-            SizedBox(width: 12 * s),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: bText(context, 13, weight: FontWeight.w800),
-                  ),
-                  if (sub.isNotEmpty)
-                    Text(
-                      sub,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: bText(
-                        context,
-                        10.5,
-                        weight: FontWeight.w600,
-                        color: const Color(0x9EFFFFFF),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (onDelete != null) ...[
-              SizedBox(width: 6 * s),
-              GestureDetector(
-                onTap: onDelete,
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: EdgeInsets.all(4 * s),
-                  child: Icon(
-                    Icons.delete_outline_rounded,
-                    size: 16 * s,
-                    color: const Color(0x8CFFFFFF),
-                  ),
-                ),
-              ),
-            ],
-            SizedBox(width: 6 * s),
-            Container(
-              width: 20 * s,
-              height: 20 * s,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: selected ? BergenColors.mint : const Color(0x66FFFFFF),
-                  width: 2 * s,
-                ),
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                width: 10 * s,
-                height: 10 * s,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: selected ? BergenColors.mint : Colors.transparent,
-                  boxShadow: selected
-                      ? const [
-                          BoxShadow(color: BergenColors.mint, blurRadius: 8),
-                        ]
-                      : const [],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AddressAction extends StatelessWidget {
-  const _AddressAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.busy = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool busy;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return OnbPressable(
-      onTap: onTap,
-      pressDy: 0,
-      pressScale: .985,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20 * s),
-          color: const Color(0x0AFFFFFF),
-          border: Border.all(color: const Color(0x4DFFFFFF), width: 1.5),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 36 * s,
-              height: 36 * s,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12 * s),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFF2884E), Color(0xFFE0662C)],
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0xE678320A),
-                    offset: Offset(0, 6),
-                    blurRadius: 12,
-                    spreadRadius: -6,
-                  ),
-                ],
-              ),
-              child: busy
-                  ? Padding(
-                      padding: EdgeInsets.all(10 * s),
-                      child: const CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Icon(icon, size: 18 * s, color: Colors.white),
-            ),
-            SizedBox(width: 12 * s),
-            Expanded(
-              child: Text(
-                label,
-                style: bText(context, 13, weight: FontWeight.w800),
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 18 * s,
-              color: const Color(0x8CFFFFFF),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

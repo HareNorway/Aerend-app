@@ -1,0 +1,427 @@
+// GENERATED from Design-New/Ærend Kunde Launch.dc.html (address sheets,
+// L8384–8600) by the step-3 generator: the scene's SVG as draw lists.
+// ignore_for_file: prefer_const_constructors
+part of 'adr_tegning.dart';
+
+const AdrBilde kNaboA = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFE9D9B8)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF3A2E2A)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 700)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 860)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 940)),
+]);
+
+const AdrBilde kNaboB = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFB94A32)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 780)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 860)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+]);
+
+const AdrBilde kNaboC = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFF2EEE4)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 700)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 780)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 940)),
+]);
+
+const AdrBilde kNaboD = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFD9A254)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF3A2E2A)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 780)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 860)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 940)),
+]);
+
+const AdrBilde kHusAdr = AdrBilde(100, 116, [
+  AdrEl.rect([64, 12, 11, 26, 0], fill: AdrFarge.c(0xFF7A3E2C)),
+  AdrEl.rect([62, 9, 15, 5, 1], fill: AdrFarge.c(0xFF5E2E20)),
+  AdrEl.rect([10, 44, 80, 72, 0], fill: AdrFarge.v('adrHusFarge')),
+  AdrEl.path('M16 44V116M22 44V116M28 44V116M34 44V116M40 44V116M46 44V116M52 44V116M58 44V116M64 44V116M70 44V116M76 44V116M82 44V116', stroke: AdrFarge.c(0x1A000000), sw: 1),
+  AdrEl.rect([10, 44, 80, 72, 0], fill: AdrFarge.g('adrHusSk')),
+  AdrEl.rect([10, 44, 3.5, 72, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([86.5, 44, 3.5, 72, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.path('M3 46L50 8L97 46Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M3 46L50 8L50 46Z', fill: AdrFarge.c(0x0FFFFFFF)),
+  AdrEl.path('M1 47L50 6L99 47', stroke: AdrFarge.c(0xFFF4EFE6), sw: 3.2, roundJoin: true),
+  AdrEl.circle([50, 31, 6.5], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.circle([50, 31, 4.6], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 1050)),
+  AdrEl.rect([37, 48, 26, 23, 5], fill: AdrFarge.c(0xFF7FF0CB), fillOpVar: 'adrEtasjeOp', anim: AdrAnim('adrLys', 1800, 0)),
+  AdrEl.rect([18, 52, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([19.8, 53.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 850)),
+  AdrEl.rect([42, 52, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([43.8, 53.8, 12.4, 11.4, 0], fill: AdrFarge.v('adrEtasjeC'), anim: AdrAnim('adrLysPaa', 350, 900)),
+  AdrEl.rect([66, 52, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([67.8, 53.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([18, 74, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([19.8, 75.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFFFFC870), anim: AdrAnim('adrLysPaa', 350, 950)),
+  AdrEl.rect([42, 74, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([43.8, 75.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([66, 74, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([67.8, 75.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 1000)),
+  AdrEl.circle([35, 96, 9], fill: AdrFarge.c(0x4CFFD678), anim: AdrAnim('adrLys', 2400, 0)),
+  AdrEl.circle([35, 96, 2.3], fill: AdrFarge.c(0xFFFFE7A8)),
+  AdrEl.rect([39.5, 92.5, 21, 23.5, 1.5], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([42, 95, 16, 21, 1], fill: AdrFarge.c(0xFFE95C2C)),
+  AdrEl.rect([44, 97, 12, 5, 2.5], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 1100)),
+  AdrEl.circle([55, 107, 1.3], fill: AdrFarge.c(0xFFFFE7A8)),
+  AdrEl.rect([63, 96, 13, 10, 2.5], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([34, 114, 32, 3, 1], fill: AdrFarge.c(0xFF9AA6A8)),
+]);
+
+const AdrBilde kJobbAdr = AdrBilde(104, 128, [
+  AdrEl.rect([79, 0, 2, 12, 0], fill: AdrFarge.c(0xFF9AA6A8)),
+  AdrEl.circle([80, 1, 2.2], fill: AdrFarge.c(0xFFFF6B5A), anim: AdrAnim('adrBlink', 1600, 0)),
+  AdrEl.rect([6, 10, 92, 118, 3], fill: AdrFarge.c(0xFFD4DCDE)),
+  AdrEl.rect([6, 10, 92, 118, 3], fill: AdrFarge.g('adrJobbSk')),
+  AdrEl.rect([6, 10, 92, 8, 3], fill: AdrFarge.c(0xFFA9B6BA)),
+  AdrEl.rect([13, 24, 14, 10, 1], fill: AdrFarge.c(0xFFBFF5E4), anim: AdrAnim('adrLysPaa', 300, 800)),
+  AdrEl.rect([34, 24, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([55, 24, 14, 10, 1], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 300, 850)),
+  AdrEl.rect([76, 24, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([13, 39, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([34, 39, 14, 10, 1], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 300, 925)),
+  AdrEl.rect([55, 39, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([76, 39, 14, 10, 1], fill: AdrFarge.c(0xFFBFF5E4), anim: AdrAnim('adrLysPaa', 300, 975)),
+  AdrEl.rect([13, 54, 14, 10, 1], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 300, 1000)),
+  AdrEl.rect([34, 54, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([55, 54, 14, 10, 1], fill: AdrFarge.c(0xFFBFF5E4), anim: AdrAnim('adrLysPaa', 300, 1050)),
+  AdrEl.rect([76, 54, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([13, 69, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([34, 69, 14, 10, 1], fill: AdrFarge.c(0xFFBFF5E4), anim: AdrAnim('adrLysPaa', 300, 1125)),
+  AdrEl.rect([55, 69, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([76, 69, 14, 10, 1], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 300, 1175)),
+  AdrEl.rect([13, 84, 14, 10, 1], fill: AdrFarge.c(0xFFBFF5E4), anim: AdrAnim('adrLysPaa', 300, 1200)),
+  AdrEl.rect([34, 84, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([55, 84, 14, 10, 1], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 300, 1250)),
+  AdrEl.rect([76, 84, 14, 10, 1], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 300, 1275)),
+  AdrEl.rect([28, 102, 48, 5, 1.5], fill: AdrFarge.c(0xFF1E4F5C)),
+  AdrEl.rect([34, 107, 36, 21, 0], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([36, 109, 15, 19, 0], fill: AdrFarge.c(0xFFBFF5E4), fillOp: .55, anim: AdrAnim('adrLysPaa', 350, 1100)),
+  AdrEl.rect([53, 109, 15, 19, 0], fill: AdrFarge.c(0xFFBFF5E4), fillOp: .55, anim: AdrAnim('adrLysPaa', 350, 1150)),
+]);
+
+const AdrBilde kHytteAdr = AdrBilde(108, 92, [
+  AdrEl.rect([98, 6, 2.2, 86, 0], fill: AdrFarge.c(0xFFE4E0D6)),
+  AdrEl.path('M100.2 8L120 12.5L100.2 17Z', fill: AdrFarge.c(0xFFE95C2C), anim: AdrAnim('adrVimpel', 1800, 0), ox: 100, oy: 12),
+  AdrEl.rect([12, 40, 78, 52, 0], fill: AdrFarge.c(0xFFA8382A)),
+  AdrEl.path('M12 46H90M12 52H90M12 58H90M12 64H90M12 70H90M12 76H90M12 82H90M12 88H90', stroke: AdrFarge.c(0x24000000), sw: 1),
+  AdrEl.rect([12, 40, 78, 52, 0], fill: AdrFarge.c(0x1F04141C)),
+  AdrEl.rect([12, 40, 3, 52, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([87, 40, 3, 52, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.path('M3 42L51 11L99 42Z', fill: AdrFarge.c(0xFF5E8C3A)),
+  AdrEl.path('M3 42L51 11L51 42Z', fill: AdrFarge.c(0x12FFFFFF)),
+  AdrEl.path('M1 43L51 9L101 43', stroke: AdrFarge.c(0xFF3D5E26), sw: 3, roundJoin: true),
+  AdrEl.path('M12 36l3-4 2 4 3-5 2 5M36 22l3-4 2 4M62 22l3-4 2 4 3-5 2 5M80 34l3-4 2 4', stroke: AdrFarge.c(0xFF8BBF5A), sw: 2, roundJoin: true, roundCap: true),
+  AdrEl.rect([20, 52, 18, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([21.8, 53.8, 14.4, 11.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 900)),
+  AdrEl.rect([64, 52, 18, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([65.8, 53.8, 14.4, 11.4, 0], fill: AdrFarge.c(0xFFFFD27A), anim: AdrAnim('adrLysPaa', 350, 1000)),
+  AdrEl.rect([42, 60, 18, 32, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([44.5, 62.5, 13, 29.5, 0], fill: AdrFarge.c(0xFF2F5A3A)),
+  AdrEl.circle([54.5, 78, 1.3], fill: AdrFarge.c(0xFFFFE7A8)),
+]);
+
+const AdrBilde kPin = AdrBilde(38, 48, [
+  AdrEl.path('M19 47C19 47 3 30 3 18A16 16 0 0 1 35 18C35 30 19 47 19 47Z', fill: AdrFarge.c(0xFFA63A12), dx: 0, dy: 2),
+  AdrEl.path('M19 47C19 47 3 30 3 18A16 16 0 0 1 35 18C35 30 19 47 19 47Z', fill: AdrFarge.g('adrPinG')),
+  AdrEl.path('M8 12A13 13 0 0 1 20 5', stroke: AdrFarge.c(0x99FFFFFF), sw: 2.2, roundCap: true),
+  AdrEl.circle([19, 18, 10.5], fill: AdrFarge.c(0xFFFFFFFF)),
+  AdrEl.path('{{ adrPinIkon }}', stroke: AdrFarge.c(0xFF1E4F5C), sw: 2.4, roundJoin: true, roundCap: true),
+]);
+
+const AdrBilde kHills = AdrBilde(360, 96, [
+  AdrEl.path('M0 70C40 52 72 40 112 36C150 32 172 14 212 12C252 10 282 30 320 40C340 45 352 52 360 56V96H0Z', fill: AdrFarge.c(0xFF1C4654)),
+  AdrEl.path('M0 84C50 72 90 66 140 66C200 66 240 58 290 62C320 64 344 70 360 74V96H0Z', fill: AdrFarge.c(0xFF173D4A)),
+]);
+
+const AdrBilde kTileHus = AdrBilde(46, 46, [
+  AdrEl.rect([12, 21, 22, 18, 0], fill: AdrFarge.c(0xFF3E8FA3)),
+  AdrEl.rect([12, 21, 22, 18, 0], fill: AdrFarge.c(0x1F04141C)),
+  AdrEl.path('M9 22.5L23 10l14 12.5Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M8 23L23 9.5 38 23', stroke: AdrFarge.c(0xFFF4EFE6), sw: 1.8, roundJoin: true),
+  AdrEl.rect([14.5, 24, 5, 5, 0], fill: AdrFarge.v('win'), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([26.5, 24, 5, 5, 0], fill: AdrFarge.v('win'), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([20.5, 30, 5, 9, 0], fill: AdrFarge.c(0xFFE95C2C), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+]);
+
+const AdrBilde kTileJobb = AdrBilde(46, 46, [
+  AdrEl.rect([13, 9, 20, 30, 1.5], fill: AdrFarge.c(0xFFD4DCDE)),
+  AdrEl.rect([13, 9, 20, 3, 1.5], fill: AdrFarge.c(0xFFA9B6BA)),
+  AdrEl.rect([16, 15, 5, 4, 0], fill: AdrFarge.v('winB')),
+  AdrEl.rect([25, 15, 5, 4, 0], fill: AdrFarge.v('win')),
+  AdrEl.rect([16, 22, 5, 4, 0], fill: AdrFarge.v('win')),
+  AdrEl.rect([25, 22, 5, 4, 0], fill: AdrFarge.v('winB')),
+  AdrEl.rect([19, 31, 8, 8, 0], fill: AdrFarge.c(0xFF2C5562)),
+]);
+
+const AdrBilde kTileHytte = AdrBilde(46, 46, [
+  AdrEl.rect([11, 24, 24, 15, 0], fill: AdrFarge.c(0xFFA8382A)),
+  AdrEl.path('M7.5 25L23 13l15.5 12Z', fill: AdrFarge.c(0xFF5E8C3A)),
+  AdrEl.path('M7 25.5L23 12.5 39 25.5', stroke: AdrFarge.c(0xFF3D5E26), sw: 1.8, roundJoin: true),
+  AdrEl.rect([14, 27, 5, 5, 0], fill: AdrFarge.v('win'), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([20.5, 30, 5, 9, 0], fill: AdrFarge.c(0xFF2F5A3A), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([38, 13, 1.2, 26, 0], fill: AdrFarge.c(0xFFE4E0D6)),
+  AdrEl.path('M39.2 14l6 1.6-6 1.6z', fill: AdrFarge.c(0xFFE95C2C)),
+]);
+
+const AdrBilde kTileNy = AdrBilde(46, 46, [
+  AdrEl.path('M11 22L23 11.5 35 22v14H11z', stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [3, 2.5], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.path('M20 36v-7h6v7', stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [3, 2.5], anim: AdrAnim('adrTegn', 2400, 0)),
+]);
+
+const AdrBilde kNaboNyA = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFE9D9B8)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF3A2E2A)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+]);
+
+const AdrBilde kNaboNyB = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFB94A32)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+]);
+
+const AdrBilde kNaboNyC = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFF2EEE4)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+]);
+
+const AdrBilde kNaboNyD = AdrBilde(60, 84, [
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0xFFD9A254)),
+  AdrEl.path('M13 31V84M19 31V84M25 31V84M31 31V84M37 31V84M43 31V84M49 31V84', stroke: AdrFarge.c(0x14000000), sw: 1),
+  AdrEl.rect([7, 31, 46, 53, 0], fill: AdrFarge.c(0x38061820)),
+  AdrEl.path('M2 32L30 6L58 32Z', fill: AdrFarge.c(0xFF3A2E2A)),
+  AdrEl.path('M1 33L30 5L59 33', stroke: AdrFarge.c(0xFFE4DED2), sw: 2.4, roundJoin: true),
+  AdrEl.circle([30, 21, 3.6], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([12, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([34, 38, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 39.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([12, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([13.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+  AdrEl.rect([34, 58, 14, 12, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([35.8, 59.8, 10.4, 8.4, 0], fill: AdrFarge.c(0xFFFFD27A)),
+]);
+
+const AdrBilde kGhostHus = AdrBilde(100, 116, [
+  AdrEl.path('M10 44V116H90V44', fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.path('M3 46L50 8L97 46Z', fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.path('M64 26V12H75V35', fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.circle([50, 31, 5.5], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([42, 95, 16, 21, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([18, 52, 16, 15, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([66, 52, 16, 15, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([18, 74, 16, 15, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([66, 74, 16, 15, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+]);
+
+const AdrBilde kGhostJobb = AdrBilde(104, 128, [
+  AdrEl.rect([6, 10, 92, 118, 3], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.path('M6 40H98M6 70H98M6 100H98M38 10V100M66 10V100', fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([34, 107, 36, 21, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+]);
+
+const AdrBilde kGhostHytte = AdrBilde(108, 92, [
+  AdrEl.rect([12, 40, 78, 52, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.path('M3 42L51 11L99 42Z', fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.path('M99 6V92', fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([20, 52, 18, 15, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([64, 52, 18, 15, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+  AdrEl.rect([42, 60, 18, 32, 0], fill: AdrFarge.c(0x149FF0D4), stroke: AdrFarge.c(0xFF9FF0D4), sw: 2, roundJoin: true, dash: [4, 3], anim: AdrAnim('adrTegn', 2400, 0)),
+]);
+
+const AdrBilde kHusNy = AdrBilde(100, 116, [
+  AdrEl.rect([64, 12, 11, 26, 0], fill: AdrFarge.c(0xFF7A3E2C)),
+  AdrEl.rect([62, 9, 15, 5, 1], fill: AdrFarge.c(0xFF5E2E20)),
+  AdrEl.rect([10, 44, 80, 72, 0], fill: AdrFarge.v('naHusFarge')),
+  AdrEl.path('M16 44V116M22 44V116M28 44V116M34 44V116M40 44V116M46 44V116M52 44V116M58 44V116M64 44V116M70 44V116M76 44V116M82 44V116', stroke: AdrFarge.c(0x1A000000), sw: 1),
+  AdrEl.rect([10, 44, 80, 72, 0], fill: AdrFarge.g('naHusSk')),
+  AdrEl.rect([10, 44, 3.5, 72, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([86.5, 44, 3.5, 72, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.path('M3 46L50 8L97 46Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M3 46L50 8L50 46Z', fill: AdrFarge.c(0x0FFFFFFF)),
+  AdrEl.path('M1 47L50 6L99 47', stroke: AdrFarge.c(0xFFF4EFE6), sw: 3.2, roundJoin: true),
+  AdrEl.circle([50, 31, 6.5], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.circle([50, 31, 4.6], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([18, 52, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([19.8, 53.8, 12.4, 11.4, 0], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([42, 52, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([43.8, 53.8, 12.4, 11.4, 0], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([66, 52, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([67.8, 53.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([18, 74, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([19.8, 75.8, 12.4, 11.4, 0], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([42, 74, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([43.8, 75.8, 12.4, 11.4, 0], fill: AdrFarge.c(0xFF24434D)),
+  AdrEl.rect([66, 74, 16, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([67.8, 75.8, 12.4, 11.4, 0], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.circle([35, 96, 9], fill: AdrFarge.c(0x4CFFD678), fillOpVar: 'naLampOp', glid: true),
+  AdrEl.circle([35, 96, 2.3], fill: AdrFarge.c(0xFFFFE7A8)),
+  AdrEl.rect([39.5, 92.5, 21, 23.5, 1.5], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([42, 95, 16, 21, 1], fill: AdrFarge.c(0xFFE95C2C)),
+  AdrEl.rect([44, 97, 12, 5, 2.5], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.circle([55, 107, 1.3], fill: AdrFarge.c(0xFFFFE7A8)),
+  AdrEl.rect([63, 96, 13, 10, 2.5], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([34, 114, 32, 3, 1], fill: AdrFarge.c(0xFF9AA6A8)),
+]);
+
+const AdrBilde kJobbNy = AdrBilde(104, 128, [
+  AdrEl.rect([79, 0, 2, 12, 0], fill: AdrFarge.c(0xFF9AA6A8)),
+  AdrEl.circle([80, 1, 2.2], fill: AdrFarge.c(0xFFFF6B5A), anim: AdrAnim('adrBlink', 1600, 0)),
+  AdrEl.rect([6, 10, 92, 118, 3], fill: AdrFarge.c(0xFFD4DCDE)),
+  AdrEl.rect([6, 10, 92, 118, 3], fill: AdrFarge.g('naJobbSk')),
+  AdrEl.rect([6, 10, 92, 8, 3], fill: AdrFarge.c(0xFFA9B6BA)),
+  AdrEl.rect([13, 24, 14, 10, 1], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([34, 24, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([55, 24, 14, 10, 1], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([76, 24, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([13, 39, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([34, 39, 14, 10, 1], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([55, 39, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([76, 39, 14, 10, 1], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([13, 54, 14, 10, 1], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([34, 54, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([55, 54, 14, 10, 1], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([76, 54, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([13, 69, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([34, 69, 14, 10, 1], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([55, 69, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([76, 69, 14, 10, 1], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([13, 84, 14, 10, 1], fill: AdrFarge.v('naWinB'), glid: true),
+  AdrEl.rect([34, 84, 14, 10, 1], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([55, 84, 14, 10, 1], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([76, 84, 14, 10, 1], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([28, 102, 48, 5, 1.5], fill: AdrFarge.c(0xFF1E4F5C)),
+  AdrEl.rect([34, 107, 36, 21, 0], fill: AdrFarge.c(0xFF2C5562)),
+  AdrEl.rect([36, 109, 15, 19, 0], fill: AdrFarge.v('naWinB'), fillOp: .6, glid: true),
+  AdrEl.rect([53, 109, 15, 19, 0], fill: AdrFarge.v('naWinB'), fillOp: .6, glid: true),
+]);
+
+const AdrBilde kHytteNy = AdrBilde(108, 92, [
+  AdrEl.rect([98, 6, 2.2, 86, 0], fill: AdrFarge.c(0xFFE4E0D6)),
+  AdrEl.path('M100.2 8L120 12.5L100.2 17Z', fill: AdrFarge.c(0xFFE95C2C), anim: AdrAnim('adrVimpel', 1800, 0), ox: 100, oy: 12),
+  AdrEl.rect([12, 40, 78, 52, 0], fill: AdrFarge.c(0xFFA8382A)),
+  AdrEl.path('M12 46H90M12 52H90M12 58H90M12 64H90M12 70H90M12 76H90M12 82H90M12 88H90', stroke: AdrFarge.c(0x24000000), sw: 1),
+  AdrEl.rect([12, 40, 78, 52, 0], fill: AdrFarge.c(0x1F04141C)),
+  AdrEl.rect([12, 40, 3, 52, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([87, 40, 3, 52, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.path('M3 42L51 11L99 42Z', fill: AdrFarge.c(0xFF5E8C3A)),
+  AdrEl.path('M3 42L51 11L51 42Z', fill: AdrFarge.c(0x12FFFFFF)),
+  AdrEl.path('M1 43L51 9L101 43', stroke: AdrFarge.c(0xFF3D5E26), sw: 3, roundJoin: true),
+  AdrEl.path('M12 36l3-4 2 4 3-5 2 5M36 22l3-4 2 4M62 22l3-4 2 4 3-5 2 5M80 34l3-4 2 4', stroke: AdrFarge.c(0xFF8BBF5A), sw: 2, roundJoin: true, roundCap: true),
+  AdrEl.rect([20, 52, 18, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([21.8, 53.8, 14.4, 11.4, 0], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([64, 52, 18, 15, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([65.8, 53.8, 14.4, 11.4, 0], fill: AdrFarge.v('naWin'), glid: true),
+  AdrEl.rect([42, 60, 18, 32, 0], fill: AdrFarge.c(0xFFF4EFE6)),
+  AdrEl.rect([44.5, 62.5, 13, 29.5, 0], fill: AdrFarge.c(0xFF2F5A3A)),
+  AdrEl.circle([54.5, 78, 1.3], fill: AdrFarge.c(0xFFFFE7A8)),
+]);
+
+const AdrBilde kMerkeHus = AdrBilde(46, 46, [
+  AdrEl.rect([12, 21, 22, 18, 0], fill: AdrFarge.c(0xFF3E8FA3)),
+  AdrEl.path('M9 22.5L23 10l14 12.5Z', fill: AdrFarge.c(0xFF2B3A40)),
+  AdrEl.path('M8 23L23 9.5 38 23', stroke: AdrFarge.c(0xFFF4EFE6), sw: 1.8, roundJoin: true),
+  AdrEl.rect([14.5, 24, 5, 5, 0], fill: AdrFarge.v('win'), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([26.5, 24, 5, 5, 0], fill: AdrFarge.v('win'), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([20.5, 30, 5, 9, 0], fill: AdrFarge.c(0xFFE95C2C), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+]);
+
+const AdrBilde kMerkeJobb = AdrBilde(46, 46, [
+  AdrEl.rect([13, 9, 20, 30, 1.5], fill: AdrFarge.c(0xFFD4DCDE)),
+  AdrEl.rect([13, 9, 20, 3, 1.5], fill: AdrFarge.c(0xFFA9B6BA)),
+  AdrEl.rect([16, 15, 5, 4, 0], fill: AdrFarge.v('winB')),
+  AdrEl.rect([25, 15, 5, 4, 0], fill: AdrFarge.v('win')),
+  AdrEl.rect([16, 22, 5, 4, 0], fill: AdrFarge.v('win')),
+  AdrEl.rect([25, 22, 5, 4, 0], fill: AdrFarge.v('winB')),
+  AdrEl.rect([19, 31, 8, 8, 0], fill: AdrFarge.c(0xFF2C5562)),
+]);
+
+const AdrBilde kMerkeHytte = AdrBilde(46, 46, [
+  AdrEl.rect([11, 24, 24, 15, 0], fill: AdrFarge.c(0xFFA8382A)),
+  AdrEl.path('M7.5 25L23 13l15.5 12Z', fill: AdrFarge.c(0xFF5E8C3A)),
+  AdrEl.path('M7 25.5L23 12.5 39 25.5', stroke: AdrFarge.c(0xFF3D5E26), sw: 1.8, roundJoin: true),
+  AdrEl.rect([14, 27, 5, 5, 0], fill: AdrFarge.v('win'), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([20.5, 30, 5, 9, 0], fill: AdrFarge.c(0xFF2F5A3A), stroke: AdrFarge.c(0xFFF4EFE6), sw: 1),
+  AdrEl.rect([38, 13, 1.2, 26, 0], fill: AdrFarge.c(0xFFE4E0D6)),
+  AdrEl.path('M39.2 14l6 1.6-6 1.6z', fill: AdrFarge.c(0xFFE95C2C)),
+]);
+
+const AdrBilde kMerkeAnnet = AdrBilde(46, 46, [
+  AdrEl.ellipse([23, 38, 9, 2.4], fill: AdrFarge.c(0x5904141C)),
+  AdrEl.path('M23 37C23 37 13 27 13 19.5A10 10 0 0 1 33 19.5C33 27 23 37 23 37Z', fill: AdrFarge.c(0xFFF26D3D)),
+  AdrEl.circle([23, 19.5, 4.4], fill: AdrFarge.v('win')),
+]);
