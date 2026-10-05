@@ -29,12 +29,18 @@ class BergenFaneBytte extends StatefulWidget {
 class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProviderStateMixin {
   final GlobalKey _flate = GlobalKey();
   late int _aktiv = widget.index;
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+  late final AnimationController _c;
   ui.Image? _gml, _ny;
   bool _dekk = false;
   int _dir = 1;
 
   int _seq = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+  }
 
   @override
   void didUpdateWidget(BergenFaneBytte old) {
