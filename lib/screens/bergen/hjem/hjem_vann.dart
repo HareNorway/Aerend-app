@@ -59,11 +59,15 @@ void _rad(Path p, double tile, double x0, double y0, double w, double s, {requir
 }
 
 class HjemVann extends StatefulWidget {
-  const HjemVann({super.key, required this.controller, required this.s, required this.child});
+  const HjemVann({super.key, required this.controller, required this.s, required this.child, this.bunnLuft = 0});
 
   final ScrollController controller;
   final double s;
   final Widget child;
+
+  /// Empty water after the waterline at the content's end (design px) —
+  /// what lets Under kaien show through below it.
+  final double bunnLuft;
 
   @override
   State<HjemVann> createState() => _HjemVannState();
@@ -189,7 +193,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
   double? _slutt() {
     final c = widget.controller;
     if (!c.hasClients || !c.position.hasContentDimensions) return null;
-    final end = (c.position.maxScrollExtent + c.position.viewportDimension - c.position.pixels) / widget.s;
+    final end = (c.position.maxScrollExtent + c.position.viewportDimension - c.position.pixels) / widget.s - widget.bunnLuft;
     return end < _size.height / widget.s + 30 ? end : null;
   }
 

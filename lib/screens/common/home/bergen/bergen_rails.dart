@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
-import '../../../bergen/kit/bergen_fav_heart.dart';
 import 'bergen_kit.dart';
+import '../../../bergen/hjem/hjem_kort.dart' show HjemGavepapir;
+import '../../auth/launch/lf_css.dart' show cssEaseInOut;
+import '../../auth/launch/lf_motion.dart' show LfLoop;
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
 // Three cards on a turntable: the focused card faces you, the other two sit
@@ -231,7 +234,6 @@ class _RailState extends State<_Rail> {
           final ry = -34.6 * sn;
           final sc = 1 - .08 * back;
           final op = 1 - .52 * back;
-          final bl = 1.6 * back;
           final m = Matrix4.identity()
             ..setEntry(3, 2, -1 / 1100)
             ..translateByDouble(tx * s, 0, tz * s, 1)
@@ -242,7 +244,8 @@ class _RailState extends State<_Rail> {
             transform: m,
             child: Opacity(opacity: op.clamp(0.0, 1.0), child: child),
           );
-          if (bl > .05) out = onbBlurred(bl, out);
+          // The design blurs the back cards 1.6px; left out to keep Hjem
+          // within one blur layer (opacity and depth carry the effect).
           return out;
         },
         child: GestureDetector(
@@ -255,10 +258,8 @@ class _RailState extends State<_Rail> {
               border: Border.all(color: const Color(0xF2FFFFFF)),
               boxShadow: [
                 const BoxShadow(
-                  color: Color.fromRGBO(120, 80, 40, .16),
-                  offset: Offset(0, 2),
-                  blurRadius: 3,
-                  spreadRadius: -1,
+                  color: Color.fromRGBO(4, 18, 26, .22),
+                  offset: Offset(0, 3),
                 ),
                 BoxShadow(
                   color: Color.fromRGBO(90, 60, 30, front ? .65 : .5),
@@ -283,7 +284,11 @@ class BergenStoreRail extends StatelessWidget {
     super.key,
     required this.stores,
     required this.onOpen,
+    this.snart = false,
   });
+
+  /// The focused category is coming soon: the cards are gift-wrapped.
+  final bool snart;
 
   final List<BergenStoreCard> stores;
   final ValueChanged<BergenStoreCard> onOpen;
@@ -303,13 +308,16 @@ class BergenStoreRail extends StatelessWidget {
       );
     }
     final list = stores.take(3).toList();
-    return _Rail(
-      height: 252,
-      cardTop: 6,
-      count: list.length,
-      intervalMs: 5400,
-      onOpen: (i) => onOpen(list[i]),
-      builder: (context, i, front) => _StoreCardBody(store: list[i], seed: i),
+    return BergenRailSnart(
+      snart: snart,
+      child: _Rail(
+        height: 252,
+        cardTop: 6,
+        count: list.length,
+        intervalMs: 5400,
+        onOpen: (i) => onOpen(list[i]),
+        builder: (context, i, front) => _StoreCardBody(store: list[i], seed: i),
+      ),
     );
   }
 }
@@ -319,242 +327,354 @@ class _StoreCardBody extends StatelessWidget {
   final BergenStoreCard store;
   final int seed;
 
+  // Launch design store card (L2884): the picture inset 7px with its own
+  // 20px corners and a holo sheen, the logo half over its lower edge, the
+  // name beside it, two chips and the orange arrow key.
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
+    final snart = BergenRailSnart.of(context);
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(26 * s)),
-              child: SizedBox(
-                height: 124 * s,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    const ColoredBox(color: BergenColors.plate),
-                    _KenBurns(
-                      seconds: 9 + seed,
-                      reverse: seed.isOdd,
-                      child: _image(
-                        store.bannerUrl,
-                        store.bannerAsset,
-                        BoxFit.cover,
-                      ),
-                    ),
-                    if (store.video) ...[const _Grain(), const _Sweep()],
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color.fromRGBO(12, 28, 34, .24),
-                            Color.fromRGBO(12, 28, 34, .04),
-                            Color.fromRGBO(12, 28, 34, .18),
-                          ],
-                          stops: [0, .46, 1],
+        // bm3Holo over the lower 46% of the card.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 120 * s,
+          child: IgnorePointer(
+            child: ClipRRect(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(26 * s),
+              ),
+              child: const _Holo(
+                colors: [
+                  Color.fromRGBO(255, 255, 255, 0),
+                  Color.fromRGBO(255, 190, 160, .34),
+                  Color.fromRGBO(255, 228, 150, .34),
+                  Color.fromRGBO(245, 185, 225, .3),
+                  Color.fromRGBO(255, 255, 255, 0),
+                ],
+                stops: [.28, .40, .48, .56, .68],
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(7 * s, 7 * s, 7 * s, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20 * s),
+                child: SizedBox(
+                  height: 124 * s,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      const ColoredBox(color: Color(0xFFEFE6D3)),
+                      _KenBurns(
+                        seconds: 9 + seed,
+                        reverse: seed.isOdd,
+                        child: _image(
+                          store.bannerUrl,
+                          store.bannerAsset,
+                          BoxFit.cover,
                         ),
                       ),
-                    ),
-                    if (store.video)
+                      if (store.video) ...[const _Grain(), const _Sweep()],
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color.fromRGBO(12, 28, 34, .24),
+                              Color.fromRGBO(12, 28, 34, .04),
+                              Color.fromRGBO(12, 28, 34, .18),
+                            ],
+                            stops: [0, .46, 1],
+                          ),
+                        ),
+                      ),
+                      // The colour-dodge holo at .32.
+                      const IgnorePointer(
+                        child: _Holo(
+                          dodge: true,
+                          colors: [
+                            Color.fromRGBO(255, 255, 255, 0),
+                            Color.fromRGBO(255, 120, 80, .6),
+                            Color.fromRGBO(255, 214, 120, .6),
+                            Color.fromRGBO(255, 150, 190, .55),
+                            Color.fromRGBO(210, 150, 255, .45),
+                            Color.fromRGBO(255, 255, 255, 0),
+                          ],
+                          stops: [.22, .36, .45, .54, .63, .76],
+                        ),
+                      ),
+                      IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20 * s),
+                            border: Border.all(
+                              color: const Color.fromRGBO(0, 0, 0, .08),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (store.video)
+                        Positioned(
+                          left: 9 * s,
+                          bottom: 9 * s,
+                          child: _videoTag(context),
+                        ),
+                      if (store.offer != null)
+                        Positioned(
+                          right: 8 * s,
+                          bottom: 8 * s,
+                          child: Transform.rotate(
+                            angle: -6 * math.pi / 180,
+                            child: _offerTag(context, store.offer!),
+                          ),
+                        ),
                       Positioned(
                         left: 9 * s,
-                        bottom: 9 * s,
-                        child: _videoTag(context),
-                      ),
-                    if (store.offer != null)
-                      Positioned(
-                        right: 8 * s,
-                        bottom: 8 * s,
-                        child: Transform.rotate(
-                          angle: -6 * math.pi / 180,
-                          child: _offerTag(context, store.offer!),
-                        ),
-                      ),
-                    Positioned(
-                      left: 9 * s,
-                      top: 9 * s,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 9 * s,
-                          vertical: 4 * s,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: .78),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _Pulse(
-                              child: Container(
-                                width: 6 * s,
-                                height: 6 * s,
-                                decoration: BoxDecoration(
-                                  color: store.open
-                                      ? BergenColors.gold
-                                      : const Color(0xFFB9AF9C),
-                                  shape: BoxShape.circle,
+                        top: 9 * s,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 9 * s,
+                            vertical: 4 * s,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: .78),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _Pulse(
+                                child: Container(
+                                  width: 6 * s,
+                                  height: 6 * s,
+                                  decoration: BoxDecoration(
+                                    color: store.open
+                                        ? BergenColors.gold
+                                        : const Color(0xFFB9AF9C),
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: 5 * s),
-                            Text(
-                              store.open ? BergenCopy.open : BergenCopy.closed,
-                              style: bText(
-                                context,
-                                10.5,
-                                weight: FontWeight.w800,
-                                color: store.open
-                                    ? BergenColors.green
-                                    : BergenColors.inkMuted,
+                              SizedBox(width: 5 * s),
+                              Text(
+                                store.open
+                                    ? BergenCopy.open
+                                    : BergenCopy.closed,
+                                style: bText(
+                                  context,
+                                  10.5,
+                                  weight: FontWeight.w800,
+                                  color: store.open
+                                      ? const Color(0xFF2E7E4F)
+                                      : BergenColors.inkMuted,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (snart) const Positioned.fill(child: HjemGavepapir()),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(4 * s, 9 * s, 4 * s, 12 * s),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(56 * s, 0, 46 * s, 0),
+                      child: Text(
+                        store.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _uskarp(
+                          context,
+                          bDisplay(
+                            context,
+                            15,
+                            letterSpacingEm: -.015,
+                            color: BergenColors.ink,
+                          ),
                         ),
                       ),
                     ),
-                    Positioned(
-                      right: 8 * s,
-                      top: 8 * s,
-                      child: BergenFavHeart(
-                        storeId: store.id,
-                        size: 30 * s,
-                        iconSize: 15 * s,
+                    SizedBox(height: 1 * s),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(56 * s, 0, 46 * s, 0),
+                      child: Text(
+                        store.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: _uskarp(
+                          context,
+                          bText(
+                            context,
+                            11,
+                            weight: FontWeight.w600,
+                            color: const Color(0xFF9A9188),
+                          ),
+                        ),
                       ),
+                    ),
+                    SizedBox(height: 10 * s),
+                    Row(
+                      children: [
+                        if (store.eta != null)
+                          _chip(
+                            context,
+                            Icon(
+                              Icons.schedule_rounded,
+                              size: 11 * s,
+                              color: const Color(0xFF57534B),
+                            ),
+                            store.eta!,
+                            BergenColors.ink,
+                          ),
+                        if (store.eta != null &&
+                            (store.fee != null || store.rating != null))
+                          SizedBox(width: 7 * s),
+                        if (store.fee != null)
+                          Expanded(
+                            child: _chip(
+                              context,
+                              Icon(
+                                Icons.local_shipping_outlined,
+                                size: 12 * s,
+                                color: store.feeIsFree
+                                    ? BergenColors.greenDeep
+                                    : BergenColors.inkSoft,
+                              ),
+                              store.feeIsFree ? BergenCopy.free : store.fee!,
+                              store.feeIsFree
+                                  ? BergenColors.greenDeep
+                                  : BergenColors.inkSoft,
+                            ),
+                          )
+                        else if (store.rating != null)
+                          Expanded(
+                            child: _chip(
+                              context,
+                              Icon(
+                                Icons.star_rounded,
+                                size: 12 * s,
+                                color: BergenColors.gold,
+                              ),
+                              store.rating!,
+                              BergenColors.inkSoft,
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
               ),
+            ],
+          ),
+        ),
+        // The logo, half over the picture (left 12, top 106).
+        Positioned(
+          left: 12 * s,
+          top: 106 * s,
+          width: 48 * s,
+          height: 48 * s,
+          child: Container(
+            padding: EdgeInsets.all(5 * s),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFFBF5),
+                  spreadRadius: 3.5 * s,
+                ),
+                BoxShadow(
+                  color: const Color.fromRGBO(40, 14, 0, .5),
+                  offset: Offset(0, 12 * s),
+                  blurRadius: onbBlur(18 * s),
+                  spreadRadius: -8 * s,
+                ),
+              ],
             ),
-            Positioned(
-              left: 11 * s,
-              top: 62 * s,
-              child: Transform.rotate(
-                angle: -5 * math.pi / 180,
-                child: Container(
-                  width: 40 * s,
-                  height: 40 * s,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2.5 * s),
-                    boxShadow: [
-                      const BoxShadow(
-                        color: Color.fromRGBO(35, 32, 29, .22),
-                        offset: Offset(0, 2),
-                        blurRadius: 3,
-                        spreadRadius: -1,
-                      ),
-                      BoxShadow(
-                        color: const Color.fromRGBO(35, 32, 29, .45),
-                        offset: Offset(0, 8 * s),
-                        blurRadius: onbBlur(14 * s),
-                        spreadRadius: -7 * s,
-                      ),
-                    ],
-                  ),
-                  child: store.logoUrl != null || store.logoAsset != null
-                      ? _image(store.logoUrl, store.logoAsset, BoxFit.cover)
-                      : Center(
-                          child: Text(
-                            store.name.isEmpty ? '' : store.name[0],
-                            style: bDisplay(
-                              context,
-                              15,
-                              color: BergenColors.ink,
+            child: snart
+                ? null
+                : ClipOval(
+                    child: store.logoUrl != null || store.logoAsset != null
+                        ? _image(store.logoUrl, store.logoAsset, BoxFit.contain)
+                        : Center(
+                            child: Text(
+                              store.name.isEmpty ? '' : store.name[0],
+                              style: bDisplay(
+                                context,
+                                15,
+                                color: BergenColors.ink,
+                              ),
                             ),
                           ),
-                        ),
-                ),
-              ),
-            ),
-          ],
+                  ),
+          ),
         ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(13 * s, 11 * s, 13 * s, 12 * s),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                store.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: bDisplay(
-                  context,
-                  15,
-                  letterSpacingEm: -.015,
-                  color: BergenColors.ink,
-                ),
-              ),
-              SizedBox(height: 1 * s),
-              Text(
-                store.subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: bText(
-                  context,
-                  11,
-                  weight: FontWeight.w600,
-                  color: BergenColors.inkFaint,
-                ),
-              ),
-              SizedBox(height: 10 * s),
-              Row(
-                children: [
-                  if (store.eta != null)
-                    _chip(
-                      context,
-                      Icon(
-                        Icons.schedule_rounded,
-                        size: 11 * s,
-                        color: BergenColors.inkSoft,
-                      ),
-                      store.eta!,
-                      BergenColors.ink,
-                    ),
-                  if (store.eta != null &&
-                      (store.fee != null || store.rating != null))
-                    SizedBox(width: 7 * s),
-                  if (store.fee != null)
-                    Expanded(
-                      child: _chip(
-                        context,
-                        Icon(
-                          Icons.local_shipping_outlined,
-                          size: 12 * s,
-                          color: store.feeIsFree
-                              ? BergenColors.greenDeep
-                              : BergenColors.inkSoft,
-                        ),
-                        store.feeIsFree ? BergenCopy.free : store.fee!,
-                        store.feeIsFree
-                            ? BergenColors.greenDeep
-                            : BergenColors.inkSoft,
-                      ),
-                    )
-                  else if (store.rating != null)
-                    Expanded(
-                      child: _chip(
-                        context,
-                        Icon(
-                          Icons.star_rounded,
-                          size: 12 * s,
-                          color: BergenColors.gold,
-                        ),
-                        store.rating!,
-                        BergenColors.inkSoft,
-                      ),
-                    ),
+        // The orange arrow key (right 12, top 140).
+        Positioned(
+          right: 12 * s,
+          top: 140 * s,
+          width: 40 * s,
+          height: 40 * s,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFF9A273),
+                  Color(0xFFF26D3D),
+                  Color(0xFFDD5A25),
                 ],
+                stops: [0, .56, 1],
               ),
-            ],
+              boxShadow: [
+                const BoxShadow(
+                  color: Color.fromRGBO(255, 255, 255, .45),
+                  spreadRadius: 1,
+                ),
+                const BoxShadow(color: Color(0xFFC4491A), offset: Offset(0, 3)),
+                const BoxShadow(
+                  color: Color.fromRGBO(120, 45, 15, .22),
+                  offset: Offset(0, 5),
+                ),
+                BoxShadow(
+                  color: const Color.fromRGBO(200, 70, 25, .8),
+                  offset: Offset(0, 12 * s),
+                  blurRadius: onbBlur(16 * s),
+                  spreadRadius: -9 * s,
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                bergenInsetTop(radius: 20 * s, alpha: .4),
+                Center(
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 17 * s,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -601,7 +721,10 @@ class _StoreCardBody extends StatelessWidget {
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: bText(context, 12, weight: FontWeight.w800, color: color),
+              style: _uskarp(
+                context,
+                bText(context, 12, weight: FontWeight.w800, color: color),
+              ),
             ),
           ),
         ],
@@ -618,7 +741,11 @@ class BergenProductRail extends StatelessWidget {
     required this.products,
     required this.onOpen,
     required this.onAdd,
+    this.snart = false,
   });
+
+  /// The focused category is coming soon: the cards are gift-wrapped.
+  final bool snart;
 
   final List<BergenProductCard> products;
   final ValueChanged<BergenProductCard> onOpen;
@@ -639,16 +766,19 @@ class BergenProductRail extends StatelessWidget {
       );
     }
     final list = products.take(3).toList();
-    return _Rail(
-      height: 214,
-      cardTop: 4,
-      count: list.length,
-      intervalMs: 6200,
-      onOpen: (i) => onOpen(list[i]),
-      builder: (context, i, front) => _ProductCardBody(
-        product: list[i],
-        seed: i,
-        onAdd: () => onAdd(list[i]),
+    return BergenRailSnart(
+      snart: snart,
+      child: _Rail(
+        height: 214,
+        cardTop: 4,
+        count: list.length,
+        intervalMs: 6200,
+        onOpen: (i) => onOpen(list[i]),
+        builder: (context, i, front) => _ProductCardBody(
+          product: list[i],
+          seed: i,
+          onAdd: () => onAdd(list[i]),
+        ),
       ),
     );
   }
@@ -664,194 +794,333 @@ class _ProductCardBody extends StatelessWidget {
   final int seed;
   final VoidCallback onAdd;
 
+  // Launch design product card (L3202): the dish on an ember-orange plate
+  // inset 7px, the price strip on its lower left, name and shop beside the
+  // orange add key.
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
+    final snart = BergenRailSnart.of(context);
+    final cutout = product.imageAsset != null;
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(26 * s)),
-          child: SizedBox(
-            height: 126 * s,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient:
-                        product.hero ?? BergenCategoryLook.restaurant.hero,
-                  ),
-                ),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: Alignment(-.4, -.8),
-                      radius: 1.1,
-                      colors: [Color(0x6BFFFFFF), Color(0x00FFFFFF)],
-                      stops: [0, .6],
-                    ),
-                  ),
-                ),
-                if (product.imageUrl != null || product.imageAsset != null)
-                  _KenBurns(
-                    seconds: 8 + seed,
-                    reverse: seed.isOdd,
-                    product: true,
-                    child: ColoredBox(
-                      color: const Color(0xFFFBF7EE),
-                      child: _image(
-                        product.imageUrl,
-                        product.imageAsset,
-                        BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 126 * s * .44,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Color.fromRGBO(60, 35, 10, 0),
-                          Color.fromRGBO(60, 35, 10, .22),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 10 * s,
-                  bottom: 10 * s,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10 * s,
-                      vertical: 4 * s,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .82),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: const Color(0xF2FFFFFF)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color.fromRGBO(35, 32, 29, .35),
-                          offset: Offset(0, 4 * s),
-                          blurRadius: onbBlur(10 * s),
-                          spreadRadius: -6 * s,
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      product.priceText,
-                      style: bText(
-                        context,
-                        12,
-                        weight: FontWeight.w800,
-                        color: BergenColors.ink,
-                      ),
-                    ),
-                  ),
-                ),
-                if (product.wasPrice != null)
-                  Positioned(
-                    left: 10 * s,
-                    bottom: 34 * s,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 7 * s,
-                        vertical: 3 * s,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: .9),
-                        borderRadius: BorderRadius.circular(8 * s),
-                      ),
-                      child: Text(
-                        product.wasPrice!,
-                        style: bText(
-                          context,
-                          9.5,
-                          color: BergenColors.inkMuted,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (product.offer != null)
-                  Positioned(
-                    right: 8 * s,
-                    top: 8 * s,
-                    child: Transform.rotate(
-                      angle: 6 * math.pi / 180,
-                      child: _offerTag(context, product.offer!, small: true),
-                    ),
-                  ),
-              ],
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 96 * s,
+          child: IgnorePointer(
+            child: ClipRRect(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(26 * s),
+              ),
+              child: const _Holo(
+                colors: [
+                  Color.fromRGBO(255, 255, 255, 0),
+                  Color.fromRGBO(255, 190, 160, .34),
+                  Color.fromRGBO(255, 228, 150, .34),
+                  Color.fromRGBO(245, 185, 225, .3),
+                  Color.fromRGBO(255, 255, 255, 0),
+                ],
+                stops: [.28, .40, .48, .56, .68],
+              ),
             ),
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(12 * s, 8 * s, 10 * s, 9 * s),
-          child: Row(
+          padding: EdgeInsets.fromLTRB(7 * s, 7 * s, 7 * s, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(20 * s),
+                child: SizedBox(
+                  height: 126 * s,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment.bottomCenter,
+                            radius: 1.1,
+                            colors: [Color(0xFFF26D3D), Color(0xFFB8380F)],
+                            stops: [0, .8],
+                          ),
+                        ),
+                      ),
+                      const IgnorePointer(
+                        child: _Holo(
+                          dodge: true,
+                          colors: [
+                            Color.fromRGBO(255, 255, 255, 0),
+                            Color.fromRGBO(255, 120, 80, .6),
+                            Color.fromRGBO(255, 214, 120, .6),
+                            Color.fromRGBO(255, 150, 190, .55),
+                            Color.fromRGBO(210, 150, 255, .45),
+                            Color.fromRGBO(255, 255, 255, 0),
+                          ],
+                          stops: [.22, .36, .45, .54, .63, .76],
+                        ),
+                      ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment(-.4, -.8),
+                            radius: 1.1,
+                            colors: [
+                              Color.fromRGBO(255, 255, 255, .42),
+                              Color.fromRGBO(255, 255, 255, 0),
+                            ],
+                            stops: [0, .6],
+                          ),
+                        ),
+                      ),
+                      const Align(
+                        alignment: Alignment.bottomCenter,
+                        child: FractionallySizedBox(
+                          heightFactor: .44,
+                          widthFactor: 1,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color.fromRGBO(60, 35, 10, 0),
+                                  Color.fromRGBO(60, 35, 10, .22),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (product.imageUrl != null ||
+                          product.imageAsset != null)
+                        _KenBurns(
+                          seconds: 8 + seed,
+                          reverse: seed.isOdd,
+                          product: true,
+                          // A cut-out dish sits on the plate (contain, 50% 62%);
+                          // a photo fills it.
+                          child: cutout
+                              ? Image.asset(
+                                  product.imageAsset!,
+                                  fit: BoxFit.contain,
+                                  alignment: const Alignment(0, .24),
+                                )
+                              : _image(product.imageUrl, null, BoxFit.cover),
+                        ),
+                      IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20 * s),
+                            border: Border.all(
+                              color: const Color.fromRGBO(0, 0, 0, .08),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 8 * s,
+                        bottom: 8 * s,
+                        child: Container(
+                          height: 30 * s,
+                          padding: EdgeInsets.fromLTRB(
+                            11 * s,
+                            0,
+                            product.offer != null ? 4 * s : 11 * s,
+                            0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFBF5),
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: [
+                              const BoxShadow(
+                                color: Color.fromRGBO(120, 60, 20, .28),
+                                offset: Offset(0, 3),
+                              ),
+                              BoxShadow(
+                                color: const Color.fromRGBO(30, 8, 0, .6),
+                                offset: Offset(0, 10 * s),
+                                blurRadius: onbBlur(16 * s),
+                                spreadRadius: -8 * s,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                product.priceText,
+                                style: _uskarp(
+                                  context,
+                                  bDisplay(
+                                    context,
+                                    14,
+                                    letterSpacingEm: -.02,
+                                    color: BergenColors.ink,
+                                  ),
+                                ),
+                              ),
+                              if (product.wasPrice != null) ...[
+                                SizedBox(width: 7 * s),
+                                Text(
+                                  product.wasPrice!,
+                                  style: bText(
+                                    context,
+                                    11,
+                                    weight: FontWeight.w700,
+                                    color: const Color(0xFF9A9188),
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                              ],
+                              if (product.offer != null) ...[
+                                SizedBox(width: 7 * s),
+                                Container(
+                                  height: 22 * s,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8 * s,
+                                  ),
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(999),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Color(0xFFF9A273),
+                                        Color(0xFFF26D3D),
+                                        Color(0xFFDD5A25),
+                                      ],
+                                      stops: [0, .56, 1],
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0xFFC4491A),
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    product.offer!,
+                                    style: bText(
+                                      context,
+                                      10.5,
+                                      weight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (snart)
+                        const Positioned.fill(
+                          child: HjemGavepapir(produkt: true),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(6 * s, 9 * s, 4 * s, 10 * s),
+                child: Row(
                   children: [
-                    Text(
-                      product.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: bDisplay(
-                        context,
-                        13.5,
-                        letterSpacingEm: -.01,
-                        color: BergenColors.ink,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: _uskarp(
+                              context,
+                              bDisplay(
+                                context,
+                                13.5,
+                                letterSpacingEm: -.01,
+                                color: BergenColors.ink,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            product.store,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: _uskarp(
+                              context,
+                              bText(
+                                context,
+                                11,
+                                weight: FontWeight.w600,
+                                color: const Color(0xFF8C847C),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      product.store,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: bText(
-                        context,
-                        11,
-                        weight: FontWeight.w600,
-                        color: BergenColors.inkMuted,
+                    SizedBox(width: 8 * s),
+                    OnbPressable(
+                      onTap: onAdd,
+                      pressDy: 3,
+                      child: Container(
+                        width: 40 * s,
+                        height: 40 * s,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xFFF9A273),
+                              Color(0xFFF26D3D),
+                              Color(0xFFDD5A25),
+                            ],
+                            stops: [0, .56, 1],
+                          ),
+                          boxShadow: [
+                            const BoxShadow(
+                              color: Color.fromRGBO(255, 255, 255, .45),
+                              spreadRadius: 1,
+                            ),
+                            const BoxShadow(
+                              color: Color(0xFFC4491A),
+                              offset: Offset(0, 3),
+                            ),
+                            const BoxShadow(
+                              color: Color.fromRGBO(120, 45, 15, .22),
+                              offset: Offset(0, 5),
+                            ),
+                            BoxShadow(
+                              color: const Color.fromRGBO(200, 70, 25, .8),
+                              offset: Offset(0, 12 * s),
+                              blurRadius: onbBlur(16 * s),
+                              spreadRadius: -9 * s,
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            bergenInsetTop(radius: 20 * s, alpha: .4),
+                            Center(
+                              child: Icon(
+                                Icons.add_rounded,
+                                size: 19 * s,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-              SizedBox(width: 8 * s),
-              OnbPressable(
-                onTap: onAdd,
-                pressScale: .84,
-                child: Container(
-                  width: 32 * s,
-                  height: 32 * s,
-                  decoration: BoxDecoration(
-                    color: BergenColors.orange,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: BergenColors.orange.withValues(alpha: .75),
-                        offset: Offset(0, 6 * s),
-                        blurRadius: onbBlur(12 * s),
-                        spreadRadius: -5 * s,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    size: 18 * s,
-                    color: BergenColors.ink,
-                  ),
                 ),
               ),
             ],
@@ -860,6 +1129,39 @@ class _ProductCardBody extends StatelessWidget {
       ],
     );
   }
+}
+
+/// A coming-soon category's cards (`snRail`): the paper over the picture
+/// and every text blurred (`snBlur`, 5px) — drawn as a blur of the glyphs
+/// themselves rather than a filter layer.
+class BergenRailSnart extends InheritedWidget {
+  const BergenRailSnart({super.key, required this.snart, required super.child});
+
+  final bool snart;
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<BergenRailSnart>()?.snart ??
+      false;
+
+  @override
+  bool updateShouldNotify(BergenRailSnart old) => old.snart != snart;
+}
+
+TextStyle _uskarp(BuildContext context, TextStyle t) {
+  if (!BergenRailSnart.of(context)) return t;
+  return TextStyle(
+    fontFamily: t.fontFamily,
+    fontFamilyFallback: t.fontFamilyFallback,
+    fontSize: t.fontSize,
+    fontWeight: t.fontWeight,
+    letterSpacing: t.letterSpacing,
+    height: t.height,
+    leadingDistribution: t.leadingDistribution,
+    decoration: t.decoration,
+    foreground: Paint()
+      ..color = t.color ?? Colors.black
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 5 * context.bs),
+  );
 }
 
 // ── Shared pieces ───────────────────────────────────────────────────────────
@@ -1087,4 +1389,62 @@ class _Pulse extends StatelessWidget {
       );
     },
   );
+}
+
+/// `bm3Holo` 5s alternate: a rainbow band sliding across (background-size
+/// 260%), optionally colour-dodged at .32 over a picture.
+class _Holo extends StatelessWidget {
+  const _Holo({required this.colors, required this.stops, this.dodge = false});
+
+  final List<Color> colors;
+  final List<double> stops;
+  final bool dodge;
+
+  @override
+  Widget build(BuildContext context) {
+    return LfLoop(
+      builder: (context, t, _) {
+        final raw = (t / 5000) % 2.0;
+        final p = cssEaseInOut.transform(raw <= 1 ? raw : 2 - raw);
+        return CustomPaint(painter: _HoloPainter(colors, stops, p, dodge));
+      },
+    );
+  }
+}
+
+class _HoloPainter extends CustomPainter {
+  _HoloPainter(this.colors, this.stops, this.p, this.dodge);
+
+  final List<Color> colors;
+  final List<double> stops;
+  final double p;
+  final bool dodge;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 115deg gradient on a 260%-sized box whose position runs 0% → 100%.
+    final bw = size.width * 2.6, bh = size.height * 2.6;
+    final ox = -(bw - size.width) * p, oy = -(bh - size.height) * p;
+    final box = Rect.fromLTWH(ox, oy, bw, bh);
+    const a = 115 * math.pi / 180;
+    final dir = Offset(math.sin(a), -math.cos(a));
+    final len = (bw * dir.dx).abs() + (bh * dir.dy).abs();
+    final c = box.center;
+    final paint = Paint()
+      ..shader = ui.Gradient.linear(
+        c - dir * (len / 2),
+        c + dir * (len / 2),
+        colors,
+        stops,
+      );
+    if (dodge) {
+      paint
+        ..blendMode = BlendMode.colorDodge
+        ..color = const Color.fromRGBO(0, 0, 0, .32);
+    }
+    canvas.drawRect(Offset.zero & size, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HoloPainter old) => old.p != p;
 }

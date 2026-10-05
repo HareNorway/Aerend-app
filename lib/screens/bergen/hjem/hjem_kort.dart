@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -725,6 +727,247 @@ class _SveipLys extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Gavepapir (L2887, `snRail`): a coming-soon category's cards are wrapped —
+/// dotted teal paper, orange ribbons with a bow (`gpSloyfe`), a sheen
+/// (`gpGlans`) and a swinging KOMMER SNART tag (`gpLapp`). Laid out for the
+/// 238px banner; [w]/[h] scale it to the card at hand.
+class HjemGavepapir extends StatelessWidget {
+  const HjemGavepapir({super.key, this.produkt = false});
+
+  /// The product card's picture (126 high): ribbons at 167/42, bow 148/30.
+  final bool produkt;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) {
+        final w = box.maxWidth, h = box.maxHeight;
+        final kx = w / 238;
+        final bx = produkt ? 167.0 : 159.0, by = produkt ? 42.0 : 74.0;
+        final sx = produkt ? 148.0 : 140.0, sy = produkt ? 30.0 : 62.0, hh = produkt ? 126.0 : 125.0;
+        return CssBox(
+          radius: BorderRadius.circular(20 * kx),
+          clip: true,
+          bg: const [CssRadial([Color(0xFF3A8296), Color(0xFF1E4F5C), Color(0xFF173E48)], stops: [0, .6, 1], rx: 1.2, ry: 1, cx: .2, cy: 0)],
+          shadows: const [
+            CssShadow.inset(0, 2, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+            CssShadow.inset(0, -14, 22, -10, Color.fromRGBO(2, 12, 18, .55)),
+            CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
+          ],
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              const Positioned.fill(child: CustomPaint(painter: _Prikker())),
+              // gpGlans 5.5s (1s delay)
+              Positioned.fill(
+                child: LfLoop(
+                  builder: (context, t, child) {
+                    final e = t - 1000;
+                    if (e < 0) return const SizedBox.shrink();
+                    final x = kf((e / 5500) % 1.0, const [0, .55, 1], const [-1.2, -1.2, 3.2], cssEaseInOut);
+                    return Transform(
+                      transform: Matrix4.translationValues(x * w * .26, 0, 0)..multiply(Matrix4.skewX(rad(-18))),
+                      child: child,
+                    );
+                  },
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: SizedBox(
+                      width: w * .26,
+                      height: h,
+                      child: const CssBox(bg: [CssLinear(90, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)])]),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(left: bx * kx, top: 0, bottom: 0, width: 22 * kx, child: const _Baand(loddrett: true)),
+              Positioned(left: 0, right: 0, top: by / hh * h, height: 20 * kx, child: const _Baand(loddrett: false)),
+              Positioned(
+                left: sx * kx,
+                top: sy / hh * h,
+                width: 60 * kx,
+                height: 44 * kx,
+                child: LfLoop(
+                  builder: (context, t, child) {
+                    final p = (t / 3600) % 1.0;
+                    final r = kf(p, const [0, .5, 1], const [0, -4, 0], cssEaseInOut);
+                    final sk = kf(p, const [0, .5, 1], const [1, 1.05, 1], cssEaseInOut);
+                    return Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..rotateZ(rad(r))
+                        ..scaleByDouble(sk, sk, 1, 1),
+                      child: child,
+                    );
+                  },
+                  child: FittedBox(child: SizedBox(width: 60, height: 44, child: _Sloyfe())),
+                ),
+              ),
+              Positioned(
+                left: 12 * kx,
+                top: 12 * kx,
+                child: LfLoop(
+                  builder: (context, t, child) => Transform.rotate(
+                    alignment: Alignment.centerLeft,
+                    angle: rad(kf((t / 4400) % 1.0, const [0, .5, 1], const [-7, -3, -7], cssEaseInOut)),
+                    child: child,
+                  ),
+                  child: Transform.scale(
+                    scale: kx,
+                    alignment: Alignment.topLeft,
+                    child: CssBox(
+                      height: 26,
+                      radius: const BorderRadius.horizontal(left: Radius.circular(7), right: Radius.circular(9)),
+                      bg: const [CssLinear(180, [Color(0xFFFFF3D2), Color(0xFFF2D48A)])],
+                      shadows: const [
+                        CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)),
+                        CssShadow(0, 2, 0, 0, Color(0xFFB8902E)),
+                        CssShadow(0, 8, 12, -5, Color.fromRGBO(2, 12, 18, .6)),
+                      ],
+                      padding: const EdgeInsets.fromLTRB(7, 0, 10, 0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF1E4F5C)),
+                          ),
+                          const SizedBox(width: 5),
+                          SvgPicture.string(
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5A3C10" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+                            width: 10,
+                            height: 10,
+                          ),
+                          const SizedBox(width: 5),
+                          Text('KOMMER SNART', style: jakarta(10.5, em: .1, color: const Color(0xFF5A3C10))),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Prikker extends CustomPainter {
+  const _Prikker();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // repeating-linear-gradient(135deg, … rgba(92,224,184,.13) 13px 15px)
+    final linje = Paint()
+      ..color = const Color.fromRGBO(92, 224, 184, .13)
+      ..strokeWidth = 2;
+    final d = size.width + size.height;
+    for (var o = -d; o < d; o += 15 * math.sqrt2) {
+      canvas.drawLine(Offset(o, 0), Offset(o + size.height, size.height), linje);
+    }
+    // two dot grids, 16px apart
+    final hvit = Paint()..color = const Color.fromRGBO(255, 255, 255, .2);
+    final gull = Paint()..color = const Color.fromRGBO(255, 206, 120, .4);
+    for (var y = 0.0; y < size.height; y += 16) {
+      for (var x = 0.0; x < size.width; x += 16) {
+        canvas.drawCircle(Offset(x + 4, y + 4.8), 1.6, hvit);
+        canvas.drawCircle(Offset(x + 12, y + 12.8), 1.3, gull);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _Baand extends StatelessWidget {
+  const _Baand({required this.loddrett});
+
+  final bool loddrett;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: loddrett ? Alignment.centerLeft : Alignment.topCenter,
+          end: loddrett ? Alignment.centerRight : Alignment.bottomCenter,
+          colors: const [Color(0xFFB9441A), Color(0xFFF26D3D), Color(0xFFFF9C70), Color(0xFFF26D3D), Color(0xFFB9441A)],
+          stops: const [0, .22, .48, .74, 1],
+        ),
+        boxShadow: const [BoxShadow(color: Color.fromRGBO(2, 12, 18, .35), blurRadius: 4)],
+      ),
+    );
+  }
+}
+
+class _Sloyfe extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Widget sloyfe(bool venstre) => Transform.rotate(
+      angle: rad(venstre ? -14 : 14),
+      child: Container(
+        width: 28,
+        height: 22,
+        decoration: BoxDecoration(
+          borderRadius: venstre
+              ? const BorderRadius.horizontal(left: Radius.elliptical(17, 15), right: Radius.elliptical(8, 9))
+              : const BorderRadius.horizontal(left: Radius.elliptical(8, 9), right: Radius.elliptical(17, 15)),
+          gradient: RadialGradient(
+            center: Alignment(venstre ? -.3 : .3, -.3),
+            radius: .9,
+            colors: const [Color(0xFFFFB089), Color(0xFFF26D3D), Color(0xFFB9441A)],
+            stops: const [0, .55, 1],
+          ),
+          boxShadow: const [BoxShadow(color: Color.fromRGBO(2, 12, 18, .45), offset: Offset(0, 4), blurRadius: 3)],
+        ),
+      ),
+    );
+    Widget hale(bool venstre) => Transform.rotate(
+      alignment: Alignment.topCenter,
+      angle: rad(venstre ? 24 : -24),
+      child: Container(
+        width: 10,
+        height: 20,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(2),
+          gradient: LinearGradient(colors: venstre ? const [Color(0xFFB9441A), Color(0xFFF26D3D)] : const [Color(0xFFF26D3D), Color(0xFFB9441A)]),
+        ),
+      ),
+    );
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(left: 12, top: 24, child: hale(true)),
+        Positioned(right: 12, top: 24, child: hale(false)),
+        Positioned(left: 1, top: 6, child: sloyfe(true)),
+        Positioned(right: 1, top: 6, child: sloyfe(false)),
+        Positioned(
+          left: 22,
+          top: 11,
+          width: 16,
+          height: 15,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              gradient: const RadialGradient(
+                center: Alignment(-.2, -.4),
+                radius: .9,
+                colors: [Color(0xFFFFC2A3), Color(0xFFF26D3D), Color(0xFFC2481C)],
+                stops: [0, .6, 1],
+              ),
+              boxShadow: const [BoxShadow(color: Color.fromRGBO(2, 12, 18, .5), offset: Offset(0, 2), blurRadius: 1.5)],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

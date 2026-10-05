@@ -32,6 +32,9 @@ abstract final class HjemHarness {
   /// Switch to this tab a moment after loading.
   static int? fane;
 
+  /// Focus this wheel slot.
+  static int? hjul;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -47,6 +50,7 @@ abstract final class HjemHarness {
         vindu = false;
         borte = false;
         fane = null;
+        hjul = null;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -59,6 +63,7 @@ abstract final class HjemHarness {
       vindu = m['vindu'] == true;
       borte = m['borte'] == true;
       fane = m['fane'] as int?;
+      hjul = m['hjul'] as int?;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

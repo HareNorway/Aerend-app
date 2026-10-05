@@ -18,6 +18,7 @@ import '../../../bergen/hjem/hjem_hero.dart';
 import '../../auth/launch/lf_css.dart' show LfFrame, lfFlow;
 import '../../../bergen/hjem/hjem_hjul.dart';
 import '../../../bergen/hjem/hjem_kort.dart';
+import '../../../bergen/hjem/hjem_kaien.dart';
 import '../../../bergen/hjem/hjem_tilbud.dart';
 import '../../../bergen/hjem/hjem_vann.dart';
 import '../../../bergen/hjem/hjem_vindu.dart';
@@ -192,7 +193,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       // the stage is estimated from them until Step 8 wires the tracking.
       hjemLiveOrdre.value = (
         orderId: id,
-        data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60),
+        data: HjemLiveData(
+          stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1),
+          restSek: min * 60,
+        ),
       );
     });
     _trackTimer = Timer.periodic(const Duration(minutes: 1), (_) {
@@ -214,11 +218,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (y != null && _scroll.hasClients) {
             _scroll.jumpTo(y.clamp(0.0, _scroll.position.maxScrollExtent));
           }
+          if (HjemHarness.hjul case final h?) setState(() => _hjulI = h);
           if (HjemHarness.vindu) _settVindu(true);
           final fane = HjemHarness.fane;
           if (fane != null) {
             debugPrint('HJEM_FANE');
-            context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(fane);
+            context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(
+              fane,
+            );
           }
           if (HjemHarness.borte) {
             // ignore: invalid_use_of_visible_for_testing_member
@@ -1159,6 +1166,38 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                           ),
                         ),
 
+                        // ── Under kaien (L2663): behind the sheet's end ──
+                        if (!_vindu)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            height: 300 * s,
+                            child: LfFrame(
+                              child: HjemUnderKaien(
+                                vist: _kaien,
+                                reker: _underKaien == null
+                                    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+                                    ? HjemKaienFunn(
+                                        tittel: 'Reker, 1 kg',
+                                        under: 'Torgboden · før 349',
+                                        pris: '299 kr',
+                                        onTap: _onUnderKaienOffer,
+                                      )
+                                    : HjemKaienFunn(
+                                        tittel: _underKaien!.title,
+                                        under: _underKaien!.sub.isEmpty
+                                            ? _underKaien!.store
+                                            : '${_underKaien!.store} · ${_underKaien!.sub}',
+                                        pris: _underKaien!.price,
+                                        onTap: _onUnderKaienOffer,
+                                      ),
+                                onPose: _openAutomat,
+                                onFrakt: _comingSoon,
+                              ),
+                            ),
+                          ),
+
                         // ── Sheet (ark) ────────────────────────────────
                         AnimatedPositioned(
                           duration: Duration(milliseconds: _dragging ? 0 : 340),
@@ -1410,7 +1449,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     required List<HjemTilbud> tilbud,
   }) {
     final s = context.bs;
-    final district = focused.look?.district ?? BergenCopy.bergenhus;
+    // `katBydel` follows the wheel, also for coming-soon categories.
+    final district = BergenCategoryLook.all[_hjulI].district;
     final openCount = stores.where((e) => e.open).length;
 
     return Column(
@@ -1495,9 +1535,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 duration: const Duration(milliseconds: 360),
                 switchInCurve: const Cubic(.2, .9, .3, 1),
                 child: BergenStoreRail(
-                  key: ValueKey('stores-${focused.id}-${stores.length}'),
+                  key: ValueKey(
+                    'stores-${focused.id}-${stores.length}-$_hjulI',
+                  ),
                   stores: stores,
-                  onOpen: _openStore,
+                  // A wrapped card opens the Kommer snart sheet.
+                  onOpen: _hjulI != 0 ? (_) => _openSnart(_hjulI) : _openStore,
+                  snart: _hjulI != 0,
                 ),
               ),
               Padding(
@@ -1545,24 +1589,19 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               ),
               SizedBox(height: 10 * s),
               BergenProductRail(
+                snart: _hjulI != 0,
                 products: products,
-                onOpen: _openProduct,
+                onOpen: _hjulI != 0 ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
               ),
             ],
           ),
         ),
         SizedBox(height: 16 * s),
-        // Under kaien: the first card is a real find when the suggestions
-        // tray has one (guarded read); the design's sample otherwise.
-        BergenUnderQuay(
-          revealed: _kaien,
-          offer: _underKaien,
-          onOffer: _onUnderKaienOffer,
-          onBag: _openAutomat,
-          onShipping: _comingSoon,
-        ),
-        SizedBox(height: bergenNavReserve(context) + 8 * s),
+        // The open water after the content (296 + the inner padding 316):
+        // the waterline sits 314px above its end, so Under kaien, fixed at
+        // the bottom of the screen behind the sheet, shows through.
+        SizedBox(height: (296 + 316) * s),
       ],
     );
   }
@@ -1583,6 +1622,7 @@ class _Sheet extends StatelessWidget {
     return HjemVann(
       controller: controller,
       s: s,
+      bunnLuft: 314,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.only(topLeft: r, topRight: r),
