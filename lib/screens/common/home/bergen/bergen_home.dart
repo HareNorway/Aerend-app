@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,9 +10,12 @@ import '../../../../utils/utils.dart';
 import '../../../deliveryService/home/ds_home.dart';
 import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../../deliveryService/storeDetail/store_detail.dart';
-import '../../../deliveryService/trackOrder/track_order.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
 import '../../../bergen/aegil/aegil_entry.dart';
+import '../../../bergen/hjem/hjem_harness.dart';
+import '../../../bergen/hjem/hjem_header.dart';
+import '../../../bergen/hjem/hjem_hero.dart';
+import '../../auth/launch/lf_css.dart' show LfFrame;
 import '../../../bergen/aegil/brett_entry.dart';
 import '../../../bergen/kit/bergen_routes.dart';
 import '../../../bergen/meg/a3_services.dart';
@@ -33,7 +37,6 @@ import 'bergen_cards.dart';
 import 'bergen_category_rad.dart';
 import 'bergen_copy.dart';
 import 'bergen_floats.dart';
-import 'bergen_hero.dart';
 import 'bergen_hjem_ark.dart';
 import 'bergen_kit.dart';
 import 'bergen_nav.dart';
@@ -163,6 +166,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
     _loadUnderKaien();
     _refreshSeams();
+    if (kDebugMode) {
+      HjemHarness.load().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   /// agil-3's seams need their data pulled (an ask of agil-1, merge day):
@@ -249,26 +257,6 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   void _openFjordfiske() => BergenRoutes.push(context, '/bergen/fjordfiske');
 
-  /// A bobber → the Napp card (seam, AGIL-CONTRACT §5.4).
-  void _onFloatTap(BergenFloatItem f) {
-    HapticFeedback.selectionClick();
-    showNappKort(
-      context,
-      NappOffer(
-        id: f.id,
-        title: f.title,
-        storeName: f.store,
-        priceOre: (f.price * 100).round(),
-        reason: f.reason,
-        kind: switch (f.kind) {
-          BergenFloatKind.offer => 'tilbud',
-          BergenFloatKind.fresh => 'ny',
-          BergenFloatKind.rhythm => 'rytme',
-        },
-      ),
-    );
-  }
-
   void _onUnderKaienOffer() {
     final o = _underKaien;
     if (o == null) {
@@ -291,6 +279,16 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   }
 
   static String slugOf(String name) => BergenHomeSlug.of(name);
+
+  /// The hero's baked weather (`VAER`), from the time-of-day look.
+  static HjemVaer _hjemVaer(BergenWeatherLook look) {
+    final forced = HjemHarness.vaer;
+    if (forced != null) return forced;
+    if (identical(look, BergenWeatherLook.sol)) return HjemVaer.sol;
+    if (identical(look, BergenWeatherLook.solnedgang)) return HjemVaer.solnedgang;
+    if (identical(look, BergenWeatherLook.natt)) return HjemVaer.natt;
+    return HjemVaer.regn;
+  }
 
   void _comingSoon() => openSimpleSnackbar(BergenCopy.comingSoon);
 
@@ -363,13 +361,6 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   // ── Data mapping ────────────────────────────────────────────────────────
 
-  String? get _firstName {
-    if (isGuestUser()) return null;
-    final name = prefGetString(prefUserName).trim();
-    if (name.isEmpty) return null;
-    return name.split(RegExp(r'\s+')).first;
-  }
-
   /// Categories: backend services, or the design's five while loading.
   List<BergenCategory> _categories(HomeCatePojo? home) {
     final services = home?.services ?? const <ServicesItem>[];
@@ -409,7 +400,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   String _placeholderCategoryName(int i) =>
       const ['Restaurant', 'Fisk', 'Mote', 'Interiør', 'Gaver'][i];
 
-  /// `META` — the design's three floats. TODO(api): Ægil recommendations.
+  /// `META` — the design's three floats (b2 last: the prototype keeps it
+  /// off the water). TODO(api): Ægil recommendations.
   List<BergenFloatItem> _placeholderFloats() => const [
     BergenFloatItem(
       id: 'b1',
@@ -420,19 +412,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       kind: BergenFloatKind.offer,
       icon: BergenFloatIcon.shrimp,
       price: 149,
+      wasPrice: 179,
       bergensk: true,
       glow: true,
       ring: true,
-    ),
-    BergenFloatItem(
-      id: 'b2',
-      title: 'Sei er ny',
-      store: 'Nordnes Fisk',
-      priceText: '129 kr',
-      reason: 'Ny i dag hos en butikk du følger.',
-      kind: BergenFloatKind.fresh,
-      icon: BergenFloatIcon.fish,
-      price: 129,
     ),
     BergenFloatItem(
       id: 'b3',
@@ -445,10 +428,20 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       price: 189,
       photoAsset: BergenAssets.bkWhopper,
     ),
+    BergenFloatItem(
+      id: 'b2',
+      title: 'Sei er ny',
+      store: 'Nordnes Fisk',
+      priceText: '129 kr',
+      reason: 'Ny i dag hos en butikk du følger.',
+      kind: BergenFloatKind.fresh,
+      icon: BergenFloatIcon.fish,
+      price: 129,
+    ),
   ];
 
   List<BergenFloatItem> _floats(List<SwipeCardModel> swipe) {
-    final source = swipe.isEmpty
+    final source = swipe.isEmpty || HjemHarness.demoFloats
         ? _placeholderFloats()
         : [
             for (var i = 0; i < swipe.length && i < 3; i++)
@@ -467,6 +460,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 storeId: swipe[i].storeId,
                 productId: swipe[i].productId,
                 price: swipe[i].amount,
+                wasPrice: swipe[i].originalAmount > swipe[i].amount
+                    ? swipe[i].originalAmount
+                    : null,
                 photoUrl: swipe[i].productImage.isEmpty
                     ? null
                     : swipe[i].productImage,
@@ -529,8 +525,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     ];
   }
 
+  /// Norwegian kroner: "149 kr", "139,30 kr".
   static String _kr(double v) =>
-      '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2)} kr';
+      '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2).replaceAll('.', ',')} kr';
 
   BergenStoreCard _storeFromList(StoreListItem s) => BergenStoreCard(
     id: s.storeId ?? 0,
@@ -793,7 +790,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     .clamp(0.0, 1.0);
                 final sheetTop = safeTop + (_kSheetTop + _dragY) * s - _k;
                 final heroH =
-                    (kBergenHeroHeight + (_dragY > 0 ? _dragY : 0)) * s;
+                    (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
 
                 return OnbTimeline(
                   durationMs: 340,
@@ -864,63 +861,19 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                     ignoring: heroOpacity < .05,
                                     child: Opacity(
                                       opacity: heroOpacity,
-                                      child:
-                                          StreamBuilder<
-                                            ApiResponse<HomeTrackOrderPojo>
-                                          >(
-                                            stream:
-                                                _bloc.subjectTrackOrder.stream,
-                                            builder: (context, trackSnap) {
-                                              final track =
-                                                  trackSnap.data?.status ==
-                                                      Status.completed
-                                                  ? trackSnap.data!.data
-                                                  : null;
-                                              final orderId =
-                                                  track?.orderId ?? 0;
-                                              double? boat;
-                                              if (orderId != 0) {
-                                                final remaining =
-                                                    (track!.remainingTime)
-                                                        .toDouble();
-                                                boat = (1 - remaining / 45)
-                                                    .clamp(.06, .94);
-                                              }
-                                              return BergenHero(
-                                                look: look,
-                                                greeting: BergenCopy.greeting(
-                                                  hour,
-                                                  _firstName,
-                                                ),
-                                                floats: floats,
-                                                onFloatAdd: _onFloatAdd,
-                                                onFloatSunk: _onFloatSunk,
-                                                onFloatNever: _onFloatNever,
-                                                onFjordfiske: _openFjordfiske,
-                                                onBag: _openAutomat,
-                                                onFloatTap: _onFloatTap,
-                                                onGreetingTap: _openAegil,
-                                                showLantern:
-                                                    hour >= 16 || hour < 8,
-                                                boat: boat,
-                                                onBoat: orderId == 0
-                                                    ? null
-                                                    : () => BergenRoutes.pushOr(
-                                                        context,
-                                                        '/bergen/sporing/$orderId',
-                                                        orElse: () =>
-                                                            openScreen(
-                                                              context,
-                                                              TrackOrder(
-                                                                orderId:
-                                                                    orderId,
-                                                              ),
-                                                            ),
-                                                      ),
-                                                playIntro: _playIntro,
-                                              );
-                                            },
-                                          ),
+                                      child: LfFrame(
+                                        child: HjemHero(
+                                          vaer: _hjemVaer(look),
+                                          floats: floats,
+                                          onFloatAdd: _onFloatAdd,
+                                          onFloatSink: _onFloatSunk,
+                                          onFloatNever: _onFloatNever,
+                                          onPose: _openAutomat,
+                                          onFjordfiske: _openFjordfiske,
+                                          playIntro: _playIntro,
+                                          extraHeight: _dragY > 0 ? _dragY : 0,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -956,43 +909,34 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                           ),
                         ),
 
-                        // ── Header row ─────────────────────────────────
+                        // ── Header row (`visKromOver`) ─────────────────
                         Positioned(
-                          left: 16 * s,
-                          right: 16 * s,
+                          left: 0,
+                          right: 0,
                           top: safeTop + _kHeaderTop * s,
                           height: 56 * s,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: StreamBuilder<AddressListItem?>(
-                                  stream: _bloc.deliveryAddress,
-                                  builder: (context, snap) {
-                                    final raw = snap.data?.address ?? '';
-                                    final short = raw.isEmpty
-                                        ? BergenCopy.chooseAddress
-                                        : raw.split(',').first.trim();
-                                    return _AddressPill(
-                                      text: short,
-                                      onTap: _openAddressSheet,
-                                    );
-                                  },
-                                ),
+                          child: LfFrame(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: StreamBuilder<AddressListItem?>(
+                                stream: _bloc.deliveryAddress,
+                                builder: (context, snap) {
+                                  final raw = snap.data?.address ?? '';
+                                  return HjemHeader(
+                                    address: raw.isEmpty ? '' : raw.split(',').first.trim(),
+                                    type: hjemAdrType(snap.data?.type ?? ''),
+                                    eta: null,
+                                    unread: HjemHarness.unread ?? home?.totalUnreadMessage ?? 0,
+                                    onAddress: _openAddressSheet,
+                                    onBell: () => BergenRoutes.pushOr(
+                                      context,
+                                      '/bergen/meg/varsler',
+                                      orElse: () => openScreen(context, const Notifications()),
+                                    ),
+                                  );
+                                },
                               ),
-                              SizedBox(width: 10 * s),
-                              _Bell(
-                                count: home?.totalUnreadMessage ?? 0,
-                                onTap: () => BergenRoutes.pushOr(
-                                  context,
-                                  '/bergen/meg/varsler',
-                                  orElse: () => openScreen(
-                                    context,
-                                    const Notifications(),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
 
@@ -1486,219 +1430,6 @@ class _ChevronPainter extends CustomPainter {
 }
 
 // ── Header widgets ────────────────────────────────────────────────────────
-
-class _AddressPill extends StatelessWidget {
-  const _AddressPill({required this.text, required this.onTap});
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return OnbPressable(
-      onTap: onTap,
-      pressDy: 1,
-      pressScale: .97,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 270 * s),
-        child: Container(
-          height: 44 * s,
-          padding: EdgeInsets.symmetric(horizontal: 14 * s),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16 * s),
-            gradient: kBergenChipGradient,
-            boxShadow: bergenChipShadow(context),
-          ),
-          child: Stack(
-            children: [
-              bergenInsetTop(radius: 16 * s),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomPaint(
-                    size: Size(16 * s, 16 * s),
-                    painter: const _PinPainter(),
-                  ),
-                  SizedBox(width: 8 * s),
-                  Text(
-                    BergenCopy.deliverTo,
-                    style: bText(context, 11.5, color: BergenColors.skyText),
-                  ),
-                  SizedBox(width: 8 * s),
-                  Flexible(
-                    child: Text(
-                      text,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: bDisplay(context, 17, letterSpacingEm: -.02),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PinPainter extends CustomPainter {
-  const _PinPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final k = size.width / 24;
-    final p = Paint()
-      ..color = BergenColors.skyText
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2 * k
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    // M12 21.5S5.5 15.5 5.5 10.5a6.5 6.5 0 1 1 13 0c0 5-6.5 11-6.5 11z
-    final path = Path()
-      ..moveTo(12 * k, 21.5 * k)
-      ..cubicTo(12 * k, 21.5 * k, 5.5 * k, 15.5 * k, 5.5 * k, 10.5 * k)
-      ..arcToPoint(
-        Offset(18.5 * k, 10.5 * k),
-        radius: Radius.circular(6.5 * k),
-        largeArc: true,
-      )
-      ..cubicTo(18.5 * k, 15.5 * k, 12 * k, 21.5 * k, 12 * k, 21.5 * k)
-      ..close();
-    canvas.drawPath(path, p);
-    canvas.drawCircle(Offset(12 * k, 10.5 * k), 2.3 * k, p);
-  }
-
-  @override
-  bool shouldRepaint(_PinPainter old) => false;
-}
-
-class _Bell extends StatelessWidget {
-  const _Bell({required this.count, required this.onTap});
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final dot = count > 0 && count < 3; // vsPrikk
-    final number = count >= 3; // vsTall
-    return OnbPressable(
-      onTap: onTap,
-      pressDy: 0,
-      pressScale: .93,
-      child: SizedBox(
-        width: 44 * s,
-        height: 44 * s,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 44 * s,
-              height: 44 * s,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: kBergenChipGradient,
-                boxShadow: bergenChipShadow(context),
-              ),
-              child: Stack(
-                children: [
-                  bergenInsetTop(radius: 22 * s),
-                  Center(
-                    child: CustomPaint(
-                      size: Size(21 * s, 21 * s),
-                      painter: const _BellPainter(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (dot)
-              Positioned(
-                top: 6 * s,
-                right: 7 * s,
-                child: Container(
-                  width: 8 * s,
-                  height: 8 * s,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: BergenColors.gold,
-                    border: Border.all(color: BergenColors.teal3, width: 2 * s),
-                  ),
-                ),
-              ),
-            if (number)
-              Positioned(
-                top: -4 * s,
-                right: -4 * s,
-                child: Container(
-                  constraints: BoxConstraints(minWidth: 20 * s),
-                  height: 20 * s,
-                  padding: EdgeInsets.symmetric(horizontal: 5 * s),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: BergenColors.ink,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: Colors.white, width: 2 * s),
-                  ),
-                  child: Text(
-                    count > 9 ? '9+' : '$count',
-                    style: bText(context, 11, weight: FontWeight.w800),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BellPainter extends CustomPainter {
-  const _BellPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final k = size.width / 24;
-    final p = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2 * k
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    // M18 8.6a6 6 0 1 0-12 0c0 5.9-2.2 7.4-2.2 7.4h16.4S18 14.5 18 8.6z
-    final body = Path()
-      ..moveTo(18 * k, 8.6 * k)
-      ..arcToPoint(
-        Offset(6 * k, 8.6 * k),
-        radius: Radius.circular(6 * k),
-        largeArc: true,
-        clockwise: false,
-      )
-      ..cubicTo(6 * k, 14.5 * k, 3.8 * k, 16 * k, 3.8 * k, 16 * k)
-      ..lineTo(20.2 * k, 16 * k)
-      ..cubicTo(20.2 * k, 16 * k, 18 * k, 14.5 * k, 18 * k, 8.6 * k)
-      ..close();
-    canvas.drawPath(body, p);
-    // M10.3 19.6a2 2 0 0 0 3.4 0
-    canvas.drawPath(
-      Path()
-        ..moveTo(10.3 * k, 19.6 * k)
-        ..arcToPoint(
-          Offset(13.7 * k, 19.6 * k),
-          radius: Radius.circular(2 * k),
-          clockwise: false,
-        ),
-      p,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_BellPainter old) => false;
-}
-
-// ── Address sheet (`sheetAdresse`) ────────────────────────────────────────
 
 class _AddressSheet extends StatefulWidget {
   const _AddressSheet({required this.bloc});

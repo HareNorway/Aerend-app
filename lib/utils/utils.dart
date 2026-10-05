@@ -1,3 +1,4 @@
+import '../screens/common/auth/launch/lf_widgets.dart' show LfToast;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
@@ -297,6 +298,13 @@ openSimpleSnackbar(
   void Function()? onPressed,
   AeToastKind kind = AeToastKind.info,
 }) {
+  // The prototype's global toast (`si` / `kSi`): Ægil and a white bubble
+  // above the nav for 2.6 s. Every feedback message goes through it.
+  final overlay = navigatorKey.currentState?.overlay;
+  if (overlay != null && title.trim().isNotEmpty) {
+    LfToast.show(overlay.context, title, overlay: overlay);
+    return;
+  }
   if (rootScaffoldMessengerKey.currentState != null) {
     final Gradient? gradient = switch (kind) {
       AeToastKind.success => const LinearGradient(

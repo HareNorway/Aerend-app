@@ -1,12 +1,8 @@
-import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 
+import '../../../bergen/kit/sjo_water.dart';
 import 'lf_css.dart';
 import 'lf_motion.dart';
 
@@ -87,7 +83,15 @@ class LfWelcomeScene extends StatelessWidget {
                             colors: [Color(0xFF2C6474), Color(0xFF163C48)],
                           ),
                         ),
-                        child: RepaintBoundary(child: LfSjoWater()),
+                        child: RepaintBoundary(
+                          child: SjoWater(
+                            palette: SjoPalette.kveld,
+                            regn: .5,
+                            reflection: kBryggenAsset,
+                            reflectionHeight: 223,
+                            fogColor: Color(0xFFC9D3D5),
+                          ),
+                        ),
                       ),
                     ),
                     const Positioned(
@@ -408,197 +412,4 @@ class _HeiBubble extends StatelessWidget {
 abstract final class LfHeiCopy {
   static String title = 'Hei! Jeg er Ægil.';
   static String sub = 'Butikkene i Bergen, levert av ett bud.';
-}
-
-// ── Vågen water (shader) ────────────────────────────────────────────────────
-
-/// `sjoPal('Kveld')` (the prototype's default `sjoModus`), rain at 0.5 since
-/// the default weather is `regn`.
-class _SjoPal {
-  static const deep = Color(0xFF19434F);
-  static const shal = Color(0xFF4C8796);
-  static const skyHi = Color(0xFF6A8A96);
-  static const skyLo = Color(0xFFC2D2D6);
-  static const fog = Color(0xFFA9BCC2);
-  static const fogA = .18;
-  static const sun = Color(0xFFFFE2B6);
-  static const l = [-.32, .2, 1.0];
-  static const pow = 90.0;
-  static const sunA = .3;
-  static const amp = 1.0;
-  static const refl = .96;
-  static const regn = .5;
-}
-
-/// Renders `shaders/sjo.frag` into an offscreen image every frame (at most
-/// 2× the CSS px, as `sjoGlTegn` caps it) and draws it scaled.
-class LfSjoWater extends StatefulWidget {
-  const LfSjoWater({super.key});
-
-  @override
-  State<LfSjoWater> createState() => _LfSjoWaterState();
-}
-
-class _LfSjoWaterState extends State<LfSjoWater> with SingleTickerProviderStateMixin {
-  static Future<ui.FragmentProgram>? _program;
-  static Future<ui.Image>? _reflection;
-
-  ui.FragmentShader? _shader;
-  ui.Image? _ref;
-  ui.Image? _frame;
-  late final Ticker _ticker;
-  Duration _prev = Duration.zero;
-  double _t = 0;
-  bool _reduce = false;
-  Size _size = Size.zero;
-  double _dpr = 2;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = createTicker(_tick);
-    _program ??= ui.FragmentProgram.fromAsset('shaders/sjo.frag');
-    _reflection ??= _bakeReflection();
-    Future.wait([_program!, _reflection!]).then((v) {
-      if (!mounted) return;
-      _shader = (v[0] as ui.FragmentProgram).fragmentShader();
-      _ref = v[1] as ui.Image;
-      _render();
-      if (!_reduce) _ticker.start();
-    }).catchError((_) {});
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _reduce = MediaQuery.disableAnimationsOf(context);
-    _dpr = math.min(2.0, MediaQuery.devicePixelRatioOf(context));
-    if (_reduce && _ticker.isActive) _ticker.stop();
-    if (!_reduce && !_ticker.isActive && _shader != null) _ticker.start();
-  }
-
-  void _tick(Duration e) {
-    final dt = math.min(.05, (e - _prev).inMicroseconds / 1e6).clamp(0.0, .05);
-    _prev = e;
-    _t += dt;
-    _render();
-  }
-
-  /// `sjoRefBr`: Bryggen flipped from the waterline upwards into 512×256,
-  /// on the fog colour (`brPal().skB` for rain).
-  static Future<ui.Image> _bakeReflection() async {
-    final data = await rootBundle.load(kBryggenAsset);
-    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-    final br = (await codec.getNextFrame()).image;
-    final rec = ui.PictureRecorder();
-    final c = Canvas(rec);
-    c.drawRect(const Rect.fromLTWH(0, 0, 512, 256), Paint()..color = const Color(0xFFC9D3D5));
-    const hb = 223.0;
-    c.transform(Float64List4.flip(512 / 390, 1.28, hb));
-    c.drawImageRect(
-      br,
-      Rect.fromLTWH(0, 0, br.width.toDouble(), br.height.toDouble()),
-      const Rect.fromLTWH(0, 0, 390, hb),
-      Paint()..filterQuality = FilterQuality.medium,
-    );
-    final img = rec.endRecording().toImageSync(512, 256);
-    br.dispose();
-    return img;
-  }
-
-  void _render() {
-    final sh = _shader, ref = _ref;
-    if (sh == null || ref == null || _size.isEmpty) return;
-    final w = _size.width, h = _size.height;
-    final pw = (w * _dpr).round(), ph = (h * _dpr).round();
-    if (pw <= 0 || ph <= 0) return;
-    var i = 0;
-    void f(double v) => sh.setFloat(i++, v);
-    void c(Color col) {
-      f(col.r);
-      f(col.g);
-      f(col.b);
-    }
-
-    f(w);
-    f(h);
-    f(pw / w);
-    f(_t % 3600);
-    f(40); // uHz
-    f(400); // uF
-    f(120); // uZ0
-    f(_SjoPal.amp);
-    f(_SjoPal.pow);
-    f(_SjoPal.sunA);
-    f(_SjoPal.fogA);
-    f(_SjoPal.regn);
-    f(_SjoPal.refl);
-    c(_SjoPal.deep);
-    c(_SjoPal.shal);
-    c(_SjoPal.skyHi);
-    c(_SjoPal.skyLo);
-    c(_SjoPal.fog);
-    c(_SjoPal.sun);
-    const l = _SjoPal.l;
-    final ll = math.sqrt(l[0] * l[0] + l[1] * l[1] + l[2] * l[2]);
-    f(l[0] / ll);
-    f(l[1] / ll);
-    f(l[2] / ll);
-    sh.setImageSampler(0, ref);
-    final rec = ui.PictureRecorder();
-    Canvas(rec).drawRect(
-      Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()),
-      Paint()..shader = sh,
-    );
-    final img = rec.endRecording().toImageSync(pw, ph);
-    final old = _frame;
-    setState(() => _frame = img);
-    old?.dispose();
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose();
-    _frame?.dispose();
-    _shader?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, box) {
-        final s = box.biggest;
-        if (s != _size) {
-          _size = s;
-          if (_frame == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _render();
-            });
-          }
-        }
-        final img = _frame;
-        if (img == null) return const SizedBox.expand();
-        return RawImage(
-          image: img,
-          width: s.width,
-          height: s.height,
-          fit: BoxFit.fill,
-          filterQuality: FilterQuality.medium,
-        );
-      },
-    );
-  }
-}
-
-/// Matrix helpers for the reflection bake.
-abstract final class Float64List4 {
-  /// `setTransform(a, 0, 0, -d, 0, d*hb)`.
-  static Float64List flip(double a, double d, double hb) {
-    final m = Matrix4.identity()
-      ..setEntry(0, 0, a)
-      ..setEntry(1, 1, -d)
-      ..setEntry(1, 3, d * hb);
-    return m.storage;
-  }
 }

@@ -30,6 +30,7 @@ class BergenFloatItem {
     this.storeId = 0,
     this.productId = 0,
     this.price = 0,
+    this.wasPrice,
     this.photoUrl,
     this.photoAsset,
     this.bergensk = false,
@@ -50,6 +51,9 @@ class BergenFloatItem {
   final int storeId;
   final int productId;
   final double price;
+
+  /// `etFor` — the struck-through regular price on an offer flag.
+  final double? wasPrice;
   final String? photoUrl;
   final String? photoAsset;
   final bool bergensk;

@@ -107,6 +107,7 @@ flutter:
     - assets/images/home/
     - assets/images/aegil/
     - assets/images/onboarding/
+    - assets/images/bryggen/
     - assets/images/dashboard/
     - assets/images/products/
     - assets/images/service-category/
@@ -114,6 +115,7 @@ flutter:
     - assets/svgs/
     - assets/svgs/icons/
     - assets/svgs/onboarding/
+    - assets/svgs/hjem/
     - assets/svgs/dashboard/
     - assets/svgs/star/
     - assets/svgs/delivery/

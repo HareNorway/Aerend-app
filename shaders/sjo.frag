@@ -3,8 +3,8 @@
 // sum with analytic anti-aliasing, rain rings, Fresnel reflection of the
 // Bryggen texture, sky fallback and distance fog. Rendered offscreen into an
 // image whose pixel grid is (uRes * uDpr), so FlutterFragCoord is the pixel.
-// Tap ripples (uRip) and the boat wake (uDons) are left out: no screen that
-// uses this shader yet drives them.
+// Ripples (uRip0..5: x, y, age s, amplitude) and the boat wake (uDons) are
+// separate uniforms rather than arrays.
 #version 460 core
 
 #include <flutter/runtime_effect.glsl>
@@ -30,11 +30,28 @@ uniform vec3 uSkyLo;
 uniform vec3 uFog;
 uniform vec3 uSun;
 uniform vec3 uL;
+uniform vec4 uRip0;
+uniform vec4 uRip1;
+uniform vec4 uRip2;
+uniform vec4 uRip3;
+uniform vec4 uRip4;
+uniform vec4 uRip5;
+uniform vec2 uDons;
 uniform sampler2D uRef;
 
 out vec4 fragColor;
 
 float hs(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+
+vec2 rip(vec4 R, vec2 p, float Hc, float cx) {
+  if (R.w <= 0.0) return vec2(0.0);
+  float zr = Hc * uF / (R.y + uHz), xr = (R.x - cx) * zr / uF;
+  vec2 dv = p - vec2(xr, zr);
+  float r = length(dv) + 1e-4, sc = zr / 40.0;
+  float rad = R.z * 2.4 * sc, k = 7.8 / sc;
+  float env = exp(-pow((r - rad) * k * 0.13, 2.0)) * exp(-R.z * 1.15) * R.w;
+  return dv / r * cos((r - rad) * k) * env * 0.15;
+}
 
 float vn(vec2 p) {
   vec2 i = floor(p), f = fract(p);
@@ -87,6 +104,9 @@ void main() {
       }
     }
   }
+  s += rip(uRip0, p, Hc, cx) + rip(uRip1, p, Hc, cx) + rip(uRip2, p, Hc, cx)
+     + rip(uRip3, p, Hc, cx) + rip(uRip4, p, Hc, cx) + rip(uRip5, p, Hc, cx);
+  if (uDons.y > 0.0) { float dd = px - uDons.x; s.x -= dd / 3025.0 * exp(-dd * dd / 6050.0) * 3.0 * uDons.y; }
   vec3 N = normalize(vec3(-s.x, 1.0, -s.y));
   vec3 V = normalize(vec3(x, -Hc, z));
   vec3 R = reflect(V, N);
