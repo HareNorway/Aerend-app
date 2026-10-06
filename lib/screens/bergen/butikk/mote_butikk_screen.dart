@@ -2032,24 +2032,17 @@ class _Chip extends StatelessWidget {
               ? cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)])
               : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
           border: Border.all(color: on ? rgba(255, 255, 255, .5) : rgba(255, 255, 255, .24)),
-          boxShadow: on
-              ? [
-                  BoxShadow(
-                    color: rgba(120, 50, 10, .9),
-                    offset: Offset(0, 10 * s),
-                    blurRadius: onbBlur(16 * s),
-                    spreadRadius: -8 * s,
-                  ),
-                  BoxShadow(color: rgba(150, 60, 15, .85), offset: Offset(0, 3 * s)),
-                ]
-              : [
-                  BoxShadow(
-                    color: rgba(0, 0, 0, .6),
-                    offset: Offset(0, 6 * s),
-                    blurRadius: onbBlur(12 * s),
-                    spreadRadius: -9 * s,
-                  ),
-                ],
+          // Two shadows in both states, so the spring (which overshoots)
+          // only ever moves between them and never scales one to nothing.
+          boxShadow: [
+            BoxShadow(
+              color: on ? rgba(120, 50, 10, .9) : rgba(0, 0, 0, .6),
+              offset: Offset(0, (on ? 10 : 6) * s),
+              blurRadius: onbBlur((on ? 16 : 12) * s),
+              spreadRadius: (on ? -8 : -9) * s,
+            ),
+            BoxShadow(color: on ? rgba(150, 60, 15, .85) : rgba(150, 60, 15, 0), offset: Offset(0, 3 * s)),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

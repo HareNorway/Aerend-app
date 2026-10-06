@@ -611,8 +611,11 @@ void main() {
       await tester.tap(find.byKey(const Key('a1_butikk_merke_alle')));
       await tester.pump(const Duration(seconds: 1));
 
-      // T-skjorter keeps the tee.
+      // T-skjorter keeps the tee (frame by frame: the chip springs).
       await tester.tap(find.byKey(const Key('a1_butikk_filter_1')));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
       await tester.pump(const Duration(seconds: 1));
       await tester.dragUntilVisible(
         find.byKey(const Key('a1_butikk_hylle_12')),
@@ -729,11 +732,16 @@ void main() {
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('59 kr'));
       expect(find.text('Mild'), findsOneWidget);
       await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_21')));
-      await tester.pump(const Duration(milliseconds: 400));
+      // Frame by frame: the check's spring overshoots mid-way.
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('75 kr'));
       await tester.ensureVisible(find.byKey(const Key('a1_butikk_prod_opt_32')));
       await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_32')));
-      await tester.pump(const Duration(milliseconds: 400));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
       expect(find.text('Hot'), findsOneWidget);
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('75 kr'));
     });

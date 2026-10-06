@@ -65,7 +65,10 @@ class ProduktHero extends StatelessWidget {
                   if (fx > 0)
                     Positioned.fill(
                       child: IgnorePointer(
-                        child: Opacity(opacity: fx, child: const RepaintBoundary(child: _Damp())),
+                        child: Opacity(
+                          opacity: fx,
+                          child: const RepaintBoundary(child: _Damp()),
+                        ),
                       ),
                     ),
                   if (mini > 0)
@@ -89,12 +92,7 @@ class ProduktHero extends StatelessWidget {
                               SizedBox(height: 2 * s),
                               Text(
                                 sum,
-                                style: bText(
-                                  context,
-                                  12,
-                                  weight: FontWeight.w800,
-                                  color: const Color(0xFFFFB27A),
-                                ),
+                                style: bText(context, 12, weight: FontWeight.w800, color: const Color(0xFFFFB27A)),
                               ),
                             ],
                           ),
@@ -291,10 +289,7 @@ class _Bakgrunn extends StatelessWidget {
             child: Opacity(
               opacity: fx,
               child: const RepaintBoundary(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [_Ring(forsinkelse: 0), _Ring(forsinkelse: 2100)],
-                ),
+                child: Stack(alignment: Alignment.center, children: [_Ring(forsinkelse: 0), _Ring(forsinkelse: 2100)]),
               ),
             ),
           ),
@@ -392,53 +387,48 @@ class _Damp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    Widget wisp(double left, double top, double w, double h, double a, double ms, double delay) =>
-        Positioned(
-          left: 0,
-          right: 0,
-          top: top * s,
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: 1,
-            child: Align(
-              alignment: Alignment(left * 2 - 1, -1),
-              child: BergenLoop(
-                durationMs: ms,
-                delayMs: delay,
-                child: Container(
-                  width: w * s,
-                  height: h * s,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.elliptical(w * s / 2, h * s / 2)),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        rgba(255, 255, 255, 0),
-                        rgba(255, 255, 255, a * .7),
-                        rgba(255, 255, 255, 0),
-                      ],
-                    ),
-                  ),
+    Widget wisp(double left, double top, double w, double h, double a, double ms, double delay) => Positioned(
+      left: 0,
+      right: 0,
+      top: top * s,
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: 1,
+        child: Align(
+          alignment: Alignment(left * 2 - 1, -1),
+          child: BergenLoop(
+            durationMs: ms,
+            delayMs: delay,
+            child: Container(
+              width: w * s,
+              height: h * s,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.elliptical(w * s / 2, h * s / 2)),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [rgba(255, 255, 255, 0), rgba(255, 255, 255, a * .7), rgba(255, 255, 255, 0)],
                 ),
-                builder: (context, p, child) {
-                  if (p == null) return const SizedBox.shrink();
-                  final e = Curves.easeInOut.transform(p);
-                  final o = kf(p, const [0, .35, 1], const [0, .9, 0], Curves.easeInOut);
-                  return Opacity(
-                    opacity: o,
-                    child: Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.translationValues(6 * s * e, (26 - 60 * e) * s, 0)
-                        ..scaleByDouble(.7 + .6 * e, 1, 1, 1),
-                      child: child,
-                    ),
-                  );
-                },
               ),
             ),
+            builder: (context, p, child) {
+              if (p == null) return const SizedBox.shrink();
+              final e = Curves.easeInOut.transform(p);
+              final o = kf(p, const [0, .35, 1], const [0, .9, 0], Curves.easeInOut);
+              return Opacity(
+                opacity: o,
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.translationValues(6 * s * e, (26 - 60 * e) * s, 0)
+                    ..scaleByDouble(.7 + .6 * e, 1, 1, 1),
+                  child: child,
+                ),
+              );
+            },
           ),
-        );
+        ),
+      ),
+    );
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -488,11 +478,7 @@ class _Rett extends StatelessWidget {
             children: [
               const ColoredBox(color: Color(0xFFFBF7EE)),
               if ((url ?? '').isNotEmpty)
-                Image.network(
-                  url!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                ),
+                Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
               const RepaintBoundary(child: _Glint()),
             ],
           ),
@@ -550,8 +536,7 @@ class _Glint extends StatelessWidget {
           final w = c.maxWidth * .34;
           final x = -1.4 * w + (5 * w) * e;
           return Transform(
-            transform: Matrix4.translationValues(x, 0, 0)
-              ..multiply(Matrix4.skewX(-18 * math.pi / 180)),
+            transform: Matrix4.translationValues(x, 0, 0)..multiply(Matrix4.skewX(-18 * math.pi / 180)),
             child: Align(
               alignment: Alignment.centerLeft,
               child: SizedBox(
@@ -614,11 +599,31 @@ class ProduktTilvalg extends StatelessWidget {
     final ok = !en || n > 0;
     final (String merke, Color bg, Color kant, Color fg) = en
         ? (ok
-              ? (ButikkCopy.a1_butikk_prod_valgt_en, rgba(127, 240, 203, .14), rgba(127, 240, 203, .45), const Color(0xFF7FF0CB))
-              : (ButikkCopy.a1_butikk_prod_paakrevd, rgba(242, 109, 61, .18), rgba(249, 162, 115, .6), const Color(0xFFFFB27A)))
+              ? (
+                  ButikkCopy.a1_butikk_prod_valgt_en,
+                  rgba(127, 240, 203, .14),
+                  rgba(127, 240, 203, .45),
+                  const Color(0xFF7FF0CB),
+                )
+              : (
+                  ButikkCopy.a1_butikk_prod_paakrevd,
+                  rgba(242, 109, 61, .18),
+                  rgba(249, 162, 115, .6),
+                  const Color(0xFFFFB27A),
+                ))
         : (n > 0
-              ? (ButikkCopy.a1_butikk_prod_valgt(n), rgba(127, 240, 203, .14), rgba(127, 240, 203, .45), const Color(0xFF7FF0CB))
-              : (ButikkCopy.a1_butikk_prod_valgfritt, rgba(255, 255, 255, .08), rgba(255, 255, 255, .16), rgba(255, 255, 255, .62)));
+              ? (
+                  ButikkCopy.a1_butikk_prod_valgt(n),
+                  rgba(127, 240, 203, .14),
+                  rgba(127, 240, 203, .45),
+                  const Color(0xFF7FF0CB),
+                )
+              : (
+                  ButikkCopy.a1_butikk_prod_valgfritt,
+                  rgba(255, 255, 255, .08),
+                  rgba(255, 255, 255, .16),
+                  rgba(255, 255, 255, .62),
+                ));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -650,7 +655,10 @@ class ProduktTilvalg extends StatelessWidget {
                   color: bg,
                   border: Border.all(color: kant),
                 ),
-                child: Text(merke, style: bText(context, 10.5, weight: FontWeight.w800, color: fg)),
+                child: Text(
+                  merke,
+                  style: bText(context, 10.5, weight: FontWeight.w800, color: fg),
+                ),
               ),
             ],
           ),
@@ -749,23 +757,21 @@ class _Rad extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: rund ? BoxShape.circle : BoxShape.rectangle,
                   borderRadius: rund ? null : BorderRadius.circular(7 * s),
-                  border: Border.all(
-                    color: on ? const Color(0xFF7FF0CB) : rgba(255, 255, 255, .42),
-                    width: 2 * s,
-                  ),
+                  border: Border.all(color: on ? const Color(0xFF7FF0CB) : rgba(255, 255, 255, .42), width: 2 * s),
                   gradient: on ? cssLinear(160, const [Color(0xFF9CF5D6), Color(0xFF3FD0A4)]) : null,
                   color: on ? null : rgba(255, 255, 255, .04),
-                  boxShadow: on
-                      ? [
-                          BoxShadow(
-                            color: rgba(47, 184, 147, .8),
-                            offset: Offset(0, 6 * s),
-                            blurRadius: onbBlur(12 * s),
-                            spreadRadius: -5 * s,
-                          ),
-                          BoxShadow(color: rgba(127, 240, 203, .16), spreadRadius: 4 * s),
-                        ]
-                      : null,
+                  // The same two shadows on and off (off = transparent): the
+                  // spring overshoots past 1, and fading a shadow out to
+                  // nothing would then scale its blur below zero.
+                  boxShadow: [
+                    BoxShadow(
+                      color: rgba(47, 184, 147, on ? .8 : 0),
+                      offset: Offset(0, 6 * s),
+                      blurRadius: onbBlur(12 * s),
+                      spreadRadius: -5 * s,
+                    ),
+                    BoxShadow(color: rgba(127, 240, 203, on ? .16 : 0), spreadRadius: 4 * s),
+                  ],
                 ),
                 child: AnimatedScale(
                   duration: const Duration(milliseconds: 220),
@@ -784,12 +790,7 @@ class _Rad extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 12 * s),
                   child: Text(
                     v.name,
-                    style: bText(
-                      context,
-                      14,
-                      weight: on ? FontWeight.w800 : FontWeight.w600,
-                      height: 1.25,
-                    ),
+                    style: bText(context, 14, weight: on ? FontWeight.w800 : FontWeight.w600, height: 1.25),
                   ),
                 ),
               ),
@@ -818,12 +819,7 @@ class _Rad extends StatelessWidget {
 /// Two-up glass cards with the dish floating over each, its name and price,
 /// and the orange + that turns into a mint ✓ once it is in the basket.
 class ProduktOfteMed extends StatelessWidget {
-  const ProduktOfteMed({
-    super.key,
-    required this.items,
-    required this.lagt,
-    required this.onAdd,
-  });
+  const ProduktOfteMed({super.key, required this.items, required this.lagt, required this.onAdd});
 
   final List<BergenMenuItem> items;
   final Set<int> lagt;
@@ -846,7 +842,9 @@ class ProduktOfteMed extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _MedKort(m: items[i], on: lagt.contains(items[i].id), onAdd: () => onAdd(items[i]))),
+              Expanded(
+                child: _MedKort(m: items[i], on: lagt.contains(items[i].id), onAdd: () => onAdd(items[i])),
+              ),
               SizedBox(width: 10 * s),
               Expanded(
                 child: i + 1 < items.length
@@ -880,11 +878,11 @@ class _MedKort extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(10 * s, 0, 10 * s, 10 * s),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20 * s),
-          gradient: cssLinear(165, [
-            rgba(255, 255, 255, .18),
-            rgba(255, 255, 255, .07),
-            rgba(255, 255, 255, .04),
-          ], const [0, .4, 1]),
+          gradient: cssLinear(
+            165,
+            [rgba(255, 255, 255, .18), rgba(255, 255, 255, .07), rgba(255, 255, 255, .04)],
+            const [0, .4, 1],
+          ),
           border: Border.all(color: rgba(255, 255, 255, .22)),
           boxShadow: [
             BoxShadow(
@@ -962,12 +960,14 @@ class _MedKort extends StatelessWidget {
                                 child: (url ?? '').isEmpty
                                     ? const DecoratedBox(
                                         decoration: BoxDecoration(
-                                          gradient: RadialGradient(
-                                            colors: [Color(0xFFFDF0D8), Color(0xFFE7B66C)],
-                                          ),
+                                          gradient: RadialGradient(colors: [Color(0xFFFDF0D8), Color(0xFFE7B66C)]),
                                         ),
                                       )
-                                    : Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                                    : Image.network(
+                                        url!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                                      ),
                               ),
                             ),
                           ],
@@ -1043,7 +1043,10 @@ class _MedKort extends StatelessWidget {
 /// Up to four other dishes to suggest beside [item]: drinks and sides first
 /// (what people add to a meal), then the rest of the menu.
 List<BergenMenuItem> produktOfteMed(BergenMenuItem item, List<BergenMenuItem> meny) {
-  final andre = [for (final m in meny) if (m.id != item.id && m.price > 0) m];
+  final andre = [
+    for (final m in meny)
+      if (m.id != item.id && m.price > 0) m,
+  ];
   bool tilbeh(BergenMenuItem m) => RegExp(
     r'drikk|brus|soda|cola|fanta|sprite|vann|juice|tilbeh|fries|frites|pommes|side|dip|saus|dessert|is\b',
     caseSensitive: false,
