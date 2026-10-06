@@ -37,6 +37,39 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_velger_tom = 'Hylla er tom akkurat nå.';
 
   // Liga (≈L6368)
+  static const String a3_poeng_liga_med_toast = 'Du er med i Fløyen-ligaen';
+  static const String a3_poeng_liga_av_title = 'Meld deg av Fløyen-ligaen';
+  static const String a3_poeng_liga_av_linje = 'Du beholder poengene dine. Navnet ditt forsvinner fra listen med én gang.';
+  static const String a3_poeng_liga_av_poeng = 'Poengene dine';
+  static const String a3_poeng_liga_av_poeng_sub = 'Blir som de er';
+  static const String a3_poeng_liga_av_premie = 'Denne månedens premie';
+  static const String a3_poeng_liga_av_premie_sub = 'Du er ikke med i kåringen';
+  static const String a3_poeng_liga_meld_meg_av = 'Meld meg av';
+  static const String a3_poeng_liga_av_toast = 'Meldt av · navnet ditt er fjernet fra listene';
+  static const String a3_poeng_liga_vilkaar_title = 'Vilkår for Fløyen-ligaen';
+  static const String a3_poeng_liga_vilkaar_linje = 'Ligaen nullstilles den første i hver måned.';
+  static const List<List<String>> a3_poeng_liga_vilkaar_rader = [
+    ['Teller', 'Poengene du samler i måneden'],
+    ['Premier', '1. Middag for to · 2. Gratis levering i ett år · 3. Kveld på Fløyen'],
+    ['Månedsslutt', 'Nordlys over Fløyen, så nullstilling'],
+    ['Utestengelse', 'Kontoer med uvanlig mønster tas ut av listen'],
+  ];
+  static String a3_poeng_liga_min_plass(int rank, String navn) => '$rank. plass · vises som $navn';
+  static const String a3_poeng_liga_ute = 'Ikke med — velg et visningsnavn for å bli med';
+  static String a3_poeng_liga_navn_rad(String navn) => 'Navn i ligaen · $navn';
+  static const String a3_poeng_liga_ikke_valgt = 'Ikke valgt ennå';
+  static String a3_poeng_liga_syn(String syn) => 'Synlighet: $syn';
+  static const String a3_poeng_liga_navn_ute = 'Du velger navnet selv — fullt navn vises aldri';
+  static const String a3_poeng_liga_bli_med_tittel = 'Bli med i Fløyen-ligaen';
+  static const String a3_poeng_liga_maanedens = 'Månedens premier';
+  static const String a3_poeng_liga_kan_ikke = 'Kan ikke kjøpes på hylla';
+  static const String a3_poeng_liga_se_slutt = 'Se månedsslutten';
+  static const String a3_poeng_liga_tom = 'Ingen klatrere ennå denne måneden.';
+  static const List<String> _mnd = ['JANUAR', 'FEBRUAR', 'MARS', 'APRIL', 'MAI', 'JUNI', 'JULI', 'AUGUST', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
+  static String a3_poeng_liga_poeng_i(String? month) {
+    final m = int.tryParse((month ?? '').split('-').elementAtOrNull(1) ?? '');
+    return m == null || m < 1 || m > 12 ? 'POENG' : 'POENG I ${_mnd[m - 1]}';
+  }
   static const String a3_poeng_liga_title = 'Fløyen-ligaen';
   static const String a3_poeng_liga_vilkaar = 'Vilkår';
   static const String a3_poeng_liga_hele = 'Hele Bergen';
@@ -68,6 +101,8 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_opprykk_valgt = 'Ægil valgte den til deg. Koster ingen poeng.';
   static const String a3_poeng_opprykk_hent = 'Hent';
   static const String a3_poeng_opprykk_hylla = 'Hylla di har fått tre nye premier.';
+  static String a3_poeng_opprykk_nye(int n) => n == 1 ? 'Hylla di har fått én ny premie.' : (n == 0 ? 'Hylla di er oppdatert.' : 'Hylla di har fått ${_tall(n)} nye premier.');
+  static String _tall(int n) => const ['null', 'én', 'to', 'tre', 'fire', 'fem', 'seks', 'sju', 'åtte', 'ni', 'ti'].elementAtOrNull(n) ?? '$n';
   static const String a3_poeng_opprykk_se = 'Se hylla';
   static const String a3_poeng_opprykk_hopp = 'Hopp over';
   static const String a3_poeng_opprykk_ferdig = 'Ferdig';

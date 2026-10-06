@@ -275,6 +275,14 @@ class OpsCustomerApi {
     () => _get('api/points/me/ledger', query: {'order': '$orderId'}),
   );
 
+  /// `GET /api/points/me/ledger` (guarded) — the latest ledger entries, for
+  /// the Ærend-kroner each order earned (Ordrehistorikk).
+  Future<List<Map<String, dynamic>>> pointsLedger() async {
+    final json = await _guarded(() => _get('api/points/me/ledger'));
+    final list = json?['ledger'];
+    return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
+  }
+
   /// `GET /api/points/me/referral` (guarded) — the vervebillett code.
   Future<Map<String, dynamic>?> referral() =>
       _guarded(() => _get('api/points/me/referral'));

@@ -151,14 +151,19 @@ void main() {
     final api = _FakeFavs()..server.addAll({31, 32});
     FavouriteStores.instance.reset(api: api);
 
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MaterialApp(home: FavoritterScreen()));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.byKey(const Key('fav-liste')), findsOneWidget);
+    expect(find.byKey(const Key('fav-store-31')), findsOneWidget);
     expect(find.text('Butikk 31'), findsOneWidget);
     expect(find.text('Butikk 12'), findsOneWidget);
     expect(find.byKey(const Key('fav-kast')), findsNothing);
 
+    await tester.pump(const Duration(milliseconds: 400)); // the page's entrance
     await tester.tap(find.byKey(const Key('fav-heart-31')));
     await tester.pump();
     expect(find.text('Butikk 31'), findsNothing);

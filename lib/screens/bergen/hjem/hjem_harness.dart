@@ -164,6 +164,10 @@ abstract final class HjemHarness {
   /// Ægil-guide on that screen at once (`utforsk`, `kategori`, `butikk`,
   /// `kurv`), `guideIdx` on that tip.
   static String? aegil, aegTekst, guide;
+
+  /// Step 12: push this `/bergen/…` route from Hjem (`rute`), with `ruteArg` as
+  /// its argument.
+  static String? rute, ruteArg;
   static List<String>? aegSi;
   static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
   static double? aegScroll;
@@ -223,6 +227,7 @@ abstract final class HjemHarness {
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         fiskeFase = fiskeAgn = null;
         aegil = aegTekst = guide = null;
+        rute = ruteArg = null;
         aegSi = null;
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegScroll = null;
@@ -303,6 +308,8 @@ abstract final class HjemHarness {
       fiskeFase = m['fiskeFase'] as String?;
       fiskeAgn = m['fiskeAgn'] as String?;
       aegil = m['aegil'] as String?;
+      rute = m['rute'] as String?;
+      ruteArg = m['ruteArg']?.toString();
       aegTekst = m['aegTekst'] as String?;
       aegSi = (m['aegSi'] as List?)?.cast<String>();
       aegTenk = m['aegTenk'] == true;

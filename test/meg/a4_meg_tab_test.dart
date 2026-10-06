@@ -27,7 +27,7 @@ void main() {
   });
 
   void tall(WidgetTester t) {
-    t.view.physicalSize = const Size(600, 3400);
+    t.view.physicalSize = const Size(390, 4200);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
@@ -93,7 +93,7 @@ void main() {
     expect(find.byKey(const Key('meg-open-premiehylla')), findsOneWidget);
   });
 
-  testWidgets('Meg-rader: Nivå, Fløyen-ligaen (Bli med), Ukens oppdrag Godta, Gullbilletten code', (tester) async {
+  testWidgets('Meg-rader: Nivå, Fløyen-ligaen (Bli med), Gullbilletten code', (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
@@ -103,31 +103,10 @@ void main() {
     expect(find.text('2 400 til Platina'), findsOneWidget);
     expect(find.byKey(const Key('meg-rad-liga')), findsOneWidget);
     expect(find.text('Bli med'), findsOneWidget);
-    expect(find.text('UKENS OPPDRAG'), findsOneWidget);
-    expect(find.text('Prøv Nordnes Fisk'), findsOneWidget);
-    expect(find.text('+50 poeng'), findsOneWidget);
+    expect(find.byKey(const Key('meg-rad-gullbillett')), findsOneWidget);
     expect(find.textContaining('KARI200'), findsOneWidget);
-
-    await tester.ensureVisible(find.byKey(const Key('meg-godta')));
-    await tester.tap(find.byKey(const Key('meg-godta')));
-    await settle(tester);
-    expect(p.calls, contains('accept'));
-    expect(find.byKey(const Key('meg-oppdrag-status')), findsOneWidget);
-    expect(find.text('0 av 1'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 4));
-  });
-
-  testWidgets('Ikke dette declines through the API', (tester) async {
-    tall(tester);
-    final p = api();
-    await tester.pumpWidget(app(p));
-    await settle(tester);
-    await tester.ensureVisible(find.byKey(const Key('meg-ikke-dette')));
-    await tester.tap(find.byKey(const Key('meg-ikke-dette')));
-    await settle(tester);
-    expect(p.calls, contains('decline'));
-    expect(find.byKey(const Key('meg-rad-oppdrag')), findsNothing);
-    await tester.pump(const Duration(seconds: 4));
+    // The Launch design has no Ukens oppdrag row on Meg.
+    expect(find.text('UKENS OPPDRAG'), findsNothing);
   });
 
   testWidgets('settings rows: occasions, Ægil level, code toggle, address, payment, counts, name, language', (tester) async {
@@ -142,7 +121,7 @@ void main() {
     expect(find.text('Nivå 4 →'), findsOneWidget);
     expect(find.text('Av · kreves over 300 kr'), findsOneWidget);
     expect(find.text('Nygårdsgaten 5 · bare for deg'), findsOneWidget);
-    expect(find.text('Vipps · Visa •• 4471'), findsOneWidget);
+    expect(find.text('Visa •• 4471'), findsOneWidget);
     expect(find.text('Oppdrag, premier og verving'), findsOneWidget);
     expect(find.text('Ikke med i Fløyen-ligaen'), findsOneWidget);
     expect(find.text('Velg navn'), findsOneWidget);

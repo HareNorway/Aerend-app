@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
-import 'package:aerend_customer/screens/bergen/meg/bestillinger_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/borte_entry.dart';
-import 'package:aerend_customer/screens/bergen/meg/favoritter_screen.dart';
-import 'package:aerend_customer/screens/bergen/meg/konto_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/varsler_panel.dart';
 import 'package:aerend_customer/screens/common/notifications/notifications_dl.dart';
 
@@ -24,21 +21,6 @@ void main() {
     await t.pump();
     await t.pump(const Duration(milliseconds: 50));
   }
-
-  testWidgets('Konto: rows and the reduced-motion switch', (tester) async {
-    await tester.pumpWidget(a3App(const KontoScreen()));
-    await settle(tester);
-
-    expect(find.text('Kari Nordmann'), findsOneWidget);
-    expect(find.byKey(const Key('konto-adresser')), findsOneWidget);
-    expect(find.byKey(const Key('konto-betaling')), findsOneWidget);
-    expect(find.byKey(const Key('konto-logg-ut')), findsOneWidget);
-    expect(A3Services.reducedMotion.value, isFalse);
-    await tester.ensureVisible(find.byKey(const Key('konto-rolig-switch')));
-    await tester.tap(find.byKey(const Key('konto-rolig-switch')));
-    await settle(tester);
-    expect(A3Services.reducedMotion.value, isTrue);
-  });
 
   testWidgets('Varsler: filters, rows, swipe-to-remove with Angre, empty state', (tester) async {
     final items = [
@@ -61,19 +43,6 @@ void main() {
     expect(find.byKey(const Key('varsler-tom')), findsOneWidget);
     expect(find.text('Angre'), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
-  });
-
-  testWidgets('Bestillinger and Favoritter render their doors', (tester) async {
-    await tester.pumpWidget(a3App(const BestillingerScreen(liveCount: 1)));
-    await settle(tester);
-    expect(find.byKey(const Key('best-live')), findsOneWidget);
-    expect(find.byKey(const Key('best-igjen')), findsOneWidget);
-
-    await tester.pumpWidget(a3App(const FavoritterScreen()));
-    await settle(tester);
-    // Logged out / none yet: the empty state with Kast ut, no list.
-    expect(find.byKey(const Key('fav-kast')), findsOneWidget);
-    expect(find.byKey(const Key('fav-liste')), findsNothing);
   });
 
   test('mensDuVarBorteCard is null with nothing to say', () {

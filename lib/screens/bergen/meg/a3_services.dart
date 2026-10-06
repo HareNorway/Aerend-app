@@ -28,6 +28,10 @@ abstract final class A3Services {
   static Future<List<String>> Function() addresses = _defaultAddresses;
   static Future<List<String>> Function() cards = _defaultCards;
 
+  /// Konto lists the saved addresses whole (type, flat, landmark) so a
+  /// radio can pick the delivery address the way Velg leveringsadresse does.
+  static Future<List<AddressListItem>> Function() addressList = _defaultAddressList;
+
   @visibleForTesting
   static void reset() {
     points = () => PointsAppRepo();
@@ -38,8 +42,12 @@ abstract final class A3Services {
     paymentLine = _defaultPaymentLine;
     addresses = _defaultAddresses;
     cards = _defaultCards;
+    addressList = _defaultAddressList;
   }
 }
+
+Future<List<AddressListItem>> _defaultAddressList() async =>
+    AddressListPojo.fromJson(await ManageAddressRepo().callAddressListApi()).addressList.where((a) => a.address.trim().isNotEmpty).toList();
 
 Future<List<String>> _defaultAddresses() async {
   final pojo = AddressListPojo.fromJson(await ManageAddressRepo().callAddressListApi());

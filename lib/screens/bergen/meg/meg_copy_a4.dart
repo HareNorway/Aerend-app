@@ -14,6 +14,7 @@ abstract final class A4MegCopy {
   static const String a4_meg_bydel = 'Møhlenpris';
   static const String a4_meg_region = 'Bergenhus';
   static const String a4_meg_premie_levering = 'Premie: gratis levering';
+  static String a4_meg_premie(String navn) => 'Premie: ${navn.isEmpty ? navn : navn[0].toLowerCase() + navn.substring(1)}';
   static const String a4_meg_gullbilletten = 'Gullbilletten';
   static String a4_meg_gi_faa(int give, int get) => 'Gi $give · få $get poeng';
   static String a4_meg_gi_faa_kode(int give, int get, String code) => 'Gi $give poeng, få $get poeng · $code';
@@ -71,6 +72,22 @@ abstract final class A4MegCopy {
   static const String a4_meg_adresser = 'Adresser';
   static const String a4_meg_adresser_bare = 'bare for deg';
   static const String a4_meg_adresser_tom = 'Legg til adresse';
+  static const String a4_meg_adresser_dor = 'Adresser og dørtekst';
+  static const String a4_meg_ordrer = 'Ordrehistorikk';
+  static const String a4_meg_ordrer_tom = 'Ingen bestillinger ennå';
+  static String a4_meg_ordrer_sub(int n, String sist) => '$n ${n == 1 ? 'bestilling' : 'bestillinger'} · sist $sist';
+  static String a4_meg_sparte(int kr) => 'Ægil sparte deg ${_nf(kr)} kr';
+  static String a4_meg_tillit_sub(int n) => 'Tillitsregnskap · $n råd mot egen interesse';
+  static const String a4_meg_support = 'Support';
+  static const String a4_meg_support_sub = 'Chat med Ærend · et menneske er alltid ett trykk unna';
+  static const String a4_meg_konto = 'Konto';
+  static const String a4_meg_konto_sub = 'Innlogging, varsler og personvern';
+
+  // Ægil's tips on the Meg hero (`megBobleTx`, one per tap on him).
+  static const String a4_meg_tips_hylla = 'Poengene bytter du i premier på hylla.';
+  static const String a4_meg_tips_nivaa = 'Du går opp i nivå når du handler hos butikkene i Bergen.';
+  static const String a4_meg_tips_verv = 'Verv en venn, så får dere poeng begge to.';
+  static const String a4_meg_tips_trykk = 'Trykk på meg når du vil ha et nytt tips.';
   static const String a4_meg_betaling = 'Betaling';
   static const String a4_meg_betaling_vipps = 'Vipps';
   static const String a4_meg_varsler = 'Varsler';
@@ -219,7 +236,7 @@ abstract final class A4MegCopy {
   // Ark · Ukeshandel / Hjelp / Språk / Betaling / Adresser
   static const String a4_meg_aegil_la_til = 'Ægil la til';
   static const String a4_meg_kjopt = 'Kjøpt';
-  static const String a4_meg_om_aegil_sub = 'AI-opplysning og vilkår';
+  static const String a4_meg_om_aegil_sub = 'AI-opplysning · vilkår';
   static const List<List<String>> a4_meg_spraak_valg = [
     ['no', 'Norsk bokmål'],
     ['en', 'English'],
@@ -234,6 +251,20 @@ abstract final class A4MegCopy {
   static const String a4_meg_adresser_linje = 'Dørteksten tolkes til chips. Samtykke styrer om budene ser den.';
 
   // Premiehylla (design `Premiehylla` ≈L6177)
+  static const String a4_hylla_kode = 'Kode';
+  static String a4_hylla_dager_igjen(int n) => '$n dager igjen';
+  static String a4_hylla_aktive(int n) => '$n aktive';
+  static const String a4_hylla_intro_l = 'Prisene står i poeng. Sett én som mål, så følger Ægil deg dit.';
+  static const String a4_hylla_velger_linje_l = 'En premie som passer deg';
+  static const String a4_hylla_nivaa_kicker = 'NIVÅ';
+  static String a4_hylla_poeng_tx(int n) => '${_nf(n)} poeng';
+  static const String a4_hylla_chip_klar = 'Klar';
+  static const String a4_hylla_chip_sendt = 'Sendt';
+  static const String a4_hylla_chip_brukt = 'Brukt';
+  static const String a4_hylla_chip_utlopt = 'Utløpt';
+  static const String a4_hylla_detaljer = 'Detaljer';
+  static const String a4_hylla_utsolgt = 'UTSOLGT';
+  static const String a4_hylla_maal_merke = 'MÅL';
   static const String a4_hylla_title = 'Premiehylla';
   static const String a4_hylla_sub = 'Bytt poeng i noe godt fra Bergen';
   static const String a4_hylla_maalet_ditt = 'MÅLET DITT';
