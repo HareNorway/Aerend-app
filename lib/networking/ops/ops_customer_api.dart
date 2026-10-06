@@ -312,7 +312,11 @@ class OpsCustomerApi {
             etaMinutes: (s.orderDeliveryTime ?? 0) > 0
                 ? s.orderDeliveryTime
                 : null,
-            rating: s.averageRatings == null ? null : '${s.averageRatings}',
+            // "4,6"; a shop nobody has rated yet shows no stars.
+            rating: switch (double.tryParse(s.averageRatings)) {
+              final r? when r > 0 => r.toStringAsFixed(1).replaceAll('.', ','),
+              _ => null,
+            },
             feeText: null,
             bannerUrl: (s.storeBanner ?? '').isEmpty ? null : s.storeBanner,
             open: (s.storeStatus ?? 1) == 1,

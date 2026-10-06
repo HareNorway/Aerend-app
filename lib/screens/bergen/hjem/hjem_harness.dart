@@ -48,6 +48,32 @@ abstract final class HjemHarness {
   /// Pick the first address suggestion.
   static bool adrVelg = false;
 
+  /// Open Søk with this query (`""` for the overview).
+  static String? sok;
+
+  /// Søk's recent searches, written to the device before Søk opens:
+  /// `[["sushi", 2], …]` (term, hours ago).
+  static List<List<Object>>? sokNylig;
+
+  /// Show the prototype's three "Populært i Bergen nå" rows while the local
+  /// trending list is empty (no orders in the last seven days).
+  static bool sokPop = false;
+
+  /// Give the search field focus once Søk is open.
+  static bool sokFokus = false;
+
+  /// Open the Kategori screen for this wheel slot (0 Restaurant … 4 Gaver),
+  /// on this tab (`'butikker'` / `'produkter'`).
+  static int? kat;
+  static String? katFane;
+
+  /// Scroll the Kategori list this far (design px) once loaded.
+  static double? katScroll;
+
+  /// Treat every category as live (the launch gate off), so Mote and Gaver
+  /// can be checked against the prototype's `launchModus: false`.
+  static bool katLive = false;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -69,6 +95,14 @@ abstract final class HjemHarness {
         adrSok = null;
         adrDor = null;
         adrVelg = false;
+        sok = null;
+        sokNylig = null;
+        sokPop = false;
+        sokFokus = false;
+        kat = null;
+        katFane = null;
+        katScroll = null;
+        katLive = false;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -87,6 +121,16 @@ abstract final class HjemHarness {
       adrSok = m['adrSok'] as String?;
       adrDor = m['adrDor'] as String?;
       adrVelg = m['adrVelg'] == true;
+      sok = m['sok'] as String?;
+      sokNylig = (m['sokNylig'] as List?)
+          ?.map((e) => List<Object>.from(e as List))
+          .toList();
+      sokPop = m['sokPop'] == true;
+      sokFokus = m['sokFokus'] == true;
+      kat = m['kat'] as int?;
+      katFane = m['katFane'] as String?;
+      katScroll = (m['katScroll'] as num?)?.toDouble();
+      katLive = m['katLive'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

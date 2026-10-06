@@ -14,7 +14,6 @@ import 'package:aerend_customer/screens/bergen/butikk/dreieskiven.dart';
 import 'package:aerend_customer/screens/bergen/butikk/info_sheet.dart';
 import 'package:aerend_customer/screens/bergen/butikk/kategori_screen.dart';
 import 'package:aerend_customer/screens/bergen/butikk/klede_sheet.dart';
-import 'package:aerend_customer/screens/bergen/butikk/mote_butikk_screen.dart';
 import 'package:aerend_customer/screens/bergen/butikk/produkt_sheet.dart';
 import 'package:aerend_customer/screens/common/home/home_dl.dart';
 import 'package:aerend_customer/screens/deliveryService/home/ds_home_store_list_pojo.dart';
@@ -26,17 +25,12 @@ import '../layout/reduced_motion_harness.dart';
 /// Dreieskiven and Poseautomaten — rendering from injected data, and the
 /// route map carrying all three names.
 class _FakeButikk extends OpsButikkApi {
-  _FakeButikk({
-    this.stores = const [],
-    this.products = const [],
-    this.storeInfo,
-    this.opts = const BergenProductOptions(),
-  });
+  _FakeButikk({this.stores = const []});
 
   final List<StoreListItem> stores;
-  final List<ProductList> products;
-  final BergenStoreInfo? storeInfo;
-  final BergenProductOptions opts;
+  final List<ProductList> products = const [];
+  final BergenStoreInfo? storeInfo = null;
+  final BergenProductOptions opts = const BergenProductOptions();
 
   @override
   Future<List<ServicesItem>> categories() async => const [];
@@ -57,11 +51,20 @@ class _FakeButikk extends OpsButikkApi {
 }
 
 class _FakeCustomer extends OpsCustomerApi {
-  _FakeCustomer({this.pulse, this.presence, this.bags = const []});
+  _FakeCustomer({
+    this.pulse,
+    this.bags = const [],
+    this.populaerListe = const [],
+  });
 
   final Map<String, dynamic>? pulse;
-  final Map<String, dynamic>? presence;
+  final Map<String, dynamic>? presence = null;
   final List<Map<String, dynamic>> bags;
+  final List<Map<String, dynamic>> populaerListe;
+
+  @override
+  Future<List<Map<String, dynamic>>> populaert(int categoryId) async =>
+      populaerListe;
 
   @override
   Future<Map<String, dynamic>?> categoryPulse(String slug) async => pulse;
@@ -235,100 +238,187 @@ void main() {
   });
 
   group('Kategori', () {
-    testWidgets('title, open count, pulse strip, tabs and store cards', (
-      tester,
-    ) async {
+    Future<void> vis(WidgetTester tester, KategoriScreen screen) async {
       _frame(tester);
-      await tester.pumpWidget(
-        _app(
-          KategoriScreen(
-            slug: 'restaurant',
-            categoryId: 3,
-            name: 'Restaurant',
-            api: _FakeButikk(
-              stores: [_store('Burger King'), _store('Casa Maria', id: 8)],
-            ),
-            customerApi: _FakeCustomer(
-              pulse: {'orders_last_hour': 12, 'stores_open': 9},
-            ),
+      await tester.pumpWidget(_app(screen));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
+    }
+
+    testWidgets('title, open count, tabs and the store cards', (tester) async {
+      await vis(
+        tester,
+        KategoriScreen(
+          slug: 'restaurant',
+          categoryId: 3,
+          name: 'Restaurant',
+          api: _FakeButikk(
+            stores: [_store('Burger King'), _store('Casa Maria', id: 8)],
+          ),
+          customerApi: _FakeCustomer(
+            pulse: {'orders_last_hour': 12, 'stores_open': 9},
           ),
         ),
       );
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
 
-      expect(find.byKey(const Key('a1_butikk_kat_title')), findsOneWidget);
-      expect(find.text(ButikkCopy.a1_butikk_kat_open(2)), findsOneWidget);
-      expect(find.byKey(const Key('a1_butikk_kat_pulse')), findsOneWidget);
-      expect(
-        find.byKey(const Key('a1_butikk_kat_bilde')),
-        findsOneWidget,
-        reason: 'Mat only: Bestill fra bilde',
-      );
+      expect(find.byKey(const Key('a1_kat_title')), findsOneWidget);
+      expect(find.text('Restaurant'), findsWidgets);
+      expect(find.text(KatCopy.apne('9')), findsOneWidget);
+      expect(find.byKey(const Key('a1_kat_under')), findsOneWidget);
+      expect(find.text('Pizza'), findsOneWidget);
       expect(find.text('Burger King'), findsOneWidget);
       expect(find.text('Casa Maria'), findsOneWidget);
-
-      await tester.tap(find.byKey(const Key('a1_butikk_kat_tab_produkter')));
-      await tester.pump();
       expect(
-        find.text(ButikkCopy.a1_butikk_kat_empty_products),
-        findsOneWidget,
+        find.byKey(const Key('a1_kat_bilde')),
+        findsNothing,
+        reason: 'Bestill fra bilde is Mat & fisk only',
       );
+
+      await tester.tap(find.byKey(const Key('a1_kat_tab_produkter')));
+      await tester.pump();
+      expect(find.text(KatCopy.tomtProdukter), findsOneWidget);
     });
 
-    testWidgets('the Under 30 min filter narrows the stores', (tester) async {
-      _frame(tester);
-      await tester.pumpWidget(
-        _app(
-          KategoriScreen(
-            slug: 'restaurant',
-            categoryId: 3,
-            name: 'Restaurant',
-            api: _FakeButikk(
-              stores: [_store('Rask', eta: 20), _store('Treg', id: 8, eta: 45)],
-            ),
-            customerApi: _FakeCustomer(),
+    testWidgets('the Under 30 min chip narrows the stores', (tester) async {
+      await vis(
+        tester,
+        KategoriScreen(
+          slug: 'restaurant',
+          categoryId: 3,
+          name: 'Restaurant',
+          api: _FakeButikk(
+            stores: [_store('Rask', eta: 20), _store('Treg', id: 8, eta: 45)],
           ),
+          customerApi: _FakeCustomer(),
         ),
       );
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
 
-      await tester.drag(
-        find.byKey(const Key('a1_butikk_kat_filters')),
-        const Offset(-250, 0),
-      );
+      await tester.ensureVisible(find.byKey(const Key('a1_kat_f_rask')));
       await tester.pump();
-      await tester.tap(find.text(ButikkCopy.a1_butikk_kat_f_fast));
+      await tester.tap(find.byKey(const Key('a1_kat_f_rask')));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
       expect(find.text('Rask'), findsOneWidget);
       expect(find.text('Treg'), findsNothing);
     });
 
-    testWidgets('the Gaver variant shows its blocks and no photo button', (
+    testWidgets('the orb turns the chips into a search over the list', (
       tester,
     ) async {
-      _frame(tester);
-      await tester.pumpWidget(
-        _app(
-          KategoriScreen(
-            slug: 'gaver',
-            categoryId: 5,
-            name: 'Gaver',
-            api: _FakeButikk(),
-            customerApi: _FakeCustomer(),
+      await vis(
+        tester,
+        KategoriScreen(
+          slug: 'restaurant',
+          categoryId: 3,
+          name: 'Restaurant',
+          api: _FakeButikk(
+            stores: [_store('Burger King'), _store('Casa Maria', id: 8)],
+          ),
+          customerApi: _FakeCustomer(),
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('a1_kat_sok_orb')));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byKey(const Key('a1_kat_sok')), 'casa');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(find.text('Casa Maria'), findsOneWidget);
+      expect(find.text('Burger King'), findsNothing);
+    });
+
+    testWidgets('products come from the category\'s popular list', (
+      tester,
+    ) async {
+      await vis(
+        tester,
+        KategoriScreen(
+          slug: 'restaurant',
+          categoryId: 3,
+          name: 'Restaurant',
+          api: _FakeButikk(stores: [_store('Burger King')]),
+          customerApi: _FakeCustomer(
+            populaerListe: [
+              {
+                'id': '54',
+                'name': 'Classic m/ pommes',
+                'store_id': 7,
+                'store_name': 'Burger King',
+                'price_ore': 18900,
+                'was_price_ore': 21900,
+                'image': '',
+                'ordered_7d': 0,
+              },
+            ],
           ),
         ),
       );
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
 
-      expect(find.byKey(const Key('a1_butikk_gave_aegil')), findsOneWidget);
-      expect(find.text(ButikkCopy.a1_butikk_gave_anledninger), findsOneWidget);
-      expect(find.byKey(const Key('a1_butikk_kat_bilde')), findsNothing);
+      await tester.tap(find.byKey(const Key('a1_kat_tab_produkter')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
+      expect(find.text('Classic m/ pommes'), findsOneWidget);
+      expect(find.text('189 kr'), findsOneWidget);
+      expect(find.text(KatCopy.tilbud), findsOneWidget);
+    });
+
+    testWidgets('Mat & fisk can order from a photo', (tester) async {
+      await vis(
+        tester,
+        KategoriScreen(
+          slug: 'mat-fisk',
+          categoryId: 4,
+          name: 'Mat & fisk',
+          api: _FakeButikk(),
+          customerApi: _FakeCustomer(),
+        ),
+      );
+      expect(find.byKey(const Key('a1_kat_bilde')), findsOneWidget);
+    });
+
+    testWidgets('Gaver has its own page, Mote its exhibition', (tester) async {
+      await vis(
+        tester,
+        KategoriScreen(
+          slug: 'gaver',
+          categoryId: 5,
+          name: 'Gaver',
+          api: _FakeButikk(),
+          customerApi: _FakeCustomer(),
+        ),
+      );
+      expect(find.byKey(const Key('a1_kat_gaver')), findsOneWidget);
+      expect(find.byKey(const Key('a1_kat_gave_aegil')), findsOneWidget);
+      expect(find.byKey(const Key('a1_kat_bilde')), findsNothing);
+
+      await vis(
+        tester,
+        KategoriScreen(
+          key: const ValueKey('mote'),
+          slug: 'mote',
+          categoryId: 6,
+          name: 'Mote',
+          api: _FakeButikk(stores: [_store('Holzweiler')]),
+          customerApi: _FakeCustomer(),
+        ),
+      );
+      expect(find.byKey(const Key('a1_kat_mote')), findsOneWidget);
+      expect(find.text('Ukens utstilling · Mote'), findsOneWidget);
+    });
+
+    testWidgets('Kategori respects reduced motion', (tester) async {
+      _frame(tester);
+      await expectRespectsReducedMotion(
+        tester,
+        () => KategoriScreen(
+          slug: 'restaurant',
+          categoryId: 3,
+          name: 'Restaurant',
+          api: _FakeButikk(stores: [_store('Burger King')]),
+          customerApi: _FakeCustomer(),
+        ),
+      );
     });
   });
 

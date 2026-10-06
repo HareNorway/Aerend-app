@@ -3,7 +3,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../../bergen/kit/svg_sti.dart';
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
@@ -66,6 +68,9 @@ class BergenBottomNav extends StatefulWidget {
   /// Bumps the Meg tab (scale 1 → 1.18 → 1, 480ms) when incremented.
   static final ValueNotifier<int> megBump = ValueNotifier<int>(0);
 
+  /// Incremented to give the search field focus (a Nylige søk chip).
+  static final ValueNotifier<int> focusSearch = ValueNotifier<int>(0);
+
   @override
   State<BergenBottomNav> createState() => _BergenBottomNavState();
 }
@@ -90,6 +95,11 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
     _lastCount = widget.cartCount.value;
     widget.cartCount.addListener(_onCount);
     widget.searchOpen?.addListener(_onOpen);
+    BergenBottomNav.focusSearch.addListener(_onFocusRequest);
+  }
+
+  void _onFocusRequest() {
+    if (mounted && _search) _focus.requestFocus();
   }
 
   @override
@@ -102,20 +112,12 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
   }
 
   /// The owner opened or closed search mode (the orb, or [openSearch]).
+  /// Opening leaves the field unfocused, as the design's `gaa('sok')` does;
+  /// a tap on it (or a Nylige søk chip) brings the keyboard.
   void _onOpen() {
     if (!mounted) return;
     setState(() {});
-    if (_search) {
-      _focusSoon();
-    } else {
-      _focus.unfocus();
-    }
-  }
-
-  void _focusSoon() {
-    Future<void>.delayed(const Duration(milliseconds: 260), () {
-      if (mounted && _search) _focus.requestFocus();
-    });
+    if (!_search) _focus.unfocus();
   }
 
   void _onCount() {
@@ -127,6 +129,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
   void dispose() {
     widget.cartCount.removeListener(_onCount);
     widget.searchOpen?.removeListener(_onOpen);
+    BergenBottomNav.focusSearch.removeListener(_onFocusRequest);
     _hold?.cancel();
     _ownQuery?.dispose();
     _focus.dispose();
@@ -142,11 +145,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
       return;
     }
     setState(() => _ownSearch = open);
-    if (open) {
-      _focusSoon();
-    } else {
-      _focus.unfocus();
-    }
+    if (!open) _focus.unfocus();
   }
 
   void _submit() {
@@ -162,36 +161,63 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
     final bottom = math.max(MediaQuery.paddingOf(context).bottom, 16 * s);
     return SizedBox(
       height: 62 * s + bottom + 80 * s,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: 14 * s,
-            right: 86 * s,
-            bottom: bottom,
-            height: 62 * s,
-            child: _pill(context),
-          ),
-          Positioned(right: 14 * s, bottom: bottom, child: _orb(context)),
-        ],
+      child: ListenableBuilder(
+        listenable: Listenable.merge([_focus, _query]),
+        builder: (context, _) {
+          final har = _query.text.trim().isNotEmpty;
+          // `fok` (design `sbVals`): in search, focused or holding text.
+          final fok = _search && (_focus.hasFocus || har);
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // `right: sbR` — 86 beside the orb, 14 once the field is in use.
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 500),
+                curve: const Cubic(.3, 1.15, .4, 1),
+                left: 14 * s,
+                right: (fok ? 14 : 86) * s,
+                bottom: bottom,
+                height: 62 * s,
+                child: _pill(context, fok, har),
+              ),
+              Positioned(
+                right: 14 * s,
+                bottom: bottom,
+                child: _orb(context, fok),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _pill(BuildContext context) {
+  Widget _pill(BuildContext context, bool fok, bool har) {
     final s = context.bs;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 450),
+      curve: Curves.ease,
       padding: EdgeInsets.symmetric(horizontal: 7 * s),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        gradient: const LinearGradient(
+        // `sbBg`, `sbKant`, `sbGlod`.
+        gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFF2B5F6E), BergenColors.teal2],
+          colors: fok
+              ? const [Color(0xFF31697A), Color(0xFF21566A)]
+              : const [Color(0xFF2B5F6E), BergenColors.teal2],
         ),
-        border: Border.all(color: const Color(0x47FFFFFF)),
+        border: Border.all(
+          color: fok
+              ? const Color.fromRGBO(92, 224, 184, .6)
+              : const Color(0x47FFFFFF),
+        ),
         boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(92, 224, 184, fok ? .14 : 0),
+            spreadRadius: 4 * s,
+          ),
           BoxShadow(
             color: const Color.fromRGBO(4, 18, 26, .85),
             offset: Offset(0, 18 * s),
@@ -202,6 +228,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
       ),
       child: Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
           bergenInsetTop(radius: 999, alpha: .3),
           // The one orange pill that glides between the tabs (`navPill`).
@@ -232,12 +259,19 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               ),
             ),
           ),
-          IgnorePointer(
-            ignoring: !_search,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 350),
-              opacity: _search ? 1 : 0,
-              child: _searchRow(context),
+          // `padding:0 6px 0 17px` from the pill's edge (it pads 7).
+          Positioned(
+            left: 10 * s,
+            right: -1 * s,
+            top: 0,
+            bottom: 0,
+            child: IgnorePointer(
+              ignoring: !_search,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 350),
+                opacity: _search ? 1 : 0,
+                child: _searchRow(context, fok, har),
+              ),
             ),
           ),
         ],
@@ -377,139 +411,256 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
     );
   }
 
-  Widget _searchRow(BuildContext context) {
+  /// The search field row (`sokOp`): lupe, field, ✕, divider and the
+  /// orange key that is Ægil + mic at rest and a go-lupe with text.
+  Widget _searchRow(BuildContext context, bool fok, bool har) {
     final s = context.bs;
-    return Padding(
-      padding: EdgeInsets.only(left: 10 * s),
-      child: Row(
-        children: [
-          Icon(Icons.search_rounded, size: 20 * s, color: BergenColors.orange),
-          SizedBox(width: 9 * s),
-          Expanded(
-            child: TextField(
-              key: const Key('a1_sok_field'),
-              controller: _query,
-              focusNode: _focus,
-              onSubmitted: (_) => _submit(),
-              textInputAction: TextInputAction.search,
-              cursorColor: BergenColors.mint,
-              style: bDisplay(context, 14, weight: FontWeight.w700),
-              decoration: onbBareInput(
-                hint: BergenCopy.searchHint,
-                hintStyle: bDisplay(
-                  context,
-                  14,
-                  weight: FontWeight.w700,
-                  color: const Color(0x99FFFFFF),
+    const gap = 9.0;
+    return Row(
+      children: [
+        // `sbLupeC` / `sbLupeTr`: rotate(-14deg) scale(1.12), .45s.
+        _Tw(
+          v: fok ? 1 : 0,
+          ms: 450,
+          curve: const Cubic(.3, 1.5, .5, 1),
+          builder: (t) => Transform.rotate(
+            angle: -14 * t * math.pi / 180,
+            child: Transform.scale(
+              scale: 1 + .12 * t,
+              child: _Tw(
+                v: fok ? 1 : 0,
+                ms: 300,
+                curve: Curves.ease,
+                builder: (c) => _SvgIkon(
+                  '${_SvgIkon.sirkel(11, 11, 7)}M20.5 20.5l-4.3-4.3',
+                  size: 18 * s,
+                  stroke: 2.4,
+                  color: Color.lerp(
+                    BergenColors.orange,
+                    BergenColors.mint,
+                    c,
+                  )!,
                 ),
               ),
             ),
           ),
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _query,
-            builder: (context, v, child) =>
-                v.text.isEmpty ? const SizedBox.shrink() : child!,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _query.clear,
-              child: Container(
-                width: 24 * s,
-                height: 24 * s,
-                margin: EdgeInsets.only(right: 6 * s),
-                decoration: const BoxDecoration(
-                  color: Color(0x29FFFFFF),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.close_rounded,
-                  size: 12 * s,
-                  color: Colors.white,
-                ),
+        ),
+        SizedBox(width: gap * s),
+        Expanded(
+          child: TextField(
+            key: const Key('a1_sok_field'),
+            controller: _query,
+            focusNode: _focus,
+            onSubmitted: (_) => _submit(),
+            textInputAction: TextInputAction.search,
+            cursorColor: BergenColors.mint,
+            style: bDisplay(context, 14, weight: FontWeight.w700),
+            decoration: onbBareInput(
+              hint: BergenCopy.searchHint,
+              hintStyle: bDisplay(
+                context,
+                14,
+                weight: FontWeight.w700,
+                color: const Color(0x99FFFFFF),
               ),
             ),
           ),
-          Container(width: 1, height: 26 * s, color: const Color(0x1F23201D)),
-          SizedBox(width: 6 * s),
-          OnbPressable(
-            onTap: () {
-              final draft = _query.text.trim();
-              _toggleSearch();
-              widget.onAegil(draft);
-            },
-            pressScale: .95,
+        ),
+        if (har) ...[
+          SizedBox(width: gap * s),
+          GestureDetector(
+            key: const Key('a1_sok_null'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _query.clear,
             child: Container(
-              height: 46 * s,
-              padding: EdgeInsets.only(left: 5 * s, right: 13 * s),
-              decoration: BoxDecoration(
-                gradient: kBergenOrangeGradient,
-                borderRadius: BorderRadius.circular(999),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color.fromRGBO(120, 50, 10, .9),
-                    offset: Offset(0, 8 * s),
-                    blurRadius: onbBlur(14 * s),
-                    spreadRadius: -8 * s,
-                  ),
-                ],
+              width: 24 * s,
+              height: 24 * s,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: Color(0x29FFFFFF),
+                shape: BoxShape.circle,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 36 * s,
-                    height: 36 * s,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment(-.34, -.94),
-                        end: Alignment(.34, .94),
-                        colors: [Color(0xFFDCE9EC), Color(0xFF9FB6C2)],
-                      ),
-                    ),
-                    child: OnbLoopClock(
-                      child: Transform.translate(
-                        offset: Offset(-8 * s, 2 * s),
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: Image.asset(
-                            BergenAssets.aegilPopup,
-                            width: 52 * s,
-                          ),
-                        ),
-                      ),
-                      builder: (context, t, child) {
-                        final p = (onbLoop(t, 0, 2600) ?? 0);
-                        final r = onbKf(
-                          p,
-                          const [0, .25, .75, 1],
-                          const [0, -6, 6, 0],
-                          Curves.easeInOut,
-                        );
-                        return Transform.rotate(
-                          angle: r * math.pi / 180,
-                          alignment: Alignment.bottomCenter,
-                          child: child,
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 7 * s),
-                  Icon(
-                    Icons.mic_none_rounded,
-                    size: 16 * s,
-                    color: BergenColors.cream,
-                  ),
-                ],
+              child: _SvgIkon(
+                'M6 6l12 12M18 6L6 18',
+                size: 9 * s,
+                stroke: 3,
+                color: Colors.white,
               ),
             ),
           ),
         ],
+        SizedBox(width: gap * s),
+        // `sbSkilleOp`.
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.ease,
+          opacity: fok ? 0 : 1,
+          child: Container(
+            width: 1,
+            height: 26 * s,
+            color: const Color.fromRGBO(255, 255, 255, .14),
+          ),
+        ),
+        SizedBox(width: gap * s),
+        _sokKnapp(context, fok, har),
+      ],
+    );
+  }
+
+  /// `sbKnFn`: with text, search (`sokGaa`); empty, Ægil (`gaa('agent')`).
+  Widget _sokKnapp(BuildContext context, bool fok, bool har) {
+    final s = context.bs;
+    return OnbPressable(
+      key: const Key('a1_sok_knapp'),
+      onTap: () {
+        if (har) {
+          _submit();
+        } else {
+          HapticFeedback.selectionClick();
+          _toggleSearch();
+          widget.onAegil('');
+        }
+      },
+      pressDy: 0,
+      pressScale: .92,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        curve: const Cubic(.3, 1.25, .4, 1),
+        width: (fok ? 46 : 92) * s,
+        height: 46 * s,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          gradient: const LinearGradient(
+            begin: Alignment(-.34, -.94),
+            end: Alignment(.34, .94),
+            colors: [Color(0xFFFF9466), Color(0xFFE95C2C)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFA63A12),
+              offset: Offset(0, 2.5 * s),
+            ),
+            BoxShadow(
+              color: const Color.fromRGBO(3, 16, 24, .75),
+              offset: Offset(0, 10 * s),
+              blurRadius: onbBlur(14 * s),
+              spreadRadius: -8 * s,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // `inset 0 -2px 0 rgba(0,0,0,.08)`.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 2 * s,
+                child: const ColoredBox(color: Color.fromRGBO(0, 0, 0, .08)),
+              ),
+              bergenInsetTop(radius: 999, height: 1, alpha: .45),
+              // Ægil (`sbAvOp` .28s, `sbAvTr` .45s cubic(.3,1.3,.5,1)).
+              Positioned(
+                left: 5 * s,
+                top: 5 * s,
+                width: 36 * s,
+                height: 36 * s,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.ease,
+                  opacity: fok ? 0 : 1,
+                  child: _Tw(
+                    v: fok ? 1 : 0,
+                    ms: 450,
+                    curve: const Cubic(.3, 1.3, .5, 1),
+                    builder: (t) => Transform.translate(
+                      offset: Offset(-22 * s * t, 0),
+                      child: Transform.scale(
+                        scale: 1 - .5 * t,
+                        child: Transform.rotate(
+                          angle: -20 * t * math.pi / 180,
+                          child: const _SokAegil(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Mic (`sbMikX` .5s, `sbMikOp` .22s, `sbMikTr` .4s).
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 500),
+                curve: const Cubic(.3, 1.25, .4, 1),
+                left: (fok ? 16 : 61) * s,
+                top: 16 * s,
+                width: 14 * s,
+                height: 14 * s,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.ease,
+                  opacity: har ? 0 : 1,
+                  child: _Tw(
+                    v: har ? 1 : 0,
+                    ms: 400,
+                    curve: const Cubic(.3, 1.4, .5, 1),
+                    builder: (t) => Transform.scale(
+                      scale: 1 - .7 * t,
+                      child: Transform.rotate(
+                        angle: -30 * t * math.pi / 180,
+                        child: _SvgIkon(
+                          'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z'
+                          'M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21',
+                          size: 14 * s,
+                          stroke: 2.2,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Go-lupe (`sbGaOp` .22s, `sbGaTr` .45s cubic(.3,1.5,.5,1)).
+              Positioned(
+                left: 14 * s,
+                top: 14 * s,
+                width: 18 * s,
+                height: 18 * s,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.ease,
+                  opacity: har ? 1 : 0,
+                  child: _Tw(
+                    v: har ? 0 : 1,
+                    ms: 450,
+                    curve: const Cubic(.3, 1.5, .5, 1),
+                    builder: (t) => Transform.translate(
+                      offset: Offset(0, 14 * s * t),
+                      child: Transform.scale(
+                        scale: 1 - .5 * t,
+                        child: Transform.rotate(
+                          angle: 40 * t * math.pi / 180,
+                          child: _SvgIkon(
+                            '${_SvgIkon.sirkel(11, 11, 6.5)}M20 20l-4-4',
+                            size: 18 * s,
+                            stroke: 2.8,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _orb(BuildContext context) {
+  Widget _orb(BuildContext context, bool fok) {
     final s = context.bs;
     return Stack(
       clipBehavior: Clip.none,
@@ -599,7 +750,42 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               ),
             ),
           ),
-        GestureDetector(
+        // `orbSkjulOp` / `orbSnu`: in use, the orb spins away (180°, .4)
+        // and the pill takes its place.
+        IgnorePointer(
+          ignoring: fok,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.ease,
+            opacity: fok ? 0 : 1,
+            child: _orbKnapp(context, fok),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _orbKnapp(BuildContext context, bool fok) {
+    final snu = !_search ? 0.0 : (fok ? 180.0 : 90.0);
+    return _Tw(
+      v: snu,
+      ms: 450,
+      curve: const Cubic(.3, 1.2, .5, 1),
+      builder: (deg) => Transform.rotate(
+        angle: deg * math.pi / 180,
+        child: _Tw(
+          v: fok ? .4 : 1,
+          ms: 450,
+          curve: const Cubic(.3, 1.2, .5, 1),
+          builder: (sc) => Transform.scale(scale: sc, child: _orbFlate(context)),
+        ),
+      ),
+    );
+  }
+
+  Widget _orbFlate(BuildContext context) {
+    final s = context.bs;
+    return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: (_) {
             _held = false;
@@ -616,11 +802,9 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
           onTapCancel: () => _hold?.cancel(),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 450),
-            curve: const Cubic(.3, 1.2, .5, 1),
+            curve: Curves.ease,
             width: 58 * s,
             height: 58 * s,
-            transform: Matrix4.rotationZ(_search ? math.pi / 2 : 0),
-            transformAlignment: Alignment.center,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22 * s),
               gradient: _search
@@ -650,21 +834,25 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
                 bergenInsetTop(radius: 22 * s, alpha: .32),
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 300),
+                  curve: Curves.ease,
                   opacity: _search ? 0 : 1,
-                  child: Icon(
-                    Icons.search_rounded,
-                    size: 26 * s,
+                  child: _SvgIkon(
+                    '${_SvgIkon.sirkel(11, 11, 7)}M20.5 20.5l-4.3-4.3',
+                    size: 24 * s,
+                    stroke: 2.4,
                     color: Colors.white,
                   ),
                 ),
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 300),
+                  curve: Curves.ease,
                   opacity: _search ? 1 : 0,
                   child: Transform.rotate(
                     angle: -math.pi / 2,
-                    child: Icon(
-                      Icons.close_rounded,
-                      size: 22 * s,
+                    child: _SvgIkon(
+                      'M6 6l12 12M18 6L6 18',
+                      size: 20 * s,
+                      stroke: 2.6,
                       color: Colors.white,
                     ),
                   ),
@@ -672,13 +860,118 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               ],
             ),
           ),
-        ),
-      ],
-    );
+        );
   }
 }
 
 // ── Nav icons (the design's inline SVG paths) ───────────────────────────────
+
+/// Eases [builder]'s value to [v] over [ms] whenever [v] changes (a CSS
+/// `transition` on one property).
+class _Tw extends StatelessWidget {
+  const _Tw({
+    required this.v,
+    required this.ms,
+    required this.curve,
+    required this.builder,
+  });
+
+  final double v;
+  final int ms;
+  final Curve curve;
+  final Widget Function(double v) builder;
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween<double>(end: v),
+    duration: Duration(milliseconds: ms),
+    curve: curve,
+    builder: (context, t, _) => builder(t),
+  );
+}
+
+/// A 24-unit stroked icon from the design's SVG `d`.
+class _SvgIkon extends StatelessWidget {
+  const _SvgIkon(
+    this.d, {
+    required this.size,
+    required this.stroke,
+    required this.color,
+  });
+
+  final String d;
+  final double size;
+  final double stroke;
+  final Color color;
+
+  static String sirkel(double cx, double cy, double r) =>
+      'M${cx - r} ${cy}a$r $r 0 1 0 ${2 * r} 0a$r $r 0 1 0 ${-2 * r} 0';
+
+  static final Map<String, Path> _cache = {};
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    size: Size.square(size),
+    painter: _StrokePainter(
+      color,
+      stroke,
+      (k) => _cache
+          .putIfAbsent(d, () => svgSti(d))
+          .transform((Matrix4.identity()..scaleByDouble(k, k, 1, 1)).storage),
+    ),
+  );
+}
+
+/// Ægil in the search key's 36px window (`aegVink 2.6s`).
+class _SokAegil extends StatelessWidget {
+  const _SokAegil();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment(-.34, -.94),
+          end: Alignment(.34, .94),
+          colors: [Color(0xFFDCE9EC), Color(0xFF9FB6C2)],
+        ),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: -8 * s,
+            top: 2 * s,
+            width: 52 * s,
+            child: RepaintBoundary(
+              child: OnbLoopClock(
+                child: Image.asset(BergenAssets.aegilPopup, width: 52 * s),
+                builder: (context, t, child) {
+                  final p = onbLoop(t, 0, 2600) ?? 0;
+                  final r = onbKf(
+                    p,
+                    const [0, .25, .75, 1],
+                    const [0, -6, 6, 0],
+                    Curves.easeInOut,
+                  );
+                  return Transform.rotate(
+                    angle: r * math.pi / 180,
+                    alignment: Alignment.bottomCenter,
+                    child: child,
+                  );
+                },
+              ),
+            ),
+          ),
+          bergenInsetTop(radius: 999, height: 1, alpha: .6),
+        ],
+      ),
+    );
+  }
+}
 
 /// `myntRegn`'s landing bump on the Meg tab.
 class _MegBump extends StatelessWidget {

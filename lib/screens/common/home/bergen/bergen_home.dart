@@ -13,6 +13,7 @@ import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
 import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/hjem/hjem_harness.dart';
+import '../../../bergen/sok/sok_screen.dart';
 import '../../../bergen/hjem/hjem_header.dart';
 import '../../../bergen/hjem/hjem_hero.dart';
 import '../../auth/launch/lf_css.dart' show LfFrame, lfFlow;
@@ -261,6 +262,22 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             AdrArkProve.dor = HjemHarness.adrDor;
             AdrArkProve.velg = HjemHarness.adrVelg;
             _openAddressSheet(ny: a == 'ny');
+          }
+          if (HjemHarness.sok case final q?) {
+            if (HjemHarness.sokNylig case final l?) {
+              SokScreen.harnessNylig(l);
+            }
+            _shell?.openSearchTab(keyword: q);
+            if (HjemHarness.sokFokus) {
+              Future.delayed(const Duration(milliseconds: 400), () {
+                BergenBottomNav.focusSearch.value++;
+              });
+            }
+          }
+          if (HjemHarness.kat case final k?) {
+            if (_sisteSlots[k] case final c?) {
+              _openCategory(c, fane: HjemHarness.katFane);
+            }
           }
           final k = HjemHarness.snart;
           if (k != null) {
@@ -522,8 +539,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     for (final c in categories) {
       m.putIfAbsent(hjemHjulIkon(c.name), () => c);
     }
-    return m;
+    return _sisteSlots = m;
   }
+
+  /// The wheel's last slots (the debug harness opens a category from them).
+  Map<int, BergenCategory> _sisteSlots = const {};
 
   void _velgHjul(
     int k,
@@ -929,7 +949,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   // ── Actions ─────────────────────────────────────────────────────────────
 
-  void _openCategory(BergenCategory cat) {
+  void _openCategory(BergenCategory cat, {String? fane}) {
     if (cat.id == 0) {
       _comingSoon();
       return;
@@ -938,7 +958,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     BergenRoutes.pushOr(
       context,
       '/bergen/kategori/${slugOf(cat.name)}',
-      arguments: {'id': '${cat.id}', 'name': cat.name},
+      arguments: {'id': '${cat.id}', 'name': cat.name, 'fane': ?fane},
       orElse: () => openScreen(context, const DSHome()),
     );
   }
@@ -1503,7 +1523,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         ? '$openCount åpne nå'
                         : kBergenLive[k],
                     ikon: k,
-                    snart: k != 0,
+                    snart: k != 0 && !HjemHarness.katLive,
                     varsles: _snartVarsle.contains(k),
                   ),
               ],

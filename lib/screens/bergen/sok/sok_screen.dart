@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,23 +12,25 @@ import '../../../data/ops/sok_models.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/onboarding_kit.dart';
-import '../../common/home/bergen/bergen_home.dart';
+import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/home/bergen/bergen_nav.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
+import '../hjem/hjem_harness.dart';
 import '../butikk/produkt_sheet.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import 'sok_copy.dart';
+import 'sok_oversikt.dart';
 
-/// `sok` (≈L4067–4228 in `Ærend Kunde Bergen.dc.html`).
+/// `sok` (L5122–5297 in `Ærend Kunde Launch.dc.html`).
 ///
 /// Ægil landed at Flesland under the "BERGEN?" sign, asking "Hva leter du
 /// etter?"; below, a teal panel with the design's four states: `sokTom`
-/// (category stickers, the Spør Ægil card, Nylig / Populært nå, the week's
-/// mission), `sokOnske` (the text reads like an errand — ask Ægil),
+/// (`Søk · Oversikt`: Nylige søk, Spør Ægil, Populært i Bergen nå, Ukens
+/// oppdrag), `sokOnske` (the text reads like an errand — ask Ægil),
 /// `sokHarTreff` + `sokVanlig` (shops, a product grid and the compare card)
 /// and `sokIngen` (no hits — let Ægil find the nearest).
 ///
@@ -61,10 +64,9 @@ class SokScreen extends StatefulWidget {
   final VoidCallback? onClose;
 
   static const String prefRecent = 'a1_sok_recent';
-  static const String prefTried = 'a1_sok_tried';
-  static const int maxRecent = 8;
+  static const int maxRecent = 6;
 
-  /// `onske` (design L7806): four or more words, or an errand word.
+  /// `onske` (design `sokVals`): four or more words, or an errand word.
   static bool isWish(String q) {
     final ql = q.trim().toLowerCase();
     if (ql.isEmpty) return false;
@@ -76,29 +78,60 @@ class SokScreen extends StatefulWidget {
     ).hasMatch(ql);
   }
 
-  static List<String> readRecent() => _readList(prefRecent);
-
-  static void remember(String q) {
-    final term = q.trim();
-    if (term.length < 2) return;
-    final list = [
-      term,
-      ...readRecent().where((e) => e.toLowerCase() != term.toLowerCase()),
-    ];
-    prefSetString(prefRecent, jsonEncode(list.take(maxRecent).toList()));
-  }
-
-  static List<String> _readList(String key) {
-    final raw = prefGetString(key);
+  /// `sokNylig`, newest first: `[{ t, n }]` (older builds stored bare
+  /// strings; those read as "Akkurat nå").
+  static List<SokNylig> readNylig() {
+    final raw = prefGetString(prefRecent);
     if (raw.isEmpty) return const [];
     try {
       final list = jsonDecode(raw);
-      return list is List
-          ? list.map((e) => '$e').where((e) => e.isNotEmpty).toList()
-          : const [];
+      if (list is! List) return const [];
+      final now = DateTime.now().millisecondsSinceEpoch;
+      return [
+        for (final e in list)
+          if (e is Map && '${e['t'] ?? ''}'.isNotEmpty)
+            SokNylig('${e['t']}', (e['n'] as num?)?.toInt() ?? now)
+          else if (e is String && e.isNotEmpty)
+            SokNylig(e, now),
+      ];
     } catch (_) {
       return const [];
     }
+  }
+
+  static List<String> readRecent() => [for (final n in readNylig()) n.t];
+
+  static void _writeNylig(List<SokNylig> list) => prefSetString(
+    prefRecent,
+    jsonEncode([
+      for (final n in list.take(maxRecent)) {'t': n.t, 'n': n.n},
+    ]),
+  );
+
+  /// `sokLagre(q)`: two characters or more, to the front, once.
+  static void remember(String q) {
+    final term = q.trim();
+    if (term.length < 2) return;
+    _writeNylig([
+      SokNylig(term, DateTime.now().millisecondsSinceEpoch),
+      ...readNylig().where((e) => e.t.toLowerCase() != term.toLowerCase()),
+    ]);
+  }
+
+  /// The ✕ on a Nylige søk chip.
+  static void forget(String term) =>
+      _writeNylig(readNylig().where((e) => e.t != term).toList());
+
+  /// "Tøm".
+  static void forgetAll() => prefSetString(prefRecent, '[]');
+
+  /// Debug harness: `[[term, hoursAgo], …]` as the recent searches.
+  static void harnessNylig(List<List<Object>> l) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    _writeNylig([
+      for (final e in l)
+        SokNylig('${e[0]}', now - ((e[1] as num) * 3600e3).round()),
+    ]);
   }
 
   @override
@@ -113,9 +146,8 @@ class SokScreenState extends State<SokScreen> {
   String _lastQ = '';
 
   SokTreff? _treff;
-  List<String> _recent = const [];
+  List<SokNylig> _recent = const [];
   List<SokTrend> _trending = const [];
-  List<String> _tried = const [];
   Map<String, dynamic>? _mission;
 
   /// Standalone: the nav this screen mounts, held in search mode.
@@ -134,8 +166,7 @@ class SokScreenState extends State<SokScreen> {
   @override
   void initState() {
     super.initState();
-    _recent = SokScreen.readRecent();
-    _tried = SokScreen._readList(SokScreen.prefTried);
+    _recent = SokScreen.readNylig();
     _field.addListener(_onChanged);
     _navOpen.addListener(_onNav);
     _load();
@@ -175,8 +206,18 @@ class SokScreenState extends State<SokScreen> {
   }
 
   Future<void> _load() async {
+    if (kDebugMode && HjemHarness.sokPop) {
+      // Debug harness only: the prototype's rows (L5259).
+      setState(
+        () => _trending = const [
+          SokTrend('fiskesuppe', 38),
+          SokTrend('kanelboller', 21),
+          SokTrend('pizza', 17),
+        ],
+      );
+    }
     final trending = await _api.trendingItems();
-    if (mounted) setState(() => _trending = trending);
+    if (mounted && trending.isNotEmpty) setState(() => _trending = trending);
     final mission = await _api.mission();
     if (mounted) {
       setState(() => _mission = mission?['mission'] as Map<String, dynamic>?);
@@ -188,7 +229,8 @@ class SokScreenState extends State<SokScreen> {
     if (q == _lastQ) return;
     _lastQ = q;
     _debounce?.cancel();
-    if (q.length < 2 || SokScreen.isWish(q)) {
+    // A wish still searches: the design lists hits under the Ægil card.
+    if (q.length < 2) {
       setState(() => _treff = null);
       return;
     }
@@ -216,25 +258,48 @@ class SokScreenState extends State<SokScreen> {
     }
   }
 
-  /// `sokEks*` / Nylig / Populært nå: the term goes into the field.
-  void _use(String term) {
-    _field.value = TextEditingValue(
-      text: term,
-      selection: TextSelection.collapsed(offset: term.length),
-    );
+  void _setField(String term) => _field.value = TextEditingValue(
+    text: term,
+    selection: TextSelection.collapsed(offset: term.length),
+  );
+
+  /// `sokEks*`: the example goes into the field.
+  void _use(String term) => _setField(term);
+
+  /// `sokPop*`: into the field, and remembered.
+  void _usePop(String term) {
+    _setField(term);
     SokScreen.remember(term);
-    setState(() => _recent = SokScreen.readRecent());
+    setState(() => _recent = SokScreen.readNylig());
   }
 
-  /// `sokTast` Enter: remembered, and to Ægil when it is a wish or found
-  /// nothing.
+  /// A Nylige søk chip: into the field, and the field takes focus.
+  void _useNylig(String term) {
+    _setField(term);
+    BergenBottomNav.focusSearch.value++;
+  }
+
+  void _forget(String term) {
+    SokScreen.forget(term);
+    setState(() => _recent = SokScreen.readNylig());
+  }
+
+  void _forgetAll() {
+    SokScreen.forgetAll();
+    setState(() => _recent = const []);
+  }
+
+  /// `sokTast` Enter / `sokGaa`: remembered; to Ægil when it is a wish or
+  /// found nothing, else the field lets go of the keyboard.
   void submit() {
     final q = _q;
     if (q.isEmpty) return;
     SokScreen.remember(q);
-    setState(() => _recent = SokScreen.readRecent());
+    setState(() => _recent = SokScreen.readNylig());
     if (SokScreen.isWish(q) || (_treff?.isEmpty ?? false)) {
       _askAegil(q);
+    } else {
+      FocusManager.instance.primaryFocus?.unfocus();
     }
   }
 
@@ -282,20 +347,14 @@ class SokScreenState extends State<SokScreen> {
     );
   }
 
-  /// `aapneKat(n)`; the category counts toward "Utforsker · n av 5".
-  void _openCategory(String name) {
-    final slug = BergenHomeSlug.of(name);
-    if (!_tried.contains(slug)) {
-      final tried = [..._tried, slug];
-      prefSetString(SokScreen.prefTried, jsonEncode(tried));
-      setState(() => _tried = tried);
+  /// `tilMeg` — Ukens oppdrag lives on Meg.
+  void _tilMeg() {
+    final shell = context.findAncestorStateOfType<HomeMainV1State>();
+    if (shell != null) {
+      shell.switchToTab(BergenTab.me.index);
+    } else {
+      BergenRoutes.push(context, '/bergen/meg');
     }
-    BergenRoutes.pushOr(
-      context,
-      '/bergen/kategori/$slug',
-      arguments: {'name': name},
-      orElse: () => showBergenToast(context, BergenRoutes.kommerSnart),
-    );
   }
 
   @override
@@ -395,7 +454,7 @@ class SokScreenState extends State<SokScreen> {
     final q = _q;
     final wish = q.isNotEmpty && SokScreen.isWish(q);
     final vanlig = q.isNotEmpty && !wish;
-    final treff = vanlig ? _treff : null;
+    final treff = q.isNotEmpty ? _treff : null;
     final ingen = vanlig && q.length >= 2 && treff != null && treff.isEmpty;
 
     return Container(
@@ -433,6 +492,19 @@ class SokScreenState extends State<SokScreen> {
                 bergenNavReserve(context) + 22 * s,
               ),
               children: [
+                if (q.isEmpty)
+                  SokOversikt(
+                    nylig: _recent,
+                    onNylig: _useNylig,
+                    onFjern: _forget,
+                    onTom: _forgetAll,
+                    onAegil: () => _askAegil(''),
+                    onEksempel: _use,
+                    populaert: _trending,
+                    onPopulaert: _usePop,
+                    oppdrag: _mission,
+                    onOppdrag: _tilMeg,
+                  ),
                 for (final w in <Widget>[
                   if (wish)
                     _WishCard(
@@ -448,14 +520,11 @@ class SokScreenState extends State<SokScreen> {
                     ),
                   if (vanlig) _CompareCard(query: q, onTap: () => _askAegil()),
                   if (ingen) _NoHits(query: q, onAsk: () => _askAegil()),
-                  if (q.isEmpty) ..._tom(context),
                 ])
-                  w is _Categories
-                      ? w
-                      : Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16 * s),
-                          child: w,
-                        ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16 * s),
+                    child: w,
+                  ),
               ],
             ),
           ),
@@ -463,75 +532,12 @@ class SokScreenState extends State<SokScreen> {
       ),
     );
   }
-
-  List<Widget> _tom(BuildContext context) {
-    final s = context.bs;
-    final recent = _recent.take(3).toList();
-    final trending = _trending.take(3).toList();
-    return [
-      _Categories(
-        tried: _tried.length.clamp(0, 5),
-        onOpen: _openCategory,
-        onAll: () => BergenRoutes.push(context, '/bergen/utforsk'),
-      ),
-      SizedBox(height: 4 * s),
-      _AegilCard(onStart: () => _askAegil(''), onExample: _use),
-      if (recent.isNotEmpty || trending.isNotEmpty) ...[
-        SizedBox(height: 12 * s),
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (recent.isNotEmpty)
-                Expanded(
-                  child: _TermCard(
-                    key: const Key('a1_sok_nylig'),
-                    kicker: SokCopy.a1_sok_nylig,
-                    icon: _ClockIcon(),
-                    rows: [
-                      for (final t in recent)
-                        _TermRow(term: t, onTap: () => _use(t)),
-                    ],
-                  ),
-                ),
-              if (recent.isNotEmpty && trending.isNotEmpty)
-                SizedBox(width: 12 * s),
-              if (trending.isNotEmpty)
-                Expanded(
-                  child: _TermCard(
-                    key: const Key('a1_sok_populaert'),
-                    kicker: SokCopy.a1_sok_populaert,
-                    icon: const _GlodDot(),
-                    rows: [
-                      for (final t in trending)
-                        _TermRow(
-                          term: t.term,
-                          count: t.count,
-                          onTap: () => _use(t.term),
-                        ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
-      if (_mission != null) ...[
-        SizedBox(height: 12 * s),
-        _MissionCard(
-          mission: _mission!,
-          onSee: () => BergenRoutes.push(context, '/bergen/meg'),
-        ),
-      ],
-    ];
-  }
 }
 
 // ── shared pieces ───────────────────────────────────────────────────────────
 
 const List<Color> _kOrange = [Color(0xFFF58A55), Color(0xFFE95C2C)];
 const String _kGevir = 'assets/images/dashboard/sok_gevir.png';
-const String _kVarde = 'assets/images/dashboard/sok_v_varde.png';
 const String _kNoresto = 'assets/images/dashboard/noresto.png';
 
 /// `linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07))`,
@@ -867,8 +873,10 @@ class _Hero extends StatelessWidget {
                     left: -10 * s,
                     width: 410 * s,
                     height: 300 * s + dy,
+                    // `#fl-flesland` as the scene shader leaves it (`scgl`
+                    // profile `berg`: stone relief and grade), baked once.
                     child: Image.asset(
-                      'assets/images/dashboard/sok_fl_flesland.png',
+                      'assets/images/dashboard/sok_fl_flesland.jpg',
                       fit: BoxFit.fill,
                     ),
                   ),
@@ -881,9 +889,17 @@ class _Hero extends StatelessWidget {
             top: 120 * s + dy,
             width: 308 * s,
             height: 83 * s,
-            child: Image.asset(
-              'assets/images/dashboard/sok_fl_skiltet.png',
-              fit: BoxFit.contain,
+            // `#fl-skiltet` through the `skilt` profile (baked), with its
+            // moving sheen on top.
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  'assets/images/dashboard/sok_fl_skiltet.png',
+                  fit: BoxFit.fill,
+                ),
+                const RepaintBoundary(child: _SkiltGlans()),
+              ],
             ),
           ),
           Positioned(
@@ -916,29 +932,46 @@ class _Hero extends StatelessWidget {
             child: const _AegilLanded(),
           ),
           // `inset 0 -60px 60px -40px rgba(30,79,92,.9), inset 0 24px 40px
-          // -20px rgba(4,18,26,.5)`.
+          // -20px rgba(4,18,26,.5)` — each a Gaussian edge (σ = blur/2)
+          // 20px / 4px in from its side.
           Positioned.fill(
             child: IgnorePointer(
               child: Column(
                 children: [
                   Container(
-                    height: 30 * s,
+                    height: 48 * s,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [rgba(4, 18, 26, .3), rgba(4, 18, 26, 0)],
+                        colors: [
+                          rgba(4, 18, 26, .29),
+                          rgba(4, 18, 26, .21),
+                          rgba(4, 18, 26, .1),
+                          rgba(4, 18, 26, .03),
+                          rgba(4, 18, 26, 0),
+                        ],
+                        stops: const [0, .17, .42, .67, 1],
                       ),
                     ),
                   ),
                   const Spacer(),
                   Container(
-                    height: 50 * s,
+                    height: 100 * s,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [rgba(30, 79, 92, 0), rgba(30, 79, 92, .6)],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          rgba(30, 79, 92, .67),
+                          rgba(30, 79, 92, .45),
+                          rgba(30, 79, 92, .23),
+                          rgba(30, 79, 92, .14),
+                          rgba(30, 79, 92, .06),
+                          rgba(30, 79, 92, .02),
+                          rgba(30, 79, 92, 0),
+                        ],
+                        stops: const [0, .2, .35, .5, .65, .8, 1],
                       ),
                     ),
                   ),
@@ -950,6 +983,43 @@ class _Hero extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The sign's sheen (scene shader, `uSheen`): a warm band sweeping across
+/// the gold letters every 1 / .085 s, tilted .35 across the height.
+class _SkiltGlans extends StatelessWidget {
+  const _SkiltGlans();
+
+  static const List<double> _d = [-.25, -.2, -.15, -.1, -.05, 0, .05, .1, .15, .2, .25];
+
+  @override
+  Widget build(BuildContext context) => BergenLoop(
+    durationMs: 1000 / .085,
+    child: Image.asset(
+      'assets/images/dashboard/sok_fl_skiltet_glans.png',
+      fit: BoxFit.fill,
+    ),
+    builder: (context, p, child) {
+      if (p == null) return const SizedBox.shrink();
+      final sw = p * 2.6 - .8;
+      if (sw < -.45 || sw > 1.55) return const SizedBox.shrink();
+      return ShaderMask(
+        blendMode: BlendMode.dstIn,
+        shaderCallback: (r) {
+          // xx = x/W − sw + (y/H − .5)·.35; a point Δ along ∇xx.
+          final gx = 1 / r.width, gy = .35 / r.height;
+          final g2 = gx * gx + gy * gy;
+          final p0 = Offset(sw * r.width, r.height / 2);
+          Offset at(double d) => p0 + Offset(gx, gy) * (d / g2);
+          return ui.Gradient.linear(at(_d.first), at(_d.last), [
+            for (final d in _d)
+              Color.fromRGBO(255, 255, 255, .55 * math.exp(-d * d * 120)),
+          ], [for (final d in _d) (d - _d.first) / (_d.last - _d.first)]);
+        },
+        child: child,
+      );
+    },
+  );
 }
 
 class _Railing extends StatelessWidget {
@@ -2010,681 +2080,6 @@ class _NoHits extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── `sokTom`: category stickers ─────────────────────────────────────────────
-
-class _Categories extends StatelessWidget {
-  const _Categories({
-    required this.tried,
-    required this.onOpen,
-    required this.onAll,
-  });
-
-  final int tried;
-  final ValueChanged<String> onOpen;
-  final VoidCallback onAll;
-
-  /// The design's five stickers (their labels are drawn in), the app's
-  /// category names they open, and the tilt each one is stuck on with.
-  static const List<(String, String, double)> stickers = [
-    ('restaurant', 'Restaurant', -5),
-    ('fisk', 'Fisk', 3),
-    ('mote', 'Mote', -2),
-    ('interior', 'Interiør', 2),
-    ('gaver', 'Gaver', -3),
-  ];
-
-  /// `Alle 12` — the design's full category count. TODO(api): the live count.
-  static const int alle = 12;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(22 * s, 14 * s, 22 * s, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  SokCopy.a1_sok_kategorier,
-                  style: bDisplay(
-                    context,
-                    15,
-                    weight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              _Glass(
-                radius: 999,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10 * s,
-                  vertical: 4 * s,
-                ),
-                inset: 0,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(_kVarde, width: 10 * s, height: 12 * s),
-                    SizedBox(width: 6 * s),
-                    Text(
-                      SokCopy.a1_sok_utforsker(tried, stickers.length),
-                      style: bText(
-                        context,
-                        10.5,
-                        weight: FontWeight.w800,
-                        color: BergenColors.mint,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: 8 * s),
-        // Full-bleed (`margin: 8px -16px 0; padding: 0 10px 14px`).
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: EdgeInsets.fromLTRB(10 * s, 0, 10 * s, 8 * s),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < stickers.length; i++) ...[
-                _Sticker(
-                  asset: stickers[i].$1,
-                  tilt: stickers[i].$3,
-                  label: kBergenLive[i % kBergenLive.length],
-                  onTap: () => onOpen(stickers[i].$2),
-                ),
-                SizedBox(width: 2 * s),
-              ],
-              _Sticker(
-                asset: 'mer',
-                tilt: 2,
-                label: SokCopy.a1_sok_alle(alle),
-                onTap: onAll,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Sticker extends StatelessWidget {
-  const _Sticker({
-    required this.asset,
-    required this.tilt,
-    required this.label,
-    required this.onTap,
-  });
-
-  final String asset;
-  final double tilt;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: SizedBox(
-        width: 96 * s,
-        child: Column(
-          children: [
-            Transform.rotate(
-              angle: tilt * math.pi / 180,
-              child: Image.asset(
-                'assets/images/dashboard/sok_stk_$asset.png',
-                width: 94 * s,
-                height: 94 * s,
-              ),
-            ),
-            Transform.translate(
-              offset: Offset(0, -6 * s),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 4 * s, sigmaY: 4 * s),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10 * s,
-                      vertical: 4 * s,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      color: rgba(15, 31, 43, .45),
-                      border: Border.all(color: rgba(255, 255, 255, .22)),
-                    ),
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: bText(
-                        context,
-                        10.5,
-                        weight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── `Søk · Spør Ægil` ───────────────────────────────────────────────────────
-
-class _AegilCard extends StatelessWidget {
-  const _AegilCard({required this.onStart, required this.onExample});
-
-  final VoidCallback onStart;
-  final ValueChanged<String> onExample;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return OnbPressable(
-      onTap: onStart,
-      pressDy: 0,
-      pressScale: .985,
-      child: Container(
-        key: const Key('a1_sok_aegil_card'),
-        decoration: _aegilDeco(context, 24 * s),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(22.5 * s),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                left: -20 * s,
-                top: -34 * s,
-                child: const _NordlysGlow(
-                  width: 360,
-                  height: 90,
-                  opacity: .5,
-                  path: [
-                    0,
-                    80,
-                    70,
-                    34,
-                    140,
-                    68,
-                    210,
-                    30,
-                    260,
-                    6,
-                    310,
-                    22,
-                    360,
-                    0,
-                  ],
-                ),
-              ),
-              bergenInsetTop(radius: 24 * s, height: 1, alpha: .25),
-              Padding(
-                padding: EdgeInsets.fromLTRB(18 * s, 16 * s, 16 * s, 14 * s),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        _gevir(18 * s, 11 * s, BergenColors.mint),
-                        SizedBox(width: 8 * s),
-                        Text(
-                          SokCopy.a1_sok_aegil_kicker,
-                          style: bText(
-                            context,
-                            11,
-                            weight: FontWeight.w800,
-                            letterSpacingEm: .06,
-                            color: BergenColors.mint,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8 * s),
-                    Padding(
-                      padding: EdgeInsets.only(right: 76 * s),
-                      child: Text(
-                        SokCopy.a1_sok_aegil_line,
-                        style: bDisplay(
-                          context,
-                          17,
-                          weight: FontWeight.w800,
-                          letterSpacingEm: -.015,
-                          height: 1.2,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 14 * s),
-                    Padding(
-                      padding: EdgeInsets.only(right: 70 * s),
-                      child: Wrap(
-                        spacing: 7 * s,
-                        runSpacing: 7 * s,
-                        children: [
-                          for (final ex in [
-                            SokCopy.a1_sok_aegil_eks1,
-                            SokCopy.a1_sok_aegil_eks2,
-                          ])
-                            OnbPressable(
-                              onTap: () => onExample(ex),
-                              pressDy: 0,
-                              pressScale: .96,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 13 * s,
-                                  vertical: 9 * s,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(999),
-                                  color: rgba(255, 255, 255, .14),
-                                  border: Border.all(
-                                    color: rgba(255, 255, 255, .26),
-                                  ),
-                                ),
-                                child: Text(
-                                  ex,
-                                  maxLines: 1,
-                                  softWrap: false,
-                                  style: bText(
-                                    context,
-                                    12,
-                                    weight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 14 * s),
-                    Padding(
-                      // `padding-right:70px` with `nowrap`: the hint runs on under Ægil.
-                      padding: EdgeInsets.zero,
-                      child: LayoutBuilder(
-                        builder: (context, c) => Row(
-                          children: [
-                            ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth: c.maxWidth - 10 * s,
-                              ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: _OrangePill(
-                                  height: 44 * s,
-                                  padding: EdgeInsets.fromLTRB(
-                                    16 * s,
-                                    0,
-                                    18 * s,
-                                    0,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CustomPaint(
-                                        size: Size.square(15 * s),
-                                        painter: _PathPainter(
-                                          Colors.white,
-                                          2.4,
-                                          (k) => Path()
-                                            ..moveTo(4 * k, 5 * k)
-                                            ..lineTo(20 * k, 5 * k)
-                                            ..lineTo(20 * k, 16 * k)
-                                            ..lineTo(9 * k, 16 * k)
-                                            ..lineTo(4 * k, 20 * k)
-                                            ..close(),
-                                        ),
-                                      ),
-                                      SizedBox(width: 8 * s),
-                                      Text(
-                                        SokCopy.a1_sok_aegil_start,
-                                        style: bText(
-                                          context,
-                                          13,
-                                          weight: FontWeight.w800,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      SizedBox(width: 8 * s),
-                                      _Chevron(
-                                        size: 14 * s,
-                                        color: Colors.white,
-                                        stroke: 2.6,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10 * s),
-                            Flexible(
-                              child: Text(
-                                SokCopy.a1_sok_aegil_skriv,
-                                maxLines: 1,
-                                softWrap: false,
-                                overflow: TextOverflow.fade,
-                                style: bText(
-                                  context,
-                                  11,
-                                  weight: FontWeight.w700,
-                                  color: rgba(255, 255, 255, .65),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // `aegVink 2.6s` — Ægil waves from the corner.
-              Positioned(
-                right: 2 * s,
-                bottom: -12 * s,
-                width: 70 * s,
-                child: IgnorePointer(
-                  child: BergenLoop(
-                    durationMs: 2600,
-                    builder: (context, p, child) {
-                      if (p == null) return child!;
-                      final r = kf(
-                        p,
-                        const [0, .25, .75, 1],
-                        const [0, -6, 6, 0],
-                        Curves.easeInOut,
-                      );
-                      return Transform.rotate(
-                        angle: r * math.pi / 180,
-                        alignment: Alignment.bottomCenter,
-                        child: child,
-                      );
-                    },
-                    child: Opacity(
-                      opacity: .98,
-                      child: Image.asset(BergenAssets.aegilPopup),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Nylig / Populært nå ─────────────────────────────────────────────────────
-
-class _TermCard extends StatelessWidget {
-  const _TermCard({
-    super.key,
-    required this.kicker,
-    required this.icon,
-    required this.rows,
-  });
-
-  final String kicker;
-  final Widget icon;
-  final List<Widget> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return _Glass(
-      radius: 22 * s,
-      padding: EdgeInsets.all(14 * s),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              icon,
-              SizedBox(width: 6 * s),
-              Text(
-                kicker,
-                style: bText(
-                  context,
-                  11,
-                  weight: FontWeight.w800,
-                  letterSpacingEm: .06,
-                  color: rgba(255, 255, 255, .7),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12 * s),
-          for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) SizedBox(height: 4 * s),
-            rows[i],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _TermRow extends StatelessWidget {
-  const _TermRow({required this.term, required this.onTap, this.count});
-
-  final String term;
-  final int? count;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final nylig = count == null;
-    return OnbPressable(
-      onTap: onTap,
-      pressDy: 0,
-      pressScale: .97,
-      child: Container(
-        constraints: BoxConstraints(minHeight: 36 * s),
-        padding: EdgeInsets.only(left: 10 * s, right: (nylig ? 4 : 10) * s),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12 * s),
-          color: rgba(255, 255, 255, .08),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                term,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: bText(
-                  context,
-                  13,
-                  weight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            SizedBox(width: 8 * s),
-            if (nylig)
-              _Chevron(size: 14 * s, color: rgba(255, 255, 255, .5))
-            else
-              Text(
-                '$count',
-                style: bText(
-                  context,
-                  11,
-                  weight: FontWeight.w800,
-                  color: BergenColors.mint,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ClockIcon extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => CustomPaint(
-    size: Size.square(12 * context.bs),
-    painter: _PathPainter(
-      rgba(255, 255, 255, .7),
-      2.4,
-      (k) => Path()
-        ..addOval(
-          Rect.fromCircle(center: Offset(12 * k, 12 * k), radius: 9 * k),
-        )
-        ..moveTo(12 * k, 7 * k)
-        ..lineTo(12 * k, 12 * k)
-        ..lineTo(15 * k, 14 * k),
-    ),
-  );
-}
-
-/// The orange live dot, `glod 1.6s`.
-class _GlodDot extends StatelessWidget {
-  const _GlodDot();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return BergenLoop(
-      durationMs: 1600,
-      builder: (context, p, child) => Opacity(
-        opacity: p == null
-            ? .7
-            : kf(p, const [0, .5, 1], const [.7, 1, .7], Curves.easeInOut),
-        child: child,
-      ),
-      child: Container(
-        width: 7 * s,
-        height: 7 * s,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: BergenColors.orange,
-          boxShadow: [
-            BoxShadow(
-              color: rgba(242, 109, 61, .9),
-              blurRadius: onbBlur(8 * s),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── `Søk · Ukens oppdrag` ───────────────────────────────────────────────────
-
-class _MissionCard extends StatelessWidget {
-  const _MissionCard({required this.mission, required this.onSee});
-
-  final Map<String, dynamic> mission;
-  final VoidCallback onSee;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final points = (mission['points'] as num?)?.toInt() ?? 0;
-    final body = '${mission['body'] ?? ''}';
-    return OnbPressable(
-      onTap: onSee,
-      pressDy: 0,
-      pressScale: .985,
-      child: _Glass(
-        key: const Key('a1_sok_oppdrag'),
-        radius: 22 * s,
-        padding: EdgeInsets.fromLTRB(14 * s, 12 * s, 12 * s, 12 * s),
-        child: Row(
-          children: [
-            Container(
-              width: 44 * s,
-              height: 44 * s,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14 * s),
-                color: rgba(92, 224, 184, .14),
-                border: Border.all(color: rgba(92, 224, 184, .35)),
-              ),
-              child: Image.asset(_kVarde, width: 22 * s, height: 28 * s),
-            ),
-            SizedBox(width: 12 * s),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    SokCopy.a1_sok_oppdrag_kicker(points),
-                    style: bText(
-                      context,
-                      11,
-                      weight: FontWeight.w800,
-                      letterSpacingEm: .06,
-                      color: BergenColors.mint,
-                    ),
-                  ),
-                  SizedBox(height: 3 * s),
-                  Text(
-                    '${mission['title'] ?? ''}',
-                    style: bDisplay(
-                      context,
-                      14,
-                      weight: FontWeight.w800,
-                      height: 1.25,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (body.isNotEmpty) ...[
-                    SizedBox(height: 2 * s),
-                    Text(
-                      body,
-                      style: bText(
-                        context,
-                        11.5,
-                        weight: FontWeight.w600,
-                        color: rgba(255, 255, 255, .7),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            SizedBox(width: 12 * s),
-            _OrangePill(
-              height: 36 * s,
-              padding: EdgeInsets.symmetric(horizontal: 14 * s),
-              soft: const [8, 14, -6],
-              child: Text(
-                SokCopy.a1_sok_oppdrag_se,
-                style: bText(
-                  context,
-                  12,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

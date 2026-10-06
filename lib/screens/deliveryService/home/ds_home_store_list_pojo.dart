@@ -127,7 +127,11 @@ class StoreListItem {
     dynamic orderMinAmount,
     int? storeStatus,
     dynamic distance,
+    String? storeLogo,
+    String? description,
   }) {
+    _storeLogo = storeLogo;
+    _description = description;
     _storeId = storeId;
     _storeName = storeName;
     _storeBanner = storeBanner;
@@ -155,7 +159,18 @@ class StoreListItem {
     _orderMinAmount = json['order_min_amount'];
     _storeStatus = json['store_status'];
     _distance = json['distance'];
+    _storeLogo = json['store_logo'];
+    _description = json['description'];
   }
+
+  String? _storeLogo;
+  String? _description;
+
+  /// `store_logo` (the store list sends it; older builds ignored it).
+  String? get storeLogo => _storeLogo;
+
+  /// `description` — the store's own one-liner, when it has one.
+  String? get description => _description;
 
   int? _storeId;
   String? _storeName;

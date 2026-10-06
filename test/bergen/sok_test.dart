@@ -12,7 +12,8 @@ import 'package:aerend_customer/screens/common/home/bergen/bergen_nav.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
-/// AGIL-1 v2 Phase 3: Søk's four states, trending falling back to empty on
+/// Søk (Launch prototype, Step 4): the overview (Nylige søk, Spør Ægil,
+/// Populært i Bergen nå, Ukens oppdrag), trending falling back to hidden on
 /// failure, recent searches in local storage, and the wish rule.
 class _FakeApi extends OpsCustomerApi {
   _FakeApi({
@@ -74,7 +75,7 @@ void main() {
     expect(bergenRoutesAgil1().containsKey('/bergen/sok'), isTrue);
   });
 
-  testWidgets('empty state: Spør Ægil card, categories, trending, mission', (
+  testWidgets('overview: Nylige søk, Spør Ægil, Populært nå, the mission', (
     tester,
   ) async {
     _frame(tester);
@@ -101,7 +102,13 @@ void main() {
     expect(find.byKey(const Key('a1_sok_aegil_card')), findsOneWidget);
     expect(find.byKey(const Key('a1_sok_populaert')), findsOneWidget);
     expect(find.text('fiskesuppe'), findsOneWidget);
-    expect(find.text('30'), findsOneWidget); // the week's count
+    expect(find.text('30 søk'), findsOneWidget); // the week's count
+    // No searches yet: the section says so.
+    expect(find.byKey(const Key('a1_sok_nylig')), findsOneWidget);
+    expect(
+      find.text('Ingen søk ennå. Det du søker etter, dukker opp her.'),
+      findsOneWidget,
+    );
     // The mission sits below the fold of the lazy panel.
     await tester.dragUntilVisible(
       find.byKey(const Key('a1_sok_oppdrag')),
@@ -110,7 +117,8 @@ void main() {
     );
     expect(find.byKey(const Key('a1_sok_oppdrag')), findsOneWidget);
     expect(find.text('Prøv Nordnes Fisk'), findsOneWidget);
-    expect(find.byKey(const Key('a1_sok_nylig')), findsNothing);
+    expect(find.text('Én bestilling teller.'), findsOneWidget);
+    expect(find.text('+50 p'), findsOneWidget);
   });
 
   testWidgets('trending and the mission fall back to hidden', (tester) async {
@@ -125,7 +133,7 @@ void main() {
     expect(find.byKey(const Key('a1_sok_oppdrag')), findsNothing);
   });
 
-  testWidgets('a wish shows the banner and does not search', (tester) async {
+  testWidgets('a wish shows the banner and still lists hits', (tester) async {
     _frame(tester);
     final api = _FakeApi();
     await tester.pumpWidget(_app(SokScreen(api: api)));
@@ -138,8 +146,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byKey(const Key('a1_sok_onske')), findsOneWidget);
-    expect(api.searched, isEmpty);
+    expect(api.searched, ['tacokveld for fire under 500 kr']);
     expect(find.byKey(const Key('a1_sok_aegil_card')), findsNothing);
+    // A wish never shows the no-hits card.
+    expect(find.byKey(const Key('a1_sok_ingen')), findsNothing);
   });
 
   testWidgets('hits render shops and products with the compare footer', (
@@ -192,14 +202,14 @@ void main() {
     expect(find.byKey(const Key('a1_sok_vanlig_footer')), findsOneWidget);
   });
 
-  testWidgets('a submitted search is remembered locally, last eight', (
+  testWidgets('a submitted search is remembered locally, last six', (
     tester,
   ) async {
     _frame(tester);
     for (var i = 0; i < 10; i++) {
       SokScreen.remember('term $i');
     }
-    expect(SokScreen.readRecent().length, 8);
+    expect(SokScreen.readRecent().length, 6);
     expect(SokScreen.readRecent().first, 'term 9');
 
     await tester.pumpWidget(_app(SokScreen(api: _FakeApi())));
@@ -207,6 +217,49 @@ void main() {
     await tester.pump();
     expect(find.byKey(const Key('a1_sok_nylig')), findsOneWidget);
     expect(find.text('term 9'), findsOneWidget);
+  });
+
+  testWidgets('Nylige søk: a chip fills the field, ✕ forgets it, Tøm clears', (
+    tester,
+  ) async {
+    _frame(tester);
+    SokScreen.remember('gavekort');
+    SokScreen.remember('laksesashimi');
+    SokScreen.remember('sushi');
+    final field = TextEditingController();
+    addTearDown(field.dispose);
+    await tester.pumpWidget(
+      _app(SokScreen(api: _FakeApi(), controller: field, onClose: () {})),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.text('sushi'), findsOneWidget);
+    expect(find.text('Akkurat nå'), findsNWidgets(3));
+
+    await tester.tap(find.text('laksesashimi'));
+    await tester.pump();
+    expect(field.text, 'laksesashimi');
+
+    field.clear();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    // Tøm, then each chip's term and its ✕: index 2 is the ✕ on "sushi".
+    final x = find.descendant(
+      of: find.byKey(const Key('a1_sok_nylig')),
+      matching: find.byType(GestureDetector),
+    );
+    await tester.tap(x.at(2));
+    await tester.pump();
+    expect(SokScreen.readRecent(), ['laksesashimi', 'gavekort']);
+
+    await tester.tap(find.byKey(const Key('a1_sok_tom_nylig')));
+    await tester.pump();
+    expect(SokScreen.readRecent(), isEmpty);
+    expect(
+      find.text('Ingen søk ennå. Det du søker etter, dukker opp her.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('in the shell, the nav field drives Søk', (tester) async {
@@ -331,6 +384,11 @@ void main() {
     expect(searched, ['bur']);
     expect(open.value, isTrue);
 
+    // With text (or focus) the orb spins away and the field takes its
+    // place (`orbSkjulOp`); cleared and let go, the orb is back to close.
+    await tester.tap(find.byKey(const Key('a1_sok_null')));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.tapAt(const Offset(390 - 43, 844 - 45));
     await tester.pump(const Duration(milliseconds: 500));
     expect(open.value, isFalse);
