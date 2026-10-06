@@ -134,6 +134,7 @@ flutter:
 
   shaders:
     - shaders/sjo.frag
+    - shaders/meg_stadion.frag
 
   fonts:
     - family: CustomIcons
