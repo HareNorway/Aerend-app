@@ -819,8 +819,15 @@ class _KategoriScreenState extends State<KategoriScreen> {
             ),
             child: Stack(
               alignment: Alignment.center,
+              clipBehavior: Clip.none,
               children: [
-                if (paa) bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4),
+                if (paa)
+                  bergenInsetTop(
+                    radius: 999,
+                    height: 1.5 * s,
+                    alpha: .4,
+                    pad: EdgeInsets.symmetric(vertical: 10 * s),
+                  ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -1117,8 +1124,14 @@ class _KategoriScreenState extends State<KategoriScreen> {
           ),
           child: Stack(
             alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
-              bergenInsetTop(radius: 999, height: (paa ? 1.5 : 1) * s, alpha: paa ? .4 : .18),
+              bergenInsetTop(
+                radius: 999,
+                height: (paa ? 1.5 : 1) * s,
+                alpha: paa ? .4 : .18,
+                pad: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 9 * s),
+              ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1183,8 +1196,14 @@ class _KategoriScreenState extends State<KategoriScreen> {
               ),
               child: Stack(
                 alignment: Alignment.centerLeft,
+                clipBehavior: Clip.none,
                 children: [
-                  bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .3),
+                  bergenInsetTop(
+                    radius: 999,
+                    height: 1.5 * s,
+                    alpha: .3,
+                    pad: EdgeInsets.symmetric(horizontal: 8 * s),
+                  ),
                   SizedBox(
                     height: 42 * s,
                     child: Stack(

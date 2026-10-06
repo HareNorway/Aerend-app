@@ -680,7 +680,16 @@ class _OrangePill extends StatelessWidget {
       ),
       child: Stack(
         alignment: Alignment.center,
-        children: [bergenInsetTop(radius: 999, height: 1, alpha: .35), child],
+        clipBehavior: Clip.none,
+        children: [
+          bergenInsetTop(
+            radius: 999,
+            height: 1,
+            alpha: .35,
+            pad: padding ?? EdgeInsets.zero,
+          ),
+          child,
+        ],
       ),
     );
   }

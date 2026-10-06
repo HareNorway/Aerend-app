@@ -95,23 +95,28 @@ List<BoxShadow> bergenChipShadow(BuildContext c) => [
   ),
 ];
 
-/// `linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.8),…)` — the
-/// 1px highlight along the top inner edge of a card/pill.
+/// CSS `inset 0 <height>px 0 rgba(255,255,255,<alpha>)` — the highlight
+/// along the top inner edge of a card/pill, following its curve.
+///
+/// It fills the [Stack] it sits in. When that Stack is inside the box's
+/// padding, pass the padding as [pad] (and give the Stack `Clip.none`), so
+/// the highlight sits on the box's edge rather than on the content.
 Widget bergenInsetTop({
   required double radius,
   double height = 1.5,
   double alpha = .3,
-}) => Positioned.fill(
+  EdgeInsets pad = EdgeInsets.zero,
+}) => Positioned(
+  left: -pad.left,
+  top: -pad.top,
+  right: -pad.right,
+  bottom: -pad.bottom,
   child: IgnorePointer(
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-          height: height,
-          width: double.infinity,
-          child: ColoredBox(color: Colors.white.withValues(alpha: alpha)),
-        ),
+    child: CustomPaint(
+      painter: OnbInsetTopPainter(
+        radius: radius,
+        height: height,
+        color: Colors.white.withValues(alpha: alpha),
       ),
     ),
   ),

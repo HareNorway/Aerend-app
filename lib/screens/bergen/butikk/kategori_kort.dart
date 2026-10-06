@@ -479,8 +479,14 @@ class KatMyntPille extends StatelessWidget {
       ),
       child: Stack(
         alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
-          bergenInsetTop(radius: 999, height: 1 * s, alpha: .85),
+          bergenInsetTop(
+            radius: 999,
+            height: 1 * s,
+            alpha: .85,
+            pad: EdgeInsets.fromLTRB((stor ? 8 : 6) * s, 0, (stor ? 11 : 9) * s, 0),
+          ),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [

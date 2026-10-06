@@ -203,9 +203,22 @@ class BergenSurpriseCard extends StatelessWidget {
             ],
           ),
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Positioned.fill(child: IgnorePointer(child: _sheen())),
-              bergenInsetTop(radius: 22 * s, height: 1, alpha: .22),
+              // The sheen and the highlight span the card, not its padding.
+              Positioned(
+                left: -10 * s,
+                top: -10 * s,
+                right: -12 * s,
+                bottom: -10 * s,
+                child: IgnorePointer(child: _sheen()),
+              ),
+              bergenInsetTop(
+                radius: 22 * s,
+                height: 1,
+                alpha: .22,
+                pad: EdgeInsets.fromLTRB(10 * s, 10 * s, 12 * s, 10 * s),
+              ),
               Row(
                 children: [
                   SizedBox(

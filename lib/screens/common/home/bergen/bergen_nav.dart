@@ -230,7 +230,11 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          bergenInsetTop(radius: 999, alpha: .3),
+          bergenInsetTop(
+            radius: 999,
+            alpha: .3,
+            pad: EdgeInsets.symmetric(horizontal: 7 * s),
+          ),
           // The one orange pill that glides between the tabs (`navPill`).
           Positioned.fill(
             child: IgnorePointer(

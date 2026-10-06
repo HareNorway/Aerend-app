@@ -544,7 +544,7 @@ class _OnbPressableState extends State<OnbPressable> {
   }
 }
 
-/// CSS `inset 0 <h>px 0 rgba(255,255,255,<a>)` — a highlight line along the
+/// CSS `inset 0 <h>px 0 rgba(255,255,255,<a>)` — the highlight along the
 /// top inner edge, clipped by the parent's radius.
 class _InsetTop extends StatelessWidget {
   const _InsetTop({required this.radius, this.height = 1.5, this.alpha = .4});
@@ -556,19 +556,48 @@ class _InsetTop extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Positioned.fill(
     child: IgnorePointer(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(radius),
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: SizedBox(
-            height: height,
-            width: double.infinity,
-            child: ColoredBox(color: Colors.white.withValues(alpha: alpha)),
-          ),
+      child: CustomPaint(
+        painter: OnbInsetTopPainter(
+          radius: radius,
+          height: height,
+          color: Colors.white.withValues(alpha: alpha),
         ),
       ),
     ),
   );
+}
+
+/// CSS `inset 0 <h>px 0 <color>` with no blur: the part of the rounded box
+/// that is not covered by the same box moved down by [height]. A sliver
+/// that follows the top curve and thins out down the sides — not a flat
+/// strip, which shows as a hard line across the box.
+class OnbInsetTopPainter extends CustomPainter {
+  const OnbInsetTopPainter({
+    required this.radius,
+    required this.height,
+    required this.color,
+  });
+
+  final double radius;
+  final double height;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || height <= 0) return;
+    final r = math.min(radius, math.min(size.width, size.height) / 2);
+    final box = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(r));
+    final sliver = Path.combine(
+      PathOperation.difference,
+      Path()..addRRect(box),
+      Path()..addRRect(box.shift(Offset(0, height))),
+    );
+    canvas.drawPath(sliver, Paint()..color = color..isAntiAlias = true);
+  }
+
+  @override
+  bool shouldRepaint(OnbInsetTopPainter old) =>
+      old.radius != radius || old.height != height || old.color != color;
 }
 
 /// The orange primary CTA. While [ready] is false it shows the design's
