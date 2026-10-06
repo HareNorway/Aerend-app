@@ -9,6 +9,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
+import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 
 /// The pieces of the Kurv panel (design L5047–5228), each with the
@@ -31,10 +32,8 @@ class KurvIcon extends StatelessWidget {
   final Color? fill;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    size: Size.square(size),
-    painter: _IconPainter(draw, color, width, fill),
-  );
+  Widget build(BuildContext context) =>
+      CustomPaint(size: Size.square(size), painter: _IconPainter(draw, color, width, fill));
 }
 
 class _IconPainter extends CustomPainter {
@@ -282,13 +281,25 @@ class KurvFrost extends StatelessWidget {
       child: BergenCssShadow(
         radius: radius * s,
         shadows: [
-          BoxShadow(color: rgba(120, 80, 40, .14), offset: Offset(0, 2 * s), blurRadius: onbBlur(3 * s), spreadRadius: -1 * s),
-          BoxShadow(color: rgba(90, 60, 30, .5), offset: Offset(0, 18 * s), blurRadius: onbBlur(30 * s), spreadRadius: -18 * s),
+          BoxShadow(
+            color: rgba(120, 80, 40, .14),
+            offset: Offset(0, 2 * s),
+            blurRadius: onbBlur(3 * s),
+            spreadRadius: -1 * s,
+          ),
+          BoxShadow(
+            color: rgba(90, 60, 30, .5),
+            offset: Offset(0, 18 * s),
+            blurRadius: onbBlur(30 * s),
+            spreadRadius: -18 * s,
+          ),
         ],
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius * s),
           child: BackdropFilter(
-            filter: blur ? ui.ImageFilter.blur(sigmaX: 26 * s, sigmaY: 26 * s) : ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+            filter: blur
+                ? ui.ImageFilter.blur(sigmaX: 26 * s, sigmaY: 26 * s)
+                : ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0),
             child: Container(
               padding: EdgeInsets.fromLTRB(14 * s, 12 * s, 14 * s, 12 * s),
               decoration: BoxDecoration(
@@ -297,7 +308,10 @@ class KurvFrost extends StatelessWidget {
                 border: Border.all(color: rgba(255, 255, 255, .9)),
               ),
               child: Stack(
-                children: [child, bergenInsetTop(radius: radius * s, height: 1.5 * s, alpha: .95)],
+                children: [
+                  child,
+                  bergenInsetTop(radius: radius * s, height: 1.5 * s, alpha: .95),
+                ],
               ),
             ),
           ),
@@ -349,7 +363,12 @@ class KurvModus extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [rgba(35, 32, 29, .14), rgba(35, 32, 29, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .9)],
+                      colors: [
+                        rgba(35, 32, 29, .14),
+                        rgba(35, 32, 29, 0),
+                        rgba(255, 255, 255, 0),
+                        rgba(255, 255, 255, .9),
+                      ],
                       stops: const [0, .18, .9, 1],
                     ),
                   ),
@@ -368,7 +387,12 @@ class KurvModus extends StatelessWidget {
                     gradient: cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
                     boxShadow: [
                       BoxShadow(color: rgba(11, 38, 45, .85), offset: Offset(0, 2 * s)),
-                      BoxShadow(color: rgba(15, 45, 55, .7), offset: Offset(0, 7 * s), blurRadius: onbBlur(11 * s), spreadRadius: -5 * s),
+                      BoxShadow(
+                        color: rgba(15, 45, 55, .7),
+                        offset: Offset(0, 7 * s),
+                        blurRadius: onbBlur(11 * s),
+                        spreadRadius: -5 * s,
+                      ),
                     ],
                   ),
                   child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .28)]),
@@ -394,7 +418,13 @@ class KurvModus extends StatelessWidget {
                               SizedBox(width: 7 * s),
                               Text(
                                 label,
-                                style: bText(context, 12.5, weight: FontWeight.w800, letterSpacingEm: -.01, color: pickup == m ? Colors.white : const Color(0xFF55504A)),
+                                style: bText(
+                                  context,
+                                  12.5,
+                                  weight: FontWeight.w800,
+                                  letterSpacingEm: -.01,
+                                  color: pickup == m ? Colors.white : const Color(0xFF55504A),
+                                ),
                               ),
                             ],
                           ),
@@ -413,17 +443,16 @@ class KurvModus extends StatelessWidget {
 
 // ── lines ───────────────────────────────────────────────────────────────────
 
-/// One cart line (design L5056–5099): the 48 tile, name 13px 800, «n stk. ·
-/// pris kr per stk.» 10.5px 700 white .62, the stepper pill (`rgba(0,0,0,.26)`
-/// with inset shadows; 36 white buttons `#FFFFFF→#F3EFE6` on three shadows),
-/// and the sum (Plus Jakarta 14px + «kr» 10px white .5).
+/// One cart line (L6194): the 48 tile, then name (13.5px 800) and «n stk. ·
+/// pris kr per stk.» (11px 700 white .6) with the sum on the right (Plus
+/// Jakarta 14.5px + «kr» 10px white .5), and under them the dark stepper
+/// (`rgba(0,0,0,.2)`, inset) with its two 32 glass keys.
 class KurvLinje extends StatelessWidget {
-  const KurvLinje({super.key, required this.line, required this.onMinus, required this.onPlus, this.last = false});
+  const KurvLinje({super.key, required this.line, required this.onMinus, required this.onPlus});
 
   final KurvLine line;
   final VoidCallback onMinus;
   final VoidCallback onPlus;
-  final bool last;
 
   @override
   Widget build(BuildContext context) {
@@ -436,137 +465,190 @@ class KurvLinje extends StatelessWidget {
         onTap: onTap,
         pressDy: 1.5,
         child: Container(
-          width: 36 * s,
-          height: 36 * s,
+          width: 32 * s,
+          height: 32 * s,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF3EFE6)]),
-            boxShadow: [
-              BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
-              BoxShadow(color: rgba(90, 74, 48, .3), offset: Offset(0, 2.5 * s)),
-              BoxShadow(color: rgba(35, 32, 29, .5), offset: Offset(0, 5 * s), blurRadius: onbBlur(7 * s), spreadRadius: -4 * s),
+            gradient: cssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .1)]),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const SizedBox.expand(),
+              bergenInsetTop(radius: 16 * s, height: 1 * s, alpha: .3),
+              KurvIcon(11 * s, draw, width: 3),
             ],
           ),
-          child: KurvIcon(11 * s, draw, color: const Color(0xFF23201D), width: 3.2),
         ),
       ),
     );
     return Container(
       key: Key('a1_kasse_linje_${line.cartId}'),
-      padding: EdgeInsets.symmetric(vertical: 10 * s),
+      padding: EdgeInsets.symmetric(vertical: 12 * s),
       decoration: BoxDecoration(
-        border: last ? null : Border(bottom: BorderSide(color: rgba(255, 255, 255, .12))),
+        border: Border(bottom: BorderSide(color: rgba(255, 255, 255, .1))),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48 * s,
-            height: 48 * s,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16 * s),
-              gradient: cssLinear(165, const [Color(0xFFF6D9B4), Color(0xFFD2854A)]),
-              boxShadow: [
-                BoxShadow(color: rgba(255, 255, 255, .6), spreadRadius: 1 * s),
-                BoxShadow(color: rgba(190, 170, 140, .6), offset: Offset(0, 2 * s)),
-                BoxShadow(color: rgba(60, 35, 10, .55), offset: Offset(0, 8 * s), blurRadius: onbBlur(13 * s), spreadRadius: -7 * s),
-              ],
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // The design's `#ico-mat` (30×28 @8,9) when there is no photo.
-                Positioned(
-                  left: 8 * s,
-                  top: 9 * s,
-                  width: 30 * s,
-                  height: 28 * s,
-                  child: bergenSvg('ico_mat', fit: BoxFit.contain),
-                ),
-                if (line.imageUrl != null && line.imageUrl!.isNotEmpty)
-                  Image.network(line.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
-                // radial shine at (-14%, -30%), 74% × 80%.
-                Positioned(
-                  left: -.14 * 48 * s,
-                  top: -.3 * 48 * s,
-                  width: .74 * 48 * s,
-                  height: .8 * 48 * s,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(colors: [rgba(255, 255, 255, .5), rgba(255, 255, 255, 0)], stops: const [0, .7]),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 15 * s,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(gradient: cssLinear(180, [rgba(60, 35, 10, 0), rgba(60, 35, 10, .2)])),
-                  ),
-                ),
-                bergenInsetTop(radius: 16 * s, height: 2 * s, alpha: .7),
-              ],
-            ),
-          ),
-          SizedBox(width: 11 * s),
+          KurvFlis(imageUrl: line.imageUrl),
+          SizedBox(width: 12 * s),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(line.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 13, weight: FontWeight.w800)),
-                Text(
-                  KasseCopy.a1_kasse_stk_pris(line.quantity, KasseCopy.tall(line.unitPrice)),
-                  style: bText(context, 10.5, color: rgba(255, 255, 255, .62)),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            line.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: bText(context, 13.5, weight: FontWeight.w800, letterSpacingEm: -.01),
+                          ),
+                          SizedBox(height: 2 * s),
+                          Text(
+                            KasseCopy.a1_kasse_stk_pris(line.quantity, KasseCopy.tall(line.unitPrice)),
+                            style: bText(context, 11, color: rgba(255, 255, 255, .6)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 10 * s),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(KasseCopy.tall(line.sum), style: bDisplay(context, 14.5, letterSpacingEm: -.02)),
+                        SizedBox(width: 2 * s),
+                        Text(
+                          'kr',
+                          style: bText(context, 10, weight: FontWeight.w800, color: rgba(255, 255, 255, .5)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 9 * s),
+                Container(
+                  padding: EdgeInsets.all(3 * s),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [rgba(0, 0, 0, .34), rgba(0, 0, 0, .2), rgba(0, 0, 0, .2), rgba(255, 255, 255, .1)],
+                      stops: const [0, .14, .96, 1],
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      button(
+                        KasseCopy.a1_kasse_en_mindre,
+                        KurvIcons.minus,
+                        onMinus,
+                        Key('a1_kasse_minus_${line.cartId}'),
+                      ),
+                      SizedBox(width: 2 * s),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(minWidth: 24 * s),
+                        child: Text(
+                          '${line.quantity}',
+                          key: Key('a1_kasse_antall_${line.cartId}'),
+                          textAlign: TextAlign.center,
+                          style: bText(context, 12.5, weight: FontWeight.w800),
+                        ),
+                      ),
+                      SizedBox(width: 2 * s),
+                      button(KasseCopy.a1_kasse_en_mer, KurvIcons.plus, onPlus, Key('a1_kasse_plus_${line.cartId}')),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(width: 11 * s),
-          Container(
-            padding: EdgeInsets.all(3 * s),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              color: rgba(0, 0, 0, .26),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [rgba(0, 0, 0, .45), rgba(0, 0, 0, .26), rgba(0, 0, 0, .26), rgba(255, 255, 255, .14)],
-                stops: const [0, .2, .95, 1],
+        ],
+      ),
+    );
+  }
+}
+
+/// The product tile (`48 r16 {{tint}}`, the white rim and plate shadow, the
+/// radial sheen): the product photo when there is one, else the design's
+/// cloche (`#ico-mat`) on the warm tint.
+class KurvFlis extends StatelessWidget {
+  const KurvFlis({super.key, this.imageUrl, this.size = 48, this.radius = 16});
+
+  final String? imageUrl;
+  final double size;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    final d = size * s;
+    return Container(
+      width: d,
+      height: d,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius * s),
+        gradient: cssLinear(165, const [Color(0xFFF6D9B4), Color(0xFFD2854A)]),
+        boxShadow: [
+          BoxShadow(color: rgba(255, 255, 255, .6), spreadRadius: 1 * s),
+          BoxShadow(color: rgba(190, 170, 140, .6), offset: Offset(0, 2 * s)),
+          BoxShadow(
+            color: rgba(60, 35, 10, .55),
+            offset: Offset(0, 8 * s),
+            blurRadius: onbBlur(13 * s),
+            spreadRadius: -7 * s,
+          ),
+        ],
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned(
+            left: d * 8 / 48,
+            top: d * 9 / 48,
+            width: d * 30 / 48,
+            height: d * 28 / 48,
+            child: bergenSvg('ico_mat', fit: BoxFit.contain),
+          ),
+          if (imageUrl != null && imageUrl!.isNotEmpty)
+            Image.network(imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+          Positioned(
+            left: -.14 * d,
+            top: -.3 * d,
+            width: .74 * d,
+            height: .8 * d,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [rgba(255, 255, 255, .5), rgba(255, 255, 255, 0)],
+                  stops: const [0, .7],
+                ),
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                button(KasseCopy.a1_kasse_en_mindre, KurvIcons.minus, onMinus, Key('a1_kasse_minus_${line.cartId}')),
-                SizedBox(width: 3 * s),
-                ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: 18 * s),
-                  child: Text('${line.quantity}', textAlign: TextAlign.center, style: bText(context, 12.5, weight: FontWeight.w800)),
-                ),
-                SizedBox(width: 3 * s),
-                button(KasseCopy.a1_kasse_en_mer, KurvIcons.plus, onPlus, Key('a1_kasse_plus_${line.cartId}')),
-              ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: d * 15 / 48,
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: cssLinear(180, [rgba(60, 35, 10, 0), rgba(60, 35, 10, .2)])),
             ),
           ),
-          SizedBox(width: 11 * s),
-          ConstrainedBox(
-            constraints: BoxConstraints(minWidth: 52 * s),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(KasseCopy.tall(line.sum), style: bDisplay(context, 14, letterSpacingEm: -.02)),
-                SizedBox(width: 2 * s),
-                Text('kr', style: bText(context, 10, weight: FontWeight.w800, color: rgba(255, 255, 255, .5))),
-              ],
-            ),
-          ),
+          bergenInsetTop(radius: radius * s, height: 2 * s, alpha: .7),
         ],
       ),
     );
@@ -593,12 +675,23 @@ class KurvLeggMer extends StatelessWidget {
             KurvIcon(13 * s, KurvIcons.plus, color: const Color(0xFF5CE0B8), width: 2.6),
             SizedBox(width: 8 * s),
             Flexible(
-              child: Text(KasseCopy.a1_kasse_legg_mer, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 12, weight: FontWeight.w800, color: const Color(0xFF5CE0B8))),
+              child: Text(
+                KasseCopy.a1_kasse_legg_mer,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: bText(context, 12, weight: FontWeight.w800, color: const Color(0xFF5CE0B8)),
+              ),
             ),
             SizedBox(width: 8 * s),
             const Spacer(),
             Flexible(
-              child: Text(KasseCopy.a1_kasse_glemte_drikke, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: bText(context, 10.5, color: rgba(255, 255, 255, .5))),
+              child: Text(
+                KasseCopy.a1_kasse_glemte_drikke,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: bText(context, 10.5, color: rgba(255, 255, 255, .5)),
+              ),
             ),
           ],
         ),
@@ -614,187 +707,248 @@ class KurvLeggMer extends StatelessWidget {
 /// `bobleInn .38s cubic-bezier(.25,1.25,.45,1)` and the «Bla gjennom Bergen»
 /// 3D button.
 class KurvTom extends StatelessWidget {
-  const KurvTom({super.key, required this.onBrowse});
+  const KurvTom({super.key, required this.onBrowse, this.tilbud = const []});
 
   final VoidCallback onBrowse;
+
+  /// «Tilbud i kveld · Rett i kurven» (L6215): the night's offers.
+  final List<Widget> tilbud;
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return Padding(
+    return Column(
       key: const Key('a1_kasse_tom'),
-      padding: EdgeInsets.fromLTRB(0, 6 * s, 0, 18 * s),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 230 * s,
-            height: 132 * s,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 115 * s - 90 * s,
-                  top: 16 * s,
-                  width: 180 * s,
-                  height: 96 * s,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(colors: [rgba(220, 233, 236, .55), rgba(220, 233, 236, 0)], stops: const [0, .7]),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 6 * s, 0, 18 * s),
+          child: Column(
+            children: [
+              SizedBox(
+                width: 244 * s,
+                height: 150 * s,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: 22 * s,
+                      top: 22 * s,
+                      width: 200 * s,
+                      height: 104 * s,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [rgba(220, 233, 236, .55), rgba(220, 233, 236, 0)],
+                            stops: const [0, .7],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    Positioned(
+                      left: 18 * s,
+                      bottom: 6 * s,
+                      width: 196 * s,
+                      height: 16 * s,
+                      child: onbBlurred(
+                        2 * s,
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(
+                              colors: [rgba(35, 32, 29, .26), rgba(35, 32, 29, 0)],
+                              stops: const [0, .72],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    for (final (l, t, d, a, delay) in [(24.0, 18.0, 8.0, .18, 0.0), (206.0, 30.0, 6.0, .14, 1800.0)])
+                      Positioned(
+                        left: l * s,
+                        top: t * s,
+                        width: d * s,
+                        height: d * s,
+                        child: BergenLoop(
+                          durationMs: 4600,
+                          delayMs: delay,
+                          builder: (context, p, _) => Opacity(
+                            opacity: p == null
+                                ? 0
+                                : kf(Curves.easeOut.transform(p), const [0, .2, 1], const [0, .7, 0]),
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: rgba(30, 79, 92, a)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      left: -2 * s,
+                      bottom: 8 * s,
+                      width: 128 * s,
+                      child: BergenLoop(
+                        durationMs: 3400,
+                        child: Image.asset('assets/images/dashboard/side.png', width: 128 * s, fit: BoxFit.contain),
+                        builder: (context, p, child) {
+                          final q = p ?? 0;
+                          return Transform(
+                            alignment: Alignment.bottomCenter,
+                            transform: Matrix4.identity()
+                              ..scale(-1.0, 1.0)
+                              ..translate(0.0, kf(q, const [0, .5, 1], const [0, -2.5, 0], Curves.easeInOut) * s)
+                              ..rotateZ(kf(q, const [0, .5, 1], const [1, -1.5, 1], Curves.easeInOut) * math.pi / 180),
+                            child: child,
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      left: 86 * s,
+                      bottom: 10 * s,
+                      width: 112 * s,
+                      height: 86 * s,
+                      child: BergenLoop(
+                        durationMs: 3400,
+                        child: CustomPaint(painter: _CartPainter(s)),
+                        builder: (context, p, child) {
+                          final q = p ?? 0;
+                          return Transform(
+                            alignment: const Alignment(.4, 1),
+                            transform: Matrix4.identity()
+                              ..rotateZ(kf(q, const [0, .5, 1], const [-7, -2, -7], Curves.easeInOut) * math.pi / 180)
+                              ..translate(0.0, kf(q, const [0, .5, 1], const [0, -3, 0], Curves.easeInOut) * s),
+                            child: child,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                Positioned(
-                  left: 34 * s,
-                  bottom: 10 * s,
-                  width: 150 * s,
-                  height: 14 * s,
-                  child: onbBlurred(
-                    2 * s,
-                    DecoratedBox(
+              ),
+              SizedBox(height: 2 * s),
+              BergenOnce(
+                durationMs: 380,
+                builder: (context, p, child) {
+                  final q = const Cubic(.25, 1.25, .45, 1).transform(p);
+                  return Opacity(
+                    opacity: q.clamp(0, 1),
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..translate(0.0, 8 * (1 - q) * s)
+                        ..scale(.6 + .4 * q),
+                      child: child,
+                    ),
+                  );
+                },
+                child: ConstrainedBox(
+                  // `max-width:270px` on the content box, plus the 14px padding and border.
+              constraints: BoxConstraints(maxWidth: 300 * s),
+                  child: BergenCssShadow(
+                    radius: 18 * s,
+                    shadows: [
+                      BoxShadow(
+                        color: rgba(4, 18, 26, .85),
+                        offset: Offset(0, 16 * s),
+                        blurRadius: onbBlur(24 * s),
+                        spreadRadius: -14 * s,
+                      ),
+                    ],
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 11 * s),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(colors: [rgba(35, 32, 29, .22), rgba(35, 32, 29, 0)], stops: const [0, .72]),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(18 * s),
+                          topRight: Radius.circular(18 * s),
+                          bottomRight: Radius.circular(18 * s),
+                          bottomLeft: Radius.circular(6 * s),
+                        ),
+                        gradient: cssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .08)]),
+                        border: Border.all(color: rgba(255, 255, 255, .24)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            KasseCopy.a1_kasse_tom_kicker,
+                            style: bText(
+                              context,
+                              9,
+                              weight: FontWeight.w800,
+                              letterSpacingEm: .06,
+                              color: const Color(0xFF5CE0B8),
+                            ),
+                          ),
+                          SizedBox(height: 2 * s),
+                          Text(
+                            KasseCopy.a1_kasse_tom_title,
+                            style: bDisplay(context, 13, letterSpacingEm: -.015, height: 1.3),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                for (final (l, t, d, a, delay) in [(24.0, 18.0, 8.0, .18, 0.0), (186.0, 30.0, 6.0, .14, 1800.0)])
-                  Positioned(
-                    left: l * s,
-                    top: t * s,
-                    width: d * s,
-                    height: d * s,
-                    child: BergenLoop(
-                      durationMs: 4600,
-                      delayMs: delay,
-                      builder: (context, p, _) => Opacity(
-                        opacity: p == null ? 0 : kf(Curves.easeOut.transform(p), const [0, .2, 1], const [0, .7, 0]),
-                        child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: rgba(30, 79, 92, a))),
+              ),
+              SizedBox(height: 14 * s),
+              OnbPressable(
+                onTap: onBrowse,
+                pressDy: 3,
+                child: Container(
+                  key: const Key('a1_kasse_tom_cta'),
+                  padding: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 12 * s),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16 * s),
+                    gradient: cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)]),
+                    boxShadow: [
+                      BoxShadow(color: rgba(150, 60, 15, .8), offset: Offset(0, 3 * s)),
+                      BoxShadow(
+                        color: rgba(120, 50, 10, .9),
+                        offset: Offset(0, 14 * s),
+                        blurRadius: onbBlur(22 * s),
+                        spreadRadius: -12 * s,
                       ),
-                    ),
+                    ],
                   ),
-                Positioned(
-                  left: 28 * s,
-                  bottom: 12 * s,
-                  width: 62 * s,
-                  child: BergenLoop(
-                    durationMs: 3400,
-                    child: Image.asset('assets/images/dashboard/side.png', width: 62 * s, fit: BoxFit.contain),
-                    builder: (context, p, child) {
-                      final q = p ?? 0;
-                      return Transform(
-                        alignment: Alignment.bottomCenter,
-                        transform: Matrix4.identity()
-                          ..scale(-1.0, 1.0)
-                          ..translate(0.0, kf(q, const [0, .5, 1], const [0, -2.5, 0], Curves.easeInOut) * s)
-                          ..rotateZ(kf(q, const [0, .5, 1], const [1, -1.5, 1], Curves.easeInOut) * math.pi / 180),
-                        child: child,
-                      );
-                    },
+                  child: Stack(
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(KasseCopy.a1_kasse_tom_cta, style: bDisplay(context, 13.5, letterSpacingEm: 0)),
+                          SizedBox(width: 8 * s),
+                          KurvIcon(13 * s, KurvIcons.chevron, width: 3.2),
+                        ],
+                      ),
+                      bergenInsetTop(radius: 16 * s, height: 1.5 * s, alpha: .35),
+                    ],
                   ),
                 ),
-                Positioned(
-                  left: 78 * s,
-                  bottom: 10 * s,
-                  width: 112 * s,
-                  height: 86 * s,
-                  child: BergenLoop(
-                    durationMs: 3400,
-                    child: CustomPaint(painter: _CartPainter(s)),
-                    builder: (context, p, child) {
-                      final q = p ?? 0;
-                      return Transform(
-                        alignment: const Alignment(.4, 1),
-                        transform: Matrix4.identity()
-                          ..rotateZ(kf(q, const [0, .5, 1], const [-7, -2, -7], Curves.easeInOut) * math.pi / 180)
-                          ..translate(0.0, kf(q, const [0, .5, 1], const [0, -3, 0], Curves.easeInOut) * s),
-                        child: child,
-                      );
-                    },
-                  ),
+              ),
+            ],
+          ),
+        ),
+        if (tilbud.isNotEmpty) ...[
+          Padding(
+            padding: EdgeInsets.fromLTRB(4 * s, 6 * s, 4 * s, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Expanded(
+                  child: Text(KasseCopy.a1_kasse_tom_tilbud, style: bDisplay(context, 14, letterSpacingEm: -.015)),
                 ),
+                Text(KasseCopy.a1_kasse_tom_rett, style: bText(context, 10.5, color: rgba(255, 255, 255, .55))),
               ],
             ),
           ),
-          SizedBox(height: 2 * s),
-          BergenOnce(
-            durationMs: 380,
-            builder: (context, p, child) {
-              final q = const Cubic(.25, 1.25, .45, 1).transform(p);
-              return Opacity(
-                opacity: q.clamp(0, 1),
-                child: Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..translate(0.0, 8 * (1 - q) * s)
-                    ..scale(.6 + .4 * q),
-                  child: child,
-                ),
-              );
-            },
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 270 * s),
-              child: BergenCssShadow(
-                radius: 18 * s,
-                shadows: [BoxShadow(color: rgba(4, 18, 26, .85), offset: Offset(0, 16 * s), blurRadius: onbBlur(24 * s), spreadRadius: -14 * s)],
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 11 * s),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(18 * s),
-                      topRight: Radius.circular(18 * s),
-                      bottomRight: Radius.circular(18 * s),
-                      bottomLeft: Radius.circular(6 * s),
-                    ),
-                    gradient: cssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .08)]),
-                    border: Border.all(color: rgba(255, 255, 255, .24)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(KasseCopy.a1_kasse_tom_kicker, style: bText(context, 9, weight: FontWeight.w800, letterSpacingEm: .06, color: const Color(0xFF5CE0B8))),
-                      SizedBox(height: 2 * s),
-                      Text(KasseCopy.a1_kasse_tom_title, style: bDisplay(context, 13, letterSpacingEm: -.015, height: 1.3)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(height: 14 * s),
-          OnbPressable(
-            onTap: onBrowse,
-            pressDy: 3,
-            child: Container(
-              key: const Key('a1_kasse_tom_cta'),
-              padding: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 12 * s),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16 * s),
-                gradient: cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)]),
-                boxShadow: [
-                  BoxShadow(color: rgba(150, 60, 15, .8), offset: Offset(0, 3 * s)),
-                  BoxShadow(color: rgba(120, 50, 10, .9), offset: Offset(0, 14 * s), blurRadius: onbBlur(22 * s), spreadRadius: -12 * s),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(KasseCopy.a1_kasse_tom_cta, style: bDisplay(context, 13.5, letterSpacingEm: 0)),
-                      SizedBox(width: 8 * s),
-                      KurvIcon(13 * s, KurvIcons.chevron, width: 3.2),
-                    ],
-                  ),
-                  bergenInsetTop(radius: 16 * s, height: 1.5 * s, alpha: .35),
-                ],
-              ),
-            ),
-          ),
+          SizedBox(height: 9 * s),
+          for (var i = 0; i < tilbud.length; i++) ...[if (i > 0) SizedBox(height: 8 * s), tilbud[i]],
+          SizedBox(height: 12 * s),
         ],
-      ),
+      ],
     );
   }
 }
@@ -849,9 +1003,21 @@ class _CartPainter extends CustomPainter {
 
 // ── Endre rows ──────────────────────────────────────────────────────────────
 
-/// The white «Endre ›» pill (design L5158): `min-height 38; 0 12; #FFFFFF→
-/// #EFF3F4; #1B4A57 11.5px 800; 0 0 0 1px white .95, 0 1.5px 0 #D2DDE0,
-/// 0 3px 0 rgba(60,90,100,.3), 0 7px 10px -6px rgba(15,45,55,.55)`.
+/// The mint glass behind «Endre ›» and the Flere-valg key: `180deg
+/// rgba(130,242,210,.3) → rgba(92,224,184,.1)`, inset top .32, inset bottom
+/// `rgba(4,30,26,.32)`, the `rgba(92,224,184,.38)` ring and the drop.
+BoxDecoration kurvMintGlass(double s, {BoxShape shape = BoxShape.rectangle}) => BoxDecoration(
+  shape: shape,
+  borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(999),
+  gradient: cssLinear(180, [rgba(130, 242, 210, .3), rgba(92, 224, 184, .1)]),
+  border: Border.all(color: rgba(92, 224, 184, .38)),
+  boxShadow: [
+    BoxShadow(color: rgba(3, 16, 24, .85), offset: Offset(0, 9 * s), blurRadius: onbBlur(12 * s), spreadRadius: -7 * s),
+  ],
+);
+
+/// «Endre ›» (L6230): `min-height 34; 0 12`, mint 11.5px 800 −.01em with the
+/// `11/3.2` chevron; «Se fullt kart» carries the map icon instead.
 class KurvEndrePill extends StatelessWidget {
   const KurvEndrePill({super.key, required this.label, required this.onTap, this.icon});
 
@@ -862,29 +1028,48 @@ class KurvEndrePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    const mint = Color(0xFF5CE0B8);
     return OnbPressable(
       onTap: onTap,
       pressDy: 2,
       child: Container(
-        constraints: BoxConstraints(minHeight: 38 * s),
+        constraints: BoxConstraints(minHeight: 34 * s),
         padding: EdgeInsets.symmetric(horizontal: (icon == null ? 12 : 13) * s),
         alignment: Alignment.center,
-        decoration: BoxDecoration(
+        decoration: kurvMintGlass(s),
+        foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFEFF3F4)]),
-          boxShadow: [
-            BoxShadow(color: rgba(255, 255, 255, .95), spreadRadius: 1),
-            BoxShadow(color: const Color(0xFFD2DDE0), offset: Offset(0, 1.5 * s)),
-            BoxShadow(color: rgba(60, 90, 100, .3), offset: Offset(0, 3 * s)),
-            BoxShadow(color: rgba(15, 45, 55, .55), offset: Offset(0, 7 * s), blurRadius: onbBlur(10 * s), spreadRadius: -6 * s),
-          ],
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [rgba(4, 30, 26, 0), rgba(4, 30, 26, 0), rgba(4, 30, 26, .32)],
+            stops: const [0, .8, 1],
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
-            if (icon != null) ...[KurvIcon(13 * s, icon!, color: const Color(0xFF1B4A57)), SizedBox(width: 5 * s)],
-            Text(label, style: bText(context, 11.5, weight: FontWeight.w800, letterSpacingEm: -.01, color: const Color(0xFF1B4A57))),
-            if (icon == null) ...[SizedBox(width: 4 * s), KurvIcon(11 * s, KurvIcons.chevron, color: const Color(0xFF1B4A57), width: 3.2)],
+            bergenInsetTop(
+              radius: 999,
+              height: 1.5 * s,
+              alpha: .32,
+              pad: EdgeInsets.symmetric(horizontal: (icon == null ? 12 : 13) * s),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[KurvIcon(13 * s, icon!, color: mint), SizedBox(width: 5 * s)],
+                Text(
+                  label,
+                  style: bText(context, 11.5, weight: FontWeight.w800, letterSpacingEm: -.01, color: mint),
+                ),
+                if (icon == null) ...[
+                  SizedBox(width: 4 * s),
+                  KurvIcon(11 * s, KurvIcons.chevron, color: mint, width: 3.2),
+                ],
+              ],
+            ),
           ],
         ),
       ),
@@ -892,9 +1077,68 @@ class KurvEndrePill extends StatelessWidget {
   }
 }
 
-/// A row of the Endre card (design L5155–5185): the 36 icon tile
-/// (`rgba(255,255,255,.12)`, `.18` border, mint 17px icon), title 12.5px 700,
-/// line 11px white .62, the pill.
+/// The raised teal icon tile of the rows (`36 r13 160deg #3F8798 → #27606F
+/// 52% → #1A4654`, inset top .32 and bottom `rgba(4,20,28,.42)`, the faint
+/// ring and the drop) with its mint 17px icon — or orange for the door row.
+class KurvRadFlis extends StatelessWidget {
+  const KurvRadFlis({super.key, required this.icon, this.orange = false});
+
+  final KurvDraw icon;
+  final bool orange;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return Container(
+      width: 36 * s,
+      height: 36 * s,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13 * s),
+        gradient: orange
+            ? cssLinear(160, const [Color(0xFFF68450), Color(0xFFE65A28)])
+            : cssLinear(160, const [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], const [0, .52, 1]),
+        border: orange ? null : Border.all(color: rgba(255, 255, 255, .07)),
+        boxShadow: [
+          BoxShadow(
+            color: rgba(3, 16, 24, .8),
+            offset: Offset(0, 9 * s),
+            blurRadius: onbBlur(12 * s),
+            spreadRadius: -6 * s,
+          ),
+        ],
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13 * s),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: orange
+              ? [rgba(150, 40, 10, 0), rgba(150, 40, 10, 0), rgba(150, 40, 10, .35)]
+              : [rgba(4, 20, 28, 0), rgba(4, 20, 28, 0), rgba(4, 20, 28, .42)],
+          stops: const [0, .78, 1],
+        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const SizedBox.expand(),
+          bergenInsetTop(radius: 13 * s, height: 1.5 * s, alpha: orange ? .4 : .32),
+          KurvIcon(
+            orange ? 15 * s : 17 * s,
+            icon,
+            color: orange ? Colors.white : const Color(0xFF5CE0B8),
+            width: orange ? 1.9 : 2,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A row of the choices card (L6226–6262): the tile, title 13px 800 −.01em
+/// (line-height 1.3), line 11px white .62, and the pill; rows after the first
+/// carry a `rgba(255,255,255,.1)` hairline on top.
 class KurvEndreRad extends StatelessWidget {
   const KurvEndreRad({
     super.key,
@@ -906,7 +1150,7 @@ class KurvEndreRad extends StatelessWidget {
     required this.onTap,
     this.actionIcon,
     this.orange = false,
-    this.last = false,
+    this.first = false,
   });
 
   final String keyName;
@@ -916,38 +1160,39 @@ class KurvEndreRad extends StatelessWidget {
   final String action;
   final VoidCallback onTap;
   final KurvDraw? actionIcon;
-
-  /// The «Beskjed til budet» row: 32 tile `rgba(242,109,61,.14)`, `#B9441A`.
   final bool orange;
-  final bool last;
+  final bool first;
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
     return Container(
       key: Key(keyName),
-      padding: EdgeInsets.symmetric(vertical: 9 * s),
-      decoration: BoxDecoration(border: last ? null : Border(bottom: BorderSide(color: rgba(255, 255, 255, .12)))),
+      padding: EdgeInsets.symmetric(vertical: 12 * s),
+      decoration: BoxDecoration(
+        border: first ? null : Border(top: BorderSide(color: rgba(255, 255, 255, .1))),
+      ),
       child: Row(
         children: [
-          Container(
-            width: (orange ? 32 : 36) * s,
-            height: (orange ? 32 : 36) * s,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular((orange ? 11 : 13) * s),
-              color: orange ? rgba(242, 109, 61, .14) : rgba(255, 255, 255, .12),
-              border: orange ? null : Border.all(color: rgba(255, 255, 255, .18)),
-            ),
-            child: KurvIcon((orange ? 15 : 17) * s, icon, color: orange ? const Color(0xFFB9441A) : const Color(0xFF5CE0B8), width: orange ? 1.9 : 2),
-          ),
+          KurvRadFlis(icon: icon, orange: orange),
           SizedBox(width: 11 * s),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: bText(context, 12.5)),
-                if (line.isNotEmpty) Text(line, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62))),
+                Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, height: 1.3),
+                ),
+                if (line.isNotEmpty)
+                  Text(
+                    line,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                  ),
               ],
             ),
           ),
@@ -959,8 +1204,9 @@ class KurvEndreRad extends StatelessWidget {
   }
 }
 
-/// «Flere valg» (design L5187–5192): 12.5px 800 + line 10.5px 700 white .55,
-/// the mint chevron turning 180° in `.28s cubic-bezier(.3,1.2,.5,1)`.
+/// «Flere valg» as the last row (L6264): the sliders tile, title + line, and
+/// the round 34 mint key whose chevron turns 180° (`.28s cubic-bezier(.3,1.2,
+/// .5,1)`).
 class KurvFlere extends StatelessWidget {
   const KurvFlere({super.key, required this.open, required this.line, required this.onTap});
 
@@ -968,34 +1214,321 @@ class KurvFlere extends StatelessWidget {
   final String line;
   final VoidCallback onTap;
 
+  static void sliders(Canvas c, Paint p) {
+    c.drawLine(const Offset(4, 7), const Offset(14, 7), p);
+    c.drawLine(const Offset(18, 7), const Offset(20, 7), p);
+    c.drawLine(const Offset(4, 17), const Offset(8, 17), p);
+    c.drawLine(const Offset(12, 17), const Offset(20, 17), p);
+    c.drawCircle(const Offset(16, 7), 2, p);
+    c.drawCircle(const Offset(10, 17), 2, p);
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return OnbPressable(
+    return GestureDetector(
       key: const Key('a1_kasse_flere'),
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      pressDy: 2,
-      child: KurvGlass(
-        radius: 18 * s,
-        deep: false,
-        padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12 * s),
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: rgba(255, 255, 255, .1))),
+        ),
         child: Row(
           children: [
+            const KurvRadFlis(icon: sliders),
+            SizedBox(width: 11 * s),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(KasseCopy.a1_kasse_flere_valg, style: bText(context, 12.5, weight: FontWeight.w800)),
+                  Text(
+                    KasseCopy.a1_kasse_flere_valg,
+                    style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01),
+                  ),
                   SizedBox(height: 1 * s),
-                  Text(line, style: bText(context, 10.5, color: rgba(255, 255, 255, .55))),
+                  Text(
+                    line,
+                    style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                  ),
                 ],
               ),
             ),
-            AnimatedRotation(
-              turns: open ? .5 : 0,
-              duration: BergenTokens.motion(context, const Duration(milliseconds: 280)),
-              curve: const Cubic(.3, 1.2, .5, 1),
-              child: KurvIcon(14 * s, KurvIcons.chevronDown, color: const Color(0xFF5CE0B8), width: 3),
+            Container(
+              width: 34 * s,
+              height: 34 * s,
+              alignment: Alignment.center,
+              decoration: kurvMintGlass(s, shape: BoxShape.circle),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const SizedBox.expand(),
+                  bergenInsetTop(radius: 17 * s, height: 1.5 * s, alpha: .32),
+                  AnimatedRotation(
+                    turns: open ? .5 : 0,
+                    duration: BergenTokens.motion(context, const Duration(milliseconds: 280)),
+                    curve: const Cubic(.3, 1.2, .5, 1),
+                    child: KurvIcon(14 * s, KurvIcons.chevronDown, color: const Color(0xFF5CE0B8), width: 3),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// «Gi litt ekstra til budet?» (L6301): the glass card with the heart tile
+/// and the dark track whose white thumb springs between 0 / 15 / 25 / 40 kr
+/// (`.45s cubic-bezier(.34,1.56,.64,1)`); it rises in on `stigOpp`.
+class KurvTips extends StatelessWidget {
+  const KurvTips({super.key, required this.tip, required this.onTip});
+
+  final int tip;
+  final ValueChanged<int> onTip;
+
+  static const verdier = [0, 15, 25, 40];
+
+  static void hjerte(Canvas c, Paint p) {
+    c.drawPath(svgSti('M12 20s-7-4.4-7-9.6A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.4C19 15.6 12 20 12 20z'), p);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    final i = math.max(0, verdier.indexOf(tip));
+    return BergenOnce(
+      durationMs: 300,
+      builder: (context, p, child) {
+        final q = const Cubic(.2, .9, .3, 1).transform(p);
+        return Opacity(
+          opacity: q,
+          child: Transform.translate(offset: Offset(0, 26 * (1 - q) * s), child: child),
+        );
+      },
+      child: KurvGlass(
+        key: const Key('a1_kasse_tips'),
+        radius: 22 * s,
+        padding: EdgeInsets.all(14 * s),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const KurvRadFlis(icon: hjerte),
+                SizedBox(width: 11 * s),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        KasseCopy.a1_kasse_tips_title,
+                        style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01),
+                      ),
+                      Text(
+                        KasseCopy.a1_kasse_tips_line,
+                        style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12 * s),
+            Container(
+              padding: EdgeInsets.all(4 * s),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [rgba(0, 0, 0, .36), rgba(0, 0, 0, .22), rgba(0, 0, 0, .22), rgba(255, 255, 255, .1)],
+                  stops: const [0, .14, .96, 1],
+                ),
+              ),
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  final w = box.maxWidth / 4;
+                  return SizedBox(
+                    height: 38 * s,
+                    child: Stack(
+                      children: [
+                        AnimatedPositioned(
+                          duration: BergenTokens.motion(context, const Duration(milliseconds: 450)),
+                          curve: const Cubic(.34, 1.56, .64, 1),
+                          left: w * i,
+                          top: 0,
+                          bottom: 0,
+                          width: w,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(999),
+                              gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFE9EEED)]),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: rgba(0, 10, 14, .7),
+                                  offset: Offset(0, 6 * s),
+                                  blurRadius: onbBlur(10 * s),
+                                  spreadRadius: -6 * s,
+                                ),
+                              ],
+                            ),
+                            foregroundDecoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(999),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [rgba(30, 79, 92, 0), rgba(30, 79, 92, .14)],
+                                stops: const [.6, 1],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            for (final v in verdier)
+                              Expanded(
+                                child: GestureDetector(
+                                  key: Key('a1_kasse_tips_$v'),
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () => onTip(v),
+                                  child: Center(
+                                    child: AnimatedDefaultTextStyle(
+                                      duration: const Duration(milliseconds: 300),
+                                      style: bText(
+                                        context,
+                                        12.5,
+                                        weight: FontWeight.w800,
+                                        color: tip == v ? const Color(0xFF1E4F5C) : rgba(255, 255, 255, .8),
+                                      ),
+                                      child: Text('$v kr'),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One of «Tilbud i kveld» (L6219): the 46 photo tile, name, price, the
+/// struck old price and the orange −N % tag, and the round orange «+».
+class KurvTilbudRad extends StatelessWidget {
+  const KurvTilbudRad({
+    super.key,
+    required this.navn,
+    required this.pris,
+    required this.foer,
+    required this.rabatt,
+    required this.onOpen,
+    required this.onAdd,
+    this.imageUrl,
+  });
+
+  final String navn;
+  final String pris;
+  final String foer;
+  final String rabatt;
+  final String? imageUrl;
+  final VoidCallback onOpen;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return OnbPressable(
+      onTap: onOpen,
+      pressDy: 2,
+      child: KurvGlass(
+        radius: 18 * s,
+        deep: false,
+        padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 10 * s),
+        child: Row(
+          children: [
+            KurvFlis(imageUrl: imageUrl, size: 46, radius: 14),
+            SizedBox(width: 11 * s),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    navn,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: bText(context, 12.5, weight: FontWeight.w800, letterSpacingEm: -.015),
+                  ),
+                  SizedBox(height: 2 * s),
+                  Row(
+                    children: [
+                      Text(pris, style: bText(context, 12.5, weight: FontWeight.w800)),
+                      SizedBox(width: 6 * s),
+                      Text(
+                        foer,
+                        style: bText(
+                          context,
+                          10,
+                          color: rgba(255, 255, 255, .45),
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      SizedBox(width: 6 * s),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 6 * s, vertical: 2 * s),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6 * s),
+                          gradient: cssLinear(180, const [Color(0xFFF58A55), Color(0xFFE95C2C)]),
+                        ),
+                        child: Text(rabatt, style: bText(context, 9, weight: FontWeight.w800)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: 8 * s),
+            OnbPressable(
+              onTap: onAdd,
+              pressDy: 2.5,
+              pressScale: .94,
+              child: Container(
+                width: 34 * s,
+                height: 34 * s,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: cssLinear(160, const [Color(0xFFF58A55), Color(0xFFE95C2C)]),
+                  boxShadow: [
+                    BoxShadow(
+                      color: rgba(180, 70, 30, .85),
+                      offset: Offset(0, 7 * s),
+                      blurRadius: onbBlur(11 * s),
+                      spreadRadius: -6 * s,
+                    ),
+                    BoxShadow(color: rgba(150, 55, 20, .9), offset: Offset(0, 2 * s)),
+                  ],
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const SizedBox.expand(),
+                    bergenInsetTop(radius: 17 * s, height: 1.5 * s, alpha: .4),
+                    KurvIcon(15 * s, KurvIcons.plus, width: 3),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -1024,20 +1557,35 @@ class KurvChip extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: padding * s, vertical: 8 * s),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          gradient: on ? cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]) : cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
+          gradient: on
+              ? cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)])
+              : cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
           boxShadow: on
               ? [
                   BoxShadow(color: rgba(11, 38, 45, .9), offset: Offset(0, 2 * s)),
-                  BoxShadow(color: rgba(15, 45, 55, .8), offset: Offset(0, 7 * s), blurRadius: onbBlur(11 * s), spreadRadius: -6 * s),
+                  BoxShadow(
+                    color: rgba(15, 45, 55, .8),
+                    offset: Offset(0, 7 * s),
+                    blurRadius: onbBlur(11 * s),
+                    spreadRadius: -6 * s,
+                  ),
                 ]
               : [
                   BoxShadow(color: rgba(255, 255, 255, .95), spreadRadius: 1),
                   BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
                   BoxShadow(color: rgba(90, 74, 48, .26), offset: Offset(0, 3 * s)),
-                  BoxShadow(color: rgba(35, 32, 29, .45), offset: Offset(0, 7 * s), blurRadius: onbBlur(11 * s), spreadRadius: -7 * s),
+                  BoxShadow(
+                    color: rgba(35, 32, 29, .45),
+                    offset: Offset(0, 7 * s),
+                    blurRadius: onbBlur(11 * s),
+                    spreadRadius: -7 * s,
+                  ),
                 ],
         ),
-        child: Text(label, style: bText(context, 11.5, weight: FontWeight.w800, color: on ? Colors.white : const Color(0xFF1B4A57))),
+        child: Text(
+          label,
+          style: bText(context, 11.5, weight: FontWeight.w800, color: on ? Colors.white : const Color(0xFF1B4A57)),
+        ),
       ),
     );
   }
@@ -1061,7 +1609,10 @@ class KurvToggle extends StatelessWidget {
         duration: BergenTokens.motion(context, const Duration(milliseconds: 200)),
         width: 40 * s,
         height: 24 * s,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: on ? const Color(0xFF2E7E4F) : rgba(35, 32, 29, .22)),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          color: on ? const Color(0xFF2E7E4F) : rgba(35, 32, 29, .22),
+        ),
         child: Stack(
           children: [
             AnimatedPositioned(
@@ -1074,7 +1625,9 @@ class KurvToggle extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
-                  boxShadow: [BoxShadow(color: rgba(35, 32, 29, .35), offset: Offset(0, 1 * s), blurRadius: onbBlur(3 * s))],
+                  boxShadow: [
+                    BoxShadow(color: rgba(35, 32, 29, .35), offset: Offset(0, 1 * s), blurRadius: onbBlur(3 * s)),
+                  ],
                 ),
               ),
             ),
@@ -1109,7 +1662,12 @@ class KurvRad extends StatelessWidget {
             // leader keeps at least a few dots and nothing overflows.
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: box.maxWidth * .5),
-              child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 12.5, weight: FontWeight.w600, height: 1.2, color: const Color(0xFF57534B))),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: bText(context, 12.5, weight: FontWeight.w600, height: 1.2, color: const Color(0xFF57534B)),
+              ),
             ),
             SizedBox(width: 6 * s),
             Expanded(
@@ -1124,7 +1682,12 @@ class KurvRad extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerRight,
-                child: trailing ?? Text(value ?? '', style: bText(context, 13, weight: FontWeight.w800, height: 1.2, color: const Color(0xFF23201D))),
+                child:
+                    trailing ??
+                    Text(
+                      value ?? '',
+                      style: bText(context, 13, weight: FontWeight.w800, height: 1.2, color: const Color(0xFF23201D)),
+                    ),
               ),
             ),
           ],
@@ -1158,7 +1721,10 @@ class KurvPerforering extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return SizedBox(height: 13 * s, child: CustomPaint(painter: _PerfPainter(s)));
+    return SizedBox(
+      height: 13 * s,
+      child: CustomPaint(painter: _PerfPainter(s)),
+    );
   }
 }
 
@@ -1200,7 +1766,14 @@ class KurvAaBetale extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18 * s),
         gradient: cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], const [0, .58, 1]),
-        boxShadow: [BoxShadow(color: rgba(15, 45, 55, .75), offset: Offset(0, 12 * s), blurRadius: onbBlur(20 * s), spreadRadius: -12 * s)],
+        boxShadow: [
+          BoxShadow(
+            color: rgba(15, 45, 55, .75),
+            offset: Offset(0, 12 * s),
+            blurRadius: onbBlur(20 * s),
+            spreadRadius: -12 * s,
+          ),
+        ],
       ),
       child: Stack(
         children: [
@@ -1214,9 +1787,21 @@ class KurvAaBetale extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(KasseCopy.a1_kasse_a_betale, style: bText(context, 9.5, weight: FontWeight.w800, letterSpacingEm: .14, color: const Color(0xFF8FB4C0))),
+                        Text(
+                          KasseCopy.a1_kasse_a_betale,
+                          style: bText(
+                            context,
+                            9.5,
+                            weight: FontWeight.w800,
+                            letterSpacingEm: .14,
+                            color: const Color(0xFF8FB4C0),
+                          ),
+                        ),
                         SizedBox(height: 2 * s),
-                        Text(KasseCopy.a1_kasse_totalt, style: bDisplay(context, 15, letterSpacingEm: -.02, color: const Color(0xFFF5F3EF))),
+                        Text(
+                          KasseCopy.a1_kasse_totalt,
+                          style: bDisplay(context, 15, letterSpacingEm: -.02, color: const Color(0xFFF5F3EF)),
+                        ),
                       ],
                     ),
                   ),
@@ -1227,10 +1812,25 @@ class KurvAaBetale extends StatelessWidget {
                       Text(
                         KasseCopy.tall(total),
                         key: const Key('a1_kasse_total'),
-                        style: bDisplay(context, 32, letterSpacingEm: -.04, height: .9, shadows: [Shadow(color: rgba(4, 20, 28, .45), offset: Offset(0, 2 * s), blurRadius: 6 * s)]),
+                        style: bDisplay(
+                          context,
+                          32,
+                          letterSpacingEm: -.04,
+                          height: .9,
+                          shadows: [Shadow(color: rgba(4, 20, 28, .45), offset: Offset(0, 2 * s), blurRadius: 6 * s)],
+                        ),
                       ),
                       SizedBox(width: 3 * s),
-                      Text('kr', style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, color: const Color(0xFF9FC2CC))),
+                      Text(
+                        'kr',
+                        style: bText(
+                          context,
+                          13,
+                          weight: FontWeight.w800,
+                          letterSpacingEm: -.01,
+                          color: const Color(0xFF9FC2CC),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -1238,12 +1838,16 @@ class KurvAaBetale extends StatelessWidget {
               Container(
                 margin: EdgeInsets.only(top: 11 * s),
                 padding: EdgeInsets.only(top: 10 * s),
-                decoration: BoxDecoration(border: Border(top: BorderSide(color: rgba(255, 255, 255, .14)))),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: rgba(255, 255, 255, .14))),
+                ),
                 child: Row(
                   children: [
                     KurvIcon(13 * s, KurvIcons.check, color: const Color(0xFF6FE0AE), width: 2.8),
                     SizedBox(width: 7 * s),
-                    Expanded(child: Text(KasseCopy.a1_kasse_inkl, style: bText(context, 11, color: const Color(0xFFCFE3E9)))),
+                    Expanded(
+                      child: Text(KasseCopy.a1_kasse_inkl, style: bText(context, 11, color: const Color(0xFFCFE3E9))),
+                    ),
                   ],
                 ),
               ),
@@ -1256,7 +1860,11 @@ class KurvAaBetale extends StatelessWidget {
                     child: Text.rich(
                       TextSpan(
                         style: bText(context, 11, color: const Color(0xFFCFE3E9)),
-                        children: _bold(KasseCopy.a1_kasse_poeng_linje(points), '$points', bText(context, 11, weight: FontWeight.w800, color: const Color(0xFFF2C14E))),
+                        children: _bold(
+                          KasseCopy.a1_kasse_poeng_linje(points),
+                          '$points',
+                          bText(context, 11, weight: FontWeight.w800, color: const Color(0xFFF2C14E)),
+                        ),
                       ),
                     ),
                   ),
@@ -1293,7 +1901,14 @@ class KurvFot extends StatelessWidget {
     final s = context.bs;
     return BergenCssShadow(
       radius: 20 * s,
-      shadows: [BoxShadow(color: rgba(30, 79, 92, .4), offset: Offset(0, 14 * s), blurRadius: onbBlur(26 * s), spreadRadius: -16 * s)],
+      shadows: [
+        BoxShadow(
+          color: rgba(30, 79, 92, .4),
+          offset: Offset(0, 14 * s),
+          blurRadius: onbBlur(26 * s),
+          spreadRadius: -16 * s,
+        ),
+      ],
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20 * s),
         child: BackdropFilter(
@@ -1319,13 +1934,26 @@ class KurvFot extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: const Color(0xFFF2C14E),
-                            boxShadow: [BoxShadow(color: rgba(242, 193, 78, .9 + .1 * q), blurRadius: onbBlur((8 + 7 * q) * s))],
+                            boxShadow: [
+                              BoxShadow(color: rgba(242, 193, 78, .9 + .1 * q), blurRadius: onbBlur((8 + 7 * q) * s)),
+                            ],
                           ),
                         );
                       },
                     ),
                     SizedBox(width: 10 * s),
-                    Expanded(child: Text(text, style: bText(context, 11.5, weight: FontWeight.w600, height: 1.45, color: const Color(0xFF173E48)))),
+                    Expanded(
+                      child: Text(
+                        text,
+                        style: bText(
+                          context,
+                          11.5,
+                          weight: FontWeight.w600,
+                          height: 1.45,
+                          color: const Color(0xFF173E48),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 bergenInsetTop(radius: 20 * s, height: 1.5 * s, alpha: .9),

@@ -11,6 +11,7 @@ import '../../../deliveryService/home/ds_home.dart';
 import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
+import '../../../bergen/kasse/kjop_sekvens.dart' show KjopBekreftetScreen;
 import '../../../bergen/kit/drape_route.dart' show DrapePek;
 import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/hjem/hjem_harness.dart';
@@ -275,6 +276,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 BergenBottomNav.focusSearch.value++;
               });
             }
+          }
+          if (HjemHarness.betalt case final id?) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => KjopBekreftetScreen(orderId: id)));
           }
           if (HjemHarness.butikk case final id?) {
             BergenRoutes.push(

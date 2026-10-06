@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,9 +24,16 @@ import '../aegil/aegil_entry.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
+import '../../common/home/bergen/bergen_adr_kilde.dart';
+import '../../common/home/home_bloc.dart';
+import '../adresse/adr_ark.dart' show visAdresseArk;
+import '../hjem/hjem_harness.dart';
 import 'kasse_copy.dart';
 import 'kasse_sheets.dart';
+import '../../common/swipeAerend/swipe_aerend_repo.dart';
+import '../../common/swipeAerend/swipe_aerend_dl.dart' show SwipeCardModel, HareSwipeListPojo;
 import 'kurv_betal.dart';
+import 'kurv_kvittering.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
 
@@ -198,13 +208,12 @@ import 'kurv_seilas.dart';
 /// [KurvBetal]. *Deviation:* the prototype hides its bottom nav while the
 /// cart has lines and puts the slider in its place; the app keeps the tab
 /// nav and floats the slider above it.
+/// True while the Kurv tab holds lines: the shell hides its nav then
+/// (`visNav`: not on `kurv` with lines) and the slider takes its place.
+final ValueNotifier<bool> kurvSkjulerNav = ValueNotifier(false);
+
 class KurvScreen extends StatefulWidget {
-  const KurvScreen({
-    super.key,
-    this.embedded = true,
-    this.api,
-    this.customerApi,
-  });
+  const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi});
 
   final bool embedded;
   final OpsKasseApi? api;
@@ -217,7 +226,6 @@ class KurvScreen extends StatefulWidget {
 class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   KurvState? _cart;
   OrderPreviewPojo? _preview;
-  List<AddressListItem> _addresses = const [];
   AddressListItem? _address;
   bool _pickup = false;
   KasseSlot? _slot;
@@ -232,21 +240,45 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   BergenStoreInfo? _store;
   bool _placing = false;
   List<KurvLine> _undone = const [];
+
+  /// «Tilbud i kveld» for the empty basket: the discounted products of the
+  /// `hare-swipe` feed (the same deals as Hjem's).
+  List<SwipeCardModel> _tilbud = const [];
   final TextEditingController _note = TextEditingController();
   final TextEditingController _door = TextEditingController();
 
   OpsKasseApi get _api => widget.api ?? OpsKasseApi();
   OpsCustomerApi get _customer => widget.customerApi ?? OpsCustomerApi();
 
+  final ScrollController _rull = ScrollController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _load();
+    if (kDebugMode) {
+      if (HjemHarness.kurvFlere) _more = true;
+      if (HjemHarness.kurvHenting) _pickup = true;
+      if (HjemHarness.kurvArk case final ark?) {
+        Future.delayed(const Duration(milliseconds: 2200), () {
+          if (!mounted) return;
+          if (ark == 'levering') _openLevering();
+          if (ark == 'betaling') _openBetaling();
+        });
+      }
+      if (HjemHarness.kurvScroll case final y?) {
+        Future.delayed(const Duration(milliseconds: 2000), () {
+          if (mounted && _rull.hasClients) _rull.jumpTo(y * context.bs);
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
+    if (widget.embedded) kurvSkjulerNav.value = false;
+    _rull.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _note.dispose();
     _door.dispose();
@@ -266,21 +298,41 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final cart = await _api.cart();
     if (!mounted) return;
     setState(() => _cart = cart);
-    if (cart.isEmpty) return;
+    if (widget.embedded) kurvSkjulerNav.value = !cart.isEmpty;
+    // The nav's count follows the basket the API returned.
+    prefSetInt(prefCartCount, cart.lines.length);
+    BergenCart.syncBadge(context, cart.lines.length);
+    if (cart.isEmpty) {
+      if (_tilbud.isEmpty) _loadTilbud();
+      return;
+    }
     final results = await Future.wait([_api.preview(), _api.addresses()]);
     if (!mounted) return;
     final addresses = results[1] as List<AddressListItem>;
     final savedId = prefGetInt(prefNewDeliveryAddressId);
     setState(() {
       _preview = results[0] as OrderPreviewPojo?;
-      _addresses = addresses;
-      _address ??=
-          addresses.where((a) => a.addressId == savedId).firstOrNull ??
-          addresses.firstOrNull;
+      _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
     if (_store?.id != cart.storeId) {
       final store = await OpsButikkApi().store(cart.storeId);
       if (mounted && store != null) setState(() => _store = store);
+    }
+  }
+
+  Future<void> _loadTilbud() async {
+    if (!OpsCustomerApi.networkEnabled) return;
+    try {
+      final pos = prefGetLatLng();
+      final json = await SwipeAerendRepo().callHareSwipeApi(pos.latitude, pos.longitude);
+      final list = HareSwipeListPojo.fromJson(json).swipeList;
+      final deals = [
+        for (final p in list)
+          if (p.originalAmount > p.amount && p.amount > 0) p,
+      ].take(3).toList();
+      if (mounted) setState(() => _tilbud = deals);
+    } catch (_) {
+      // No deals: the section stays hidden.
     }
   }
 
@@ -290,17 +342,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final now = DateTime.now();
     final eta = _preview == null ? 30 : 30;
     final asapEnd = now.add(Duration(minutes: eta + 5));
-    String hhmm(DateTime t) =>
-        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    String hhmm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
     DateTime nextHalf(DateTime from) {
       final m = from.minute < 30 ? 30 : 60;
-      return DateTime(
-        from.year,
-        from.month,
-        from.day,
-        from.hour,
-        0,
-      ).add(Duration(minutes: m));
+      return DateTime(from.year, from.month, from.day, from.hour, 0).add(Duration(minutes: m));
     }
 
     final first = nextHalf(now.add(Duration(minutes: eta)));
@@ -311,18 +356,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         label: KasseCopy.a1_kasse_tid_asap,
         line: KasseCopy.a1_kasse_tid_innen(hhmm(asapEnd), eta - 5, eta + 5),
       ),
-      KasseSlot(
-        id: 'slot1',
-        label: hhmm(first),
-        line: KasseCopy.a1_kasse_lev_middag_line,
-        at: first,
-      ),
-      KasseSlot(
-        id: 'slot2',
-        label: hhmm(second),
-        line: KasseCopy.a1_kasse_lev_kveld_line,
-        at: second,
-      ),
+      KasseSlot(id: 'slot1', label: hhmm(first), line: KasseCopy.a1_kasse_lev_middag_line, at: first),
+      KasseSlot(id: 'slot2', label: hhmm(second), line: KasseCopy.a1_kasse_lev_kveld_line, at: second),
     ];
   }
 
@@ -356,41 +391,27 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     await _load();
   }
 
+  /// «Endre» on the address: the same «Hvor skal ærendet?» sheet as Hjem's
+  /// (Step 3), on a short-lived Hjem bloc; the choice comes back through
+  /// `prefNewDeliveryAddressId`.
   Future<void> _openAddress() async {
-    if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.address))
-      return;
+    if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.address)) return;
     if (!mounted) return;
-    final chosen = await showAdresseSheet(
-      context,
-      addresses: _addresses,
-      selectedId: _address?.addressId,
-      onAddNew: () async {
-        if (await showNyAdresseSheet(context)) await _load();
-      },
-    );
-    if (chosen == null || !mounted) return;
-    setState(() => _address = chosen);
-    prefSetInt(prefNewDeliveryAddressId, chosen.addressId);
+    final bloc = HomeBloc(context, this, false);
+    try {
+      await visAdresseArk(context, BergenAdrKilde(bloc));
+    } finally {
+      bloc.dispose();
+    }
+    if (!mounted) return;
+    final addresses = await _api.addresses();
+    final id = prefGetInt(prefNewDeliveryAddressId);
+    if (!mounted) return;
+    setState(() {
+      _address = addresses.where((a) => a.addressId == id).firstOrNull ?? _address;
+    });
     final preview = await _api.preview();
     if (mounted) setState(() => _preview = preview);
-    // Coverage (geo spec §4): skipped silently when the endpoint is not here.
-    final covered = await checkCoverage(_customer, chosen);
-    if (!mounted || covered) return;
-    await showBergenArk<void>(
-      context,
-      title: KasseCopy.a1_kasse_ikke_dekket,
-      primary: BergenArkAction(
-        label: KasseCopy.a1_kasse_si_fra_cta,
-        onTap: () async {
-          Navigator.of(context).pop();
-          final lat = double.tryParse(chosen.lat);
-          final lng = double.tryParse(chosen.long);
-          if (lat != null && lng != null)
-            await _customer.waitlist(lat, lng, address: chosen.address);
-          if (mounted) showBergenToast(context, KasseCopy.a1_kasse_sagt_fra);
-        },
-      ),
-    );
   }
 
   Future<void> _openLevering() async {
@@ -409,24 +430,33 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (chosen != null && mounted) setState(() => _paymentType = chosen);
   }
 
+  /// `tilButikk`: back to the basket's store; an empty basket goes to Hjem.
+  void _tilButikk() {
+    final cart = _cart;
+    if (cart != null && !cart.isEmpty) {
+      BergenRoutes.push(context, '/bergen/butikk/${cart.storeId}', arguments: {'name': _preview?.storeName ?? ''});
+      return;
+    }
+    if (!widget.embedded) {
+      Navigator.of(context).maybePop();
+      return;
+    }
+    context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(0);
+  }
+
   void _tolk() => BergenRoutes.pushOr(
     context,
     kAegilRoute,
     arguments: {'intent': 'door', 'q': _door.text.trim()},
-    orElse: () => openScreen(
-      context,
-      SnurreChatScreen(draftFromHomeSearch: _door.text.trim()),
-    ),
+    orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: _door.text.trim())),
   );
 
   String get _fullNote {
     final parts = <String>[
       if (_note.text.trim().isNotEmpty) _note.text.trim(),
-      if (_door.text.trim().isNotEmpty)
-        '${KasseCopy.a1_kasse_doren}: ${_door.text.trim()}',
+      if (_door.text.trim().isNotEmpty) '${KasseCopy.a1_kasse_doren}: ${_door.text.trim()}',
       if (_pickup && _pickupChips.isNotEmpty) _pickupChips.join(' · '),
-      if (_pickup && _pickupNote.text.trim().isNotEmpty)
-        _pickupNote.text.trim(),
+      if (_pickup && _pickupNote.text.trim().isNotEmpty) _pickupNote.text.trim(),
     ];
     return parts.join(' · ');
   }
@@ -436,8 +466,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<bool> _pay() async {
     final cart = _cart;
     if (cart == null || cart.isEmpty || _placing) return false;
-    if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.checkout))
-      return false;
+    if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.checkout)) return false;
     if (!mounted) return false;
     if (!_pickup && _address == null) {
       showBergenToast(context, KasseCopy.a1_kasse_velg_adresse_forst);
@@ -493,10 +522,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         );
         return false;
       }
-      showBergenToast(
-        context,
-        '${response?['message'] ?? BergenRoutes.kommerSnart}',
-      );
+      showBergenToast(context, '${response?['message'] ?? BergenRoutes.kommerSnart}');
       return false;
     }
     final orderId = (response['order_id'] as num?)?.toInt() ?? 0;
@@ -532,10 +558,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              KasseCopy.a1_kasse_beskjed_bud,
-              style: bDisplay(ctx, 16, letterSpacingEm: -.02),
-            ),
+            Text(KasseCopy.a1_kasse_beskjed_bud, style: bDisplay(ctx, 16, letterSpacingEm: -.02)),
             SizedBox(height: 10 * ctx.bs),
             TextField(
               key: const Key('a1_kasse_beskjed'),
@@ -557,10 +580,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               onSubmitted: (_) => Navigator.of(ctx).pop(),
             ),
             SizedBox(height: 12 * ctx.bs),
-            BergenCta3d(
-              label: KasseCopy.a1_kasse_bruk_dette,
-              onPressed: () => Navigator.of(ctx).pop(),
-            ),
+            BergenCta3d(label: KasseCopy.a1_kasse_bruk_dette, onPressed: () => Navigator.of(ctx).pop()),
           ],
         ),
       ),
@@ -573,25 +593,21 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   double _delivery() => _pickup ? 0.0 : (_preview?.deliveryCost ?? 0);
   double _fees() => (_preview?.taxCost ?? 0) + (_preview?.packagingCost ?? 0);
   double _discount() =>
-      (_preview?.discountCost ?? 0) +
-      (_preview?.promocodeDiscount ?? 0) +
-      (_preview?.referDiscount ?? 0);
+      (_preview?.discountCost ?? 0) + (_preview?.promocodeDiscount ?? 0) + (_preview?.referDiscount ?? 0);
 
   double _total(KurvState cart) =>
-      (cart.subtotal + _delivery() + _fees() - _discount() + _tip).clamp(
-        0,
-        double.infinity,
-      );
+      (cart.subtotal + _delivery() + _fees() - _discount() + _tip).clamp(0, double.infinity);
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
     final safeTop = MediaQuery.paddingOf(context).top;
-    final bottom = widget.embedded
-        ? bergenNavReserve(context)
-        : MediaQuery.paddingOf(context).bottom + 12 * s;
     final cart = _cart;
     final hasCart = cart != null && !cart.isEmpty;
+    // With lines the nav steps aside and the slider sits 16 from the bottom.
+    final bottom = hasCart || !widget.embedded
+        ? math.max(16 * s, MediaQuery.paddingOf(context).bottom)
+        : bergenNavReserve(context);
 
     return Scaffold(
       backgroundColor: BergenTokens.teal,
@@ -634,10 +650,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
             Positioned(
               left: 0,
               right: 0,
-              top: safeTop + 98 * s,
+              top: math.max(0.0, safeTop - 20 * s) + 98 * s,
               bottom: 0,
               child: _Panel(
-                bottomReserve: bottom + (hasCart ? 60 * s + 24 * s : 16 * s),
+                controller: _rull,
+                bottomReserve: hasCart ? 290 * s : bottom + 16 * s,
                 child: cart == null
                     ? Padding(
                         padding: EdgeInsets.all(30 * s),
@@ -654,8 +671,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               top: 0,
               child: KurvSeilas(
                 safeTop: safeTop,
-                embedded: widget.embedded,
                 departing: _departing,
+                tom: cart != null && !hasCart,
+                onBack: _tilButikk,
                 storeName: _preview?.storeName,
                 storeLogoUrl: _store?.logoUrl,
               ),
@@ -664,12 +682,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               Positioned(
                 left: 16 * s,
                 right: 16 * s,
-                bottom: bottom + 8 * s,
-                child: KurvBetal(
-                  total: _total(cart),
-                  busy: _placing,
-                  onPay: _pay,
-                ),
+                bottom: bottom,
+                child: KurvBetal(total: _total(cart), busy: _placing, onPay: _pay),
               ),
           ],
         ),
@@ -686,6 +700,32 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 4 * s),
         transparent: true,
         child: KurvTom(
+          tilbud: [
+            for (final p in _tilbud)
+              KurvTilbudRad(
+                key: Key('a1_kasse_tilbud_${p.productId}'),
+                navn: p.productName,
+                pris: KasseCopy.kr(p.amount),
+                foer: KasseCopy.kr(p.originalAmount),
+                rabatt:
+                    '−${p.discountPercent > 0 ? p.discountPercent : ((1 - p.amount / p.originalAmount) * 100).round()} %',
+                imageUrl: p.productImage.isEmpty ? null : p.productImage,
+                onOpen: () => BergenRoutes.push(
+                  context,
+                  '/bergen/butikk/${p.storeId}',
+                  arguments: {'product_id': '${p.productId}'},
+                ),
+                onAdd: () async {
+                  final ok = await BergenCart.add(
+                    context,
+                    storeId: p.storeId,
+                    productId: p.productId,
+                    toast: KasseCopy.a1_kasse_lagt_i(p.productName),
+                  );
+                  if (ok) await _load();
+                },
+              ),
+          ],
           onBrowse: () {
             final shell = context.findAncestorStateOfType<HomeMainV1State>();
             if (shell != null) {
@@ -699,6 +739,30 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     );
   }
 
+  /// `kMot` (mot egen interesse): within 60 kr of the store's free-delivery
+  /// threshold, Ægil says what is missing — and that paying the fee is
+  /// cheaper unless something more is really needed — with the store's
+  /// cheapest item that closes the gap.
+  ({String tekst, String cta, BergenMenuItem vare})? _motInteresse(KurvState cart) {
+    final store = _store;
+    final terskel = store?.offerMinAmountKr ?? 0;
+    final fee = _delivery();
+    if (store == null || _pickup || terskel <= 0 || fee <= 0) return null;
+    final mangler = (terskel - cart.subtotal).ceil();
+    if (mangler <= 0 || mangler > 60) return null;
+    final kandidater = [
+      for (final i in store.allItems)
+        if (i.price >= mangler) i,
+    ]..sort((x, y) => x.price.compareTo(y.price));
+    final vare = kandidater.firstOrNull;
+    if (vare == null) return null;
+    return (
+      tekst: KasseCopy.a1_kasse_mot(mangler, store.name, KasseCopy.kr(fee)),
+      cta: KasseCopy.a1_kasse_mot_cta(vare.name, KasseCopy.kr(vare.price)),
+      vare: vare,
+    );
+  }
+
   Widget _filled(BuildContext context, KurvState cart) {
     final s = context.bs;
     final slot = _slot ?? _slots.first;
@@ -709,12 +773,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final total = _total(cart);
     final aegil = cart.aegilLines;
     final storeName = _preview?.storeName ?? '';
-    final pickupCount =
-        _pickupChips.length + (_pickupNote.text.trim().isEmpty ? 0 : 1);
-    final flereUnder = _pickup
-        ? KasseCopy.a1_kasse_flere_under_hent
-        : KasseCopy.a1_kasse_flere_under_lev;
+    final pickupCount = _pickupChips.length + (_pickupNote.text.trim().isEmpty ? 0 : 1);
+    final flereUnder = _pickup ? KasseCopy.a1_kasse_flere_under_hent : KasseCopy.a1_kasse_flere_under_lev;
     final doorVisible = _more && !_pickup;
+    final antall = cart.lines.fold<int>(0, (a, l) => a + l.quantity);
+    final mot = _motInteresse(cart);
+    final terskel = _store?.offerMinAmountKr ?? 0;
+    final vanligFrakt = _store?.deliveryChargeKr ?? 0;
+    // KjopRule (`points.kjop_per_10kr`, 1 by default): whole 10 kr of the
+    // total; there is no rules read in the API, so the default rate is used.
+    final tilbake = (total / 10).floor();
+    final kode = 'Æ-${(cart.lines.first.cartId % 46656).toRadixString(36).toUpperCase().padLeft(3, '0')}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -729,18 +798,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
           child: Column(
             children: [
               for (final l in cart.lines)
-                KurvLinje(
-                  line: l,
-                  onMinus: () => _changeQty(l, -1),
-                  onPlus: () => _changeQty(l, 1),
-                ),
-              KurvLeggMer(
-                onTap: () => BergenRoutes.push(
-                  context,
-                  '/bergen/butikk/${cart.storeId}',
-                  arguments: {'name': storeName},
-                ),
-              ),
+                KurvLinje(line: l, onMinus: () => _changeQty(l, -1), onPlus: () => _changeQty(l, 1)),
+              KurvLeggMer(onTap: _tilButikk),
             ],
           ),
         ),
@@ -752,38 +811,32 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
             children: [
               KurvEndreRad(
                 keyName: 'a1_kasse_rad_adresse',
+                first: true,
                 icon: KurvIcons.pin,
                 title: _pickup
                     ? [
                         if (storeName.isNotEmpty) storeName,
-                        if (_preview?.storeAddress != null &&
-                            _preview!.storeAddress!.isNotEmpty)
+                        if (_preview?.storeAddress != null && _preview!.storeAddress!.isNotEmpty)
                           _preview!.storeAddress!.split(',').first,
                       ].join(' · ').ifEmpty(KasseCopy.a1_kasse_hent_tittel)
                     : address == null
                     ? KasseCopy.a1_kasse_adr_velg
-                    : [
-                        if (address.type.isNotEmpty) address.type,
-                        address.address.split(',').first,
-                      ].join(' · '),
+                    : [if (address.type.isNotEmpty) address.type, address.address.split(',').first].join(' · '),
                 line: _pickup
                     ? KasseCopy.a1_kasse_hent_selv
                     : (address == null
                           ? KasseCopy.a1_kasse_adr_tittel
-                          : [
-                              if (address.flatNo.isNotEmpty) address.flatNo,
-                              if (address.landmark.isNotEmpty) address.landmark,
-                            ].join(' · ').ifEmpty(KasseCopy.a1_kasse_adr_tittel)),
+                          : (address.landmark.isNotEmpty
+                                ? '«${address.landmark}»'
+                                : address.flatNo.ifEmpty(KasseCopy.a1_kasse_adr_tittel))),
                 action: _pickup ? KasseCopy.a1_kasse_se_kart : KasseCopy.a1_kasse_endre,
                 actionIcon: _pickup ? KurvIcons.map : null,
-                onTap: _pickup
-                    ? () => showBergenToast(context, BergenRoutes.kommerSnart)
-                    : _openAddress,
+                onTap: _pickup ? () => showBergenToast(context, BergenRoutes.kommerSnart) : _openAddress,
               ),
               KurvEndreRad(
                 keyName: 'a1_kasse_rad_tid',
                 icon: KurvIcons.clock,
-                title: _pickup ? '${KasseCopy.a1_kasse_henting} · ${slot.label}' : slot.label,
+                title: _pickup ? '${KasseCopy.a1_kasse_henting} · ${kasseTidNavn(slot)}' : kasseTidNavn(slot),
                 line: slot.line,
                 action: KasseCopy.a1_kasse_endre,
                 onTap: _openLevering,
@@ -791,11 +844,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               KurvEndreRad(
                 keyName: 'a1_kasse_rad_betaling',
                 icon: KurvIcons.card,
-                title: _paymentType == 3 ? KasseCopy.a1_kasse_vipps : KasseCopy.a1_kasse_kort,
+                title: kasseBetalingNavn(_paymentType),
                 line: KasseCopy.a1_kasse_betaling_ved,
                 action: KasseCopy.a1_kasse_endre,
                 onTap: _openBetaling,
-                last: !doorVisible,
               ),
               if (doorVisible)
                 KurvEndreRad(
@@ -808,204 +860,91 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       : _note.text.trim(),
                   action: KasseCopy.a1_kasse_endre,
                   onTap: _editNote,
-                  last: true,
                 ),
+              KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more)),
             ],
           ),
         ),
-        SizedBox(height: 12 * s),
-        KurvFlere(
-          open: _more,
-          line: flereUnder,
-          onTap: () => setState(() => _more = !_more),
-        ),
-        if (_more && _pickup) ...[
-          SizedBox(height: 10 * s),
-          KurvFrost(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  KasseCopy.a1_kasse_beskjed_butikk,
-                  style: bText(context, 13, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-                ),
-                SizedBox(height: 9 * s),
-                Wrap(
-                  spacing: 6 * s,
-                  runSpacing: 6 * s,
-                  children: [
-                    for (final c in KasseCopy.a1_kasse_hent_chips)
-                      KurvChip(
-                        key: Key('a1_kasse_hent_chip_${KasseCopy.a1_kasse_hent_chips.indexOf(c)}'),
-                        label: c,
-                        on: _pickupChips.contains(c),
-                        onTap: () => setState(() {
-                          if (!_pickupChips.remove(c)) _pickupChips.add(c);
-                        }),
-                      ),
-                  ],
-                ),
-                SizedBox(height: 10 * s),
-                Container(
-                  padding: EdgeInsets.fromLTRB(12 * s, 4 * s, 4 * s, 4 * s),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14 * s),
-                    gradient: cssLinear(180, const [Color(0xFFF7F5F0), Color(0xFFFFFFFF)], const [0, .46]),
-                    boxShadow: [BoxShadow(color: rgba(255, 255, 255, .95), offset: Offset(0, -1.5 * s))],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          key: const Key('a1_kasse_hent_beskjed'),
-                          controller: _pickupNote,
-                          onChanged: (_) => setState(() {}),
-                          style: bDisplay(context, 12.5, weight: FontWeight.w700, letterSpacingEm: 0, color: const Color(0xFF23201D)),
-                          cursorColor: BergenTokens.orange,
-                          decoration: InputDecoration(
-                            isCollapsed: true,
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 9 * s),
-                            hintText: KasseCopy.a1_kasse_hent_beskjed_hint(storeName),
-                            hintStyle: bDisplay(context, 12.5, weight: FontWeight.w700, letterSpacingEm: 0, color: BergenTokens.inkFaint),
-                          ),
-                        ),
-                      ),
-                      if (_pickupNote.text.isNotEmpty)
-                        OnbPressable(
-                          onTap: () => setState(_pickupNote.clear),
-                          pressDy: 1.5,
-                          child: Container(
-                            width: 34 * s,
-                            height: 34 * s,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12 * s),
-                              gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
-                              boxShadow: [
-                                BoxShadow(color: rgba(255, 255, 255, .95), spreadRadius: 1),
-                                BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
-                                BoxShadow(color: rgba(35, 32, 29, .5), offset: Offset(0, 3 * s), blurRadius: onbBlur(5 * s), spreadRadius: -3 * s),
-                              ],
-                            ),
-                            child: KurvIcon(11 * s, KurvIcons.cross, color: const Color(0xFF57534B), width: 3),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 12 * s),
-                  padding: EdgeInsets.only(top: 11 * s),
-                  decoration: BoxDecoration(border: Border(top: BorderSide(color: rgba(35, 32, 29, .08)))),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(KasseCopy.a1_kasse_hentetid, style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D))),
-                            Text(KasseCopy.a1_kasse_hentetid_line, style: bText(context, 10.5, color: const Color(0xFF57534B))),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: 10 * s),
-                      Wrap(
-                        spacing: 5 * s,
-                        children: [
-                          for (final sl in _slots)
-                            KurvChip(
-                              label: sl.label,
-                              padding: 10,
-                              on: slot.id == sl.id,
-                              onTap: () => setState(() => _slot = sl),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(top: 11 * s),
-                  padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 9 * s),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(14 * s), color: rgba(63, 143, 95, .12)),
-                  child: Row(
-                    children: [
-                      KurvIcon(14 * s, KurvIcons.check, color: const Color(0xFF2E6B47), width: 2.4),
-                      SizedBox(width: 8 * s),
-                      Expanded(
-                        child: Text(
-                          pickupCount == 0
-                              ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first)
-                              : KasseCopy.a1_kasse_hent_kvitt_n(pickupCount, slot.label),
-                          style: bText(context, 11, height: 1.4, color: const Color(0xFF2E6B47)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        if (_more && _pickup) ...[SizedBox(height: 10 * s), _hentKort(context, slot, storeName, pickupCount)],
         if (_more && !_pickup) ...[
           SizedBox(height: 10 * s),
-          KurvFrost(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(KasseCopy.a1_kasse_tips_title, style: bText(context, 13, weight: FontWeight.w800, color: const Color(0xFF23201D))),
-                SizedBox(height: 9 * s),
-                Row(
-                  children: [
-                    for (final t in const [0, 15, 25, 40]) ...[
-                      Expanded(
-                        child: GestureDetector(
-                          key: Key('a1_kasse_tips_$t'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() => _tip = t),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8 * s),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12 * s),
-                              color: _tip == t ? rgba(63, 143, 95, .18) : const Color(0xFFF3EFE7),
-                            ),
-                            child: Text('$t kr', style: bText(context, 12, weight: FontWeight.w800, color: _tip == t ? const Color(0xFF2E6B47) : const Color(0xFF57534B))),
-                          ),
-                        ),
-                      ),
-                      if (t != 40) SizedBox(width: 8 * s),
-                    ],
-                  ],
-                ),
-                SizedBox(height: 8 * s),
-                Text(KasseCopy.a1_kasse_tips_line, style: bText(context, 10.5, weight: FontWeight.w500, color: const Color(0xFF6E6862))),
-              ],
-            ),
-          ),
+          KurvTips(tip: _tip, onTip: (t) => setState(() => _tip = t)),
         ],
-        SizedBox(height: 12 * s),
-        _Summary(
-          cart: cart,
-          pickup: _pickup,
-          delivery: delivery,
-          fees: fees,
-          discount: discount,
-          tip: _tip,
+        KurvKvittering(
+          antall: antall,
           total: total,
-          aegil: aegil,
-          doorVisible: doorVisible,
-          door: _door,
-          doorShared: _doorShared,
-          codeAtDoor: _codeAtDoor,
-          onUndoAegil: _undoAegil,
-          onTolk: _tolk,
-          onDoorShared: () {
-            setState(() => _doorShared = !_doorShared);
-            showBergenToast(context, _doorShared ? KasseCopy.a1_kasse_dor_delt : KasseCopy.a1_kasse_dor_ikke_delt);
-          },
-          onCode: () => setState(() => _codeAtDoor = !_codeAtDoor),
+          kode: kode,
+          tilbake: tilbake,
+          rader: [
+            KvRad(label: KasseCopy.a1_kasse_varer, value: KasseCopy.kr(cart.subtotal)),
+            KvRad(
+              key: _pickup ? null : const Key('a1_kasse_frakt'),
+              label: _pickup ? KasseCopy.a1_kasse_henting : KasseCopy.a1_kasse_frakt,
+              value: !_pickup && delivery > 0 ? KasseCopy.kr(delivery) : null,
+              trailing: _pickup
+                  ? KvStempel(tekst: KasseCopy.a1_kasse_frakt_chip_hent)
+                  : delivery > 0
+                  ? null
+                  : KvStempel(
+                      tekst: terskel > 0
+                          ? KasseCopy.a1_kasse_frakt_over(KasseCopy.kr(terskel))
+                          : KasseCopy.a1_kasse_frakt_fri,
+                      foer: vanligFrakt > 0 ? KasseCopy.kr(vanligFrakt) : null,
+                    ),
+            ),
+            if (fees > 0) KvRad(label: KasseCopy.a1_kasse_avgifter, value: KasseCopy.kr(fees)),
+            if (discount > 0) KvRad(label: KasseCopy.a1_kasse_rabatt, value: '−${KasseCopy.kr(discount)}'),
+            if (_tip > 0)
+              KvRad(
+                key: const Key('a1_kasse_tips_rad'),
+                label: KasseCopy.a1_kasse_tips_rad,
+                value: KasseCopy.kr(_tip.toDouble()),
+              ),
+          ],
+          notater: [
+            if (aegil.isNotEmpty)
+              KvNotat(
+                key: const Key('a1_kasse_aegil_linjer'),
+                oransje: false,
+                tekst: KasseCopy.a1_kasse_aegil_linjer(
+                  aegil.map((l) => l.name).join(', '),
+                  KasseCopy.kr(aegil.fold<double>(0, (a, l) => a + l.sum)),
+                ),
+                cta: KasseCopy.a1_kasse_angre,
+                onTap: _undoAegil,
+              ),
+            if (mot != null)
+              KvNotat(
+                key: const Key('a1_kasse_mot'),
+                tekst: mot.tekst,
+                cta: mot.cta,
+                onTap: () async {
+                  final ok = await BergenCart.add(
+                    context,
+                    storeId: mot.vare.storeId,
+                    productId: mot.vare.id,
+                    toast: KasseCopy.a1_kasse_lagt_i(mot.vare.name),
+                  );
+                  if (ok) await _load();
+                },
+              ),
+            if (doorVisible)
+              KvDor(
+                controller: _door,
+                onTolk: _tolk,
+                delt: _doorShared,
+                onDelt: () {
+                  setState(() => _doorShared = !_doorShared);
+                  showBergenToast(
+                    context,
+                    _doorShared ? KasseCopy.a1_kasse_dor_delt : KasseCopy.a1_kasse_dor_ikke_delt,
+                  );
+                },
+                kode: _codeAtDoor,
+                onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
+                kodeLinje: total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under,
+              ),
+          ],
         ),
         if (_undone.isNotEmpty) ...[
           SizedBox(height: 8 * s),
@@ -1020,9 +959,166 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
             },
           ),
         ],
-        SizedBox(height: 12 * s),
-        KurvFot(text: KasseCopy.a1_kasse_bergenske),
       ],
+    );
+  }
+
+  /// «Beskjed til butikken» and Hentetid (Flere valg, pickup).
+  Widget _hentKort(BuildContext context, KasseSlot slot, String storeName, int pickupCount) {
+    final s = context.bs;
+    return KurvFrost(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            KasseCopy.a1_kasse_beskjed_butikk,
+            style: bText(context, 13, weight: FontWeight.w800, color: const Color(0xFF23201D)),
+          ),
+          SizedBox(height: 9 * s),
+          Wrap(
+            spacing: 6 * s,
+            runSpacing: 6 * s,
+            children: [
+              for (final c in KasseCopy.a1_kasse_hent_chips)
+                KurvChip(
+                  key: Key('a1_kasse_hent_chip_${KasseCopy.a1_kasse_hent_chips.indexOf(c)}'),
+                  label: c,
+                  on: _pickupChips.contains(c),
+                  onTap: () => setState(() {
+                    if (!_pickupChips.remove(c)) _pickupChips.add(c);
+                  }),
+                ),
+            ],
+          ),
+          SizedBox(height: 10 * s),
+          Container(
+            padding: EdgeInsets.fromLTRB(12 * s, 4 * s, 4 * s, 4 * s),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14 * s),
+              gradient: cssLinear(180, const [Color(0xFFF7F5F0), Color(0xFFFFFFFF)], const [0, .46]),
+              boxShadow: [BoxShadow(color: rgba(255, 255, 255, .95), offset: Offset(0, -1.5 * s))],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: const Key('a1_kasse_hent_beskjed'),
+                    controller: _pickupNote,
+                    onChanged: (_) => setState(() {}),
+                    style: bDisplay(
+                      context,
+                      12.5,
+                      weight: FontWeight.w700,
+                      letterSpacingEm: 0,
+                      color: const Color(0xFF23201D),
+                    ),
+                    cursorColor: BergenTokens.orange,
+                    decoration: InputDecoration(
+                      isCollapsed: true,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 9 * s),
+                      hintText: KasseCopy.a1_kasse_hent_beskjed_hint(storeName),
+                      hintStyle: bDisplay(
+                        context,
+                        12.5,
+                        weight: FontWeight.w700,
+                        letterSpacingEm: 0,
+                        color: BergenTokens.inkFaint,
+                      ),
+                    ),
+                  ),
+                ),
+                if (_pickupNote.text.isNotEmpty)
+                  OnbPressable(
+                    onTap: () => setState(_pickupNote.clear),
+                    pressDy: 1.5,
+                    child: Container(
+                      width: 34 * s,
+                      height: 34 * s,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12 * s),
+                        gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
+                        boxShadow: [
+                          BoxShadow(color: rgba(255, 255, 255, .95), spreadRadius: 1),
+                          BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
+                          BoxShadow(
+                            color: rgba(35, 32, 29, .5),
+                            offset: Offset(0, 3 * s),
+                            blurRadius: onbBlur(5 * s),
+                            spreadRadius: -3 * s,
+                          ),
+                        ],
+                      ),
+                      child: KurvIcon(11 * s, KurvIcons.cross, color: const Color(0xFF57534B), width: 3),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 12 * s),
+            padding: EdgeInsets.only(top: 11 * s),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: rgba(35, 32, 29, .08))),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        KasseCopy.a1_kasse_hentetid,
+                        style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
+                      ),
+                      Text(
+                        KasseCopy.a1_kasse_hentetid_line,
+                        style: bText(context, 10.5, color: const Color(0xFF57534B)),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 10 * s),
+                Wrap(
+                  spacing: 5 * s,
+                  children: [
+                    for (final sl in _slots)
+                      KurvChip(
+                        label: sl.label,
+                        padding: 10,
+                        on: slot.id == sl.id,
+                        onTap: () => setState(() => _slot = sl),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 11 * s),
+            padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 9 * s),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14 * s), color: rgba(63, 143, 95, .12)),
+            child: Row(
+              children: [
+                KurvIcon(14 * s, KurvIcons.check, color: const Color(0xFF2E6B47), width: 2.4),
+                SizedBox(width: 8 * s),
+                Expanded(
+                  child: Text(
+                    pickupCount == 0
+                        ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first)
+                        : KasseCopy.a1_kasse_hent_kvitt_n(pickupCount, slot.label),
+                    style: bText(context, 11, height: 1.4, color: const Color(0xFF2E6B47)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1034,9 +1130,10 @@ extension on String {
 /// The scrolling panel (design L5047): `r28 28 0 0`, `180deg #22586A →
 /// #1B4854 140px`, the inset highlight and the two upward shadows.
 class _Panel extends StatelessWidget {
-  const _Panel({required this.bottomReserve, required this.child});
+  const _Panel({required this.bottomReserve, required this.child, this.controller});
 
   final double bottomReserve;
+  final ScrollController? controller;
   final Widget child;
 
   @override
@@ -1057,13 +1154,24 @@ class _Panel extends StatelessWidget {
             ),
             border: Border.all(color: rgba(255, 255, 255, .14)),
             boxShadow: [
-              BoxShadow(color: rgba(4, 18, 26, .6), offset: Offset(0, -12 * s), blurRadius: onbBlur(18 * s), spreadRadius: -10 * s),
-              BoxShadow(color: rgba(4, 18, 26, .7), offset: Offset(0, -34 * s), blurRadius: onbBlur(52 * s), spreadRadius: -26 * s),
+              BoxShadow(
+                color: rgba(4, 18, 26, .6),
+                offset: Offset(0, -12 * s),
+                blurRadius: onbBlur(18 * s),
+                spreadRadius: -10 * s,
+              ),
+              BoxShadow(
+                color: rgba(4, 18, 26, .7),
+                offset: Offset(0, -34 * s),
+                blurRadius: onbBlur(52 * s),
+                spreadRadius: -26 * s,
+              ),
             ],
           ),
           child: Stack(
             children: [
               ListView(
+                controller: controller,
                 padding: EdgeInsets.fromLTRB(16 * s, 10 * s, 16 * s, bottomReserve),
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [child],
@@ -1075,283 +1183,4 @@ class _Panel extends StatelessWidget {
       },
     );
   }
-}
-
-/// SAMMENDRAG (design L5200–5225).
-class _Summary extends StatelessWidget {
-  const _Summary({
-    required this.cart,
-    required this.pickup,
-    required this.delivery,
-    required this.fees,
-    required this.discount,
-    required this.tip,
-    required this.total,
-    required this.aegil,
-    required this.doorVisible,
-    required this.door,
-    required this.doorShared,
-    required this.codeAtDoor,
-    required this.onUndoAegil,
-    required this.onTolk,
-    required this.onDoorShared,
-    required this.onCode,
-  });
-
-  final KurvState cart;
-  final bool pickup;
-  final double delivery;
-  final double fees;
-  final double discount;
-  final int tip;
-  final double total;
-  final List<KurvLine> aegil;
-  final bool doorVisible;
-  final TextEditingController door;
-  final bool doorShared;
-  final bool codeAtDoor;
-  final VoidCallback onUndoAegil;
-  final VoidCallback onTolk;
-  final VoidCallback onDoorShared;
-  final VoidCallback onCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final count = cart.lines.fold<int>(0, (a, l) => a + l.quantity);
-    final points = (cart.subtotal / 10).floor();
-    final side = EdgeInsets.symmetric(horizontal: 14 * s);
-    return BergenCssShadow(
-      radius: 22 * s,
-      shadows: [
-        BoxShadow(color: rgba(120, 80, 40, .14), offset: Offset(0, 2 * s), blurRadius: onbBlur(3 * s), spreadRadius: -1 * s),
-        BoxShadow(color: rgba(90, 60, 30, .5), offset: Offset(0, 18 * s), blurRadius: onbBlur(30 * s), spreadRadius: -18 * s),
-      ],
-      child: Container(
-        key: const Key('a1_kasse_sammendrag'),
-        clipBehavior: Clip.antiAlias,
-        padding: EdgeInsets.only(top: 14 * s, bottom: 12 * s),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22 * s),
-          gradient: cssLinear(180, const [Color(0xFFFFFDF8), Color(0xFFFAF6EC), Color(0xFFF4EFE3)], const [0, .62, 1]),
-          border: Border.all(color: rgba(255, 255, 255, .95)),
-        ),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: side,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 9 * s),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(KasseCopy.a1_kasse_sammendrag, style: bText(context, 9.5, weight: FontWeight.w800, letterSpacingEm: .14, color: const Color(0xFFA0968A))),
-                            Text(KasseCopy.a1_kasse_best_antall(count), style: bText(context, 9.5, weight: FontWeight.w800, letterSpacingEm: .06, color: const Color(0xFFA0968A))),
-                          ],
-                        ),
-                      ),
-                      KurvRad(label: KasseCopy.a1_kasse_varer, value: KasseCopy.kr(cart.subtotal)),
-                      KurvRad(
-                        key: pickup ? null : const Key('a1_kasse_frakt'),
-                        label: pickup ? KasseCopy.a1_kasse_henting : KasseCopy.a1_kasse_frakt,
-                        trailing: pickup || delivery == 0
-                            ? Container(
-                                padding: EdgeInsets.symmetric(horizontal: 9 * s, vertical: 3 * s),
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: rgba(63, 143, 95, .16)),
-                                child: Text(
-                                  pickup ? KasseCopy.a1_kasse_frakt_chip_hent : KasseCopy.a1_kasse_frakt_fri,
-                                  style: bText(context, 10.5, weight: FontWeight.w800, color: const Color(0xFF2E6B47)),
-                                ),
-                              )
-                            : null,
-                        value: KasseCopy.kr(delivery),
-                      ),
-                      if (fees > 0) KurvRad(label: KasseCopy.a1_kasse_avgifter, value: KasseCopy.kr(fees)),
-                      if (discount > 0) KurvRad(label: KasseCopy.a1_kasse_rabatt, value: '−${KasseCopy.kr(discount)}'),
-                      if (tip > 0) KurvRad(key: const Key('a1_kasse_tips_rad'), label: KasseCopy.a1_kasse_tips_rad, value: KasseCopy.kr(tip.toDouble())),
-                      if (aegil.isNotEmpty)
-                        Container(
-                          key: const Key('a1_kasse_aegil_linjer'),
-                          margin: EdgeInsets.only(top: 8 * s),
-                          padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 9 * s),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14 * s),
-                            color: rgba(30, 79, 92, .08),
-                            border: Border.all(color: rgba(30, 79, 92, .14)),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset('assets/images/dashboard/invitation.png', width: 26 * s, height: 26 * s, fit: BoxFit.contain),
-                              SizedBox(width: 10 * s),
-                              Expanded(
-                                child: Text(
-                                  KasseCopy.a1_kasse_aegil_linjer(
-                                    aegil.map((l) => l.name).join(', '),
-                                    KasseCopy.kr(aegil.fold<double>(0, (a, l) => a + l.sum)),
-                                  ),
-                                  style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-                                ),
-                              ),
-                              GestureDetector(
-                                key: const Key('a1_kasse_aegil_angre'),
-                                behavior: HitTestBehavior.opaque,
-                                onTap: onUndoAegil,
-                                child: Text(KasseCopy.a1_kasse_angre, style: bText(context, 12, weight: FontWeight.w800, color: BergenTokens.teal)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (doorVisible)
-                        Container(
-                          margin: EdgeInsets.only(top: 10 * s),
-                          padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 10 * s),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14 * s),
-                            color: rgba(255, 255, 255, .6),
-                            border: Border.all(color: rgba(255, 255, 255, .9)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(KasseCopy.a1_kasse_doren, style: bText(context, 11, weight: FontWeight.w800, color: const Color(0xFF8C847C))),
-                              SizedBox(height: 6 * s),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      height: 40 * s,
-                                      padding: EdgeInsets.symmetric(horizontal: 10 * s),
-                                      alignment: Alignment.centerLeft,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12 * s),
-                                        border: Border.all(color: rgba(35, 32, 29, .12)),
-                                      ),
-                                      child: TextField(
-                                        key: const Key('a1_kasse_dor'),
-                                        controller: door,
-                                        style: bText(context, 12.5, weight: FontWeight.w600, color: const Color(0xFF23201D)),
-                                        decoration: InputDecoration(
-                                          isCollapsed: true,
-                                          border: InputBorder.none,
-                                          hintText: KasseCopy.a1_kasse_doren_hint,
-                                          hintStyle: bText(context, 12.5, weight: FontWeight.w600, color: BergenTokens.inkFaint),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 6 * s),
-                                  GestureDetector(
-                                    key: const Key('a1_kasse_tolk'),
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: onTolk,
-                                    child: Container(
-                                      height: 40 * s,
-                                      padding: EdgeInsets.symmetric(horizontal: 12 * s),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(color: const Color(0xFF23201D), borderRadius: BorderRadius.circular(12 * s)),
-                                      child: Text(KasseCopy.a1_kasse_tolk, style: bText(context, 12, weight: FontWeight.w800)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: onDoorShared,
-                                child: Container(
-                                  constraints: BoxConstraints(minHeight: 36 * s),
-                                  margin: EdgeInsets.only(top: 8 * s),
-                                  child: Row(
-                                    children: [
-                                      Expanded(child: Text(KasseCopy.a1_kasse_dor_del, style: bText(context, 12, color: const Color(0xFF57534B)))),
-                                      SizedBox(width: 10 * s),
-                                      KurvToggle(key: const Key('a1_kasse_dor_del'), on: doorShared, onTap: onDoorShared),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: onCode,
-                                child: Container(
-                                  constraints: BoxConstraints(minHeight: 36 * s),
-                                  margin: EdgeInsets.only(top: 4 * s),
-                                  padding: EdgeInsets.only(top: 6 * s),
-                                  decoration: BoxDecoration(border: Border(top: BorderSide(color: rgba(35, 32, 29, .07)))),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(KasseCopy.a1_kasse_kode, style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D))),
-                                            Text(
-                                              total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under,
-                                              style: bText(context, 11, weight: FontWeight.w600, color: const Color(0xFF57534B)),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(width: 10 * s),
-                                      KurvToggle(key: const Key('a1_kasse_kode_switch'), on: codeAtDoor, onTap: onCode),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 11 * s),
-                  child: const KurvPerforering(),
-                ),
-                Padding(
-                  padding: side.copyWith(top: 8 * s),
-                  child: KurvAaBetale(total: total, points: points),
-                ),
-              ],
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 4 * s,
-              child: Opacity(opacity: .24, child: CustomPaint(painter: _StripePainter(s))),
-            ),
-            bergenInsetTop(radius: 22 * s, height: 1.5 * s, alpha: 1),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// `repeating-linear-gradient(90deg, #F26D3D 0 14px, #1E4F5C 14px 28px)`.
-class _StripePainter extends CustomPainter {
-  const _StripePainter(this.s);
-
-  final double s;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var x = 0.0;
-    var orange = true;
-    while (x < size.width) {
-      canvas.drawRect(Rect.fromLTWH(x, 0, 14 * s, size.height), Paint()..color = orange ? const Color(0xFFF26D3D) : const Color(0xFF1E4F5C));
-      x += 14 * s;
-      orange = !orange;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_StripePainter old) => old.s != s;
 }

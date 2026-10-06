@@ -11,8 +11,8 @@ abstract final class KasseCopy {
   static bool get _en => resolveSelectedLanguage() == 'en';
   static String _t(String no, String en) => _en ? en : no;
 
-  static String kr(num v) =>
-      '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2)} kr';
+  /// Norwegian money: «1 299 kr», «139,30 kr».
+  static String kr(num v) => '${tall(v)} kr';
 
   // ── Seilas · kassen ─────────────────────────────────────────────────────
   static String get a1_kasse_bryggen => languages.ops_kasse_bryggen;
@@ -20,6 +20,25 @@ abstract final class KasseCopy {
   static String get a1_kasse_ror => languages.ops_kasse_ror;
   static String get a1_kasse_levering => languages.ops_kasse_levering;
   static String get a1_kasse_henting => languages.ops_kasse_henting;
+
+  // ── Launch: the receipt and the status ────────────────────────────────
+  static String a1_kasse_lagt_i(String navn) => _t('$navn er lagt i kurven', '$navn is in your basket');
+  static String a1_kasse_kl(String t) => _t('Kl. $t', 'At $t');
+  static String a1_kasse_betaler_med(String m) => _t('Betaler med $m', 'Paying with $m');
+  static String get a1_kasse_betalt => _t('Betalt', 'Paid');
+  static String a1_kasse_betalt_sum(String kr) => _t('Betalt · $kr kr', 'Paid · $kr kr');
+  static String get a1_kasse_gjor_klar => _t('Ægil gjør seg klar', 'Ægil is getting ready');
+  static String get a1_kasse_tom_status => _t('Kurven er tom', 'Your basket is empty');
+  static String get a1_kasse_kvittering => _t('KVITTERING', 'RECEIPT');
+  static String a1_kasse_kr_tilbake(int n) => _t('+$n kr tilbake', '+$n kr back');
+  static String get a1_kasse_i_kroner => _t('i Ærend-kroner', 'in Ærend kroner');
+  static String get a1_kasse_dor_hint => _t('F.eks. 3. etasje, ring på Hansen', 'E.g. 3rd floor, ring Hansen');
+  static String a1_kasse_frakt_over(String kr) => _t('Gratis over $kr', 'Free over $kr');
+  static String a1_kasse_mot(int mangler, String butikk, String frakt) => _t(
+    'Du mangler $mangler kr til gratis levering hos $butikk — men bare hvis du faktisk trenger noe mer. Ellers er $frakt billigere.',
+    'You are $mangler kr from free delivery at $butikk — but only if you actually need something more. Otherwise $frakt is cheaper.',
+  );
+  static String a1_kasse_mot_cta(String navn, String kr) => _t('Legg til $navn · $kr', 'Add $navn · $kr');
 
   // ── empty ───────────────────────────────────────────────────────────────
   static String get a1_kasse_tom_kicker => languages.ops_kasse_tom_kicker;
@@ -110,8 +129,7 @@ abstract final class KasseCopy {
   static String get a1_kasse_bruk_dette => languages.ops_kasse_bruk_dette;
   static String get a1_kasse_bet_sheet_title => languages.ops_kasse_bet_sheet_title;
   static String get a1_kasse_bet_sheet_line => languages.ops_kasse_bet_sheet_line;
-  static String a1_kasse_bet_vipps(String tlf) =>
-      tlf.isEmpty ? 'Vipps' : 'Vipps · $tlf';
+  static String a1_kasse_bet_vipps(String tlf) => tlf.isEmpty ? 'Vipps' : 'Vipps · $tlf';
   static String get a1_kasse_bet_kort => languages.ops_kasse_bet_kort;
 
   // ── purchase sequence ───────────────────────────────────────────────────

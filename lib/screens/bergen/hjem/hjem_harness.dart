@@ -93,6 +93,18 @@ abstract final class HjemHarness {
   /// Empty the basket (through the app's own cart API) before `butikkLegg`.
   static bool kurvTom = false;
 
+  /// Scroll the Kurv panel this far (design px); `kurvFlere` opens Flere valg,
+  /// `kurvHenting` picks Henting.
+  static double? kurvScroll;
+  static bool kurvFlere = false;
+  static bool kurvHenting = false;
+
+  /// Open the Kurv's `levering` or `betaling` sheet once loaded.
+  static String? kurvArk;
+
+  /// Open «Betalt» (the payment-confirmed sequence) for this order.
+  static int? betalt;
+
   /// Scroll the product sheet this far (design px) once it is open.
   static double? produktScroll;
   static bool butikkMini = false;
@@ -139,6 +151,11 @@ abstract final class HjemHarness {
         produktScroll = null;
         butikkMini = false;
         kurvTom = false;
+        kurvScroll = null;
+        kurvFlere = false;
+        kurvHenting = false;
+        kurvArk = null;
+        betalt = null;
         katLive = false;
         return;
       }
@@ -177,6 +194,11 @@ abstract final class HjemHarness {
       produktScroll = (m['produktScroll'] as num?)?.toDouble();
       butikkMini = m['butikkMini'] == true;
       kurvTom = m['kurvTom'] == true;
+      kurvScroll = (m['kurvScroll'] as num?)?.toDouble();
+      kurvFlere = m['kurvFlere'] == true;
+      kurvHenting = m['kurvHenting'] == true;
+      kurvArk = m['kurvArk'] as String?;
+      betalt = m['betalt'] as int?;
       // `treg`: slow every animation down this many times (frame checks).
       timeDilation = (m['treg'] as num?)?.toDouble() ?? 1.0;
       katLive = m['katLive'] == true;

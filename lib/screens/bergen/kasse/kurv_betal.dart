@@ -112,10 +112,19 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20 * s),
-                gradient: cssLinear(180, const [Color(0xFFC94A20), Color(0xFFE0662C), Color(0xFFF2884E)], const [0, .55, 1]),
+                gradient: cssLinear(
+                  180,
+                  const [Color(0xFFC94A20), Color(0xFFE0662C), Color(0xFFF2884E)],
+                  const [0, .55, 1],
+                ),
                 boxShadow: [
                   BoxShadow(color: rgba(255, 255, 255, .55), offset: Offset(0, 1.5 * s)),
-                  BoxShadow(color: rgba(120, 50, 10, .75), offset: Offset(0, 16 * s), blurRadius: onbBlur(28 * s), spreadRadius: -14 * s),
+                  BoxShadow(
+                    color: rgba(120, 50, 10, .75),
+                    offset: Offset(0, 16 * s),
+                    blurRadius: onbBlur(28 * s),
+                    spreadRadius: -14 * s,
+                  ),
                 ],
               ),
               child: Stack(
@@ -128,7 +137,12 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [rgba(110, 35, 8, .7), rgba(110, 35, 8, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .22)],
+                          colors: [
+                            rgba(110, 35, 8, .7),
+                            rgba(110, 35, 8, 0),
+                            rgba(255, 255, 255, 0),
+                            rgba(255, 255, 255, .22),
+                          ],
                           stops: const [0, .18, .96, 1],
                         ),
                       ),
@@ -145,7 +159,9 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                         fit: StackFit.expand,
                         children: [
                           DecoratedBox(
-                            decoration: BoxDecoration(gradient: cssLinear(90, const [Color(0xFF2E7E8F), Color(0xFF46A3B4)])),
+                            decoration: BoxDecoration(
+                              gradient: cssLinear(90, const [Color(0xFF2E7E8F), Color(0xFF46A3B4)]),
+                            ),
                           ),
                           BergenLoop(
                             durationMs: 1100,
@@ -159,7 +175,12 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [rgba(255, 255, 255, .35), rgba(255, 255, 255, 0), rgba(6, 30, 38, 0), rgba(6, 30, 38, .4)],
+                                colors: [
+                                  rgba(255, 255, 255, .35),
+                                  rgba(255, 255, 255, 0),
+                                  rgba(6, 30, 38, 0),
+                                  rgba(6, 30, 38, .4),
+                                ],
                                 stops: const [0, .06, .9, 1],
                               ),
                             ),
@@ -178,35 +199,50 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                         opacity: tekstOp,
                         child: Row(
                           children: [
-                            Flexible(
-                              child: Text(
-                                klar ? KasseCopy.a1_kasse_slipp_betal : KasseCopy.a1_kasse_dra_betal,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: bText(context, 14, weight: FontWeight.w800),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      klar ? KasseCopy.a1_kasse_slipp_betal : KasseCopy.a1_kasse_dra_betal,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: bText(context, 14, weight: FontWeight.w800),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8 * s),
+                                  for (final (a, d) in [(.55, 0.0), (.4, 180.0), (.26, 360.0)])
+                                    BergenLoop(
+                                      durationMs: 1600,
+                                      delayMs: d,
+                                      builder: (context, p, _) {
+                                        final q = p == null
+                                            ? 0.0
+                                            : kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
+                                        return Opacity(
+                                          opacity: .35 + .65 * q,
+                                          child: Transform.translate(
+                                            offset: Offset(3 * q * s, 0),
+                                            child: SizedBox(
+                                              width: 9 * s,
+                                              height: 12 * s,
+                                              child: FittedBox(
+                                                child: KurvIcon(
+                                                  12 * s,
+                                                  KurvIcons.chevron,
+                                                  color: rgba(255, 255, 255, a),
+                                                  width: 3.4,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
                               ),
                             ),
-                            SizedBox(width: 8 * s),
-                            for (final (a, d) in [(.55, 0.0), (.4, 180.0), (.26, 360.0)])
-                              BergenLoop(
-                                durationMs: 1600,
-                                delayMs: d,
-                                builder: (context, p, _) {
-                                  final q = p == null ? 0.0 : kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
-                                  return Opacity(
-                                    opacity: .35 + .65 * q,
-                                    child: Transform.translate(
-                                      offset: Offset(3 * q * s, 0),
-                                      child: SizedBox(
-                                        width: 9 * s,
-                                        height: 12 * s,
-                                        child: FittedBox(child: KurvIcon(12 * s, KurvIcons.chevron, color: rgba(255, 255, 255, a), width: 3.4)),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            const Spacer(),
+                            SizedBox(width: 10 * s),
                             AnimatedOpacity(
                               opacity: prisOp,
                               duration: BergenTokens.motion(context, const Duration(milliseconds: 200)),
@@ -218,7 +254,12 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                                   gradient: LinearGradient(
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
-                                    colors: [rgba(90, 30, 5, .55), rgba(110, 35, 8, .32), rgba(110, 35, 8, .32), rgba(255, 255, 255, .2)],
+                                    colors: [
+                                      rgba(90, 30, 5, .55),
+                                      rgba(110, 35, 8, .32),
+                                      rgba(110, 35, 8, .32),
+                                      rgba(255, 255, 255, .2),
+                                    ],
                                     stops: const [0, .3, .95, 1],
                                   ),
                                 ),
@@ -229,7 +270,15 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                                   children: [
                                     Text(priceText, style: bDisplay(context, 15, letterSpacingEm: -.02, height: 1)),
                                     SizedBox(width: 3 * s),
-                                    Text('kr', style: bText(context, 10.5, weight: FontWeight.w800, color: const Color(0xFFFFE0CC))),
+                                    Text(
+                                      'kr',
+                                      style: bText(
+                                        context,
+                                        10.5,
+                                        weight: FontWeight.w800,
+                                        color: const Color(0xFFFFE0CC),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -273,7 +322,11 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                             ),
                           ),
                           if (_drag)
-                            for (final (l, t, d, a, delay) in [(2.0, 20.0, 7.0, .7, 0.0), (-2.0, 28.0, 5.0, .55, 300.0), (4.0, 34.0, 4.0, .45, 600.0)])
+                            for (final (l, t, d, a, delay) in [
+                              (2.0, 20.0, 7.0, .7, 0.0),
+                              (-2.0, 28.0, 5.0, .55, 300.0),
+                              (4.0, 34.0, 4.0, .45, 600.0),
+                            ])
                               Positioned(
                                 left: l * s,
                                 top: t * s,
@@ -292,7 +345,12 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                                         transform: Matrix4.identity()
                                           ..translate(-16 * q * s, -9 * q * s)
                                           ..scale(.5 + .65 * q),
-                                        child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: rgba(255, 255, 255, a))),
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: rgba(255, 255, 255, a),
+                                          ),
+                                        ),
                                       ),
                                     );
                                   },
@@ -315,13 +373,27 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                                   gradient: const RadialGradient(
                                     center: Alignment(-.28, -.48),
                                     radius: 1.1,
-                                    colors: [Color(0xFF4F9AAB), Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF143C46)],
+                                    colors: [
+                                      Color(0xFF4F9AAB),
+                                      Color(0xFF2A6272),
+                                      Color(0xFF1E4F5C),
+                                      Color(0xFF143C46),
+                                    ],
                                     stops: [0, .4, .78, 1],
                                   ),
                                   boxShadow: [
                                     BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 2 * s),
-                                    BoxShadow(color: const Color(0xFF0F2E36), offset: Offset(0, 3 * s), spreadRadius: 2 * s),
-                                    BoxShadow(color: rgba(0, 20, 30, .75), offset: Offset(0, 10 * s), blurRadius: onbBlur(16 * s), spreadRadius: -4 * s),
+                                    BoxShadow(
+                                      color: const Color(0xFF0F2E36),
+                                      offset: Offset(0, 3 * s),
+                                      spreadRadius: 2 * s,
+                                    ),
+                                    BoxShadow(
+                                      color: rgba(0, 20, 30, .75),
+                                      offset: Offset(0, 10 * s),
+                                      blurRadius: onbBlur(16 * s),
+                                      spreadRadius: -4 * s,
+                                    ),
                                   ],
                                 ),
                                 child: Stack(
@@ -334,7 +406,10 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                                       height: 16 * s,
                                       child: DecoratedBox(
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.vertical(top: Radius.circular(12 * s), bottom: Radius.circular(8 * s)),
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(12 * s),
+                                            bottom: Radius.circular(8 * s),
+                                          ),
                                           gradient: cssLinear(180, [rgba(255, 255, 255, .4), rgba(255, 255, 255, 0)]),
                                         ),
                                       ),
@@ -355,7 +430,10 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Opacity(opacity: .55, child: KurvIcon(15 * s, KurvIcons.chevron, width: 3.4)),
-                                        Transform.translate(offset: Offset(-5 * s, 0), child: KurvIcon(17 * s, KurvIcons.chevron, width: 3.4)),
+                                        Transform.translate(
+                                          offset: Offset(-5 * s, 0),
+                                          child: KurvIcon(17 * s, KurvIcons.chevron, width: 3.4),
+                                        ),
                                       ],
                                     ),
                                     bergenInsetTop(radius: 16 * s, height: 2 * s, alpha: .4),

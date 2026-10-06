@@ -19,12 +19,7 @@ import '../layout/reduced_motion_harness.dart';
 /// math, the Ægil-added line and Angre, coverage skipped on 404, the 422
 /// `PD_OUTSIDE_RADIUS` handling, and Bestillingsdetaljer.
 class _FakeKasse extends OpsKasseApi {
-  _FakeKasse({
-    this.state = const KurvState(),
-    this.previewPojo,
-    this.addressList = const [],
-    this.placeResponse,
-  });
+  _FakeKasse({this.state = const KurvState(), this.previewPojo, this.addressList = const [], this.placeResponse});
 
   KurvState state;
   final OrderPreviewPojo? previewPojo;
@@ -102,13 +97,7 @@ class _FakeCustomer extends OpsCustomerApi {
   Future<Map<String, dynamic>?> referral() async => referralJson;
 }
 
-KurvLine _line(
-  int id,
-  String name,
-  double price, {
-  int qty = 1,
-  bool aegil = false,
-}) => KurvLine(
+KurvLine _line(int id, String name, double price, {int qty = 1, bool aegil = false}) => KurvLine(
   cartId: id,
   productId: id * 10,
   name: name,
@@ -119,13 +108,7 @@ KurvLine _line(
 );
 
 OrderPreviewPojo _preview({double delivery = 39, double min = 150}) =>
-    OrderPreviewPojo(
-      status: 1,
-      storeId: 7,
-      storeName: 'Burger King',
-      deliveryCost: delivery,
-      minOrderAmount: min,
-    );
+    OrderPreviewPojo(status: 1, storeId: 7, storeName: 'Burger King', deliveryCost: delivery, minOrderAmount: min);
 
 AddressListItem _address(int id) => AddressListItem.fromJson({
   'address_id': id,
@@ -162,10 +145,7 @@ void main() {
   tearDownAll(() => OpsCustomerApi.networkEnabled = true);
 
   test('the Phase 5 routes are in the agil-1 map', () {
-    expect(
-      bergenRoutesAgil1().keys,
-      containsAll(['/bergen/kurv', '/bergen/bestilling']),
-    );
+    expect(bergenRoutesAgil1().keys, containsAll(['/bergen/kurv', '/bergen/bestilling']));
   });
 
   test('cart json maps lines and the Ægil marker', () {
@@ -201,54 +181,31 @@ void main() {
   });
 
   test('a slot renders the legacy schedule format', () {
-    final slot = KasseSlot(
-      id: 's',
-      label: '18:30',
-      line: '',
-      at: DateTime(2026, 9, 25, 18, 30),
-    );
+    final slot = KasseSlot(id: 's', label: '18:30', line: '', at: DateTime(2026, 9, 25, 18, 30));
     expect(slot.scheduleDateTime, '2026-09-25 18:30:00');
-    expect(
-      const KasseSlot(id: 'asap', label: 'Nå', line: '').scheduleDateTime,
-      isNull,
-    );
+    expect(const KasseSlot(id: 'asap', label: 'Nå', line: '').scheduleDateTime, isNull);
   });
 
   testWidgets('empty: the Ægil line and the browse button', (tester) async {
     _frame(tester);
-    await tester.pumpWidget(
-      _app(
-        KurvScreen(
-          embedded: false,
-          api: _FakeKasse(),
-          customerApi: _FakeCustomer(),
-        ),
-      ),
-    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: _FakeKasse(), customerApi: _FakeCustomer())));
     await tester.pump();
     await tester.pump();
     expect(find.byKey(const Key('a1_kasse_tom')), findsOneWidget);
     expect(find.byKey(const Key('a1_kasse_betal')), findsNothing);
   });
 
-  testWidgets('filled: lines, Endre rows, the summary total with delivery', (
-    tester,
-  ) async {
+  testWidgets('filled: lines, Endre rows, the summary total with delivery', (tester) async {
     _frame(tester);
     final api = _FakeKasse(
       state: KurvState(
-        lines: [
-          _line(1, 'Dobbel cheeseburger', 149),
-          _line(2, 'Pommes frites', 59, qty: 2),
-        ],
+        lines: [_line(1, 'Dobbel cheeseburger', 149), _line(2, 'Pommes frites', 59, qty: 2)],
         storeId: 7,
       ),
       previewPojo: _preview(),
       addressList: [_address(5)],
     );
-    await tester.pumpWidget(
-      _app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())),
-    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
     await tester.pump();
     await tester.pump();
     await tester.pump();
@@ -267,18 +224,14 @@ void main() {
     expect(find.byKey(const Key('a1_kasse_frakt')), findsOneWidget);
   });
 
-  testWidgets('pickup drops the delivery line and the address row changes', (
-    tester,
-  ) async {
+  testWidgets('pickup drops the delivery line and the address row changes', (tester) async {
     _frame(tester);
     final api = _FakeKasse(
       state: KurvState(lines: [_line(1, 'Burger', 149)], storeId: 7),
       previewPojo: _preview(),
       addressList: [_address(5)],
     );
-    await tester.pumpWidget(
-      _app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())),
-    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
     await tester.pump();
     await tester.pump();
     await tester.pump();
@@ -296,69 +249,53 @@ void main() {
     expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '149');
   });
 
-  testWidgets(
-    'Flere valg opens the tips card and a tip adds to the total',
-    (tester) async {
-      _frame(tester);
-      final api = _FakeKasse(
-        state: KurvState(lines: [_line(1, 'Burger', 100)], storeId: 7),
-        previewPojo: _preview(delivery: 0),
-        addressList: [_address(5)],
-      );
-      await tester.pumpWidget(
-        _app(
-          KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer()),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
+  testWidgets('Flere valg opens the tips card and a tip adds to the total', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 100)], storeId: 7),
+      previewPojo: _preview(delivery: 0),
+      addressList: [_address(5)],
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
 
-      await tester.dragUntilVisible(
-        find.byKey(const Key('a1_kasse_flere')),
-        find.byType(ListView).first,
-        const Offset(0, -200),
-      );
-      await tester.tap(find.byKey(const Key('a1_kasse_flere')));
-      await tester.pump();
-      await tester.dragUntilVisible(
-        find.byKey(const Key('a1_kasse_tips_25')),
-        find.byType(ListView).first,
-        const Offset(0, -200),
-      );
-      await tester.tap(find.byKey(const Key('a1_kasse_tips_25')));
-      await tester.pump();
-      await tester.dragUntilVisible(
-        find.byKey(const Key('a1_kasse_total')),
-        find.byType(ListView).first,
-        const Offset(0, -300),
-      );
-      await tester.pump();
-      expect(find.byKey(const Key('a1_kasse_tips_rad')), findsOneWidget);
-      expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '125');
+    await tester.dragUntilVisible(
+      find.byKey(const Key('a1_kasse_flere')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
+    await tester.tap(find.byKey(const Key('a1_kasse_flere')));
+    await tester.pump();
+    await tester.dragUntilVisible(
+      find.byKey(const Key('a1_kasse_tips_25')),
+      find.byType(ListView).first,
+      const Offset(0, -200),
+    );
+    await tester.tap(find.byKey(const Key('a1_kasse_tips_25')));
+    await tester.pump();
+    await tester.dragUntilVisible(
+      find.byKey(const Key('a1_kasse_total')),
+      find.byType(ListView).first,
+      const Offset(0, -300),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key('a1_kasse_tips_rad')), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '125');
+  });
 
-    },
-  );
-
-  testWidgets('the Ægil-added line renders and Angre removes those lines', (
-    tester,
-  ) async {
+  testWidgets('the Ægil-added line renders and Angre removes those lines', (tester) async {
     _frame(tester);
     final api = _FakeKasse(
       state: KurvState(
-        lines: [
-          _line(1, 'Burger', 149),
-          _line(2, 'Melk', 25, aegil: true),
-          _line(3, 'Brød', 39, aegil: true),
-        ],
+        lines: [_line(1, 'Burger', 149), _line(2, 'Melk', 25, aegil: true), _line(3, 'Brød', 39, aegil: true)],
         storeId: 7,
       ),
       previewPojo: _preview(),
       addressList: [_address(5)],
     );
-    await tester.pumpWidget(
-      _app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())),
-    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
     await tester.pump();
     await tester.pump();
     await tester.pump();
@@ -369,10 +306,7 @@ void main() {
       const Offset(0, -300),
     );
     await tester.pump();
-    expect(
-      find.textContaining('Lagt i kurven av Ægil · Melk, Brød · 64 kr'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('Lagt i kurven av Ægil · Melk, Brød · 64 kr'), findsOneWidget);
     await tester.tap(find.byKey(const Key('a1_kasse_aegil_angre')));
     await tester.pump();
     await tester.pump();
@@ -380,17 +314,14 @@ void main() {
     expect(find.byKey(const Key('a1_kasse_aegil_linjer')), findsNothing);
   });
 
-  testWidgets(
-    'coverage is skipped silently when the endpoint answers nothing',
-    (tester) async {
-      _frame(tester);
-      final customer = _FakeCustomer(coverageJson: null);
-      expect(await checkCoverage(customer, _address(5)), isTrue);
-      expect(customer.coverageCalls, 1);
-      final notCovered = _FakeCustomer(coverageJson: {'covered': false});
-      expect(await checkCoverage(notCovered, _address(5)), isFalse);
-    },
-  );
+  testWidgets('coverage is skipped silently when the endpoint answers nothing', (tester) async {
+    _frame(tester);
+    final customer = _FakeCustomer(coverageJson: null);
+    expect(await checkCoverage(customer, _address(5)), isTrue);
+    expect(customer.coverageCalls, 1);
+    final notCovered = _FakeCustomer(coverageJson: {'covered': false});
+    expect(await checkCoverage(notCovered, _address(5)), isFalse);
+  });
 
   testWidgets('a 422 PD_OUTSIDE_RADIUS offers pickup', (tester) async {
     _frame(tester);
@@ -398,15 +329,9 @@ void main() {
       state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
       previewPojo: _preview(),
       addressList: [_address(5)],
-      placeResponse: {
-        'status': 0,
-        'error': 'PD_OUTSIDE_RADIUS',
-        'message': 'Butikken leverer ikke hit',
-      },
+      placeResponse: {'status': 0, 'error': 'PD_OUTSIDE_RADIUS', 'message': 'Butikken leverer ikke hit'},
     );
-    await tester.pumpWidget(
-      _app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())),
-    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
     await tester.pump();
     await tester.pump();
     await tester.pump();
@@ -420,9 +345,7 @@ void main() {
     expect(api.lastPlace?['pickup'], isFalse);
   });
 
-  testWidgets('a placed order asks for the code when the toggle is on', (
-    tester,
-  ) async {
+  testWidgets('a placed order asks for the code when the toggle is on', (tester) async {
     _frame(tester);
     final api = _FakeKasse(
       state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
@@ -431,9 +354,7 @@ void main() {
       placeResponse: {'status': 1, 'order_id': 4471, 'total_pay': 239},
     );
     final customer = _FakeCustomer();
-    await tester.pumpWidget(
-      _app(KurvScreen(embedded: false, api: api, customerApi: customer)),
-    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: customer)));
     await tester.pump();
     await tester.pump();
     await tester.pump();
@@ -477,11 +398,7 @@ void main() {
             'total_pay': 239.0,
             'ordered_at': '2026-09-25T18:11:00+02:00',
             'delivery_address': 'Nygårdsgaten 5',
-            'store': {
-              'id': 7,
-              'name': 'Casa Maria',
-              'address': 'Bryggen 7, 5003 Bergen',
-            },
+            'store': {'id': 7, 'name': 'Casa Maria', 'address': 'Bryggen 7, 5003 Bergen'},
             'items': [
               {'name': 'Pizza', 'qty': 2, 'price': 119.5},
             ],
@@ -500,58 +417,50 @@ void main() {
     expect(find.byKey(const Key('a1_kasse_best_kundeservice')), findsOneWidget);
   });
 
-  testWidgets(
-    'the referral ticket shows once per order, and not without a code',
-    (tester) async {
-      _frame(tester);
-      await tester.pumpWidget(
-        _app(
-          Builder(
-            builder: (context) => TextButton(
-              onPressed: () => showVervebillett(
-                context,
-                orderId: 9,
-                api: _FakeCustomer(
-                  referralJson: {
-                    'referral': {'code': 'DIDRIK-B7', 'points_for_me': 100},
-                  },
-                ),
+  testWidgets('the referral ticket shows once per order, and not without a code', (tester) async {
+    _frame(tester);
+    await tester.pumpWidget(
+      _app(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showVervebillett(
+              context,
+              orderId: 9,
+              api: _FakeCustomer(
+                referralJson: {
+                  'referral': {'code': 'DIDRIK-B7', 'points_for_me': 100},
+                },
               ),
-              child: const Text('go'),
             ),
+            child: const Text('go'),
           ),
         ),
-      );
-      await tester.tap(find.text('go'));
-      await tester.pumpAndSettle();
-      expect(find.text('DIDRIK-B7'), findsOneWidget);
-      expect(find.text(KasseCopy.a1_kasse_gi_faa(100)), findsOneWidget);
-      await tester.tap(find.text(KasseCopy.a1_kasse_lukk));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('go'));
-      await tester.pumpAndSettle();
-      expect(find.text('DIDRIK-B7'), findsNothing, reason: 'once per order');
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(find.text('DIDRIK-B7'), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_gi_faa(100)), findsOneWidget);
+    await tester.tap(find.text(KasseCopy.a1_kasse_lukk));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('go'));
+    await tester.pumpAndSettle();
+    expect(find.text('DIDRIK-B7'), findsNothing, reason: 'once per order');
 
-      await tester.pumpWidget(
-        _app(
-          Builder(
-            builder: (context) => TextButton(
-              onPressed: () =>
-                  showVervebillett(context, orderId: 10, api: _FakeCustomer()),
-              child: const Text('go2'),
-            ),
+    await tester.pumpWidget(
+      _app(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showVervebillett(context, orderId: 10, api: _FakeCustomer()),
+            child: const Text('go2'),
           ),
         ),
-      );
-      await tester.tap(find.text('go2'));
-      await tester.pumpAndSettle();
-      expect(
-        find.text(KasseCopy.a1_kasse_verv),
-        findsNothing,
-        reason: 'hidden without the referral route',
-      );
-    },
-  );
+      ),
+    );
+    await tester.tap(find.text('go2'));
+    await tester.pumpAndSettle();
+    expect(find.text(KasseCopy.a1_kasse_verv), findsNothing, reason: 'hidden without the referral route');
+  });
 
   testWidgets('Kurv respects reduced motion (filled and empty)', (tester) async {
     _frame(tester);
@@ -571,5 +480,76 @@ void main() {
       tester,
       () => KurvScreen(embedded: false, api: _FakeKasse(), customerApi: _FakeCustomer()),
     );
+  });
+
+  testWidgets('Betalt: the paid sum and «Ægil gjør seg klar» rise in', (tester) async {
+    _frame(tester);
+    await tester.pumpWidget(_app(KjopBekreftetScreen(orderId: 42, sum: 307, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1000));
+    expect(find.text(KasseCopy.a1_kasse_betalt_sum('307')), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_gjor_klar), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Betaling lists the methods and returns the picked one', (tester) async {
+    _frame(tester);
+    int? valgt;
+    await tester.pumpWidget(
+      _app(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () async => valgt = await showBetalingSheet(context, selected: kBetVipps),
+            child: const Text('åpne'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('åpne'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const Key('a1_kasse_betaling_sheet')), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_bet_$kBetVipps')), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_bet_$kBetKort')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('a1_kasse_bet_$kBetKort')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 3));
+    expect(valgt, kBetKort);
+  });
+
+  testWidgets('Levering: a time and «Bruk dette» come back', (tester) async {
+    _frame(tester);
+    KasseSlot? valgt;
+    bool? henting;
+    const slots = [
+      KasseSlot(id: 'asap', label: 'Så fort som mulig', line: 'Innen 18:15 · 25–35 min'),
+      KasseSlot(id: 'slot1', label: '18:30', line: 'Budet venter'),
+    ];
+    await tester.pumpWidget(
+      _app(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () async => valgt = await showLeveringSheet(
+              context,
+              slots: slots,
+              pickup: false,
+              onModeChanged: (m) => henting = m,
+            ),
+            child: const Text('åpne'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('åpne'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(const Key('a1_kasse_slot_slot1')));
+    await tester.tap(find.byKey(const Key('a1_kasse_ark_henting')));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(const Key('a1_kasse_bruk_dette')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(valgt?.id, 'slot1');
+    expect(henting, isTrue);
   });
 }

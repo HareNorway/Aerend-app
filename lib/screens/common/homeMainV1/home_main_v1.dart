@@ -52,9 +52,7 @@ class HomeMainV1State extends State<HomeMainV1> {
   DateTime? currentTime;
   int selectedPos = 0;
 
-  ValueNotifier<int> badgeCountNotifier = ValueNotifier<int>(
-    prefGetInt(prefCartCount),
-  );
+  ValueNotifier<int> badgeCountNotifier = ValueNotifier<int>(prefGetInt(prefCartCount));
 
   /// Keyword handed to the search screen when it is opened from Hjem.
   final ValueNotifier<String> searchLaunchKeyword = ValueNotifier('');
@@ -162,56 +160,63 @@ class HomeMainV1State extends State<HomeMainV1> {
             valueListenable: sokOpen,
             builder: (context, open, _) => open
                 ? Positioned.fill(
-                    child: SokScreen(
-                      key: _sokKey,
-                      controller: _sokField,
-                      onClose: () => sokOpen.value = false,
-                    ),
+                    child: SokScreen(key: _sokKey, controller: _sokField, onClose: () => sokOpen.value = false),
                   )
                 : const SizedBox.shrink(),
           ),
           // Live-ærend (L9598): left 14, 14 above the nav pill.
           ValueListenableBuilder(
-            valueListenable: hjemLiveOrdre,
-            builder: (context, ordre, _) => ValueListenableBuilder<bool>(
-              valueListenable: sokOpen,
-              builder: (context, sok, _) {
-                if (ordre == null || sok) return const SizedBox.shrink();
-                final s = context.bs;
-                final navBunn = math.max(MediaQuery.paddingOf(context).bottom, 16 * s);
-                return Positioned(
-                  left: 14 * s,
-                  bottom: navBunn + 62 * s + 14 * s,
-                  width: 234 * s,
-                  height: 64 * s,
-                  child: lfFlow(
-                    234,
-                    HjemLiveAerend(
-                      data: ordre.data,
-                      onTap: () => BergenRoutes.pushOr(
-                        context,
-                        '/bergen/sporing/${ordre.orderId}',
-                        orElse: () => openScreen(context, TrackOrder(orderId: ordre.orderId)),
+            valueListenable: kurvSkjulerNav,
+            builder: (context, _, __) => ValueListenableBuilder(
+              valueListenable: hjemLiveOrdre,
+              builder: (context, ordre, _) => ValueListenableBuilder<bool>(
+                valueListenable: sokOpen,
+                builder: (context, sok, _) {
+                  if (ordre == null || sok) return const SizedBox.shrink();
+                  final s = context.bs;
+                  final navBunn = math.max(MediaQuery.paddingOf(context).bottom, 16 * s);
+                  // `liveBunnFor`: 90 over the nav, 104 over the Kurv's slider.
+                  final overSlider = selectedPos == BergenTab.cart.index && kurvSkjulerNav.value;
+                  return Positioned(
+                    left: 14 * s,
+                    bottom: navBunn + (overSlider ? 88 : 76) * s,
+                    width: 234 * s,
+                    height: 64 * s,
+                    child: lfFlow(
+                      234,
+                      HjemLiveAerend(
+                        data: ordre.data,
+                        onTap: () => BergenRoutes.pushOr(
+                          context,
+                          '/bergen/sporing/${ordre.orderId}',
+                          orElse: () => openScreen(context, TrackOrder(orderId: ordre.orderId)),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: BergenBottomNav(
-              index: selectedPos,
-              onTab: (i) => switchToTab(i),
-              cartCount: badgeCountNotifier,
-              onSearch: (_) => _sokKey.currentState?.submit(),
-              onAegil: _openAegil,
-              showHint: selectedPos == BergenTab.home.index,
-              searchController: _sokField,
-              searchOpen: sokOpen,
+          // `visNav`: hidden on Kurv while it has lines (the slider's place).
+          ValueListenableBuilder<bool>(
+            valueListenable: kurvSkjulerNav,
+            builder: (context, skjul, nav) =>
+                selectedPos == BergenTab.cart.index && skjul ? const SizedBox.shrink() : nav!,
+            child: Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: BergenBottomNav(
+                index: selectedPos,
+                onTab: (i) => switchToTab(i),
+                cartCount: badgeCountNotifier,
+                onSearch: (_) => _sokKey.currentState?.submit(),
+                onAegil: _openAegil,
+                showHint: selectedPos == BergenTab.home.index,
+                searchController: _sokField,
+                searchOpen: sokOpen,
+              ),
             ),
           ),
         ],
@@ -225,8 +230,7 @@ class HomeMainV1State extends State<HomeMainV1> {
           return Future.value(false);
         }
         DateTime now = DateTime.now();
-        if (currentTime == null ||
-            now.difference(currentTime!) > const Duration(seconds: 2)) {
+        if (currentTime == null || now.difference(currentTime!) > const Duration(seconds: 2)) {
           currentTime = now;
           openSimpleSnackbar(languages.appExitMessage);
           return Future.value(false);

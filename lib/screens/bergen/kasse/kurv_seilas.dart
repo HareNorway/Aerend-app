@@ -7,132 +7,147 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
+import '../kit/ro_baat.dart';
 import 'kasse_copy.dart';
 
-/// `Seilas · kassen` (design L4976–4998): the 104-px header of the Kurv
-/// screen — the dashed course, the quay with the store's logo and «Bryggen»,
-/// and Ægil rowing in from the left (`roInn 1.3s .1s`), bobbing (`roVugg
-/// 2.2s`), oars on `aareA` / `aareB`, the wake (`roKjolvann`), the shadow
-/// (`sjoSkygge`) and the two `damp` bubbles over the quay. On pay the boat
-/// leaves to the right (`roAvgang .75s cubic-bezier(.4,0,.8,.4)`).
+/// `Seilas · kassen` (L6139): the 104-px header of the Kurv screen — the
+/// dashed course, the quay with the store's logo and «Bryggen», Ægil rowing
+/// in from the left ([RoBaat] on `roInn 1.3s .1s`) and the two `damp`
+/// bubbles over the quay. On pay the boat leaves to the right (`roAvgang
+/// .75s cubic-bezier(.4,0,.8,.4)`); with an empty basket the whole sea fades
+/// out and slides 24px right (`.45s` / `.6s cubic-bezier(.22,1,.36,1)`).
 ///
-/// Left of it the back button (`38 r14` glass) and the title («Kassen» 26px
-/// Plus Jakarta 800 −.03em, «Ægil ror til bryggen» with the mint dot).
+/// Left of it the back key (`38 r14` glass, to the store) and the title
+/// («Kassen» 26px Plus Jakarta 800 −.03em) over the status line with its
+/// glowing dot (mint «Ægil ror til bryggen», or white .45 «Kurven er tom»).
 class KurvSeilas extends StatelessWidget {
   const KurvSeilas({
     super.key,
     required this.safeTop,
-    required this.embedded,
     required this.departing,
+    required this.tom,
+    required this.onBack,
     this.storeName,
     this.storeLogoUrl,
   });
 
   final double safeTop;
-  final bool embedded;
 
   /// `kasseAvgang`: the boat rows off (pay started).
   final bool departing;
+
+  /// `antall === 0`: no voyage, and the status says so.
+  final bool tom;
+  final VoidCallback onBack;
   final String? storeName;
   final String? storeLogoUrl;
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final dy = math.max(0.0, safeTop - 20 * s);
+    final dot = tom ? rgba(255, 255, 255, .45) : const Color(0xFF5CE0B8);
     return SizedBox(
       key: const Key('a1_kasse_seilas'),
-      height: safeTop + 104 * s,
+      height: dy + 104 * s,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned(
             right: 0,
-            top: safeTop,
+            top: dy,
             width: 170 * s,
             height: 104 * s,
             child: IgnorePointer(
-              child: _Sea(
-                departing: departing,
-                storeName: storeName,
-                storeLogoUrl: storeLogoUrl,
+              child: AnimatedOpacity(
+                duration: BergenTokens.motion(context, const Duration(milliseconds: 450)),
+                opacity: tom ? 0 : 1,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(end: tom ? 24 : 0),
+                  duration: BergenTokens.motion(context, const Duration(milliseconds: 600)),
+                  curve: const Cubic(.22, 1, .36, 1),
+                  builder: (context, x, child) => Transform.translate(offset: Offset(x * s, 0), child: child),
+                  child: _Sea(departing: departing, storeName: storeName, storeLogoUrl: storeLogoUrl),
+                ),
               ),
             ),
           ),
           Positioned(
             left: 16 * s,
             right: 16 * s,
-            top: safeTop + 26 * s,
+            top: dy + 26 * s,
             child: Row(
               children: [
-                if (!embedded) ...[
-                  OnbPressable(
-                    onTap: () => Navigator.of(context).maybePop(),
-                    pressScale: .92,
-                    child: BergenCssShadow(
-                      radius: 14 * s,
-                      shadows: [
-                        BoxShadow(
-                          color: rgba(4, 18, 26, .8),
-                          offset: Offset(0, 10 * s),
-                          blurRadius: onbBlur(18 * s),
-                          spreadRadius: -10 * s,
-                        ),
-                      ],
-                      child: Container(
-                        key: const Key('a1_kasse_tilbake'),
-                        width: 38 * s,
-                        height: 38 * s,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14 * s),
-                          gradient: cssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .07)]),
-                          border: Border.all(color: rgba(255, 255, 255, .26)),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CustomPaint(
-                              size: Size.square(15 * s),
-                              painter: _StrokePainter(2.4, (c, p) {
-                                c.drawPath(
-                                  Path()
-                                    ..moveTo(15, 6)
-                                    ..lineTo(9, 12)
-                                    ..lineTo(15, 18),
-                                  p,
-                                );
-                              }),
-                            ),
-                            bergenInsetTop(radius: 14 * s, height: 1.5 * s, alpha: .32),
-                          ],
-                        ),
+                OnbPressable(
+                  key: const Key('a1_kasse_tilbake'),
+                  onTap: onBack,
+                  pressDy: 0,
+                  pressScale: .92,
+                  child: BergenCssShadow(
+                    radius: 14 * s,
+                    shadows: [
+                      BoxShadow(
+                        color: rgba(4, 18, 26, .8),
+                        offset: Offset(0, 10 * s),
+                        blurRadius: onbBlur(18 * s),
+                        spreadRadius: -10 * s,
+                      ),
+                    ],
+                    child: Container(
+                      width: 38 * s,
+                      height: 38 * s,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14 * s),
+                        gradient: cssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .07)]),
+                        border: Border.all(color: rgba(255, 255, 255, .26)),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const SizedBox.expand(),
+                          CustomPaint(
+                            size: Size.square(15 * s),
+                            painter: _StrokePainter(2.4, (c, p) {
+                              c.drawPath(
+                                Path()
+                                  ..moveTo(15, 6)
+                                  ..lineTo(9, 12)
+                                  ..lineTo(15, 18),
+                                p,
+                              );
+                            }),
+                          ),
+                          bergenInsetTop(radius: 14 * s, height: 1.5 * s, alpha: .32),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(width: 12 * s),
-                ],
+                ),
+                SizedBox(width: 12 * s),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        KasseCopy.a1_kasse_kassen,
-                        style: bDisplay(context, 26, letterSpacingEm: -.03, height: 1),
-                      ),
+                      Text(KasseCopy.a1_kasse_kassen, style: bDisplay(context, 26, letterSpacingEm: -.03, height: 1)),
                       SizedBox(height: 6 * s),
                       Row(
                         children: [
-                          Container(
+                          AnimatedContainer(
+                            duration: BergenTokens.motion(context, const Duration(milliseconds: 300)),
                             width: 6 * s,
                             height: 6 * s,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFF5CE0B8),
-                              boxShadow: [BoxShadow(color: const Color(0xFF5CE0B8), blurRadius: onbBlur(8 * s))],
+                              color: dot,
+                              boxShadow: [BoxShadow(color: dot, blurRadius: onbBlur(8 * s))],
                             ),
                           ),
                           SizedBox(width: 6 * s),
                           Text(
-                            departing ? KasseCopy.a1_kasse_ror_avgang : KasseCopy.a1_kasse_ror,
+                            tom
+                                ? KasseCopy.a1_kasse_tom_status
+                                : (departing ? KasseCopy.a1_kasse_ror_avgang : KasseCopy.a1_kasse_ror),
+                            key: const Key('a1_kasse_status'),
                             style: bText(context, 10.5, color: rgba(255, 255, 255, .7)),
                           ),
                         ],
@@ -187,7 +202,13 @@ class _Sea extends StatelessWidget {
               return Opacity(
                 opacity: kf(q, st, const [0, 0, .5, .18, 0]),
                 child: Transform.scale(
-                  scale: kf(q, st, const [.55, .55, .55 + (1.9 - .55) * (.18 - .12) / .88, .55 + (1.9 - .55) * (.6 - .12) / .88, 1.9]),
+                  scale: kf(q, st, const [
+                    .55,
+                    .55,
+                    .55 + (1.9 - .55) * (.18 - .12) / .88,
+                    .55 + (1.9 - .55) * (.6 - .12) / .88,
+                    1.9,
+                  ]),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -280,9 +301,14 @@ class _Sea extends StatelessWidget {
                           durationMs: 2400,
                           delayMs: delay,
                           builder: (context, p, _) => Opacity(
-                            opacity: p == null ? 0 : kf(Curves.easeOut.transform(p), const [0, .2, 1], const [0, .7, 0]),
+                            opacity: p == null
+                                ? 0
+                                : kf(Curves.easeOut.transform(p), const [0, .2, 1], const [0, .7, 0]),
                             child: DecoratedBox(
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: rgba(255, 255, 255, d == 8 ? .7 : .6)),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: rgba(255, 255, 255, d == 8 ? .7 : .6),
+                              ),
                             ),
                           ),
                         ),
@@ -298,7 +324,13 @@ class _Sea extends StatelessWidget {
                   KasseCopy.a1_kasse_bryggen,
                   textAlign: TextAlign.center,
                   maxLines: 1,
-                  style: bText(context, 8, weight: FontWeight.w800, letterSpacingEm: .04, color: rgba(255, 255, 255, .8)),
+                  style: bText(
+                    context,
+                    8,
+                    weight: FontWeight.w800,
+                    letterSpacingEm: .04,
+                    color: rgba(255, 255, 255, .8),
+                  ),
                 ),
               ),
             ],
@@ -335,92 +367,7 @@ class _Sea extends StatelessWidget {
                 ),
               );
             },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                BergenLoop(
-                  durationMs: 2200,
-                  builder: (context, p, child) {
-                    final q = p ?? 0;
-                    return Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..translate(0.0, kf(q, const [0, .5, 1], const [0, -2, 0], Curves.easeInOut) * s)
-                        ..rotateZ(kf(q, const [0, .5, 1], const [-1.5, 1.5, -1.5], Curves.easeInOut) * math.pi / 180),
-                      child: child,
-                    );
-                  },
-                  child: SizedBox(
-                    width: 64 * s,
-                    height: 44 * s,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          left: 14 * s,
-                          top: 2 * s,
-                          width: 36 * s,
-                          height: 36 * s,
-                          child: Image.asset(BergenAssets.aegilFront, fit: BoxFit.contain),
-                        ),
-                        Positioned.fill(
-                          child: BergenLoop(
-                            durationMs: 2200,
-                            builder: (context, p, _) => CustomPaint(painter: _BoatPainter(p ?? 0, s)),
-                          ),
-                        ),
-                        Positioned(
-                          left: -6 * s,
-                          top: 38 * s,
-                          width: 22 * s,
-                          height: 4 * s,
-                          child: BergenLoop(
-                            durationMs: 2200,
-                            builder: (context, p, _) {
-                              final q = Curves.easeOut.transform(p ?? 0);
-                              return Opacity(
-                                opacity: .5 * (1 - q),
-                                child: Transform(
-                                  alignment: Alignment.center,
-                                  transform: Matrix4.identity()
-                                    ..translate(-22 * q * s)
-                                    ..scale(.6 + .8 * q, 1.0),
-                                  child: DecoratedBox(
-                                    decoration: BoxDecoration(shape: BoxShape.circle, color: rgba(255, 255, 255, .55)),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                BergenLoop(
-                  durationMs: 2200,
-                  builder: (context, p, _) {
-                    final q = p ?? 0;
-                    return Opacity(
-                      opacity: kf(q, const [0, .5, 1], const [.55, .4, .55], Curves.easeInOut),
-                      child: Transform.scale(
-                        scaleX: kf(q, const [0, .5, 1], const [1, .92, 1], Curves.easeInOut),
-                        child: SizedBox(
-                          width: 44 * s,
-                          height: 6 * s,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(colors: [rgba(255, 255, 255, .45), rgba(255, 255, 255, 0)], stops: const [0, .72]),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+            child: const RoBaat(),
           ),
         ),
       ],
@@ -501,85 +448,4 @@ class _CoursePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CoursePainter old) => old.s != s;
-}
-
-/// The rowing boat (64×44): two oars (`aareA` −28° → 22°, `aareB` 28° →
-/// −22°, about (14,27) and (50,27)), the hull in three browns and the gold
-/// gunwale line.
-class _BoatPainter extends CustomPainter {
-  const _BoatPainter(this.p, this.s);
-
-  final double p;
-  final double s;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.scale(s);
-    final a = kf(p, const [0, .5, 1], const [-28, 22, -28], Curves.easeInOut) * math.pi / 180;
-    final b = kf(p, const [0, .5, 1], const [28, -22, 28], Curves.easeInOut) * math.pi / 180;
-    final oar = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.2
-      ..strokeCap = StrokeCap.round
-      ..color = const Color(0xFF8A5A2B);
-    final blade = Paint()..color = const Color(0xFFB07A3C);
-    void oarAt(double px, double py, double ex, double ey, double angle, double bladeRot) {
-      canvas.save();
-      canvas.translate(px, py);
-      canvas.rotate(angle);
-      canvas.translate(-px, -py);
-      canvas.drawLine(Offset(px, py), Offset(ex, ey), oar);
-      canvas.save();
-      canvas.translate(ex - .5, ey + .5);
-      canvas.rotate(bladeRot);
-      canvas.drawOval(Rect.fromCenter(center: Offset.zero, width: 6, height: 3.2), blade);
-      canvas.restore();
-      canvas.restore();
-    }
-
-    oarAt(14, 27, 3, 40, a, -50 * math.pi / 180);
-    oarAt(50, 27, 61, 40, b, 50 * math.pi / 180);
-    canvas.drawPath(
-      Path()
-        ..moveTo(6, 24)
-        ..cubicTo(10, 36, 54, 36, 58, 24)
-        ..lineTo(62, 22)
-        ..cubicTo(60, 30, 52, 40, 32, 40)
-        ..cubicTo(12, 40, 4, 30, 2, 22)
-        ..close(),
-      Paint()..color = const Color(0xFF6B4A2A),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(4, 22)
-        ..cubicTo(14, 33, 50, 33, 60, 22)
-        ..lineTo(62, 22)
-        ..cubicTo(56, 34, 46, 38, 32, 38)
-        ..cubicTo(18, 38, 8, 34, 2, 22)
-        ..close(),
-      Paint()..color = const Color(0xFF8C6338),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(6, 24)
-        ..cubicTo(14, 30, 50, 30, 58, 24)
-        ..lineTo(61, 22)
-        ..cubicTo(54, 30, 10, 30, 3, 22)
-        ..close(),
-      Paint()..color = const Color(0xFFA5763D),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(4, 23)
-        ..cubicTo(14, 29, 50, 29, 60, 23),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4
-        ..strokeCap = StrokeCap.round
-        ..color = const Color(0xFFF2C14E),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_BoatPainter old) => old.p != p || old.s != s;
 }

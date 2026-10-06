@@ -20,6 +20,7 @@ import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
+import '../kit/ro_baat.dart';
 import '../kit/svg_sti.dart';
 import 'butikk_copy.dart';
 import 'kategori_kort.dart'
@@ -121,6 +122,11 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
     }
     if (kDebugMode && HjemHarness.butikkLegg != null) {
       Future.delayed(const Duration(milliseconds: 1200), () async {
+        if (HjemHarness.kurvTom) {
+          for (final l in (await _kasse.cart()).lines) {
+            await _kasse.remove(l.cartId);
+          }
+        }
         for (final id in HjemHarness.butikkLegg!) {
           final item = store.allItems.where((i) => i.id == id).firstOrNull;
           if (item != null && mounted) await _plus(item);
@@ -2019,8 +2025,8 @@ class _CoursePainter extends CustomPainter {
   bool shouldRepaint(_CoursePainter old) => false;
 }
 
-/// Ægil in the rowing boat: `roVugg`, oars `aareA` / `aareB`, the wake
-/// (`roKjolvann`) and the sea shadow (`sjoSkygge`), all on 2.2s.
+/// Ægil in the rowing boat ([RoBaat]), with «Nå fikser jeg gratis frakt for
+/// deg» beside it once the free-delivery mark is reached.
 class _Boat extends StatelessWidget {
   const _Boat({required this.bubble});
 
@@ -2029,187 +2035,18 @@ class _Boat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return BergenLoop(
-      durationMs: 2200,
-      builder: (context, p, _) {
-        final q = p ?? 0;
-        final w = kf(q, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
-        final vugg = -1.5 + 3 * w;
-        final oar = w; // 0 → -28°/28°, 1 → 22°/-22°
-        final wake = Curves.easeOut.transform(q);
-        return SizedBox(
-          width: 64 * s,
-          height: 50 * s,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              if (bubble) Positioned(right: 72 * s, top: 2 * s, child: const _FraktBoble()),
-              Transform.translate(
-                offset: Offset(0, -2 * s * w),
-                child: Transform.rotate(
-                  angle: vugg * math.pi / 180,
-                  child: SizedBox(
-                    width: 64 * s,
-                    height: 44 * s,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          left: 14 * s,
-                          top: 2 * s,
-                          width: 36 * s,
-                          height: 36 * s,
-                          child: Image.asset(BergenAssets.aegilFront, fit: BoxFit.contain),
-                        ),
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: _BoatPainter(a: -28 + 50 * oar, b: 28 - 50 * oar),
-                          ),
-                        ),
-                        Positioned(
-                          left: -6 * s,
-                          top: 38 * s,
-                          child: Opacity(
-                            opacity: p == null ? 0 : .5 * (1 - wake),
-                            child: Transform.translate(
-                              offset: Offset(-22 * s * wake, 0),
-                              child: Transform.scale(
-                                scaleX: .6 + .8 * wake,
-                                child: Container(
-                                  width: 22 * s,
-                                  height: 4 * s,
-                                  decoration: BoxDecoration(
-                                    color: rgba(255, 255, 255, .55),
-                                    borderRadius: BorderRadius.all(Radius.elliptical(11 * s, 2 * s)),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 10 * s,
-                top: 44 * s,
-                child: Opacity(
-                  opacity: .55 - .15 * w,
-                  child: Transform.scale(
-                    scaleX: 1 - .08 * w,
-                    child: Container(
-                      width: 44 * s,
-                      height: 6 * s,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.elliptical(22 * s, 3 * s)),
-                        gradient: RadialGradient(
-                          colors: [rgba(255, 255, 255, .45), rgba(255, 255, 255, 0)],
-                          stops: const [0, .72],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+    return SizedBox(
+      width: 64 * s,
+      height: 50 * s,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (bubble) Positioned(right: 72 * s, top: 2 * s, child: const _FraktBoble()),
+          const RoBaat(),
+        ],
+      ),
     );
   }
-}
-
-class _BoatPainter extends CustomPainter {
-  _BoatPainter({required this.a, required this.b});
-
-  /// Oar angles in degrees.
-  final double a;
-  final double b;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final k = size.width / 64;
-    canvas.save();
-    canvas.scale(k);
-    void oar(double ox, double oy, double tx, double ty, double deg, double blade) {
-      canvas.save();
-      canvas.translate(ox, oy);
-      canvas.rotate(deg * math.pi / 180);
-      canvas.translate(-ox, -oy);
-      canvas.drawLine(
-        Offset(ox, oy),
-        Offset(tx, ty),
-        Paint()
-          ..color = const Color(0xFF8A5A2B)
-          ..strokeWidth = 2.2
-          ..strokeCap = StrokeCap.round,
-      );
-      canvas.save();
-      canvas.translate(tx, ty);
-      canvas.rotate(blade * math.pi / 180);
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset.zero, width: 6, height: 3.2),
-        Paint()..color = const Color(0xFFB07A3C),
-      );
-      canvas.restore();
-      canvas.restore();
-    }
-
-    oar(14, 27, 3, 40, a, -50);
-    oar(50, 27, 61, 40, b, 50);
-    canvas.drawPath(
-      Path()
-        ..moveTo(6, 24)
-        ..cubicTo(10, 36, 54, 36, 58, 24)
-        ..lineTo(62, 22)
-        ..cubicTo(60, 30, 52, 40, 32, 40)
-        ..cubicTo(12, 40, 4, 30, 2, 22)
-        ..close(),
-      Paint()..color = const Color(0xFF6B4A2A),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(4, 22)
-        ..cubicTo(14, 33, 50, 33, 60, 22)
-        ..lineTo(62, 22)
-        ..cubicTo(56, 34, 46, 38, 32, 38)
-        ..cubicTo(18, 38, 8, 34, 2, 22)
-        ..close(),
-      Paint()..color = const Color(0xFF8C6338),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(6, 24)
-        ..cubicTo(14, 30, 50, 30, 58, 24)
-        ..lineTo(61, 22)
-        ..cubicTo(54, 30, 10, 30, 3, 22)
-        ..close(),
-      Paint()..color = const Color(0xFFA5763D),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(4, 23)
-        ..cubicTo(14, 29, 50, 29, 60, 23),
-      Paint()
-        ..color = BergenColors.gold
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawLine(
-      const Offset(12, 32),
-      const Offset(52, 32),
-      Paint()
-        ..color = rgba(255, 255, 255, .25)
-        ..strokeWidth = 1,
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_BoatPainter old) => old.a != a || old.b != b;
 }
 
 /// "Nå fikser jeg gratis frakt for deg" — `onbBoble .45s`.
