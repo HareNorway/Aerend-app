@@ -124,6 +124,16 @@ abstract final class HjemHarness {
   static int? hurtigBestilt, hurtigTeller;
   static double? hurtigScroll;
 
+  /// Open Sporing for this order (`/bergen/sporing/{id}`); `sporingArk`
+  /// opens `sammendrag` / `detaljer`, `sporingSkifte` replays the stage
+  /// change, `sporingHjelp` opens the help sheet in that state (`main`,
+  /// `ring`, `melding`, `dor`, `mangler`, `kundeservice`), `sporingFersk`
+  /// shows the vervebillett slot. `levert` opens Levert for this order;
+  /// `levertArk` opens `tips` / `vurder`.
+  static int? sporing, levert;
+  static String? sporingArk, sporingHjelp, levertArk;
+  static bool sporingSkifte = false, sporingFersk = false;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -172,6 +182,9 @@ abstract final class HjemHarness {
         hurtigMod = hurtigSi = hurtigTekst = hurtigAct = null;
         hurtigBestilt = hurtigTeller = null;
         hurtigScroll = null;
+        sporing = levert = null;
+        sporingArk = sporingHjelp = levertArk = null;
+        sporingSkifte = sporingFersk = false;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -191,9 +204,7 @@ abstract final class HjemHarness {
       adrDor = m['adrDor'] as String?;
       adrVelg = m['adrVelg'] == true;
       sok = m['sok'] as String?;
-      sokNylig = (m['sokNylig'] as List?)
-          ?.map((e) => List<Object>.from(e as List))
-          .toList();
+      sokNylig = (m['sokNylig'] as List?)?.map((e) => List<Object>.from(e as List)).toList();
       sokPop = m['sokPop'] == true;
       sokFokus = m['sokFokus'] == true;
       kat = m['kat'] as int?;
@@ -226,6 +237,13 @@ abstract final class HjemHarness {
       hurtigBestilt = m['hurtigBestilt'] as int?;
       hurtigTeller = m['hurtigTeller'] as int?;
       hurtigScroll = (m['hurtigScroll'] as num?)?.toDouble();
+      sporing = m['sporing'] as int?;
+      levert = m['levert'] as int?;
+      sporingArk = m['sporingArk'] as String?;
+      sporingHjelp = m['sporingHjelp'] as String?;
+      levertArk = m['levertArk'] as String?;
+      sporingSkifte = m['sporingSkifte'] == true;
+      sporingFersk = m['sporingFersk'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

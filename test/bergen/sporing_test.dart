@@ -241,12 +241,7 @@ void main() {
             final top = tester
                 .widget<Text>(find.byKey(const Key('a1_sporing_topline')))
                 .data!;
-            expect(
-              top,
-              entry.key == 'cancelled'
-                  ? SporingCopy.a1_sporing_avbestilt
-                  : SporingCopy.a1_sporing_live(label),
-            );
+            expect(top, entry.key == 'cancelled' ? SporingCopy.a1_sporing_avbestilt : label);
             final cardKey = switch (stage) {
               0 => 'a1_sporing_kort_bekreftet',
               1 => 'a1_sporing_kort_tilberedes',
@@ -317,7 +312,7 @@ void main() {
         ),
       );
       expect(find.byKey(const Key('a1_sporing_live_marker')), findsOneWidget);
-      expect(find.byKey(const Key('a1_sporing_ikon_sykkel')), findsOneWidget);
+      expect(find.byKey(const Key('a1_sporing_kort_paavei')), findsOneWidget);
       expect(find.byKey(const Key('a1_sporing_bud_pill')), findsOneWidget);
       expect(
         find.byKey(const Key('a1_sporing_bud_verifisert')),
@@ -348,11 +343,7 @@ void main() {
         find.byKey(const Key('a1_sporing_bud_store_icon')),
         findsOneWidget,
       );
-      expect(find.byKey(const Key('a1_sporing_ikon_butikk')), findsOneWidget);
-      expect(
-        find.text(SporingCopy.a1_sporing_ingen_kart_partner),
-        findsOneWidget,
-      );
+      expect(find.text('Jonas'), findsNothing);
     },
   );
 
@@ -380,13 +371,8 @@ void main() {
         ),
         api: api,
       );
-      await tester.dragUntilVisible(
-        find.byKey(const Key('a1_sporing_valg')),
-        find.byType(ListView).first,
-        const Offset(0, -200),
-      );
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('a1_sporing_valg_vent')));
+      expect(find.byKey(const Key('a1_sporing_valg')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('a1_sporing_valg_vent')), warnIfMissed: false);
       await tester.pump();
       await tester.pump();
       expect(api.problems.first['kind'], 'wait');
@@ -395,7 +381,7 @@ void main() {
   );
 
   testWidgets(
-    'the delivery code card: PIN spaced, reason, no leave-at-door, visual only online',
+    'the delivery code card: the PIN, who takes it, the visual only online',
     (tester) async {
       _frame(tester);
       const code = OpsDeliveryCode(
@@ -408,8 +394,8 @@ void main() {
         _app(const Scaffold(body: LeveringskodeCard(code: code))),
       );
       expect(find.byKey(const Key('ops-delivery-code-card')), findsOneWidget);
-      expect(find.text('4 8 2 1'), findsOneWidget);
-      expect(find.textContaining('høy verdi'), findsOneWidget);
+      expect(find.text('4821'), findsOneWidget);
+      expect(find.text(SporingCopy.a1_sporing_vis_budet), findsOneWidget);
       expect(
         find.byKey(const Key('ops-delivery-code-no-leave-at-door')),
         findsOneWidget,
@@ -422,7 +408,7 @@ void main() {
         ),
       );
       expect(find.byKey(const Key('ops-delivery-code-qr')), findsNothing);
-      expect(find.text(SporingCopy.a1_sporing_kode_offline), findsOneWidget);
+      expect(find.textContaining(SporingCopy.a1_sporing_uten_nett_kode), findsOneWidget);
 
       await tester.pumpWidget(
         _app(
@@ -467,7 +453,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('Jonas'), findsOneWidget);
+      expect(find.textContaining('Jonas'), findsOneWidget);
       expect(
         find.byKey(const Key('a1_sporing_bud_verifisert')),
         findsOneWidget,
@@ -515,7 +501,7 @@ void main() {
         );
         await tester.pump();
         expect(find.byKey(const Key('a1_sporing_hjelp_main')), findsOneWidget);
-        expect(find.text('Jonas'), findsOneWidget, reason: 'the courier card');
+        expect(find.textContaining('Jonas'), findsWidgets, reason: 'the courier card');
 
         await tester.tap(find.byKey(const Key('a1_sporing_hjelp_melding')));
         await tester.pumpAndSettle();
@@ -594,8 +580,8 @@ void main() {
         );
         await tester.pump();
         expect(
-          find.text('Sandviken Bakeri'),
-          findsOneWidget,
+          find.textContaining('Sandviken Bakeri'),
+          findsWidgets,
           reason: 'the store card for a partner order',
         );
         await tester.tap(find.byKey(const Key('a1_sporing_hjelp_melding')));
@@ -621,7 +607,7 @@ void main() {
           find.byKey(const Key('a1_sporing_kundeservice')),
           findsOneWidget,
         );
-        expect(find.text(SporingCopy.a1_sporing_ks_ring), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_ring_nummer), findsOneWidget);
         expect(find.byKey(const Key('a1_sporing_ks_ordre')), findsNothing);
       },
     );
@@ -668,7 +654,10 @@ void main() {
         find.textContaining('koden ble bekreftet av Jonas'),
         findsOneWidget,
       );
-      await tester.tap(find.byKey(const Key('a1_sporing_stjerne_5')));
+      await tester.tap(find.byKey(const Key('a1_sporing_vurder')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('a1_sporing_alt_stemte')));
+      await tester.pump();
       await tester.pump();
       expect(rated, 5);
 
@@ -692,9 +681,9 @@ void main() {
       await tester.pump();
       await tester.pump();
       expect(
-        find.byKey(const Key('a1_sporing_poeng')),
-        findsNothing,
-        reason: 'hidden on 404',
+        find.text('—'),
+        findsOneWidget,
+        reason: 'no points known on 404',
       );
       expect(
         find.byKey(const Key('a1_sporing_takk')),

@@ -39,6 +39,7 @@ class BergenBottomNav extends StatefulWidget {
     this.showHint = true,
     this.searchController,
     this.searchOpen,
+    this.merkMeg = true,
   });
 
   final int index;
@@ -61,6 +62,10 @@ class BergenBottomNav extends StatefulWidget {
   /// Search mode, when the owner shows Søk while it is on. Submitting then
   /// stays in search mode (the design's Enter never closes Søk).
   final ValueNotifier<bool>? searchOpen;
+
+  /// False on a copy of the nav outside the shell (Levert), so the Meg
+  /// tab's global key is not mounted twice.
+  final bool merkMeg;
 
   /// The Meg tab, for effects that fly to it (onboarding `myntRegn`).
   static final GlobalKey megTabKey = GlobalKey(debugLabel: 'megTab');
@@ -295,7 +300,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
     final on = widget.index == i;
     final color = on ? Colors.white : const Color.fromRGBO(255, 255, 255, .78);
     Widget wrapMeg(Widget w) => meg
-        ? KeyedSubtree(key: BergenBottomNav.megTabKey, child: _MegBump(child: w))
+        ? (widget.merkMeg ? KeyedSubtree(key: BergenBottomNav.megTabKey, child: _MegBump(child: w)) : _MegBump(child: w))
         : w;
     return Expanded(
       child: wrapMeg(OnbPressable(

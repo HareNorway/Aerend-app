@@ -26,27 +26,14 @@ abstract final class SporingCopy {
   static String a1_sporing_levert_av(String s) => languages.ops_sporing_levert_av(s);
   static String a1_sporing_leveres_av(String s) => languages.ops_sporing_leveres_av(s);
   static String get a1_sporing_levert_for_tiden => languages.ops_sporing_levert_for_tiden;
-  static String a1_sporing_levert_min_for(int m) => _t(
-    m == 1 ? 'Levert · ett minutt før tiden' : 'Levert · $m minutter før tiden',
-    'Delivered · $m min early',
-  );
+  static String a1_sporing_levert_min_for(int m) => _t('Levert · ${minutterOrd(m)} før tiden', 'Delivered · ${minutterOrd(m)} early');
   static String get a1_sporing_avbestilt => languages.ops_sporing_avbestilt;
   static String a1_sporing_gave_venter(String navn) => languages.ops_sporing_gave_venter(navn);
 
   // ── stages ──────────────────────────────────────────────────────────────
   static List<String> stages(bool pickup) => pickup
-      ? [
-          _t('Bekreftet', 'Confirmed'),
-          _t('Tilberedes', 'Preparing'),
-          _t('Klar for henting', 'Ready for pickup'),
-          _t('Hentet', 'Picked up'),
-        ]
-      : [
-          _t('Bekreftet', 'Confirmed'),
-          _t('Tilberedes', 'Preparing'),
-          _t('På vei', 'On its way'),
-          _t('Levert', 'Delivered'),
-        ];
+      ? [_t('Bekreftet', 'Confirmed'), _t('Tilberedes', 'Preparing'), _t('Klar for henting', 'Ready for pickup'), _t('Hentet', 'Picked up')]
+      : [_t('Bekreftet', 'Confirmed'), _t('Tilberedes', 'Preparing'), _t('På vei', 'On its way'), _t('Levert', 'Delivered')];
   static String a1_sporing_steg(int n, int of) => languages.ops_sporing_steg(n, of);
   static String a1_sporing_pluss_poeng(int n) => languages.ops_sporing_pluss_poeng(n);
 
@@ -56,61 +43,49 @@ abstract final class SporingCopy {
   static String a1_sporing_neste(String navn) => languages.ops_sporing_neste(navn);
   static String get a1_sporing_oppdrag_fullfort => languages.ops_sporing_oppdrag_fullfort;
   static String get a1_sporing_finner_bud_hint => languages.ops_sporing_finner_bud_hint;
-  static List<String> lines(
-    bool pickup, {
-    bool partner = false,
-    bool bike = true,
-    String? store,
-  }) {
+
+  /// Ægil's lines per stage (Launch L19409–19427): first person, with the
+  /// store, the street, the minutes left, the pickup name and the window
+  /// when they are known.
+  static List<String> lines(bool pickup, {bool partner = false, bool bike = true, String? store, String? gate, int? minutter, String? navn, String? vindu, String? klokke}) {
     final s = store ?? _t('butikken', 'the shop');
+    final min = minutter == null ? '' : ' ${_minutter(minutter)} ${_t('til', 'to')} ${gate ?? _t('deg', 'you')}.';
     if (pickup) {
       return [
+        _t('Jeg rodde inn til Bryggen og leverte bestillingen. Kokken hos $s leser den nå.', 'I rowed in and delivered the order. The kitchen at $s is reading it now.'),
+        _t('Du kan gå ut døren nå — maten er snart klar.', 'You can head out now — the food is nearly ready.'),
         _t(
-          'Jeg rodde inn til Bryggen og leverte bestillingen. Kokken hos $s leser den nå.',
-          'I rowed in and delivered the order. The kitchen at $s is reading it now.',
+          'Maten er ferdig! Hent den i disken hos $s${gate == null ? '' : ', $gate'}${navn == null ? '' : ' — si «$navn»'}.',
+          'The food is ready! Pick it up at the counter at $s${gate == null ? '' : ', $gate'}${navn == null ? '' : ' — say «$navn»'}.',
         ),
-        _t(
-          'Du kan gå ut døren nå — maten er snart klar.',
-          'You can head out now — the food is nearly ready.',
-        ),
-        _t(
-          'Maten er ferdig! Hent den i disken hos $s.',
-          'The food is ready! Pick it up at the counter at $s.',
-        ),
-        _t('Hentet. Håper det smaker.', 'Picked up. Enjoy.'),
+        _t('Hentet${klokke == null ? '' : ' $klokke'}. Håper det smaker.', 'Picked up${klokke == null ? '' : ' $klokke'}. Enjoy.'),
       ];
     }
     if (partner) {
       return [
-        _t(
-          'Bestillingen er hos $s. Kokken leser den nå — de leverer selv i kveld.',
-          'The order is with $s. The kitchen is reading it — they deliver themselves tonight.',
-        ),
-        _t(
-          'Kokken har satt i gang. $s kjører den ut selv når den er klar.',
-          'The kitchen has started. $s drives it out when it is ready.',
-        ),
-        _t(
-          '$s er på vei med bestillingen.',
-          '$s is on its way with the order.',
-        ),
+        _t('Bestillingen er hos $s. Kokken leser den nå — de leverer selv i kveld.', 'The order is with $s. The kitchen is reading it — they deliver themselves tonight.'),
+        _t('Kokken har satt i gang. $s kjører den ut selv når den er klar.', 'The kitchen has started. $s drives it out when it is ready.'),
+        _t('$s er på vei med bestillingen.${vindu == null ? '' : ' De regner med $vindu.'}', '$s is on its way with the order.${vindu == null ? '' : ' They expect $vindu.'}'),
         _t('Levert av $s. Håper det smaker.', 'Delivered by $s. Enjoy.'),
       ];
     }
     return [
-      _t(
-        'Jeg rodde inn til Bryggen og leverte bestillingen. Kokken hos $s leser den nå.',
-        'I rowed in and delivered the order. The kitchen at $s is reading it now.',
-      ),
-      _t('Kokken har satt i gang.', 'The kitchen has started.'),
-      bike
-          ? _t('Budet sykler fra $s nå.', 'The courier is cycling from $s now.')
-          : _t(
-              'Budet kjører fra $s nå.',
-              'The courier is driving from $s now.',
-            ),
+      _t('Jeg rodde inn til Bryggen og leverte bestillingen. Kokken hos $s leser den nå.', 'I rowed in and delivered the order. The kitchen at $s is reading it now.'),
+      _t('Kokken har satt i gang — grillen står på og maten steker.', 'The kitchen has started — the grill is on and the food is sizzling.'),
+      bike ? _t('Jeg sykler fra $s nå.$min', 'I am cycling from $s now.$min') : _t('Jeg kjører fra $s nå.$min', 'I am driving from $s now.$min'),
       _t('Levert. Håper det smaker.', 'Delivered. Enjoy.'),
     ];
+  }
+
+  /// «fire minutter» — the small numbers in words, as the prototype says them.
+  static String minutterOrd(int n) => _minutter(n).toLowerCase().replaceFirst(RegExp(r'^\w'), _minutter(n)[0].toLowerCase());
+
+  /// «Fire minutter» — capitalised, for the start of a sentence.
+  static String _minutter(int n) {
+    const no = ['Null', 'Ett', 'To', 'Tre', 'Fire', 'Fem', 'Seks', 'Sju', 'Åtte', 'Ni', 'Ti', 'Elleve', 'Tolv'];
+    const en = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+    if (n >= 0 && n < no.length) return _t('${no[n]} ${n == 1 ? 'minutt' : 'minutter'}', '${en[n]} ${n == 1 ? 'minute' : 'minutes'}');
+    return _t('$n minutter', '$n minutes');
   }
 
   // ── stage cards ─────────────────────────────────────────────────────────
@@ -147,30 +122,15 @@ abstract final class SporingCopy {
   static String reasonCopy(String key) {
     switch (key) {
       case 'a1_sporing_kode_reason_value':
-        return _t(
-          'Denne leveringen har høy verdi, så vi ber om kode ved døren.',
-          'This delivery is high value, so we ask for a code at the door.',
-        );
+        return _t('Denne leveringen har høy verdi, så vi ber om kode ved døren.', 'This delivery is high value, so we ask for a code at the door.');
       case 'a1_sporing_kode_reason_age_restricted':
-        return _t(
-          'Varene har aldersgrense, så budet må sjekke kode ved levering.',
-          'The goods are age restricted, so the courier checks a code at delivery.',
-        );
+        return _t('Varene har aldersgrense, så budet må sjekke kode ved levering.', 'The goods are age restricted, so the courier checks a code at delivery.');
       case 'a1_sporing_kode_reason_customer_choice':
-        return _t(
-          'Du har valgt kode ved levering.',
-          'You chose a code at delivery.',
-        );
+        return _t('Du har valgt kode ved levering.', 'You chose a code at delivery.');
       case 'a1_sporing_kode_reason_business':
-        return _t(
-          'Levering til bedriftsadresse krever kode.',
-          'Delivery to a business address needs a code.',
-        );
+        return _t('Levering til bedriftsadresse krever kode.', 'Delivery to a business address needs a code.');
       default:
-        return _t(
-          'Vi ber om kode ved døren på denne leveringen.',
-          'We ask for a code at the door on this delivery.',
-        );
+        return _t('Vi ber om kode ved døren på denne leveringen.', 'We ask for a code at the door on this delivery.');
     }
   }
 
@@ -212,9 +172,7 @@ abstract final class SporingCopy {
   static String get a1_sporing_skriver => languages.ops_sporing_skriver;
   static String get a1_sporing_meld_hint => languages.ops_sporing_meld_hint;
   static String get a1_sporing_send => languages.ops_sporing_send;
-  static List<String> get a1_sporing_hurtig => _en
-      ? const ['Ring on the door', 'Leave it at the door', 'I am 2 min late']
-      : const ['Ring på', 'Sett den utenfor døra', 'Jeg er 2 min sen'];
+  static List<String> get a1_sporing_hurtig => _en ? const ['Ring on the door', 'Leave it at the door', 'I am 2 min late'] : const ['Ring på', 'Sett den utenfor døra', 'Jeg er 2 min sen'];
   static String a1_sporing_dor_tittel(String navn) => languages.ops_sporing_dor_tittel(navn);
   static String get a1_sporing_lev_adresse => languages.ops_sporing_lev_adresse;
   static String get a1_sporing_veibeskrivelse => languages.ops_sporing_veibeskrivelse;
@@ -225,10 +183,7 @@ abstract final class SporingCopy {
   static String get a1_sporing_hva_mangler => languages.ops_sporing_hva_mangler;
   static String get a1_sporing_mangler_line => languages.ops_sporing_mangler_line;
   static String get a1_sporing_mangler_refusjon => languages.ops_sporing_mangler_refusjon;
-  static String a1_sporing_meld_mangler(int n) => _t(
-    n == 0 ? 'Velg det som mangler' : 'Meld $n som mangler',
-    n == 0 ? 'Pick what is missing' : 'Report $n missing',
-  );
+  static String a1_sporing_meld_mangler(int n) => _t(n == 0 ? 'Velg det som mangler' : 'Meld $n som mangler', n == 0 ? 'Pick what is missing' : 'Report $n missing');
   static String get a1_sporing_ks_tittel => languages.ops_sporing_ks_tittel;
   static String get a1_sporing_ks_line => languages.ops_sporing_ks_line;
   static String get a1_sporing_ks_chat => languages.ops_sporing_ks_chat;
@@ -268,4 +223,128 @@ abstract final class SporingCopy {
   static String get a1_sporing_demo_kode_ok => languages.ops_sporing_demo_kode_ok;
   static String get a1_sporing_demo_pin_feil => languages.ops_sporing_demo_pin_feil;
   static String get a1_sporing_demo_offline => languages.ops_sporing_demo_offline;
+
+  // ── Launch (Step 8): the scene screen, the sheets and Levert ────────────
+  static String get a1_sporing_live_ord => 'LIVE';
+  static String get a1_sporing_tilbake_knapp => _t('Tilbake', 'Back');
+  static String get a1_sporing_hjelp_knapp => _t('Hjelp', 'Help');
+  static String a1_sporing_levert_av_label(String s) => _t('Levert av $s', 'Delivered by $s');
+  static String get a1_sporing_mottatt_stempel => 'MOTTATT';
+  static String get a1_sporing_klar_stempel => 'KLAR';
+  static String get a1_sporing_tilberedes_stempel => 'TILBEREDES';
+  static String a1_sporing_kl_stempel(String t) => _t('kl. $t', 'at $t');
+  static String get a1_sporing_koker => _t('Det koker greit her på kjøkkenet, men jeg er i rute!', 'It is busy in the kitchen, but I am on schedule!');
+  static String a1_sporing_i_disken_si(String navn) => _t('Den står i disken. Si «$navn» så får du den.', 'It is at the counter. Say «$navn» and it is yours.');
+  static String get a1_sporing_ankommer => _t('Ankommer om', 'Arriving in');
+  static String a1_sporing_km_igjen(String km) => _t('$km km igjen', '$km km left');
+  static String get a1_sporing_hjem_etikett => _t('hjem', 'home');
+  static String get a1_sporing_god_appetitt => _t('God appetitt!', 'Enjoy your meal!');
+  static String get a1_sporing_haaper_smaker => _t('Håper det smaker.', 'Hope it tastes good.');
+  static String get a1_sporing_levert_haaper => _t('Levert.\nHåper det smaker.', 'Delivered.\nHope it tastes good.');
+  static String get a1_sporing_spart => 'SPART TID';
+  static String a1_sporing_steg_av(int n, int of) => _t('Steg $n av $of', 'Step $n of $of');
+  static String get a1_sporing_folger => _t('· følger ærendet ditt', '· following your errand');
+  static String a1_sporing_neste_poeng(String navn, int poeng) => _t('Neste: $navn · +$poeng poeng', 'Next: $navn · +$poeng points');
+  static String a1_sporing_fullfort_poeng(int poeng) => _t('Oppdrag fullført · +$poeng poeng totalt', 'Errand complete · +$poeng points in all');
+  static String get a1_sporing_avslutt_bestillingen => _t('Avslutt bestillingen', 'Finish the order');
+  static String get a1_sporing_mens_du_venter_kort => _t('mens du venter', 'while you wait');
+  static String get a1_sporing_vis_veien_knapp => _t('Vis veien', 'Show the way');
+  static String a1_sporing_min_aa_gaa(String adr, int min) => _t('$adr · $min min å gå', '$adr · $min min walk');
+  static String get a1_sporing_chat_bud => _t('Chat med budet', 'Chat with the courier');
+  static String get a1_sporing_ring_butikken => _t('Ring butikken', 'Call the shop');
+  // The Bestillingsdetaljer sheet.
+  static String get a1_sporing_ordresammendrag => _t('Ordresammendrag', 'Order summary');
+  static String get a1_sporing_bestillingsdetaljer => _t('Bestillingsdetaljer', 'Order details');
+  static String a1_sporing_ordre_over(String kode, String modus) => _t('Ordre $kode · $modus', 'Order $kode · $modus');
+  static String get a1_sporing_levering_ord => _t('levering', 'delivery');
+  static String get a1_sporing_henting_ord => _t('henting', 'pickup');
+  static String get a1_sporing_leveres_til => _t('LEVERES TIL', 'DELIVERED TO');
+  static String get a1_sporing_hentes_hos_stor => _t('HENTES HOS', 'PICKED UP AT');
+  static String get a1_sporing_ring_paa => _t('Ring på', 'Ring the bell');
+  static String a1_sporing_ring_paa_hos(String navn) => _t('Ring på hos $navn', 'Ring the bell at $navn');
+  static String a1_sporing_du_henter(String navn) => _t('Du henter i disken · si «$navn»', 'You pick up at the counter · say «$navn»');
+  static String get a1_sporing_bestilling_stor => 'BESTILLING';
+  static String a1_sporing_varer(int n) => _t('$n ${n == 1 ? 'vare' : 'varer'}', '$n ${n == 1 ? 'item' : 'items'}');
+  static String get a1_sporing_se_alt => _t('Se alt', 'See all');
+  static String get a1_sporing_betalt_med_vipps => _t('BETALT MED VIPPS', 'PAID WITH VIPPS');
+  static String a1_sporing_betalt_kl(String t) => _t('Betalt $t', 'Paid $t');
+  static String get a1_sporing_kvittering => _t('Kvittering', 'Receipt');
+  static String get a1_sporing_klar_knapp => _t('Klar', 'Done');
+  static String get a1_sporing_ordrestatus => 'ORDRESTATUS';
+  static String get a1_sporing_din_bestilling => _t('Din bestilling', 'Your order');
+  static String get a1_sporing_totalsum => _t('Totalsum', 'Total');
+  static String get a1_sporing_betaling => _t('Betaling', 'Payment');
+  static String get a1_sporing_betalt_ord => _t('Betalt', 'Paid');
+  static String get a1_sporing_butikken_tittel => _t('Butikken', 'The shop');
+  static String get a1_sporing_ordrenummer => 'ORDRENUMMER';
+  static String get a1_sporing_aerend_id => 'ÆREND-ID';
+  static String get a1_sporing_tidsstempel => 'TIDSSTEMPEL';
+  static String get a1_sporing_kvittering_stor => 'KVITTERING';
+  static String get a1_sporing_meg_bestillinger => _t('Meg · Bestillinger', 'Me · Orders');
+  static String get a1_sporing_kontakt_kundeservice => _t('Kontakt kundeservice', 'Contact customer service');
+  static String a1_sporing_kvittering_sendt(String epost) => _t('Kvittering sendt til $epost', 'Receipt sent to $epost');
+  // Levert.
+  static String a1_sporing_min_for_tiden(String t, int m) => _t('$t · ${minutterOrd(m)} før tiden', '$t · ${minutterOrd(m)} early');
+  static String a1_sporing_balansen(String n) => _t('Balansen din: $n poeng', 'Your balance: $n points');
+  static String get a1_sporing_poeng_ord => _t('poeng', 'points');
+  static String get a1_sporing_takk_til_budet => _t('Takk til budet', 'Thank the courier');
+  static String a1_sporing_tips_linje(String navn) =>
+      _t('$navn får hele beløpet, med én gang. Frivillig og aldri forventet.', '$navn gets the whole amount, right away. Voluntary and never expected.');
+  static String a1_sporing_tips_til(String navn) => _t('100 % til $navn', '100 % to $navn');
+  static String a1_sporing_tips_sendt(int kr, String navn) => _t('Tips $kr kr sendt til $navn', 'Tip $kr kr sent to $navn');
+  static String get a1_sporing_ikke_naa => _t('Ikke nå', 'Not now');
+  static String get a1_sporing_hvordan_gikk_leveringen => _t('Hvordan gikk leveringen?', 'How did the delivery go?');
+  static String a1_sporing_ett_trykk(String butikk, String navn) => _t('Ett trykk. Går til $butikk og $navn, aldri til andre kunder.', 'One tap. Goes to $butikk and $navn, never to other customers.');
+  static String get a1_sporing_alt_stemte => _t('Alt stemte', 'Everything was right');
+  static String get a1_sporing_noe_var_galt => _t('Noe var galt', 'Something was wrong');
+  static String get a1_sporing_takk_sendt => _t('Takk · sendt', 'Thanks · sent');
+  static String get a1_sporing_ks_hei => _t('Hei, dette er Ærend i Bergen. Vi har mottatt saken. Hva kan vi hjelpe med?', 'Hi, this is Ærend in Bergen. We have received the case. How can we help?');
+  static String get a1_sporing_ks_ordre_for => _t('Ordre ', 'Order ');
+  static String get a1_sporing_ks_ordre_hale => _t(' er allerede lagt ved, så du slipper å forklare.', ' is already attached, so you need not explain.');
+  static String a1_sporing_lokalt(String butikk, int n) =>
+      _t('Du støttet en lokal butikk i Bergen — ditt $n. lokale ærend denne måneden.', 'You supported a local shop in Bergen — your $n. local errand this month.');
+  static String get a1_sporing_levert_poeng_toast => _t('Levert · poeng lagt til', 'Delivered · points added');
+  // Help sheet (Launch wording).
+  static String a1_sporing_er_budet(String navn) => _t('$navn er budet ditt', '$navn is your courier');
+  static String a1_sporing_leverer_selv(String s) => _t('$s leverer selv', '$s delivers itself');
+  static String get a1_sporing_ring_kort => _t('Ring', 'Call');
+  static String get a1_sporing_send_melding => _t('Send melding', 'Send a message');
+  static String get a1_sporing_feil_vare => _t('Feil vare', 'Wrong item');
+  static String get a1_sporing_fikk_noe_annet => _t('Fikk noe annet', 'Got something else');
+  static String get a1_sporing_kom_aldri => _t('Kom aldri', 'Never arrived');
+  static String get a1_sporing_staar_som_levert => _t('Står som levert', 'Marked as delivered');
+  static String get a1_sporing_snakk_med => _t('Snakk med Ærend i Bergen', 'Talk to Ærend in Bergen');
+  static String get a1_sporing_ks_aapent => _t('Kundeservice · åpent til 23:00', 'Customer service · open until 23:00');
+  static String get a1_sporing_ringer => _t('Ringer …', 'Calling …');
+  static String a1_sporing_samtale_med(String navn) => _t('Samtale med $navn', 'Call with $navn');
+  static String get a1_sporing_tilbake_til_hjelp => _t('Tilbake til hjelp', 'Back to help');
+  static String get a1_sporing_aktiv_naa => _t('Aktiv nå · svarer raskt', 'Active now · replies quickly');
+  static String a1_sporing_skriv_til(String navn) => _t('Skriv til $navn …', 'Write to $navn …');
+  static List<String> get a1_sporing_hurtig_launch =>
+      _en ? const ['I am outside', 'Ring the bell', 'How long?', 'Leave it at the door'] : const ['Jeg står utenfor', 'Ring på', 'Hvor lang tid?', 'Legg den ved døra'];
+  static String a1_sporing_dette_ser(String navn) => _t('Dette er det $navn ser nå.', 'This is what $navn sees now.');
+  static String a1_sporing_send_veibeskrivelsen(String navn) => _t('Send veibeskrivelsen til $navn', 'Send the directions to $navn');
+  static String get a1_sporing_hva_var_feil => _t('Hvilken vare var feil?', 'Which item was wrong?');
+  static String get a1_sporing_feil_line => _t('Trykk på det som ikke stemte. Vi ordner resten.', 'Tap what was wrong. We handle the rest.');
+  static String get a1_sporing_mangler_line_launch => _t('Trykk på det som ikke kom. Vi ordner resten.', 'Tap what did not arrive. We handle the rest.');
+  static String a1_sporing_svarer_innen(int min) =>
+      _t('Vi ser på det og svarer innen $min min. Du følger saken på bestillingen.', 'We look at it and answer within $min min. You follow the case on the order.');
+  static String a1_sporing_meld_fra_om(int n) =>
+      _t(n == 0 ? 'Velg det som mangler' : 'Meld fra om $n ${n == 1 ? 'vare' : 'varer'}', n == 0 ? 'Pick what is missing' : 'Report $n ${n == 1 ? 'item' : 'items'}');
+  static String get a1_sporing_aerend_i_bergen => _t('Ærend i Bergen', 'Ærend in Bergen');
+  static String get a1_sporing_aapent_til => _t('Åpent til 23:00 · svarer innen 2 min', 'Open until 23:00 · replies within 2 min');
+  static String get a1_sporing_chat_med_oss => _t('Chat med oss', 'Chat with us');
+  static String get a1_sporing_raskest => _t('Raskest · Kari og Ola er på vakt', 'Fastest · Kari and Ola are on duty');
+  static String get a1_sporing_ring_nummer => _t('Ring 55 00 12 34', 'Call 55 00 12 34');
+  static String get a1_sporing_vanlig_takst => _t('Vanlig takst · ca. 1 min ventetid', 'Standard rate · about 1 min wait');
+  static String get a1_sporing_vi_har_mottatt => _t('Vi har mottatt saken.', 'We have received the case.');
+  static String a1_sporing_fikk_beskjeden(String navn) => _t('$navn har fått beskjeden', '$navn got the message');
+  static String get a1_sporing_veibeskrivelse_sendt => _t('Veibeskrivelsen er sendt. Svar kommer vanligvis innen ett minutt.', 'The directions were sent. A reply usually comes within a minute.');
+  static String get a1_sporing_uten_nett_kode => _t('Uten nett vises bare PIN.', 'Without a connection only the PIN shows.');
+  static String a1_sporing_leverer_bare(String navn) => _t('$navn leverer bare til deg.', '$navn delivers only to you.');
+  static String a1_sporing_gir_bare_ut(String butikk) => _t('$butikk gir bare ut posen til deg.', '$butikk hands the bag only to you.');
+  static String get a1_sporing_vis_disken => _t('VIS DENNE I DISKEN', 'SHOW THIS AT THE COUNTER');
+  static String get a1_sporing_vis_sjaforen => _t('VIS DENNE TIL SJÅFØREN', 'SHOW THIS TO THE DRIVER');
+  static String get a1_sporing_vis_budet => _t('VIS DENNE TIL BUDET', 'SHOW THIS TO THE COURIER');
+  static String get a1_sporing_bankid_verifisert => _t('BankID-verifisert', 'BankID verified');
 }

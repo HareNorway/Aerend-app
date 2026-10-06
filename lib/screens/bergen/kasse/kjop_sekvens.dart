@@ -96,7 +96,8 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
       Navigator.of(context).maybePop();
       return;
     }
-    final side = BergenRoutes.generate(RouteSettings(name: navn)) as PageRoute;
+    // Fresh from the purchase: the panel's slot shows the vervebillett.
+    final side = BergenRoutes.generate(RouteSettings(name: navn, arguments: const {'fersk': '1'})) as PageRoute;
     final reduce = MediaQuery.disableAnimationsOf(context);
     final frame = _Ramme(t: 1, sum: _sum);
     Navigator.of(context).pushReplacement(

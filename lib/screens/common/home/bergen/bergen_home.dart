@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../../data/ops/tracking_models.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -203,15 +204,17 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         return;
       }
       final min = t!.remainingTime;
-      // UI-TEMP: home-track-order gives no stage, only the minutes left;
-      // the stage is estimated from them until Step 8 wires the tracking.
-      hjemLiveOrdre.value = (
-        orderId: id,
-        data: HjemLiveData(
-          stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1),
-          restSek: min * 60,
-        ),
-      );
+      // The stage, the time to the door and the mode come from
+      // `ops.customer.tracking`; until it answers, the minutes left from
+      // `home-track-order` carry the pill.
+      hjemLiveOrdre.value ??= (orderId: id, data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60));
+      OpsCustomerApi().tracking(id).then((json) {
+        if (!mounted) return;
+        final tr = OpsTracking.fromJson(json);
+        final end = tr.promisedEnd;
+        final rest = end == null ? min * 60 : end.difference(DateTime.now()).inSeconds;
+        hjemLiveOrdre.value = (orderId: id, data: HjemLiveData(stadie: tr.stage, restSek: rest < 0 ? 0 : rest, henting: tr.isPickup));
+      }).catchError((_) {});
     });
     _trackTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       _bloc.callHomeTrackOrderApi();
@@ -287,6 +290,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }
           if (HjemHarness.hurtig) {
             BergenRoutes.push<dynamic>(context, '/bergen/hurtig');
+          }
+          if (HjemHarness.sporing case final id?) {
+            BergenRoutes.push<dynamic>(context, '/bergen/sporing/$id', arguments: {if (HjemHarness.sporingFersk) 'fersk': '1'});
+          }
+          if (HjemHarness.levert case final id?) {
+            BergenRoutes.push<dynamic>(context, '/bergen/levert/$id', arguments: {if (HjemHarness.levertArk case final a?) 'ark': a});
           }
           if (HjemHarness.butikk case final id?) {
             BergenRoutes.push(

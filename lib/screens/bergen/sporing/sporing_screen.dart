@@ -1,45 +1,50 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../data/ops/tracking_models.dart';
+import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
-import '../../common/home/bergen/bergen_kit.dart';
+import '../../snurre/snurre_launcher_policy.dart';
+import '../../common/auth/launch/lf_css.dart';
+import '../../common/auth/launch/lf_motion.dart';
 import '../hjelp/demo_panel.dart';
-import '../kasse/bestilling_sheet.dart';
+import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
 import 'hjelp_sheet.dart';
 import 'leveringskode_card.dart';
 import 'levert_screen.dart';
+import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import 'sporing_panel.dart';
+import 'sporing_scene_disk.dart';
+import 'sporing_scene_hus.dart';
+import 'sporing_scene_kai.dart';
+import 'sporing_scene_kart.dart';
+import 'sporing_scene_kjokken.dart';
+import 'sporing_skifte.dart';
 
-/// `sporing` (≈L5287–5760 in `Ærend Kunde Bergen.dc.html`) at
-/// `/bergen/sporing/{id}`.
+/// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
 ///
-/// Data: `ops.customer.tracking` polled every ten seconds (the events channel
-/// when broadcasting is on is a later wiring — there is no socket client in
-/// the app). The top line "Live · {stadie}" (or "Finner bud"), the ETA and
-/// "om N min", the **Sporing · stadier** stepper with labels by `mode`, the
-/// **stadieskifte** overlay on every stage change ("Steg N av 4", "+X poeng"
-/// from `GET /api/points/me`, guarded), the stage cards (Bekreftet ·
-/// Tilberedes · På vei / Klar for henting · Levert), the **Ægil-veileder**
-/// line, **Avslutt** and the completion layer. The app never maps states: the
-/// stage, its label, who delivers, who to call and whether a courier is
-/// being found all come from the payload.
+/// The header (back, the LIVE pill with the stage, help), the ETA block with
+/// «om N min», one scene per stage (the quay, the kitchen, the counter or
+/// the map, the house), the courier pill, the bottom panel (Leveringskode /
+/// Ægil-veileder / vervebillett, the four stages, Sammendrag · Detaljer, the
+/// actions), the Bestillingsdetaljer sheet and the stage-change overlay.
+///
+/// Data: `ops.customer.tracking` polled every ten seconds; the order's lines,
+/// total and address from `ops.customer.orders`; the store's logo from the
+/// store record. The app never maps states — the stage, its label, who
+/// delivers and whether a courier is being found all come from the payload.
 class SporingScreen extends StatefulWidget {
-  const SporingScreen({
-    super.key,
-    this.orderId,
-    this.api,
-    this.preloaded,
-    this.poll = true,
-    this.showMap = true,
-  });
+  const SporingScreen({super.key, this.orderId, this.api, this.preloaded, this.poll = true, this.showMap = true, this.fersk = false});
 
   final int? orderId;
   final OpsCustomerApi? api;
@@ -49,7 +54,14 @@ class SporingScreen extends StatefulWidget {
   final bool poll;
   final bool showMap;
 
+  /// Right after a purchase: the vervebillett takes the panel's slot.
+  final bool fersk;
+
   static const Duration pollEvery = Duration(seconds: 10);
+
+  /// Points per stage for the Ægil-veileder chip.
+  // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+  static const List<int> stegPoeng = [8, 8, 8, 34];
 
   @override
   State<SporingScreen> createState() => _SporingScreenState();
@@ -66,10 +78,17 @@ class _SporingScreenState extends State<SporingScreen> {
   StreamSubscription<List<ConnectivityResult>>? _conn;
   int? _lastStage;
   bool _shift = false;
-  int _shiftPoints = 0;
-  int? _pointsBefore;
+  int _shiftSteg = 0;
   bool _waited = false;
-  GoogleMapController? _map;
+  bool _fersk = false;
+  bool _vervLukket = false;
+  String? _vervKode;
+  SpArk? _ark;
+  SpOrdre? _ordre;
+  String? _logo;
+  int? _poeng;
+  DateTime? _levertKl;
+  bool _harness = false;
 
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
 
@@ -78,13 +97,13 @@ class _SporingScreenState extends State<SporingScreen> {
     super.didChangeDependencies();
     if (_routeRead) return;
     _routeRead = true;
-    _id =
-        widget.orderId ??
-        int.tryParse(BergenRoutes.argsOf(context)['id'] ?? '') ??
-        0;
+    final args = BergenRoutes.argsOf(context);
+    _id = widget.orderId ?? int.tryParse(args['id'] ?? '') ?? 0;
+    _fersk = widget.fersk || args['fersk'] == '1';
     if (widget.preloaded != null) {
       _t = widget.preloaded;
       _lastStage = _t!.stage;
+      if (_t!.stage == 3) _etterLevert(_t!);
     } else {
       _refresh();
     }
@@ -95,26 +114,21 @@ class _SporingScreenState extends State<SporingScreen> {
         if (mounted && down != _offline) setState(() => _offline = down);
         if (!down) _refresh();
       });
+      _loadOrdre();
+      if (_fersk) _loadVerv();
     }
     _registerDemo();
-    _loadPoints();
+    _harnessStart();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _conn?.cancel();
-    _map?.dispose();
     super.dispose();
   }
 
-  Future<void> _loadPoints() async {
-    final me = await _api.pointsMe();
-    final available = (me?['points'] is Map)
-        ? (me!['points']['available'] as num?)
-        : null;
-    if (mounted && available != null) _pointsBefore ??= available.toInt();
-  }
+  // ── data ────────────────────────────────────────────────────────────────
 
   Future<void> _refresh() async {
     if (_forceOffline) return;
@@ -129,6 +143,7 @@ class _SporingScreenState extends State<SporingScreen> {
         _missing = false;
       });
       if (changed) _onStageChange(next);
+      if (_lastStage == null && next.stage == 3) _etterLevert(next);
       _lastStage = next.stage;
     } catch (_) {
       if (!mounted) return;
@@ -139,35 +154,60 @@ class _SporingScreenState extends State<SporingScreen> {
     }
   }
 
+  /// The order's lines, total and address, and the store's logo.
+  Future<void> _loadOrdre() async {
+    try {
+      final list = await _api.orders();
+      final row = list.cast<Map<String, dynamic>?>().firstWhere((o) => '${o?['order_id']}' == '$_id', orElse: () => null);
+      String? logo;
+      String? adresse;
+      final storeId = (row?['store_id'] as num?)?.toInt() ?? _t?.store?.id;
+      if (storeId != null && storeId > 0) {
+        final info = await OpsButikkApi().store(storeId);
+        logo = info?.logoUrl;
+        adresse = info?.address;
+      }
+      if (!mounted) return;
+      setState(() {
+        _logo = logo;
+        if (row != null) _ordre = SpOrdre.fraJson(row, butikkAdresse: adresse, logo: logo);
+      });
+    } catch (_) {
+      // The sheet shows what the tracking payload has.
+    }
+  }
+
+  Future<void> _loadVerv() async {
+    final json = await _api.referral();
+    final referral = json?['referral'];
+    if (!mounted || referral is! Map) return;
+    final code = '${referral['code'] ?? ''}';
+    if (code.isNotEmpty) setState(() => _vervKode = code);
+  }
+
+  /// Delivered: remember when, and fetch the order's points for SPART TID.
+  void _etterLevert(OpsTracking t) {
+    _levertKl ??= DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ?? t.deliveryCode?.verifiedAt ?? DateTime.now();
+    _api.pointsForOrder(_id).then((p) {
+      final n = spPoengForOrdre(p, _id);
+      if (mounted && n != null) setState(() => _poeng = n);
+    });
+  }
+
   Future<void> _onStageChange(OpsTracking next) async {
     HapticFeedback.mediumImpact();
-    var earned = 0;
-    final me = await _api.pointsMe();
-    final available = (me?['points'] is Map)
-        ? (me!['points']['available'] as num?)?.toInt()
-        : null;
-    if (available != null &&
-        _pointsBefore != null &&
-        available > _pointsBefore!) {
-      earned = available - _pointsBefore!;
-      _pointsBefore = available;
-    }
-    if (!mounted) return;
+    if (next.stage == 3) _etterLevert(next);
+    _visSkifte(next.stage);
+  }
+
+  void _visSkifte(int steg) {
     setState(() {
       _shift = true;
-      _shiftPoints = earned;
+      _shiftSteg = steg;
     });
-    Future<void>.delayed(
-      BergenTokens.motion(context, const Duration(milliseconds: 1750)),
-      () {
-        if (mounted) setState(() => _shift = false);
-      },
-    );
-    if (next.stage == 3 && next.isDelivered) {
-      Future<void>.delayed(const Duration(milliseconds: 1900), () {
-        if (mounted) _toLevert();
-      });
-    }
+    Future<void>.delayed(BergenTokens.motion(context, const Duration(milliseconds: SpSkifte.dur ~/ 1)), () {
+      if (mounted) setState(() => _shift = false);
+    });
   }
 
   void _toLevert() {
@@ -175,19 +215,29 @@ class _SporingScreenState extends State<SporingScreen> {
     if (t == null) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(
-        settings: RouteSettings(name: '/bergen/levert/$_id'),
-        builder: (_) => LevertScreen(orderId: _id, tracking: t, api: _api),
+        settings: RouteSettings(name: '$snurreLauncherHiddenRoutePrefix/bergen/levert/$_id'),
+        builder: (_) => LevertScreen(orderId: _id, tracking: t, api: _api, levertKl: _levertKl, poeng: _poeng),
       ),
     );
   }
 
   void _openHelp([HjelpState initial = HjelpState.main]) {
     final t = _t;
+    final reduce = MediaQuery.disableAnimationsOf(context);
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        settings: RouteSettings(name: '/bergen/sporing/$_id/hjelp'),
-        builder: (_) =>
-            HjelpScreen(orderId: _id, tracking: t, api: _api, initial: initial),
+      PageRouteBuilder<void>(
+        opaque: false,
+        settings: RouteSettings(name: '$snurreLauncherHiddenRoutePrefix/bergen/sporing/$_id/hjelp'),
+        transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
+        reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
+        pageBuilder: (_, __, ___) => HjelpScreen(orderId: _id, tracking: t, api: _api, initial: initial, items: _ordre?.linjer.map((l) => l.navn).toList() ?? const [], adresse: _ordre?.adresse),
+        transitionsBuilder: (context, a, _, child) {
+          final p = cssSkjerm.transform(a.value);
+          return Opacity(
+            opacity: (.6 + .4 * p).clamp(0.0, 1.0) * (a.status == AnimationStatus.reverse ? p : 1),
+            child: Transform.translate(offset: Offset(0, 26 * (1 - p)), child: child),
+          );
+        },
       ),
     );
   }
@@ -196,24 +246,63 @@ class _SporingScreenState extends State<SporingScreen> {
     final res = await _api.problem(_id, kind: 'wait');
     if (!mounted) return;
     setState(() => _waited = true);
-    showBergenToast(
-      context,
-      res == null ? BergenRoutes.kommerSnart : SporingCopy.a1_sporing_venter,
-    );
+    showBergenToast(context, res == null ? BergenRoutes.kommerSnart : SporingCopy.a1_sporing_venter);
   }
 
   Future<void> _cancel() async {
     final res = await _api.problem(_id, kind: 'cancel');
     if (!mounted) return;
     if (res == null || res['error'] != null) {
-      showBergenToast(
-        context,
-        '${res?['message'] ?? BergenRoutes.kommerSnart}',
-      );
+      showBergenToast(context, '${res?['message'] ?? BergenRoutes.kommerSnart}');
       return;
     }
     showBergenToast(context, SporingCopy.a1_sporing_refundert);
     await _refresh();
+  }
+
+  void _kvittering() {
+    final epost = prefGetString(prefEmail).trim();
+    showBergenToast(context, SporingCopy.a1_sporing_kvittering_sendt(epost.isEmpty ? '…' : epost));
+  }
+
+  void _fjordfiske() => BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
+
+  Future<void> _delBillett() async {
+    final code = _vervKode;
+    if (code == null) return;
+    await Share.share(code);
+  }
+
+  Future<void> _kopierBillett() async {
+    final code = _vervKode;
+    if (code == null) return;
+    await Clipboard.setData(ClipboardData(text: code));
+    if (mounted) showBergenToast(context, 'Kopiert · $code');
+  }
+
+  // ── harness (debug only) ────────────────────────────────────────────────
+
+  void _harnessStart() {
+    if (!kDebugMode || _harness || HjemHarness.sporing == null) return;
+    _harness = true;
+    if (HjemHarness.sporingFersk) _fersk = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      for (var i = 0; i < 40 && _t == null && mounted; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      if (!mounted) return;
+      if (HjemHarness.sporingArk case final a?) {
+        setState(() => _ark = a == 'detaljer' ? SpArk.detaljer : SpArk.sammendrag);
+      }
+      if (HjemHarness.sporingSkifte) {
+        // Two seconds after the screen settles, so a screenshot can catch it.
+        await Future<void>.delayed(const Duration(milliseconds: 2000));
+        if (mounted) _visSkifte(_t?.stage ?? 0);
+      }
+      if (HjemHarness.sporingHjelp case final h?) {
+        _openHelp(HjelpState.values.firstWhere((s) => s.name == h, orElse: () => HjelpState.main));
+      }
+    });
   }
 
   // ── demo panel (debug only) ────────────────────────────────────────────
@@ -223,51 +312,23 @@ class _SporingScreenState extends State<SporingScreen> {
     Future<void> step(String to) async {
       final res = await _api.transition(_id, to);
       if (!mounted) return;
-      showBergenToast(
-        context,
-        res == null
-            ? BergenRoutes.kommerSnart
-            : '${res['event']?['type'] ?? to}',
-      );
+      showBergenToast(context, res == null ? BergenRoutes.kommerSnart : '${res['event']?['type'] ?? to}');
       await _refresh();
     }
 
-    BergenDemoPanel.register(
-      DemoScenario(
-        id: 'sporing_ny',
-        label: SporingCopy.a1_sporing_demo_ny,
-        run: (_) => step('accepted'),
-      ),
-    );
+    BergenDemoPanel.register(DemoScenario(id: 'sporing_ny', label: SporingCopy.a1_sporing_demo_ny, run: (_) => step('accepted')));
     BergenDemoPanel.register(
       DemoScenario(
         id: 'sporing_neste',
         label: SporingCopy.a1_sporing_demo_neste,
         run: (_) async {
-          const next = {
-            'placed': 'accepted',
-            'accepted': 'seen',
-            'seen': 'ready',
-            'ready': 'picked_up',
-            'picked_up': 'arrived_customer',
-            'arrived_customer': 'delivered',
-          };
+          const next = {'placed': 'accepted', 'accepted': 'seen', 'seen': 'ready', 'ready': 'picked_up', 'picked_up': 'arrived_customer', 'arrived_customer': 'delivered'};
           final to = next[_t?.state ?? 'placed'];
           if (to != null) await step(to);
         },
       ),
     );
-    BergenDemoPanel.register(
-      DemoScenario(
-        id: 'sporing_usett',
-        label: SporingCopy.a1_sporing_demo_usett,
-        run: (_) async {
-          // Accepted and never seen: the ops:sweep on the local stack writes the
-          // escalation rung, after which the payload says unseen_by_store.
-          await step('accepted');
-        },
-      ),
-    );
+    BergenDemoPanel.register(DemoScenario(id: 'sporing_usett', label: SporingCopy.a1_sporing_demo_usett, run: (_) => step('accepted')));
     BergenDemoPanel.register(
       DemoScenario(
         id: 'sporing_kode_ok',
@@ -275,18 +336,8 @@ class _SporingScreenState extends State<SporingScreen> {
         run: (_) async {
           final pin = _t?.deliveryCode?.pin;
           if (pin == null) return;
-          final res = await _api.proofPin(
-            _id,
-            pin,
-            courierId: _t?.courier?.id ?? 0,
-          );
-          if (mounted)
-            showBergenToast(
-              context,
-              res?['ok'] == true
-                  ? SporingCopy.a1_sporing_kode_bekreftet
-                  : '${res?['message'] ?? ''}',
-            );
+          final res = await _api.proofPin(_id, pin, courierId: _t?.courier?.id ?? 0);
+          if (mounted) showBergenToast(context, res?['ok'] == true ? SporingCopy.a1_sporing_kode_bekreftet : '${res?['message'] ?? ''}');
           await _refresh();
         },
       ),
@@ -300,11 +351,7 @@ class _SporingScreenState extends State<SporingScreen> {
           final wrong = pin == '0000' ? '1111' : '0000';
           Map<String, dynamic>? res;
           for (var i = 0; i < 3; i++) {
-            res = await _api.proofPin(
-              _id,
-              wrong,
-              courierId: _t?.courier?.id ?? 0,
-            );
+            res = await _api.proofPin(_id, wrong, courierId: _t?.courier?.id ?? 0);
           }
           if (mounted) showBergenToast(context, '${res?['message'] ?? ''}');
           await _refresh();
@@ -326,31 +373,112 @@ class _SporingScreenState extends State<SporingScreen> {
     );
   }
 
+  // ── derived ─────────────────────────────────────────────────────────────
+
+  String _etaLabel(OpsTracking t) {
+    if (t.isCancelled) return SporingCopy.a1_sporing_avbestilt;
+    if (t.isPickup) {
+      return switch (t.stage) {
+        0 || 1 => SporingCopy.a1_sporing_hentes_hos(t.store?.name ?? ''),
+        2 => SporingCopy.a1_sporing_star_klar,
+        _ => SporingCopy.a1_sporing_hentet_takk,
+      };
+    }
+    if (t.stage >= 3) {
+      final delivered = _levertKl;
+      final end = t.promisedEnd;
+      if (t.isPartner) return SporingCopy.a1_sporing_levert_av(t.deliveredByLabel);
+      if (delivered != null && end != null && end.isAfter(delivered)) return SporingCopy.a1_sporing_levert_min_for(end.difference(delivered).inMinutes);
+      return SporingCopy.stages(false)[3];
+    }
+    if (t.isPartner && t.stage == 2) return SporingCopy.a1_sporing_butikken_paa_vei;
+    return SporingCopy.a1_sporing_kommer;
+  }
+
+  String _etaBig(OpsTracking t) {
+    if (t.isCancelled) return '—';
+    if (t.isPickup) {
+      final ready = t.predictedReadyAt ?? t.promisedEnd;
+      return switch (t.stage) {
+        0 || 1 => ready == null ? '' : SporingCopy.a1_sporing_klar_kl(spKlokke(ready)),
+        2 => SporingCopy.a1_sporing_klar_naa,
+        _ => spKlokke(_levertKl ?? DateTime.now()),
+      };
+    }
+    if (t.stage >= 3) return spKlokke(_levertKl ?? DateTime.now());
+    if (t.stage == 2 && !t.isPartner && t.promisedEnd != null) return spKlokke(t.promisedEnd!);
+    return t.hasWindow ? t.windowText : '…';
+  }
+
+  SpSceneInfo _info(OpsTracking t) {
+    final o = _ordre;
+    final now = DateTime.now();
+    final end = t.promisedEnd;
+    final start = t.promisedStart;
+    final minLeft = t.minutesLeft(now);
+    final windowSec = end != null && start != null ? math.max(60, end.difference(start).inSeconds) : 1800;
+    final levert = _levertKl;
+    final spart = levert != null && end != null && end.isAfter(levert) ? end.difference(levert).inSeconds : null;
+    return SpSceneInfo(
+      butikk: t.store?.name ?? o?.butikk ?? '',
+      logo: _logo ?? o?.logo,
+      linjer: o?.korteLinjer ?? const [],
+      total: o == null ? '' : spKr(o.total),
+      adresse: o?.adresse ?? '${t.raw['delivery_address'] ?? ''}',
+      kode: t.code ?? '',
+      klokke: o?.bestilt == null ? '' : spKlokke(o!.bestilt!),
+      kunde: _fornavn(),
+      sykkel: t.courier?.onBike ?? true,
+      partner: t.isPartner,
+      henting: t.isPickup,
+      minIgjen: minLeft,
+      pct: minLeft == null ? .62 : (1 - minLeft / 30).clamp(.1, .95),
+      slutt: end,
+      totalSek: windowSec,
+      spartSek: spart,
+      poeng: _poeng,
+    );
+  }
+
+  String _fornavn() {
+    final n = prefGetString(prefUserName).trim();
+    if (n.isEmpty) return SporingCopy.a1_sporing_Budet;
+    return n.split(' ').first;
+  }
+
+  List<CssBg> _himmel(OpsTracking t) {
+    final s = t.stage;
+    if (s >= 3)
+      return const [
+        CssLinear(180, [Color(0xFF2C3B45), Color(0xFF3A4B55), Color(0xFF23405C)], [0, .13, 1]),
+      ];
+    if (s == 2 && !t.isPickup)
+      return const [
+        CssLinear(180, [Color(0xFF7E93A3), Color(0xFF9FB2BD), Color(0xFFC3CBC6)], [0, .3, 1]),
+      ];
+    if (s == 0)
+      return const [
+        CssLinear(180, [Color(0xFF35434C), Color(0xFF495A62), Color(0xFF456E7C), Color(0xFF2F5462)], [0, .14, .4, 1]),
+      ];
+    return const [
+      CssLinear(180, [Color(0xFF7E93A3), Color(0xFF9FB2BD), Color(0xFF456E7C), Color(0xFF2F5462)], [0, .26, .4, 1]),
+    ];
+  }
+
   // ── build ──────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final s = context.bs;
-    final safeTop = MediaQuery.paddingOf(context).top;
     final t = _t;
     if (_missing && t == null) {
       return Scaffold(
         backgroundColor: BergenTokens.tealDeep,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          foregroundColor: Colors.white,
-        ),
+        appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, foregroundColor: Colors.white),
         body: Center(
           child: Text(
             SporingCopy.a1_sporing_ikke_funnet,
             key: const Key('a1_sporing_ikke_funnet'),
-            style: bText(
-              context,
-              13,
-              weight: FontWeight.w700,
-              color: Colors.white,
-            ),
+            style: inter(13, weight: FontWeight.w700),
           ),
         ),
       );
@@ -363,843 +491,320 @@ class _SporingScreenState extends State<SporingScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const CircularProgressIndicator(color: BergenTokens.mint),
-              SizedBox(height: 12 * s),
-              Text(
-                SporingCopy.a1_sporing_laster,
-                style: bText(
-                  context,
-                  12,
-                  weight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
+              const SizedBox(height: 12),
+              Text(SporingCopy.a1_sporing_laster, style: inter(12, weight: FontWeight.w700)),
             ],
           ),
         ),
       );
     }
-    final stages = SporingCopy.stages(t.isPickup);
-    final now = DateTime.now();
-    final minutes = t.minutesLeft(now);
+    return Scaffold(
+      backgroundColor: const Color(0xFF173E48),
+      resizeToAvoidBottomInset: false,
+      body: LfFrame(
+        child: LfOnce(
+          ms: 340,
+          builder: (context, tt, child) {
+            final p = cssSkjerm.transform(kfP(tt, 0, 340));
+            return Opacity(
+              opacity: kf(p, const [0, .55, 1], const [0, 1, 1]),
+              child: Transform(alignment: Alignment.center, transform: Matrix4.translationValues(0, 14 * (1 - p), 0)..scaleByDouble(.978 + .022 * p, .978 + .022 * p, 1, 1), child: child),
+            );
+          },
+          child: _skjerm(context, t),
+        ),
+      ),
+    );
+  }
+
+  Widget _skjerm(BuildContext context, OpsTracking t) {
+    final mq = MediaQuery.of(context);
+    // The prototype's frame has no status bar: its 12 px top margin is
+    // absorbed by the device's, and the scenes sit 12 px closer to the ETA
+    // block so the panel covers no more of them than in the frame.
+    final topp = math.max(0.0, mq.padding.top - 12);
+    final s0 = t.stage.clamp(0, 3);
+    // The map's arrival card must clear the panel; the house's title must
+    // clear the ETA block.
+    final sceneTopp = math.max(
+      0.0,
+      mq.padding.top -
+          (s0 == 3
+              ? 12
+              : (s0 == 2 && !t.isPickup)
+              ? 36
+              : 32),
+    );
+    final bunn = mq.padding.bottom;
+    final h = mq.size.height;
+    final s = t.stage.clamp(0, 3);
+    final hent = t.isPickup;
+    final navn = SporingCopy.stages(hent);
+    final info = _info(t);
     final lines = SporingCopy.lines(
-      t.isPickup,
+      hent,
       partner: t.isPartner,
       bike: t.courier?.onBike ?? true,
       store: t.store?.name,
+      gate: hent ? t.store?.address?.split(',').first.trim() : (info.gate.isEmpty ? null : info.gate),
+      minutter: t.minutesLeft(DateTime.now()),
+      navn: info.kunde,
+      vindu: t.hasWindow ? t.windowText : null,
+      klokke: _levertKl == null ? null : spKlokke(_levertKl!),
     );
+    final linje = t.isCancelled ? SporingCopy.a1_sporing_avbestilt : lines[s];
+    final minutes = t.minutesLeft(DateTime.now());
     final gift = '${t.raw['gift_to'] ?? ''}';
+    final budTop =
+        (s >= 3
+            ? 444.0
+            : s == 2
+            ? 176.0
+            : 150.0) +
+        sceneTopp;
+    final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
+    final slotVerv = _fersk && !_vervLukket && _vervKode != null;
+    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && (hent ? s == 2 : s == 3);
+    final stadieNavn = t.isCancelled
+        ? SporingCopy.a1_sporing_avbestilt
+        : t.findingCourier
+        ? SporingCopy.order_status_finding_courier
+        : t.stageLabel;
 
-    return Scaffold(
-      backgroundColor: BergenTokens.tealDeep,
-      body: Stack(
-        children: [
-          DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF2A6272),
-                  Color(0xFF1E4F5C),
-                  Color(0xFF0F1F2B),
-                ],
-                stops: [0, .4, 1],
-              ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(child: CssBox(bg: _himmel(t))),
+        // The scene.
+        Positioned(
+          left: 0,
+          top:
+              sceneTopp +
+              (s == 0
+                  ? 118
+                  : s == 1
+                  ? 130
+                  : s == 2
+                  ? 126
+                  : 110),
+          child: RepaintBoundary(
+            child: KeyedSubtree(
+              key: ValueKey('scene-$s-$hent'),
+              child: switch (s) {
+                0 => KeyedSubtree(
+                  key: const Key('a1_sporing_kort_bekreftet'),
+                  child: SpSceneKai(info: info),
+                ),
+                1 => KeyedSubtree(
+                  key: const Key('a1_sporing_kort_tilberedes'),
+                  child: SpSceneKjokken(info: info),
+                ),
+                2 when hent => KeyedSubtree(
+                  key: const Key('a1_sporing_kort_hentklar'),
+                  child: SpSceneDisk(info: info),
+                ),
+                2 => KeyedSubtree(
+                  key: const Key('a1_sporing_kort_paavei'),
+                  child: SpSceneKart(info: info, linje: linje),
+                ),
+                _ => KeyedSubtree(
+                  key: const Key('a1_sporing_kort_levert'),
+                  child: SpSceneHus(info: info),
+                ),
+              },
             ),
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(
-                16 * s,
-                safeTop + 10 * s,
-                16 * s,
-                40 * s,
+          ),
+        ),
+        // The header (top 12).
+        Positioned(
+          left: 16,
+          right: 16,
+          top: 12 + topp,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              SpGlassKey(
+                key: const Key('a1_sporing_tilbake'),
+                semantics: SporingCopy.a1_sporing_tilbake_knapp,
+                onTap: () => Navigator.of(context).maybePop(),
+                child: spIkon(kSpIkonTilbake, size: 16, width: 2.8),
               ),
-              children: [
-                // ── top line ──────────────────────────────────────────
-                Row(
-                  children: [
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => Navigator.of(context).maybePop(),
-                      child: Container(
-                        width: 40 * s,
-                        height: 40 * s,
-                        decoration: BoxDecoration(
-                          color: const Color(0x33000000),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0x40FFFFFF)),
-                        ),
-                        child: Icon(
-                          Icons.arrow_back_rounded,
-                          size: 20 * s,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10 * s),
-                    Container(
-                      width: 8 * s,
-                      height: 8 * s,
-                      decoration: BoxDecoration(
-                        color: t.findingCourier
-                            ? BergenTokens.lantern
-                            : BergenTokens.mint,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: 6 * s),
-                    Expanded(
-                      child: Text(
-                        t.isCancelled
-                            ? SporingCopy.a1_sporing_avbestilt
-                            : t.findingCourier
-                            ? SporingCopy.order_status_finding_courier
-                            : SporingCopy.a1_sporing_live(t.stageLabel),
-                        key: const Key('a1_sporing_topline'),
-                        style: bText(
-                          context,
-                          12.5,
-                          weight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    if (t.isPartner)
-                      Flexible(
-                        child: Text(
-                          SporingCopy.a1_sporing_leveres_av(t.deliveredByLabel),
-                          key: const Key('a1_sporing_leveres_av'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: bText(
-                            context,
-                            10.5,
-                            weight: FontWeight.w800,
-                            color: const Color(0xFF9FD3DE),
-                          ),
-                        ),
-                      ),
-                    SizedBox(width: 8 * s),
-                    GestureDetector(
-                      key: const Key('a1_sporing_hjelp_knapp'),
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _openHelp,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10 * s,
-                          vertical: 6 * s,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0x2EFFFFFF),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          SporingCopy.a1_sporing_hjelp,
-                          style: bText(
-                            context,
-                            11,
-                            weight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_offline)
-                  Padding(
-                    padding: EdgeInsets.only(top: 10 * s),
-                    child: const BergenOfflineBanner(
-                      key: Key('a1_sporing_offline'),
-                    ),
-                  ),
-                SizedBox(height: 14 * s),
-                // ── ETA ───────────────────────────────────────────────
-                Text(
-                  _etaLabel(t),
-                  key: const Key('a1_sporing_eta_label'),
-                  style: bText(
-                    context,
-                    11,
-                    weight: FontWeight.w800,
-                    color: const Color(0xFF9FD3DE),
-                  ),
-                ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        _etaBig(t),
-                        key: const Key('a1_sporing_eta'),
-                        style: bDisplay(
-                          context,
-                          t.stage == 3 ? 28 : 40,
-                          weight: FontWeight.w800,
-                          color: Colors.white,
-                        ).copyWith(letterSpacing: -1, height: 1),
-                      ),
-                    ),
-                    if (minutes != null && t.stage < 3 && !t.isPickup) ...[
-                      SizedBox(width: 10 * s),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 6 * s),
-                        child: Text(
-                          SporingCopy.a1_sporing_om_min(minutes),
-                          key: const Key('a1_sporing_om_min'),
-                          style: bText(
-                            context,
-                            13,
-                            weight: FontWeight.w800,
-                            color: BergenTokens.mint,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                if (gift.isNotEmpty && t.stage < 3)
-                  Text(
-                    SporingCopy.a1_sporing_gave_venter(gift),
-                    key: const Key('a1_sporing_gave'),
-                    style: bText(
-                      context,
-                      11.5,
-                      weight: FontWeight.w700,
-                      color: BergenTokens.lantern,
-                    ),
-                  ),
-                SizedBox(height: 14 * s),
-                // ── stepper ───────────────────────────────────────────
-                BergenStepper(
-                  key: const Key('a1_sporing_stepper'),
-                  steps: stages,
-                  current: t.stage,
-                  onDark: true,
-                ),
-                SizedBox(height: 14 * s),
-                // ── Ægil-veileder ─────────────────────────────────────
-                Container(
-                  key: const Key('a1_sporing_veileder'),
-                  padding: EdgeInsets.all(12 * s),
-                  decoration: BoxDecoration(
-                    color: const Color(0x1FFFFFFF),
-                    borderRadius: BorderRadius.circular(18 * s),
-                    border: Border.all(color: const Color(0x2EFFFFFF)),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        BergenAssets.aegilPopup,
-                        width: 40 * s,
-                        height: 40 * s,
-                      ),
-                      SizedBox(width: 10 * s),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  SporingCopy.a1_sporing_aegil,
-                                  style: bText(
-                                    context,
-                                    12,
-                                    weight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(width: 4 * s),
-                                Flexible(
-                                  child: Text(
-                                    SporingCopy.a1_sporing_aegil_folger,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: bText(
-                                      context,
-                                      11,
-                                      weight: FontWeight.w600,
-                                      color: const Color(0xFF9FD3DE),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              t.isCancelled
-                                  ? SporingCopy.a1_sporing_avbestilt
-                                  : lines[t.stage.clamp(0, 3)],
-                              style: bText(
-                                context,
-                                12.5,
-                                weight: FontWeight.w600,
-                                color: const Color(0xFFDCE9EC),
-                              ),
-                            ),
-                            Text(
-                              t.findingCourier
-                                  ? SporingCopy.a1_sporing_finner_bud_hint
-                                  : t.stage >= 3
-                                  ? SporingCopy.a1_sporing_oppdrag_fullfort
-                                  : SporingCopy.a1_sporing_neste(
-                                      stages[(t.stage + 1).clamp(0, 3)],
-                                    ),
-                              key: const Key('a1_sporing_neste_hint'),
-                              style: bText(
-                                context,
-                                10.5,
-                                weight: FontWeight.w800,
-                                color: BergenTokens.mint,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 14 * s),
-                // ── stage card ────────────────────────────────────────
-                _stageCard(context, t),
-                SizedBox(height: 14 * s),
-                // ── completion layer ──────────────────────────────────
-                if (t.stage >= 2 || t.deliveryCode != null)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: BudIdentitetPill(tracking: t),
-                  ),
-                if (t.deliveryCode != null && !t.isCancelled) ...[
-                  SizedBox(height: 10 * s),
-                  LeveringskodeCard(
-                    code: t.deliveryCode!,
-                    offline: _offline,
-                    onDark: true,
-                  ),
-                ],
-                if (t.unseenByStore &&
-                    !_waited &&
-                    !t.isCancelled &&
-                    t.stage == 0) ...[
-                  SizedBox(height: 10 * s),
-                  ValgSomVenterCard(
-                    storeName: t.store?.name ?? SporingCopy.a1_sporing_Butikken,
-                    onWait: _wait,
-                    onCancel: _cancel,
-                  ),
-                ],
-                SizedBox(height: 16 * s),
-                // ── Avslutt ───────────────────────────────────────────
-                Row(
-                  children: [
-                    BergenChip(
-                      key: const Key('a1_sporing_sammendrag'),
-                      label: SporingCopy.a1_sporing_sammendrag,
-                      onDark: true,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          settings: RouteSettings(
-                            name: '/bergen/bestilling/$_id',
-                          ),
-                          builder: (_) =>
-                              BestillingScreen(orderId: _id, api: _api),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8 * s),
-                    BergenChip(
-                      key: const Key('a1_sporing_detaljer'),
-                      label: SporingCopy.a1_sporing_detaljer,
-                      onDark: true,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          settings: RouteSettings(
-                            name: '/bergen/bestilling/$_id',
-                          ),
-                          builder: (_) =>
-                              BestillingScreen(orderId: _id, api: _api),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12 * s),
-                if (t.stage >= 3)
-                  BergenCta3d(
-                    key: const Key('a1_sporing_avslutt'),
-                    label: SporingCopy.a1_sporing_avslutt,
-                    onPressed: _toLevert,
-                  )
-                else
-                  BergenCard(
-                    key: const Key('a1_sporing_fjordfiske'),
-                    onDark: true,
-                    onTap: () =>
-                        BergenRoutes.push(context, '/bergen/fjordfiske'),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 14 * s,
-                      vertical: 12 * s,
+              _LivePill(navn: stadieNavn),
+              SpGlassKey(
+                key: const Key('a1_sporing_hjelp_knapp'),
+                semantics: SporingCopy.a1_sporing_hjelp_knapp,
+                onTap: _openHelp,
+                child: spIkon(kSpIkonHjelp, size: 18, width: 2.4, extra: '<circle cx="12" cy="12" r="9"/>'),
+              ),
+            ],
+          ),
+        ),
+        if (t.isPartner) Positioned(left: 0, right: 0, top: 0, child: SizedBox(key: const Key('a1_sporing_leveres_av'), width: 0, height: 0)),
+        // The ETA block (top 58) and «om N min».
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 58 + topp,
+          child: Column(
+            children: [
+              _EtaBlokk(label: _etaLabel(t), tid: _etaBig(t), stor: s == 3 ? 28 : 40),
+              if (minutes != null && s < 3 && !hent && !t.isCancelled) ...[
+                const SizedBox(height: 7),
+                SpEtaPopp(
+                  key: ValueKey('min-$minutes'),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(11, 4, 11, 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFFFF), Color(0xFFEFF3F4)]),
+                      boxShadow: [
+                        BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 1),
+                        const BoxShadow(color: Color(0xFFCFDADD), offset: Offset(0, 2)),
+                        BoxShadow(color: rgba(10, 40, 50, .6), offset: const Offset(0, 4), blurRadius: 8, spreadRadius: -4),
+                      ],
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.phishing_rounded,
-                          color: BergenTokens.lantern,
-                          size: 20 * s,
-                        ),
-                        SizedBox(width: 10 * s),
                         Text(
-                          SporingCopy.a1_sporing_fjordfiske,
-                          style: bText(
-                            context,
-                            13,
-                            weight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          SporingCopy.a1_sporing_om_min(minutes),
+                          key: const Key('a1_sporing_om_min'),
+                          style: inter(11, weight: FontWeight.w800, color: const Color(0xFF1B4A57)),
                         ),
-                        SizedBox(width: 6 * s),
-                        Flexible(
-                          child: Text(
-                            SporingCopy.a1_sporing_mens_du_venter,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: bText(
-                              context,
-                              11.5,
-                              weight: FontWeight.w600,
-                              color: const Color(0xFF9FD3DE),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        Icon(
-                          Icons.chevron_right_rounded,
-                          color: const Color(0x8CFFFFFF),
-                          size: 20 * s,
-                        ),
+                        const SizedBox(width: 5),
+                        const SpPuls(size: 5, color: Color(0xFF3F8F5F), dur: 2400),
                       ],
                     ),
                   ),
-              ],
-            ),
-          ),
-          // ── stadieskifte overlay ──────────────────────────────────────
-          if (_shift)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Container(
-                  key: const Key('a1_sporing_stadieskifte'),
-                  color: const Color(0xB30F1F2B),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        SporingCopy.a1_sporing_steg(t.stage + 1, 4),
-                        style: bText(
-                          context,
-                          12,
-                          weight: FontWeight.w800,
-                          color: const Color(0xFF9FD3DE),
-                        ),
-                      ),
-                      Text(
-                        t.stageLabel,
-                        style: bDisplay(
-                          context,
-                          34,
-                          weight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                      if (_shiftPoints > 0)
-                        Text(
-                          SporingCopy.a1_sporing_pluss_poeng(_shiftPoints),
-                          key: const Key('a1_sporing_skifte_poeng'),
-                          style: bText(
-                            context,
-                            14,
-                            weight: FontWeight.w800,
-                            color: BergenTokens.mint,
-                          ),
-                        ),
-                    ],
-                  ),
                 ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _etaLabel(OpsTracking t) {
-    if (t.isCancelled) return SporingCopy.a1_sporing_avbestilt;
-    if (t.isPickup) {
-      return switch (t.stage) {
-        0 || 1 => SporingCopy.a1_sporing_hentes_hos(t.store?.name ?? ''),
-        2 => SporingCopy.a1_sporing_star_klar,
-        _ => SporingCopy.a1_sporing_hentet_takk,
-      };
-    }
-    if (t.stage >= 3) {
-      final delivered = DateTime.tryParse(
-        '${t.raw['delivered_at'] ?? ''}',
-      )?.toLocal();
-      final end = t.promisedEnd;
-      if (t.isPartner)
-        return SporingCopy.a1_sporing_levert_av(t.deliveredByLabel);
-      if (delivered != null && end != null && end.isAfter(delivered))
-        return SporingCopy.a1_sporing_levert_min_for(
-          end.difference(delivered).inMinutes,
-        );
-      return stagesLabelDelivered;
-    }
-    if (t.isPartner && t.stage == 2)
-      return SporingCopy.a1_sporing_butikken_paa_vei;
-    return SporingCopy.a1_sporing_kommer;
-  }
-
-  String get stagesLabelDelivered => SporingCopy.stages(false)[3];
-
-  String _etaBig(OpsTracking t) {
-    if (t.isCancelled) return '—';
-    if (t.isPickup) {
-      final ready = t.predictedReadyAt ?? t.promisedEnd;
-      return switch (t.stage) {
-        0 || 1 =>
-          ready == null
-              ? ''
-              : SporingCopy.a1_sporing_klar_kl(OpsTracking.hhmm(ready)),
-        2 => SporingCopy.a1_sporing_klar_naa,
-        _ => OpsTracking.hhmm(
-          DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ??
-              DateTime.now(),
+              ],
+            ],
+          ),
         ),
-      };
-    }
-    if (t.stage >= 3)
-      return OpsTracking.hhmm(
-        DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ??
-            DateTime.now(),
-      );
-    if (t.stage == 2 && t.promisedEnd != null)
-      return OpsTracking.hhmm(t.promisedEnd!);
-    return t.windowText;
-  }
-
-  Widget _stageCard(BuildContext context, OpsTracking t) {
-    final s = context.bs;
-    switch (t.stage) {
-      case 0:
-        return BergenCard(
-          key: const Key('a1_sporing_kort_bekreftet'),
-          onDark: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                SporingCopy.a1_sporing_mottatt,
-                style: bText(
-                  context,
-                  10,
-                  weight: FontWeight.w800,
-                  color: BergenTokens.mint,
-                ),
-              ),
-              Text(
-                t.store?.name ?? '',
-                style: bDisplay(
-                  context,
-                  16,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              if (t.code != null)
-                Text(
-                  '${t.code}',
-                  style: bText(
-                    context,
-                    11.5,
-                    weight: FontWeight.w700,
-                    color: const Color(0xFF9FD3DE),
-                  ),
-                ),
-              if (t.raw['delivery_address'] != null)
-                Text(
-                  '${t.raw['delivery_address']}',
-                  style: bText(
-                    context,
-                    11.5,
-                    weight: FontWeight.w600,
-                    color: const Color(0xFFDCE9EC),
-                  ),
-                ),
-            ],
+        if (_offline)
+          Positioned(
+            left: 16,
+            right: 16,
+            top: 62 + topp,
+            child: const Center(child: BergenOfflineBanner(key: Key('a1_sporing_offline'))),
           ),
-        );
-      case 1:
-        final ready = t.predictedReadyAt;
-        final left = ready == null
-            ? null
-            : ready.difference(DateTime.now()).inMinutes;
-        return BergenCard(
-          key: const Key('a1_sporing_kort_tilberedes'),
-          onDark: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${t.code ?? ''}${ready != null ? ' · kl. ${OpsTracking.hhmm(ready)}' : ''}',
-                style: bText(
-                  context,
-                  11.5,
-                  weight: FontWeight.w700,
-                  color: const Color(0xFF9FD3DE),
-                ),
-              ),
-              Text(
-                SporingCopy.a1_sporing_tilberedes_kicker,
-                style: bText(
-                  context,
-                  10,
-                  weight: FontWeight.w800,
-                  color: BergenTokens.orangeLight,
-                ),
-              ),
-              if (left != null && left >= 0)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.local_fire_department_rounded,
-                      size: 16 * s,
-                      color: BergenTokens.orange,
-                    ),
-                    SizedBox(width: 6 * s),
-                    Text(
-                      '${SporingCopy.a1_sporing_paa_komfyren} · ${SporingCopy.a1_sporing_min_igjen(left)}',
-                      key: const Key('a1_sporing_komfyren'),
-                      style: bText(
-                        context,
-                        12.5,
-                        weight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-        );
-      case 2:
-        if (t.isPickup) {
-          final who =
-              '${t.raw['customer_first_name'] ?? prefGetString(prefUserName).split(' ').first}';
-          return BergenCard(
-            key: const Key('a1_sporing_kort_hentklar'),
-            onDark: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  SporingCopy.a1_sporing_klar_kicker,
-                  style: bText(
-                    context,
-                    10,
-                    weight: FontWeight.w800,
-                    color: BergenTokens.mint,
-                  ),
-                ),
-                Text(
-                  SporingCopy.a1_sporing_disken(who),
-                  style: bDisplay(
-                    context,
-                    15,
-                    weight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-                if (t.store?.address != null)
-                  Text(
-                    t.store!.address!,
-                    style: bText(
-                      context,
-                      11.5,
-                      weight: FontWeight.w600,
-                      color: const Color(0xFFDCE9EC),
-                    ),
-                  ),
-                SizedBox(height: 10 * s),
-                BergenCta3d(
-                  key: const Key('a1_sporing_vis_veien'),
-                  label: SporingCopy.a1_sporing_vis_veien,
-                  icon: Icons.directions_walk_rounded,
-                  expand: false,
-                  onPressed: () => _showMapSheet(t),
-                ),
-              ],
-            ),
-          );
-        }
-        return _mapCard(t);
-      default:
-        return BergenCard(
-          key: const Key('a1_sporing_kort_levert'),
-          onDark: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                SporingCopy.stages(t.isPickup)[3],
-                style: bDisplay(
-                  context,
-                  18,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              Text(
-                SporingCopy.a1_sporing_haaper,
-                style: bText(
-                  context,
-                  12.5,
-                  weight: FontWeight.w600,
-                  color: const Color(0xFFDCE9EC),
-                ),
-              ),
-            ],
-          ),
-        );
-    }
-  }
-
-  /// På vei: the route (store → address), a live marker only when the payload
-  /// has a position, bike or car from the courier; partner orders show the
-  /// route only. The platform map is skipped in tests.
-  Widget _mapCard(OpsTracking t) {
-    final s = context.bs;
-    final store = t.store;
-    final lat = double.tryParse('${t.raw['lat'] ?? ''}');
-    final lng = double.tryParse('${t.raw['lng'] ?? ''}');
-    final pos = t.livePosition;
-    return ClipRRect(
-      key: const Key('a1_sporing_kort_paavei'),
-      borderRadius: BorderRadius.circular(22 * s),
-      child: SizedBox(
-        height: 220 * s,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (widget.showMap && store?.lat != null && store?.lng != null)
-              GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                    pos?.lat ?? store!.lat!,
-                    pos?.lng ?? store!.lng!,
-                  ),
-                  zoom: 14,
-                ),
-                zoomControlsEnabled: false,
-                myLocationButtonEnabled: false,
-                onMapCreated: (c) => _map = c,
-                polylines: {
-                  if (lat != null && lng != null)
-                    Polyline(
-                      polylineId: const PolylineId('rute'),
-                      color: BergenTokens.orange,
-                      width: 4,
-                      points: [
-                        LatLng(store!.lat!, store.lng!),
-                        LatLng(lat, lng),
+        if (gift.isNotEmpty && s < 3)
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 300 + topp,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 30),
+                child: Transform.rotate(
+                  angle: rad(-3),
+                  child: Container(
+                    key: const Key('a1_sporing_gave'),
+                    padding: const EdgeInsets.fromLTRB(9, 4, 9, 4),
+                    decoration: BoxDecoration(
+                      color: rgba(255, 255, 255, .9),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        const BoxShadow(color: Colors.white, spreadRadius: 1.5),
+                        BoxShadow(color: rgba(15, 31, 43, .5), offset: const Offset(0, 6), blurRadius: 12, spreadRadius: -6),
                       ],
                     ),
-                },
-                markers: {
-                  Marker(
-                    markerId: const MarkerId('butikk'),
-                    position: LatLng(store!.lat!, store.lng!),
-                    infoWindow: InfoWindow(title: store.name),
+                    child: Text(
+                      SporingCopy.a1_sporing_gave_venter(gift),
+                      style: inter(10.5, weight: FontWeight.w800, color: kSpInk),
+                    ),
                   ),
-                  if (lat != null && lng != null)
-                    Marker(
-                      markerId: const MarkerId('hjem'),
-                      position: LatLng(lat, lng),
-                    ),
-                  if (pos != null && !t.isPartner)
-                    Marker(
-                      markerId: const MarkerId('bud'),
-                      position: LatLng(pos.lat, pos.lng),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueOrange,
-                      ),
-                    ),
-                },
-              )
-            else
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF12333D), Color(0xFF0B2634)],
-                  ),
-                ),
-              ),
-            Positioned(
-              left: 12 * s,
-              top: 12 * s,
-              child: Container(
-                key: Key(
-                  pos != null && !t.isPartner
-                      ? 'a1_sporing_live_marker'
-                      : 'a1_sporing_ingen_marker',
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10 * s,
-                  vertical: 6 * s,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xCC0F1F2B),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      t.isPartner
-                          ? Icons.storefront_rounded
-                          : ((t.courier?.onBike ?? true)
-                                ? Icons.pedal_bike_rounded
-                                : Icons.directions_car_rounded),
-                      key: Key(
-                        t.isPartner
-                            ? 'a1_sporing_ikon_butikk'
-                            : ((t.courier?.onBike ?? true)
-                                  ? 'a1_sporing_ikon_sykkel'
-                                  : 'a1_sporing_ikon_bil'),
-                      ),
-                      size: 14 * s,
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 6 * s),
-                    Text(
-                      t.isPartner
-                          ? SporingCopy.a1_sporing_ingen_kart_partner
-                          : pos != null
-                          ? '${t.courier?.firstName ?? SporingCopy.a1_sporing_Budet} · ${t.minutesLeft(DateTime.now()) ?? 0} min'
-                          : SporingCopy.a1_sporing_kart_kommer,
-                      style: bText(
-                        context,
-                        10.5,
-                        weight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
-          ],
+          ),
+        // The courier pill (stage 3: ten px above the panel).
+        if (visBud && s < 3)
+          Positioned(
+            left: 0,
+            right: 0,
+            top: budTop,
+            child: IgnorePointer(
+              child: Align(
+                alignment: s == 2 ? Alignment.centerLeft : Alignment.center,
+                child: Padding(
+                  padding: EdgeInsets.only(left: s == 2 ? 26 : 0),
+                  child: BudIdentitetPill(tracking: t),
+                ),
+              ),
+            ),
+          ),
+        // «Kart kommer» marker for the tests' contract (the map scene draws
+        // the courier itself).
+        if (s == 2 && !hent) Positioned(left: 0, top: 0, child: SizedBox(key: Key(t.livePosition != null && !t.isPartner ? 'a1_sporing_live_marker' : 'a1_sporing_ingen_marker'), width: 0, height: 0)),
+        // The bottom panel.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (visBud && s >= 3) ...[IgnorePointer(child: BudIdentitetPill(tracking: t)), const SizedBox(height: 10)],
+              SpPanel(
+                tracking: t,
+                linje: linje,
+                offline: _offline,
+                slotKode: slotKode,
+                slotVerv: slotVerv,
+                vervKode: _vervKode ?? '',
+                bunn: math.max(bunn - 24, 0),
+                poengNeste: SporingScreen.stegPoeng,
+                onSammendrag: () => setState(() => _ark = SpArk.sammendrag),
+                onDetaljer: () => setState(() => _ark = SpArk.detaljer),
+                onAvslutt: _toLevert,
+                onFjordfiske: _fjordfiske,
+                onVisVeien: () => _showMapSheet(t),
+                onChat: () => _openHelp(HjelpState.melding),
+                onRing: _openHelp,
+                onLukkVerv: () => setState(() => _vervLukket = true),
+                onDelBillett: _delBillett,
+                onKopierBillett: _kopierBillett,
+              ),
+            ],
+          ),
         ),
-      ),
+        // Valg som venter.
+        if (t.unseenByStore && !_waited && !t.isCancelled)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 198 + math.max(bunn - 24, 0),
+            child: ValgSomVenterCard(storeName: t.store?.name ?? '', onWait: _wait, onCancel: _cancel),
+          ),
+        // Bestillingsdetaljer.
+        if (_ark case final ark?)
+          Positioned.fill(
+            child: SpDetaljerArk(
+              ark: ark,
+              tracking: t,
+              ordre: _ordre,
+              height: h,
+              onLukk: () => setState(() => _ark = null),
+              onDetaljer: () => setState(() => _ark = SpArk.detaljer),
+              onKvittering: _kvittering,
+              onKundeservice: () {
+                setState(() => _ark = null);
+                _openHelp(HjelpState.kundeservice);
+              },
+              onRingButikk: () {
+                setState(() => _ark = null);
+                _openHelp();
+              },
+            ),
+          ),
+        // The stage change.
+        if (_shift)
+          Positioned.fill(
+            child: SpSkifte(key: ValueKey('skifte-$_shiftSteg'), steg: _shiftSteg, navn: navn[_shiftSteg.clamp(0, 3)], linje: lines[_shiftSteg.clamp(0, 3)]),
+          ),
+      ],
     );
   }
 
@@ -1212,18 +817,12 @@ class _SporingScreenState extends State<SporingScreen> {
         height: 320,
         child: widget.showMap && store?.lat != null && store?.lng != null
             ? GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(store!.lat!, store.lng!),
-                  zoom: 15,
-                ),
+                initialCameraPosition: CameraPosition(target: LatLng(store!.lat!, store.lng!), zoom: 15),
                 markers: {
                   Marker(
                     markerId: const MarkerId('butikk'),
                     position: LatLng(store.lat!, store.lng!),
-                    infoWindow: InfoWindow(
-                      title: store.name,
-                      snippet: store.address,
-                    ),
+                    infoWindow: InfoWindow(title: store.name, snippet: store.address),
                   ),
                 },
               )
@@ -1231,15 +830,159 @@ class _SporingScreenState extends State<SporingScreen> {
                 child: Text(
                   '${store?.name ?? ''}\n${store?.address ?? ''}',
                   textAlign: TextAlign.center,
-                  style: bText(
-                    ctx,
-                    13,
-                    weight: FontWeight.w700,
-                    color: BergenTokens.ink,
-                  ),
+                  style: inter(13, weight: FontWeight.w700, color: kSpInk),
                 ),
               ),
       ),
     );
   }
+}
+
+/// The LIVE pill in the header: the flat Æ disc, «LIVE» with its pulse,
+/// the stage name.
+class _LivePill extends StatelessWidget {
+  const _LivePill({required this.navn});
+
+  final String navn;
+
+  @override
+  Widget build(BuildContext context) => CssBox(
+    height: 42,
+    radius: BorderRadius.circular(999),
+    clip: true,
+    padding: const EdgeInsets.fromLTRB(5, 0, 16, 0),
+    bg: [
+      CssLinear(180, [rgba(255, 255, 255, .22), rgba(255, 255, 255, .07)]),
+    ],
+    shadows: [
+      CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .42)),
+      CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14)),
+      CssShadow.inset(0, -2, 0, 0, rgba(4, 20, 28, .2)),
+      CssShadow(0, 3, 0, 0, rgba(4, 20, 28, .55)),
+      CssShadow(0, 12, 18, -10, rgba(3, 14, 20, .85)),
+    ],
+    child: Stack(
+      children: [
+        Positioned(
+          left: 14,
+          right: 14,
+          top: 3,
+          height: 42 * .42,
+          child: IgnorePointer(
+            child: CssBox(
+              radius: const BorderRadius.vertical(top: Radius.circular(20), bottom: Radius.elliptical(20, 8)),
+              bg: [
+                CssLinear(180, [rgba(255, 255, 255, .22), rgba(255, 255, 255, 0)]),
+              ],
+            ),
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CssBox(
+              width: 32,
+              height: 32,
+              radius: BorderRadius.circular(16),
+              bg: const [
+                CssRadial([Color(0xFFFFFFFF), Color(0xFFEEF4F5), Color(0xFFD3E0E3)], stops: [0, .55, 1], rx: .7, ry: .6, cx: .4, cy: .25),
+              ],
+              shadows: [
+                const CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
+                CssShadow.inset(0, -2, 3, 0, rgba(30, 79, 92, .2)),
+                CssShadow(0, 2, 0, 0, rgba(4, 20, 28, .4)),
+                CssShadow(0, 5, 8, -3, rgba(3, 14, 20, .6)),
+              ],
+              child: Center(child: spMerkeFlat(w: 23, h: 18)),
+            ),
+            const SizedBox(width: 9),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const SpPuls(
+                      size: 7,
+                      color: Color(0xFFFF8A57),
+                      gradient: RadialGradient(center: Alignment(-.3, -.4), colors: [Color(0xFFFFD9C8), Color(0xFFFF8A57), Color(0xFFC2481C)], stops: [0, .55, 1]),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      SporingCopy.a1_sporing_live_ord,
+                      style: inter(8.5, weight: FontWeight.w800, em: .16, height: 1, color: const Color(0xFF9FF0D4)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  navn,
+                  key: const Key('a1_sporing_topline'),
+                  maxLines: 1,
+                  softWrap: false,
+                  style: jakarta(
+                    13.5,
+                    em: -.01,
+                    height: 1.1,
+                    shadows: [Shadow(color: rgba(3, 14, 20, .45), offset: const Offset(0, 1))],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+/// The ETA block: the glass with its sheen, the label with the orange
+/// pulse, the time (`vekt` fading in).
+class _EtaBlokk extends StatelessWidget {
+  const _EtaBlokk({required this.label, required this.tid, required this.stor});
+
+  final String label, tid;
+  final double stor;
+
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: CssBox(
+      radius: BorderRadius.circular(20),
+      clip: true,
+      padding: const EdgeInsets.fromLTRB(20, 9, 20, 10),
+      bg: [
+        CssLinear(180, [rgba(10, 32, 42, .5), rgba(6, 22, 30, .62)]),
+      ],
+      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .26)), CssShadow.inset(0, -2, 6, 0, rgba(2, 14, 20, .5)), CssShadow(0, 10, 20, -10, rgba(4, 20, 28, .8))],
+      child: Stack(
+        children: [
+          const SpSveip(),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SpPuls(size: 6, color: kSpOrange, glow: rgba(242, 109, 61, .9)),
+                  const SizedBox(width: 6),
+                  Text(
+                    label.toUpperCase(),
+                    key: const Key('a1_sporing_eta_label'),
+                    style: inter(10, weight: FontWeight.w800, em: .08, color: kSpLabel),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              LfOnce(
+                ms: 900,
+                builder: (context, t, child) => Opacity(opacity: .6 + .4 * cssEaseOut.transform(kfP(t, 0, 900)), child: child),
+                child: Text(tid, key: const Key('a1_sporing_eta'), style: jakarta(stor, em: -.04, height: 1)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 }

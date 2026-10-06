@@ -27,6 +27,15 @@ class HjemLiveData {
 /// (null when there is none); the shell shows the pill from it.
 final ValueNotifier<({int orderId, HjemLiveData data})?> hjemLiveOrdre = ValueNotifier(null);
 
+/// True while Sporing grows out of the pill (`liveApne`) and until it
+/// collapses back (`liveKollaps`): the pill body hides meanwhile.
+final ValueNotifier<bool> liveApner = ValueNotifier(false);
+
+/// Motion durations that honour reduced motion.
+abstract final class BergenMotion {
+  static Duration of(BuildContext context, int ms) => MediaQuery.maybeDisableAnimationsOf(context) == true ? Duration.zero : Duration(milliseconds: ms);
+}
+
 class HjemLiveAerend extends StatefulWidget {
   const HjemLiveAerend({super.key, required this.data, required this.onTap});
 
@@ -66,10 +75,30 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
     final ferdig = s >= 3, klar = hent && s == 2, snart = !ferdig && !klar && rest <= 120;
     final navn = (hent ? const ['Bekreftet', 'Tilberedes', 'Klar for henting', 'Hentet'] : const ['Bekreftet', 'Tilberedes', 'På vei', 'Levert'])[s];
     String mmss(int v) => '${(v ~/ 60).toString().padLeft(2, '0')}:${(v % 60).toString().padLeft(2, '0')}';
-    final ring = ferdig ? 1.0 : klar ? .82 : math.max(const [.08, .32, .58][s], 1 - rest / start[0]).clamp(0.0, 1.0);
-    final aeg = ferdig ? 'popup' : s == 0 ? 'front' : (s == 1 || hent) ? 'store' : 'bike';
-    final tid = ferdig ? (hent ? 'Hentet!' : 'Levert!') : klar ? 'Klar nå!' : mmss(rest);
-    final sub = ferdig ? 'åpne' : klar ? 'i disken' : snart ? 'snart!' : (hent ? 'til klar' : 'til døra');
+    final ring = ferdig
+        ? 1.0
+        : klar
+        ? .82
+        : math.max(const [.08, .32, .58][s], 1 - rest / start[0]).clamp(0.0, 1.0);
+    final aeg = ferdig
+        ? 'popup'
+        : s == 0
+        ? 'front'
+        : (s == 1 || hent)
+        ? 'store'
+        : 'bike';
+    final tid = ferdig
+        ? (hent ? 'Hentet!' : 'Levert!')
+        : klar
+        ? 'Klar nå!'
+        : mmss(rest);
+    final sub = ferdig
+        ? 'åpne'
+        : klar
+        ? 'i disken'
+        : snart
+        ? 'snart!'
+        : (hent ? 'til klar' : 'til døra');
     final gront = ferdig || klar;
 
     return Semantics(
@@ -77,306 +106,311 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
       label: 'Bestillingen din: $navn${gront ? '' : ', $tid igjen'}. Trykk for å åpne sporingen.',
       child: GestureDetector(
         onTap: widget.onTap,
-        child: SizedBox(
-          width: 234,
-          height: 64,
-          child: LfLoop(
-            // liveSvev / liveSkygge 4.4s
-            builder: (context, t, child) {
-              final p = (t / 4400) % 1.0;
-              final y = kf(p, const [0, .5, 1], const [0, -3, 0], cssEaseInOut);
-              final sk = kf(p, const [0, .5, 1], const [1, .86, 1], cssEaseInOut);
-              final so = kf(p, const [0, .5, 1], const [.9, .6, .9], cssEaseInOut);
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
-                    left: 18,
-                    right: 18,
-                    bottom: -17,
-                    height: 14,
-                    child: Opacity(
-                      opacity: so,
-                      child: Transform.scale(
-                        scale: sk,
-                        child: const CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(2, 10, 16, .6), Color.fromRGBO(2, 10, 16, 0)])]),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(child: Transform.translate(offset: Offset(0, y), child: child)),
-                ],
-              );
-            },
-            child: _Bump(
-              nokkel: s,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Glow behind (liveGlod 2.8s).
-                  Positioned(
-                    left: -12,
-                    right: -12,
-                    top: -10,
-                    bottom: -14,
-                    child: LfLoop(
-                      builder: (context, t, child) => Opacity(
-                        opacity: kf((t / 2800) % 1.0, const [0, .5, 1], const [.35, .95, .35], cssEaseInOut),
-                        child: child,
-                      ),
-                      child: CssBox(
-                        radius: BorderRadius.circular(34),
-                        bg: [
-                          CssRadial(
-                            [snart ? const Color.fromRGBO(255, 148, 102, .5) : const Color.fromRGBO(92, 224, 184, .42), const Color.fromRGBO(92, 224, 184, 0)],
-                            stops: const [0, .72],
-                            rx: .55,
-                            ry: .7,
-                            cx: .22,
-                            cy: .5,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (snart)
+        child: ValueListenableBuilder<bool>(
+          valueListenable: liveApner,
+          builder: (context, apner, child) => AnimatedOpacity(
+            // The pill body fades (260 ms) while the screen grows out of it.
+            duration: BergenMotion.of(context, 260),
+            curve: Curves.easeOut,
+            opacity: apner ? 0 : 1,
+            child: AnimatedScale(duration: BergenMotion.of(context, 260), curve: Curves.easeOut, scale: apner ? 1.08 : 1, child: child),
+          ),
+          child: SizedBox(
+            width: 234,
+            height: 64,
+            child: LfLoop(
+              // liveSvev / liveSkygge 4.4s
+              builder: (context, t, child) {
+                final p = (t / 4400) % 1.0;
+                final y = kf(p, const [0, .5, 1], const [0, -3, 0], cssEaseInOut);
+                final sk = kf(p, const [0, .5, 1], const [1, .86, 1], cssEaseInOut);
+                final so = kf(p, const [0, .5, 1], const [.9, .6, .9], cssEaseInOut);
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
                     Positioned(
-                      left: -3,
-                      right: -3,
-                      top: -3,
-                      bottom: -8,
-                      child: LfLoop(
-                        builder: (context, t, child) {
-                          final p = (t / 1300) % 1.0;
-                          return Opacity(
-                            opacity: kf(p, const [0, .5, 1], const [.25, 1, .25], cssEaseInOut),
-                            child: Transform.scale(scale: kf(p, const [0, .5, 1], const [1, 1.025, 1], cssEaseInOut), child: child),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(27),
-                            border: Border.all(color: const Color(0xFFFF9466), width: 2),
-                            boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 148, 102, .75), blurRadius: 8)],
+                      left: 18,
+                      right: 18,
+                      bottom: -17,
+                      height: 14,
+                      child: Opacity(
+                        opacity: so,
+                        child: Transform.scale(
+                          scale: sk,
+                          child: const CssBox(
+                            bg: [
+                              CssRadial.closestSide([Color.fromRGBO(2, 10, 16, .6), Color.fromRGBO(2, 10, 16, 0)]),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  // The pill's edge under it.
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 6,
-                    bottom: -5,
-                    child: CssBox(
-                      radius: BorderRadius.circular(24),
-                      bg: [
-                        gront
-                            ? const CssLinear(180, [Color(0xFF147A5C), Color(0xFF0C5340)])
-                            : const CssLinear(180, [Color(0xFF103C47), Color(0xFF082730)]),
-                      ],
-                      shadows: const [
-                        CssShadow.inset(0, -1.5, 0, 0, Color.fromRGBO(255, 255, 255, .08)),
-                        CssShadow(0, 18, 26, -10, Color.fromRGBO(3, 14, 20, .9)),
-                        CssShadow(0, 5, 9, -3, Color.fromRGBO(3, 14, 20, .55)),
-                      ],
+                    Positioned.fill(
+                      child: Transform.translate(offset: Offset(0, y), child: child),
                     ),
-                  ),
-                  Positioned.fill(
-                    child: CssBox(
-                      radius: BorderRadius.circular(24),
-                      clip: true,
-                      bg: gront
-                          ? const [
-                              CssRadial([Color(0xFF9AF5D8), Color(0x009AF5D8)], stops: [0, .55], rx: 1.2, ry: .9, cx: .18, cy: 0),
-                              CssLinear(165, [Color(0xFF3FCDA1), Color(0xFF22A47F), Color(0xFF198466)], [0, .55, 1]),
-                            ]
-                          : const [
-                              CssRadial([Color(0xFF4A97A9), Color(0x004A97A9)], stops: [0, .55], rx: 1.2, ry: .9, cx: .18, cy: 0),
-                              CssLinear(165, [Color(0xFF33788A), Color(0xFF1F5363), Color(0xFF173F4B)], [0, .55, 1]),
-                            ],
-                      shadows: const [
-                        CssShadow.inset(0, 2, 0, 0, Color.fromRGBO(255, 255, 255, .44)),
-                        CssShadow.inset(0, -2, 0, 0, Color.fromRGBO(0, 0, 0, .2)),
-                        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .15)),
-                        CssShadow.inset(0, -12, 18, -12, Color.fromRGBO(2, 12, 18, .6)),
-                      ],
-                      child: Stack(
-                        children: [
-                          const Positioned(
-                            left: 14,
-                            right: 58,
-                            top: 3,
-                            height: 19,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.elliptical(16, 16),
-                                  topRight: Radius.elliptical(16, 16),
-                                  bottomLeft: Radius.elliptical(40, 12),
-                                  bottomRight: Radius.elliptical(40, 12),
-                                ),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [Color.fromRGBO(255, 255, 255, .26), Color.fromRGBO(255, 255, 255, 0)],
-                                ),
-                              ),
+                  ],
+                );
+              },
+              child: _Bump(
+                nokkel: s,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Glow behind (liveGlod 2.8s).
+                    Positioned(
+                      left: -12,
+                      right: -12,
+                      top: -10,
+                      bottom: -14,
+                      child: LfLoop(
+                        builder: (context, t, child) => Opacity(opacity: kf((t / 2800) % 1.0, const [0, .5, 1], const [.35, .95, .35], cssEaseInOut), child: child),
+                        child: CssBox(
+                          radius: BorderRadius.circular(34),
+                          bg: [
+                            CssRadial(
+                              [snart ? const Color.fromRGBO(255, 148, 102, .5) : const Color.fromRGBO(92, 224, 184, .42), const Color.fromRGBO(92, 224, 184, 0)],
+                              stops: const [0, .72],
+                              rx: .55,
+                              ry: .7,
+                              cx: .22,
+                              cy: .5,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (snart)
+                      Positioned(
+                        left: -3,
+                        right: -3,
+                        top: -3,
+                        bottom: -8,
+                        child: LfLoop(
+                          builder: (context, t, child) {
+                            final p = (t / 1300) % 1.0;
+                            return Opacity(
+                              opacity: kf(p, const [0, .5, 1], const [.25, 1, .25], cssEaseInOut),
+                              child: Transform.scale(scale: kf(p, const [0, .5, 1], const [1, 1.025, 1], cssEaseInOut), child: child),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(27),
+                              border: Border.all(color: const Color(0xFFFF9466), width: 2),
+                              boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 148, 102, .75), blurRadius: 8)],
                             ),
                           ),
-                          // liveSveip 6.5s (1.6s delay)
-                          Positioned.fill(
-                            child: LayoutBuilder(
-                              builder: (context, box) => LfLoop(
-                                builder: (context, t, child) {
-                                  final e = t - 1600;
-                                  if (e < 0) return const SizedBox.shrink();
-                                  final x = kf((e / 6500) % 1.0, const [0, .7, 1], const [-1.3, -1.3, 2.6], cssEaseInOut);
-                                  return Transform.translate(offset: Offset(x * box.maxWidth * .4, 0), child: child);
-                                },
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: SizedBox(
-                                    width: box.maxWidth * .4,
-                                    child: const CssBox(bg: [CssLinear(100, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, 0)])]),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(6, 0, 9, 0),
-                            child: Row(
-                              children: [
-                                _Avatar(ring: ring, aeg: aeg, merke: ferdig ? '✓' : '${s + 1}/4', gront: gront),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          _Puls(farge: gront ? Colors.white : const Color(0xFFFF8A57)),
-                                          const SizedBox(width: 5),
-                                          Flexible(
-                                            child: _Flipp(
-                                              nokkel: s,
-                                              child: Text(
-                                                navn.toUpperCase(),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: inter(9, weight: FontWeight.w800, em: .12, color: gront ? const Color(0xFFF2FFFA) : const Color(0xFF9FF0D4)).copyWith(
-                                                  shadows: const [Shadow(color: Color.fromRGBO(3, 14, 20, .45), offset: Offset(0, 1))],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 3),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                                        textBaseline: TextBaseline.alphabetic,
-                                        children: [
-                                          Text(
-                                            tid,
-                                            style: jakarta(
-                                              23,
-                                              em: -.035,
-                                              height: 1,
-                                              shadows: const [
-                                                Shadow(color: Color.fromRGBO(4, 22, 30, .6), offset: Offset(0, 2)),
-                                                Shadow(color: Color.fromRGBO(3, 14, 20, .45), offset: Offset(0, 7), blurRadius: 12),
-                                              ],
-                                            ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Flexible(
-                                            child: Text(
-                                              sub,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: inter(9.5, weight: FontWeight.w700, color: gront ? const Color(0xFFEFFFF9) : const Color(0xFFBFD8DF)),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 3),
-                                      Container(
-                                        padding: const EdgeInsets.all(2),
-                                        decoration: BoxDecoration(
-                                          color: const Color.fromRGBO(2, 12, 18, .4),
-                                          borderRadius: BorderRadius.circular(5),
-                                          boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .14), offset: Offset(0, 1))],
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            for (var k = 0; k < 4; k++) ...[
-                                              if (k > 0) const SizedBox(width: 3),
-                                              _Segment(ferdig: k < s || ferdig, naa: k == s && !ferdig, gront: gront),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                SizedBox(
-                                  width: 36,
-                                  height: 39,
-                                  child: Stack(
-                                    children: [
-                                      const Positioned(
-                                        left: 0,
-                                        top: 3,
-                                        width: 36,
-                                        height: 36,
-                                        child: DecoratedBox(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFA3B8BE), Color(0xFF6F878E)]),
-                                            boxShadow: [BoxShadow(color: Color.fromRGBO(3, 16, 24, .65), offset: Offset(0, 6), blurRadius: 5, spreadRadius: -3)],
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        width: 36,
-                                        height: 36,
-                                        child: CssBox(
-                                          radius: BorderRadius.circular(18),
-                                          bg: const [
-                                            CssRadial([Color(0xFFFFFFFF), Color(0xFFEEF4F5), Color(0xFFD5E1E4)], stops: [0, .55, 1], rx: .7, ry: .6, cx: .4, cy: .25),
-                                          ],
-                                          shadows: const [
-                                            CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
-                                            CssShadow.inset(0, -2, 3, 0, Color.fromRGBO(30, 79, 92, .2)),
-                                          ],
-                                          child: Center(
-                                            child: SvgPicture.string(
-                                              ferdig
-                                                  ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1A7E62" stroke-width="3.4" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>'
-                                                  : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>',
-                                              width: 13,
-                                              height: 13,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        ),
+                      ),
+                    // The pill's edge under it.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 6,
+                      bottom: -5,
+                      child: CssBox(
+                        radius: BorderRadius.circular(24),
+                        bg: [
+                          gront ? const CssLinear(180, [Color(0xFF147A5C), Color(0xFF0C5340)]) : const CssLinear(180, [Color(0xFF103C47), Color(0xFF082730)]),
+                        ],
+                        shadows: const [
+                          CssShadow.inset(0, -1.5, 0, 0, Color.fromRGBO(255, 255, 255, .08)),
+                          CssShadow(0, 18, 26, -10, Color.fromRGBO(3, 14, 20, .9)),
+                          CssShadow(0, 5, 9, -3, Color.fromRGBO(3, 14, 20, .55)),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    Positioned.fill(
+                      child: CssBox(
+                        radius: BorderRadius.circular(24),
+                        clip: true,
+                        bg: gront
+                            ? const [
+                                CssRadial([Color(0xFF9AF5D8), Color(0x009AF5D8)], stops: [0, .55], rx: 1.2, ry: .9, cx: .18, cy: 0),
+                                CssLinear(165, [Color(0xFF3FCDA1), Color(0xFF22A47F), Color(0xFF198466)], [0, .55, 1]),
+                              ]
+                            : const [
+                                CssRadial([Color(0xFF4A97A9), Color(0x004A97A9)], stops: [0, .55], rx: 1.2, ry: .9, cx: .18, cy: 0),
+                                CssLinear(165, [Color(0xFF33788A), Color(0xFF1F5363), Color(0xFF173F4B)], [0, .55, 1]),
+                              ],
+                        shadows: const [
+                          CssShadow.inset(0, 2, 0, 0, Color.fromRGBO(255, 255, 255, .44)),
+                          CssShadow.inset(0, -2, 0, 0, Color.fromRGBO(0, 0, 0, .2)),
+                          CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .15)),
+                          CssShadow.inset(0, -12, 18, -12, Color.fromRGBO(2, 12, 18, .6)),
+                        ],
+                        child: Stack(
+                          children: [
+                            const Positioned(
+                              left: 14,
+                              right: 58,
+                              top: 3,
+                              height: 19,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.elliptical(16, 16),
+                                    topRight: Radius.elliptical(16, 16),
+                                    bottomLeft: Radius.elliptical(40, 12),
+                                    bottomRight: Radius.elliptical(40, 12),
+                                  ),
+                                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .26), Color.fromRGBO(255, 255, 255, 0)]),
+                                ),
+                              ),
+                            ),
+                            // liveSveip 6.5s (1.6s delay)
+                            Positioned.fill(
+                              child: LayoutBuilder(
+                                builder: (context, box) => LfLoop(
+                                  builder: (context, t, child) {
+                                    final e = t - 1600;
+                                    if (e < 0) return const SizedBox.shrink();
+                                    final x = kf((e / 6500) % 1.0, const [0, .7, 1], const [-1.3, -1.3, 2.6], cssEaseInOut);
+                                    return Transform.translate(offset: Offset(x * box.maxWidth * .4, 0), child: child);
+                                  },
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SizedBox(
+                                      width: box.maxWidth * .4,
+                                      child: const CssBox(
+                                        bg: [
+                                          CssLinear(100, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, 0)]),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(6, 0, 9, 0),
+                              child: Row(
+                                children: [
+                                  _Avatar(ring: ring, aeg: aeg, merke: ferdig ? '✓' : '${s + 1}/4', gront: gront),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            _Puls(farge: gront ? Colors.white : const Color(0xFFFF8A57)),
+                                            const SizedBox(width: 5),
+                                            Flexible(
+                                              child: _Flipp(
+                                                nokkel: s,
+                                                child: Text(
+                                                  navn.toUpperCase(),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: inter(9, weight: FontWeight.w800, em: .12, color: gront ? const Color(0xFFF2FFFA) : const Color(0xFF9FF0D4)).copyWith(
+                                                    shadows: const [Shadow(color: Color.fromRGBO(3, 14, 20, .45), offset: Offset(0, 1))],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                                          textBaseline: TextBaseline.alphabetic,
+                                          children: [
+                                            Text(
+                                              tid,
+                                              style: jakarta(
+                                                23,
+                                                em: -.035,
+                                                height: 1,
+                                                shadows: const [
+                                                  Shadow(color: Color.fromRGBO(4, 22, 30, .6), offset: Offset(0, 2)),
+                                                  Shadow(color: Color.fromRGBO(3, 14, 20, .45), offset: Offset(0, 7), blurRadius: 12),
+                                                ],
+                                              ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Flexible(
+                                              child: Text(
+                                                sub,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: inter(9.5, weight: FontWeight.w700, color: gront ? const Color(0xFFEFFFF9) : const Color(0xFFBFD8DF)),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            color: const Color.fromRGBO(2, 12, 18, .4),
+                                            borderRadius: BorderRadius.circular(5),
+                                            boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .14), offset: Offset(0, 1))],
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              for (var k = 0; k < 4; k++) ...[if (k > 0) const SizedBox(width: 3), _Segment(ferdig: k < s || ferdig, naa: k == s && !ferdig, gront: gront)],
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  SizedBox(
+                                    width: 36,
+                                    height: 39,
+                                    child: Stack(
+                                      children: [
+                                        const Positioned(
+                                          left: 0,
+                                          top: 3,
+                                          width: 36,
+                                          height: 36,
+                                          child: DecoratedBox(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFA3B8BE), Color(0xFF6F878E)]),
+                                              boxShadow: [BoxShadow(color: Color.fromRGBO(3, 16, 24, .65), offset: Offset(0, 6), blurRadius: 5, spreadRadius: -3)],
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          left: 0,
+                                          top: 0,
+                                          width: 36,
+                                          height: 36,
+                                          child: CssBox(
+                                            radius: BorderRadius.circular(18),
+                                            bg: const [
+                                              CssRadial([Color(0xFFFFFFFF), Color(0xFFEEF4F5), Color(0xFFD5E1E4)], stops: [0, .55, 1], rx: .7, ry: .6, cx: .4, cy: .25),
+                                            ],
+                                            shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow.inset(0, -2, 3, 0, Color.fromRGBO(30, 79, 92, .2))],
+                                            child: Center(
+                                              child: SvgPicture.string(
+                                                ferdig
+                                                    ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1A7E62" stroke-width="3.4" stroke-linecap="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>'
+                                                    : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>',
+                                                width: 13,
+                                                height: 13,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -405,7 +439,9 @@ class _Avatar extends StatelessWidget {
           const Positioned.fill(
             child: CssBox(
               radius: BorderRadius.all(Radius.circular(26)),
-              bg: [CssRadial([Color(0xFF123C47), Color(0xFF0A2530)], stops: [0, .72], circle: true, cx: .5, cy: .3, farthestCorner: true)],
+              bg: [
+                CssRadial([Color(0xFF123C47), Color(0xFF0A2530)], stops: [0, .72], circle: true, cx: .5, cy: .3, farthestCorner: true),
+              ],
               shadows: [
                 CssShadow.inset(0, 2.5, 4, 0, Color.fromRGBO(0, 0, 0, .6)),
                 CssShadow.inset(0, -1, 0, 0, Color.fromRGBO(255, 255, 255, .16)),
@@ -438,11 +474,10 @@ class _Avatar extends StatelessWidget {
               child: CssBox(
                 radius: BorderRadius.circular(17),
                 clip: true,
-                bg: const [CssRadial([Color(0xFFCFE3EC), Color(0xFF7FA3B2), Color(0xFF4E7383)], stops: [0, .62, 1], circle: true, cx: .4, cy: .28, farthestCorner: true)],
-                shadows: const [
-                  CssShadow.inset(0, 2, 3, 0, Color.fromRGBO(0, 0, 0, .35)),
-                  CssShadow.inset(0, -3, 5, 0, Color.fromRGBO(4, 20, 28, .3)),
+                bg: const [
+                  CssRadial([Color(0xFFCFE3EC), Color(0xFF7FA3B2), Color(0xFF4E7383)], stops: [0, .62, 1], circle: true, cx: .4, cy: .28, farthestCorner: true),
                 ],
+                shadows: const [CssShadow.inset(0, 2, 3, 0, Color.fromRGBO(0, 0, 0, .35)), CssShadow.inset(0, -3, 5, 0, Color.fromRGBO(4, 20, 28, .3))],
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -457,7 +492,11 @@ class _Avatar extends StatelessWidget {
                       ),
                     ),
                     const Positioned.fill(
-                      child: CssBox(bg: [CssRadial([Color.fromRGBO(255, 255, 255, .6), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .7], rx: .6, ry: .45, cx: .3, cy: .2)]),
+                      child: CssBox(
+                        bg: [
+                          CssRadial([Color.fromRGBO(255, 255, 255, .6), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .7], rx: .6, ry: .45, cx: .3, cy: .2),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -471,9 +510,7 @@ class _Avatar extends StatelessWidget {
               height: 20,
               radius: BorderRadius.circular(10),
               bg: [
-                gront
-                    ? const CssLinear(180, [Color(0xFF6BEBC4), Color(0xFF1F9C77)])
-                    : const CssLinear(180, [Color(0xFFFFA77C), Color(0xFFE95C2C)]),
+                gront ? const CssLinear(180, [Color(0xFF6BEBC4), Color(0xFF1F9C77)]) : const CssLinear(180, [Color(0xFFFFA77C), Color(0xFFE95C2C)]),
               ],
               shadows: [
                 const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .55)),
@@ -489,9 +526,10 @@ class _Avatar extends StatelessWidget {
                   widthFactor: 1,
                   child: Text(
                     merke,
-                    style: jakarta(10, shadows: const [Shadow(color: Color.fromRGBO(80, 25, 6, .5), offset: Offset(0, 1))]).copyWith(
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                    style: jakarta(
+                      10,
+                      shadows: const [Shadow(color: Color.fromRGBO(80, 25, 6, .5), offset: Offset(0, 1))],
+                    ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                   ),
                 ),
               ),
@@ -593,11 +631,7 @@ class _Segment extends StatelessWidget {
         gradient: ferdig
             ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFA6F8DD), Color(0xFF3CC79F)])
             : naa
-            ? LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: gront ? const [Color(0xFFFFFFFF), Color(0xFFDDF7EE)] : const [Color(0xFFFFC6A8), Color(0xFFF26D3D)],
-              )
+            ? LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: gront ? const [Color(0xFFFFFFFF), Color(0xFFDDF7EE)] : const [Color(0xFFFFC6A8), Color(0xFFF26D3D)])
             : null,
         color: ferdig || naa ? null : const Color.fromRGBO(255, 255, 255, .12),
         boxShadow: ferdig
@@ -643,9 +677,14 @@ class _Puls extends StatelessWidget {
             child: LfLoop(
               builder: (context, t, child) {
                 final p = cssEaseOut.transform((t / 1800) % 1.0);
-                return Opacity(opacity: .9 * (1 - p), child: Transform.scale(scale: .6 + 1.3 * p, child: child));
+                return Opacity(
+                  opacity: .9 * (1 - p),
+                  child: Transform.scale(scale: .6 + 1.3 * p, child: child),
+                );
               },
-              child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: farge)),
+              child: DecoratedBox(
+                decoration: BoxDecoration(shape: BoxShape.circle, color: farge),
+              ),
             ),
           ),
         ],
@@ -713,4 +752,132 @@ class _Flipp extends StatelessWidget {
       child: child,
     );
   }
+}
+
+// ── liveApne / liveKollaps (prototype L19239–19320) ─────────────────────────
+
+/// Sporing growing out of the Live pill and collapsing back into it.
+///
+/// Open (720 ms, `cubic-bezier(.55,0,.18,1)`): the screen is clipped to the
+/// pill's rounded rect, swells to an inset card (8 % / 12 % of the height,
+/// 20 px sides, radius 42) tilted `rotateX(-6deg)` at 62 %, then fills the
+/// window; it fades in over the first 28 %. Collapse (860 ms,
+/// `cubic-bezier(.66,0,.22,1)`): the reverse through an inset of 10 % /
+/// 15 % and `rotateX(7deg)`, fading out after 72 %. Sparks burst from the
+/// pill as it opens. Reduced motion: no animation.
+class LiveApneRoute<T> extends PageRouteBuilder<T> {
+  LiveApneRoute({required Rect pill, required Size screen, required RoutePageBuilder page, super.settings})
+    : super(
+        opaque: true,
+        transitionDuration: const Duration(milliseconds: 720),
+        reverseTransitionDuration: const Duration(milliseconds: 860),
+        pageBuilder: page,
+        transitionsBuilder: (context, a, _, child) {
+          if (MediaQuery.disableAnimationsOf(context) || a.status == AnimationStatus.completed) return child;
+          final W = screen.width, H = screen.height;
+          final reverse = a.status == AnimationStatus.reverse || a.status == AnimationStatus.dismissed;
+          RRect ins(double t, double r, double b, double l, double rad) => RRect.fromRectAndRadius(Rect.fromLTRB(l, t, W - r, H - b), Radius.circular(rad));
+          final pillClip = ins(pill.top, W - pill.right, H - pill.bottom, pill.left, 24);
+          double opacity;
+          RRect clip;
+          double rotX, scale;
+          if (!reverse) {
+            final p = const Cubic(.55, 0, .18, 1).transform(a.value);
+            opacity = kf(a.value, const [0, .28, 1], const [0, 1, 1]);
+            final mid = ins(H * .08, 20, H * .12, 20, 42);
+            final full = ins(0, 0, 0, 0, 36);
+            clip = p < .62 ? RRect.lerp(pillClip, mid, p / .62)! : RRect.lerp(mid, full, (p - .62) / .38)!;
+            rotX = kf(p, const [0, .62, 1], const [0, -6, 0]);
+            scale = kf(p, const [0, .62, 1], const [1, .975, 1]);
+          } else {
+            final q = 1 - a.value;
+            final p = const Cubic(.66, 0, .22, 1).transform(q);
+            opacity = kf(q, const [0, .72, 1], const [1, 1, 0]);
+            final mid = ins(H * .1, 24, H * .15, 24, 42);
+            final full = ins(0, 0, 0, 0, 36);
+            clip = p < .4 ? RRect.lerp(full, mid, p / .4)! : RRect.lerp(mid, pillClip, (p - .4) / .6)!;
+            rotX = kf(p, const [0, .4, 1], const [0, 7, 0]);
+            scale = kf(p, const [0, .4, 1], const [1, .965, 1]);
+          }
+          return Stack(
+            children: [
+              Opacity(
+                opacity: opacity.clamp(0.0, 1.0),
+                child: Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, -1 / 1100)
+                    ..rotateX(rotX * math.pi / 180)
+                    ..scaleByDouble(scale, scale, 1, 1),
+                  child: ClipRRect(clipper: _RRectClipper(clip), child: child),
+                ),
+              ),
+              if (!reverse)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: _Gnister(pill: pill, p: a.value),
+                  ),
+                ),
+            ],
+          );
+        },
+      ) {
+    liveApner.value = true;
+    popped.then((_) => liveApner.value = false);
+  }
+}
+
+class _RRectClipper extends CustomClipper<RRect> {
+  const _RRectClipper(this.r);
+
+  final RRect r;
+
+  @override
+  RRect getClip(Size size) => r;
+
+  @override
+  bool shouldReclip(covariant _RRectClipper old) => old.r != r;
+}
+
+/// `liveGnister`: eighteen bits flung out of the pill's centre as it opens.
+class _Gnister extends StatelessWidget {
+  const _Gnister({required this.pill, required this.p});
+
+  final Rect pill;
+  final double p;
+
+  static const _farger = [Color(0xFF5CE0B8), Color(0xFFFF9466), Color(0xFFFFFFFF), Color(0xFFF2C14E)];
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    painter: _GnistPainter(c: pill.center, p: p),
+  );
+}
+
+class _GnistPainter extends CustomPainter {
+  const _GnistPainter({required this.c, required this.p});
+
+  final Offset c;
+  final double p;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final e = Curves.easeOut.transform((p / .7).clamp(0.0, 1.0));
+    final o = (1 - (p - .3) / .4).clamp(0.0, 1.0);
+    for (var i = 0; i < 18; i++) {
+      final a = (i / 18) * math.pi * 2 + (i % 3) * .1;
+      final dist = (60 + (i * 37 % 70)).toDouble();
+      final sz = 5 + (i * 13 % 5);
+      final pos = c + Offset(math.cos(a), math.sin(a)) * dist * e;
+      final paint = Paint()..color = _Gnister._farger[i % 4].withValues(alpha: o);
+      if (i % 3 == 0) {
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: pos, width: sz.toDouble(), height: sz * .5), const Radius.circular(2)), paint);
+      } else {
+        canvas.drawCircle(pos, sz / 2 * (1 - .4 * e), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _GnistPainter old) => old.p != p;
 }

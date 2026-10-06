@@ -109,6 +109,7 @@ flutter:
     - assets/images/onboarding/
     - assets/images/bryggen/
     - assets/images/dashboard/
+    - assets/images/sporing/
     - assets/images/products/
     - assets/images/service-category/
     - assets/gifs/

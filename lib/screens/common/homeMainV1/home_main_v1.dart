@@ -186,11 +186,25 @@ class HomeMainV1State extends State<HomeMainV1> {
                       234,
                       HjemLiveAerend(
                         data: ordre.data,
-                        onTap: () => BergenRoutes.pushOr(
-                          context,
-                          '/bergen/sporing/${ordre.orderId}',
-                          orElse: () => openScreen(context, TrackOrder(orderId: ordre.orderId)),
-                        ),
+                        onTap: () {
+                          // `liveApne`: Sporing grows out of the pill.
+                          final navn = '/bergen/sporing/${ordre.orderId}';
+                          final side = BergenRoutes.generate(RouteSettings(name: navn));
+                          if (side is! PageRoute) {
+                            openScreen(context, TrackOrder(orderId: ordre.orderId));
+                            return;
+                          }
+                          final size = MediaQuery.sizeOf(context);
+                          final top = size.height - navBunn - (overSlider ? 88 : 76) * s - 64 * s;
+                          Navigator.of(context).push(
+                            LiveApneRoute<dynamic>(
+                              settings: side.settings,
+                              pill: Rect.fromLTWH(14 * s, top, 234 * s, 64 * s),
+                              screen: size,
+                              page: (context, a, sa) => side.buildPage(context, a, sa),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   );
