@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:path_provider/path_provider.dart';
 
 import 'hjem_hero.dart';
@@ -70,6 +71,32 @@ abstract final class HjemHarness {
   /// Scroll the Kategori list this far (design px) once loaded.
   static double? katScroll;
 
+  /// Open this store's page (`/bergen/butikk/{id}`), optionally with a
+  /// product sheet (`butikkProdukt`) or the info sheet tab (`butikkInfo`:
+  /// `a` / `t` / `m`). `butikkKat` passes the category the way Kategori
+  /// does (the store page picks the Mote layout from it).
+  static int? butikk;
+  static String? butikkKat;
+  static int? butikkProdukt;
+  static String? butikkInfo;
+
+  /// Scroll the store page this far (design px) once loaded.
+  static double? butikkScroll;
+
+  /// Pick this orb on the store page (0 Alt, 1 Tilbud when it has specials).
+  static int? butikkOrb;
+
+  /// Add these products to the (real, local) cart once the store page is
+  /// open, the way its + keys do; `butikkMini` opens the basket list.
+  static List<int>? butikkLegg;
+
+  /// Empty the basket (through the app's own cart API) before `butikkLegg`.
+  static bool kurvTom = false;
+
+  /// Scroll the product sheet this far (design px) once it is open.
+  static double? produktScroll;
+  static bool butikkMini = false;
+
   /// Treat every category as live (the launch gate off), so Mote and Gaver
   /// can be checked against the prototype's `launchModus: false`.
   static bool katLive = false;
@@ -102,6 +129,16 @@ abstract final class HjemHarness {
         kat = null;
         katFane = null;
         katScroll = null;
+        butikk = null;
+        butikkKat = null;
+        butikkProdukt = null;
+        butikkInfo = null;
+        butikkScroll = null;
+        butikkOrb = null;
+        butikkLegg = null;
+        produktScroll = null;
+        butikkMini = false;
+        kurvTom = false;
         katLive = false;
         return;
       }
@@ -130,6 +167,18 @@ abstract final class HjemHarness {
       kat = m['kat'] as int?;
       katFane = m['katFane'] as String?;
       katScroll = (m['katScroll'] as num?)?.toDouble();
+      butikk = m['butikk'] as int?;
+      butikkKat = m['butikkKat'] as String?;
+      butikkProdukt = m['butikkProdukt'] as int?;
+      butikkInfo = m['butikkInfo'] as String?;
+      butikkScroll = (m['butikkScroll'] as num?)?.toDouble();
+      butikkOrb = m['butikkOrb'] as int?;
+      butikkLegg = (m['butikkLegg'] as List?)?.cast<int>();
+      produktScroll = (m['produktScroll'] as num?)?.toDouble();
+      butikkMini = m['butikkMini'] == true;
+      kurvTom = m['kurvTom'] == true;
+      // `treg`: slow every animation down this many times (frame checks).
+      timeDilation = (m['treg'] as num?)?.toDouble() ?? 1.0;
       katLive = m['katLive'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}

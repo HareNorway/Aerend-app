@@ -122,11 +122,11 @@ class _ButikkScreenState extends State<ButikkScreen> {
     final store = _store;
     if (_missing) {
       return Scaffold(
-        backgroundColor: BergenTokens.paper,
+        backgroundColor: const Color(0xFF1E4F5C),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          foregroundColor: BergenTokens.ink,
+          foregroundColor: Colors.white,
         ),
         body: Center(
           child: Text(
@@ -136,18 +136,19 @@ class _ButikkScreenState extends State<ButikkScreen> {
               context,
               13,
               weight: FontWeight.w700,
-              color: BergenTokens.inkSecondary,
+              color: Colors.white,
             ),
           ),
         ),
       );
     }
     if (store == null) {
+      // The store's water while it loads, so the drop lands on teal.
       return Scaffold(
-        backgroundColor: BergenTokens.paper,
+        backgroundColor: const Color(0xFF1E4F5C),
         body: Center(
           child: CircularProgressIndicator(
-            color: BergenTokens.teal,
+            color: Colors.white,
             semanticsLabel: _name,
           ),
         ),

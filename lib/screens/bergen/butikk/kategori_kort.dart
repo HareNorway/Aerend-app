@@ -275,17 +275,21 @@ class KatHolo extends StatelessWidget {
     required this.farger,
     required this.stopp,
     this.dodge = 0,
+    this.halvMs = 5000,
   });
 
   final List<Color> farger;
   final List<double> stopp;
+
+  /// One way of the `alternate` loop (`bm3Holo 5s` → 5000).
+  final double halvMs;
 
   /// `mix-blend-mode: color-dodge` at this opacity (0: normal blending).
   final double dodge;
 
   @override
   Widget build(BuildContext context) => KatLoop(
-    durationMs: 10000,
+    durationMs: halvMs * 2,
     builder: (context, p, _) {
       final raw = p * 2;
       final e = Curves.easeInOut.transform(raw <= 1 ? raw : 2 - raw);
@@ -334,16 +338,16 @@ class _HoloMaler extends CustomPainter {
   bool shouldRepaint(_HoloMaler old) => old.p != p;
 }
 
-const List<Color> _kHoloLys = [
+const List<Color> kKatHoloLys = [
   Color.fromRGBO(255, 255, 255, 0),
   Color.fromRGBO(255, 190, 160, .34),
   Color.fromRGBO(255, 228, 150, .34),
   Color.fromRGBO(245, 185, 225, .3),
   Color.fromRGBO(255, 255, 255, 0),
 ];
-const List<double> _kHoloLysStopp = [.28, .40, .48, .56, .68];
+const List<double> kKatHoloLysStopp = [.28, .40, .48, .56, .68];
 
-const List<Color> _kHoloSterk = [
+const List<Color> kKatHoloSterk = [
   Color.fromRGBO(255, 255, 255, 0),
   Color.fromRGBO(255, 120, 80, .6),
   Color.fromRGBO(255, 214, 120, .6),
@@ -351,7 +355,7 @@ const List<Color> _kHoloSterk = [
   Color.fromRGBO(210, 150, 255, .45),
   Color.fromRGBO(255, 255, 255, 0),
 ];
-const List<double> _kHoloSterkStopp = [.22, .36, .45, .54, .63, .76];
+const List<double> kKatHoloSterkStopp = [.22, .36, .45, .54, .63, .76];
 
 /// `radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,a),
 /// transparent r)` with a blend mode.
@@ -442,7 +446,11 @@ class KatMyntPille extends StatelessWidget {
     required this.mynt,
     required this.fontPx,
     required this.faseMs,
+    this.skygge = false,
   });
+
+  /// The hero's darker drop (`0 12px 18px -8px rgba(30,10,0,.7)`).
+  final bool skygge;
 
   final String tekst;
   final double hoyde;
@@ -469,12 +477,20 @@ class KatMyntPille extends StatelessWidget {
             color: const Color(0xFFD9A93A),
             offset: Offset(0, (stor ? 3 : 2) * s),
           ),
-          BoxShadow(
-            color: rgba(120, 70, 10, .5),
-            offset: Offset(0, (stor ? 8 : 6) * s),
-            blurRadius: onbBlur((stor ? 12 : 10) * s),
-            spreadRadius: -6 * s,
-          ),
+          if (skygge)
+            BoxShadow(
+              color: rgba(30, 10, 0, .7),
+              offset: Offset(0, 12 * s),
+              blurRadius: onbBlur(18 * s),
+              spreadRadius: -8 * s,
+            )
+          else
+            BoxShadow(
+              color: rgba(120, 70, 10, .5),
+              offset: Offset(0, (stor ? 8 : 6) * s),
+              blurRadius: onbBlur((stor ? 12 : 10) * s),
+              spreadRadius: -6 * s,
+            ),
         ],
       ),
       child: Stack(
@@ -795,7 +811,7 @@ class KatButikkKort extends StatelessWidget {
                     top: 222 * s,
                     bottom: 0,
                     child: const IgnorePointer(
-                      child: KatHolo(farger: _kHoloLys, stopp: _kHoloLysStopp),
+                      child: KatHolo(farger: kKatHoloLys, stopp: kKatHoloLysStopp),
                     ),
                   ),
                   bergenInsetTop(radius: 30 * s, height: 1.5 * s, alpha: 1),
@@ -923,8 +939,8 @@ class _Foto extends StatelessWidget {
             ),
             const IgnorePointer(
               child: KatHolo(
-                farger: _kHoloSterk,
-                stopp: _kHoloSterkStopp,
+                farger: kKatHoloSterk,
+                stopp: kKatHoloSterkStopp,
                 dodge: .34,
               ),
             ),
@@ -1204,7 +1220,7 @@ class KatProduktKort extends StatelessWidget {
                 children: [
                   const Positioned.fill(
                     child: IgnorePointer(
-                      child: KatHolo(farger: _kHoloLys, stopp: _kHoloLysStopp),
+                      child: KatHolo(farger: kKatHoloLys, stopp: kKatHoloLysStopp),
                     ),
                   ),
                   bergenInsetTop(radius: 26 * s, height: 1.5 * s, alpha: 1),
@@ -1393,7 +1409,7 @@ class _Bronn extends StatelessWidget {
             ),
           ),
           const IgnorePointer(
-            child: KatHolo(farger: _kHoloSterk, stopp: _kHoloSterkStopp, dodge: .38),
+            child: KatHolo(farger: kKatHoloSterk, stopp: kKatHoloSterkStopp, dodge: .38),
           ),
           IgnorePointer(
             child: _Lys(lys: lys, alfa: .5, radius: .5, blend: BlendMode.overlay),

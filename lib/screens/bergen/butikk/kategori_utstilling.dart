@@ -50,31 +50,67 @@ class _Gavebutikk {
 
 // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
 const List<_Gavebutikk> _kGavebutikker = [
-  _Gavebutikk('Blomsterhjørnet', 'BH', Color(0xFFD9A254), Color(0xFFF7E6C2), '35–45 min', 'Gratis levering', true, 18, '4,9 (48)',
-      '«Den som alltid får et smil i døra»', 'Ida, Blomsterhjørnet', [
-    ('Bukett «Vågen»', 399, 'blomst'),
-    ('Tulipaner, 20 stk', 249, 'blomst'),
-    ('Orkidé i potte', 349, 'blomst'),
-    ('Kort og bånd', 89, 'kort'),
-    ('Sjokolade fra Bergen', 199, 'eske'),
-    ('Krans i eukalyptus', 649, 'blomst'),
-  ]),
-  _Gavebutikk('Gavehuset', 'GH', Color(0xFF1E4F5C), Color(0xFFDCE9EC), '30–45 min', '49 kr', true, 20, '4,6 (57)',
-      '«Koppen alle spør hvor er fra»', 'Tor, Gavehuset', [
-    ('Sjokoladeeske', 199, 'eske'),
-    ('Håndlaget kopp', 279, 'eske'),
-    ('Lykt i messing', 549, 'eske'),
-    ('Fløibanen for to', 690, 'kort'),
-    ('Ullpledd «Ulriken»', 899, 'eske'),
-    ('Byggesett båt', 329, 'eske'),
-  ]),
-  _Gavebutikk('Papirbutikken', 'PB', null, Color(0xFFF4F1EA), '35–50 min', '45 kr', false, 17, '4,7 (61)',
-      '«Papiret som tåler bergensk fuktighet»', 'Live, Papirbutikken', [
-    ('Kort og bånd', 89, 'kort'),
-    ('Notatbok i lin', 249, 'eske'),
-    ('Fyllepenn', 590, 'eske'),
-    ('Kalender 2027 · Bergen', 299, 'eske'),
-  ]),
+  _Gavebutikk(
+    'Blomsterhjørnet',
+    'BH',
+    Color(0xFFD9A254),
+    Color(0xFFF7E6C2),
+    '35–45 min',
+    'Gratis levering',
+    true,
+    18,
+    '4,9 (48)',
+    '«Den som alltid får et smil i døra»',
+    'Ida, Blomsterhjørnet',
+    [
+      ('Bukett «Vågen»', 399, 'blomst'),
+      ('Tulipaner, 20 stk', 249, 'blomst'),
+      ('Orkidé i potte', 349, 'blomst'),
+      ('Kort og bånd', 89, 'kort'),
+      ('Sjokolade fra Bergen', 199, 'eske'),
+      ('Krans i eukalyptus', 649, 'blomst'),
+    ],
+  ),
+  _Gavebutikk(
+    'Gavehuset',
+    'GH',
+    Color(0xFF1E4F5C),
+    Color(0xFFDCE9EC),
+    '30–45 min',
+    '49 kr',
+    true,
+    20,
+    '4,6 (57)',
+    '«Koppen alle spør hvor er fra»',
+    'Tor, Gavehuset',
+    [
+      ('Sjokoladeeske', 199, 'eske'),
+      ('Håndlaget kopp', 279, 'eske'),
+      ('Lykt i messing', 549, 'eske'),
+      ('Fløibanen for to', 690, 'kort'),
+      ('Ullpledd «Ulriken»', 899, 'eske'),
+      ('Byggesett båt', 329, 'eske'),
+    ],
+  ),
+  _Gavebutikk(
+    'Papirbutikken',
+    'PB',
+    null,
+    Color(0xFFF4F1EA),
+    '35–50 min',
+    '45 kr',
+    false,
+    17,
+    '4,7 (61)',
+    '«Papiret som tåler bergensk fuktighet»',
+    'Live, Papirbutikken',
+    [
+      ('Kort og bånd', 89, 'kort'),
+      ('Notatbok i lin', 249, 'eske'),
+      ('Fyllepenn', 590, 'eske'),
+      ('Kalender 2027 · Bergen', 299, 'eske'),
+    ],
+  ),
 ];
 
 const List<String> _kAnledninger = ['Bursdag', 'Jul', 'Takk', 'Nyfødt', 'Bryllup', 'Jubileum', 'Bare fordi'];
@@ -197,7 +233,9 @@ class _Bronn extends StatelessWidget {
             top: formTopp * s,
             left: 0,
             right: 0,
-            child: Center(child: _Form(g: g, w: form)),
+            child: Center(
+              child: _Form(g: g, w: form),
+            ),
           ),
         ],
       ),
@@ -332,10 +370,11 @@ class _Form extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: r,
-                    gradient: cssLinear(125, const [
-                      Color.fromRGBO(255, 255, 255, .55),
-                      Color.fromRGBO(255, 255, 255, 0),
-                    ], const [0, .38]),
+                    gradient: cssLinear(
+                      125,
+                      const [Color.fromRGBO(255, 255, 255, .55), Color.fromRGBO(255, 255, 255, 0)],
+                      const [0, .38],
+                    ),
                   ),
                 ),
               ),
@@ -462,9 +501,7 @@ class KatGaverSide extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 8 * s),
                     decoration: _glass(s, 999, myk: false),
                     child: Stack(
-                      children: [
-                        Text(_kAnledninger[i], style: bText(context, 11.5, weight: FontWeight.w800)),
-                      ],
+                      children: [Text(_kAnledninger[i], style: bText(context, 11.5, weight: FontWeight.w800))],
                     ),
                   ),
                 ),
@@ -481,9 +518,13 @@ class KatGaverSide extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _PopKort(g: pop[i], antall: antall[i], time: time, onTap: onSnart)),
+                Expanded(
+                  child: _PopKort(g: pop[i], antall: antall[i], time: time, onTap: onSnart),
+                ),
                 SizedBox(width: 12 * s),
-                Expanded(child: _PopKort(g: pop[i + 1], antall: antall[i + 1], time: time, onTap: onSnart)),
+                Expanded(
+                  child: _PopKort(g: pop[i + 1], antall: antall[i + 1], time: time, onTap: onSnart),
+                ),
               ],
             ),
           ),
@@ -519,7 +560,12 @@ class _IdagKort extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(g.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 11.5, weight: FontWeight.w800)),
+                    Text(
+                      g.navn,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: bText(context, 11.5, weight: FontWeight.w800),
+                    ),
                     SizedBox(height: 2 * s),
                     Text(g.prisTekst, style: bText(context, 12.5, weight: FontWeight.w800)),
                     SizedBox(height: 2 * s),
@@ -655,9 +701,7 @@ class _GaveUtstillingState extends State<_GaveUtstilling> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(3 * s),
                     color: i == _vis ? null : rgba(255, 255, 255, .3),
-                    gradient: i == _vis
-                        ? const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)])
-                        : null,
+                    gradient: i == _vis ? const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)]) : null,
                   ),
                 ),
               ],
@@ -826,7 +870,10 @@ class _UtstillingKort extends StatelessWidget {
                             colors: [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)],
                           ),
                         ),
-                        child: Text(lev.$1, style: bText(context, 10, weight: FontWeight.w800, color: lev.$2)),
+                        child: Text(
+                          lev.$1,
+                          style: bText(context, 10, weight: FontWeight.w800, color: lev.$2),
+                        ),
                       ),
                     ),
                   ],
@@ -837,7 +884,12 @@ class _UtstillingKort extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(g.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: bDisplay(context, 15, letterSpacingEm: -.02)),
+                    Text(
+                      g.navn,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: bDisplay(context, 15, letterSpacingEm: -.02),
+                    ),
                     SizedBox(height: 2 * s),
                     Text(
                       g.but.navn,
@@ -949,9 +1001,17 @@ class _GaveButikkRad extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SokIkon('M4 11h16v9H4zM12 11v9M3 7h18v4H3z', size: 10 * s, color: const Color(0xFF7FF0CB), stroke: 2.6),
+                      SokIkon(
+                        'M4 11h16v9H4zM12 11v9M3 7h18v4H3z',
+                        size: 10 * s,
+                        color: const Color(0xFF7FF0CB),
+                        stroke: 2.6,
+                      ),
                       SizedBox(width: 4 * s),
-                      Text('Innpakning', style: bText(context, 10, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                      Text(
+                        'Innpakning',
+                        style: bText(context, 10, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)),
+                      ),
                     ],
                   ),
                 ),
@@ -992,13 +1052,20 @@ class _PopKort extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(g.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 11.5, weight: FontWeight.w800)),
+                    Text(
+                      g.navn,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: bText(context, 11.5, weight: FontWeight.w800),
+                    ),
                     SizedBox(height: 2 * s),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Expanded(child: Text(g.prisTekst, style: bText(context, 12.5, weight: FontWeight.w800))),
+                        Expanded(
+                          child: Text(g.prisTekst, style: bText(context, 12.5, weight: FontWeight.w800)),
+                        ),
                         Text(
                           '$antall i Bergenhus',
                           style: bText(context, 10, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
@@ -1006,7 +1073,10 @@ class _PopKort extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 2 * s),
-                    Text(lev.$1, style: bText(context, 10, weight: FontWeight.w700, color: lev.$2)),
+                    Text(
+                      lev.$1,
+                      style: bText(context, 10, weight: FontWeight.w700, color: lev.$2),
+                    ),
                   ],
                 ),
               ),
@@ -1035,9 +1105,30 @@ class _Plagg {
 
 // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
 const List<_Plagg> _kPlagg = [
-  _Plagg('Hettejakke «Ives»', '2 499 kr', 'assets/images/dashboard/kat_tos_hoodie.jpg', .18, '«Den jeg tar på hver regndag»', 'Sara, Torgboden Mote'),
-  _Plagg('T-skjorte «Dillan»', '899 kr', 'assets/images/dashboard/kat_tos_tee.jpg', .2, '«Tykk bomull, holder formen»', 'Jonas, Filippa K'),
-  _Plagg('Jeans «Rosco»', '1 999 kr', 'assets/images/dashboard/kat_tos_jeans.jpg', .3, '«Sitter godt uten å stramme»', 'Mia, Norse Projects'),
+  _Plagg(
+    'Hettejakke «Ives»',
+    '2 499 kr',
+    'assets/images/dashboard/kat_tos_hoodie.jpg',
+    .18,
+    '«Den jeg tar på hver regndag»',
+    'Sara, Torgboden Mote',
+  ),
+  _Plagg(
+    'T-skjorte «Dillan»',
+    '899 kr',
+    'assets/images/dashboard/kat_tos_tee.jpg',
+    .2,
+    '«Tykk bomull, holder formen»',
+    'Jonas, Filippa K',
+  ),
+  _Plagg(
+    'Jeans «Rosco»',
+    '1 999 kr',
+    'assets/images/dashboard/kat_tos_jeans.jpg',
+    .3,
+    '«Sitter godt uten å stramme»',
+    'Mia, Norse Projects',
+  ),
 ];
 
 /// The three plinth places: front, right, left.
@@ -1054,8 +1145,8 @@ const List<_Plass> _kPlass = [
   _Plass(88, 70, 84, 106, .82, 0, -60, 34, true),
 ];
 
-/// "Ukens utstilling · Mote": three garments on a lit plinth that turns to
-/// the next every 8s (or with a swipe), dust rising, a dashed ring orbiting.
+/// "Ukens utstilling · Mote" on the Kategori page: the week's three
+/// garments on [MoteSkive].
 class KatMoteUtstilling extends StatefulWidget {
   const KatMoteUtstilling({super.key, required this.onSnart});
 
@@ -1067,9 +1158,79 @@ class KatMoteUtstilling extends StatefulWidget {
 }
 
 class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
+  bool _lagret = false;
+
+  @override
+  Widget build(BuildContext context) => MoteSkive(
+    key: const Key('a1_kat_mote'),
+    tittel: 'Ukens utstilling · Mote',
+    undertittel: '3 butikker',
+    knapp: 'Velg størrelse',
+    varer: [
+      for (final p in _kPlagg)
+        MoteSkiveVare(navn: p.navn, pris: p.pris, bilde: AssetImage(p.bilde), y: p.y, sitat: p.sitat, hvem: p.hvem),
+    ],
+    lagret: (_) => _lagret,
+    onLagre: (_) {
+      HapticFeedback.selectionClick();
+      setState(() => _lagret = !_lagret);
+      showBergenToast(context, _lagret ? 'Lagret · vi sier fra hvis prisen faller' : 'Fjernet fra lagret');
+    },
+    onApne: (_) => widget.onSnart(),
+    onKnapp: (_) => widget.onSnart(),
+  );
+}
+
+/// One garment on [MoteSkive].
+class MoteSkiveVare {
+  const MoteSkiveVare({required this.navn, required this.pris, this.bilde, this.y = .2, this.sitat, this.hvem});
+
+  final String navn;
+  final String pris;
+  final ImageProvider? bilde;
+
+  /// `background-position` y (0–1).
+  final double y;
+  final String? sitat;
+  final String? hvem;
+}
+
+/// The Dreieskiven (L3438 / L6015): three garments on a lit plinth that turns
+/// to the next every 8s (or with a swipe, 1–3 steps by speed), a dashed ring
+/// orbiting, the front one floating with its price tag. [butikk] is the
+/// store page's version: the stage is the card's width with the ring at its
+/// centre and the garments mirrored in the plinth, no dust.
+class MoteSkive extends StatefulWidget {
+  const MoteSkive({
+    super.key,
+    required this.varer,
+    required this.tittel,
+    this.undertittel,
+    required this.knapp,
+    required this.lagret,
+    required this.onLagre,
+    required this.onApne,
+    required this.onKnapp,
+    this.butikk = false,
+  });
+
+  final List<MoteSkiveVare> varer;
+  final String tittel;
+  final String? undertittel;
+  final String knapp;
+  final bool Function(int i) lagret;
+  final ValueChanged<int> onLagre;
+  final ValueChanged<int> onApne;
+  final ValueChanged<int> onKnapp;
+  final bool butikk;
+
+  @override
+  State<MoteSkive> createState() => _MoteSkiveState();
+}
+
+class _MoteSkiveState extends State<MoteSkive> {
   int _idx = 0;
   bool _tatt = false;
-  bool _lagret = false;
   Timer? _auto;
   double? _x0;
   DateTime _t0 = DateTime.now();
@@ -1078,7 +1239,9 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
   void initState() {
     super.initState();
     _auto = Timer.periodic(const Duration(seconds: 8), (_) {
-      if (!_tatt && mounted) setState(() => _idx++);
+      if (_tatt || !mounted || !TickerMode.of(context)) return;
+      if (ModalRoute.of(context)?.isCurrent == false) return;
+      setState(() => _idx++);
     });
   }
 
@@ -1106,21 +1269,27 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    final n = _kPlagg.length;
+    final varer = widget.varer;
+    final n = varer.length;
+    if (n == 0) return const SizedBox.shrink();
     final idx = ((_idx % n) + n) % n;
-    final front = _kPlagg[idx];
+    final front = varer[idx];
+    final butikk = widget.butikk;
     return Column(
-      key: const Key('a1_kat_mote'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(2 * s, 2 * s, 2 * s, 0),
+          padding: butikk ? EdgeInsets.zero : EdgeInsets.fromLTRB(2 * s, 2 * s, 2 * s, 0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Expanded(child: Text('Ukens utstilling · Mote', style: bDisplay(context, 15, letterSpacingEm: -.015))),
-              Text('3 butikker', style: bText(context, 10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .6))),
+              Expanded(child: Text(widget.tittel, style: bDisplay(context, 15, letterSpacingEm: -.015))),
+              if (widget.undertittel case final u?)
+                Text(
+                  u,
+                  style: bText(context, 10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .6)),
+                ),
             ],
           ),
         ),
@@ -1137,14 +1306,16 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
               height: 250 * s,
               child: LayoutBuilder(
                 builder: (context, c) {
-                  // The design's stage is 358 wide; place by its centre.
-                  final mx = c.maxWidth / 2 - 179 * s;
+                  // The design's stage is 358 wide; place by its centre. In
+                  // the store card it starts at the card's padding.
+                  final mx = butikk ? 0.0 : c.maxWidth / 2 - 179 * s;
+                  final ox = butikk ? 0.0 : mx - 16 * s;
                   return Stack(
                     clipBehavior: Clip.none,
                     children: [
                       _plint(s),
                       Positioned(
-                        left: mx + (195 - 16 - 125) * s,
+                        left: butikk ? c.maxWidth / 2 - 125 * s : mx + (195 - 16 - 125) * s,
                         top: (195 - 125) * s,
                         width: 250 * s,
                         height: 250 * s,
@@ -1167,21 +1338,19 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
                           ),
                         ),
                       ),
-                      Positioned.fill(child: IgnorePointer(child: RepaintBoundary(child: _Stov(mx: mx)))),
-                      for (final i in _rekkefolge(idx, n))
-                        _plagg(context, i, ((i - idx) % n + n) % n, mx),
+                      if (!butikk)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: RepaintBoundary(child: _Stov(mx: mx)),
+                          ),
+                        ),
+                      for (final i in _rekkefolge(idx, n)) _plagg(context, i, ((i - idx) % n + n) % n, ox),
                       Positioned(
                         right: 22 * s,
                         top: 150 * s,
                         child: GestureDetector(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            setState(() => _lagret = !_lagret);
-                            showBergenToast(
-                              context,
-                              _lagret ? 'Lagret · vi sier fra hvis prisen faller' : 'Fjernet fra lagret',
-                            );
-                          },
+                          key: const Key('a1_mote_skive_lagre'),
+                          onTap: () => widget.onLagre(idx),
                           child: Container(
                             width: 36 * s,
                             height: 36 * s,
@@ -1206,7 +1375,7 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
-                                if (_lagret)
+                                if (widget.lagret(idx))
                                   SokIkon(
                                     'M12 20.4l-7.2-7.2a4.9 4.9 0 1 1 7-7l.2.3.2-.3a4.9 4.9 0 1 1 7 7z',
                                     size: 15 * s,
@@ -1249,33 +1418,47 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      front.navn,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: bDisplay(context, 20, letterSpacingEm: -.025, height: 1.1),
-                    ),
-                    SizedBox(height: 4 * s),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(text: front.sitat),
-                          TextSpan(
-                            text: ' — ${front.hvem}',
-                            style: TextStyle(fontStyle: FontStyle.normal, color: rgba(255, 255, 255, .58)),
-                          ),
-                        ],
+                    GestureDetector(
+                      onTap: () => widget.onApne(idx),
+                      child: Text(
+                        front.navn,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: bDisplay(context, 20, letterSpacingEm: -.025, height: 1.1),
                       ),
-                      style: bText(context, 12, weight: FontWeight.w600, height: 1.35, color: rgba(255, 255, 255, .88))
-                          .copyWith(fontStyle: FontStyle.italic),
                     ),
+                    if (front.sitat != null) ...[
+                      SizedBox(height: 4 * s),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(text: front.sitat),
+                            if (front.hvem != null)
+                              TextSpan(
+                                text: ' — ${front.hvem}',
+                                style: TextStyle(fontStyle: FontStyle.normal, color: rgba(255, 255, 255, .58)),
+                              ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: bText(
+                          context,
+                          12,
+                          weight: FontWeight.w600,
+                          height: 1.35,
+                          color: rgba(255, 255, 255, .88),
+                        ).copyWith(fontStyle: FontStyle.italic),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
             SizedBox(width: 14 * s),
             OnbPressable(
-              onTap: widget.onSnart,
+              key: const Key('a1_mote_skive_knapp'),
+              onTap: () => widget.onKnapp(idx),
               pressDy: 0,
               pressScale: .94,
               child: Container(
@@ -1301,7 +1484,7 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
                       children: [
                         SokIkon('M12 5v14M5 12h14', size: 13 * s, color: Colors.white, stroke: 2.8),
                         SizedBox(width: 6 * s),
-                        Text('Velg størrelse', style: bDisplay(context, 13)),
+                        Text(widget.knapp, style: bDisplay(context, 13)),
                       ],
                     ),
                   ],
@@ -1393,15 +1576,57 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
     ),
   );
 
-  Widget _plagg(BuildContext context, int i, int rel, double mx) {
+  Widget _plagg(BuildContext context, int i, int rel, double ox) {
     final s = context.bs;
-    final v = _kPlagg[i];
+    final v = widget.varer[i];
     final p = _kPlass[math.min(rel, 2)];
     const c = Cubic(.3, 1.25, .5, 1);
     const ms = Duration(milliseconds: 600);
     Widget kort = Stack(
       clipBehavior: Clip.none,
       children: [
+        // The garment mirrored in the plinth (`scaleY(-1)`, .22, fading out).
+        if (widget.butikk && v.bilde != null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: LayoutBuilder(
+                builder: (context, k) => Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: k.maxWidth * .06,
+                      right: k.maxWidth * .06,
+                      top: k.maxHeight * 1.03,
+                      height: k.maxHeight * .34,
+                      child: Opacity(
+                        opacity: .22,
+                        child: ShaderMask(
+                          blendMode: BlendMode.dstIn,
+                          shaderCallback: (r) => const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.black, Colors.transparent],
+                          ).createShader(r),
+                          child: Transform.flip(
+                            flipY: true,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10 * s),
+                              child: Image(
+                                image: v.bilde!,
+                                fit: BoxFit.cover,
+                                alignment: Alignment(0, v.y * 2 - 1),
+                                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         // The back slab (`translateZ(-10px)`, 4/5px down-right).
         Positioned(
           left: 4 * s,
@@ -1438,7 +1663,15 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(v.bilde, fit: BoxFit.cover, alignment: Alignment(0, v.y * 2 - 1)),
+                  if (v.bilde case final b?)
+                    Image(
+                      image: b,
+                      fit: BoxFit.cover,
+                      alignment: Alignment(0, v.y * 2 - 1),
+                      errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFFE8E2D6)),
+                    )
+                  else
+                    const ColoredBox(color: Color(0xFFE8E2D6)),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -1451,10 +1684,11 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
                   ),
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: cssLinear(115, const [
-                        Color.fromRGBO(255, 255, 255, .4),
-                        Color.fromRGBO(255, 255, 255, 0),
-                      ], const [0, .4]),
+                      gradient: cssLinear(
+                        115,
+                        const [Color.fromRGBO(255, 255, 255, .4), Color.fromRGBO(255, 255, 255, 0)],
+                        const [0, .4],
+                      ),
                     ),
                   ),
                   const RepaintBoundary(child: _Glint()),
@@ -1507,10 +1741,7 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
                     BoxShadow(color: Colors.white, spreadRadius: 1.5 * s),
                   ],
                 ),
-                child: Text(
-                  v.pris,
-                  style: bDisplay(context, 11.5, color: const Color(0xFF3A2E12)),
-                ),
+                child: Text(v.pris, style: bDisplay(context, 11.5, color: const Color(0xFF3A2E12))),
               ),
             ),
           ),
@@ -1524,12 +1755,12 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
       key: ValueKey('plagg-$i'),
       duration: ms,
       curve: c,
-      left: mx + (p.x - 16 - p.w / 2) * s,
+      left: ox + (p.x - p.w / 2) * s,
       top: p.y * s,
       width: p.w * s,
       height: p.h * s,
       child: GestureDetector(
-        onTap: widget.onSnart,
+        onTap: () => widget.onApne(i),
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 400),
           opacity: p.op,
@@ -1675,9 +1906,7 @@ class _Stov extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    return OnbLoopClock(
-      builder: (context, t, _) => CustomPaint(painter: _StovMaler(t, s, mx)),
-    );
+    return OnbLoopClock(builder: (context, t, _) => CustomPaint(painter: _StovMaler(t, s, mx)));
   }
 }
 

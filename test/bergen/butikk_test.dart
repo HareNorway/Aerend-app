@@ -10,11 +10,12 @@ import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/butikk/automat_screen.dart';
 import 'package:aerend_customer/screens/bergen/butikk/butikk_copy.dart';
 import 'package:aerend_customer/screens/bergen/butikk/butikk_screen.dart';
-import 'package:aerend_customer/screens/bergen/butikk/dreieskiven.dart';
 import 'package:aerend_customer/screens/bergen/butikk/info_sheet.dart';
 import 'package:aerend_customer/screens/bergen/butikk/kategori_screen.dart';
+import 'package:aerend_customer/screens/bergen/butikk/kategori_utstilling.dart';
 import 'package:aerend_customer/screens/bergen/butikk/klede_sheet.dart';
 import 'package:aerend_customer/screens/bergen/butikk/produkt_sheet.dart';
+import 'package:aerend_customer/screens/bergen/kit/drape_route.dart';
 import 'package:aerend_customer/screens/common/home/home_dl.dart';
 import 'package:aerend_customer/screens/deliveryService/home/ds_home_store_list_pojo.dart';
 import 'package:aerend_customer/screens/deliveryService/searchStore/search_store_dl.dart';
@@ -37,13 +38,9 @@ class _FakeButikk extends OpsButikkApi {
   @override
   Future<List<StoreListItem>> storesInCategory(int categoryId) async => stores;
   @override
-  Future<List<ProductList>> productsInCategory(
-    int categoryId, {
-    String query = '',
-  }) async => products;
+  Future<List<ProductList>> productsInCategory(int categoryId, {String query = ''}) async => products;
   @override
-  Future<BergenStoreInfo?> store(int storeId, {String? categoryHint}) async =>
-      storeInfo;
+  Future<BergenStoreInfo?> store(int storeId, {String? categoryHint}) async => storeInfo;
   @override
   Future<BergenProductOptions> options(int productId) async => opts;
   @override
@@ -51,11 +48,7 @@ class _FakeButikk extends OpsButikkApi {
 }
 
 class _FakeCustomer extends OpsCustomerApi {
-  _FakeCustomer({
-    this.pulse,
-    this.bags = const [],
-    this.populaerListe = const [],
-  });
+  _FakeCustomer({this.pulse, this.bags = const [], this.populaerListe = const []});
 
   final Map<String, dynamic>? pulse;
   final Map<String, dynamic>? presence = null;
@@ -63,8 +56,7 @@ class _FakeCustomer extends OpsCustomerApi {
   final List<Map<String, dynamic>> populaerListe;
 
   @override
-  Future<List<Map<String, dynamic>>> populaert(int categoryId) async =>
-      populaerListe;
+  Future<List<Map<String, dynamic>>> populaert(int categoryId) async => populaerListe;
 
   @override
   Future<Map<String, dynamic>?> categoryPulse(String slug) async => pulse;
@@ -78,21 +70,20 @@ class _FakeCustomer extends OpsCustomerApi {
   Future<List<Map<String, dynamic>>> poser() async => bags;
 }
 
-StoreListItem _store(String name, {int id = 7, int eta = 25}) =>
-    StoreListItem.fromJson({
-      'store_id': id,
-      'store_name': name,
-      'store_banner': '',
-      'store_products': 'Burgere · Kylling',
-      'average_ratings': 4.6,
-      'total_reviews': 12,
-      'store_open_time': '10:00',
-      'offer': '',
-      'order_delivery_time': eta,
-      'order_min_amount': 150,
-      'store_status': 1,
-      'distance': 1.2,
-    });
+StoreListItem _store(String name, {int id = 7, int eta = 25}) => StoreListItem.fromJson({
+  'store_id': id,
+  'store_name': name,
+  'store_banner': '',
+  'store_products': 'Burgere · Kylling',
+  'average_ratings': 4.6,
+  'total_reviews': 12,
+  'store_open_time': '10:00',
+  'offer': '',
+  'order_delivery_time': eta,
+  'order_min_amount': 150,
+  'store_status': 1,
+  'distance': 1.2,
+});
 
 /// The cart: lines by cart id; −/+/remove change it like the API would.
 class _FakeKasse extends OpsKasseApi {
@@ -134,13 +125,7 @@ class _FakeKasse extends OpsKasseApi {
   }
 }
 
-BergenMenuItem _item(
-  int id,
-  String name,
-  double price, {
-  double? was,
-  String? cat,
-}) => BergenMenuItem(
+BergenMenuItem _item(int id, String name, double price, {double? was, String? cat}) => BergenMenuItem(
   id: id,
   name: name,
   storeId: 7,
@@ -163,23 +148,14 @@ BergenStoreInfo _restaurant() => BergenStoreInfo(
   rating: '4,6',
   address: 'Strømgaten 8, Bergen',
   distanceKm: 1.2,
-  hours: const [
-    BergenStoreHours(day: 'Mandag', opens: '10:00', closes: '22:30'),
-  ],
+  hours: const [BergenStoreHours(day: 'Mandag', opens: '10:00', closes: '22:30')],
   menu: [
     BergenMenuCategory(
       id: 1,
       name: 'Burgere',
-      items: [
-        _item(1, 'Dobbel cheeseburger', 149, was: 179),
-        _item(2, 'Crispy chicken', 129),
-      ],
+      items: [_item(1, 'Dobbel cheeseburger', 149, was: 179), _item(2, 'Crispy chicken', 129)],
     ),
-    BergenMenuCategory(
-      id: 2,
-      name: 'Tilbehør',
-      items: [_item(3, 'Pommes frites, stor', 59)],
-    ),
+    BergenMenuCategory(id: 2, name: 'Tilbehør', items: [_item(3, 'Pommes frites, stor', 59)]),
   ],
 );
 
@@ -224,10 +200,7 @@ void main() {
 
   test('the three Phase 4 routes are in the agil-1 map', () {
     final keys = bergenRoutesAgil1().keys;
-    expect(
-      keys,
-      containsAll(['/bergen/kategori', '/bergen/butikk', '/bergen/automat']),
-    );
+    expect(keys, containsAll(['/bergen/kategori', '/bergen/butikk', '/bergen/automat']));
   });
 
   test('a store kind comes from its category name', () {
@@ -253,12 +226,8 @@ void main() {
           slug: 'restaurant',
           categoryId: 3,
           name: 'Restaurant',
-          api: _FakeButikk(
-            stores: [_store('Burger King'), _store('Casa Maria', id: 8)],
-          ),
-          customerApi: _FakeCustomer(
-            pulse: {'orders_last_hour': 12, 'stores_open': 9},
-          ),
+          api: _FakeButikk(stores: [_store('Burger King'), _store('Casa Maria', id: 8)]),
+          customerApi: _FakeCustomer(pulse: {'orders_last_hour': 12, 'stores_open': 9}),
         ),
       );
 
@@ -269,11 +238,7 @@ void main() {
       expect(find.text('Pizza'), findsOneWidget);
       expect(find.text('Burger King'), findsOneWidget);
       expect(find.text('Casa Maria'), findsOneWidget);
-      expect(
-        find.byKey(const Key('a1_kat_bilde')),
-        findsNothing,
-        reason: 'Bestill fra bilde is Mat & fisk only',
-      );
+      expect(find.byKey(const Key('a1_kat_bilde')), findsNothing, reason: 'Bestill fra bilde is Mat & fisk only');
 
       await tester.tap(find.byKey(const Key('a1_kat_tab_produkter')));
       await tester.pump();
@@ -287,9 +252,7 @@ void main() {
           slug: 'restaurant',
           categoryId: 3,
           name: 'Restaurant',
-          api: _FakeButikk(
-            stores: [_store('Rask', eta: 20), _store('Treg', id: 8, eta: 45)],
-          ),
+          api: _FakeButikk(stores: [_store('Rask', eta: 20), _store('Treg', id: 8, eta: 45)]),
           customerApi: _FakeCustomer(),
         ),
       );
@@ -303,18 +266,14 @@ void main() {
       expect(find.text('Treg'), findsNothing);
     });
 
-    testWidgets('the orb turns the chips into a search over the list', (
-      tester,
-    ) async {
+    testWidgets('the orb turns the chips into a search over the list', (tester) async {
       await vis(
         tester,
         KategoriScreen(
           slug: 'restaurant',
           categoryId: 3,
           name: 'Restaurant',
-          api: _FakeButikk(
-            stores: [_store('Burger King'), _store('Casa Maria', id: 8)],
-          ),
+          api: _FakeButikk(stores: [_store('Burger King'), _store('Casa Maria', id: 8)]),
           customerApi: _FakeCustomer(),
         ),
       );
@@ -328,9 +287,7 @@ void main() {
       expect(find.text('Burger King'), findsNothing);
     });
 
-    testWidgets('products come from the category\'s popular list', (
-      tester,
-    ) async {
+    testWidgets('products come from the category\'s popular list', (tester) async {
       await vis(
         tester,
         KategoriScreen(
@@ -380,13 +337,7 @@ void main() {
     testWidgets('Gaver has its own page, Mote its exhibition', (tester) async {
       await vis(
         tester,
-        KategoriScreen(
-          slug: 'gaver',
-          categoryId: 5,
-          name: 'Gaver',
-          api: _FakeButikk(),
-          customerApi: _FakeCustomer(),
-        ),
+        KategoriScreen(slug: 'gaver', categoryId: 5, name: 'Gaver', api: _FakeButikk(), customerApi: _FakeCustomer()),
       );
       expect(find.byKey(const Key('a1_kat_gaver')), findsOneWidget);
       expect(find.byKey(const Key('a1_kat_gave_aegil')), findsOneWidget);
@@ -424,18 +375,11 @@ void main() {
 
   group('Butikk (restaurant)', () {
     String plain(WidgetTester t, String key) => t
-        .widget<RichText>(
-          find.descendant(
-            of: find.byKey(Key(key)),
-            matching: find.byType(RichText),
-          ),
-        )
+        .widget<RichText>(find.descendant(of: find.byKey(Key(key)), matching: find.byType(RichText)))
         .text
         .toPlainText();
 
-    testWidgets('hero, voyage, Kjøkkenluka, orbs, menu and info tiles', (
-      tester,
-    ) async {
+    testWidgets('hero, voyage, the Tilbud orb, menu and info tiles', (tester) async {
       _frame(tester);
       await tester.pumpWidget(
         _app(
@@ -459,17 +403,12 @@ void main() {
         plain(tester, 'a1_butikk_neste'),
         '150 kr ${ButikkCopy.a1_butikk_til_navn(ButikkCopy.a1_butikk_minstebestilling)}',
       );
-      expect(
-        find.byKey(const Key('a1_butikk_kjokkenluka')),
-        findsOneWidget,
-        reason: 'one discounted item → a special',
-      );
+      // Launch hides Kjøkkenluka (`visGammelSpesial`); a discounted item
+      // puts the Tilbud orb right after Alt.
+      expect(find.byKey(const Key('a1_butikk_kjokkenluka')), findsNothing);
       expect(find.byKey(const Key('a1_butikk_kat_0')), findsOneWidget);
-      expect(
-        find.byKey(const Key('a1_butikk_kurvbar')),
-        findsNothing,
-        reason: 'an empty cart has no bar',
-      );
+      expect(find.byKey(const Key('a1_butikk_kat_1')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_kurvbar')), findsNothing, reason: 'an empty cart has no bar');
 
       await tester.tap(find.byKey(const Key('a1_butikk_info_t')));
       await tester.pump();
@@ -478,9 +417,7 @@ void main() {
       expect(find.text('10:00–22:30'), findsOneWidget);
     });
 
-    testWidgets('the menu: the orbs filter, the search pill finds dishes', (
-      tester,
-    ) async {
+    testWidgets('the menu: the orbs filter, the search pill finds dishes', (tester) async {
       _frame(tester);
       await tester.pumpWidget(
         _app(
@@ -503,50 +440,31 @@ void main() {
       );
       expect(find.byKey(const Key('a1_butikk_menu_1')), findsOneWidget);
 
-      // Tilbehør (orb 2) leaves only the fries.
+      // Tilbehør (orb 3: Alt, Tilbud, Burgere, Tilbehør) leaves only the
+      // fries, after the grid's fade-out (`bkBytt`).
       await tester.ensureVisible(find.byKey(const Key('a1_butikk_kat_0')));
       await tester.pump();
-      await tester.tap(find.byKey(const Key('a1_butikk_kat_2')));
-      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const Key('a1_butikk_kat_3')));
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 700));
       expect(find.byKey(const Key('a1_butikk_menu_1')), findsNothing);
       expect(find.byKey(const Key('a1_butikk_menu_3')), findsOneWidget);
 
-      await tester.ensureVisible(
-        find.byKey(const Key('a1_butikk_meny_sok_knapp')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('a1_butikk_meny_sok_knapp')));
       await tester.pump();
       await tester.tap(find.byKey(const Key('a1_butikk_meny_sok_knapp')));
       await tester.pump(const Duration(milliseconds: 600));
-      await tester.enterText(
-        find.byKey(const Key('a1_butikk_meny_sok')),
-        'crispy',
-      );
+      await tester.enterText(find.byKey(const Key('a1_butikk_meny_sok')), 'crispy');
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byKey(const Key('a1_butikk_menu_2')), findsOneWidget);
       expect(find.byKey(const Key('a1_butikk_menu_3')), findsNothing);
     });
 
-    testWidgets('the basket: the bar, the steppers, the mini list, the total', (
-      tester,
-    ) async {
+    testWidgets('the basket: the bar, the steppers, the mini list, the total', (tester) async {
       _frame(tester);
       final kasse = _FakeKasse([
-        const KurvLine(
-          cartId: 91,
-          productId: 1,
-          name: 'Dobbel cheeseburger',
-          quantity: 1,
-          unitPrice: 149,
-          storeId: 7,
-        ),
-        const KurvLine(
-          cartId: 92,
-          productId: 55,
-          name: 'Other store',
-          quantity: 1,
-          unitPrice: 999,
-          storeId: 8,
-        ),
+        const KurvLine(cartId: 91, productId: 1, name: 'Dobbel cheeseburger', quantity: 1, unitPrice: 149, storeId: 7),
+        const KurvLine(cartId: 92, productId: 55, name: 'Other store', quantity: 1, unitPrice: 999, storeId: 8),
       ]);
       await tester.pumpWidget(
         _app(
@@ -581,19 +499,10 @@ void main() {
       expect(find.byKey(const Key('a1_butikk_kurvbar')), findsNothing);
     });
 
-    testWidgets('the mini list changes quantities and empties the basket', (
-      tester,
-    ) async {
+    testWidgets('the mini list changes quantities and empties the basket', (tester) async {
       _frame(tester);
       final kasse = _FakeKasse([
-        const KurvLine(
-          cartId: 91,
-          productId: 1,
-          name: 'Dobbel cheeseburger',
-          quantity: 2,
-          unitPrice: 149,
-          storeId: 7,
-        ),
+        const KurvLine(cartId: 91, productId: 1, name: 'Dobbel cheeseburger', quantity: 2, unitPrice: 149, storeId: 7),
       ]);
       await tester.pumpWidget(
         _app(
@@ -653,15 +562,7 @@ void main() {
 
     testWidgets('a missing store says so', (tester) async {
       _frame(tester);
-      await tester.pumpWidget(
-        _app(
-          ButikkScreen(
-            storeId: 404,
-            api: _FakeButikk(),
-            customerApi: _FakeCustomer(),
-          ),
-        ),
-      );
+      await tester.pumpWidget(_app(ButikkScreen(storeId: 404, api: _FakeButikk(), customerApi: _FakeCustomer())));
       await tester.pump();
       await tester.pump();
       expect(find.byKey(const Key('a1_butikk_not_found')), findsOneWidget);
@@ -676,32 +577,78 @@ void main() {
             preloaded: _fashion(),
             api: _FakeButikk(),
             customerApi: _FakeCustomer(),
+            kasseApi: _FakeKasse(),
           ),
         ),
       );
       await tester.pump();
-      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
 
-      expect(find.byKey(const Key('a1_butikk_mote_label')), findsOneWidget);
-      expect(find.text(ButikkCopy.a1_butikk_mote_label), findsOneWidget);
-      expect(find.byKey(const Key('a1_butikk_dreieskiven')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_navn')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_utstilling')), findsOneWidget);
+      expect(find.byKey(const Key('a1_mote_skive_knapp')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_filterbar')), findsOneWidget);
+
+      // A brand disc keeps that brand (Devold is the second).
       await tester.dragUntilVisible(
-        find.byKey(const Key('a1_butikk_hyller')),
-        find.byType(ListView).first,
-        const Offset(0, -300),
+        find.byKey(const Key('a1_butikk_merke_1')),
+        find.byKey(const Key('a1_mote_scroll')),
+        const Offset(0, -200),
       );
-      await tester.pump();
-      expect(find.byKey(const Key('a1_butikk_merker')), findsOneWidget);
-      expect(find.byKey(const Key('a1_butikk_hyller')), findsOneWidget);
-      expect(find.byKey(const Key('a1_butikk_til_denne')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('a1_butikk_merke_1')));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.dragUntilVisible(
+        find.byKey(const Key('a1_butikk_hylle_13')),
+        find.byKey(const Key('a1_mote_scroll')),
+        const Offset(0, -200),
+      );
+      expect(find.byKey(const Key('a1_butikk_hylle_11')), findsNothing);
+      await tester.dragUntilVisible(
+        find.byKey(const Key('a1_butikk_merke_alle')),
+        find.byKey(const Key('a1_mote_scroll')),
+        const Offset(0, 200),
+      );
+      await tester.tap(find.byKey(const Key('a1_butikk_merke_alle')));
+      await tester.pump(const Duration(seconds: 1));
+
+      // T-skjorter keeps the tee.
+      await tester.tap(find.byKey(const Key('a1_butikk_filter_1')));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.dragUntilVisible(
+        find.byKey(const Key('a1_butikk_hylle_12')),
+        find.byKey(const Key('a1_mote_scroll')),
+        const Offset(0, -200),
+      );
+      expect(find.byKey(const Key('a1_butikk_hylle_11')), findsNothing);
+      await tester.tap(find.byKey(const Key('a1_butikk_filter_0')));
+      await tester.pump(const Duration(seconds: 1));
+
+      // The search key turns the chips into a field.
+      await tester.tap(find.byKey(const Key('a1_butikk_mote_sok_knapp')));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.enterText(find.byKey(const Key('a1_butikk_mote_sok')), 'ives');
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byKey(const Key('a1_butikk_hylle_11')), findsOneWidget);
+      expect(find.byKey(const Key('a1_butikk_hylle_12')), findsNothing);
+    });
+
+    testWidgets('the Mote page respects reduced motion', (tester) async {
+      _frame(tester);
+      await expectRespectsReducedMotion(
+        tester,
+        () => ButikkScreen(
+          storeId: 9,
+          preloaded: _fashion(),
+          api: _FakeButikk(),
+          customerApi: _FakeCustomer(),
+          kasseApi: _FakeKasse(),
+        ),
+      );
     });
   });
 
   group('sheets', () {
-    Widget sheet({
-      BergenProductOptions opts = const BergenProductOptions(),
-      BergenProductDetail? detail,
-    }) => _app(
+    Widget sheet({BergenProductOptions opts = const BergenProductOptions(), BergenProductDetail? detail}) => _app(
       Scaffold(
         body: Align(
           alignment: Alignment.bottomCenter,
@@ -731,36 +678,23 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 1));
 
-      // The menu row's own description wins over the detail's.
+      // The menu row's own description wins over the detail's; Launch's
+      // sheet shows the allergens, not the prep time or points.
       expect(find.text('Beskrivelse'), findsOneWidget);
-      expect(find.text(ButikkCopy.a1_butikk_prod_klar(15)), findsOneWidget);
-      expect(find.text(ButikkCopy.a1_butikk_prod_mest_bestilt), findsOneWidget);
-      // Kjøp: whole 10 kr × 1 → 59 kr earns 5.
-      expect(find.text(ButikkCopy.a1_butikk_prod_poeng(5)), findsOneWidget);
-      expect(
-        find.text(ButikkCopy.a1_butikk_prod_allergen_linje('Hvete, Melk')),
-        findsOneWidget,
-      );
+      expect(find.text(ButikkCopy.a1_butikk_prod_allergen_linje('Hvete, Melk')), findsOneWidget);
     });
 
-    testWidgets('without the detail the sheet hides what it does not know', (
-      tester,
-    ) async {
+    testWidgets('without the detail the sheet hides what it does not know', (tester) async {
       _frame(tester);
       await tester.pumpWidget(sheet());
       await tester.pump(const Duration(seconds: 1));
 
       expect(find.text(ButikkCopy.a1_butikk_prod_mest_bestilt), findsNothing);
       expect(find.textContaining('poeng'), findsNothing);
-      expect(
-        find.text(ButikkCopy.a1_butikk_info_allergen_missing),
-        findsOneWidget,
-      );
+      expect(find.text(ButikkCopy.a1_butikk_info_allergen_missing), findsOneWidget);
     });
 
-    testWidgets('single groups are cards, a strength group is the segment', (
-      tester,
-    ) async {
+    testWidgets('option groups are rows; a pick changes the sum', (tester) async {
       _frame(tester);
       await tester.pumpWidget(
         sheet(
@@ -789,22 +723,19 @@ void main() {
         ),
       );
       await tester.pump(const Duration(seconds: 1));
-      String sum() => tester
-          .widget<Text>(find.byKey(const Key('a1_butikk_produkt_sum')))
-          .data!;
+      String sum() => tester.widget<Text>(find.byKey(const Key('a1_butikk_produkt_sum'))).data!;
 
       // Required and strength groups open on their first choice.
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('59 kr'));
-      expect(find.text('Mild'), findsNWidgets(2)); // the segment + its label
+      expect(find.text('Mild'), findsOneWidget);
       await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_21')));
       await tester.pump(const Duration(milliseconds: 400));
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('75 kr'));
-      await tester.ensureVisible(
-        find.byKey(const Key('a1_butikk_prod_opt_32')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('a1_butikk_prod_opt_32')));
       await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_32')));
       await tester.pump(const Duration(milliseconds: 400));
-      expect(find.text('Hot'), findsNWidgets(2));
+      expect(find.text('Hot'), findsOneWidget);
+      expect(sum(), ButikkCopy.a1_butikk_prod_sum('75 kr'));
     });
 
     testWidgets('the product sheet respects reduced motion', (tester) async {
@@ -818,11 +749,7 @@ void main() {
             api: _FakeButikk(),
             customerApi: _FakeCustomer(),
             options: const BergenProductOptions(),
-            detail: const BergenProductDetail(
-              readyMinutes: 15,
-              mostOrdered: true,
-              pointsPer10Kr: 1,
-            ),
+            detail: const BergenProductDetail(readyMinutes: 15, mostOrdered: true, pointsPer10Kr: 1),
           ),
         ),
       );
@@ -839,9 +766,7 @@ void main() {
         groups: [
           BergenOptionGroup(
             name: 'Tillegg',
-            options: [
-              BergenVariant(id: 10, name: 'Ekstra cheddar', priceDelta: 15),
-            ],
+            options: [BergenVariant(id: 10, name: 'Ekstra cheddar', priceDelta: 15)],
           ),
         ],
       );
@@ -862,16 +787,12 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 1));
 
-      String sum() => tester
-          .widget<Text>(find.byKey(const Key('a1_butikk_produkt_sum')))
-          .data!;
+      String sum() => tester.widget<Text>(find.byKey(const Key('a1_butikk_produkt_sum'))).data!;
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('149 kr'));
       await tester.tap(find.byKey(const Key('a1_butikk_prod_size_3')));
       await tester.pump(const Duration(milliseconds: 400));
       expect(sum(), ButikkCopy.a1_butikk_prod_sum('178 kr'));
-      await tester.ensureVisible(
-        find.byKey(const Key('a1_butikk_prod_opt_10')),
-      );
+      await tester.ensureVisible(find.byKey(const Key('a1_butikk_prod_opt_10')));
       await tester.tap(find.byKey(const Key('a1_butikk_prod_opt_10')));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.byKey(const Key('a1_butikk_qty_plus')));
@@ -880,47 +801,31 @@ void main() {
       expect(find.text(ButikkCopy.a1_butikk_prod_valgt(1)), findsOneWidget);
     });
 
-    testWidgets(
-      'the Klede sheet shows stock per size and the try-at-home line',
-      (tester) async {
-        _frame(tester);
-        const opts = BergenProductOptions(
-          colours: [BergenVariant(id: 1, name: 'Marine')],
-          sizes: [
-            BergenVariant(id: 5, name: 'S'),
-            BergenVariant(id: 6, name: 'M', inStock: false),
-          ],
-        );
-        await tester.pumpWidget(
-          _app(
-            Scaffold(
-              body: SingleChildScrollView(
-                child: KledeSheet(
-                  item: _item(11, 'Hettejakke «Ives»', 2499),
-                  api: _FakeButikk(),
-                  options: opts,
-                ),
-              ),
+    testWidgets('the Klede sheet shows stock per size and the try-at-home line', (tester) async {
+      _frame(tester);
+      const opts = BergenProductOptions(
+        colours: [BergenVariant(id: 1, name: 'Marine')],
+        sizes: [
+          BergenVariant(id: 5, name: 'S'),
+          BergenVariant(id: 6, name: 'M', inStock: false),
+        ],
+      );
+      await tester.pumpWidget(
+        _app(
+          Scaffold(
+            body: SingleChildScrollView(
+              child: KledeSheet(item: _item(11, 'Hettejakke «Ives»', 2499), api: _FakeButikk(), options: opts),
             ),
           ),
-        );
-        await tester.pump();
+        ),
+      );
+      await tester.pump();
 
-        expect(
-          find.text('S · ${ButikkCopy.a1_butikk_klede_paa_lager}'),
-          findsOneWidget,
-        );
-        expect(
-          find.text('M · ${ButikkCopy.a1_butikk_klede_utsolgt}'),
-          findsOneWidget,
-        );
-        expect(find.text(ButikkCopy.a1_butikk_klede_prov), findsOneWidget);
-        expect(
-          find.text(ButikkCopy.a1_butikk_klede_legg('2499 kr')),
-          findsOneWidget,
-        );
-      },
-    );
+      expect(find.text('S · ${ButikkCopy.a1_butikk_klede_paa_lager}'), findsOneWidget);
+      expect(find.text('M · ${ButikkCopy.a1_butikk_klede_utsolgt}'), findsOneWidget);
+      expect(find.text(ButikkCopy.a1_butikk_klede_prov), findsOneWidget);
+      expect(find.text(ButikkCopy.a1_butikk_klede_legg(ButikkCopy.kr(2499))), findsOneWidget);
+    });
 
     testWidgets('the info sheet switches tabs', (tester) async {
       _frame(tester);
@@ -935,39 +840,82 @@ void main() {
       expect(find.textContaining('Strømgaten 8'), findsOneWidget);
       await tester.tap(find.byKey(const Key('a1_butikk_info_allergener')));
       await tester.pump();
-      expect(
-        find.text(ButikkCopy.a1_butikk_info_allergen_missing),
-        findsOneWidget,
-      );
+      expect(find.text(ButikkCopy.a1_butikk_info_allergen_missing), findsOneWidget);
     });
   });
 
   group('Dreieskiven', () {
-    testWidgets('the front item shows its price and add', (tester) async {
+    testWidgets('the front garment: its name, the key, the heart, a swipe', (tester) async {
       _frame(tester);
-      BergenMenuItem? added;
+      int? knapp, lagret;
       await tester.pumpWidget(
         _app(
           Scaffold(
-            body: Dreieskiven(
-              items: [_item(1, 'A', 100), _item(2, 'B', 200)],
-              onAdd: (i) => added = i,
+            body: Padding(
+              padding: const EdgeInsets.all(30),
+              child: MoteSkive(
+                butikk: true,
+                tittel: 'Ukens utstilling · Mote',
+                knapp: 'Velg størrelse',
+                // Two, so one step or three (the speed reads the wall
+                // clock) both land on B.
+                varer: const [
+                  MoteSkiveVare(navn: 'A', pris: '100 kr'),
+                  MoteSkiveVare(navn: 'B', pris: '200 kr'),
+                ],
+                lagret: (_) => false,
+                onLagre: (i) => lagret = i,
+                onApne: (_) {},
+                onKnapp: (i) => knapp = i,
+              ),
             ),
           ),
         ),
       );
-      await tester.pump();
-      expect(find.byKey(const Key('a1_butikk_skive_navn')), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
       expect(find.text('A'), findsOneWidget);
-      await tester.tap(find.text(ButikkCopy.a1_butikk_skive_legg));
-      expect(added?.id, 1);
+      expect(find.text('100 kr'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('a1_mote_skive_knapp')));
+      expect(knapp, 0);
+      await tester.tap(find.byKey(const Key('a1_mote_skive_lagre')));
+      expect(lagret, 0);
+      // A swipe left turns the plinth.
+      final g = await tester.startGesture(const Offset(200, 150));
+      await tester.pump(const Duration(milliseconds: 400));
+      await g.moveBy(const Offset(-60, 0));
+      await tester.pump(const Duration(milliseconds: 400));
+      await g.up();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('B'), findsOneWidget);
+      expect(find.text('200 kr'), findsOneWidget);
+    });
+  });
+
+  group('Dråpe', () {
+    testWidgets('stores open and close through the drop', (tester) async {
+      _frame(tester);
+      final nav = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(MaterialApp(navigatorKey: nav, home: const Text('hjem')));
+      nav.currentState!.push(DrapeRoute<void>(builder: (_) => const Text('butikk')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      // Under the water until 330ms.
+      expect(
+        tester.widget<Opacity>(find.ancestor(of: find.text('butikk'), matching: find.byType(Opacity)).first).opacity,
+        0,
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('butikk'), findsOneWidget);
+      nav.currentState!.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('butikk'), findsNothing);
+      expect(find.text('hjem'), findsOneWidget);
     });
   });
 
   group('Poseautomaten', () {
-    testWidgets('a pull lands the chosen bag; empty machine is honest', (
-      tester,
-    ) async {
+    testWidgets('a pull lands the chosen bag; empty machine is honest', (tester) async {
       _frame(tester);
       await tester.pumpWidget(
         _app(

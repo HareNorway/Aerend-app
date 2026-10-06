@@ -59,11 +59,33 @@ void _rad(Path p, double tile, double x0, double y0, double w, double s, {requir
 }
 
 class HjemVann extends StatefulWidget {
-  const HjemVann({super.key, required this.controller, required this.s, required this.child, this.bunnLuft = 0});
+  const HjemVann({
+    super.key,
+    required this.controller,
+    required this.s,
+    required this.child,
+    this.bunnLuft = 0,
+    this.bobler = true,
+    this.bunn = true,
+    this.flate,
+  });
 
   final ScrollController controller;
   final double s;
   final Widget child;
+
+  /// Air bubbles while scrolling (`vannBobler`).
+  final bool bobler;
+
+  /// The waterline at the content's end (`vannBunn`).
+  final bool bunn;
+
+  /// Where the surface sits for a scroll offset (design px): its depth `y`
+  /// from the top and the foam's opacity `a`; null while there is none.
+  /// Default: Hjem's sheet (`f = min(40, scroll·.4)`, `y = f + 4`, from
+  /// `f ≥ 1`, foam `min(1, f/14)`). The product sheet's `pVann` uses
+  /// `f = min(1, scroll/40)`, `y = 6 + 10f`, from 2 px, foam `f`.
+  final ({double y, double a})? Function(double scroll)? flate;
 
   /// Empty water after the waterline at the content's end (design px) —
   /// what lets Under kaien show through below it.
@@ -93,9 +115,17 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
     widget.controller.addListener(_scroll);
   }
 
+  /// The surface for the current scroll offset (see [HjemVann.flate]).
+  ({double y, double a})? _overflate() {
+    final st0 = _px / widget.s;
+    if (widget.flate case final f?) return f(st0);
+    final f = math.min(40.0, st0 * .4);
+    return f >= 1 ? (y: f + 4, a: math.min(1.0, f / 14)) : null;
+  }
+
   /// Animate only while a surface is on screen.
   void _vurder() {
-    final trengs = !_rolig && (_px / widget.s * .4 >= 1 || _slutt() != null || _bobler.isNotEmpty);
+    final trengs = !_rolig && (_overflate() != null || _slutt() != null || _bobler.isNotEmpty);
     if (trengs && !_ticker.isActive) _ticker.start();
     if (!trengs && _ticker.isActive) _ticker.stop();
   }
@@ -138,7 +168,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
     final f = math.min(40.0, st0 * .4);
     final dy = (st0 - _sist).abs();
     _sist = st0;
-    if (f < 1 || _rolig) return;
+    if (f < 1 || _rolig || !widget.bobler) return;
     _akk += math.min(dy, 60);
     if (_akk < 90) return;
     _akk = 0;
@@ -191,6 +221,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
   /// Where the content ends, in design px from the sheet's top (null when
   /// it's well below the screen).
   double? _slutt() {
+    if (!widget.bunn) return null;
     final c = widget.controller;
     if (!c.hasClients || !c.position.hasContentDimensions) return null;
     final end = (c.position.maxScrollExtent + c.position.viewportDimension - c.position.pixels) / widget.s - widget.bunnLuft;
@@ -219,8 +250,9 @@ class _Klipp extends CustomClipper<Path> {
     final q = v._flate(t);
     final full = Path()..addRect(Offset.zero & size);
     var p = full;
-    if (q.f >= 1) {
-      final y = q.f + 4;
+    final o = v._overflate();
+    if (o != null) {
+      final y = o.y;
       final w1 = Path(), w2 = Path();
       _rad(w1, _t1, q.x1, y - 22 + q.bob, size.width, s, opp: false);
       _rad(w2, _t2, q.x2, y - 20 - q.bob, size.width, s, opp: false);
@@ -256,11 +288,12 @@ class _Skum extends CustomPainter {
     final q = v._flate(t);
     final w = size.width;
 
-    if (q.f >= 1) {
-      final top = (q.f + 4 - 22) * s;
+    final o = v._overflate();
+    if (o != null) {
+      final top = (o.y - 22) * s;
       canvas.save();
       canvas.translate(0, top);
-      final a = math.min(1.0, q.f / 14);
+      final a = o.a;
       // Tone just under the surface.
       canvas.drawRect(
         Rect.fromLTWH(0, 0, w, 64 * s),
@@ -302,8 +335,8 @@ class _Skum extends CustomPainter {
     }
 
     // Bubbles, only below the surface.
-    if (v._bobler.isNotEmpty && q.f >= 1) {
-      final flate = q.f + 4;
+    if (v._bobler.isNotEmpty && o != null) {
+      final flate = o.y;
       canvas.save();
       canvas.clipRect(Rect.fromLTRB(0, (flate + 24) * s, w, size.height));
       const ease = Cubic(.3, .1, .4, 1);

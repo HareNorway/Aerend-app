@@ -11,8 +11,19 @@ abstract final class ButikkCopy {
   static bool get _en => resolveSelectedLanguage() == 'en';
   static String _t(String no, String en) => _en ? en : no;
 
-  static String kr(num v) =>
-      '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2)} kr';
+  /// Norwegian money: "149 kr", "65,80 kr", "1 299 kr".
+  static String kr(num v) {
+    final hel = v == v.roundToDouble();
+    final t = hel ? '${v.toInt()}' : v.toStringAsFixed(2);
+    final deler = t.split('.');
+    final b = StringBuffer();
+    final heltall = deler[0];
+    for (var i = 0; i < heltall.length; i++) {
+      if (i > 0 && (heltall.length - i) % 3 == 0 && heltall[i - 1] != '-') b.write(' ');
+      b.write(heltall[i]);
+    }
+    return '$b${deler.length > 1 ? ',${deler[1]}' : ''} kr';
+  }
 
   // ── Kategori ────────────────────────────────────────────────────────────
   static String a1_butikk_kat_open(int n) => languages.ops_butikk_kat_open(n);
@@ -59,6 +70,15 @@ abstract final class ButikkCopy {
   static String a1_butikk_apner(String t) => languages.ops_butikk_apner(t);
   static String get a1_butikk_stengt => languages.ops_butikk_stengt;
   static String get a1_butikk_kjokken => languages.ops_butikk_kjokken;
+  static String a1_butikk_per_kjop(int n) => _t('+$n per kjøp', '+$n per order');
+  static String get a1_butikk_tilbud => _t('Tilbud', 'Offers');
+  static String get a1_butikk_tilbud_note => _t(
+    'Butikken setter tilbudet selv · gjelder i denne bestillingen',
+    'The store sets the offer · applies to this order',
+  );
+  static String a1_butikk_tilbud_spar(String grunn, int kr) =>
+      _t('$grunn · spar $kr kr', '$grunn · save $kr kr');
+  static String get a1_butikk_tilbud_grunn => _t('Fra kjøkkenet', 'From the kitchen');
   static String get a1_butikk_pauset => languages.ops_butikk_pauset;
   static String a1_butikk_km(double km) =>
       '${km.toStringAsFixed(1).replaceAll('.', ',')} km';
@@ -170,6 +190,37 @@ abstract final class ButikkCopy {
   static String a1_butikk_prod_allergen_linje(String liste) => languages.ops_butikk_prod_allergen_linje(liste);
   static String a1_butikk_prod_i_kurven(String navn) => languages.ops_butikk_prod_i_kurven(navn);
   static String get a1_butikk_prod_lukk => languages.ops_butikk_prod_lukk;
+  static String get a1_butikk_prod_valgt_en => _t('✓ Valgt', '✓ Chosen');
+  // ── Mote / gave page (Launch) ───────────────────────────────────────────
+  static String a1_mote_apen_til(String t) => _t('Åpen til $t', 'Open until $t');
+  static String a1_mote_apner(String t) => _t('Åpner $t', 'Opens $t');
+  static String get a1_mote_stengt => _t('Stengt nå', 'Closed now');
+  static String get a1_mote_gratis_lev => _t('Gratis levering', 'Free delivery');
+  static String a1_mote_lev(String kr) => _t('Levering $kr', 'Delivery $kr');
+  static List<String> get a1_mote_seg => _en ? const ['Men', 'Women', 'Kids'] : const ['Herre', 'Dame', 'Barn'];
+  static List<String> get a1_gave_seg => const ['Under 300', '300–600', '600+'];
+  static List<String> get a1_mote_filtre =>
+      _en ? const ['All', 'T-shirts', 'Sweaters', 'Trousers'] : const ['Alle', 'T-skjorter', 'Gensere', 'Bukser'];
+  static List<String> get a1_gave_filtre =>
+      _en ? const ['All', 'Flowers', 'Chocolate', 'Interior'] : const ['Alle', 'Blomster', 'Sjokolade', 'Interiør'];
+  static String get a1_mote_sok_hint => _t('Søk i butikken — jeans, ull, str. M …', 'Search the store — jeans, wool, size M …');
+  static String get a1_mote_gave_aegil => _t('La Ægil finne en gave', 'Let Ægil find a gift');
+  static String get a1_mote_ingen_treff => _t('Ingen varer passer her ennå.', 'Nothing matches here yet.');
+  static String get a1_butikk_info_kan_inneholde => _t('KAN INNEHOLDE', 'MAY CONTAIN');
+  static String get a1_butikk_info_apen_naa => _t('Åpen nå', 'Open now');
+  static String get a1_butikk_info_stengt_naa => _t('Stengt nå', 'Closed now');
+  static String a1_butikk_info_stenger(String t) => _t('· stenger $t', '· closes $t');
+  static String a1_butikk_info_aapner(String t) => _t('· åpner $t', '· opens $t');
+  static String get a1_butikk_info_adresse => _t('Adresse', 'Address');
+  static String get a1_butikk_info_minsteordre => _t('Minsteordre', 'Minimum order');
+  static String get a1_butikk_info_lev => _t('Levering', 'Delivery');
+  static String get a1_butikk_info_gratis => _t('Gratis', 'Free');
+  static String get a1_butikk_info_henting_rad => _t('Henting', 'Pickup');
+  static String get a1_butikk_info_ja => _t('Ja', 'Yes');
+  static String get a1_butikk_info_nei => _t('Nei', 'No');
+  static String get a1_butikk_prod_paakrevd => _t('Påkrevd', 'Required');
+  static String get a1_butikk_prod_inkludert => _t('Inkludert', 'Included');
+  static String get a1_butikk_prod_ofte_med => _t('Ofte kjøpt med', 'Often bought with');
 
   // ── Info sheet ──────────────────────────────────────────────────────────
   static String get a1_butikk_info_allergen_line => languages.ops_butikk_info_allergen_line;

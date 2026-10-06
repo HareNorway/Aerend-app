@@ -4,6 +4,7 @@ import '../../snurre/snurre_launcher_policy.dart';
 import '../bergen_routes_agil1.dart';
 import '../bergen_routes_agil3.dart';
 import 'bergen_toast.dart';
+import 'drape_route.dart';
 
 /// Named-route plumbing for the `/bergen/...` routes of both branches
 /// (AGIL-CONTRACT §3.4).
@@ -24,10 +25,7 @@ abstract final class BergenRoutes {
   /// The registered key for [name]: query removed, and the last path segment
   /// dropped when it is a parameter the map does not spell.
   static String? resolve(String name) {
-    final maps = <String, WidgetBuilder>{
-      ...bergenRoutesAgil1(),
-      ...bergenRoutesAgil3(),
-    };
+    final maps = <String, WidgetBuilder>{...bergenRoutesAgil1(), ...bergenRoutesAgil3()};
     final path = name.split('?').first;
     if (maps.containsKey(path)) return path;
     final cut = path.lastIndexOf('/');
@@ -52,10 +50,7 @@ abstract final class BergenRoutes {
     final key = resolve(name);
     final path = name.split('?').first;
     if (key != null && key != path) {
-      final tail = path
-          .substring(key.length)
-          .split('/')
-          .where((s) => s.isNotEmpty);
+      final tail = path.substring(key.length).split('/').where((s) => s.isNotEmpty);
       if (tail.isNotEmpty) {
         final value = tail.first;
         out['id'] = value;
@@ -83,25 +78,23 @@ abstract final class BergenRoutes {
     final key = resolve(name);
     if (key == null) return null;
     final builder = (bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!;
-    return MaterialPageRoute<dynamic>(
-      settings: RouteSettings(
-        // The Bergen prototype has no floating chat launcher on any of its
-        // screens — Ægil lives in the nav, the Søk card and the game — so a
-        // pushed Bergen route carries the launcher's hidden prefix, the same
-        // way the shell does. `argsOf` reads the arguments, not the name.
-        name: '$snurreLauncherHiddenRoutePrefix$name',
-        arguments: arguments(name, settings.arguments),
-      ),
-      builder: builder,
+    final ruteSettings = RouteSettings(
+      // The Bergen prototype has no floating chat launcher on any of its
+      // screens — Ægil lives in the nav, the Søk card and the game — so a
+      // pushed Bergen route carries the launcher's hidden prefix, the same
+      // way the shell does. `argsOf` reads the arguments, not the name.
+      name: '$snurreLauncherHiddenRoutePrefix$name',
+      arguments: arguments(name, settings.arguments),
     );
+    // Into and out of a store through the "Dråpe" portal.
+    if (key == '/bergen/butikk') {
+      return DrapeRoute<dynamic>(settings: ruteSettings, builder: builder);
+    }
+    return MaterialPageRoute<dynamic>(settings: ruteSettings, builder: builder);
   }
 
   /// Push [name]; a toast when the screen is not on this tree yet.
-  static Future<T?> push<T>(
-    BuildContext context,
-    String name, {
-    Object? arguments,
-  }) {
+  static Future<T?> push<T>(BuildContext context, String name, {Object? arguments}) {
     final route = generate(RouteSettings(name: name, arguments: arguments));
     if (route == null) {
       showBergenToast(context, kommerSnart);
@@ -131,8 +124,7 @@ abstract final class BergenRoutes {
   static Map<String, String> argsOf(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is Map<String, String>) return args;
-    if (args is Map)
-      return {for (final e in args.entries) '${e.key}': '${e.value}'};
+    if (args is Map) return {for (final e in args.entries) '${e.key}': '${e.value}'};
     if (args is String) return {'id': args, 'slug': args, 'q': args};
     if (args is int) return {'id': '$args'};
     return const {};

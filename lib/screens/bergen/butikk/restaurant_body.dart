@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,11 +16,25 @@ import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
+import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
+import '../kit/svg_sti.dart';
 import 'butikk_copy.dart';
+import 'kategori_kort.dart'
+    show
+        KatHolo,
+        KatLoop,
+        KatMyntPille,
+        katPerspektiv,
+        katZ,
+        kKatHoloLys,
+        kKatHoloLysStopp,
+        kKatHoloSterk,
+        kKatHoloSterkStopp;
 import 'info_sheet.dart';
+import 'produkt_launch.dart' show produktOfteMed;
 import 'produkt_sheet.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
@@ -56,15 +71,26 @@ class RestaurantButikkBody extends StatefulWidget {
   State<RestaurantButikkBody> createState() => RestaurantButikkBodyState();
 }
 
-class RestaurantButikkBodyState extends State<RestaurantButikkBody>
-    with SingleTickerProviderStateMixin {
+class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerProviderStateMixin {
   int _cat = 0; // 0 = Alt, then the store's categories.
+
+  /// The orb whose dishes the grid shows; trails [_cat] by the fade-out.
+  int _vist = 0;
+
+  /// `bkBytt`: the grid fades down and out (130 ms), then the new dishes
+  /// glide in one after another (360 ms, 40 ms apart).
+  late final AnimationController _byttUt = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 130),
+  );
+  late final AnimationController _byttInn = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: _kInnMs),
+    value: 1,
+  );
+  Timer? _byttT;
   double _catDx = 0;
   bool _catDrag = false;
-
-  int _special = 0;
-  Timer? _specialTimer;
-  double _spDx = 0;
 
   bool _sokOpen = false;
   final TextEditingController _sok = TextEditingController();
@@ -79,6 +105,8 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
   BergenProductDetail? _detail;
   Map<String, dynamic>? _availability;
 
+  final ScrollController _scroll = ScrollController();
+
   BergenStoreInfo get store => widget.store;
   OpsKasseApi get _kasse => widget.kasseApi ?? OpsKasseApi();
 
@@ -88,23 +116,66 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
     _sok.addListener(() => setState(() {}));
     _loadCart();
     _loadSide();
-    // `startSRail`: the next special every 18 s.
-    _specialTimer = Timer.periodic(const Duration(seconds: 18), (_) {
-      if (!mounted || store.specials.length < 2) return;
-      if (ModalRoute.of(context)?.isCurrent != true) return;
-      setState(() => _special = (_special + 1) % _specialCount);
-    });
+    if (kDebugMode && HjemHarness.butikkOrb != null) {
+      _cat = _vist = HjemHarness.butikkOrb!;
+    }
+    if (kDebugMode && HjemHarness.butikkLegg != null) {
+      Future.delayed(const Duration(milliseconds: 1200), () async {
+        for (final id in HjemHarness.butikkLegg!) {
+          final item = store.allItems.where((i) => i.id == id).firstOrNull;
+          if (item != null && mounted) await _plus(item);
+        }
+        if (mounted && HjemHarness.butikkMini) setState(() => _mini = true);
+      });
+    }
+    if (kDebugMode && HjemHarness.butikkInfo != null) {
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        final tab = switch (HjemHarness.butikkInfo) {
+          't' => InfoTab.apningstider,
+          'm' => InfoTab.mer,
+          _ => InfoTab.allergener,
+        };
+        showInfoSheet(context, store: store, initial: tab);
+      });
+    }
+    if (kDebugMode && HjemHarness.butikkScroll != null) {
+      Future.delayed(const Duration(milliseconds: 1800), () {
+        if (mounted && _scroll.hasClients) {
+          _scroll.jumpTo(HjemHarness.butikkScroll! * context.bs);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
-    _specialTimer?.cancel();
+    _byttT?.cancel();
+    _byttUt.dispose();
+    _byttInn.dispose();
+    _scroll.dispose();
     _sok.dispose();
     _sokFocus.dispose();
     super.dispose();
   }
 
-  int get _specialCount => math.min(3, store.specials.length);
+  void _bytt(int i) {
+    if (i == _vist && _byttT == null) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      setState(() => _vist = i);
+      return;
+    }
+    _byttT?.cancel();
+    _byttInn.value = 1;
+    _byttUt.forward(from: 0);
+    _byttT = Timer(const Duration(milliseconds: 120), () {
+      _byttT = null;
+      if (!mounted) return;
+      setState(() => _vist = i);
+      _byttUt.value = 0;
+      _byttInn.forward(from: 0);
+    });
+  }
 
   Future<void> _loadCart({bool pulse = false}) async {
     final cart = await _kasse.cart();
@@ -142,12 +213,9 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
     return t > 0 && _subtotal >= t;
   }
 
-  double get _total =>
-      _subtotal + (_freeDelivery ? 0 : (store.deliveryChargeKr ?? 0));
+  double get _total => _subtotal + (_freeDelivery ? 0 : (store.deliveryChargeKr ?? 0));
 
-  int _qtyOf(int productId) => _lines
-      .where((l) => l.productId == productId)
-      .fold(0, (a, l) => a + l.quantity);
+  int _qtyOf(int productId) => _lines.where((l) => l.productId == productId).fold(0, (a, l) => a + l.quantity);
 
   Future<void> _plus(BergenMenuItem item) async {
     final ok = await BergenCart.add(
@@ -161,9 +229,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
 
   Future<void> _minusLine(KurvLine l) async {
     HapticFeedback.selectionClick();
-    final ok = l.quantity > 1
-        ? await _kasse.changeQuantity(l.cartId, l.quantity - 1)
-        : await _kasse.remove(l.cartId);
+    final ok = l.quantity > 1 ? await _kasse.changeQuantity(l.cartId, l.quantity - 1) : await _kasse.remove(l.cartId);
     if (ok) await _loadCart();
   }
 
@@ -203,6 +269,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
       customerApi: widget.customerApi,
       readyMinutes: _detail?.readyMinutes ?? store.deliveryMinutes,
       mostOrdered: mostOrdered,
+      med: produktOfteMed(item, store.allItems),
     ).then((_) {
       if (mounted) _loadCart(pulse: true);
     });
@@ -211,34 +278,39 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
   void _askAegil() => BergenRoutes.pushOr(
     context,
     kAegilRoute,
-    arguments: {
-      'intent': 'store',
-      'store_id': '${store.id}',
-      'store': store.name,
-    },
+    arguments: {'intent': 'store', 'store_id': '${store.id}', 'store': store.name},
     orElse: () => openScreen(context, const SnurreChatScreen()),
   );
 
   Future<void> _share() async {
-    await Clipboard.setData(
-      ClipboardData(text: 'aerend://bergen/butikk/${store.id}'),
-    );
+    await Clipboard.setData(ClipboardData(text: 'aerend://bergen/butikk/${store.id}'));
     if (mounted) showBergenToast(context, ButikkCopy.a1_butikk_info_kopiert);
   }
 
   // ── the menu ────────────────────────────────────────────────────────────
 
+  /// `bkListe`: Alt, Tilbud (when the kitchen has specials), then the
+  /// store's own categories.
+  List<String> get _orbNavn => [
+    ButikkCopy.a1_butikk_alt,
+    if (store.specials.isNotEmpty) ButikkCopy.a1_butikk_tilbud,
+    for (final c in store.menu) c.name,
+  ];
+
+  int get _menyStart => store.specials.isNotEmpty ? 2 : 1;
+
+  /// `visTilbud`: the Tilbud orb shows the specials as offer cards.
+  bool get _erTilbud => store.specials.isNotEmpty && _vist == 1 && _sok.text.trim().isEmpty;
+
   List<BergenMenuItem> get _visible {
     final q = _sok.text.trim().toLowerCase();
-    final base = _cat == 0
+    final base = _vist == 0 || _vist < _menyStart
         ? store.allItems
-        : store.menu[(_cat - 1).clamp(0, store.menu.length - 1)].items;
+        : store.menu[(_vist - _menyStart).clamp(0, store.menu.length - 1)].items;
     if (q.isEmpty) return base;
     return [
       for (final i in store.allItems)
-        if (i.name.toLowerCase().contains(q) ||
-            (i.description ?? '').toLowerCase().contains(q))
-          i,
+        if (i.name.toLowerCase().contains(q) || (i.description ?? '').toLowerCase().contains(q)) i,
     ];
   }
 
@@ -271,26 +343,19 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
           final e = kSkjermInn.transform(p);
           return Opacity(
             opacity: e.clamp(0.0, 1.0),
-            child: Transform.translate(
-              offset: Offset(0, 10 * (1 - e)),
-              child: child,
-            ),
+            child: Transform.translate(offset: Offset(0, 10 * (1 - e)), child: child),
           );
         },
         child: DecoratedBox(
           decoration: BoxDecoration(
-            gradient: cssLinear(
-              180,
-              const [Color(0xFF1E4F5C), Color(0xFF1B4854), Color(0xFF173E48)],
-              const [0, .4, 1],
-            ),
+            gradient: cssLinear(180, const [Color(0xFF1E4F5C), Color(0xFF1B4854), Color(0xFF173E48)], const [0, .4, 1]),
           ),
           child: Stack(
             children: [
               SingleChildScrollView(
                 key: const Key('a1_butikk_scroll'),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
+                controller: _scroll,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: EdgeInsets.only(bottom: 180 * s),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -299,6 +364,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
                       store: store,
                       kitchen: _kitchenText,
                       onBack: () => Navigator.of(context).maybePop(),
+                      perKjop: _perKjop,
                     ),
                     Transform.translate(
                       offset: Offset(0, -22 * s),
@@ -307,51 +373,26 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
                         subtotal: _subtotal,
                         onAegil: _askAegil,
                         onShare: _share,
-                        onInfo: (tab) =>
-                            showInfoSheet(context, store: store, initial: tab),
+                        onInfo: (tab) => showInfoSheet(context, store: store, initial: tab),
                       ),
                     ),
-                    if (specials.isNotEmpty)
-                      Transform.translate(
-                        offset: Offset(0, -22 * s),
-                        child: _Specials(
-                          specials: specials,
-                          active: _special.clamp(0, specials.length - 1),
-                          dragDx: _spDx,
-                          rate: _detail?.pointsPer10Kr,
-                          onDrag: (dx) => setState(() => _spDx = dx),
-                          onRelease: () {
-                            final n = specials.length;
-                            var next = _special;
-                            if (_spDx < -40) next = (_special + 1) % n;
-                            if (_spDx > 40) next = (_special - 1 + n) % n;
-                            setState(() {
-                              _spDx = 0;
-                              _special = next;
-                            });
-                          },
-                          onPick: (i) => setState(() => _special = i),
-                          onOpen: (i) => open(i),
-                          onAdd: (i) => _plus(i),
-                        ),
-                      ),
                     Transform.translate(
                       offset: Offset(0, -22 * s),
                       child: _CategoryRail(
-                        names: [
-                          ButikkCopy.a1_butikk_alt,
-                          for (final c in store.menu) c.name,
-                        ],
+                        names: _orbNavn,
                         active: _cat,
                         dx: _catDx,
                         dragging: _catDrag,
-                        onPick: (i) => setState(() => _cat = i),
+                        onPick: (i) {
+                          setState(() => _cat = i);
+                          _bytt(i);
+                        },
                         onDrag: (dx) => setState(() {
                           _catDrag = true;
                           _catDx = dx;
                         }),
                         onRelease: () {
-                          final n = store.menu.length + 1;
+                          final n = _orbNavn.length;
                           final steps = (_catDx / _CategoryRail.step).round();
                           setState(() {
                             _cat = ((_cat - steps) % n + n) % n;
@@ -359,15 +400,14 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
                             _catDrag = false;
                           });
                           if (steps != 0) HapticFeedback.selectionClick();
+                          _bytt(_cat);
                         },
                       ),
                     ),
                     Transform.translate(
                       offset: Offset(0, -22 * s),
                       child: _MenuHead(
-                        title: _cat == 0
-                            ? ButikkCopy.a1_butikk_mest_bestilt
-                            : store.menu[_cat - 1].name,
+                        title: _vist == 0 ? ButikkCopy.a1_butikk_mest_bestilt : _orbNavn[_vist],
                         open: _sokOpen,
                         controller: _sok,
                         focus: _sokFocus,
@@ -376,17 +416,36 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
                     ),
                     Transform.translate(
                       offset: Offset(0, -22 * s),
-                      child: _Grid(
-                        items: items,
-                        query: _sok.text.trim(),
-                        readyMinutes: _detail?.readyMinutes,
-                        mostOrderedId: _cat == 0 && _sok.text.trim().isEmpty
-                            ? store.allItems.firstOrNull?.id
-                            : null,
-                        qtyOf: _qtyOf,
-                        onOpen: open,
-                        onPlus: _plus,
-                        onMinus: _minus,
+                      child: AnimatedBuilder(
+                        animation: Listenable.merge([_byttUt, _byttInn]),
+                        builder: (context, child) {
+                          final u = const Cubic(.4, 0, 1, 1).transform(_byttUt.value);
+                          final inn = (_byttInn.value * _kInnMs / 160).clamp(0.0, 1.0);
+                          if (u == 0 && inn == 1) return child!;
+                          return Opacity(
+                            opacity: (1 - u) * inn,
+                            child: Transform.translate(offset: Offset(0, 8 * s * u), child: child),
+                          );
+                        },
+                        child: _erTilbud
+                            ? _KortInn(
+                                anim: _byttInn,
+                                i: 0,
+                                child: _TilbudGrid(specials: specials, onOpen: (i) => open(i), onAdd: (i) => _plus(i)),
+                              )
+                            : _Grid(
+                                items: items,
+                                inn: _byttInn,
+                                query: _sok.text.trim(),
+                                readyMinutes: _detail?.readyMinutes,
+                                mostOrderedId: _vist == 0 && _sok.text.trim().isEmpty
+                                    ? store.allItems.firstOrNull?.id
+                                    : null,
+                                qtyOf: _qtyOf,
+                                onOpen: open,
+                                onPlus: _plus,
+                                onMinus: _minus,
+                              ),
                       ),
                     ),
                   ],
@@ -397,7 +456,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
                   left: 16 * s,
                   right: 16 * s,
                   bottom: barBottom + 72 * s,
-                  child: _MiniKurv(
+                  child: ButikkMiniKurv(
                     lines: _lines,
                     onEmpty: _empty,
                     onMinus: _minusLine,
@@ -410,7 +469,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
                   left: 16 * s,
                   right: 16 * s,
                   bottom: barBottom,
-                  child: _KurvBar(
+                  child: ButikkKurvBar(
                     lines: _lines,
                     count: _count,
                     total: _total,
@@ -427,15 +486,20 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
     );
   }
 
+  /// "+N per kjøp": the points a typical 300 kr order earns at this store's
+  /// rate (`points_per_10kr`); hidden until the rate is known.
+  int? get _perKjop {
+    final r = _detail?.pointsPer10Kr;
+    return r == null || r <= 0 ? null : r * 30;
+  }
+
   String get _kitchenText {
     final a = _availability;
     if (a != null && a['state'] != null && a['state'] != 'open') {
       return ButikkCopy.a1_butikk_pauset;
     }
     if (!store.open) {
-      return store.openTime != null
-          ? ButikkCopy.a1_butikk_apner(store.openTime!)
-          : ButikkCopy.a1_butikk_stengt;
+      return store.openTime != null ? ButikkCopy.a1_butikk_apner(store.openTime!) : ButikkCopy.a1_butikk_stengt;
     }
     return ButikkCopy.a1_butikk_kjokken;
   }
@@ -443,11 +507,26 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody>
 
 // ── shared ──────────────────────────────────────────────────────────────────
 
-const List<Color> _kOrange3 = [
-  Color(0xFFF9A273),
-  Color(0xFFF26D3D),
-  Color(0xFFDD5A25),
-];
+/// CSS `radial-gradient(<rx>% <ry>% at <cx>% <cy>%, …)` for a [RadialGradient]
+/// with `radius: 1` and its centre at (cx, cy): stretches Flutter's circle
+/// (radius = the box's shortest side) into the CSS ellipse.
+class _CssRadial extends GradientTransform {
+  const _CssRadial(this.cx, this.cy, this.rx, this.ry);
+
+  final double cx, cy, rx, ry;
+
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    final r = math.min(bounds.width, bounds.height);
+    final c = Offset(bounds.left + bounds.width * cx, bounds.top + bounds.height * cy);
+    return Matrix4.identity()
+      ..translateByDouble(c.dx, c.dy, 0, 1)
+      ..scaleByDouble(rx * bounds.width / r, ry * bounds.height / r, 1, 1)
+      ..translateByDouble(-c.dx, -c.dy, 0, 1);
+  }
+}
+
+const List<Color> _kOrange3 = [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)];
 
 /// A 24-unit stroked icon path, scaled to [size].
 class _Ico extends StatelessWidget {
@@ -460,10 +539,8 @@ class _Ico extends StatelessWidget {
   final Color? fill;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    size: Size.square(size),
-    painter: _IcoPainter(color, stroke, path, fill),
-  );
+  Widget build(BuildContext context) =>
+      CustomPaint(size: Size.square(size), painter: _IcoPainter(color, stroke, path, fill));
 }
 
 class _IcoPainter extends CustomPainter {
@@ -520,46 +597,20 @@ Path _plusPath(double k, [double a = 5, double b = 19]) => Path()
   ..moveTo(a * k, 12 * k)
   ..lineTo(b * k, 12 * k);
 
-Path _clock(double k) => Path()
-  ..addOval(Rect.fromCircle(center: Offset(12 * k, 12 * k), radius: 9 * k))
-  ..moveTo(12 * k, 7 * k)
-  ..lineTo(12 * k, 12 * k)
-  ..lineTo(15 * k, 14 * k);
-
-Path _star(double k) => Path()
-  ..moveTo(12 * k, 2 * k)
-  ..lineTo(14.6 * k, 8.4 * k)
-  ..lineTo(21.5 * k, 8.9 * k)
-  ..lineTo(16.2 * k, 13.4 * k)
-  ..lineTo(17.9 * k, 20.1 * k)
-  ..lineTo(12 * k, 16.5 * k)
-  ..lineTo(6.1 * k, 20.1 * k)
-  ..lineTo(7.8 * k, 13.4 * k)
-  ..lineTo(2.5 * k, 8.9 * k)
-  ..lineTo(9.4 * k, 8.4 * k)
-  ..close();
-
 Widget _logo(String? url) => url == null
     ? const ColoredBox(color: Color(0xFFFBF7EE))
     : Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            const ColoredBox(color: Color(0xFFFBF7EE)),
+        errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFFFBF7EE)),
       );
 
 /// `livePuls` — a ring breathing out of a dot.
 class _LivePuls extends StatelessWidget {
-  const _LivePuls({
-    required this.size,
-    required this.color,
-    this.ms = 1800,
-    this.inset = 3,
-  });
+  const _LivePuls({required this.size, required this.color, this.inset = 3});
 
   final double size;
   final Color color;
-  final double ms;
   final double inset;
 
   @override
@@ -570,7 +621,7 @@ class _LivePuls extends StatelessWidget {
     height: size + inset * 2,
     child: IgnorePointer(
       child: BergenLoop(
-        durationMs: ms,
+        durationMs: 1800,
         builder: (context, p, child) {
           if (p == null) return const SizedBox.shrink();
           final e = Curves.easeOut.transform(p);
@@ -598,9 +649,7 @@ class _Damp extends StatelessWidget {
     required this.w,
     required this.h,
     required this.color,
-    this.ms = 2400,
     this.delay = 0,
-    this.blur = 1,
   });
 
   final double left;
@@ -608,9 +657,7 @@ class _Damp extends StatelessWidget {
   final double w;
   final double h;
   final Color color;
-  final double ms;
   final double delay;
-  final double blur;
 
   @override
   Widget build(BuildContext context) {
@@ -620,7 +667,7 @@ class _Damp extends StatelessWidget {
       top: top * s,
       child: IgnorePointer(
         child: BergenLoop(
-          durationMs: ms,
+          durationMs: 2400,
           delayMs: delay,
           builder: (context, p, child) {
             if (p == null) return const SizedBox.shrink();
@@ -630,27 +677,18 @@ class _Damp extends StatelessWidget {
               opacity: o.clamp(0.0, 1.0),
               child: Transform.translate(
                 offset: Offset(0, (8 - 38 * e) * s),
-                child: Transform.scale(
-                  scaleX: .7 + .65 * e,
-                  scaleY: 1,
-                  child: child,
-                ),
+                child: Transform.scale(scaleX: .7 + .65 * e, scaleY: 1, child: child),
               ),
             );
           },
           child: ImageFiltered(
-            imageFilter: ui.ImageFilter.blur(
-              sigmaX: blur * s,
-              sigmaY: blur * s,
-            ),
+            imageFilter: ui.ImageFilter.blur(sigmaX: s, sigmaY: s),
             child: Container(
               width: w * s,
               height: h * s,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.all(
-                  Radius.elliptical(w * s / 2, h * s / 2),
-                ),
+                borderRadius: BorderRadius.all(Radius.elliptical(w * s / 2, h * s / 2)),
               ),
             ),
           ),
@@ -662,30 +700,80 @@ class _Damp extends StatelessWidget {
 
 // ── hero ────────────────────────────────────────────────────────────────────
 
-class _Hero extends StatelessWidget {
-  const _Hero({
-    required this.store,
-    required this.kitchen,
-    required this.onBack,
-  });
+class _Hero extends StatefulWidget {
+  const _Hero({required this.store, required this.kitchen, required this.onBack, this.perKjop});
 
   final BergenStoreInfo store;
   final String kitchen;
   final VoidCallback onBack;
 
+  /// "+65 per kjøp"; null hides the coin.
+  final int? perKjop;
+
+  @override
+  State<_Hero> createState() => _HeroState();
+}
+
+/// The store's photo in 3D: it follows the finger (`data-tilt="6"`), the
+/// photo sits behind (`translateZ(-30px) scale(1.08)`) under a slow Ken
+/// Burns, a colour-dodge holo and a light sweep; the coin, the logo and the
+/// name stand out in front.
+class _HeroState extends State<_Hero> with SingleTickerProviderStateMixin {
+  late final AnimationController _back = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+  Offset _tilt = Offset.zero, _tiltFra = Offset.zero;
+  Offset _lys = const Offset(.4, .3), _lysFra = const Offset(.4, .3);
+
+  @override
+  void initState() {
+    super.initState();
+    _back.addListener(() {
+      final e = const Cubic(.3, 1.4, .5, 1).transform(_back.value);
+      setState(() {
+        _tilt = Offset.lerp(_tiltFra, Offset.zero, e)!;
+        _lys = Offset.lerp(_lysFra, const Offset(.4, .3), e)!;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _back.dispose();
+    super.dispose();
+  }
+
+  void _move(PointerEvent e) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final l = box.globalToLocal(e.position);
+    final x = (l.dx / box.size.width).clamp(0.0, 1.0);
+    final y = (l.dy / box.size.height).clamp(0.0, 1.0);
+    _back.stop();
+    setState(() {
+      _tilt = Offset((.5 - y) * 6, (x - .5) * 6 * 1.3);
+      _lys = Offset(x, y);
+    });
+  }
+
+  void _release() {
+    _tiltFra = _tilt;
+    _lysFra = _lys;
+    _back.forward(from: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final store = widget.store;
     final safeTop = MediaQuery.paddingOf(context).top;
     final dy = math.max(0.0, safeTop - 20 * s);
     final address = (store.address ?? '').split(',').first.trim();
     final meta = <String>[
       if (address.isNotEmpty) address,
       if (store.distanceKm != null) ButikkCopy.a1_butikk_km(store.distanceKm!),
-      if (store.closeTime != null)
-        ButikkCopy.a1_butikk_open_til(store.closeTime!),
+      if (store.closeTime != null) ButikkCopy.a1_butikk_open_til(store.closeTime!),
     ];
     final shadowText = [Shadow(color: rgba(10, 5, 2, .9), blurRadius: 10 * s)];
+    const d = math.pi / 180;
     return SizedBox(
       height: 266 * s + dy,
       child: ClipRect(
@@ -693,169 +781,220 @@ class _Hero extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Color(0xFF2A1410)),
-            if (store.bannerUrl != null)
-              Transform.scale(
-                scale: 1.07,
-                child: Image.network(
-                  store.bannerUrl!,
-                  fit: BoxFit.cover,
-                  alignment: const Alignment(0, -.2),
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
-            // radial-gradient(120% 78% at 52% 26%, 0 34%, rgba(14,6,3,.6))
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(.04, -.48),
-                  radius: 1.1,
-                  colors: [
-                    Color(0x000E0603),
-                    Color(0x000E0603),
-                    Color(0x990E0603),
-                  ],
-                  stops: [0, .34, 1],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 104 * s + dy,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x990E0703),
-                      Color(0x290E0703),
-                      Color(0x000E0703),
-                    ],
-                    stops: [0, .62, 1],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 164 * s,
-              child: const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0x000D0603),
-                      Color(0x6B0D0603),
-                      Color(0xE00D0603),
-                    ],
-                    stops: [0, .4, 1],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              left: 18 * s,
-              right: 18 * s,
-              bottom: 36 * s,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Transform.rotate(
-                    angle: -3 * math.pi / 180,
-                    child: Container(
-                      width: 64 * s,
-                      height: 64 * s,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(21 * s),
-                        boxShadow: [
-                          BoxShadow(
-                            color: rgba(10, 5, 2, .9),
-                            offset: Offset(0, 18 * s),
-                            blurRadius: onbBlur(28 * s),
-                            spreadRadius: -14 * s,
-                          ),
-                          BoxShadow(
-                            color: rgba(255, 255, 255, .92),
-                            spreadRadius: 3 * s,
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(21 * s),
-                        child: _logo(store.logoUrl),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 13 * s),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: 3 * s),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            store.name,
-                            key: const Key('a1_butikk_navn'),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style:
-                                bDisplay(
-                                  context,
-                                  28,
-                                  weight: FontWeight.w800,
-                                  letterSpacingEm: -.038,
-                                  height: 1,
-                                  color: Colors.white,
-                                ).copyWith(
-                                  shadows: [
-                                    Shadow(
-                                      color: rgba(10, 5, 2, .8),
-                                      offset: Offset(0, 2 * s),
-                                      blurRadius: 16 * s,
-                                    ),
-                                  ],
-                                ),
-                          ),
-                          SizedBox(height: 6 * s),
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 7 * s,
-                            runSpacing: 2 * s,
-                            children: [
-                              for (var i = 0; i < meta.length; i++) ...[
-                                if (i > 0)
-                                  Container(
-                                    width: 3 * s,
-                                    height: 3 * s,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: rgba(255, 255, 255, .55),
-                                    ),
+            Listener(
+              onPointerDown: _move,
+              onPointerMove: _move,
+              onPointerUp: (_) => _release(),
+              onPointerCancel: (_) => _release(),
+              child: Transform(
+                alignment: Alignment.center,
+                transform: katPerspektiv(900)
+                  ..rotateX(_tilt.dx * d)
+                  ..rotateY(_tilt.dy * d),
+                child: Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // The photo layer, set back (`translateZ(-30px) scale(1.08)`).
+                    Positioned(
+                      left: -14 * s,
+                      top: -14 * s,
+                      right: -14 * s,
+                      bottom: -14 * s,
+                      child: katZ(
+                        -30 * s,
+                        Transform.scale(
+                          scale: 1.08,
+                          child: ClipRect(
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                const ColoredBox(color: Color(0xFF2A1410)),
+                                if (store.bannerUrl != null) RepaintBoundary(child: _KenBurns(url: store.bannerUrl!)),
+                                const IgnorePointer(
+                                  child: KatHolo(
+                                    farger: kKatHoloSterk,
+                                    stopp: kKatHoloSterkStopp,
+                                    dodge: .3,
+                                    halvMs: 6000,
                                   ),
-                                Text(
-                                  meta[i],
-                                  style: bText(
-                                    context,
-                                    11.5,
-                                    weight: FontWeight.w700,
-                                    color: rgba(255, 255, 255, .93),
-                                    shadows: shadowText,
+                                ),
+                                const IgnorePointer(child: _SveipLys()),
+                                IgnorePointer(child: CustomPaint(painter: _LysOverlay(_lys))),
+                                // `radial-gradient(120% 78% at 52% 26%, transparent 34%,
+                                // rgba(14,6,3,.55))`.
+                                const IgnorePointer(
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: RadialGradient(
+                                        center: Alignment(.04, -.48),
+                                        radius: 1,
+                                        colors: [Color(0x000E0603), Color(0x000E0603), Color(0x8C0E0603)],
+                                        stops: [0, .34, 1],
+                                        transform: _CssRadial(.52, .26, 1.2, .78),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
-                            ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -14 * s,
+                      right: -14 * s,
+                      top: -14 * s,
+                      height: 118 * s + dy,
+                      child: const IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0x8C0E0703), Color(0x240E0703), Color(0x000E0703)],
+                              stops: [0, .62, 1],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: -14 * s,
+                      right: -14 * s,
+                      bottom: -14 * s,
+                      height: 184 * s,
+                      child: const IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0x000D0603), Color(0x730D0603), Color(0xE60D0603)],
+                              stops: [0, .42, 1],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (widget.perKjop != null)
+                      Positioned(
+                        right: 18 * s,
+                        bottom: 122 * s,
+                        child: katZ(
+                          22 * s,
+                          KatMyntPille(
+                            key: const Key('a1_butikk_per_kjop'),
+                            tekst: ButikkCopy.a1_butikk_per_kjop(widget.perKjop!),
+                            hoyde: 30,
+                            mynt: 16,
+                            fontPx: 12,
+                            faseMs: 0,
+                            skygge: true,
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      left: 24 * s,
+                      right: 20 * s,
+                      bottom: 38 * s,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          katZ(
+                            30 * s,
+                            Container(
+                              width: 68 * s,
+                              height: 68 * s,
+                              padding: EdgeInsets.all(7 * s),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: rgba(10, 5, 2, .6),
+                                    offset: Offset(0, 16 * s),
+                                    blurRadius: onbBlur(22 * s),
+                                    spreadRadius: -8 * s,
+                                  ),
+                                  BoxShadow(color: const Color(0xFFFFFBF5), spreadRadius: 4 * s),
+                                ],
+                              ),
+                              child: ClipOval(child: _logo(store.logoUrl)),
+                            ),
+                          ),
+                          SizedBox(width: 14 * s),
+                          Expanded(
+                            child: katZ(
+                              16 * s,
+                              Padding(
+                                padding: EdgeInsets.only(bottom: 4 * s),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      store.name,
+                                      key: const Key('a1_butikk_navn'),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style:
+                                          bDisplay(
+                                            context,
+                                            28,
+                                            weight: FontWeight.w800,
+                                            letterSpacingEm: -.038,
+                                            height: 1,
+                                            color: Colors.white,
+                                          ).copyWith(
+                                            shadows: [
+                                              Shadow(
+                                                color: rgba(10, 5, 2, .8),
+                                                offset: Offset(0, 2 * s),
+                                                blurRadius: 16 * s,
+                                              ),
+                                            ],
+                                          ),
+                                    ),
+                                    SizedBox(height: 6 * s),
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      spacing: 7 * s,
+                                      runSpacing: 2 * s,
+                                      children: [
+                                        for (var i = 0; i < meta.length; i++) ...[
+                                          if (i > 0)
+                                            Container(
+                                              width: 3 * s,
+                                              height: 3 * s,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: rgba(255, 255, 255, .55),
+                                              ),
+                                            ),
+                                          Text(
+                                            meta[i],
+                                            style: bText(
+                                              context,
+                                              11.5,
+                                              weight: FontWeight.w700,
+                                              color: rgba(255, 255, 255, .93),
+                                              shadows: shadowText,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Positioned(
@@ -866,7 +1005,7 @@ class _Hero extends StatelessWidget {
                 children: [
                   OnbPressable(
                     key: const Key('a1_butikk_back'),
-                    onTap: onBack,
+                    onTap: widget.onBack,
                     pressDy: 0,
                     pressScale: .9,
                     child: Container(
@@ -874,12 +1013,7 @@ class _Hero extends StatelessWidget {
                       height: 38 * s,
                       alignment: Alignment.center,
                       decoration: _heroGlass(s, circle: true),
-                      child: _Ico(
-                        15 * s,
-                        BergenColors.ink,
-                        2.6,
-                        (k) => _chevron(k, left: true),
-                      ),
+                      child: _Ico(15 * s, BergenColors.ink, 2.6, (k) => _chevron(k, left: true)),
                     ),
                   ),
                   const Spacer(),
@@ -896,22 +1030,15 @@ class _Hero extends StatelessWidget {
                             clipBehavior: Clip.none,
                             children: [
                               Container(
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFFE0662C),
-                                ),
+                                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE0662C)),
                               ),
-                              _LivePuls(
-                                size: 7 * s,
-                                color: rgba(224, 102, 44, .55),
-                                inset: 3 * s,
-                              ),
+                              _LivePuls(size: 7 * s, color: rgba(224, 102, 44, .55), inset: 3 * s),
                             ],
                           ),
                         ),
                         SizedBox(width: 7 * s),
                         Text(
-                          kitchen,
+                          widget.kitchen,
                           key: const Key('a1_butikk_kjokken'),
                           style: bText(
                             context,
@@ -934,17 +1061,123 @@ class _Hero extends StatelessWidget {
   }
 }
 
+/// `kenBurns 16s ease-in-out infinite alternate`: scale 1 → 1.14 and
+/// translate(-2.5%, 1.5%).
+class _KenBurns extends StatelessWidget {
+  const _KenBurns({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) => KatLoop(
+    durationMs: 32000,
+    child: Image.network(
+      url,
+      fit: BoxFit.cover,
+      alignment: const Alignment(0, -.2),
+      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+    ),
+    builder: (context, p, child) {
+      final raw = p * 2;
+      final e = Curves.easeInOut.transform(raw <= 1 ? raw : 2 - raw);
+      return LayoutBuilder(
+        builder: (context, c) => Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..scaleByDouble(1 + .14 * e, 1 + .14 * e, 1, 1)
+            ..translateByDouble(-.025 * c.maxWidth * e, .015 * c.maxHeight * e, 0, 1),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+/// `sveipLys 8s 1.2s ease-in-out infinite` — a soft light band crossing the
+/// photo (100°, white .2 at the centre) in the first 45% of each cycle.
+class _SveipLys extends StatelessWidget {
+  const _SveipLys();
+
+  @override
+  Widget build(BuildContext context) => BergenLoop(
+    durationMs: 8000,
+    delayMs: 1200,
+    builder: (context, p, _) {
+      if (p == null || p > .45) return const SizedBox.shrink();
+      final x = kf(p, const [0, .45], const [-1.2, 1.2], Curves.easeInOut);
+      return LayoutBuilder(
+        builder: (context, c) {
+          // The band's box is the photo grown by 40% / 60% each side.
+          final w = c.maxWidth * 2.2, h = c.maxHeight * 1.8;
+          return OverflowBox(
+            maxWidth: w,
+            maxHeight: h,
+            child: Transform.translate(
+              offset: Offset(x * w, 0),
+              child: SizedBox(
+                width: w,
+                height: h,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: cssLinear(
+                      100,
+                      const [
+                        Color.fromRGBO(255, 255, 255, 0),
+                        Color.fromRGBO(255, 255, 255, .2),
+                        Color.fromRGBO(255, 255, 255, 0),
+                      ],
+                      const [.44, .5, .56],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+/// `radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,.45),
+/// transparent 45%)`, `mix-blend-mode: overlay`.
+class _LysOverlay extends CustomPainter {
+  _LysOverlay(this.lys);
+
+  final Offset lys;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(lys.dx * size.width, lys.dy * size.height);
+    final r = [
+      Offset.zero,
+      Offset(size.width, 0),
+      Offset(0, size.height),
+      Offset(size.width, size.height),
+    ].map((k) => (k - c).distance).reduce(math.max);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..blendMode = BlendMode.overlay
+        ..shader = ui.Gradient.radial(
+          c,
+          r,
+          const [Color.fromRGBO(255, 255, 255, .45), Color.fromRGBO(255, 255, 255, 0)],
+          const [0, .45],
+        ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_LysOverlay old) => old.lys != lys;
+}
+
 BoxDecoration _heroGlass(double s, {bool circle = false}) => BoxDecoration(
   color: rgba(255, 255, 255, .92),
   shape: circle ? BoxShape.circle : BoxShape.rectangle,
   borderRadius: circle ? null : BorderRadius.circular(999),
   boxShadow: [
-    BoxShadow(
-      color: rgba(10, 5, 2, .9),
-      offset: Offset(0, 10 * s),
-      blurRadius: onbBlur(20 * s),
-      spreadRadius: -10 * s,
-    ),
+    BoxShadow(color: rgba(10, 5, 2, .9), offset: Offset(0, 10 * s), blurRadius: onbBlur(20 * s), spreadRadius: -10 * s),
     BoxShadow(color: rgba(255, 255, 255, .5), offset: Offset(0, 2 * s)),
   ],
 );
@@ -969,11 +1202,13 @@ class _CreamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    // `radial-gradient(90% 40% at 20% 0%, rgba(255,255,255,.14), transparent
+    // 60%), linear-gradient(180deg,#2F6C7E,#225868 40%,#1B4854)`.
     return Container(
       padding: EdgeInsets.only(bottom: 18 * s),
       decoration: BoxDecoration(
-        color: BergenColors.cream,
         borderRadius: BorderRadius.circular(28 * s),
+        gradient: cssLinear(180, const [Color(0xFF2F6C7E), Color(0xFF225868), Color(0xFF1B4854)], const [0, .4, 1]),
         boxShadow: [
           BoxShadow(
             color: rgba(4, 26, 34, .35),
@@ -982,12 +1217,22 @@ class _CreamCard extends StatelessWidget {
             spreadRadius: -8 * s,
           ),
           BoxShadow(
-            color: rgba(35, 32, 29, .3),
+            color: rgba(4, 18, 26, .6),
             offset: Offset(0, -6 * s),
             blurRadius: onbBlur(14 * s),
             spreadRadius: -8 * s,
           ),
         ],
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28 * s),
+        gradient: RadialGradient(
+          center: const Alignment(-.6, -1),
+          radius: 1,
+          colors: [rgba(255, 255, 255, .14), rgba(255, 255, 255, 0)],
+          stops: const [0, .6],
+          transform: const _CssRadial(.2, 0, .9, .4),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1003,6 +1248,7 @@ class _CreamCard extends StatelessWidget {
                 _Tile(
                   key: const Key('a1_butikk_del'),
                   label: ButikkCopy.a1_butikk_del,
+                  inset: .3,
                   colors: const [Color(0xFF3A7080), Color(0xFF22515E)],
                   edge: rgba(11, 38, 45, .55),
                   glow: rgba(23, 62, 72, .9),
@@ -1022,7 +1268,9 @@ class _CreamCard extends StatelessWidget {
                 _Tile(
                   key: const Key('a1_butikk_info_a'),
                   label: ButikkCopy.a1_butikk_allergener,
+                  inset: .4,
                   colors: _kOrange3,
+                  stops: const [0, .6, 1],
                   edge: const Color(0xFFC4491A),
                   glow: rgba(200, 70, 25, .9),
                   icon: (k) => Path()
@@ -1050,12 +1298,7 @@ class _CreamCard extends StatelessWidget {
                   glow: rgba(47, 184, 147, .9),
                   ink: const Color(0xFF0F1F2B),
                   icon: (k) => Path()
-                    ..addOval(
-                      Rect.fromCircle(
-                        center: Offset(12 * k, 12 * k),
-                        radius: 8.5 * k,
-                      ),
-                    )
+                    ..addOval(Rect.fromCircle(center: Offset(12 * k, 12 * k), radius: 8.5 * k))
                     ..moveTo(12 * k, 7.5 * k)
                     ..lineTo(12 * k, 12 * k)
                     ..lineTo(15 * k, 14 * k),
@@ -1070,12 +1313,7 @@ class _CreamCard extends StatelessWidget {
                   glow: rgba(217, 160, 32, .9),
                   ink: BergenColors.ink,
                   icon: (k) => Path()
-                    ..addOval(
-                      Rect.fromCircle(
-                        center: Offset(12 * k, 12 * k),
-                        radius: 8.5 * k,
-                      ),
-                    )
+                    ..addOval(Rect.fromCircle(center: Offset(12 * k, 12 * k), radius: 8.5 * k))
                     ..moveTo(12 * k, 11 * k)
                     ..lineTo(12 * k, 16 * k)
                     ..moveTo(12 * k, 7.5 * k)
@@ -1096,15 +1334,21 @@ class _Tile extends StatelessWidget {
     super.key,
     required this.label,
     required this.colors,
+    this.stops,
     required this.edge,
     required this.glow,
     required this.icon,
     required this.onTap,
     this.ink = Colors.white,
+    this.inset = .45,
   });
+
+  /// The icon square's `inset 0 1.5px 0 rgba(255,255,255,a)`.
+  final double inset;
 
   final String label;
   final List<Color> colors;
+  final List<double>? stops;
   final Color edge;
   final Color glow;
   final Path Function(double k) icon;
@@ -1122,19 +1366,20 @@ class _Tile extends StatelessWidget {
         child: Container(
           height: 58 * s,
           decoration: BoxDecoration(
-            color: Colors.white,
             borderRadius: BorderRadius.circular(16 * s),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)],
+            ),
             boxShadow: [
               BoxShadow(
-                color: rgba(35, 32, 29, .55),
+                color: rgba(4, 18, 26, .7),
                 offset: Offset(0, 10 * s),
                 blurRadius: onbBlur(18 * s),
                 spreadRadius: -12 * s,
               ),
-              BoxShadow(
-                color: rgba(190, 178, 155, .7),
-                offset: Offset(0, 2 * s),
-              ),
+              BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 2 * s)),
             ],
           ),
           child: Column(
@@ -1150,18 +1395,20 @@ class _Tile extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: colors,
+                    stops: stops,
                   ),
                   boxShadow: [
-                    BoxShadow(
-                      color: glow,
-                      offset: Offset(0, 8 * s),
-                      blurRadius: onbBlur(12 * s),
-                      spreadRadius: -8 * s,
-                    ),
+                    BoxShadow(color: glow, offset: Offset(0, 8 * s), blurRadius: onbBlur(12 * s), spreadRadius: -8 * s),
                     BoxShadow(color: edge, offset: Offset(0, 2 * s)),
                   ],
                 ),
-                child: _Ico(15 * s, ink, 2.3, icon),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    bergenInsetTop(radius: 10 * s, height: 1.5 * s, alpha: inset),
+                    _Ico(15 * s, ink, 2.3, icon),
+                  ],
+                ),
               ),
               SizedBox(height: 5 * s),
               Padding(
@@ -1170,12 +1417,7 @@ class _Tile extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: bText(
-                    context,
-                    9.5,
-                    weight: FontWeight.w800,
-                    color: BergenColors.ink,
-                  ),
+                  style: bText(context, 9.5, weight: FontWeight.w800, color: Colors.white),
                 ),
               ),
             ],
@@ -1190,11 +1432,7 @@ class _Tile extends StatelessWidget {
 /// are the store's real minimum order and free-delivery threshold; the
 /// design's Dessert / 10 % / 800 kr tiers have no backend and are not shown.
 class _Seilas extends StatelessWidget {
-  const _Seilas({
-    required this.store,
-    required this.subtotal,
-    required this.onAegil,
-  });
+  const _Seilas({required this.store, required this.subtotal, required this.onAegil});
 
   final BergenStoreInfo store;
   final double subtotal;
@@ -1237,26 +1475,12 @@ class _Seilas extends StatelessWidget {
         : null;
     final mins = store.deliveryMinutes;
 
+    // `border-radius:26px; overflow:hidden; background:transparent` — the
+    // voyage sits straight on the teal sheet.
     return Container(
       key: const Key('a1_butikk_seilas'),
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(26 * s),
-        gradient: cssLinear(
-          180,
-          const [Color(0xFF3A7080), Color(0xFF2F6270), Color(0xFF22515E)],
-          const [0, .45, 1],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: rgba(23, 62, 72, .7),
-            offset: Offset(0, 10 * s),
-            blurRadius: onbBlur(16 * s),
-            spreadRadius: -12 * s,
-          ),
-          BoxShadow(color: rgba(11, 38, 45, .5), offset: Offset(0, 3 * s)),
-        ],
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(26 * s)),
       child: Stack(
         children: [
           // `onbLysDrift` light and the `onbRing` wake.
@@ -1268,31 +1492,22 @@ class _Seilas extends StatelessWidget {
                 durationMs: 17000,
                 builder: (context, p, child) {
                   final q = p ?? 0;
-                  final e = Curves.easeInOut.transform(
-                    q < .5 ? q * 2 : (1 - q) * 2,
-                  );
+                  final e = Curves.easeInOut.transform(q < .5 ? q * 2 : (1 - q) * 2);
                   return Transform.translate(
                     offset: Offset(14 * s * e, -10 * s * e),
                     child: Transform.scale(scale: 1 + .06 * e, child: child),
                   );
                 },
-                child: ImageFiltered(
-                  imageFilter: ui.ImageFilter.blur(
-                    sigmaX: 22 * s,
-                    sigmaY: 22 * s,
-                  ),
-                  child: Container(
-                    width: 240 * s,
-                    height: 150 * s,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          rgba(255, 255, 255, .14),
-                          rgba(255, 255, 255, 0),
-                        ],
-                        stops: const [0, .7],
-                      ),
+                // The `blur(22px)` is folded into a wider, softer radial:
+                // the same light without re-blurring every frame.
+                child: Container(
+                  width: 240 * s,
+                  height: 150 * s,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [rgba(255, 255, 255, .12), rgba(255, 255, 255, .05), rgba(255, 255, 255, 0)],
+                      stops: const [0, .55, 1],
                     ),
                   ),
                 ),
@@ -1324,9 +1539,7 @@ class _Seilas extends StatelessWidget {
                     width: 260 * s,
                     height: 80 * s,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(
-                        Radius.elliptical(130 * s, 40 * s),
-                      ),
+                      borderRadius: BorderRadius.all(Radius.elliptical(130 * s, 40 * s)),
                       border: Border.all(color: rgba(255, 255, 255, .5)),
                     ),
                   ),
@@ -1335,9 +1548,7 @@ class _Seilas extends StatelessWidget {
             ),
           ),
           Positioned.fill(
-            child: Stack(
-              children: [bergenInsetTop(radius: 26 * s, alpha: .22)],
-            ),
+            child: Stack(children: [bergenInsetTop(radius: 26 * s, alpha: .22)]),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1401,12 +1612,7 @@ class _Seilas extends StatelessWidget {
                       pressDy: 0,
                       pressScale: .95,
                       child: Container(
-                        padding: EdgeInsets.fromLTRB(
-                          4 * s,
-                          4 * s,
-                          11 * s,
-                          4 * s,
-                        ),
+                        padding: EdgeInsets.fromLTRB(4 * s, 4 * s, 11 * s, 4 * s),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(999),
@@ -1417,10 +1623,7 @@ class _Seilas extends StatelessWidget {
                               blurRadius: onbBlur(18 * s),
                               spreadRadius: -12 * s,
                             ),
-                            BoxShadow(
-                              color: rgba(180, 171, 160, .7),
-                              offset: Offset(0, 2 * s),
-                            ),
+                            BoxShadow(color: rgba(180, 171, 160, .7), offset: Offset(0, 2 * s)),
                           ],
                         ),
                         child: Row(
@@ -1428,45 +1631,25 @@ class _Seilas extends StatelessWidget {
                           children: [
                             BergenLoop(
                               durationMs: 3400,
-                              builder: (context, p, child) =>
-                                  Transform.translate(
-                                    offset: Offset(
-                                      0,
-                                      p == null
-                                          ? 0
-                                          : kf(
-                                                  p,
-                                                  const [0, .5, 1],
-                                                  const [0, -2.5, 0],
-                                                  Curves.easeInOut,
-                                                ) *
-                                                s,
-                                    ),
-                                    child: child,
-                                  ),
+                              builder: (context, p, child) => Transform.translate(
+                                offset: Offset(
+                                  0,
+                                  p == null ? 0 : kf(p, const [0, .5, 1], const [0, -2.5, 0], Curves.easeInOut) * s,
+                                ),
+                                child: child,
+                              ),
                               child: Container(
                                 width: 26 * s,
                                 height: 26 * s,
                                 clipBehavior: Clip.antiAlias,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFFE6E0D3),
-                                ),
-                                child: Image.asset(
-                                  BergenAssets.aegilFront,
-                                  fit: BoxFit.cover,
-                                ),
+                                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE6E0D3)),
+                                child: Image.asset(BergenAssets.aegilFront, fit: BoxFit.cover),
                               ),
                             ),
                             SizedBox(width: 7 * s),
                             Text(
                               ButikkCopy.a1_butikk_spor_aegil,
-                              style: bText(
-                                context,
-                                11,
-                                weight: FontWeight.w800,
-                                color: BergenColors.ink,
-                              ),
+                              style: bText(context, 11, weight: FontWeight.w800, color: BergenColors.ink),
                             ),
                           ],
                         ),
@@ -1492,21 +1675,14 @@ class _Seilas extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ui.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                   child: Container(
-                    padding: EdgeInsets.fromLTRB(
-                      14 * s,
-                      11 * s,
-                      14 * s,
-                      12 * s,
-                    ),
+                    padding: EdgeInsets.fromLTRB(14 * s, 11 * s, 14 * s, 12 * s),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [rgba(8, 26, 36, .18), rgba(8, 26, 36, .34)],
                       ),
-                      border: Border(
-                        top: BorderSide(color: rgba(255, 255, 255, .14)),
-                      ),
+                      border: Border(top: BorderSide(color: rgba(255, 255, 255, .14))),
                     ),
                     child: Row(
                       children: [
@@ -1529,24 +1705,15 @@ class _Seilas extends StatelessWidget {
                                 next == null
                                     ? TextSpan(
                                         text: ButikkCopy.a1_butikk_havn,
-                                        style: const TextStyle(
-                                          color: Color(0xFF7FF0CB),
-                                        ),
+                                        style: const TextStyle(color: Color(0xFF7FF0CB)),
                                       )
                                     : TextSpan(
                                         children: [
                                           TextSpan(
-                                            text: ButikkCopy.a1_butikk_sum_kr(
-                                              '${(next.$1 - subtotal).ceil()}',
-                                            ),
-                                            style: const TextStyle(
-                                              color: Color(0xFFF9A273),
-                                            ),
+                                            text: ButikkCopy.a1_butikk_sum_kr('${(next.$1 - subtotal).ceil()}'),
+                                            style: const TextStyle(color: Color(0xFFF9A273)),
                                           ),
-                                          TextSpan(
-                                            text:
-                                                ' ${ButikkCopy.a1_butikk_til_navn(next.$2)}',
-                                          ),
+                                          TextSpan(text: ' ${ButikkCopy.a1_butikk_til_navn(next.$2)}'),
                                         ],
                                       ),
                                 key: const Key('a1_butikk_neste'),
@@ -1585,24 +1752,13 @@ class _Seilas extends StatelessWidget {
                                 children: [
                                   TextSpan(text: '${subtotal.round()}'),
                                   TextSpan(
-                                    text: goal == null
-                                        ? ' kr'
-                                        : ButikkCopy.a1_butikk_av_mal(
-                                            '${goal.round()}',
-                                          ),
-                                    style: TextStyle(
-                                      color: rgba(255, 255, 255, .5),
-                                    ),
+                                    text: goal == null ? ' kr' : ButikkCopy.a1_butikk_av_mal('${goal.round()}'),
+                                    style: TextStyle(color: rgba(255, 255, 255, .5)),
                                   ),
                                 ],
                               ),
                               key: const Key('a1_butikk_seilas_sum'),
-                              style: bDisplay(
-                                context,
-                                13,
-                                weight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                              style: bDisplay(context, 13, weight: FontWeight.w800, color: Colors.white),
                             ),
                           ],
                         ),
@@ -1643,9 +1799,7 @@ class _Water extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Positioned.fill(
-          child: CustomPaint(painter: _CoursePainter(width / (390 * s), s)),
-        ),
+        Positioned.fill(child: CustomPaint(painter: _CoursePainter(width / (390 * s), s))),
         // Kjøkkenet — the dock with the logo and the kitchen's steam.
         Positioned(
           left: 0,
@@ -1662,9 +1816,7 @@ class _Water extends StatelessWidget {
                 height: 14 * s,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.horizontal(
-                      right: Radius.circular(5 * s),
-                    ),
+                    borderRadius: BorderRadius.horizontal(right: Radius.circular(5 * s)),
                     gradient: const LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -1705,33 +1857,14 @@ class _Water extends StatelessWidget {
                         blurRadius: onbBlur(14 * s),
                         spreadRadius: -8 * s,
                       ),
-                      BoxShadow(
-                        color: rgba(255, 255, 255, .8),
-                        spreadRadius: 2 * s,
-                      ),
+                      BoxShadow(color: rgba(255, 255, 255, .8), spreadRadius: 2 * s),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(13 * s),
-                    child: _logo(logoUrl),
-                  ),
+                  child: ClipRRect(borderRadius: BorderRadius.circular(13 * s), child: _logo(logoUrl)),
                 ),
               ),
-              _Damp(
-                left: 22,
-                top: -7,
-                w: 8,
-                h: 8,
-                color: rgba(255, 255, 255, .7),
-              ),
-              _Damp(
-                left: 31,
-                top: -5,
-                w: 6,
-                h: 6,
-                color: rgba(255, 255, 255, .6),
-                delay: 900,
-              ),
+              _Damp(left: 22, top: -7, w: 8, h: 8, color: rgba(255, 255, 255, .7)),
+              _Damp(left: 31, top: -5, w: 6, h: 6, color: rgba(255, 255, 255, .6), delay: 900),
               Positioned(
                 left: 0,
                 top: 60 * s,
@@ -1767,11 +1900,7 @@ class _Water extends StatelessWidget {
                   borderRadius: BorderRadius.circular(13 * s),
                   gradient: cssLinear(
                     180,
-                    const [
-                      Color(0xFFFF7A45),
-                      Color(0xFFF1591F),
-                      Color(0xFFD9450F),
-                    ],
+                    const [Color(0xFFFF7A45), Color(0xFFF1591F), Color(0xFFD9450F)],
                     const [0, .6, 1],
                   ),
                   boxShadow: [
@@ -1781,10 +1910,7 @@ class _Water extends StatelessWidget {
                       blurRadius: onbBlur(16 * s),
                       spreadRadius: -10 * s,
                     ),
-                    BoxShadow(
-                      color: const Color(0xFFB83A0C),
-                      offset: Offset(0, 2 * s),
-                    ),
+                    BoxShadow(color: const Color(0xFFB83A0C), offset: Offset(0, 2 * s)),
                   ],
                 ),
                 child: _Ico(
@@ -1832,36 +1958,18 @@ class _Water extends StatelessWidget {
                   height: 10 * s,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: reached
-                        ? const Color(0xFF3F8F5F)
-                        : const Color(0xFFD8D2C6),
-                    boxShadow: [
-                      BoxShadow(
-                        color: rgba(255, 255, 255, .9),
-                        spreadRadius: 2.5 * s,
-                      ),
-                    ],
+                    color: reached ? const Color(0xFF3F8F5F) : const Color(0xFFD8D2C6),
+                    boxShadow: [BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 2.5 * s)],
                   ),
                 ),
                 SizedBox(height: 4 * s),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 5 * s,
-                    vertical: 1 * s,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(99),
-                    color: rgba(8, 26, 36, .45),
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 5 * s, vertical: 1 * s),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), color: rgba(8, 26, 36, .45)),
                   child: Text(
                     ButikkCopy.a1_butikk_gratis_frakt,
                     maxLines: 1,
-                    style: bText(
-                      context,
-                      8,
-                      weight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
+                    style: bText(context, 8, weight: FontWeight.w800, color: Colors.white),
                   ),
                 ),
               ],
@@ -1870,12 +1978,9 @@ class _Water extends StatelessWidget {
         // Ægil rows: `left` eases over .9s as the basket changes.
         TweenAnimationBuilder<double>(
           tween: Tween(end: frac),
-          duration: MediaQuery.of(context).disableAnimations
-              ? Duration.zero
-              : const Duration(milliseconds: 900),
+          duration: MediaQuery.of(context).disableAnimations ? Duration.zero : const Duration(milliseconds: 900),
           curve: const Cubic(.3, 1.05, .4, 1),
-          builder: (context, f, child) =>
-              Positioned(left: at(f) - 32 * s, top: 8 * s, child: child!),
+          builder: (context, f, child) => Positioned(left: at(f) - 32 * s, top: 8 * s, child: child!),
           child: _Boat(bubble: reached),
         ),
       ],
@@ -1938,12 +2043,7 @@ class _Boat extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              if (bubble)
-                Positioned(
-                  right: 72 * s,
-                  top: 2 * s,
-                  child: const _FraktBoble(),
-                ),
+              if (bubble) Positioned(right: 72 * s, top: 2 * s, child: const _FraktBoble()),
               Transform.translate(
                 offset: Offset(0, -2 * s * w),
                 child: Transform.rotate(
@@ -1959,17 +2059,11 @@ class _Boat extends StatelessWidget {
                           top: 2 * s,
                           width: 36 * s,
                           height: 36 * s,
-                          child: Image.asset(
-                            BergenAssets.aegilFront,
-                            fit: BoxFit.contain,
-                          ),
+                          child: Image.asset(BergenAssets.aegilFront, fit: BoxFit.contain),
                         ),
                         Positioned.fill(
                           child: CustomPaint(
-                            painter: _BoatPainter(
-                              a: -28 + 50 * oar,
-                              b: 28 - 50 * oar,
-                            ),
+                            painter: _BoatPainter(a: -28 + 50 * oar, b: 28 - 50 * oar),
                           ),
                         ),
                         Positioned(
@@ -1986,9 +2080,7 @@ class _Boat extends StatelessWidget {
                                   height: 4 * s,
                                   decoration: BoxDecoration(
                                     color: rgba(255, 255, 255, .55),
-                                    borderRadius: BorderRadius.all(
-                                      Radius.elliptical(11 * s, 2 * s),
-                                    ),
+                                    borderRadius: BorderRadius.all(Radius.elliptical(11 * s, 2 * s)),
                                   ),
                                 ),
                               ),
@@ -2011,14 +2103,9 @@ class _Boat extends StatelessWidget {
                       width: 44 * s,
                       height: 6 * s,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(
-                          Radius.elliptical(22 * s, 3 * s),
-                        ),
+                        borderRadius: BorderRadius.all(Radius.elliptical(22 * s, 3 * s)),
                         gradient: RadialGradient(
-                          colors: [
-                            rgba(255, 255, 255, .45),
-                            rgba(255, 255, 255, 0),
-                          ],
+                          colors: [rgba(255, 255, 255, .45), rgba(255, 255, 255, 0)],
                           stops: const [0, .72],
                         ),
                       ),
@@ -2046,14 +2133,7 @@ class _BoatPainter extends CustomPainter {
     final k = size.width / 64;
     canvas.save();
     canvas.scale(k);
-    void oar(
-      double ox,
-      double oy,
-      double tx,
-      double ty,
-      double deg,
-      double blade,
-    ) {
+    void oar(double ox, double oy, double tx, double ty, double deg, double blade) {
       canvas.save();
       canvas.translate(ox, oy);
       canvas.rotate(deg * math.pi / 180);
@@ -2171,1098 +2251,19 @@ class _FraktBoble extends StatelessWidget {
                   blurRadius: onbBlur(20 * s),
                   spreadRadius: -12 * s,
                 ),
-                BoxShadow(
-                  color: rgba(180, 171, 160, .8),
-                  offset: Offset(0, 2 * s),
-                ),
+                BoxShadow(color: rgba(180, 171, 160, .8), offset: Offset(0, 2 * s)),
               ],
             ),
             child: Text(
               ButikkCopy.a1_butikk_frakt_naadd,
               key: const Key('a1_butikk_frakt_naadd'),
-              style: bText(
-                context,
-                9.5,
-                weight: FontWeight.w800,
-                color: BergenColors.ink,
-              ),
+              style: bText(context, 9.5, weight: FontWeight.w800, color: BergenColors.ink),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-// ── Ærend spesialtilbud: the Kjøkkenluka stage ──────────────────────────────
-
-class _Specials extends StatelessWidget {
-  const _Specials({
-    required this.specials,
-    required this.active,
-    required this.dragDx,
-    required this.rate,
-    required this.onDrag,
-    required this.onRelease,
-    required this.onPick,
-    required this.onOpen,
-    required this.onAdd,
-  });
-
-  final List<BergenMenuItem> specials;
-  final int active;
-  final double dragDx;
-  final int? rate;
-  final ValueChanged<double> onDrag;
-  final VoidCallback onRelease;
-  final ValueChanged<int> onPick;
-  final ValueChanged<BergenMenuItem> onOpen;
-  final ValueChanged<BergenMenuItem> onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final a = specials[active];
-    final spar = a.savedKr;
-    final points = rate == null ? 0 : (a.price ~/ 10) * rate!;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16 * s, 18 * s, 16 * s, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 22 * s,
-                height: 22 * s,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: cssLinear(160, const [
-                          Color(0xFFF58A55),
-                          Color(0xFFE95C2C),
-                        ]),
-                        boxShadow: [
-                          BoxShadow(
-                            color: rgba(233, 92, 44, .8),
-                            offset: Offset(0, 4 * s),
-                            blurRadius: onbBlur(8 * s),
-                            spreadRadius: -4 * s,
-                          ),
-                        ],
-                      ),
-                      child: _Ico(12 * s, Colors.white, 2.6, _star),
-                    ),
-                    _LivePuls(
-                      size: 22 * s,
-                      color: rgba(242, 109, 61, .45),
-                      inset: 4 * s,
-                      ms: 2200,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 7 * s),
-              Expanded(
-                child: Text(
-                  ButikkCopy.a1_butikk_spesial,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: bDisplay(
-                    context,
-                    15,
-                    weight: FontWeight.w800,
-                    letterSpacingEm: -.01,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              SizedBox(width: 8 * s),
-              Text(
-                ButikkCopy.a1_butikk_bare_for_deg,
-                style: bText(
-                  context,
-                  10,
-                  weight: FontWeight.w800,
-                  color: const Color(0xFFFFB27A),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 3 * s),
-          Text(
-            ButikkCopy.a1_butikk_spesial_under,
-            style: bText(
-              context,
-              10.5,
-              weight: FontWeight.w600,
-              color: rgba(255, 255, 255, .62),
-            ),
-          ),
-          SizedBox(height: 10 * s),
-          GestureDetector(
-            key: const Key('a1_butikk_kjokkenluka'),
-            onHorizontalDragUpdate: (d) =>
-                onDrag((dragDx + d.delta.dx).clamp(-120.0, 120.0)),
-            onHorizontalDragEnd: (_) => onRelease(),
-            onHorizontalDragCancel: onRelease,
-            child: Container(
-              height: 206 * s,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22 * s),
-                gradient: const RadialGradient(
-                  center: Alignment(0, -.4),
-                  radius: .9,
-                  colors: [
-                    Color(0xFF1F5563),
-                    Color(0xFF153F4B),
-                    Color(0xFF0E2E38),
-                  ],
-                  stops: [0, .55, 1],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: rgba(4, 18, 26, .7),
-                    offset: Offset(0, 14 * s),
-                    blurRadius: onbBlur(24 * s),
-                    spreadRadius: -16 * s,
-                  ),
-                ],
-              ),
-              child: LayoutBuilder(
-                builder: (context, c) => Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ..._stage(context, c.maxWidth),
-                    for (var i = 0; i < specials.length; i++)
-                      if (i != active) _plate(context, c.maxWidth, i),
-                    _plate(context, c.maxWidth, active),
-                    Positioned(
-                      left: 16 * s,
-                      right: 16 * s,
-                      bottom: 0,
-                      height: 44 * s,
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              a.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: bDisplay(
-                                context,
-                                13.5,
-                                weight: FontWeight.w800,
-                                letterSpacingEm: -.02,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          if (spar > 0) ...[
-                            SizedBox(width: 8 * s),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8 * s,
-                                vertical: 3 * s,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(999),
-                                color: rgba(255, 255, 255, .14),
-                                border: Border.all(
-                                  color: rgba(255, 255, 255, .22),
-                                ),
-                              ),
-                              child: Text(
-                                ButikkCopy.a1_butikk_spar(spar),
-                                style: bText(
-                                  context,
-                                  9.5,
-                                  weight: FontWeight.w800,
-                                  color: const Color(0xFFFFD9BA),
-                                ),
-                              ),
-                            ),
-                          ],
-                          SizedBox(width: 10 * s),
-                          if (points > 0) ...[
-                            const _Mynt(),
-                            SizedBox(width: 5 * s),
-                            Text(
-                              ButikkCopy.a1_butikk_prod_poeng(points),
-                              style: bText(
-                                context,
-                                10,
-                                weight: FontWeight.w800,
-                                color: const Color(0xFFE8F3EC),
-                              ),
-                            ),
-                            SizedBox(width: 10 * s),
-                          ],
-                          OnbPressable(
-                            key: const Key('a1_butikk_spesial_legg'),
-                            onTap: () => onAdd(a),
-                            pressDy: 2,
-                            pressScale: .94,
-                            child: Container(
-                              width: 34 * s,
-                              height: 34 * s,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: cssLinear(160, const [
-                                  Color(0xFFF58A55),
-                                  Color(0xFFE95C2C),
-                                ]),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: rgba(180, 70, 30, .9),
-                                    offset: Offset(0, 8 * s),
-                                    blurRadius: onbBlur(12 * s),
-                                    spreadRadius: -6 * s,
-                                  ),
-                                  BoxShadow(
-                                    color: rgba(150, 55, 20, .95),
-                                    offset: Offset(0, 2 * s),
-                                  ),
-                                ],
-                              ),
-                              child: _Ico(16 * s, Colors.white, 3, _plusPath),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (specials.length > 1)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 10 * s,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            for (var n = 0; n < specials.length; n++) ...[
-                              if (n > 0) SizedBox(width: 5 * s),
-                              GestureDetector(
-                                onTap: () => onPick(n),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 400),
-                                  curve: const Cubic(.3, 1.2, .5, 1),
-                                  width: (n == active ? 20 : 5) * s,
-                                  height: 5 * s,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(3 * s),
-                                    color: n == active
-                                        ? const Color(0xFFE95C2C)
-                                        : rgba(120, 110, 95, .35),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// The stage: stripes, the counter in perspective, the lamp's glow and
-  /// cone, the warm pool, the counter's edge, the dark strip and the dust.
-  List<Widget> _stage(BuildContext context, double w) {
-    final s = context.bs;
-    return [
-      Positioned(
-        left: 0,
-        right: 0,
-        top: 0,
-        height: 120 * s,
-        child: CustomPaint(painter: _StripePainter(s, 38, .035)),
-      ),
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 44 * s,
-        height: 70 * s,
-        child: Transform(
-          alignment: Alignment.bottomCenter,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 1 / 300)
-            ..rotateX(58 * math.pi / 180),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [rgba(10, 32, 42, 0), rgba(10, 32, 42, .55)],
-                  ),
-                ),
-              ),
-              CustomPaint(painter: _StripePainter(s, 58, .06)),
-            ],
-          ),
-        ),
-      ),
-      Positioned(
-        left: w / 2 - 150 * s,
-        top: -30 * s,
-        width: 300 * s,
-        height: 230 * s,
-        child: IgnorePointer(
-          child: BergenLoop(
-            durationMs: 4000,
-            builder: (context, p, child) => Opacity(
-              opacity: p == null
-                  ? .5
-                  : kf(
-                      p,
-                      const [0, .5, 1],
-                      const [.5, .85, .5],
-                      Curves.easeInOut,
-                    ),
-              child: child,
-            ),
-            child: const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -.56),
-                  radius: .6,
-                  colors: [
-                    Color(0x6BFFD696),
-                    Color(0x1FFFD696),
-                    Color(0x00FFD696),
-                  ],
-                  stops: [0, .45, 1],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        left: w / 2 - 95 * s,
-        top: 0,
-        width: 190 * s,
-        height: 170 * s,
-        child: CustomPaint(painter: _ConeLight()),
-      ),
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 44 * s,
-        height: 30 * s,
-        child: const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.bottomCenter,
-              radius: 1.4,
-              colors: [Color(0x73FFCD8C), Color(0x00FFCD8C)],
-              stops: [0, .7],
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 44 * s,
-        height: 2 * s,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                rgba(255, 255, 255, 0),
-                rgba(255, 255, 255, .55),
-                rgba(255, 255, 255, .75),
-                rgba(255, 255, 255, .55),
-                rgba(255, 255, 255, 0),
-              ],
-              stops: const [0, .3, .5, .7, 1],
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: 44 * s,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [rgba(6, 20, 28, .55), rgba(6, 20, 28, .82)],
-            ),
-            border: Border(top: BorderSide(color: rgba(255, 255, 255, .12))),
-          ),
-        ),
-      ),
-      _Stov(x: .34 * w, bottom: 80, size: 3, ms: 6000, delay: 0),
-      _Stov(x: .58 * w, bottom: 70, size: 2, ms: 7500, delay: 2000),
-      _Stov(x: .46 * w, bottom: 90, size: 2.5, ms: 8000, delay: 4000),
-    ];
-  }
-
-  /// One plate on the carousel: 3D-placed by its distance from the active
-  /// one (`translate3d(d·118, 22, -260) rotateY(d·-34°) scale(.78)`), eased
-  /// over 1.4s.
-  Widget _plate(BuildContext context, double w, int i) {
-    final s = context.bs;
-    final n = specials.length;
-    var d = (i - active) % n;
-    if (d > n / 2) d -= n;
-    if (n == 2 && d == 1 && i < active) d = -1;
-    final on = d == 0;
-    final item = specials[i];
-    final pct = item.wasPrice == null || item.wasPrice! <= 0
-        ? 0
-        : ((1 - item.price / item.wasPrice!) * 100).round();
-    return TweenAnimationBuilder<double>(
-      key: ValueKey('plate-$i'),
-      tween: Tween(end: d.toDouble() + dragDx / 118),
-      duration: MediaQuery.of(context).disableAnimations || dragDx != 0
-          ? Duration.zero
-          : const Duration(milliseconds: 1400),
-      curve: const Cubic(.22, 1, .3, 1),
-      builder: (context, u, child) {
-        final a = u.abs().clamp(0.0, 1.0);
-        final m = Matrix4.identity()
-          ..setEntry(3, 2, 1 / 760)
-          ..translateByDouble(u * 118 * s, 22 * s * a, -260 * a, 1)
-          ..rotateY(-34 * u * math.pi / 180)
-          ..scaleByDouble(1 - .22 * a, 1 - .22 * a, 1 - .22 * a, 1);
-        return Positioned(
-          left: w / 2 - 62 * s,
-          bottom: 66 * s,
-          width: 124 * s,
-          height: 124 * s,
-          child: Transform(
-            alignment: Alignment.center,
-            transform: m,
-            child: Opacity(
-              opacity: 1 - .5 * a,
-              child: a < .05
-                  ? child
-                  : ColorFiltered(
-                      colorFilter: ColorFilter.matrix(_dim(a)),
-                      child: child,
-                    ),
-            ),
-          ),
-        );
-      },
-      child: GestureDetector(
-        key: Key('a1_butikk_spesial_$i'),
-        behavior: HitTestBehavior.opaque,
-        onTap: () => onOpen(item),
-        child: _Plate(item: item, on: on, pct: pct),
-      ),
-    );
-  }
-
-  /// `saturate(.65) brightness(.62)` blended in by [a].
-  static List<double> _dim(double a) {
-    final sat = 1 - .35 * a;
-    final br = 1 - .38 * a;
-    const r = .2126, g = .7152, b = .0722;
-    return [
-      (r + (1 - r) * sat) * br,
-      (g - g * sat) * br,
-      (b - b * sat) * br,
-      0,
-      0,
-      (r - r * sat) * br,
-      (g + (1 - g) * sat) * br,
-      (b - b * sat) * br,
-      0,
-      0,
-      (r - r * sat) * br,
-      (g - g * sat) * br,
-      (b + (1 - b) * sat) * br,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-    ];
-  }
-}
-
-class _StripePainter extends CustomPainter {
-  _StripePainter(this.s, this.every, this.alpha);
-
-  final double s;
-  final double every;
-  final double alpha;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = rgba(255, 255, 255, alpha);
-    for (var x = every * s; x < size.width; x += (every + 1) * s) {
-      canvas.drawRect(Rect.fromLTWH(x, 0, s, size.height), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_StripePainter old) => false;
-}
-
-class _ConeLight extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    canvas.drawPath(
-      Path()
-        ..moveTo(.38 * w, 0)
-        ..lineTo(.62 * w, 0)
-        ..lineTo(w, h)
-        ..lineTo(0, h)
-        ..close(),
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [rgba(255, 225, 170, .28), rgba(255, 225, 170, 0)],
-        ).createShader(Offset.zero & size),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_ConeLight old) => false;
-}
-
-/// `spStov` — dust drifting up through the lamp's light.
-class _Stov extends StatelessWidget {
-  const _Stov({
-    required this.x,
-    required this.bottom,
-    required this.size,
-    required this.ms,
-    required this.delay,
-  });
-
-  final double x;
-  final double bottom;
-  final double size;
-  final double ms;
-  final double delay;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return Positioned(
-      left: x,
-      bottom: bottom * s,
-      child: IgnorePointer(
-        child: BergenLoop(
-          durationMs: ms,
-          delayMs: delay,
-          builder: (context, p, child) {
-            if (p == null) return const SizedBox.shrink();
-            final o = p < .2 ? .7 * p / .2 : .7 * (1 - (p - .2) / .8);
-            return Opacity(
-              opacity: o.clamp(0.0, 1.0),
-              child: Transform.translate(
-                offset: Offset(6 * s * p, -70 * s * p),
-                child: child,
-              ),
-            );
-          },
-          child: Container(
-            width: size * s,
-            height: size * s,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFFFE7B0),
-              boxShadow: [
-                BoxShadow(color: const Color(0xFFFFE7B0), blurRadius: 3 * s),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The gold coin, `mynt 4.5s` (a flip every few seconds).
-class _Mynt extends StatelessWidget {
-  const _Mynt();
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return BergenLoop(
-      durationMs: 4500,
-      builder: (context, p, child) {
-        final q = p ?? 0;
-        final deg = q < .72
-            ? 0.0
-            : q < .86
-            ? 180 * (q - .72) / .14
-            : 180 * (1 - (q - .86) / .14);
-        return Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()..rotateY(deg * math.pi / 180),
-          child: child,
-        );
-      },
-      child: Container(
-        width: 12 * s,
-        height: 12 * s,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const RadialGradient(
-            center: Alignment(-.32, -.44),
-            colors: [Color(0xFFFBE7A8), Color(0xFFE0A72C), Color(0xFFB87F1C)],
-            stops: [0, .62, 1],
-          ),
-          boxShadow: [
-            BoxShadow(color: rgba(242, 193, 78, .6), blurRadius: 3 * s),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A plate: the stacked rim, the dish inset, the gloss, and on the active
-/// one the halo (`spPuls`), the float (`spSvev`), the glint, the tilted
-/// discount badge (`vipp`), the price pill and the steam.
-class _Plate extends StatelessWidget {
-  const _Plate({required this.item, required this.on, required this.pct});
-
-  final BergenMenuItem item;
-  final bool on;
-  final int pct;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final dish = item.imageUrl == null
-        ? const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment(-.4, -.76),
-                radius: 1.1,
-                colors: [
-                  Color(0xFFFDF0D8),
-                  Color(0xFFF6D9A6),
-                  Color(0xFFE7B66C),
-                ],
-                stops: [0, .52, 1],
-              ),
-            ),
-          )
-        : Image.network(
-            item.imageUrl!,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                const ColoredBox(color: Color(0xFFF6D9A6)),
-          );
-    final plate = Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 6 * s,
-          bottom: -6 * s,
-          child: const DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFCFC8BA), Color(0xFFA8A092)],
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          top: 3 * s,
-          bottom: -3 * s,
-          child: const DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFE6E1D6), Color(0xFFC2BBAD)],
-              ),
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.white, Color(0xFFEDE8DD)],
-              ),
-              boxShadow: on
-                  ? [
-                      BoxShadow(
-                        color: rgba(0, 10, 16, .8),
-                        offset: Offset(0, 40 * s),
-                        blurRadius: onbBlur(50 * s),
-                        spreadRadius: -24 * s,
-                      ),
-                      BoxShadow(
-                        color: rgba(0, 10, 16, .75),
-                        offset: Offset(0, 18 * s),
-                        blurRadius: onbBlur(26 * s),
-                        spreadRadius: -10 * s,
-                      ),
-                      BoxShadow(
-                        color: rgba(190, 182, 168, .95),
-                        offset: Offset(0, 5 * s),
-                      ),
-                      BoxShadow(
-                        color: rgba(255, 214, 150, .35),
-                        spreadRadius: 4 * s,
-                      ),
-                      BoxShadow(
-                        color: rgba(255, 255, 255, .9),
-                        spreadRadius: 1.5 * s,
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: rgba(0, 10, 16, .7),
-                        offset: Offset(0, 12 * s),
-                        blurRadius: onbBlur(16 * s),
-                        spreadRadius: -10 * s,
-                      ),
-                      BoxShadow(
-                        color: rgba(190, 182, 168, .7),
-                        offset: Offset(0, 2 * s),
-                      ),
-                    ],
-            ),
-            child: ClipOval(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(7 * s),
-                    child: ClipOval(child: dish),
-                  ),
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment(-.4, -.76),
-                        radius: .7,
-                        colors: [Color(0x99FFFFFF), Color(0x00FFFFFF)],
-                        stops: [0, .5],
-                      ),
-                    ),
-                  ),
-                  if (on) const _Glint(),
-                ],
-              ),
-            ),
-          ),
-        ),
-        if (on && pct > 0)
-          Positioned(
-            top: -4 * s,
-            right: -8 * s,
-            child: BergenLoop(
-              durationMs: 2600,
-              builder: (context, p, child) {
-                final q = p ?? 0;
-                final w = kf(
-                  q,
-                  const [0, .5, 1],
-                  const [0, 1, 0],
-                  Curves.easeInOut,
-                );
-                return Transform.rotate(
-                  angle: (-6 + 4.5 * w) * math.pi / 180,
-                  child: Transform.scale(scale: 1 + .06 * w, child: child),
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10 * s,
-                  vertical: 5 * s,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFFF58A55), Color(0xFFE95C2C)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: rgba(184, 80, 31, .9),
-                      offset: Offset(0, 6 * s),
-                      blurRadius: onbBlur(12 * s),
-                      spreadRadius: -4 * s,
-                    ),
-                    BoxShadow(
-                      color: rgba(255, 255, 255, .95),
-                      spreadRadius: 2 * s,
-                    ),
-                  ],
-                ),
-                child: Text(
-                  '−$pct %',
-                  style: bDisplay(
-                    context,
-                    12,
-                    weight: FontWeight.w800,
-                    letterSpacingEm: -.01,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          left: 10 * s,
-          right: 10 * s,
-          bottom: -14 * s,
-          height: 16 * s,
-          child: ImageFiltered(
-            imageFilter: ui.ImageFilter.blur(sigmaX: 3 * s, sigmaY: 3 * s),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.all(
-                  Radius.elliptical(52 * s, 8 * s),
-                ),
-                gradient: RadialGradient(
-                  colors: [rgba(0, 10, 16, .75), rgba(0, 10, 16, 0)],
-                  stops: const [0, .72],
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (on)
-          Positioned(
-            left: -6 * s,
-            top: -6 * s,
-            right: -6 * s,
-            bottom: -6 * s,
-            child: IgnorePointer(
-              child: BergenLoop(
-                durationMs: 2600,
-                builder: (context, p, child) {
-                  if (p == null) return const SizedBox.shrink();
-                  final e = Curves.easeOut.transform(p);
-                  return Opacity(
-                    opacity: .6 * (1 - e),
-                    child: Transform.scale(scale: .7 + .8 * e, child: child),
-                  );
-                },
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: rgba(255, 214, 150, .6),
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        Positioned.fill(
-          child: on
-              ? BergenLoop(
-                  durationMs: 3600,
-                  builder: (context, p, child) => Transform.translate(
-                    offset: Offset(
-                      0,
-                      p == null
-                          ? 0
-                          : kf(
-                                  p,
-                                  const [0, .5, 1],
-                                  const [0, -6, 0],
-                                  Curves.easeInOut,
-                                ) *
-                                s,
-                    ),
-                    child: child,
-                  ),
-                  child: plate,
-                )
-              : plate,
-        ),
-        if (on) ...[
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: -22 * s,
-            child: Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 13 * s,
-                    vertical: 6 * s,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.white, Color(0xFFF4F0E7)],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: rgba(0, 10, 16, .7),
-                        offset: Offset(0, 10 * s),
-                        blurRadius: onbBlur(16 * s),
-                        spreadRadius: -6 * s,
-                      ),
-                      BoxShadow(
-                        color: const Color(0xFFDCD3C2),
-                        offset: Offset(0, 2 * s),
-                      ),
-                      BoxShadow(
-                        color: rgba(255, 255, 255, .95),
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        ButikkCopy.kr(item.price),
-                        style: bDisplay(
-                          context,
-                          15,
-                          weight: FontWeight.w800,
-                          letterSpacingEm: -.02,
-                          color: BergenColors.ink,
-                        ),
-                      ),
-                      if (item.wasPrice != null) ...[
-                        SizedBox(width: 6 * s),
-                        Text(
-                          ButikkCopy.kr(item.wasPrice!),
-                          style: bText(
-                            context,
-                            10,
-                            weight: FontWeight.w700,
-                            color: BergenColors.inkMuted,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          _Damp(
-            left: 44,
-            top: -14,
-            w: 10,
-            h: 20,
-            color: rgba(255, 255, 255, .65),
-            ms: 3200,
-            blur: 3,
-          ),
-          _Damp(
-            left: 60,
-            top: -10,
-            w: 8,
-            h: 16,
-            color: rgba(255, 255, 255, .5),
-            ms: 3200,
-            delay: 1100,
-            blur: 3,
-          ),
-          _Damp(
-            left: 72,
-            top: -14,
-            w: 9,
-            h: 18,
-            color: rgba(255, 255, 255, .45),
-            ms: 3200,
-            delay: 2000,
-            blur: 3,
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-/// `spGlint` — a sheen crossing the plate every 5.5s.
-class _Glint extends StatelessWidget {
-  const _Glint();
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(
-    child: BergenLoop(
-      durationMs: 5500,
-      builder: (context, p, child) {
-        if (p == null || p < .7 || p > .92) return const SizedBox.shrink();
-        final t = (p - .7) / .22;
-        final o = t < .36 ? .7 * t / .36 : .7 * (1 - (t - .36) / .64);
-        return LayoutBuilder(
-          builder: (context, c) => Opacity(
-            opacity: o.clamp(0.0, 1.0),
-            child: Transform.translate(
-              offset: Offset(c.maxWidth * .36 * (-1.4 + 2.8 * t), 0),
-              child: Transform.rotate(angle: 18 * math.pi / 180, child: child),
-            ),
-          ),
-        );
-      },
-      child: FractionallySizedBox(
-        widthFactor: .36,
-        heightFactor: 1.4,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                rgba(255, 255, 255, 0),
-                rgba(255, 255, 255, .75),
-                rgba(255, 255, 255, 0),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 }
 
 // ── the category orbs ───────────────────────────────────────────────────────
@@ -3340,9 +2341,7 @@ class _CategoryRail extends StatelessWidget {
             orbs.sort((x, y) => y.$1.compareTo(x.$1));
             return GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onHorizontalDragUpdate: (d) => onDrag(
-                (dx + d.delta.dx * 1.25).clamp(-1.05 * step, 1.05 * step),
-              ),
+              onHorizontalDragUpdate: (d) => onDrag((dx + d.delta.dx * 1.25).clamp(-1.05 * step, 1.05 * step)),
               onHorizontalDragEnd: (_) => onRelease(),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -3358,17 +2357,10 @@ class _CategoryRail extends StatelessWidget {
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             center: const Alignment(0, -.56),
-                            colors: [
-                              rgba(255, 255, 255, .22),
-                              rgba(255, 255, 255, .06),
-                              rgba(255, 255, 255, 0),
-                            ],
+                            colors: [rgba(255, 255, 255, .22), rgba(255, 255, 255, .06), rgba(255, 255, 255, 0)],
                             stops: const [0, .58, .75],
                           ),
-                          border: Border.all(
-                            color: rgba(255, 255, 255, .18),
-                            width: 1.5,
-                          ),
+                          border: Border.all(color: rgba(255, 255, 255, .18), width: 1.5),
                         ),
                       ),
                     ),
@@ -3384,14 +2376,8 @@ class _CategoryRail extends StatelessWidget {
                         borderRadius: BorderRadius.circular(2 * s),
                         color: BergenColors.mint,
                         boxShadow: [
-                          BoxShadow(
-                            color: BergenColors.mint,
-                            blurRadius: 6 * s,
-                          ),
-                          BoxShadow(
-                            color: rgba(92, 224, 184, .5),
-                            blurRadius: 11 * s,
-                          ),
+                          BoxShadow(color: BergenColors.mint, blurRadius: 6 * s),
+                          BoxShadow(color: rgba(92, 224, 184, .5), blurRadius: 11 * s),
                         ],
                       ),
                     ),
@@ -3436,6 +2422,13 @@ class _Orb extends StatelessWidget {
         ..addRect(Rect.fromLTWH(13.5 * k, 13.5 * k, 6 * k, 6 * k));
     }
     final n = name.toLowerCase();
+    if (n == ButikkCopy.a1_butikk_tilbud.toLowerCase()) {
+      // The tag (`erTilbud`).
+      return (k) => svgSti(
+        'M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.6 6.6a1.4 1.4 0 0 1-2 0z'
+        'M9.9 8.4a1.5 1.5 0 1 1-3 0a1.5 1.5 0 1 1 3 0z',
+      ).transform((Matrix4.identity()..scaleByDouble(k, k, 1, 1)).storage);
+    }
     if (RegExp(r'drikk|brus|soda|juice|kaffe|vann|øl').hasMatch(n)) {
       return (k) => Path()
         ..moveTo(6.4 * k, 6.2 * k)
@@ -3464,17 +2457,11 @@ class _Orb extends StatelessWidget {
     }
     if (RegExp(r'kylling|chicken|wings').hasMatch(n)) {
       return (k) => Path()
-        ..addOval(
-          Rect.fromCircle(center: Offset(14 * k, 8.4 * k), radius: 5.6 * k),
-        )
+        ..addOval(Rect.fromCircle(center: Offset(14 * k, 8.4 * k), radius: 5.6 * k))
         ..moveTo(11.6 * k, 12.4 * k)
         ..lineTo(7.4 * k, 16.6 * k)
-        ..addOval(
-          Rect.fromCircle(center: Offset(5.6 * k, 18.4 * k), radius: 2.1 * k),
-        )
-        ..addOval(
-          Rect.fromCircle(center: Offset(8.2 * k, 20.6 * k), radius: 1.7 * k),
-        );
+        ..addOval(Rect.fromCircle(center: Offset(5.6 * k, 18.4 * k), radius: 2.1 * k))
+        ..addOval(Rect.fromCircle(center: Offset(8.2 * k, 20.6 * k), radius: 1.7 * k));
     }
     // Burgers and every other dish: the bun.
     return (k) => Path()
@@ -3516,10 +2503,7 @@ class _Orb extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: on
-                      ? cssLinear(160, const [
-                          Color(0xFFF2884E),
-                          Color(0xFFE0662C),
-                        ])
+                      ? cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)])
                       : const LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -3533,10 +2517,7 @@ class _Orb extends StatelessWidget {
                             blurRadius: onbBlur(15 * s),
                             spreadRadius: -6 * s,
                           ),
-                          BoxShadow(
-                            color: rgba(150, 60, 15, .85),
-                            offset: Offset(0, 3 * s),
-                          ),
+                          BoxShadow(color: rgba(150, 60, 15, .85), offset: Offset(0, 3 * s)),
                         ]
                       : [
                           BoxShadow(
@@ -3545,22 +2526,11 @@ class _Orb extends StatelessWidget {
                             blurRadius: onbBlur(7 * s),
                             spreadRadius: -4 * s,
                           ),
-                          BoxShadow(
-                            color: const Color(0xFFD9D2C4),
-                            offset: Offset(0, 1.5 * s),
-                          ),
-                          BoxShadow(
-                            color: rgba(255, 255, 255, .9),
-                            spreadRadius: 1,
-                          ),
+                          BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
+                          BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 1),
                         ],
                 ),
-                child: _Ico(
-                  18 * s,
-                  on ? Colors.white : BergenColors.inkMuted,
-                  2.1,
-                  _icon,
-                ),
+                child: _Ico(18 * s, on ? Colors.white : BergenColors.inkMuted, 2.1, _icon),
               ),
               Positioned(
                 top: 46 * s + 7 * s,
@@ -3576,9 +2546,7 @@ class _Orb extends StatelessWidget {
                       10.5,
                       weight: FontWeight.w800,
                       letterSpacingEm: -.01,
-                      color: on
-                          ? const Color(0xFFFF9A5E)
-                          : rgba(255, 255, 255, .75),
+                      color: on ? const Color(0xFFFF9A5E) : rgba(255, 255, 255, .75),
                     ),
                   ),
                 ),
@@ -3646,12 +2614,7 @@ class _MenuHead extends StatelessWidget {
                         SizedBox(height: 2 * s),
                         Text(
                           ButikkCopy.a1_butikk_inkl_mva,
-                          style: bText(
-                            context,
-                            10.5,
-                            weight: FontWeight.w600,
-                            color: rgba(255, 255, 255, .55),
-                          ),
+                          style: bText(context, 10.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .55)),
                         ),
                       ],
                     ),
@@ -3672,11 +2635,7 @@ class _MenuHead extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           center: const Alignment(0, -.56),
-                          colors: [
-                            rgba(255, 255, 255, .16),
-                            rgba(255, 255, 255, .04),
-                            rgba(255, 255, 255, 0),
-                          ],
+                          colors: [rgba(255, 255, 255, .16), rgba(255, 255, 255, .04), rgba(255, 255, 255, 0)],
                           stops: const [0, .58, .75],
                         ),
                         border: Border.all(color: rgba(255, 255, 255, .12)),
@@ -3704,15 +2663,8 @@ class _MenuHead extends StatelessWidget {
                             end: Alignment.bottomCenter,
                             colors: [rgba(0, 0, 0, .3), rgba(0, 0, 0, .18)],
                           )
-                        : cssLinear(165, const [
-                            Color(0xFF2A6272),
-                            Color(0xFF1E4F5C),
-                          ]),
-                    border: Border.all(
-                      color: open
-                          ? rgba(92, 224, 184, .55)
-                          : Colors.transparent,
-                    ),
+                        : cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
+                    border: Border.all(color: open ? rgba(92, 224, 184, .55) : Colors.transparent),
                     boxShadow: open
                         ? [
                             BoxShadow(
@@ -3721,10 +2673,7 @@ class _MenuHead extends StatelessWidget {
                               blurRadius: onbBlur(18 * s),
                               spreadRadius: -12 * s,
                             ),
-                            BoxShadow(
-                              color: rgba(92, 224, 184, .14),
-                              spreadRadius: 3 * s,
-                            ),
+                            BoxShadow(color: rgba(92, 224, 184, .14), spreadRadius: 3 * s),
                           ]
                         : [
                             BoxShadow(
@@ -3733,10 +2682,7 @@ class _MenuHead extends StatelessWidget {
                               blurRadius: onbBlur(11 * s),
                               spreadRadius: -5 * s,
                             ),
-                            BoxShadow(
-                              color: rgba(11, 38, 45, .85),
-                              offset: Offset(0, 2 * s),
-                            ),
+                            BoxShadow(color: rgba(11, 38, 45, .85), offset: Offset(0, 2 * s)),
                           ],
                   ),
                   child: Stack(
@@ -3760,43 +2706,26 @@ class _MenuHead extends StatelessWidget {
                                     controller: controller,
                                     focusNode: focus,
                                     cursorColor: BergenColors.mint,
-                                    style: bDisplay(
-                                      context,
-                                      13,
-                                      weight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                    decoration:
-                                        onbBareInput(
-                                          hint: ButikkCopy.a1_butikk_sok_meny,
-                                          hintStyle: bDisplay(
-                                            context,
-                                            13,
-                                            weight: FontWeight.w700,
-                                            color: rgba(255, 255, 255, .45),
-                                          ),
-                                        ).copyWith(
-                                          contentPadding: EdgeInsets.only(
-                                            left: 16 * s,
-                                          ),
-                                        ),
+                                    style: bDisplay(context, 13, weight: FontWeight.w700, color: Colors.white),
+                                    decoration: onbBareInput(
+                                      hint: ButikkCopy.a1_butikk_sok_meny,
+                                      hintStyle: bDisplay(
+                                        context,
+                                        13,
+                                        weight: FontWeight.w700,
+                                        color: rgba(255, 255, 255, .45),
+                                      ),
+                                    ).copyWith(contentPadding: EdgeInsets.only(left: 16 * s)),
                                   ),
                                 ),
                                 if (controller.text.isNotEmpty)
                                   GestureDetector(
                                     onTap: controller.clear,
                                     child: Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 4 * s,
-                                      ),
+                                      padding: EdgeInsets.symmetric(horizontal: 4 * s),
                                       child: Text(
                                         ButikkCopy.a1_butikk_tom,
-                                        style: bText(
-                                          context,
-                                          10.5,
-                                          weight: FontWeight.w800,
-                                          color: BergenColors.mint,
-                                        ),
+                                        style: bText(context, 10.5, weight: FontWeight.w800, color: BergenColors.mint),
                                       ),
                                     ),
                                   ),
@@ -3832,12 +2761,7 @@ class _MenuHead extends StatelessWidget {
                                           ..moveTo(18 * k, 6 * k)
                                           ..lineTo(6 * k, 18 * k)
                                       : (k) => Path()
-                                          ..addOval(
-                                            Rect.fromCircle(
-                                              center: Offset(11 * k, 11 * k),
-                                              radius: 7 * k,
-                                            ),
-                                          )
+                                          ..addOval(Rect.fromCircle(center: Offset(11 * k, 11 * k), radius: 7 * k))
                                           ..moveTo(20.5 * k, 20.5 * k)
                                           ..lineTo(16.2 * k, 16.2 * k),
                                 ),
@@ -3858,11 +2782,338 @@ class _MenuHead extends StatelessWidget {
   }
 }
 
+// ── Tilbud (`visTilbud`, L4058) ─────────────────────────────────────────────
+
+class _TilbudGrid extends StatelessWidget {
+  const _TilbudGrid({required this.specials, required this.onOpen, required this.onAdd});
+
+  final List<BergenMenuItem> specials;
+  final ValueChanged<BergenMenuItem> onOpen;
+  final ValueChanged<BergenMenuItem> onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    // In the grid (`margin-top:52px`), the note sits 22px up and the cards
+    // 26px up from their rows.
+    return Padding(
+      key: const Key('a1_butikk_tilbud'),
+      padding: EdgeInsets.fromLTRB(16 * s, 30 * s, 16 * s, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 7 * s,
+                height: 7 * s,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFFF9A5E),
+                  boxShadow: [BoxShadow(color: const Color(0xFFFF9A5E), blurRadius: onbBlur(8 * s))],
+                ),
+              ),
+              SizedBox(width: 8 * s),
+              Expanded(
+                child: Text(
+                  ButikkCopy.a1_butikk_tilbud_note,
+                  style: bText(context, 11.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .72)),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 30 * s),
+          for (var i = 0; i < specials.length; i += 2) ...[
+            if (i > 0) SizedBox(height: 30 * s),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _kort(specials[i], i)),
+                SizedBox(width: 12 * s),
+                Expanded(child: i + 1 < specials.length ? _kort(specials[i + 1], i + 1) : const SizedBox.shrink()),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _kort(BergenMenuItem i, int n) => _TilbudKort(
+    key: Key('a1_butikk_tilbud_${i.id}'),
+    item: i,
+    fase: .7 + n * .7,
+    onOpen: () => onOpen(i),
+    onAdd: () => onAdd(i),
+  );
+}
+
+/// `Tilbud · {navn}`: a cream card, the photo (4:3) with its sheen and
+/// colour-dodge holo, the discount tag tilted on the corner, why it is on
+/// offer and the saving, the price with the old one struck through, and the
+/// floating key.
+class _TilbudKort extends StatelessWidget {
+  const _TilbudKort({super.key, required this.item, required this.fase, required this.onOpen, required this.onAdd});
+
+  final BergenMenuItem item;
+  final double fase;
+  final VoidCallback onOpen;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    final was = item.wasPrice ?? item.price;
+    final pct = was > 0 ? ((1 - item.price / was) * 100).round() : 0;
+    final spar = (was - item.price).round();
+    const ink = BergenColors.ink;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: EdgeInsets.fromLTRB(7 * s, 7 * s, 7 * s, 11 * s),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24 * s),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFFFFBF5), Color(0xFFF7EEE2)],
+            ),
+            boxShadow: [
+              BoxShadow(color: rgba(255, 255, 255, .55), spreadRadius: 1),
+              BoxShadow(color: rgba(4, 18, 26, .25), offset: Offset(0, 3 * s)),
+              BoxShadow(
+                color: rgba(4, 18, 26, .85),
+                offset: Offset(0, 22 * s),
+                blurRadius: onbBlur(30 * s),
+                spreadRadius: -18 * s,
+              ),
+            ],
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // The pastel holo over the lower half.
+              Positioned(
+                left: -7 * s,
+                right: -7 * s,
+                bottom: -11 * s,
+                height: 140 * s,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(24 * s)),
+                  child: const IgnorePointer(
+                    child: KatHolo(farger: kKatHoloLys, stopp: kKatHoloLysStopp),
+                  ),
+                ),
+              ),
+              bergenInsetTop(
+                radius: 24 * s,
+                height: 1.5 * s,
+                alpha: 1,
+                pad: EdgeInsets.fromLTRB(7 * s, 7 * s, 7 * s, 11 * s),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GestureDetector(
+                    onTap: onOpen,
+                    child: AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(18 * s),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            const ColoredBox(color: Color(0xFFFBF7EE)),
+                            if ((item.imageUrl ?? '').isNotEmpty)
+                              Image.network(
+                                item.imageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                              ),
+                            const DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color.fromRGBO(255, 255, 255, .18),
+                                    Color.fromRGBO(255, 255, 255, 0),
+                                    Color.fromRGBO(0, 0, 0, 0),
+                                    Color.fromRGBO(0, 0, 0, .22),
+                                  ],
+                                  stops: [0, .35, .62, 1],
+                                ),
+                              ),
+                            ),
+                            const IgnorePointer(
+                              child: KatHolo(farger: kKatHoloSterk, stopp: kKatHoloSterkStopp, dodge: .3),
+                            ),
+                            IgnorePointer(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(18 * s),
+                                  border: Border.all(color: rgba(0, 0, 0, .08)),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [rgba(0, 0, 0, .18), rgba(0, 0, 0, 0)],
+                                    stops: const [0, .06],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 9 * s),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 3 * s),
+                    child: GestureDetector(
+                      onTap: onOpen,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: bDisplay(context, 14, letterSpacingEm: -.02, height: 1.2, color: ink),
+                          ),
+                          SizedBox(height: 3 * s),
+                          Text(
+                            ButikkCopy.a1_butikk_tilbud_spar(
+                              (item.categoryName ?? '').trim().isNotEmpty
+                                  ? item.categoryName!.trim()
+                                  : ButikkCopy.a1_butikk_tilbud_grunn,
+                              spar,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: bText(context, 11, weight: FontWeight.w700, color: const Color(0xFFC2410C)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 9 * s),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 3 * s),
+                    child: CustomPaint(
+                      painter: const _Stiplet(),
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 9 * s),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _kr(item.price),
+                                    style: bDisplay(
+                                      context,
+                                      17,
+                                      letterSpacingEm: -.02,
+                                      color: ink,
+                                    ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                                  ),
+                                  if (item.wasPrice != null)
+                                    Text(
+                                      _kr(was),
+                                      style: bText(
+                                        context,
+                                        11,
+                                        weight: FontWeight.w700,
+                                        color: const Color(0xFF9A9188),
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            _SvevKnapp(
+                              key: Key('a1_butikk_tilbud_legg_${item.id}'),
+                              size: 40,
+                              ikonPx: 15,
+                              fase: fase,
+                              onTap: onAdd,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (pct > 0)
+          Positioned(
+            top: -8 * s,
+            right: -5 * s,
+            child: Transform.rotate(
+              angle: 5 * math.pi / 180,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 9 * s, vertical: 4 * s),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(9 * s),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: _kOrange3,
+                    stops: [0, .56, 1],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: rgba(120, 50, 20, .6),
+                      offset: Offset(0, 8 * s),
+                      blurRadius: onbBlur(14 * s),
+                      spreadRadius: -6 * s,
+                    ),
+                    BoxShadow(color: const Color(0xFFC4491A), offset: Offset(0, 3 * s)),
+                    BoxShadow(color: Colors.white, spreadRadius: 2 * s),
+                  ],
+                ),
+                child: Text(
+                  '−$pct %',
+                  style: bText(context, 11, weight: FontWeight.w800, color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// `border-top: 1px dashed rgba(60,40,20,.16)` along the painter's top.
+class _Stiplet extends CustomPainter {
+  const _Stiplet();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = const Color.fromRGBO(60, 40, 20, .16)
+      ..strokeWidth = 1;
+    for (var x = 0.0; x < size.width; x += 6) {
+      canvas.drawLine(Offset(x, .5), Offset(math.min(x + 3, size.width), .5), p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Stiplet old) => false;
+}
+
 // ── the menu grid ───────────────────────────────────────────────────────────
 
 class _Grid extends StatelessWidget {
   const _Grid({
     required this.items,
+    required this.inn,
     required this.query,
     required this.readyMinutes,
     required this.mostOrderedId,
@@ -3873,6 +3124,7 @@ class _Grid extends StatelessWidget {
   });
 
   final List<BergenMenuItem> items;
+  final Animation<double> inn;
   final String query;
   final int? readyMinutes;
   final int? mostOrderedId;
@@ -3896,39 +3148,26 @@ class _Grid extends StatelessWidget {
             border: Border.all(color: rgba(255, 255, 255, .14)),
           ),
           child: Text(
-            query.isEmpty
-                ? ButikkCopy.a1_butikk_menu_empty
-                : ButikkCopy.a1_butikk_ingen_treff_meny(query),
-            style: bText(
-              context,
-              12,
-              weight: FontWeight.w600,
-              height: 1.45,
-              color: rgba(255, 255, 255, .75),
-            ),
+            query.isEmpty ? ButikkCopy.a1_butikk_menu_empty : ButikkCopy.a1_butikk_ingen_treff_meny(query),
+            style: bText(context, 12, weight: FontWeight.w600, height: 1.45, color: rgba(255, 255, 255, .75)),
           ),
         ),
       );
     }
+    // `margin:52px 16px 0; gap:56px 12px; align-items:start`.
     return Padding(
-      padding: EdgeInsets.fromLTRB(16 * s, 34 * s, 16 * s, 0),
+      padding: EdgeInsets.fromLTRB(16 * s, 52 * s, 16 * s, 0),
       child: Column(
         children: [
           for (var i = 0; i < items.length; i += 2) ...[
-            if (i > 0) SizedBox(height: 34 * s),
-            IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: _card(items[i])),
-                  SizedBox(width: 12 * s),
-                  Expanded(
-                    child: i + 1 < items.length
-                        ? _card(items[i + 1])
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
+            if (i > 0) SizedBox(height: 56 * s),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _card(items[i], i)),
+                SizedBox(width: 12 * s),
+                Expanded(child: i + 1 < items.length ? _card(items[i + 1], i + 1) : const SizedBox.shrink()),
+              ],
             ),
           ],
         ],
@@ -3936,25 +3175,64 @@ class _Grid extends StatelessWidget {
     );
   }
 
-  Widget _card(BergenMenuItem item) => _MenuCard(
+  Widget _card(BergenMenuItem item, int n) => _KortInn(anim: inn, i: n, child: _card0(item, n));
+
+  Widget _card0(BergenMenuItem item, int n) => _MenuCard(
     key: Key('a1_butikk_menu_${item.id}'),
     item: item,
     mostOrdered: item.id == mostOrderedId,
-    readyMinutes: readyMinutes,
     qty: qtyOf(item.id),
+    // The keys float out of step (`animation-delay` −1.4s, −2.1s, …).
+    fase: 1.4 + n * .7,
     onOpen: () => onOpen(item, mostOrdered: item.id == mostOrderedId),
     onPlus: () => onPlus(item),
     onMinus: () => onMinus(item),
   );
 }
 
+const _kInnMs = 600;
+
+/// One card of the new orb gliding in: `opacity 0, translate 0 16px,
+/// scale .98` → rest over 360 ms, `delay min(i,6)·40ms`.
+class _KortInn extends StatelessWidget {
+  const _KortInn({required this.anim, required this.i, required this.child});
+
+  final Animation<double> anim;
+  final int i;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return AnimatedBuilder(
+      animation: anim,
+      builder: (context, child) {
+        final ms = anim.value * _kInnMs - math.min(i, 6) * 40;
+        final t = const Cubic(.22, 1, .36, 1).transform((ms / 360).clamp(0.0, 1.0));
+        if (t >= 1) return child!;
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 16 * s * (1 - t)),
+            child: Transform.scale(scale: .98 + .02 * t, child: child),
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+/// A dish on the menu (L4376): glass card with a warm glow at the top, the
+/// dish floating up out of it (`aegBob 4.2s`), name, price and the orange
+/// key that floats too (`aeKnSvev`); once in the basket, the dark stepper.
 class _MenuCard extends StatelessWidget {
   const _MenuCard({
     super.key,
     required this.item,
     required this.mostOrdered,
-    required this.readyMinutes,
     required this.qty,
+    required this.fase,
     required this.onOpen,
     required this.onPlus,
     required this.onMinus,
@@ -3962,8 +3240,10 @@ class _MenuCard extends StatelessWidget {
 
   final BergenMenuItem item;
   final bool mostOrdered;
-  final int? readyMinutes;
   final int qty;
+
+  /// The key's float phase (`animation-delay`, seconds before zero).
+  final double fase;
   final VoidCallback onOpen;
   final VoidCallback onPlus;
   final VoidCallback onMinus;
@@ -3971,362 +3251,133 @@ class _MenuCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    final fallback = DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment(-.4, -.8),
-          radius: 1.2,
-          colors: [Color(0xFFFDF0D8), Color(0xFFF6D9A6), Color(0xFFE7B66C)],
-          stops: [0, .52, 1],
-        ),
-      ),
-      child: Icon(
-        Icons.restaurant_rounded,
-        size: 48 * s,
-        color: rgba(160, 90, 30, .55),
-      ),
-    );
+    final r = BorderRadius.circular(24 * s);
     return Container(
-      padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 10 * s, 12 * s),
+      padding: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 12 * s),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24 * s),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [rgba(255, 255, 255, .13), rgba(255, 255, 255, .06)],
+        borderRadius: r,
+        gradient: cssLinear(
+          165,
+          [rgba(255, 255, 255, .19), rgba(255, 255, 255, .08), rgba(255, 255, 255, .04)],
+          const [0, .4, 1],
         ),
-        border: Border.all(color: rgba(255, 255, 255, .2)),
+        border: Border.all(color: rgba(255, 255, 255, .24)),
         boxShadow: [
           BoxShadow(
-            color: rgba(4, 18, 26, .85),
-            offset: Offset(0, 18 * s),
-            blurRadius: onbBlur(30 * s),
+            color: rgba(2, 12, 18, .95),
+            offset: Offset(0, 22 * s),
+            blurRadius: onbBlur(32 * s),
             spreadRadius: -18 * s,
           ),
+          BoxShadow(color: rgba(8, 30, 38, .5), offset: Offset(0, 2 * s)),
         ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
+          // `radial-gradient(90% 55% at 50% 0%, rgba(255,190,120,.2), …)`
+          // and the two inset edges.
           Positioned(
-            left: -10 * s,
-            right: -10 * s,
-            top: -10 * s,
+            left: -12 * s,
+            right: -12 * s,
+            top: -8 * s,
             bottom: -12 * s,
-            child: Stack(
-              children: [bergenInsetTop(radius: 24 * s, alpha: .28)],
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: r,
+                  gradient: RadialGradient(
+                    center: Alignment.topCenter,
+                    radius: 1,
+                    colors: [rgba(255, 190, 120, .2), rgba(255, 190, 120, 0)],
+                    stops: const [0, .7],
+                    transform: const _CssRadial(.5, 0, .9, .55),
+                  ),
+                ),
+              ),
             ),
+          ),
+          bergenInsetTop(
+            radius: 24 * s,
+            height: 1.5 * s,
+            alpha: .38,
+            pad: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 12 * s),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // The dish pops out of the card's top (`margin-top: -22px`).
-              Transform.translate(
-                offset: Offset(0, -22 * s),
-                child: GestureDetector(
-                  onTap: onOpen,
-                  child: AspectRatio(
-                    aspectRatio: 5 / 4,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          left: -14 * s,
-                          right: -14 * s,
-                          top: -14 * s,
-                          bottom: -14 * s,
-                          child: const IgnorePointer(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: RadialGradient(
-                                  center: Alignment(0, -.1),
-                                  colors: [
-                                    Color(0x47FFBE78),
-                                    Color(0x00FFBE78),
-                                  ],
-                                  stops: [0, .7],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned.fill(
-                          child: BergenLoop(
-                            durationMs: 4200,
-                            builder: (context, p, child) => Transform.translate(
-                              offset: Offset(
-                                0,
-                                p == null
-                                    ? 0
-                                    : kf(
-                                            p,
-                                            const [0, .5, 1],
-                                            const [0, -2.5, 0],
-                                            Curves.easeInOut,
-                                          ) *
-                                          s,
-                              ),
-                              child: child,
-                            ),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFBF7EE),
-                                borderRadius: BorderRadius.circular(20 * s),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: rgba(0, 8, 12, .6),
-                                    offset: Offset(0, 8 * s),
-                                    blurRadius: onbBlur(14 * s),
-                                    spreadRadius: -8 * s,
-                                  ),
-                                  BoxShadow(
-                                    color: rgba(180, 170, 150, .9),
-                                    offset: Offset(0, 4 * s),
-                                  ),
-                                  BoxShadow(
-                                    color: rgba(255, 255, 255, .55),
-                                    spreadRadius: 1.5,
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20 * s),
-                                child: Stack(
-                                  fit: StackFit.expand,
-                                  children: [
-                                    if (item.imageUrl != null)
-                                      Transform.scale(
-                                        scale: 1.12,
-                                        child: Image.network(
-                                          item.imageUrl!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              fallback,
-                                        ),
-                                      )
-                                    else
-                                      fallback,
-                                    DecoratedBox(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            rgba(255, 255, 255, .22),
-                                            rgba(255, 255, 255, 0),
-                                            rgba(0, 0, 0, 0),
-                                            rgba(0, 0, 0, .36),
-                                          ],
-                                          stops: const [0, .35, .62, 1],
-                                        ),
-                                      ),
-                                    ),
-                                    bergenInsetTop(
-                                      radius: 20 * s,
-                                      height: 2,
-                                      alpha: .7,
-                                    ),
-                                    if (mostOrdered)
-                                      Positioned(
-                                        top: 8 * s,
-                                        left: 8 * s,
-                                        child: _Badge(
-                                          orange: true,
-                                          icon: (k) => _star(k),
-                                          text:
-                                              ButikkCopy.a1_butikk_mest_bestilt,
-                                        ),
-                                      ),
-                                    if (readyMinutes != null)
-                                      Positioned(
-                                        right: 8 * s,
-                                        bottom: 8 * s,
-                                        child: _Badge(
-                                          icon: _clock,
-                                          text: ButikkCopy.a1_butikk_kat_eta(
-                                            readyMinutes!,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+              // The picture is 128px tall and lifted 44px out of the card
+              // (`margin-top:-44px`).
+              SizedBox(
+                height: 84 * s,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: -44 * s,
+                      height: 128 * s,
+                      child: GestureDetector(
+                        onTap: onOpen,
+                        child: _MenuBilde(item: item, mostOrdered: mostOrdered),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: Transform.translate(
-                  offset: Offset(0, -12 * s),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onOpen,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: bDisplay(
-                                  context,
-                                  14,
-                                  weight: FontWeight.w800,
-                                  letterSpacingEm: -.02,
-                                  height: 1.2,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              if ((item.description ?? '').isNotEmpty) ...[
-                                SizedBox(height: 4 * s),
-                                Text(
-                                  item.description!,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: bText(
-                                    context,
-                                    12,
-                                    weight: FontWeight.w500,
-                                    height: 1.4,
-                                    color: rgba(255, 255, 255, .84),
-                                  ),
-                                ),
-                              ],
-                              if (item.allergens.isNotEmpty) ...[
-                                SizedBox(height: 3 * s),
-                                Text(
-                                  item.allergens.join(' · '),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: bText(
-                                    context,
-                                    10.5,
-                                    weight: FontWeight.w600,
-                                    color: rgba(255, 255, 255, .62),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10 * s),
-                      Row(
+              SizedBox(height: 8 * s),
+              GestureDetector(
+                onTap: onOpen,
+                child: Text(
+                  item.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: bDisplay(context, 14, letterSpacingEm: -.02, height: 1.2, color: Colors.white),
+                ),
+              ),
+              SizedBox(height: 10 * s),
+              Row(
+                children: [
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                ButikkCopy.kr(item.price),
-                                style: bDisplay(
-                                  context,
-                                  17,
-                                  weight: FontWeight.w800,
-                                  letterSpacingEm: -.02,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
+                          Text(
+                            _kr(item.price),
+                            maxLines: 1,
+                            style: bDisplay(
+                              context,
+                              17,
+                              letterSpacingEm: -.02,
+                              color: Colors.white,
+                            ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                           ),
-                          SizedBox(width: 8 * s),
-                          if (qty == 0)
-                            ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    ((MediaQuery.sizeOf(context).width -
-                                                44 * s) /
-                                            2 -
-                                        20 * s) *
-                                    .68,
+                          if (item.wasPrice != null)
+                            Text(
+                              _kr(item.wasPrice!),
+                              maxLines: 1,
+                              style: bText(
+                                context,
+                                11,
+                                weight: FontWeight.w700,
+                                color: rgba(255, 255, 255, .5),
+                                decoration: TextDecoration.lineThrough,
                               ),
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: OnbPressable(
-                                  key: Key('a1_butikk_legg_${item.id}'),
-                                  onTap: onPlus,
-                                  pressDy: 3,
-                                  child: Container(
-                                    height: 40 * s,
-                                    padding: EdgeInsets.fromLTRB(
-                                      11 * s,
-                                      0,
-                                      14 * s,
-                                      0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(999),
-                                      gradient: cssLinear(
-                                        180,
-                                        _kOrange3,
-                                        const [0, .56, 1],
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: rgba(200, 70, 25, .8),
-                                          offset: Offset(0, 11 * s),
-                                          blurRadius: onbBlur(16 * s),
-                                          spreadRadius: -9 * s,
-                                        ),
-                                        BoxShadow(
-                                          color: rgba(120, 45, 15, .42),
-                                          offset: Offset(0, 3.5 * s),
-                                        ),
-                                        BoxShadow(
-                                          color: const Color(0xFFC4491A),
-                                          offset: Offset(0, 1.5 * s),
-                                        ),
-                                        BoxShadow(
-                                          color: rgba(255, 255, 255, .5),
-                                          spreadRadius: 1,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        _Ico(
-                                          14 * s,
-                                          Colors.white,
-                                          2.8,
-                                          _plusPath,
-                                        ),
-                                        SizedBox(width: 5 * s),
-                                        Text(
-                                          ButikkCopy.a1_butikk_legg_til,
-                                          style: bText(
-                                            context,
-                                            12.5,
-                                            weight: FontWeight.w800,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
-                            _GridStepper(
-                              id: item.id,
-                              qty: qty,
-                              onMinus: onMinus,
-                              onPlus: onPlus,
                             ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  SizedBox(width: 8 * s),
+                  if (qty == 0)
+                    _SvevKnapp(key: Key('a1_butikk_legg_${item.id}'), size: 44, ikonPx: 17, fase: fase, onTap: onPlus)
+                  else
+                    _GridStepper(id: item.id, qty: qty, onMinus: onMinus, onPlus: onPlus),
+                ],
               ),
             ],
           ),
@@ -4336,78 +3387,257 @@ class _MenuCard extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({required this.icon, required this.text, this.orange = false});
+String _kr(double v) => ButikkCopy.kr(v);
 
-  final Path Function(double k) icon;
-  final String text;
-  final bool orange;
+/// The dish above its card: the warm glow behind, the shadow it casts and,
+/// bobbing, the shop's photo as a rounded print (shop photos are not
+/// cut-outs like the design's PNGs) with the "Mest bestilt" badge.
+class _MenuBilde extends StatelessWidget {
+  const _MenuBilde({required this.item, required this.mostOrdered});
+
+  final BergenMenuItem item;
+  final bool mostOrdered;
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    final body = Container(
-      padding: EdgeInsets.fromLTRB(6 * s, 3 * s, 8 * s, 3 * s),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        gradient: orange
-            ? const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFF58A55), Color(0xFFE95C2C)],
-              )
-            : null,
-        color: orange ? null : rgba(15, 31, 43, .62),
-        border: orange ? null : Border.all(color: rgba(255, 255, 255, .3)),
-        boxShadow: orange
-            ? [
-                BoxShadow(
-                  color: rgba(120, 50, 10, .8),
-                  offset: Offset(0, 4 * s),
-                  blurRadius: onbBlur(8 * s),
-                  spreadRadius: -4 * s,
+    final url = item.imageUrl;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: -14 * s,
+          top: -14 * s,
+          right: -14 * s,
+          bottom: -14 * s,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  center: const Alignment(0, -.1),
+                  colors: [rgba(255, 190, 120, .28), rgba(255, 190, 120, 0)],
+                  stops: const [0, .7],
                 ),
-                const BoxShadow(color: Colors.white, spreadRadius: 1.5),
-              ]
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          orange
-              ? _Ico(9 * s, Colors.white, 0, icon, fill: Colors.white)
-              : _Ico(9 * s, Colors.white, 2.6, icon),
-          SizedBox(width: 4 * s),
-          Text(
-            text,
-            style: bText(
-              context,
-              9.5,
-              weight: FontWeight.w800,
-              color: Colors.white,
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: -3 * s,
+          height: 12 * s,
+          child: FractionallySizedBox(
+            widthFactor: .76,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.elliptical(60 * s, 6 * s)),
+                gradient: RadialGradient(colors: [rgba(0, 8, 12, .55), rgba(0, 8, 12, 0)], stops: const [0, .72]),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: BergenLoop(
+              durationMs: 4200,
+              builder: (context, p, child) => Transform.translate(
+                offset: Offset(0, p == null ? 0 : kf(p, const [0, .5, 1], const [0, -2.5, 0], Curves.easeInOut) * s),
+                child: child,
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20 * s),
+                        boxShadow: [
+                          BoxShadow(
+                            color: rgba(0, 8, 12, .5),
+                            offset: Offset(0, 16 * s),
+                            blurRadius: onbBlur(12 * s) + 6 * s,
+                            spreadRadius: -6 * s,
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20 * s),
+                        child: url == null || url.isEmpty
+                            ? const DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: RadialGradient(
+                                    center: Alignment(-.4, -.8),
+                                    radius: 1.2,
+                                    colors: [Color(0xFFFDF0D8), Color(0xFFF6D9A6), Color(0xFFE7B66C)],
+                                    stops: [0, .52, 1],
+                                  ),
+                                ),
+                              )
+                            : Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                      ),
+                    ),
+                  ),
+                  if (mostOrdered)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      child: Container(
+                        padding: EdgeInsets.fromLTRB(6 * s, 3 * s, 8 * s, 3 * s),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: rgba(15, 42, 51, .72),
+                          border: Border.all(color: rgba(255, 178, 122, .55)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _Ico(9 * s, const Color(0xFFFFB27A), 0, (k) => _starPath(k), fill: const Color(0xFFFFB27A)),
+                            SizedBox(width: 4 * s),
+                            Text(
+                              ButikkCopy.a1_butikk_mest_bestilt,
+                              style: bText(context, 9.5, weight: FontWeight.w800, color: const Color(0xFFFFB27A)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
-    if (orange) return body;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-        child: body,
+  }
+}
+
+Path _starPath(double k) => Path()
+  ..moveTo(12 * k, 2 * k)
+  ..lineTo(14.6 * k, 8.4 * k)
+  ..lineTo(21.5 * k, 8.9 * k)
+  ..lineTo(16.2 * k, 13.4 * k)
+  ..lineTo(17.9 * k, 20.1 * k)
+  ..lineTo(12 * k, 16.5 * k)
+  ..lineTo(6.1 * k, 20.1 * k)
+  ..lineTo(7.8 * k, 13.4 * k)
+  ..lineTo(2.5 * k, 8.9 * k)
+  ..lineTo(9.4 * k, 8.4 * k)
+  ..close();
+
+/// The orange round key that floats (`aeKnSvev 3.4s`: up 5px and back) over
+/// its shadow (`aeKnSkygge`: the ellipse narrows and fades as it rises).
+class _SvevKnapp extends StatelessWidget {
+  const _SvevKnapp({super.key, required this.size, required this.ikonPx, required this.fase, required this.onTap});
+
+  final double size;
+  final double ikonPx;
+  final double fase;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return OnbPressable(
+      onTap: onTap,
+      pressDy: 0,
+      pressScale: .94,
+      child: RepaintBoundary(
+        child: KatLoop(
+          durationMs: 3400,
+          phaseMs: fase * 1000,
+          builder: (context, p, _) {
+            final e = kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
+            return SizedBox(
+              width: size * s,
+              height: size * s,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: 4 * s,
+                    right: 4 * s,
+                    top: size * s + 1 * s,
+                    height: 12 * s,
+                    child: Opacity(
+                      opacity: 1 - .4 * e,
+                      child: Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.translationValues(0, 5 * s * e, 0)..scaleByDouble(1 - .18 * e, 1, 1, 1),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.elliptical(size * s / 2, 6 * s)),
+                            gradient: RadialGradient(
+                              colors: [rgba(8, 26, 32, .5), rgba(0, 0, 0, 0)],
+                              stops: const [0, .72],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Transform.translate(
+                    offset: Offset(0, -5 * s * e),
+                    child: Container(
+                      width: size * s,
+                      height: size * s,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFF68450), Color(0xFFE65A28)],
+                        ),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          sokInsetBunnRund(size * s),
+                          bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4),
+                          _Ico(ikonPx * s, Colors.white, 2.8, _plusPath),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 }
 
+/// `inset 0 -3px 6px rgba(150,40,10,.3)` inside a round key.
+Widget sokInsetBunnRund(double d) => Positioned.fill(
+  child: IgnorePointer(
+    child: ClipOval(
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: SizedBox(
+          height: d * .2,
+          width: double.infinity,
+          child: const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color.fromRGBO(150, 40, 10, .3), Color.fromRGBO(150, 40, 10, 0)],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  ),
+);
+
+/// In the basket: `height:38px; background:rgba(0,0,0,.28)` with two white
+/// 30px keys around the count.
 class _GridStepper extends StatelessWidget {
-  const _GridStepper({
-    required this.id,
-    required this.qty,
-    required this.onMinus,
-    required this.onPlus,
-  });
+  const _GridStepper({required this.id, required this.qty, required this.onMinus, required this.onPlus});
 
   final int id;
   final int qty;
@@ -4417,38 +3647,42 @@ class _GridStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    Widget btn(String key, Path Function(double k) icon, VoidCallback onTap) =>
-        OnbPressable(
-          key: Key(key),
-          onTap: onTap,
-          pressDy: 0,
-          pressScale: .9,
-          child: Container(
-            width: 30 * s,
-            height: 30 * s,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: rgba(35, 32, 29, .4),
-                  offset: Offset(0, 3 * s),
-                  blurRadius: onbBlur(8 * s),
-                  spreadRadius: -4 * s,
-                ),
-              ],
+    Widget btn(String key, Path Function(double k) icon, VoidCallback onTap) => OnbPressable(
+      key: Key(key),
+      onTap: onTap,
+      pressDy: 0,
+      pressScale: .9,
+      child: Container(
+        width: 30 * s,
+        height: 30 * s,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: rgba(35, 32, 29, .4),
+              offset: Offset(0, 3 * s),
+              blurRadius: onbBlur(8 * s),
+              spreadRadius: -4 * s,
             ),
-            child: _Ico(13 * s, const Color(0xFFB9441A), 2.6, icon),
-          ),
-        );
+          ],
+        ),
+        child: _Ico(13 * s, const Color(0xFFB9441A), 2.6, icon),
+      ),
+    );
     return Container(
       height: 38 * s,
       padding: EdgeInsets.symmetric(horizontal: 4 * s),
-      decoration: BoxDecoration(
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: rgba(0, 0, 0, .28)),
+      foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: rgba(0, 0, 0, .28),
-        border: Border(bottom: BorderSide(color: rgba(255, 255, 255, .14))),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [rgba(0, 0, 0, .3), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(255, 255, 255, .1)],
+          stops: const [0, .2, .94, 1],
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -4467,12 +3701,7 @@ class _GridStepper extends StatelessWidget {
               '$qty',
               key: Key('a1_butikk_qty_$id'),
               textAlign: TextAlign.center,
-              style: bText(
-                context,
-                13,
-                weight: FontWeight.w800,
-                color: Colors.white,
-              ),
+              style: bText(context, 13, weight: FontWeight.w800),
             ),
           ),
           SizedBox(width: 4 * s),
@@ -4486,13 +3715,15 @@ class _GridStepper extends StatelessWidget {
 // ── the basket ──────────────────────────────────────────────────────────────
 
 /// "I kurven" — `stigOpp .32s`: each line with −/+ and remove.
-class _MiniKurv extends StatelessWidget {
-  const _MiniKurv({
+class ButikkMiniKurv extends StatelessWidget {
+  const ButikkMiniKurv({
+    super.key,
     required this.lines,
     required this.onEmpty,
     required this.onMinus,
     required this.onPlus,
     required this.onRemove,
+    this.mork = false,
   });
 
   final List<KurvLine> lines;
@@ -4500,6 +3731,9 @@ class _MiniKurv extends StatelessWidget {
   final ValueChanged<KurvLine> onMinus;
   final ValueChanged<KurvLine> onPlus;
   final ValueChanged<KurvLine> onRemove;
+
+  /// The Mote page's dark basket (`#1E4F5C → #122F3A`, glass keys).
+  final bool mork;
 
   @override
   Widget build(BuildContext context) {
@@ -4511,10 +3745,7 @@ class _MiniKurv extends StatelessWidget {
         final e = kSkjermInn.transform(p);
         return Opacity(
           opacity: p.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, 26 * s * (1 - e)),
-            child: child,
-          ),
+          child: Transform.translate(offset: Offset(0, 26 * s * (1 - e)), child: child),
         );
       },
       child: Container(
@@ -4522,12 +3753,19 @@ class _MiniKurv extends StatelessWidget {
         constraints: BoxConstraints(maxHeight: maxH),
         padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
         decoration: BoxDecoration(
-          color: const Color(0xFFFDFCF9),
+          color: mork ? null : const Color(0xFFFDFCF9),
+          gradient: mork
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF1E4F5C), Color(0xFF122F3A)],
+                )
+              : null,
           borderRadius: BorderRadius.circular(24 * s),
-          border: Border.all(color: rgba(255, 255, 255, .95)),
+          border: Border.all(color: mork ? rgba(255, 255, 255, .22) : rgba(255, 255, 255, .95)),
           boxShadow: [
             BoxShadow(
-              color: rgba(15, 31, 43, .55),
+              color: mork ? rgba(4, 18, 26, .9) : rgba(15, 31, 43, .55),
               offset: Offset(0, 22 * s),
               blurRadius: onbBlur(40 * s),
               spreadRadius: -18 * s,
@@ -4543,12 +3781,7 @@ class _MiniKurv extends StatelessWidget {
                 Expanded(
                   child: Text(
                     ButikkCopy.a1_butikk_i_kurven,
-                    style: bText(
-                      context,
-                      12,
-                      weight: FontWeight.w800,
-                      color: BergenColors.ink,
-                    ),
+                    style: bText(context, 12, weight: FontWeight.w800, color: mork ? Colors.white : BergenColors.ink),
                   ),
                 ),
                 GestureDetector(
@@ -4560,18 +3793,14 @@ class _MiniKurv extends StatelessWidget {
                       context,
                       11,
                       weight: FontWeight.w800,
-                      color: const Color(0xFFB9441A),
+                      color: mork ? const Color(0xFFF2884E) : const Color(0xFFB9441A),
                     ),
                   ),
                 ),
               ],
             ),
             Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [for (final l in lines) _line(context, l)],
-                ),
-              ),
+              child: SingleChildScrollView(child: Column(children: [for (final l in lines) _line(context, l)])),
             ),
           ],
         ),
@@ -4581,46 +3810,49 @@ class _MiniKurv extends StatelessWidget {
 
   Widget _line(BuildContext context, KurvLine l) {
     final s = context.bs;
-    Widget step(String key, Path Function(double k) icon, VoidCallback onTap) =>
-        OnbPressable(
-          key: Key(key),
-          onTap: onTap,
-          pressDy: 1.5,
-          child: Container(
-            width: 36 * s,
-            height: 36 * s,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.white, Color(0xFFF3EFE6)],
+    Widget step(String key, Path Function(double k) icon, VoidCallback onTap) => OnbPressable(
+      key: Key(key),
+      onTap: onTap,
+      pressDy: 1.5,
+      child: Container(
+        width: 36 * s,
+        height: 36 * s,
+        alignment: Alignment.center,
+        decoration: mork
+            ? BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [rgba(255, 255, 255, .2), rgba(255, 255, 255, .1)],
+                ),
+                border: Border.all(color: rgba(255, 255, 255, .3)),
+              )
+            : BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.white, Color(0xFFF3EFE6)],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: rgba(35, 32, 29, .5),
+                    offset: Offset(0, 5 * s),
+                    blurRadius: onbBlur(7 * s),
+                    spreadRadius: -4 * s,
+                  ),
+                  BoxShadow(color: rgba(90, 74, 48, .3), offset: Offset(0, 2.5 * s)),
+                  BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: rgba(35, 32, 29, .5),
-                  offset: Offset(0, 5 * s),
-                  blurRadius: onbBlur(7 * s),
-                  spreadRadius: -4 * s,
-                ),
-                BoxShadow(
-                  color: rgba(90, 74, 48, .3),
-                  offset: Offset(0, 2.5 * s),
-                ),
-                BoxShadow(
-                  color: const Color(0xFFD9D2C4),
-                  offset: Offset(0, 1.5 * s),
-                ),
-              ],
-            ),
-            child: _Ico(12 * s, BergenColors.ink, 3.2, icon),
-          ),
-        );
+        child: _Ico(12 * s, mork ? Colors.white : BergenColors.ink, 3.2, icon),
+      ),
+    );
     return Container(
       padding: EdgeInsets.symmetric(vertical: 9 * s),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: rgba(35, 32, 29, .07))),
+        border: Border(top: BorderSide(color: mork ? rgba(255, 255, 255, .14) : rgba(35, 32, 29, .07))),
       ),
       child: Row(
         children: [
@@ -4630,10 +3862,7 @@ class _MiniKurv extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(13 * s),
-              gradient: cssLinear(165, const [
-                Color(0xFFF6D9B4),
-                Color(0xFFD2854A),
-              ]),
+              gradient: cssLinear(165, const [Color(0xFFF6D9B4), Color(0xFFD2854A)]),
               boxShadow: [
                 BoxShadow(
                   color: rgba(35, 32, 29, .4),
@@ -4645,11 +3874,7 @@ class _MiniKurv extends StatelessWidget {
             ),
             child: l.imageUrl == null
                 ? null
-                : Image.network(
-                    l.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
+                : Image.network(l.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
           ),
           SizedBox(width: 10 * s),
           Expanded(
@@ -4665,7 +3890,7 @@ class _MiniKurv extends StatelessWidget {
                     12.5,
                     weight: FontWeight.w800,
                     letterSpacingEm: -.01,
-                    color: BergenColors.ink,
+                    color: mork ? Colors.white : BergenColors.ink,
                   ),
                 ),
                 SizedBox(height: 1 * s),
@@ -4675,7 +3900,7 @@ class _MiniKurv extends StatelessWidget {
                     context,
                     10.5,
                     weight: FontWeight.w700,
-                    color: BergenColors.inkMuted,
+                    color: mork ? rgba(255, 255, 255, .65) : BergenColors.inkMuted,
                   ),
                 ),
               ],
@@ -4686,7 +3911,7 @@ class _MiniKurv extends StatelessWidget {
             padding: EdgeInsets.all(3 * s),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(999),
-              color: rgba(35, 32, 29, .07),
+              color: mork ? rgba(0, 0, 0, .26) : rgba(35, 32, 29, .07),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -4704,20 +3929,11 @@ class _MiniKurv extends StatelessWidget {
                   child: Text(
                     '${l.quantity}',
                     textAlign: TextAlign.center,
-                    style: bText(
-                      context,
-                      12,
-                      weight: FontWeight.w800,
-                      color: BergenColors.ink,
-                    ),
+                    style: bText(context, 12, weight: FontWeight.w800, color: mork ? Colors.white : BergenColors.ink),
                   ),
                 ),
                 SizedBox(width: 3 * s),
-                step(
-                  'a1_butikk_linje_plus_${l.cartId}',
-                  (k) => _plusPath(k, 6, 18),
-                  () => onPlus(l),
-                ),
+                step('a1_butikk_linje_plus_${l.cartId}', (k) => _plusPath(k, 6, 18), () => onPlus(l)),
               ],
             ),
           ),
@@ -4727,36 +3943,40 @@ class _MiniKurv extends StatelessWidget {
             onTap: () => onRemove(l),
             pressDy: 1.5,
             child: Container(
-              width: 30 * s,
-              height: 30 * s,
+              width: (mork ? 32 : 30) * s,
+              height: (mork ? 32 : 30) * s,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFFCEDE7), Color(0xFFF6DACE)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: rgba(120, 50, 25, .5),
-                    offset: Offset(0, 5 * s),
-                    blurRadius: onbBlur(8 * s),
-                    spreadRadius: -4 * s,
-                  ),
-                  BoxShadow(
-                    color: rgba(120, 50, 25, .32),
-                    offset: Offset(0, 2.5 * s),
-                  ),
-                  BoxShadow(
-                    color: const Color(0xFFE3BCAA),
-                    offset: Offset(0, 1.5 * s),
-                  ),
-                ],
-              ),
+              decoration: mork
+                  ? BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFF2884E), Color(0xFFE0662C)],
+                      ),
+                      boxShadow: [BoxShadow(color: rgba(150, 60, 15, .8), offset: Offset(0, 3 * s))],
+                    )
+                  : BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFFCEDE7), Color(0xFFF6DACE)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: rgba(120, 50, 25, .5),
+                          offset: Offset(0, 5 * s),
+                          blurRadius: onbBlur(8 * s),
+                          spreadRadius: -4 * s,
+                        ),
+                        BoxShadow(color: rgba(120, 50, 25, .32), offset: Offset(0, 2.5 * s)),
+                        BoxShadow(color: const Color(0xFFE3BCAA), offset: Offset(0, 1.5 * s)),
+                      ],
+                    ),
               child: _Ico(
                 13 * s,
-                const Color(0xFFB9441A),
+                mork ? Colors.white : const Color(0xFFB9441A),
                 2.4,
                 (k) => Path()
                   ..moveTo(4 * k, 7 * k)
@@ -4786,8 +4006,9 @@ class _MiniKurv extends StatelessWidget {
 /// lines `fartStrek`), the last three dishes riding in it (`varefall` when
 /// one lands, the cart `kurvDunk`s, else `kurvRull`s); the count, and the
 /// total → the Kurv and the payment.
-class _KurvBar extends StatelessWidget {
-  const _KurvBar({
+class ButikkKurvBar extends StatelessWidget {
+  const ButikkKurvBar({
+    super.key,
     required this.lines,
     required this.count,
     required this.total,
@@ -4795,6 +4016,7 @@ class _KurvBar extends StatelessWidget {
     required this.mini,
     required this.onToggle,
     required this.onPay,
+    this.oransje = false,
   });
 
   final List<KurvLine> lines;
@@ -4805,12 +4027,16 @@ class _KurvBar extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onPay;
 
+  /// The Mote page's bar: orange, floating (`aeKnSvev 3.4s`) over its
+  /// shadow (`aeKnSkygge`).
+  final bool oransje;
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
     final recent = lines.length <= 3 ? lines : lines.sublist(lines.length - 3);
     final names = [for (final l in lines.reversed.take(2)) l.name].join(' · ');
-    return OnbPressable(
+    final bar = OnbPressable(
       key: const Key('a1_butikk_kurvbar'),
       onTap: onPay,
       pressDy: 0,
@@ -4820,25 +4046,40 @@ class _KurvBar extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(8 * s, 0, 7 * s, 0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          gradient: cssLinear(
-            160,
-            const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
-            const [0, .6, 1],
-          ),
+          gradient: oransje
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF68450), Color(0xFFE65A28)],
+                )
+              : cssLinear(160, const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], const [0, .6, 1]),
           border: Border.all(color: rgba(255, 255, 255, .22)),
-          boxShadow: [
-            BoxShadow(
-              color: rgba(30, 79, 92, .8),
-              offset: Offset(0, 18 * s),
-              blurRadius: onbBlur(32 * s),
-              spreadRadius: -12 * s,
-            ),
-          ],
+          boxShadow: oransje
+              ? null
+              : [
+                  BoxShadow(
+                    color: rgba(30, 79, 92, .8),
+                    offset: Offset(0, 18 * s),
+                    blurRadius: onbBlur(32 * s),
+                    spreadRadius: -12 * s,
+                  ),
+                ],
         ),
+        foregroundDecoration: oransje
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [rgba(150, 40, 10, 0), rgba(150, 40, 10, .3)],
+                  stops: const [.8, 1],
+                ),
+              )
+            : null,
         child: Stack(
           children: [
             Positioned.fill(
-              child: Stack(children: [bergenInsetTop(radius: 999, alpha: .32)]),
+              child: Stack(children: [bergenInsetTop(radius: 999, alpha: oransje ? .4 : .32)]),
             ),
             Row(
               children: [
@@ -4851,9 +4092,9 @@ class _KurvBar extends StatelessWidget {
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
-                        _Fart(left: -2, bottom: 30, w: 12, a: .75, delay: 0),
-                        _Fart(left: 1, bottom: 22, w: 9, a: .6, delay: 350),
-                        _Fart(left: -3, bottom: 13, w: 11, a: .5, delay: 700),
+                        const _Fart(left: -2, bottom: 30, w: 12, a: .75, delay: 0),
+                        const _Fart(left: 1, bottom: 22, w: 9, a: .6, delay: 350),
+                        const _Fart(left: -3, bottom: 13, w: 11, a: .5, delay: 700),
                         Positioned(
                           left: 6 * s,
                           bottom: 1 * s,
@@ -4861,29 +4102,17 @@ class _KurvBar extends StatelessWidget {
                           child: BergenLoop(
                             durationMs: 1050,
                             builder: (context, p, child) {
-                              final w = p == null
-                                  ? 0.0
-                                  : kf(
-                                      p,
-                                      const [0, .5, 1],
-                                      const [0, 1, 0],
-                                      Curves.easeInOut,
-                                    );
+                              final w = p == null ? 0.0 : kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
                               return Transform.translate(
                                 offset: Offset(0, -2.5 * s * w),
                                 child: Transform.rotate(
                                   angle: (1 - 2.5 * w) * math.pi / 180,
                                   alignment: Alignment.bottomCenter,
-                                  child: Transform.flip(
-                                    flipX: true,
-                                    child: child,
-                                  ),
+                                  child: Transform.flip(flipX: true, child: child),
                                 ),
                               );
                             },
-                            child: Image.asset(
-                              'assets/images/dashboard/side.png',
-                            ),
+                            child: Image.asset('assets/images/dashboard/side.png'),
                           ),
                         ),
                         Positioned(
@@ -4928,12 +4157,7 @@ class _KurvBar extends StatelessWidget {
                               duration: const Duration(milliseconds: 280),
                               curve: const Cubic(.3, 1.2, .5, 1),
                               turns: mini ? .5 : 0,
-                              child: _Ico(
-                                13 * s,
-                                rgba(255, 255, 255, .85),
-                                3.2,
-                                (k) => _chevron(k, up: true),
-                              ),
+                              child: _Ico(13 * s, rgba(255, 255, 255, .85), 3.2, (k) => _chevron(k, up: true)),
                             ),
                           ],
                         ),
@@ -4941,12 +4165,7 @@ class _KurvBar extends StatelessWidget {
                           mini ? ButikkCopy.a1_butikk_endre_kurv : names,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: bText(
-                            context,
-                            10.5,
-                            weight: FontWeight.w600,
-                            color: rgba(255, 255, 255, .8),
-                          ),
+                          style: bText(context, 10.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .8)),
                         ),
                       ],
                     ),
@@ -4955,10 +4174,7 @@ class _KurvBar extends StatelessWidget {
                 SizedBox(width: 8 * s),
                 Container(
                   key: const Key('a1_butikk_kurvbar_total'),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 13 * s,
-                    vertical: 9 * s,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 9 * s),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
                     gradient: cssLinear(180, _kOrange3, const [0, .56, 1]),
@@ -4969,14 +4185,8 @@ class _KurvBar extends StatelessWidget {
                         blurRadius: onbBlur(14 * s),
                         spreadRadius: -7 * s,
                       ),
-                      BoxShadow(
-                        color: rgba(120, 45, 15, .42),
-                        offset: Offset(0, 3 * s),
-                      ),
-                      BoxShadow(
-                        color: const Color(0xFFC4491A),
-                        offset: Offset(0, 1.5 * s),
-                      ),
+                      BoxShadow(color: rgba(120, 45, 15, .42), offset: Offset(0, 3 * s)),
+                      BoxShadow(color: const Color(0xFFC4491A), offset: Offset(0, 1.5 * s)),
                     ],
                   ),
                   child: Row(
@@ -4984,12 +4194,7 @@ class _KurvBar extends StatelessWidget {
                     children: [
                       Text(
                         ButikkCopy.kr(total),
-                        style: bText(
-                          context,
-                          13.5,
-                          weight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                        style: bText(context, 13.5, weight: FontWeight.w800, color: Colors.white),
                       ),
                       SizedBox(width: 6 * s),
                       _Ico(13 * s, Colors.white, 2.6, (k) => _chevron(k)),
@@ -5002,18 +4207,50 @@ class _KurvBar extends StatelessWidget {
         ),
       ),
     );
+    if (!oransje) return bar;
+    return BergenLoop(
+      durationMs: 3400,
+      child: bar,
+      builder: (context, p, child) {
+        final e = p == null ? 0.0 : kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // `aeKnSkygge`: the shadow on the ground narrows as it lifts.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 61 * s,
+              height: 15 * s,
+              child: IgnorePointer(
+                child: Opacity(
+                  opacity: 1 - .4 * e,
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.translationValues(0, 5 * s * e, 0)..scaleByDouble(.8 * (1 - .18 * e), 1, 1, 1),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [rgba(8, 26, 32, .5), rgba(8, 26, 32, 0)],
+                          stops: const [0, .72],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Transform.translate(offset: Offset(0, -5 * s * e), child: child),
+          ],
+        );
+      },
+    );
   }
 }
 
 /// `fartStrek` — a speed line streaking back behind Ægil.
 class _Fart extends StatelessWidget {
-  const _Fart({
-    required this.left,
-    required this.bottom,
-    required this.w,
-    required this.a,
-    required this.delay,
-  });
+  const _Fart({required this.left, required this.bottom, required this.w, required this.a, required this.delay});
 
   final double left;
   final double bottom;
@@ -5044,10 +4281,7 @@ class _Fart extends StatelessWidget {
         child: Container(
           width: w * s,
           height: 2.5 * s,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(2 * s),
-            color: rgba(220, 233, 236, a),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(2 * s), color: rgba(220, 233, 236, a)),
         ),
       ),
     );
@@ -5077,18 +4311,8 @@ class _Cart extends StatelessWidget {
                     key: ValueKey('fall-$pulse'),
                     durationMs: 520,
                     builder: (context, p, child) {
-                      final y = kf(
-                        p,
-                        const [0, .72, 1],
-                        const [-20, 2, 0],
-                        kBobleInn,
-                      );
-                      final sc = kf(
-                        p,
-                        const [0, .72, 1],
-                        const [.5, 1.12, 1],
-                        kBobleInn,
-                      );
+                      final y = kf(p, const [0, .72, 1], const [-20, 2, 0], kBobleInn);
+                      final sc = kf(p, const [0, .72, 1], const [.5, 1.12, 1], kBobleInn);
                       return Opacity(
                         opacity: (p / .4).clamp(0.0, 1.0),
                         child: Transform.translate(
@@ -5104,8 +4328,7 @@ class _Cart extends StatelessWidget {
         Positioned.fill(
           child: BergenLoop(
             durationMs: 1050,
-            builder: (context, p, _) =>
-                CustomPaint(painter: _CartPainter((p ?? 0) * 2 * math.pi)),
+            builder: (context, p, _) => CustomPaint(painter: _CartPainter((p ?? 0) * 2 * math.pi)),
           ),
         ),
       ],
@@ -5119,9 +4342,7 @@ class _Cart extends StatelessWidget {
           return BergenLoop(
             durationMs: 3400,
             builder: (context, q, child) {
-              final w = q == null
-                  ? 0.0
-                  : kf(q, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
+              final w = q == null ? 0.0 : kf(q, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
               return Transform.translate(
                 offset: Offset(1.5 * s * w, 0),
                 child: Transform.rotate(
@@ -5134,25 +4355,11 @@ class _Cart extends StatelessWidget {
             child: child,
           );
         }
-        final x = kf(
-          p,
-          const [0, .22, .55, .8, 1],
-          const [0, -3.5, 2.5, -1, 0],
-          const Cubic(.3, 1.2, .5, 1),
-        );
-        final r = kf(
-          p,
-          const [0, .22, .55, .8, 1],
-          const [0, -4, 2.5, -1, 0],
-          const Cubic(.3, 1.2, .5, 1),
-        );
+        final x = kf(p, const [0, .22, .55, .8, 1], const [0, -3.5, 2.5, -1, 0], const Cubic(.3, 1.2, .5, 1));
+        final r = kf(p, const [0, .22, .55, .8, 1], const [0, -4, 2.5, -1, 0], const Cubic(.3, 1.2, .5, 1));
         return Transform.translate(
           offset: Offset(x * s, 0),
-          child: Transform.rotate(
-            angle: r * math.pi / 180,
-            alignment: const Alignment(.28, 1),
-            child: child,
-          ),
+          child: Transform.rotate(angle: r * math.pi / 180, alignment: const Alignment(.28, 1), child: child),
         );
       },
       child: cart,
@@ -5172,22 +4379,11 @@ class _Ball extends StatelessWidget {
       shape: BoxShape.circle,
       gradient: cssLinear(165, const [Color(0xFFF6D9B4), Color(0xFFD2854A)]),
       border: Border.all(color: Colors.white, width: 1.6),
-      boxShadow: [
-        BoxShadow(
-          color: rgba(0, 20, 26, .8),
-          offset: const Offset(0, 2),
-          blurRadius: 2,
-          spreadRadius: -2,
-        ),
-      ],
+      boxShadow: [BoxShadow(color: rgba(0, 20, 26, .8), offset: const Offset(0, 2), blurRadius: 2, spreadRadius: -2)],
     ),
     child: line.imageUrl == null
         ? null
-        : Image.network(
-            line.imageUrl!,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-          ),
+        : Image.network(line.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
   );
 }
 
@@ -5241,11 +4437,7 @@ class _CartPainter extends CustomPainter {
       canvas.save();
       canvas.translate(cx, 40);
       canvas.rotate(spin);
-      canvas.drawCircle(
-        Offset.zero,
-        4.4,
-        Paint()..color = const Color(0xFF12333C),
-      );
+      canvas.drawCircle(Offset.zero, 4.4, Paint()..color = const Color(0xFF12333C));
       canvas.drawCircle(
         Offset.zero,
         4.4,

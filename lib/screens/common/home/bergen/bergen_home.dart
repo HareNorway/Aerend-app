@@ -11,6 +11,7 @@ import '../../../deliveryService/home/ds_home.dart';
 import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
+import '../../../bergen/kit/drape_route.dart' show DrapePek;
 import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/hjem/hjem_harness.dart';
 import '../../../bergen/sok/sok_screen.dart';
@@ -179,6 +180,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    DrapePek.lytt();
     _playIntro = !_introPlayed;
     _introPlayed = true;
     _bloc = HomeBloc(context, this, false);
@@ -273,6 +275,16 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 BergenBottomNav.focusSearch.value++;
               });
             }
+          }
+          if (HjemHarness.butikk case final id?) {
+            BergenRoutes.push(
+              context,
+              '/bergen/butikk/$id',
+              arguments: {
+                if (HjemHarness.butikkProdukt case final p?) 'product_id': '$p',
+                if (HjemHarness.butikkKat case final k?) 'category': k,
+              },
+            );
           }
           if (HjemHarness.kat case final k?) {
             if (_sisteSlots[k] case final c?) {
