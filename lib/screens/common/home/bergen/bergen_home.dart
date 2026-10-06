@@ -21,6 +21,9 @@ import '../../../bergen/hjem/hjem_hero.dart';
 import '../../auth/launch/lf_css.dart' show LfFrame, lfFlow;
 import '../../../bergen/hjem/hjem_hjul.dart';
 import '../../../bergen/hjem/hjem_kort.dart';
+import '../../../bergen/hurtig/hurtig_brain.dart';
+import '../../../bergen/hurtig/hurtig_data.dart';
+import '../../../bergen/hurtig/hurtig_screen.dart';
 import '../../../bergen/hjem/hjem_kaien.dart';
 import '../../../bergen/hjem/hjem_tilbud.dart';
 import '../../../bergen/hjem/hjem_vann.dart';
@@ -220,6 +223,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
     _loadUnderKaien();
     _refreshSeams();
+    // Hurtigbestilling's entry line: the habit of the day, loaded once.
+    HurtigKilde.load();
     if (kDebugMode) {
       HjemHarness.load().then((_) {
         if (mounted) setState(() {});
@@ -279,6 +284,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }
           if (HjemHarness.betalt case final id?) {
             Navigator.of(context).push(MaterialPageRoute(builder: (_) => KjopBekreftetScreen(orderId: id)));
+          }
+          if (HjemHarness.hurtig) {
+            BergenRoutes.push<dynamic>(context, '/bergen/hurtig');
           }
           if (HjemHarness.butikk case final id?) {
             BergenRoutes.push(
@@ -1561,13 +1569,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               SizedBox(height: 10 * s),
               lfFlow(
                 358,
-                HjemHurtigInngang(
-                  // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-                  linje: 'Fiskesuppe · Torgboden · 347 kr',
-                  onTap: () => BergenRoutes.pushOr(
-                    context,
-                    '/bergen/hurtig',
-                    orElse: _comingSoon,
+                // The line is the habit of the day from the customer's
+                // delivered orders (the same data the screen reads).
+                ValueListenableBuilder<HurtigData?>(
+                  valueListenable: HurtigKilde.cache,
+                  builder: (context, d, _) => HjemHurtigInngang(
+                    linje: hurtigHjemLinje(d),
+                    onTap: () async {
+                      final r = await BergenRoutes.push<dynamic>(context, '/bergen/hurtig');
+                      if (r == HurtigScreen.tilKurv && context.mounted) {
+                        _shell?.switchToTab(BergenTab.cart.index);
+                      }
+                    },
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'butikk/automat_screen.dart';
 import 'butikk/butikk_screen.dart';
 import 'butikk/kategori_screen.dart';
+import 'hurtig/hurtig_screen.dart';
 import 'kasse/bestilling_sheet.dart';
 import 'kasse/kurv_screen.dart';
 import 'kit/bergen_routes.dart';
@@ -33,6 +34,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   '/bergen/automat': (_) => const AutomatScreen(),
   // Phase 5
   '/bergen/kurv': (_) => const KurvScreen(embedded: false),
+  // Step 7 (Launch): Hurtigbestilling.
+  '/bergen/hurtig': (_) => const HurtigScreen(),
   '/bergen/bestilling': (_) => const BestillingScreen(),
   // Phase 6
   '/bergen/sporing': (_) => const SporingScreen(),

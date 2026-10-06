@@ -113,6 +113,17 @@ abstract final class HjemHarness {
   /// can be checked against the prototype's `launchModus: false`.
   static bool katLive = false;
 
+  /// Open Hurtigbestilling (`/bergen/hurtig`); `hurtigMod` presses a module
+  /// key (`oftest` / `forrige` / `pref`), `hurtigSi` sends a line,
+  /// `hurtigTekst` types into the composer, `hurtigBestilt` shows the
+  /// «Bestilt» card for that (paid) order, `hurtigTeller` freezes the
+  /// countdown at N seconds (nothing is ordered), `hurtigScroll` scrolls the
+  /// conversation (design px).
+  static bool hurtig = false, hurtigTenk = false;
+  static String? hurtigMod, hurtigSi, hurtigTekst, hurtigAct;
+  static int? hurtigBestilt, hurtigTeller;
+  static double? hurtigScroll;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -157,6 +168,10 @@ abstract final class HjemHarness {
         kurvArk = null;
         betalt = null;
         katLive = false;
+        hurtig = hurtigTenk = false;
+        hurtigMod = hurtigSi = hurtigTekst = hurtigAct = null;
+        hurtigBestilt = hurtigTeller = null;
+        hurtigScroll = null;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -202,6 +217,15 @@ abstract final class HjemHarness {
       // `treg`: slow every animation down this many times (frame checks).
       timeDilation = (m['treg'] as num?)?.toDouble() ?? 1.0;
       katLive = m['katLive'] == true;
+      hurtig = m['hurtig'] == true;
+      hurtigTenk = m['hurtigTenk'] == true;
+      hurtigMod = m['hurtigMod'] as String?;
+      hurtigSi = m['hurtigSi'] as String?;
+      hurtigTekst = m['hurtigTekst'] as String?;
+      hurtigAct = m['hurtigAct'] as String?;
+      hurtigBestilt = m['hurtigBestilt'] as int?;
+      hurtigTeller = m['hurtigTeller'] as int?;
+      hurtigScroll = (m['hurtigScroll'] as num?)?.toDouble();
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }
