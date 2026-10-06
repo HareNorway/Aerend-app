@@ -2,143 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
-import '../../common/home/bergen/bergen_painters.dart';
+import '../kit/sjo_water.dart';
 import 'fiske_frame.dart';
-
-/// The still parts of the harbour behind the game (design `Fjordfiske` root,
-/// `Bryggen · fiske`, and the pier on the right), all positioned in the
-/// design's 390-frame through [FiskeFrame].
-///
-/// Everything here is static; nothing needs a ticker, so reduced motion has
-/// nothing to gate.
-class FiskeSky extends StatelessWidget {
-  const FiskeSky({super.key, required this.look});
-
-  final BergenWeatherLook look;
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    return Positioned(
-      left: 0,
-      right: 0,
-      top: 0,
-      // `height:230px` from the design's y=0; the sky continues up under the
-      // status bar.
-      height: f.y(230),
-      child: DecoratedBox(decoration: BoxDecoration(gradient: look.sky)),
-    );
-  }
-}
-
-/// `<svg width=390 height=140 … top:90px>` holding `k-scene2` squashed to
-/// 390×190 (`translate(0 4) scale(1 .6333)`) and clipped at 140, plus the lit
-/// windows (`k-scene2-lys`: a blurred copy at .55 under a sharp one, at the
-/// weather's `visGlod`).
-class FiskeMountains extends StatelessWidget {
-  const FiskeMountains({super.key, required this.look});
-
-  final BergenWeatherLook look;
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    return Positioned(
-      left: 0,
-      top: f.y(90),
-      width: f.width,
-      height: f.x(140),
-      child: IgnorePointer(
-        child: ClipRect(
-          child: OverflowBox(
-            alignment: Alignment.topLeft,
-            minHeight: 0,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: EdgeInsets.only(top: f.x(4)),
-              child: SizedBox(
-                width: f.width,
-                height: f.x(190),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    bergenSvg('scene_mountains', fit: BoxFit.fill),
-                    if (look.houseDim > .2)
-                      ColoredBox(
-                        color: Colors.black.withValues(
-                          alpha: look.houseDim * .8,
-                        ),
-                      ),
-                    if (look.glow > 0)
-                      Opacity(
-                        opacity: look.glow,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Opacity(
-                              opacity: .55,
-                              child: onbBlurred(
-                                4,
-                                bergenSvg('scene_lights', fit: BoxFit.fill),
-                              ),
-                            ),
-                            bergenSvg('scene_lights', fit: BoxFit.fill),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// `top:90px;height:150px;background:{{ vaerDis }}`.
-class FiskeMist extends StatelessWidget {
-  const FiskeMist({super.key, required this.look});
-
-  final BergenWeatherLook look;
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    return Positioned(
-      left: 0,
-      right: 0,
-      top: f.y(90),
-      height: f.x(150),
-      child: IgnorePointer(
-        child: DecoratedBox(decoration: BoxDecoration(gradient: look.mist)),
-      ),
-    );
-  }
-}
-
-/// `Bryggen · fiske`: the eleven houses and the quay, the design's `bryggen`
-/// template in a 390×76 box at `top:156px` — the same rows the Hjem hero
-/// paints, so [BergenHousesPainter] is reused unchanged (no weather filter on
-/// this block in the design, hence `dim: 0`).
-class FiskeBryggen extends StatelessWidget {
-  const FiskeBryggen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    return Positioned(
-      left: 0,
-      top: f.y(156),
-      width: f.width,
-      height: f.x(76),
-      child: const IgnorePointer(
-        child: CustomPaint(painter: BergenHousesPainter(dim: 0)),
-      ),
-    );
-  }
-}
 
 /// The pier Ægil sits on (design: the three `div`s at `right:0;top:296/310/316`,
 /// the three posts, the flipped reflection and the blurred shadow under Ægil).
@@ -323,4 +188,135 @@ class _PlanksPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PlanksPainter old) => old.base != base || old.s != s;
+}
+
+/// The prototype's default Fjordfiske scene (`sjoGlPaa`, L7892–7926): the
+/// sky (`vaerHimmel`, 230 px), Bryggen from the WebGL canvas
+/// `data-brgl="fiske"` (390 × 223, baked per weather from the prototype —
+/// `assets/images/utforsk/brygge_fiske_*.jpg`, its top extended 60 px for
+/// the status bar), and «Sjø · fiske» from `top:223` down: the real water
+/// shader (`canvas[data-sjogl="fiske"]` → [SjoWater], shading at most the
+/// prototype's ~300 000 px a frame, `_sgBud`) mirroring that Bryggen, the
+/// bottom dark, the top shade and the vignette.
+class FiskeBakgrunn extends StatelessWidget {
+  const FiskeBakgrunn({super.key, required this.look, this.ripples});
+
+  final BergenWeatherLook look;
+  final SjoRipples? ripples;
+
+  /// `sjoM()`: sol → Dag, natt / solnedgang → Kveld, regn → the default
+  /// `sjoModus` (Kveld).
+  SjoPalette get _sea => look.isSun ? SjoPalette.dag : SjoPalette.kveld;
+
+  /// `uRegn`: .5 for rain over a non-rain sea.
+  double get _regn => look.isRain ? .5 : 0;
+
+  String get _vaer => switch (look.kind) {
+    BergenWeather.sol => 'sol',
+    BergenWeather.solnedgang => 'solnedgang',
+    BergenWeather.natt => 'natt',
+    BergenWeather.regn => 'regn',
+  };
+
+  /// `brPal().skB` — the reflection's fog fill (as Hjem).
+  Color get _fog => switch (look.kind) {
+    BergenWeather.regn => const Color(0xFFC9D3D5),
+    BergenWeather.sol => const Color(0xFFB8D1E0),
+    BergenWeather.solnedgang => const Color(0xFFD9A176),
+    BergenWeather.natt => const Color(0xFF1F4460),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final f = FiskeFrame.of(context);
+    final s = f.s;
+    final vann = f.y(223);
+    final brH = 283 * f.width / 390;
+    final asset = 'assets/images/utforsk/brygge_fiske_$_vaer.jpg';
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          children: [
+            Positioned(left: 0, right: 0, top: 0, height: f.y(230), child: DecoratedBox(decoration: BoxDecoration(gradient: look.sky))),
+            Positioned(
+              left: 0,
+              width: f.width,
+              top: vann - brH,
+              height: brH,
+              child: Image.asset(asset, fit: BoxFit.fill, gaplessPlayback: true),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: vann,
+              bottom: 0,
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    Positioned.fill(child: ColoredBox(color: look.isSun ? const Color(0xFF9FC3CC) : const Color(0xFF3D6B7A))),
+                    Positioned.fill(
+                      child: SjoWater(
+                        palette: _sea,
+                        regn: _regn,
+                        reflection: asset,
+                        reflectionHeight: 283,
+                        fogColor: _fog,
+                        ripples: ripples,
+                        maxPixels: 300000 * s * s,
+                      ),
+                    ),
+                    // `radial-gradient(60% 70% at 50% 100%, rgba(3,14,20,.42) → 0 75%)`
+                    // on a box −20 % / −20 % / −10 %, 55 % high.
+                    Positioned(
+                      left: -.2 * f.width,
+                      right: -.2 * f.width,
+                      bottom: -.1 * (f.height - vann),
+                      height: .55 * (f.height - vann),
+                      child: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment(0, 1),
+                            radius: .7,
+                            colors: [Color.fromRGBO(3, 14, 20, .42), Color.fromRGBO(3, 14, 20, 0)],
+                            stops: [0, .75],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      height: 28 * s,
+                      child: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color.fromRGBO(8, 24, 32, .3), Color.fromRGBO(8, 24, 32, 0)],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: RadialGradient(
+                            center: Alignment(0, -.4),
+                            radius: 1.1,
+                            colors: [Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(3, 14, 20, .5)],
+                            stops: [0, .5, 1],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

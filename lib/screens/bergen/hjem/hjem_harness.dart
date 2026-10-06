@@ -148,6 +148,12 @@ abstract final class HjemHarness {
   static int? autoValg;
   static List<int>? autoHentet;
 
+  /// Fjordfiske (Step 10), opened with `utfSeg: "fiske"`: `fiskeFase`
+  /// (`klar` / `venter` / `napp` / `fangst` / `mistet` / `premie` — a
+  /// sample prize, as no prizes exist locally — / `ferdig`), `fiskeAgn`
+  /// (a bait key).
+  static String? fiskeFase, fiskeAgn;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -200,6 +206,7 @@ abstract final class HjemHarness {
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
+        fiskeFase = fiskeAgn = null;
         utfScroll = null;
         feedDrift = automat = false;
         autoValg = null;
@@ -273,6 +280,8 @@ abstract final class HjemHarness {
       autoValg = m['autoValg'] as int?;
       autoHentet = (m['autoHentet'] as List?)?.cast<int>();
       autoAct = m['autoAct'] as String?;
+      fiskeFase = m['fiskeFase'] as String?;
+      fiskeAgn = m['fiskeAgn'] as String?;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

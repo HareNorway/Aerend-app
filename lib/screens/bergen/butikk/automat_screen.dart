@@ -15,9 +15,9 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
-import '../../common/home/bergen/bergen_kit.dart' show BergenWeatherLook, BergenWeather;
+import '../../common/home/bergen/bergen_kit.dart' show BergenWeatherLook;
 import '../../common/home/bergen/bergen_nav.dart';
-import '../fiske/fiske_sjo.dart';
+import '../fiske/fiske_scene.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart' show rgba, cssLinear;
 import '../kit/bergen_kit.dart';
@@ -244,13 +244,6 @@ class _AutomatScreenState extends State<AutomatScreen> {
   @override
   Widget build(BuildContext context) {
     final look = BergenWeatherLook.forHour(DateTime.now().hour);
-    final sea = look.isSun ? BergenSea.day : look.isRain ? BergenSea.rain : BergenSea.evening;
-    final vaer = switch (look.kind) {
-      BergenWeather.sol => 'sol',
-      BergenWeather.solnedgang => 'solnedgang',
-      BergenWeather.natt => 'natt',
-      BergenWeather.regn => 'regn',
-    };
 
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),
@@ -274,17 +267,9 @@ class _AutomatScreenState extends State<AutomatScreen> {
               child: Stack(
                 key: const Key('a1_automat_screen'),
                 children: [
-                  Positioned(left: 0, right: 0, top: 0, height: top + 230, child: DecoratedBox(decoration: BoxDecoration(gradient: look.sky))),
-                  // Bryggen (`canvas[data-brgl="fiske"]`), baked from the prototype.
-                  Positioned(
-                    left: 0,
-                    width: 390,
-                    top: top + 223 - 283,
-                    height: 283,
-                    child: Image.asset('assets/images/utforsk/brygge_fiske_$vaer.jpg', fit: BoxFit.fill, gaplessPlayback: true),
-                  ),
-                  // The water (`canvas[data-sjogl="fiske"]`): Fjordfiske's baked layers.
-                  FiskeSjo(mode: sea),
+                  // The sky, Bryggen and the water — the same `fiske` canvases as
+                  // Fjordfiske (`data-brgl` / `data-sjogl`).
+                  FiskeBakgrunn(look: look),
                   Positioned(
                     left: 0,
                     right: 0,

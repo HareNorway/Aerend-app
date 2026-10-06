@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,26 @@ class FiskeAegil extends StatelessWidget {
       FiskePhase.fangst => (FiskeAegilPose.find, 'find'),
       FiskePhase.mistet => (FiskeAegilPose.sorry, 'sorry'),
     };
-    final img = Image.asset(asset, width: 80 * s, height: 80 * s, fit: BoxFit.contain);
+    // `filter: drop-shadow(0 8px 10px rgba(8,24,32,.45))`: a blurred copy,
+    // drawn once in its own layer and moved with him.
+    final img = RepaintBoundary(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Transform.translate(
+            offset: Offset(0, 8 * s),
+            child: ImageFiltered(
+              imageFilter: ui.ImageFilter.blur(sigmaX: 5 * s, sigmaY: 5 * s),
+              child: ColorFiltered(
+                colorFilter: const ColorFilter.mode(Color.fromRGBO(8, 24, 32, .45), BlendMode.srcIn),
+                child: Image.asset(asset, width: 80 * s, height: 80 * s, fit: BoxFit.contain),
+              ),
+            ),
+          ),
+          Image.asset(asset, width: 80 * s, height: 80 * s, fit: BoxFit.contain),
+        ],
+      ),
+    );
     Widget body;
     switch (phase) {
       case FiskePhase.napp:
@@ -94,292 +114,6 @@ class FiskeAegil extends StatelessWidget {
       width: 80 * s,
       height: 80 * s,
       child: IgnorePointer(child: body),
-    );
-  }
-}
-
-/// The line (`<svg 390×844 z5>`): out — `M296 250 Q250 290 152 420`, white
-/// .8, 1.3 px, drawn on by `snoreKast .7s ease-out` (dasharray 400, offset
-/// 400 → 0); in — `M296 250 Q300 268 298 286` with the hook at (298, 289),
-/// r 3, `#F26D3D` with a 1 px white stroke.
-class FiskeLine extends StatelessWidget {
-  const FiskeLine({super.key, required this.out, required this.castSeq});
-
-  final bool out;
-
-  /// Bumps on every cast so the draw-on replays.
-  final int castSeq;
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    if (!out) {
-      return Positioned.fill(
-        child: IgnorePointer(
-          child: CustomPaint(painter: _LinePainter(f: f, visible: null)),
-        ),
-      );
-    }
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: FiskeOnce(
-          key: ValueKey('a1_fiske_snore_$castSeq'),
-          durationMs: 700,
-          builder: (context, p, _) => CustomPaint(
-            painter: _LinePainter(
-              f: f,
-              visible: 400 * Curves.easeOut.transform(p),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LinePainter extends CustomPainter {
-  const _LinePainter({required this.f, required this.visible});
-
-  final FiskeFrame f;
-
-  /// Design px of the out-line to show; null draws the in-line + hook.
-  final double? visible;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final s = f.s;
-    canvas.save();
-    canvas.translate(0, f.safeTop);
-    canvas.scale(s);
-    final stroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3
-      ..color = Colors.white.withValues(alpha: .8);
-    if (visible == null) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(296, 250)
-          ..quadraticBezierTo(300, 268, 298, 286),
-        stroke,
-      );
-      canvas.drawCircle(const Offset(298, 289), 3, Paint()..color = const Color(0xFFF26D3D));
-      canvas.drawCircle(
-        const Offset(298, 289),
-        3,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
-          ..color = Colors.white,
-      );
-    } else {
-      final path = Path()
-        ..moveTo(296, 250)
-        ..quadraticBezierTo(250, 290, 152, 420);
-      for (final m in path.computeMetrics()) {
-        canvas.drawPath(m.extractPath(0, math.min(m.length, visible!)), stroke);
-      }
-    }
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_LinePainter old) => old.visible != visible || old.f.s != f.s;
-}
-
-/// The two ripples under the float: `left:112;top:424;80×26; border 1.5px
-/// rgba(255,255,255,.55); rippel 2.6s ease-out infinite` (scale .4 → 1.6,
-/// opacity .8 → 0), the second delayed 1.3 s.
-class FiskeRipples extends StatelessWidget {
-  const FiskeRipples({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    Widget ring(double delay) => Positioned(
-      left: f.x(112),
-      top: f.y(424),
-      width: f.x(80),
-      height: f.x(26),
-      child: FiskeLoop(
-        durationMs: 2600,
-        delayMs: delay,
-        builder: (context, p, _) {
-          final q = p == null ? null : Curves.easeOut.transform(p);
-          return Opacity(
-            opacity: q == null ? 1 : .8 * (1 - q),
-            child: Transform.scale(
-              scale: q == null ? 1 : .4 + 1.2 * q,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: rgba(255, 255, 255, .55),
-                    width: 1.5 * f.s,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-    return Stack(children: [ring(0), ring(1300)]);
-  }
-}
-
-/// The float (`dupp`): `left:143;top:412;18×26`, a 2×10 white stick at
-/// (8, −8) and the body — `border-radius:50%/40% 40% 60% 60%`,
-/// `linear-gradient(180deg,#F9A273 0%,#F26D3D 48%,#FFFFFF 50%,#EAF2F4 100%)`,
-/// `inset 0 1px 0 rgba(255,255,255,.7), 0 4px 6px -3px rgba(8,24,32,.6)`.
-/// Idle: `duppFlyt 2.8s ease-in-out infinite`; bite: `duppNapp .45s`.
-class FiskeDupp extends StatelessWidget {
-  const FiskeDupp({super.key, required this.bite});
-
-  final bool bite;
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    final s = f.s;
-    final body = SizedBox(
-      width: 18 * s,
-      height: 26 * s,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: 8 * s,
-            top: -8 * s,
-            width: 2 * s,
-            height: 10 * s,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(1 * s),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.elliptical(9 * s, 10.4 * s),
-                  topRight: Radius.elliptical(9 * s, 10.4 * s),
-                  bottomLeft: Radius.elliptical(9 * s, 15.6 * s),
-                  bottomRight: Radius.elliptical(9 * s, 15.6 * s),
-                ),
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFFF9A273),
-                    Color(0xFFF26D3D),
-                    Color(0xFFFFFFFF),
-                    Color(0xFFEAF2F4),
-                  ],
-                  stops: [0, .48, .5, 1],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: rgba(8, 24, 32, .6),
-                    offset: Offset(0, 4 * s),
-                    blurRadius: 6 * s,
-                    spreadRadius: -3 * s,
-                  ),
-                ],
-              ),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Container(
-                  height: 1 * s,
-                  margin: EdgeInsets.symmetric(horizontal: 4 * s),
-                  color: rgba(255, 255, 255, .7),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    return Positioned(
-      left: f.x(143),
-      top: f.y(412),
-      width: 18 * s,
-      height: 26 * s,
-      child: bite
-          ? FiskeLoop(
-              key: const Key('a1_fiske_dupp_napp'),
-              durationMs: 450,
-              child: body,
-              builder: (context, p, child) {
-                final q = p ?? 0;
-                const st = [0.0, .3, .6, 1.0];
-                return Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..translate(0.0, kf(q, st, const [0, 9, 3, 0], Curves.easeInOut) * s)
-                    ..rotateZ(kf(q, st, const [0, -8, 6, 0], Curves.easeInOut) * math.pi / 180),
-                  child: child,
-                );
-              },
-            )
-          : FiskeLoop(
-              key: const Key('a1_fiske_dupp_flyt'),
-              durationMs: 2800,
-              child: body,
-              builder: (context, p, child) {
-                final q = p ?? 0;
-                const st = [0.0, .5, 1.0];
-                return Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..translate(0.0, kf(q, st, const [0, -3, 0], Curves.easeInOut) * s)
-                    ..rotateZ(kf(q, st, const [-3, 3, -3], Curves.easeInOut) * math.pi / 180),
-                  child: child,
-                );
-              },
-            ),
-    );
-  }
-}
-
-/// The bite rings: `left:96;top:420;112×34`, `2.5px #F26D3D` and, .45 s
-/// behind, `2.5px #FFFFFF`; `nappRing .9s ease-out infinite` (scale .8 →
-/// 2.2, opacity .9 → 0).
-class FiskeNappRings extends StatelessWidget {
-  const FiskeNappRings({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final f = FiskeFrame.of(context);
-    Widget ring(Color color, double delay) => Positioned(
-      left: f.x(96),
-      top: f.y(420),
-      width: f.x(112),
-      height: f.x(34),
-      child: FiskeLoop(
-        durationMs: 900,
-        delayMs: delay,
-        builder: (context, p, _) {
-          final q = p == null ? null : Curves.easeOut.transform(p);
-          return Opacity(
-            opacity: q == null ? 1 : .9 * (1 - q),
-            child: Transform.scale(
-              scale: q == null ? 1 : .8 + 1.4 * q,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: color, width: 2.5 * f.s),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-    return Stack(
-      key: const Key('a1_fiske_napp_ringer'),
-      children: [ring(const Color(0xFFF26D3D), 0), ring(Colors.white, 450)],
     );
   }
 }

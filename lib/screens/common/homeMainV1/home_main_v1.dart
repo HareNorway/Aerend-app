@@ -48,6 +48,10 @@ class HomeMainV1 extends StatefulWidget {
 }
 
 class HomeMainV1State extends State<HomeMainV1> {
+  /// The shell that is up, for screens pushed over it whose nav switches tab
+  /// (Fjordfiske, Poseautomaten).
+  static HomeMainV1State? current;
+
   PageController controller = PageController();
   DateTime? currentTime;
   int selectedPos = 0;
@@ -80,6 +84,7 @@ class HomeMainV1State extends State<HomeMainV1> {
   @override
   void initState() {
     super.initState();
+    current = this;
     final int initialTab = _remapLegacyIndex(widget.homeIndex);
     controller = PageController(initialPage: initialTab);
     selectedPos = initialTab;
@@ -92,6 +97,7 @@ class HomeMainV1State extends State<HomeMainV1> {
     searchLaunchKeyword.dispose();
     sokOpen.dispose();
     _sokField.dispose();
+    if (identical(current, this)) current = null;
     super.dispose();
   }
 

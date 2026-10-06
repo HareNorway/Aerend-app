@@ -114,7 +114,12 @@ class SjoWater extends StatefulWidget {
     required this.fogColor,
     this.ripples,
     this.onTick,
+    this.maxPixels,
   });
+
+  /// `_sgBud`: the prototype caps the pixels it shades per frame
+  /// (`dpr = min(2, √(budget / (w·h)))`, never below .3). Null = ≤2×.
+  final double? maxPixels;
 
   final SjoPalette palette;
 
@@ -230,7 +235,10 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final sh = _shader, ref = _ref;
     if (sh == null || ref == null || _size.isEmpty) return;
     final w = _size.width, h = _size.height;
-    final pw = (w * _dpr).round(), ph = (h * _dpr).round();
+    var dpr = _dpr;
+    final bud = widget.maxPixels;
+    if (bud != null && w * h > 0) dpr = math.max(.3, math.min(dpr, math.sqrt(bud / (w * h))));
+    final pw = (w * dpr).round(), ph = (h * dpr).round();
     if (pw <= 0 || ph <= 0) return;
     final p = widget.palette;
     var i = 0;
