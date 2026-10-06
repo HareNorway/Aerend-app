@@ -166,8 +166,22 @@ abstract final class HjemHarness {
   static String? aegil, aegTekst, guide;
 
   /// Step 12: push this `/bergen/…` route from Hjem (`rute`), with `ruteArg` as
-  /// its argument.
-  static String? rute, ruteArg;
+  /// its argument (a string, or a JSON object for a `Map`).
+  static String? rute;
+  static Object? ruteArg;
+
+  /// Step 13: in the support chat, send these lines in turn (`hjelpSi`);
+  /// `hjelpMenneske` asks for a person and lets one take over (the only way
+  /// to see that state: there is no support desk behind the app yet);
+  /// `hjelpGjest` opens the chat as a guest; `hjelpHub` shows the hub even
+  /// with an order on its way.
+  static List<String>? hjelpSi;
+  static bool hjelpMenneske = false, hjelpGjest = false, hjelpHub = false;
+
+  /// Step 13: Ordrehistorikk opens this order's sheet (`ohOrdre`), or its
+  /// «Noe galt» flow (`ohNoeGalt`).
+  static int? ohOrdre;
+  static bool ohNoeGalt = false;
   static List<String>? aegSi;
   static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
   static double? aegScroll;
@@ -228,6 +242,10 @@ abstract final class HjemHarness {
         fiskeFase = fiskeAgn = null;
         aegil = aegTekst = guide = null;
         rute = ruteArg = null;
+        hjelpSi = null;
+        hjelpMenneske = hjelpGjest = hjelpHub = false;
+        ohOrdre = null;
+        ohNoeGalt = false;
         aegSi = null;
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegScroll = null;
@@ -309,7 +327,13 @@ abstract final class HjemHarness {
       fiskeAgn = m['fiskeAgn'] as String?;
       aegil = m['aegil'] as String?;
       rute = m['rute'] as String?;
-      ruteArg = m['ruteArg']?.toString();
+      ruteArg = m['ruteArg'] is Map ? Map<String, String>.from((m['ruteArg'] as Map).map((k, v) => MapEntry('$k', '$v'))) : m['ruteArg']?.toString();
+      hjelpSi = (m['hjelpSi'] as List?)?.cast<String>();
+      hjelpMenneske = m['hjelpMenneske'] == true;
+      hjelpGjest = m['hjelpGjest'] == true;
+      hjelpHub = m['hjelpHub'] == true;
+      ohOrdre = (m['ohOrdre'] as num?)?.toInt();
+      ohNoeGalt = m['ohNoeGalt'] == true;
       aegTekst = m['aegTekst'] as String?;
       aegSi = (m['aegSi'] as List?)?.cast<String>();
       aegTenk = m['aegTenk'] == true;

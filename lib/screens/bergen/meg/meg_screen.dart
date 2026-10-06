@@ -28,6 +28,7 @@ import 'a3_services.dart';
 import 'borte_entry.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import 'bestillinger_screen.dart' show OhCopy;
+import '../sporing/hjelp_sheet.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
 import 'meg_hero.dart';
@@ -549,11 +550,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     );
   }
 
-  void _hjelp() => MegSheets.hjelp(
-    context,
-    onAegil: () => _go('/bergen/aegil'),
-    onHuman: () => BergenRoutes.pushOr(context, '/bergen/kundeservice', orElse: () => _go('/bergen/aegil')),
-  );
+  /// «Hjelp og kontakt» (`apneHjelp`): the Hjelp sheet.
+  void _hjelp() => HjelpScreen.apne(context);
 
   String _safeLanguage() {
     try {

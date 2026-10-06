@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:aerend_customer/data/ops/tracking_models.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
+import 'package:aerend_customer/screens/bergen/hjelp/support.dart';
 import 'package:aerend_customer/screens/bergen/sporing/hjelp_sheet.dart';
 import 'package:aerend_customer/screens/bergen/sporing/leveringskode_card.dart';
 import 'package:aerend_customer/screens/bergen/sporing/levert_screen.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_copy.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_screen.dart';
+import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -522,7 +525,7 @@ void main() {
         expect(find.text('Ring på'), findsWidgets);
 
         // Back to main, then Finner ikke døra.
-        await tester.tap(find.byIcon(Icons.arrow_back_rounded));
+        await tester.tap(find.byKey(const Key('a1_sporing_hjelp_tilbake')));
         await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('a1_sporing_hjelp_dor')));
         await tester.pumpAndSettle();
@@ -538,10 +541,13 @@ void main() {
     );
 
     testWidgets(
-      'Noe mangler needs a pick; kontaktRolle is butikken for partner',
+      'Noe mangler opens the support chat on the order; a picked line files the case; kontaktRolle is butikken for partner',
       (tester) async {
         _frame(tester);
-        final api = _FakeApi(problemResult: {'kind': 'missing'});
+        SharedPreferences.setMockInitialValues(<String, Object>{prefUserId: 656, prefAccessToken: 'tok', prefUserName: 'Kari Nordmann'});
+        await initSharedPreferences();
+        final api = _FakeApi(problemResult: {'kind': 'missing', 'problem_id': 7, 'customer_sees': 'Vi sjekker bestillingen din med butikken.'});
+        SupportStore.instance.reset(api: api);
         final t = OpsTracking.fromJson(
           payload(
             state: 'delivered',
@@ -563,15 +569,17 @@ void main() {
           ),
         );
         await tester.pump();
-        expect(
-          find.byKey(const Key('a1_sporing_hjelp_mangler_state')),
-          findsOneWidget,
-        );
-        await tester.tap(find.byKey(const Key('a1_sporing_mangler_Cola')));
         await tester.pump();
-        await tester.tap(find.byKey(const Key('a1_sporing_mangler_send')));
-        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('a1_hjelp_chat')), findsOneWidget);
+        expect(find.text(SupportCopy.emneMangler), findsOneWidget);
+        expect(find.byKey(const Key('a1_hjelp_kort_ordre')), findsOneWidget);
+        await tester.tap(find.text('Cola'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 1400));
+        await tester.pump();
         expect(api.problems.single['items'], ['Cola']);
+        expect(find.byKey(const Key('a1_hjelp_kort_sak')), findsOneWidget);
+        expect(find.textContaining('SAK-7'), findsOneWidget);
 
         await tester.pumpWidget(
           _app(

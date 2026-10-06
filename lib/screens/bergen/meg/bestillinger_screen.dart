@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,6 +13,9 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../aegil/aegil_bits.dart';
+import '../hjelp/noe_galt_sheet.dart';
+import '../hjelp/support.dart';
+import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_ark.dart';
 import 'meg_nav.dart';
@@ -86,7 +90,23 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
         ..addAll(kr);
       _loading = false;
     });
+    if (HjemHarness.ohOrdre case final id? when kDebugMode) {
+      final noeGalt = HjemHarness.ohNoeGalt;
+      HjemHarness.ohOrdre = null;
+      HjemHarness.ohNoeGalt = false;
+      final o = _ordrer.where((x) => x.id == id).firstOrNull;
+      if (o != null) WidgetsBinding.instance.addPostFrameCallback((_) => noeGalt ? _noeGalt(o) : _apne(o));
+    }
   }
+
+  /// «Noe galt med bestillingen?» on [o].
+  void _noeGalt(_Ordre o) => visNoeGalt(
+    context,
+    ordre: SupportOrdre.fraRad(o.raw),
+    linjer: [
+      for (final l in o.linjer) (((l['quantity'] ?? l['qty'] ?? 1) as num).toInt(), '${l['name'] ?? ''}', (((l['unit_price'] as num?) ?? 0) * ((l['quantity'] ?? 1) as num)).round()),
+    ],
+  );
 
   /// «Bestill igjen»: the order's lines into the basket, then the basket. The
   /// basket holds one store, so another store's lines make way.
@@ -139,6 +159,28 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
           _Tidslinje(ferdig: steg),
           const SizedBox(height: 8),
           _Kvittering(o: o),
+          // Sak på ordren (L9237) and «Noe galt med bestillingen?».
+          ValueListenableBuilder<int>(
+            valueListenable: SupportStore.instance.endret,
+            builder: (context, _, _) {
+              final sak = SupportStore.instance.sakFor(o.id);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (sak != null) ...[const SizedBox(height: 10), SakPaaOrdren(sak: sak)],
+                  if (!o.avbestilt) ...[
+                    const SizedBox(height: 10),
+                    NoeGaltRad(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _noeGalt(o);
+                      },
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
         ],
       ),
       primary: MegArkButton(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -11,9 +12,14 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
+import '../../snurre/snurre_launcher_policy.dart';
+import '../hjelp/support.dart';
+import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+
+part 'hjelp_chat.dart';
 
 /// The Hjelp sheet (Launch L8638–8830, `sheetHjelp`) at
 /// `/bergen/sporing/{id}/hjelp`, and **Kundeservice** standalone at
@@ -24,9 +30,15 @@ import 'sporing_copy.dart';
 /// melding, VANLIGE SPØRSMÅL), **Ring** (`ops.customer.contact kind=call` →
 /// the relay record; with no provider the masked number is dialled),
 /// **Melding** (`kind=message`), **Finner ikke døra** (`problem kind=door`),
-/// **Noe mangler** / **Feil vare** (`kind=missing`), **Kundeservice** and
-/// **Bekreftet**.
-enum HjelpState { main, ring, melding, dor, mangler, feil, kundeservice, sendt }
+/// **Noe mangler** / **Feil vare** / **Kom aldri** (the support chat, on the
+/// order — Launch opens `scStart` for these), **Kundeservice**, **Bekreftet**,
+/// the **support chat** (`hjChat`, L8775) and **Hjelp og kontakt**
+/// (`hjIngenOrdre`, L8660 — the hub when no order is on its way).
+///
+/// [HjelpState.hub] on open means «Hjelp og kontakt» from Meg or Konto: the
+/// sheet shows the active order's main state when one is on its way, the
+/// hub otherwise (`hjHarOrdre` / `hjIngenOrdre`).
+enum HjelpState { main, ring, melding, dor, mangler, feil, komAldri, kundeservice, sendt, chat, hub }
 
 class HjelpScreen extends StatefulWidget {
   const HjelpScreen({super.key, this.orderId, this.tracking, this.api, this.initial = HjelpState.main, this.items = const [], this.adresse});
@@ -37,6 +49,28 @@ class HjelpScreen extends StatefulWidget {
   final OpsTracking? tracking;
   final OpsCustomerApi? api;
   final HjelpState initial;
+
+  /// Opens the sheet over the current screen (the screen stays visible
+  /// behind the blur). [HjelpState.hub] is «Hjelp og kontakt» from Meg/Konto.
+  static Future<void> apne(BuildContext context, {HjelpState initial = HjelpState.hub, int? orderId}) {
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    return Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        opaque: false,
+        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}bergen/kundeservice'),
+        transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
+        reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
+        pageBuilder: (_, __, ___) => HjelpScreen(orderId: orderId, initial: initial),
+        transitionsBuilder: (context, a, _, child) {
+          final p = cssSkjerm.transform(a.value);
+          return Opacity(
+            opacity: (.6 + .4 * p).clamp(0.0, 1.0) * (a.status == AnimationStatus.reverse ? p : 1),
+            child: Transform.translate(offset: Offset(0, 26 * (1 - p)), child: child),
+          );
+        },
+      ),
+    );
+  }
 
   /// The order's line names for «Noe mangler».
   final List<String> items;
@@ -63,10 +97,15 @@ class _HjelpScreenState extends State<HjelpScreen> {
   bool _typing = false;
   final TextEditingController _msg = TextEditingController();
   final TextEditingController _door = TextEditingController();
-  final Set<String> _missing = {};
   List<String> _items = const [];
   String? _adresse;
   String _sentTitle = '';
+  SupportSamtale? _samtale;
+  bool _gjest = false;
+  HjelpState _fraChat = HjelpState.main;
+
+  /// This order's row from `ops.customer.orders`.
+  Map<String, dynamic>? _ordreRad;
   String _sentText = '';
   final ScrollController _scroll = ScrollController();
 
@@ -88,10 +127,27 @@ class _HjelpScreenState extends State<HjelpScreen> {
     _id = widget.orderId ?? int.tryParse(args['id'] ?? args['order_id'] ?? '') ?? 0;
     _tracking = widget.tracking;
     _items = widget.items;
+    // Cases go through the same API as the rest of the sheet.
+    if (widget.api case final a?) SupportStore.instance.api = a;
     _adresse = widget.adresse;
     if (_tracking == null && _id > 0) _load();
     if (_id > 0 && (_items.isEmpty || _adresse == null)) _loadOrdre();
-    if (_standalone) _state = HjelpState.kundeservice;
+    final start = _state;
+    if (_state == HjelpState.hub) {
+      _velgStart();
+    } else if (_standalone) {
+      _state = HjelpState.kundeservice;
+    }
+    if (start == HjelpState.mangler || start == HjelpState.feil || start == HjelpState.komAldri || start == HjelpState.chat) {
+      final tema = switch (start) {
+        HjelpState.mangler => SupportTema.mangler,
+        HjelpState.feil => SupportTema.feil,
+        HjelpState.komAldri => SupportTema.komAldri,
+        _ => SupportTema.support,
+      };
+      _state = _standalone ? HjelpState.kundeservice : HjelpState.main;
+      WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _startChat(tema) : null);
+    }
     _msg.addListener(() => setState(() {}));
   }
 
@@ -102,6 +158,29 @@ class _HjelpScreenState extends State<HjelpScreen> {
     _door.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// «Hjelp og kontakt»: the order on its way, if any (`hjHarOrdre`), else
+  /// the hub (`hjIngenOrdre`).
+  Future<void> _velgStart() async {
+    if (_id > 0) {
+      _state = HjelpState.main;
+      return;
+    }
+    if (kDebugMode && HjemHarness.hjelpHub) return;
+    try {
+      final rows = await _api.orders();
+      final row = rows.where((r) => SupportOrdre.fraRad(r).aktiv).firstOrNull;
+      if (!mounted) return;
+      if (row == null) return;
+      setState(() {
+        _id = SupportOrdre.fraRad(row).id;
+        _ordreRad = row;
+        _state = HjelpState.main;
+      });
+      _load();
+      _loadOrdre();
+    } catch (_) {}
   }
 
   Future<void> _load() async {
@@ -121,6 +200,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
       if (!mounted || row == null) return;
       final rows = row['items'];
       setState(() {
+        _ordreRad = row;
         if (_items.isEmpty && rows is List) {
           _items = [
             for (final r in rows)
@@ -203,44 +283,100 @@ class _HjelpScreenState extends State<HjelpScreen> {
     });
   }
 
-  Future<void> _sendMissing() async {
-    if (_missing.isEmpty) return;
-    final feil = _state == HjelpState.feil;
-    final res = await _api.problem(_id, kind: 'missing', items: _missing.toList());
-    if (!mounted) return;
-    if (res == null) {
-      showBergenToast(context, BergenRoutes.kommerSnart);
-      return;
-    }
-    setState(() {
-      _sentTitle = SporingCopy.a1_sporing_vi_har_mottatt;
-      _sentText = '${feil ? SporingCopy.a1_sporing_feil_vare : SporingCopy.a1_sporing_hjelp_mangler.split(' ').first}: ${_missing.join(', ')}. ${SporingCopy.a1_sporing_svarer_innen(30)}';
-      _state = HjelpState.sendt;
-    });
-  }
-
-  void _komAldri() {
-    setState(() {
-      _sentTitle = SporingCopy.a1_sporing_vi_har_mottatt;
-      _sentText = SporingCopy.a1_sporing_svarer_innen(30);
-      _state = HjelpState.sendt;
-    });
-    // The case itself goes through chat with support; there is no
-    // `not_delivered` kind on the problem endpoint yet.
-    _api.contact(_id, kind: 'message', message: SporingCopy.a1_sporing_staar_som_levert);
-  }
-
   Future<void> _ringKs() async {
     final uri = Uri.parse('tel:${SporingCopy.a1_sporing_ks_nummer.replaceAll(' ', '')}');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
-  void _supportChat() {
+  void _supportChat() => _startChat(SupportTema.support);
+
+  // ── support chat ────────────────────────────────────────────────────────
+
+  String get _fornavn => prefGetString(prefUserName).trim().split(RegExp(r'\s+')).first;
+
+  /// The order this sheet is about, as support sees it: its row, else what
+  /// the opener passed (the tracking payload and the line names).
+  SupportOrdre? get _ordre {
+    if (_ordreRad case final r?) return SupportOrdre.fraRad(r);
+    if (_id == 0) return null;
+    return SupportOrdre(
+      id: _id,
+      kode: t?.code ?? 'Æ-$_id',
+      butikk: t?.store?.name ?? '',
+      total: 0,
+      status: t?.stageLabel ?? SupportCopy.paaVei,
+      linjer: _items,
+      aktiv: (t?.stage ?? 3) < 3,
+      levert: (t?.stage ?? 0) >= 3,
+    );
+  }
+
+  /// The order a question is about: this sheet's, else the latest one on
+  /// its way, else the latest one.
+  Future<SupportOrdre?> _hentOrdre() async {
+    if (_ordre case final o?) return o;
+    try {
+      final rows = await _api.orders();
+      final ordrer = rows.map(SupportOrdre.fraRad).toList();
+      return ordrer.where((o) => o.aktiv).firstOrNull ?? ordrer.firstOrNull;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Opens the support chat on [tema] (`scStart`). Without a login the
+  /// guest step comes first (`scApne(null, {gjest:true})`).
+  Future<void> _startChat(SupportTema tema) async {
+    await _startChatUten(tema);
+    if (kDebugMode && mounted) _harness();
+  }
+
+  /// Step 13 harness (debug only): lines to send, a person, the guest step.
+  Future<void> _harness() async {
+    final si = HjemHarness.hjelpSi;
+    final menneske = HjemHarness.hjelpMenneske;
+    HjemHarness.hjelpSi = null;
+    HjemHarness.hjelpMenneske = false;
+    final s = _samtale;
+    if (s == null) return;
+    for (final t in si ?? const <String>[]) {
+      await SupportAssistent.svar(s, t, hentOrdre: _hentOrdre, skriver: (_) {});
+    }
+    if (menneske) {
+      await SupportAssistent.eskaler(s, skriver: (_) {});
+      SupportAssistent.taOver(s, 'Kari N.', _fornavn);
+    }
+  }
+
+  Future<void> _startChatUten(SupportTema tema) async {
+    final fra = _state == HjelpState.chat ? _fraChat : (_state == HjelpState.mangler || _state == HjelpState.feil || _state == HjelpState.komAldri ? HjelpState.main : _state);
+    if (OpsCustomerApi.authParams() == null || (kDebugMode && HjemHarness.hjelpGjest)) {
+      HjemHarness.hjelpGjest = false;
+      setState(() {
+        _fraChat = fra;
+        _gjest = true;
+        _samtale = null;
+        _state = HjelpState.chat;
+      });
+      return;
+    }
+    final o = tema == SupportTema.support ? null : (_ordre ?? await _hentOrdre());
+    final s = await SupportAssistent.start(tema, fornavn: _fornavn, ordre: o);
+    if (!mounted) return;
     setState(() {
-      _thread.clear();
-      _thread.add((false, SporingCopy.a1_sporing_ks_hei, _kl));
-      _state = HjelpState.melding;
+      _fraChat = fra;
+      _gjest = false;
+      _samtale = s;
+      _state = HjelpState.chat;
     });
+  }
+
+  /// A question from the hub (`hjSpor`): a new conversation that starts with it.
+  Future<void> _spor(String t) async {
+    await _startChatUten(SupportTema.support);
+    final s = _samtale;
+    if (s == null || !mounted) return;
+    await SupportAssistent.svar(s, t, hentOrdre: _hentOrdre, skriver: (_) {});
   }
 
   void _lukk() => Navigator.of(context).maybePop();
@@ -322,7 +458,32 @@ class _HjelpScreenState extends State<HjelpScreen> {
     HjelpState.ring => _ringState(),
     HjelpState.melding => _melding(),
     HjelpState.dor => _dor(),
-    HjelpState.mangler || HjelpState.feil => _mangler(),
+    HjelpState.mangler || HjelpState.feil || HjelpState.komAldri || HjelpState.chat => _SupportChat(
+      key: ValueKey('chat-${_samtale?.id}-$_gjest'),
+      samtale: _samtale,
+      gjest: _gjest,
+      fornavn: _fornavn,
+      hentOrdre: _hentOrdre,
+      onTilbake: () => setState(() => _state = _fraChat),
+      onGjestBekreftet: () async {
+        final s = await SupportAssistent.start(SupportTema.support, fornavn: _fornavn);
+        if (mounted) setState(() {
+          _gjest = false;
+          _samtale = s;
+        });
+      },
+    ),
+    HjelpState.hub => _Hub(
+      onLukk: _lukk,
+      onChat: () => _startChat(SupportTema.support),
+      onFortsett: SupportStore.instance.aapen == null ? null : () => setState(() {
+        _fraChat = HjelpState.hub;
+        _samtale = SupportStore.instance.aapen;
+        _gjest = false;
+        _state = HjelpState.chat;
+      }),
+      onSpor: _spor,
+    ),
     HjelpState.kundeservice => _support(),
     HjelpState.sendt => _sendt(),
   };
@@ -427,7 +588,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
         _Rad(
           key: const Key('a1_sporing_hjelp_dor'),
           ikon: kSpIkonHus2,
-          tittel: '$_rolleStor ${SporingCopy.a1_sporing_hjelp_dor.replaceFirst(RegExp(r'^\S+\s'), '')}',
+          tittel: '$_rolleStor ${SporingCopy.a1_sporing_hjelp_dor.substring(0, 1).toLowerCase()}${SporingCopy.a1_sporing_hjelp_dor.substring(1)}',
           under: SporingCopy.a1_sporing_hjelp_dor_line,
           onTap: () => setState(() => _state = HjelpState.dor),
         ),
@@ -437,10 +598,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
           ikon: kSpIkonMangler,
           tittel: SporingCopy.a1_sporing_hjelp_mangler,
           under: SporingCopy.a1_sporing_svarer_innen(30).split('.').first,
-          onTap: () => setState(() {
-            _missing.clear();
-            _state = HjelpState.mangler;
-          }),
+          onTap: () => _startChat(SupportTema.mangler),
         ),
         const SizedBox(height: 7),
         Row(
@@ -452,10 +610,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 tittel: SporingCopy.a1_sporing_feil_vare,
                 under: SporingCopy.a1_sporing_fikk_noe_annet,
                 pil: false,
-                onTap: () => setState(() {
-                  _missing.clear();
-                  _state = HjelpState.feil;
-                }),
+                onTap: () => _startChat(SupportTema.feil),
               ),
             ),
             const SizedBox(width: 7),
@@ -467,7 +622,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 tittel: SporingCopy.a1_sporing_kom_aldri,
                 under: SporingCopy.a1_sporing_staar_som_levert,
                 pil: false,
-                onTap: _komAldri,
+                onTap: () => _startChat(SupportTema.komAldri),
               ),
             ),
           ],
@@ -953,61 +1108,6 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   // ── mangler / feil ──────────────────────────────────────────────────────
 
-  Widget _mangler() {
-    final feil = _state == HjelpState.feil;
-    final items = _items.isEmpty ? [SporingCopy.a1_sporing_hjelp_mangler] : _items;
-    final n = _missing.length;
-    return Column(
-      key: const Key('a1_sporing_hjelp_mangler_state'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 14),
-        _Hode(
-          onTilbake: () => setState(() => _state = HjelpState.main),
-          tittel: feil ? SporingCopy.a1_sporing_hva_var_feil : SporingCopy.a1_sporing_hva_mangler,
-          under: feil ? SporingCopy.a1_sporing_feil_line : SporingCopy.a1_sporing_mangler_line_launch,
-        ),
-        const SizedBox(height: 14),
-        for (final (i, v) in items.indexed) ...[
-          if (i > 0) const SizedBox(height: 7),
-          _Vare(key: Key('a1_sporing_mangler_$v'), navn: v, on: _missing.contains(v), onTap: () => setState(() => _missing.contains(v) ? _missing.remove(v) : _missing.add(v))),
-        ],
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
-          decoration: BoxDecoration(
-            color: rgba(92, 224, 184, .12),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: rgba(92, 224, 184, .24)),
-          ),
-          child: Row(
-            children: [
-              spIkon(kSpIkonInfo, size: 14, color: kSpMint, extra: kSpIkonInfoExtra),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(SporingCopy.a1_sporing_svarer_innen(30), style: inter(11.5, height: 1.4, color: const Color(0xFF9FEBD5))),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Opacity(
-          opacity: n == 0 ? .45 : 1,
-          child: IgnorePointer(
-            ignoring: n == 0,
-            child: _Oransje(
-              key: const Key('a1_sporing_mangler_send'),
-              height: 50,
-              onTap: _sendMissing,
-              child: Center(child: Text(SporingCopy.a1_sporing_meld_fra_om(n), style: jakarta(14))),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   // ── kundeservice ────────────────────────────────────────────────────────
 
   Widget _support() => Column(
@@ -1171,8 +1271,15 @@ class KundeserviceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderId = int.tryParse(BergenRoutes.argsOf(context)['order_id'] ?? '');
-    return HjelpScreen(key: const Key('a1_sporing_kundeservice_screen'), orderId: orderId, api: api, initial: HjelpState.kundeservice);
+    final args = BergenRoutes.argsOf(context);
+    final orderId = int.tryParse(args['order_id'] ?? '');
+    // `vis: hjelp` is «Hjelp og kontakt»; `vis: chat` opens the support chat.
+    final initial = switch (args['vis']) {
+      'hjelp' => HjelpState.hub,
+      'chat' => HjelpState.chat,
+      _ => HjelpState.kundeservice,
+    };
+    return HjelpScreen(key: const Key('a1_sporing_kundeservice_screen'), orderId: orderId, api: api, initial: initial);
   }
 }
 
@@ -1252,7 +1359,7 @@ class _Tilbake extends StatelessWidget {
           CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
         ],
         child: Center(
-          child: Icon(Icons.arrow_back_rounded, size: 16, color: Colors.white, semanticLabel: SporingCopy.a1_sporing_tilbake),
+          child: spIkon('M15 6l-6 6 6 6', size: 14, width: 2.4),
         ),
       ),
     ),
@@ -1333,7 +1440,7 @@ class _Glass extends StatelessWidget {
 
 /// A question row: the icon tile, title, line, chevron.
 class _Rad extends StatelessWidget {
-  const _Rad({super.key, this.ikon, this.ikonExtra = '', this.tile, required this.tittel, required this.under, required this.onTap, this.pil = true, this.stor = false});
+  const _Rad({super.key, this.ikon, this.ikonExtra = '', this.tile, required this.tittel, required this.under, required this.onTap, this.pil = true, this.stor = false, this.etter});
 
   final String? ikon;
   final String ikonExtra;
@@ -1341,6 +1448,9 @@ class _Rad extends StatelessWidget {
   final String tittel, under;
   final VoidCallback onTap;
   final bool pil, stor;
+
+  /// Something at the end instead of the chevron (a case's «Åpen»).
+  final Widget? etter;
 
   @override
   Widget build(BuildContext context) => LfPress(
@@ -1386,55 +1496,8 @@ class _Rad extends StatelessWidget {
               ],
             ),
           ),
-          if (pil) spIkon(kSpIkonPilLiten, size: 13, color: rgba(255, 255, 255, .6), width: 2.4),
-        ],
-      ),
-    ),
-  );
-}
-
-/// A checkable item row (Noe mangler).
-class _Vare extends StatelessWidget {
-  const _Vare({super.key, required this.navn, required this.on, required this.onTap});
-
-  final String navn;
-  final bool on;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => LfPress(
-    onTap: onTap,
-    scale: .985,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
-        color: on ? rgba(92, 224, 184, .16) : rgba(255, 255, 255, .08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: rgba(255, 255, 255, .2)),
-        boxShadow: on ? [BoxShadow(color: rgba(92, 224, 184, .7), spreadRadius: 1.5)] : null,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(7),
-              border: Border.all(color: on ? kSpMint : rgba(255, 255, 255, .45), width: 2),
-            ),
-            child: Center(
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: on ? 1 : 0,
-                child: spIkon('M4.5 12.5l5 5 10-11', size: 13, color: kSpMint, width: 3.2),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(navn, style: inter(13.5, weight: FontWeight.w800)),
-          ),
+          if (etter != null) ...[const SizedBox(width: 8), etter!],
+          if (pil && etter == null) spIkon(kSpIkonPilLiten, size: 13, color: rgba(255, 255, 255, .6), width: 2.4),
         ],
       ),
     ),

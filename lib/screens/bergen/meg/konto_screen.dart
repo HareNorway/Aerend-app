@@ -15,8 +15,8 @@ import '../aegil/aegil_bits.dart';
 import 'a3_services.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_copy.dart';
-import 'meg_sheets.dart';
 import 'meg_torg.dart';
+import '../sporing/hjelp_sheet.dart';
 
 const String kPrefA3KrysningAv = 'a3_konto_krysning_varsler_av';
 const String kPrefA3Rolig = 'a3_konto_rolig';
@@ -193,11 +193,7 @@ class _KontoScreenState extends State<KontoScreen> {
                     under: A3MegCopy.a3_meg_konto_data,
                     pil: true,
                     siste: true,
-                    onTap: () => MegSheets.hjelp(
-                      context,
-                      onAegil: () => Navigator.of(context).pushNamed('/bergen/aegil'),
-                      onHuman: () => BergenRoutes.pushOr(context, '/bergen/kundeservice', orElse: () => Navigator.of(context).pushNamed('/bergen/aegil')),
-                    ),
+                    onTap: () => HjelpScreen.apne(context),
                   ),
                 ],
               ),

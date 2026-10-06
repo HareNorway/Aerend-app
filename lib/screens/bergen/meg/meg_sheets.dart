@@ -309,39 +309,6 @@ abstract final class MegSheets {
     );
   }
 
-  /// `support` + `ai`: Spør Ægil / Snakk med et menneske / Om Ægil.
-  static Future<void> hjelp(BuildContext context, {required VoidCallback onAegil, required VoidCallback onHuman}) {
-    return showMegArk<void>(
-      context,
-      key: const Key('meg-hjelp-sheet'),
-      title: A4MegCopy.a4_meg_hjelp_title,
-      subtitle: A4MegCopy.a4_meg_hjelp_linje,
-      body: (ctx, _) => Column(
-        children: [
-          MegArkRow(title: A4MegCopy.a4_meg_spor_aegil, sub: A4MegCopy.a4_meg_spor_aegil_sub, value: '›', onTap: () {
-            Navigator.of(context).pop();
-            onAegil();
-          }),
-          MegArkRow(title: A4MegCopy.a4_meg_menneske, sub: A4MegCopy.a4_meg_menneske_sub, value: '›', onTap: () {
-            Navigator.of(context).pop();
-            onHuman();
-          }),
-          MegArkRow(title: A4MegCopy.a4_meg_om_aegil, sub: A4MegCopy.a4_meg_om_aegil_sub, value: '›', onTap: () => omAegil(context)),
-        ],
-      ),
-    );
-  }
-
-  static Future<void> omAegil(BuildContext context) {
-    return showMegArk<void>(
-      context,
-      key: const Key('meg-om-aegil-sheet'),
-      title: A4MegCopy.a4_meg_om_aegil,
-      subtitle: A4MegCopy.a4_meg_om_aegil_linje,
-      primary: MegArkButton(label: A4MegCopy.a4_meg_vilkaar, onTap: () => vilkaar(context)),
-    );
-  }
-
   /// `sprak`: the app languages; picking one switches the app.
   static Future<String?> spraak(BuildContext context, {required String current}) {
     return showMegArk<String>(

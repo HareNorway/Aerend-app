@@ -14,6 +14,7 @@ import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
 import '../../../../networking/ops/ops_butikk_api.dart';
 import '../../../../data/ops/butikk_models.dart';
+import '../../../bergen/sporing/hjelp_sheet.dart';
 import '../../../bergen/utforsk/feed_tab.dart' show utfPoseHentes;
 import '../../../bergen/utforsk/utforsk_screen.dart';
 import '../../../bergen/kasse/kjop_sekvens.dart' show KjopBekreftetScreen;
@@ -300,7 +301,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             BergenRoutes.push<dynamic>(context, kAegilRoute);
           }
           if (HjemHarness.rute case final r?) {
-            BergenRoutes.push<dynamic>(context, r, arguments: HjemHarness.ruteArg);
+            final arg = HjemHarness.ruteArg;
+            if (r == '/bergen/kundeservice' && arg is Map && arg['vis'] != null) {
+              // The Hjelp sheet sits over Hjem, as Meg opens it.
+              HjelpScreen.apne(context, initial: arg['vis'] == 'chat' ? HjelpState.chat : HjelpState.hub);
+            } else {
+              BergenRoutes.push<dynamic>(context, r, arguments: arg);
+            }
           }
           if (HjemHarness.sporing case final id?) {
             BergenRoutes.push<dynamic>(context, '/bergen/sporing/$id', arguments: {if (HjemHarness.sporingFersk) 'fersk': '1'});
