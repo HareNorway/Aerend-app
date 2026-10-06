@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/feed/feed_tab_item.dart';
@@ -5,28 +6,28 @@ import '../../../networking/feed/feed_repo.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
-import '../../common/auth/onboarding_kit.dart';
-import '../../common/home/bergen/bergen_kit.dart';
+import '../../common/auth/launch/lf_css.dart';
+import '../../common/auth/launch/lf_motion.dart';
+import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/home/bergen/bergen_nav.dart';
-import '../../common/home/bergen/bergen_painters.dart';
+import '../hjem/hjem_harness.dart';
+import '../kit/bergen_css.dart' show rgba;
 import '../kit/bergen_kit.dart';
 import 'feed_icons.dart';
 import 'feed_tab.dart';
+import 'pose_segment.dart';
 import 'utforsk_copy.dart';
 
-/// `utforsk` (≈L4389–4635 in `Ærend Kunde Bergen.dc.html`) — tab 1 of the
-/// shell, and `/bergen/utforsk` (`?tab=feed|fiske|pose`).
+/// `utforsk` (L5456–5713 in `Ærend Kunde Launch.dc.html`, design px) — tab 1
+/// of the shell, and `/bergen/utforsk` (`?tab=fiske|pose`, `&fane=folger`).
 ///
-/// Three segments behind one orange thumb: **Feed** ([UtforskFeedTab]: the
-/// category orbs, the pinned Drift notice, the post cards and the bag promo),
-/// **Fjordfiske** and **Forundringspose** (bags from
-/// `GET /api/ops/products?kind=pose`, and the way to Poseautomaten).
-///
-/// The Fjordfiske segment is a door, not a tab: the design's `segFiske` sets
-/// `skjerm: 'fiske'` at once (L8362), so tapping it pushes `/bergen/fjordfiske`
-/// and the segment stays lit over the Feed content beneath
-/// (`utfFeed: seg !== 'pose'`). The landing card in the markup (L4512) sits
-/// behind `aldriFiskeLanding`, which is always false — it is never shown.
+/// The title stays put; under it one scroll (`data-utfscroll`) carries the
+/// segment control and the segment's content. Three segments behind one
+/// orange thumb: **Feed** ([UtforskFeedTab]), **Fjordfiske** (a door — the
+/// prototype's `segFiske` opens the game at once, and the lit segment stays
+/// over the Feed content, `utfFeed: seg !== 'pose'`) and **Forundringspose**
+/// ([UtforskPoseSegment], the way to Poseautomaten). Changing segment slides
+/// the content in from the side the new segment is on (L15225).
 class UtforskScreen extends StatefulWidget {
   const UtforskScreen({
     super.key,
@@ -47,16 +48,20 @@ class UtforskScreen extends StatefulWidget {
   /// Injected in tests.
   final OpsCustomerApi? api;
 
-  /// Inside the shell (no back button, nav reserve at the bottom).
+  /// Inside the shell (no back button, the shell's nav below).
   final bool embedded;
 
   static const String tabFeed = 'feed';
   static const String tabFiske = 'fiske';
   static const String tabPose = 'pose';
 
-  /// Pref: when the Feed segment was last opened — the unread badge counts
-  /// posts newer than this.
+  /// Pref: when the Feed segment was last read — the unread badge counts
+  /// posts newer than this (`feedLest`).
   static const String prefFeedSeenAt = 'a1_utforsk_feed_seen_at';
+
+  /// One-shot: the segment the next Utforsk opens on (Hjem's raft and
+  /// Forundringspose card — `scenePose` / `poseFn`).
+  static String? apneSegment;
 
   /// The category orbs (design `STORIES`), by slug.
   static const List<String> filters = UtforskFeedTab.orbs;
@@ -67,19 +72,28 @@ class UtforskScreen extends StatefulWidget {
 
 class _UtforskScreenState extends State<UtforskScreen> {
   late String _tab;
+  String _fane = 'naer';
   int _unread = 0;
   bool _routeRead = false;
+  List<FeedTabItem> _posts = const [];
 
-  List<Map<String, dynamic>>? _poser;
   Map<String, dynamic>? _drift;
+
+  int _segSeq = 0;
+  DateTime? _segSince;
+  int _segDir = -1;
+
+  final ScrollController _scroll = ScrollController();
 
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
 
   @override
   void initState() {
     super.initState();
-    _tab = widget.initialTab ?? UtforskScreen.tabFeed;
+    _tab = widget.initialTab ?? UtforskScreen.apneSegment ?? UtforskScreen.tabFeed;
+    UtforskScreen.apneSegment = null;
     _loadDrift();
+    if (kDebugMode) _harness();
   }
 
   @override
@@ -87,11 +101,13 @@ class _UtforskScreenState extends State<UtforskScreen> {
     super.didChangeDependencies();
     if (_routeRead) return;
     _routeRead = true;
+    final args = BergenRoutes.argsOf(context);
     if (widget.initialTab == null) {
-      final fromRoute = BergenRoutes.argsOf(context)['tab'];
+      final fromRoute = args['tab'];
       if (fromRoute != null && fromRoute.isNotEmpty) _tab = fromRoute;
     }
-    if (_tab == UtforskScreen.tabPose) _loadPoser();
+    final fane = args['fane'];
+    if (fane != null && fane.isNotEmpty) _fane = fane;
     // `?tab=fiske` (the Hjem card, Meg's rows): the game opens over Utforsk,
     // as the design's `tilFjordfiske` does.
     if (_tab == UtforskScreen.tabFiske) {
@@ -99,19 +115,41 @@ class _UtforskScreenState extends State<UtforskScreen> {
         if (mounted) BergenRoutes.push(context, '/bergen/fjordfiske');
       });
     }
-    if (_tab == UtforskScreen.tabFeed) _markFeedSeen();
+  }
+
+  @override
+  void dispose() {
+    // Leaving Utforsk counts as having seen the feed.
+    if (_posts.isNotEmpty) prefSetString(UtforskScreen.prefFeedSeenAt, DateTime.now().toIso8601String());
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// Debug builds: `hjem_state.json` keys (see [HjemHarness]).
+  void _harness() {
+    if (HjemHarness.utfSeg case final seg?) _tab = seg;
+    if (HjemHarness.feedFane case final f?) _fane = f;
+    if (HjemHarness.feedDrift) {
+      // The prototype's own note, for comparing the card; no API carries one.
+      _drift = const {'note': 'Mye regn i kveld — vi legger 5 min på alle tider.', 'pinned_until': '20:00'};
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (HjemHarness.automat) {
+        _tilAutomat();
+        return;
+      }
+      if (HjemHarness.utfScroll case final y?) {
+        await Future<void>.delayed(const Duration(milliseconds: 1600));
+        if (mounted && _scroll.hasClients) _scroll.jumpTo(y.clamp(0, _scroll.position.maxScrollExtent));
+      }
+    });
   }
 
   Future<void> _loadDrift() async {
     final note = await _api.driftNotice();
     if (!mounted || note == null) return;
     setState(() => _drift = note);
-  }
-
-  Future<void> _loadPoser() async {
-    final list = await _api.poser();
-    if (!mounted) return;
-    setState(() => _poser = list);
   }
 
   void _select(String tab) {
@@ -122,21 +160,27 @@ class _UtforskScreenState extends State<UtforskScreen> {
       BergenRoutes.push(context, '/bergen/fjordfiske');
       return;
     }
-    if (tab == _tab) return;
-    setState(() => _tab = tab);
-    if (tab == UtforskScreen.tabPose && _poser == null) _loadPoser();
     if (tab == UtforskScreen.tabFeed) _markFeedSeen();
+    if (tab == _tab) return;
+    final fromPose = _tab == UtforskScreen.tabPose;
+    final toPose = tab == UtforskScreen.tabPose;
+    setState(() {
+      _tab = tab;
+      if (fromPose != toPose) {
+        _segSeq++;
+        _segSince = DateTime.now();
+        _segDir = toPose ? 1 : -1;
+      }
+    });
   }
 
+  /// `segFeed` / `tilFeed` set `feedLest`: the badge goes.
   void _markFeedSeen() {
-    prefSetString(
-      UtforskScreen.prefFeedSeenAt,
-      DateTime.now().toIso8601String(),
-    );
+    prefSetString(UtforskScreen.prefFeedSeenAt, DateTime.now().toIso8601String());
     if (_unread != 0) setState(() => _unread = 0);
   }
 
-  /// `feedUlest`: posts published since the Feed segment was last open.
+  /// `feedUlest`: posts published since the feed was last read.
   void _onPostsLoaded(List<FeedTabItem> posts) {
     final raw = prefGetString(UtforskScreen.prefFeedSeenAt);
     final seenAt = raw.isEmpty ? null : DateTime.tryParse(raw);
@@ -144,137 +188,169 @@ class _UtforskScreenState extends State<UtforskScreen> {
     for (final p in posts) {
       if (seenAt == null || (p.publishedAt?.isAfter(seenAt) ?? true)) unread++;
     }
-    if (_tab == UtforskScreen.tabFeed) {
-      _markFeedSeen();
-      return;
+    if (mounted) {
+      setState(() {
+        _posts = posts;
+        _unread = unread;
+      });
     }
-    if (unread != _unread && mounted) setState(() => _unread = unread);
   }
+
+  Future<void> _tilAutomat() async {
+    final r = await BergenRoutes.push<dynamic>(context, '/bergen/automat');
+    if (!mounted) return;
+    final shell = _shell;
+    // A bag may have gone into the basket while the machine was up.
+    shell?.badgeCountNotifier.value = prefGetInt(prefCartCount);
+    if (r is int && r >= 0) shell?.switchToTab(r);
+    if (r == 'sok') shell?.openSearchTab();
+  }
+
+  HomeMainV1State? get _shell => context.findAncestorStateOfType<HomeMainV1State>();
 
   @override
   Widget build(BuildContext context) {
-    final s = context.bs;
-    final safeTop = MediaQuery.paddingOf(context).top;
-    final bottomReserve = widget.embedded
-        ? bergenNavReserve(context)
-        : MediaQuery.paddingOf(context).bottom;
+    final isPose = _tab == UtforskScreen.tabPose;
+    final newest = _posts.isEmpty ? null : _posts.first;
 
     return Scaffold(
-      backgroundColor: BergenTokens.teal,
-      body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: kBergenScreenGradient),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: IgnorePointer(
-                child: bergenRadial(
-                  center: const Offset(.14, 0),
-                  radii: const Offset(.8, .5),
-                  colors: const [Color(0x38FFFFFF), Color(0x00FFFFFF)],
-                  stops: const [0, .6],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: safeTop,
-              height: 52 * s,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20 * s, 14 * s, 20 * s, 0),
-                child: Row(
-                  children: [
-                    if (!widget.embedded && Navigator.of(context).canPop())
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Padding(
-                          padding: EdgeInsets.only(right: 10 * s),
-                          child: Icon(
-                            Icons.arrow_back_rounded,
-                            color: Colors.white,
-                            size: 22 * s,
-                          ),
-                        ),
-                      ),
-                    Text(
-                      UtforskCopy.a1_utforsk_title,
-                      key: const Key('a1_utforsk_title'),
-                      style: bDisplay(
-                        context,
-                        20,
-                        weight: FontWeight.w800,
-                        color: Colors.white,
-                      ).copyWith(letterSpacing: -0.5),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              top: safeTop + 56 * s,
-              bottom: 0,
-              child: Column(
+      backgroundColor: const Color(0xFF173E48),
+      body: LfFrame(
+        child: Builder(
+          builder: (context) {
+            final mq = MediaQuery.of(context);
+            final top = mq.padding.top;
+            final bottom = widget.embedded ? 130.0 + mq.padding.bottom * .5 : 40 + mq.padding.bottom;
+            final body = CssBox(
+              bg: const [
+                CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
+                CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1]),
+              ],
+              child: Stack(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16 * s),
-                    child: _Segments(
-                      active: _tab,
-                      unread: _unread,
-                      onSelect: _select,
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: top,
+                    height: 52,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                      child: Row(
+                        children: [
+                          if (!widget.embedded && Navigator.of(context).canPop())
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => Navigator.of(context).pop(),
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 10),
+                                child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                              ),
+                            ),
+                          Text(
+                            UtforskCopy.a1_utforsk_title,
+                            key: const Key('a1_utforsk_title'),
+                            style: jakarta(20, em: -0.025),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: BergenTokens.motion(
-                        context,
-                        BergenTokens.motionBase,
-                      ),
-                      // Feed content under both the Feed and the Fjordfiske
-                      // segment (design `utfFeed: seg !== 'pose'`).
-                      child: KeyedSubtree(
-                        key: ValueKey(
-                          _tab == UtforskScreen.tabPose
-                              ? UtforskScreen.tabPose
-                              : UtforskScreen.tabFeed,
-                        ),
-                        child: switch (_tab) {
-                          UtforskScreen.tabPose => _PoseTab(
-                            poser: _poser,
-                            bottomReserve: bottomReserve,
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: top + 56,
+                    bottom: 0,
+                    child: CustomScrollView(
+                      key: const Key('a1_utforsk_scroll'),
+                      controller: _scroll,
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          sliver: SliverToBoxAdapter(
+                            child: _Segments(active: _tab, unread: _unread, onSelect: _select),
                           ),
-                          _ => UtforskFeedTab(
+                        ),
+                        // The feed keeps its state while the bag segment is up.
+                        SliverVisibility(
+                          visible: !isPose,
+                          maintainState: true,
+                          sliver: UtforskFeedTab(
+                            sliver: true,
+                            bottomReserve: 0,
                             drift: _drift,
+                            fane: _fane,
+                            onFane: (f) => setState(() => _fane = f),
                             onPostsLoaded: _onPostsLoaded,
-                            bottomReserve: bottomReserve,
                             repo: widget.feedRepo,
                             api: widget.api,
                             butikkApi: widget.butikkApi,
+                            segSeq: _segSeq,
+                            segSince: _segSince,
+                            segDir: _segDir,
+                            onPose: _tilAutomat,
                           ),
-                        },
-                      ),
+                        ),
+                        if (isPose)
+                          UtforskPoseSegment(
+                            api: widget.api,
+                            butikkApi: widget.butikkApi,
+                            newest: newest == null ? null : UtforskCopy.a1_pose_feed_linje(newest.publisherName, newest.title),
+                            unread: _unread,
+                            segSeq: _segSeq,
+                            segSince: _segSince,
+                            onAutomat: _tilAutomat,
+                            onFeed: () {
+                              _markFeedSeen();
+                              setState(() {
+                                _tab = UtforskScreen.tabFeed;
+                                _fane = 'naer';
+                                _segSeq++;
+                                _segSince = DateTime.now();
+                                _segDir = -1;
+                              });
+                            },
+                            onMeg: () => _shell?.switchToTab(BergenTab.me.index),
+                            onPremier: () => BergenRoutes.push(context, '/bergen/premiehylla'),
+                          ),
+                        SliverToBoxAdapter(child: SizedBox(height: bottom)),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+            );
+            if (widget.embedded) return body;
+            // `skjermInn .34s cubic-bezier(.2,.9,.3,1)` when pushed.
+            return LfOnce(
+              ms: 340,
+              child: body,
+              builder: (context, t, child) {
+                final p = (t / 340).clamp(0.0, 1.0);
+                final k = const Cubic(.2, .9, .3, 1).transform(p);
+                return Opacity(
+                  opacity: kf(p, const [0, .55], const [0, 1], const Cubic(.2, .9, .3, 1)),
+                  child: Transform.translate(
+                    offset: Offset(0, 14 * (1 - k)),
+                    child: Transform.scale(scale: .978 + .022 * k, child: child),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
   }
 }
 
-// ── Segmented control ─────────────────────────────────────────────────────
+// ── Segmented control (L5462–5466) ──────────────────────────────────────────
 
+/// Three segments (flex 1 / 1 / 1.25, 3 px apart) in a sunken pill, one
+/// orange thumb gliding under them (`left`/`width .5s cubic-bezier(.3,1.2,
+/// .4,1)`); the lit label white, the others `rgba(255,255,255,.6)` (`.35s`);
+/// the Feed segment carries the unread count.
 class _Segments extends StatelessWidget {
-  const _Segments({
-    required this.active,
-    required this.unread,
-    required this.onSelect,
-  });
+  const _Segments({required this.active, required this.unread, required this.onSelect});
 
   final String active;
   final int unread;
@@ -282,166 +358,61 @@ class _Segments extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = context.bs;
     final items = <(String, String, String, double)>[
       (UtforskScreen.tabFeed, UtforskCopy.a1_utforsk_tab_feed, FeedIcons.segFeed, 1),
-      (
-        UtforskScreen.tabFiske,
-        UtforskCopy.a1_utforsk_tab_fiske,
-        FeedIcons.segFiske,
-        1,
-      ),
-      (
-        UtforskScreen.tabPose,
-        UtforskCopy.a1_utforsk_tab_pose,
-        FeedIcons.segPose,
-        1.25,
-      ),
+      (UtforskScreen.tabFiske, UtforskCopy.a1_utforsk_tab_fiske, FeedIcons.segFiske, 1),
+      (UtforskScreen.tabPose, UtforskCopy.a1_utforsk_tab_pose, FeedIcons.segPose, 1.25),
     ];
-    final index = items.indexWhere((e) => e.$1 == active);
-    final total = items.fold<double>(0, (a, e) => a + e.$4);
+    final index = items.indexWhere((e) => e.$1 == active).clamp(0, 2);
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) == true;
 
-    return Container(
-      padding: EdgeInsets.all(3 * s),
-      decoration: BoxDecoration(
-        color: const Color(0x47000000),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0x1FFFFFFF)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x59000000),
-            offset: Offset(0, 2),
-            blurRadius: 4,
-            blurStyle: BlurStyle.inner,
-          ),
-        ],
-      ),
+    return CssBox(
+      radius: BorderRadius.circular(999),
+      padding: const EdgeInsets.all(3),
+      bg: [CssSolid(rgba(0, 0, 0, .28))],
+      border: Border.all(color: rgba(255, 255, 255, .12)),
+      shadows: [CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35))],
       child: LayoutBuilder(
         builder: (context, c) {
-          final w = c.maxWidth - 3 * s * 2;
-          double left = 0;
-          for (var i = 0; i < index; i++) {
-            left += w * items[i].$4 / total + 3 * s;
-          }
-          final thumbW = w * items[index < 0 ? 0 : index].$4 / total;
+          // `W = calc(100% - 12px)` of the 1px-bordered box; one flex unit W/3.25.
+          final unit = (c.maxWidth - 6) / 3.25;
+          final left = [0.0, unit + 3, unit * 2 + 6][index];
+          final width = index == 2 ? unit * 1.25 : unit;
           return SizedBox(
-            height: 38 * s,
+            height: 38,
             child: Stack(
               children: [
                 AnimatedPositioned(
-                  duration: BergenTokens.motion(
-                    context,
-                    const Duration(milliseconds: 500),
-                  ),
+                  duration: Duration(milliseconds: reduce ? 0 : 500),
                   curve: const Cubic(.3, 1.2, .4, 1),
                   left: left,
                   top: 0,
                   bottom: 0,
-                  width: thumbW,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Color(0xFFF9A273),
-                                Color(0xFFF26D3D),
-                                Color(0xFFDD5A25),
-                              ],
-                              stops: [0, .56, 1],
-                            ),
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0xE6F26D3D),
-                                offset: Offset(0, 4),
-                                blurRadius: 10,
-                                spreadRadius: -4,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      bergenInsetTop(radius: 999, alpha: .4),
+                  width: width,
+                  child: CssBox(
+                    radius: BorderRadius.circular(999),
+                    bg: const [
+                      CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
+                    ],
+                    shadows: [
+                      CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .4)),
+                      CssShadow(0, 4, 10, -4, rgba(242, 109, 61, .9)),
                     ],
                   ),
                 ),
                 Row(
                   children: [
                     for (var i = 0; i < items.length; i++) ...[
-                      if (i > 0) SizedBox(width: 3 * s),
+                      if (i > 0) const SizedBox(width: 3),
                       Expanded(
                         flex: (items[i].$4 * 100).round(),
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
+                        child: _Segment(
+                          id: items[i].$1,
+                          label: items[i].$2,
+                          icon: items[i].$3,
+                          on: active == items[i].$1,
+                          badge: items[i].$1 == UtforskScreen.tabFeed ? unread : 0,
                           onTap: () => onSelect(items[i].$1),
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  feedIcon(
-                                    items[i].$3,
-                                    13 * s,
-                                    color: active == items[i].$1
-                                        ? Colors.white
-                                        : const Color(0x99FFFFFF),
-                                  ),
-                                  SizedBox(width: 5 * s),
-                                  Text(
-                                    items[i].$2,
-                                    key: Key('a1_utforsk_tab_${items[i].$1}'),
-                                    style: bText(
-                                      context,
-                                      12,
-                                      weight: FontWeight.w800,
-                                      color: active == items[i].$1
-                                          ? Colors.white
-                                          : const Color(0x99FFFFFF),
-                                    ),
-                                  ),
-                                  if (items[i].$1 == UtforskScreen.tabFeed &&
-                                      unread > 0) ...[
-                                    SizedBox(width: 5 * s),
-                                    Container(
-                                      key: const Key('a1_utforsk_feed_unread'),
-                                      constraints: BoxConstraints(
-                                        minWidth: 17 * s,
-                                      ),
-                                      height: 17 * s,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 5 * s,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: BergenTokens.orange,
-                                        borderRadius: BorderRadius.circular(
-                                          999,
-                                        ),
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        '$unread',
-                                        style: bText(
-                                          context,
-                                          9.5,
-                                          weight: FontWeight.w800,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
                         ),
                       ),
                     ],
@@ -456,275 +427,77 @@ class _Segments extends StatelessWidget {
   }
 }
 
-// ── Forundringspose tab ───────────────────────────────────────────────────
+class _Segment extends StatefulWidget {
+  const _Segment({required this.id, required this.label, required this.icon, required this.on, required this.badge, required this.onTap});
 
-class _PoseTab extends StatelessWidget {
-  const _PoseTab({required this.poser, required this.bottomReserve});
+  final String id;
+  final String label;
+  final String icon;
+  final bool on;
+  final int badge;
+  final VoidCallback onTap;
 
-  final List<Map<String, dynamic>>? poser;
-  final double bottomReserve;
+  @override
+  State<_Segment> createState() => _SegmentState();
+}
+
+class _SegmentState extends State<_Segment> {
+  bool _down = false;
 
   @override
   Widget build(BuildContext context) {
-    final s = context.bs;
-    final list = poser;
-    final left =
-        list?.fold<int>(0, (a, p) => a + ((p['left'] as num?)?.toInt() ?? 0)) ??
-        0;
-
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        16 * s,
-        14 * s,
-        16 * s,
-        bottomReserve + 16 * s,
-      ),
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                UtforskCopy.a1_utforsk_pose_title,
-                style: bDisplay(
-                  context,
-                  15.5,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            if (left > 0)
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 9 * s,
-                  vertical: 3 * s,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0x2E5CE0B8),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0x805CE0B8)),
-                ),
-                child: Text(
-                  UtforskCopy.a1_utforsk_pose_left_today(left),
-                  style: bText(
-                    context,
-                    10,
-                    weight: FontWeight.w800,
-                    color: BergenTokens.mint,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        SizedBox(height: 4 * s),
-        Text(
-          UtforskCopy.a1_utforsk_pose_line,
-          style: bText(
-            context,
-            12,
-            weight: FontWeight.w500,
-            color: const Color(0xFFDCE9EC),
-          ),
-        ),
-        SizedBox(height: 12 * s),
-        if (list == null)
-          Padding(
-            padding: EdgeInsets.all(24 * s),
-            child: const Center(
-              child: CircularProgressIndicator(color: BergenTokens.mint),
-            ),
-          )
-        else if (list.isEmpty)
-          BergenCard(
-            key: const Key('a1_utforsk_pose_empty'),
-            onDark: true,
-            child: Text(
-              UtforskCopy.a1_utforsk_pose_empty,
-              style: bText(
-                context,
-                12.5,
-                weight: FontWeight.w600,
-                color: const Color(0xFFDCE9EC),
-              ),
-            ),
-          )
-        else
-          for (final p in list) ...[
-            _PoseCard(pose: p),
-            SizedBox(height: 10 * s),
-          ],
-        SizedBox(height: 4 * s),
-        OnbPressable(
-          onTap: () => BergenRoutes.push(context, '/bergen/automat'),
-          pressScale: .985,
-          child: Container(
-            key: const Key('a1_utforsk_automat'),
-            padding: EdgeInsets.all(14 * s),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0x29FFFFFF), Color(0x12FFFFFF)],
-              ),
-              borderRadius: BorderRadius.circular(18 * s),
-              border: Border.all(color: const Color(0x73F2C14E)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.casino_rounded,
-                  color: BergenTokens.lantern,
-                  size: 28 * s,
-                ),
-                SizedBox(width: 12 * s),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        UtforskCopy.a1_utforsk_automat,
-                        style: bText(
-                          context,
-                          12.5,
-                          weight: FontWeight.w800,
-                          color: BergenTokens.paper,
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) == true;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _down = true),
+      onTapCancel: () => setState(() => _down = false),
+      onTapUp: (_) => setState(() => _down = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        // `style-active="transform:scale(.96)"`, `.45s cubic-bezier(.3,1.4,.5,1)`.
+        scale: _down ? .96 : 1,
+        duration: Duration(milliseconds: reduce ? 0 : (_down ? 120 : 450)),
+        curve: _down ? cssEase : const Cubic(.3, 1.4, .5, 1),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: widget.on ? 1 : 0),
+          duration: Duration(milliseconds: reduce ? 0 : 350),
+          curve: cssEase,
+          builder: (context, k, _) {
+            final c = Color.lerp(rgba(255, 255, 255, .6), Colors.white, k)!;
+            return Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    feedIcon(widget.icon, 13, color: c),
+                    const SizedBox(width: 5),
+                    Text(widget.label, key: Key('a1_utforsk_tab_${widget.id}'), style: inter(12, weight: FontWeight.w800, color: c)),
+                    if (widget.badge > 0) ...[
+                      const SizedBox(width: 5),
+                      Container(
+                        key: const Key('a1_utforsk_feed_unread'),
+                        constraints: const BoxConstraints(minWidth: 17),
+                        height: 17,
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF26D3D),
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: const [BoxShadow(color: Colors.white, spreadRadius: 1.5)],
                         ),
-                      ),
-                      Text(
-                        UtforskCopy.a1_utforsk_automat_line(99),
-                        style: bText(
-                          context,
-                          11,
-                          weight: FontWeight.w600,
-                          color: const Color(0xFF9FD3DE),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${widget.badge}',
+                          style: inter(9.5, weight: FontWeight.w800).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: const Color(0x8CFFFFFF),
-                  size: 20 * s,
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
-      ],
-    );
-  }
-}
-
-class _PoseCard extends StatelessWidget {
-  const _PoseCard({required this.pose});
-
-  final Map<String, dynamic> pose;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final left = (pose['left'] as num?)?.toInt();
-    final valueKr = (pose['value_ore'] as num?)?.toInt();
-    final priceKr = ((pose['price_ore'] as num?)?.toInt() ?? 0) ~/ 100;
-    final window = pose['pickup_window']?.toString();
-    final storeId = (pose['store_id'] as num?)?.toInt() ?? 0;
-    final productId = int.tryParse('${pose['id']}') ?? 0;
-
-    return BergenCard(
-      onDark: true,
-      padding: EdgeInsets.all(14 * s),
-      child: Row(
-        children: [
-          Container(
-            width: 56 * s,
-            height: 56 * s,
-            decoration: BoxDecoration(
-              color: const Color(0x2E5CE0B8),
-              borderRadius: BorderRadius.circular(16 * s),
-            ),
-            child: Icon(
-              Icons.shopping_bag_rounded,
-              color: BergenTokens.mint,
-              size: 28 * s,
-            ),
-          ),
-          SizedBox(width: 12 * s),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (left != null)
-                  Text(
-                    UtforskCopy.a1_utforsk_pose_left(left),
-                    style: bText(
-                      context,
-                      10,
-                      weight: FontWeight.w800,
-                      color: BergenTokens.mint,
-                    ),
-                  ),
-                Text(
-                  '${pose['store_name'] ?? pose['name'] ?? ''}',
-                  style: bDisplay(
-                    context,
-                    15,
-                    weight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  [
-                    '${pose['name'] ?? ''}',
-                    if (valueKr != null)
-                      UtforskCopy.a1_utforsk_pose_value(valueKr ~/ 100),
-                  ].join(' · '),
-                  style: bText(
-                    context,
-                    11.5,
-                    weight: FontWeight.w600,
-                    color: const Color(0xFFDCE9EC),
-                  ),
-                ),
-                if (window != null && window.isNotEmpty)
-                  Text(
-                    UtforskCopy.a1_utforsk_pose_pickup(window),
-                    style: bText(
-                      context,
-                      11,
-                      weight: FontWeight.w600,
-                      color: const Color(0xFF9FD3DE),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          SizedBox(width: 10 * s),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                UtforskCopy.a1_utforsk_pose_price(priceKr),
-                style: bDisplay(
-                  context,
-                  16,
-                  weight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 6 * s),
-              BergenCta3d(
-                label: UtforskCopy.a1_utforsk_pose_secure,
-                expand: false,
-                onPressed: () => BergenCart.add(
-                  context,
-                  storeId: storeId,
-                  productId: productId,
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

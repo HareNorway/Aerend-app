@@ -6,18 +6,20 @@ import 'package:video_player/video_player.dart';
 import '../../../data/feed/feed_tab_item.dart';
 import '../../../data/ops/butikk_models.dart';
 import '../../../networking/feed/feed_cloudinary_config.dart';
-import '../../common/auth/onboarding_kit.dart';
-import '../../common/home/bergen/bergen_kit.dart';
-import '../kit/bergen_kit.dart';
+import '../../common/auth/launch/lf_css.dart';
+import '../../common/auth/launch/lf_motion.dart';
+import '../../common/auth/launch/lf_widgets.dart';
+import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
 import 'utforsk_copy.dart';
 
-/// One feed post, as the prototype draws it (`utforsk` ≈L4433–4492 in
-/// `Ærend Kunde Bergen.dc.html`): a glass card with the media on top — shop
-/// header, «Følg», the badge, the like / comment / share rail, and for a video
-/// the play button, the duration pill and the progress bar — and under it the
-/// title with its chevron, the text, the «Du bestilte …» hint, the CTA and the
-/// price with the shop's open state.
+/// One feed post, as the Launch prototype draws it (`{{ poster }}` L5498–5560
+/// in `Ærend Kunde Launch.dc.html`, design px): a glass card with the media on
+/// top — the shop's logo, name, meta and «Følg» over a scrim, and for a video
+/// the play button, the duration pill, the mute disc and the progress line —
+/// and under it the like pill, share and the post's kind in mint, the title
+/// with its chevron, the text, the «Du bestilte …» hint, a rule, and the price
+/// with the shop's open state beside the CTA.
 ///
 /// Presentation only: every tap is a callback, so the tab decides what a like
 /// or a follow means and the card never talks to the network.
@@ -99,9 +101,8 @@ class FeedPostCard extends StatefulWidget {
     final m = item.media;
     if (m.width <= 0 || m.height <= 0) return 230;
     final h = 358 * m.height / m.width;
-    // The design's cards run 220–250px; below ~228 the header and the rail
-    // meet, so a wide video crops rather than shrinks.
-    return h.clamp(230.0, 256.0);
+    // The design's cards run 220–250px (`p.h`).
+    return h.clamp(220.0, 250.0);
   }
 
   /// `400 m` / `1,4 km`.
@@ -159,26 +160,24 @@ class _FeedPostCardState extends State<FeedPostCard>
     vsync: this,
     duration: const Duration(milliseconds: 420),
   );
-  // `hjertePop`: 1 → 1.45 at 45 % → 1, with the design's springy ease on
-  // each leg (a curve on the whole sequence would overshoot past t = 1).
+  // `hjertePop .42s cubic-bezier(.3,1.4,.5,1)`: 1 → 1.45 at 45 % → 1, the
+  // timing function applied per keyframe segment, as CSS does.
   late final Animation<double> _popScale = _pop.drive(
     TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1,
-          end: 1.45,
-        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        tween: Tween<double>(begin: 1, end: 1.45).chain(CurveTween(curve: _spring)),
         weight: 45,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.45,
-          end: 1,
-        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        tween: Tween<double>(begin: 1.45, end: 1).chain(CurveTween(curve: _spring)),
         weight: 55,
       ),
     ]),
   );
+  static const Cubic _spring = Cubic(.3, 1.4, .5, 1);
+
+  /// `#ae-mark`.
+  static const String _aeMark = 'assets/svgs/dashboard/ae_mark.svg';
 
   VideoPlayerController? _video;
   double _progress = 0;
@@ -187,6 +186,12 @@ class _FeedPostCardState extends State<FeedPostCard>
   bool get _following =>
       widget.following ?? widget.item.store?.isFollowing ?? false;
   int get _likes => widget.likeCount ?? widget.item.likeCount;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.playing) WidgetsBinding.instance.addPostFrameCallback((_) => _startVideo());
+  }
 
   @override
   void didUpdateWidget(FeedPostCard old) {
@@ -255,50 +260,35 @@ class _FeedPostCardState extends State<FeedPostCard>
     super.dispose();
   }
 
+  static const _glassBg = [
+    CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)]),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final s = context.bs;
     final item = widget.item;
-    final h = FeedPostCard.mediaHeightFor(item) * s;
+    final h = FeedPostCard.mediaHeightFor(item);
 
     return Padding(
       key: Key('a1_feed_post_${item.id}'),
-      padding: EdgeInsets.only(top: 14 * s),
-      child: BergenCssShadow(
-        radius: 26 * s,
-        shadows: const [
-          BoxShadow(color: Color(0x4004121A), offset: Offset(0, 2)),
-          BoxShadow(
-            color: Color(0xD904121A),
-            offset: Offset(0, 28),
-            blurRadius: 44,
-            spreadRadius: -22,
-          ),
+      padding: const EdgeInsets.only(top: 14),
+      child: CssBox(
+        radius: BorderRadius.circular(26),
+        bg: _glassBg,
+        border: Border.all(color: rgba(255, 255, 255, .2)),
+        shadows: [
+          CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
+          CssShadow(0, 2, 0, 0, rgba(4, 18, 26, .25)),
+          CssShadow(0, 28, 44, -22, rgba(4, 18, 26, .85)),
         ],
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(26 * s),
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0x24FFFFFF), Color(0x0FFFFFFF)],
-            ),
-            border: Border.all(color: const Color(0x33FFFFFF)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(26 * s),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(height: h, child: _media(context, h)),
-                    _body(context),
-                  ],
-                ),
-                bergenInsetTop(radius: 26 * s, alpha: .28),
-              ],
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(26),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: h, child: _media(context, h)),
+              _body(context),
+            ],
           ),
         ),
       ),
@@ -308,7 +298,6 @@ class _FeedPostCardState extends State<FeedPostCard>
   // ── Media ───────────────────────────────────────────────────────────────
 
   Widget _media(BuildContext context, double h) {
-    final s = context.bs;
     final item = widget.item;
     final video = item.media.isVideo;
     final poster = item.media.posterUrl(FeedCloudinaryConfig.cloudName);
@@ -323,14 +312,30 @@ class _FeedPostCardState extends State<FeedPostCard>
             gradient: FeedPostCard.tintFor(item.category, video: video),
           ),
         ),
+        // The tint's light and depth, under the photo.
+        CssBox(
+          bg: [
+            CssRadial(
+              [rgba(255, 255, 255, .22), rgba(255, 255, 255, 0)],
+              stops: const [0, .6],
+              rx: .9,
+              ry: .8,
+              cx: .28,
+              cy: .22,
+            ),
+            CssLinear(180, [rgba(18, 40, 50, .38), rgba(10, 26, 34, .72)]),
+          ],
+        ),
+        // «Bilde fra …» while the photo is on its way (or missing).
+        Align(
+          alignment: Alignment(0, (video ? .76 : .54) * 2 - 1),
+          child: _placeholderChip(item.publisherName),
+        ),
         if (poster.isNotEmpty && FeedPostCard.loadImages)
           CachedNetworkImage(
             imageUrl: poster,
             fit: BoxFit.cover,
-            fadeInDuration: BergenTokens.motion(
-              context,
-              const Duration(milliseconds: 300),
-            ),
+            fadeInDuration: const Duration(milliseconds: 300),
             errorWidget: (_, __, ___) => const SizedBox.shrink(),
           ),
         if (playing)
@@ -347,53 +352,94 @@ class _FeedPostCardState extends State<FeedPostCard>
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: playing ? widget.onStop : widget.onOpen,
-          child: const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x6B0F1F2B),
-                  Color(0x0F0F1F2B),
-                  Color(0x000F1F2B),
-                  Color(0x570F1F2B),
+          child: CssBox(
+            bg: [
+              CssLinear(
+                180,
+                [
+                  rgba(10, 24, 32, .5),
+                  rgba(10, 24, 32, .12),
+                  rgba(10, 24, 32, 0),
+                  rgba(10, 24, 32, 0),
+                  rgba(10, 24, 32, .28),
                 ],
-                stops: [0, .26, .52, 1],
+                const [0, .24, .44, .72, 1],
               ),
-            ),
+            ],
           ),
         ),
-        Positioned(
-          top: 10 * s,
-          left: 10 * s,
-          right: 10 * s,
-          child: _header(context),
-        ),
-        Positioned(top: 58 * s, left: 12 * s, child: _badge(context)),
-        Positioned(right: 10 * s, bottom: 12 * s, child: _rail(context)),
+        Positioned(top: 10, left: 10, right: 10, child: _header(context)),
         if (video) ...[
-          if (!widget.playing) Center(child: _playButton(context)),
+          if (!widget.playing)
+            Center(
+              child: LfPress(
+                key: Key('a1_feed_play_${item.id}'),
+                onTap: widget.onPlay,
+                scale: .92,
+                ms: 180,
+                child: Semantics(
+                  button: true,
+                  label: UtforskCopy.a1_feed_video_play,
+                  child: CssBox(
+                    width: 52,
+                    height: 52,
+                    radius: BorderRadius.circular(26),
+                    bg: [CssSolid(rgba(10, 26, 34, .38))],
+                    border: Border.all(color: rgba(255, 255, 255, .7), width: 1.5),
+                    shadows: [CssShadow(0, 10, 22, -10, rgba(0, 10, 16, .7))],
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 3),
+                      child: Center(child: feedIcon(FeedIcons.playBig, 19)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           Positioned(
-            right: 64 * s,
-            top: 60 * s,
-            child: _durationPill(context, playing: playing),
+            left: 12,
+            bottom: 12,
+            child: GestureDetector(
+              onTap: widget.playing ? widget.onStop : widget.onPlay,
+              child: _durationPill(playing: widget.playing),
+            ),
+          ),
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: Semantics(
+              label: widget.playing
+                  ? UtforskCopy.a1_feed_video_muted_stop
+                  : UtforskCopy.a1_feed_video_muted,
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: rgba(10, 26, 34, .55),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: feedIcon(FeedIcons.mute, 15),
+              ),
+            ),
           ),
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
-            child: SizedBox(
-              height: 3 * s,
-              child: Stack(
-                children: [
-                  const Positioned.fill(
-                    child: ColoredBox(color: Color(0x2EFFFFFF)),
-                  ),
-                  FractionallySizedBox(
-                    widthFactor: playing ? _progress.clamp(0, 1) : 0,
-                    child: const ColoredBox(color: BergenTokens.lantern),
-                  ),
-                ],
+            height: 2.5,
+            child: ColoredBox(color: rgba(255, 255, 255, .16)),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 2.5,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: playing ? _progress.clamp(0.0, 1.0) : 0,
+                heightFactor: 1,
+                child: const ColoredBox(color: Colors.white),
               ),
             ),
           ),
@@ -402,29 +448,79 @@ class _FeedPostCardState extends State<FeedPostCard>
     );
   }
 
+  Widget _placeholderChip(String name) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+    decoration: BoxDecoration(
+      color: rgba(10, 26, 34, .32),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: rgba(255, 255, 255, .22)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        feedIcon(FeedIcons.camera, 14),
+        const SizedBox(width: 7),
+        Text(
+          UtforskCopy.a1_feed_image_from(name),
+          style: inter(11.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .88)),
+        ),
+      ],
+    ),
+  );
+
+  Widget _durationPill({required bool playing}) => Container(
+    padding: const EdgeInsets.fromLTRB(8, 5, 10, 5),
+    decoration: BoxDecoration(
+      color: rgba(10, 26, 34, .55),
+      borderRadius: BorderRadius.circular(999),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (playing)
+          // `glod 1.2s ease-in-out infinite`.
+          LfLoop(
+            frozenMs: 600,
+            builder: (context, t, child) => Opacity(
+              opacity: kf((t % 1200) / 1200, const [0, .5, 1], const [.7, 1, .7], cssEaseInOut),
+              child: child,
+            ),
+            child: Container(
+              width: 6,
+              height: 6,
+              decoration: const BoxDecoration(color: Color(0xFFF26D3D), shape: BoxShape.circle),
+            ),
+          )
+        else
+          feedIcon(FeedIcons.playBig, 9),
+        const SizedBox(width: 6),
+        Text(
+          widget.item.media.durationLabel,
+          style: inter(11, weight: FontWeight.w800).copyWith(
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
+    ),
+  );
+
   Widget _header(BuildContext context) {
-    final s = context.bs;
     final item = widget.item;
     final store = widget.store;
-    final shadow = [
-      const Shadow(
-        color: Color(0x99000A10),
-        blurRadius: 6,
-        offset: Offset(0, 1),
-      ),
-    ];
+    final shadow = [Shadow(color: rgba(0, 10, 16, .6), blurRadius: 6, offset: const Offset(0, 1))];
     final metaParts = <String>[
       if ((item.bydel ?? item.locationName ?? '').isNotEmpty)
         (item.bydel ?? item.locationName)!,
       if (FeedPostCard.distanceLabel(store?.distanceKm) case final d?) d,
       if (item.publishedAt != null) FeedPostCard.whenLabel(item.publishedAt),
-      if (item.isFromAerend) UtforskCopy.a1_feed_published_by_aerend,
     ];
+    var meta = metaParts.join(' · ');
+    if (item.isFromAerend) meta += ' · ${UtforskCopy.a1_feed_published_by_aerend}';
 
     return Row(
       children: [
         _logo(context),
-        SizedBox(width: 9 * s),
+        const SizedBox(width: 9),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,49 +532,37 @@ class _FeedPostCardState extends State<FeedPostCard>
                       item.publisherName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: bDisplay(
-                        context,
-                        14.5,
-                        weight: FontWeight.w800,
-                        letterSpacingEm: -0.01,
-                        shadows: shadow,
-                      ),
+                      style: jakarta(14.5, em: -0.01, shadows: shadow),
                     ),
                   ),
                   if (item.store != null) ...[
-                    SizedBox(width: 5 * s),
+                    const SizedBox(width: 5),
                     // The «bergensk» dot: a Bergen shop behind the post.
                     Container(
-                      width: 6 * s,
-                      height: 6 * s,
-                      decoration: const BoxDecoration(
-                        color: BergenTokens.lantern,
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2C14E),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Color(0xE6F2C14E), blurRadius: 6),
-                        ],
+                        boxShadow: [BoxShadow(color: rgba(242, 193, 78, .9), blurRadius: 6)],
                       ),
                     ),
                   ],
                 ],
               ),
               Text(
-                metaParts.join(' · '),
+                meta,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: bText(
-                  context,
-                  10.5,
-                  weight: FontWeight.w700,
-                  color: const Color(0xD9FFFFFF),
-                  shadows: shadow,
+                style: inter(10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .85)).copyWith(
+                  shadows: [Shadow(color: rgba(0, 10, 16, .6), blurRadius: 5, offset: const Offset(0, 1))],
                 ),
               ),
             ],
           ),
         ),
         if (item.store != null) ...[
-          SizedBox(width: 9 * s),
+          const SizedBox(width: 9),
           _followPill(context),
         ],
       ],
@@ -486,7 +570,6 @@ class _FeedPostCardState extends State<FeedPostCard>
   }
 
   Widget _logo(BuildContext context) {
-    final s = context.bs;
     final item = widget.item;
     final url = item.store?.logoUrl ?? item.publisherLogoUrl;
     final name = item.publisherName.trim();
@@ -503,71 +586,53 @@ class _FeedPostCardState extends State<FeedPostCard>
       tile = CachedNetworkImage(
         imageUrl: url,
         fit: BoxFit.cover,
-        errorWidget: (_, __, ___) => _initialsTile(context, initials),
+        errorWidget: (_, __, ___) => _initialsTile(initials),
       );
     } else if (item.store == null) {
       tile = Container(
-        color: BergenTokens.teal,
+        color: const Color(0xFF1E4F5C),
         alignment: Alignment.center,
-        child: SvgPicture.asset(
-          AerendBergenAuthTokens.mark,
-          width: 22 * s,
-          height: 14 * s,
-        ),
+        child: SvgPicture.asset(_aeMark, width: 22, height: 14, colorFilter: const ColorFilter.mode(Color(0xFFF5F3EF), BlendMode.srcIn)),
       );
     } else {
-      tile = _initialsTile(context, initials);
+      tile = _initialsTile(initials);
     }
 
-    return SizedBox(
-      width: 42 * s,
-      height: 42 * s,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: 38 * s,
-            height: 38 * s,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(13 * s),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0xB3000A10),
-                  offset: Offset(0, 6),
-                  blurRadius: 12,
-                  spreadRadius: -6,
-                ),
-              ],
-            ),
-            child: tile,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: 38,
+          height: 38,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            boxShadow: [BoxShadow(color: rgba(0, 10, 16, .7), offset: const Offset(0, 6), blurRadius: 12, spreadRadius: -6)],
           ),
-          if (item.isFromAerend && item.store != null)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 18 * s,
-                height: 18 * s,
-                decoration: BoxDecoration(
-                  color: BergenTokens.teal,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                alignment: Alignment.center,
-                child: SvgPicture.asset(
-                  AerendBergenAuthTokens.mark,
-                  width: 9 * s,
-                  height: 6 * s,
-                ),
+          child: tile,
+        ),
+        // `p.avAerend`: published by Ærend on the shop's behalf.
+        if (item.isFromAerend && item.store != null)
+          Positioned(
+            right: -4,
+            bottom: -4,
+            child: Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E4F5C),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
               ),
+              alignment: Alignment.center,
+              child: SvgPicture.asset(_aeMark, width: 10, height: 6, colorFilter: const ColorFilter.mode(Color(0xFFF5F3EF), BlendMode.srcIn)),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
-  Widget _initialsTile(BuildContext context, String initials) => Container(
+  Widget _initialsTile(String initials) => Container(
     decoration: const BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topLeft,
@@ -576,269 +641,33 @@ class _FeedPostCardState extends State<FeedPostCard>
       ),
     ),
     alignment: Alignment.center,
-    child: Text(
-      initials,
-      style: bDisplay(context, 13, weight: FontWeight.w800),
-    ),
+    child: Text(initials, style: jakarta(13)),
   );
 
   Widget _followPill(BuildContext context) {
-    final s = context.bs;
     final on = _following;
     return Semantics(
       button: true,
       selected: on,
       label: on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
-      child: OnbPressable(
+      child: LfPress(
         onTap: widget.onFollow,
-        pressDy: 0,
-        pressScale: .94,
-        child: BergenCssShadow(
-          radius: 999,
-          shadows: const [
-            BoxShadow(
-              color: Color(0x99000A10),
-              offset: Offset(0, 6),
-              blurRadius: 14,
-              spreadRadius: -8,
-            ),
-          ],
-          child: AnimatedContainer(
-            key: Key('a1_feed_follow_${widget.item.id}'),
-            duration: BergenTokens.motion(
-              context,
-              const Duration(milliseconds: 200),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 6 * s),
-            decoration: BoxDecoration(
-              gradient: on ? _orange : null,
-              color: on ? null : const Color(0x33FFFFFF),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: on ? const Color(0x59FFFFFF) : const Color(0x8CFFFFFF),
-                width: 1.5,
-              ),
-            ),
-            child: Text(
-              on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
-              style: bText(context, 11.5, weight: FontWeight.w800),
-            ),
+        scale: .94,
+        child: AnimatedContainer(
+          key: Key('a1_feed_follow_${widget.item.id}'),
+          duration: const Duration(milliseconds: 200),
+          curve: cssEase,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+          decoration: BoxDecoration(
+            gradient: on ? _orange : null,
+            color: on ? null : rgba(255, 255, 255, .2),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: on ? rgba(255, 255, 255, .35) : rgba(255, 255, 255, .55)),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _badge(BuildContext context) {
-    final s = context.bs;
-    final item = widget.item;
-    final label = UtforskCopy.a1_feed_badge(
-      item.postType,
-      today: item.isFromToday,
-    );
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 5 * s),
-      decoration: BoxDecoration(
-        color: const Color(0x66FFFFFF),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0x99FFFFFF)),
-      ),
-      child: Text(
-        label,
-        style: bText(
-          context,
-          11,
-          weight: FontWeight.w800,
-          shadows: const [
-            Shadow(
-              color: Color(0x66000A10),
-              blurRadius: 4,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _rail(BuildContext context) {
-    final s = context.bs;
-    final item = widget.item;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _railButton(
-          context,
-          key: Key('a1_feed_like_${item.id}'),
-          icon: ScaleTransition(
-            scale: _popScale,
-            child: feedIcon(FeedIcons.heart(filled: _liked), 19 * s),
+          child: Text(
+            on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
+            style: inter(11, weight: FontWeight.w800),
           ),
-          label: '$_likes',
-          onTap: widget.onLike,
-          semantics: UtforskCopy.a1_feed_likes(_likes),
-        ),
-        SizedBox(height: 8 * s),
-        _railButton(
-          context,
-          key: Key('a1_feed_comments_${item.id}'),
-          icon: feedIcon(FeedIcons.comment, 18 * s),
-          label: '${item.commentCount}',
-          onTap: widget.onComments,
-          semantics: UtforskCopy.a1_feed_comments(item.commentCount),
-        ),
-        SizedBox(height: 8 * s),
-        _railButton(
-          context,
-          key: Key('a1_feed_share_${item.id}'),
-          icon: feedIcon(FeedIcons.share, 17 * s),
-          label: UtforskCopy.a1_feed_share,
-          onTap: widget.onShare,
-          semantics: UtforskCopy.a1_feed_share,
-          labelSize: 9,
-        ),
-      ],
-    );
-  }
-
-  Widget _railButton(
-    BuildContext context, {
-    required Key key,
-    required Widget icon,
-    required String label,
-    required String semantics,
-    VoidCallback? onTap,
-    double labelSize = 9.5,
-  }) {
-    final s = context.bs;
-    return Semantics(
-      button: true,
-      label: semantics,
-      child: OnbPressable(
-        key: key,
-        onTap: onTap,
-        pressDy: 0,
-        pressScale: .9,
-        child: BergenCssShadow(
-          radius: 16 * s,
-          shadows: const [
-            BoxShadow(
-              color: Color(0x99000A10),
-              offset: Offset(0, 10),
-              blurRadius: 18,
-              spreadRadius: -8,
-            ),
-          ],
-          child: Container(
-            width: 44 * s,
-            padding: EdgeInsets.fromLTRB(0, 7 * s, 0, 5 * s),
-            decoration: BoxDecoration(
-              color: const Color(0x57FFFFFF),
-              borderRadius: BorderRadius.circular(16 * s),
-              border: Border.all(color: const Color(0x80FFFFFF)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                icon,
-                SizedBox(height: 1 * s),
-                Text(
-                  label,
-                  style: bText(
-                    context,
-                    labelSize,
-                    weight: FontWeight.w800,
-                    shadows: const [
-                      Shadow(
-                        color: Color(0x80000A10),
-                        blurRadius: 4,
-                        offset: Offset(0, 1),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _playButton(BuildContext context) {
-    final s = context.bs;
-    return Semantics(
-      button: true,
-      label: UtforskCopy.a1_feed_video_play,
-      child: OnbPressable(
-        key: Key('a1_feed_play_${widget.item.id}'),
-        onTap: widget.onPlay,
-        pressDy: 0,
-        pressScale: .92,
-        child: _Glow(
-          child: BergenCssShadow(
-            radius: 999,
-            shadows: const [
-              BoxShadow(
-                color: Color(0x99000A10),
-                offset: Offset(0, 12),
-                blurRadius: 22,
-                spreadRadius: -10,
-              ),
-            ],
-            child: Container(
-              width: 60 * s,
-              height: 60 * s,
-              decoration: BoxDecoration(
-                color: const Color(0x4DFFFFFF),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0x8CFFFFFF)),
-              ),
-              alignment: Alignment.center,
-              child: Padding(
-                padding: EdgeInsets.only(left: 3 * s),
-                child: feedIcon(FeedIcons.play, 22 * s),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _durationPill(BuildContext context, {required bool playing}) {
-    final s = context.bs;
-    final text =
-        '${widget.item.media.durationLabel} · '
-        '${playing ? UtforskCopy.a1_feed_video_muted_stop : UtforskCopy.a1_feed_video_muted}';
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: playing ? widget.onStop : null,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 4 * s),
-        decoration: BoxDecoration(
-          color: const Color(0x990F1F2B),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (playing) ...[
-              _Glow(
-                period: const Duration(milliseconds: 1200),
-                child: Container(
-                  width: 6 * s,
-                  height: 6 * s,
-                  decoration: const BoxDecoration(
-                    color: BergenTokens.orange,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              SizedBox(width: 5 * s),
-            ],
-            Text(text, style: bText(context, 10, weight: FontWeight.w800)),
-          ],
         ),
       ),
     );
@@ -847,7 +676,6 @@ class _FeedPostCardState extends State<FeedPostCard>
   // ── Body ────────────────────────────────────────────────────────────────
 
   Widget _body(BuildContext context) {
-    final s = context.bs;
     final item = widget.item;
     final store = widget.store;
     final hint = FeedPostCard.hintFor(widget.orderedDaysAgo);
@@ -863,9 +691,7 @@ class _FeedPostCardState extends State<FeedPostCard>
           : UtforskCopy.a1_feed_status_closed;
     } else if (store.deliveryMinutes != null) {
       final a = store.deliveryMinutes!;
-      status = UtforskCopy.a1_feed_status_open(
-        UtforskCopy.a1_feed_eta(a, a + 10),
-      );
+      status = UtforskCopy.a1_feed_status_open(UtforskCopy.a1_feed_eta(a, a + 10));
     } else {
       status = UtforskCopy.a1_feed_status_open_plain;
     }
@@ -881,12 +707,45 @@ class _FeedPostCardState extends State<FeedPostCard>
     } else {
       ctaLabel = UtforskCopy.a1_feed_cta_post;
     }
+    final merke = UtforskCopy.a1_feed_badge(item.postType, today: item.isFromToday);
+    final body = item.headline != null && item.caption.trim().isNotEmpty ? item.caption : null;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(15 * s, 13 * s, 15 * s, 15 * s),
+      padding: const EdgeInsets.fromLTRB(15, 11, 15, 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              _likePill(),
+              const SizedBox(width: 8),
+              Semantics(
+                button: true,
+                label: UtforskCopy.a1_feed_share,
+                child: LfPress(
+                  onTap: widget.onShare,
+                  dy: 1.5,
+                  scale: .96,
+                  ms: 140,
+                  child: CssBox(
+                    width: 34,
+                    height: 34,
+                    radius: BorderRadius.circular(17),
+                    bg: [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
+                    shadows: _keyShadow,
+                    child: Center(child: feedIcon(FeedIcons.shareLaunch, 16)),
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                merke.toUpperCase(),
+                key: Key('a1_feed_merke_${item.id}'),
+                style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF5CE0B8)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: widget.onOpen,
@@ -894,119 +753,74 @@ class _FeedPostCardState extends State<FeedPostCard>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    item.title,
-                    style: bDisplay(
-                      context,
-                      19,
-                      weight: FontWeight.w800,
-                      letterSpacingEm: -0.02,
-                      height: 1.15,
-                    ),
-                  ),
+                  child: Text(item.title, style: jakarta(18, em: -0.02, height: 1.2)),
                 ),
-                SizedBox(width: 10 * s),
+                const SizedBox(width: 10),
                 Padding(
-                  padding: EdgeInsets.only(top: 3 * s),
-                  child: feedIcon(FeedIcons.chevron, 18 * s),
+                  padding: const EdgeInsets.only(top: 4),
+                  child: feedIcon(FeedIcons.chevronLaunch, 16),
                 ),
               ],
             ),
           ),
-          if (item.headline != null && item.caption.trim().isNotEmpty) ...[
-            SizedBox(height: 4 * s),
+          if (body != null) ...[
+            const SizedBox(height: 3),
             Text(
-              item.caption,
-              style: bText(
-                context,
-                13.5,
-                weight: FontWeight.w500,
-                color: const Color(0xFFDCE9EC),
-                height: 1.45,
-              ),
+              body,
+              style: inter(13.5, weight: FontWeight.w500, height: 1.45, color: const Color(0xFFDCE9EC)),
             ),
           ],
           if (hint != null) ...[
-            SizedBox(height: 10 * s),
-            Container(
+            const SizedBox(height: 8),
+            Row(
               key: Key('a1_feed_hint_${item.id}'),
-              padding: EdgeInsets.symmetric(
-                horizontal: 11 * s,
-                vertical: 8 * s,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0x1F5CE0B8),
-                borderRadius: BorderRadius.circular(14 * s),
-                border: Border.all(color: const Color(0x595CE0B8)),
-              ),
-              child: Row(
-                children: [
-                  feedIcon(FeedIcons.clock, 13 * s),
-                  SizedBox(width: 7 * s),
-                  Expanded(
-                    child: Text(
-                      hint,
-                      style: bText(
-                        context,
-                        11.5,
-                        weight: FontWeight.w700,
-                        color: const Color(0xFFDFF7EE),
-                      ),
-                    ),
+              children: [
+                feedIcon(FeedIcons.clockLaunch, 13),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    hint,
+                    style: inter(12, weight: FontWeight.w700, color: const Color(0xFF9FE8CF)),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
-          SizedBox(height: 12 * s),
+          Container(
+            height: 1,
+            margin: const EdgeInsets.fromLTRB(0, 13, 0, 12),
+            color: rgba(255, 255, 255, .1),
+          ),
           Row(
             children: [
               Expanded(
-                child: _cta(
-                  context,
-                  label: ctaLabel,
-                  primary: toCart,
-                  icon: toCart,
-                ),
-              ),
-              if (price != null || status.isNotEmpty) ...[
-                SizedBox(width: 10 * s),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (price != null)
                       Text(
                         UtforskCopy.a1_feed_price(price ~/ 100),
-                        style: bDisplay(
-                          context,
-                          17,
-                          weight: FontWeight.w800,
-                          height: 1,
-                        ),
+                        style: jakarta(19, height: 1).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                       ),
                     if (status.isNotEmpty) ...[
-                      SizedBox(height: 3 * s),
+                      const SizedBox(height: 5),
                       Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 6 * s,
-                            height: 6 * s,
+                            width: 6,
+                            height: 6,
                             decoration: BoxDecoration(
-                              color: open
-                                  ? BergenTokens.mint
-                                  : const Color(0x66FFFFFF),
+                              color: open ? const Color(0xFF5CE0B8) : rgba(255, 255, 255, .4),
                               shape: BoxShape.circle,
                             ),
                           ),
-                          SizedBox(width: 4 * s),
-                          Text(
-                            status,
-                            style: bText(
-                              context,
-                              10.5,
-                              weight: FontWeight.w700,
-                              color: const Color(0xFF9FD3DE),
+                          const SizedBox(width: 5),
+                          Flexible(
+                            child: Text(
+                              status,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: inter(11, weight: FontWeight.w700, color: const Color(0xFF9FD3DE)),
                             ),
                           ),
                         ],
@@ -1014,10 +828,68 @@ class _FeedPostCardState extends State<FeedPostCard>
                     ],
                   ],
                 ),
-              ],
+              ),
+              const SizedBox(width: 12),
+              _cta(label: ctaLabel, primary: toCart),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  static const List<CssShadow> _keyShadow = [
+    CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
+    CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
+    CssShadow(0, 2.5, 0, 0, Color.fromRGBO(6, 22, 30, .5)),
+    CssShadow(0, 8, 12, -8, Color.fromRGBO(3, 16, 24, .8)),
+  ];
+
+  Widget _likePill() {
+    final on = _liked;
+    return Semantics(
+      button: true,
+      selected: on,
+      label: UtforskCopy.a1_feed_likes(_likes),
+      child: LfPress(
+        key: Key('a1_feed_like_${widget.item.id}'),
+        onTap: widget.onLike,
+        dy: 1.5,
+        scale: .96,
+        ms: 140,
+        child: CssBox(
+          height: 34,
+          radius: BorderRadius.circular(17),
+          padding: const EdgeInsets.fromLTRB(9, 0, 12, 0),
+          bg: [
+            on
+                ? const CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)])
+                : CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)]),
+          ],
+          shadows: on
+              ? [
+                  CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .45)),
+                  const CssShadow(0, 2.5, 0, 0, Color(0xFFA63A12)),
+                  CssShadow(0, 8, 12, -6, rgba(3, 16, 24, .7)),
+                ]
+              : _keyShadow,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ScaleTransition(
+                scale: _popScale,
+                child: feedIcon(FeedIcons.heartLaunch(filled: on), 18),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '$_likes',
+                style: inter(12.5, weight: FontWeight.w800).copyWith(
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1029,137 +901,49 @@ class _FeedPostCardState extends State<FeedPostCard>
     stops: [0, .56, 1],
   );
 
-  Widget _cta(
-    BuildContext context, {
-    required String label,
-    required bool primary,
-    required bool icon,
-  }) {
-    final s = context.bs;
+  Widget _cta({required String label, required bool primary}) {
     return Semantics(
       button: true,
       label: label,
-      child: OnbPressable(
+      child: LfPress(
         key: Key('a1_feed_cta_${widget.item.id}'),
         onTap: widget.onCta,
-        pressDy: 2,
-        pressScale: .98,
-        child: BergenCssShadow(
-          radius: 999,
+        dy: 2,
+        scale: .98,
+        ms: 160,
+        child: CssBox(
+          height: 44,
+          radius: BorderRadius.circular(22),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          bg: [
+            primary
+                ? const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1])
+                : CssLinear(180, [rgba(255, 255, 255, .18), rgba(255, 255, 255, .08)]),
+          ],
+          border: Border.all(color: primary ? rgba(255, 255, 255, .3) : rgba(255, 255, 255, .22)),
           shadows: primary
-              ? const [
-                  BoxShadow(color: Color(0x8CA03C14), offset: Offset(0, 4)),
-                  BoxShadow(
-                    color: Color(0xCCF26D3D),
-                    offset: Offset(0, 14),
-                    blurRadius: 24,
-                    spreadRadius: -10,
-                  ),
+              ? [
+                  CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .45)),
+                  CssShadow(0, 4, 0, 0, rgba(160, 60, 20, .55)),
+                  CssShadow(0, 14, 24, -10, rgba(242, 109, 61, .8)),
                 ]
-              : const [
-                  BoxShadow(color: Color(0x6604121A), offset: Offset(0, 3)),
-                  BoxShadow(
-                    color: Color(0xE604121A),
-                    offset: Offset(0, 12),
-                    blurRadius: 20,
-                    spreadRadius: -14,
-                  ),
+              : [
+                  CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
+                  CssShadow(0, 3, 0, 0, rgba(4, 18, 26, .4)),
+                  CssShadow(0, 12, 20, -14, rgba(4, 18, 26, .9)),
                 ],
-          child: Container(
-            height: 46 * s,
-            decoration: BoxDecoration(
-              gradient: primary
-                  ? _orange
-                  : const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0x2EFFFFFF), Color(0x14FFFFFF)],
-                    ),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: primary
-                    ? const Color(0x4DFFFFFF)
-                    : const Color(0x38FFFFFF),
-              ),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (icon) ...[
-                        feedIcon(FeedIcons.bag, 16 * s),
-                        SizedBox(width: 8 * s),
-                      ],
-                      Flexible(
-                        child: Text(
-                          label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: bText(context, 14, weight: FontWeight.w800),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                bergenInsetTop(radius: 999, alpha: primary ? .45 : .28),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (primary) ...[
+                feedIcon(FeedIcons.bagLaunch, 16),
+                const SizedBox(width: 7),
               ],
-            ),
+              Text(label, maxLines: 1, style: inter(14, weight: FontWeight.w800)),
+            ],
           ),
         ),
       ),
-    );
-  }
-}
-
-/// The design's `glod` keyframes: opacity .7 ↔ 1, looping. Off under reduced
-/// motion, where the child simply sits at full opacity.
-class _Glow extends StatefulWidget {
-  const _Glow({
-    required this.child,
-    this.period = const Duration(milliseconds: 2600),
-  });
-
-  final Widget child;
-  final Duration period;
-
-  @override
-  State<_Glow> createState() => _GlowState();
-}
-
-class _GlowState extends State<_Glow> with SingleTickerProviderStateMixin {
-  AnimationController? _c;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final reduced = MediaQuery.maybeDisableAnimationsOf(context) == true;
-    if (reduced) {
-      _c?.dispose();
-      _c = null;
-      return;
-    }
-    _c ??= AnimationController(vsync: this, duration: widget.period)
-      ..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _c?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = _c;
-    if (c == null) return widget.child;
-    return FadeTransition(
-      opacity: Tween<double>(
-        begin: .7,
-        end: 1,
-      ).animate(CurvedAnimation(parent: c, curve: Curves.easeInOut)),
-      child: widget.child,
     );
   }
 }

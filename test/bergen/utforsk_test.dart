@@ -97,6 +97,12 @@ void main() {
   });
 
   group('UtforskScreen', () {
+    setUp(() {
+      A3Services.points = () => FakePointsApi();
+      A3Services.aegil = () => FakeAegilApi();
+    });
+    tearDown(A3Services.reset);
+
     testWidgets('renders the title and three segments', (tester) async {
       _frame(tester);
       await tester.pumpWidget(
@@ -111,7 +117,7 @@ void main() {
       expect(find.byKey(const Key('a1_utforsk_tab_feed')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_tab_fiske')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_tab_pose')), findsOneWidget);
-      expect(find.byKey(const Key('a1_feed_list')), findsOneWidget);
+      expect(find.byKey(const Key('a1_utforsk_scroll')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_filters')), findsOneWidget);
       // No Drift note from the API → the notice is hidden.
       expect(find.byKey(const Key('a1_utforsk_drift')), findsNothing);
@@ -221,7 +227,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byKey(const Key('a1_fiske_screen')), findsNothing);
-      expect(find.byKey(const Key('a1_feed_list')), findsOneWidget);
+      expect(find.byKey(const Key('a1_utforsk_filters')), findsOneWidget);
     });
 
     testWidgets('the route carries ?tab= into the screen', (tester) async {

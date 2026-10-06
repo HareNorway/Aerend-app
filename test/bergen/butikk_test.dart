@@ -7,7 +7,6 @@ import 'package:aerend_customer/networking/ops/ops_butikk_api.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
-import 'package:aerend_customer/screens/bergen/butikk/automat_screen.dart';
 import 'package:aerend_customer/screens/bergen/butikk/butikk_copy.dart';
 import 'package:aerend_customer/screens/bergen/butikk/butikk_screen.dart';
 import 'package:aerend_customer/screens/bergen/butikk/info_sheet.dart';
@@ -48,11 +47,10 @@ class _FakeButikk extends OpsButikkApi {
 }
 
 class _FakeCustomer extends OpsCustomerApi {
-  _FakeCustomer({this.pulse, this.bags = const [], this.populaerListe = const []});
+  _FakeCustomer({this.pulse, this.populaerListe = const []});
 
   final Map<String, dynamic>? pulse;
   final Map<String, dynamic>? presence = null;
-  final List<Map<String, dynamic>> bags;
   final List<Map<String, dynamic>> populaerListe;
 
   @override
@@ -67,7 +65,7 @@ class _FakeCustomer extends OpsCustomerApi {
   @override
   Future<Map<String, dynamic>?> driftNotice({int? storeId}) async => null;
   @override
-  Future<List<Map<String, dynamic>>> poser() async => bags;
+  Future<List<Map<String, dynamic>>> poser() async => const [];
 }
 
 StoreListItem _store(String name, {int id = 7, int eta = 25}) => StoreListItem.fromJson({
@@ -922,56 +920,5 @@ void main() {
     });
   });
 
-  group('Poseautomaten', () {
-    testWidgets('a pull lands the chosen bag; empty machine is honest', (tester) async {
-      _frame(tester);
-      await tester.pumpWidget(
-        _app(
-          AutomatScreen(
-            api: _FakeCustomer(
-              bags: [
-                {
-                  'id': '1',
-                  'name': 'Forundringspose bakst',
-                  'store_name': 'Sandviken Bakeri',
-                  'store_id': 3,
-                  'price_ore': 9900,
-                  'pickup_window': 'til 18:00',
-                },
-                {
-                  'id': '2',
-                  'name': 'Forundringspose grønt',
-                  'store_name': 'Grønt & Godt',
-                  'store_id': 4,
-                  'price_ore': 7900,
-                },
-              ],
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-
-      expect(find.byKey(const Key('a1_butikk_automat_title')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('a1_butikk_automat_right')));
-      await tester.pump();
-      expect(find.text('Grønt & Godt'), findsWidgets);
-      await tester.tap(find.text(ButikkCopy.a1_butikk_automat_trekk(99)));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 800));
-      await tester.pump(const Duration(milliseconds: 800));
-      await tester.pumpAndSettle();
-      expect(find.byKey(const Key('a1_butikk_automat_vunnet')), findsOneWidget);
-      expect(find.text(ButikkCopy.a1_butikk_automat_sikre(79)), findsOneWidget);
-    });
-
-    testWidgets('no bags tonight', (tester) async {
-      _frame(tester);
-      await tester.pumpWidget(_app(AutomatScreen(api: _FakeCustomer())));
-      await tester.pump();
-      await tester.pump();
-      expect(find.byKey(const Key('a1_butikk_automat_empty')), findsOneWidget);
-    });
-  });
+  // Poseautomaten: test/bergen/utforsk_step9_test.dart.
 }

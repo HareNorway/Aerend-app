@@ -12,6 +12,10 @@ import '../../../deliveryService/home/ds_home.dart';
 import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
+import '../../../../networking/ops/ops_butikk_api.dart';
+import '../../../../data/ops/butikk_models.dart';
+import '../../../bergen/utforsk/feed_tab.dart' show utfPoseHentes;
+import '../../../bergen/utforsk/utforsk_screen.dart';
 import '../../../bergen/kasse/kjop_sekvens.dart' show KjopBekreftetScreen;
 import '../../../bergen/kit/drape_route.dart' show DrapePek;
 import '../../../bergen/aegil/aegil_entry.dart';
@@ -194,6 +198,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
     _lastSnart();
+    _lastPose();
     // Live-ærend: the shell's pill follows the order under way.
     _trackSub = _bloc.subjectTrackOrder.stream.listen((r) {
       if (r.status != Status.completed) return;
@@ -404,7 +409,49 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
-  void _openAutomat() => BergenRoutes.push(context, '/bergen/automat');
+  /// Tonight's bags (`GET /api/ops/products?kind=pose`) for the
+  /// Forundringspose card: the first bag, its shop's hours, and the count.
+  List<Map<String, dynamic>> _poser = const [];
+  BergenStoreInfo? _poseButikk;
+
+  Future<void> _lastPose() async {
+    final bags = await OpsCustomerApi().poser();
+    if (!mounted || bags.isEmpty) return;
+    setState(() => _poser = bags);
+    final id = (bags.first['store_id'] as num?)?.toInt() ?? 0;
+    if (id == 0) return;
+    final info = await OpsButikkApi().store(id);
+    if (mounted && info != null) setState(() => _poseButikk = info);
+  }
+
+  /// `scenePose` / `poseFn`: Utforsk on the Forundringspose segment.
+  void _openPose() {
+    final shell = _shell;
+    if (shell == null) {
+      BergenRoutes.push(context, '/bergen/utforsk?tab=pose');
+      return;
+    }
+    UtforskScreen.apneSegment = UtforskScreen.tabPose;
+    shell.switchToTab(BergenTab.explore.index);
+  }
+
+  /// The Forundringspose card (L3177) from the first real bag; the count is
+  /// the bags themselves (no stock is tracked).
+  Widget _hjemPoseKort() {
+    final bag = _poser.isEmpty ? null : _poser.first;
+    final kr = bag == null ? 0 : ((bag['price_ore'] as num?)?.toInt() ?? 0) ~/ 100;
+    final verdi = bag == null ? 0 : ((bag['value_ore'] as num?)?.toInt() ?? 0) ~/ 100;
+    final butikk = bag == null ? '' : '${bag['store_name'] ?? ''}';
+    final hentes = bag == null ? '' : utfPoseHentes(bag, _poseButikk);
+    return HjemPoseKort(
+      tittel: BergenCopy.poseTittel,
+      igjen: BergenCopy.poseIgjen(_poser.length),
+      verdi: verdi > 0 ? BergenCopy.poseVerdi(verdi) : '',
+      under: [butikk, if (hentes.isNotEmpty) hentes.toLowerCase()].where((e) => e.isNotEmpty).join(' · '),
+      kr: '$kr',
+      onTap: _openPose,
+    );
+  }
 
   void _openFjordfiske() => BergenRoutes.push(context, '/bergen/fjordfiske');
 
@@ -1220,7 +1267,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                           onFloatAdd: _onFloatAdd,
                                           onFloatSink: _onFloatSunk,
                                           onFloatNever: _onFloatNever,
-                                          onPose: _openAutomat,
+                                          onPose: _openPose,
                                           onFjordfiske: _openFjordfiske,
                                           playIntro: _playIntro,
                                           extraHeight: _dragY > 0 ? _dragY : 0,
@@ -1261,7 +1308,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         pris: _underKaien!.price,
                                         onTap: _onUnderKaienOffer,
                                       ),
-                                onPose: _openAutomat,
+                                onPose: _openPose,
                                 onFrakt: _comingSoon,
                               ),
                             ),
@@ -1635,20 +1682,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   HjemTilbudRad(tilbud: tilbud, onMysterie: _comingSoon),
                 ),
               ),
-              if (_showSurprise)
+              // Only with real bags tonight.
+              if (_showSurprise && _poser.isNotEmpty)
                 Padding(
                   padding: EdgeInsets.only(top: 22 * s),
                   child: lfFlow(
                     358,
-                    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-                    HjemPoseKort(
-                      tittel: 'Det som er igjen i kveld',
-                      igjen: '2 igjen i kveld',
-                      verdi: 'verdi minst 250 kr',
-                      under: 'Sandviken Bakeri · hentes 16–18',
-                      kr: '99',
-                      onTap: _toExplore,
-                    ),
+                    _hjemPoseKort(),
                   ),
                 ),
               lfFlow(

@@ -134,6 +134,20 @@ abstract final class HjemHarness {
   static String? sporingArk, sporingHjelp, levertArk;
   static bool sporingSkifte = false, sporingFersk = false;
 
+  /// Utforsk (Step 9): `utfSeg` (`feed` / `pose`), `feedFane` (`naer` /
+  /// `folger` / `aerend`), `feedKat` (an orb slug), `utfScroll` (design px),
+  /// `feedDrift` (show the prototype's Drift note — no API carries one
+  /// locally), `feedSpill` (play this post's video). `automat` opens
+  /// Poseautomaten; `autoValg` steers the claw (0–3), `autoHentet` marks
+  /// slots as taken today, `autoAct` runs `trekk` (pull), `pose` (the bag
+  /// landed), `fisk` (Ægil rowing out — no cart call) or `fisket` (in the
+  /// basket — no cart call).
+  static String? utfSeg, feedFane, feedKat, feedSpill, autoAct;
+  static double? utfScroll;
+  static bool feedDrift = false, automat = false;
+  static int? autoValg;
+  static List<int>? autoHentet;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -185,6 +199,11 @@ abstract final class HjemHarness {
         sporing = levert = null;
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = false;
+        utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
+        utfScroll = null;
+        feedDrift = automat = false;
+        autoValg = null;
+        autoHentet = null;
         return;
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
@@ -244,6 +263,16 @@ abstract final class HjemHarness {
       levertArk = m['levertArk'] as String?;
       sporingSkifte = m['sporingSkifte'] == true;
       sporingFersk = m['sporingFersk'] == true;
+      utfSeg = m['utfSeg'] as String?;
+      feedFane = m['feedFane'] as String?;
+      feedKat = m['feedKat'] as String?;
+      feedSpill = m['feedSpill']?.toString();
+      utfScroll = (m['utfScroll'] as num?)?.toDouble();
+      feedDrift = m['feedDrift'] == true;
+      automat = m['automat'] == true;
+      autoValg = m['autoValg'] as int?;
+      autoHentet = (m['autoHentet'] as List?)?.cast<int>();
+      autoAct = m['autoAct'] as String?;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

@@ -58,6 +58,29 @@ abstract final class FeedIcons {
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5CE0B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>';
   static const String bag =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7zM9 8V6.5a3 3 0 0 1 6 0V8"/></svg>';
+  // ── Launch post card (L5505–5560) ──────────────────────────────────────
+  /// The like pill's heart (`p.hjFill`) with its highlight stroke.
+  static String heartLaunch({required bool filled}) =>
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.6l-7.4-7.3a5 5 0 0 1 7-7.1l.4.4.4-.4a5 5 0 0 1 7 7.1z" fill="${filled ? '#FFFFFF' : 'none'}" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/><path d="M7.4 8.6a2.3 2.3 0 0 1 2.2-1.4" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  static const String shareLaunch =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V3.5M7.8 7.6L12 3.5l4.2 4.1"/><path d="M8 11H6.5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H16"/></svg>';
+  static const String chevronLaunch =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+  static const String clockLaunch =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5CE0B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>';
+  static const String bagLaunch =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7zM9 8V6.5a3 3 0 0 1 6 0V8"/></svg>';
+  static const String camera =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>';
+  static const String playBig =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M7 4.5v15l12.5-7.5z"/></svg>';
+  static const String mute =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>';
+  static const String arrowRight =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+  static const String pickupClock =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#9FF0D4" stroke-width="2.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+
   static const String close =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5CE0B8" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 }

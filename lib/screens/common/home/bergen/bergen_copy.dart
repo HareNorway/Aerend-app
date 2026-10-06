@@ -11,6 +11,11 @@ abstract final class BergenCopy {
 
   // ── Header ────────────────────────────────────────────────────────────────
   static String get deliverTo => _t('Leverer til', 'Deliver to');
+
+  // Forundringspose card (L3177).
+  static String get poseTittel => _t('Det som er igjen i kveld', 'What is left tonight');
+  static String poseIgjen(int n) => _t('$n igjen i kveld', '$n left tonight');
+  static String poseVerdi(int kr) => _t('verdi minst $kr kr', 'worth at least $kr kr');
   static String get chooseAddress => _t('Velg adresse', 'Choose address');
   static String get addressSheetTitle => _t('Hvor skal ærendet?', 'Where to?');
   static String get addressSheetLine => _t(

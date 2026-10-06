@@ -15,7 +15,7 @@ import 'package:aerend_customer/screens/bergen/utforsk/utforsk_copy.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
-/// The Utforsk Feed tab against the prototype (`utfFeed` ≈L4402–4511): the
+/// The Utforsk Feed tab against the Launch prototype (`utfFeed` L5466–5590): the
 /// cards' fields, the orbs as a filter, like and follow, the «Du bestilte …»
 /// hint, the shop's open state, the empty states and the bag promo.
 
@@ -220,7 +220,7 @@ void main() {
     FeedPostCard.loadImages = false;
   });
 
-  testWidgets('cards carry title, text, badge, price, follow and the rail', (
+  testWidgets('cards carry title, text, kind, price, follow, like and share', (
     tester,
   ) async {
     _frame(tester);
@@ -238,7 +238,7 @@ void main() {
 
     expect(find.text('Gambas pil pil, rett fra pannen'), findsOneWidget);
     expect(find.text('Reker i hvitløk og chili.'), findsOneWidget);
-    expect(find.text('Dagens rett'), findsOneWidget);
+    expect(find.text('DAGENS RETT'), findsOneWidget);
     expect(find.text('179 kr'), findsOneWidget);
     expect(find.text('214'), findsOneWidget);
     expect(find.text(UtforskCopy.a1_feed_cta_add), findsWidgets);
@@ -269,7 +269,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text(UtforskCopy.a1_feed_cta_post), findsOneWidget);
-    expect(find.text('Tilbud i nærheten'), findsOneWidget);
+    expect(find.text('TILBUD I NÆRHETEN'), findsOneWidget);
     expect(find.text('39 kr'), findsOneWidget);
   });
 
@@ -524,7 +524,9 @@ void main() {
     expect(find.byKey(const Key('a1_feed_promo')), findsOneWidget);
     expect(find.text(UtforskCopy.a1_feed_promo_price(99, 250)), findsOneWidget);
     expect(find.text(UtforskCopy.a1_utforsk_promo_cta), findsOneWidget);
-    expect(find.text(UtforskCopy.a1_utforsk_promo_left(2)), findsOneWidget);
+    // «N igjen · ekte antall» counts the bags themselves (no stock is tracked).
+    expect(find.text(UtforskCopy.a1_utforsk_promo_left(1)), findsOneWidget);
+    expect(find.textContaining('hentes 17–19'), findsOneWidget);
     // And with no posts at all, the honest empty state above it.
     expect(find.text(UtforskCopy.a1_feed_empty_title), findsOneWidget);
   });
