@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../aegil/aegil_guide.dart';
 import 'package:flutter/services.dart';
 
 import '../../../data/ops/butikk_models.dart';
@@ -154,15 +155,25 @@ class _ButikkScreenState extends State<ButikkScreen> {
         ),
       );
     }
-    if (store.isFashionOrGift) {
-      return MoteButikkScreen(store: store, api: _api, customerApi: _customer);
-    }
-    return RestaurantButikkBody(
-      key: _bodyKey,
-      store: store,
-      api: _api,
-      customerApi: _customer,
-      kasseApi: widget.kasseApi,
+    final body = store.isFashionOrGift
+        ? MoteButikkScreen(store: store, api: _api, customerApi: _customer)
+        : RestaurantButikkBody(
+            key: _bodyKey,
+            store: store,
+            api: _api,
+            customerApi: _customer,
+            kasseApi: widget.kasseApi,
+          );
+    // The Ægil-guide (L9495) over the store page: «+» and the store's own
+    // free-delivery threshold.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        body,
+        Positioned.fill(
+          child: AegilGuide(skjerm: 'butikk', tips: aegilGuideTips('butikk', gratisOver: store.offerMinAmountKr), nav: false),
+        ),
+      ],
     );
   }
 }

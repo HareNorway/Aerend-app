@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/points/points_models.dart';
 import 'aegil/aegil_screen.dart';
-import 'aegil/minne_screen.dart';
 import 'meg/bestillinger_screen.dart';
 import 'meg/favoritter_screen.dart';
 import 'meg/konto_screen.dart';
@@ -35,7 +34,7 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
       },
       '/bergen/fjordfiske': (_) => const FjordfiskeScreen(),
       '/bergen/aegil': (_) => const AegilScreen(),
-      '/bergen/aegil/minne': (_) => const MinneScreen(),
+      '/bergen/aegil/minne': (_) => const AegilScreen(steg: 'minne'),
       '/bergen/meg': (_) => const MegScreenBody(),
       '/bergen/meg/favoritter': (_) => const FavoritterScreen(),
       '/bergen/meg/konto': (_) => const KontoScreen(),

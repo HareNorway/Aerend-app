@@ -296,6 +296,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (HjemHarness.hurtig) {
             BergenRoutes.push<dynamic>(context, '/bergen/hurtig');
           }
+          if (HjemHarness.aegil != null) {
+            BergenRoutes.push<dynamic>(context, kAegilRoute);
+          }
           if (HjemHarness.sporing case final id?) {
             BergenRoutes.push<dynamic>(context, '/bergen/sporing/$id', arguments: {if (HjemHarness.sporingFersk) 'fersk': '1'});
           }

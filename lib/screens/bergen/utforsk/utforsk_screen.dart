@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/home/bergen/bergen_nav.dart';
+import '../aegil/aegil_guide.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart' show rgba;
 import '../kit/bergen_kit.dart';
@@ -316,6 +317,8 @@ class _UtforskScreenState extends State<UtforskScreen> {
                       ],
                     ),
                   ),
+                  // The Ægil-guide (L9495) — Utforsk's three tips.
+                  Positioned.fill(child: AegilGuide(skjerm: 'utforsk', tips: aegilGuideTips('utforsk'), nav: widget.embedded)),
                 ],
               ),
             );

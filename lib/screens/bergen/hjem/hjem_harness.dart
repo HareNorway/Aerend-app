@@ -154,6 +154,21 @@ abstract final class HjemHarness {
   /// (a bait key).
   static String? fiskeFase, fiskeAgn;
 
+  /// Ægil (Step 11), opened from Hjem: `aegil` is the view (`start`,
+  /// `chat`, `minne`, `nivaa`, `tillatelse`, `ob1`–`ob5`, `obSum`); `aegSi`
+  /// sends these lines to `agent/chat` in turn; `aegTekst` types into the
+  /// composer (or, with `aegTenk`, holds Ægil thinking after that line);
+  /// `aegFokus` focuses the composer; `aegOb` fills the onboarding with a
+  /// sample (nothing is stored until «Stemmer»); `aegButArk` opens «Alle
+  /// butikker»; `aegScroll` scrolls the sheet (design px). `guide` shows the
+  /// Ægil-guide on that screen at once (`utforsk`, `kategori`, `butikk`,
+  /// `kurv`), `guideIdx` on that tip.
+  static String? aegil, aegTekst, guide;
+  static List<String>? aegSi;
+  static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
+  static double? aegScroll;
+  static int? guideIdx;
+
   static Future<void> load() async {
     if (!kDebugMode) return;
     try {
@@ -207,6 +222,11 @@ abstract final class HjemHarness {
         sporingSkifte = sporingFersk = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         fiskeFase = fiskeAgn = null;
+        aegil = aegTekst = guide = null;
+        aegSi = null;
+        aegTenk = aegFokus = aegOb = aegButArk = false;
+        aegScroll = null;
+        guideIdx = null;
         utfScroll = null;
         feedDrift = automat = false;
         autoValg = null;
@@ -282,6 +302,16 @@ abstract final class HjemHarness {
       autoAct = m['autoAct'] as String?;
       fiskeFase = m['fiskeFase'] as String?;
       fiskeAgn = m['fiskeAgn'] as String?;
+      aegil = m['aegil'] as String?;
+      aegTekst = m['aegTekst'] as String?;
+      aegSi = (m['aegSi'] as List?)?.cast<String>();
+      aegTenk = m['aegTenk'] == true;
+      aegFokus = m['aegFokus'] == true;
+      aegOb = m['aegOb'] == true;
+      aegButArk = m['aegButArk'] == true;
+      aegScroll = (m['aegScroll'] as num?)?.toDouble();
+      guide = m['guide'] as String?;
+      guideIdx = m['guideIdx'] as int?;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

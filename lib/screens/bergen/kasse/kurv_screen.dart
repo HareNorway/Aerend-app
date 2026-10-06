@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -684,6 +685,15 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 right: 16 * s,
                 bottom: bottom,
                 child: KurvBetal(total: _total(cart), busy: _placing, onPay: _pay),
+              ),
+            // The Ægil-guide (L9495): what is missing to free delivery.
+            if (cart != null)
+              Positioned.fill(
+                child: AegilGuide(
+                  skjerm: 'kurv',
+                  tips: aegilGuideTips('kurv', sum: cart.subtotal, gratisOver: _store?.offerMinAmountKr),
+                  nav: widget.embedded && !hasCart,
+                ),
               ),
           ],
         ),

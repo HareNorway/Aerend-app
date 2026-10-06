@@ -46,6 +46,10 @@ class AegilSettings {
     this.quietHoursFrom,
     this.quietHoursTo,
     this.mayWriteCart = false,
+    this.allowedStoreIds = const [],
+    this.allowedCategories = const [],
+    this.capPerOrderOre,
+    this.capPerWeekOre,
   });
 
   final int level;
@@ -64,6 +68,16 @@ class AegilSettings {
   final String? quietHoursFrom;
   final String? quietHoursTo;
   final bool mayWriteCart;
+
+  /// The allowlist when [allowedStoreMode] is `allowlist`.
+  final List<int> allowedStoreIds;
+
+  /// Empty: every category.
+  final List<String> allowedCategories;
+
+  /// Spending limits in øre (null: none).
+  final int? capPerOrderOre;
+  final int? capPerWeekOre;
 
   bool get hasQuietHours => quietHoursFrom != null && quietHoursTo != null;
 
@@ -86,6 +100,10 @@ class AegilSettings {
       quietHoursFrom: quiet?['from'] as String?,
       quietHoursTo: quiet?['to'] as String?,
       mayWriteCart: json['may_write_cart'] as bool? ?? false,
+      allowedStoreIds: ((json['allowed_store_ids'] as List?) ?? const []).map((e) => int.tryParse('$e') ?? 0).where((e) => e > 0).toList(),
+      allowedCategories: ((json['allowed_categories'] as List?) ?? const []).map((e) => '$e').toList(),
+      capPerOrderOre: (json['cap_per_order'] as num?)?.toInt(),
+      capPerWeekOre: (json['cap_per_week'] as num?)?.toInt(),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -524,6 +525,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
                 child: _topp(context, k, navn),
               ),
               _bunnlinje(context, navn),
+              // The Ægil-guide (L9495).
+              Positioned.fill(child: AegilGuide(skjerm: 'kategori', tips: aegilGuideTips('kategori'), nav: false)),
             ],
           ),
         ),

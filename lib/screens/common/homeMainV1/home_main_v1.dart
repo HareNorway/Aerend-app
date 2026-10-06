@@ -12,6 +12,7 @@ import '../home/bergen/bergen_kit.dart' show kBergenScreenGradient, BergenScale;
 import '../home/bergen/bergen_nav.dart';
 import '../../bergen/kit/fane_bytte.dart';
 import '../../bergen/kit/live_aerend.dart';
+import '../../bergen/aegil/aegil_entry.dart';
 import '../../bergen/kit/bergen_routes.dart';
 import '../auth/launch/lf_css.dart' show lfFlow;
 import '../../deliveryService/trackOrder/track_order.dart';
@@ -134,8 +135,16 @@ class HomeMainV1State extends State<HomeMainV1> {
     sokOpen.value = true;
   }
 
+  /// The orb's long press and Søk's Ægil key: Ægil (`gaa('agent')`), with
+  /// the search draft as the first line when there is one.
   void _openAegil(String draft) {
-    openScreen(context, SnurreChatScreen(draftFromHomeSearch: draft.trim()));
+    final q = draft.trim();
+    BergenRoutes.pushOr(
+      context,
+      kAegilRoute,
+      arguments: {if (q.isNotEmpty) 'q': q},
+      orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: q)),
+    );
   }
 
   @override
