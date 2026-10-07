@@ -389,6 +389,17 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | env | `POINTS_ORDER_SOURCE`, `POINTS_SIGNAL_SOURCE` | now read as `config('points.order_source' / 'points.signal_source')` |
 | config | `dugnad.tunables.*` | the `DUGNAD_*` numbers services used to read with `env()` |
 
+**Step 2 — order backbone**
+
+| Kind | Name | Notes |
+|---|---|---|
+| flag | `ops.legacy_bridge` | `LegacyOrderObserver::updated` → `App\Services\Ops\LegacyStatusBridge`: legacy status 2/5/6/8/9 → accepted/seen/ready/picked_up/delivered, 3/4/10 → cancelled; forward only; idempotency key `legacy-bridge:{order}:{state}`. Off unless set |
+| policy | `ops.require_arrived_customer` | default `false`; `true` refuses picked_up → delivered |
+| policy | `proof.value_threshold_ore` | default `30000` (300 kr); replaces `DeliveryProofService::VALUE_THRESHOLD_ORE` (kept as fallback). `customer_prefs.always_code` now forces a code |
+| listener | `App\Points\Listeners\AwardPointsOnOpsDelivered` | ops `order.delivered` earns points; dedupe `order.delivered:{orderId}` shared with the legacy path |
+| schedule | `points:sync --since=<2 days>` hourly at :20 | `LegacyBookingSource::delivered` also reads `ops_state = delivered` |
+| event payload | `source: legacy_bridge`, `legacy_status`, `synthesized`, `courier_provider_id` | on bridged `order.*` events; courier actor id is `providers.id` (resolved from `transport_driver_details.id`) |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session
