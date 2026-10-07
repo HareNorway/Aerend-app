@@ -372,18 +372,30 @@ class HjemVinduStripe extends StatelessWidget {
     required this.onDragUpdate,
     required this.onDragEnd,
     required this.onButikk,
+    this.butikker = const [],
   });
 
   final VoidCallback onToggle;
   final GestureDragStartCallback onDragStart;
   final GestureDragUpdateCallback onDragUpdate;
   final GestureDragEndCallback onDragEnd;
-  final VoidCallback onButikk;
+
+  /// «Bestill igjen»: the shops this customer last ordered from (backend
+  /// plan Step 8, `ops.customer.orders`), newest first, at most two. A tap
+  /// puts that shop's last order in the basket. Empty: the row is left out.
+  final List<String> butikker;
+  final ValueChanged<int> onButikk;
+
+  static const _farger = [
+    [Color(0xFFF2C9A0), Color(0xFFC97A4A)],
+    [Color(0xFFF0B8A8), Color(0xFFA8352E)],
+  ];
 
   @override
   Widget build(BuildContext context) {
-    Widget chip(String navn, String ikon, List<Color> farger) => GestureDetector(
-      onTap: onButikk,
+    Widget chip(int i, String navn, List<Color> farger) => GestureDetector(
+      key: Key('a1_hjem_vindu_igjen_$i'),
+      onTap: () => onButikk(i),
       child: CssBox(
         radius: BorderRadius.circular(14),
         bg: const [CssLinear(180, [Color(0xFFFDFCF9), Color(0xFFFDFCF9)])],
@@ -397,10 +409,10 @@ class HjemVinduStripe extends StatelessWidget {
               height: 30,
               radius: BorderRadius.circular(10),
               bg: [CssLinear(160, farger)],
-              child: Center(child: SvgPicture.asset(ikon, width: 20, height: 20)),
+              child: Center(child: Text(navn.isEmpty ? '·' : navn.characters.first.toUpperCase(), style: inter(13, weight: FontWeight.w800, color: Colors.white))),
             ),
             const SizedBox(width: 8),
-            Text(navn, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFF23201D))),
+            Flexible(child: Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFF23201D)))),
           ],
         ),
       ),
@@ -435,6 +447,7 @@ class HjemVinduStripe extends StatelessWidget {
               ),
             ),
           ),
+          if (butikker.isNotEmpty) ...[
           const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -446,14 +459,15 @@ class HjemVinduStripe extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
           Row(
             children: [
-              chip('Casa Maria', 'assets/svgs/hjem/hjem_pi_pizza.svg', const [Color(0xFFF2C9A0), Color(0xFFC97A4A)]),
-              const SizedBox(width: 8),
-              chip('Fyllingsdalen Wok', 'assets/svgs/hjem/hjem_pi_wok.svg', const [Color(0xFFF0B8A8), Color(0xFFA8352E)]),
+              for (var i = 0; i < butikker.length && i < 2; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Flexible(child: chip(i, butikker[i], _farger[i % _farger.length])),
+              ],
             ],
           ),
+          ],
         ],
       ),
     );

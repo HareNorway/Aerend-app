@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 
 import '../aegil/aegil_guide.dart';
@@ -224,6 +226,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
   /// `GET /api/points/rules` (backend plan Step 3): the product coins.
   PointsRules? _regler;
 
+  /// Store id → `{viewers_now, typical_order_ore}` (backend plan Step 8).
+  Map<int, Map<String, dynamic>> _presence = const {};
+
   Future<void> _lastRegler() async {
     final r = await _customer.rules();
     if (mounted && r != null) setState(() => _regler = r);
@@ -249,6 +254,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
       final stores = await _api.storesInCategory(id);
       if (!mounted) return;
       setState(() => _stores = stores);
+      // «N nå» and each shop's typical order in one call (backend plan Step 8).
+      unawaited(_customer.storesPresence([for (final s in stores) if (s.storeId != null) s.storeId!]).then((m) {
+        if (mounted && m.isNotEmpty) setState(() => _presence = m);
+      }));
       final p = await products;
       if (!mounted) return;
       setState(() => _products = p);
@@ -355,8 +364,18 @@ class _KategoriScreenState extends State<KategoriScreen> {
     return v > 0 ? '★ ${v.toStringAsFixed(1).replaceAll('.', ',')}' : null;
   }
 
+  int? _live(int? storeId) {
+    final n = (_presence[storeId]?['viewers_now'] as num?)?.toInt() ?? 0;
+    return n > 0 ? n : null;
+  }
+
+  int? _butikkPoeng(int? storeId) {
+    final ore = (_presence[storeId]?['typical_order_ore'] as num?)?.toInt();
+    final n = ore == null ? 0 : (_regler?.pointsForOre(ore) ?? 0);
+    return n > 0 ? n : null;
+  }
+
   KatButikkVis _butikkVis(StoreListItem s, int n, int? populaerId) {
-    final k = _slot;
     final sub = (s.description ?? '').trim().isNotEmpty
         ? s.description!.trim()
         : (s.storeProducts ?? '');
@@ -371,11 +390,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
           ? KatCopy.minutter(s.orderDeliveryTime!)
           : null,
       midt: _rating(s.averageRatings),
-      // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-      // (How many are ordering from the shop right now, and the points an
-      // order earns there — the prototype's own numbers.)
-      live: 1 + ((n * 3 + k) % 4),
-      poeng: (6 + ((n * 7 + k * 3) % 11)) * 5,
+      // How many are following an order from the shop right now, and what a
+      // typical order there earns (backend plan Step 8). Hidden without data.
+      live: _live(s.storeId),
+      poeng: _butikkPoeng(s.storeId),
       tag: s.storeId != null && s.storeId == populaerId ? KatCopy.populaer : null,
     );
   }

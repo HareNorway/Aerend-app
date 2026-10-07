@@ -90,6 +90,7 @@ void main() {
               onPressed: () => visKommerSnart(
                 context,
                 k: 1,
+                info: kHjemSnartPrototype[1]!,
                 varsles: false,
                 onVarsle: varsler.add,
                 onRestauranter: () => restauranter = true,
@@ -206,8 +207,8 @@ void main() {
             child: HjemUnderKaien(
               vist: true,
               reker: HjemKaienFunn(tittel: 'Reker, 1 kg', under: 'Torgboden · før 349', pris: '299 kr', onTap: () => reker = true),
-              onPose: () {},
-              onFrakt: () {},
+              pose: HjemKaienFunn(tittel: 'Forundringspose', under: 'Verdi minst 250 kr', pris: '99 kr', merke: '2 igjen', onTap: () {}),
+              frakt: HjemKaienFunn(tittel: 'Gratis levering', under: 'Over 300 kr · Testbutikk', pris: '0 kr', onTap: () {}),
             ),
           ),
         ),
@@ -221,6 +222,27 @@ void main() {
     await tester.tap(find.text('Reker, 1 kg'));
     await tester.pump(const Duration(milliseconds: 200));
     expect(reker, isTrue);
+  });
+
+  testWidgets('Under kaien shows only real finds, and says so when there are none (backend plan Step 8)', (tester) async {
+    phone(tester);
+    Widget kaien({HjemKaienFunn? pose}) => host(
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(height: 300, child: HjemUnderKaien(vist: true, pose: pose)),
+          ),
+        );
+    await tester.pumpWidget(kaien());
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.text('Ingen funn i kveld. Jeg ser etter mer.'), findsOneWidget);
+    expect(find.text('Gratis levering'), findsNothing);
+    expect(find.text('Reker, 1 kg'), findsNothing);
+
+    await tester.pumpWidget(kaien(pose: HjemKaienFunn(tittel: 'Forundringspose', under: 'Pokemon Pizza', pris: '79 kr', merke: '1 igjen', onTap: () {})));
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.text('Psst — jeg fant én ting som lå gjemt her.'), findsOneWidget);
+    expect(find.text('79 kr'), findsOneWidget);
+    expect(find.text('1 igjen'), findsOneWidget);
   });
 
   testWidgets('faneBytt: only the active tab is built; it switches', (tester) async {

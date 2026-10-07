@@ -36,7 +36,8 @@ import '../../../bergen/hjem/hjem_vann.dart';
 import '../../../bergen/hjem/hjem_vindu.dart';
 import '../../../bergen/kit/live_aerend.dart';
 import '../../../bergen/hjem/hjem_snart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../bergen/meg/bestill_igjen.dart';
+import '../../../../networking/ops/ops_kasse_api.dart';
 import '../../../bergen/aegil/brett_entry.dart';
 import '../../../bergen/kit/bergen_routes.dart';
 import '../../../bergen/meg/a3_services.dart';
@@ -88,14 +89,6 @@ const double _kSheetTop = 296; // arkTop (ROM)
 const double _kSheetSlide = 212; // max parallax translate
 const double _kSheetRadius = 30;
 
-/// Design's `LIVE` placeholders per category slot. TODO(api): open-now counts.
-const List<String> kBergenLive = [
-  '24 åpne nå',
-  '9 åpne nå',
-  'Åpner 10:00',
-  '6 åpne nå',
-  '4 åpne nå',
-];
 
 /// `/bergen/kategori/{slug}` from a category name — the app's categories
 /// carry no slug of their own, so the name is the key (Phase 4 resolves it by
@@ -162,6 +155,23 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   Set<int> _snartVarsle = {};
   final Map<int, List<BergenStoreCard>> _storesByCat = {};
 
+  /// «Kommer snart» per wheel slot from `catalog/launch-categories` (backend
+  /// plan Step 8); null until it answers (the wheel then keeps 1–4 coming).
+  Map<int, HjemSnartInfo>? _snart;
+
+  /// «N åpne nå» per category id from the category pulse (Step 8), and the
+  /// categories already asked for.
+  final Map<int, int> _aapneNa = {};
+  final Set<int> _pulsSpurt = {};
+
+  /// Under kaien's FRAKT card: the nearest open store with a free-delivery
+  /// threshold (`ops/customer/free-delivery`, Step 8); null hides the card.
+  Map<String, dynamic>? _frakt;
+
+  /// Vindu «Bestill igjen»: this customer's latest order per shop, newest
+  /// first, at most two (`ops.customer.orders`, Step 8).
+  List<Map<String, dynamic>> _igjen = const [];
+
   /// The Ark (design `st.ark`): both «Se alle» open it.
   bool _arkOpen = false;
   final Set<int> _storesLoading = {};
@@ -200,6 +210,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _lastSnart();
     _lastPose();
+    _lastFrakt();
+    _lastIgjen();
     // Live-ærend: the shell's pill follows the order under way.
     _trackSub = _bloc.subjectTrackOrder.stream.listen((r) {
       if (r.status != Status.completed) return;
@@ -448,6 +460,37 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     shell.switchToTab(BergenTab.explore.index);
   }
 
+  /// Under kaien's POSE card from tonight's first real bag (Step 8); none
+  /// when there are no bags.
+  HjemKaienFunn? _kaienPose() {
+    if (_poser.isEmpty) return null;
+    final bag = _poser.first;
+    final kr = ((bag['price_ore'] as num?)?.toInt() ?? 0) ~/ 100;
+    final verdi = ((bag['value_ore'] as num?)?.toInt() ?? 0) ~/ 100;
+    return HjemKaienFunn(
+      tittel: BergenCopy.poseTittel,
+      under: verdi > 0 ? 'Verdi minst $verdi kr' : '${bag['store_name'] ?? ''}',
+      pris: '$kr kr',
+      merke: BergenCopy.poseIgjen(_poser.length),
+      onTap: _openPose,
+    );
+  }
+
+  /// Under kaien's FRAKT card: the nearest open store's own free-delivery
+  /// threshold (Step 8). A cross-store «i kveld» is a campaign (Step 12).
+  HjemKaienFunn? _kaienFrakt() {
+    final f = _frakt;
+    final id = (f?['id'] as num?)?.toInt();
+    final ore = (f?['threshold_ore'] as num?)?.toInt() ?? 0;
+    if (f == null || id == null || ore <= 0) return null;
+    return HjemKaienFunn(
+      tittel: 'Gratis levering',
+      under: 'Over ${ore ~/ 100} kr · ${f['name'] ?? ''}',
+      pris: '0 kr',
+      onTap: () => BergenRoutes.push(context, '/bergen/butikk/$id'),
+    );
+  }
+
   /// The Forundringspose card (L3177) from the first real bag; the count is
   /// the bags themselves (no stock is tracked).
   Widget _hjemPoseKort() {
@@ -599,7 +642,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           BergenCategory(
             id: 0,
             name: _placeholderCategoryName(i),
-            liveText: kBergenLive[i],
+            liveText: '',
             iconAsset: BergenCategoryLook.all[i].icon,
             look: BergenCategoryLook.all[i],
           ),
@@ -610,7 +653,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         BergenCategory(
           id: services[i].serviceCategoryId,
           name: services[i].serviceCategoryName,
-          liveText: kBergenLive[i % kBergenLive.length],
+          liveText: _liveTekst(BergenCategory(id: services[i].serviceCategoryId, name: services[i].serviceCategoryName, liveText: '', look: BergenCategoryLook.all[i % BergenCategoryLook.all.length])),
           iconUrl: services[i].serviceCategoryIcon.isEmpty
               ? null
               : services[i].serviceCategoryIcon,
@@ -650,32 +693,108 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
   }
 
-  static const _kSnartPref = 'hjem_snart_varsle';
-
+  /// The coming categories, their texts and counts, and which of them this
+  /// customer asked to hear about — all from the server (Step 8; the device
+  /// list in prefs is gone).
   Future<void> _lastSnart() async {
-    final p = await SharedPreferences.getInstance();
-    final v = p.getStringList(_kSnartPref) ?? const [];
-    if (mounted) {
-      setState(() => _snartVarsle = {for (final x in v) ?int.tryParse(x)});
+    final rows = await OpsCustomerApi().launchCategories();
+    if (!mounted || rows.isEmpty) return;
+    final m = <int, HjemSnartInfo>{};
+    for (final r in rows) {
+      final e = HjemSnartInfo.fraJson(r);
+      if (e != null) m[e.$1] = e.$2;
     }
+    setState(() {
+      _snart = m;
+      _snartVarsle = {for (final e in m.entries) if (e.value.varsles) e.key};
+    });
   }
 
-  void _settSnart(int k, bool v) {
+  /// Is wheel slot [k] still coming? Restaurant never is; without an answer
+  /// from the server the design's four stay coming.
+  bool _erSnart(int k) {
+    if (k == 0 || HjemHarness.katLive) return false;
+    final s = _snart;
+    return s == null ? true : s.containsKey(k);
+  }
+
+  /// «Varsle meg» on the server; undone with a word when it does not land.
+  Future<void> _settSnart(int k, bool v) async {
+    final id = _snart?[k]?.id;
     setState(() => v ? _snartVarsle.add(k) : _snartVarsle.remove(k));
-    // TODO(api): no backend for "notify me when a category opens"; kept on
-    // the device.
-    SharedPreferences.getInstance().then(
-      (p) => p.setStringList(_kSnartPref, [for (final x in _snartVarsle) '$x']),
-    );
+    if (id == null) return;
+    final ok = await OpsCustomerApi().launchNotify(id, v);
+    if (ok || !mounted) return;
+    setState(() => v ? _snartVarsle.remove(k) : _snartVarsle.add(k));
+    openSimpleSnackbar(isGuestUser() ? 'Logg inn for å få beskjed når det åpner.' : BergenCopy.comingSoon);
   }
 
   void _openSnart(int k) {
+    final info = _snart?[k];
+    if (info == null) {
+      openSimpleSnackbar(BergenCopy.comingSoon);
+      return;
+    }
     visKommerSnart(
       context,
       k: k,
+      info: info,
       varsles: _snartVarsle.contains(k),
       onVarsle: (v) => _settSnart(k, v),
       onRestauranter: () => setState(() => _hjulI = 0),
+    );
+  }
+
+  /// «N åpne nå» for [c] from the pulse; '' until it answers (asked once).
+  String _liveTekst(BergenCategory? c) {
+    if (c == null || c.id == 0) return '';
+    final n = _aapneNa[c.id];
+    if (n != null) return BergenCopy.openNow(n);
+    if (_pulsSpurt.add(c.id)) {
+      OpsCustomerApi().categoryPulse(BergenHomeSlug.of(c.name)).then((p) {
+        final open = (p?['stores_open'] as num?)?.toInt();
+        if (mounted && open != null) setState(() => _aapneNa[c.id] = open);
+      });
+    }
+    return '';
+  }
+
+  /// The FRAKT card's store, nearest to the delivery address when it has a
+  /// position.
+  Future<void> _lastFrakt([AddressListItem? a]) async {
+    final lat = double.tryParse(a?.lat ?? '');
+    final lng = double.tryParse(a?.long ?? '');
+    final store = await OpsCustomerApi().freeDelivery(lat: lat, lng: lng);
+    if (mounted) setState(() => _frakt = store);
+  }
+
+  /// The two shops this customer last ordered from, with that order's lines.
+  Future<void> _lastIgjen() async {
+    if (isGuestUser()) return;
+    final rows = await OpsCustomerApi().orders(limit: 20);
+    final seen = <int>{};
+    final out = <Map<String, dynamic>>[];
+    for (final r in rows) {
+      final store = r['store'] is Map ? r['store'] as Map : const {};
+      final id = (store['id'] as num?)?.toInt() ?? 0;
+      final items = r['items'] is List ? r['items'] as List : const [];
+      if (id == 0 || items.isEmpty || r['state'] == 'cancelled' || !seen.add(id)) continue;
+      out.add(r);
+      if (out.length == 2) break;
+    }
+    if (mounted) setState(() => _igjen = out);
+  }
+
+  Future<void> _bestillIgjen(int i) async {
+    if (i >= _igjen.length) return;
+    final r = _igjen[i];
+    final store = r['store'] as Map;
+    await bestillIgjen(
+      context,
+      kasse: OpsKasseApi(),
+      storeId: (store['id'] as num).toInt(),
+      butikk: '${store['name'] ?? ''}',
+      linjer: [for (final l in (r['items'] as List).whereType<Map>()) Map<String, dynamic>.from(l)],
     );
   }
 
@@ -859,7 +978,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }(),
       ];
     }
-    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+    // No discounts in the feed: no coupons — the row is left out rather than
+    // filled with the design's samples (backend plan Step 8).
+    return const [];
+  }
+
+  // The design's sample coupons, kept for reference only (never shown).
+  // ignore: unused_element
+  List<HjemTilbud> _tilbudPrototype() {
     return [
       HjemTilbud(
         eyebrow: 'Dagens kupp',
@@ -1139,6 +1265,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// The header's "· 25–35 min" follows coverage for the chosen place.
   void _hentHodeEta(AddressListItem? a) {
     if (a == null || a.addressId == 0) return;
+    _lastFrakt(a);
     _adrKilde.dekning(a).then((d) {
       if (mounted) setState(() => _hodeEta = d?.hodeEta);
     });
@@ -1198,7 +1325,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     : (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
                 final restLive = stores.isNotEmpty && focused == slots[0]
                     ? '${stores.where((e) => e.open).length} åpne nå'
-                    : kBergenLive[0];
+                    : _liveTekst(slots[0]);
 
                 return OnbTimeline(
                   durationMs: 340,
@@ -1306,13 +1433,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               child: HjemUnderKaien(
                                 vist: _kaien,
                                 reker: _underKaien == null
-                                    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-                                    ? HjemKaienFunn(
-                                        tittel: 'Reker, 1 kg',
-                                        under: 'Torgboden · før 349',
-                                        pris: '299 kr',
-                                        onTap: _onUnderKaienOffer,
-                                      )
+                                    ? null
                                     : HjemKaienFunn(
                                         tittel: _underKaien!.title,
                                         under: _underKaien!.sub.isEmpty
@@ -1321,8 +1442,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         pris: _underKaien!.price,
                                         onTap: _onUnderKaienOffer,
                                       ),
-                                onPose: _openPose,
-                                onFrakt: _comingSoon,
+                                pose: _kaienPose(),
+                                frakt: _kaienFrakt(),
                               ),
                             ),
                           ),
@@ -1497,9 +1618,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                   setState(() => _stripeDy = 0);
                                   if (opp) _settVindu(false);
                                 },
-                                // UI-TEMP: the sample "Bestill igjen" shops
-                                // have no store behind them yet.
-                                onButikk: _comingSoon,
+                                butikker: [
+                                  for (final r in _igjen) '${(r['store'] as Map)['name'] ?? ''}',
+                                ],
+                                onButikk: _bestillIgjen,
                               ),
                             ),
                           ),
@@ -1614,9 +1736,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     navn: kHjemKatNavn[k],
                     live: k == 0 && stores.isNotEmpty && focused == slots[0]
                         ? '$openCount åpne nå'
-                        : kBergenLive[k],
+                        : _liveTekst(slots[k]),
                     ikon: k,
-                    snart: k != 0 && !HjemHarness.katLive,
+                    snart: _erSnart(k),
                     varsles: _snartVarsle.contains(k),
                   ),
               ],
@@ -1674,8 +1796,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   ),
                   stores: stores,
                   // A wrapped card opens the Kommer snart sheet.
-                  onOpen: _hjulI != 0 ? (_) => _openSnart(_hjulI) : _openStore,
-                  snart: _hjulI != 0,
+                  onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openStore,
+                  snart: _erSnart(_hjulI),
                 ),
               ),
               Padding(
@@ -1692,7 +1814,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 padding: EdgeInsets.only(top: 22 * s),
                 child: lfFlow(
                   358,
-                  HjemTilbudRad(tilbud: tilbud, onMysterie: _comingSoon),
+                  tilbud.isEmpty ? const SizedBox.shrink() : HjemTilbudRad(tilbud: tilbud, onMysterie: _comingSoon),
                 ),
               ),
               // Only with real bags tonight.
@@ -1716,9 +1838,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               ),
               SizedBox(height: 10 * s),
               BergenProductRail(
-                snart: _hjulI != 0,
+                snart: _erSnart(_hjulI),
                 products: products,
-                onOpen: _hjulI != 0 ? (_) => _openSnart(_hjulI) : _openProduct,
+                onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
               ),
             ],

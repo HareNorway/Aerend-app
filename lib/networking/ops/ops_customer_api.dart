@@ -543,4 +543,61 @@ class OpsCustomerApi {
   /// `GET /api/ops/customer/stores/{id}/presence` (agil-1, Phase 4), guarded.
   Future<Map<String, dynamic>?> storePresence(int storeId) =>
       _guarded(() => _get('${_base}stores/$storeId/presence'));
+
+  // ── Backend plan Step 8: Hjem and Kategori data ───────────────────────────
+
+  /// `GET /api/ops/customer/stores/presence?ids=` — «N nå» and each store's
+  /// typical order for a whole Kategori list in one call. Public. Store id →
+  /// `{viewers_now, typical_order_ore}`; empty on failure.
+  Future<Map<int, Map<String, dynamic>>> storesPresence(List<int> ids) async {
+    if (ids.isEmpty) return const {};
+    final json = await _guarded(() async {
+      final j = await _helper.get('${_base}stores/presence?ids=${ids.take(60).join(',')}');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['stores'];
+    if (list is! List) return const {};
+    return {
+      for (final s in list.whereType<Map<String, dynamic>>())
+        if ((s['store_id'] as num?) != null) (s['store_id'] as num).toInt(): s,
+    };
+  }
+
+  /// `GET /api/ops/customer/free-delivery?lat=&lng=` — Under kaien's FRAKT
+  /// card: the nearest store open now with a free-delivery threshold, or null.
+  Future<Map<String, dynamic>?> freeDelivery({double? lat, double? lng}) async {
+    final json = await _guarded(() async {
+      final q = lat != null && lng != null ? '?lat=$lat&lng=$lng' : '';
+      final j = await _helper.get('${_base}free-delivery$q');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final store = json?['store'];
+    return store is Map<String, dynamic> ? store : null;
+  }
+
+  /// `GET /api/catalog/launch-categories` — «Kommer snart»: the coming
+  /// categories with their text, Ægil's line, ready/target shop counts and
+  /// (logged in) whether this customer asked to be told. Empty on failure.
+  Future<List<Map<String, dynamic>>> launchCategories() async {
+    final json = await _guarded(() async {
+      final auth = authParams();
+      final j = await _helper.get('api/catalog/launch-categories${auth == null ? '' : '?${_qs(auth)}'}');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['categories'];
+    return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
+  }
+
+  /// «Varsle meg når det åpner» on / off (`POST|DELETE .../{id}/notify`).
+  /// False when it did not land (logged out, offline).
+  Future<bool> launchNotify(int id, bool on) async {
+    final json = await _guarded(() async {
+      final auth = authParams();
+      if (auth == null) return null;
+      final url = 'api/catalog/launch-categories/$id/notify?${_qs(auth)}';
+      final j = on ? await _helper.post(url, body: const {}) : await _helper.post(url, body: const {'_method': 'DELETE'});
+      return j is Map<String, dynamic> ? j : null;
+    });
+    return json != null;
+  }
 }

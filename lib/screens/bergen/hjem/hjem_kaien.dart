@@ -13,20 +13,34 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 // float up (`kaien`). 390 × 300, design px.
 
 class HjemKaienFunn {
-  const HjemKaienFunn({required this.tittel, required this.under, required this.pris, required this.onTap});
+  const HjemKaienFunn({required this.tittel, required this.under, required this.pris, required this.onTap, this.merke});
   final String tittel, under, pris;
   final VoidCallback onTap;
+
+  /// The badge on the card («2 igjen», «I kveld»); the design's when null.
+  final String? merke;
 }
 
 class HjemUnderKaien extends StatelessWidget {
-  const HjemUnderKaien({super.key, required this.vist, required this.reker, required this.onPose, required this.onFrakt});
+  const HjemUnderKaien({super.key, required this.vist, this.reker, this.pose, this.frakt});
 
   /// `kaien`: the sheet is at its end (the finds rise to full opacity).
   final bool vist;
 
-  /// The first find — a real one when Ægil's tray has it.
-  final HjemKaienFunn reker;
-  final VoidCallback onPose, onFrakt;
+  /// The three finds, each only when it is real (backend plan Step 8): Ægil's
+  /// tray, tonight's Forundringspose, and the nearest free-delivery store. A
+  /// missing one is left out rather than filled with the design's sample.
+  final HjemKaienFunn? reker, pose, frakt;
+
+  int get _antall => [reker, pose, frakt].where((f) => f != null).length;
+
+  /// The prototype's line, counted; «Ingen funn i kveld» when there is none.
+  String get _linje => switch (_antall) {
+        0 => 'Ingen funn i kveld. Jeg ser etter mer.',
+        1 => 'Psst — jeg fant én ting som lå gjemt her.',
+        2 => 'Psst — jeg fant to ting som lå gjemt her.',
+        _ => 'Psst — jeg fant tre ting som lå gjemt her.',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +282,7 @@ class HjemUnderKaien extends StatelessWidget {
                           children: [
                             Text('UNDER KAIEN', style: inter(9, weight: FontWeight.w800, em: .08, color: const Color(0xFF9FD3DE))),
                             Text(
-                              'Psst — jeg fant tre ting som lå gjemt her.',
+                              _linje,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: jakarta(13, em: -.015, height: 1.2, color: const Color(0xFFF5F3EF), shadows: const [Shadow(color: Color.fromRGBO(0, 0, 0, .5), offset: Offset(0, 1), blurRadius: 3)]),
@@ -282,8 +296,8 @@ class HjemUnderKaien extends StatelessWidget {
               ),
               // The three finds.
               Positioned(
-                left: 12,
-                right: 12,
+                left: 7.5,
+                right: 7.5,
                 top: 94,
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(end: vist ? 1 : 0),
@@ -296,12 +310,15 @@ class HjemUnderKaien extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (reker case final reker?)
                       Expanded(
-                        child: _Funn(
+                        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4.5), child: _Funn(
                           inn: 100,
                           svevMs: 5200,
                           svevDelay: 600,
-                          merke: '+5 poeng',
+                          // The design's «+5 poeng» is not something a tray find pays; only a
+                          // badge the find itself carries is shown (backend plan Step 8).
+                          merke: reker.merke ?? '',
                           merkeBg: const [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
                           merkeKant: const Color(0xFFA87418),
                           merkeC: const Color(0xFF4A300A),
@@ -325,15 +342,15 @@ class HjemUnderKaien extends StatelessWidget {
                           prisKant: const Color(0xFFA63A12),
                           prisC: Colors.white,
                           onTap: reker.onTap,
-                        ),
+                        )),
                       ),
-                      const SizedBox(width: 9),
+                      if (pose case final pose?)
                       Expanded(
-                        child: _Funn(
+                        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4.5), child: _Funn(
                           inn: 220,
                           svevMs: 5800,
                           svevDelay: 1100,
-                          merke: '2 igjen',
+                          merke: pose.merke ?? '',
                           merkeBg: const [Color(0xFF8CF0D2), Color(0xFF3CC79F)],
                           merkeKant: const Color(0xFF1F8A6B),
                           merkeC: const Color(0xFF0F2A30),
@@ -351,23 +368,22 @@ class HjemUnderKaien extends StatelessWidget {
                           tag: 'POSE',
                           tagIkon: '<path d="M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2"/>',
                           tagC: const Color(0xFFFFDD86),
-                          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-                          tittel: 'Forundringspose',
-                          under: 'Verdi minst 250 kr',
-                          pris: '99 kr',
+                          tittel: pose.tittel,
+                          under: pose.under,
+                          pris: pose.pris,
                           prisBg: const [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
                           prisKant: const Color(0xFFA87418),
                           prisC: const Color(0xFF4A300A),
-                          onTap: onPose,
-                        ),
+                          onTap: pose.onTap,
+                        )),
                       ),
-                      const SizedBox(width: 9),
+                      if (frakt case final frakt?)
                       Expanded(
-                        child: _Funn(
+                        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4.5), child: _Funn(
                           inn: 340,
                           svevMs: 6400,
                           svevDelay: 300,
-                          merke: 'I kveld',
+                          merke: frakt.merke ?? 'I kveld',
                           merkeBg: const [Color(0xFFFF9466), Color(0xFFE95C2C)],
                           merkeKant: const Color(0xFFA63A12),
                           merkeC: Colors.white,
@@ -376,15 +392,14 @@ class HjemUnderKaien extends StatelessWidget {
                           tag: 'FRAKT',
                           tagIkon: '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7M7 19a2 2 0 1 0 0-.1M17 19a2 2 0 1 0 0-.1"/>',
                           tagC: const Color(0xFF7FF0CB),
-                          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-                          tittel: 'Gratis levering',
-                          under: 'Over 300 kr i kveld',
-                          pris: '0 kr',
+                          tittel: frakt.tittel,
+                          under: frakt.under,
+                          pris: frakt.pris,
                           prisBg: const [Color(0xFF8CF0D2), Color(0xFF3CC79F)],
                           prisKant: const Color(0xFF1F8A6B),
                           prisC: const Color(0xFF0F2A30),
-                          onTap: onFrakt,
-                        ),
+                          onTap: frakt.onTap,
+                        )),
                       ),
                     ],
                   ),
@@ -639,6 +654,8 @@ class _Funn extends StatelessWidget {
               ),
             ),
           ),
+          // No badge rather than an empty one (backend plan Step 8).
+          if (merke.isNotEmpty)
           Positioned(
             right: -5,
             top: -9,

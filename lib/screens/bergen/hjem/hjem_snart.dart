@@ -15,15 +15,43 @@ import 'hjem_hjul.dart';
 // category's 3D icon, the KOMMER SNART stamp, how many shops are ready, a
 // word from Ægil, "Varsle meg når det åpner" and a way back to restaurants.
 
+/// One coming category, from `GET catalog/launch-categories` (backend plan
+/// Step 8): the sheet's text, Ægil's line, how many shops are ready (counted
+/// on the server) and how many it opens at.
 class HjemSnartInfo {
-  const HjemSnartInfo({required this.tekst, required this.klar, required this.maal, required this.aeg});
+  const HjemSnartInfo({required this.tekst, required this.klar, required this.maal, required this.aeg, this.id, this.navn, this.varsles = false});
   final String tekst;
   final int klar, maal;
   final String aeg;
+
+  /// The launch category's id (for «Varsle meg»), its title, and whether this
+  /// customer already asked to be told.
+  final int? id;
+  final String? navn;
+  final bool varsles;
+
+  /// The wheel slot this entry belongs to, from the API row.
+  static (int, HjemSnartInfo)? fraJson(Map<String, dynamic> j) {
+    final slot = (j['slot'] as num?)?.toInt();
+    if (slot == null || j['state'] != 'coming') return null;
+    return (
+      slot,
+      HjemSnartInfo(
+        id: (j['id'] as num?)?.toInt(),
+        navn: '${j['title'] ?? ''}'.trim().isEmpty ? null : '${j['title']}',
+        tekst: '${j['description'] ?? ''}',
+        klar: (j['ready_count'] as num?)?.toInt() ?? 0,
+        maal: (j['target_count'] as num?)?.toInt() ?? 0,
+        aeg: '${j['aegil_quote'] ?? ''}',
+        varsles: j['notify'] == true,
+      ),
+    );
+  }
 }
 
-// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-const List<HjemSnartInfo?> kHjemSnartInfo = [
+/// The prototype's texts, kept only for the widget tests.
+@visibleForTesting
+const List<HjemSnartInfo?> kHjemSnartPrototype = [
   null,
   HjemSnartInfo(
     tekst: 'Fersk fisk fra Fisketorget, bakst fra bydelen og dagligvarer, rett på døra.',
@@ -38,12 +66,11 @@ const List<HjemSnartInfo?> kHjemSnartInfo = [
 
 const List<String> kHjemKatNavn = ['Restaurant', 'Mat & fisk', 'Mote', 'Interiør', 'Gaver'];
 
-/// Opens the sheet for design category [k] (1–4). [varsles] is the current
-/// "Varsle meg" state; [onVarsle] stores a change; [onRestauranter] runs
-/// after "Bestill fra restauranter i mellomtiden" closes the sheet.
-Future<void> visKommerSnart(BuildContext context, {required int k, required bool varsles, required ValueChanged<bool> onVarsle, required VoidCallback onRestauranter}) {
-  final info = kHjemSnartInfo[k];
-  if (info == null) return Future.value();
+/// Opens the sheet for design category [k] (1–4) with [info] from the
+/// server. [varsles] is the current "Varsle meg" state; [onVarsle] stores a
+/// change; [onRestauranter] runs after "Bestill fra restauranter i
+/// mellomtiden" closes the sheet.
+Future<void> visKommerSnart(BuildContext context, {required int k, required HjemSnartInfo info, required bool varsles, required ValueChanged<bool> onVarsle, required VoidCallback onRestauranter}) {
   final reduce = MediaQuery.disableAnimationsOf(context);
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
@@ -158,7 +185,7 @@ class _SnartArkState extends State<_SnartArk> {
   @override
   Widget build(BuildContext context) {
     final k = widget.k, info = widget.info;
-    final navn = kHjemKatNavn[k];
+    final navn = info.navn ?? kHjemKatNavn[k];
     final rest = info.maal - info.klar;
     return CssBox(
       key: _arkKey,
@@ -248,7 +275,9 @@ class _SnartArkState extends State<_SnartArk> {
                         ),
                         const SizedBox(height: 9),
                         Text(
-                          'Vi åpner når ${rest == 1 ? 'den siste butikken' : 'de siste $rest butikkene'} er klare.',
+                          rest <= 0
+                              ? 'Alle butikkene er klare. Vi åpner snart.'
+                              : 'Vi åpner når ${rest == 1 ? 'den siste butikken' : 'de siste $rest butikkene'} er klare.',
                           style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFFBFD8DF)),
                         ),
                       ],

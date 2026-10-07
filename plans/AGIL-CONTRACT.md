@@ -471,6 +471,17 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | tray | `SuggestionService::expireStale` (agent:daily-maintenance); tray/deck skip expired | |
 | advice | `AgainstInterestEngine` on each newly served suggestion → `meta.against_interest`; payload `against_interest[]` (switch and silenced checks applied) | |
 
+**Step 8 — Hjem and Kategori data**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `ops.customer.stores.presence_batch` `GET /api/ops/customer/stores/presence?ids=` | public; ≤ 60 ids → `stores[{store_id, viewers_now, typical_order_ore}]` (median paid order, 90 days, null under 3). App: Kategori «N nå» and the card's coin = `PointsRules.pointsForOre(typical)`, both hidden without data (`UI-TEMP` #23 removed) |
+| route | `ops.customer.free_delivery` `GET /api/ops/customer/free-delivery?lat=&lng=` | public; the nearest store open now with `offer_min_amount` → `store{id, name, image, threshold_ore, distance_metres}` or null. App: Under kaien FRAKT card (#15) |
+| behaviour | `ops.customer.categories.pulse` `stores_open` | now «open now» (`StoreOpenNow`: service on + approved, not paused, opening hours open) — was «not paused». App: the wheel/category «N åpne nå» fallback (the `kBergenLive` placeholders are gone) |
+| table | `category_launch`, `category_launch_waitlist` | `App\Models\Catalog\CategoryLaunch`; the migration inserts the prototype's four (mat_fisk, mote, interior, gaver) into an empty table; `Step08LaunchCategoriesSeeder` resets them locally |
+| routes | `catalog.launch_categories` `GET /api/catalog/launch-categories`; `catalog.launch_categories.notify` / `.unnotify` `POST\|DELETE …/{id}/notify` | list public (`id, key, slot, state, title, description, aegil_quote, target_count, ready_count` (active stores counted), `notify` with the house login); notify needs the login (401). App: «Kommer snart» sheet and «Varsle meg» from the server, prefs list removed (`UI-TEMP` #16 removed) |
+| app | Hjem | #4 Tilbud row hidden without discounts; #5 / #14 / #15 Under kaien shows only real finds («Ingen funn i kveld» when none); #6 / #13 Vindu «Bestill igjen» = the customer's last two shops (`ops.customer.orders`), one tap refills the basket (`bestill_igjen.dart`, shared with Ordrehistorikk) |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session
