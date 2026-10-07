@@ -465,11 +465,21 @@ class FakeAegilRepo extends AegilRepo {
     return true;
   }
 
+  /// What the fake server pays per answer (backend plan Step 7); 0 = off.
+  int earnPerChip = 0;
+
   @override
-  Future<({int stored, String? error})> submitChips(
+  Future<({int stored, int earned, String? error})> submitChips(
     List<OnboardingChip> chips,
   ) async {
     calls.add('chips:${chips.map((c) => c.value).join(',')}');
-    return (stored: chips.length, error: null);
+    return (stored: chips.length, earned: chips.length * earnPerChip, error: null);
+  }
+
+  @override
+  Future<bool> forget(int id) async {
+    calls.add('forget:$id');
+    memory = memory.where((m) => m.id != id).toList();
+    return true;
   }
 }

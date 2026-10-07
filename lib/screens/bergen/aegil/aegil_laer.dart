@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/aegil_models.dart';
+import '../../../data/points/points_rules.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../hurtig/hurtig_data.dart' show HbButikk;
@@ -1347,8 +1348,10 @@ class AeOb {
   /// `obLinjer` — the lines that will be stored.
   int get linjer => kat.length + mat.length + but.length + (hus.isEmpty ? 0 : 1) + kostEkte + dager.length;
 
-  /// `obTotalPoeng` — five per answer.
-  int get poeng => (kat.length + mat.length + but.length + (hus.isEmpty ? 0 : 1) + kost.length + dager.length + (varsel.isEmpty ? 0 : 1)) * 5;
+  /// `obTotalPoeng` — what the stored answers earn under `points/rules`
+  /// `aegil_answer` (backend plan Step 7): 0 when that is off, so no «+N»
+  /// shows. The alert choice is a setting, not an answer, so it earns nothing.
+  int poengMed(PointsRules? regler) => regler?.aegilPointsFor(linjer) ?? 0;
 }
 
 /// The step frame: progress, Ægil asking in a white bubble, the white card
@@ -1457,8 +1460,8 @@ class AeObSteg extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    if (harValg) ...[
-                      // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+                    // «+N Ægil-poeng» only when the answer points are on (backend plan Step 7).
+                    if (harValg && poeng > 0) ...[
                       Flexible(
                         flex: 3,
                         child: AeOnce(
@@ -1756,9 +1759,8 @@ class AeObSum extends StatelessWidget {
                             AeCopy.minnetStartet,
                             style: inter(13, weight: FontWeight.w800, color: kAeInk),
                           ),
-                          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
                           Text(
-                            AeCopy.minnetLinje(poeng, linjer),
+                            poeng > 0 ? AeCopy.minnetLinje(poeng, linjer) : AeCopy.minnetLinjeUtenPoeng(linjer),
                             style: inter(11, weight: FontWeight.w700, color: const Color(0xFF2E6B47)),
                           ),
                         ],

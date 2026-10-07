@@ -47,4 +47,18 @@ void main() {
     expect(splitPointsByStage(3), [0, 0, 0, 3]);
     expect(splitPointsByStage(0), [0, 0, 0, 0]);
   });
+
+  test('Ægil answer points: off hides the number, on pays per answer under the cap (backend plan Step 7)', () {
+    final off = PointsRules.fromJson({'kjop_per_10kr': 1})!;
+    expect(off.aegilAnswerEnabled, isFalse);
+    expect(off.aegilPointsFor(4), 0);
+
+    final on = PointsRules.fromJson({
+      'kjop_per_10kr': 1,
+      'aegil_answer': {'enabled': true, 'per_answer': 5, 'cap': 50},
+    })!;
+    expect(on.aegilPointsFor(3), 15);
+    expect(on.aegilPointsFor(20), 50);
+    expect(on.aegilPointsFor(0), 0);
+  });
 }

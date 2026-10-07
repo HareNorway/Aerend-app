@@ -456,6 +456,21 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | hours | `StoreHoursService` | one source: `ops_store_hours` when set, else read-through to legacy `store_timings` (`all` wins; 00:00–00:00 closed); every ops write mirrored back to `store_timings` |
 | code | `OrderCode::ALPHABET` | Q and Z dropped for new codes (spec: no I, L, O, Q, S, Z); the allocator never repeats a code shown today |
 
+**Step 7 — Ægil backend**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `agent.me.memory.forget_one` `DELETE /api/agent/me/memory/{id}` (+ spec alias `agent.me.preferences.forget` `DELETE /api/agent/me/preferences/{id}`) | forget one line; another customer's line or a gone one → 404 `MEMORY_NOT_FOUND`. App «Fjern» (`AegilRepo.forget`, `UI-TEMP` #10 removed) |
+| route | `agent.me.pause` `POST /api/agent/me/pause` | `{days 1–30}` pauses, `{resume: 1}` ends it; answers `settings` |
+| routes | `agent.me.reminders` (GET/POST/DELETE `{id}`), `agent.me.availability_subscriptions` (POST/DELETE `{id}`) | «si fra»: `product_id` = `store_product_details.id`; price-drop reminder (default: any drop; second ask 422 `REMINDER_DUPLICATE`), back-on-sale subscription. Fired from `ProductChangeLogger` (`ReminderAlerts`) → `AgentPushGate` |
+| route | `agent.availability_subscriptions.app` `POST /api/agent/availability-subscriptions` | the path the app already called (404 before): `{product_id, kind: price_drop\|back_in_stock}`; a second tap answers `existing: true` |
+| column | `agent_reminders.store_product_id`, `agent_availability_subscriptions.store_product_id` | migration `2026_10_11_000000_backend_step7_aegil` |
+| points | rule key `aegil_onboarding`, ref `aegil_answer`; policy keys `aegil_answer` (5), `aegil_answer_cap` (50); flag `points.aegil_answer.enabled` (config `POINTS_AEGIL_ANSWER_ENABLED`, **off**) | `POST agent/me/preferences/batch` answers `points{enabled, per_answer, cap, earned, total}`; each answer pays once per customer ever. `GET points/rules` adds `aegil_answer{enabled, per_answer, cap}`. App: onboarding «+N Ægil-poeng» only when on (`UI-TEMP` #11, #12 removed); the toast shows what was earned |
+| flag | `aegil_level_max` enforced | unset (no flag row, no `FLAG_AEGIL_LEVEL_MAX`) = no cap, as before; set = the highest level a customer may choose (422 `LEVEL_ABOVE_MAX`) and the level Ægil acts at (`AgentSetting::effectiveLevel`); settings answer `level_cap`, `effective_level`, `levels[].available` |
+| push | `AgentPushGate` → `ops_notifications` (`channel push_agent`, recipient `customer`) | delivered by `OpsPushSender` (`OPS_PUSH_DRIVER`); deferred (quiet hours) released every minute by `ops:sweep` (`releaseDue`) within the caps |
+| tray | `SuggestionService::expireStale` (agent:daily-maintenance); tray/deck skip expired | |
+| advice | `AgainstInterestEngine` on each newly served suggestion → `meta.against_interest`; payload `against_interest[]` (switch and silenced checks applied) | |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session

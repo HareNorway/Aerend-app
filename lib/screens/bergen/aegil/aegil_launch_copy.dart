@@ -274,6 +274,8 @@ abstract final class AeCopy {
   static String get sumTittel => _t('Nå kjenner jeg deg litt!', 'Now I know you a little!');
   static String sumTekst(String s) => s.isEmpty ? _t('Ikke så mye ennå — jeg lærer av bestillingene dine.', 'Not much yet — I learn from your orders.') : '$s.';
   static String get minnetStartet => _t('Minnet er startet', 'Memory started');
+  /// The same line with Ægil answer points off (backend plan Step 7).
+  static String minnetLinjeUtenPoeng(int linjer) => _t('$linjer linjer lagret', '$linjer lines saved');
   static String minnetLinje(int poeng, int linjer) => _t('+$poeng Ægil-poeng · $linjer linjer lagret', '+$poeng Ægil points · $linjer lines saved');
   static String get ingen => _t('ingen', 'no');
   static String get middag => _t('middag', 'dinner');

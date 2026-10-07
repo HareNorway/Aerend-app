@@ -14,6 +14,9 @@ class PointsRules {
     required this.signupEnabled,
     required this.fiskePerCatch,
     required this.configVersion,
+    this.aegilAnswerEnabled = false,
+    this.aegilPerAnswer = 0,
+    this.aegilAnswerCap = 0,
   });
 
   /// Points per whole 10 kr paid (`points.kjop_per_10kr`).
@@ -36,6 +39,19 @@ class PointsRules {
 
   final String configVersion;
 
+  /// Ægil answer points (backend plan Step 7, `aegil_answer`): off by
+  /// default; when off the onboarding shows no «+N Ægil-poeng».
+  final bool aegilAnswerEnabled;
+  final int aegilPerAnswer;
+  final int aegilAnswerCap;
+
+  /// What [answers] onboarding answers would earn, under the cap; 0 when off.
+  int aegilPointsFor(int answers) {
+    if (!aegilAnswerEnabled || aegilPerAnswer <= 0 || answers <= 0) return 0;
+    final total = answers * aegilPerAnswer;
+    return aegilAnswerCap > 0 && total > aegilAnswerCap ? aegilAnswerCap : total;
+  }
+
   static int _int(Object? v) => v is num ? v.toInt() : int.tryParse('${v ?? ''}') ?? 0;
 
   static PointsRules? fromJson(Map<String, dynamic>? json) {
@@ -43,6 +59,7 @@ class PointsRules {
     final referral = json['referral'] is Map ? Map<String, dynamic>.from(json['referral'] as Map) : const <String, dynamic>{};
     final signup = json['signup_bonus'] is Map ? Map<String, dynamic>.from(json['signup_bonus'] as Map) : const <String, dynamic>{};
     final fiske = json['fiske'] is Map ? Map<String, dynamic>.from(json['fiske'] as Map) : const <String, dynamic>{};
+    final aegil = json['aegil_answer'] is Map ? Map<String, dynamic>.from(json['aegil_answer'] as Map) : const <String, dynamic>{};
     return PointsRules(
       kjopPer10kr: _int(json['kjop_per_10kr']),
       firstOrderBonus: _int(json['first_order_bonus']),
@@ -52,6 +69,9 @@ class PointsRules {
       signupEnabled: signup['enabled'] == true,
       fiskePerCatch: _int(fiske['points_per_catch']),
       configVersion: '${json['config_version'] ?? ''}',
+      aegilAnswerEnabled: aegil['enabled'] == true,
+      aegilPerAnswer: _int(aegil['per_answer']),
+      aegilAnswerCap: _int(aegil['cap']),
     );
   }
 
