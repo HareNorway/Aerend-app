@@ -436,6 +436,26 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | admin | `get:admin:support_inbox` `/admin/drift/kundeservice` | queue, take over, reply, close (restyled in Step 14) |
 | dart | `SupportStore` / `SupportAssistent` / `SupportConfig` (`lib/screens/bergen/hjelp/support.dart`) | server first; the scripted rules stay on the device only as the offline fallback; cases from the server (no prefs store); `OpsCustomerApi.support*` |
 
+**Step 6 — Order Ops completions for the Partner and Bud apps** (backend only; Hare-Store and Hare-Driver unchanged)
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `ops.store.live` `GET /api/ops/stores/{storeId}/live` | Partner snapshot: `store{availability, busy, autodrift, hours}`, `live`, `devices`, `needs_you`, `counts`, `orders[]` in `OpsOrder.fromJson` shape (+ `placed_at`, `adjusted_by_minutes`); paid orders only; `ETag` / `If-None-Match` → 304 |
+| route | `ops.store.extend_all` / `ops.store.extend_all.end` `POST /api/ops/store/extend-all[/end]` | busy mode `{store_id, minutes 5–60, for_minutes 15–240}`: +N as a time adjustment (`reason = busy:extend_all`) on open orders and on each order accepted while it lasts; events `store.busy_extended` / `store.busy_ended` |
+| route | `ops.assignment.progress` `POST /api/ops/assignments/{ref}/progress` | `{courier_id, to: en_route_pickup\|arrived_pickup\|en_route_drop\|arrived_drop, lat?, lng?}`; skipped steps walked; `arrived_pickup` with a bag not ready → `waiting` (server-set, `assignment.waiting_started`); `arrived_drop` → orders `arrived_customer`; 422 `INVALID_PROGRESS`, `NOT_ASSIGNED`, `POSITION_REQUIRED`, `OUTSIDE_GEOFENCE` |
+| route | `ops.assignment.proof` / `.proof.prevalidate` / `ops.assignment.upload_sign` | proof `{courier_id, order_id, photo_url? (res.cloudinary.com), recipient_name?, pin?, photo_meta?, retake?, lat?, lng?}` → `DeliveryProofService::capture` → `delivered`; 422 `NOT_PICKED_UP`, `NOT_ON_RUN`, `PIN_REQUIRED`, `PHOTO_REQUIRED`, … |
+| route | `ops.courier.live` `GET /api/ops/couriers/me/live`, `ops.courier.earnings` `GET /api/ops/couriers/me/earnings` | Bud snapshot: `courier{mode av_vakt\|paa_vakt\|paa_oppdrag}`, `limits`, `offers[]` (area only, `drop_area`), `runs[]` (store, orders with shelf slot, proof type, door note, `waiting{since, seconds, pay_ore}`), ETag; earnings `periods{today, week, month[, range]}` + `recent[]` |
+| route | `ops.door_profiles.show` / `ops.door_profiles.store` `GET\|POST /api/ops/door-profiles` | read for the courier on the run; save after delivery only with `customer_prefs.door_profile_consent` (`points.me.prefs` accepts `door_profile_consent=0\|1`) |
+| behaviour | scan, typed code, `ops.proof.pin` | only the courier whose accepted run carries the order (`NOT_ASSIGNED` otherwise) — the null-assignee loophole is closed |
+| behaviour | `TransitionEffects` after every order transition | accepted: busy +N, dispatch considered; seen/ready: dispatch considered; picked_up: run follows, PIN issued for code orders (customer app only, no SMS); delivered: run ends, priced once per run (`MoneyEngine::priceRun`, anchored on its first order) |
+| flag | `ops.dispatch.auto` (SurfaceFlags, stage courier; targetable by `store_ids`) | off: no automatic assignments or offers. On: assignment at `dispatchAtFor` (ready − `dispatch.travel_s`), one candidate at a time, OFFER push, expiry → next candidate (`assignment.expired`, `assignment.offered`), nobody left → exception `no_courier` |
+| policies | `ops.checkout.honour_availability` (false), `ops.geofence.enforce` (false), `ops.geofence.pickup_m` (150), `ops.geofence.drop_m` (100), `dispatch.travel_s` (600) | Drift → Policy «Levering» / «Tildeling» |
+| sweep | `ops:sweep` | + Autodrift «auto» accept (paid, live Kasse), manual pause auto-resume, busy expiry, sold-out restore, offer expiry/re-offer/dispatch, push delivery |
+| push | `OPS_PUSH_DRIVER` `log` (default) \| `fcm` | `OpsPushSender` delivers queued `ops_notifications` (`courier` → providers.device_token, `store_device` → ops_store_devices.push_token, `customer` → users.device_token); escalation step 1 queues `ORDER_UNSEEN` per device |
+| columns | `store_details.ops_busy_extend_minutes`, `ops_busy_until`; `store_product_details.ops_available_again_at`; `customer_prefs.door_profile_consent`; `ops_notifications.attempts`, `last_error` | migration `2026_10_10_000000_backend_step6_ops_completions` |
+| hours | `StoreHoursService` | one source: `ops_store_hours` when set, else read-through to legacy `store_timings` (`all` wins; 00:00–00:00 closed); every ops write mirrored back to `store_timings` |
+| code | `OrderCode::ALPHABET` | Q and Z dropped for new codes (spec: no I, L, O, Q, S, Z); the allocator never repeats a code shown today |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session
