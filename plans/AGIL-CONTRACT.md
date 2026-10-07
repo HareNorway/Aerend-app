@@ -412,6 +412,18 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | ledger | rule `signup`, ref `signup` | `PtsLedger::RULE_SIGNUP`, dedupe `signup:{userId}` |
 | dart | `lib/data/points/points_rules.dart` | `PointsRules`, `splitPointsByStage`; `OpsCustomerApi.rules()` (cached 5 min, no login needed) |
 
+**Step 4 — tracking and Levert payload** (all additive)
+
+| Kind | Name | Notes |
+|---|---|---|
+| payload | `ops.customer.tracking` + lists: `delivered_at` | ops `delivered` event time, else the verified delivery code; null before delivery |
+| payload | `courier.since`, `courier.rating`, `courier.rating_count` | `providers.created_at`; average of `transport_driver_rating` (1 decimal), null / 0 without ratings |
+| payload | `store.story` | `store_details.description` (tags stripped); feed bio fallback after Step 9 |
+| payload | `ops.customer.tracking` only: `distance_metres` | haversine from the courier's live position, else the store, to the order's `lat_long`; null without coordinates |
+| payload | `ops.customer.tracking` only: `door_note` | `{flat_no, landmark, door_line, courier_note}` from the order + the consented door profile (`DeliveryProofService::addressKeyFor(delivery_address)`); null when empty |
+| payload | `ops.customer.tracking` only: `month_local_count` | the customer's delivered orders (ops `delivered` or legacy status 9) created this month, Oslo time |
+| route | `ops.customer.receipt` `GET /api/ops/customer/orders/{orderId}/receipt` | house handshake, own order; `application/pdf` (`OrderReceiptPdfService`), 503 `RECEIPT_UNAVAILABLE` |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session

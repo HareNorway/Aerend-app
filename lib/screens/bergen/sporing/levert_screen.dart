@@ -58,7 +58,6 @@ class _LevertScreenState extends State<LevertScreen> {
   bool _missing = false;
   Map<String, dynamic>? _points;
   int? _saldo;
-  int? _lokale;
   bool _rated = false;
   _Ark? _ark;
 
@@ -106,16 +105,6 @@ class _LevertScreenState extends State<LevertScreen> {
     final me = await _api.pointsMe();
     final available = (me?['points'] is Map) ? (me!['points']['available'] as num?) : null;
     if (mounted && available != null) setState(() => _saldo = available.toInt());
-    // The local-support line: the delivered orders this month.
-    try {
-      final list = await _api.orders();
-      final now = DateTime.now();
-      final n = list.where((o) {
-        final t = DateTime.tryParse('${o['ordered_at'] ?? ''}')?.toLocal();
-        return t != null && t.year == now.year && t.month == now.month;
-      }).length;
-      if (mounted) setState(() => _lokale = n);
-    } catch (_) {}
   }
 
   Future<void> _rate(int stars) async {
@@ -210,6 +199,10 @@ class _LevertScreenState extends State<LevertScreen> {
     final codeConfirmed = t.deliveryCode?.verifiedAt != null;
     final navBunn = math.max(bunn, 16.0);
     final butikk = t.store?.name ?? '';
+    // Backend plan Step 4: the customer's delivered orders this month and the
+    // store's own story, from the tracking payload (absent: the line hides).
+    final lokale = (t.raw['month_local_count'] as num?)?.toInt();
+    final historie = t.raw['store'] is Map ? (t.raw['store'] as Map)['story']?.toString().trim() : null;
     final visTakk = !t.isPartner && !t.isPickup && t.courier != null;
 
     return Stack(
@@ -386,7 +379,7 @@ class _LevertScreenState extends State<LevertScreen> {
                                   ),
                                 ),
                               ),
-                            if (_lokale != null)
+                            if (lokale != null && lokale > 0)
                               Padding(
                                 padding: const EdgeInsets.only(top: 12),
                                 child: Row(
@@ -394,11 +387,26 @@ class _LevertScreenState extends State<LevertScreen> {
                                     spIkon(kSpIkonFolk, size: 18, color: const Color(0xFF9FB6C2), width: 1.75, extra: kSpIkonFolkExtra),
                                     const SizedBox(width: 11),
                                     Expanded(
-                                      child: Text(
-                                        // UI-TEMP: Placeholder data because reference UI currently has no backend/API support —
-                                        // the store's story is not in any payload; the count is this month's orders.
-                                        SporingCopy.a1_sporing_lokalt(butikk, _lokale!),
-                                        style: inter(12, height: 1.45, color: const Color(0xFFB9CBD5)),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            SporingCopy.a1_sporing_lokalt(butikk, lokale),
+                                            key: const Key('a1_sporing_lokalt'),
+                                            style: inter(12, height: 1.45, color: const Color(0xFFB9CBD5)),
+                                          ),
+                                          if (historie != null && historie.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 3),
+                                              child: Text(
+                                                historie,
+                                                key: const Key('a1_sporing_historie'),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: inter(11, height: 1.4, color: const Color(0xFF9FB6C2)),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ],

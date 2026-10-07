@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../data/ops/fiske_models.dart';
 import '../../data/points/points_rules.dart';
 import '../../data/ops/sok_models.dart';
@@ -293,6 +295,24 @@ class OpsCustomerApi {
   /// `GET /api/points/me/referral` (guarded) — the vervebillett code.
   Future<Map<String, dynamic>?> referral() =>
       _guarded(() => _get('api/points/me/referral'));
+
+  /// `GET /api/ops/customer/orders/{id}/receipt` (backend plan Step 4): the
+  /// order's receipt PDF as bytes, or null (offline, not the caller's order,
+  /// or the server could not render it).
+  Future<List<int>?> receiptPdf(int orderId) async {
+    final auth = authParams();
+    if (auth == null || !networkEnabled) return null;
+    try {
+      final res = await Dio().get<List<int>>(
+        '${BaseUrl.domain}api/ops/customer/orders/$orderId/receipt?${_qs(auth)}',
+        options: Options(responseType: ResponseType.bytes, validateStatus: (s) => s == 200),
+      );
+      final ct = res.headers.value('content-type') ?? '';
+      return ct.contains('pdf') ? res.data : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage. Public
   /// (backend plan Step 3), so it works before login too (onboarding).

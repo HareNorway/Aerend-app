@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../data/ops/tracking_models.dart';
@@ -271,9 +273,20 @@ class _SporingScreenState extends State<SporingScreen> {
     await _refresh();
   }
 
-  void _kvittering() {
-    final epost = prefGetString(prefEmail).trim();
-    showBergenToast(context, SporingCopy.a1_sporing_kvittering_sendt(epost.isEmpty ? '…' : epost));
+  /// «Kvittering»: the order's real receipt PDF (backend plan Step 4), handed
+  /// to the share sheet so the customer can mail, save or print it. Nothing is
+  /// claimed as sent that was not.
+  Future<void> _kvittering() async {
+    final pdf = await _api.receiptPdf(_id);
+    if (!mounted) return;
+    if (pdf == null) {
+      showBergenToast(context, SporingCopy.a1_sporing_kvittering_feil);
+      return;
+    }
+    final dir = await getTemporaryDirectory();
+    final fil = File('${dir.path}/kvittering-${_t?.code ?? _id}.pdf');
+    await fil.writeAsBytes(pdf, flush: true);
+    await Share.shareXFiles([XFile(fil.path, mimeType: 'application/pdf')], subject: SporingCopy.a1_sporing_kvittering);
   }
 
   void _fjordfiske() => BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
@@ -446,6 +459,7 @@ class _SporingScreenState extends State<SporingScreen> {
       pct: minLeft == null ? .62 : (1 - minLeft / 30).clamp(.1, .95),
       slutt: end,
       totalSek: windowSec,
+      meterIgjen: (t.raw['distance_metres'] as num?)?.toInt(),
       spartSek: spart,
       poeng: _poeng,
     );

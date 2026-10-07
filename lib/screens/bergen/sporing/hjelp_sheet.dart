@@ -493,7 +493,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
   Widget _main() {
     final tr = t;
     final min = tr?.minutesLeft(DateTime.now());
-    final under = [if (tr != null) tr.stageLabel, if (min != null && !(tr?.isPickup ?? false)) '$min min unna', if (!_partner && tr?.courier?.vehicle == 'sykkel') 'sykler'].join(' · ');
+    final under = [if (tr != null) tr.stageLabel, if (min != null && !(tr?.isPickup ?? false)) '$min min unna', if (!_partner && tr?.courier?.vehicle == 'sykkel') SporingCopy.a1_sporing_sykler_siden(tr?.courier?.since)].join(' · ');
     return Column(
       key: const Key('a1_sporing_hjelp_main'),
       crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -283,6 +283,7 @@ abstract final class SporingCopy {
   static String get a1_sporing_kvittering_stor => 'KVITTERING';
   static String get a1_sporing_meg_bestillinger => _t('Meg · Bestillinger', 'Me · Orders');
   static String get a1_sporing_kontakt_kundeservice => _t('Kontakt kundeservice', 'Contact customer service');
+  static String get a1_sporing_kvittering_feil => _t('Kvitteringen kan ikke lages akkurat nå', "The receipt can't be made right now");
   static String a1_sporing_kvittering_sendt(String epost) => _t('Kvittering sendt til $epost', 'Receipt sent to $epost');
   // Levert.
   static String a1_sporing_min_for_tiden(String t, int m) => _t('$t · ${minutterOrd(m)} før tiden', '$t · ${minutterOrd(m)} early');
@@ -306,6 +307,14 @@ abstract final class SporingCopy {
       _t('Du støttet en lokal butikk i Bergen — ditt $n. lokale ærend denne måneden.', 'You supported a local shop in Bergen — your $n. local errand this month.');
   static String get a1_sporing_levert_poeng_toast => _t('Levert · poeng lagt til', 'Delivered · points added');
   // Help sheet (Launch wording).
+  /// «sykler» / «sykler siden mars» (courier.since; the year when not this year).
+  static String a1_sporing_sykler_siden(DateTime? siden) {
+    if (siden == null) return _t('sykler', 'cycles');
+    const no = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+    const en = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final aar = siden.year == DateTime.now().year ? '' : ' ${siden.year}';
+    return _t('sykler siden ${no[siden.month - 1]}$aar', 'cycling since ${en[siden.month - 1]}$aar');
+  }
   static String a1_sporing_er_budet(String navn) => _t('$navn er budet ditt', '$navn is your courier');
   static String a1_sporing_leverer_selv(String s) => _t('$s leverer selv', '$s delivers itself');
   static String get a1_sporing_ring_kort => _t('Ring', 'Call');
