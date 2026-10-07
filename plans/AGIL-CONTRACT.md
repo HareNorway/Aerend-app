@@ -367,6 +367,33 @@ outside their list without adding it here.
 Copy keys: `a1_*` on agil-1, `a3_*` on agil-3, in `*_copy.dart` files only. The
 spec §7 status keys in §3.3 are the one exception and are used verbatim.
 
+### 3.5 Added by the backend plan (`agil-1-backend`)
+
+Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-backend`).
+
+**Step 1 — ops API auth, Vipps check, config**
+
+| Kind | Name | Notes |
+|---|---|---|
+| policy | `ops.auth.enforce` | `report` (default: log + serve) or `enforce` (401 / 403). Owner `App\Ops\PolicyKeys`; fallback `config('ops.auth.enforce')` |
+| middleware | `ops.actor:<spec>` | `App\Http\Middleware\OpsAuthenticate`; every route in `api_ops.php`, `api_partner_delivery.php`, the partner/courier routes in `api_agentops.php`, `api_geo.php` stores/couriers |
+| middleware | `ops.session` | `App\Http\Middleware\OpsPanelSession`; starts the admin session only when its cookie is sent |
+| class | `App\Ops\Auth\OpsActor`, `App\Ops\Auth\OpsActorResolver` | the proven caller: `customer`, `store` (`store_details.id`), `courier` (`providers.id`), `admin`, `service` |
+| log channel | `ops_auth` | `storage/logs/ops-auth-*.log`: `ops_auth_unauthenticated`, `ops_auth_mismatch`, `ops_auth_not_owner` |
+| error codes | `OPS_AUTH_REQUIRED` (401), `OPS_FORBIDDEN` (403) | only under `enforce` |
+| env | `OPS_AUTH_ENFORCE`, `OPS_SERVICE_TOKEN` | `config/ops.php` `auth.*` |
+| route | `post:customer:vipps_confirm` | `POST /api/customer/vipps/confirm` — the app's `ApiConst.endPointVippsConfirm` |
+| route | `post:webhook:store_vipps` | `POST /api/webhook/store/vipps` — store-order Vipps webhook; re-reads the payment from Vipps |
+| class | `App\Services\StoreOrderVippsPayment` | the one place a store order becomes Vipps-paid |
+| env | `VIPPS_VERIFY_STORE_PAYMENTS` | `config/vipps.php`; default `true` |
+| env | `POINTS_ORDER_SOURCE`, `POINTS_SIGNAL_SOURCE` | now read as `config('points.order_source' / 'points.signal_source')` |
+| config | `dugnad.tunables.*` | the `DUGNAD_*` numbers services used to read with `env()` |
+
+Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
+store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
+courier `courier_id` + the driver login's `access_token`; admin panel session
+(+ `X-CSRF-TOKEN` on writes); service `X-Service-Token`.
+
 ---
 
 ## 4. The enforcement
