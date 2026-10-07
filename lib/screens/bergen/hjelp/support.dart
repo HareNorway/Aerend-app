@@ -425,10 +425,12 @@ abstract final class SupportAssistent {
   };
 
   /// Opens a conversation and its first message (`scStart`): on the server
-  /// when it answers, else on the device.
-  static Future<SupportSamtale> start(SupportTema tema, {required String fornavn, SupportOrdre? ordre}) async {
+  /// when it answers, else on the device. [ordreId] attaches the order the
+  /// customer came from (Sporing's «Ordre #… er allerede lagt ved») for the
+  /// person who takes over, without an order card in the chat.
+  static Future<SupportSamtale> start(SupportTema tema, {required String fornavn, SupportOrdre? ordre, int? ordreId}) async {
     final store = SupportStore.instance;
-    final orderId = ordre?.id ?? store.gjestOrdreId;
+    final orderId = ordre?.id ?? ordreId ?? store.gjestOrdreId;
     final j = await store.api.supportOpen(topic: tema.server, orderId: orderId, guestToken: store.gjestToken);
     final c = j?['conversation'];
     if (c is Map<String, dynamic> && c['id'] != null) {
@@ -752,11 +754,15 @@ abstract final class SupportCopy {
   };
 
   // Chat chrome.
-  static const String aiUnder = 'Ærend-assistent · AI · svarer på sekunder';
+  // Support v1 has no AI (backend plan Step 5): the assistant is scripted
+  // server-side rules, so the chrome doesn't say «AI».
+  static const String aiUnder = 'Ærend-assistent · svarer på sekunder';
   static String stengtUnder(String kl) => 'Stengt · vi svarer fra $kl';
   static String menneskeUnder(String navn) => '$navn fra Ærend · menneske';
+  static const String avsluttetUnder = 'Samtalen er avsluttet';
+  static const String nySamtale = 'Start en ny samtale';
   static String merkeDu(String kl) => 'DU · $kl';
-  static String merkeAi(String kl) => 'ÆREND-ASSISTENT · AI · $kl';
+  static String merkeAi(String kl) => 'ÆREND-ASSISTENT · $kl';
   static String merkeMenneske(String navn, String kl) => '${navn.toUpperCase()} FRA ÆREND · $kl';
   static const String skrivAi = 'Skriv med vanlige ord …';
   static String skrivTil(String navn) => 'Skriv til $navn …';
@@ -806,7 +812,8 @@ abstract final class SupportCopy {
   // Sak på ordren (L9237) and «Noe galt» (kArk noeGalt).
   static const String ikkeLost = 'Ikke løst';
   static const String noeGalt = 'Noe galt med bestillingen?';
-  static const String noeGaltUnder = 'Ægil ordner kreditt med én gang';
+  // A person decides every case in v1 (backend plan Step 5): no instant credit.
+  static String get noeGaltUnder => 'Vi ser på det og svarer innen ${SupportConfig.svarMin} min';
   static String noeGaltTittel(String kode) => 'Noe galt med $kode?';
   static const String noeGaltLinje = 'Velg hva. Steg 2 spør bare om det vi trenger.';
   static const List<(String, String, String, String)> noeGaltValg = [
@@ -816,7 +823,7 @@ abstract final class SupportCopy {
     ('Ikke levert', 'Ordren står som levert, men kom ikke', 'not_delivered', 'M4 11l8-7 8 7v9H4zM10 20v-5h4v5'),
   ];
   static String steg2Tittel(String valg, String kode) => '$valg · $kode';
-  static const String steg2Linje = 'Trykk på linjen det gjelder. Ægil regner ut kreditten med én gang.';
+  static const String steg2Linje = 'Trykk på linjen det gjelder. Et menneske hos Ærend ser på saken.';
   static const String tilbake = 'Tilbake';
   static const String harAllerede = 'Vi har allerede saken';
   static String get harAlleredeLinje => '$ack · du følger den på bestillingen.';

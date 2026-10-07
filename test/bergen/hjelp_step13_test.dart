@@ -85,6 +85,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     app.languages = await AppLocalizations.delegate.load(const Locale('no'));
+    OpsCustomerApi.networkEnabled = false;
   });
 
   void phone(WidgetTester t) {

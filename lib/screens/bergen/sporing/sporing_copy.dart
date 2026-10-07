@@ -2,6 +2,7 @@
 
 import '../../../main.dart' show languages;
 import '../../../utils/utils.dart';
+import '../hjelp/support.dart' show SupportConfig;
 
 /// Copy for the Sporing group (`sporing` ≈L5287–5760, the completion layer
 /// ≈L7294, `sheetHjelp` ≈L7000–7130, `levert` ≈L5881 in
@@ -342,9 +343,25 @@ abstract final class SporingCopy {
   static String a1_sporing_meld_fra_om(int n) =>
       _t(n == 0 ? 'Velg det som mangler' : 'Meld fra om $n ${n == 1 ? 'vare' : 'varer'}', n == 0 ? 'Pick what is missing' : 'Report $n ${n == 1 ? 'item' : 'items'}');
   static String get a1_sporing_aerend_i_bergen => _t('Ærend i Bergen', 'Ærend in Bergen');
-  static String get a1_sporing_aapent_til => _t('Åpent til 23:00 · svarer innen 2 min', 'Open until 23:00 · replies within 2 min');
+  /// Hours and answer time from `support/config` (backend plan Step 5).
+  static String get a1_sporing_aapent_til {
+    final til = '${SupportConfig.stenger.toString().padLeft(2, '0')}:00';
+    final min = SupportConfig.svarMin;
+    return SupportConfig.aapen()
+        ? _t('Åpent til $til · svarer innen $min min', 'Open until $til · replies within $min min')
+        : _t('Stengt nå · åpner ${SupportConfig.aapnerKl}', 'Closed now · opens ${SupportConfig.aapnerKl}');
+  }
+
   static String get a1_sporing_chat_med_oss => _t('Chat med oss', 'Chat with us');
-  static String get a1_sporing_raskest => _t('Raskest · Kari og Ola er på vakt', 'Fastest · Kari and Ola are on duty');
+
+  /// «Raskest» plus who is on call (`support.on_call`); no names when none are set.
+  static String get a1_sporing_raskest {
+    final v = SupportConfig.paaVakt;
+    if (v.isEmpty) return _t('Raskest', 'Fastest');
+    final no = v.length == 1 ? v.first : '${v.sublist(0, v.length - 1).join(', ')} og ${v.last}';
+    final en = v.length == 1 ? v.first : '${v.sublist(0, v.length - 1).join(', ')} and ${v.last}';
+    return _t('Raskest · $no er på vakt', 'Fastest · $en ${v.length == 1 ? 'is' : 'are'} on duty');
+  }
   static String get a1_sporing_ring_nummer => _t('Ring 55 00 12 34', 'Call 55 00 12 34');
   /// «Ring 55 00 12 34» with the number from `support/config` (backend plan Step 5).
   static String a1_sporing_ring_nummer_til(String tlf) => _t('Ring $tlf', 'Call $tlf');

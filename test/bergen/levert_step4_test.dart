@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/ops/tracking_models.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
+import 'package:aerend_customer/screens/bergen/sporing/hjelp_sheet.dart';
 import 'package:aerend_customer/screens/bergen/sporing/levert_screen.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_copy.dart';
 
@@ -71,6 +72,25 @@ void main() {
     expect(c.since?.month, 3);
     expect(c.rating, 4.8);
     expect(OpsCourier.fromJson({'first_name': 'Jonas'}).since, isNull);
+  });
+
+  testWidgets('the Hjelp card shows the courier rating, and no chip without one', (tester) async {
+    Future<void> hjelp(Map<String, dynamic> courier) async {
+      tester.view.physicalSize = const Size(390, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final p = {..._levert(), 'state': 'picked_up', 'stage': 2, 'stage_label': 'På vei', 'courier': courier};
+      await tester.pumpWidget(MaterialApp(home: HjelpScreen(key: UniqueKey(), orderId: 4471, tracking: OpsTracking.fromJson(p), api: _Api())));
+      await tester.pump();
+      await tester.pump();
+    }
+
+    await hjelp({'id': 19, 'first_name': 'Jonas', 'vehicle': 'sykkel', 'rating': 4.86});
+    expect(find.byKey(const Key('a1_sporing_hjelp_rating')), findsOneWidget);
+    expect(find.text('4,9'), findsOneWidget);
+
+    await hjelp({'id': 19, 'first_name': 'Jonas', 'vehicle': 'sykkel'});
+    expect(find.byKey(const Key('a1_sporing_hjelp_rating')), findsNothing);
   });
 
   test('«sykler siden …» from the courier\'s start month', () {

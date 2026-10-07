@@ -141,9 +141,12 @@ class _SupportChatState extends State<_SupportChat> {
     final s = widget.samtale;
     final aapen = SupportConfig.aapen();
     final human = s?.erMenneske ?? false;
-    final dot = human || s == null ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4));
+    final lukket = s?.lukket ?? false;
+    final dot = lukket ? rgba(255, 255, 255, .4) : (human || s == null ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4)));
     final under = s == null
         ? ''
+        : lukket
+        ? SupportCopy.avsluttetUnder
         : human
         ? SupportCopy.menneskeUnder(s.menneske!.split(' ').first)
         : (aapen ? SupportCopy.aiUnder : SupportCopy.stengtUnder(SupportConfig.aapnerKl));
@@ -265,90 +268,111 @@ class _SupportChatState extends State<_SupportChat> {
           ],
         ),
       ],
-      const SizedBox(height: 10),
-      CssBox(
-        height: 50,
-        radius: BorderRadius.circular(999),
-        padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
-        border: Border.all(color: rgba(255, 255, 255, .22)),
-        bg: [
-          CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-        ],
-        shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                key: const Key('a1_hjelp_chat_felt'),
-                controller: _tekst,
-                onSubmitted: _send,
-                textInputAction: TextInputAction.send,
-                cursorColor: kSpMint,
-                style: inter(13.5),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  contentPadding: EdgeInsets.zero,
-                  hintText: human ? SupportCopy.skrivTil(navn) : SupportCopy.skrivAi,
-                  hintStyle: inter(13.5, color: rgba(255, 255, 255, .45)),
-                ),
-              ),
+      // Closed on the server (staff or the customer): no input, back to the
+      // hub to start a new conversation (backend plan Step 5).
+      if (s.lukket) ...[
+        const SizedBox(height: 10),
+        LfPress(
+          key: const Key('a1_hjelp_chat_ny'),
+          onTap: widget.onTilbake,
+          scale: .985,
+          child: Container(
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: rgba(255, 255, 255, .08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: rgba(255, 255, 255, .24)),
             ),
-            const SizedBox(width: 8),
-            LfPress(
-              key: const Key('a1_hjelp_chat_send'),
-              onTap: () => _send(_tekst.text),
-              scale: .9,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: _tekst.text.trim().isEmpty ? .45 : 1,
-                child: CssBox(
-                  width: 38,
-                  height: 38,
-                  radius: BorderRadius.circular(19),
-                  bg: const [
-                    CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)]),
-                  ],
-                  shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .35)), CssShadow(0, 3, 0, 0, rgba(150, 60, 15, .8)), CssShadow(0, 8, 14, -8, rgba(120, 50, 10, .9))],
-                  child: Center(child: spIkon(kSpIkonOpp, size: 16, width: 2.6)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 8),
-      LfPress(
-        key: const Key('a1_hjelp_chat_menneske'),
-        onTap: _menneske,
-        scale: .985,
-        child: Container(
-          height: 46,
-          decoration: BoxDecoration(
-            color: rgba(255, 255, 255, .08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: rgba(255, 255, 255, .24)),
+            child: Text(SupportCopy.nySamtale, style: inter(13, weight: FontWeight.w800)),
           ),
+        ),
+      ] else ...[
+        const SizedBox(height: 10),
+        CssBox(
+          height: 50,
+          radius: BorderRadius.circular(999),
+          padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
+          border: Border.all(color: rgba(255, 255, 255, .22)),
+          bg: [
+            CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
+          ],
+          shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              spIkon('M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M4 21a8 8 0 0 1 16 0', size: 15, color: kSpMint, width: 2.2),
+              Expanded(
+                child: TextField(
+                  key: const Key('a1_hjelp_chat_felt'),
+                  controller: _tekst,
+                  onSubmitted: _send,
+                  textInputAction: TextInputAction.send,
+                  cursorColor: kSpMint,
+                  style: inter(13.5),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: human ? SupportCopy.skrivTil(navn) : SupportCopy.skrivAi,
+                    hintStyle: inter(13.5, color: rgba(255, 255, 255, .45)),
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  human ? SupportCopy.iSamtalen(navn) : SupportCopy.menneske,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: inter(13, weight: FontWeight.w800),
+              LfPress(
+                key: const Key('a1_hjelp_chat_send'),
+                onTap: () => _send(_tekst.text),
+                scale: .9,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _tekst.text.trim().isEmpty ? .45 : 1,
+                  child: CssBox(
+                    width: 38,
+                    height: 38,
+                    radius: BorderRadius.circular(19),
+                    bg: const [
+                      CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)]),
+                    ],
+                    shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .35)), CssShadow(0, 3, 0, 0, rgba(150, 60, 15, .8)), CssShadow(0, 8, 14, -8, rgba(120, 50, 10, .9))],
+                    child: Center(child: spIkon(kSpIkonOpp, size: 16, width: 2.6)),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        LfPress(
+          key: const Key('a1_hjelp_chat_menneske'),
+          onTap: _menneske,
+          scale: .985,
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: rgba(255, 255, 255, .08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: rgba(255, 255, 255, .24)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                spIkon('M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M4 21a8 8 0 0 1 16 0', size: 15, color: kSpMint, width: 2.2),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    human ? SupportCopy.iSamtalen(navn) : SupportCopy.menneske,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: inter(13, weight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     ];
   }
 
