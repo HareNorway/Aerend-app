@@ -47,7 +47,10 @@ abstract final class LfCopy {
   static String get vervekode => _t('Vervekode', 'Referral code');
   static String get bruk => _t('Bruk', 'Apply');
   static String get vervHint => _t('Prøv: BERGEN-4827 (gyldig)', 'Try: BERGEN-4827 (valid)');
-  static String get vervLagtTil => _t('Lagt til · +50 poeng til dere begge', 'Added · +50 points for you both');
+  /// [poeng]: `points/rules` referral.referee; null until it answers.
+  static String vervLagtTil(int? poeng) => poeng == null || poeng <= 0
+      ? _t('Lagt til', 'Added')
+      : _t('Lagt til · +$poeng poeng til dere begge', 'Added · +$poeng points for you both');
   static String get vervTom => _t('Skriv inn en vervekode', 'Enter a referral code');
   static String invitasjonen(String navn) => _t('${navn}s invitasjon', "$navn's invitation");
   static String get fortsettMed => _t('Fortsett med', 'Continue with');
@@ -112,10 +115,16 @@ abstract final class LfCopy {
   static String get sterkt => _t('Sterkt', 'Strong');
   static String get greit => _t('Greit', 'Okay');
   static String get forKort => _t('For kort', 'Too short');
-  static String get bonusVerv => _t('Ægil legger 100 startpoeng på hylla di: 50 for kontoen og 50 fra vervingen.',
-      'Ægil puts 100 starting points on your shelf: 50 for the account and 50 from the referral.');
-  static String get bonusOrg => _t('Ægil legger 50 startpoeng på hylla di så snart kontoen står.',
-      'Ægil puts 50 starting points on your shelf as soon as your account is set up.');
+  // The numbers come from `points/rules` (backend plan Step 3): [konto] is the
+  // sign-up bonus (0 while it is off), [verv] the referee's points, which
+  // arrive with the first errand.
+  static String bonusVerv(int konto, int verv) => konto > 0
+      ? _t('Ægil legger $konto startpoeng på hylla di, og $verv til fra vervingen når du henter første ærend.',
+          'Ægil puts $konto starting points on your shelf, and $verv more from the referral when you collect your first errand.')
+      : _t('Vervingen gir deg $verv poeng når du henter første ærend.',
+          'The referral gives you $verv points when you collect your first errand.');
+  static String bonusOrg(int konto) => _t('Ægil legger $konto startpoeng på hylla di så snart kontoen står.',
+      'Ægil puts $konto starting points on your shelf as soon as your account is set up.');
   static String get regMangler =>
       _t('Fyll ut navn, e-post og passord (minst 6 tegn)', 'Fill in name, email and password (at least 6 characters)');
   static String get loggMangler => _t('Skriv inn e-post og passord', 'Enter email and password');
@@ -148,14 +157,16 @@ abstract final class LfCopy {
   static String get bergenser => _t('bergenser', 'friend');
   static String get startpoeng => _t('STARTPOENG', 'STARTING POINTS');
   static String get leggerPoeng => _t('Legger poeng på hylla …', 'Adding points to your shelf …');
-  static String poengVerv(String navn) => _t('50 for kontoen + 50 fra ${navn}s verving', "50 for the account + 50 from $navn's referral");
-  static String get poengOrg => _t('50 for kontoen · første ærend gir mer', '50 for the account · your first errand gives more');
+  static String poengVerv(int konto, int verv, String navn) => _t('$konto for kontoen · $verv fra ${navn}s verving ved første ærend',
+      "$konto for the account · $verv from $navn's referral on your first errand");
+  static String poengOrg(int konto) => _t('$konto for kontoen · første ærend gir mer', '$konto for the account · your first errand gives more');
   static String get oppdragForste => _t('Første ærend', 'First errand');
   static String get oppdragFisk => _t('Fisk i Vågen', 'Fish in Vågen');
   static String get oppdragVerv => _t('Verv en nabo', 'Refer a neighbour');
   static String get komIGang => _t('Kom i gang', 'Get started');
-  static String velkommenToast(int p) =>
-      _t('Velkommen til Ærend · $p startpoeng på hylla', 'Welcome to Ærend · $p starting points on your shelf');
+  static String velkommenToast(int p) => p <= 0
+      ? _t('Velkommen til Ærend', 'Welcome to Ærend')
+      : _t('Velkommen til Ærend · $p startpoeng på hylla', 'Welcome to Ærend · $p starting points on your shelf');
 
   // ── Laster ────────────────────────────────────────────────────────────────
   static String get henter => _t('Henter ærendet', 'Fetching the errand');

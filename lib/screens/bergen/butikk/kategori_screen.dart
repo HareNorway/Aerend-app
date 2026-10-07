@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
+import '../../../data/points/points_rules.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_home.dart';
@@ -200,6 +201,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
     _name = widget.name ?? args['name'];
     _produkter = args['fane'] == 'produkter';
     _load();
+    _lastRegler();
     WidgetsBinding.instance.addPostFrameCallback((_) => _maal());
     if (kDebugMode && HjemHarness.katScroll != null) {
       Future.delayed(const Duration(milliseconds: 2500), () {
@@ -217,6 +219,14 @@ class _KategoriScreenState extends State<KategoriScreen> {
     _sokTekst.dispose();
     _sokFokus.dispose();
     super.dispose();
+  }
+
+  /// `GET /api/points/rules` (backend plan Step 3): the product coins.
+  PointsRules? _regler;
+
+  Future<void> _lastRegler() async {
+    final r = await _customer.rules();
+    if (mounted && r != null) setState(() => _regler = r);
   }
 
   Future<void> _load() async {
@@ -391,9 +401,12 @@ class _KategoriScreenState extends State<KategoriScreen> {
       eta: (store?.orderDeliveryTime ?? 0) > 0
           ? KatCopy.minutter(store!.orderDeliveryTime!)
           : null,
-      // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-      // (Ærend-kroner for the product: the prototype's 5 %.)
-      kroner: math.max(3, (ore / 100 * .05).round()),
+      // Ærend-kroner for the product: what KjopRule pays for its price
+      // (`points/rules` kjop_per_10kr). Hidden without rules or below 10 kr.
+      kroner: () {
+        final n = _regler?.pointsForOre(ore) ?? 0;
+        return n > 0 ? n : null;
+      }(),
       tag: n == 0 && solgt > 0
           ? KatCopy.mestKjopt
           : (was > ore ? KatCopy.tilbud : null),

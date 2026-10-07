@@ -3,13 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/screens/common/auth/launch/launch_onboarding.dart';
 import 'package:aerend_customer/screens/common/auth/launch/lf_laster.dart';
+import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
 /// Step 1 (Launch onboarding): the step machine as the prototype's
 /// `onbGaa` drives it, without network calls.
 void main() {
-  setUpAll(() => bootstrapGlobals(locale: 'no'));
+  setUpAll(() {
+    bootstrapGlobals(locale: 'no');
+    // The steps read `points/rules` (backend plan Step 3); no network here.
+    OpsCustomerApi.networkEnabled = false;
+  });
+  tearDownAll(() => OpsCustomerApi.networkEnabled = true);
 
   Widget host(Widget child) => MaterialApp(
     home: Builder(

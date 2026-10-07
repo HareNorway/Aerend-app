@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../data/ops/tracking_models.dart';
+import '../../../data/points/points_rules.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
@@ -59,9 +60,15 @@ class SporingScreen extends StatefulWidget {
 
   static const Duration pollEvery = Duration(seconds: 10);
 
-  /// Points per stage for the Ægil-veileder chip.
-  // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-  static const List<int> stegPoeng = [8, 8, 8, 34];
+  /// Points per stage for the Ægil-veileder chip: the order's real total
+  /// (`points_preview.total` on the tracking payload, backend plan Step 3)
+  /// split by the prototype's weights. Null without a preview: no numbers.
+  static List<int>? stegPoeng(OpsTracking t) {
+    final preview = t.raw['points_preview'];
+    final total = preview is Map ? (preview['total'] as num?)?.toInt() : null;
+    if (total == null || total <= 0) return null;
+    return splitPointsByStage(total);
+  }
 
   @override
   State<SporingScreen> createState() => _SporingScreenState();
@@ -755,7 +762,7 @@ class _SporingScreenState extends State<SporingScreen> {
                 slotVerv: slotVerv,
                 vervKode: _vervKode ?? '',
                 bunn: math.max(bunn - 24, 0),
-                poengNeste: SporingScreen.stegPoeng,
+                poengNeste: SporingScreen.stegPoeng(t),
                 onSammendrag: () => setState(() => _ark = SpArk.sammendrag),
                 onDetaljer: () => setState(() => _ark = SpArk.detaljer),
                 onAvslutt: _toLevert,

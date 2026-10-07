@@ -60,6 +60,8 @@ extension _Konto on LaunchOnboardingState {
             const SizedBox(height: 10),
             _styrke(pass),
             const SizedBox(height: 13),
+            // Start-points line from `points/rules`; none to promise, no box.
+            if (_bonusTekst() != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
               decoration: BoxDecoration(
@@ -76,7 +78,7 @@ extension _Konto on LaunchOnboardingState {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      (_erVerv || _vervOk) ? LfCopy.bonusVerv : LfCopy.bonusOrg,
+                      _bonusTekst()!,
                       style: inter(11.5, weight: FontWeight.w700, height: 1.4, color: const Color(0xFFCFF3E6)),
                     ),
                   ),

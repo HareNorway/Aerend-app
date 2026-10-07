@@ -1,4 +1,5 @@
 import '../../data/ops/fiske_models.dart';
+import '../../data/points/points_rules.dart';
 import '../../data/ops/sok_models.dart';
 import '../../screens/deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../screens/deliveryService/searchStore/search_store_dl.dart';
@@ -287,9 +288,31 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> referral() =>
       _guarded(() => _get('api/points/me/referral'));
 
-  /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage.
-  Future<Map<String, dynamic>?> pointsRules() =>
-      _guarded(() => _get('api/points/rules'));
+  /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage. Public
+  /// (backend plan Step 3), so it works before login too (onboarding).
+  Future<Map<String, dynamic>?> pointsRules() => _guarded(() async {
+    if (!networkEnabled) return null;
+    final json = await _helper.get('api/points/rules');
+    return json is Map<String, dynamic> ? json : null;
+  });
+
+  static PointsRules? _rulesCache;
+  static DateTime? _rulesAt;
+
+  /// The rules as a model, fetched at most every 5 minutes per app run
+  /// (the server sends `max-age=300`). Null when the server can't answer.
+  Future<PointsRules?> rules() async {
+    final at = _rulesAt;
+    if (_rulesCache != null && at != null && DateTime.now().difference(at) < const Duration(minutes: 5)) {
+      return _rulesCache;
+    }
+    final parsed = PointsRules.fromJson(await pointsRules());
+    if (parsed != null) {
+      _rulesCache = parsed;
+      _rulesAt = DateTime.now();
+    }
+    return parsed ?? _rulesCache;
+  }
 
   /// Søk · treff: the app's existing `search-store` and `search-product`
   /// endpoints (`api_constant.dart`), mapped for the Bergen screen. Across

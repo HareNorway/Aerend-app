@@ -7,7 +7,10 @@ extension _Ferdig on LaunchOnboardingState {
     final maal = _maal;
     final poeng = _poeng;
     final pct = maal == 0 ? 0.0 : (poeng / maal).clamp(0.0, 1.0);
-    final linje = poeng >= maal ? (maal == 100 ? LfCopy.poengVerv(_vervNavn) : LfCopy.poengOrg) : LfCopy.leggerPoeng;
+    final verv = (_erVerv || _vervOk) && (_regler?.referee ?? 0) > 0;
+    final linje = poeng >= maal
+        ? (verv ? LfCopy.poengVerv(maal, _regler!.referee, _vervNavn) : LfCopy.poengOrg(maal))
+        : LfCopy.leggerPoeng;
     return Stack(
       children: [
         Padding(
@@ -31,12 +34,14 @@ extension _Ferdig on LaunchOnboardingState {
                 delay: 600,
               ),
               const SizedBox(height: 18),
-              _KortInn(
-                delay: 600,
-                dur: 550,
-                curve: const Cubic(.3, 1.15, .5, 1),
-                child: _poengKort(poeng, pct, linje),
-              ),
+              // No start points (sign-up bonus off, or no rules): no card.
+              if (maal > 0)
+                _KortInn(
+                  delay: 600,
+                  dur: 550,
+                  curve: const Cubic(.3, 1.15, .5, 1),
+                  child: _poengKort(poeng, pct, linje),
+                ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -162,10 +167,13 @@ extension _Ferdig on LaunchOnboardingState {
   }
 
   Widget _oppdrag(int i) {
+    // The real amounts from `points/rules`; blank until it answers.
+    String pluss(int? n) => n == null || n <= 0 ? '' : '+$n';
+    final r = _regler;
     final (tx, p, svg, delay) = [
-      (LfCopy.oppdragForste, '+50', 'onb_pose3d', 0.0),
-      (LfCopy.oppdragFisk, '+5', 'onb_orb_fisk', 600.0),
-      (LfCopy.oppdragVerv, '+50', 'onb_varde3d', 1200.0),
+      (LfCopy.oppdragForste, pluss(r?.firstOrderBonus), 'onb_pose3d', 0.0),
+      (LfCopy.oppdragFisk, pluss(r?.fiskePerCatch), 'onb_orb_fisk', 600.0),
+      (LfCopy.oppdragVerv, pluss(r?.referrer), 'onb_varde3d', 1200.0),
     ][i];
     return CssBox(
       radius: BorderRadius.circular(18),

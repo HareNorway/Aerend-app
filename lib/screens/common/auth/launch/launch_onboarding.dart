@@ -18,6 +18,8 @@ import '../../homeMainV1/home_main_v1.dart';
 import '../../login/login_dl.dart';
 import '../../login/vipps_login_helper.dart';
 import '../../splash/splash_sticker_painter.dart';
+import '../../../../data/points/points_rules.dart';
+import '../../../../networking/ops/ops_customer_api.dart';
 import 'lf_auth.dart';
 import 'lf_copy.dart';
 import 'lf_css.dart';
@@ -112,7 +114,29 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
   // Ferdig
   int _poeng = 0;
   Timer? _poengT;
-  int _maal = 50;
+  int _maal = 0;
+
+  /// `GET /api/points/rules` (backend plan Step 3): every points number on
+  /// these steps. Null until it answers; the numbers stay hidden meanwhile.
+  PointsRules? _regler;
+
+  /// Konto's start-points line, or null when there is nothing true to say
+  /// (no rules yet, sign-up bonus off and no referral).
+  String? _bonusTekst() {
+    final r = _regler;
+    if (r == null) return null;
+    if ((_erVerv || _vervOk) && r.referee > 0) return LfCopy.bonusVerv(r.signupBonus, r.referee);
+    return r.signupBonus > 0 ? LfCopy.bonusOrg(r.signupBonus) : null;
+  }
+
+  Future<void> _lastRegler() async {
+    final r = await OpsCustomerApi().rules();
+    if (!mounted || r == null) return;
+    setState(() {
+      _regler = r;
+      if (_vervOk) _vervSvar = LfCopy.vervLagtTil(r.referee);
+    });
+  }
 
   bool _busy = false;
   int _gen = 0;
@@ -126,8 +150,9 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
     if (pending.isNotEmpty) {
       _verv.text = pending;
       _vervOk = true;
-      _vervSvar = LfCopy.vervLagtTil;
+      _vervSvar = LfCopy.vervLagtTil(null);
     }
+    _lastRegler();
     for (final c in [_navn, _epost, _pass, _tlf]) {
       c.addListener(_rebuild);
     }
@@ -427,9 +452,10 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
       Navigator.of(context).pop(true);
       return;
     }
-    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-    // (The points API has no sign-up bonus; the 50/100 start points are the prototype's.)
-    _maal = 50 + ((_erVerv || _vervOk) ? 50 : 0);
+    // The start points are what the account really gets now: the sign-up
+    // bonus from `points/rules` (0 while it is off). The referral's points
+    // come with the first errand, so they are not counted here.
+    _maal = _regler?.signupBonus ?? 0;
     _poeng = 0;
     _gaa(LfSteg.ferdig);
     _poengT?.cancel();
@@ -494,7 +520,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
     setState(() {
       _verv.text = k;
       _vervOk = true;
-      _vervSvar = LfCopy.vervLagtTil;
+      _vervSvar = LfCopy.vervLagtTil(_regler?.referee);
     });
   }
 

@@ -400,6 +400,19 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | schedule | `points:sync --since=<2 days>` hourly at :20 | `LegacyBookingSource::delivered` also reads `ops_state = delivered` |
 | event payload | `source: legacy_bridge`, `legacy_status`, `synthesized`, `courier_provider_id` | on bridged `order.*` events; courier actor id is `providers.id` (resolved from `transport_driver_details.id`) |
 
+**Step 3 — points API for the app**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `points.rules` `GET /api/points/rules` | public, `Cache-Control: public, max-age=300` + ETag. `{config_version, kjop_per_10kr, earn_percent, first_order_bonus, referral{referrer, referee, min_order_ore}, signup_bonus{enabled, amount}, missions{points_min, points_max}|null, fiske{daily_cap, points_per_catch}}` |
+| route | `points.me.tier` `GET /api/points/me/tier` | house handshake; `{tier{index, name, next_name, points_to_next, threshold, next_threshold, since, protected_until, review_at, keep_gap}, tiers[], earned_12m, policy_version}` |
+| query | `points.me.ledger` `?order={id}` | filters on `ref_type=order, ref_id` |
+| payload | tracking `points_preview` | `{base, first_order_bonus, total, earned}` on `ops.customer.tracking` only (not lists); null for guests |
+| policy | `points.signup_bonus` (50), `points.signup_bonus_window_days` (30) | `config/points.php` keys |
+| flag | `points.signup_bonus.enabled` | `App\Points\FeatureFlags::SIGNUP_BONUS`, default off |
+| ledger | rule `signup`, ref `signup` | `PtsLedger::RULE_SIGNUP`, dedupe `signup:{userId}` |
+| dart | `lib/data/points/points_rules.dart` | `PointsRules`, `splitPointsByStage`; `OpsCustomerApi.rules()` (cached 5 min, no login needed) |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session

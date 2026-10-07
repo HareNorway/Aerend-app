@@ -245,6 +245,7 @@ abstract final class SporingCopy {
   static String a1_sporing_steg_av(int n, int of) => _t('Steg $n av $of', 'Step $n of $of');
   static String get a1_sporing_folger => _t('· følger ærendet ditt', '· following your errand');
   static String a1_sporing_neste_poeng(String navn, int poeng) => _t('Neste: $navn · +$poeng poeng', 'Next: $navn · +$poeng points');
+  static String get a1_sporing_fullfort => _t('Oppdrag fullført', 'Errand complete');
   static String a1_sporing_fullfort_poeng(int poeng) => _t('Oppdrag fullført · +$poeng poeng totalt', 'Errand complete · +$poeng points in all');
   static String get a1_sporing_avslutt_bestillingen => _t('Avslutt bestillingen', 'Finish the order');
   static String get a1_sporing_mens_du_venter_kort => _t('mens du venter', 'while you wait');

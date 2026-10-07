@@ -648,19 +648,22 @@ extension _Landing on LaunchOnboardingState {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text('+50', style: jakarta(38, em: -.04, height: 1, color: const Color(0xFF1E4F5C))),
-                          const SizedBox(width: 6),
-                          Text(LfCopy.poeng, style: jakarta(15, color: const Color(0xFF1E4F5C))),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      Text(LfCopy.tilDereBegge,
-                          style: inter(12, weight: FontWeight.w700, height: 1.4, color: const Color(0xFF57534B))),
+                      // The referral's real amount (`points/rules` referral.referee).
+                      if ((_regler?.referee ?? 0) > 0) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text('+${_regler!.referee}', style: jakarta(38, em: -.04, height: 1, color: const Color(0xFF1E4F5C))),
+                            const SizedBox(width: 6),
+                            Text(LfCopy.poeng, style: jakarta(15, color: const Color(0xFF1E4F5C))),
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        Text(LfCopy.tilDereBegge,
+                            style: inter(12, weight: FontWeight.w700, height: 1.4, color: const Color(0xFF57534B))),
+                      ],
                     ],
                   ),
                 ),
