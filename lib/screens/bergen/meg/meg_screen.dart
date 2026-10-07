@@ -193,6 +193,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     if (mounted) showBergenToast(context, A4MegCopy.a4_meg_kopiert(code), icon: Icons.copy_rounded);
   }
 
+  // UI-TEMP #25: no «Husk døra mi» row yet (it belongs here, beside «Krev
+  // alltid kode»). The backend is ready (backend plan Step 6): POST
+  // points/me/prefs takes `door_profile_consent=0|1` and GET returns it in
+  // `prefs`. Until this row exists every customer counts as «no», so couriers
+  // cannot save door notes (POST ops/door-profiles answers NO_CONSENT).
   Future<void> _toggleKode() async {
     final on = _prefs?.alwaysCode ?? false;
     final next = await MegSheets.kodeInnst(context, on: on);
