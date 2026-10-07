@@ -155,6 +155,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   Set<int> _snartVarsle = {};
   final Map<int, List<BergenStoreCard>> _storesByCat = {};
 
+  /// «Populært i kveld» per category id when the swipe feed is empty
+  /// (`ops/products?kind=populaert`, the Ark's list), and those asked for.
+  final Map<int, List<BergenProductCard>> _populaertByCat = {};
+  final Set<int> _populaertSpurt = {};
+
   /// «Kommer snart» per wheel slot from `catalog/launch-categories` (backend
   /// plan Step 8); null until it answers (the wheel then keeps 1–4 coming).
   Map<int, HjemSnartInfo>? _snart;
@@ -225,9 +230,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       // The stage, the time to the door and the mode come from
       // `ops.customer.tracking`; until it answers, the minutes left from
       // `home-track-order` carry the pill.
-      hjemLiveOrdre.value ??= (orderId: id, data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60));
+      // A pill for another order (an earlier one, or another user's) is
+      // replaced at once.
+      if (hjemLiveOrdre.value?.orderId != id) {
+        hjemLiveOrdre.value = (orderId: id, data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60));
+      }
       OpsCustomerApi().tracking(id).then((json) {
-        if (!mounted) return;
+        // Late answers for an order no longer shown (logout, a new order)
+        // are dropped.
+        if (!mounted || hjemLiveOrdre.value?.orderId != id) return;
         final tr = OpsTracking.fromJson(json);
         final end = tr.promisedEnd;
         final rest = end == null ? min * 60 : end.difference(DateTime.now()).inSeconds;
@@ -877,38 +888,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     ];
   }
 
-  /// Popular products from the swipe feed. TODO(api): "popular tonight" list.
-  List<BergenProductCard> _products(List<SwipeCardModel> swipe) {
+  /// «Populært i kveld»: the swipe feed near the address; without it the
+  /// focused category's most-ordered products (the Ark's list). Never the
+  /// design's sample cards — a tap must always reach a real store.
+  List<BergenProductCard> _products(List<SwipeCardModel> swipe, BergenCategory cat) {
     if (swipe.isEmpty) {
-      return const [
-        BergenProductCard(
-          id: 0,
-          name: 'Whopper meny',
-          store: 'Burger King · Torgallmenningen',
-          priceText: '139 kr',
-          price: 139,
-          imageAsset: BergenAssets.bkWhopper,
-          wasPrice: '159 kr',
-          offer: '-13%',
-          hero: kBergenOrangeGradient,
-        ),
-        BergenProductCard(
-          id: 0,
-          name: 'Reker 1 kg',
-          store: 'Torgboden',
-          priceText: '149 kr',
-          price: 149,
-          wasPrice: '199 kr',
-          offer: 'Tilbud',
-        ),
-        BergenProductCard(
-          id: 0,
-          name: 'Pad thai med kylling',
-          store: 'Fyllingsdalen Wok',
-          priceText: '189 kr',
-          price: 189,
-        ),
-      ];
+      _ensurePopulaert(cat);
+      return _populaertByCat[cat.id] ?? const [];
     }
     return [
       for (final p in swipe.take(8))
@@ -1075,41 +1061,25 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     rating: s.storeRating > 0 ? s.storeRating.toStringAsFixed(1) : null,
   );
 
-  /// Design placeholders when nothing has loaded. TODO(api).
-  List<BergenStoreCard> _placeholderStores() => const [
-    BergenStoreCard(
-      id: 0,
-      name: 'Burger King',
-      subtitle: 'Torgallmenningen · Whopper-uke',
-      open: true,
-      bannerAsset: BergenAssets.bkBanner,
-      logoAsset: BergenAssets.bkLogo,
-      eta: '20–30 min',
-      fee: '39 kr',
-      rating: '4,6',
-      offer: '2 for 1 Whopper',
-      video: true,
-    ),
-    BergenStoreCard(
-      id: 0,
-      name: 'Casa Maria',
-      subtitle: 'Steinovn på Bryggen',
-      open: true,
-      eta: '25–35 min',
-      fee: '39 kr',
-      rating: '4,8',
-    ),
-    BergenStoreCard(
-      id: 0,
-      name: 'Torgboden',
-      subtitle: 'Fersk fisk fra Fisketorget',
-      open: true,
-      eta: '30–40 min',
-      fee: 'Gratis',
-      rating: '4,7',
-      offer: 'Reker 149 kr',
-    ),
-  ];
+  void _ensurePopulaert(BergenCategory cat) {
+    if (cat.id == 0 || !_populaertSpurt.add(cat.id)) return;
+    _loadPopulaert(cat.id).then((list) {
+      if (!mounted) return;
+      setState(() => _populaertByCat[cat.id] = [
+        for (final p in list)
+          if (p.id != 0 && p.storeId != 0)
+            BergenProductCard(
+              id: p.id,
+              name: p.name,
+              store: p.storeName,
+              priceText: p.priceText,
+              price: p.priceOre / 100,
+              storeId: p.storeId,
+              imageUrl: p.imageUrl,
+            ),
+      ]);
+    });
+  }
 
   void _ensureStores(BergenCategory cat) {
     if (cat.id == 0) return;
@@ -1156,7 +1126,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (seen.add(s.id)) s,
       ];
     }
-    return _placeholderStores();
+    // The rail says «Ingen butikker her ennå»; no sample cards.
+    return const [];
   }
 
   bool get _showSurprise {
@@ -1309,7 +1280,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 }
                 final explore = _lastExplore;
                 final stores = _storesFor(focused, explore);
-                final products = _products(swipe);
+                final products = _products(swipe, focused);
                 final floats = _floats(swipe);
 
                 final heroOpacity = (1 - ((_k / s) - 120).clamp(0.0, 92.0) / 92)

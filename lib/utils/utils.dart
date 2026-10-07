@@ -17,6 +17,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:aerend_customer/commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import 'package:aerend_customer/commonView/logout_curtain.dart';
+import 'package:aerend_customer/screens/bergen/kit/live_aerend.dart' show hjemLiveOrdre, liveApner;
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -747,6 +748,10 @@ logout(BuildContext context) async {
     StoreProvider.of<AppState>(context).dispatch(ClearCartItem());
     StoreProvider.of<AppState>(context).dispatch(ClearSelectedCoupons());
     prefClearWithRemainSomeData();
+    // The live-ærend pill belongs to this user's order; the next user must
+    // not inherit it (its Sporing would answer «Fant ikke bestillingen»).
+    hjemLiveOrdre.value = null;
+    liveApner.value = false;
     // Zero-duration opaque swap onto the same navy surface the curtain paints —
     // a Cupertino slide would drag the purple repaint across the screen instead.
     openScreenWithClearPreviousHandoff(context, const Splash());
