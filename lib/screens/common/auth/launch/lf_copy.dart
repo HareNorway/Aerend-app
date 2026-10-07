@@ -157,8 +157,12 @@ abstract final class LfCopy {
   static String get bergenser => _t('bergenser', 'friend');
   static String get startpoeng => _t('STARTPOENG', 'STARTING POINTS');
   static String get leggerPoeng => _t('Legger poeng på hylla …', 'Adding points to your shelf …');
-  static String poengVerv(int konto, int verv, String navn) => _t('$konto for kontoen · $verv fra ${navn}s verving ved første ærend',
-      "$konto for the account · $verv from $navn's referral on your first errand");
+  /// [navn]: the inviter from the link, or null for a typed code.
+  static String poengVerv(int konto, int verv, String? navn) => navn == null
+      ? _t('$konto for kontoen · $verv fra vervingen ved første ærend',
+          '$konto for the account · $verv from the referral on your first errand')
+      : _t('$konto for kontoen · $verv fra ${navn}s verving ved første ærend',
+          "$konto for the account · $verv from $navn's referral on your first errand");
   static String poengOrg(int konto) => _t('$konto for kontoen · første ærend gir mer', '$konto for the account · your first errand gives more');
   static String get oppdragForste => _t('Første ærend', 'First errand');
   static String get oppdragFisk => _t('Fisk i Vågen', 'Fish in Vågen');

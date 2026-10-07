@@ -58,6 +58,10 @@ class SporingScreen extends StatefulWidget {
   /// Right after a purchase: the vervebillett takes the panel's slot.
   final bool fersk;
 
+  // OPS-TEMP: the stages follow the order's ops state only. Orders handled in
+  // today's legacy Store/Driver apps don't move it (no legacy → ops mapping,
+  // 2026-10-07), so they stay on «Bekreftet» until the new Partner/Bud apps
+  // send ops transitions (backend plan Step 6).
   static const Duration pollEvery = Duration(seconds: 10);
 
   /// Points per stage for the Ægil-veileder chip: the order's real total

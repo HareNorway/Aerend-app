@@ -130,6 +130,11 @@ class OpsCustomerApi {
 
   /// `POST /api/ops/orders/{id}/transition` — the one write path, driven by
   /// the demo panel on the local stack.
+  ///
+  /// OPS-TEMP: debug-only and unauthenticated (it acts as the store / courier,
+  /// which a customer login cannot prove). Served while `ops.auth.enforce` is
+  /// `report` (logged); refused with 401 under `enforce` — the panel then
+  /// gets null and shows nothing. Not a customer feature.
   Future<Map<String, dynamic>?> transition(
     int orderId,
     String to, {
@@ -148,6 +153,7 @@ class OpsCustomerApi {
   }
 
   /// `ops.proof.pin` — the courier's PIN check, driven by the demo panel.
+  /// OPS-TEMP: debug-only, same as [transition]: refused under `enforce`.
   Future<Map<String, dynamic>?> proofPin(
     int orderId,
     String pin, {

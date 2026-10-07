@@ -54,6 +54,18 @@ class _Ordre {
   bool get levert => state == 'delivered' || state == 'completed';
   bool get avbestilt => state == 'cancelled';
   bool get aktiv => raw['paid'] == true && !levert && !avbestilt;
+
+  /// How many of Bestilt · Bekreftet · Tilberedes · På vei · Levert are done,
+  /// from the order's ops state. An unpaid order that is still under way
+  /// (cash, or a payment not confirmed yet) is not «aktiv», but its sheet must
+  /// not show it as delivered either.
+  int get ferdigeSteg => switch (state) {
+        'delivered' || 'completed' => 5,
+        'picked_up' || 'arrived_customer' => 4,
+        'seen' || 'ready' => 3,
+        'accepted' => 2,
+        _ => 1,
+      };
   List<Map> get linjer => raw['items'] is List ? (raw['items'] as List).whereType<Map>().toList() : const [];
   int get antall => linjer.fold<int>(0, (a, l) => a + ((l['quantity'] ?? l['qty'] ?? 1) as num).toInt());
   String get varer => linjer.map((l) => '${l['name'] ?? ''}').where((x) => x.isNotEmpty).join(' · ');
@@ -147,7 +159,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
       return;
     }
     final kr = _kroner[o.id];
-    final steg = o.avbestilt ? 1 : 5;
+    final steg = o.avbestilt ? 1 : o.ferdigeSteg;
     showMegArk<void>(
       context,
       key: const Key('oh-ordre-sheet'),

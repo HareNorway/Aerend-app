@@ -1,4 +1,5 @@
 import '../api_base_helper.dart';
+import 'ops_customer_api.dart';
 
 /// The customer app's calls into the monolith's ops feed endpoints.
 ///
@@ -13,6 +14,13 @@ class OpsFeedApi {
 
   final ApiBaseHelper _helper;
 
+  /// The house `user_id` + `access_token` (backend plan Step 1): `ops.actor`
+  /// takes the customer from the login, not from `customer_id`, and refuses
+  /// a call without one once `ops.auth.enforce` is `enforce`.
+  static String _query([Map<String, String> extra = const {}]) => Uri(
+    queryParameters: {...?OpsCustomerApi.authParams(), ...extra},
+  ).query;
+
   /// Does this customer still have today's pull?
   ///
   /// Returns true on any failure. Showing the card and having the pull refused
@@ -21,7 +29,7 @@ class OpsFeedApi {
   Future<bool> vaagenAvailable(int customerId) async {
     try {
       final dynamic json = await _helper.get(
-        'api/ops/feed/vaagen?customer_id=$customerId',
+        'api/ops/feed/vaagen?${_query({'customer_id': '$customerId'})}',
       );
 
       if (json is Map<String, dynamic>) {
@@ -44,7 +52,7 @@ class OpsFeedApi {
     String? suggestionId,
   }) async {
     final dynamic json = await _helper.post(
-      'api/ops/feed/vaagen/reel',
+      'api/ops/feed/vaagen/reel?${_query()}',
       body: <String, dynamic>{
         'customer_id': customerId,
         if (postId != null) 'post_id': postId,

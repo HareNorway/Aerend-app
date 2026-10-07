@@ -9,7 +9,7 @@ extension _Ferdig on LaunchOnboardingState {
     final pct = maal == 0 ? 0.0 : (poeng / maal).clamp(0.0, 1.0);
     final verv = (_erVerv || _vervOk) && (_regler?.referee ?? 0) > 0;
     final linje = poeng >= maal
-        ? (verv ? LfCopy.poengVerv(maal, _regler!.referee, _vervNavn) : LfCopy.poengOrg(maal))
+        ? (verv ? LfCopy.poengVerv(maal, _regler!.referee, prefGetString(_prefInviterName).trim().isEmpty ? null : _vervNavn) : LfCopy.poengOrg(maal))
         : LfCopy.leggerPoeng;
     return Stack(
       children: [

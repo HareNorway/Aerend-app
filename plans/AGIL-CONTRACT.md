@@ -393,12 +393,11 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 
 | Kind | Name | Notes |
 |---|---|---|
-| flag | `ops.legacy_bridge` | `LegacyOrderObserver::updated` → `App\Services\Ops\LegacyStatusBridge`: legacy status 2/5/6/8/9 → accepted/seen/ready/picked_up/delivered, 3/4/10 → cancelled; forward only; idempotency key `legacy-bridge:{order}:{state}`. Off unless set |
+| ~~flag~~ | ~~`ops.legacy_bridge`~~ | **Removed 2026-10-07 (user decision): no legacy → ops mapping.** `ops_state` moves only through `POST api/ops/orders/{id}/transition` (and the ops services). Orders handled in the legacy Store/Driver apps stay `placed` until the new Partner/Bud apps send transitions (Step 6); the gaps carry `OPS-TEMP` markers in the legacy handlers, `LegacyOrderObserver`, `CustomerTrackingReadModel` and the app's Sporing |
 | policy | `ops.require_arrived_customer` | default `false`; `true` refuses picked_up → delivered |
 | policy | `proof.value_threshold_ore` | default `30000` (300 kr); replaces `DeliveryProofService::VALUE_THRESHOLD_ORE` (kept as fallback). `customer_prefs.always_code` now forces a code |
 | listener | `App\Points\Listeners\AwardPointsOnOpsDelivered` | ops `order.delivered` earns points; dedupe `order.delivered:{orderId}` shared with the legacy path |
 | schedule | `points:sync --since=<2 days>` hourly at :20 | `LegacyBookingSource::delivered` also reads `ops_state = delivered` |
-| event payload | `source: legacy_bridge`, `legacy_status`, `synthesized`, `courier_provider_id` | on bridged `order.*` events; courier actor id is `providers.id` (resolved from `transport_driver_details.id`) |
 
 **Step 3 — points API for the app**
 
@@ -409,7 +408,7 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | query | `points.me.ledger` `?order={id}` | filters on `ref_type=order, ref_id` |
 | payload | tracking `points_preview` | `{base, first_order_bonus, total, earned}` on `ops.customer.tracking` only (not lists); null for guests |
 | policy | `points.signup_bonus` (50), `points.signup_bonus_window_days` (30) | `config/points.php` keys |
-| flag | `points.signup_bonus.enabled` | `App\Points\FeatureFlags::SIGNUP_BONUS`, default off |
+| flag | `points.signup_bonus.enabled` | `App\Points\FeatureFlags::SIGNUP_BONUS`; **on by default** (user decision 2026-10-07) via config `points.signup_bonus_enabled` / env `POINTS_SIGNUP_BONUS_ENABLED=true`; a flag row wins |
 | ledger | rule `signup`, ref `signup` | `PtsLedger::RULE_SIGNUP`, dedupe `signup:{userId}` |
 | dart | `lib/data/points/points_rules.dart` | `PointsRules`, `splitPointsByStage`; `OpsCustomerApi.rules()` (cached 5 min, no login needed) |
 
