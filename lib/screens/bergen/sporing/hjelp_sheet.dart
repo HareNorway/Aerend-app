@@ -129,6 +129,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
     _items = widget.items;
     // Cases go through the same API as the rest of the sheet.
     if (widget.api case final a?) SupportStore.instance.api = a;
+    // Backend plan Step 5: the hours, phone and e-mail, and the customer's cases.
+    SupportStore.instance.oppdater();
     _adresse = widget.adresse;
     if (_tracking == null && _id > 0) _load();
     if (_id > 0 && (_items.isEmpty || _adresse == null)) _loadOrdre();
@@ -284,7 +286,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
   }
 
   Future<void> _ringKs() async {
-    final uri = Uri.parse('tel:${SporingCopy.a1_sporing_ks_nummer.replaceAll(' ', '')}');
+    final tlf = SupportConfig.telefon;
+    if (tlf == null) return;
+    final uri = Uri.parse('tel:${tlf.replaceAll(' ', '')}');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
@@ -1171,6 +1175,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
         stor: true,
         onTap: _supportChat,
       ),
+      // The call row only with a number from `support/config`.
+      if (SupportConfig.telefon != null) ...[
       const SizedBox(height: 7),
       _Rad(
         key: const Key('a1_sporing_ks_ring'),
@@ -1180,11 +1186,12 @@ class _HjelpScreenState extends State<HjelpScreen> {
           decoration: BoxDecoration(color: rgba(255, 255, 255, .12), borderRadius: BorderRadius.circular(13)),
           child: Center(child: spIkon(kSpIkonTelefon, size: 18, color: kSpMint)),
         ),
-        tittel: SporingCopy.a1_sporing_ring_nummer,
+        tittel: SporingCopy.a1_sporing_ring_nummer_til(SupportConfig.telefon!),
         under: SporingCopy.a1_sporing_vanlig_takst,
         stor: true,
         onTap: _ringKs,
       ),
+      ],
       if (!_standalone) ...[
         const SizedBox(height: 12),
         Container(

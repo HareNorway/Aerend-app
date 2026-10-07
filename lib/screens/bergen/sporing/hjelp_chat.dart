@@ -37,10 +37,13 @@ class _SupportChatState extends State<_SupportChat> {
     super.initState();
     SupportStore.instance.endret.addListener(_endret);
     _tekst.addListener(() => setState(() {}));
+    // A person's replies arrive by polling while the chat is on screen.
+    if (widget.samtale case final s?) SupportStore.instance.startPolling(s);
   }
 
   @override
   void dispose() {
+    SupportStore.instance.stoppPolling();
     SupportStore.instance.endret.removeListener(_endret);
     _tekst.dispose();
     _scroll.dispose();
@@ -95,29 +98,42 @@ class _SupportChatState extends State<_SupportChat> {
     _send(c);
   }
 
-  /// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-  /// No guest lookup exists: the order number is checked for its form and
-  /// the code for four digits.
-  void _gjestNeste() {
+  /// «Finn bestillingen din» (backend plan Step 5): `support/guest/lookup`
+  /// sends a one-time code to the phone on the order, `support/guest/verify`
+  /// returns a guest token for that order; the conversation then runs on it.
+  bool _gjestVenter = false;
+
+  Future<void> _gjestNeste() async {
+    if (_gjestVenter) return;
     final ordre = _gjestOrdre.text.trim().toUpperCase();
-    if (!_kodeSendt) {
-      if (!RegExp(r'^(Æ|AE)-?[0-9A-ZÆØÅ]{2,5}$').hasMatch(ordre)) {
-        setState(() => _feil = ('ORDER_NOT_FOUND', SupportCopy.fantIkke));
+    final store = SupportStore.instance;
+    setState(() => _gjestVenter = true);
+    try {
+      if (!_kodeSendt) {
+        final (feil, til) = await store.gjestOppslag(ordre);
+        if (!mounted) return;
+        if (feil != null) {
+          setState(() => _feil = (feil, feil == 'OFFLINE' ? SupportCopy.ingenForbindelse : SupportCopy.fantIkke));
+          return;
+        }
+        setState(() {
+          _kodeSendt = true;
+          _feil = null;
+        });
+        showBergenToast(context, SupportCopy.kodeSendt(til ?? SupportCopy.gjestKontakt));
         return;
       }
-      setState(() {
-        _kodeSendt = true;
-        _feil = null;
-      });
-      showBergenToast(context, SupportCopy.kodeSendt(SupportCopy.gjestKontakt));
-      return;
+      final feil = await store.gjestBekreft(ordre, _gjestKode.text.trim());
+      if (!mounted) return;
+      if (feil != null) {
+        setState(() => _feil = (feil, feil == 'OFFLINE' ? SupportCopy.ingenForbindelse : SupportCopy.feilKode));
+        return;
+      }
+      showBergenToast(context, SupportCopy.bekreftet);
+      widget.onGjestBekreftet();
+    } finally {
+      if (mounted) setState(() => _gjestVenter = false);
     }
-    if (!RegExp(r'^\d{4}$').hasMatch(_gjestKode.text.trim())) {
-      setState(() => _feil = ('INVALID_CODE', SupportCopy.feilKode));
-      return;
-    }
-    showBergenToast(context, SupportCopy.bekreftet);
-    widget.onGjestBekreftet();
   }
 
   @override
@@ -835,7 +851,7 @@ class _Hub extends StatelessWidget {
             TextSpan(
               style: inter(11.5, height: 1.5, color: rgba(255, 255, 255, .62)),
               children: [
-                const TextSpan(text: SupportCopy.epostFor),
+                TextSpan(text: SupportCopy.epostFor),
                 TextSpan(
                   text: SupportConfig.epost,
                   style: inter(11.5, weight: FontWeight.w800, height: 1.5, color: const Color(0xFF7FF0CB)),

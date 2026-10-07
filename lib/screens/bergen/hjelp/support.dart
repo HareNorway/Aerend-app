@@ -1,33 +1,58 @@
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
 import '../../../networking/ops/ops_customer_api.dart';
-import '../../../utils/shared_pref_utill.dart';
 
 /// Support for the customer (Launch `scStart` / `scSvar` / `sakVals`,
 /// L17965–18030): one conversation per problem, the Ærend assistant first and
 /// a person when the customer asks, and the cases filed on an order.
 ///
-/// What is real: every case goes through `ops.customer.problem` and keeps the
-/// backend's own answer (problem id, `customer_sees`); «Kom aldri» is sent as
-/// a message on the order (`ops.customer.contact`), as in Step 8. The order
-/// cards read the customer's real orders.
+/// Backend plan Step 5: everything is server-side now — `GET support/config`
+/// (hours, answer time, phone, e-mail), the conversation (`/api/support/
+/// conversations`, the assistant's rules run on the server, a person takes
+/// over from the panel inbox and their replies arrive by polling), the
+/// customer's cases (`GET support/cases`), and the guest step (`support/guest/
+/// lookup` + `verify` → a guest token for that one order).
 ///
-/// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-/// There is no support-conversation API (open, send, escalate, take over) and
-/// no customer read of a case, so the conversation lives in this session, the
-/// assistant's replies are scripted from the prototype's rules, and a case
-/// stays «Åpen» (its resolution is never known here).
+/// When the server can't be reached, a conversation falls back to the same
+/// scripted rules on the device so the screen still answers (offline only).
 abstract final class SupportConfig {
-  /// The customer queue's hours (`samtale-mock.js` CONFIG.hours.kunde).
-  static const int aapner = 8;
-  static const int stenger = 23;
+  /// The customer chat's hours (Oslo time) and the promised first answer.
+  /// Prototype values until `support/config` answers.
+  static int aapner = 8;
+  static int stenger = 23;
+  static int svarMin = 30;
 
-  /// Minutes to the first answer on a case (`support-mock.js` ackMinutes).
-  static const int svarMin = 30;
-  static const String telefon = '55 00 12 34';
-  static const String epost = 'hjelp@aerend.no';
+  /// From `general_settings`; null hides the row that would use it.
+  static String? telefon;
+  static String epost = 'hjelp@aerend.no';
+  static List<String> paaVakt = const [];
+
+  static DateTime? _lastet;
+
+  /// Reads `support/config` at most every five minutes.
+  static Future<void> last(OpsCustomerApi api) async {
+    final l = _lastet;
+    if (l != null && DateTime.now().difference(l) < const Duration(minutes: 5)) return;
+    final j = await api.supportConfig();
+    if (j == null) return;
+    settFra(j);
+    _lastet = DateTime.now();
+  }
+
+  @visibleForTesting
+  static void settFra(Map<String, dynamic> j) {
+    final h = j['hours'] is Map ? j['hours'] as Map : const {};
+    aapner = (h['opens'] as num?)?.toInt() ?? aapner;
+    stenger = (h['closes'] as num?)?.toInt() ?? stenger;
+    svarMin = (j['answer_minutes'] as num?)?.toInt() ?? svarMin;
+    final tlf = '${j['phone'] ?? ''}'.trim();
+    telefon = tlf.isEmpty ? null : tlf;
+    final mail = '${j['email'] ?? ''}'.trim();
+    if (mail.isNotEmpty) epost = mail;
+    paaVakt = j['on_call'] is List ? [for (final n in j['on_call'] as List) '$n'] : const [];
+  }
 
   static bool aapen([DateTime? naa]) {
     final h = (naa ?? DateTime.now()).hour;
@@ -35,6 +60,9 @@ abstract final class SupportConfig {
   }
 
   static String get aapnerKl => '${aapner.toString().padLeft(2, '0')}:00';
+
+  /// «08–23» for the e-mail line.
+  static String get timer => '${aapner.toString().padLeft(2, '0')}–${stenger.toString().padLeft(2, '0')}';
 }
 
 /// A card under a message: ORDRE, SAK, REFUSJON or ÅPNINGSTID.
@@ -49,12 +77,25 @@ class SupportKort {
   final String? ref;
   final String tittel;
   final String under;
+
+  static SupportKort? fraServer(Object? j) {
+    if (j is! Map) return null;
+    final type = switch ('${j['type'] ?? ''}') {
+      'ordre' => SupportKortType.ordre,
+      'sak' => SupportKortType.sak,
+      'refusjon' => SupportKortType.refusjon,
+      'aapningstid' => SupportKortType.aapningstid,
+      _ => null,
+    };
+    if (type == null) return null;
+    return SupportKort(type: type, ref: j['ref']?.toString(), tittel: '${j['title'] ?? ''}', under: '${j['sub'] ?? ''}');
+  }
 }
 
 enum SupportAvsender { du, assistent, menneske, system }
 
 class SupportMelding {
-  SupportMelding(this.fra, this.tekst, {this.kort, this.chips = const [], this.navn, DateTime? at}) : at = at ?? DateTime.now();
+  SupportMelding(this.fra, this.tekst, {this.kort, this.chips = const [], this.navn, DateTime? at, this.id}) : at = at ?? DateTime.now();
 
   final SupportAvsender fra;
   final String tekst;
@@ -65,11 +106,38 @@ class SupportMelding {
   final String? navn;
   final DateTime at;
 
+  /// The server's message id; null for a message only on this device.
+  final int? id;
+
   String get kl => '${at.hour.toString().padLeft(2, '0')}:${at.minute.toString().padLeft(2, '0')}';
+
+  factory SupportMelding.fraServer(Map<String, dynamic> j) => SupportMelding(
+    switch ('${j['author'] ?? ''}') {
+      'customer' => SupportAvsender.du,
+      'human' => SupportAvsender.menneske,
+      'system' => SupportAvsender.system,
+      _ => SupportAvsender.assistent,
+    },
+    '${j['body'] ?? ''}',
+    kort: SupportKort.fraServer(j['card']),
+    chips: j['chips'] is List ? [for (final c in j['chips'] as List) '$c'] : const [],
+    navn: j['author_name']?.toString(),
+    at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal(),
+    id: (j['id'] as num?)?.toInt(),
+  );
 }
 
 /// What the conversation is about (`scStart(kontekst)`).
 enum SupportTema { support, mangler, feil, komAldri }
+
+extension on SupportTema {
+  String get server => switch (this) {
+    SupportTema.support => 'support',
+    SupportTema.mangler => 'mangler',
+    SupportTema.feil => 'feil',
+    SupportTema.komAldri => 'kom_aldri',
+  };
+}
 
 /// The order a conversation is about, from `ops.customer.orders`.
 class SupportOrdre {
@@ -118,10 +186,9 @@ class SupportOrdre {
   SupportKort get kort => SupportKort(type: SupportKortType.ordre, ref: kode, tittel: [if (butikk.isNotEmpty) butikk, if (total > 0) '$total kr'].join(' · '), under: status);
 }
 
-/// A case filed on an order — the backend's answer to `ops.customer.problem`,
-/// kept on this device because no endpoint reads it back.
+/// A case filed on an order — `GET support/cases` (backend plan Step 5).
 class SupportSak {
-  const SupportSak({required this.ordreId, required this.kode, required this.type, required this.tekst, required this.at, this.problemId, this.customerSees});
+  const SupportSak({required this.ordreId, required this.kode, required this.type, required this.tekst, required this.at, this.problemId, this.customerSees, this.loest = false, this.losning});
 
   final int ordreId;
   final String kode;
@@ -133,34 +200,35 @@ class SupportSak {
   final int? problemId;
   final String? customerSees;
 
+  /// Resolved, and how it reads to the customer.
+  final bool loest;
+  final String? losning;
+
   String get ref => problemId == null ? kode : 'SAK-$problemId';
   String get tittel => '${SupportCopy.sakType(type)} · $kode';
 
-  Map<String, dynamic> toJson() => {
-    'ordre_id': ordreId,
-    'kode': kode,
-    'type': type,
-    'tekst': tekst,
-    'at': at.toIso8601String(),
-    'problem_id': problemId,
-    'customer_sees': customerSees,
-  };
-
-  factory SupportSak.fromJson(Map<String, dynamic> j) => SupportSak(
-    ordreId: (j['ordre_id'] as num?)?.toInt() ?? 0,
-    kode: '${j['kode'] ?? ''}',
-    type: '${j['type'] ?? 'other'}',
-    tekst: '${j['tekst'] ?? ''}',
-    at: DateTime.tryParse('${j['at'] ?? ''}') ?? DateTime.now(),
-    problemId: (j['problem_id'] as num?)?.toInt(),
-    customerSees: j['customer_sees'] as String?,
+  /// A row of `GET support/cases` or the `case` of `ops.customer.problem`.
+  factory SupportSak.fraServer(Map<String, dynamic> j) => SupportSak(
+    ordreId: (j['order_id'] as num?)?.toInt() ?? 0,
+    kode: '${j['order_code'] ?? ''}',
+    type: '${j['kind'] ?? 'other'}',
+    tekst: '${j['words'] ?? ''}',
+    at: DateTime.tryParse('${j['created_at'] ?? ''}')?.toLocal() ?? DateTime.now(),
+    problemId: (j['id'] as num?)?.toInt(),
+    customerSees: j['customer_facing_status']?.toString(),
+    loest: j['state'] == 'resolved',
+    losning: j['resolution_text']?.toString(),
   );
 }
 
 class SupportSamtale {
-  SupportSamtale({required this.id, required this.tema, required this.emne, this.ordre});
+  SupportSamtale({required this.id, required this.tema, required this.emne, this.ordre, this.serverId});
 
   final int id;
+
+  /// The server's conversation id; null when the conversation runs on the
+  /// device only (offline fallback).
+  final int? serverId;
 
   /// Turns to [SupportTema.mangler] when «Noe mangler» is picked in a
   /// general conversation.
@@ -177,6 +245,9 @@ class SupportSamtale {
 
   bool get erMenneske => menneske != null;
 
+  /// The newest server message id (for `messages?after=`).
+  int get sisteId => meldinger.fold<int>(0, (a, m) => (m.id ?? 0) > a ? m.id! : a);
+
   /// The chips of Ægil's last message while it is the last one (`scChips`).
   List<String> get chips {
     if (erMenneske || meldinger.isEmpty) return const [];
@@ -185,13 +256,11 @@ class SupportSamtale {
   }
 }
 
-/// The session's conversations and the device's cases.
+/// The session's conversations, the customer's cases and the guest token.
 class SupportStore {
   SupportStore._();
 
   static final SupportStore instance = SupportStore._();
-
-  static const String _prefSaker = 'launch_support_saker';
 
   /// Bumps on every change; the sheet and the order sheet listen.
   final ValueNotifier<int> endret = ValueNotifier<int>(0);
@@ -201,90 +270,183 @@ class SupportStore {
   /// Replaced in tests.
   OpsCustomerApi api = OpsCustomerApi();
 
+  /// From «Finn bestillingen din»: reaches only [gjestOrdreId].
+  String? gjestToken;
+  int? gjestOrdreId;
+
+  final List<SupportSak> _saker = [];
+  Timer? _poll;
+
   SupportSamtale? get aapen => samtaler.reversed.where((s) => !s.lukket).firstOrNull;
 
-  SupportSamtale ny(SupportTema tema, String emne, {SupportOrdre? ordre}) {
-    final s = SupportSamtale(id: _neste++, tema: tema, emne: emne, ordre: ordre);
+  SupportSamtale ny(SupportTema tema, String emne, {SupportOrdre? ordre, int? serverId}) {
+    final s = SupportSamtale(id: _neste++, tema: tema, emne: emne, ordre: ordre, serverId: serverId);
     samtaler.add(s);
     return s;
   }
 
   void legg(SupportSamtale s, SupportMelding m) {
+    if (m.id != null && s.meldinger.any((x) => x.id == m.id)) return;
     s.meldinger.add(m);
     endret.value++;
   }
 
-  List<SupportSak> get saker {
-    try {
-      final raw = prefGetString(_prefSaker);
-      if (raw.isEmpty) return const [];
-      final list = jsonDecode(raw);
-      return list is List ? list.whereType<Map<String, dynamic>>().map(SupportSak.fromJson).toList().reversed.toList() : const [];
-    } catch (_) {
-      return const [];
-    }
+  /// The customer's cases, newest first: the server's, plus any filed in
+  /// this session before the list was read again.
+  List<SupportSak> get saker => List.unmodifiable(_saker);
+
+  SupportSak? sakFor(int ordreId) => _saker.where((s) => s.ordreId == ordreId).firstOrNull;
+
+  /// `GET support/cases` (and the config, for the hours and the e-mail).
+  Future<void> oppdater() async {
+    unawaited(SupportConfig.last(api));
+    final j = await api.supportCases(guestToken: gjestToken);
+    final list = j?['cases'];
+    if (list is! List) return;
+    _saker
+      ..clear()
+      ..addAll(list.whereType<Map<String, dynamic>>().map(SupportSak.fraServer));
+    endret.value++;
   }
 
-  SupportSak? sakFor(int ordreId) => saker.where((s) => s.ordreId == ordreId).firstOrNull;
-
-  /// Files the case through `ops.customer.problem` (`missing` covers missing
-  /// items, the wrong item and quality — the kinds the endpoint has) or, for
-  /// «Kom aldri», a message on the order. Null when nothing landed.
+  /// Files the case through `ops.customer.problem` with the case kind
+  /// (`missing_item`, `wrong_item`, `quality`, `not_delivered`). Null when
+  /// nothing landed. A second case on the same order returns the first.
   Future<SupportSak?> meld(SupportOrdre o, String type, {List<String> varer = const [], String? ord}) async {
     final eksisterende = sakFor(o.id);
-    if (eksisterende != null) return eksisterende;
+    if (eksisterende != null && !eksisterende.loest) return eksisterende;
     Map<String, dynamic>? res;
     try {
-      if (type == 'not_delivered') {
-        res = await api.contact(o.id, kind: 'message', message: ord ?? SupportCopy.komAldriMelding);
-      } else {
-        final prefiks = type == 'wrong_item' ? 'Feil vare' : (type == 'quality' ? 'Kvalitet' : null);
-        final ordene = [if (prefiks != null) prefiks, if (ord != null && ord.trim().isNotEmpty) ord.trim()].join(': ');
-        res = await api.problem(o.id, kind: 'missing', items: varer, words: ordene.isEmpty ? null : ordene);
-      }
+      res = await api.problem(o.id, kind: type, items: varer, words: ord?.trim().isEmpty ?? true ? null : ord!.trim());
     } catch (_) {
       res = null;
     }
     if (res == null) return null;
-    final sak = SupportSak(
-      ordreId: o.id,
-      kode: o.kode,
-      type: type,
-      tekst: [if (varer.isNotEmpty) varer.join(', '), if (ord != null) ord].join(' · '),
-      at: DateTime.now(),
-      problemId: (res['problem_id'] as num?)?.toInt(),
-      customerSees: res['customer_sees'] as String?,
-    );
-    final alle = [...saker.reversed, sak];
-    try {
-      await prefSetString(_prefSaker, jsonEncode([for (final s in alle) s.toJson()]));
-    } catch (_) {
-      // Prefs not ready: the case still went through; it shows once stored.
-    }
+    final fra = res['case'] is Map<String, dynamic> ? SupportSak.fraServer(res['case'] as Map<String, dynamic>) : null;
+    final sak = fra ??
+        SupportSak(
+          ordreId: o.id,
+          kode: o.kode,
+          type: type,
+          tekst: [if (varer.isNotEmpty) varer.join(', '), if (ord != null) ord].join(' · '),
+          at: DateTime.now(),
+          problemId: (res['problem_id'] as num?)?.toInt(),
+          customerSees: res['customer_sees'] as String?,
+        );
+    _saker
+      ..removeWhere((s) => s.problemId != null && s.problemId == sak.problemId)
+      ..insert(0, sak);
     endret.value++;
     return sak;
   }
 
+  /// Puts the server's conversation payload into [s]: new messages, state,
+  /// the person, the case.
+  void flett(SupportSamtale s, Map<String, dynamic>? c) {
+    if (c == null) return;
+    final msgs = c['messages'];
+    if (msgs is List) {
+      for (final m in msgs.whereType<Map<String, dynamic>>()) {
+        legg(s, SupportMelding.fraServer(m));
+      }
+    }
+    final state = '${c['state'] ?? ''}';
+    s.iKo = state == 'queued' || state == 'human';
+    final navn = c['assignee_name']?.toString();
+    if (state == 'human' && navn != null && navn.isNotEmpty) s.menneske = navn;
+    if (state == 'closed') s.lukket = true;
+    endret.value++;
+  }
+
+  /// Polls the open server conversation for the person's replies while the
+  /// chat is on screen (`messages?after=`).
+  void startPolling(SupportSamtale s, {Duration hver = const Duration(seconds: 5)}) {
+    stoppPolling();
+    final id = s.serverId;
+    if (id == null) return;
+    _poll = Timer.periodic(hver, (_) async {
+      if (s.lukket) return stoppPolling();
+      final j = await api.supportPoll(id, s.sisteId, guestToken: gjestToken);
+      final c = j?['conversation'];
+      if (c is Map<String, dynamic>) flett(s, c);
+    });
+  }
+
+  void stoppPolling() {
+    _poll?.cancel();
+    _poll = null;
+  }
+
+  /// «Finn bestillingen din», step 1: null = sent (with where to), else the
+  /// error code (`ORDER_NOT_FOUND`, `CODE_NOT_SENT`, `OFFLINE`).
+  Future<(String?, String?)> gjestOppslag(String ordre) async {
+    final r = await api.supportGuest('lookup', {'order_no': ordre});
+    if (r == null) return ('OFFLINE', null);
+    final (code, body) = r;
+    if (code == 200) return (null, body['sent_to']?.toString());
+    return ('${body['error'] ?? 'ORDER_NOT_FOUND'}', null);
+  }
+
+  /// Step 2: null when verified (the token is kept), else the error code.
+  Future<String?> gjestBekreft(String ordre, String kode) async {
+    final r = await api.supportGuest('verify', {'order_no': ordre, 'code': kode});
+    if (r == null) return 'OFFLINE';
+    final (code, body) = r;
+    if (code != 200 || body['guest_token'] == null) return '${body['error'] ?? 'INVALID_CODE'}';
+    gjestToken = '${body['guest_token']}';
+    gjestOrdreId = (body['order_id'] as num?)?.toInt();
+    endret.value++;
+    return null;
+  }
+
   @visibleForTesting
   void reset({OpsCustomerApi? api}) {
+    stoppPolling();
     samtaler.clear();
+    _saker.clear();
     _neste = 1;
+    gjestToken = null;
+    gjestOrdreId = null;
     this.api = api ?? OpsCustomerApi();
-    try {
-      prefSetString(_prefSaker, '');
-    } catch (_) {}
     endret.value++;
   }
 }
 
-/// The assistant's rules (`scSvar`), on the real order and the real case.
-///
-/// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+/// The assistant: on the server (backend plan Step 5); the rules below are
+/// the offline fallback, the same `scSvar` rules the server runs.
 abstract final class SupportAssistent {
   static String _hei(String navn) => navn.isEmpty ? SupportCopy.heiAnonym : SupportCopy.hei(navn);
 
-  /// Opens a conversation and its first message (`scStart`).
+  static String _emne(SupportTema tema) => switch (tema) {
+    SupportTema.mangler => SupportCopy.emneMangler,
+    SupportTema.feil => SupportCopy.emneFeil,
+    SupportTema.komAldri => SupportCopy.emneKomAldri,
+    SupportTema.support => SupportCopy.emneSupport,
+  };
+
+  /// Opens a conversation and its first message (`scStart`): on the server
+  /// when it answers, else on the device.
   static Future<SupportSamtale> start(SupportTema tema, {required String fornavn, SupportOrdre? ordre}) async {
+    final store = SupportStore.instance;
+    final orderId = ordre?.id ?? store.gjestOrdreId;
+    final j = await store.api.supportOpen(topic: tema.server, orderId: orderId, guestToken: store.gjestToken);
+    final c = j?['conversation'];
+    if (c is Map<String, dynamic> && c['id'] != null) {
+      final serverTema = switch ('${c['topic'] ?? ''}') {
+        'mangler' => SupportTema.mangler,
+        'feil' => SupportTema.feil,
+        'kom_aldri' => SupportTema.komAldri,
+        _ => SupportTema.support,
+      };
+      final s = store.ny(serverTema, _emne(serverTema), ordre: serverTema == SupportTema.support ? null : ordre, serverId: (c['id'] as num).toInt());
+      store.flett(s, c);
+      if (c['case_id'] != null) unawaited(store.oppdater().then((_) => s.sak = store.sakFor(ordre?.id ?? 0)));
+      return s;
+    }
+    return _startLokal(tema, fornavn: fornavn, ordre: ordre);
+  }
+
+  static Future<SupportSamtale> _startLokal(SupportTema tema, {required String fornavn, SupportOrdre? ordre}) async {
     final store = SupportStore.instance;
     final hei = _hei(fornavn);
     final aapen = SupportConfig.aapen();
@@ -328,7 +490,7 @@ abstract final class SupportAssistent {
     }
   }
 
-  /// The customer's message, then Ægil's answer after [tenk] (`scSvar`).
+  /// The customer's message, then the answer after [tenk] (`scSvar`).
   /// [hentOrdre] finds the order a «Hvor er …» or «Noe mangler» is about.
   static Future<void> svar(
     SupportSamtale s,
@@ -340,6 +502,61 @@ abstract final class SupportAssistent {
     final store = SupportStore.instance;
     final t = tekst.trim();
     if (t.isEmpty || s.lukket) return;
+    final id = s.serverId;
+    if (id != null) {
+      // Shown at once; the server's copy (with its id) replaces nothing —
+      // only the answers that follow it are appended.
+      store.legg(s, SupportMelding(SupportAvsender.du, t));
+      if (!s.erMenneske && !s.iKo) skriver(true);
+      final svar = await Future.wait([
+        store.api.supportSend(id, t, guestToken: store.gjestToken),
+        Future<void>.delayed(s.erMenneske || s.iKo ? Duration.zero : tenk),
+      ]);
+      skriver(false);
+      final j = svar.first as Map<String, dynamic>?;
+      final c = j?['conversation'];
+      if (c is Map<String, dynamic>) {
+        final msgs = c['messages'];
+        final uten = {...c, 'messages': msgs is List ? msgs.whereType<Map<String, dynamic>>().where((m) => m['author'] != 'customer').toList() : const []};
+        // Keep the ids of the customer's own message, so polling does not repeat it.
+        if (msgs is List) {
+          final mine = msgs.whereType<Map<String, dynamic>>().where((m) => m['author'] == 'customer').map((m) => (m['id'] as num?)?.toInt()).whereType<int>();
+          for (final mid in mine) {
+            _merkSisteDu(s, mid);
+          }
+        }
+        store.flett(s, uten);
+        if (c['case_id'] != null && s.sak == null) {
+          await store.oppdater();
+          s.sak = store.sakFor((c['order_id'] as num?)?.toInt() ?? 0);
+        }
+      } else {
+        store.legg(s, SupportMelding(SupportAvsender.assistent, SupportCopy.ikkeSendt, chips: const [SupportCopy.menneske]));
+      }
+      return;
+    }
+    await _svarLokal(s, t, hentOrdre: hentOrdre, skriver: skriver, tenk: tenk);
+  }
+
+  /// Gives the newest customer bubble on this device the server's id.
+  static void _merkSisteDu(SupportSamtale s, int id) {
+    for (var i = s.meldinger.length - 1; i >= 0; i--) {
+      final m = s.meldinger[i];
+      if (m.fra == SupportAvsender.du && m.id == null) {
+        s.meldinger[i] = SupportMelding(m.fra, m.tekst, at: m.at, id: id);
+        return;
+      }
+    }
+  }
+
+  static Future<void> _svarLokal(
+    SupportSamtale s,
+    String t, {
+    required Future<SupportOrdre?> Function() hentOrdre,
+    required void Function(bool) skriver,
+    required Duration tenk,
+  }) async {
+    final store = SupportStore.instance;
     store.legg(s, SupportMelding(SupportAvsender.du, t));
     // With a person in the conversation, Ægil stays out of it.
     if (s.erMenneske) return;
@@ -430,10 +647,21 @@ abstract final class SupportAssistent {
   }
 
   /// «Snakk med et menneske» (`scEskaler`): into the queue, the whole thread
-  /// goes along. No person is invented — there is no queue behind it yet.
+  /// goes along. On the server a person takes it from the panel inbox.
   static Future<bool> eskaler(SupportSamtale s, {required void Function(bool) skriver, Duration tenk = const Duration(milliseconds: 1200)}) async {
     if (s.erMenneske || s.iKo) return false;
     final store = SupportStore.instance;
+    final id = s.serverId;
+    if (id != null) {
+      skriver(true);
+      final j = await store.api.supportEscalate(id, guestToken: store.gjestToken);
+      skriver(false);
+      final c = j?['conversation'];
+      if (c is Map<String, dynamic>) {
+        store.flett(s, c);
+        return true;
+      }
+    }
     s.iKo = true;
     store.legg(s, SupportMelding(SupportAvsender.system, SupportCopy.eskalert));
     skriver(true);
@@ -443,8 +671,9 @@ abstract final class SupportAssistent {
     return true;
   }
 
-  /// A person takes over (`M.takeover`). Only the debug harness and the tests
-  /// call this — there is no support desk behind the app yet.
+  /// A person takes over on the device — the debug harness and the tests
+  /// only. In the app a person takes over from the panel inbox, and their
+  /// messages arrive by polling.
   static void taOver(SupportSamtale s, String navn, String fornavnKunde) {
     final store = SupportStore.instance;
     final fornavn = navn.split(' ').first;
@@ -453,6 +682,7 @@ abstract final class SupportAssistent {
     store.legg(s, SupportMelding(SupportAvsender.menneske, SupportCopy.menneskeHei(fornavnKunde, fornavn), navn: fornavn));
   }
 }
+
 
 /// Copy for support (Launch L8638–8830, `samtale-mock.js` ARB keys).
 abstract final class SupportCopy {
@@ -490,7 +720,7 @@ abstract final class SupportCopy {
   static const String ingenOrdre = 'Jeg finner ingen bestillinger på kontoen din ennå.';
   static String hvaMangler(SupportOrdre o) => 'Jeg ser bestillingen ${o.kode} fra ${o.butikk}. Hva mangler?';
   static const String beskrivSvar = 'Skriv med vanlige ord hva du fikk, så sender jeg saken videre.';
-  static const String sendtTilVurdering =
+  static String get sendtTilVurdering =>
       'Takk. Jeg har sendt saken til vurdering. Et menneske hos Ærend avgjør refusjonen, normalt innen ${SupportConfig.svarMin} minutter. Jeg sier fra her når det er avgjort.';
   static const String ikkeSendt = 'Jeg fikk ikke sendt saken akkurat nå. Prøv igjen, eller snakk med et menneske.';
   static const String refusjon = 'Jeg kan ikke love refusjon før den er sendt. Saken ligger til vurdering hos et menneske — du får svar her. Vipps er vanligvis samme dag, kort 2–5 virkedager.';
@@ -500,17 +730,18 @@ abstract final class SupportCopy {
   static const String greit = 'Greit. Si fra her hvis det er noe mer.';
   static const String vetIkke = 'Det har jeg ikke et sikkert svar på fra det jeg vet om bestillingen. Vil du at et menneske ser på det?';
   static const String eskalert = 'Eskalert til menneske · Ba om menneske';
-  static const String iKo = 'Selvfølgelig. Du står i kø for et menneske, forventet svar innen ${SupportConfig.svarMin} min. Hele samtalen følger med.';
+  static String get iKo => 'Selvfølgelig. Du står i kø for et menneske, forventet svar innen ${SupportConfig.svarMin} min. Hele samtalen følger med.';
   static String iKoStengt(String kl) => 'Selvfølgelig. Du står i kø for et menneske, vi svarer fra $kl. Hele samtalen følger med.';
   static String tokOver(String navn) => '$navn fra Ærend tok over';
   static String menneskeHei(String kunde, String navn) => 'Hei${kunde.isEmpty ? '' : ' $kunde'}, $navn her. Jeg har lest tråden. Hva kan jeg hjelpe med?';
   static const String allerede = 'Du står allerede i kø for et menneske';
   static String erISamtalen(String navn) => '$navn er allerede i samtalen';
 
-  static const String ack = 'Vi ser på det · svar innen ${SupportConfig.svarMin} min';
+  static String get ack => 'Vi ser på det · svar innen ${SupportConfig.svarMin} min';
   static const String menneskeAvgjor = 'Et menneske avgjør';
   static String viSvarerFra(String kl) => 'Vi svarer fra $kl';
   static const String komAldriMelding = 'Står som levert, men kom ikke';
+  static const String ingenForbindelse = 'Fikk ikke kontakt. Sjekk nettet og prøv igjen.';
 
   static String sakType(String type) => switch (type) {
     'missing_item' => 'Noe manglet',
@@ -556,7 +787,7 @@ abstract final class SupportCopy {
     ('Poeng, nivå og premier', 'Slik tjener og bruker du poeng'),
     ('Slett konto og data', 'Du bestemmer over dataene dine'),
   ];
-  static const String epostFor = 'Chat 08–23 hver dag · e-post ';
+  static String get epostFor => 'Chat ${SupportConfig.timer} hver dag · e-post ';
   static const String epostEtter = ', svar innen 24 t';
 
   // Guest.
@@ -588,10 +819,10 @@ abstract final class SupportCopy {
   static const String steg2Linje = 'Trykk på linjen det gjelder. Ægil regner ut kreditten med én gang.';
   static const String tilbake = 'Tilbake';
   static const String harAllerede = 'Vi har allerede saken';
-  static const String harAlleredeLinje = '$ack · du følger den på bestillingen.';
+  static String get harAlleredeLinje => '$ack · du følger den på bestillingen.';
   static const String mottatt = 'Vi har mottatt saken.';
   static const String saksreferanse = 'SAKSREFERANSE';
   static const String ferdig = 'Ferdig';
-  static const String registrert = 'Saken er registrert · svar innen ${SupportConfig.svarMin} min';
+  static String get registrert => 'Saken er registrert · svar innen ${SupportConfig.svarMin} min';
   static const String naa = 'Nå';
 }

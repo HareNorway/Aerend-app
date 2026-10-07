@@ -346,6 +346,8 @@ abstract final class SporingCopy {
   static String get a1_sporing_chat_med_oss => _t('Chat med oss', 'Chat with us');
   static String get a1_sporing_raskest => _t('Raskest · Kari og Ola er på vakt', 'Fastest · Kari and Ola are on duty');
   static String get a1_sporing_ring_nummer => _t('Ring 55 00 12 34', 'Call 55 00 12 34');
+  /// «Ring 55 00 12 34» with the number from `support/config` (backend plan Step 5).
+  static String a1_sporing_ring_nummer_til(String tlf) => _t('Ring $tlf', 'Call $tlf');
   static String get a1_sporing_vanlig_takst => _t('Vanlig takst · ca. 1 min ventetid', 'Standard rate · about 1 min wait');
   static String get a1_sporing_vi_har_mottatt => _t('Vi har mottatt saken.', 'We have received the case.');
   static String a1_sporing_fikk_beskjeden(String navn) => _t('$navn har fått beskjeden', '$navn got the message');

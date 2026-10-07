@@ -41,6 +41,19 @@ class _Api extends OpsCustomerApi {
     contacts.add({'order': orderId, 'kind': kind, 'message': message});
     return {'kind': kind};
   }
+
+  /// `support/guest/lookup` / `verify` as the server answers them (Step 5).
+  final List<(String, Map<String, dynamic>)> guest = [];
+
+  @override
+  Future<(int, Map<String, dynamic>)?> supportGuest(String step, Map<String, dynamic> body) async {
+    guest.add((step, body));
+    final ordre = '${body['order_no']}';
+    if (ordre != 'Æ-42K') return (422, <String, dynamic>{'error': 'ORDER_NOT_FOUND'});
+    if (step == 'lookup') return (200, <String, dynamic>{'status': 1, 'sent_to': '•••• ••34'});
+    if (body['code'] != '4831') return (422, <String, dynamic>{'error': 'INVALID_CODE'});
+    return (200, <String, dynamic>{'status': 1, 'guest_token': 'gjest-token', 'order_id': 42});
+  }
 }
 
 Map<String, dynamic> _ordre(int id, String state, {bool paid = true}) => {
@@ -161,7 +174,8 @@ void main() {
 
     await tester.tap(find.text('Classic Fries'));
     await svar(tester);
-    expect(api.problems.single['kind'], 'missing');
+    // Backend plan Step 5: the case kind itself, not the old «missing».
+    expect(api.problems.single['kind'], 'missing_item');
     expect(api.problems.single['items'], ['Classic Fries']);
     expect(find.byKey(const Key('a1_hjelp_kort_sak')), findsOneWidget);
     expect(find.textContaining('SAK-41'), findsOneWidget);
@@ -229,6 +243,10 @@ void main() {
     await settle(tester);
     expect(find.byKey(const Key('a1_hjelp_gjest')), findsNothing);
     expect(find.byKey(const Key('a1_hjelp_chat_traad')), findsOneWidget);
+    // The server's lookup / verify, and the guest token kept for the chat.
+    expect([for (final g in api.guest) g.$1], ['lookup', 'lookup', 'verify', 'verify']);
+    expect(SupportStore.instance.gjestToken, 'gjest-token');
+    expect(SupportStore.instance.gjestOrdreId, 42);
     await tester.pump(const Duration(seconds: 4));
   });
 
@@ -271,7 +289,7 @@ void main() {
     expect(find.text(SupportCopy.ack), findsOneWidget);
   });
 
-  testWidgets('Kom aldri sends the case as a message on the order', (tester) async {
+  testWidgets('Kom aldri files a not_delivered case on the order', (tester) async {
     phone(tester);
     await _login();
     final api = _Api(rows: [_ordre(278, 'delivered')]);
@@ -279,7 +297,9 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: HjelpScreen(orderId: 278, api: api, initial: HjelpState.komAldri)));
     await settle(tester);
     expect(find.text(SupportCopy.emneKomAldri), findsOneWidget);
-    expect(api.contacts.single['message'], SupportCopy.komAldriMelding);
+    // Backend plan Step 5: a real case (kind not_delivered), not a message.
+    expect(api.problems.single['kind'], 'not_delivered');
+    expect(api.contacts, isEmpty);
     expect(find.byKey(const Key('a1_hjelp_kort_sak')), findsOneWidget);
   });
 }

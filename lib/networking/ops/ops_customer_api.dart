@@ -112,7 +112,65 @@ class OpsCustomerApi {
     if (message != null) 'message': message,
   });
 
-  /// `ops.customer.problem` — `kind` ∈ door, missing, wait, cancel.
+  // ── Support v1 (`/api/support`, backend plan Step 5) ─────────────────────
+
+  /// The customer's login, else the guest token from «Finn bestillingen din».
+  static Map<String, String>? supportAuth(String? guestToken) =>
+      authParams() ?? (guestToken == null || guestToken.isEmpty ? null : {'guest_token': guestToken});
+
+  Future<Map<String, dynamic>?> _support(String method, String path, {Map<String, dynamic> body = const {}, Map<String, String> query = const {}, String? guestToken}) =>
+      _guarded(() async {
+        final auth = supportAuth(guestToken);
+        if (auth == null || !networkEnabled) return null;
+        final url = '$path?${_qs({...auth, ...query})}';
+        final json = method == 'GET' ? await _helper.get(url) : await _helper.post(url, body: body);
+        return json is Map<String, dynamic> ? json : null;
+      });
+
+  /// `GET /api/support/config` — public: hours, answer time, phone, e-mail.
+  Future<Map<String, dynamic>?> supportConfig() => _guarded(() async {
+    if (!networkEnabled) return null;
+    final json = await _helper.get('api/support/config');
+    return json is Map<String, dynamic> ? json : null;
+  });
+
+  Future<Map<String, dynamic>?> supportOpen({required String topic, int? orderId, String? guestToken}) =>
+      _support('POST', 'api/support/conversations', body: {'topic': topic, if (orderId != null) 'order_id': orderId}, guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportSend(int id, String body, {String? guestToken}) =>
+      _support('POST', 'api/support/conversations/$id/messages', body: {'body': body}, guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportPoll(int id, int after, {String? guestToken}) =>
+      _support('GET', 'api/support/conversations/$id/messages', query: {'after': '$after'}, guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportEscalate(int id, {String? guestToken}) =>
+      _support('POST', 'api/support/conversations/$id/escalate', guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportClose(int id, {String? guestToken}) =>
+      _support('POST', 'api/support/conversations/$id/close', guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportCases({String? guestToken}) =>
+      _support('GET', 'api/support/cases', guestToken: guestToken);
+
+  /// Guest lookup / verify: `(status code, body)`, or null when the server
+  /// could not be reached — a 422 is an answer («fant ikke», «feil kode»).
+  Future<(int, Map<String, dynamic>)?> supportGuest(String step, Map<String, dynamic> body) async {
+    if (!networkEnabled) return null;
+    try {
+      final res = await Dio().post<dynamic>(
+        '${BaseUrl.domain}api/support/guest/$step',
+        data: body,
+        options: Options(headers: {'Accept': 'application/json'}, validateStatus: (s) => s != null && s < 500),
+      );
+      final data = res.data;
+      return (res.statusCode ?? 0, data is Map<String, dynamic> ? data : <String, dynamic>{});
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `ops.customer.problem` — `kind` ∈ door, missing, wait, cancel, and the
+  /// case kinds missing_item, wrong_item, quality, not_delivered (Step 5).
   Future<Map<String, dynamic>?> problem(
     int orderId, {
     required String kind,

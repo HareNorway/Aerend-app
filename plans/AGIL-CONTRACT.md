@@ -424,6 +424,18 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | payload | `ops.customer.tracking` only: `month_local_count` | the customer's delivered orders (ops `delivered` or legacy status 9) created this month, Oslo time |
 | route | `ops.customer.receipt` `GET /api/ops/customer/orders/{orderId}/receipt` | house handshake, own order; `application/pdf` (`OrderReceiptPdfService`), 503 `RECEIPT_UNAVAILABLE` |
 
+**Step 5 — support v1** (no AI, no money)
+
+| Kind | Name | Notes |
+|---|---|---|
+| table | `support_conversations`, `support_messages` | `App\Models\Support\*`; states `assistant` → `queued` → `human` → `closed`; topics `support`, `mangler`, `feil`, `kom_aldri`; message `author` `customer|assistant|human|system`, `attachments{card{type,ref,title,sub}, chips[]}` |
+| column | `ops_problems.customer_kind` | `missing_item`, `wrong_item`, `quality`, `not_delivered` (→ ops type `wrong_order`, `wrong_order`, `damage`, `wrong_address`); customer cases have no triage deadline |
+| route | `ops.customer.problem` `kind` + `photo_url` | the four case kinds (old `missing` = `missing_item`); one open case per order (`existing: true`); response adds `case` |
+| routes | `/api/support/*` (`support.*`) | `config` (public); `guest/lookup {order_no, phone?}`, `guest/verify {order_no, code}` → `guest_token` (rate limiter `support-guest`); `conversations` (list, open `{topic, order_id?}`), `conversations/{id}/messages` (GET `?after=`, POST `{body}`), `…/escalate`, `…/close`; `cases`, `cases/{id}`, `cases/{id}/reopen`; `uploads/sign` (Cloudinary). Auth: house `user_id`+`access_token` or `guest_token` (scoped to one order) |
+| policies | `support.hours_open` (8), `support.hours_close` (23), `support.answer_minutes` (30), `support.on_call` ([]), `support.guest_token_minutes` (120) | `App\Ops\PolicyKeys`; Drift → Policy «Kundeservice» |
+| admin | `get:admin:support_inbox` `/admin/drift/kundeservice` | queue, take over, reply, close (restyled in Step 14) |
+| dart | `SupportStore` / `SupportAssistent` / `SupportConfig` (`lib/screens/bergen/hjelp/support.dart`) | server first; the scripted rules stay on the device only as the offline fallback; cases from the server (no prefs store); `OpsCustomerApi.support*` |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session

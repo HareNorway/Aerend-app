@@ -82,6 +82,8 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
   void initState() {
     super.initState();
     _load();
+    // «Sak på ordren» reads the customer's cases from the server (Step 5).
+    SupportStore.instance.oppdater();
   }
 
   Future<void> _load() async {
