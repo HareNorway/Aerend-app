@@ -517,6 +517,26 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | blade | `<x-adm.*>` (`resources/views/components/adm/`) | `kpi`, `page-head`, `crumbs`, `tabs`, `badge`, `table`, `tabletop`, `modal`, `mode-note`, `nav-card`, `toggle`, `field`, `empty`, `banner`, `def-row`, `list-row`, `avatar` |
 | shell | `@section('crumbs')`; `$admInlineFlash` | multi-level crumbs; a page that shows its own flash banner shares `admInlineFlash` and the shell skips its toast |
 
+**Step 11 — Admin · Oversikt, Ordrer, Kunder** (admin panel only; no API change)
+
+«Commercial» means a marketplace order: `user_store_product_booking.campaign_id IS NULL`. Dugnad campaign orders are never counted or listed on these screens.
+
+| Kind | Name | Notes |
+|---|---|---|
+| class | `App\Services\Ops\AdminOverviewReadModel` | `overview(now, areaId)` → `kpis` (active orders = `placed` + in-flight ops states; couriers online = distinct ids on an open `ops_courier_shifts` shift or seen in `geo_courier_presence` in 15 min, over the courier list's total; partners open = `StoreOpenNow::openStoreIds()` over active non-club stores; revenue today = paid, not cancelled `total_pay`, delta vs the same weekday last week **up to the same time of day**) and `cards` (feed reports = `feed.post.flagged` in `ops_feed_inbox` last 7 days, outbox, active zones, proposed geo proposals, open/queued support conversations, open customer cases, exceptions, pending payouts, `moderation_waiting` = 0 until Step 13). Reads `PanelReadModel::now()`; never calls the feed, Stripe or Vipps |
+| class | `App\Services\Ops\CommercialOrdersReadModel` | tabs `alle` / `aktive` / `venter` / `levert`; a row has code, customer, partner, courier, zone (delivery cell's zone, else the store's), stage label + tone, the case (latest customer case on the order: `Åpen` / `Gjenåpnet` / `Lukket` + kind) and a refund (legacy `user_refund_status = 1`). No `ops_state`: the legacy `status` decides (9 delivered; 3, 4 cancelled; 10 payment failed; else waiting) |
+| class | `App\Services\Ops\CustomerReadModel` | list (orders, paid spend, zone, usual payment, «Kunde siden») and detail (KPIs, info, purchase history, payment methods, activity log) from `users`, orders, `card_details` (last four only; number and CVV never leave the class), `user_wallet_transaction` (`wallet_provider_type` 0 only), `pts_balances`, cases and support. Contact details go through `User::Email2Stars` / `ContactNumber2Stars` |
+| class | `App\Http\Controllers\Admin\CommercialAdminController` | `overview`, `orders`, `customers` (`?fane=` kunder, katalog, gebyr, kampanjer, betaling), `customer` (`?fane=` oversikt, kjop, betaling, logg). Outside the commercial shell it redirects to the legacy page; it checks `CommercialNav::allows()` (the same `admin_module` grant as the sidebar); role 4 sees its own area |
+| route | `get:admin:dashboard` | commercial shell → the commercial Oversikt; otherwise the legacy dashboard, unchanged |
+| route | `get:admin:dashboard_legacy` `GET /admin/dashboard/klassisk` | the legacy dashboard, first entry under «Mer» («Klassisk oversikt») |
+| route | `get:admin:commercial_orders` `GET /admin/ordrer` | «Kommersielle ordrer» (`?fane=`, `?q=`, `?side=`) |
+| route | `get:admin:commercial_order` `GET /admin/ordrer/{code}` | the existing `ops/ordre` timeline (`OpsAdminController@order`), restyled, with crumbs «Ordrer › code»; `get:admin:ops_order` (`/admin/drift/ordre?code=`) is unchanged |
+| route | `get:admin:customers` `GET /admin/kunder`; `get:admin:customer` `GET /admin/kunder/{id}` | «Kunde-styring» and a customer. The legacy `get:admin:user_list` stays under «Mer» |
+| method | `CommercialNav::allows(Request, itemId)` | the sidebar's permission rule for a design item, for screens with no `admin_module` row of their own |
+| blade | `<x-adm.pager>` | «Side x av y» with previous/next, keeping the other query values |
+
+Edits stay on the existing flows: «Ny vare» → `get:admin:add_store_product`, «Ny kampanje» → `get:admin:store:add_promocode`, promo on/off → `get:admin:store:promocode_change_status`, distance bands → `get:admin:store_delivery_charges`, payment settings → `get:admin:general_setting`. «Betaling» reads whether Stripe and Vipps keys are set, never their values.
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session
