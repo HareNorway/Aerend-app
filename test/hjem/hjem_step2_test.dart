@@ -160,6 +160,68 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(trykk, 1);
     expect(hjemTilbudTid(DateTime(2026, 10, 5, 22, 24, 40)), '01:35:19');
+    // Step 12 (#17): no personal offer, no mystery coupon.
+    expect(find.text('Avslør'), findsNothing);
+  });
+
+  testWidgets('The mystery coupon is the customer\'s own offer, revealed by the server', (tester) async {
+    phone(tester);
+    final til = DateTime.now().add(const Duration(hours: 3));
+    final mysterie = HjemPersonlig(id: 7, avslort: false, gyldigTil: til);
+    var avslor = 0, butikk = 0;
+    HjemPersonlig? svar = HjemPersonlig(id: 7, avslort: true, gyldigTil: til, tittel: 'Rabatt hos Torgboden', verdi: '−20 %', butikk: 'Torgboden', butikkId: 9);
+    await tester.pumpWidget(
+      host(
+        lfFlow(
+          358,
+          HjemTilbudRad(
+            tilbud: const [],
+            personlig: mysterie,
+            onAvslor: (p) async {
+              avslor++;
+              expect(p.id, 7);
+              return svar;
+            },
+            onMysterie: () => butikk++,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Et tilbud bare for deg'), findsOneWidget);
+    expect(find.text('?'), findsOneWidget, reason: 'the value is hidden until revealed');
+    expect(find.text('Torgboden'), findsNothing);
+
+    await tester.tap(find.text('Avslør'));
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(avslor, 1);
+    expect(find.text('−20 %'), findsOneWidget);
+    expect(find.text('Rabatt hos Torgboden'), findsOneWidget);
+    expect(find.text('Torgboden'), findsOneWidget);
+
+    await tester.tap(find.text('Til butikken'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(butikk, 1);
+
+    // A reveal that does not land turns the coupon back.
+    svar = null;
+    await tester.pumpWidget(host(lfFlow(358, HjemTilbudRad(tilbud: const [], personlig: HjemPersonlig(id: 8, avslort: false, gyldigTil: til), onAvslor: (_) async => svar, onMysterie: () {}))));
+    await tester.pump();
+    await tester.tap(find.text('Avslør'));
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(find.text('Avslør'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 12));
+  });
+
+  test('A personal offer parses from offers/mine and hides what is not revealed', () {
+    final p = HjemPersonlig.fraJson({'id': 3, 'mystery': true, 'valid_until': '2030-01-01T23:59:00+01:00', 'value_label': null});
+    expect(p, isNotNull);
+    expect(p!.avslort, isFalse);
+    expect(p.verdi, isNull);
+    expect(HjemPersonlig.fraJson({'id': 3}), isNull, reason: 'no expiry: not a usable offer');
+    final r = HjemPersonlig.fraJson({'id': 3, 'mystery': false, 'valid_until': '2030-01-01T23:59:00Z', 'value_label': '50 kr', 'all_stores': true});
+    expect(r!.alleButikker, isTrue);
+    expect(r.verdi, '50 kr');
   });
 
   testWidgets('Sheet cards: Hurtigbestilling, section header, Utforsk, Forundringspose', (tester) async {

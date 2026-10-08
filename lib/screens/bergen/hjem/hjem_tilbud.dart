@@ -46,6 +46,55 @@ class HjemTilbud {
   final double verdiStr;
 }
 
+/// A personal / mystery coupon (`GET /api/offers/mine`, backend plan Step 12).
+/// Until revealed the server sends no value or shop — the surprise is real.
+/// Redemption at checkout is Step 15: the coupon is shown and revealed only.
+class HjemPersonlig {
+  const HjemPersonlig({
+    required this.id,
+    required this.avslort,
+    required this.gyldigTil,
+    this.tittel,
+    this.verdi,
+    this.butikk,
+    this.butikkId,
+    this.alleButikker = false,
+  });
+
+  final int id;
+  final bool avslort;
+  final DateTime gyldigTil;
+  final String? tittel, verdi, butikk;
+  final int? butikkId;
+  final bool alleButikker;
+
+  /// Null when the row is not a usable offer.
+  static HjemPersonlig? fraJson(Map<String, dynamic> j) {
+    final id = (j['id'] as num?)?.toInt();
+    final til = DateTime.tryParse('${j['valid_until'] ?? ''}')?.toLocal();
+    if (id == null || til == null) return null;
+    final store = j['store'] is Map ? j['store'] as Map : null;
+    return HjemPersonlig(
+      id: id,
+      avslort: j['mystery'] == false,
+      gyldigTil: til,
+      tittel: j['title'] as String?,
+      verdi: j['value_label'] as String?,
+      butikk: store?['name'] as String?,
+      butikkId: (store?['id'] as num?)?.toInt(),
+      alleButikker: j['all_stores'] == true,
+    );
+  }
+
+  /// «Gjelder til 23:59» today, else «Gjelder til 12.10».
+  String get gjelderTil {
+    final n = DateTime.now();
+    String p(int x) => x.toString().padLeft(2, '0');
+    final iDag = gyldigTil.year == n.year && gyldigTil.month == n.month && gyldigTil.day == n.day;
+    return iDag ? 'Gjelder til ${p(gyldigTil.hour)}:${p(gyldigTil.minute)}' : 'Gjelder til ${p(gyldigTil.day)}.${p(gyldigTil.month)}';
+  }
+}
+
 class _StubStil {
   const _StubStil(this.bg, this.c, this.verdiC, this.skygge);
   final List<CssBg> bg;
@@ -85,9 +134,16 @@ String hjemTilbudTid([DateTime? n]) {
 }
 
 class HjemTilbudRad extends StatefulWidget {
-  const HjemTilbudRad({super.key, required this.tilbud, required this.onMysterie});
+  const HjemTilbudRad({super.key, required this.tilbud, required this.onMysterie, this.personlig, this.onAvslor});
 
   final List<HjemTilbud> tilbud;
+
+  /// The customer's personal offer (Step 12); without one there is no
+  /// mystery coupon.
+  final HjemPersonlig? personlig;
+
+  /// «Avslør»: reveals it on the server and returns the revealed offer.
+  final Future<HjemPersonlig?> Function(HjemPersonlig p)? onAvslor;
 
   /// The revealed mystery coupon's "Til butikken".
   final VoidCallback onMysterie;
@@ -115,11 +171,24 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   /// The focused dot fills over 11s.
   late final AnimationController _prikk = AnimationController(vsync: this, duration: const Duration(seconds: 11));
 
-  int get _n => widget.tilbud.length + 1;
+  /// The personal offer as last seen (revealed in place after «Avslør»).
+  late HjemPersonlig? _p = widget.personlig;
+
+  @override
+  void didUpdateWidget(covariant HjemTilbudRad old) {
+    super.didUpdateWidget(old);
+    if (widget.personlig?.id != old.personlig?.id) {
+      _p = widget.personlig;
+      _myst = _p?.avslort ?? false;
+    }
+  }
+
+  int get _n => widget.tilbud.length + (_p != null ? 1 : 0);
 
   @override
   void initState() {
     super.initState();
+    _myst = _p?.avslort ?? false;
     _prikk.forward();
     _rot = Timer.periodic(const Duration(milliseconds: 400), (_) => _tikk());
   }
@@ -153,6 +222,8 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     if (DateTime.now().difference(_sist).inMilliseconds < 11000) return;
     _sist = DateTime.now();
     final n = _n;
+    // One coupon: nothing to rotate to.
+    if (n <= 1) return;
     final ny = math.min(n, _i + 1);
     _gaaTil(ny);
     if (ny == n) {
@@ -207,9 +278,12 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   Widget build(BuildContext context) {
     final slides = <_Kupong>[
       for (var k = 0; k < widget.tilbud.length; k++) _Kupong(t: widget.tilbud[k], draaper: k % 2 == 0),
-      _Kupong(myst: !_myst, avslort: _myst, onMyst: _avslor, onAvslort: widget.onMysterie, draaper: widget.tilbud.length % 2 == 0),
+      if (_p != null)
+        _Kupong(p: _p, myst: !_myst, avslort: _myst, onMyst: _avslor, onAvslort: widget.onMysterie, draaper: widget.tilbud.length % 2 == 0),
     ];
-    final alle = [...slides, slides.first];
+    if (slides.isEmpty) return const SizedBox.shrink();
+    // The loop copy of the first slide only when there is somewhere to loop.
+    final alle = slides.length > 1 ? [...slides, slides.first] : slides;
     final n = slides.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -320,10 +394,23 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     );
   }
 
-  void _avslor() {
+  /// «Avslør»: the flip plays at once; the value comes from the server
+  /// (`POST /api/offers/{id}/reveal`). If that fails the coupon turns back.
+  Future<void> _avslor() async {
     HapticFeedback.mediumImpact();
     _sist = DateTime.now().add(const Duration(seconds: 4));
+    final p = _p;
     setState(() => _myst = true);
+    if (p == null || widget.onAvslor == null) return;
+    final avslort = await widget.onAvslor!(p);
+    if (!mounted) return;
+    setState(() {
+      if (avslort != null) {
+        _p = avslort;
+      } else {
+        _myst = false;
+      }
+    });
   }
 }
 
@@ -360,9 +447,12 @@ class _NedtellingState extends State<_Nedtelling> {
 
 /// One paper coupon (or the mystery one).
 class _Kupong extends StatefulWidget {
-  const _Kupong({this.t, this.myst = false, this.avslort = false, this.onMyst, this.onAvslort, required this.draaper});
+  const _Kupong({this.t, this.p, this.myst = false, this.avslort = false, this.onMyst, this.onAvslort, required this.draaper});
 
   final HjemTilbud? t;
+
+  /// The personal offer behind the mystery coupon (when `t` is null).
+  final HjemPersonlig? p;
   final bool myst, avslort;
   final VoidCallback? onMyst, onAvslort;
 
@@ -395,17 +485,20 @@ class _KupongState extends State<_Kupong> {
   Widget build(BuildContext context) {
     final t = widget.t;
     final myst = widget.myst, av = widget.avslort;
-    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+    // The mystery coupon is the customer's personal offer (`offers/mine`,
+    // Step 12): hidden until revealed, then its own value and shop.
+    final p = widget.p;
+    final aapen = !myst && p != null && p.verdi != null;
     final eyebrow = t?.eyebrow ?? (myst ? 'Mysterie' : 'Avslørt');
-    final navn = t?.navn ?? (myst ? 'Et tilbud bare for deg' : 'Rabatt på hele butikken');
-    final butikk = t?.butikk ?? (myst ? 'Ærend' : 'Torgboden');
-    final meta = t?.meta ?? (myst ? 'Fra en butikk i nærheten' : 'Fisketorget · 25 min');
+    final navn = t?.navn ?? (myst ? 'Et tilbud bare for deg' : (p?.tittel ?? 'Ditt tilbud'));
+    final butikk = t?.butikk ?? (myst || !aapen ? 'Ærend' : (p.alleButikker ? 'Hele Ærend' : (p.butikk ?? 'Ærend')));
+    final meta = t?.meta ?? (myst ? 'Fra en butikk i nærheten' : (p?.alleButikker == true ? 'Alle butikkene' : 'Bare for deg'));
     final ny = t?.ny ?? '';
-    final gml = t?.gml ?? (myst ? 'Gjelder til midnatt' : 'Til midnatt');
+    final gml = t?.gml ?? (p?.gjelderTil ?? '');
     final strek = t?.gmlStrek ?? false;
-    final verdi = t?.verdi ?? (myst ? '?' : '−20 %');
-    final under = t?.under ?? (myst ? 'Én per kunde' : 'På kontoen');
-    final cta = t != null ? 'Legg til' : (myst ? 'Avslør' : 'Til butikken');
+    final verdi = t?.verdi ?? (aapen ? p.verdi! : '?');
+    final under = t?.under ?? 'Én per kunde';
+    final cta = t != null ? 'Legg til' : (myst ? 'Avslør' : (p?.alleButikker == true ? 'Handle nå' : 'Til butikken'));
     final stil = t != null
         ? _kStub[t.stub]!
         : myst

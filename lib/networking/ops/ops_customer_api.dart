@@ -611,6 +611,43 @@ class OpsCustomerApi {
     return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
   }
 
+  /// `GET /api/catalog/home` (backend plan Step 12) — what «Tilbud og
+  /// fremheving» put on Hjem: `featured` hero offers, the `free_delivery`
+  /// FRAKT card, curated `swipe` deals and the ordered `sections`. Null on
+  /// failure: Hjem falls back to what it shows without them.
+  Future<Map<String, dynamic>?> catalogHome() async {
+    return _guarded(() async {
+      final j = await _helper.get('api/catalog/home');
+      return j is Map<String, dynamic> ? j : null;
+    });
+  }
+
+  /// `GET /api/catalog/showcase?category=` — this week's «Ukens utstilling»
+  /// (`mote`, `gaver`, or a category slug). Null when there is none.
+  Future<Map<String, dynamic>?> showcase(String category) async {
+    final json = await _guarded(() async {
+      final j = await _helper.get('api/catalog/showcase?${_qs({'category': category})}');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final s = json?['showcase'];
+    return s is Map<String, dynamic> ? s : null;
+  }
+
+  /// `GET /api/offers/mine` — the customer's personal / mystery offers.
+  /// Empty for a guest or on failure.
+  Future<List<Map<String, dynamic>>> myOffers() async {
+    final json = await _guarded(() => _get('api/offers/mine'));
+    final list = json?['offers'];
+    return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
+  }
+
+  /// `POST /api/offers/{id}/reveal` — «Avslør». The revealed offer, or null.
+  Future<Map<String, dynamic>?> revealOffer(int id) async {
+    final json = await _guarded(() => _post('api/offers/$id/reveal', const {}));
+    final o = json?['offer'];
+    return o is Map<String, dynamic> ? o : null;
+  }
+
   /// «Varsle meg når det åpner» on / off (`POST|DELETE .../{id}/notify`).
   /// False when it did not land (logged out, offline).
   Future<bool> launchNotify(int id, bool on) async {

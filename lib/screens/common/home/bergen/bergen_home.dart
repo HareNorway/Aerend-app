@@ -173,6 +173,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// threshold (`ops/customer/free-delivery`, Step 8); null hides the card.
   Map<String, dynamic>? _frakt;
 
+  /// `GET /api/catalog/home` (Step 12): the hero offers and the FRAKT card the
+  /// admin put on Hjem («Tilbud og fremheving»). Null until loaded / offline.
+  Map<String, dynamic>? _katalog;
+
+  /// The customer's personal / mystery offer (`offers/mine`, Step 12).
+  HjemPersonlig? _personlig;
+
   /// Vindu «Bestill igjen»: this customer's latest order per shop, newest
   /// first, at most two (`ops.customer.orders`, Step 8).
   List<Map<String, dynamic>> _igjen = const [];
@@ -216,6 +223,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _lastSnart();
     _lastPose();
     _lastFrakt();
+    _lastKatalog();
+    _lastPersonlig();
     _lastIgjen();
     // Live-ærend: the shell's pill follows the order under way.
     _trackSub = _bloc.subjectTrackOrder.stream.listen((r) {
@@ -487,9 +496,23 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
-  /// Under kaien's FRAKT card: the nearest open store's own free-delivery
-  /// threshold (Step 8). A cross-store «i kveld» is a campaign (Step 12).
+  /// Under kaien's FRAKT card: the admin's «Gratis levering» campaign when
+  /// there is one (Step 12, `catalog/home` `free_delivery`), else the nearest
+  /// open store's own free-delivery threshold (Step 8).
   HjemKaienFunn? _kaienFrakt() {
+    final kampanje = _katalog?['free_delivery'];
+    if (kampanje is Map<String, dynamic>) {
+      final store = kampanje['store'] is Map ? kampanje['store'] as Map : null;
+      final storeId = (store?['id'] as num?)?.toInt();
+      final now = (kampanje['now_ore'] as num?)?.toInt();
+      return HjemKaienFunn(
+        tittel: '${kampanje['title'] ?? 'Gratis levering'}',
+        under: [kampanje['sub'], store?['name']].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
+        pris: now == null || now == 0 ? '0 kr' : '${now ~/ 100} kr',
+        merke: kampanje['badge'] as String?,
+        onTap: storeId != null ? () => BergenRoutes.push(context, '/bergen/butikk/$storeId') : _toExplore,
+      );
+    }
     final f = _frakt;
     final id = (f?['id'] as num?)?.toInt();
     final ore = (f?['threshold_ore'] as num?)?.toInt() ?? 0;
@@ -498,6 +521,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       tittel: 'Gratis levering',
       under: 'Over ${ore ~/ 100} kr · ${f['name'] ?? ''}',
       pris: '0 kr',
+      // The store's own threshold, open now — not a tonight-only campaign.
+      merke: 'Åpen nå',
       onTap: () => BergenRoutes.push(context, '/bergen/butikk/$id'),
     );
   }
@@ -779,6 +804,38 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     if (mounted) setState(() => _frakt = store);
   }
 
+  /// «Tilbud og fremheving» for Hjem (Step 12).
+  Future<void> _lastKatalog() async {
+    final home = await OpsCustomerApi().catalogHome();
+    if (mounted && home != null) setState(() => _katalog = home);
+  }
+
+  /// The first personal offer still good (Step 12); none for a guest.
+  Future<void> _lastPersonlig() async {
+    if (isGuestUser()) return;
+    final rows = await OpsCustomerApi().myOffers();
+    final p = rows.map(HjemPersonlig.fraJson).whereType<HjemPersonlig>().firstOrNull;
+    if (mounted) setState(() => _personlig = p);
+  }
+
+  /// «Avslør» on the mystery coupon.
+  Future<HjemPersonlig?> _avslorPersonlig(HjemPersonlig p) async {
+    final r = await OpsCustomerApi().revealOffer(p.id);
+    final avslort = r == null ? null : HjemPersonlig.fraJson(r);
+    if (mounted && avslort != null) setState(() => _personlig = avslort);
+    return avslort;
+  }
+
+  /// The revealed coupon's «Til butikken» / «Handle nå».
+  void _tilPersonlig() {
+    final id = _personlig?.butikkId;
+    if (id != null) {
+      BergenRoutes.push(context, '/bergen/butikk/$id');
+    } else {
+      _toExplore();
+    }
+  }
+
   /// The two shops this customer last ordered from, with that order's lines.
   Future<void> _lastIgjen() async {
     if (isGuestUser()) return;
@@ -912,6 +969,42 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     ];
   }
 
+  /// The admin's hero offers (`catalog/home` `featured`, Step 12) as coupons:
+  /// the offer's own eyebrow, title, badge and prices, its colour as the stub.
+  List<HjemTilbud> _featuredTilbud() {
+    final rows = _katalog?['featured'];
+    if (rows is! List) return const [];
+    const farger = {'oransje': HjemStub.oransje, 'rosa': HjemStub.oransje, 'gronn': HjemStub.mint, 'bla': HjemStub.teal, 'lilla': HjemStub.teal};
+    String kr(int ore) => ore == 0 ? 'Gratis' : '${(ore / 100).round()} kr';
+    return [
+      for (final o in rows.whereType<Map<String, dynamic>>().take(4))
+        () {
+          final store = o['store'] is Map ? o['store'] as Map : null;
+          final storeId = (store?['id'] as num?)?.toInt();
+          final was = (o['was_ore'] as num?)?.toInt();
+          final now = (o['now_ore'] as num?)?.toInt();
+          final badge = (o['badge'] as String?)?.trim();
+          final pst = was != null && now != null && was > 0 ? ((was - now) / was * 100).round() : null;
+          return HjemTilbud(
+            eyebrow: (o['eyebrow'] as String?)?.trim().isNotEmpty == true ? o['eyebrow'] as String : 'Tilbud',
+            navn: '${o['title'] ?? ''}',
+            butikk: '${store?['name'] ?? 'Ærend'}',
+            meta: '${o['sub'] ?? ''}',
+            logoUrl: (store?['logo_url'] as String?)?.isNotEmpty == true ? store!['logo_url'] as String : null,
+            fotoUrl: (o['banner_url'] as String?)?.isNotEmpty == true ? o['banner_url'] as String : null,
+            ny: now != null ? kr(now) : '',
+            gml: was != null ? kr(was) : '',
+            gmlStrek: was != null,
+            verdi: badge != null && badge.isNotEmpty ? badge : (pst != null ? '−$pst %' : '★'),
+            under: was != null && now != null && was > now ? 'Spar ${kr(was - now)}' : (store == null ? 'Hele Ærend' : 'Hos ${store['name']}'),
+            verdiStr: (badge?.length ?? 0) > 6 ? 20.0 : 28.0,
+            stub: farger[o['grad']] ?? HjemStub.oransje,
+            onTap: storeId != null ? () => BergenRoutes.push(context, '/bergen/butikk/$storeId') : _toExplore,
+          );
+        }(),
+    ];
+  }
+
   /// Ærend-tilbud: the discounted products in the swipe feed, as coupons;
   /// the prototype's coupons while there are none.
   List<HjemTilbud> _tilbud(List<SwipeCardModel> swipe) {
@@ -922,12 +1015,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       HjemStub.mint,
     ];
     const eyebrows = ['Dagens kupp', 'Kun i kveld', 'Tilbud', 'Tilbud'];
+    // Step 12: the admin's hero offers come first («Tilbud og fremheving»).
+    final featured = _featuredTilbud();
     final deals = swipe
         .where((p) => p.originalAmount > p.amount && p.amount > 0)
-        .take(4)
+        .take((4 - featured.length).clamp(0, 4).toInt())
         .toList();
-    if (deals.isNotEmpty) {
+    if (featured.isNotEmpty || deals.isNotEmpty) {
       return [
+        ...featured,
         for (var k = 0; k < deals.length; k++)
           () {
             final p = deals[k];
@@ -949,7 +1045,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               verdi: '−$pst %',
               under: 'Spar ${_kr(spar)}',
               verdiStr: k == 0 ? 22 : 28,
-              stub: stubs[k % stubs.length],
+              stub: stubs[(k + featured.length) % stubs.length],
               onTap: () => _openProduct(
                 BergenProductCard(
                   id: p.productId,
@@ -1089,7 +1185,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _storesLoading.add(cat.id);
     final seq = ++_storesRequestSeq;
     _storeRepo
-        .fetch(cat.id)
+        .fetch(cat.id, surface: 'home')
         .then((list) {
           if (!mounted) return;
           setState(() {
@@ -1785,7 +1881,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 padding: EdgeInsets.only(top: 22 * s),
                 child: lfFlow(
                   358,
-                  tilbud.isEmpty ? const SizedBox.shrink() : HjemTilbudRad(tilbud: tilbud, onMysterie: _comingSoon),
+                  tilbud.isEmpty && _personlig == null
+                      ? const SizedBox.shrink()
+                      : HjemTilbudRad(tilbud: tilbud, personlig: _personlig, onAvslor: _avslorPersonlig, onMysterie: _tilPersonlig),
                 ),
               ),
               // Only with real bags tonight.

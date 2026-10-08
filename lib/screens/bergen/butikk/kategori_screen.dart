@@ -442,6 +442,23 @@ class _KategoriScreenState extends State<KategoriScreen> {
     return (teller.entries.toList()..sort((a, b) => b.value - a.value)).first.key;
   }
 
+  // ── Ukens utstilling (Step 12) ──────────────────────────────────────────
+
+  /// `catalog/showcase` per key (`mote`, `gaver`), loaded once on first build.
+  final Map<String, KatUtstilling?> _utstillinger = {};
+  final Set<String> _utstillingLaster = {};
+
+  KatUtstilling? _utstillingFor(BuildContext context, String key) {
+    if (!_utstillinger.containsKey(key) && _utstillingLaster.add(key)) {
+      _customer.showcase(key).then((j) {
+        if (mounted) setState(() => _utstillinger[key] = KatUtstilling.fraJson(j));
+      });
+    }
+    return _utstillinger[key];
+  }
+
+  void _openButikk(int id) => _openStore(id, '');
+
   // ── Actions ─────────────────────────────────────────────────────────────
 
   void _openStore(int id, String name) {
@@ -1011,13 +1028,15 @@ class _KategoriScreenState extends State<KategoriScreen> {
         children: [
           if (gaver)
             KatGaverSide(
+              utstilling: _utstillingFor(context, 'gaver'),
               onAegil: () => _askAegil('gift'),
-              onSnart: () => showBergenToast(context, BergenRoutes.kommerSnart),
+              onButikk: _openButikk,
             )
           else ...[
             if (mote)
               KatMoteUtstilling(
-                onSnart: () => showBergenToast(context, BergenRoutes.kommerSnart),
+                utstilling: _utstillingFor(context, 'mote'),
+                onButikk: _openButikk,
               ),
             if (_produkter) _produktGrid(context) else ..._butikkKort(context),
           ],
