@@ -153,6 +153,28 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> supportCases({String? guestToken}) =>
       _support('GET', 'api/support/cases', guestToken: guestToken);
 
+  /// `POST /api/support/conversations/{id}/rating` (backend plan Step 14) —
+  /// the 1-tap «Hvordan var hjelpen?» on a closed conversation, [score] 1–5.
+  /// `conversation` is the updated payload (`can_rate: false`, `csat_score`)
+  /// on 200, else null; `error` is the 422 code (`ALREADY_RATED`,
+  /// `CONVERSATION_OPEN`) when the server refused it. Never throws.
+  Future<({Map<String, dynamic>? conversation, String? error})> rateConversation(int id, int score, {String? guestToken}) async {
+    const ingen = (conversation: null, error: null);
+    if (score < 1 || score > 5 || !networkEnabled) return ingen;
+    final auth = supportAuth(guestToken);
+    if (auth == null) return ingen;
+    try {
+      final res = await _helper.postAllowClientError('api/support/conversations/$id/rating?${_qs(auth)}', body: {'score': score});
+      final data = res.data is Map<String, dynamic> ? res.data as Map<String, dynamic> : const <String, dynamic>{};
+      final c = data['conversation'];
+      if (res.statusCode == 200 && data['status'] != 0 && c is Map<String, dynamic>) return (conversation: c, error: null);
+      final error = data['error'];
+      return (conversation: null, error: error == null ? null : '$error');
+    } catch (_) {
+      return ingen;
+    }
+  }
+
   /// Guest lookup / verify: `(status code, body)`, or null when the server
   /// could not be reached — a 422 is an answer («fant ikke», «feil kode»).
   Future<(int, Map<String, dynamic>)?> supportGuest(String step, Map<String, dynamic> body) async {

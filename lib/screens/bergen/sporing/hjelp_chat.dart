@@ -271,6 +271,9 @@ class _SupportChatState extends State<_SupportChat> {
       // Closed on the server (staff or the customer): no input, back to the
       // hub to start a new conversation (backend plan Step 5).
       if (s.lukket) ...[
+        // «Hvordan var hjelpen?» (backend plan Step 14): closed and `can_rate`,
+        // also when a poll is what brought the close.
+        if (s.visVurdering) ...[const SizedBox(height: 10), _Vurdering(samtale: s)],
         const SizedBox(height: 10),
         LfPress(
           key: const Key('a1_hjelp_chat_ny'),
@@ -480,6 +483,109 @@ class _SupportChatState extends State<_SupportChat> {
       ),
     );
   }
+}
+
+/// The 1-tap support rating (backend plan Step 14): «Hvordan var hjelpen?»
+/// and five stars; one tap sends. Then «Takk for vurderingen!» with the
+/// chosen stars, read-only; a failed send keeps the stars and says to retry.
+class _Vurdering extends StatefulWidget {
+  const _Vurdering({required this.samtale});
+  final SupportSamtale samtale;
+
+  @override
+  State<_Vurdering> createState() => _VurderingState();
+}
+
+class _VurderingState extends State<_Vurdering> {
+  bool _sender = false;
+  bool _feil = false;
+  int _valgt = 0;
+
+  Future<void> _vurder(int n) async {
+    if (_sender || widget.samtale.takket) return;
+    setState(() {
+      _sender = true;
+      _feil = false;
+      _valgt = n;
+    });
+    final ok = await SupportStore.instance.vurder(widget.samtale, n);
+    if (!mounted) return;
+    setState(() {
+      _sender = false;
+      _feil = !ok;
+      if (!ok) _valgt = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.samtale;
+    final takk = s.takket;
+    final fylt = takk ? (s.vurdering ?? 0) : _valgt;
+    return CssBox(
+      key: const Key('a1_hjelp_vurdering'),
+      radius: BorderRadius.circular(18),
+      padding: const EdgeInsets.fromLTRB(14, 11, 10, 11),
+      border: Border.all(color: rgba(255, 255, 255, .2)),
+      bg: [
+        CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
+      ],
+      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  takk ? SupportCopy.vurderTakk : SupportCopy.vurderSpor,
+                  key: Key(takk ? 'a1_hjelp_vurdering_takk' : 'a1_hjelp_vurdering_spor'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: inter(13, weight: FontWeight.w800),
+                ),
+              ),
+              const SizedBox(width: 6),
+              for (var n = 1; n <= 5; n++)
+                if (takk)
+                  Padding(
+                    key: Key('a1_hjelp_vurdering_vist_$n'),
+                    padding: const EdgeInsets.all(2),
+                    child: _stjerne(n <= fylt),
+                  )
+                else
+                  Semantics(
+                    button: true,
+                    label: SupportCopy.vurderStjerne(n),
+                    child: LfPress(
+                      key: Key('a1_hjelp_vurdering_$n'),
+                      onTap: () => _vurder(n),
+                      scale: .85,
+                      // 40 px target: enough for a thumb, five fit beside the question.
+                      child: SizedBox(width: 34, height: 40, child: Center(child: _stjerne(n <= fylt))),
+                    ),
+                  ),
+            ],
+          ),
+          if (_feil && !takk) ...[
+            const SizedBox(height: 2),
+            Text(
+              SupportCopy.vurderFeil,
+              key: const Key('a1_hjelp_vurdering_feil'),
+              style: inter(11, weight: FontWeight.w700, color: const Color(0xFFFFD5C6)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _stjerne(bool fylt) => Icon(
+    Icons.star_rounded,
+    size: 24,
+    color: fylt ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .3),
+  );
 }
 
 /// One message (`scMeld`): a system pill, or the label and the bubble with

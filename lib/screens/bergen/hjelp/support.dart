@@ -243,7 +243,21 @@ class SupportSamtale {
   bool lukket = false;
   SupportSak? sak;
 
+  /// `can_rate` (backend plan Step 14): closed and not rated yet. False when
+  /// the server does not send it (an older server shows no rating row).
+  bool kanVurdere = false;
+
+  /// `csat_score`, 1–5, once the customer rated the help; null before, or
+  /// when the server does not send it.
+  int? vurdering;
+
+  /// Rated from this device: the row turns into «Takk for vurderingen!».
+  bool takket = false;
+
   bool get erMenneske => menneske != null;
+
+  /// The «Hvordan var hjelpen?» row (or its thanks) under a closed thread.
+  bool get visVurdering => lukket && (kanVurdere || takket);
 
   /// The newest server message id (for `messages?after=`).
   int get sisteId => meldinger.fold<int>(0, (a, m) => (m.id ?? 0) > a ? m.id! : a);
@@ -355,7 +369,40 @@ class SupportStore {
     final navn = c['assignee_name']?.toString();
     if (state == 'human' && navn != null && navn.isNotEmpty) s.menneske = navn;
     if (state == 'closed') s.lukket = true;
+    s
+      ..kanVurdere = c['can_rate'] == true
+      ..vurdering = switch (c['csat_score']) {
+        final num n when n >= 1 && n <= 5 => n.toInt(),
+        _ => null,
+      };
     endret.value++;
+  }
+
+  /// The 1-tap rating (backend plan Step 14): true when the score landed, or
+  /// the server already had one (`ALREADY_RATED`) — both show the thanks.
+  /// False on any other failure: the row stays, with a retry hint.
+  Future<bool> vurder(SupportSamtale s, int score) async {
+    final id = s.serverId;
+    if (id == null || score < 1 || score > 5) return false;
+    final r = await api.rateConversation(id, score, guestToken: gjestToken);
+    final c = r.conversation;
+    if (c != null) {
+      flett(s, c);
+      s
+        ..vurdering ??= score
+        ..kanVurdere = false
+        ..takket = true;
+      endret.value++;
+      return true;
+    }
+    if (r.error == 'ALREADY_RATED') {
+      s
+        ..kanVurdere = false
+        ..takket = true;
+      endret.value++;
+      return true;
+    }
+    return false;
   }
 
   /// Polls the open server conversation for the person's replies while the
@@ -761,6 +808,12 @@ abstract final class SupportCopy {
   static String menneskeUnder(String navn) => '$navn fra Ærend · menneske';
   static const String avsluttetUnder = 'Samtalen er avsluttet';
   static const String nySamtale = 'Start en ny samtale';
+
+  // 1-tap rating under a closed conversation (backend plan Step 14).
+  static const String vurderSpor = 'Hvordan var hjelpen?';
+  static const String vurderTakk = 'Takk for vurderingen!';
+  static const String vurderFeil = 'Fikk ikke sendt. Trykk på en stjerne for å prøve igjen.';
+  static String vurderStjerne(int n) => '$n av 5 stjerner';
   static String merkeDu(String kl) => 'DU · $kl';
   static String merkeAi(String kl) => 'ÆREND-ASSISTENT · $kl';
   static String merkeMenneske(String navn, String kl) => '${navn.toUpperCase()} FRA ÆREND · $kl';
