@@ -187,6 +187,21 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> requestCode(int orderId) =>
       _guarded(() => _post('${_base}orders/$orderId/code', const {}));
 
+  // ── Push campaigns (backend plan Step 13) ───────────────────────────────
+
+  /// `POST api/ops/customer/push/{campaign_id}/opened` — the customer opened
+  /// an admin campaign push («Push-varsler»). Fire-and-forget: true when the
+  /// server counted it, false for a guest, offline or any failure. Never
+  /// throws.
+  Future<bool> pushOpened(String campaignId) async {
+    final id = campaignId.trim();
+    if (id.isEmpty) return false;
+    final json = await _guarded(
+      () => _post('${_base}push/${Uri.encodeComponent(id)}/opened', const {}),
+    );
+    return json?['counted'] == true;
+  }
+
   // ── the demo panel's real triggers (debug builds only) ───────────────
 
   /// `POST /api/ops/orders/{id}/transition` — the one write path, driven by

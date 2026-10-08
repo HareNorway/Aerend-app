@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../data/feed/feed_comment.dart';
+import '../../../data/feed/feed_config.dart';
 import '../../../data/feed/feed_post.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../networking/feed/feed_repo.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../../utils/utils.dart';
@@ -18,11 +20,21 @@ import 'post_detail_bloc.dart';
 import 'post_detail_event.dart';
 import 'post_detail_state.dart';
 
+/// The logged-in customer wrote [comment]: the feed sends the monolith user
+/// id as the comment's `user.id`. False for a guest.
+bool isOwnFeedComment(FeedComment comment) {
+  final me = prefGetInt(prefUserId);
+  return me != 0 && comment.user.id == '$me';
+}
+
 class PostDetailScreen extends StatefulWidget {
   final String postId;
   final bool autoFocusComment;
   final FeedPost? previewPost;
   final List<FeedComment>? previewComments;
+
+  /// Injected in tests.
+  final FeedRepo? repo;
 
   const PostDetailScreen({
     super.key,
@@ -30,6 +42,7 @@ class PostDetailScreen extends StatefulWidget {
     this.autoFocusComment = false,
     this.previewPost,
     this.previewComments,
+    this.repo,
   });
 
   @override
@@ -44,7 +57,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_bloc == null && widget.previewPost == null) {
-      _bloc = PostDetailBloc(context, this, widget.postId);
+      _bloc = PostDetailBloc(context, this, widget.postId, repo: widget.repo);
       _bloc!.onCommentSubmitted = () => _commentInputKey.currentState?.clear();
       _bloc!.onCommentCleared = () => _commentInputKey.currentState?.clear();
       _bloc!.handleEvent(const PostDetailInitRequested());
@@ -58,25 +71,41 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   void _openStore(String storeId) {
+    // An Ærend post without a shop has no profile to open (Step 13).
+    if (storeId.isEmpty) return;
     openScreen(context, StoreProfileScreen(storeId: storeId));
   }
 
-  void _showDeleteSheet(FeedComment comment) {
+  /// Long-press on a comment: delete for the customer's own, «Rapporter
+  /// kommentar» for anyone else's (Step 13).
+  void _showCommentSheet(FeedComment comment) {
     final l10n = AppLocalizations.of(context)!;
+    final own = isOwnFeedComment(comment);
     showModalBottomSheet<void>(
       context: context,
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: Text(l10n.comment_delete_confirm_yes),
-              onTap: () {
-                Navigator.pop(ctx);
-                _confirmDelete(comment);
-              },
-            ),
+            if (own)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: Text(l10n.comment_delete_confirm_yes),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmDelete(comment);
+                },
+              )
+            else
+              ListTile(
+                key: const Key('post-detail-report-comment'),
+                leading: const Icon(Icons.outlined_flag),
+                title: const Text('Rapporter kommentar'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  reportFeedComment(context, comment.id, repo: _bloc?.repo);
+                },
+              ),
           ],
         ),
       ),
@@ -209,21 +238,31 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           return const SizedBox.shrink();
         }
 
-        return _PostDetailBody(
-          post: state.post,
-          bloc: bloc,
-          autoFocusComment: widget.autoFocusComment,
-          commentInputKey: _commentInputKey,
-          avatarLetter: _avatarLetter(),
-          avatarUrl: _avatarUrl(),
-          onLikeTap: () => bloc.handleEvent(const PostDetailLikeToggleRequested()),
-          onStoreTap: () => _openStore(state.post.store.id),
-          onCommentSubmit: (body) =>
-              bloc.handleEvent(PostDetailCommentSubmitRequested(body)),
-          onCommentLongPress: _showDeleteSheet,
-          commentSending: state.commentSending,
-          rateLimited: state.isRateLimited,
-          likeInFlight: state.likeInFlight,
+        return ValueListenableBuilder<FeedConfig>(
+          valueListenable: bloc.config,
+          builder: (context, config, _) => _PostDetailBody(
+            post: state.post,
+            bloc: bloc,
+            autoFocusComment: widget.autoFocusComment,
+            commentInputKey: _commentInputKey,
+            avatarLetter: _avatarLetter(),
+            avatarUrl: _avatarUrl(),
+            onLikeTap: () =>
+                bloc.handleEvent(const PostDetailLikeToggleRequested()),
+            // Ærend's own post without a shop: nothing to open (Step 13).
+            onStoreTap: state.post.hasStore
+                ? () => _openStore(state.post.store.id)
+                : null,
+            onCommentSubmit: (body) =>
+                bloc.handleEvent(PostDetailCommentSubmitRequested(body)),
+            onCommentLongPress: _showCommentSheet,
+            commentSending: state.commentSending,
+            rateLimited: state.isRateLimited,
+            likeInFlight: state.likeInFlight,
+            commentsEnabled: config.comments,
+            showLikeCount: config.likeCounts,
+            showShare: config.sharing,
+          ),
         );
       },
     );
@@ -239,12 +278,17 @@ class _PostDetailBody extends StatelessWidget {
   final String avatarLetter;
   final String? avatarUrl;
   final VoidCallback onLikeTap;
-  final VoidCallback onStoreTap;
+  final VoidCallback? onStoreTap;
   final void Function(String body) onCommentSubmit;
   final void Function(FeedComment comment) onCommentLongPress;
   final bool commentSending;
   final bool rateLimited;
   final bool likeInFlight;
+
+  /// The admin panel's switches (Step 13).
+  final bool commentsEnabled;
+  final bool showLikeCount;
+  final bool showShare;
 
   const _PostDetailBody({
     required this.post,
@@ -261,6 +305,9 @@ class _PostDetailBody extends StatelessWidget {
     this.commentSending = false,
     this.rateLimited = false,
     this.likeInFlight = false,
+    this.commentsEnabled = true,
+    this.showLikeCount = true,
+    this.showShare = true,
   });
 
   @override
@@ -285,14 +332,16 @@ class _PostDetailBody extends StatelessWidget {
               icon: const Icon(Icons.outlined_flag),
               onPressed: () => reportFeedPost(context, post.id),
             ),
-            IconButton(
-              icon: const Icon(Icons.share_outlined),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.post_detail_share_action)),
-                );
-              },
-            ),
+            if (showShare)
+              IconButton(
+                key: const Key('post-detail-share'),
+                icon: const Icon(Icons.share_outlined),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.post_detail_share_action)),
+                  );
+                },
+              ),
           ],
         ),
         body: CustomScrollView(
@@ -303,6 +352,7 @@ class _PostDetailBody extends StatelessWidget {
                 onLikeTap: onLikeTap,
                 onStoreTap: onStoreTap,
                 isLikeInFlight: likeInFlight,
+                showLikeCount: showLikeCount,
               ),
             ),
             SliverToBoxAdapter(
@@ -361,15 +411,29 @@ class _PostDetailBody extends StatelessWidget {
               ),
           ],
         ),
-        bottomNavigationBar: FeedCommentInputPanel(
-          key: commentInputKey,
-          avatarUrl: avatarUrl,
-          avatarLetter: avatarLetter,
-          autoFocus: autoFocusComment,
-          sending: commentSending,
-          rateLimited: rateLimited,
-          onSubmit: onCommentSubmit,
-        ),
+        // «Kommentarer» switched off in the admin panel (Step 13): a quiet
+        // line where the input was.
+        bottomNavigationBar: commentsEnabled
+            ? FeedCommentInputPanel(
+                key: commentInputKey,
+                avatarUrl: avatarUrl,
+                avatarLetter: avatarLetter,
+                autoFocus: autoFocusComment,
+                sending: commentSending,
+                rateLimited: rateLimited,
+                onSubmit: onCommentSubmit,
+              )
+            : const SafeArea(
+                key: Key('post-detail-comments-off'),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  child: Text(
+                    'Kommentarer er slått av',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: ScSaasThemeTokens.muted),
+                  ),
+                ),
+              ),
       ),
     );
   }

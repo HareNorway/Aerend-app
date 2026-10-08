@@ -121,6 +121,9 @@ abstract final class UtforskCopy {
   static String a1_feed_promo_price(int kr, int value) => languages.ops_feed_promo_price(kr, value);
   static String a1_feed_open_store(String store) => languages.ops_feed_open_store(store);
   static String a1_feed_likes(int n) => languages.ops_feed_likes(n);
+
+  /// The heart without its number, when «Antall likes» is off (Step 13).
+  static String get a1_feed_like => languages.post_detail_like;
   static String a1_feed_comments(int n) => languages.ops_feed_comments(n);
 
   // ── Launch (Step 9) ─────────────────────────────────────────────────────

@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../services/push_deep_link.dart';
+import '../../../services/push_notification_service.dart';
 import '../../../utils/utils.dart';
 import '../../bergen/utforsk/utforsk_screen.dart';
 import '../../snurre/snurre_chat_screen.dart';
@@ -89,6 +91,12 @@ class HomeMainV1State extends State<HomeMainV1> {
     final int initialTab = _remapLegacyIndex(widget.homeIndex);
     controller = PageController(initialPage: initialTab);
     selectedPos = initialTab;
+    // A push tapped to launch the app waited for the shell (Step 13).
+    if (PushDeepLink.hasPending) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) PushNotificationService.openPendingPushRoute();
+      });
+    }
   }
 
   @override

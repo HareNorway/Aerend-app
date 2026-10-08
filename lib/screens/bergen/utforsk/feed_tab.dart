@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../data/feed/feed_config.dart';
 import '../../../data/feed/feed_tab_item.dart';
 import '../../../data/ops/butikk_models.dart';
 import '../../../networking/feed/feed_attribution.dart';
@@ -128,6 +129,10 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
   List<Map<String, dynamic>> _bags = const [];
   BergenStoreInfo? _promoStore;
 
+  /// The admin panel's switches (Step 13): the like count and share button.
+  /// All on until `GET /v1/feed/config` answers; the cards never wait for it.
+  FeedConfig _config = FeedRepo.cachedConfig;
+
   /// `feedBytt`: the posts leaving, then the new set's entrance.
   bool _leaving = false;
   int _postSeq = 0;
@@ -147,6 +152,7 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
     _load();
     _loadPromo();
     _loadOrders();
+    _loadConfig();
   }
 
   @override
@@ -216,6 +222,15 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
       if (prev == null || days < prev) _orderedDaysAgo[id] = days;
     }
     setState(() {});
+  }
+
+  Future<void> _loadConfig() async {
+    try {
+      final c = await _repo.fetchConfig();
+      if (mounted) setState(() => _config = c);
+    } catch (_) {
+      // All on: the feed as it always looked.
+    }
   }
 
   Future<void> _loadPromo() async {
@@ -427,6 +442,8 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
           onCta: () => _cta(item),
           onPlay: () => setState(() => _playing = item.id),
           onStop: () => setState(() => _playing = null),
+          showLikeCount: _config.likeCounts,
+          showShare: _config.sharing,
         ),
       ),
     );

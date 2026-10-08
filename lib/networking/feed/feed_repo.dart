@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
+
 import '../../data/feed/feed_comment.dart';
+import '../../data/feed/feed_config.dart';
 import '../../data/feed/feed_cta.dart';
 import '../../data/feed/feed_page.dart';
 import '../../data/feed/feed_post.dart';
@@ -10,6 +13,7 @@ import '../../data/feed/feed_story.dart';
 import '../../data/feed/feed_upload_sign.dart';
 import '../../data/feed/feed_write_results.dart';
 import '../../utils/shared_pref_utill.dart';
+import '../ops/ops_customer_api.dart';
 import 'feed_api_helper.dart';
 
 /// The delivery address's coordinates for the feed's I nærheten filter
@@ -118,6 +122,56 @@ class FeedRepo {
       body: {'reason': reason, if (note != null && note.trim().isNotEmpty) 'note': note.trim()},
     );
     return json['already_reported'] != true;
+  }
+
+  /// Report a comment (`POST /v1/comments/:id/report`, backend plan Step 13),
+  /// with the same reasons as a post. True when this was the first report.
+  Future<bool> reportComment(String commentId, {required String reason, String? note}) async {
+    final json = await _helper.post(
+      'comments/$commentId/report',
+      body: {'reason': reason, if (note != null && note.trim().isNotEmpty) 'note': note.trim()},
+    );
+    return json['already_reported'] != true;
+  }
+
+  // ── backend plan Step 13: the feed switches ─────────────────────────────
+
+  /// The session's copy of the switches, so each screen reads them without a
+  /// round trip once one has asked. Refetched after [configTtl].
+  static FeedConfig? _config;
+  static DateTime? _configAt;
+  static const Duration configTtl = Duration(minutes: 10);
+
+  /// What is known now: the cached switches, else all on. For a first frame
+  /// that must not wait for [fetchConfig].
+  static FeedConfig get cachedConfig => _config ?? FeedConfig.defaults;
+
+  @visibleForTesting
+  static void resetConfigCache() {
+    _config = null;
+    _configAt = null;
+  }
+
+  /// `GET /v1/feed/config` — the admin panel's switches. Never throws: all on
+  /// when the call fails (not cached, so a later screen asks again).
+  Future<FeedConfig> fetchConfig() async {
+    final cached = _config;
+    final at = _configAt;
+    if (cached != null && at != null && DateTime.now().difference(at) < configTtl) {
+      return cached;
+    }
+    // Offline in tests (the route-build contract flips this): the shared
+    // client would leave a timeout timer pending.
+    if (identical(_helper, FeedApiHelper.instance) && !OpsCustomerApi.networkEnabled) {
+      return cached ?? FeedConfig.defaults;
+    }
+    try {
+      final json = await _helper.get('feed/config');
+      _configAt = DateTime.now();
+      return _config = FeedConfig.fromJson(json);
+    } catch (_) {
+      return cached ?? FeedConfig.defaults;
+    }
   }
 
   /// Whether the customer gets a push when Ærend publishes (opt-in).

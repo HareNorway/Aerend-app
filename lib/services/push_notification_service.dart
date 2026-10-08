@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,8 +10,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:showcaseview/showcaseview.dart';
 
+import '../networking/ops/ops_customer_api.dart';
 import '../screens/common/chatting/chatting.dart';
+import '../screens/common/homeMainV1/home_main_v1.dart';
 import '../screens/common/splash/splash.dart';
+import '../screens/common/swipeAerend/swipe_aerend.dart';
 import '../screens/feed/postDetail/post_detail.dart';
 import '../screens/feed/storeProfile/store_profile.dart';
 import '../screens/common/wallet/walletTransaction/wallet_transaction.dart';
@@ -18,6 +22,7 @@ import '../screens/bergen/kit/bergen_routes.dart';
 import '../screens/deliveryService/trackOrder/track_order.dart';
 import '../screens/rideService/rideDetail/ride_detail.dart';
 import '../utils/utils.dart';
+import 'push_deep_link.dart';
 
 class PushNotificationService {
   String tag = "Notification>>>";
@@ -139,9 +144,12 @@ class PushNotificationService {
         ? 0
         : int.tryParse(rawType.toString()) ?? 0;
 
+    // A campaign or an ops push (`aerend://` link) is never a chat message,
+    // even when it carries a `user_id` (Step 13).
     final bool isChatPayload =
         notificationType == 0 &&
-        notificationData[NotificationConstant.userId] != null;
+        notificationData[NotificationConstant.userId] != null &&
+        !PushDeepLink.handles(notificationData);
 
     String title =
         notificationData[NotificationConstant.title]?.toString() ?? "";
@@ -291,10 +299,23 @@ class PushNotificationService {
     }
   }
 
+  /// The ops API the campaign open ping goes through; a fake in tests.
+  @visibleForTesting
+  static OpsCustomerApi Function() opsApi = OpsCustomerApi.new;
+
+  /// Counts an admin campaign push as opened (backend plan Step 13).
+  /// Fire-and-forget: never awaited, never throws. True when a ping was sent
+  /// off, i.e. [nd] is a campaign with an id.
+  static bool pingCampaignOpened(Map<String, dynamic> nd) {
+    final id = PushDeepLink.campaignId(nd);
+    if (id == null) return false;
+    try {
+      unawaited(opsApi().pushOpened(id).catchError((_) => false));
+    } catch (_) {}
+    return true;
+  }
+
   handleNotificationClick(dynamic notificationData, bool isReplace) {
-    if (!isLoggedIn()) {
-      return;
-    }
     final Map<String, dynamic> nd;
     if (notificationData is Map<String, dynamic>) {
       nd = notificationData;
@@ -304,12 +325,40 @@ class PushNotificationService {
       debugPrint("$tag handleNotificationClick: invalid payload type");
       return;
     }
+    // Before the login gate: the campaign's open count does not depend on
+    // where the tap leads.
+    pingCampaignOpened(nd);
+
+    if (!isLoggedIn()) {
+      return;
+    }
 
     if (scContext != null) {
       ShowCaseWidget.of(scContext!).dismiss();
     }
     Widget screen = const Splash();
     bool isChatScreen = false;
+
+    // Admin campaigns and the ops pushes (`aerend://` links) route by their
+    // own target — before the chat branch, which would read an ops push with
+    // a `user_id` and no `notification_type` as a chat message.
+    if (PushDeepLink.handles(nd)) {
+      final route = PushDeepLink.resolve(nd);
+      if (route != null) {
+        openPushRoute(route, isReplace: isReplace);
+        return;
+      }
+      // Not understood: the fallback below (Splash), never the chat. No
+      // navigator yet (a launching tap): Splash is on its way anyway.
+      final ctx = navigatorKey.currentContext;
+      if (ctx == null) return;
+      if (isReplace) {
+        openScreenWithClearPrevious(ctx, screen);
+      } else {
+        openScreen(ctx, screen);
+      }
+      return;
+    }
 
     final String? feedPayloadType = nd[NotificationConstant.feedType]
         ?.toString();
@@ -398,6 +447,53 @@ class PushNotificationService {
     } else {
       openScreen(navigatorKey.currentContext!, screen);
     }
+  }
+
+  /// Opens [route] over the Bergen shell. Before the shell is up (a tap that
+  /// launched the app — Splash still runs and would replace anything pushed
+  /// under it — or no navigator yet), the route is held and the shell opens
+  /// it when it builds ([HomeMainV1State] takes it). True when opened now.
+  static bool openPushRoute(PushRoute route, {bool isReplace = false}) {
+    if (route.kind == PushRouteKind.ignore) return false;
+    final nav = navigatorKey.currentState;
+    final shell = HomeMainV1State.current;
+    final shellUp = shell != null && shell.mounted;
+    if (nav == null || (!shellUp && isReplace)) {
+      PushDeepLink.hold(route);
+      return false;
+    }
+    final ctx = nav.context;
+    switch (route.kind) {
+      case PushRouteKind.shell:
+        if (shellUp) {
+          nav.popUntil((r) => r.isFirst);
+          shell.switchToTab(route.tab);
+        } else {
+          openScreenWithClearPrevious(ctx, HomeMainV1(homeIndex: route.tab));
+        }
+      case PushRouteKind.swipe:
+        openScreen(ctx, const SwipeReen());
+      case PushRouteKind.bergen:
+        final page = BergenRoutes.generate(
+          RouteSettings(name: route.name, arguments: route.arguments),
+        );
+        if (page != null) {
+          nav.push(page);
+        } else if (shellUp) {
+          shell.switchToTab(0);
+        }
+      case PushRouteKind.post:
+        openScreen(ctx, PostDetailScreen(postId: route.postId!));
+      case PushRouteKind.ignore:
+        return false;
+    }
+    return true;
+  }
+
+  /// The shell is up: open what a launching tap left waiting, if anything.
+  static void openPendingPushRoute() {
+    final route = PushDeepLink.takePending();
+    if (route != null) openPushRoute(route);
   }
 
   openRideDetailScreen(int orderId, int serviceCategoryId) {

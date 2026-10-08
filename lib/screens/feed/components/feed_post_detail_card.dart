@@ -10,8 +10,12 @@ import '../utils/feed_time_ago.dart';
 class FeedPostDetailCard extends StatelessWidget {
   final FeedPost post;
   final VoidCallback onLikeTap;
-  final VoidCallback onStoreTap;
+  /// Null for an Ærend post without a shop (Step 13): nothing to open.
+  final VoidCallback? onStoreTap;
   final bool isLikeInFlight;
+
+  /// «Antall likes» off in the admin panel (Step 13): the heart, no number.
+  final bool showLikeCount;
 
   const FeedPostDetailCard({
     super.key,
@@ -19,6 +23,7 @@ class FeedPostDetailCard extends StatelessWidget {
     required this.onLikeTap,
     required this.onStoreTap,
     this.isLikeInFlight = false,
+    this.showLikeCount = true,
   });
 
   @override
@@ -90,11 +95,14 @@ class FeedPostDetailCard extends StatelessWidget {
                             : scheme.outline,
                         size: 26,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${post.likeCount}',
-                        style: aeLabel(color: ScSaasThemeTokens.text).copyWith(fontWeight: FontWeight.w700),
-                      ),
+                      if (showLikeCount) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '${post.likeCount}',
+                          key: const Key('feed-post-detail-like-count'),
+                          style: aeLabel(color: ScSaasThemeTokens.text).copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ],
                     ],
                   ),
                 ),
