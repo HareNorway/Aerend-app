@@ -274,10 +274,11 @@ class FakePointsApi implements PointsAppApi {
   Future<CustomerPrefs?> prefs() async => prefsValue;
 
   @override
-  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false}) async {
-    calls.add('prefs:$alwaysCode:$markNotificationsSeen');
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool? doorProfileConsent, bool markNotificationsSeen = false}) async {
+    calls.add(doorProfileConsent == null ? 'prefs:$alwaysCode:$markNotificationsSeen' : 'prefs:door:$doorProfileConsent');
     prefsValue = CustomerPrefs(
       alwaysCode: alwaysCode ?? prefsValue.alwaysCode,
+      doorProfileConsent: doorProfileConsent ?? prefsValue.doorProfileConsent,
       notificationsUnseen: markNotificationsSeen ? 0 : prefsValue.notificationsUnseen,
       favourites: prefsValue.favourites,
     );

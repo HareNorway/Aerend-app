@@ -153,10 +153,12 @@ void main() {
     expect(find.text('Hvorfor rapporterer du innlegget?'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('feed-report-misleading')));
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 50)));
-    await tester.pumpAndSettle();
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
 
     expect(fake.asked.single.data, {'reason': 'misleading'});
     expect(find.text('Takk! Vi ser på innlegget.'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/ops/favourite_stores.dart';
 import 'package:aerend_customer/data/points/points_models.dart';
+import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/meg/bestillinger_screen.dart';
@@ -21,6 +22,25 @@ import '../a3/a3_fakes.dart';
 /// Launch UI Step 12 — Meg and the points screens: Premiehylla, Ægil velger,
 /// Fløyen-ligaen, Opprykk, Ordrehistorikk, Favoritter and Konto render from
 /// the API models, and their actions reach the API.
+/// «Nytt fra Ærend» on the feed (Step 9), without a network.
+class _FakeAerend extends FeedRepo {
+  _FakeAerend({this.following = false, this.fail = false});
+
+  bool following;
+  final bool fail;
+  final List<bool> sets = [];
+
+  @override
+  Future<bool> fetchAerendFollow() async => following;
+
+  @override
+  Future<bool> setAerendFollow(bool on) async {
+    sets.add(on);
+    if (fail) throw StateError('offline');
+    return following = on;
+  }
+}
+
 class _FakeOrders extends OpsCustomerApi {
   _FakeOrders({this.rows = const [], this.ledger = const []});
 
@@ -275,7 +295,7 @@ void main() {
       AddressListItem.fromJson({'address_id': 2, 'type': 'work', 'address': 'Solheimsgaten 7, N/A', 'flat_no': 'N/A', 'landmark': 'N/A', 'lat': '60.37', 'long': '5.34'}),
     ];
     A3Services.cards = () async => ['Visa •• 4412'];
-    await tester.pumpWidget(a3App(const KontoScreen()));
+    await tester.pumpWidget(a3App(KontoScreen(feedRepo: _FakeAerend())));
     await settle(tester);
 
     expect(find.text('Kari · Vipps-verifisert'), findsOneWidget);
@@ -297,5 +317,31 @@ void main() {
     await tester.tap(find.byKey(const Key('konto-rolig')));
     await settle(tester);
     expect(A3Services.reducedMotion.value, isTrue);
+  });
+
+  testWidgets('Konto «Nytt fra Ærend» follows the feed, and a failed save is put back (Step 9)', (tester) async {
+    phone(tester, h: 1400);
+    A3Services.addressList = () async => [];
+    A3Services.cards = () async => [];
+    final feed = _FakeAerend(following: true);
+    await tester.pumpWidget(a3App(KontoScreen(feedRepo: feed)));
+    await settle(tester);
+
+    expect(find.text('Nytt fra Ærend'), findsOneWidget);
+    bool on() => tester.widget<Semantics>(find.descendant(of: find.byKey(const Key('konto-aerend-switch')), matching: find.byType(Semantics)).first).properties.toggled ?? false;
+    expect(on(), isTrue, reason: 'read from the feed');
+
+    await tester.tap(find.byKey(const Key('konto-aerend')));
+    await settle(tester);
+    expect(feed.sets, [false]);
+    expect(on(), isFalse);
+
+    final failing = _FakeAerend(fail: true);
+    await tester.pumpWidget(a3App(KontoScreen(key: UniqueKey(), feedRepo: failing)));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('konto-aerend')));
+    await settle(tester);
+    expect(failing.sets, [true]);
+    expect(on(), isFalse, reason: 'put back when the feed says no');
   });
 }

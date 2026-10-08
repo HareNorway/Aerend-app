@@ -23,11 +23,9 @@ import 'utforsk_copy.dart';
 ///
 /// Presentation only: every tap is a callback, so the tab decides what a like
 /// or a follow means and the card never talks to the network.
-// UI-TEMP #27: the Bergen post card and post detail have no «Rapporter»
-// (the design has none). The backend is ready (backend plan Step 9):
-// `reportFeedPost(context, postId)` in feed_post_kebab_sheet.dart asks why and
-// calls POST /v1/posts/:id/report. Only the legacy FeedHome kebab, which
-// nothing opens, reaches it today.
+///
+/// The flag beside share reports the post (backend plan Step 9; the design
+/// has no report button, and app stores expect one for user content).
 class FeedPostCard extends StatefulWidget {
   const FeedPostCard({
     super.key,
@@ -42,6 +40,7 @@ class FeedPostCard extends StatefulWidget {
     this.onLike,
     this.onComments,
     this.onShare,
+    this.onReport,
     this.onFollow,
     this.onCta,
     this.onPlay,
@@ -69,6 +68,9 @@ class FeedPostCard extends StatefulWidget {
   final VoidCallback? onLike;
   final VoidCallback? onComments;
   final VoidCallback? onShare;
+
+  /// «Rapporter»: the flag beside share; hidden when null.
+  final VoidCallback? onReport;
   final VoidCallback? onFollow;
   final VoidCallback? onCta;
   final VoidCallback? onPlay;
@@ -742,11 +744,39 @@ class _FeedPostCardState extends State<FeedPostCard>
                   ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                merke.toUpperCase(),
-                key: Key('a1_feed_merke_${item.id}'),
-                style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF5CE0B8)),
+              if (widget.onReport != null) ...[
+                const SizedBox(width: 8),
+                Semantics(
+                  button: true,
+                  label: UtforskCopy.a1_feed_report,
+                  child: LfPress(
+                    key: Key('a1_feed_report_${item.id}'),
+                    onTap: widget.onReport,
+                    dy: 1.5,
+                    scale: .96,
+                    ms: 140,
+                    child: CssBox(
+                      width: 34,
+                      height: 34,
+                      radius: BorderRadius.circular(17),
+                      bg: [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
+                      shadows: _keyShadow,
+                      child: const Center(child: Icon(Icons.outlined_flag, size: 17, color: Colors.white)),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(width: 8),
+              // Shrinks rather than overflow beside the three round buttons.
+              Expanded(
+                child: Text(
+                  merke.toUpperCase(),
+                  key: Key('a1_feed_merke_${item.id}'),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF5CE0B8)),
+                ),
               ),
             ],
           ),

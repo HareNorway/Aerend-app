@@ -11,6 +11,7 @@ import '../../../utils/utils.dart';
 import '../components/feed_comment_input_panel.dart';
 import '../components/feed_comment_tile.dart';
 import '../components/feed_error_state.dart';
+import '../components/feed_post_kebab_sheet.dart';
 import '../components/feed_post_detail_card.dart';
 import '../storeProfile/store_profile.dart';
 import 'post_detail_bloc.dart';
@@ -277,6 +278,13 @@ class _PostDetailBody extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(),
           ),
           actions: [
+            // «Rapporter» (backend plan Step 9): asks why, then reports.
+            IconButton(
+              key: const Key('post-detail-report'),
+              tooltip: 'Rapporter innlegget',
+              icon: const Icon(Icons.outlined_flag),
+              onPressed: () => reportFeedPost(context, post.id),
+            ),
             IconButton(
               icon: const Icon(Icons.share_outlined),
               onPressed: () {

@@ -132,12 +132,17 @@ class TierStep {
 class CustomerPrefs {
   const CustomerPrefs({
     this.alwaysCode = false,
+    this.doorProfileConsent = false,
     this.notificationsSeenAt,
     this.notificationsUnseen = 0,
     this.favourites = 0,
   });
 
   final bool alwaysCode;
+
+  /// «Husk døra mi»: the courier may save a door note for the next
+  /// delivery (`door_profile_consent`, backend plan Step 6).
+  final bool doorProfileConsent;
   final DateTime? notificationsSeenAt;
   final int notificationsUnseen;
   final int favourites;
@@ -147,6 +152,7 @@ class CustomerPrefs {
     final counts = (json['counts'] as Map?)?.cast<String, dynamic>() ?? const {};
     return CustomerPrefs(
       alwaysCode: prefs['always_code'] == true,
+      doorProfileConsent: prefs['door_profile_consent'] == true,
       notificationsSeenAt: _date(prefs['notifications_seen_at']),
       notificationsUnseen: _int(counts['notifications_unseen']),
       favourites: _int(counts['favourites']),

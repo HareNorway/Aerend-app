@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../networking/feed/feed_repo.dart';
+import '../../../theme/bergen_tokens.dart';
+import '../../bergen/kit/bergen_sheet.dart';
+import '../../bergen/kit/bergen_toast.dart';
 import '../../../utils/utils.dart';
 
 /// Why a post is reported (`POST /v1/posts/:id/report`, backend plan
@@ -17,33 +20,52 @@ const List<(String, String)> kFeedReportReasons = [
 
 /// Ask why, then report. The answer is a short word, never an error page: a
 /// second report from the same customer counts once on the server.
+/// In the Bergen sheet and toast, like the screens it is opened from.
 Future<void> reportFeedPost(BuildContext context, String postId, {FeedRepo? repo}) async {
-  final reason = await showModalBottomSheet<String>(
-    context: context,
-    builder: (sheet) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const ListTile(title: Text('Hvorfor rapporterer du innlegget?', style: TextStyle(fontWeight: FontWeight.w700))),
-          for (final (key, label) in kFeedReportReasons)
-            ListTile(
-              key: Key('feed-report-$key'),
-              title: Text(label),
-              onTap: () => Navigator.pop(sheet, key),
+  final reason = await showBergenSheet<String>(
+    context,
+    builder: (sheet) => Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            'Hvorfor rapporterer du innlegget?',
+            style: BergenTokens.display(BergenTokens.textSection, color: BergenTokens.ink),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Ærend ser på det. Butikken får ikke vite hvem som rapporterte.',
+            style: BergenTokens.text(BergenTokens.textSmall, color: BergenTokens.inkSecondary),
+          ),
+        ),
+        for (final (key, label) in kFeedReportReasons)
+          InkWell(
+            key: Key('feed-report-$key'),
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => Navigator.pop(sheet, key),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
+              child: Text(label, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: BergenTokens.ink)),
             ),
-        ],
-      ),
+          ),
+      ],
     ),
   );
   if (reason == null || !context.mounted) return;
-  final messenger = ScaffoldMessenger.of(context);
   try {
     final first = await (repo ?? FeedRepo()).reportPost(postId, reason: reason);
-    messenger.showSnackBar(SnackBar(
-      content: Text(first ? 'Takk! Vi ser på innlegget.' : 'Du har allerede rapportert dette innlegget.'),
-    ));
+    if (!context.mounted) return;
+    showBergenToast(
+      context,
+      first ? 'Takk! Vi ser på innlegget.' : 'Du har allerede rapportert dette innlegget.',
+      icon: Icons.outlined_flag,
+    );
   } catch (_) {
-    messenger.showSnackBar(const SnackBar(content: Text('Kunne ikke sende rapporten. Prøv igjen.')));
+    if (context.mounted) showBergenToast(context, 'Kunne ikke sende rapporten. Prøv igjen.', icon: Icons.error_outline_rounded);
   }
 }
 

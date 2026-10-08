@@ -442,6 +442,27 @@ void main() {
     expect(find.text('Pizza'), findsOneWidget);
   });
 
+  testWidgets('the flag beside share asks why the post is reported (Step 9)', (tester) async {
+    _frame(tester);
+    await tester.pumpWidget(
+      _app(
+        UtforskFeedTab(
+          bottomReserve: 0,
+          repo: _Repo(items: [_post(id: '9', storeId: '41', storeName: 'Pokemon Pizza', headline: 'Pizza')]),
+          api: _Api(),
+          butikkApi: _Butikk(const {}),
+        ),
+      ),
+    );
+    await _settle(tester);
+
+    await tester.tap(find.byKey(const Key('a1_feed_report_9')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hvorfor rapporterer du innlegget?'), findsOneWidget);
+    expect(find.byKey(const Key('feed-report-wrong_price')), findsOneWidget);
+  });
+
   testWidgets('a feed that does not answer offers a retry', (tester) async {
     _frame(tester);
     final repo = _Repo(fail: true);

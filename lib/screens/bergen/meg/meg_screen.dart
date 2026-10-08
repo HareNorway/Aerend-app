@@ -193,11 +193,21 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     if (mounted) showBergenToast(context, A4MegCopy.a4_meg_kopiert(code), icon: Icons.copy_rounded);
   }
 
-  // UI-TEMP #25: no «Husk døra mi» row yet (it belongs here, beside «Krev
-  // alltid kode»). The backend is ready (backend plan Step 6): POST
-  // points/me/prefs takes `door_profile_consent=0|1` and GET returns it in
-  // `prefs`. Until this row exists every customer counts as «no», so couriers
-  // cannot save door notes (POST ops/door-profiles answers NO_CONSENT).
+  /// «Husk døra mi»: may the courier save a door note for next time
+  /// (`door_profile_consent`, backend plan Step 6)? Off until the customer
+  /// says yes; a failed save leaves the row as it was.
+  Future<void> _toggleDora() async {
+    final next = !(_prefs?.doorProfileConsent ?? false);
+    final p = await _api.updatePrefs(doorProfileConsent: next);
+    if (!mounted) return;
+    if (p == null) {
+      showBergenToast(context, A4MegCopy.a4_meg_lagret_feil, icon: Icons.error_outline_rounded);
+      return;
+    }
+    setState(() => _prefs = p);
+    showBergenToast(context, p.doorProfileConsent ? A4MegCopy.a4_meg_dora_lagret_paa : A4MegCopy.a4_meg_dora_lagret_av, icon: Icons.door_front_door_outlined);
+  }
+
   Future<void> _toggleKode() async {
     final on = _prefs?.alwaysCode ?? false;
     final next = await MegSheets.kodeInnst(context, on: on);
@@ -472,6 +482,15 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     merke: _prefs?.alwaysCode == true ? A4MegCopy.a4_meg_paa : A4MegCopy.a4_meg_av,
                                     merkeDempet: _prefs?.alwaysCode != true,
                                     onTap: _toggleKode,
+                                  ),
+                                  _Rad(
+                                    key: const Key('meg-rad-dora'),
+                                    tile: const _GlassTile(rot: -3, d: 'M6 21V3h12v18M4 21h16M15 12h.01'),
+                                    navn: A4MegCopy.a4_meg_husk_dora,
+                                    under: _prefs?.doorProfileConsent == true ? A4MegCopy.a4_meg_dora_paa : A4MegCopy.a4_meg_dora_av,
+                                    merke: _prefs?.doorProfileConsent == true ? A4MegCopy.a4_meg_paa : A4MegCopy.a4_meg_av,
+                                    merkeDempet: _prefs?.doorProfileConsent != true,
+                                    onTap: _toggleDora,
                                   ),
                                   _Rad(
                                     key: const Key('meg-rad-adresser'),

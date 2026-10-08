@@ -68,6 +68,9 @@ abstract final class UtforskCopy {
   static String a1_feed_follow_toast(String name) => languages.ops_feed_follow_toast(name);
   static String a1_feed_unfollow_toast(String name) => languages.ops_feed_unfollow_toast(name);
   static String get a1_feed_share => languages.ops_feed_share;
+
+  /// The flag beside share (backend plan Step 9).
+  static const String a1_feed_report = 'Rapporter innlegget';
   static String a1_feed_share_text(String title, String store) => languages.ops_feed_share_text(title, store);
   static String get a1_feed_published_by_aerend => languages.ops_feed_published_by_aerend;
   static String a1_feed_distance_m(int m) => languages.ops_feed_distance_m(m);

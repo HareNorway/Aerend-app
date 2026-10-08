@@ -21,6 +21,7 @@ import '../../common/auth/launch/lf_widgets.dart';
 import '../../feed/postDetail/post_detail.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart' show rgba;
+import '../../feed/components/feed_post_kebab_sheet.dart';
 import '../kit/bergen_kit.dart';
 import 'feed_icons.dart';
 import 'feed_post_card.dart';
@@ -421,6 +422,7 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
           onOpen: () => _open(item),
           onLike: () => _toggleLike(item),
           onShare: () => _share(item),
+          onReport: () => reportFeedPost(context, item.id, repo: _repo),
           onFollow: () => _toggleFollow(item),
           onCta: () => _cta(item),
           onPlay: () => setState(() => _playing = item.id),

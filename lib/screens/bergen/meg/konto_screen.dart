@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../dialogs/simple_dialog_util.dart';
+import '../../../networking/feed/feed_repo.dart';
 import '../../../screens/common/home/home_repo.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
@@ -30,7 +31,10 @@ const String kPrefA3Rolig = 'a3_konto_rolig';
 /// personvern), then «Logg ut». The existing address, card and profile
 /// screens do the editing; nothing here touches how an order is paid.
 class KontoScreen extends StatefulWidget {
-  const KontoScreen({super.key});
+  const KontoScreen({super.key, this.feedRepo});
+
+  /// Injected in tests: the feed service behind «Nytt fra Ærend».
+  final FeedRepo? feedRepo;
 
   @override
   State<KontoScreen> createState() => _KontoScreenState();
@@ -38,6 +42,10 @@ class KontoScreen extends StatefulWidget {
 
 class _KontoScreenState extends State<KontoScreen> {
   bool _krysning = true;
+
+  /// «Nytt fra Ærend» (backend plan Step 9): a push when Ærend itself
+  /// publishes. Opt-in, so off until the feed says otherwise.
+  bool _aerend = false;
   bool _rolig = false;
   int _valgt = 0;
   List<AddressListItem> _adresser = const [];
@@ -53,6 +61,30 @@ class _KontoScreenState extends State<KontoScreen> {
     } catch (_) {}
     A3Services.reducedMotion.value = _rolig;
     _hent();
+    _hentAerend();
+  }
+
+  FeedRepo get _feed => widget.feedRepo ?? FeedRepo();
+
+  Future<void> _hentAerend() async {
+    try {
+      final on = await _feed.fetchAerendFollow();
+      if (mounted && on != _aerend) setState(() => _aerend = on);
+    } catch (_) {}
+  }
+
+  /// Flipped at once; put back with a word if the feed says no.
+  Future<void> _toggleAerend() async {
+    final want = !_aerend;
+    setState(() => _aerend = want);
+    try {
+      final on = await _feed.setAerendFollow(want);
+      if (mounted && on != want) setState(() => _aerend = on);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _aerend = !want);
+      openSimpleSnackbar(KontoTekst.aerendFeil);
+    }
   }
 
   Future<void> _hent() async {
@@ -175,11 +207,14 @@ class _KontoScreenState extends State<KontoScreen> {
                       prefSetBool(kPrefA3KrysningAv, !_krysning);
                     },
                   ),
-                  // UI-TEMP #26: no «Nytt fra Ærend» row yet (a push when Ærend
-                  // itself publishes; opt-in). The backend is ready (backend plan
-                  // Step 9): FeedRepo.fetchAerendFollow / setAerendFollow
-                  // (GET/PUT/DELETE /v1/me/aerend-follow). Until the row exists
-                  // nobody is opted in, so Ærend posts push no one.
+                  _Rad(
+                    key: const Key('konto-aerend'),
+                    tittel: KontoTekst.aerend,
+                    under: KontoTekst.aerendSub,
+                    bryter: _aerend,
+                    bryterKey: const Key('konto-aerend-switch'),
+                    onTap: _toggleAerend,
+                  ),
                   _Rad(
                     key: const Key('konto-rolig'),
                     tittel: A3MegCopy.a3_meg_konto_rolig,
@@ -370,6 +405,11 @@ abstract final class KontoTekst {
   static const String applePaySub = 'Face ID ved betaling';
   static const String kortUnder = 'Lagret kort';
   static const String leggKort = 'Legg til kort';
+
+  /// «Nytt fra Ærend» — the push when Ærend publishes in the feed.
+  static const String aerend = 'Nytt fra Ærend';
+  static const String aerendSub = 'Varsel når Ærend legger ut noe nytt';
+  static const String aerendFeil = 'Fikk ikke lagret varselet. Prøv igjen.';
 
   /// «Vipps · 412 34 567» from the number on the account.
   static String vipps(String nr) {

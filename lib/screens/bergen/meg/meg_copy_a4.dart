@@ -67,6 +67,14 @@ abstract final class A4MegCopy {
   static const String a4_meg_krev_kode = 'Krev alltid kode ved levering';
   static const String a4_meg_kode_paa = 'På · budet leverer bare til deg';
   static String a4_meg_kode_av(int kr) => 'Av · kreves over $kr kr';
+  /// «Husk døra mi» (backend plan Step 6 consent; row added in the Step 9
+  /// follow-up).
+  static const String a4_meg_husk_dora = 'Husk døra mi';
+  static const String a4_meg_dora_paa = 'På · budet ser notatet om døra di';
+  static const String a4_meg_dora_av = 'Av · ingen notater om døra di';
+  static const String a4_meg_dora_lagret_paa = 'Budet kan nå huske døra di';
+  static const String a4_meg_dora_lagret_av = 'Budet lagrer ikke notater om døra di';
+  static const String a4_meg_lagret_feil = 'Fikk ikke lagret. Prøv igjen.';
   static const String a4_meg_paa = 'På';
   static const String a4_meg_av = 'Av';
   static const String a4_meg_adresser = 'Adresser';
