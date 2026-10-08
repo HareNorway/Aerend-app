@@ -601,6 +601,20 @@ Edits stay on the existing flows: «Ny vare» → `get:admin:add_store_product`,
 | api | `GET /api/geo/coverage` → `paused: {zone_id, zone_name, until, message} \| null` | set when the cell is in a paused zone (`covered: false`) |
 | dart | `OpsCustomerApi.rateConversation(id, score)`; `SupportSamtale.kanVurdere` / `vurdering` | 1-tap «Hvordan var hjelpen?» rating in the Bergen support chat when a conversation is closed and `can_rate` |
 
+**Step 16 — final pass** (no new names)
+
+- The registry `tests/fixtures/contract/names.backend.json` holds 254 entries. By kind:
+
+  | route | class | policy | table | env | column | console | flag | event |
+  |---|---|---|---|---|---|---|---|---|
+  | 121 | 59 | 21 | 20 | 13 | 13 | 4 | 2 | 1 |
+
+  `ContractNamesTest` is at its 24 pre-existing failures: the agil-3 dart routes, which go green on merge day.
+- Remaining placeholders:
+  - **App:** `UI-TEMP` #8, tipping (🔒 Step 15), is the only marker left.
+  - **Panel:** 39 `ADMIN-TEMP` markers, each tied to a blocker: 🔒 Step 15 money / Agent F, Idura, model host, payout rails, region service, or a design decision. The list is in the Step 16 report (backend plan §8).
+- Feed service names (Aerend-Feed migrations `0001`–`0003`) are listed in the backend plan's Step 16 report. They are not in this Laravel registry.
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session
