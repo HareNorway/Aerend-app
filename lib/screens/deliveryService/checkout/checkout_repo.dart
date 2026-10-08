@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../constant/constant.dart';
 import '../../../networking/api_base_helper.dart';
+import '../../../networking/feed/feed_attribution.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../common/orderCart/order_cart_repo.dart';
 
@@ -86,9 +87,14 @@ class CheckoutRepo {
         ApiParam.paramCardId: 0,
         ApiParam.paramScheduleDateTime: scheduleDateTime,
         ApiParam.paramTip: tip,
+        // The feed post this basket came from (backend plan Step 9).
+        if (FeedAttribution.forStore(storeId) case final post?) 'source_post_id': post,
         // ApiParam.paramPrescription: multipartFile
       },
     );
+    if (response is Map && (response['status'] == 1 || response['status'] == true)) {
+      FeedAttribution.clear(storeId);
+    }
     return response;
   }
 

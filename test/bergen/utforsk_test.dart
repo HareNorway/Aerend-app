@@ -40,7 +40,16 @@ class _EmptyRepo extends FeedRepo {
     String? cursor,
     int? limit,
     String? bydel,
+    double? lat,
+    double? lng,
   }) async => const FeedTabPage(tab: 'naerheten', label: 'I nærheten', items: []);
+
+  @override
+  Future<({int unread, bool capped})> fetchUnread({String tab = 'naerheten', double? lat, double? lng}) async =>
+      (unread: 0, capped: false);
+
+  @override
+  Future<void> markSeen({String tab = 'naerheten'}) async {}
 }
 
 Widget _app(Widget child) => MaterialApp(home: child);

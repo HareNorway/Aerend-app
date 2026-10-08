@@ -23,6 +23,11 @@ import 'utforsk_copy.dart';
 ///
 /// Presentation only: every tap is a callback, so the tab decides what a like
 /// or a follow means and the card never talks to the network.
+// UI-TEMP #27: the Bergen post card and post detail have no «Rapporter»
+// (the design has none). The backend is ready (backend plan Step 9):
+// `reportFeedPost(context, postId)` in feed_post_kebab_sheet.dart asks why and
+// calls POST /v1/posts/:id/report. Only the legacy FeedHome kebab, which
+// nothing opens, reaches it today.
 class FeedPostCard extends StatefulWidget {
   const FeedPostCard({
     super.key,

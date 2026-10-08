@@ -56,9 +56,6 @@ class UtforskScreen extends StatefulWidget {
   static const String tabFiske = 'fiske';
   static const String tabPose = 'pose';
 
-  /// Pref: when the Feed segment was last read — the unread badge counts
-  /// posts newer than this (`feedLest`).
-  static const String prefFeedSeenAt = 'a1_utforsk_feed_seen_at';
 
   /// One-shot: the segment the next Utforsk opens on (Hjem's raft and
   /// Forundringspose card — `scenePose` / `poseFn`).
@@ -94,6 +91,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
     _tab = widget.initialTab ?? UtforskScreen.apneSegment ?? UtforskScreen.tabFeed;
     UtforskScreen.apneSegment = null;
     _loadDrift();
+    _loadUnread();
     if (kDebugMode) _harness();
   }
 
@@ -121,7 +119,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
   @override
   void dispose() {
     // Leaving Utforsk counts as having seen the feed.
-    if (_posts.isNotEmpty) prefSetString(UtforskScreen.prefFeedSeenAt, DateTime.now().toIso8601String());
+    if (_posts.isNotEmpty) _feed.markSeen().catchError((_) {});
     _scroll.dispose();
     super.dispose();
   }
@@ -175,26 +173,27 @@ class _UtforskScreenState extends State<UtforskScreen> {
     });
   }
 
+  FeedRepo get _feed => widget.feedRepo ?? FeedRepo();
+
+  /// `feedUlest`: posts published since the feed was last read, counted by
+  /// the feed service (backend plan Step 9) so every device agrees. No
+  /// answer, no badge.
+  Future<void> _loadUnread() async {
+    try {
+      final at = feedAddressLatLng();
+      final r = await _feed.fetchUnread(lat: at?.lat, lng: at?.lng);
+      if (mounted) setState(() => _unread = r.unread);
+    } catch (_) {}
+  }
+
   /// `segFeed` / `tilFeed` set `feedLest`: the badge goes.
   void _markFeedSeen() {
-    prefSetString(UtforskScreen.prefFeedSeenAt, DateTime.now().toIso8601String());
+    _feed.markSeen().catchError((_) {});
     if (_unread != 0) setState(() => _unread = 0);
   }
 
-  /// `feedUlest`: posts published since the feed was last read.
   void _onPostsLoaded(List<FeedTabItem> posts) {
-    final raw = prefGetString(UtforskScreen.prefFeedSeenAt);
-    final seenAt = raw.isEmpty ? null : DateTime.tryParse(raw);
-    var unread = 0;
-    for (final p in posts) {
-      if (seenAt == null || (p.publishedAt?.isAfter(seenAt) ?? true)) unread++;
-    }
-    if (mounted) {
-      setState(() {
-        _posts = posts;
-        _unread = unread;
-      });
-    }
+    if (mounted) setState(() => _posts = posts);
   }
 
   Future<void> _tilAutomat() async {

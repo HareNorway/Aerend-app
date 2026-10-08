@@ -482,6 +482,29 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | routes | `catalog.launch_categories` `GET /api/catalog/launch-categories`; `catalog.launch_categories.notify` / `.unnotify` `POST\|DELETE …/{id}/notify` | list public (`id, key, slot, state, title, description, aegil_quote, target_count, ready_count` (active stores counted), `notify` with the house login); notify needs the login (401). App: «Kommer snart» sheet and «Varsle meg» from the server, prefs list removed (`UI-TEMP` #16 removed) |
 | app | Hjem | #4 Tilbud row hidden without discounts; #5 / #14 / #15 Under kaien shows only real finds («Ingen funn i kveld» when none); #6 / #13 Vindu «Bestill igjen» = the customer's last two shops (`ops.customer.orders`), one tap refills the basket (`bestill_igjen.dart`, shared with Ordrehistorikk) |
 
+**Step 9 — Feed backend (Aerend-Feed + the Laravel bridge)**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `ops.feed.events.internal` `POST /api/internal/feed/events` | the contract's documented path; same HMAC handler as `POST /api/ops/feed/events`. The feed's `FEED_EVENTS_WEBHOOK_PATH` default is now `/api/ops/feed/events` |
+| route | `ops.feed.health.internal` `GET /api/internal/feed-health` | `require_service_token` (the feed's `LARAVEL_INTERNAL_TOKEN`); the feed's `/ready` probe. `/ready` now says `unauthorized` on a token mismatch and shows `outbox_pending` |
+| routes | `feed.internal.product` `GET /api/internal/feed-products/{productId}`; `feed.internal.coverage` `GET /api/internal/feed-coverage?lat=&lng=` | service token. Product `{id, store_id, name, price_ore (sale-aware), was_price_ore, available}`, 404 `product_not_found`; coverage `{cell, covered, store_ids[]}` from `CoverageService::lookup(…, recordUnmet: false)` |
+| behaviour | `POST /api/ops/feed/stores/{storeId}/eligibility` | admin session or service token **in every `ops.auth.enforce` mode** (401 otherwise); no app calls it |
+| behaviour | eligibility = one source | `FeedBridge::setEligibility` also queues `feed.admin.store_eligibility` in `ops_feed_outbox` → `PUT {OPS_FEED_BASE_URL}/internal/admin/stores/{id}/eligibility {enabled, reason, changed_by, changed_at}` (service token); the feed keeps the newest `changed_at`. `ops:feed-eligibility-sync` queues every row (run once when the bridge is switched on) |
+| behaviour | `order.delivered` → feed | queued in `ops_feed_outbox` when `source_post_id` is set; `store-place-order` accepts `source_post_id` (`"42"` / `"p_42"`, anything else ignored) → `ops_source_post_id` |
+| event | `feed.post.flagged` v1 | feed → monolith on a customer report (`EVENT_CONTRACT.md` "v1 additions — 2026-10-08"); kept in `ops_feed_inbox` for the moderation queue (Step 13) |
+| env | `OPS_FEED_BASE_URL`, `OPS_FEED_EVENTS_PATH`, `OPS_FEED_WEBHOOK_SECRET`, `OPS_FEED_SERVICE_TOKEN`, `OPS_FEED_TIMEOUT` | now in `.env.example`; the secret equals the feed's `FEED_WEBHOOK_SECRET`, the service token the feed's `LARAVEL_INTERNAL_TOKEN` |
+| feed routes | `POST /v1/store/posts` | + optional `store_product_id` (must be the store's own, available; price taken from the monolith), `post_type` (`generic`, `tilbud`, `ny_i_hyllene`, `nytt_i_hyllene`, `dagens_rett`, `apent_sent`; `tilbud` needs a product), `category`, `headline`, `expires_at` (≤ 30 days), `bydel`. Today's caption + media body is unchanged |
+| feed routes | `GET /v1/store/posts` | items + `status` (`live\|hidden\|removed`), `hidden_reason`, `post_type`, `headline`, `store_product_id`, `price_ore`, `expires_at`, `attributed_order_count`; hidden and Ærend-removed posts included |
+| feed routes | `POST /v1/posts/:id/report {reason: spam\|misleading\|offensive\|wrong_price\|other, note?}` | customer; 201 first, 200 `already_reported` after; table `feed_reports` (one per customer per post) |
+| feed routes | `GET /v1/feed/unread?tab=&lat=&lng=` → `{unread (≤ 99), capped, seen_at}`; `POST /v1/feed/seen {tab}` | customer; table `feed_seen`; never seen = the last 72 h |
+| feed routes | `GET /v1/feed/notice` → `{notice: {post_id, note, caption, pinned_until, published_at}\|null}` | the newest pinned `drift` post. `feed_posts.pinned_until` (composer `pinned_until`, drift only); a pinned drift post leads page 1 of I nærheten. App: `OpsCustomerApi.driftNotice()` without a store reads it |
+| feed routes | `GET\|PUT\|DELETE /v1/me/aerend-follow` → `{following}` | opt-in push when Ærend publishes (table `feed_aerend_follows`); drift notices are not pushed |
+| feed env | `FEED_NAERHETEN_DELIVERABLE` (false) | on: I nærheten (and its unread count) with the app's `lat`/`lng` = coverage stores + Ærend posts + followed stores, last 72 h; coverage cached 10 min per ~100 m |
+| feed | `feed_outbox` + `event_id`, `next_attempt_at`, `last_error`, `failed_at` | every outbound event is written first, sent at once, retried by the minute sweep (`POST /internal/admin/schedule-sweep` now also answers `outbox{sent, failed, pending}`); 8 attempts |
+| feed push | Norwegian templates; `feed_aerend_post` job | sent as `feed_new_post` with `publisher_type: aerend` |
+| dart | `FeedRepo.fetchUnread / markSeen / fetchNotice / reportPost / fetchAerendFollow / setAerendFollow`, `feedAddressLatLng()`, `FeedAttribution` | Utforsk badge from the server (`a1_utforsk_feed_seen_at` pref gone); a feed card's «Legg til» remembers its post per store for 24 h and `store-place-order` sends it; `reportFeedPost` (legacy kebab). `UI-TEMP` #26 (Konto «Nytt fra Ærend» row) and #27 (Bergen card «Rapporter») added |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session

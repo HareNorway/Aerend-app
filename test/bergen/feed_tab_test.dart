@@ -127,6 +127,8 @@ class _Repo extends FeedRepo {
     String? cursor,
     int? limit,
     String? bydel,
+    double? lat,
+    double? lng,
   }) async {
     calls.add('tab:$tab');
     if (fail) throw StateError('offline');
@@ -415,6 +417,29 @@ void main() {
     await tester.tap(find.text(UtforskCopy.a1_feed_empty_cat_cta));
     await _settle(tester);
     expect(find.byKey(const Key('a1_feed_empty')), findsNothing);
+  });
+
+  testWidgets('the pinned drift post shows once, as the drift card (Step 9)', (tester) async {
+    _frame(tester);
+    await tester.pumpWidget(
+      _app(
+        UtforskFeedTab(
+          bottomReserve: 0,
+          repo: _Repo(items: [
+            _post(id: '3', postType: 'drift', headline: 'Mye regn i kveld'),
+            _post(id: '9', storeId: '41', storeName: 'Pokemon Pizza', headline: 'Pizza'),
+          ]),
+          api: _Api(),
+          butikkApi: _Butikk(const {}),
+          drift: const {'note': 'Mye regn i kveld', 'pinned_until': '20:00', 'post_id': '3'},
+        ),
+      ),
+    );
+    await _settle(tester);
+
+    expect(find.byKey(const Key('a1_utforsk_drift')), findsOneWidget);
+    expect(find.text('Mye regn i kveld'), findsOneWidget, reason: 'the card, not a second post card');
+    expect(find.text('Pizza'), findsOneWidget);
   });
 
   testWidgets('a feed that does not answer offers a retry', (tester) async {

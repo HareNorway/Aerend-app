@@ -175,6 +175,11 @@ class _KontoScreenState extends State<KontoScreen> {
                       prefSetBool(kPrefA3KrysningAv, !_krysning);
                     },
                   ),
+                  // UI-TEMP #26: no «Nytt fra Ærend» row yet (a push when Ærend
+                  // itself publishes; opt-in). The backend is ready (backend plan
+                  // Step 9): FeedRepo.fetchAerendFollow / setAerendFollow
+                  // (GET/PUT/DELETE /v1/me/aerend-follow). Until the row exists
+                  // nobody is opted in, so Ærend posts push no one.
                   _Rad(
                     key: const Key('konto-rolig'),
                     tittel: A3MegCopy.a3_meg_konto_rolig,

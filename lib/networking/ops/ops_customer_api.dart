@@ -8,6 +8,7 @@ import '../../screens/deliveryService/searchStore/search_store_dl.dart';
 import '../../screens/deliveryService/searchStore/search_store_repo.dart';
 import '../../utils/utils.dart';
 import '../api_base_helper.dart';
+import '../feed/feed_repo.dart';
 
 /// The customer app's calls into the monolith's `ops.customer.*` routes and
 /// the few other ops / points / agent reads the Bergen screens make
@@ -304,7 +305,9 @@ class OpsCustomerApi {
   /// is per store and carries no weather note today, so this is null — the
   /// notice stays hidden (plan Phase 2: "else hidden").
   Future<Map<String, dynamic>?> driftNotice({int? storeId}) async {
-    if (storeId == null) return null;
+    // No store: the feed's pinned drift notice on top of Utforsk (backend
+    // plan Step 9; this used to return null every time).
+    if (storeId == null) return _feedDriftNotice();
     final json = await _guarded(() async {
       final j = await _helper.get(
         'api/ops/store/availability?store_id=$storeId',
@@ -313,6 +316,26 @@ class OpsCustomerApi {
     });
     if (json == null || json['note'] == null) return null;
     return json;
+  }
+
+  /// `GET /v1/feed/notice` as the drift card reads it: `note` and
+  /// `pinned_until` as «HH:mm» local time. Null when there is none or the
+  /// feed does not answer.
+  Future<Map<String, dynamic>?> _feedDriftNotice() async {
+    try {
+      final n = await FeedRepo().fetchNotice();
+      final note = '${n?['note'] ?? ''}'.trim();
+      if (n == null || note.isEmpty) return null;
+      final until = DateTime.tryParse('${n['pinned_until'] ?? ''}')?.toLocal();
+      String two(int v) => v.toString().padLeft(2, '0');
+      return {
+        'note': note,
+        'pinned_until': until == null ? '' : '${two(until.hour)}:${two(until.minute)}',
+        'post_id': n['post_id'],
+      };
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── guarded cross-branch reads ──────────────────────────────────────────

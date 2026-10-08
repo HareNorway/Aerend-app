@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../data/feed/feed_tab_item.dart';
 import '../../../data/ops/butikk_models.dart';
+import '../../../networking/feed/feed_attribution.dart';
 import '../../../networking/feed/feed_repo.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
@@ -165,7 +166,8 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
       _error = false;
     });
     try {
-      final page = await _repo.fetchFeedTab(tab: UtforskFeedTab.tabFor(widget.fane), limit: 30);
+      final at = feedAddressLatLng();
+      final page = await _repo.fetchFeedTab(tab: UtforskFeedTab.tabFor(widget.fane), limit: 30, lat: at?.lat, lng: at?.lng);
       if (!mounted) return;
       setState(() {
         _items = page.items;
@@ -289,7 +291,10 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
     final storeId = int.tryParse(store?.id ?? '') ?? 0;
     final open = _stores[storeId]?.open ?? true;
     if (item.hasProduct && open) {
-      BergenCart.add(context, storeId: storeId, productId: item.storeProductId!);
+      // The order this basket becomes is counted on the post (Step 9).
+      BergenCart.add(context, storeId: storeId, productId: item.storeProductId!).then((ok) {
+        if (ok) FeedAttribution.remember(storeId: storeId, postId: item.id);
+      });
       return;
     }
     _open(item);
@@ -326,7 +331,13 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
   // ── Build ───────────────────────────────────────────────────────────────
 
   List<FeedTabItem> get _visible {
-    final all = _items ?? const [];
+    // The pinned drift post leads I nærheten (backend plan Step 9), but the
+    // drift card above already shows it: not twice.
+    final pinnedId = _naer ? '${widget.drift?['post_id'] ?? ''}' : '';
+    final all = [
+      for (final i in _items ?? const <FeedTabItem>[])
+        if (pinnedId.isEmpty || i.id != pinnedId) i,
+    ];
     if (_filter == 'alle') return all;
     return [
       for (final i in all)
