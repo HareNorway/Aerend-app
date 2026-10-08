@@ -507,6 +507,16 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | dart | `CustomerPrefs.doorProfileConsent`, `PointsAppRepo.updatePrefs(doorProfileConsent:)` | Meg row «Husk døra mi» (`meg-rad-dora`) under «Krev alltid kode» posts `points/me/prefs door_profile_consent=0\|1`; off until the customer turns it on (`UI-TEMP` #25 removed, Step 9 follow-up) |
 | feed env | `FEED_NAERHETEN_DELIVERABLE=false` | user decision 2026-10-08: off; also in the feed's `.env.local.example` and `do-app-platform.yaml` (with `FEED_EVENTS_WEBHOOK_PATH=/api/ops/feed/events`) |
 
+**Step 10 — Commercial admin shell and theme** (admin panel only; no API change)
+
+| Kind | Name | Notes |
+|---|---|---|
+| class | `App\Admin\CommercialNav` | the sidebar from the prototype's `NAV_COMMERCIAL` (19 items, order, labels, icons, active aliases), filtered by the `admin_module` permissions the `adminRole` middleware resolved; design screens not built yet are muted with «snart» (not links); «Drift og agenter» (Drift, Agentsenter, Poeng & Ægil) and «Mer» (legacy entries). `ASSET_VERSION` is the one CSS version string |
+| css | `public/assets/css/aerend-commercial.css` | the `.adm--com` theme (teal, sand, mint, orange CTA, Plus Jakarta Sans) and the prototype's component classes, every selector scoped to `.adm-app.adm--com` / `body.adm-body--com`; `dugnad-shell.css` is not edited |
+| blade | `admin.partials.aerend_modeswitch` | Dugnad ↔ Kommersiell on `get:admin:panel_switch` (roles 1, 4) |
+| blade | `<x-adm.*>` (`resources/views/components/adm/`) | `kpi`, `page-head`, `crumbs`, `tabs`, `badge`, `table`, `tabletop`, `modal`, `mode-note`, `nav-card`, `toggle`, `field`, `empty`, `banner`, `def-row`, `list-row`, `avatar` |
+| shell | `@section('crumbs')`; `$admInlineFlash` | multi-level crumbs; a page that shows its own flash banner shares `admInlineFlash` and the shell skips its toast |
+
 Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
 store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
 courier `courier_id` + the driver login's `access_token`; admin panel session
