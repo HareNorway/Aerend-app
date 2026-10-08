@@ -534,6 +534,8 @@ Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-back
 | route | `get:admin:customers` `GET /admin/kunder`; `get:admin:customer` `GET /admin/kunder/{id}` | «Kunde-styring» and a customer. The legacy `get:admin:user_list` stays under «Mer» |
 | method | `CommercialNav::allows(Request, itemId)` | the sidebar's permission rule for a design item, for screens with no `admin_module` row of their own |
 | blade | `<x-adm.pager>` | «Side x av y» with previous/next, keeping the other query values |
+| class | `App\Admin\FormReturn` | (Step 11 follow-up) an existing form opened from a commercial screen carries hidden `adm_return` (the page it came from); promo, product and customer saves return there. Only same-host `/admin/` paths, only in the commercial shell; otherwise the legacy redirect |
+| css / blade | `.adm-legacy`; `admin.partials.adm_form_head`, `adm_form_return` | (Step 11 follow-up) existing create/edit forms re-dressed in the commercial theme (crumbs, page head, cards, inputs, buttons) with markup, field names and scripts unchanged: product add/edit, promo add/edit, delivery-charge bands, Innstillinger, customer edit. Outside the commercial shell they look as before |
 
 Edits stay on the existing flows: «Ny vare» → `get:admin:add_store_product`, «Ny kampanje» → `get:admin:store:add_promocode`, promo on/off → `get:admin:store:promocode_change_status`, distance bands → `get:admin:store_delivery_charges`, payment settings → `get:admin:general_setting`. «Betaling» reads whether Stripe and Vipps keys are set, never their values.
 
