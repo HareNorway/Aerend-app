@@ -140,6 +140,9 @@ flutter:
     - shaders/sp_disk.frag
     - shaders/sp_kart.frag
     - shaders/sp_hus.frag
+    - shaders/hjem_bryggen.frag
+    - shaders/aegil_floyen.frag
+    - shaders/aegil_floyen_liv.frag
 
   fonts:
     - family: CustomIcons

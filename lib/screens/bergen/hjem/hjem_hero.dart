@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,13 +11,16 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../../common/home/bergen/bergen_floats.dart';
 import '../kit/sjo_water.dart';
+import 'hjem_bryggen.dart';
 import 'hjem_fiskestang.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
 // Prototype L2227–2520. Design px, 390 wide, `top:72px; height:258px`:
-//   0–127   Bryggen seen from Nordnes (the prototype's WebGL render, baked
-//           per weather into assets/images/bryggen/hjem_<vær>.jpg)
+//   0–127   Bryggen seen from Nordnes: the prototype's own WebGL scene
+//           (`data-brgl="hjem"`, shaders/hjem_bryggen.frag), live; the
+//           baked frame (assets/images/bryggen/hjem_<vær>.jpg) underneath
+//           and in the `still` tier
 //   127–    Vågen (`Sjø · hero`): the shared water shader + vignette
 //   on top  rain on the glass, the Forundringspose raft, Ægil's floats with
 //           their price flags, the quay with Ægil fishing, the Fjordfiske
@@ -109,6 +113,21 @@ class _HjemHeroState extends State<HjemHero> {
 
   static const List<double> _xs = [195, 284];
 
+  // `sjoRefBr`: the water re-reads its mirror from the live Bryggen frame
+  // every 220 ms.
+  final ValueNotifier<ui.Image?> _speil = ValueNotifier<ui.Image?>(null);
+  final Stopwatch _speilSw = Stopwatch()..start();
+  int _speilSist = -1000;
+
+  void _bryggenFrame(ui.Image frame) {
+    final ms = _speilSw.elapsedMilliseconds;
+    if (ms - _speilSist < 220) return;
+    _speilSist = ms;
+    final old = _speil.value;
+    _speil.value = frame.clone();
+    old?.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -125,6 +144,8 @@ class _HjemHeroState extends State<HjemHero> {
     _kortT?.cancel();
     _introT?.cancel();
     _ripples.dispose();
+    _speil.value?.dispose();
+    _speil.dispose();
     super.dispose();
   }
 
@@ -205,7 +226,12 @@ class _HjemHeroState extends State<HjemHero> {
             top: 0,
             width: 390,
             height: _kWater,
-            child: Image.asset(v.bryggen, fit: BoxFit.fill, filterQuality: FilterQuality.medium, gaplessPlayback: true),
+            child: HjemBryggen(
+              key: ValueKey(v),
+              vaer: v,
+              still: Image.asset(v.bryggen, fit: BoxFit.fill, filterQuality: FilterQuality.medium, gaplessPlayback: true),
+              onFrame: _bryggenFrame,
+            ),
           ),
           // Sjø · hero (127 → bottom).
           Positioned(
@@ -218,7 +244,7 @@ class _HjemHeroState extends State<HjemHero> {
                 Positioned.fill(child: ColoredBox(color: v.seaBase)),
                 Positioned.fill(
                   child: RepaintBoundary(
-                    child: SjoWater(palette: v.sea, regn: v.regn, reflection: v.bryggen, reflectionHeight: _kWater, fogColor: v.fog, ripples: _ripples, onTick: _onWaterTick),
+                    child: SjoWater(palette: v.sea, regn: v.regn, reflection: v.bryggen, reflectionHeight: _kWater, fogColor: v.fog, ripples: _ripples, onTick: _onWaterTick, liveReflection: _speil),
                   ),
                 ),
                 const Positioned.fill(

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -116,7 +116,13 @@ class SjoWater extends StatefulWidget {
     this.ripples,
     this.onTick,
     this.maxPixels,
+    this.liveReflection,
   });
+
+  /// The live Bryggen frame (Hjem's `BryggenGl`): the prototype re-reads the
+  /// mirror from the Bryggen canvas every 220 ms (`sjoRefBr`); the owner
+  /// throttles and owns the images. Until one arrives, [reflection] is used.
+  final ValueListenable<ui.Image?>? liveReflection;
 
   /// `_sgBud`: the prototype caps the pixels it shades per frame
   /// (`dpr = min(2, √(budget / (w·h)))`, never below .3). Null = ≤2×.
@@ -149,6 +155,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
 
   ui.FragmentShader? _shader;
   ui.Image? _ref;
+  ui.Image? _liveRef;
   ui.Image? _frame;
   late final Ticker _ticker;
   Duration _prev = Duration.zero;
@@ -172,7 +179,17 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     super.initState();
     _ticker = createTicker(_tick);
     _program ??= ui.FragmentProgram.fromAsset('shaders/sjo.frag');
+    widget.liveReflection?.addListener(_live);
     _load();
+  }
+
+  void _live() {
+    final br = widget.liveReflection?.value;
+    if (br == null || !mounted) return;
+    final old = _liveRef;
+    _liveRef = _flip(br, widget.reflectionHeight, widget.fogColor);
+    old?.dispose();
+    if (!_ticker.isActive) _render();
   }
 
   void _load() {
@@ -182,6 +199,9 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
       if (!mounted || key != _refKey) return;
       _shader ??= (v[0] as ui.FragmentProgram).fragmentShader();
       _ref = v[1] as ui.Image;
+      // A new weather: the live mirror waits for the next live frame.
+      _liveRef?.dispose();
+      _liveRef = null;
       _render();
       if (!_reduce && !_ticker.isActive) _ticker.start();
     }).catchError((_) {});
@@ -190,6 +210,10 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
   @override
   void didUpdateWidget(SjoWater old) {
     super.didUpdateWidget(old);
+    if (old.liveReflection != widget.liveReflection) {
+      old.liveReflection?.removeListener(_live);
+      widget.liveReflection?.addListener(_live);
+    }
     if (old.reflection != widget.reflection ||
         old.reflectionHeight != widget.reflectionHeight ||
         old.fogColor != widget.fogColor) {
@@ -228,6 +252,12 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final data = await rootBundle.load(asset);
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final br = (await codec.getNextFrame()).image;
+    final img = _flip(br, hb, fog);
+    br.dispose();
+    return img;
+  }
+
+  static ui.Image _flip(ui.Image br, double hb, Color fog) {
     final rec = ui.PictureRecorder();
     final c = Canvas(rec);
     c.drawRect(const Rect.fromLTWH(0, 0, 512, 256), Paint()..color = fog);
@@ -242,13 +272,11 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
       Rect.fromLTWH(0, 0, 390, hb),
       Paint()..filterQuality = FilterQuality.medium,
     );
-    final img = rec.endRecording().toImageSync(512, 256);
-    br.dispose();
-    return img;
+    return rec.endRecording().toImageSync(512, 256);
   }
 
   void _render() {
-    final sh = _shader, ref = _ref;
+    final sh = _shader, ref = _liveRef ?? _ref;
     if (sh == null || ref == null || _size.isEmpty) return;
     final w = _size.width, h = _size.height;
     var dpr = _dpr;
@@ -317,6 +345,8 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
 
   @override
   void dispose() {
+    widget.liveReflection?.removeListener(_live);
+    _liveRef?.dispose();
     _ticker.dispose();
     _frame?.dispose();
     _shader?.dispose();

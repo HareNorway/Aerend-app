@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeatherLook;
 import '../aegil/aegil_bits.dart';
+import '../kit/br_pal.dart';
 import '../kit/bergen_perf.dart';
 
 /// The Meg header (`erMeg` L7341–7355, 390 × 196 design px): Brann stadion
@@ -179,21 +180,6 @@ class _Aegil extends StatelessWidget {
   );
 }
 
-/// One weather of the scene (`brPal()` in the prototype, read from it per
-/// weather): the sky's top / middle / bottom, night, sun, sunset, rain, wet.
-class _StadionPal {
-  const _StadionPal(this.skT, this.skM, this.skB, {required this.night, this.sun = 0, this.sunset = 0, this.rain = 0, required this.wet});
-  final List<double> skT, skM, skB;
-  final double night, sun, sunset, rain, wet;
-
-  static const Map<BergenWeather, _StadionPal> av = {
-    BergenWeather.regn: _StadionPal([.7176, .7765, .8235], [.8275, .8627, .8745], [.7882, .8275, .8353], night: .74, rain: 1, wet: 1),
-    BergenWeather.sol: _StadionPal([.36, .57, .78], [.55, .71, .84], [.72, .82, .88], night: .06, sun: 1, wet: .55),
-    BergenWeather.solnedgang: _StadionPal([.4941, .4706, .5647], [.7882, .5647, .4314], [.8510, .6314, .4627], night: .55, sunset: 1, wet: .55),
-    BergenWeather.natt: _StadionPal([.0627, .1176, .1882], [.0863, .1961, .2902], [.1216, .2667, .3765], night: 1, wet: .55),
-  };
-}
-
 /// The stadium scene, live: `shaders/meg_stadion.frag` (the prototype's own
 /// shader) rendered offscreen at about 20 frames a second into at most
 /// 160 000 pixels (`ulGlTegn`), drawn over the still (which also stands in
@@ -277,7 +263,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     if (sh == null) return;
     final dpr = math.max(.5, math.min(_dpr, math.sqrt(_budget / (_w * _h))));
     final pw = (_w * dpr).round(), ph = (_h * dpr).round();
-    final p = _StadionPal.av[widget.kind]!;
+    final p = BrPal.of(widget.kind);
     var i = 0;
     void f(double v) => sh.setFloat(i++, v);
     f(_w);

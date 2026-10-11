@@ -6,6 +6,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeatherLook;
 import 'aegil_bits.dart';
+import 'aegil_floyen.dart';
 
 /// Ægil's pose on Fløyen (`agBFront` / `agBHei` / `agBFunn` / `agBLeter` /
 /// `agBLei`).
@@ -16,7 +17,7 @@ enum AeHode { front, find, popup, discount, store, sorry, wait }
 
 /// The top of `erAgent` (L4501–4537): the sky gradient, the Fløyen view
 /// (the prototype's `data-flgl="agent"` WebGL scene with its blur, light and
-/// vignette layers, baked per weather), Ægil on the viewpoint with his
+/// vignette layers, live in [AegilFloyen] over the frame baked per weather), Ægil on the viewpoint with his
 /// shadow, and the listening bars beside him.
 class AegilScene extends StatelessWidget {
   const AegilScene({super.key, required this.look, required this.kropp, this.lytter = false});
@@ -42,7 +43,10 @@ class AegilScene extends StatelessWidget {
           top: 0,
           width: 390,
           height: 252,
-          child: Image.asset(_bilde, fit: BoxFit.fill, gaplessPlayback: true, filterQuality: FilterQuality.medium),
+          child: AegilFloyen(
+            kind: look.kind,
+            still: Image.asset(_bilde, fit: BoxFit.fill, gaplessPlayback: true, filterQuality: FilterQuality.medium),
+          ),
         ),
         // The shadow under his feet (`left:46px;top:180px;78×13`, blur 3).
         Positioned(

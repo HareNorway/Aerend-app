@@ -102,6 +102,10 @@ class SpGl extends StatefulWidget {
     this.tex = const [],
     this.still,
     this.t0 = 8,
+    this.fullMs = 1000 / 60,
+    this.liteMs = 1000 / 30,
+    this.stillTier = false,
+    this.onFrame,
   });
 
   final String asset;
@@ -113,6 +117,17 @@ class SpGl extends StatefulWidget {
   /// Where the scene clock starts (s); the prototype's clock has run since
   /// the page loaded, so the boats and cars are already under way.
   final double t0;
+
+  /// The frame interval in the `full` / `lite` tiers (ms). The Sporing scenes
+  /// draw every frame; Bryggen every 31 ms (`brGlTegn`).
+  final double fullMs, liteMs;
+
+  /// In the heat / battery `still` tier, show [still] instead of holding a
+  /// rendered frame (parity plan Step 11: the baked still is the `still` tier).
+  final bool stillTier;
+
+  /// Each new frame (owned by this widget: clone it to keep it).
+  final void Function(ui.Image frame)? onFrame;
 
   @override
   State<SpGl> createState() => _SpGlState();
@@ -150,7 +165,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     _programs[widget.asset]!.then((pr) {
       if (!mounted) return;
       _shader = pr.fragmentShader();
-      _render();
+      if (!(widget.stillTier && _step == null)) _render();
       _sync();
     }).catchError((Object _) {});
   }
@@ -160,7 +175,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     super.didChangeDependencies();
     _dpr = math.min(2, MediaQuery.devicePixelRatioOf(context));
     _calm = BergenPerf.calmOf(context);
-    _step = BergenPerf.shaderStep(context, fullMs: 1000 / 60, liteMs: 1000 / 30) ?? (_calm ? const Duration(microseconds: 33333) : null);
+    _step = BergenPerf.shaderStep(context, fullMs: widget.fullMs, liteMs: widget.liteMs) ?? (_calm ? const Duration(microseconds: 33333) : null);
     _budget = BergenPerf.shaderBudget(context, 300000);
     if (_streams.isEmpty) _load();
     _sync();
@@ -178,7 +193,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
       _load();
     }
     // A held frame follows new data (weather, the store's logo).
-    if (!_ticker.isActive) SchedulerBinding.instance.addPostFrameCallback((_) => _render());
+    if (!_ticker.isActive && !(widget.stillTier && _step == null)) SchedulerBinding.instance.addPostFrameCallback((_) => _render());
   }
 
   void _sync() {
@@ -186,6 +201,12 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final run = _step != null;
     if (run && !_ticker.isActive) _ticker.start();
     if (!run && _ticker.isActive) _ticker.stop();
+    if (!run && widget.stillTier && widget.still != null) {
+      final old = _frame;
+      if (old != null) setState(() => _frame = null);
+      old?.dispose();
+      return;
+    }
     if (!run) _render();
   }
 
@@ -259,6 +280,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final old = _frame;
     setState(() => _frame = img);
     old?.dispose();
+    widget.onFrame?.call(img);
   }
 
   @override
