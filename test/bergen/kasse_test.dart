@@ -10,6 +10,7 @@ import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/kasse/bestilling_sheet.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kasse_copy.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kasse_sheets.dart';
+import 'package:aerend_customer/screens/bergen/kasse/kasse_stripe.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kjop_sekvens.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kurv_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
@@ -62,6 +63,7 @@ class _FakeKasse extends OpsKasseApi {
   }) async {
     lastPlace = {
       'storeId': storeId,
+      'paymentType': paymentType,
       'addressId': addressId,
       'pickup': pickup,
       'note': note,
@@ -204,6 +206,13 @@ void main() {
     final legacy = OpsKasseApi.previewFromJson({'status': 1, 'store_id': 7, 'delivery_cost': 20, 'tax_cost': 4, 'order_fee': 15});
     expect(legacy.deliveryCost, 20);
     expect(legacy.taxCost, 4);
+  });
+
+  test('Betaling ids map to the API payment_type (1 card, 2 Google/Apple Pay, 3 Vipps)', () {
+    expect(kasseApiPaymentType(kBetVipps), 3);
+    expect(kasseApiPaymentType(kBetKort), 1);
+    expect(kasseApiPaymentType(kBetGoogle), 2);
+    expect(kasseApiPaymentType(kBetApple), 2);
   });
 
   test('a slot renders the legacy schedule format', () {
@@ -458,6 +467,7 @@ void main() {
     await _dragToPay(tester);
     await tester.pump();
     expect(api.lastPlace?['storeId'], 7);
+    expect(api.lastPlace?['paymentType'], 3, reason: 'Vipps is the default method');
     expect(api.lastPlace?['addressId'], 5);
     expect(customer.codeCalls, 1);
   });

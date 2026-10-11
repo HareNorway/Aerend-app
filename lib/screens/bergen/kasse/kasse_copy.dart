@@ -25,6 +25,10 @@ abstract final class KasseCopy {
   static String a1_kasse_lagt_i(String navn) => _t('$navn er lagt i kurven', '$navn is in your basket');
   static String a1_kasse_kl(String t) => _t('Kl. $t', 'At $t');
   static String get a1_kasse_stengt => _t('Stengt nå', 'Closed now');
+  static String get a1_kasse_betaling_avbrutt =>
+      _t('Betalingen ble avbrutt. Ordren er ikke betalt.', 'The payment was cancelled. The order is not paid.');
+  static String get a1_kasse_betaling_venter =>
+      _t('Betalingen er ikke bekreftet ennå. Prøv igjen om litt.', 'The payment is not confirmed yet. Try again shortly.');
   static String a1_kasse_stengt_line(String? aapner) => aapner == null
       ? _t('Butikken tar ikke imot bestillinger nå', 'The store is not taking orders now')
       : _t('Åpner $aapner', 'Opens $aapner');

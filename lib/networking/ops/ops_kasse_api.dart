@@ -133,6 +133,41 @@ class OpsKasseApi {
     }
   }
 
+  /// After a card / Google Pay payment: the legacy re-check (place-order
+  /// again with the order's id), where the API asks Stripe and marks the
+  /// order paid. True only when it answers `payment_status: 1`.
+  Future<bool> confirmStripePaid({
+    required int orderId,
+    required int storeId,
+    required int addressId,
+    required int paymentType,
+    required bool pickup,
+    required List<int> cartIds,
+  }) async {
+    if (_off) return false;
+    try {
+      await prefSetInt('bookedOrderId', orderId);
+      final json = await CheckoutRepo().callStorePlaceOrderApi(
+        storeId,
+        addressId,
+        paymentType,
+        pickup ? 2 : 1,
+        '',
+        jsonEncode(cartIds),
+        false,
+        '',
+        null,
+        0,
+        null,
+      );
+      return json is Map && json['status'] == 1 && '${json['payment_status']}' == '1';
+    } catch (_) {
+      return false;
+    } finally {
+      await prefSetInt('bookedOrderId', 0);
+    }
+  }
+
   /// The Vipps redirect for an order; null when initiation failed.
   Future<String?> vippsRedirect(int orderId) async {
     if (_off) return null;
