@@ -214,11 +214,12 @@ import 'kurv_seilas.dart';
 final ValueNotifier<bool> kurvSkjulerNav = ValueNotifier(false);
 
 class KurvScreen extends StatefulWidget {
-  const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi});
+  const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi, this.butikkApi});
 
   final bool embedded;
   final OpsKasseApi? api;
   final OpsCustomerApi? customerApi;
+  final OpsButikkApi? butikkApi;
 
   @override
   State<KurvScreen> createState() => KurvScreenState();
@@ -316,7 +317,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
     if (_store?.id != cart.storeId) {
-      final store = await OpsButikkApi().store(cart.storeId);
+      final store = await (widget.butikkApi ?? OpsButikkApi()).store(cart.storeId);
       if (mounted && store != null) setState(() => _store = store);
     }
   }
@@ -339,6 +340,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   // ── slots (Levering sheet) ─────────────────────────────────────────────
 
+  /// The store's own open flag (worked out on the server in the store's
+  /// time zone); the API refuses a checkout while it is closed.
+  bool get _stengt => _store != null && !_store!.open;
+
+  /// «12:30» from the API's opening time («12:30 PM», «12:30:00»).
+  String? get _aapner {
+    final t = _store?.openTime;
+    final m = t == null ? null : RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(t.trim());
+    return m == null ? null : '${m.group(1)!.padLeft(2, '0')}:${m.group(2)}';
+  }
+
   List<KasseSlot> get _slots {
     final now = DateTime.now();
     final eta = _preview == null ? 30 : 30;
@@ -354,8 +366,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     return [
       KasseSlot(
         id: 'asap',
-        label: KasseCopy.a1_kasse_tid_asap,
-        line: KasseCopy.a1_kasse_tid_innen(hhmm(asapEnd), eta - 5, eta + 5),
+        label: _stengt ? KasseCopy.a1_kasse_stengt : KasseCopy.a1_kasse_tid_asap,
+        line: _stengt
+            ? KasseCopy.a1_kasse_stengt_line(_aapner)
+            : KasseCopy.a1_kasse_tid_innen(hhmm(asapEnd), eta - 5, eta + 5),
       ),
       KasseSlot(id: 'slot1', label: hhmm(first), line: KasseCopy.a1_kasse_lev_middag_line, at: first),
       KasseSlot(id: 'slot2', label: hhmm(second), line: KasseCopy.a1_kasse_lev_kveld_line, at: second),
@@ -445,6 +459,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(0);
   }
 
+  /// The back key. A pushed Kassen (from the store's «Til kassen», a push,
+  /// …) goes back where it came from; pushing the store here instead made
+  /// store ⇄ Kassen a loop with Hjem out of reach. The cart tab has nothing
+  /// below it, so it still opens the basket's store.
+  void _tilbake() {
+    final nav = Navigator.of(context);
+    if (!widget.embedded && nav.canPop()) {
+      nav.pop();
+      return;
+    }
+    _tilButikk();
+  }
+
   void _tolk() => BergenRoutes.pushOr(
     context,
     kAegilRoute,
@@ -467,6 +494,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<bool> _pay() async {
     final cart = _cart;
     if (cart == null || cart.isEmpty || _placing) return false;
+    if (_stengt) {
+      showBergenToast(context, KasseCopy.a1_kasse_stengt_toast(_store!.name, _aapner));
+      return false;
+    }
     if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.checkout)) return false;
     if (!mounted) return false;
     if (!_pickup && _address == null) {
@@ -674,7 +705,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 safeTop: safeTop,
                 departing: _departing,
                 tom: cart != null && !hasCart,
-                onBack: _tilButikk,
+                onBack: _tilbake,
                 storeName: _preview?.storeName,
                 storeLogoUrl: _store?.logoUrl,
               ),

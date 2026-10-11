@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/data/ops/butikk_models.dart';
 import 'package:aerend_customer/data/ops/kasse_models.dart';
+import 'package:aerend_customer/networking/ops/ops_butikk_api.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
@@ -95,6 +97,15 @@ class _FakeCustomer extends OpsCustomerApi {
 
   @override
   Future<Map<String, dynamic>?> referral() async => referralJson;
+}
+
+class _FakeButikk extends OpsButikkApi {
+  _FakeButikk(this.info);
+
+  final BergenStoreInfo info;
+
+  @override
+  Future<BergenStoreInfo?> store(int storeId, {String? categoryHint}) async => info;
 }
 
 KurvLine _line(int id, String name, double price, {int qty = 1, bool aegil = false}) => KurvLine(
@@ -343,6 +354,59 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text(KasseCopy.a1_kasse_hent_selv), findsOneWidget);
     expect(api.lastPlace?['pickup'], isFalse);
+  });
+
+  testWidgets('a closed store: «Stengt nå · Åpner …» and no order is sent', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Gyros', 200)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+      placeResponse: {'status': 1, 'order_id': 1, 'total_pay': 239},
+    );
+    final butikk = _FakeButikk(const BergenStoreInfo(
+      id: 7, name: 'Gyros House', kind: BergenStoreKind.restaurant, open: false, openTime: '12:30 PM'));
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer(), butikkApi: butikk)));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(KasseCopy.a1_kasse_stengt_line('12:30')), findsOneWidget);
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(api.lastPlace, isNull);
+    expect(find.text(KasseCopy.a1_kasse_stengt_toast('Gyros House', '12:30')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('back on a pushed Kassen goes back, not to a new store page', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Gyros', 200)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+    );
+    await tester.pumpWidget(MaterialApp(
+      onGenerateRoute: (s) => MaterialPageRoute(builder: (_) => Text('route ${s.name}')),
+      home: Builder(
+        builder: (context) => TextButton(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer()))),
+          child: const Text('butikken'),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('butikken'));
+    // Kassen animates for ever (the sea), so fixed pumps, not pumpAndSettle.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('a1_kasse_tilbake')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('butikken'), findsOneWidget);
+    expect(find.textContaining('route /bergen/butikk'), findsNothing);
   });
 
   testWidgets('a placed order asks for the code when the toggle is on', (tester) async {

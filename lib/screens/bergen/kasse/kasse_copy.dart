@@ -24,6 +24,13 @@ abstract final class KasseCopy {
   // ── Launch: the receipt and the status ────────────────────────────────
   static String a1_kasse_lagt_i(String navn) => _t('$navn er lagt i kurven', '$navn is in your basket');
   static String a1_kasse_kl(String t) => _t('Kl. $t', 'At $t');
+  static String get a1_kasse_stengt => _t('Stengt nå', 'Closed now');
+  static String a1_kasse_stengt_line(String? aapner) => aapner == null
+      ? _t('Butikken tar ikke imot bestillinger nå', 'The store is not taking orders now')
+      : _t('Åpner $aapner', 'Opens $aapner');
+  static String a1_kasse_stengt_toast(String navn, String? aapner) => aapner == null
+      ? _t('$navn er stengt nå', '$navn is closed now')
+      : _t('$navn er stengt nå · åpner $aapner', '$navn is closed now · opens $aapner');
   static String a1_kasse_betaler_med(String m) => _t('Betaler med $m', 'Paying with $m');
   static String get a1_kasse_betalt => _t('Betalt', 'Paid');
   static String a1_kasse_betalt_sum(String kr) => _t('Betalt · $kr kr', 'Paid · $kr kr');
