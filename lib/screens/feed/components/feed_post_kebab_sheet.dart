@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../networking/feed/feed_repo.dart';
-import '../../../theme/bergen_tokens.dart';
-import '../../bergen/kit/bergen_sheet.dart';
+import '../../bergen/meg/meg_ark.dart';
 import '../../bergen/kit/bergen_toast.dart';
 import '../../../utils/utils.dart';
 
 /// Why a post is reported (`POST /v1/posts/:id/report`, backend plan
-/// Step 9): the wire value and the Norwegian label.
+/// Step 9): the wire value, the Norwegian label and a line icon.
 const List<(String, String)> kFeedReportReasons = [
   ('misleading', 'Villedende eller feil'),
   ('wrong_price', 'Feil pris'),
@@ -18,37 +18,49 @@ const List<(String, String)> kFeedReportReasons = [
   ('other', 'Noe annet'),
 ];
 
-/// The reasons sheet: [title], [subtitle], then one row per reason. The
-/// chosen wire value, or null when the sheet is dismissed.
+/// Line icons for the reasons (24 px grid, 2.2 stroke, as the prototype's).
+const Map<String, String> _reasonIcon = {
+  'misleading': '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>',
+  'wrong_price': '<path d="M3.5 12.2V4.5h7.7l9.3 9.3-7.7 7.7z"/><circle cx="8" cy="9" r="1.4"/>',
+  'offensive': '<path d="M4 5h16v11H9l-5 4z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/>',
+  'spam': '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/>',
+  'other': '<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',
+};
+
+/// The reasons sheet — the prototype's Ark (`kVisArk`, [MegArk]): [title],
+/// [subtitle], then one row per reason; a tap chooses and sends. The chosen
+/// wire value, or null when the sheet is dismissed. Not in the prototype
+/// (needs design sign-off): reporting is an app-store requirement.
 Future<String?> _askReportReason(BuildContext context, {required String title, required String subtitle}) {
-  return showBergenSheet<String>(
+  return showMegArk<String>(
     context,
-    builder: (sheet) => Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    title: title,
+    subtitle: subtitle,
+    body: (sheet, _) => Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            title,
-            style: BergenTokens.display(BergenTokens.textSection, color: BergenTokens.ink),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Text(
-            subtitle,
-            style: BergenTokens.text(BergenTokens.textSmall, color: BergenTokens.inkSecondary),
-          ),
-        ),
         for (final (key, label) in kFeedReportReasons)
-          InkWell(
+          MegArkRow(
             key: Key('feed-report-$key'),
-            borderRadius: BorderRadius.circular(14),
+            title: label,
             onTap: () => Navigator.pop(sheet, key),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
-              child: Text(label, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: BergenTokens.ink)),
+            leading: Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(11),
+                gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFEAF2F4), Color(0xFFD2E1E5)]),
+              ),
+              child: SvgPicture.string(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${_reasonIcon[key] ?? ''}</svg>',
+                width: 17,
+                height: 17,
+              ),
+            ),
+            trailing: SvgPicture.string(
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8C847C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+              width: 14,
+              height: 14,
             ),
           ),
       ],

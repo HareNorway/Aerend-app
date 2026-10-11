@@ -202,16 +202,15 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
           _cardSeq += 1;
         });
       case 'premie':
-        setState(() {
-          // A sample prize (the prototype's first shelf item): no prizes
-          // exist locally. Debug only.
-          _premie = const AegilPick(
-            prize: {'id': -1, 'name': 'Gratis levering', 'point_price': 400, 'line': 'Brukes automatisk på neste levering', 'tier_name': 'Bronse'},
-            reason: '',
-            affordable: true,
-          );
-          _phase = FiskePhase.fangst;
-          _cardSeq += 1;
+        // The real pick (`points/prizes/pick`, the shelf's best), as a cast
+        // that earns one gets it. Debug only.
+        a3Try(_points.pick).then((pick) {
+          if (!mounted || pick?.prize == null) return;
+          setState(() {
+            _premie = pick;
+            _phase = FiskePhase.fangst;
+            _cardSeq += 1;
+          });
         });
       case 'ferdig':
         setState(() {

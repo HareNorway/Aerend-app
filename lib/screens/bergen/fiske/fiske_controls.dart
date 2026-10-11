@@ -111,23 +111,25 @@ class _Glass extends StatelessWidget {
         child: BackdropFilter(
           enabled: BergenPerf.blurOn(context),
           filter: BergenPerf.blur(context, blur * s, blur * s),
-          child: Container(
-            width: width,
-            height: height,
-            alignment: alignment,
-            padding: padding,
-            decoration: BoxDecoration(
-              color: rgba(15, 31, 43, fill),
-              borderRadius: r,
-              border: Border.all(color: rgba(255, 255, 255, border)),
-            ),
-            child: Stack(
-              alignment: alignment ?? Alignment.topLeft,
-              children: [
-                child,
-                bergenInsetTop(radius: radius, height: 1 * s, alpha: inset),
-              ],
-            ),
+          // The top highlight (`inset 0 1px 0`) sits on the box, just inside
+          // its 1 px border — not inside the padding, where it showed as a
+          // line below the edge (parity Step 6 / 8).
+          child: Stack(
+            children: [
+              Container(
+                width: width,
+                height: height,
+                alignment: alignment,
+                padding: padding,
+                decoration: BoxDecoration(
+                  color: rgba(15, 31, 43, fill),
+                  borderRadius: r,
+                  border: Border.all(color: rgba(255, 255, 255, border)),
+                ),
+                child: child,
+              ),
+              bergenInsetTop(radius: math.max(0, radius - 1), height: 1 * s, alpha: inset, pad: const EdgeInsets.all(-1)),
+            ],
           ),
         ),
       ),
@@ -224,10 +226,13 @@ class FiskeHeader extends StatelessWidget {
                   },
                 ),
                 SizedBox(width: 6 * s),
+                // The prototype's chip is a flex box with `gap: 6px`, so each
+                // text run between its values sits 6 px apart in a browser
+                // («Kast  1  av  8  ·  0  lagret»): Inter's ~3 px space + 3.
                 Text(
                   FiskeCopy.a1_fiske_status(kast, av, lagret),
                   key: const Key('a1_fiske_status'),
-                  style: bText(context, 11.5, weight: FontWeight.w800),
+                  style: bText(context, 11.5, weight: FontWeight.w800).copyWith(wordSpacing: 3 * s, fontFeatures: const [FontFeature.tabularFigures()]),
                 ),
               ],
             ),

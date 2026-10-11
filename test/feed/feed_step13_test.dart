@@ -338,17 +338,18 @@ void main() {
     testWidgets('post detail: all on has the input, share and the like count', (tester) async {
       await pumpDetail(tester, FeedConfig.defaults);
       expect(find.byKey(const Key('post-detail-comments-off')), findsNothing);
-      expect(find.byKey(const Key('post-detail-share')), findsOneWidget);
-      expect(find.byKey(const Key('feed-post-detail-like-count')), findsOneWidget);
+      // The post page shows the feed's own card (parity Step 8).
+      expect(find.byKey(const Key('a1_feed_share_501')), findsOneWidget);
+      expect(find.byKey(const Key('a1_feed_like_count_501')), findsOneWidget);
     });
 
     testWidgets('post detail: the switches off, and a shopless publisher opens nothing', (tester) async {
       await pumpDetail(tester, const FeedConfig(comments: false, sharing: false, likeCounts: false));
       expect(find.byKey(const Key('post-detail-comments-off')), findsOneWidget);
       expect(find.text('Kommentarer er slått av'), findsOneWidget);
-      expect(find.byKey(const Key('post-detail-share')), findsNothing);
-      expect(find.byKey(const Key('feed-post-detail-like-count')), findsNothing);
-      expect(find.byKey(const Key('post-detail-report')), findsOneWidget);
+      expect(find.byKey(const Key('a1_feed_share_501')), findsNothing);
+      expect(find.byKey(const Key('a1_feed_like_count_501')), findsNothing);
+      expect(find.byKey(const Key('a1_feed_report_501')), findsOneWidget);
 
       // «Ærend» is not a shop: tapping the name pushes no store profile.
       await tester.tap(find.text('Ærend').first);

@@ -9,6 +9,7 @@ import '../common/selectLanguageAndCurrency/select_language_and_currency.dart';
 import '../common/signUp/sign_up.dart';
 import '../common/homeMainV1/home_main_v1.dart';
 import '../common/splash/splash.dart';
+import '../feed/postDetail/post_detail.dart';
 
 /// Route names with this prefix hide the global Snurre launcher.
 const String snurreLauncherHiddenRoutePrefix = 'snurre-hide/';
@@ -30,6 +31,9 @@ String snurreLauncherRouteNameFor(Widget screen) {
     return '${snurreLauncherHiddenRoutePrefix}consent';
   }
   if (screen is Login) return '${snurreLauncherHiddenRoutePrefix}login';
+  // The post page is drawn as a Bergen screen (parity Step 8): no launcher,
+  // like every other screen of the Bergen app.
+  if (screen is PostDetailScreen) return '${snurreLauncherHiddenRoutePrefix}post';
   if (screen is SignUp) return '${snurreLauncherHiddenRoutePrefix}signup';
   if (screen is CreateProfile) {
     return '${snurreLauncherHiddenRoutePrefix}create-profile';

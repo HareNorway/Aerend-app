@@ -411,10 +411,12 @@ class _AutomatScreenState extends State<AutomatScreen> {
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 10),
+              // Right-aligned like the prototype's header chip.
               if (igjen != null)
-                Flexible(
-                  flex: 50,
+                Expanded(
+                  child: Align(
+                  alignment: Alignment.centerRight,
                   child: FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerRight,
@@ -433,13 +435,16 @@ class _AutomatScreenState extends State<AutomatScreen> {
                     children: [
                       const UtfPulsDot(color: Color(0xFFFFD27A)),
                       const SizedBox(width: 6),
-                      Text(
-                        UtforskCopy.a1_auto_igjen(igjen),
+                      // The prototype's chip is a flex box (`gap: 6px`): the
+                      // number stands 6 px from its words.
+                      Text.rich(
+                        _igjenSpan(UtforskCopy.a1_auto_igjen(igjen)),
                         style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFE7A8)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
                       ),
                     ],
                   ),
                 ),
+                  ),
                   ),
                 ),
             ],
@@ -1569,6 +1574,17 @@ class _AutomatScreenState extends State<AutomatScreen> {
         ),
       ),
     );
+  }
+
+  /// «4 igjen i dag · ekte antall» with the first space widened to 6 px.
+  static TextSpan _igjenSpan(String tekst) {
+    final i = tekst.indexOf(' ');
+    if (i < 0) return TextSpan(text: tekst);
+    return TextSpan(children: [
+      TextSpan(text: tekst.substring(0, i)),
+      const TextSpan(text: ' ', style: TextStyle(letterSpacing: 3)),
+      TextSpan(text: tekst.substring(i + 1)),
+    ]);
   }
 
   static const String _svgTilbake =

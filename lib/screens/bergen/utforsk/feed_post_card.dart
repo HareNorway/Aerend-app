@@ -48,9 +48,15 @@ class FeedPostCard extends StatefulWidget {
     this.onStop,
     this.showLikeCount = true,
     this.showShare = true,
+    this.detalj = false,
   });
 
   final FeedTabItem item;
+
+  /// On the post's own page (parity Step 8): no chevron on the title, and no
+  /// price / CTA row for a post without a shop — there is nothing further to
+  /// open.
+  final bool detalj;
 
   /// The shop behind the post, once the store read has answered: open state,
   /// delivery minutes and distance. Null renders the card without them.
@@ -614,6 +620,8 @@ class _FeedPostCardState extends State<FeedPostCard>
       tile = CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
         imageUrl: url,
         fit: BoxFit.cover,
+        // The tile while the logo loads too, so the slot is never empty.
+        placeholder: (_, __) => _initialsTile(initials),
         errorWidget: (_, __, ___) => _initialsTile(initials),
       );
     } else if (item.store == null) {
@@ -785,7 +793,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                       radius: BorderRadius.circular(17),
                       bg: [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
                       shadows: _keyShadow,
-                      child: const Center(child: Icon(Icons.outlined_flag, size: 17, color: Colors.white)),
+                      child: Center(child: feedIcon(FeedIcons.flagLaunch, 16)),
                     ),
                   ),
                 ),
@@ -814,11 +822,13 @@ class _FeedPostCardState extends State<FeedPostCard>
                 Expanded(
                   child: Text(item.title, style: jakarta(18, em: -0.02, height: 1.2)),
                 ),
-                const SizedBox(width: 10),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: feedIcon(FeedIcons.chevronLaunch, 16),
-                ),
+                if (!widget.detalj) ...[
+                  const SizedBox(width: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: feedIcon(FeedIcons.chevronLaunch, 16),
+                  ),
+                ],
               ],
             ),
           ),
@@ -845,6 +855,7 @@ class _FeedPostCardState extends State<FeedPostCard>
               ],
             ),
           ],
+          if (!widget.detalj || item.store != null) ...[
           Container(
             height: 1,
             margin: const EdgeInsets.fromLTRB(0, 13, 0, 12),
@@ -892,6 +903,7 @@ class _FeedPostCardState extends State<FeedPostCard>
               _cta(label: ctaLabel, primary: toCart),
             ],
           ),
+          ],
         ],
       ),
     );

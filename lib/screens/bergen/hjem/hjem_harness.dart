@@ -165,6 +165,10 @@ abstract final class HjemHarness {
   /// landed), `fisk` (Ægil rowing out — no cart call) or `fisket` (in the
   /// basket — no cart call).
   static String? utfSeg, feedFane, feedKat, feedSpill, autoAct;
+
+  /// Parity Step 8: `feedRapport` (post id) opens its «Rapporter» reasons
+  /// sheet once the feed has loaded; `feedInnlegg` (post id) opens its detail.
+  static String? feedRapport, feedInnlegg;
   static double? utfScroll;
   static bool feedDrift = false, automat = false;
   static int? autoValg;
@@ -266,6 +270,7 @@ abstract final class HjemHarness {
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = liveApne = sporingKvittering = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
+        feedRapport = feedInnlegg = null;
         fiskeFase = fiskeAgn = null;
         aegil = aegTekst = guide = null;
         rute = ruteArg = null;
@@ -349,6 +354,8 @@ abstract final class HjemHarness {
       sporingKvittering = m['sporingKvittering'] == true;
       utfSeg = m['utfSeg'] as String?;
       feedFane = m['feedFane'] as String?;
+      feedRapport = m['feedRapport']?.toString();
+      feedInnlegg = m['feedInnlegg']?.toString();
       feedKat = m['feedKat'] as String?;
       feedSpill = m['feedSpill']?.toString();
       utfScroll = (m['utfScroll'] as num?)?.toDouble();

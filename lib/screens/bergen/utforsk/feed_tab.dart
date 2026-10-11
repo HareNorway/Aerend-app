@@ -182,6 +182,20 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
       });
       widget.onPostsLoaded?.call(page.items);
       unawaited(_loadStores(page.items));
+      final rapport = kDebugMode ? HjemHarness.feedRapport : null;
+      if (rapport != null) {
+        HjemHarness.feedRapport = null;
+        unawaited(Future<void>.delayed(const Duration(milliseconds: 1200), () {
+          if (mounted) reportFeedPost(context, rapport, repo: _repo);
+        }));
+      }
+      final innlegg = kDebugMode ? HjemHarness.feedInnlegg : null;
+      if (innlegg != null) {
+        HjemHarness.feedInnlegg = null;
+        unawaited(Future<void>.delayed(const Duration(milliseconds: 1200), () {
+          if (mounted) openScreen(context, PostDetailScreen(postId: innlegg));
+        }));
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -299,7 +313,12 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
   }
 
   void _share(FeedTabItem item) {
-    Share.share(UtforskCopy.a1_feed_share_text(item.title, item.publisherName));
+    // iOS 26 refuses a share sheet without an anchor (sharePositionOrigin).
+    final box = context.findRenderObject() as RenderBox?;
+    Share.share(
+      UtforskCopy.a1_feed_share_text(item.title, item.publisherName),
+      sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+    );
   }
 
   void _cta(FeedTabItem item) {
