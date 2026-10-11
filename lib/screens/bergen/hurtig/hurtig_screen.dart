@@ -518,7 +518,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         return _angre(true);
       }
       if (!await _fyllKurven(U)) {
-        if (mounted) showBergenToast(context, BergenRoutes.kommerSnart);
+        if (mounted) showBergenToast(context, BergenRoutes.ikkeIKurven);
         return _angre(true);
       }
       final k = HurtigKilde.kasse();
@@ -540,7 +540,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       );
       if (!mounted) return;
       if (response == null || response['status'] != 1) {
-        showBergenToast(context, '${response?['message'] ?? BergenRoutes.kommerSnart}');
+        showBergenToast(context, '${response?['message'] ?? BergenRoutes.provIgjen}');
         return _angre(true);
       }
       final orderId = (response['order_id'] as num?)?.toInt() ?? 0;
@@ -640,7 +640,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final ok = await _fyllKurven(U);
     if (!mounted) return;
     setState(() => _plasserer = false);
-    if (!ok) return showBergenToast(context, BergenRoutes.kommerSnart);
+    if (!ok) return showBergenToast(context, BergenRoutes.ikkeIKurven);
     setState(() {
       _utkast = null;
       _fase = 'utkast';

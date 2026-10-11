@@ -109,7 +109,7 @@ class _Glass extends StatelessWidget {
       child: ClipRRect(
         borderRadius: r,
         child: BackdropFilter(
-          enabled: BergenPerf.blurOn(context),
+          enabled: BergenPerf.blurOn(context, secondary: true),
           filter: BergenPerf.blur(context, blur * s, blur * s),
           // The top highlight (`inset 0 1px 0`) sits on the box, just inside
           // its 1 px border — not inside the padding, where it showed as a
@@ -348,7 +348,7 @@ class FiskeBubble extends StatelessWidget {
                 bottomLeft: Radius.circular(6 * s),
               ),
               child: BackdropFilter(
-                enabled: BergenPerf.blurOn(context),
+                enabled: BergenPerf.blurOn(context, secondary: true),
                 filter: BergenPerf.blur(context, 16 * s, 16 * s),
                 child: Container(
                   padding: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 9 * s),

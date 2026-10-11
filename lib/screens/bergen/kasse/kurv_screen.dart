@@ -29,6 +29,7 @@ import '../../common/home/bergen/bergen_adr_kilde.dart';
 import '../../common/home/home_bloc.dart';
 import '../adresse/adr_ark.dart' show adrMerke, visAdresseArk;
 import '../hjem/hjem_harness.dart';
+import 'hent_kart_sheet.dart';
 import 'kasse_copy.dart';
 import 'kasse_sheets.dart';
 import 'kasse_stripe.dart';
@@ -355,6 +356,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (_store?.id != cart.storeId) {
       final store = await (widget.butikkApi ?? OpsButikkApi()).store(cart.storeId);
       if (mounted && store != null) setState(() => _store = store);
+      if (kDebugMode && HjemHarness.kurvKart && mounted && store != null) {
+        HjemHarness.kurvKart = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? visHentKart(context, store: store) : null);
+      }
     }
   }
 
@@ -600,7 +605,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         );
         return false;
       }
-      showBergenToast(context, '${response?['message'] ?? BergenRoutes.kommerSnart}');
+      showBergenToast(context, '${response?['message'] ?? BergenRoutes.provIgjen}');
       return false;
     }
     final orderId = (response['order_id'] as num?)?.toInt() ?? 0;
@@ -988,7 +993,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                                 : address.flatNo.ifEmpty(KasseCopy.a1_kasse_adr_tittel))),
                 action: _pickup ? KasseCopy.a1_kasse_se_kart : KasseCopy.a1_kasse_endre,
                 actionIcon: _pickup ? KurvIcons.map : null,
-                onTap: _pickup ? () => showBergenToast(context, BergenRoutes.kommerSnart) : _openAddress,
+                onTap: _pickup
+                    ? () {
+                        if (_store != null) visHentKart(context, store: _store!);
+                      }
+                    : _openAddress,
               ),
               KurvEndreRad(
                 keyName: 'a1_kasse_rad_tid',

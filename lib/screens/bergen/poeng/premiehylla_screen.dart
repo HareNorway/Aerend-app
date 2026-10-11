@@ -583,7 +583,7 @@ class HyllaPoengPille extends StatelessWidget {
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(999),
     child: BackdropFilter(
-      enabled: BergenPerf.blurOn(context),
+      enabled: BergenPerf.blurOn(context, secondary: true),
       filter: BergenPerf.blur(context, 7, 7),
       child: CssBox(
         key: const Key('hylla-poeng'),

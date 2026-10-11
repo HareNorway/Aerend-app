@@ -259,7 +259,7 @@ Future<void> visNoeGalt(BuildContext context, {required SupportOrdre ordre, requ
                 final sak = await SupportStore.instance.meld(ordre, valg!.$3, varer: [if (linje != null) linje!.$2], ord: valg!.$1);
                 if (!ctx.mounted) return;
                 Navigator.of(ctx).pop();
-                if (context.mounted) showBergenToast(context, sak == null ? BergenRoutes.kommerSnart : SupportCopy.registrert);
+                if (context.mounted) showBergenToast(context, sak == null ? SupportCopy.ikkeSendt : SupportCopy.registrert);
               },
             ),
           );

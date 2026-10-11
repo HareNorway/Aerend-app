@@ -718,7 +718,7 @@ class _StoreCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(999),
                     child: BackdropFilter(
-                      enabled: BergenPerf.blurOn(context),
+                      enabled: BergenPerf.blurOn(context, secondary: true),
                       filter: BergenPerf.blur(context, 16 * s, 16 * s),
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8 * s, vertical: 3 * s),

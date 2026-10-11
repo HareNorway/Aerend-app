@@ -301,7 +301,7 @@ class KurvFrost extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius * s),
           child: BackdropFilter(
-            enabled: BergenPerf.blurOn(context),
+            enabled: BergenPerf.blurOn(context, secondary: true),
             filter: blur
                 ? BergenPerf.blur(context, 26 * s, 26 * s)
                 : ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0),
@@ -1920,7 +1920,7 @@ class KurvFot extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20 * s),
         child: BackdropFilter(
-          enabled: BergenPerf.blurOn(context),
+          enabled: BergenPerf.blurOn(context, secondary: true),
           filter: BergenPerf.blur(context, 20 * s, 20 * s),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 11 * s),

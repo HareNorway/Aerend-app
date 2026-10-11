@@ -22,6 +22,13 @@ import 'drape_route.dart';
 abstract final class BergenRoutes {
   static const String kommerSnart = 'Kommer snart';
 
+  // What a failed call says (it used to say «Kommer snart», which reads as an
+  // unbuilt feature).
+  static const String provIgjen = 'Det gikk ikke akkurat nå. Prøv igjen.';
+  static const String ikkeSendt = 'Fikk ikke sendt. Prøv igjen.';
+  static const String ikkeLagret = 'Fikk ikke lagret. Prøv igjen.';
+  static const String ikkeIKurven = 'Fikk ikke lagt varene i kurven. Prøv igjen.';
+
   /// The registered key for [name]: query removed, and the last path segment
   /// dropped when it is a parameter the map does not spell.
   static String? resolve(String name) {

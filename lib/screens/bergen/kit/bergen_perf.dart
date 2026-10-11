@@ -160,7 +160,12 @@ abstract final class BergenPerf {
     return ui.ImageFilter.blur(sigmaX: sigmaX * k, sigmaY: (sigmaY ?? sigmaX) * k);
   }
 
-  static bool blurOn(BuildContext context) => of(context) != BergenTier.still;
+  /// Whether a backdrop blur runs: off in `still`. A [secondary] blur (glass
+  /// on a chip, card, bubble or bar, on top of the screen's own sheet or
+  /// panel) runs only in `full`, so `lite` keeps at most one per screen
+  /// (parity plan §3.1).
+  static bool blurOn(BuildContext context, {bool secondary = false}) =>
+      secondary ? of(context) == BergenTier.full : of(context) != BergenTier.still;
 
   /// A particle count: the prototype's [n] in `full`, half in `lite`, none in
   /// `still`.

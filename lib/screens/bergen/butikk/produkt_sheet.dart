@@ -797,7 +797,7 @@ class _BottomBar extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(999),
           child: BackdropFilter(
-            enabled: BergenPerf.blurOn(context),
+            enabled: BergenPerf.blurOn(context, secondary: true),
             filter: BergenPerf.blur(context, 15, 15),
             child: Container(
               padding: EdgeInsets.all(6 * s),

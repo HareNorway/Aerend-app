@@ -110,6 +110,9 @@ abstract final class HjemHarness {
   static bool kurvFlere = false;
   static bool kurvHenting = false;
 
+  /// With `kurvHenting`: open «Se fullt kart» once the shop has loaded (parity Step 13).
+  static bool kurvKart = false;
+
   /// Open the Kurv's `levering` or `betaling` sheet once loaded.
   static String? kurvArk;
 
@@ -272,6 +275,7 @@ abstract final class HjemHarness {
         kurvScroll = null;
         kurvFlere = false;
         kurvHenting = false;
+        kurvKart = false;
         kurvArk = null;
         kurvTilbake = false;
         betalt = null;
@@ -345,6 +349,7 @@ abstract final class HjemHarness {
       kurvScroll = (m['kurvScroll'] as num?)?.toDouble();
       kurvFlere = m['kurvFlere'] == true;
       kurvHenting = m['kurvHenting'] == true;
+      kurvKart = m['kurvKart'] == true;
       kurvArk = m['kurvArk'] as String?;
       kurvTilbake = m['kurvTilbake'] == true;
       betalt = m['betalt'] as int?;

@@ -782,7 +782,7 @@ class BergenNappCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(22 * s),
               child: BackdropFilter(
-                enabled: BergenPerf.blurOn(context),
+                enabled: BergenPerf.blurOn(context, secondary: true),
                 filter: BergenPerf.blur(context, 22, 22),
                 child: Container(
                   padding: EdgeInsets.all(12 * s),

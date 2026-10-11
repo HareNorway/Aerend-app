@@ -259,14 +259,14 @@ class _SporingScreenState extends State<SporingScreen> {
     final res = await _api.problem(_id, kind: 'wait');
     if (!mounted) return;
     setState(() => _waited = true);
-    showBergenToast(context, res == null ? BergenRoutes.kommerSnart : SporingCopy.a1_sporing_venter);
+    showBergenToast(context, res == null ? BergenRoutes.ikkeSendt : SporingCopy.a1_sporing_venter);
   }
 
   Future<void> _cancel() async {
     final res = await _api.problem(_id, kind: 'cancel');
     if (!mounted) return;
     if (res == null || res['error'] != null) {
-      showBergenToast(context, '${res?['message'] ?? BergenRoutes.kommerSnart}');
+      showBergenToast(context, '${res?['message'] ?? BergenRoutes.provIgjen}');
       return;
     }
     showBergenToast(context, SporingCopy.a1_sporing_refundert);
@@ -345,7 +345,7 @@ class _SporingScreenState extends State<SporingScreen> {
     Future<void> step(String to) async {
       final res = await _api.transition(_id, to);
       if (!mounted) return;
-      showBergenToast(context, res == null ? BergenRoutes.kommerSnart : '${res['event']?['type'] ?? to}');
+      showBergenToast(context, res == null ? BergenRoutes.provIgjen : '${res['event']?['type'] ?? to}');
       await _refresh();
     }
 

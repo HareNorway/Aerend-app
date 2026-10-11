@@ -279,7 +279,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
       if (res != null) _thread.add((false, SporingCopy.a1_sporing_sendt_tekst(_navn), _kl));
     });
     _scrollDown();
-    if (res == null) showBergenToast(context, BergenRoutes.kommerSnart);
+    if (res == null) showBergenToast(context, BergenRoutes.ikkeSendt);
   }
 
   void _scrollDown() {
@@ -293,7 +293,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
     final res = await _api.problem(_id, kind: 'door', words: words.isEmpty ? null : words);
     if (!mounted) return;
     if (res == null) {
-      showBergenToast(context, BergenRoutes.kommerSnart);
+      showBergenToast(context, BergenRoutes.ikkeSendt);
       return;
     }
     setState(() {

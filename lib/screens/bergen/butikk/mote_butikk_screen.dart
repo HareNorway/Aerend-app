@@ -290,7 +290,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
       setState(() => _saved.add(item.id));
       showBergenToast(context, ButikkCopy.a1_butikk_skive_lagret);
     } else {
-      showBergenToast(context, BergenRoutes.kommerSnart);
+      showBergenToast(context, BergenRoutes.ikkeLagret);
     }
   }
 
@@ -324,7 +324,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
       final id = int.tryParse('${mine['order_id']}') ?? 0;
       final res = await widget.customerApi.contact(id, kind: 'message', message: text);
       if (!mounted) return;
-      showBergenToast(context, res != null ? ButikkCopy.a1_butikk_melding_sendt : BergenRoutes.kommerSnart);
+      showBergenToast(context, res != null ? ButikkCopy.a1_butikk_melding_sendt : BergenRoutes.ikkeSendt);
       return;
     }
     BergenRoutes.pushOr(
@@ -2091,7 +2091,7 @@ class _SokKnapp extends StatelessWidget {
           child: ClipOval(
             // The screen's one blur layer: `backdrop-filter: blur(40px)`.
             child: BackdropFilter(
-              enabled: BergenPerf.blurOn(context),
+              enabled: BergenPerf.blurOn(context, secondary: true),
               filter: BergenPerf.blur(context, 20 * s, 20 * s),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 280),

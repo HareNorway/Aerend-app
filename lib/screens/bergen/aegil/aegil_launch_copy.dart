@@ -237,6 +237,7 @@ abstract final class AeCopy {
   static String get pauset => _t('Ægil er pauset — ingen forslag eller varsler', 'Ægil is paused — no suggestions or notifications');
   static String get iGangIgjen => _t('Ægil er i gang igjen', 'Ægil is running again');
   static String get tilbake => _t('Tilbake til Ægil', 'Back to Ægil');
+  static String get ingenFavoritter => _t('Du har ingen favoritter ennå. Trykk hjertet på en butikk først.', 'You have no favourites yet. Tap the heart on a store first.');
   static String get fastUkeshandel =>
       _t('Fast ukeshandel krever Vipps faste betalinger — settes opp ved første handel', 'A weekly shop needs Vipps recurring payments — set up at the first order');
 

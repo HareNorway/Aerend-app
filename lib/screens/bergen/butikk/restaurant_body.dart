@@ -1680,7 +1680,7 @@ class _Seilas extends StatelessWidget {
               ),
               ClipRect(
                 child: BackdropFilter(
-                  enabled: BergenPerf.blurOn(context),
+                  enabled: BergenPerf.blurOn(context, secondary: true),
                   filter: BergenPerf.blur(context, 5, 5),
                   child: Container(
                     padding: EdgeInsets.fromLTRB(14 * s, 11 * s, 14 * s, 12 * s),

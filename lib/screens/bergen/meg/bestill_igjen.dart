@@ -44,7 +44,7 @@ Future<bool> bestillIgjen(
   prefSetInt(prefCartCount, cart.lines.length);
   BergenCart.syncBadge(context, cart.lines.length);
   if (cart.isEmpty) {
-    showBergenToast(context, BergenRoutes.kommerSnart);
+    showBergenToast(context, BergenRoutes.ikkeIKurven);
     return false;
   }
   final n = linjer.length;

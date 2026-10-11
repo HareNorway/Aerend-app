@@ -563,7 +563,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     prefSetInt(prefCartCount, cart.lines.length);
     BergenCart.syncBadge(context, cart.lines.length);
     if (cart.isEmpty) {
-      LfToast.show(context, BergenRoutes.kommerSnart);
+      LfToast.show(context, BergenRoutes.ikkeIKurven);
       return;
     }
     LfToast.show(context, '${AeCopy.sammeSomSist} ${AeCopy.iKurven}');
@@ -581,7 +581,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     } else if (r?.error == 'LEVEL_REQUIRES_RECURRING') {
       LfToast.show(context, AeCopy.fastUkeshandel);
     } else {
-      LfToast.show(context, BergenRoutes.kommerSnart);
+      LfToast.show(context, BergenRoutes.ikkeLagret);
     }
   }
 
@@ -669,7 +669,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     ].whereType<num>().map((e) => e.toInt()).toList();
     if (!mounted) return;
     if (ids.isEmpty) {
-      LfToast.show(context, BergenRoutes.kommerSnart);
+      LfToast.show(context, AeCopy.ingenFavoritter);
       return;
     }
     _endre({'allowed_store_mode': 'allowlist', 'allowed_store_ids': ids});
@@ -709,7 +709,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       LfToast.show(context, AeCopy.glemtAlt);
       _gaa('minne');
     } else {
-      LfToast.show(context, BergenRoutes.kommerSnart);
+      LfToast.show(context, BergenRoutes.ikkeLagret);
     }
   }
 
