@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_stripe/flutter_stripe.dart';
 
+import '../../../constant/constant.dart' show stripePublishableKey;
 import 'kasse_sheets.dart';
 
 /// The API's `payment_type` for a method picked in Betaling: 1 card (the
@@ -43,12 +44,14 @@ Future<void> kasseStripePay({
     } else {
       await Stripe.instance.confirmPlatformPayPaymentIntent(
         clientSecret: secret,
-        confirmParams: const PlatformPayConfirmParams.googlePay(
+        confirmParams: PlatformPayConfirmParams.googlePay(
           googlePay: GooglePayParams(
             merchantName: 'Ærend',
             allowCreditCards: true,
             isEmailRequired: false,
-            testEnv: true,
+            // Google Pay's test environment only with a Stripe test key, so a
+            // live build never pays in test mode.
+            testEnv: stripePublishableKey.startsWith('pk_test_'),
             currencyCode: 'nok',
             merchantCountryCode: 'no',
           ),
