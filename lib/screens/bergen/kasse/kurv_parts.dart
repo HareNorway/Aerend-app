@@ -255,9 +255,12 @@ class KurvGlass extends StatelessWidget {
           border: Border.all(color: rgba(255, 255, 255, .18)),
         ),
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             child,
-            if (!transparent) bergenInsetTop(radius: radius, height: 1.5 * s, alpha: .28),
+            // On the card's edge: the Stack sits inside the padding.
+            if (!transparent)
+              bergenInsetTop(radius: radius, height: 1.5 * s, alpha: .28, pad: padding.resolve(TextDirection.ltr)),
           ],
         ),
       ),
@@ -310,9 +313,10 @@ class KurvFrost extends StatelessWidget {
                 border: Border.all(color: rgba(255, 255, 255, .9)),
               ),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   child,
-                  bergenInsetTop(radius: radius * s, height: 1.5 * s, alpha: .95),
+                  bergenInsetTop(radius: radius * s, height: 1.5 * s, alpha: .95, pad: EdgeInsets.fromLTRB(14 * s, 12 * s, 14 * s, 12 * s)),
                 ],
               ),
             ),
@@ -915,6 +919,7 @@ class KurvTom extends StatelessWidget {
                     ],
                   ),
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -924,7 +929,7 @@ class KurvTom extends StatelessWidget {
                           KurvIcon(13 * s, KurvIcons.chevron, width: 3.2),
                         ],
                       ),
-                      bergenInsetTop(radius: 16 * s, height: 1.5 * s, alpha: .35),
+                      bergenInsetTop(radius: 16 * s, height: 1.5 * s, alpha: .35, pad: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 12 * s)),
                     ],
                   ),
                 ),
@@ -1034,7 +1039,9 @@ class KurvEndrePill extends StatelessWidget {
     return OnbPressable(
       onTap: onTap,
       pressDy: 2,
-      child: Container(
+      child: Stack(
+        children: [
+          Container(
         constraints: BoxConstraints(minHeight: 34 * s),
         padding: EdgeInsets.symmetric(horizontal: (icon == null ? 12 : 13) * s),
         alignment: Alignment.center,
@@ -1052,12 +1059,6 @@ class KurvEndrePill extends StatelessWidget {
           clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
-            bergenInsetTop(
-              radius: 999,
-              height: 1.5 * s,
-              alpha: .32,
-              pad: EdgeInsets.symmetric(horizontal: (icon == null ? 12 : 13) * s),
-            ),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1074,6 +1075,10 @@ class KurvEndrePill extends StatelessWidget {
             ),
           ],
         ),
+      ),
+          // On the pill's own edge (the content above is only as tall as its text).
+          bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .32),
+        ],
       ),
     );
   }
@@ -1778,6 +1783,7 @@ class KurvAaBetale extends StatelessWidget {
         ],
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1874,7 +1880,7 @@ class KurvAaBetale extends StatelessWidget {
               ),
             ],
           ),
-          bergenInsetTop(radius: 18 * s, height: 1.5 * s, alpha: .22),
+          bergenInsetTop(radius: 18 * s, height: 1.5 * s, alpha: .22, pad: EdgeInsets.fromLTRB(14 * s, 13 * s, 14 * s, 13 * s)),
         ],
       ),
     );
@@ -1924,6 +1930,7 @@ class KurvFot extends StatelessWidget {
               border: Border.all(color: rgba(255, 255, 255, .85)),
             ),
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 Row(
                   children: [
@@ -1959,7 +1966,7 @@ class KurvFot extends StatelessWidget {
                     ),
                   ],
                 ),
-                bergenInsetTop(radius: 20 * s, height: 1.5 * s, alpha: .9),
+                bergenInsetTop(radius: 20 * s, height: 1.5 * s, alpha: .9, pad: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 11 * s)),
               ],
             ),
           ),
