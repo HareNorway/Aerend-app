@@ -16,6 +16,7 @@ import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import '../kit/bergen_perf.dart';
+import '../adresse/adr_ark.dart' show adrMerke;
 
 /// The four Kasse sheets (≈L6913–7142 in `Ærend Kunde Bergen.dc.html`) via
 /// [BergenArk]: **Adresse** ("Hvor skal ærendet?" + the door note),
@@ -38,7 +39,7 @@ Future<AddressListItem?> showAdresseSheet(
     rows: [
       for (final a in addresses)
         BergenArkRow(
-          label: '${a.type} · ${a.address.split(',').first}'.replaceFirst(RegExp(r'^ · '), ''),
+          label: '${a.type.isEmpty ? '' : adrMerke(a.type)} · ${a.address.split(',').first}'.replaceFirst(RegExp(r'^ · '), ''),
           value: [if (a.flatNo.isNotEmpty) a.flatNo, if (a.landmark.isNotEmpty) a.landmark].join(' · '),
           icon: a.addressId == selectedId ? Icons.check_circle_rounded : Icons.place_outlined,
           onTap: () => Navigator.of(context).pop(a),

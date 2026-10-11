@@ -19,6 +19,9 @@ abstract final class HjemHarness {
   /// does (no shop joined locally in the last 14 days).
   static bool nyButikk = false;
 
+  /// Kassen plays Betalt out of its slider for this order id (parity Step 6).
+  static int? betaltKurv;
+
   static HjemVaer? vaer;
   static bool demoFloats = false;
   static int? unread;
@@ -204,6 +207,7 @@ abstract final class HjemHarness {
         if (perf != null) BergenPerf.force(null);
         perf = null;
         nyButikk = false;
+        betaltKurv = null;
         vaer = null;
         demoFloats = false;
         unread = null;
@@ -270,6 +274,7 @@ abstract final class HjemHarness {
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
       perf = m['perf'] as String?;
       nyButikk = m['nyButikk'] == true;
+      betaltKurv = (m['betaltKurv'] as num?)?.toInt();
       BergenPerf.force(perf == null ? null : BergenTier.values.byName(perf!));
       vaer = m['vaer'] == null ? null : HjemVaer.values.byName(m['vaer'] as String);
       demoFloats = m['demoFloats'] == true;

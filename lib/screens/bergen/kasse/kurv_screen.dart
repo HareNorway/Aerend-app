@@ -27,7 +27,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
 import '../../common/home/bergen/bergen_adr_kilde.dart';
 import '../../common/home/home_bloc.dart';
-import '../adresse/adr_ark.dart' show visAdresseArk;
+import '../adresse/adr_ark.dart' show adrMerke, visAdresseArk;
 import '../hjem/hjem_harness.dart';
 import 'kasse_copy.dart';
 import 'kasse_sheets.dart';
@@ -39,6 +39,7 @@ import 'kurv_betal.dart';
 import 'kurv_kvittering.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
+import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -259,6 +260,27 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    // Debug harness `betaltKurv` (order id): Betalt out of this slider, as
+    // after a card / Google Pay payment — nothing is paid or ordered.
+    if (kDebugMode && HjemHarness.betaltKurv != null) {
+      Future<void>(() async {
+        // Wait for the slider (the cart loads first), at most 12 s.
+        for (var i = 0; i < 40 && mounted && _betalRect == null; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        if (!mounted) return;
+        Navigator.of(context).push(
+          PageRouteBuilder<void>(
+            settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+            opaque: false,
+            transitionDuration: Duration.zero,
+            reverseTransitionDuration: Duration.zero,
+            pageBuilder: (_, a, b) => KjopBekreftetScreen(orderId: HjemHarness.betaltKurv!, fra: _betalRect, fjernUnder: true),
+          ),
+        );
+      });
+    }
     WidgetsBinding.instance.addObserver(this);
     _load();
     if (kDebugMode) {
@@ -493,6 +515,15 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   /// True when the order went through (Vipps opened / the card checkout
   /// opened); false sends the slider back.
+  /// The slider: Betalt grows out of it (`betOvergang`, `data-betspor`).
+  final GlobalKey _betalKey = GlobalKey();
+
+  Rect? get _betalRect {
+    final box = _betalKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize || !box.attached) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
+  }
+
   Future<bool> _pay() async {
     final cart = _cart;
     if (cart == null || cart.isEmpty || _placing) return false;
@@ -631,9 +662,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     setState(() => _placing = false);
     prefSetInt(prefCartCount, 0);
     BergenCart.syncBadge(context, 0);
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => KjopBekreftetScreen(orderId: orderId, sum: total)),
-      (route) => route.isFirst,
+    // Over Kassen, growing out of the slider (`betOvergang`); Kassen leaves
+    // when Betalt hands over to Sporing.
+    final fra = _betalRect;
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+        opaque: false,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+        pageBuilder: (_, a, b) => KjopBekreftetScreen(orderId: orderId, sum: total, fra: fra, fjernUnder: true),
+      ),
     );
     return true;
   }
@@ -775,7 +814,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 left: 16 * s,
                 right: 16 * s,
                 bottom: bottom,
-                child: KurvBetal(total: _total(cart), busy: _placing, onPay: _pay),
+                child: KurvBetal(key: _betalKey, total: _total(cart), busy: _placing, onPay: _pay),
               ),
             // The Ægil-guide (L9495): what is missing to free delivery.
             if (cart != null)
@@ -922,7 +961,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       ].join(' · ').ifEmpty(KasseCopy.a1_kasse_hent_tittel)
                     : address == null
                     ? KasseCopy.a1_kasse_adr_velg
-                    : [if (address.type.isNotEmpty) address.type, address.address.split(',').first].join(' · '),
+                    // «Hjem · Torggaten 9»: the API's type (home/work/…) as the sheet names it.
+                    : [if (address.type.isNotEmpty) adrMerke(address.type), address.address.split(',').first].join(' · '),
                 line: _pickup
                     ? KasseCopy.a1_kasse_hent_selv
                     : (address == null

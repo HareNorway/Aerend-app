@@ -25,9 +25,18 @@ import 'kasse_copy.dart';
 /// payment, so it starts from the full overlay (the prototype grows it out of
 /// the slider, which is gone after Vipps).
 class KjopBekreftetScreen extends StatefulWidget {
-  const KjopBekreftetScreen({super.key, required this.orderId, this.sum, this.customerApi});
+  const KjopBekreftetScreen({super.key, required this.orderId, this.sum, this.customerApi, this.fra, this.fjernUnder = false});
 
   final int orderId;
+
+  /// The slider's rect (global) when Kassen is underneath: the overlay
+  /// grows out of it (`clip-path: inset(…) → 0`, 560 ms, `cubic-bezier(.7,0,
+  /// .2,1)`, radius 20 → 0) and the knob starts from it. Null after the
+  /// Vipps return (the slider is gone): full from the start.
+  final Rect? fra;
+
+  /// Kassen and anything above Hjem go when Sporing takes over.
+  final bool fjernUnder;
 
   /// The paid total; read from the order when not given.
   final double? sum;
@@ -55,9 +64,10 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
         Navigator.of(context).pushReplacement(
           PageRouteBuilder<void>(
             settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+            // Over Kassen it stays see-through: the overlay grows out of the slider.
+            opaque: widget.fra == null,
             transitionDuration: Duration.zero,
-            pageBuilder: (_, __, ___) =>
-                KjopBekreftetScreen(orderId: widget.orderId, sum: _sum, customerApi: widget.customerApi),
+            pageBuilder: (_, __, ___) => KjopBekreftetScreen(orderId: widget.orderId, sum: _sum, customerApi: widget.customerApi, fra: widget.fra, fjernUnder: widget.fjernUnder),
           ),
         );
         return;
@@ -100,41 +110,49 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
     final side = BergenRoutes.generate(RouteSettings(name: navn, arguments: const {'fersk': '1'})) as PageRoute;
     final reduce = MediaQuery.disableAnimationsOf(context);
     final frame = _Ramme(t: 1, sum: _sum);
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder<void>(
-        settings: side.settings,
-        transitionDuration: Duration(milliseconds: reduce ? 0 : 1030),
-        pageBuilder: (context, a, sa) => side.buildPage(context, a, sa),
-        transitionsBuilder: (context, a, _, child) {
-          if (a.status == AnimationStatus.completed) return child;
-          // 350 ms on the overlay, then 680 ms down and away.
-          final ms = a.value * 1030;
-          final e = const Cubic(.6, 0, .3, 1).transform(((ms - 350) / 680).clamp(0.0, 1.0));
-          return Stack(
-            children: [
-              child,
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: FractionalTranslation(
-                    translation: Offset(0, e * 1.04),
-                    child: Material(type: MaterialType.transparency, child: frame),
-                  ),
+    final nav = Navigator.of(context);
+    // From Kassen: Kassen (and the store under it) go; Hjem stays first.
+    if (widget.fjernUnder) {
+      nav.pushAndRemoveUntil(_sporingRute(side, reduce, frame), (route) => route.isFirst);
+      return;
+    }
+    nav.pushReplacement(_sporingRute(side, reduce, frame));
+  }
+
+  PageRoute<void> _sporingRute(PageRoute side, bool reduce, Widget frame) {
+    return PageRouteBuilder<void>(
+      settings: side.settings,
+      transitionDuration: Duration(milliseconds: reduce ? 0 : 1030),
+      pageBuilder: (context, a, sa) => side.buildPage(context, a, sa),
+      transitionsBuilder: (context, a, _, child) {
+        if (a.status == AnimationStatus.completed) return child;
+        // 350 ms on the overlay, then 680 ms down and away.
+        final ms = a.value * 1030;
+        final e = const Cubic(.6, 0, .3, 1).transform(((ms - 350) / 680).clamp(0.0, 1.0));
+        return Stack(
+          children: [
+            child,
+            Positioned.fill(
+              child: IgnorePointer(
+                child: FractionalTranslation(
+                  translation: Offset(0, e * 1.04),
+                  child: Material(type: MaterialType.transparency, child: frame),
                 ),
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1E4F5C),
+      backgroundColor: widget.fra == null ? const Color(0xFF1E4F5C) : Colors.transparent,
       body: AnimatedBuilder(
         animation: _t,
-        builder: (context, _) => _Ramme(t: _t.value, sum: _sum),
+        builder: (context, _) => _Ramme(t: _t.value, sum: _sum, fra: widget.fra),
       ),
     );
   }
@@ -142,10 +160,13 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
 
 /// One frame of the Betalt overlay at [t] (0–1 over 1150 ms).
 class _Ramme extends StatelessWidget {
-  const _Ramme({required this.t, required this.sum});
+  const _Ramme({required this.t, required this.sum, this.fra});
 
   final double t;
   final double? sum;
+
+  /// The slider's rect: the overlay grows out of it, the knob starts in it.
+  final Rect? fra;
 
   static const _knapp = 50.0;
 
@@ -158,7 +179,9 @@ class _Ramme extends StatelessWidget {
     // The knob: from the slider (left 16+5, bottom 16+5) to the middle.
     final bunn = math.max(16 * s, MediaQuery.paddingOf(context).bottom);
     final k = _knapp * s;
-    final x0 = 21 * s, y0 = h - bunn - 5 * s - k;
+    // The knob sits 5 px in from the slider's left and top edge.
+    final x0 = fra != null ? fra!.left + 5 * s : 21 * s;
+    final y0 = fra != null ? fra!.top + 5 * s : h - bunn - 5 * s - k;
     final mx = w / 2 - k / 2 - x0, my = h * .44 - k / 2 - y0;
     final f = (ms / 640).clamp(0.0, 1.0);
     double tx, ty, sc, rot;
@@ -181,29 +204,19 @@ class _Ramme extends StatelessWidget {
     final hake = Curves.easeOut.transform((etter / 320).clamp(0.0, 1.0));
     final ord = Curves.easeOut.transform((etter / 360).clamp(0.0, 1.0));
 
-    return Stack(
+    final lag = Stack(
       children: [
         const Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
-                stops: [0, .55, 1],
-              ),
+              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], stops: [0, .55, 1]),
             ),
           ),
         ),
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: Alignment.bottomCenter,
-                radius: .8,
-                colors: [rgba(70, 163, 180, .5), rgba(70, 163, 180, 0)],
-                stops: const [0, .7],
-              ),
+              gradient: RadialGradient(center: Alignment.bottomCenter, radius: .8, colors: [rgba(70, 163, 180, .5), rgba(70, 163, 180, 0)], stops: const [0, .7]),
             ),
           ),
         ),
@@ -216,11 +229,7 @@ class _Ramme extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.elliptical(w / 2, 22 * s)),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [rgba(255, 255, 255, .32), rgba(255, 255, 255, 0)],
-              ),
+              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [rgba(255, 255, 255, .32), rgba(255, 255, 255, 0)]),
             ),
           ),
         ),
@@ -260,10 +269,7 @@ class _Ramme extends StatelessWidget {
               child: Column(
                 key: const Key('a1_kasse_bekreftet'),
                 children: [
-                  Text(
-                    sum == null ? KasseCopy.a1_kasse_betalt : KasseCopy.a1_kasse_betalt_sum(KasseCopy.tall(sum!)),
-                    style: bDisplay(context, 20, letterSpacingEm: -.01),
-                  ),
+                  Text(sum == null ? KasseCopy.a1_kasse_betalt : KasseCopy.a1_kasse_betalt_sum(KasseCopy.tall(sum!)), style: bDisplay(context, 20, letterSpacingEm: -.01)),
                   SizedBox(height: 6 * s),
                   Text(
                     KasseCopy.a1_kasse_gjor_klar,
@@ -289,7 +295,25 @@ class _Ramme extends StatelessWidget {
         ),
       ],
     );
+    final f0 = fra;
+    if (f0 == null) return lag;
+    // `clip-path: inset(slider round 20px) → inset(0 round 0)`, 560 ms.
+    final e = const Cubic(.7, 0, .2, 1).transform((ms / 560).clamp(0.0, 1.0));
+    final r = Rect.lerp(f0, Offset.zero & size, e)!;
+    return ClipRRect(clipper: _Klipp(RRect.fromRectAndRadius(r, Radius.circular(20 * s * (1 - e)))), child: lag);
   }
+}
+
+class _Klipp extends CustomClipper<RRect> {
+  const _Klipp(this.r);
+
+  final RRect r;
+
+  @override
+  RRect getClip(Size size) => r;
+
+  @override
+  bool shouldReclip(_Klipp old) => old.r != r;
 }
 
 /// The slider's knob (`radial-gradient(circle at 36% 26%, #4F9AAB, #2A6272
@@ -307,19 +331,9 @@ class _Knapp extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16 * s),
-        gradient: const RadialGradient(
-          center: Alignment(-.28, -.48),
-          radius: .9,
-          colors: [Color(0xFF4F9AAB), Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF143C46)],
-          stops: [0, .4, .78, 1],
-        ),
+        gradient: const RadialGradient(center: Alignment(-.28, -.48), radius: .9, colors: [Color(0xFF4F9AAB), Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF143C46)], stops: [0, .4, .78, 1]),
         boxShadow: [
-          BoxShadow(
-            color: rgba(0, 20, 30, .75),
-            offset: Offset(0, 14 * s),
-            blurRadius: onbBlur(22 * s),
-            spreadRadius: -6 * s,
-          ),
+          BoxShadow(color: rgba(0, 20, 30, .75), offset: Offset(0, 14 * s), blurRadius: onbBlur(22 * s), spreadRadius: -6 * s),
           BoxShadow(color: const Color(0xFF0F2E36), offset: Offset(0, 3 * s), spreadRadius: 2 * s),
           BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 2 * s),
         ],
@@ -394,11 +408,7 @@ Future<void> showVervebillett(BuildContext context, {required int orderId, OpsCu
         ],
       ),
     ),
-    primary: BergenArkAction(
-      label: KasseCopy.a1_kasse_del_billett,
-      icon: Icons.ios_share_rounded,
-      onTap: () => Share.share(link.isEmpty ? code : '$code · $link'),
-    ),
+    primary: BergenArkAction(label: KasseCopy.a1_kasse_del_billett, icon: Icons.ios_share_rounded, onTap: () => Share.share(link.isEmpty ? code : '$code · $link')),
     secondary: BergenArkAction(label: KasseCopy.a1_kasse_lukk, onTap: () => Navigator.of(context).pop()),
   );
 }
