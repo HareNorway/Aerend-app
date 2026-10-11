@@ -19,6 +19,7 @@ import '../kit/bergen_kit.dart';
 import 'hjelp_sheet.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// `levert` (Launch L7278–7336) at `/bergen/levert/{id}`: the night over
 /// Bryggen (baked), the aurora swaying, «Levert. Håper det smaker.», «18:11
@@ -297,7 +298,8 @@ class _LevertScreenState extends State<LevertScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(22),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 19, sigmaY: 19),
+                      enabled: BergenPerf.blurOn(context),
+                      filter: BergenPerf.blur(context, 19, 19),
                       child: Container(
                         key: const Key('a1_sporing_poeng'),
                         padding: const EdgeInsets.all(14),

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +18,7 @@ import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import '../kit/bergen_perf.dart';
 
 part 'hjelp_chat.dart';
 
@@ -404,7 +404,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 behavior: HitTestBehavior.opaque,
                 onTap: _lukk,
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                  enabled: BergenPerf.blurOn(context),
+                  filter: BergenPerf.blur(context, 14, 14),
                   child: ColoredBox(color: rgba(8, 24, 32, .45)),
                 ),
               ),

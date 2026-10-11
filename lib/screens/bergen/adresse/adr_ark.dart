@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import '../../common/manageAddress/manage_address_dl.dart';
 import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
 import 'adr_scene.dart';
 import 'adr_tegning.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Adresse sheets (`sheet:'adresse'` L8382, `sheet:'nyAdresse'` L8493) ─────
 // "Hvor skal ærendet?": the street scene with the chosen place, its door
@@ -230,7 +230,8 @@ class _AdrRute extends StatelessWidget {
                     child: FadeTransition(
                       opacity: CurvedAnimation(parent: anim, curve: const Interval(0, .66, curve: Curves.easeOut)),
                       child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                        enabled: BergenPerf.blurOn(context),
+                        filter: BergenPerf.blur(context, 2.5, 2.5),
                         child: const ColoredBox(color: Color.fromRGBO(15, 31, 43, .32)),
                       ),
                     ),

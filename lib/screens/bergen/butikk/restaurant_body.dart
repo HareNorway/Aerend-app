@@ -37,6 +37,7 @@ import 'kategori_kort.dart'
 import 'info_sheet.dart';
 import 'produkt_launch.dart' show produktOfteMed;
 import 'produkt_sheet.dart';
+import '../kit/bergen_perf.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -605,7 +606,7 @@ Path _plusPath(double k, [double a = 5, double b = 19]) => Path()
 
 Widget _logo(String? url) => url == null
     ? const ColoredBox(color: Color(0xFFFBF7EE))
-    : Image.network(
+    : Image.network(cacheWidth: BergenPerf.decodeWidth, 
         url,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFFFBF7EE)),
@@ -1077,7 +1078,7 @@ class _KenBurns extends StatelessWidget {
   @override
   Widget build(BuildContext context) => KatLoop(
     durationMs: 32000,
-    child: Image.network(
+    child: Image.network(cacheWidth: BergenPerf.decodeWidth, 
       url,
       fit: BoxFit.cover,
       alignment: const Alignment(0, -.2),
@@ -1679,7 +1680,8 @@ class _Seilas extends StatelessWidget {
               ),
               ClipRect(
                 child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  enabled: BergenPerf.blurOn(context),
+                  filter: BergenPerf.blur(context, 5, 5),
                   child: Container(
                     padding: EdgeInsets.fromLTRB(14 * s, 11 * s, 14 * s, 12 * s),
                     decoration: BoxDecoration(
@@ -2763,7 +2765,7 @@ class _TilbudKort extends StatelessWidget {
                           children: [
                             const ColoredBox(color: Color(0xFFFBF7EE)),
                             if ((item.imageUrl ?? '').isNotEmpty)
-                              Image.network(
+                              Image.network(cacheWidth: BergenPerf.decodeWidth, 
                                 item.imageUrl!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, _, _) => const SizedBox.shrink(),
@@ -3312,7 +3314,7 @@ class _MenuBilde extends StatelessWidget {
                                   ),
                                 ),
                               )
-                            : Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                            : Image.network(cacheWidth: BergenPerf.decodeWidth, url, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
                       ),
                     ),
                   ),
@@ -3711,7 +3713,7 @@ class ButikkMiniKurv extends StatelessWidget {
             ),
             child: l.imageUrl == null
                 ? null
-                : Image.network(l.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                : Image.network(cacheWidth: BergenPerf.decodeWidth, l.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
           ),
           SizedBox(width: 10 * s),
           Expanded(
@@ -4220,7 +4222,7 @@ class _Ball extends StatelessWidget {
     ),
     child: line.imageUrl == null
         ? null
-        : Image.network(line.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+        : Image.network(cacheWidth: BergenPerf.decodeWidth, line.imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
   );
 }
 

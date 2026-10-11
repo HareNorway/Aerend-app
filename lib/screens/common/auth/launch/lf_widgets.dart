@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'lf_css.dart';
 import 'lf_icons.dart';
 import 'lf_motion.dart';
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ── Launch onboarding · shared pieces ───────────────────────────────────────
 // Prototype L1887–2214 (`data-screen-label="Onboarding"`).
@@ -246,9 +247,10 @@ class _LfLadderState extends State<LfLadder> with TickerProviderStateMixin {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(999),
                 child: BackdropFilter(
+                  enabled: BergenPerf.blurOn(context),
                   filter: ui.ImageFilter.compose(
                     outer: const ColorFilter.matrix(_saturate13),
-                    inner: ui.ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+                    inner: BergenPerf.blur(context, 9, 9),
                   ),
                   child: const SizedBox.expand(),
                 ),
@@ -723,7 +725,9 @@ class LfTyping extends StatelessWidget {
   final TextStyle style;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) {
     return LfOnce(
       ms: 1100,
       builder: (context, t, _) {
@@ -757,7 +761,9 @@ class LfDots extends StatelessWidget {
   const LfDots({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

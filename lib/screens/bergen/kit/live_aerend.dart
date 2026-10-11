@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import 'bergen_perf.dart';
 
 // ── Live-ærend (prototype L9598, `liveVals`/`liveData`) ────────────────────
 // The floating pill while an order is under way: Ægil in a progress ring,
@@ -65,7 +66,9 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) {
     final d = widget.data;
     final s = math.min(3, d.stadie);
     final hent = d.henting;
@@ -850,12 +853,15 @@ class _Gnister extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-    painter: _GnistPainter(c: pill.center, p: p),
+    painter: _GnistPainter(c: pill.center, p: p, n: BergenPerf.count(context, 18)),
   );
 }
 
 class _GnistPainter extends CustomPainter {
-  const _GnistPainter({required this.c, required this.p});
+  const _GnistPainter({required this.c, required this.p, this.n = 18});
+
+  /// The prototype's 18 sparks, fewer in the `lite` tier.
+  final int n;
 
   final Offset c;
   final double p;
@@ -864,7 +870,7 @@ class _GnistPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final e = Curves.easeOut.transform((p / .7).clamp(0.0, 1.0));
     final o = (1 - (p - .3) / .4).clamp(0.0, 1.0);
-    for (var i = 0; i < 18; i++) {
+    for (var i = 0; i < n; i++) {
       final a = (i / 18) * math.pi * 2 + (i % 3) * .1;
       final dist = (60 + (i * 37 % 70)).toDouble();
       final sz = 5 + (i * 13 % 5);
@@ -879,5 +885,5 @@ class _GnistPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _GnistPainter old) => old.p != p;
+  bool shouldRepaint(covariant _GnistPainter old) => old.p != p || old.n != n;
 }

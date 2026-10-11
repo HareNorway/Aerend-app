@@ -11,6 +11,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'butikk_copy.dart';
+import '../kit/bergen_perf.dart';
 
 // ── The product sheet's Launch pieces (`visProdukt`, L8901–8990) ────────────
 
@@ -478,7 +479,7 @@ class _Rett extends StatelessWidget {
             children: [
               const ColoredBox(color: Color(0xFFFBF7EE)),
               if ((url ?? '').isNotEmpty)
-                Image.network(url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
+                Image.network(cacheWidth: BergenPerf.decodeWidth, url!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink()),
               const RepaintBoundary(child: _Glint()),
             ],
           ),
@@ -963,7 +964,7 @@ class _MedKort extends StatelessWidget {
                                           gradient: RadialGradient(colors: [Color(0xFFFDF0D8), Color(0xFFE7B66C)]),
                                         ),
                                       )
-                                    : Image.network(
+                                    : Image.network(cacheWidth: BergenPerf.decodeWidth, 
                                         url!,
                                         fit: BoxFit.cover,
                                         errorBuilder: (_, _, _) => const SizedBox.shrink(),

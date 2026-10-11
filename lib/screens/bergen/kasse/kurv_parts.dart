@@ -11,6 +11,7 @@ import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// The pieces of the Kurv panel (design L5047–5228), each with the
 /// prototype's sizes, colours and shadows. Glass = `linear-gradient(180deg,
@@ -297,8 +298,9 @@ class KurvFrost extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius * s),
           child: BackdropFilter(
+            enabled: BergenPerf.blurOn(context),
             filter: blur
-                ? ui.ImageFilter.blur(sigmaX: 26 * s, sigmaY: 26 * s)
+                ? BergenPerf.blur(context, 26 * s, 26 * s)
                 : ui.ImageFilter.blur(sigmaX: 0, sigmaY: 0),
             child: Container(
               padding: EdgeInsets.fromLTRB(14 * s, 12 * s, 14 * s, 12 * s),
@@ -623,7 +625,7 @@ class KurvFlis extends StatelessWidget {
             child: bergenSvg('ico_mat', fit: BoxFit.contain),
           ),
           if (imageUrl != null && imageUrl!.isNotEmpty)
-            Image.network(imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+            Image.network(cacheWidth: BergenPerf.decodeWidth, imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
           Positioned(
             left: -.14 * d,
             top: -.3 * d,
@@ -1912,7 +1914,8 @@ class KurvFot extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20 * s),
         child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 20 * s, sigmaY: 20 * s),
+          enabled: BergenPerf.blurOn(context),
+          filter: BergenPerf.blur(context, 20 * s, 20 * s),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 11 * s),
             decoration: BoxDecoration(

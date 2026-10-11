@@ -10,6 +10,7 @@ import '../../feed/utils/feed_time_ago.dart';
 import '../../../utils/utils.dart';
 import '../kit/bergen_kit.dart';
 import 'utforsk_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// `feed` — "Nytt fra butikkene" (≈L6643 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -240,7 +241,7 @@ class _NyhetCard extends StatelessWidget {
             children: [
               AspectRatio(
                 aspectRatio: 16 / 9,
-                child: Image.network(
+                child: Image.network(cacheWidth: BergenPerf.decodeWidth, 
                   image,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) =>

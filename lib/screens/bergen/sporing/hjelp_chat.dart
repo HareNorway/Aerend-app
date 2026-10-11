@@ -716,7 +716,9 @@ class _Prikk extends StatelessWidget {
   final double delay;
 
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 2),
     child: LfLoop(
       builder: (context, tt, child) {

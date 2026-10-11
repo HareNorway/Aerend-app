@@ -9,6 +9,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
 import 'hjem_hjul.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Kommer snart · <kategori> (prototype L9548–9596, `snartVals`) ─────────
 // The sheet a coming-soon category opens: a spinning sunburst behind the
@@ -848,7 +849,7 @@ class _GnistState extends State<_Gnist> {
       builder: (context, t, _) => Stack(
         clipBehavior: Clip.none,
         children: [
-          for (var i = 0; i < _p.length; i++)
+          for (var i = 0; i < BergenPerf.count(context, _p.length); i++)
             () {
               final (a, dist, sz, dur) = _p[i];
               final e = const Cubic(.2, .7, .3, 1).transform((t / dur).clamp(0.0, 1.0));

@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import 'bergen_painters.dart';
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ── Ægil's floats (`dupper`) and the card that rises from the water ─────────
 // Three crates bob on the water in front of the pier, each carrying a product
@@ -668,7 +668,7 @@ class BergenFloat extends StatelessWidget {
 
 Widget _photo(BergenFloatItem item, BoxFit fit) {
   if (item.photoAsset != null) return Image.asset(item.photoAsset!, fit: fit);
-  return CachedNetworkImage(
+  return CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
     imageUrl: item.photoUrl!,
     fit: fit,
     errorWidget: (_, __, ___) => const SizedBox.shrink(),
@@ -782,7 +782,8 @@ class BergenNappCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(22 * s),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                enabled: BergenPerf.blurOn(context),
+                filter: BergenPerf.blur(context, 22, 22),
                 child: Container(
                   padding: EdgeInsets.all(12 * s),
                   decoration: BoxDecoration(

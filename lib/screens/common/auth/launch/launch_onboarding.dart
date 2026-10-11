@@ -29,6 +29,7 @@ import 'lf_motion.dart';
 import 'lf_scene.dart';
 import 'lf_widgets.dart';
 import 'lf_wow.dart';
+import '../../../bergen/kit/bergen_perf.dart';
 
 part 'lf_step_landing.dart';
 part 'lf_step_vilkaar.dart';

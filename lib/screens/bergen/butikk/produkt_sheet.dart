@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +16,7 @@ import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_vann.dart';
 import 'butikk_copy.dart';
 import 'produkt_launch.dart';
+import '../kit/bergen_perf.dart';
 
 /// The product sheet (`visProdukt` ≈L7214–7297 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -94,7 +94,8 @@ class _ProduktRoute extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => Navigator.of(context).maybePop(),
                 child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 3 * t, sigmaY: 3 * t),
+                  enabled: BergenPerf.blurOn(context),
+                  filter: BergenPerf.blur(context, 3 * t, 3 * t),
                   child: ColoredBox(color: rgba(15, 25, 32, .45 * t)),
                 ),
               ),
@@ -796,7 +797,8 @@ class _BottomBar extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(999),
           child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            enabled: BergenPerf.blurOn(context),
+            filter: BergenPerf.blur(context, 15, 15),
             child: Container(
               padding: EdgeInsets.all(6 * s),
               decoration: BoxDecoration(

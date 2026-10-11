@@ -6,6 +6,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_icons.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Sporing · shared bits (Launch prototype L6400–7340) ─────────────────────
 // Small widgets the tracking screens share: the glass keys, the live pulse
@@ -63,7 +64,7 @@ class SpLogo extends StatelessWidget {
       child: SizedBox(
         width: size,
         height: size,
-        child: u != null && u.isNotEmpty ? Image.network(u, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _bokstav()) : _bokstav(),
+        child: u != null && u.isNotEmpty ? Image.network(cacheWidth: BergenPerf.decodeWidth, u, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _bokstav()) : _bokstav(),
       ),
     );
   }

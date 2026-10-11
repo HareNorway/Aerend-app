@@ -11,6 +11,7 @@ import 'bergen_kit.dart';
 import '../../../bergen/hjem/hjem_kort.dart' show HjemGavepapir;
 import '../../auth/launch/lf_css.dart' show cssEaseInOut;
 import '../../auth/launch/lf_motion.dart' show LfLoop;
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
 // Three cards on a turntable: the focused card faces you, the other two sit
@@ -1169,7 +1170,7 @@ TextStyle _uskarp(BuildContext context, TextStyle t) {
 Widget _image(String? url, String? asset, BoxFit fit) {
   if (asset != null) return Image.asset(asset, fit: fit);
   if (url == null || url.isEmpty) return const SizedBox.shrink();
-  return CachedNetworkImage(
+  return CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
     imageUrl: url,
     fit: fit,
     fadeInDuration: const Duration(milliseconds: 250),

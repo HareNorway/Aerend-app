@@ -19,6 +19,7 @@ import '../meg/meg_nivaa_card.dart' show MegMedal, medalFor;
 import '../meg/meg_sheets.dart';
 import 'aegil_velger_screen.dart';
 import 'prize_art.dart';
+import '../kit/bergen_perf.dart';
 
 /// Premiehylla (`erPremier`, L7556–7707 in `Ærend Kunde Launch.dc.html`,
 /// design px): the floating back key and the points pill (the coin turning,
@@ -582,7 +583,8 @@ class HyllaPoengPille extends StatelessWidget {
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(999),
     child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
+      enabled: BergenPerf.blurOn(context),
+      filter: BergenPerf.blur(context, 7, 7),
       child: CssBox(
         key: const Key('hylla-poeng'),
         radius: BorderRadius.circular(999),

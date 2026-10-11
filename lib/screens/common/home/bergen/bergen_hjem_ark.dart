@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -13,6 +12,7 @@ import 'bergen_category_rad.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import 'bergen_rails.dart';
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -248,7 +248,8 @@ class _HjemArkState extends State<HjemArk> {
         child: ClipRRect(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),
           child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 40 * s, sigmaY: 40 * s),
+            enabled: BergenPerf.blurOn(context),
+            filter: BergenPerf.blur(context, 40 * s, 40 * s),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: rgba(250, 249, 246, .86),
@@ -663,7 +664,7 @@ class _Hero extends StatelessWidget {
             ),
           ),
           if (imageUrl != null)
-            Image.network(imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
+            Image.network(cacheWidth: BergenPerf.decodeWidth, imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
           ...children,
         ],
       ),
@@ -717,7 +718,8 @@ class _StoreCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(999),
                     child: BackdropFilter(
-                      filter: ui.ImageFilter.blur(sigmaX: 16 * s, sigmaY: 16 * s),
+                      enabled: BergenPerf.blurOn(context),
+                      filter: BergenPerf.blur(context, 16 * s, 16 * s),
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 8 * s, vertical: 3 * s),
                         decoration: BoxDecoration(

@@ -15,6 +15,7 @@ class BergenLoop extends StatelessWidget {
     required this.builder,
     this.delayMs = 0,
     this.child,
+    this.essential = false,
   });
 
   final double durationMs;
@@ -22,8 +23,12 @@ class BergenLoop extends StatelessWidget {
   final Widget Function(BuildContext context, double? p, Widget? child) builder;
   final Widget? child;
 
+  /// Keeps running in the `lite` tier (see `BergenEssential`).
+  final bool essential;
+
   @override
   Widget build(BuildContext context) => OnbLoopClock(
+    essential: essential,
     child: child,
     builder: (context, t, child) =>
         builder(context, onbLoop(t, delayMs, durationMs), child),

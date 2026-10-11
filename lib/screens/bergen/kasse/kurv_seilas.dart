@@ -9,6 +9,7 @@ import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import '../kit/ro_baat.dart';
 import 'kasse_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// `Seilas · kassen` (L6139): the 104-px header of the Kurv screen — the
 /// dashed course, the quay with the store's logo and «Bryggen», Ægil rowing
@@ -283,7 +284,7 @@ class _Sea extends StatelessWidget {
                         ],
                       ),
                       child: storeLogoUrl != null && storeLogoUrl!.isNotEmpty
-                          ? Image.network(
+                          ? Image.network(cacheWidth: BergenPerf.decodeWidth, 
                               storeLogoUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => _Initial(storeName),

@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'bergen_perf.dart';
 
 // ── Vågen water (shared) ────────────────────────────────────────────────────
 // The prototype's `canvas[data-sjogl]` (sjoGlInit / sjoGlTegn), ported to
@@ -156,6 +157,14 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
   Size _size = Size.zero;
   double _dpr = 2;
 
+  // Motion tier (parity plan §3.1): the prototype redraws the water every
+  // frame (`requestAnimationFrame`); capped at 60 fps in `full` so 120 Hz
+  // phones don't do twice the work, 30 fps at 55 % of the pixels in `lite`.
+  Duration _step = const Duration(microseconds: 16667);
+  Duration _sist = Duration.zero;
+  double _budgetK = 1;
+  bool _lite = false;
+
   String get _refKey => '${widget.reflection}|${widget.reflectionHeight}|${widget.fogColor.toARGB32()}';
 
   @override
@@ -193,6 +202,10 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     super.didChangeDependencies();
     _reduce = MediaQuery.disableAnimationsOf(context);
     _dpr = math.min(2.0, MediaQuery.devicePixelRatioOf(context));
+    final tier = BergenPerf.of(context);
+    _lite = tier == BergenTier.lite;
+    _step = BergenPerf.shaderStep(context, fullMs: 1000 / 60, liteMs: 1000 / 30) ?? _step;
+    _budgetK = BergenPerf.shaderBudget(context, 1);
     if (_reduce && _ticker.isActive) _ticker.stop();
     if (!_reduce && !_ticker.isActive && _shader != null) _ticker.start();
   }
@@ -203,6 +216,9 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     _t += dt;
     widget.ripples?.clock = _t;
     widget.onTick?.call(_t);
+    // A little slack so a 60 Hz vsync isn't skipped by rounding.
+    if (e - _sist < _step - const Duration(milliseconds: 2)) return;
+    _sist = e;
     _render();
   }
 
@@ -236,8 +252,9 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     if (sh == null || ref == null || _size.isEmpty) return;
     final w = _size.width, h = _size.height;
     var dpr = _dpr;
-    final bud = widget.maxPixels;
+    final bud = widget.maxPixels == null ? null : widget.maxPixels! * _budgetK;
     if (bud != null && w * h > 0) dpr = math.max(.3, math.min(dpr, math.sqrt(bud / (w * h))));
+    if (bud == null && _lite) dpr = math.min(dpr, 1.5);
     final pw = (w * dpr).round(), ph = (h * dpr).round();
     if (pw <= 0 || ph <= 0) return;
     final p = widget.palette;

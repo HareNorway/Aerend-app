@@ -34,6 +34,7 @@ import 'screens/bergen/bergen_routes_agil1.dart';
 import 'screens/bergen/bergen_routes_agil3.dart';
 import 'screens/bergen/kit/bergen_routes.dart';
 import 'screens/bergen/meg/a3_services.dart';
+import 'screens/bergen/kit/bergen_perf.dart';
 
 //Created at 20/05/2021 11:30 AM
 
@@ -70,6 +71,8 @@ Future<void> firebaseMessagingBackgroundHandler(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Parity plan §3: the motion tier (device class, low power, heat).
+  unawaited(BergenPerf.start());
 
   // Initialize Stripe
   Stripe.publishableKey = stripePublishableKey;
@@ -286,7 +289,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       child: child!,
                     )
                   : child!,
-              child: appChild,
+              child: BergenPerfScope(child: appChild),
             );
 
             return Stack(children: [calmChild, const _GlobalSnurreLauncher()]);

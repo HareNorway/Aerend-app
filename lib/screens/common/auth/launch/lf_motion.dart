@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../../bergen/kit/bergen_perf.dart';
 import 'lf_css.dart';
 
 // ── Launch onboarding · motion ──────────────────────────────────────────────
@@ -65,11 +66,15 @@ class LfLoop extends StatefulWidget {
     required this.builder,
     this.child,
     this.frozenMs = 0,
+    this.essential = false,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
   final Widget? child;
   final double frozenMs;
+
+  /// Keeps running in the `lite` tier (see [BergenEssential]).
+  final bool essential;
 
   @override
   State<LfLoop> createState() => _LfLoopState();
@@ -93,7 +98,10 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final reduce = MediaQuery.disableAnimationsOf(context);
+    // Reduced motion, or a decorative loop in the `lite` tier, rests at
+    // [frozenMs] (keyframe 0 unless the caller says otherwise).
+    final reduce = MediaQuery.disableAnimationsOf(context) ||
+        !BergenPerf.loopsRun(context, essential: widget.essential);
     if (reduce) {
       if (_ticker.isActive) {
         _base += _last;

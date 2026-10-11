@@ -7,6 +7,7 @@ import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import 'bergen_painters.dart';
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ── Kategorirad (`stilRom`) ─────────────────────────────────────────────────
 // Five 3D category icons on a ring: the focused one sits large in the middle
@@ -466,7 +467,7 @@ class _BergenCategoryRadState extends State<BergenCategoryRad> {
         padding: EdgeInsets.all(10 * s),
         child: cat.iconUrl!.toLowerCase().endsWith('.svg')
             ? SvgPicture.network(cat.iconUrl!, fit: BoxFit.contain)
-            : Image.network(cat.iconUrl!, fit: BoxFit.contain),
+            : Image.network(cacheWidth: BergenPerf.decodeWidth, cat.iconUrl!, fit: BoxFit.contain),
       );
     } else {
       art = Icon(Icons.storefront_rounded, size: 40 * s, color: Colors.white);

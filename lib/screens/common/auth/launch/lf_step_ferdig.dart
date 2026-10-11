@@ -733,7 +733,7 @@ class _Konfetti3DState extends State<_Konfetti3D> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     if (_done || !_ticker.isActive) return const SizedBox.shrink();
-    return RepaintBoundary(child: CustomPaint(painter: _KonfettiPainter(_bits, _el), size: Size.infinite));
+    return RepaintBoundary(child: CustomPaint(painter: _KonfettiPainter(_bits.take(BergenPerf.count(context, _bits.length)).toList(), _el), size: Size.infinite));
   }
 }
 

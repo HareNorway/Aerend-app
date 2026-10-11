@@ -10,6 +10,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_fav_heart.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
+import '../kit/bergen_perf.dart';
 
 // ── Kategori cards (L6048–6120, `butikkListe` / `produktListe`) ─────────────
 // Cream cards that float in 3D (`bm3Svev`), follow the finger (`bmTiltMove`),
@@ -694,7 +695,7 @@ class _LiveDot extends StatelessWidget {
 
 Widget _bilde(String? url, BoxFit fit, {Alignment align = Alignment.center}) {
   if (url == null || url.isEmpty) return const SizedBox.shrink();
-  return CachedNetworkImage(
+  return CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
     imageUrl: url,
     fit: fit,
     alignment: align,

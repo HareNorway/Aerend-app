@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// The four Kasse sheets (≈L6913–7142 in `Ærend Kunde Bergen.dc.html`) via
 /// [BergenArk]: **Adresse** ("Hvor skal ærendet?" + the door note),
@@ -129,7 +129,8 @@ class _KasseArkRute extends StatelessWidget {
                         curve: const Interval(0, .66, curve: Curves.easeOut),
                       ),
                       child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                        enabled: BergenPerf.blurOn(context),
+                        filter: BergenPerf.blur(context, 2.5, 2.5),
                         child: const ColoredBox(color: Color.fromRGBO(15, 31, 43, .32)),
                       ),
                     ),

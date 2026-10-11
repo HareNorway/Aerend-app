@@ -12,6 +12,7 @@ import '../../common/auth/launch/lf_widgets.dart';
 import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
 import 'utforsk_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// One feed post, as the Launch prototype draws it (`{{ poster }}` L5498–5560
 /// in `Ærend Kunde Launch.dc.html`, design px): a glass card with the media on
@@ -204,7 +205,19 @@ class _FeedPostCardState extends State<FeedPostCard>
   @override
   void initState() {
     super.initState();
+    BergenPerf.foreground.addListener(_onForeground);
     if (widget.playing) WidgetsBinding.instance.addPostFrameCallback((_) => _startVideo());
+  }
+
+  /// A playing video pauses while the app is in the background (parity plan §3).
+  void _onForeground() {
+    final c = _video;
+    if (c == null || !c.value.isInitialized) return;
+    if (BergenPerf.foreground.value) {
+      if (widget.playing) c.play();
+    } else {
+      c.pause();
+    }
   }
 
   @override
@@ -264,6 +277,7 @@ class _FeedPostCardState extends State<FeedPostCard>
 
   @override
   void dispose() {
+    BergenPerf.foreground.removeListener(_onForeground);
     _pop.dispose();
     final c = _video;
     _video = null;
@@ -346,7 +360,7 @@ class _FeedPostCardState extends State<FeedPostCard>
           child: _placeholderChip(item.publisherName),
         ),
         if (poster.isNotEmpty && FeedPostCard.loadImages)
-          CachedNetworkImage(
+          CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
             imageUrl: poster,
             fit: BoxFit.cover,
             fadeInDuration: const Duration(milliseconds: 300),
@@ -597,7 +611,7 @@ class _FeedPostCardState extends State<FeedPostCard>
 
     Widget tile;
     if (url != null && url.isNotEmpty && FeedPostCard.loadImages) {
-      tile = CachedNetworkImage(
+      tile = CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
         imageUrl: url,
         fit: BoxFit.cover,
         errorWidget: (_, __, ___) => _initialsTile(initials),

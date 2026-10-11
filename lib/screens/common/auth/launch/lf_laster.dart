@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../splash/splash_sticker_painter.dart';
 import 'lf_css.dart';
 import 'lf_motion.dart';
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ── Laster ──────────────────────────────────────────────────────────────────
 // `data-screen-label="Laster"` (prototype L1819), tone "Mørk glass": the Æ
@@ -21,7 +22,9 @@ class LfLaster extends StatelessWidget {
   static const Cubic _inn = Cubic(.2, 1.25, .4, 1);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) {
     return LfOnce(
       ms: 360,
       builder: (context, t, child) => Opacity(

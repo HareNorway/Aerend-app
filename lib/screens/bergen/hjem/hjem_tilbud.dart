@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Ærend-tilbud (prototype L3011–3100, `tbVals`) ──────────────────────────
 // Paper coupons, one at a time: a cream ticket with the shop, the dish and
@@ -527,7 +528,7 @@ class _KupongState extends State<_Kupong> {
                   borderRadius: BorderRadius.circular(t!.fotoAsset != null ? 0 : 14),
                   child: t.fotoAsset != null
                       ? Image.asset(t.fotoAsset!, fit: BoxFit.contain)
-                      : CachedNetworkImage(imageUrl: t.fotoUrl!, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox()),
+                      : CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, imageUrl: t.fotoUrl!, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox()),
                 ),
               ),
             ),
@@ -735,7 +736,7 @@ class _Logo extends StatelessWidget {
     if (t?.logoAsset != null) {
       inner = Image.asset(t!.logoAsset!, width: 24, height: 24, fit: BoxFit.contain);
     } else if (t?.logoUrl != null) {
-      inner = CachedNetworkImage(imageUrl: t!.logoUrl!, width: 28, height: 28, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox());
+      inner = CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, imageUrl: t!.logoUrl!, width: 28, height: 28, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox());
     } else {
       inner = SvgPicture.string(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 19 100 62"><circle cx="28" cy="50" r="19" fill="none" stroke="#1E4F5C" stroke-width="13"/><path d="M47 31 V69 M47 50 H85 M85 50 A19 19 0 1 0 78.7 64.1" fill="none" stroke="#1E4F5C" stroke-width="13" stroke-linecap="round"/></svg>',
@@ -1015,7 +1016,7 @@ class _GnisterState extends State<_Gnister> {
           builder: (context, t, _) => Stack(
             clipBehavior: Clip.none,
             children: [
-              for (var i = 0; i < _p.length; i++)
+              for (var i = 0; i < BergenPerf.count(context, _p.length); i++)
                 () {
                   final (s, a, v, dur, rot) = _p[i];
                   final e = const Cubic(.2, .7, .3, 1).transform((t / dur).clamp(0.0, 1.0));

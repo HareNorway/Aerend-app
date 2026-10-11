@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
+import '../../bergen/kit/bergen_perf.dart';
 import '../splash/splash_sticker_painter.dart';
 import 'onboarding_copy.dart';
 
@@ -225,11 +226,15 @@ class OnbLoopClock extends StatefulWidget {
     super.key,
     required this.builder,
     this.shared = false,
+    this.essential = false,
     this.child,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
   final bool shared;
+
+  /// Keeps running in the `lite` tier (see [BergenEssential]).
+  final bool essential;
   final Widget? child;
 
   static final Stopwatch _app = Stopwatch()..start();
@@ -257,7 +262,9 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final reduce = MediaQuery.disableAnimationsOf(context);
+    // Reduced motion, or a decorative loop in the `lite` tier, holds still.
+    final reduce = MediaQuery.disableAnimationsOf(context) ||
+        !BergenPerf.loopsRun(context, essential: widget.essential);
     if (reduce && _ticker.isActive) _ticker.stop();
     if (!reduce && !_ticker.isActive) _ticker.start();
   }
@@ -1075,7 +1082,8 @@ class OnbStepLadder extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        enabled: BergenPerf.blurOn(context),
+        filter: BergenPerf.blur(context, 14, 14),
         child: Container(
           padding: const EdgeInsets.fromLTRB(10, 8, 10, 7),
           decoration: BoxDecoration(

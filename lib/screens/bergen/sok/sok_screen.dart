@@ -24,6 +24,7 @@ import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import 'sok_copy.dart';
 import 'sok_oversikt.dart';
+import '../kit/bergen_perf.dart';
 
 /// `sok` (L5122–5297 in `Ærend Kunde Launch.dc.html`).
 ///
@@ -1628,7 +1629,7 @@ class _StoreRow extends StatelessWidget {
                 height: 52 * s,
                 radius: 16 * s,
                 child: b.bannerUrl != null
-                    ? Image.network(
+                    ? Image.network(cacheWidth: BergenPerf.decodeWidth, 
                         b.bannerUrl!,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => const _StoreFallback(),
@@ -1802,7 +1803,7 @@ class _ProductCard extends StatelessWidget {
                     radius: 16 * s,
                     edge: false,
                     child: p.imageUrl != null
-                        ? Image.network(
+                        ? Image.network(cacheWidth: BergenPerf.decodeWidth, 
                             p.imageUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => fallback,

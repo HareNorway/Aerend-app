@@ -5,6 +5,7 @@ import '../../../networking/ops/ops_butikk_api.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_kit.dart';
 import 'butikk_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// The Klede sheet (`visKlede` ≈L2630 in `Ærend Kunde Bergen.dc.html`):
 /// colour, size with stock, quantity, "Prøv hjemme. Budet henter returen
@@ -121,7 +122,7 @@ class _KledeSheetState extends State<KledeSheet> {
             height: 220 * s,
             width: double.infinity,
             child: item.imageUrl != null
-                ? Image.network(
+                ? Image.network(cacheWidth: BergenPerf.decodeWidth, 
                     item.imageUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>

@@ -33,6 +33,7 @@ import 'fiske_line.dart';
 import 'fiske_scene.dart';
 import 'fiske_stang.dart';
 import 'fiske_ui.dart';
+import '../kit/bergen_perf.dart';
 
 /// Fjordfiske — `/bergen/fjordfiske` (`{{ erFiske }}`, L7890–8106 in `Ærend
 /// Kunde Launch.dc.html`; logic `fiskeKast`, `fiskeDra`, `fiskePremieVelg`,
@@ -570,7 +571,9 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFF3D6B7A),
     body: FiskeScope.fit(child: Builder(builder: _body)),
   );

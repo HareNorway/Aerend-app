@@ -361,7 +361,8 @@ extension _Landing on LaunchOnboardingState {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
               child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 7, sigmaY: 7),
+                enabled: BergenPerf.blurOn(context),
+                filter: BergenPerf.blur(context, 7, 7),
                 child: const SizedBox.expand(),
               ),
             ),

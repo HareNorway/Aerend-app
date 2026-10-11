@@ -24,6 +24,7 @@ import '../kit/bergen_kit.dart';
 import '../utforsk/feed_tab.dart' show utfPoseHentes;
 import '../utforsk/utforsk_bits.dart';
 import '../utforsk/utforsk_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// `automat` — Poseautomaten (L5715–5906 in `Ærend Kunde Launch.dc.html`,
 /// design px) at `/bergen/automat`.
@@ -242,7 +243,9 @@ class _AutomatScreenState extends State<AutomatScreen> {
   // ── Build ───────────────────────────────────────────────────────────────
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) {
     final look = BergenWeatherLook.forHour(DateTime.now().hour);
 
     return Scaffold(

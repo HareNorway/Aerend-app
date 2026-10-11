@@ -51,7 +51,11 @@ class SpSceneKart extends StatelessWidget {
                   // The map itself and the route drawing.
                   Positioned.fill(
                     child: RepaintBoundary(
+                      // The route's trail follows the courier: same 14 s loop,
+                      // kept moving in `lite`, resting halfway in `still`.
                       child: LfLoop(
+                        essential: true,
+                        frozenMs: 7000,
                         builder: (context, t, _) => CustomPaint(
                           painter: _KartPainter(info: info, p: (t / 14000) % 1.0),
                         ),
@@ -102,7 +106,11 @@ class SpSceneKart extends StatelessWidget {
                   // The courier on the route.
                   Positioned.fill(
                     child: IgnorePointer(
+                      // The courier's ride says «on the way»: kept moving in
+                      // `lite`, resting halfway along the route in `still`.
                       child: LfLoop(
+                        essential: true,
+                        frozenMs: 7000,
                         builder: (context, t, _) => _Bud(info: info, p: (t / 14000) % 1.0, t: t),
                       ),
                     ),

@@ -1,10 +1,10 @@
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../kit/bergen_kit.dart';
 import 'meg_shine.dart';
+import '../kit/bergen_perf.dart';
 
 /// The design's Ark (`kVisArk` ≈L7333): the cream frosted sheet the Meg rows
 /// open — `rgba(245,243,239,.94)` + blur, 28px top corners, the title (19px),
@@ -101,7 +101,8 @@ class MegArk extends StatelessWidget {
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          enabled: BergenPerf.blurOn(context),
+          filter: BergenPerf.blur(context, 30, 30),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: const Color(0xFFF5F3EF).withValues(alpha: .96),

@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeatherLook;
 import '../aegil/aegil_bits.dart';
+import '../kit/bergen_perf.dart';
 
 /// The Meg header (`erMeg` L7341–7355, 390 × 196 design px): Brann stadion
 /// under Ulriken — the prototype's `data-ulgl="meg"` WebGL scene running live
@@ -220,6 +221,12 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   double _dpr = 1.5;
   bool _reduce = false;
 
+  // Motion tier (parity plan §3.1): 20 fps at 160 000 px in `full` (the
+  // prototype's `ulGlTegn`), 12 fps at 55 % in `lite`, one frame in `still`
+  // unless the user asked for calm (then the prototype's slow `rolig`).
+  Duration _step = const Duration(milliseconds: 50);
+  double _budget = 160000;
+
   @override
   void initState() {
     super.initState();
@@ -229,7 +236,9 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
       if (!mounted) return;
       _shader = pr.fragmentShader();
       _render();
-      _ticker.start();
+      if (BergenPerf.shaderStep(context, fullMs: 50, liteMs: 1000 / 12) != null || BergenPerf.calmOf(context)) {
+        _ticker.start();
+      }
     }).catchError((Object _) {});
   }
 
@@ -238,6 +247,14 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     super.didChangeDependencies();
     _reduce = MediaQuery.disableAnimationsOf(context);
     _dpr = math.min(1.5, MediaQuery.devicePixelRatioOf(context));
+    final calm = BergenPerf.calmOf(context);
+    final step = BergenPerf.shaderStep(context, fullMs: 50, liteMs: 1000 / 12);
+    _step = step ?? (calm ? const Duration(milliseconds: 1000 ~/ 12) : _step);
+    _budget = BergenPerf.shaderBudget(context, 160000);
+    // Heat / battery `still`: hold the frame; the user's calm keeps `rolig`.
+    final hold = step == null && !calm;
+    if (hold && _ticker.isActive) _ticker.stop();
+    if (!hold && !_ticker.isActive && _shader != null) _ticker.start();
   }
 
   @override
@@ -250,7 +267,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _t += ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1) * (_reduce ? .15 : 1);
     _prev = e;
     // The scene moves calmly; 20 frames a second is enough (`ulGlTegn`).
-    if (e - _sist < const Duration(milliseconds: 50)) return;
+    if (e - _sist < _step) return;
     _sist = e;
     _render();
   }
@@ -258,7 +275,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   void _render() {
     final sh = _shader;
     if (sh == null) return;
-    final dpr = math.max(.5, math.min(_dpr, math.sqrt(160000 / (_w * _h))));
+    final dpr = math.max(.5, math.min(_dpr, math.sqrt(_budget / (_w * _h))));
     final pw = (_w * dpr).round(), ph = (_h * dpr).round();
     final p = _StadionPal.av[widget.kind]!;
     var i = 0;

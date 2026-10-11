@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -9,6 +8,7 @@ import '../kit/bergen_kit.dart';
 import 'fiske_copy.dart';
 import 'fiske_frame.dart';
 import 'fiske_motion.dart';
+import '../kit/bergen_perf.dart';
 
 // ── icons (the design's inline 24-box SVGs) ─────────────────────────────────
 
@@ -109,7 +109,8 @@ class _Glass extends StatelessWidget {
       child: ClipRRect(
         borderRadius: r,
         child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: blur * s, sigmaY: blur * s),
+          enabled: BergenPerf.blurOn(context),
+          filter: BergenPerf.blur(context, blur * s, blur * s),
           child: Container(
             width: width,
             height: height,
@@ -342,7 +343,8 @@ class FiskeBubble extends StatelessWidget {
                 bottomLeft: Radius.circular(6 * s),
               ),
               child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 16 * s, sigmaY: 16 * s),
+                enabled: BergenPerf.blurOn(context),
+                filter: BergenPerf.blur(context, 16 * s, 16 * s),
                 child: Container(
                   padding: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 9 * s),
                   decoration: BoxDecoration(

@@ -11,6 +11,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Gaver-kategori (L5937) and Mote-utstilling (L6015) ──────────────────────
 // «Ukens utstilling» comes from the admin (Kategorier › Ukens utstilling,
@@ -1220,7 +1221,7 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
           MoteSkiveVare(
             navn: v.navn,
             pris: kr(v.prisKr),
-            bilde: v.bildeUrl == null ? null : NetworkImage(v.bildeUrl!),
+            bilde: v.bildeUrl == null ? null : ResizeImage(NetworkImage(v.bildeUrl!), width: BergenPerf.decodeWidth),
             sitat: v.sitat == null ? null : '«${v.sitat}»',
             hvem: [v.hvem, v.butikk].whereType<String>().where((s) => s.isNotEmpty).join(', '),
           ),

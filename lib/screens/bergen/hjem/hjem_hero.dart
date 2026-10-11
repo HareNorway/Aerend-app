@@ -11,6 +11,7 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../../common/home/bergen/bergen_floats.dart';
 import '../kit/sjo_water.dart';
 import 'hjem_fiskestang.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
 // Prototype L2227–2520. Design px, 390 wide, `top:72px; height:258px`:
@@ -871,7 +872,7 @@ class _Dupp extends StatelessWidget {
                             angle: rad(-4),
                             child: item.photoAsset != null
                                 ? Image.asset(item.photoAsset!, fit: BoxFit.contain)
-                                : Image.network(item.photoUrl!, fit: BoxFit.contain, errorBuilder: (_, e, s) => const SizedBox()),
+                                : Image.network(cacheWidth: BergenPerf.decodeWidth, item.photoUrl!, fit: BoxFit.contain, errorBuilder: (_, e, s) => const SizedBox()),
                           ),
                         ),
                       ],
@@ -1596,7 +1597,7 @@ class HjemNappKort extends StatelessWidget {
                                       angle: rad(-4),
                                       child: item.photoAsset != null
                                           ? Image.asset(item.photoAsset!, fit: BoxFit.contain)
-                                          : Image.network(item.photoUrl!, fit: BoxFit.contain, errorBuilder: (_, e, s) => const SizedBox()),
+                                          : Image.network(cacheWidth: BergenPerf.decodeWidth, item.photoUrl!, fit: BoxFit.contain, errorBuilder: (_, e, s) => const SizedBox()),
                                     ),
                                   ),
                               ],

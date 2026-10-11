@@ -1,4 +1,3 @@
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 
@@ -10,6 +9,7 @@ import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import 'leveringskode_card.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
 // Prototype L7098–7277 (panel) and L7007–7097 (sheet).
@@ -145,7 +145,8 @@ class SpPanel extends StatelessWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        enabled: BergenPerf.blurOn(context),
+        filter: BergenPerf.blur(context, 15, 15),
         child: CssBox(
           radius: const BorderRadius.vertical(top: Radius.circular(28)),
           padding: EdgeInsets.fromLTRB(16, 12, 16, 20 + bunn),

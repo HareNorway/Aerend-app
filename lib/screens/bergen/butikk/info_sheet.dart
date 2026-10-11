@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +12,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'butikk_copy.dart';
+import '../kit/bergen_perf.dart';
 
 /// The store's Info sheet (`sheetInfo`, L8584): the shared teal sheet with
 /// the store's name, the sliding Allergener / Åpningstider / Mer switch, and
@@ -71,7 +71,8 @@ class _InfoRute extends StatelessWidget {
                         curve: const Interval(0, .66, curve: Curves.easeOut),
                       ),
                       child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                        enabled: BergenPerf.blurOn(context),
+                        filter: BergenPerf.blur(context, 2.5, 2.5),
                         child: const ColoredBox(color: Color.fromRGBO(15, 31, 43, .32)),
                       ),
                     ),

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +24,7 @@ import 'butikk_copy.dart';
 import 'kategori_utstilling.dart' show MoteSkive, MoteSkiveVare;
 import 'klede_sheet.dart';
 import 'restaurant_body.dart' show ButikkKurvBar, ButikkMiniKurv;
+import '../kit/bergen_perf.dart';
 
 const _kGlass = [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)];
 
@@ -636,7 +636,7 @@ class _Hero extends StatelessWidget {
                 ),
               ),
               if (store.bannerUrl case final b?)
-                Image.network(
+                Image.network(cacheWidth: BergenPerf.decodeWidth, 
                   b,
                   fit: BoxFit.cover,
                   alignment: const Alignment(0, -.12),
@@ -758,7 +758,7 @@ class _Hero extends StatelessWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: store.logoUrl != null
-                        ? Image.network(
+                        ? Image.network(cacheWidth: BergenPerf.decodeWidth, 
                             store.logoUrl!,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => _Ini(store.name),
@@ -1036,7 +1036,7 @@ class _Utstilling extends StatelessWidget {
                       MoteSkiveVare(
                         navn: v.name,
                         pris: ButikkCopy.kr(v.price),
-                        bilde: v.imageUrl == null ? null : NetworkImage(v.imageUrl!),
+                        bilde: v.imageUrl == null ? null : ResizeImage(NetworkImage(v.imageUrl!), width: BergenPerf.decodeWidth),
                         y: .2,
                         sitat: v.description == null ? null : '«${v.description!.trim()}»',
                         hvem: v.description == null ? null : v.storeName,
@@ -1583,7 +1583,7 @@ class _Bilde extends StatelessWidget {
             ),
           ),
           if (item.imageUrl case final u?)
-            Image.network(
+            Image.network(cacheWidth: BergenPerf.decodeWidth, 
               u,
               fit: BoxFit.cover,
               alignment: const Alignment(0, -.56),
@@ -2091,7 +2091,8 @@ class _SokKnapp extends StatelessWidget {
           child: ClipOval(
             // The screen's one blur layer: `backdrop-filter: blur(40px)`.
             child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20 * s, sigmaY: 20 * s),
+              enabled: BergenPerf.blurOn(context),
+              filter: BergenPerf.blur(context, 20 * s, 20 * s),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 280),
                 alignment: Alignment.center,

@@ -10,6 +10,7 @@ import '../hurtig/hurtig_data.dart' show HbButikk;
 import '../kit/svg_sti.dart';
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Ægil-chat (`vcAktiv`, L4574–4632) ───────────────────────────────────────
 
@@ -724,7 +725,7 @@ class _Vare extends StatelessWidget {
               boxShadow: [BoxShadow(color: const Color.fromRGBO(4, 18, 26, .8), offset: const Offset(0, 6), blurRadius: cssSigma(12) * 2, spreadRadius: -8)],
             ),
             child: bilde != null
-                ? Image.network(bilde!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Center(child: AeIco(ico, w: 32, h: 28)))
+                ? Image.network(cacheWidth: BergenPerf.decodeWidth, bilde!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Center(child: AeIco(ico, w: 32, h: 28)))
                 : Center(child: AeIco(ico, w: 32, h: 28)),
           ),
         const SizedBox(height: 5),
@@ -1197,7 +1198,9 @@ class AeTenker extends StatelessWidget {
   const AeTenker({super.key});
 
   @override
-  Widget build(BuildContext context) => AeOnce(
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) => AeOnce(
     kind: AeInn.vcBoble,
     ms: 350,
     curve: const Cubic(.2, 1.2, .3, 1),

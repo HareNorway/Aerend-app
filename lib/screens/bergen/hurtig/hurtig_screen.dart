@@ -24,6 +24,7 @@ import 'hurtig_brain.dart';
 import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
 import 'hurtig_kort.dart';
+import '../kit/bergen_perf.dart';
 
 // ── Hurtigbestilling (prototype `erHurtig`, L4245–4520) ────────────────────
 //
@@ -1444,7 +1445,9 @@ class _Tenker extends StatelessWidget {
   const _Tenker();
 
   @override
-  Widget build(BuildContext context) => VcBoble(
+  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+
+  Widget _essentialBuild(BuildContext context) => VcBoble(
     ms: 350,
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.end,
