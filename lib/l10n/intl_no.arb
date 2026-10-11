@@ -1861,7 +1861,7 @@
   "pts_opprykk_se": "Se hylla",
   "pts_opprykk_hopp": "Hopp over",
   "pts_opprykk_ferdig": "Ferdig",
-  "pts_opprykk_naa": "Du er nå {tier}",
+  "pts_opprykk_naa": "Du er på {tier}.",
   "pts_fiske_title": "Fjordfiske",
   "pts_fiske_sub": "Du og Ægil fisker i Vågen",
   "pts_fiske_kast": "Kast ut",

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
 
 import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:aerend_customer/data/points/league_models.dart';
@@ -341,6 +342,10 @@ void main() {
   testWidgets('Adresser, Betaling and Språk open as sheets', (tester) async {
     tall(tester);
     A3Services.addresses = () async => ['Nygårdsgaten 5', 'Strandkaien 2'];
+    A3Services.addressList = () async => [
+      AddressListItem.fromJson({'address_id': 1, 'type': 'home', 'address': 'Nygårdsgaten 5, 5015 Bergen', 'flat_no': '3. etasje'}),
+      AddressListItem.fromJson({'address_id': 2, 'type': 'work', 'address': 'Strandkaien 2, 5013 Bergen'}),
+    ];
     A3Services.cards = () async => ['Visa •• 4471'];
     await tester.pumpWidget(app(api()));
     await settle(tester);

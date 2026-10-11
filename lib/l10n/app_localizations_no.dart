@@ -5290,7 +5290,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String pts_opprykk_naa(String tier) {
-    return 'Du er nå $tier';
+    return 'Du er på $tier.';
   }
 
   @override

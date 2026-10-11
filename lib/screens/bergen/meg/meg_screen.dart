@@ -16,6 +16,8 @@ import '../../aegil/widgets/aegil_settings_panel.dart';
 import '../../common/manageAddress/manage_address.dart';
 import '../../common/manageCard/manage_card.dart';
 import '../../common/manageAddress/add_new_address.dart';
+import '../../common/manageAddress/manage_address_dl.dart';
+import '../../common/notifications/notifications_dl.dart';
 import '../../../utils/utils.dart' show setChangedLanguage;
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeatherLook;
@@ -85,6 +87,21 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   void initState() {
     super.initState();
     _load();
+    // Debug: `megScroll` (design px) once the rows have loaded.
+    final y = kDebugMode ? HjemHarness.megScroll : null;
+    if (y != null) {
+      Future<void>.delayed(const Duration(milliseconds: 3500), () {
+        if (mounted && _rull.hasClients) _rull.jumpTo(y * MediaQuery.sizeOf(context).width / 390);
+      });
+    }
+  }
+
+  final ScrollController _rull = ScrollController();
+
+  @override
+  void dispose() {
+    _rull.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -118,6 +135,29 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       _ordrer = (r[10] as List<Map<String, dynamic>>?) ?? const [];
       _loading = false;
     });
+    // Debug: `megArk` opens one of Meg's Ark sheets (parity Step 9, row 43).
+    final ark = kDebugMode ? HjemHarness.megArk : null;
+    if (ark != null) {
+      HjemHarness.megArk = null;
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      if (!mounted) return;
+      final b = _balance;
+      switch (ark) {
+        case 'billett': _openBillett();
+        case 'nivaa': _openNivaa();
+        case 'slik': if (b != null) MegSheets.slikPoeng(context, b);
+        case 'vilkaar': MegSheets.vilkaar(context);
+        case 'nivaa4': MegSheets.nivaa4(context);
+        case 'adresser': _openAdresser();
+        case 'betaling': _openBetaling();
+        case 'sprak': _openSpraak();
+        case 'kode': _toggleKode();
+        case 'liga': _ligaNavn();
+        case 'varsler': _varsler();
+        case 'anledninger': _anledninger();
+        case 'ukeshandel': _ukeshandel();
+      }
+    }
   }
 
   void _go(String route, {Object? arguments}) => Navigator.of(context).pushNamed(route, arguments: arguments);
@@ -158,15 +198,31 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   }
 
   Future<void> _openAdresser() async {
-    final list = await a3Try(A3Services.addresses) ?? const <String>[];
+    final list = await a3Try(A3Services.addressList) ?? const <AddressListItem>[];
     if (!mounted) return;
-    await MegSheets.adresser(context, addresses: list, onManage: () => _push(const ManageAddress()), onAdd: () => _push(const AddNewAddress()));
+    final id = prefGetInt(prefNewDeliveryAddressId);
+    final valgtId = list.any((a) => a.addressId == id) ? id : (list.isEmpty ? 0 : list.first.addressId);
+    String rens(String s) => s.trim().toUpperCase() == 'N/A' ? '' : s.trim();
+    final rader = [
+      for (final a in list)
+        () {
+          final deler = a.address.split(',').map(rens).where((d) => d.isNotEmpty).toList();
+          final gate = deler.isEmpty ? a.address : deler.first;
+          final merknad = rens(a.landmark);
+          final detaljer = [
+            if (rens(a.flatNo).isNotEmpty) rens(a.flatNo),
+            if (merknad.isNotEmpty && !a.address.toLowerCase().startsWith(merknad.toLowerCase())) merknad,
+          ].join(' · ');
+          return MegAdresse(gate: gate, detaljer: detaljer, type: switch (a.type) { 'home' => 'Hjem', 'work' => 'Jobb', _ => 'Annen' }, valgt: a.addressId == valgtId);
+        }(),
+    ];
+    await MegSheets.adresser(context, addresses: rader, onManage: () => _push(const ManageAddress()), onAdd: () => _push(const AddNewAddress()));
   }
 
   Future<void> _openBetaling() async {
     final list = await a3Try(A3Services.cards) ?? const <String>[];
     if (!mounted) return;
-    await MegSheets.betaling(context, cards: list, onManage: () => _push(const ManageCard()));
+    await MegSheets.betaling(context, cards: list, onManage: () => _push(const ManageCard()), vippsNr: a3Pref(prefContactNumber));
   }
 
   Future<void> _openSpraak() async {
@@ -230,7 +286,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   }
 
   Future<void> _varsler() async {
-    await showVarslerPanel(context);
+    final items = await a3Try(varslerLoader) ?? const <MassNotificationItem>[];
+    if (!mounted) return;
+    await MegSheets.varsler(context, items: items, seenAt: _prefs?.notificationsSeenAt, onOrdre: () => _go('/bergen/meg/bestillinger'));
     final p = await _api.updatePrefs(markNotificationsSeen: true);
     if (mounted) setState(() => _prefs = p ?? _prefs);
   }
@@ -355,6 +413,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                     child: _loading
                         ? const Center(child: CircularProgressIndicator(color: BergenTokens.mint))
                         : ListView(
+                            controller: _rull,
                             key: const Key('meg-list'),
                             padding: const EdgeInsets.fromLTRB(16, 10, 16, 130),
                             children: [

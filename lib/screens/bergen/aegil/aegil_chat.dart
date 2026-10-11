@@ -158,19 +158,25 @@ class AeSvar extends StatelessWidget {
 
   static int _antallKort(AeMelding m) => _kortListe(m).length;
 
-  static List<Object> _kortListe(AeMelding m) => [
-    if (m.state == 'agIkkeFunnet') 'ingen',
-    if (m.state == 'agAldersblokk') 'alder',
-    if (m.state == 'agFunn' && m.kort.isNotEmpty) 'funn',
-    if (m.dor != null) 'dor',
-    if (m.bytt != null) 'bytt',
-    if (m.kurv != null && m.kurv!.lines.any((l) => l.storeProductId != null && l.priceOre > 0)) 'kurv',
-    if (m.sammen != null) 'sammen',
-    // The tray's cards — those in the basket card are not repeated.
-    for (final s in m.kort)
-      if (m.kurv == null || !m.kurv!.lines.any((l) => l.suggestionId == s.id && l.storeProductId != null && l.priceOre > 0)) s,
-    ...m.app,
-  ];
+  static List<Object> _kortListe(AeMelding m) {
+    final egne = <Object>[
+      if (m.state == 'agIkkeFunnet') 'ingen',
+      if (m.state == 'agAldersblokk') 'alder',
+      if (m.state == 'agFunn' && m.kort.isNotEmpty) 'funn',
+      if (m.dor != null) 'dor',
+      if (m.bytt != null) 'bytt',
+      if (m.kurv != null && m.kurv!.lines.any((l) => l.storeProductId != null && l.priceOre > 0)) 'kurv',
+      if (m.sammen != null) 'sammen',
+    ];
+    return [
+      ...egne,
+      // The tray's cards only under a plain reply: in the design a reply with
+      // its own card (the basket, a swap, the door note, a comparison, 18+,
+      // not found, a find) shows that card alone.
+      if (egne.isEmpty) ...m.kort,
+      ...m.app,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

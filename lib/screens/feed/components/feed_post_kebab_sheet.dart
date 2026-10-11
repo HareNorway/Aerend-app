@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../networking/feed/feed_repo.dart';
@@ -18,13 +17,13 @@ const List<(String, String)> kFeedReportReasons = [
   ('other', 'Noe annet'),
 ];
 
-/// Line icons for the reasons (24 px grid, 2.2 stroke, as the prototype's).
+/// Line icons for the reasons (24 px grid path data, as the prototype's).
 const Map<String, String> _reasonIcon = {
-  'misleading': '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>',
-  'wrong_price': '<path d="M3.5 12.2V4.5h7.7l9.3 9.3-7.7 7.7z"/><circle cx="8" cy="9" r="1.4"/>',
-  'offensive': '<path d="M4 5h16v11H9l-5 4z"/><path d="M10 8.5l4 4M14 8.5l-4 4"/>',
-  'spam': '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/>',
-  'other': '<circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/>',
+  'misleading': 'M3.5 12a8.5 8.5 0 1 0 17 0a8.5 8.5 0 1 0 -17 0M12 7.8v5M12 16.2h.01',
+  'wrong_price': 'M3.5 12.2V4.5h7.7l9.3 9.3-7.7 7.7zM6.6 9a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0 -2.8 0',
+  'offensive': 'M4 5h16v11H9l-5 4zM10 8.5l4 4M14 8.5l-4 4',
+  'spam': 'M5.5 5.5h13a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2zM4 7l8 6 8-6',
+  'other': 'M6 11.95v.1M12 11.95v.1M18 11.95v.1',
 };
 
 /// The reasons sheet — the prototype's Ark (`kVisArk`, [MegArk]): [title],
@@ -43,25 +42,8 @@ Future<String?> _askReportReason(BuildContext context, {required String title, r
             key: Key('feed-report-$key'),
             title: label,
             onTap: () => Navigator.pop(sheet, key),
-            leading: Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(11),
-                gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFEAF2F4), Color(0xFFD2E1E5)]),
-              ),
-              child: SvgPicture.string(
-                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${_reasonIcon[key] ?? ''}</svg>',
-                width: 17,
-                height: 17,
-              ),
-            ),
-            trailing: SvgPicture.string(
-              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8C847C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
-              width: 14,
-              height: 14,
-            ),
+            // The design's `harIkon` tile; the chevron key comes with the tap.
+            leading: MegArkIkon(_reasonIcon[key] ?? ''),
           ),
       ],
     ),

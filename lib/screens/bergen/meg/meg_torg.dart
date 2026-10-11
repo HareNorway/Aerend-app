@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../hjem/hjem_harness.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart';
@@ -63,6 +66,8 @@ class MegTorgSkjerm extends StatelessWidget {
             child: ClipRect(
               child: SingleChildScrollView(
                 key: listKey,
+                // Debug: `megScroll` (design px) opens the list scrolled.
+                controller: kDebugMode && HjemHarness.megScroll != null ? ScrollController(initialScrollOffset: HjemHarness.megScroll! * MediaQuery.sizeOf(context).width / 390) : null,
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 130),
                 child: Stack(
                   clipBehavior: Clip.none,

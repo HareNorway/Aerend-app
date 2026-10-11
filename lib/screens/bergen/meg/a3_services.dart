@@ -65,12 +65,16 @@ Future<List<String>> _defaultCards() async {
   ];
 }
 
+/// Meg's «Adresser» line: the delivery address (the one Konto's radio and
+/// Velg leveringsadresse pick), street only — the prototype's «Nygårdsgaten 5
+/// · bare for deg».
 Future<String?> _defaultAddressLine() async {
   final pojo = AddressListPojo.fromJson(await ManageAddressRepo().callAddressListApi());
-  final first = pojo.addressList.firstOrNull;
-  if (first == null) return null;
-  final flat = first.flatNo.trim();
-  return flat.isEmpty ? first.address : '${first.address}, $flat';
+  final list = pojo.addressList.where((a) => a.address.trim().isNotEmpty).toList();
+  if (list.isEmpty) return null;
+  final id = prefGetInt(prefNewDeliveryAddressId);
+  final valgt = list.where((a) => a.addressId == id).firstOrNull ?? list.first;
+  return valgt.address.split(',').first.trim();
 }
 
 Future<String?> _defaultPaymentLine() async {

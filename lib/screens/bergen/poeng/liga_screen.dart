@@ -61,7 +61,7 @@ class _LigaScreenState extends State<LigaScreen> {
   Future<void> _navn() async {
     final l = _league;
     if (l == null) return;
-    final updated = await MegSheets.ligaNavn(context, api: _api, league: l, firstName: _fornavn, bydel: l.bydel ?? A4MegCopy.a4_meg_bydel);
+    final updated = await MegSheets.ligaNavn(context, api: _api, league: l, firstName: _fornavn, bydel: l.bydel ?? A4MegCopy.a4_meg_bydel, onMeldAv: _av);
     if (!mounted || updated == null) return;
     showBergenToast(context, l.optedIn ? A4MegCopy.a4_meg_lagret : A3PoengCopy.a3_poeng_liga_med_toast, icon: Icons.check_rounded);
     _load();

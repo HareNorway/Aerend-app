@@ -190,8 +190,9 @@ void main() {
       expect(find.text(AeCopy.varer(3)), findsOneWidget);
       expect(find.text('140 kr'), findsOneWidget);
       expect(find.textContaining('billigst av tre'), findsOneWidget);
-      // The tray's other card, not repeated in the basket card.
-      expect(find.text('Tacokveld for fire'), findsOneWidget);
+      // As the design: a reply with the basket card shows that card alone
+      // (parity Step 9) — the tray's other cards are not listed under it.
+      expect(find.text('Tacokveld for fire'), findsNothing);
       expect(find.text(AeCopy.allergen), findsOneWidget);
       expect(api.calls.where((c) => c.startsWith('add:')), isEmpty);
       expect(find.byKey(const Key('a1_aegil_forslag_0')), findsOneWidget);

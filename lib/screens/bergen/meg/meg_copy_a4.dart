@@ -5,7 +5,7 @@
 /// `ukeshandel`, `nivaa4`, `sprak`, `support`, `ai`) verbatim.
 abstract final class A4MegCopy {
   // Hero bubble (maalBoble)
-  static String a4_meg_boble_til(int n, String label) => '$n poeng til ${label.toLowerCase()}.';
+  static String a4_meg_boble_til(int n, String label) => '${_nf(n)} poeng til ${label.toLowerCase()}.';
   static String a4_meg_boble_klar(String label) => '$label er klar å hente.';
   static const String a4_meg_boble_ingen = 'Sett et mål på Premiehylla.';
 
@@ -76,6 +76,16 @@ abstract final class A4MegCopy {
   static const String a4_meg_dora_lagret_av = 'Budet lagrer ikke notater om døra di';
   static const String a4_meg_lagret_feil = 'Fikk ikke lagret. Prøv igjen.';
   static const String a4_meg_paa = 'På';
+  static const String a4_meg_nytt_pill = 'Nytt';
+  static const List<String> _tallord = ['Ingen', 'Én', 'To', 'Tre', 'Fire', 'Fem', 'Seks', 'Sju', 'Åtte', 'Ni', 'Ti'];
+  /// «Fire nye. Du styrer selv hva som varsles.»
+  static String a4_meg_varsler_linje(int n) =>
+      '${n == 0 ? 'Ingenting nytt' : n < _tallord.length ? '${_tallord[n]} ${n == 1 ? 'ny' : 'nye'}' : '$n nye'}. Du styrer selv hva som varsles.';
+  static const List<List<String>> a4_meg_varsel_innst = [
+    ['Premier', 'Si fra når en premie er klar'],
+    ['Nivå', 'Si fra ved opprykk og gjennomgang'],
+    ['Ligaen', 'Si fra ved månedsslutt'],
+  ];
   static const String a4_meg_av = 'Av';
   static const String a4_meg_adresser = 'Adresser';
   static const String a4_meg_adresser_bare = 'bare for deg';
@@ -135,7 +145,18 @@ abstract final class A4MegCopy {
 
   // Ark · Navn i ligaen (ligaNavn / ligaBli)
   static const String a4_meg_liga_bli_title = 'Bli med i Fløyen-ligaen';
-  static const String a4_meg_liga_navn_linje = 'Navnet du velger er det eneste andre ser. Nivået ditt vises aldri.';
+  static const String a4_meg_liga_navn_linje = 'Ligaen viser bare navnet du velger her. Fullt navn, adresse og hva du kjøper vises aldri — og vi henter ingenting automatisk.';
+  static const String a4_meg_liga_steg1 = '1 · Velg visningsnavn';
+  static const String a4_meg_liga_steg1_tom = 'Ingenting vises før du velger';
+  static String a4_meg_liga_valgt(String n) => 'Valgt: $n';
+  static const String a4_meg_liga_maa_velges = 'Må velges';
+  static const String a4_meg_liga_valgt_pill = 'Valgt';
+  static const String a4_meg_liga_steg2 = '2 · Hvem ser navnet';
+  static const String a4_meg_liga_aldri = 'Dette ser andre aldri';
+  static const String a4_meg_liga_aldri_sub = 'Fullt navn, adresse, hva du kjøper eller hvem du verver';
+  static const String a4_meg_liga_velg_forst = 'Velg et visningsnavn først';
+  static String a4_meg_liga_bli_som(String n) => 'Bli med som $n';
+  static const String a4_meg_liga_meld_av = 'Meld deg av ligaen';
   static const String a4_meg_navn_fornavn = 'Bare fornavnet ditt';
   static const String a4_meg_navn_initial = 'Fornavn og initial';
   static const String a4_meg_navn_bydel = 'Fornavn og bydel';

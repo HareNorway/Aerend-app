@@ -377,6 +377,10 @@ void main() {
     });
 
     testWidgets('«Rapporter kommentar» asks why, then reports', (tester) async {
+      // A phone-sized window: the Ark is laid out in the 390-px design frame.
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
       final fake = _FakeFeed({
         'POST comments/9/report': {'comment_id': '9', 'reported': true, 'already_reported': false},
       });

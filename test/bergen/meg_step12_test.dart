@@ -224,7 +224,7 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
 
     expect(find.byKey(const Key('opprykk-tittel')), findsOneWidget);
-    expect(find.text('Du er nå Fløyen'), findsOneWidget);
+    expect(find.text('Du er på Fløyen.'), findsOneWidget);
     expect(find.byKey(const Key('opprykk-gave')), findsOneWidget);
     expect(find.text('Gratis levering'), findsOneWidget);
     expect(find.byKey(const Key('opprykk-hylla')), findsOneWidget);

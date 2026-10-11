@@ -8,8 +8,10 @@ import '../../../data/points/league_models.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
+import '../../common/notifications/notifications_dl.dart';
 import '../poeng/prize_art.dart';
 import '../kit/bergen_kit.dart';
+import '../kit/bergen_toast.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
 import 'meg_mark.dart';
@@ -102,6 +104,9 @@ abstract final class MegSheets {
               sub: A4MegCopy.a4_meg_fra_poeng(s.threshold, A4MegCopy.a4_meg_nivaa_gaver[s.name] ?? ''),
               value: s.index == balance.tier ? A4MegCopy.a4_meg_du_er_her : null,
               selected: s.index == balance.tier,
+              // The design's tier rows carry a no-op tap (`() => {}`), which
+              // gives them the chevron key.
+              onTap: () {},
             ),
           const MegArkRow(title: A4MegCopy.a4_meg_bruk_senker_aldri, sub: A4MegCopy.a4_meg_bruk_senker_sub),
         ],
@@ -112,13 +117,17 @@ abstract final class MegSheets {
   // ---------------------------------------------------------------- Liga
 
   /// `ligaNavn` / `ligaBli`: pick a name shape and who may see it; saves through
-  /// `points/league/name` (opting in first when needed).
+  /// `points/league/name` (opting in first when needed). As the design:
+  /// nothing is chosen until the customer picks a name (the CTA stays grey
+  /// and says so), «1 · Velg visningsnavn» / «2 · Hvem ser navnet» head the
+  /// two groups, and once in, the second key leaves the league ([onMeldAv]).
   static Future<League?> ligaNavn(
     BuildContext context, {
     required PointsAppApi api,
     required League league,
     required String firstName,
     String? bydel,
+    VoidCallback? onMeldAv,
   }) {
     final options = <String, String>{
       firstName: A4MegCopy.a4_meg_navn_fornavn,
@@ -126,17 +135,23 @@ abstract final class MegSheets {
       if (bydel != null && bydel.isNotEmpty) '$firstName · $bydel': A4MegCopy.a4_meg_navn_bydel,
       'Klatrer ${league.own?.rank ?? 1}': A4MegCopy.a4_meg_navn_anonym,
     };
-    var name = league.displayName ?? options.keys.first;
+    String? name = league.displayName;
     var syn = league.visibility;
+    final bli = !league.optedIn;
 
     return showMegArk<League?>(
       context,
       key: const Key('meg-liga-navn-sheet'),
-      title: league.optedIn ? A4MegCopy.a4_meg_navn_liga : A4MegCopy.a4_meg_liga_bli_title,
+      title: bli ? A4MegCopy.a4_meg_liga_bli_title : A4MegCopy.a4_meg_navn_liga,
       subtitle: A4MegCopy.a4_meg_liga_navn_linje,
       body: (ctx, setState) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          MegArkRow(
+            title: A4MegCopy.a4_meg_liga_steg1,
+            sub: name == null ? A4MegCopy.a4_meg_liga_steg1_tom : A4MegCopy.a4_meg_liga_valgt(name!),
+            value: name == null ? A4MegCopy.a4_meg_liga_maa_velges : A4MegCopy.a4_meg_liga_valgt_pill,
+          ),
           for (final e in options.entries)
             MegArkRow(
               key: Key('liga-navn-${options.keys.toList().indexOf(e.key)}'),
@@ -145,19 +160,30 @@ abstract final class MegSheets {
               selected: name == e.key,
               onTap: () => setState(() => name = e.key),
             ),
-          const _ArkKicker(A4MegCopy.a4_meg_syn_title),
+          MegArkRow(title: A4MegCopy.a4_meg_liga_steg2, sub: (A4MegCopy.a4_meg_ligasyn.where((x) => x[0] == syn).firstOrNull ?? A4MegCopy.a4_meg_ligasyn.first)[2]),
           for (final s in A4MegCopy.a4_meg_ligasyn)
             MegArkRow(key: Key('liga-syn-${s[0]}'), title: s[1], sub: s[2], selected: syn == s[0], onTap: () => setState(() => syn = s[0])),
+          const MegArkRow(title: A4MegCopy.a4_meg_liga_aldri, sub: A4MegCopy.a4_meg_liga_aldri_sub),
         ],
       ),
-      secondary: MegArkButton(label: A4MegCopy.a4_meg_liga_vilkaar, onTap: () => vilkaar(context)),
-      primary: MegArkButton(
+      secondary: !bli && onMeldAv != null
+          ? MegArkButton(label: A4MegCopy.a4_meg_liga_meld_av, onTap: () {
+              Navigator.of(context).pop();
+              onMeldAv();
+            })
+          : MegArkButton(label: A4MegCopy.a4_meg_liga_vilkaar, onTap: () => vilkaar(context)),
+      primaryBuilder: (ctx) => MegArkButton(
         key: const Key('liga-navn-lagre'),
-        label: league.optedIn ? A4MegCopy.a4_meg_lagre : A4MegCopy.a4_meg_bli_med,
+        label: name == null ? A4MegCopy.a4_meg_liga_velg_forst : (bli ? A4MegCopy.a4_meg_liga_bli_som(name!) : A4MegCopy.a4_meg_lagre),
+        gradient: name == null ? MegArkInk.disabledCta : null,
         onTap: () async {
+          if (name == null) {
+            showBergenToast(context, A4MegCopy.a4_meg_liga_velg_forst);
+            return;
+          }
           final nav = Navigator.of(context);
-          if (!league.optedIn) await api.leagueOptIn(true);
-          final updated = await api.setLeagueName(name: name, visibility: syn);
+          if (bli) await api.leagueOptIn(true);
+          final updated = await api.setLeagueName(name: name!, visibility: syn);
           nav.pop(updated);
         },
       ),
@@ -173,7 +199,7 @@ abstract final class MegSheets {
       key: const Key('meg-kode-sheet'),
       title: A4MegCopy.a4_meg_krev_kode,
       subtitle: A4MegCopy.a4_meg_kode_linje,
-      secondary: MegArkButton(label: A4MegCopy.a4_meg_avbryt, onTap: () => Navigator.of(context).pop()),
+      // One CTA, as the design (`kodeInnst`); the ✕ cancels.
       primary: MegArkButton(label: on ? A4MegCopy.a4_meg_slaa_av : A4MegCopy.a4_meg_slaa_paa, onTap: () => Navigator.of(context).pop(!on)),
     );
   }
@@ -199,14 +225,18 @@ abstract final class MegSheets {
                   final next = await api.removeOccasion(o.id);
                   setState(() => items = next);
                 },
-                child: Text(A4MegCopy.a4_meg_anl_fjern, style: BergenTokens.text(13, weight: FontWeight.w800, color: const Color(0xFFB9441A))),
+                // The design's value pill («Fjern»).
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(color: const Color.fromRGBO(30, 79, 92, .09), borderRadius: BorderRadius.circular(999)),
+                  child: Text(A4MegCopy.a4_meg_anl_fjern, style: BergenTokens.text(11, weight: FontWeight.w800, color: MegArkInk.teal)),
+                ),
               ),
             ),
           MegArkRow(
             key: const Key('anledning-legg'),
             title: A4MegCopy.a4_meg_anl_legg,
             sub: A4MegCopy.a4_meg_anl_legg_sub,
-            value: '+',
             onTap: () async {
               final added = await _leggTilAnledning(ctx, api);
               if (added != null) setState(() => items = added);
@@ -331,7 +361,10 @@ abstract final class MegSheets {
   }
 
   /// `betaling`: Vipps first, cards as the fallback, and the card screen.
-  static Future<void> betaling(BuildContext context, {required List<String> cards, required VoidCallback onManage}) {
+  static Future<void> betaling(BuildContext context, {required List<String> cards, required VoidCallback onManage, String vippsNr = ''}) {
+    // «•• 47 21»: the Vipps number's last four, as the design shows it.
+    final d = vippsNr.replaceAll(RegExp(r'\D'), '');
+    final vippsSub = d.length >= 4 ? '•• ${d.substring(d.length - 4, d.length - 2)} ${d.substring(d.length - 2)}' : A4MegCopy.a4_meg_betaling_standard;
     return showMegArk<void>(
       context,
       key: const Key('meg-betaling-sheet'),
@@ -339,9 +372,9 @@ abstract final class MegSheets {
       subtitle: A4MegCopy.a4_meg_betaling_linje,
       body: (ctx, _) => Column(
         children: [
-          const MegArkRow(title: A4MegCopy.a4_meg_betaling_vipps, sub: A4MegCopy.a4_meg_betaling_standard, selected: true),
+          MegArkRow(title: A4MegCopy.a4_meg_betaling_vipps, sub: vippsSub, value: 'Standard', selected: true),
           for (final c in cards) MegArkRow(title: c, value: A4MegCopy.a4_meg_reserve),
-          MegArkRow(key: const Key('betaling-kort'), title: A4MegCopy.a4_meg_betaling_kort, value: '›', onTap: () {
+          MegArkRow(key: const Key('betaling-kort'), title: A4MegCopy.a4_meg_betaling_kort, onTap: () {
             Navigator.of(context).pop();
             onManage();
           }),
@@ -350,8 +383,10 @@ abstract final class MegSheets {
     );
   }
 
-  /// `adresser`: the saved addresses and "Legg til adresse".
-  static Future<void> adresser(BuildContext context, {required List<String> addresses, required VoidCallback onManage, required VoidCallback onAdd}) {
+  /// `adresser`: the saved addresses — the delivery address chosen (street,
+  /// the door details under it, its type as a pill, the check), the others
+  /// open the address screen — and "Legg til adresse".
+  static Future<void> adresser(BuildContext context, {required List<MegAdresse> addresses, required VoidCallback onManage, required VoidCallback onAdd}) {
     return showMegArk<void>(
       context,
       key: const Key('meg-adresser-sheet'),
@@ -360,14 +395,62 @@ abstract final class MegSheets {
       body: (ctx, _) => Column(
         children: [
           for (final a in addresses)
-            MegArkRow(title: a, sub: A4MegCopy.a4_meg_adresser_bare, value: '›', onTap: () {
-              Navigator.of(context).pop();
-              onManage();
-            }),
-          MegArkRow(key: const Key('adresser-legg'), title: A4MegCopy.a4_meg_adresser_tom, value: '+', onTap: () {
+            MegArkRow(
+              title: a.gate,
+              sub: [if (a.detaljer.isNotEmpty) a.detaljer, A4MegCopy.a4_meg_adresser_bare].join(' · '),
+              value: a.valgt ? a.type : null,
+              selected: a.valgt,
+              onTap: a.valgt
+                  ? null
+                  : () {
+                      Navigator.of(context).pop();
+                      onManage();
+                    },
+            ),
+          MegArkRow(key: const Key('adresser-legg'), title: A4MegCopy.a4_meg_adresser_tom, onTap: () {
             Navigator.of(context).pop();
             onAdd();
           }),
+        ],
+      ),
+    );
+  }
+
+  /// `varslinger`: the newest notices («Nytt» when they arrived after the
+  /// last visit; order notices open Ordrehistorikk), then what is notified.
+  static Future<void> varsler(BuildContext context, {required List<MassNotificationItem> items, DateTime? seenAt, VoidCallback? onOrdre}) {
+    bool ny(MassNotificationItem n) {
+      final t = DateTime.tryParse(n.datetime);
+      return seenAt == null || (t != null && t.isAfter(seenAt));
+    }
+    bool ordre(MassNotificationItem n) {
+      final t = '${n.title} ${n.message}'.toLowerCase();
+      return t.contains('ordre') || t.contains('bestilling') || t.contains('levert') || t.contains('på vei');
+    }
+    final nye = items.where(ny).length;
+    return showMegArk<void>(
+      context,
+      key: const Key('meg-varsler-sheet'),
+      title: A4MegCopy.a4_meg_varsler,
+      subtitle: A4MegCopy.a4_meg_varsler_linje(nye),
+      body: (ctx, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final n in items.take(12))
+            MegArkRow(
+              title: n.title.trim().isEmpty ? n.message : n.title,
+              sub: n.title.trim().isEmpty ? null : n.message,
+              value: ny(n) ? A4MegCopy.a4_meg_nytt_pill : null,
+              onTap: ordre(n) && onOrdre != null
+                  ? () {
+                      Navigator.of(context).pop();
+                      onOrdre();
+                    }
+                  : null,
+            ),
+          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+          // (No per-kind notification settings exist; these pushes are always sent, so «På» holds.)
+          for (final r in A4MegCopy.a4_meg_varsel_innst) MegArkRow(title: r[0], sub: r[1], value: A4MegCopy.a4_meg_paa),
         ],
       ),
     );
@@ -390,19 +473,6 @@ abstract final class MegSheets {
   }
 }
 
-class _ArkKicker extends StatelessWidget {
-  const _ArkKicker(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
-      child: Text(text, style: megInter(11, FontWeight.w800, letterSpacing: .7, color: MegArkInk.faint)),
-    );
-  }
-}
 
 class _ArkField extends StatelessWidget {
   const _ArkField({super.key, required this.controller, required this.hint});
@@ -1043,4 +1113,19 @@ class _DashH extends CustomPainter {
 
   @override
   bool shouldRepaint(_DashH old) => old.color != color;
+}
+
+/// One saved address for the Adresser Ark.
+class MegAdresse {
+  const MegAdresse({required this.gate, required this.detaljer, required this.type, required this.valgt});
+
+  /// «Nygårdsgaten 5».
+  final String gate;
+
+  /// The rest: flat, place, door note («3. etasje · Ring på hos Hansen»).
+  final String detaljer;
+
+  /// «Hjem», «Jobb», «Annen».
+  final String type;
+  final bool valgt;
 }

@@ -153,6 +153,14 @@ abstract final class HjemHarness {
   /// of it and its pieces fly in).
   static bool liveApne = false;
 
+  /// Meg: scroll to this design px once loaded (parity Step 9).
+  static double? megScroll;
+
+  /// Meg: open this Ark sheet once loaded (`billett`, `nivaa`, `slik`,
+  /// `vilkaar`, `nivaa4`, `adresser`, `betaling`, `sprak`, `kode`, `liga`,
+  /// `varsler`, `anledninger`, `ukeshandel`).
+  static String? megArk;
+
   /// Sporing: runs «Kvittering» once loaded (the PDF in the share sheet).
   static bool sporingKvittering = false;
 
@@ -269,6 +277,8 @@ abstract final class HjemHarness {
         sporing = levert = null;
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = liveApne = sporingKvittering = false;
+        megScroll = null;
+        megArk = null;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         feedRapport = feedInnlegg = null;
         fiskeFase = fiskeAgn = null;
@@ -351,6 +361,8 @@ abstract final class HjemHarness {
       sporingSkifte = m['sporingSkifte'] == true;
       sporingFersk = m['sporingFersk'] == true;
       liveApne = m['liveApne'] == true;
+      megScroll = (m['megScroll'] as num?)?.toDouble();
+      megArk = m['megArk'] as String?;
       sporingKvittering = m['sporingKvittering'] == true;
       utfSeg = m['utfSeg'] as String?;
       feedFane = m['feedFane'] as String?;
