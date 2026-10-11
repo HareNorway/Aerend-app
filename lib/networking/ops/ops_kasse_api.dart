@@ -108,6 +108,12 @@ class OpsKasseApi {
   }) async {
     if (_off) return null;
     try {
+      // Kassen and Hurtig always place a new order. The legacy repo sends
+      // `bookedOrderId` as `order_id` (the old Stripe retry of an unpaid
+      // order), and the last Bergen order is still in it — the API then
+      // looks for that order unpaid and answers «Bestillingsdetaljer ikke
+      // funnet».
+      await prefSetInt('bookedOrderId', 0);
       final json = await CheckoutRepo().callStorePlaceOrderApi(
         storeId,
         addressId,
