@@ -20,6 +20,8 @@ import '../aegil/aegil_entry.dart';
 import '../hjem/hjem_harness.dart';
 import '../butikk/produkt_sheet.dart';
 import '../kit/bergen_css.dart';
+import '../kit/br_pal.dart';
+import '../kit/scene_gl.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import 'sok_copy.dart';
@@ -883,11 +885,21 @@ class _Hero extends StatelessWidget {
                     left: -10 * s,
                     width: 410 * s,
                     height: 300 * s + dy,
-                    // `#fl-flesland` as the scene shader leaves it (`scgl`
-                    // profile `berg`: stone relief and grade), baked once.
-                    child: Image.asset(
-                      'assets/images/dashboard/sok_fl_flesland.jpg',
+                    // `#fl-flesland` through the scene pass (`scgl` profile
+                    // `berg`: stone relief, grade and the drips), live; the
+                    // baked frame underneath and in the `still` tier.
+                    child: FittedBox(
                       fit: BoxFit.fill,
+                      child: SceneGl(
+                        kind: SceneKind.berg,
+                        weather: BrPal.naa(),
+                        still: Image.asset(
+                          'assets/images/dashboard/sok_fl_flesland.jpg',
+                          width: 410,
+                          height: 300,
+                          fit: BoxFit.fill,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -899,17 +911,29 @@ class _Hero extends StatelessWidget {
             top: 120 * s + dy,
             width: 308 * s,
             height: 83 * s,
-            // `#fl-skiltet` through the `skilt` profile (baked), with its
-            // moving sheen on top.
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset(
-                  'assets/images/dashboard/sok_fl_skiltet.png',
-                  fit: BoxFit.fill,
+            // `#fl-skiltet` through the scene pass (`skilt` profile: the
+            // glow and the moving sheen), live; the baked sign with its sheen
+            // underneath and in the `still` tier.
+            child: FittedBox(
+              fit: BoxFit.fill,
+              child: SceneGl(
+                kind: SceneKind.skilt,
+                weather: BrPal.naa(),
+                still: SizedBox(
+                  width: 308,
+                  height: 83,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        'assets/images/dashboard/sok_fl_skiltet.png',
+                        fit: BoxFit.fill,
+                      ),
+                      const RepaintBoundary(child: _SkiltGlans()),
+                    ],
+                  ),
                 ),
-                const RepaintBoundary(child: _SkiltGlans()),
-              ],
+              ),
             ),
           ),
           Positioned(

@@ -5,6 +5,8 @@ import '../hjem/hjem_harness.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart';
+import '../kit/br_pal.dart';
+import '../kit/scene_gl.dart';
 import 'meg_nav.dart';
 
 /// The page under Meg that opens on the Torg (`erFavoritter` / `erKonto`,
@@ -13,9 +15,10 @@ import 'meg_nav.dart';
 /// the dark title, then a scrolling body (`padding:12px 16px 130px`) with
 /// two soft glows behind it, and the bottom bar.
 ///
-/// The header is the baked Torg scene (`assets/images/meg/favoritter.jpg`);
-/// above it, under the status bar, the sky carries on in the scene's own
-/// colour.
+/// The header is the Torg scene, live through the prototype's scene pass
+/// ([SceneGl], `data-scgl="torg"`; the baked `assets/images/meg/favoritter.jpg`
+/// underneath and in the `still` tier); above it, under the status bar, the
+/// sky carries on in the scene's own colour.
 class MegTorgSkjerm extends StatelessWidget {
   const MegTorgSkjerm({
     super.key,
@@ -110,12 +113,24 @@ class _Hode extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           const CssBox(bg: [CssLinear(180, [Color(0xFF7E93A3), Color(0xFF5D8088)])]),
+          // The 104-px box: its backdrop (`#7E93A3 → #9FB2BD 55 % → #456E7C
+          // 92 % → #2F5462`) under the Torg scene, live (`data-scgl="torg"`).
           Positioned(
             left: 0,
-            right: 0,
+            width: 390,
             bottom: 0,
             height: 104,
-            child: Image.asset('assets/images/meg/favoritter.jpg', fit: BoxFit.cover, gaplessPlayback: true),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const CssBox(bg: [CssLinear(180, [Color(0xFF7E93A3), Color(0xFF9FB2BD), Color(0xFF456E7C), Color(0xFF2F5462)], [0, .55, .92, 1])]),
+                SceneGl(
+                  kind: SceneKind.torg,
+                  weather: BrPal.naa(),
+                  still: Image.asset('assets/images/meg/favoritter.jpg', fit: BoxFit.cover, gaplessPlayback: true),
+                ),
+              ],
+            ),
           ),
           Positioned(
             left: 16,

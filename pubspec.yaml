@@ -107,6 +107,7 @@ flutter:
     - assets/images/home/
     - assets/images/aegil/
     - assets/images/meg/
+    - assets/images/scgl/
     - assets/images/onboarding/
     - assets/images/bryggen/
     - assets/images/dashboard/
@@ -143,6 +144,7 @@ flutter:
     - shaders/hjem_bryggen.frag
     - shaders/aegil_floyen.frag
     - shaders/aegil_floyen_liv.frag
+    - shaders/scene_gl.frag
 
   fonts:
     - family: CustomIcons

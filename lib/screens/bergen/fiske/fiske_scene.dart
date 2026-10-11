@@ -1,7 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
+import '../hjem/hjem_bryggen.dart';
 import '../kit/sjo_water.dart';
 import 'fiske_frame.dart';
 
@@ -194,15 +197,45 @@ class _PlanksPainter extends CustomPainter {
 /// sky (`vaerHimmel`, 230 px), Bryggen from the WebGL canvas
 /// `data-brgl="fiske"` (390 × 223, baked per weather from the prototype —
 /// `assets/images/utforsk/brygge_fiske_*.jpg`, its top extended 60 px for
-/// the status bar), and «Sjø · fiske» from `top:223` down: the real water
+/// the status bar), live through `data-brgl="fiske"` ([HjemBryggen], grown to the same 283 px), and «Sjø · fiske» from `top:223` down: the real water
 /// shader (`canvas[data-sjogl="fiske"]` → [SjoWater], shading at most the
 /// prototype's ~300 000 px a frame, `_sgBud`) mirroring that Bryggen, the
 /// bottom dark, the top shade and the vignette.
-class FiskeBakgrunn extends StatelessWidget {
+class FiskeBakgrunn extends StatefulWidget {
   const FiskeBakgrunn({super.key, required this.look, this.ripples});
 
   final BergenWeatherLook look;
   final SjoRipples? ripples;
+
+  @override
+  State<FiskeBakgrunn> createState() => _FiskeBakgrunnState();
+}
+
+class _FiskeBakgrunnState extends State<FiskeBakgrunn> {
+  BergenWeatherLook get look => widget.look;
+  SjoRipples? get ripples => widget.ripples;
+
+  // `sjoRefBr`: the water re-reads its mirror from the live Bryggen
+  // (`data-brgl="fiske"`) every 220 ms.
+  final ValueNotifier<ui.Image?> _speil = ValueNotifier<ui.Image?>(null);
+  final Stopwatch _speilSw = Stopwatch()..start();
+  int _speilSist = -1000;
+
+  void _bryggenFrame(ui.Image frame) {
+    final ms = _speilSw.elapsedMilliseconds;
+    if (ms - _speilSist < 220) return;
+    _speilSist = ms;
+    final old = _speil.value;
+    _speil.value = frame.clone();
+    old?.dispose();
+  }
+
+  @override
+  void dispose() {
+    _speil.value?.dispose();
+    _speil.dispose();
+    super.dispose();
+  }
 
   /// `sjoM()`: sol → Dag, natt / solnedgang → Kveld, regn → the default
   /// `sjoModus` (Kveld).
@@ -243,7 +276,28 @@ class FiskeBakgrunn extends StatelessWidget {
               width: f.width,
               top: vann - brH,
               height: brH,
-              child: Image.asset(asset, fit: BoxFit.fill, gaplessPlayback: true),
+              // The live Bryggen over the baked strip: the prototype's 223-px
+              // canvas grown by the 60 px the strip extends under the status
+              // bar (`uOff` = 127 − h shows the scene above, so no seam).
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(asset, fit: BoxFit.fill, gaplessPlayback: true),
+                  Positioned.fill(
+                    child: FittedBox(
+                      fit: BoxFit.fill,
+                      child: HjemBryggen(
+                        key: ValueKey(look.kind),
+                        kind: look.kind,
+                        h: 283,
+                        hjem: false,
+                        still: const SizedBox.shrink(),
+                        onFrame: _bryggenFrame,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Positioned(
               left: 0,
@@ -260,6 +314,7 @@ class FiskeBakgrunn extends StatelessWidget {
                         regn: _regn,
                         reflection: asset,
                         reflectionHeight: 283,
+                        liveReflection: _speil,
                         fogColor: _fog,
                         ripples: ripples,
                         maxPixels: 300000 * s * s,

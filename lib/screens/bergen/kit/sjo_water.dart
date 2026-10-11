@@ -117,12 +117,17 @@ class SjoWater extends StatefulWidget {
     this.onTick,
     this.maxPixels,
     this.liveReflection,
+    this.liveReflectionHeight,
   });
 
   /// The live Bryggen frame (Hjem's `BryggenGl`): the prototype re-reads the
   /// mirror from the Bryggen canvas every 220 ms (`sjoRefBr`); the owner
   /// throttles and owns the images. Until one arrives, [reflection] is used.
   final ValueListenable<ui.Image?>? liveReflection;
+
+  /// The live frame's CSS height when it is shorter than [reflection]
+  /// (Fjordfiske: the 223-px canvas under the 283-px baked strip).
+  final double? liveReflectionHeight;
 
   /// `_sgBud`: the prototype caps the pixels it shades per frame
   /// (`dpr = min(2, √(budget / (w·h)))`, never below .3). Null = ≤2×.
@@ -187,7 +192,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final br = widget.liveReflection?.value;
     if (br == null || !mounted) return;
     final old = _liveRef;
-    _liveRef = _flip(br, widget.reflectionHeight, widget.fogColor);
+    _liveRef = _flip(br, widget.liveReflectionHeight ?? widget.reflectionHeight, widget.fogColor);
     old?.dispose();
     if (!_ticker.isActive) _render();
   }

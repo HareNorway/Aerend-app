@@ -1,4 +1,7 @@
-import '../../common/home/bergen/bergen_kit.dart' show BergenWeather;
+import 'package:flutter/foundation.dart';
+
+import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeatherLook;
+import '../hjem/hjem_harness.dart';
 
 /// The prototype's `brPal()` for Bergen's four looks, read from the
 /// prototype itself per weather (`ui-tools/br_data.json`): the sky's top /
@@ -22,4 +25,11 @@ class BrPal {
   };
 
   static BrPal of(BergenWeather w) => av[w]!;
+
+  /// The weather for now: Bergen's look for the hour, or the debug harness's
+  /// `vaer` (the same rule as Hjem, Ægil and Meg).
+  static BergenWeather naa() {
+    if (kDebugMode && HjemHarness.vaer != null) return BergenWeather.values.byName(HjemHarness.vaer!.name);
+    return BergenWeatherLook.forHour(DateTime.now().hour).kind;
+  }
 }

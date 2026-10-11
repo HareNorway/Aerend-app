@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../../common/home/bergen/bergen_floats.dart';
+import '../../common/home/bergen/bergen_kit.dart' show BergenWeather;
 import '../kit/sjo_water.dart';
 import 'hjem_bryggen.dart';
 import 'hjem_fiskestang.dart';
@@ -228,7 +229,7 @@ class _HjemHeroState extends State<HjemHero> {
             height: _kWater,
             child: HjemBryggen(
               key: ValueKey(v),
-              vaer: v,
+              kind: BergenWeather.values.byName(v.name),
               still: Image.asset(v.bryggen, fit: BoxFit.fill, filterQuality: FilterQuality.medium, gaplessPlayback: true),
               onFrame: _bryggenFrame,
             ),

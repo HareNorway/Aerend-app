@@ -106,6 +106,7 @@ class SpGl extends StatefulWidget {
     this.liteMs = 1000 / 30,
     this.stillTier = false,
     this.onFrame,
+    this.waitTex = false,
   });
 
   final String asset;
@@ -128,6 +129,10 @@ class SpGl extends StatefulWidget {
 
   /// Each new frame (owned by this widget: clone it to keep it).
   final void Function(ui.Image frame)? onFrame;
+
+  /// Draw nothing until every texture has loaded (a scene that is all
+  /// texture would otherwise flash empty over [still]).
+  final bool waitTex;
 
   @override
   State<SpGl> createState() => _SpGlState();
@@ -261,6 +266,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
   void _render() {
     final sh = _shader;
     if (sh == null || !mounted) return;
+    if (widget.waitTex && _img.any((x) => x == null)) return;
     final w = widget.w, h = widget.h;
     final dpr = math.max(.5, math.min(_dpr, math.sqrt(_budget / (w * h))));
     final pw = (w * dpr).round(), ph = (h * dpr).round();
