@@ -104,9 +104,13 @@ String adrMerke(String type) {
   return 'Annet';
 }
 
+/// The API's `type` vocabulary (`home|work|cabin|other`); the sheet's
+/// Norwegian labels are display only.
 String adrType(String merke) => switch (merke) {
-  'Hjem' => 'Hjemme',
-  _ => merke,
+  'Hjem' => 'home',
+  'Jobb' => 'work',
+  'Hytte' => 'cabin',
+  _ => 'other',
 };
 
 /// (gate, nr) from "Nygårdsgaten 5, 5015 Bergen".

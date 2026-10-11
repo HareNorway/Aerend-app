@@ -291,6 +291,12 @@ class HomeBloc extends Bloc {
             HomeTrackOrderPojo.fromJson(await _homeRepo.homeTrackOrderApi());
 
         if (!state.mounted) return;
+        // «No order under way» (code 59) is an answer, not a failure: the
+        // order id is 0 and Hjem drops the live pill on it.
+        if (response.status == 0 && response.messageCode == 59) {
+          subjectTrackOrder.sink.add(ApiResponse.completed(response));
+          return;
+        }
         String message =
             getApiMsg(context, response.messageCode, response.message);
         if (isApiStatus(context, response.status, message, true,

@@ -28,7 +28,7 @@ abstract class PointsAppApi {
   Future<Mission?> acceptMission();
   Future<League?> setLeagueName({String? name, String? visibility});
   Future<CustomerPrefs?> prefs();
-  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false});
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool? doorProfileConsent, bool markNotificationsSeen = false});
 }
 
 class PointsAppRepo implements PointsAppApi {
@@ -167,11 +167,12 @@ class PointsAppRepo implements PointsAppApi {
   }
 
   @override
-  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false}) async {
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool? doorProfileConsent, bool markNotificationsSeen = false}) async {
     try {
       final json = _ok(await _api.post('me/prefs', body: {
         ..._auth(),
         if (alwaysCode != null) 'always_code': alwaysCode ? 1 : 0,
+        if (doorProfileConsent != null) 'door_profile_consent': doorProfileConsent ? 1 : 0,
         if (markNotificationsSeen) 'mark_notifications_seen': 1,
       }));
       return json == null ? null : CustomerPrefs.fromJson(json);

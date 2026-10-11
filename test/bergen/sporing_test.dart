@@ -609,13 +609,16 @@ void main() {
       'Kundeservice standalone shows hours, chat and the number, no order line',
       (tester) async {
         _frame(tester);
+        // The number comes from `support/config` (backend plan Step 5).
+        SupportConfig.settFra({'phone': '55 00 12 34'});
+        addTearDown(() => SupportConfig.telefon = null);
         await tester.pumpWidget(_app(KundeserviceScreen(api: _FakeApi())));
         await tester.pump();
         expect(
           find.byKey(const Key('a1_sporing_kundeservice')),
           findsOneWidget,
         );
-        expect(find.text(SporingCopy.a1_sporing_ring_nummer), findsOneWidget);
+        expect(find.text(SporingCopy.a1_sporing_ring_nummer_til('55 00 12 34')), findsOneWidget);
         expect(find.byKey(const Key('a1_sporing_ks_ordre')), findsNothing);
       },
     );

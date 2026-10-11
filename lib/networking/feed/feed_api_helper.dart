@@ -82,6 +82,22 @@ class FeedApiHelper {
     }
   }
 
+  Future<Map<String, dynamic>> put(
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    syncBaseUrl();
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        path,
+        data: body,
+      );
+      return _parseResponse(response.data);
+    } on DioException catch (e) {
+      throw FeedApiException.fromDio(e);
+    }
+  }
+
   Future<Map<String, dynamic>> delete(
     String path, {
     Map<String, dynamic>? body,

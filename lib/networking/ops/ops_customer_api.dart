@@ -1,10 +1,14 @@
+import 'package:dio/dio.dart';
+
 import '../../data/ops/fiske_models.dart';
+import '../../data/points/points_rules.dart';
 import '../../data/ops/sok_models.dart';
 import '../../screens/deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../screens/deliveryService/searchStore/search_store_dl.dart';
 import '../../screens/deliveryService/searchStore/search_store_repo.dart';
 import '../../utils/utils.dart';
 import '../api_base_helper.dart';
+import '../feed/feed_repo.dart';
 
 /// The customer app's calls into the monolith's `ops.customer.*` routes and
 /// the few other ops / points / agent reads the Bergen screens make
@@ -109,7 +113,87 @@ class OpsCustomerApi {
     if (message != null) 'message': message,
   });
 
-  /// `ops.customer.problem` — `kind` ∈ door, missing, wait, cancel.
+  // ── Support v1 (`/api/support`, backend plan Step 5) ─────────────────────
+
+  /// The customer's login, else the guest token from «Finn bestillingen din».
+  static Map<String, String>? supportAuth(String? guestToken) =>
+      authParams() ?? (guestToken == null || guestToken.isEmpty ? null : {'guest_token': guestToken});
+
+  Future<Map<String, dynamic>?> _support(String method, String path, {Map<String, dynamic> body = const {}, Map<String, String> query = const {}, String? guestToken}) =>
+      _guarded(() async {
+        final auth = supportAuth(guestToken);
+        if (auth == null || !networkEnabled) return null;
+        final url = '$path?${_qs({...auth, ...query})}';
+        final json = method == 'GET' ? await _helper.get(url) : await _helper.post(url, body: body);
+        return json is Map<String, dynamic> ? json : null;
+      });
+
+  /// `GET /api/support/config` — public: hours, answer time, phone, e-mail.
+  Future<Map<String, dynamic>?> supportConfig() => _guarded(() async {
+    if (!networkEnabled) return null;
+    final json = await _helper.get('api/support/config');
+    return json is Map<String, dynamic> ? json : null;
+  });
+
+  Future<Map<String, dynamic>?> supportOpen({required String topic, int? orderId, String? guestToken}) =>
+      _support('POST', 'api/support/conversations', body: {'topic': topic, if (orderId != null) 'order_id': orderId}, guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportSend(int id, String body, {String? guestToken}) =>
+      _support('POST', 'api/support/conversations/$id/messages', body: {'body': body}, guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportPoll(int id, int after, {String? guestToken}) =>
+      _support('GET', 'api/support/conversations/$id/messages', query: {'after': '$after'}, guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportEscalate(int id, {String? guestToken}) =>
+      _support('POST', 'api/support/conversations/$id/escalate', guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportClose(int id, {String? guestToken}) =>
+      _support('POST', 'api/support/conversations/$id/close', guestToken: guestToken);
+
+  Future<Map<String, dynamic>?> supportCases({String? guestToken}) =>
+      _support('GET', 'api/support/cases', guestToken: guestToken);
+
+  /// `POST /api/support/conversations/{id}/rating` (backend plan Step 14) —
+  /// the 1-tap «Hvordan var hjelpen?» on a closed conversation, [score] 1–5.
+  /// `conversation` is the updated payload (`can_rate: false`, `csat_score`)
+  /// on 200, else null; `error` is the 422 code (`ALREADY_RATED`,
+  /// `CONVERSATION_OPEN`) when the server refused it. Never throws.
+  Future<({Map<String, dynamic>? conversation, String? error})> rateConversation(int id, int score, {String? guestToken}) async {
+    const ingen = (conversation: null, error: null);
+    if (score < 1 || score > 5 || !networkEnabled) return ingen;
+    final auth = supportAuth(guestToken);
+    if (auth == null) return ingen;
+    try {
+      final res = await _helper.postAllowClientError('api/support/conversations/$id/rating?${_qs(auth)}', body: {'score': score});
+      final data = res.data is Map<String, dynamic> ? res.data as Map<String, dynamic> : const <String, dynamic>{};
+      final c = data['conversation'];
+      if (res.statusCode == 200 && data['status'] != 0 && c is Map<String, dynamic>) return (conversation: c, error: null);
+      final error = data['error'];
+      return (conversation: null, error: error == null ? null : '$error');
+    } catch (_) {
+      return ingen;
+    }
+  }
+
+  /// Guest lookup / verify: `(status code, body)`, or null when the server
+  /// could not be reached — a 422 is an answer («fant ikke», «feil kode»).
+  Future<(int, Map<String, dynamic>)?> supportGuest(String step, Map<String, dynamic> body) async {
+    if (!networkEnabled) return null;
+    try {
+      final res = await Dio().post<dynamic>(
+        '${BaseUrl.domain}api/support/guest/$step',
+        data: body,
+        options: Options(headers: {'Accept': 'application/json'}, validateStatus: (s) => s != null && s < 500),
+      );
+      final data = res.data;
+      return (res.statusCode ?? 0, data is Map<String, dynamic> ? data : <String, dynamic>{});
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `ops.customer.problem` — `kind` ∈ door, missing, wait, cancel, and the
+  /// case kinds missing_item, wrong_item, quality, not_delivered (Step 5).
   Future<Map<String, dynamic>?> problem(
     int orderId, {
     required String kind,
@@ -125,10 +209,30 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> requestCode(int orderId) =>
       _guarded(() => _post('${_base}orders/$orderId/code', const {}));
 
+  // ── Push campaigns (backend plan Step 13) ───────────────────────────────
+
+  /// `POST api/ops/customer/push/{campaign_id}/opened` — the customer opened
+  /// an admin campaign push («Push-varsler»). Fire-and-forget: true when the
+  /// server counted it, false for a guest, offline or any failure. Never
+  /// throws.
+  Future<bool> pushOpened(String campaignId) async {
+    final id = campaignId.trim();
+    if (id.isEmpty) return false;
+    final json = await _guarded(
+      () => _post('${_base}push/${Uri.encodeComponent(id)}/opened', const {}),
+    );
+    return json?['counted'] == true;
+  }
+
   // ── the demo panel's real triggers (debug builds only) ───────────────
 
   /// `POST /api/ops/orders/{id}/transition` — the one write path, driven by
   /// the demo panel on the local stack.
+  ///
+  /// OPS-TEMP: debug-only and unauthenticated (it acts as the store / courier,
+  /// which a customer login cannot prove). Served while `ops.auth.enforce` is
+  /// `report` (logged); refused with 401 under `enforce` — the panel then
+  /// gets null and shows nothing. Not a customer feature.
   Future<Map<String, dynamic>?> transition(
     int orderId,
     String to, {
@@ -147,6 +251,7 @@ class OpsCustomerApi {
   }
 
   /// `ops.proof.pin` — the courier's PIN check, driven by the demo panel.
+  /// OPS-TEMP: debug-only, same as [transition]: refused under `enforce`.
   Future<Map<String, dynamic>?> proofPin(
     int orderId,
     String pin, {
@@ -237,7 +342,9 @@ class OpsCustomerApi {
   /// is per store and carries no weather note today, so this is null — the
   /// notice stays hidden (plan Phase 2: "else hidden").
   Future<Map<String, dynamic>?> driftNotice({int? storeId}) async {
-    if (storeId == null) return null;
+    // No store: the feed's pinned drift notice on top of Utforsk (backend
+    // plan Step 9; this used to return null every time).
+    if (storeId == null) return _feedDriftNotice();
     final json = await _guarded(() async {
       final j = await _helper.get(
         'api/ops/store/availability?store_id=$storeId',
@@ -246,6 +353,26 @@ class OpsCustomerApi {
     });
     if (json == null || json['note'] == null) return null;
     return json;
+  }
+
+  /// `GET /v1/feed/notice` as the drift card reads it: `note` and
+  /// `pinned_until` as «HH:mm» local time. Null when there is none or the
+  /// feed does not answer.
+  Future<Map<String, dynamic>?> _feedDriftNotice() async {
+    try {
+      final n = await FeedRepo().fetchNotice();
+      final note = '${n?['note'] ?? ''}'.trim();
+      if (n == null || note.isEmpty) return null;
+      final until = DateTime.tryParse('${n['pinned_until'] ?? ''}')?.toLocal();
+      String two(int v) => v.toString().padLeft(2, '0');
+      return {
+        'note': note,
+        'pinned_until': until == null ? '' : '${two(until.hour)}:${two(until.minute)}',
+        'post_id': n['post_id'],
+      };
+    } catch (_) {
+      return null;
+    }
   }
 
   // ── guarded cross-branch reads ──────────────────────────────────────────
@@ -287,9 +414,49 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> referral() =>
       _guarded(() => _get('api/points/me/referral'));
 
-  /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage.
-  Future<Map<String, dynamic>?> pointsRules() =>
-      _guarded(() => _get('api/points/rules'));
+  /// `GET /api/ops/customer/orders/{id}/receipt` (backend plan Step 4): the
+  /// order's receipt PDF as bytes, or null (offline, not the caller's order,
+  /// or the server could not render it).
+  Future<List<int>?> receiptPdf(int orderId) async {
+    final auth = authParams();
+    if (auth == null || !networkEnabled) return null;
+    try {
+      final res = await Dio().get<List<int>>(
+        '${BaseUrl.domain}api/ops/customer/orders/$orderId/receipt?${_qs(auth)}',
+        options: Options(responseType: ResponseType.bytes, validateStatus: (s) => s == 200),
+      );
+      final ct = res.headers.value('content-type') ?? '';
+      return ct.contains('pdf') ? res.data : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage. Public
+  /// (backend plan Step 3), so it works before login too (onboarding).
+  Future<Map<String, dynamic>?> pointsRules() => _guarded(() async {
+    if (!networkEnabled) return null;
+    final json = await _helper.get('api/points/rules');
+    return json is Map<String, dynamic> ? json : null;
+  });
+
+  static PointsRules? _rulesCache;
+  static DateTime? _rulesAt;
+
+  /// The rules as a model, fetched at most every 5 minutes per app run
+  /// (the server sends `max-age=300`). Null when the server can't answer.
+  Future<PointsRules?> rules() async {
+    final at = _rulesAt;
+    if (_rulesCache != null && at != null && DateTime.now().difference(at) < const Duration(minutes: 5)) {
+      return _rulesCache;
+    }
+    final parsed = PointsRules.fromJson(await pointsRules());
+    if (parsed != null) {
+      _rulesCache = parsed;
+      _rulesAt = DateTime.now();
+    }
+    return parsed ?? _rulesCache;
+  }
 
   /// Søk · treff: the app's existing `search-store` and `search-product`
   /// endpoints (`api_constant.dart`), mapped for the Bergen screen. Across
@@ -436,4 +603,98 @@ class OpsCustomerApi {
   /// `GET /api/ops/customer/stores/{id}/presence` (agil-1, Phase 4), guarded.
   Future<Map<String, dynamic>?> storePresence(int storeId) =>
       _guarded(() => _get('${_base}stores/$storeId/presence'));
+
+  // ── Backend plan Step 8: Hjem and Kategori data ───────────────────────────
+
+  /// `GET /api/ops/customer/stores/presence?ids=` — «N nå» and each store's
+  /// typical order for a whole Kategori list in one call. Public. Store id →
+  /// `{viewers_now, typical_order_ore}`; empty on failure.
+  Future<Map<int, Map<String, dynamic>>> storesPresence(List<int> ids) async {
+    if (ids.isEmpty) return const {};
+    final json = await _guarded(() async {
+      final j = await _helper.get('${_base}stores/presence?ids=${ids.take(60).join(',')}');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['stores'];
+    if (list is! List) return const {};
+    return {
+      for (final s in list.whereType<Map<String, dynamic>>())
+        if ((s['store_id'] as num?) != null) (s['store_id'] as num).toInt(): s,
+    };
+  }
+
+  /// `GET /api/ops/customer/free-delivery?lat=&lng=` — Under kaien's FRAKT
+  /// card: the nearest store open now with a free-delivery threshold, or null.
+  Future<Map<String, dynamic>?> freeDelivery({double? lat, double? lng}) async {
+    final json = await _guarded(() async {
+      final q = lat != null && lng != null ? '?lat=$lat&lng=$lng' : '';
+      final j = await _helper.get('${_base}free-delivery$q');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final store = json?['store'];
+    return store is Map<String, dynamic> ? store : null;
+  }
+
+  /// `GET /api/catalog/launch-categories` — «Kommer snart»: the coming
+  /// categories with their text, Ægil's line, ready/target shop counts and
+  /// (logged in) whether this customer asked to be told. Empty on failure.
+  Future<List<Map<String, dynamic>>> launchCategories() async {
+    final json = await _guarded(() async {
+      final auth = authParams();
+      final j = await _helper.get('api/catalog/launch-categories${auth == null ? '' : '?${_qs(auth)}'}');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final list = json?['categories'];
+    return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
+  }
+
+  /// `GET /api/catalog/home` (backend plan Step 12) — what «Tilbud og
+  /// fremheving» put on Hjem: `featured` hero offers, the `free_delivery`
+  /// FRAKT card, curated `swipe` deals and the ordered `sections`. Null on
+  /// failure: Hjem falls back to what it shows without them.
+  Future<Map<String, dynamic>?> catalogHome() async {
+    return _guarded(() async {
+      final j = await _helper.get('api/catalog/home');
+      return j is Map<String, dynamic> ? j : null;
+    });
+  }
+
+  /// `GET /api/catalog/showcase?category=` — this week's «Ukens utstilling»
+  /// (`mote`, `gaver`, or a category slug). Null when there is none.
+  Future<Map<String, dynamic>?> showcase(String category) async {
+    final json = await _guarded(() async {
+      final j = await _helper.get('api/catalog/showcase?${_qs({'category': category})}');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    final s = json?['showcase'];
+    return s is Map<String, dynamic> ? s : null;
+  }
+
+  /// `GET /api/offers/mine` — the customer's personal / mystery offers.
+  /// Empty for a guest or on failure.
+  Future<List<Map<String, dynamic>>> myOffers() async {
+    final json = await _guarded(() => _get('api/offers/mine'));
+    final list = json?['offers'];
+    return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
+  }
+
+  /// `POST /api/offers/{id}/reveal` — «Avslør». The revealed offer, or null.
+  Future<Map<String, dynamic>?> revealOffer(int id) async {
+    final json = await _guarded(() => _post('api/offers/$id/reveal', const {}));
+    final o = json?['offer'];
+    return o is Map<String, dynamic> ? o : null;
+  }
+
+  /// «Varsle meg når det åpner» on / off (`POST|DELETE .../{id}/notify`).
+  /// False when it did not land (logged out, offline).
+  Future<bool> launchNotify(int id, bool on) async {
+    final json = await _guarded(() async {
+      final auth = authParams();
+      if (auth == null) return null;
+      final url = 'api/catalog/launch-categories/$id/notify?${_qs(auth)}';
+      final j = on ? await _helper.post(url, body: const {}) : await _helper.post(url, body: const {'_method': 'DELETE'});
+      return j is Map<String, dynamic> ? j : null;
+    });
+    return json != null;
+  }
 }

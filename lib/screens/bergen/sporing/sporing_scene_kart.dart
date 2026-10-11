@@ -249,10 +249,9 @@ class _AnkommerState extends State<_Ankommer> {
     final rest = slutt == null ? 0 : slutt.difference(DateTime.now()).inSeconds.clamp(0, 1 << 30);
     final total = (info.totalSek ?? 1).clamp(1, 1 << 30);
     final pst = (1 - rest / total).clamp(0.0, 1.0);
-    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support —
-    // the payload has no distance left, so the km follow the time left on
-    // the prototype's 1.3 km leg.
-    final km = (1.3 * rest / total).clamp(0.0, 1.3);
+    // Metres to the door from the tracking payload (`distance_metres`, backend
+    // plan Step 4): the courier's live position when reported, else the store.
+    final meter = info.meterIgjen;
     return CssBox(
       width: 110,
       radius: BorderRadius.circular(16),
@@ -300,11 +299,14 @@ class _AnkommerState extends State<_Ankommer> {
               ),
             ),
           ),
-          const SizedBox(height: 5),
-          Text(
-            SporingCopy.a1_sporing_km_igjen(km.toStringAsFixed(1).replaceAll('.', ',')),
-            style: inter(8.5, weight: FontWeight.w700, color: kSpLabel),
-          ),
+          if (meter != null) ...[
+            const SizedBox(height: 5),
+            Text(
+              SporingCopy.a1_sporing_km_igjen((meter / 1000).toStringAsFixed(1).replaceAll('.', ',')),
+              key: const Key('a1_sporing_km_igjen'),
+              style: inter(8.5, weight: FontWeight.w700, color: kSpLabel),
+            ),
+          ],
         ],
       ),
     );

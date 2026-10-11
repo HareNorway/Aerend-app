@@ -144,6 +144,24 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
+  testWidgets('Husk døra mi: off until the customer says yes, saved on the server (UI-TEMP #25 gone)', (tester) async {
+    tall(tester);
+    final p = api();
+    await tester.pumpWidget(app(p));
+    await settle(tester);
+
+    await tester.ensureVisible(find.byKey(const Key('meg-rad-dora')));
+    expect(find.text('Husk døra mi'), findsOneWidget);
+    expect(find.text('Av · ingen notater om døra di'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('meg-rad-dora')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(p.calls, contains('prefs:door:true'));
+    expect(find.text('På · budet ser notatet om døra di'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
   testWidgets('Navn i ligaen: pick a name and visibility, opt in and save', (tester) async {
     tall(tester);
     final p = api();

@@ -113,7 +113,7 @@ class SpPanel extends StatelessWidget {
     required this.onKopierBillett,
     this.vervKode = '',
     this.bunn = 0,
-    this.poengNeste = const [8, 8, 8, 34],
+    this.poengNeste,
   });
 
   final OpsTracking tracking;
@@ -126,8 +126,9 @@ class SpPanel extends StatelessWidget {
   /// Extra padding under the panel (the safe area).
   final double bunn;
 
-  /// Points per stage for «Neste: X · +N poeng».
-  final List<int> poengNeste;
+  /// Points per stage for «Neste: X · +N poeng»: the order's real total
+  /// split over the stages (`splitPointsByStage`). Null: no numbers.
+  final List<int>? poengNeste;
 
   static const Color _fyll1 = Color(0xFFE95C2C);
   static const Color _fyll2 = Color(0xFFF58A55);
@@ -283,7 +284,7 @@ class _Veileder extends StatelessWidget {
   final OpsTracking tracking;
   final String linje;
   final List<String> navn;
-  final List<int> poeng;
+  final List<int>? poeng;
 
   @override
   Widget build(BuildContext context) {
@@ -299,8 +300,8 @@ class _Veileder extends StatelessWidget {
     final hint = t.findingCourier
         ? SporingCopy.a1_sporing_finner_bud_hint
         : s == 3
-        ? SporingCopy.a1_sporing_fullfort_poeng(poeng.fold(0, (a, b) => a + b))
-        : SporingCopy.a1_sporing_neste_poeng(navn[s + 1], poeng[s + 1]);
+        ? (poeng == null ? SporingCopy.a1_sporing_fullfort : SporingCopy.a1_sporing_fullfort_poeng(poeng!.fold(0, (a, b) => a + b)))
+        : (poeng == null ? SporingCopy.a1_sporing_neste(navn[s + 1]) : SporingCopy.a1_sporing_neste_poeng(navn[s + 1], poeng![s + 1]));
     return CssBox(
       key: const Key('a1_sporing_veileder'),
       radius: BorderRadius.circular(18),

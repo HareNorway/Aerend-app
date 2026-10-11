@@ -5,6 +5,7 @@ import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:aerend_customer/data/aegil/aegil_models.dart';
 import 'package:aerend_customer/data/aegil/suggestion_models.dart';
 import 'package:aerend_customer/data/ops/kasse_models.dart';
+import 'package:aerend_customer/data/points/points_rules.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_guide.dart';
@@ -29,9 +30,22 @@ class _Kasse extends OpsKasseApi {
 }
 
 class _Kunde extends OpsCustomerApi {
+  _Kunde([this.regler]);
+
+  final PointsRules? regler;
+
   @override
   Future<List<Map<String, dynamic>>> orders({int limit = 50}) async => const [];
+
+  @override
+  Future<PointsRules?> rules() async => regler;
 }
+
+/// `points/rules` with Ægil answer points on (backend plan Step 7).
+final _reglerPaa = PointsRules.fromJson({
+  'kjop_per_10kr': 1,
+  'aegil_answer': {'enabled': true, 'per_answer': 5, 'cap': 50},
+});
 
 class _FeilApi extends FakeAegilApi {
   @override
@@ -74,8 +88,8 @@ Future<void> _tapV(WidgetTester tester, Finder f) async {
   await tester.tap(f);
 }
 
-AegilScreen _skjerm({FakeAegilApi? api, FakeAegilRepo? repo, String? steg, KurvState kurv = const KurvState()}) =>
-    AegilScreen(api: api ?? FakeAegilApi(turn: _kurvTurn), repo: repo ?? FakeAegilRepo(), steg: steg, kasseApi: _Kasse(kurv), customerApi: _Kunde());
+AegilScreen _skjerm({FakeAegilApi? api, FakeAegilRepo? repo, String? steg, KurvState kurv = const KurvState(), PointsRules? regler}) =>
+    AegilScreen(api: api ?? FakeAegilApi(turn: _kurvTurn), repo: repo ?? FakeAegilRepo(), steg: steg, kasseApi: _Kasse(kurv), customerApi: _Kunde(regler));
 
 void main() {
   setUpAll(() async {
@@ -280,6 +294,10 @@ void main() {
       await tester.tap(find.text(AeCopy.fjern).first);
       await tester.pump();
       expect(find.text('Reker'), findsNothing);
+      // Backend plan Step 7: «Fjern» forgets the line on the server.
+      await _settle(tester);
+      expect(repo.calls.any((c) => c.startsWith('forget:')), isTrue);
+      expect(find.text('Reker'), findsNothing);
 
       await tester.ensureVisible(find.byKey(const Key('a1_aegil_glem')));
       await tester.tap(find.byKey(const Key('a1_aegil_glem')));
@@ -303,10 +321,20 @@ void main() {
       await tester.pump(const Duration(seconds: 3));
     });
 
+    testWidgets('with answer points off there is no «+N Ægil-poeng» (backend plan Step 7)', (tester) async {
+      _frame(tester);
+      await tester.pumpWidget(_app(_skjerm(steg: 'ob1')));
+      await _settle(tester);
+      await _tapV(tester, find.text(AeCopy.kat[1]));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(AeCopy.poeng(5)), findsNothing);
+      await tester.pump(const Duration(seconds: 3));
+    });
+
     testWidgets('the five questions are stored as explicit choices', (tester) async {
       _frame(tester);
       final repo = FakeAegilRepo();
-      await tester.pumpWidget(_app(_skjerm(repo: repo, steg: 'ob1')));
+      await tester.pumpWidget(_app(_skjerm(repo: repo, steg: 'ob1', regler: _reglerPaa)));
       await _settle(tester);
       expect(find.text(AeCopy.ob1), findsOneWidget);
       await _tapV(tester, find.text(AeCopy.kat[1]));

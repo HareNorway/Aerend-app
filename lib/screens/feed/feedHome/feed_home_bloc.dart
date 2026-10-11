@@ -283,6 +283,8 @@ class FeedHomeBloc extends Bloc {
       commentCount: p.commentCount,
       isLiked: isLiked ?? p.isLiked,
       publishedAt: p.publishedAt,
+      publisherType: p.publisherType,
+      headline: p.headline,
     );
   }
 

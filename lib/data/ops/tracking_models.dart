@@ -133,6 +133,8 @@ class OpsCourier {
     this.verified = false,
     this.vehicle,
     this.id,
+    this.since,
+    this.rating,
   });
 
   final int? id;
@@ -143,6 +145,11 @@ class OpsCourier {
   /// `sykkel` | `bil` | null.
   final String? vehicle;
 
+  /// When they started with Ærend («sykler siden mars»), and their average
+  /// customer rating (backend plan Step 4); null when unknown.
+  final DateTime? since;
+  final double? rating;
+
   bool get onBike => vehicle != 'bil';
 
   factory OpsCourier.fromJson(Map<String, dynamic> j) => OpsCourier(
@@ -151,6 +158,8 @@ class OpsCourier {
     avatarUrl: j['avatar_url']?.toString(),
     verified: j['verified'] == true,
     vehicle: j['vehicle']?.toString(),
+    since: DateTime.tryParse('${j['since'] ?? ''}')?.toLocal(),
+    rating: (j['rating'] as num?)?.toDouble(),
   );
 }
 

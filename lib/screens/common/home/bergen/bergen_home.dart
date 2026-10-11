@@ -36,7 +36,8 @@ import '../../../bergen/hjem/hjem_vann.dart';
 import '../../../bergen/hjem/hjem_vindu.dart';
 import '../../../bergen/kit/live_aerend.dart';
 import '../../../bergen/hjem/hjem_snart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../bergen/meg/bestill_igjen.dart';
+import '../../../../networking/ops/ops_kasse_api.dart';
 import '../../../bergen/aegil/brett_entry.dart';
 import '../../../bergen/kit/bergen_routes.dart';
 import '../../../bergen/meg/a3_services.dart';
@@ -88,14 +89,6 @@ const double _kSheetTop = 296; // arkTop (ROM)
 const double _kSheetSlide = 212; // max parallax translate
 const double _kSheetRadius = 30;
 
-/// Design's `LIVE` placeholders per category slot. TODO(api): open-now counts.
-const List<String> kBergenLive = [
-  '24 åpne nå',
-  '9 åpne nå',
-  'Åpner 10:00',
-  '6 åpne nå',
-  '4 åpne nå',
-];
 
 /// `/bergen/kategori/{slug}` from a category name — the app's categories
 /// carry no slug of their own, so the name is the key (Phase 4 resolves it by
@@ -162,6 +155,35 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   Set<int> _snartVarsle = {};
   final Map<int, List<BergenStoreCard>> _storesByCat = {};
 
+  /// «Populært i kveld» per category id when the swipe feed is empty
+  /// (`ops/products?kind=populaert`, the Ark's list), and those asked for.
+  final Map<int, List<BergenProductCard>> _populaertByCat = {};
+  final Set<int> _populaertSpurt = {};
+
+  /// «Kommer snart» per wheel slot from `catalog/launch-categories` (backend
+  /// plan Step 8); null until it answers (the wheel then keeps 1–4 coming).
+  Map<int, HjemSnartInfo>? _snart;
+
+  /// «N åpne nå» per category id from the category pulse (Step 8), and the
+  /// categories already asked for.
+  final Map<int, int> _aapneNa = {};
+  final Set<int> _pulsSpurt = {};
+
+  /// Under kaien's FRAKT card: the nearest open store with a free-delivery
+  /// threshold (`ops/customer/free-delivery`, Step 8); null hides the card.
+  Map<String, dynamic>? _frakt;
+
+  /// `GET /api/catalog/home` (Step 12): the hero offers and the FRAKT card the
+  /// admin put on Hjem («Tilbud og fremheving»). Null until loaded / offline.
+  Map<String, dynamic>? _katalog;
+
+  /// The customer's personal / mystery offer (`offers/mine`, Step 12).
+  HjemPersonlig? _personlig;
+
+  /// Vindu «Bestill igjen»: this customer's latest order per shop, newest
+  /// first, at most two (`ops.customer.orders`, Step 8).
+  List<Map<String, dynamic>> _igjen = const [];
+
   /// The Ark (design `st.ark`): both «Se alle» open it.
   bool _arkOpen = false;
   final Set<int> _storesLoading = {};
@@ -200,6 +222,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _lastSnart();
     _lastPose();
+    _lastFrakt();
+    _lastKatalog();
+    _lastPersonlig();
+    _lastIgjen();
     // Live-ærend: the shell's pill follows the order under way.
     _trackSub = _bloc.subjectTrackOrder.stream.listen((r) {
       if (r.status != Status.completed) return;
@@ -213,9 +239,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       // The stage, the time to the door and the mode come from
       // `ops.customer.tracking`; until it answers, the minutes left from
       // `home-track-order` carry the pill.
-      hjemLiveOrdre.value ??= (orderId: id, data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60));
+      // A pill for another order (an earlier one, or another user's) is
+      // replaced at once.
+      if (hjemLiveOrdre.value?.orderId != id) {
+        hjemLiveOrdre.value = (orderId: id, data: HjemLiveData(stadie: min <= 0 ? 3 : (min <= 20 ? 2 : 1), restSek: min * 60));
+      }
       OpsCustomerApi().tracking(id).then((json) {
-        if (!mounted) return;
+        // Late answers for an order no longer shown (logout, a new order)
+        // are dropped.
+        if (!mounted || hjemLiveOrdre.value?.orderId != id) return;
         final tr = OpsTracking.fromJson(json);
         final end = tr.promisedEnd;
         final rest = end == null ? min * 60 : end.difference(DateTime.now()).inSeconds;
@@ -448,6 +480,53 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     shell.switchToTab(BergenTab.explore.index);
   }
 
+  /// Under kaien's POSE card from tonight's first real bag (Step 8); none
+  /// when there are no bags.
+  HjemKaienFunn? _kaienPose() {
+    if (_poser.isEmpty) return null;
+    final bag = _poser.first;
+    final kr = ((bag['price_ore'] as num?)?.toInt() ?? 0) ~/ 100;
+    final verdi = ((bag['value_ore'] as num?)?.toInt() ?? 0) ~/ 100;
+    return HjemKaienFunn(
+      tittel: BergenCopy.poseTittel,
+      under: verdi > 0 ? 'Verdi minst $verdi kr' : '${bag['store_name'] ?? ''}',
+      pris: '$kr kr',
+      merke: BergenCopy.poseIgjen(_poser.length),
+      onTap: _openPose,
+    );
+  }
+
+  /// Under kaien's FRAKT card: the admin's «Gratis levering» campaign when
+  /// there is one (Step 12, `catalog/home` `free_delivery`), else the nearest
+  /// open store's own free-delivery threshold (Step 8).
+  HjemKaienFunn? _kaienFrakt() {
+    final kampanje = _katalog?['free_delivery'];
+    if (kampanje is Map<String, dynamic>) {
+      final store = kampanje['store'] is Map ? kampanje['store'] as Map : null;
+      final storeId = (store?['id'] as num?)?.toInt();
+      final now = (kampanje['now_ore'] as num?)?.toInt();
+      return HjemKaienFunn(
+        tittel: '${kampanje['title'] ?? 'Gratis levering'}',
+        under: [kampanje['sub'], store?['name']].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
+        pris: now == null || now == 0 ? '0 kr' : '${now ~/ 100} kr',
+        merke: kampanje['badge'] as String?,
+        onTap: storeId != null ? () => BergenRoutes.push(context, '/bergen/butikk/$storeId') : _toExplore,
+      );
+    }
+    final f = _frakt;
+    final id = (f?['id'] as num?)?.toInt();
+    final ore = (f?['threshold_ore'] as num?)?.toInt() ?? 0;
+    if (f == null || id == null || ore <= 0) return null;
+    return HjemKaienFunn(
+      tittel: 'Gratis levering',
+      under: 'Over ${ore ~/ 100} kr · ${f['name'] ?? ''}',
+      pris: '0 kr',
+      // The store's own threshold, open now — not a tonight-only campaign.
+      merke: 'Åpen nå',
+      onTap: () => BergenRoutes.push(context, '/bergen/butikk/$id'),
+    );
+  }
+
   /// The Forundringspose card (L3177) from the first real bag; the count is
   /// the bags themselves (no stock is tracked).
   Widget _hjemPoseKort() {
@@ -599,7 +678,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           BergenCategory(
             id: 0,
             name: _placeholderCategoryName(i),
-            liveText: kBergenLive[i],
+            liveText: '',
             iconAsset: BergenCategoryLook.all[i].icon,
             look: BergenCategoryLook.all[i],
           ),
@@ -610,7 +689,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         BergenCategory(
           id: services[i].serviceCategoryId,
           name: services[i].serviceCategoryName,
-          liveText: kBergenLive[i % kBergenLive.length],
+          liveText: _liveTekst(BergenCategory(id: services[i].serviceCategoryId, name: services[i].serviceCategoryName, liveText: '', look: BergenCategoryLook.all[i % BergenCategoryLook.all.length])),
           iconUrl: services[i].serviceCategoryIcon.isEmpty
               ? null
               : services[i].serviceCategoryIcon,
@@ -650,32 +729,140 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
   }
 
-  static const _kSnartPref = 'hjem_snart_varsle';
-
+  /// The coming categories, their texts and counts, and which of them this
+  /// customer asked to hear about — all from the server (Step 8; the device
+  /// list in prefs is gone).
   Future<void> _lastSnart() async {
-    final p = await SharedPreferences.getInstance();
-    final v = p.getStringList(_kSnartPref) ?? const [];
-    if (mounted) {
-      setState(() => _snartVarsle = {for (final x in v) ?int.tryParse(x)});
+    final rows = await OpsCustomerApi().launchCategories();
+    if (!mounted || rows.isEmpty) return;
+    final m = <int, HjemSnartInfo>{};
+    for (final r in rows) {
+      final e = HjemSnartInfo.fraJson(r);
+      if (e != null) m[e.$1] = e.$2;
     }
+    setState(() {
+      _snart = m;
+      _snartVarsle = {for (final e in m.entries) if (e.value.varsles) e.key};
+    });
   }
 
-  void _settSnart(int k, bool v) {
+  /// Is wheel slot [k] still coming? Restaurant never is; without an answer
+  /// from the server the design's four stay coming.
+  bool _erSnart(int k) {
+    if (k == 0 || HjemHarness.katLive) return false;
+    final s = _snart;
+    return s == null ? true : s.containsKey(k);
+  }
+
+  /// «Varsle meg» on the server; undone with a word when it does not land.
+  Future<void> _settSnart(int k, bool v) async {
+    final id = _snart?[k]?.id;
     setState(() => v ? _snartVarsle.add(k) : _snartVarsle.remove(k));
-    // TODO(api): no backend for "notify me when a category opens"; kept on
-    // the device.
-    SharedPreferences.getInstance().then(
-      (p) => p.setStringList(_kSnartPref, [for (final x in _snartVarsle) '$x']),
-    );
+    if (id == null) return;
+    final ok = await OpsCustomerApi().launchNotify(id, v);
+    if (ok || !mounted) return;
+    setState(() => v ? _snartVarsle.remove(k) : _snartVarsle.add(k));
+    openSimpleSnackbar(isGuestUser() ? 'Logg inn for å få beskjed når det åpner.' : BergenCopy.comingSoon);
   }
 
   void _openSnart(int k) {
+    final info = _snart?[k];
+    if (info == null) {
+      openSimpleSnackbar(BergenCopy.comingSoon);
+      return;
+    }
     visKommerSnart(
       context,
       k: k,
+      info: info,
       varsles: _snartVarsle.contains(k),
       onVarsle: (v) => _settSnart(k, v),
       onRestauranter: () => setState(() => _hjulI = 0),
+    );
+  }
+
+  /// «N åpne nå» for [c] from the pulse; '' until it answers (asked once).
+  String _liveTekst(BergenCategory? c) {
+    if (c == null || c.id == 0) return '';
+    final n = _aapneNa[c.id];
+    if (n != null) return BergenCopy.openNow(n);
+    if (_pulsSpurt.add(c.id)) {
+      OpsCustomerApi().categoryPulse(BergenHomeSlug.of(c.name)).then((p) {
+        final open = (p?['stores_open'] as num?)?.toInt();
+        if (mounted && open != null) setState(() => _aapneNa[c.id] = open);
+      });
+    }
+    return '';
+  }
+
+  /// The FRAKT card's store, nearest to the delivery address when it has a
+  /// position.
+  Future<void> _lastFrakt([AddressListItem? a]) async {
+    final lat = double.tryParse(a?.lat ?? '');
+    final lng = double.tryParse(a?.long ?? '');
+    final store = await OpsCustomerApi().freeDelivery(lat: lat, lng: lng);
+    if (mounted) setState(() => _frakt = store);
+  }
+
+  /// «Tilbud og fremheving» for Hjem (Step 12).
+  Future<void> _lastKatalog() async {
+    final home = await OpsCustomerApi().catalogHome();
+    if (mounted && home != null) setState(() => _katalog = home);
+  }
+
+  /// The first personal offer still good (Step 12); none for a guest.
+  Future<void> _lastPersonlig() async {
+    if (isGuestUser()) return;
+    final rows = await OpsCustomerApi().myOffers();
+    final p = rows.map(HjemPersonlig.fraJson).whereType<HjemPersonlig>().firstOrNull;
+    if (mounted) setState(() => _personlig = p);
+  }
+
+  /// «Avslør» on the mystery coupon.
+  Future<HjemPersonlig?> _avslorPersonlig(HjemPersonlig p) async {
+    final r = await OpsCustomerApi().revealOffer(p.id);
+    final avslort = r == null ? null : HjemPersonlig.fraJson(r);
+    if (mounted && avslort != null) setState(() => _personlig = avslort);
+    return avslort;
+  }
+
+  /// The revealed coupon's «Til butikken» / «Handle nå».
+  void _tilPersonlig() {
+    final id = _personlig?.butikkId;
+    if (id != null) {
+      BergenRoutes.push(context, '/bergen/butikk/$id');
+    } else {
+      _toExplore();
+    }
+  }
+
+  /// The two shops this customer last ordered from, with that order's lines.
+  Future<void> _lastIgjen() async {
+    if (isGuestUser()) return;
+    final rows = await OpsCustomerApi().orders(limit: 20);
+    final seen = <int>{};
+    final out = <Map<String, dynamic>>[];
+    for (final r in rows) {
+      final store = r['store'] is Map ? r['store'] as Map : const {};
+      final id = (store['id'] as num?)?.toInt() ?? 0;
+      final items = r['items'] is List ? r['items'] as List : const [];
+      if (id == 0 || items.isEmpty || r['state'] == 'cancelled' || !seen.add(id)) continue;
+      out.add(r);
+      if (out.length == 2) break;
+    }
+    if (mounted) setState(() => _igjen = out);
+  }
+
+  Future<void> _bestillIgjen(int i) async {
+    if (i >= _igjen.length) return;
+    final r = _igjen[i];
+    final store = r['store'] as Map;
+    await bestillIgjen(
+      context,
+      kasse: OpsKasseApi(),
+      storeId: (store['id'] as num).toInt(),
+      butikk: '${store['name'] ?? ''}',
+      linjer: [for (final l in (r['items'] as List).whereType<Map>()) Map<String, dynamic>.from(l)],
     );
   }
 
@@ -758,38 +945,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     ];
   }
 
-  /// Popular products from the swipe feed. TODO(api): "popular tonight" list.
-  List<BergenProductCard> _products(List<SwipeCardModel> swipe) {
+  /// «Populært i kveld»: the swipe feed near the address; without it the
+  /// focused category's most-ordered products (the Ark's list). Never the
+  /// design's sample cards — a tap must always reach a real store.
+  List<BergenProductCard> _products(List<SwipeCardModel> swipe, BergenCategory cat) {
     if (swipe.isEmpty) {
-      return const [
-        BergenProductCard(
-          id: 0,
-          name: 'Whopper meny',
-          store: 'Burger King · Torgallmenningen',
-          priceText: '139 kr',
-          price: 139,
-          imageAsset: BergenAssets.bkWhopper,
-          wasPrice: '159 kr',
-          offer: '-13%',
-          hero: kBergenOrangeGradient,
-        ),
-        BergenProductCard(
-          id: 0,
-          name: 'Reker 1 kg',
-          store: 'Torgboden',
-          priceText: '149 kr',
-          price: 149,
-          wasPrice: '199 kr',
-          offer: 'Tilbud',
-        ),
-        BergenProductCard(
-          id: 0,
-          name: 'Pad thai med kylling',
-          store: 'Fyllingsdalen Wok',
-          priceText: '189 kr',
-          price: 189,
-        ),
-      ];
+      _ensurePopulaert(cat);
+      return _populaertByCat[cat.id] ?? const [];
     }
     return [
       for (final p in swipe.take(8))
@@ -807,6 +969,42 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     ];
   }
 
+  /// The admin's hero offers (`catalog/home` `featured`, Step 12) as coupons:
+  /// the offer's own eyebrow, title, badge and prices, its colour as the stub.
+  List<HjemTilbud> _featuredTilbud() {
+    final rows = _katalog?['featured'];
+    if (rows is! List) return const [];
+    const farger = {'oransje': HjemStub.oransje, 'rosa': HjemStub.oransje, 'gronn': HjemStub.mint, 'bla': HjemStub.teal, 'lilla': HjemStub.teal};
+    String kr(int ore) => ore == 0 ? 'Gratis' : '${(ore / 100).round()} kr';
+    return [
+      for (final o in rows.whereType<Map<String, dynamic>>().take(4))
+        () {
+          final store = o['store'] is Map ? o['store'] as Map : null;
+          final storeId = (store?['id'] as num?)?.toInt();
+          final was = (o['was_ore'] as num?)?.toInt();
+          final now = (o['now_ore'] as num?)?.toInt();
+          final badge = (o['badge'] as String?)?.trim();
+          final pst = was != null && now != null && was > 0 ? ((was - now) / was * 100).round() : null;
+          return HjemTilbud(
+            eyebrow: (o['eyebrow'] as String?)?.trim().isNotEmpty == true ? o['eyebrow'] as String : 'Tilbud',
+            navn: '${o['title'] ?? ''}',
+            butikk: '${store?['name'] ?? 'Ærend'}',
+            meta: '${o['sub'] ?? ''}',
+            logoUrl: (store?['logo_url'] as String?)?.isNotEmpty == true ? store!['logo_url'] as String : null,
+            fotoUrl: (o['banner_url'] as String?)?.isNotEmpty == true ? o['banner_url'] as String : null,
+            ny: now != null ? kr(now) : '',
+            gml: was != null ? kr(was) : '',
+            gmlStrek: was != null,
+            verdi: badge != null && badge.isNotEmpty ? badge : (pst != null ? '−$pst %' : '★'),
+            under: was != null && now != null && was > now ? 'Spar ${kr(was - now)}' : (store == null ? 'Hele Ærend' : 'Hos ${store['name']}'),
+            verdiStr: (badge?.length ?? 0) > 6 ? 20.0 : 28.0,
+            stub: farger[o['grad']] ?? HjemStub.oransje,
+            onTap: storeId != null ? () => BergenRoutes.push(context, '/bergen/butikk/$storeId') : _toExplore,
+          );
+        }(),
+    ];
+  }
+
   /// Ærend-tilbud: the discounted products in the swipe feed, as coupons;
   /// the prototype's coupons while there are none.
   List<HjemTilbud> _tilbud(List<SwipeCardModel> swipe) {
@@ -817,12 +1015,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       HjemStub.mint,
     ];
     const eyebrows = ['Dagens kupp', 'Kun i kveld', 'Tilbud', 'Tilbud'];
+    // Step 12: the admin's hero offers come first («Tilbud og fremheving»).
+    final featured = _featuredTilbud();
     final deals = swipe
         .where((p) => p.originalAmount > p.amount && p.amount > 0)
-        .take(4)
+        .take((4 - featured.length).clamp(0, 4).toInt())
         .toList();
-    if (deals.isNotEmpty) {
+    if (featured.isNotEmpty || deals.isNotEmpty) {
       return [
+        ...featured,
         for (var k = 0; k < deals.length; k++)
           () {
             final p = deals[k];
@@ -844,7 +1045,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               verdi: '−$pst %',
               under: 'Spar ${_kr(spar)}',
               verdiStr: k == 0 ? 22 : 28,
-              stub: stubs[k % stubs.length],
+              stub: stubs[(k + featured.length) % stubs.length],
               onTap: () => _openProduct(
                 BergenProductCard(
                   id: p.productId,
@@ -859,7 +1060,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }(),
       ];
     }
-    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+    // No discounts in the feed: no coupons — the row is left out rather than
+    // filled with the design's samples (backend plan Step 8).
+    return const [];
+  }
+
+  // The design's sample coupons, kept for reference only (never shown).
+  // ignore: unused_element
+  List<HjemTilbud> _tilbudPrototype() {
     return [
       HjemTilbud(
         eyebrow: 'Dagens kupp',
@@ -949,41 +1157,25 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     rating: s.storeRating > 0 ? s.storeRating.toStringAsFixed(1) : null,
   );
 
-  /// Design placeholders when nothing has loaded. TODO(api).
-  List<BergenStoreCard> _placeholderStores() => const [
-    BergenStoreCard(
-      id: 0,
-      name: 'Burger King',
-      subtitle: 'Torgallmenningen · Whopper-uke',
-      open: true,
-      bannerAsset: BergenAssets.bkBanner,
-      logoAsset: BergenAssets.bkLogo,
-      eta: '20–30 min',
-      fee: '39 kr',
-      rating: '4,6',
-      offer: '2 for 1 Whopper',
-      video: true,
-    ),
-    BergenStoreCard(
-      id: 0,
-      name: 'Casa Maria',
-      subtitle: 'Steinovn på Bryggen',
-      open: true,
-      eta: '25–35 min',
-      fee: '39 kr',
-      rating: '4,8',
-    ),
-    BergenStoreCard(
-      id: 0,
-      name: 'Torgboden',
-      subtitle: 'Fersk fisk fra Fisketorget',
-      open: true,
-      eta: '30–40 min',
-      fee: 'Gratis',
-      rating: '4,7',
-      offer: 'Reker 149 kr',
-    ),
-  ];
+  void _ensurePopulaert(BergenCategory cat) {
+    if (cat.id == 0 || !_populaertSpurt.add(cat.id)) return;
+    _loadPopulaert(cat.id).then((list) {
+      if (!mounted) return;
+      setState(() => _populaertByCat[cat.id] = [
+        for (final p in list)
+          if (p.id != 0 && p.storeId != 0)
+            BergenProductCard(
+              id: p.id,
+              name: p.name,
+              store: p.storeName,
+              priceText: p.priceText,
+              price: p.priceOre / 100,
+              storeId: p.storeId,
+              imageUrl: p.imageUrl,
+            ),
+      ]);
+    });
+  }
 
   void _ensureStores(BergenCategory cat) {
     if (cat.id == 0) return;
@@ -993,7 +1185,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _storesLoading.add(cat.id);
     final seq = ++_storesRequestSeq;
     _storeRepo
-        .fetch(cat.id)
+        .fetch(cat.id, surface: 'home')
         .then((list) {
           if (!mounted) return;
           setState(() {
@@ -1030,7 +1222,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (seen.add(s.id)) s,
       ];
     }
-    return _placeholderStores();
+    // The rail says «Ingen butikker her ennå»; no sample cards.
+    return const [];
   }
 
   bool get _showSurprise {
@@ -1139,6 +1332,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// The header's "· 25–35 min" follows coverage for the chosen place.
   void _hentHodeEta(AddressListItem? a) {
     if (a == null || a.addressId == 0) return;
+    _lastFrakt(a);
     _adrKilde.dekning(a).then((d) {
       if (mounted) setState(() => _hodeEta = d?.hodeEta);
     });
@@ -1182,7 +1376,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 }
                 final explore = _lastExplore;
                 final stores = _storesFor(focused, explore);
-                final products = _products(swipe);
+                final products = _products(swipe, focused);
                 final floats = _floats(swipe);
 
                 final heroOpacity = (1 - ((_k / s) - 120).clamp(0.0, 92.0) / 92)
@@ -1198,7 +1392,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     : (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
                 final restLive = stores.isNotEmpty && focused == slots[0]
                     ? '${stores.where((e) => e.open).length} åpne nå'
-                    : kBergenLive[0];
+                    : _liveTekst(slots[0]);
 
                 return OnbTimeline(
                   durationMs: 340,
@@ -1306,13 +1500,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               child: HjemUnderKaien(
                                 vist: _kaien,
                                 reker: _underKaien == null
-                                    // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-                                    ? HjemKaienFunn(
-                                        tittel: 'Reker, 1 kg',
-                                        under: 'Torgboden · før 349',
-                                        pris: '299 kr',
-                                        onTap: _onUnderKaienOffer,
-                                      )
+                                    ? null
                                     : HjemKaienFunn(
                                         tittel: _underKaien!.title,
                                         under: _underKaien!.sub.isEmpty
@@ -1321,8 +1509,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         pris: _underKaien!.price,
                                         onTap: _onUnderKaienOffer,
                                       ),
-                                onPose: _openPose,
-                                onFrakt: _comingSoon,
+                                pose: _kaienPose(),
+                                frakt: _kaienFrakt(),
                               ),
                             ),
                           ),
@@ -1497,9 +1685,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                   setState(() => _stripeDy = 0);
                                   if (opp) _settVindu(false);
                                 },
-                                // UI-TEMP: the sample "Bestill igjen" shops
-                                // have no store behind them yet.
-                                onButikk: _comingSoon,
+                                butikker: [
+                                  for (final r in _igjen) '${(r['store'] as Map)['name'] ?? ''}',
+                                ],
+                                onButikk: _bestillIgjen,
                               ),
                             ),
                           ),
@@ -1614,9 +1803,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     navn: kHjemKatNavn[k],
                     live: k == 0 && stores.isNotEmpty && focused == slots[0]
                         ? '$openCount åpne nå'
-                        : kBergenLive[k],
+                        : _liveTekst(slots[k]),
                     ikon: k,
-                    snart: k != 0 && !HjemHarness.katLive,
+                    snart: _erSnart(k),
                     varsles: _snartVarsle.contains(k),
                   ),
               ],
@@ -1674,8 +1863,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   ),
                   stores: stores,
                   // A wrapped card opens the Kommer snart sheet.
-                  onOpen: _hjulI != 0 ? (_) => _openSnart(_hjulI) : _openStore,
-                  snart: _hjulI != 0,
+                  onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openStore,
+                  snart: _erSnart(_hjulI),
                 ),
               ),
               Padding(
@@ -1692,7 +1881,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 padding: EdgeInsets.only(top: 22 * s),
                 child: lfFlow(
                   358,
-                  HjemTilbudRad(tilbud: tilbud, onMysterie: _comingSoon),
+                  tilbud.isEmpty && _personlig == null
+                      ? const SizedBox.shrink()
+                      : HjemTilbudRad(tilbud: tilbud, personlig: _personlig, onAvslor: _avslorPersonlig, onMysterie: _tilPersonlig),
                 ),
               ),
               // Only with real bags tonight.
@@ -1716,9 +1907,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               ),
               SizedBox(height: 10 * s),
               BergenProductRail(
-                snart: _hjulI != 0,
+                snart: _erSnart(_hjulI),
                 products: products,
-                onOpen: _hjulI != 0 ? (_) => _openSnart(_hjulI) : _openProduct,
+                onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
               ),
             ],

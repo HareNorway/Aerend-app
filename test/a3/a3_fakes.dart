@@ -274,10 +274,11 @@ class FakePointsApi implements PointsAppApi {
   Future<CustomerPrefs?> prefs() async => prefsValue;
 
   @override
-  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool markNotificationsSeen = false}) async {
-    calls.add('prefs:$alwaysCode:$markNotificationsSeen');
+  Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool? doorProfileConsent, bool markNotificationsSeen = false}) async {
+    calls.add(doorProfileConsent == null ? 'prefs:$alwaysCode:$markNotificationsSeen' : 'prefs:door:$doorProfileConsent');
     prefsValue = CustomerPrefs(
       alwaysCode: alwaysCode ?? prefsValue.alwaysCode,
+      doorProfileConsent: doorProfileConsent ?? prefsValue.doorProfileConsent,
       notificationsUnseen: markNotificationsSeen ? 0 : prefsValue.notificationsUnseen,
       favourites: prefsValue.favourites,
     );
@@ -465,11 +466,21 @@ class FakeAegilRepo extends AegilRepo {
     return true;
   }
 
+  /// What the fake server pays per answer (backend plan Step 7); 0 = off.
+  int earnPerChip = 0;
+
   @override
-  Future<({int stored, String? error})> submitChips(
+  Future<({int stored, int earned, String? error})> submitChips(
     List<OnboardingChip> chips,
   ) async {
     calls.add('chips:${chips.map((c) => c.value).join(',')}');
-    return (stored: chips.length, error: null);
+    return (stored: chips.length, earned: chips.length * earnPerChip, error: null);
+  }
+
+  @override
+  Future<bool> forget(int id) async {
+    calls.add('forget:$id');
+    memory = memory.where((m) => m.id != id).toList();
+    return true;
   }
 }

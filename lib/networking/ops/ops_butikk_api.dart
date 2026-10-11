@@ -38,7 +38,8 @@ class OpsButikkApi {
   Future<List<StoreListItem>> storesInCategory(int categoryId) async {
     if (_off) return const [];
     try {
-      return await BergenStoreRepo().fetch(categoryId);
+      // A category page is reached from Kategorihjulet (Step 12 surface order).
+      return await BergenStoreRepo().fetch(categoryId, surface: 'wheel');
     } catch (_) {
       return const [];
     }

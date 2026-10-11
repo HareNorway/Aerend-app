@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
 import '../../../data/aegil/aegil_models.dart';
+import '../../../data/points/points_rules.dart';
 import '../../../data/aegil/aegil_repo.dart';
 import '../../../data/aegil/suggestion_models.dart';
 import '../../../data/ops/butikk_models.dart';
@@ -109,6 +110,10 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   final Set<int> _henter = {};
   KurvState _kurv = const KurvState();
   int? _poeng;
+
+  /// `points/rules`, for the onboarding's «+N Ægil-poeng» (backend plan Step 7).
+  PointsRules? _regler;
+  int get _perSvar => (_regler?.aegilAnswerEnabled ?? false) ? _regler!.aegilPerAnswer : 0;
   bool _avslaatt = false;
 
   final Set<int> _lagt = {};
@@ -130,6 +135,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     _fokus.addListener(() => setState(() {}));
     _tekst.addListener(() => setState(() {}));
     _last();
+    // The onboarding's «+N Ægil-poeng» reads the answer points from
+    // points/rules (cached 5 min); without them it shows no number.
+    unawaited(a3Try(_customer.rules).then((r) {
+      if (mounted && r != null) setState(() => _regler = r);
+    }));
     WidgetsBinding.instance.addPostFrameCallback((_) => _fraRute());
     if (kDebugMode && HjemHarness.aegil != null) _harness();
   }
@@ -703,9 +713,19 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     }
   }
 
-  // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-  // There is no endpoint to forget one line (only «Glem alt»): «Fjern» hides it here.
-  void _fjern(MemoryEntry m) => setState(() => _skjult.add(m.id));
+  /// «Fjern»: forgets the line on the server (`DELETE agent/me/memory/{id}`,
+  /// backend plan Step 7). Hidden at once; shown again if the server says no.
+  Future<void> _fjern(MemoryEntry m) async {
+    setState(() => _skjult.add(m.id));
+    final ok = await a3Try(() => _repo.forget(m.id));
+    if (!mounted) return;
+    if (ok == true) {
+      await _lastMinne();
+    } else {
+      setState(() => _skjult.remove(m.id));
+      LfToast.show(context, AeCopy.obFeil);
+    }
+  }
 
   /// «Stemmer»: the line restated as an explicit choice.
   Future<void> _stemmer(MemoryEntry m) async {
@@ -786,7 +806,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         if (o.dager.contains(d)) OnboardingChip(kind: 'dinner', value: dagNo[i], label: _stor(AeCopy.dagerLang[i]), selected: true),
     ];
     setState(() => _obLagrer = true);
-    final r = chips.isEmpty ? (stored: 0, error: null) : await a3Try(() => _repo.submitChips(chips));
+    final r = chips.isEmpty ? (stored: 0, earned: 0, error: null) : await a3Try(() => _repo.submitChips(chips));
     if (o.varsel.isNotEmpty) {
       final i = AeCopy.varsel.indexOf(o.varsel);
       await a3Try(() => _repo.updateSettings({'push_mode': const ['off', 'daily', 'good_only'][i]}));
@@ -804,7 +824,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     HurtigKilde.load(refresh: true);
     if (!mounted) return;
     _gaa('nivaa');
-    LfToast.show(context, AeCopy.obToast);
+    // What the server actually paid, never the client's estimate (Step 7).
+    LfToast.show(context, r.earned > 0 ? '${AeCopy.obToast} · ${AeCopy.poeng(r.earned)}' : AeCopy.obToast);
   }
 
   static String _stor(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
@@ -1107,7 +1128,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       case 'obSum':
         return AeObSum(
           oppsummering: AeCopy.sumTekst(_oppsummering),
-          poeng: _ob.poeng,
+          poeng: _ob.poengMed(_regler),
           linjer: _ob.linjer,
           lagrer: _obLagrer,
           onStemmer: _obLagre,
@@ -1186,8 +1207,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       child: Text(t, style: inter(10, weight: FontWeight.w800, em: .1, color: const Color(0xFF8C847C))),
     );
     final (sp, hint, innhold, valg, poeng) = switch (n) {
-      1 => (AeCopy.ob1, AeCopy.ob1Hint, chips(AeCopy.kat, o.kat.contains, (t) => o.veksle(o.kat, t)), o.kat.length, o.kat.length * 5),
-      2 => (AeCopy.ob2, AeCopy.ob2Hint, chips(AeCopy.mat, o.mat.contains, (t) => o.veksle(o.mat, t)), o.mat.length, o.mat.length * 5),
+      1 => (AeCopy.ob1, AeCopy.ob1Hint, chips(AeCopy.kat, o.kat.contains, (t) => o.veksle(o.kat, t)), o.kat.length, o.kat.length * _perSvar),
+      2 => (AeCopy.ob2, AeCopy.ob2Hint, chips(AeCopy.mat, o.mat.contains, (t) => o.veksle(o.mat, t)), o.mat.length, o.mat.length * _perSvar),
       3 => (
         AeCopy.ob3,
         AeCopy.ob3Hint,
@@ -1210,7 +1231,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           ],
         ),
         o.but.length,
-        o.but.length * 5,
+        o.but.length * _perSvar,
       ),
       4 => (
         AeCopy.ob4,
@@ -1224,7 +1245,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           ],
         ),
         o.hus.isEmpty ? 0 : 1,
-        ((o.hus.isEmpty ? 0 : 1) + o.kost.length) * 5,
+        ((o.hus.isEmpty ? 0 : 1) + o.kostEkte) * _perSvar,
       ),
       _ => (
         AeCopy.ob5,
@@ -1255,7 +1276,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           ],
         ),
         o.dager.length,
-        (o.dager.length + (o.varsel.isEmpty ? 0 : 1)) * 5,
+        o.dager.length * _perSvar,
       ),
     };
     return AeObSteg(

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -7,16 +6,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
-import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
-import '../../common/homeMainV1/home_main_v1.dart';
-import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../aegil/aegil_bits.dart';
 import '../hjelp/noe_galt_sheet.dart';
 import '../hjelp/support.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
+import 'bestill_igjen.dart';
 import 'meg_ark.dart';
 import 'meg_nav.dart';
 
@@ -54,6 +51,18 @@ class _Ordre {
   bool get levert => state == 'delivered' || state == 'completed';
   bool get avbestilt => state == 'cancelled';
   bool get aktiv => raw['paid'] == true && !levert && !avbestilt;
+
+  /// How many of Bestilt · Bekreftet · Tilberedes · På vei · Levert are done,
+  /// from the order's ops state. An unpaid order that is still under way
+  /// (cash, or a payment not confirmed yet) is not «aktiv», but its sheet must
+  /// not show it as delivered either.
+  int get ferdigeSteg => switch (state) {
+        'delivered' || 'completed' => 5,
+        'picked_up' || 'arrived_customer' => 4,
+        'seen' || 'ready' => 3,
+        'accepted' => 2,
+        _ => 1,
+      };
   List<Map> get linjer => raw['items'] is List ? (raw['items'] as List).whereType<Map>().toList() : const [];
   int get antall => linjer.fold<int>(0, (a, l) => a + ((l['quantity'] ?? l['qty'] ?? 1) as num).toInt());
   String get varer => linjer.map((l) => '${l['name'] ?? ''}').where((x) => x.isNotEmpty).join(' · ');
@@ -70,6 +79,8 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
   void initState() {
     super.initState();
     _load();
+    // «Sak på ordren» reads the customer's cases from the server (Step 5).
+    SupportStore.instance.oppdater();
   }
 
   Future<void> _load() async {
@@ -108,38 +119,9 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     ],
   );
 
-  /// «Bestill igjen»: the order's lines into the basket, then the basket. The
-  /// basket holds one store, so another store's lines make way.
-  Future<void> _igjen(_Ordre o) async {
-    var cart = await _kasse.cart();
-    if (!cart.isEmpty && cart.storeId != o.storeId) {
-      for (final l in cart.lines) {
-        await _kasse.remove(l.cartId);
-      }
-    }
-    for (final l in o.linjer) {
-      final pid = (l['product_id'] as num?)?.toInt();
-      if (pid == null) continue;
-      prefSetInt('checkedSize', 0);
-      prefSetInt('checkedColor', 0);
-      prefSetString('checkedOptionList', jsonEncode(const <int>[]));
-      try {
-        await StoreDetailRepo().callOrderCartApi(o.storeId, pid, ((l['quantity'] ?? 1) as num).toInt());
-      } catch (_) {}
-    }
-    cart = await _kasse.cart();
-    if (!mounted) return;
-    prefSetInt(prefCartCount, cart.lines.length);
-    BergenCart.syncBadge(context, cart.lines.length);
-    if (cart.isEmpty) {
-      showBergenToast(context, BergenRoutes.kommerSnart);
-      return;
-    }
-    showBergenToast(context, OhCopy.lagtIKurven(o.linjer.length, o.butikk));
-    final shell = HomeMainV1State.current;
-    Navigator.of(context).popUntil((r) => r.isFirst);
-    shell?.switchToTab(2);
-  }
+  /// «Bestill igjen»: the order's lines into the basket, then the basket
+  /// (shared with Hjem's Vindu, `bestill_igjen.dart`).
+  Future<void> _igjen(_Ordre o) => bestillIgjen(context, kasse: _kasse, storeId: o.storeId, butikk: o.butikk, linjer: [for (final l in o.linjer) Map<String, dynamic>.from(l)]);
 
   void _apne(_Ordre o) {
     if (o.aktiv) {
@@ -147,7 +129,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
       return;
     }
     final kr = _kroner[o.id];
-    final steg = o.avbestilt ? 1 : 5;
+    final steg = o.avbestilt ? 1 : o.ferdigeSteg;
     showMegArk<void>(
       context,
       key: const Key('oh-ordre-sheet'),

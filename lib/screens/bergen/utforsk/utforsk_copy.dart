@@ -68,6 +68,9 @@ abstract final class UtforskCopy {
   static String a1_feed_follow_toast(String name) => languages.ops_feed_follow_toast(name);
   static String a1_feed_unfollow_toast(String name) => languages.ops_feed_unfollow_toast(name);
   static String get a1_feed_share => languages.ops_feed_share;
+
+  /// The flag beside share (backend plan Step 9).
+  static const String a1_feed_report = 'Rapporter innlegget';
   static String a1_feed_share_text(String title, String store) => languages.ops_feed_share_text(title, store);
   static String get a1_feed_published_by_aerend => languages.ops_feed_published_by_aerend;
   static String a1_feed_distance_m(int m) => languages.ops_feed_distance_m(m);
@@ -118,6 +121,9 @@ abstract final class UtforskCopy {
   static String a1_feed_promo_price(int kr, int value) => languages.ops_feed_promo_price(kr, value);
   static String a1_feed_open_store(String store) => languages.ops_feed_open_store(store);
   static String a1_feed_likes(int n) => languages.ops_feed_likes(n);
+
+  /// The heart without its number, when «Antall likes» is off (Step 13).
+  static String get a1_feed_like => languages.post_detail_like;
   static String a1_feed_comments(int n) => languages.ops_feed_comments(n);
 
   // ── Launch (Step 9) ─────────────────────────────────────────────────────

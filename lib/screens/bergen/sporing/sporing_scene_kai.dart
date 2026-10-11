@@ -26,6 +26,7 @@ class SpSceneInfo {
     this.pct = .62,
     this.slutt,
     this.totalSek,
+    this.meterIgjen,
     this.spartSek,
     this.poeng,
   });
@@ -56,6 +57,9 @@ class SpSceneInfo {
   /// seconds (the map card's countdown).
   final DateTime? slutt;
   final int? totalSek;
+
+  /// Metres left to the door (`distance_metres`); null: no distance shown.
+  final int? meterIgjen;
 
   /// Seconds delivered before the promised end (SPART TID), when positive.
   final int? spartSek;

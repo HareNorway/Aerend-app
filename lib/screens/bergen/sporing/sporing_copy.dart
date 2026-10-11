@@ -2,6 +2,7 @@
 
 import '../../../main.dart' show languages;
 import '../../../utils/utils.dart';
+import '../hjelp/support.dart' show SupportConfig;
 
 /// Copy for the Sporing group (`sporing` ≈L5287–5760, the completion layer
 /// ≈L7294, `sheetHjelp` ≈L7000–7130, `levert` ≈L5881 in
@@ -245,6 +246,7 @@ abstract final class SporingCopy {
   static String a1_sporing_steg_av(int n, int of) => _t('Steg $n av $of', 'Step $n of $of');
   static String get a1_sporing_folger => _t('· følger ærendet ditt', '· following your errand');
   static String a1_sporing_neste_poeng(String navn, int poeng) => _t('Neste: $navn · +$poeng poeng', 'Next: $navn · +$poeng points');
+  static String get a1_sporing_fullfort => _t('Oppdrag fullført', 'Errand complete');
   static String a1_sporing_fullfort_poeng(int poeng) => _t('Oppdrag fullført · +$poeng poeng totalt', 'Errand complete · +$poeng points in all');
   static String get a1_sporing_avslutt_bestillingen => _t('Avslutt bestillingen', 'Finish the order');
   static String get a1_sporing_mens_du_venter_kort => _t('mens du venter', 'while you wait');
@@ -282,6 +284,7 @@ abstract final class SporingCopy {
   static String get a1_sporing_kvittering_stor => 'KVITTERING';
   static String get a1_sporing_meg_bestillinger => _t('Meg · Bestillinger', 'Me · Orders');
   static String get a1_sporing_kontakt_kundeservice => _t('Kontakt kundeservice', 'Contact customer service');
+  static String get a1_sporing_kvittering_feil => _t('Kvitteringen kan ikke lages akkurat nå', "The receipt can't be made right now");
   static String a1_sporing_kvittering_sendt(String epost) => _t('Kvittering sendt til $epost', 'Receipt sent to $epost');
   // Levert.
   static String a1_sporing_min_for_tiden(String t, int m) => _t('$t · ${minutterOrd(m)} før tiden', '$t · ${minutterOrd(m)} early');
@@ -305,6 +308,14 @@ abstract final class SporingCopy {
       _t('Du støttet en lokal butikk i Bergen — ditt $n. lokale ærend denne måneden.', 'You supported a local shop in Bergen — your $n. local errand this month.');
   static String get a1_sporing_levert_poeng_toast => _t('Levert · poeng lagt til', 'Delivered · points added');
   // Help sheet (Launch wording).
+  /// «sykler» / «sykler siden mars» (courier.since; the year when not this year).
+  static String a1_sporing_sykler_siden(DateTime? siden) {
+    if (siden == null) return _t('sykler', 'cycles');
+    const no = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+    const en = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final aar = siden.year == DateTime.now().year ? '' : ' ${siden.year}';
+    return _t('sykler siden ${no[siden.month - 1]}$aar', 'cycling since ${en[siden.month - 1]}$aar');
+  }
   static String a1_sporing_er_budet(String navn) => _t('$navn er budet ditt', '$navn is your courier');
   static String a1_sporing_leverer_selv(String s) => _t('$s leverer selv', '$s delivers itself');
   static String get a1_sporing_ring_kort => _t('Ring', 'Call');
@@ -332,10 +343,28 @@ abstract final class SporingCopy {
   static String a1_sporing_meld_fra_om(int n) =>
       _t(n == 0 ? 'Velg det som mangler' : 'Meld fra om $n ${n == 1 ? 'vare' : 'varer'}', n == 0 ? 'Pick what is missing' : 'Report $n ${n == 1 ? 'item' : 'items'}');
   static String get a1_sporing_aerend_i_bergen => _t('Ærend i Bergen', 'Ærend in Bergen');
-  static String get a1_sporing_aapent_til => _t('Åpent til 23:00 · svarer innen 2 min', 'Open until 23:00 · replies within 2 min');
+  /// Hours and answer time from `support/config` (backend plan Step 5).
+  static String get a1_sporing_aapent_til {
+    final til = '${SupportConfig.stenger.toString().padLeft(2, '0')}:00';
+    final min = SupportConfig.svarMin;
+    return SupportConfig.aapen()
+        ? _t('Åpent til $til · svarer innen $min min', 'Open until $til · replies within $min min')
+        : _t('Stengt nå · åpner ${SupportConfig.aapnerKl}', 'Closed now · opens ${SupportConfig.aapnerKl}');
+  }
+
   static String get a1_sporing_chat_med_oss => _t('Chat med oss', 'Chat with us');
-  static String get a1_sporing_raskest => _t('Raskest · Kari og Ola er på vakt', 'Fastest · Kari and Ola are on duty');
+
+  /// «Raskest» plus who is on call (`support.on_call`); no names when none are set.
+  static String get a1_sporing_raskest {
+    final v = SupportConfig.paaVakt;
+    if (v.isEmpty) return _t('Raskest', 'Fastest');
+    final no = v.length == 1 ? v.first : '${v.sublist(0, v.length - 1).join(', ')} og ${v.last}';
+    final en = v.length == 1 ? v.first : '${v.sublist(0, v.length - 1).join(', ')} and ${v.last}';
+    return _t('Raskest · $no er på vakt', 'Fastest · $en ${v.length == 1 ? 'is' : 'are'} on duty');
+  }
   static String get a1_sporing_ring_nummer => _t('Ring 55 00 12 34', 'Call 55 00 12 34');
+  /// «Ring 55 00 12 34» with the number from `support/config` (backend plan Step 5).
+  static String a1_sporing_ring_nummer_til(String tlf) => _t('Ring $tlf', 'Call $tlf');
   static String get a1_sporing_vanlig_takst => _t('Vanlig takst · ca. 1 min ventetid', 'Standard rate · about 1 min wait');
   static String get a1_sporing_vi_har_mottatt => _t('Vi har mottatt saken.', 'We have received the case.');
   static String a1_sporing_fikk_beskjeden(String navn) => _t('$navn har fått beskjeden', '$navn got the message');

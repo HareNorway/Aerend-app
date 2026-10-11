@@ -31,16 +31,19 @@ class KurvLine {
   static double _d(dynamic v) =>
       v is num ? v.toDouble() : (double.tryParse('$v') ?? 0);
 
+  /// `get-order-cart` rewrites `product_amount` to the line's total after
+  /// the discount and add-ons ((price − discount + options) × quantity);
+  /// `discount_amount` is the kroner off one unit, not a price.
   factory KurvLine.fromJson(Map<String, dynamic> j) {
-    final amount = _d(j['product_amount']);
-    final discount = _d(j['discount_amount']);
+    final lineTotal = _d(j['product_amount']);
+    final quantity = (j['quantity'] as num?)?.toInt() ?? 1;
     final image = '${j['product_image'] ?? j['product_image_token'] ?? ''}';
     return KurvLine(
       cartId: (j['id'] as num?)?.toInt() ?? 0,
       productId: (j['product_id'] as num?)?.toInt() ?? 0,
       name: '${j['product_name'] ?? ''}',
-      quantity: (j['quantity'] as num?)?.toInt() ?? 1,
-      unitPrice: discount > 0 && discount < amount ? discount : amount,
+      quantity: quantity,
+      unitPrice: quantity > 0 ? lineTotal / quantity : lineTotal,
       storeId: (j['store_id'] as num?)?.toInt() ?? 0,
       imageUrl: image.isEmpty ? null : image,
       description: '${j['description'] ?? ''}'.isEmpty

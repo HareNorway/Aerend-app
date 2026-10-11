@@ -37,10 +37,13 @@ class _SupportChatState extends State<_SupportChat> {
     super.initState();
     SupportStore.instance.endret.addListener(_endret);
     _tekst.addListener(() => setState(() {}));
+    // A person's replies arrive by polling while the chat is on screen.
+    if (widget.samtale case final s?) SupportStore.instance.startPolling(s);
   }
 
   @override
   void dispose() {
+    SupportStore.instance.stoppPolling();
     SupportStore.instance.endret.removeListener(_endret);
     _tekst.dispose();
     _scroll.dispose();
@@ -95,29 +98,42 @@ class _SupportChatState extends State<_SupportChat> {
     _send(c);
   }
 
-  /// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-  /// No guest lookup exists: the order number is checked for its form and
-  /// the code for four digits.
-  void _gjestNeste() {
+  /// «Finn bestillingen din» (backend plan Step 5): `support/guest/lookup`
+  /// sends a one-time code to the phone on the order, `support/guest/verify`
+  /// returns a guest token for that order; the conversation then runs on it.
+  bool _gjestVenter = false;
+
+  Future<void> _gjestNeste() async {
+    if (_gjestVenter) return;
     final ordre = _gjestOrdre.text.trim().toUpperCase();
-    if (!_kodeSendt) {
-      if (!RegExp(r'^(Æ|AE)-?[0-9A-ZÆØÅ]{2,5}$').hasMatch(ordre)) {
-        setState(() => _feil = ('ORDER_NOT_FOUND', SupportCopy.fantIkke));
+    final store = SupportStore.instance;
+    setState(() => _gjestVenter = true);
+    try {
+      if (!_kodeSendt) {
+        final (feil, til) = await store.gjestOppslag(ordre);
+        if (!mounted) return;
+        if (feil != null) {
+          setState(() => _feil = (feil, feil == 'OFFLINE' ? SupportCopy.ingenForbindelse : SupportCopy.fantIkke));
+          return;
+        }
+        setState(() {
+          _kodeSendt = true;
+          _feil = null;
+        });
+        showBergenToast(context, SupportCopy.kodeSendt(til ?? SupportCopy.gjestKontakt));
         return;
       }
-      setState(() {
-        _kodeSendt = true;
-        _feil = null;
-      });
-      showBergenToast(context, SupportCopy.kodeSendt(SupportCopy.gjestKontakt));
-      return;
+      final feil = await store.gjestBekreft(ordre, _gjestKode.text.trim());
+      if (!mounted) return;
+      if (feil != null) {
+        setState(() => _feil = (feil, feil == 'OFFLINE' ? SupportCopy.ingenForbindelse : SupportCopy.feilKode));
+        return;
+      }
+      showBergenToast(context, SupportCopy.bekreftet);
+      widget.onGjestBekreftet();
+    } finally {
+      if (mounted) setState(() => _gjestVenter = false);
     }
-    if (!RegExp(r'^\d{4}$').hasMatch(_gjestKode.text.trim())) {
-      setState(() => _feil = ('INVALID_CODE', SupportCopy.feilKode));
-      return;
-    }
-    showBergenToast(context, SupportCopy.bekreftet);
-    widget.onGjestBekreftet();
   }
 
   @override
@@ -125,9 +141,12 @@ class _SupportChatState extends State<_SupportChat> {
     final s = widget.samtale;
     final aapen = SupportConfig.aapen();
     final human = s?.erMenneske ?? false;
-    final dot = human || s == null ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4));
+    final lukket = s?.lukket ?? false;
+    final dot = lukket ? rgba(255, 255, 255, .4) : (human || s == null ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4)));
     final under = s == null
         ? ''
+        : lukket
+        ? SupportCopy.avsluttetUnder
         : human
         ? SupportCopy.menneskeUnder(s.menneske!.split(' ').first)
         : (aapen ? SupportCopy.aiUnder : SupportCopy.stengtUnder(SupportConfig.aapnerKl));
@@ -249,90 +268,114 @@ class _SupportChatState extends State<_SupportChat> {
           ],
         ),
       ],
-      const SizedBox(height: 10),
-      CssBox(
-        height: 50,
-        radius: BorderRadius.circular(999),
-        padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
-        border: Border.all(color: rgba(255, 255, 255, .22)),
-        bg: [
-          CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-        ],
-        shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                key: const Key('a1_hjelp_chat_felt'),
-                controller: _tekst,
-                onSubmitted: _send,
-                textInputAction: TextInputAction.send,
-                cursorColor: kSpMint,
-                style: inter(13.5),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  filled: false,
-                  contentPadding: EdgeInsets.zero,
-                  hintText: human ? SupportCopy.skrivTil(navn) : SupportCopy.skrivAi,
-                  hintStyle: inter(13.5, color: rgba(255, 255, 255, .45)),
-                ),
-              ),
+      // Closed on the server (staff or the customer): no input, back to the
+      // hub to start a new conversation (backend plan Step 5).
+      if (s.lukket) ...[
+        // «Hvordan var hjelpen?» (backend plan Step 14): closed and `can_rate`,
+        // also when a poll is what brought the close.
+        if (s.visVurdering) ...[const SizedBox(height: 10), _Vurdering(samtale: s)],
+        const SizedBox(height: 10),
+        LfPress(
+          key: const Key('a1_hjelp_chat_ny'),
+          onTap: widget.onTilbake,
+          scale: .985,
+          child: Container(
+            height: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: rgba(255, 255, 255, .08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: rgba(255, 255, 255, .24)),
             ),
-            const SizedBox(width: 8),
-            LfPress(
-              key: const Key('a1_hjelp_chat_send'),
-              onTap: () => _send(_tekst.text),
-              scale: .9,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: _tekst.text.trim().isEmpty ? .45 : 1,
-                child: CssBox(
-                  width: 38,
-                  height: 38,
-                  radius: BorderRadius.circular(19),
-                  bg: const [
-                    CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)]),
-                  ],
-                  shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .35)), CssShadow(0, 3, 0, 0, rgba(150, 60, 15, .8)), CssShadow(0, 8, 14, -8, rgba(120, 50, 10, .9))],
-                  child: Center(child: spIkon(kSpIkonOpp, size: 16, width: 2.6)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 8),
-      LfPress(
-        key: const Key('a1_hjelp_chat_menneske'),
-        onTap: _menneske,
-        scale: .985,
-        child: Container(
-          height: 46,
-          decoration: BoxDecoration(
-            color: rgba(255, 255, 255, .08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: rgba(255, 255, 255, .24)),
+            child: Text(SupportCopy.nySamtale, style: inter(13, weight: FontWeight.w800)),
           ),
+        ),
+      ] else ...[
+        const SizedBox(height: 10),
+        CssBox(
+          height: 50,
+          radius: BorderRadius.circular(999),
+          padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
+          border: Border.all(color: rgba(255, 255, 255, .22)),
+          bg: [
+            CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
+          ],
+          shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              spIkon('M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M4 21a8 8 0 0 1 16 0', size: 15, color: kSpMint, width: 2.2),
+              Expanded(
+                child: TextField(
+                  key: const Key('a1_hjelp_chat_felt'),
+                  controller: _tekst,
+                  onSubmitted: _send,
+                  textInputAction: TextInputAction.send,
+                  cursorColor: kSpMint,
+                  style: inter(13.5),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: human ? SupportCopy.skrivTil(navn) : SupportCopy.skrivAi,
+                    hintStyle: inter(13.5, color: rgba(255, 255, 255, .45)),
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  human ? SupportCopy.iSamtalen(navn) : SupportCopy.menneske,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: inter(13, weight: FontWeight.w800),
+              LfPress(
+                key: const Key('a1_hjelp_chat_send'),
+                onTap: () => _send(_tekst.text),
+                scale: .9,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _tekst.text.trim().isEmpty ? .45 : 1,
+                  child: CssBox(
+                    width: 38,
+                    height: 38,
+                    radius: BorderRadius.circular(19),
+                    bg: const [
+                      CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)]),
+                    ],
+                    shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .35)), CssShadow(0, 3, 0, 0, rgba(150, 60, 15, .8)), CssShadow(0, 8, 14, -8, rgba(120, 50, 10, .9))],
+                    child: Center(child: spIkon(kSpIkonOpp, size: 16, width: 2.6)),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        LfPress(
+          key: const Key('a1_hjelp_chat_menneske'),
+          onTap: _menneske,
+          scale: .985,
+          child: Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: rgba(255, 255, 255, .08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: rgba(255, 255, 255, .24)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                spIkon('M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M4 21a8 8 0 0 1 16 0', size: 15, color: kSpMint, width: 2.2),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    human ? SupportCopy.iSamtalen(navn) : SupportCopy.menneske,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: inter(13, weight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     ];
   }
 
@@ -440,6 +483,109 @@ class _SupportChatState extends State<_SupportChat> {
       ),
     );
   }
+}
+
+/// The 1-tap support rating (backend plan Step 14): «Hvordan var hjelpen?»
+/// and five stars; one tap sends. Then «Takk for vurderingen!» with the
+/// chosen stars, read-only; a failed send keeps the stars and says to retry.
+class _Vurdering extends StatefulWidget {
+  const _Vurdering({required this.samtale});
+  final SupportSamtale samtale;
+
+  @override
+  State<_Vurdering> createState() => _VurderingState();
+}
+
+class _VurderingState extends State<_Vurdering> {
+  bool _sender = false;
+  bool _feil = false;
+  int _valgt = 0;
+
+  Future<void> _vurder(int n) async {
+    if (_sender || widget.samtale.takket) return;
+    setState(() {
+      _sender = true;
+      _feil = false;
+      _valgt = n;
+    });
+    final ok = await SupportStore.instance.vurder(widget.samtale, n);
+    if (!mounted) return;
+    setState(() {
+      _sender = false;
+      _feil = !ok;
+      if (!ok) _valgt = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.samtale;
+    final takk = s.takket;
+    final fylt = takk ? (s.vurdering ?? 0) : _valgt;
+    return CssBox(
+      key: const Key('a1_hjelp_vurdering'),
+      radius: BorderRadius.circular(18),
+      padding: const EdgeInsets.fromLTRB(14, 11, 10, 11),
+      border: Border.all(color: rgba(255, 255, 255, .2)),
+      bg: [
+        CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
+      ],
+      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  takk ? SupportCopy.vurderTakk : SupportCopy.vurderSpor,
+                  key: Key(takk ? 'a1_hjelp_vurdering_takk' : 'a1_hjelp_vurdering_spor'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: inter(13, weight: FontWeight.w800),
+                ),
+              ),
+              const SizedBox(width: 6),
+              for (var n = 1; n <= 5; n++)
+                if (takk)
+                  Padding(
+                    key: Key('a1_hjelp_vurdering_vist_$n'),
+                    padding: const EdgeInsets.all(2),
+                    child: _stjerne(n <= fylt),
+                  )
+                else
+                  Semantics(
+                    button: true,
+                    label: SupportCopy.vurderStjerne(n),
+                    child: LfPress(
+                      key: Key('a1_hjelp_vurdering_$n'),
+                      onTap: () => _vurder(n),
+                      scale: .85,
+                      // 40 px target: enough for a thumb, five fit beside the question.
+                      child: SizedBox(width: 34, height: 40, child: Center(child: _stjerne(n <= fylt))),
+                    ),
+                  ),
+            ],
+          ),
+          if (_feil && !takk) ...[
+            const SizedBox(height: 2),
+            Text(
+              SupportCopy.vurderFeil,
+              key: const Key('a1_hjelp_vurdering_feil'),
+              style: inter(11, weight: FontWeight.w700, color: const Color(0xFFFFD5C6)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _stjerne(bool fylt) => Icon(
+    Icons.star_rounded,
+    size: 24,
+    color: fylt ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .3),
+  );
 }
 
 /// One message (`scMeld`): a system pill, or the label and the bubble with
@@ -835,7 +981,7 @@ class _Hub extends StatelessWidget {
             TextSpan(
               style: inter(11.5, height: 1.5, color: rgba(255, 255, 255, .62)),
               children: [
-                const TextSpan(text: SupportCopy.epostFor),
+                TextSpan(text: SupportCopy.epostFor),
                 TextSpan(
                   text: SupportConfig.epost,
                   style: inter(11.5, weight: FontWeight.w800, height: 1.5, color: const Color(0xFF7FF0CB)),

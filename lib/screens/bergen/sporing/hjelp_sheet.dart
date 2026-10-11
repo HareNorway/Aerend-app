@@ -4,6 +4,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/ops/tracking_models.dart';
@@ -129,6 +130,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
     _items = widget.items;
     // Cases go through the same API as the rest of the sheet.
     if (widget.api case final a?) SupportStore.instance.api = a;
+    // Backend plan Step 5: the hours, phone and e-mail, and the customer's cases.
+    SupportStore.instance.oppdater();
     _adresse = widget.adresse;
     if (_tracking == null && _id > 0) _load();
     if (_id > 0 && (_items.isEmpty || _adresse == null)) _loadOrdre();
@@ -284,7 +287,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
   }
 
   Future<void> _ringKs() async {
-    final uri = Uri.parse('tel:${SporingCopy.a1_sporing_ks_nummer.replaceAll(' ', '')}');
+    final tlf = SupportConfig.telefon;
+    if (tlf == null) return;
+    final uri = Uri.parse('tel:${tlf.replaceAll(' ', '')}');
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
@@ -361,7 +366,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
       return;
     }
     final o = tema == SupportTema.support ? null : (_ordre ?? await _hentOrdre());
-    final s = await SupportAssistent.start(tema, fornavn: _fornavn, ordre: o);
+    final s = await SupportAssistent.start(tema, fornavn: _fornavn, ordre: o, ordreId: _id == 0 ? null : _id);
     if (!mounted) return;
     setState(() {
       _fraChat = fra;
@@ -493,7 +498,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
   Widget _main() {
     final tr = t;
     final min = tr?.minutesLeft(DateTime.now());
-    final under = [if (tr != null) tr.stageLabel, if (min != null && !(tr?.isPickup ?? false)) '$min min unna', if (!_partner && tr?.courier?.vehicle == 'sykkel') 'sykler'].join(' · ');
+    final under = [if (tr != null) tr.stageLabel, if (min != null && !(tr?.isPickup ?? false)) '$min min unna', if (!_partner && tr?.courier?.vehicle == 'sykkel') SporingCopy.a1_sporing_sykler_siden(tr?.courier?.since)].join(' · ');
+    // The courier's average customer rating (backend plan Step 4); no chip without one.
+    final rating = _partner ? null : tr?.courier?.rating;
     return Column(
       key: const Key('a1_sporing_hjelp_main'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -535,6 +542,30 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 ],
               ),
             ),
+            if (rating != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                key: const Key('a1_sporing_hjelp_rating'),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: rgba(242, 193, 78, .18),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: rgba(242, 193, 78, .35)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.string(
+                      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#F2C14E" d="M12 2.5l2.9 5.9 6.6 1-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-1z"/></svg>',
+                      width: 10,
+                      height: 10,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(rating.toStringAsFixed(1).replaceAll('.', ','), style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFFF2C14E))),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(width: 8),
             _Lukk(onTap: _lukk),
           ],
@@ -1171,6 +1202,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
         stor: true,
         onTap: _supportChat,
       ),
+      // The call row only with a number from `support/config`.
+      if (SupportConfig.telefon != null) ...[
       const SizedBox(height: 7),
       _Rad(
         key: const Key('a1_sporing_ks_ring'),
@@ -1180,11 +1213,12 @@ class _HjelpScreenState extends State<HjelpScreen> {
           decoration: BoxDecoration(color: rgba(255, 255, 255, .12), borderRadius: BorderRadius.circular(13)),
           child: Center(child: spIkon(kSpIkonTelefon, size: 18, color: kSpMint)),
         ),
-        tittel: SporingCopy.a1_sporing_ring_nummer,
+        tittel: SporingCopy.a1_sporing_ring_nummer_til(SupportConfig.telefon!),
         under: SporingCopy.a1_sporing_vanlig_takst,
         stor: true,
         onTap: _ringKs,
       ),
+      ],
       if (!_standalone) ...[
         const SizedBox(height: 12),
         Container(

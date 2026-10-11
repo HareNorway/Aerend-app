@@ -46,6 +46,8 @@ class _EmptyRepo extends FeedRepo {
     String? cursor,
     int? limit,
     String? bydel,
+    double? lat,
+    double? lng,
   }) async => const FeedTabPage(tab: 'naerheten', label: 'I nærheten', items: []);
 }
 

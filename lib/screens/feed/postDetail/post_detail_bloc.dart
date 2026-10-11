@@ -5,6 +5,7 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../blocs/bloc.dart';
 import '../../../data/feed/feed_comment.dart';
+import '../../../data/feed/feed_config.dart';
 import '../../../data/feed/feed_post.dart';
 import '../../../data/feed/feed_post_detail.dart';
 import '../../../exceptions/feed/feed_api_exception.dart';
@@ -32,6 +33,12 @@ class PostDetailBloc extends Bloc {
   final State state;
   final String postId;
   final FeedRepo _repo;
+
+  FeedRepo get repo => _repo;
+
+  /// The admin panel's switches (Step 13): comments, like count, sharing.
+  /// All on until `GET /v1/feed/config` answers; the post never waits for it.
+  final ValueNotifier<FeedConfig> config = ValueNotifier(FeedRepo.cachedConfig);
 
   late final PagingController<String?, FeedComment> commentsPagingController;
 
@@ -75,7 +82,17 @@ class PostDetailBloc extends Bloc {
     }
   }
 
+  Future<void> _loadConfig() async {
+    try {
+      final c = await _repo.fetchConfig();
+      if (state.mounted) config.value = c;
+    } catch (_) {
+      // All on.
+    }
+  }
+
   Future<void> init() async {
+    unawaited(_loadConfig());
     _emit(const PostDetailLoading());
     try {
       await _syncCommentAuthorProfile();
@@ -214,6 +231,24 @@ class PostDetailBloc extends Bloc {
           AppLocalizations.of(context)!.comment_rate_limit_message,
         );
       }
+    } on FeedApiException catch (e) {
+      final cur = currentState;
+      if (cur is PostDetailLoaded) {
+        _emit(cur.copyWith(commentSending: false));
+      }
+      if (e.code == 'comments_disabled' && state.mounted) {
+        config.value = config.value.copyWith(comments: false);
+      }
+      if (state.mounted) {
+        // «Kommentarer er slått av.» / «Du kan ikke kommentere akkurat nå.»
+        // (Step 13): a refusal says the server's own words, not the generic
+        // failure.
+        openSimpleSnackbar(
+          e.statusCode == 403 && e.message.trim().isNotEmpty
+              ? e.message
+              : AppLocalizations.of(context)!.comment_send_failed,
+        );
+      }
     } catch (e) {
       final cur = currentState;
       if (cur is PostDetailLoaded) {
@@ -330,6 +365,8 @@ class PostDetailBloc extends Bloc {
       commentCount: commentCount ?? p.commentCount,
       isLiked: isLiked ?? p.isLiked,
       publishedAt: p.publishedAt,
+      publisherType: p.publisherType,
+      headline: p.headline,
     );
   }
 
@@ -348,6 +385,7 @@ class PostDetailBloc extends Bloc {
   @override
   void dispose() {
     _rateLimitTimer?.cancel();
+    config.dispose();
     commentsPagingController.dispose();
     _stateSubject.close();
   }

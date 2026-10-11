@@ -83,9 +83,23 @@ class AegilRepo {
     return _ok(response) != null;
   }
 
+  /// Forget one line (`DELETE agent/me/memory/{id}`, backend plan Step 7).
+  Future<bool> forget(int id) async {
+    try {
+      final response = await _api.post('me/memory/$id', body: {
+        ..._auth(),
+        '_method': 'DELETE',
+      });
+      return _ok(response) != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// The onboarding chip batch. Every chip is an explicit choice, which is the only way an
-  /// allergen or diet can be recorded at all.
-  Future<({int stored, String? error})> submitChips(List<OnboardingChip> chips) async {
+  /// allergen or diet can be recorded at all. `earned` is the Ægil answer points the
+  /// server actually paid (0 with `points.aegil_answer.enabled` off; backend plan Step 7).
+  Future<({int stored, int earned, String? error})> submitChips(List<OnboardingChip> chips) async {
     try {
       final response = await _api.post('me/preferences/batch', body: {
         ..._auth(),
@@ -93,11 +107,16 @@ class AegilRepo {
       });
 
       final json = _ok(response);
-      if (json == null) return (stored: 0, error: _message(response));
+      if (json == null) return (stored: 0, earned: 0, error: _message(response));
 
-      return (stored: (json['stored'] as num?)?.toInt() ?? 0, error: null);
+      final points = json['points'] is Map ? (json['points'] as Map) : const {};
+      return (
+        stored: (json['stored'] as num?)?.toInt() ?? 0,
+        earned: (points['earned'] as num?)?.toInt() ?? 0,
+        error: null,
+      );
     } catch (e) {
-      return (stored: 0, error: e.toString());
+      return (stored: 0, earned: 0, error: e.toString());
     }
   }
 

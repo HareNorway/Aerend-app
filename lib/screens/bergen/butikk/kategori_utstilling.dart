@@ -13,13 +13,92 @@ import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
 
 // ── Gaver-kategori (L5937) and Mote-utstilling (L6015) ──────────────────────
-// Both pages are curated: gift shops with their quotes, the week's
-// exhibition. Nothing in the API describes them yet.
-//
-// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
+// «Ukens utstilling» comes from the admin (Kategorier › Ukens utstilling,
+// backend plan Step 12): `GET /api/catalog/showcase?category=` — store
+// products with a staff quote each, gift wrap and occasions. The page shows
+// what the showcase holds and nothing else; without one it says so.
+
+/// This week's showcase for a category (`catalog/showcase`).
+class KatUtstilling {
+  const KatUtstilling({
+    required this.tittel,
+    required this.undertittel,
+    required this.gaveinnpakning,
+    required this.anledninger,
+    required this.antallButikker,
+    required this.varer,
+  });
+
+  final String tittel;
+  final String? undertittel;
+  final bool gaveinnpakning;
+  final List<String> anledninger;
+  final int antallButikker;
+  final List<KatUtstillingVare> varer;
+
+  /// Null when the payload has no items to show.
+  static KatUtstilling? fraJson(Map<String, dynamic>? j) {
+    if (j == null) return null;
+    final varer = [
+      for (final i in (j['items'] is List ? j['items'] as List : const []).whereType<Map<String, dynamic>>())
+        if (KatUtstillingVare.fraJson(i) case final v?) v,
+    ];
+    if (varer.isEmpty) return null;
+    return KatUtstilling(
+      tittel: '${j['title'] ?? 'Ukens utstilling'}',
+      undertittel: j['subtitle'] as String?,
+      gaveinnpakning: j['gift_wrap'] == true,
+      anledninger: [for (final o in (j['occasions'] is List ? j['occasions'] as List : const [])) '$o'],
+      antallButikker: (j['store_count'] as num?)?.toInt() ?? varer.map((v) => v.butikkId).toSet().length,
+      varer: varer,
+    );
+  }
+}
+
+class KatUtstillingVare {
+  const KatUtstillingVare({
+    required this.produktId,
+    required this.navn,
+    required this.prisKr,
+    required this.butikkId,
+    required this.butikk,
+    this.bildeUrl,
+    this.sitat,
+    this.hvem,
+    this.etaMin,
+    this.rating,
+  });
+
+  final int produktId, prisKr, butikkId;
+  final String navn, butikk;
+  final String? bildeUrl, sitat, hvem;
+  final int? etaMin;
+  final double? rating;
+
+  static KatUtstillingVare? fraJson(Map<String, dynamic> j) {
+    final id = (j['product_id'] as num?)?.toInt();
+    final store = j['store'] is Map ? j['store'] as Map : null;
+    final storeId = (store?['id'] as num?)?.toInt();
+    if (id == null || storeId == null) return null;
+    final bilde = '${j['image_url'] ?? ''}'.trim();
+    return KatUtstillingVare(
+      produktId: id,
+      navn: '${j['name'] ?? ''}',
+      prisKr: (((j['price_ore'] as num?) ?? 0) / 100).round(),
+      butikkId: storeId,
+      butikk: '${store?['name'] ?? ''}',
+      bildeUrl: bilde.isEmpty ? null : bilde,
+      sitat: (j['quote'] as String?)?.trim().isNotEmpty == true ? j['quote'] as String : null,
+      hvem: (j['who'] as String?)?.trim().isNotEmpty == true ? j['who'] as String : null,
+      etaMin: (store?['eta_minutes'] as num?)?.toInt(),
+      rating: (store?['rating'] as num?)?.toDouble(),
+    );
+  }
+}
 
 class _Gavebutikk {
   const _Gavebutikk(
+    this.id,
     this.navn,
     this.ini,
     this.bg,
@@ -34,6 +113,7 @@ class _Gavebutikk {
     this.varer,
   );
 
+  final int id;
   final String navn;
   final String ini;
   final Color? bg;
@@ -48,72 +128,49 @@ class _Gavebutikk {
   final List<(String, int, String)> varer;
 }
 
-// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-const List<_Gavebutikk> _kGavebutikker = [
-  _Gavebutikk(
-    'Blomsterhjørnet',
-    'BH',
-    Color(0xFFD9A254),
-    Color(0xFFF7E6C2),
-    '35–45 min',
-    'Gratis levering',
-    true,
-    18,
-    '4,9 (48)',
-    '«Den som alltid får et smil i døra»',
-    'Ida, Blomsterhjørnet',
-    [
-      ('Bukett «Vågen»', 399, 'blomst'),
-      ('Tulipaner, 20 stk', 249, 'blomst'),
-      ('Orkidé i potte', 349, 'blomst'),
-      ('Kort og bånd', 89, 'kort'),
-      ('Sjokolade fra Bergen', 199, 'eske'),
-      ('Krans i eukalyptus', 649, 'blomst'),
-    ],
-  ),
-  _Gavebutikk(
-    'Gavehuset',
-    'GH',
-    Color(0xFF1E4F5C),
-    Color(0xFFDCE9EC),
-    '30–45 min',
-    '49 kr',
-    true,
-    20,
-    '4,6 (57)',
-    '«Koppen alle spør hvor er fra»',
-    'Tor, Gavehuset',
-    [
-      ('Sjokoladeeske', 199, 'eske'),
-      ('Håndlaget kopp', 279, 'eske'),
-      ('Lykt i messing', 549, 'eske'),
-      ('Fløibanen for to', 690, 'kort'),
-      ('Ullpledd «Ulriken»', 899, 'eske'),
-      ('Byggesett båt', 329, 'eske'),
-    ],
-  ),
-  _Gavebutikk(
-    'Papirbutikken',
-    'PB',
-    null,
-    Color(0xFFF4F1EA),
-    '35–50 min',
-    '45 kr',
-    false,
-    17,
-    '4,7 (61)',
-    '«Papiret som tåler bergensk fuktighet»',
-    'Live, Papirbutikken',
-    [
-      ('Kort og bånd', 89, 'kort'),
-      ('Notatbok i lin', 249, 'eske'),
-      ('Fyllepenn', 590, 'eske'),
-      ('Kalender 2027 · Bergen', 299, 'eske'),
-    ],
-  ),
-];
+/// The showcase's items by shop, in the order they appear.
+List<_Gavebutikk> _gavebutikker(KatUtstilling u) {
+  const farger = [(Color(0xFFD9A254), Color(0xFFF7E6C2)), (Color(0xFF8E6BB8), Color(0xFFE6DCF2)), (Color(0xFF3F8A7A), Color(0xFFD5EDE6))];
+  final perButikk = <int, List<KatUtstillingVare>>{};
+  for (final v in u.varer) {
+    perButikk.putIfAbsent(v.butikkId, () => []).add(v);
+  }
+  var k = 0;
+  return [
+    for (final e in perButikk.entries)
+      () {
+        final f = e.value.first;
+        final ord = f.butikk.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+        final ini = (ord.isEmpty ? '?' : ord.take(2).map((w) => w[0]).join()).toUpperCase();
+        final (bg, topp) = farger[k++ % farger.length];
+        final sitert = e.value.firstWhere((v) => v.sitat != null, orElse: () => f);
+        return _Gavebutikk(
+          f.butikkId,
+          f.butikk,
+          ini,
+          bg,
+          topp,
+          f.etaMin != null && f.etaMin! > 0 ? '${f.etaMin}–${f.etaMin! + 10} min' : 'Ærend-bud',
+          'Levering med Ærend',
+          u.gaveinnpakning,
+          20,
+          f.rating != null && f.rating! > 0 ? '★ ${f.rating!.toStringAsFixed(1).replaceAll('.', ',')}' : 'Ny',
+          sitert.sitat ?? '',
+          [sitert.hvem, f.butikk].whereType<String>().join(', '),
+          [for (final v in e.value) (v.navn, v.prisKr, _gaveType(v.navn))],
+        );
+      }(),
+  ];
+}
 
-const List<String> _kAnledninger = ['Bursdag', 'Jul', 'Takk', 'Nyfødt', 'Bryllup', 'Jubileum', 'Bare fordi'];
+/// How a gift is drawn: flowers round, cards flat, the rest a box.
+String _gaveType(String navn) {
+  final n = navn.toLowerCase();
+  if (RegExp('blomst|bukett|rose|tulipan|orkidé|plante').hasMatch(n)) return 'blomst';
+  if (RegExp('kort|plakat|print').hasMatch(n)) return 'kort';
+  return 'eske';
+}
+
 
 class _Gave {
   const _Gave(this.navn, this.pris, this.type, this.but);
@@ -161,8 +218,8 @@ String _tusen(int n) {
   return '$b';
 }
 
-final List<_Gave> _kAlleGaver = [
-  for (final b in _kGavebutikker)
+List<_Gave> _alleGaver(List<_Gavebutikk> butikker) => [
+  for (final b in butikker)
     for (final v in b.varer) _Gave(v.$1, v.$2, v.$3, b),
 ];
 
@@ -403,24 +460,31 @@ Widget _overskrift(BuildContext context, String t, {double topp = 22, double bun
 // ── Gaver-kategori ──────────────────────────────────────────────────────────
 
 class KatGaverSide extends StatelessWidget {
-  const KatGaverSide({super.key, required this.onAegil, required this.onSnart});
+  const KatGaverSide({super.key, required this.utstilling, required this.onAegil, required this.onButikk});
+
+  /// This week's Gaver showcase (Step 12); null: none yet.
+  final KatUtstilling? utstilling;
 
   /// "La Ægil finne en gave".
   final VoidCallback onAegil;
 
-  /// The gift sheets come with the store step; until then, "Kommer snart".
-  final VoidCallback onSnart;
+  /// A gift or a shop opens the shop.
+  final ValueChanged<int> onButikk;
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
     final time = DateTime.now().hour;
+    final u = utstilling;
+    final butikker = u == null ? const <_Gavebutikk>[] : _gavebutikker(u);
+    final alle = _alleGaver(butikker);
     final idag = [
-      for (final g in _kAlleGaver)
+      for (final g in alle)
         if (_gaveLev(time, g.but.apenTil).$1 == 'Rekker fram i dag') g,
     ].take(5).toList();
-    final pop = [_kAlleGaver[0], _kAlleGaver[4], _kAlleGaver[7], _kAlleGaver[14]];
-    const antall = [41, 28, 19, 12];
+    // Beyond the first four (the exhibition), the rest of the showcase.
+    final flere = alle.length > 4 ? alle.sublist(4) : const <_Gave>[];
+    final anledninger = u?.anledninger ?? const <String>[];
     return Column(
       key: const Key('a1_kat_gaver'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -435,7 +499,7 @@ class KatGaverSide extends StatelessWidget {
               children: [
                 for (var i = 0; i < idag.length; i++) ...[
                   if (i > 0) SizedBox(width: 10 * s),
-                  _IdagKort(g: idag[i], onTap: onSnart),
+                  _IdagKort(g: idag[i], onTap: () => onButikk(idag[i].but.id)),
                 ],
               ],
             ),
@@ -473,17 +537,29 @@ class KatGaverSide extends StatelessWidget {
             ),
           ),
         ),
+        if (u == null)
+          Padding(
+            padding: EdgeInsets.only(top: 20 * s),
+            child: Text(
+              'Ukens utstilling kommer snart. Spør Ægil i mellomtiden.',
+              key: const Key('a1_kat_gaver_tom'),
+              style: bText(context, 12, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
+            ),
+          ),
+        if (u != null) ...[
         _overskrift(
           context,
-          'Ukens utstilling',
+          u.tittel,
           topp: 20,
           bunn: 0,
           hoyre: Text(
-            'Sveip · 3 butikker',
+            u.undertittel ?? 'Sveip · ${u.antallButikker} ${u.antallButikker == 1 ? 'butikk' : 'butikker'}',
             style: bText(context, 11, weight: FontWeight.w700, color: rgba(255, 255, 255, .62)),
           ),
         ),
-        _GaveUtstilling(time: time, onSnart: onSnart),
+        _GaveUtstilling(time: time, plukk: alle.take(4).toList(), onButikk: onButikk),
+        ],
+        if (anledninger.isNotEmpty) ...[
         _overskrift(context, 'Anledninger'),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -491,17 +567,17 @@ class KatGaverSide extends StatelessWidget {
           padding: EdgeInsets.only(top: 2 * s, bottom: 4 * s),
           child: Row(
             children: [
-              for (var i = 0; i < _kAnledninger.length; i++) ...[
+              for (var i = 0; i < anledninger.length; i++) ...[
                 if (i > 0) SizedBox(width: 6 * s),
                 OnbPressable(
-                  onTap: onSnart,
+                  onTap: onAegil,
                   pressDy: 0,
                   pressScale: .95,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 8 * s),
                     decoration: _glass(s, 999, myk: false),
                     child: Stack(
-                      children: [Text(_kAnledninger[i], style: bText(context, 11.5, weight: FontWeight.w800))],
+                      children: [Text(anledninger[i], style: bText(context, 11.5, weight: FontWeight.w800))],
                     ),
                   ),
                 ),
@@ -509,25 +585,32 @@ class KatGaverSide extends StatelessWidget {
             ],
           ),
         ),
-        _overskrift(context, 'Butikker i nærheten'),
-        for (final b in _kGavebutikker) _GaveButikkRad(b: b, onTap: onSnart),
-        _overskrift(context, 'Populært til bursdag i Bergenhus', topp: 14),
-        for (var i = 0; i < pop.length; i += 2)
-          Padding(
-            padding: EdgeInsets.only(bottom: 12 * s),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: _PopKort(g: pop[i], antall: antall[i], time: time, onTap: onSnart),
-                ),
-                SizedBox(width: 12 * s),
-                Expanded(
-                  child: _PopKort(g: pop[i + 1], antall: antall[i + 1], time: time, onTap: onSnart),
-                ),
-              ],
+        ],
+        if (butikker.isNotEmpty) ...[
+          _overskrift(context, 'Butikkene i utstillingen'),
+          for (final b in butikker) _GaveButikkRad(b: b, onTap: () => onButikk(b.id)),
+        ],
+        if (flere.isNotEmpty) ...[
+          _overskrift(context, 'Flere gaver', topp: 14),
+          for (var i = 0; i < flere.length; i += 2)
+            Padding(
+              padding: EdgeInsets.only(bottom: 12 * s),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _PopKort(g: flere[i], time: time, onTap: () => onButikk(flere[i].but.id)),
+                  ),
+                  SizedBox(width: 12 * s),
+                  Expanded(
+                    child: i + 1 < flere.length
+                        ? _PopKort(g: flere[i + 1], time: time, onTap: () => onButikk(flere[i + 1].but.id))
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ),
             ),
-          ),
+        ],
       ],
     );
   }
@@ -588,10 +671,13 @@ class _IdagKort extends StatelessWidget {
 /// neighbours turn and fall back (`gkForm`); it glides on by itself every 7s
 /// until touched.
 class _GaveUtstilling extends StatefulWidget {
-  const _GaveUtstilling({required this.time, required this.onSnart});
+  const _GaveUtstilling({required this.time, required this.plukk, required this.onButikk});
 
   final int time;
-  final VoidCallback onSnart;
+
+  /// The exhibition: the showcase's first four gifts.
+  final List<_Gave> plukk;
+  final ValueChanged<int> onButikk;
 
   @override
   State<_GaveUtstilling> createState() => _GaveUtstillingState();
@@ -604,7 +690,7 @@ class _GaveUtstillingState extends State<_GaveUtstilling> {
   int _vis = 0;
   double _kortB = 222;
 
-  final List<_Gave> _plukk = [_kAlleGaver[0], _kAlleGaver[6], _kAlleGaver[9], _kAlleGaver[12]];
+  List<_Gave> get _plukk => widget.plukk;
 
   @override
   void initState() {
@@ -662,7 +748,7 @@ class _GaveUtstillingState extends State<_GaveUtstilling> {
                     animation: _rail!,
                     child: Align(
                       alignment: Alignment.topCenter,
-                      child: _UtstillingKort(g: _plukk[i], time: widget.time, onTap: widget.onSnart),
+                      child: _UtstillingKort(g: _plukk[i], time: widget.time, onTap: () => widget.onButikk(_plukk[i].but.id)),
                     ),
                     builder: (context, child) {
                       final off = _rail!.hasClients ? _rail!.offset : 0.0;
@@ -1024,10 +1110,9 @@ class _GaveButikkRad extends StatelessWidget {
 }
 
 class _PopKort extends StatelessWidget {
-  const _PopKort({required this.g, required this.antall, required this.time, required this.onTap});
+  const _PopKort({required this.g, required this.time, required this.onTap});
 
   final _Gave g;
-  final int antall;
   final int time;
   final VoidCallback onTap;
 
@@ -1066,10 +1151,6 @@ class _PopKort extends StatelessWidget {
                         Expanded(
                           child: Text(g.prisTekst, style: bText(context, 12.5, weight: FontWeight.w800)),
                         ),
-                        Text(
-                          '$antall i Bergenhus',
-                          style: bText(context, 10, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
-                        ),
                       ],
                     ),
                     SizedBox(height: 2 * s),
@@ -1090,46 +1171,7 @@ class _PopKort extends StatelessWidget {
 
 // ── Mote-utstilling ─────────────────────────────────────────────────────────
 
-class _Plagg {
-  const _Plagg(this.navn, this.pris, this.bilde, this.y, this.sitat, this.hvem);
 
-  final String navn;
-  final String pris;
-  final String bilde;
-
-  /// `background-position` y (0–1).
-  final double y;
-  final String sitat;
-  final String hvem;
-}
-
-// UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-const List<_Plagg> _kPlagg = [
-  _Plagg(
-    'Hettejakke «Ives»',
-    '2 499 kr',
-    'assets/images/dashboard/kat_tos_hoodie.jpg',
-    .18,
-    '«Den jeg tar på hver regndag»',
-    'Sara, Torgboden Mote',
-  ),
-  _Plagg(
-    'T-skjorte «Dillan»',
-    '899 kr',
-    'assets/images/dashboard/kat_tos_tee.jpg',
-    .2,
-    '«Tykk bomull, holder formen»',
-    'Jonas, Filippa K',
-  ),
-  _Plagg(
-    'Jeans «Rosco»',
-    '1 999 kr',
-    'assets/images/dashboard/kat_tos_jeans.jpg',
-    .3,
-    '«Sitter godt uten å stramme»',
-    'Mia, Norse Projects',
-  ),
-];
 
 /// The three plinth places: front, right, left.
 class _Plass {
@@ -1145,13 +1187,15 @@ const List<_Plass> _kPlass = [
   _Plass(88, 70, 84, 106, .82, 0, -60, 34, true),
 ];
 
-/// "Ukens utstilling · Mote" on the Kategori page: the week's three
-/// garments on [MoteSkive].
+/// "Ukens utstilling · Mote" on the Kategori page: this week's garments
+/// from the admin's showcase (Step 12) on [MoteSkive]. Nothing without one.
 class KatMoteUtstilling extends StatefulWidget {
-  const KatMoteUtstilling({super.key, required this.onSnart});
+  const KatMoteUtstilling({super.key, required this.utstilling, required this.onButikk});
 
-  /// The size sheet comes with the store step; until then, "Kommer snart".
-  final VoidCallback onSnart;
+  final KatUtstilling? utstilling;
+
+  /// A garment opens its shop (sizes are chosen there).
+  final ValueChanged<int> onButikk;
 
   @override
   State<KatMoteUtstilling> createState() => _KatMoteUtstillingState();
@@ -1161,24 +1205,36 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
   bool _lagret = false;
 
   @override
-  Widget build(BuildContext context) => MoteSkive(
-    key: const Key('a1_kat_mote'),
-    tittel: 'Ukens utstilling · Mote',
-    undertittel: '3 butikker',
-    knapp: 'Velg størrelse',
-    varer: [
-      for (final p in _kPlagg)
-        MoteSkiveVare(navn: p.navn, pris: p.pris, bilde: AssetImage(p.bilde), y: p.y, sitat: p.sitat, hvem: p.hvem),
-    ],
-    lagret: (_) => _lagret,
-    onLagre: (_) {
-      HapticFeedback.selectionClick();
-      setState(() => _lagret = !_lagret);
-      showBergenToast(context, _lagret ? 'Lagret · vi sier fra hvis prisen faller' : 'Fjernet fra lagret');
-    },
-    onApne: (_) => widget.onSnart(),
-    onKnapp: (_) => widget.onSnart(),
-  );
+  Widget build(BuildContext context) {
+    final u = widget.utstilling;
+    if (u == null) return const SizedBox.shrink();
+    final varer = u.varer.take(3).toList();
+    String kr(int n) => '${n.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]} ')} kr';
+    return MoteSkive(
+      key: const Key('a1_kat_mote'),
+      tittel: u.tittel,
+      undertittel: u.undertittel ?? '${u.antallButikker} ${u.antallButikker == 1 ? 'butikk' : 'butikker'}',
+      knapp: 'Velg størrelse',
+      varer: [
+        for (final v in varer)
+          MoteSkiveVare(
+            navn: v.navn,
+            pris: kr(v.prisKr),
+            bilde: v.bildeUrl == null ? null : NetworkImage(v.bildeUrl!),
+            sitat: v.sitat == null ? null : '«${v.sitat}»',
+            hvem: [v.hvem, v.butikk].whereType<String>().where((s) => s.isNotEmpty).join(', '),
+          ),
+      ],
+      lagret: (_) => _lagret,
+      onLagre: (_) {
+        HapticFeedback.selectionClick();
+        setState(() => _lagret = !_lagret);
+        showBergenToast(context, _lagret ? 'Lagret · vi sier fra hvis prisen faller' : 'Fjernet fra lagret');
+      },
+      onApne: (i) => widget.onButikk(varer[i].butikkId),
+      onKnapp: (i) => widget.onButikk(varer[i].butikkId),
+    );
+  }
 }
 
 /// One garment on [MoteSkive].

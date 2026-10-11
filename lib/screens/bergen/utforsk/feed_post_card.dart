@@ -23,6 +23,9 @@ import 'utforsk_copy.dart';
 ///
 /// Presentation only: every tap is a callback, so the tab decides what a like
 /// or a follow means and the card never talks to the network.
+///
+/// The flag beside share reports the post (backend plan Step 9; the design
+/// has no report button, and app stores expect one for user content).
 class FeedPostCard extends StatefulWidget {
   const FeedPostCard({
     super.key,
@@ -37,10 +40,13 @@ class FeedPostCard extends StatefulWidget {
     this.onLike,
     this.onComments,
     this.onShare,
+    this.onReport,
     this.onFollow,
     this.onCta,
     this.onPlay,
     this.onStop,
+    this.showLikeCount = true,
+    this.showShare = true,
   });
 
   final FeedTabItem item;
@@ -64,10 +70,18 @@ class FeedPostCard extends StatefulWidget {
   final VoidCallback? onLike;
   final VoidCallback? onComments;
   final VoidCallback? onShare;
+
+  /// «Rapporter»: the flag beside share; hidden when null.
+  final VoidCallback? onReport;
   final VoidCallback? onFollow;
   final VoidCallback? onCta;
   final VoidCallback? onPlay;
   final VoidCallback? onStop;
+
+  /// The admin panel's feed switches (Step 13): «Antall likes» off keeps the
+  /// heart but drops the number; «Deling» off drops the share button.
+  final bool showLikeCount;
+  final bool showShare;
 
   /// Test kill-switch: widget tests have no image host, so the media area
   /// keeps its tint and skips the network image.
@@ -718,11 +732,13 @@ class _FeedPostCardState extends State<FeedPostCard>
           Row(
             children: [
               _likePill(),
+              if (widget.showShare) ...[
               const SizedBox(width: 8),
               Semantics(
                 button: true,
                 label: UtforskCopy.a1_feed_share,
                 child: LfPress(
+                  key: Key('a1_feed_share_${item.id}'),
                   onTap: widget.onShare,
                   dy: 1.5,
                   scale: .96,
@@ -737,11 +753,40 @@ class _FeedPostCardState extends State<FeedPostCard>
                   ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                merke.toUpperCase(),
-                key: Key('a1_feed_merke_${item.id}'),
-                style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF5CE0B8)),
+              ],
+              if (widget.onReport != null) ...[
+                const SizedBox(width: 8),
+                Semantics(
+                  button: true,
+                  label: UtforskCopy.a1_feed_report,
+                  child: LfPress(
+                    key: Key('a1_feed_report_${item.id}'),
+                    onTap: widget.onReport,
+                    dy: 1.5,
+                    scale: .96,
+                    ms: 140,
+                    child: CssBox(
+                      width: 34,
+                      height: 34,
+                      radius: BorderRadius.circular(17),
+                      bg: [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
+                      shadows: _keyShadow,
+                      child: const Center(child: Icon(Icons.outlined_flag, size: 17, color: Colors.white)),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(width: 8),
+              // Shrinks rather than overflow beside the three round buttons.
+              Expanded(
+                child: Text(
+                  merke.toUpperCase(),
+                  key: Key('a1_feed_merke_${item.id}'),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF5CE0B8)),
+                ),
               ),
             ],
           ),
@@ -850,7 +895,7 @@ class _FeedPostCardState extends State<FeedPostCard>
     return Semantics(
       button: true,
       selected: on,
-      label: UtforskCopy.a1_feed_likes(_likes),
+      label: widget.showLikeCount ? UtforskCopy.a1_feed_likes(_likes) : UtforskCopy.a1_feed_like,
       child: LfPress(
         key: Key('a1_feed_like_${widget.item.id}'),
         onTap: widget.onLike,
@@ -860,7 +905,7 @@ class _FeedPostCardState extends State<FeedPostCard>
         child: CssBox(
           height: 34,
           radius: BorderRadius.circular(17),
-          padding: const EdgeInsets.fromLTRB(9, 0, 12, 0),
+          padding: EdgeInsets.fromLTRB(9, 0, widget.showLikeCount ? 12 : 9, 0),
           bg: [
             on
                 ? const CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)])
@@ -880,13 +925,16 @@ class _FeedPostCardState extends State<FeedPostCard>
                 scale: _popScale,
                 child: feedIcon(FeedIcons.heartLaunch(filled: on), 18),
               ),
-              const SizedBox(width: 6),
-              Text(
-                '$_likes',
-                style: inter(12.5, weight: FontWeight.w800).copyWith(
-                  fontFeatures: const [FontFeature.tabularFigures()],
+              if (widget.showLikeCount) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '$_likes',
+                  key: Key('a1_feed_like_count_${widget.item.id}'),
+                  style: inter(12.5, weight: FontWeight.w800).copyWith(
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

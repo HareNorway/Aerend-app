@@ -10,7 +10,10 @@ import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 class BergenStoreRepo {
   final ApiBaseHelper _api = ApiBaseHelper();
 
-  Future<List<StoreListItem>> fetch(int serviceCategoryId) async {
+  /// [surface] tells the server which admin order to use (backend plan
+  /// Step 12, Partnere): `home` (Kundeforsiden), `wheel` (a category opened
+  /// from Kategorihjulet) or `list` (Butikklisten, the default).
+  Future<List<StoreListItem>> fetch(int serviceCategoryId, {String surface = 'list'}) async {
     final latLng = prefGetLatLng();
     final response = await _api.post(
       ApiConst.endPointDsHomeStore,
@@ -24,6 +27,7 @@ class BergenStoreRepo {
         ApiParam.paramFilterType: 'all',
         ApiParam.paramServiceCatId: serviceCategoryId,
         ApiParam.paramFilterKey: null,
+        'surface': surface,
       },
     );
     final pojo = DsHomeStoreListPojo.fromJson(response);

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -18,7 +19,6 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/home/bergen/bergen_nav.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
-import '../../deliveryService/checkout/checkout.dart';
 import '../../deliveryService/checkout/checkout_dl.dart';
 import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
@@ -31,6 +31,8 @@ import '../adresse/adr_ark.dart' show visAdresseArk;
 import '../hjem/hjem_harness.dart';
 import 'kasse_copy.dart';
 import 'kasse_sheets.dart';
+import 'kasse_stripe.dart';
+import 'kjop_sekvens.dart' show KjopBekreftetScreen;
 import '../../common/swipeAerend/swipe_aerend_repo.dart';
 import '../../common/swipeAerend/swipe_aerend_dl.dart' show SwipeCardModel, HareSwipeListPojo;
 import 'kurv_betal.dart';
@@ -214,11 +216,12 @@ import 'kurv_seilas.dart';
 final ValueNotifier<bool> kurvSkjulerNav = ValueNotifier(false);
 
 class KurvScreen extends StatefulWidget {
-  const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi});
+  const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi, this.butikkApi});
 
   final bool embedded;
   final OpsKasseApi? api;
   final OpsCustomerApi? customerApi;
+  final OpsButikkApi? butikkApi;
 
   @override
   State<KurvScreen> createState() => KurvScreenState();
@@ -316,7 +319,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
     if (_store?.id != cart.storeId) {
-      final store = await OpsButikkApi().store(cart.storeId);
+      final store = await (widget.butikkApi ?? OpsButikkApi()).store(cart.storeId);
       if (mounted && store != null) setState(() => _store = store);
     }
   }
@@ -339,6 +342,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   // ── slots (Levering sheet) ─────────────────────────────────────────────
 
+  /// The store's own open flag (worked out on the server in the store's
+  /// time zone); the API refuses a checkout while it is closed.
+  bool get _stengt => _store != null && !_store!.open;
+
+  /// «12:30» from the API's opening time («12:30 PM», «12:30:00»).
+  String? get _aapner {
+    final t = _store?.openTime;
+    final m = t == null ? null : RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(t.trim());
+    return m == null ? null : '${m.group(1)!.padLeft(2, '0')}:${m.group(2)}';
+  }
+
   List<KasseSlot> get _slots {
     final now = DateTime.now();
     final eta = _preview == null ? 30 : 30;
@@ -354,8 +368,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     return [
       KasseSlot(
         id: 'asap',
-        label: KasseCopy.a1_kasse_tid_asap,
-        line: KasseCopy.a1_kasse_tid_innen(hhmm(asapEnd), eta - 5, eta + 5),
+        label: _stengt ? KasseCopy.a1_kasse_stengt : KasseCopy.a1_kasse_tid_asap,
+        line: _stengt
+            ? KasseCopy.a1_kasse_stengt_line(_aapner)
+            : KasseCopy.a1_kasse_tid_innen(hhmm(asapEnd), eta - 5, eta + 5),
       ),
       KasseSlot(id: 'slot1', label: hhmm(first), line: KasseCopy.a1_kasse_lev_middag_line, at: first),
       KasseSlot(id: 'slot2', label: hhmm(second), line: KasseCopy.a1_kasse_lev_kveld_line, at: second),
@@ -445,6 +461,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(0);
   }
 
+  /// The back key. A pushed Kassen (from the store's «Til kassen», a push,
+  /// …) goes back where it came from; pushing the store here instead made
+  /// store ⇄ Kassen a loop with Hjem out of reach. The cart tab has nothing
+  /// below it, so it still opens the basket's store.
+  void _tilbake() {
+    final nav = Navigator.of(context);
+    if (!widget.embedded && nav.canPop()) {
+      nav.pop();
+      return;
+    }
+    _tilButikk();
+  }
+
   void _tolk() => BergenRoutes.pushOr(
     context,
     kAegilRoute,
@@ -467,6 +496,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<bool> _pay() async {
     final cart = _cart;
     if (cart == null || cart.isEmpty || _placing) return false;
+    if (_stengt) {
+      showBergenToast(context, KasseCopy.a1_kasse_stengt_toast(_store!.name, _aapner));
+      return false;
+    }
     if (!await showGuestLoginSheet(context, prompt: GuestLoginPrompt.checkout)) return false;
     if (!mounted) return false;
     if (!_pickup && _address == null) {
@@ -478,12 +511,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       showBergenToast(context, KasseCopy.a1_kasse_min_ordre(KasseCopy.kr(min)));
       return false;
     }
-    if (_paymentType == 2) {
-      // The card path is the existing Stripe checkout, unchanged.
-      prefSetString(prefTip, '$_tip');
-      openScreen(context, const CheckOut());
-      return true;
-    }
+    // The method picked in Betaling decides the API's payment_type: card and
+    // Google / Apple Pay pay here through Stripe, Vipps in the Vipps app.
+    final apiPaymentType = kasseApiPaymentType(_paymentType);
     setState(() {
       _placing = true;
       _departing = true;
@@ -493,7 +523,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final response = await _api.placeOrder(
       storeId: cart.storeId,
       addressId: _pickup ? 0 : (_address?.addressId ?? 0),
-      paymentType: 3,
+      paymentType: apiPaymentType,
       pickup: _pickup,
       cartIds: [for (final l in cart.lines) l.cartId],
       note: _fullNote,
@@ -527,9 +557,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       return false;
     }
     final orderId = (response['order_id'] as num?)?.toInt() ?? 0;
-    prefSetInt('bookedOrderId', orderId);
     if (_codeAtDoor && orderId > 0) {
       await _customer.requestCode(orderId);
+    }
+    if (apiPaymentType != 3) {
+      return _payWithStripe(response, orderId, apiPaymentType, cart);
     }
     final url = orderId > 0 ? await _api.vippsRedirect(orderId) : null;
     if (!mounted) return false;
@@ -544,6 +576,65 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     } else if (mounted) {
       showBergenToast(context, KasseCopy.a1_kasse_vipps);
     }
+    return true;
+  }
+
+  /// Card / Google Pay: Stripe's sheet here, then the API's re-check marks
+  /// the order paid, then Bekreftet. Closing the sheet leaves it unpaid and
+  /// sends the slider back.
+  Future<bool> _payWithStripe(Map<String, dynamic> response, int orderId, int apiPaymentType, KurvState cart) async {
+    void reset() {
+      if (mounted) {
+        setState(() {
+          _placing = false;
+          _departing = false;
+        });
+      }
+    }
+
+    final total = (response['total_pay'] as num?)?.toDouble() ?? double.tryParse('${response['total_pay']}') ?? 0;
+    if (total > 0) {
+      try {
+        final intent = response['payment_intent'];
+        await kasseStripePay(
+          apiPaymentType: apiPaymentType,
+          intent: intent is Map ? Map<String, dynamic>.from(intent) : const {},
+          orderNo: '${response['order_no'] ?? orderId}',
+          total: total,
+        );
+      } on StripeException catch (_) {
+        reset();
+        if (mounted) showBergenToast(context, KasseCopy.a1_kasse_betaling_avbrutt);
+        return false;
+      } catch (e) {
+        reset();
+        if (mounted) showBergenToast(context, '$e');
+        return false;
+      }
+    }
+
+    final paid = total <= 0 ||
+        await _api.confirmStripePaid(
+          orderId: orderId,
+          storeId: cart.storeId,
+          addressId: _pickup ? 0 : (_address?.addressId ?? 0),
+          paymentType: apiPaymentType,
+          pickup: _pickup,
+          cartIds: [for (final l in cart.lines) l.cartId],
+        );
+    if (!mounted) return false;
+    if (!paid) {
+      reset();
+      showBergenToast(context, KasseCopy.a1_kasse_betaling_venter);
+      return false;
+    }
+    setState(() => _placing = false);
+    prefSetInt(prefCartCount, 0);
+    BergenCart.syncBadge(context, 0);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => KjopBekreftetScreen(orderId: orderId, sum: total)),
+      (route) => route.isFirst,
+    );
     return true;
   }
 
@@ -674,7 +765,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 safeTop: safeTop,
                 departing: _departing,
                 tom: cart != null && !hasCart,
-                onBack: _tilButikk,
+                onBack: _tilbake,
                 storeName: _preview?.storeName,
                 storeLogoUrl: _store?.logoUrl,
               ),

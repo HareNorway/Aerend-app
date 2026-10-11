@@ -42,7 +42,7 @@ class _Api extends OpsCustomerApi {
 
 class _Repo extends FeedRepo {
   @override
-  Future<FeedTabPage> fetchFeedTab({required String tab, String? cursor, int? limit, String? bydel}) async =>
+  Future<FeedTabPage> fetchFeedTab({required String tab, String? cursor, int? limit, String? bydel, double? lat, double? lng}) async =>
       const FeedTabPage(tab: 'naerheten', label: 'I nærheten', items: []);
 }
 

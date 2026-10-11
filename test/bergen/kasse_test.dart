@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/data/ops/butikk_models.dart';
 import 'package:aerend_customer/data/ops/kasse_models.dart';
+import 'package:aerend_customer/networking/ops/ops_butikk_api.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/kasse/bestilling_sheet.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kasse_copy.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kasse_sheets.dart';
+import 'package:aerend_customer/screens/bergen/kasse/kasse_stripe.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kjop_sekvens.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kurv_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
@@ -60,6 +63,7 @@ class _FakeKasse extends OpsKasseApi {
   }) async {
     lastPlace = {
       'storeId': storeId,
+      'paymentType': paymentType,
       'addressId': addressId,
       'pickup': pickup,
       'note': note,
@@ -95,6 +99,15 @@ class _FakeCustomer extends OpsCustomerApi {
 
   @override
   Future<Map<String, dynamic>?> referral() async => referralJson;
+}
+
+class _FakeButikk extends OpsButikkApi {
+  _FakeButikk(this.info);
+
+  final BergenStoreInfo info;
+
+  @override
+  Future<BergenStoreInfo?> store(int storeId, {String? categoryHint}) async => info;
 }
 
 KurvLine _line(int id, String name, double price, {int qty = 1, bool aegil = false}) => KurvLine(
@@ -159,25 +172,47 @@ void main() {
           'product_id': 10,
           'product_name': 'Melk',
           'quantity': 2,
-          'product_amount': 25,
+          // The API's line total: 2 × 25.
+          'product_amount': 50,
           'store_id': 7,
           'snurre_conversation_id': 44,
         },
         {
           'id': 2,
           'product_id': 11,
-          'product_name': 'Burger',
+          'product_name': 'Gyros',
           'quantity': 1,
-          'product_amount': 149,
-          'discount_amount': 129,
+          // 169 kr with 33.80 kr off: the line total is 135.20 and
+          // `discount_amount` is the kroner off, not a price.
+          'product_amount': 135.2,
+          'discount_amount': 33.8,
           'store_id': 7,
         },
       ],
     });
     expect(state.lines.length, 2);
     expect(state.aegilLines.single.name, 'Melk');
-    expect(state.lines[1].unitPrice, 129);
-    expect(state.subtotal, 50 + 129);
+    expect(state.lines[0].unitPrice, 25);
+    expect(state.lines[1].unitPrice, 135.2);
+    expect(state.subtotal, closeTo(50 + 135.2, 0.001));
+  });
+
+  test('the preview fills delivery and the service fee from today\'s keys', () {
+    final p = OpsKasseApi.previewFromJson({'status': 1, 'store_id': 7, 'sub_total': 135.2, 'delivery_fee': 39, 'order_fee': 15});
+    expect(p.deliveryCost, 39);
+    expect(p.taxCost, 15);
+    expect(p.totalItemCost, 135.2);
+    // A legacy answer keeps its own fields.
+    final legacy = OpsKasseApi.previewFromJson({'status': 1, 'store_id': 7, 'delivery_cost': 20, 'tax_cost': 4, 'order_fee': 15});
+    expect(legacy.deliveryCost, 20);
+    expect(legacy.taxCost, 4);
+  });
+
+  test('Betaling ids map to the API payment_type (1 card, 2 Google/Apple Pay, 3 Vipps)', () {
+    expect(kasseApiPaymentType(kBetVipps), 3);
+    expect(kasseApiPaymentType(kBetKort), 1);
+    expect(kasseApiPaymentType(kBetGoogle), 2);
+    expect(kasseApiPaymentType(kBetApple), 2);
   });
 
   test('a slot renders the legacy schedule format', () {
@@ -345,6 +380,59 @@ void main() {
     expect(api.lastPlace?['pickup'], isFalse);
   });
 
+  testWidgets('a closed store: «Stengt nå · Åpner …» and no order is sent', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Gyros', 200)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+      placeResponse: {'status': 1, 'order_id': 1, 'total_pay': 239},
+    );
+    final butikk = _FakeButikk(const BergenStoreInfo(
+      id: 7, name: 'Gyros House', kind: BergenStoreKind.restaurant, open: false, openTime: '12:30 PM'));
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer(), butikkApi: butikk)));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text(KasseCopy.a1_kasse_stengt_line('12:30')), findsOneWidget);
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(api.lastPlace, isNull);
+    expect(find.text(KasseCopy.a1_kasse_stengt_toast('Gyros House', '12:30')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('back on a pushed Kassen goes back, not to a new store page', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Gyros', 200)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+    );
+    await tester.pumpWidget(MaterialApp(
+      onGenerateRoute: (s) => MaterialPageRoute(builder: (_) => Text('route ${s.name}')),
+      home: Builder(
+        builder: (context) => TextButton(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer()))),
+          child: const Text('butikken'),
+        ),
+      ),
+    ));
+    await tester.tap(find.text('butikken'));
+    // Kassen animates for ever (the sea), so fixed pumps, not pumpAndSettle.
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('a1_kasse_tilbake')));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('butikken'), findsOneWidget);
+    expect(find.textContaining('route /bergen/butikk'), findsNothing);
+  });
+
   testWidgets('a placed order asks for the code when the toggle is on', (tester) async {
     _frame(tester);
     final api = _FakeKasse(
@@ -379,6 +467,7 @@ void main() {
     await _dragToPay(tester);
     await tester.pump();
     expect(api.lastPlace?['storeId'], 7);
+    expect(api.lastPlace?['paymentType'], 3, reason: 'Vipps is the default method');
     expect(api.lastPlace?['addressId'], 5);
     expect(customer.codeCalls, 1);
   });

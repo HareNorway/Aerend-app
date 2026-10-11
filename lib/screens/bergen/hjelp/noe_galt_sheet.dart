@@ -57,7 +57,7 @@ class SakPaaOrdren extends StatelessWidget {
   }
 }
 
-/// «Noe galt med bestillingen? · Ægil ordner kreditt med én gang» — the
+/// «Noe galt med bestillingen? · Vi ser på det og svarer innen … min» — the
 /// white row under the receipt (`kNoeGalt`).
 class NoeGaltRad extends StatelessWidget {
   const NoeGaltRad({super.key, required this.onTap});

@@ -36,10 +36,23 @@ class OpsKasseApi {
     try {
       final json = await CheckoutRepo().callOrderPreviewApi();
       if (json is! Map<String, dynamic> || json['status'] != 1) return null;
-      return OrderPreviewPojo.fromJson(json);
+      return previewFromJson(json);
     } catch (_) {
       return null;
     }
+  }
+
+  /// Today's `order-preview` answers `sub_total`, `delivery_fee` and
+  /// `order_fee` (service fee + tax) — not the legacy `total_item_cost`,
+  /// `delivery_cost`, `tax_cost` the pojo reads — so the fee the checkout
+  /// charges was missing from Kassen's total.
+  static OrderPreviewPojo previewFromJson(Map<String, dynamic> json) {
+    final pojo = OrderPreviewPojo.fromJson(json);
+    double? d(String k) => json[k] is num ? (json[k] as num).toDouble() : double.tryParse('${json[k] ?? ''}');
+    if (!json.containsKey('delivery_cost')) pojo.deliveryCost = d('delivery_fee') ?? 0;
+    if (!json.containsKey('tax_cost')) pojo.taxCost = d('order_fee') ?? 0;
+    if (!json.containsKey('total_item_cost')) pojo.totalItemCost = d('sub_total') ?? 0;
+    return pojo;
   }
 
   Future<bool> changeQuantity(int cartId, int quantity) async {
@@ -95,6 +108,12 @@ class OpsKasseApi {
   }) async {
     if (_off) return null;
     try {
+      // Kassen and Hurtig always place a new order. The legacy repo sends
+      // `bookedOrderId` as `order_id` (the old Stripe retry of an unpaid
+      // order), and the last Bergen order is still in it — the API then
+      // looks for that order unpaid and answers «Bestillingsdetaljer ikke
+      // funnet».
+      await prefSetInt('bookedOrderId', 0);
       final json = await CheckoutRepo().callStorePlaceOrderApi(
         storeId,
         addressId,
@@ -111,6 +130,41 @@ class OpsKasseApi {
       return json is Map<String, dynamic> ? json : null;
     } catch (e) {
       return {'status': 0, 'message': e.toString()};
+    }
+  }
+
+  /// After a card / Google Pay payment: the legacy re-check (place-order
+  /// again with the order's id), where the API asks Stripe and marks the
+  /// order paid. True only when it answers `payment_status: 1`.
+  Future<bool> confirmStripePaid({
+    required int orderId,
+    required int storeId,
+    required int addressId,
+    required int paymentType,
+    required bool pickup,
+    required List<int> cartIds,
+  }) async {
+    if (_off) return false;
+    try {
+      await prefSetInt('bookedOrderId', orderId);
+      final json = await CheckoutRepo().callStorePlaceOrderApi(
+        storeId,
+        addressId,
+        paymentType,
+        pickup ? 2 : 1,
+        '',
+        jsonEncode(cartIds),
+        false,
+        '',
+        null,
+        0,
+        null,
+      );
+      return json is Map && json['status'] == 1 && '${json['payment_status']}' == '1';
+    } catch (_) {
+      return false;
+    } finally {
+      await prefSetInt('bookedOrderId', 0);
     }
   }
 

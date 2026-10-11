@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -6,9 +7,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../data/ops/tracking_models.dart';
+import '../../../data/points/points_rules.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
@@ -57,11 +60,21 @@ class SporingScreen extends StatefulWidget {
   /// Right after a purchase: the vervebillett takes the panel's slot.
   final bool fersk;
 
+  // OPS-TEMP: the stages follow the order's ops state only. Orders handled in
+  // today's legacy Store/Driver apps don't move it (no legacy → ops mapping,
+  // 2026-10-07), so they stay on «Bekreftet» until the new Partner/Bud apps
+  // send ops transitions (backend plan Step 6).
   static const Duration pollEvery = Duration(seconds: 10);
 
-  /// Points per stage for the Ægil-veileder chip.
-  // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-  static const List<int> stegPoeng = [8, 8, 8, 34];
+  /// Points per stage for the Ægil-veileder chip: the order's real total
+  /// (`points_preview.total` on the tracking payload, backend plan Step 3)
+  /// split by the prototype's weights. Null without a preview: no numbers.
+  static List<int>? stegPoeng(OpsTracking t) {
+    final preview = t.raw['points_preview'];
+    final total = preview is Map ? (preview['total'] as num?)?.toInt() : null;
+    if (total == null || total <= 0) return null;
+    return splitPointsByStage(total);
+  }
 
   @override
   State<SporingScreen> createState() => _SporingScreenState();
@@ -260,9 +273,20 @@ class _SporingScreenState extends State<SporingScreen> {
     await _refresh();
   }
 
-  void _kvittering() {
-    final epost = prefGetString(prefEmail).trim();
-    showBergenToast(context, SporingCopy.a1_sporing_kvittering_sendt(epost.isEmpty ? '…' : epost));
+  /// «Kvittering»: the order's real receipt PDF (backend plan Step 4), handed
+  /// to the share sheet so the customer can mail, save or print it. Nothing is
+  /// claimed as sent that was not.
+  Future<void> _kvittering() async {
+    final pdf = await _api.receiptPdf(_id);
+    if (!mounted) return;
+    if (pdf == null) {
+      showBergenToast(context, SporingCopy.a1_sporing_kvittering_feil);
+      return;
+    }
+    final dir = await getTemporaryDirectory();
+    final fil = File('${dir.path}/kvittering-${_t?.code ?? _id}.pdf');
+    await fil.writeAsBytes(pdf, flush: true);
+    await Share.shareXFiles([XFile(fil.path, mimeType: 'application/pdf')], subject: SporingCopy.a1_sporing_kvittering);
   }
 
   void _fjordfiske() => BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
@@ -435,6 +459,7 @@ class _SporingScreenState extends State<SporingScreen> {
       pct: minLeft == null ? .62 : (1 - minLeft / 30).clamp(.1, .95),
       slutt: end,
       totalSek: windowSec,
+      meterIgjen: (t.raw['distance_metres'] as num?)?.toInt(),
       spartSek: spart,
       poeng: _poeng,
     );
@@ -755,7 +780,7 @@ class _SporingScreenState extends State<SporingScreen> {
                 slotVerv: slotVerv,
                 vervKode: _vervKode ?? '',
                 bunn: math.max(bunn - 24, 0),
-                poengNeste: SporingScreen.stegPoeng,
+                poengNeste: SporingScreen.stegPoeng(t),
                 onSammendrag: () => setState(() => _ark = SpArk.sammendrag),
                 onDetaljer: () => setState(() => _ark = SpArk.detaljer),
                 onAvslutt: _toLevert,

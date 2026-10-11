@@ -280,7 +280,7 @@ bloc in `lib/screens/feed/*`.
 | route | `POST /api/ops/customer/orders/{orderId}/code` → `ops.customer.code` | "Kode ved levering": the customer asks for a delivery code on their own order (`DeliveryProofService::assignProof` with `customer_requested_code`); 422 `CODE_TOO_LATE` after `ready` (Phase 5) |
 | route | `POST /api/ops/proof/orders/{orderId}/pin` → `ops.proof.pin` | the courier types the customer's PIN (`DeliveryProofService::verifyPin`): 200 ok, 422 `WRONG_PIN` / `CODE_LOCKED`; used by the Bud app and the customer app's debug demo panel (Phase 6) |
 | route | `GET /api/ops/customer/fiske` → `ops.customer.fiske` | Fjordfiske · today: `today`, `max`, `left`, `capped` from the same `dagens_napp` ledger count `points/me/earn` caps on (`FiskeDayReadModel`), plus `per_catch`, `prize_every_n`, `prize_from_cast` from the policy table. Read by the Utforsk landing («N napp igjen i dag») and the game screen before the first cast (Fjordfiske, 2026-09-26) |
-| route mode | `GET /api/ops/products?kind=populaert&service_category_id=` (existing unnamed ops products route, beside `kind=pose`) | «Populært i {kategori}» on the Hjem Ark: a category's live products, most ordered in the last 7 days first (order lines, as `ops.search.trending`), then discounted, then by name; `price_ore`, `was_price_ore`, resolved `image`, `store_id/name`, `ordered_7d`. Added 2026-10-08 because the customer search requires a search text (the old category screen showed «Products 0») |
+| route mode | `GET /api/ops/products?kind=populaert&service_category_id=` (existing unnamed ops products route, beside `kind=pose`) | «Populært i {kategori}» on the Hjem Ark: a category's live products, most ordered in the last 7 days first (order lines, as `ops.search.trending`), then discounted, then by name; `price_ore`, `was_price_ore`, resolved `image`, `store_id/name`, `ordered_7d`. Added 2026-10-08 because the customer search requires a search text (the old category screen showed «Products 0»). Since the Step 8 follow-up (2026-10-07) also Hjem's «Populært i kveld» rail when the swipe feed is empty (the design's sample cards are gone) |
 | class | `App\Services\Ops\OrderIntakeService` + `LegacyOrderObserver` | a legacy booking enters the machine at creation: `order.placed` event, `ops_origin`, `ops_policy_version`, `ops_code`; the observer is one append in `AppServiceProvider` (Phase 5) |
 | flag | `ops.customer.sok`, `ops.customer.butikk`, `ops.customer.kasse`, `ops.customer.sporing`, `ops.customer.utforsk` | one per screen group, off by default |
 | console | `ops:contract-check` | runs the `ContractNamesTest` assertions as a command for merge day |
@@ -366,6 +366,259 @@ outside their list without adding it here.
 
 Copy keys: `a1_*` on agil-1, `a3_*` on agil-3, in `*_copy.dart` files only. The
 spec §7 status keys in §3.3 are the one exception and are used verbatim.
+
+### 3.5 Added by the backend plan (`agil-1-backend`)
+
+Registry file: `tests/fixtures/contract/names.backend.json` (branch `agil-1-backend`).
+
+**Step 1 — ops API auth, Vipps check, config**
+
+| Kind | Name | Notes |
+|---|---|---|
+| policy | `ops.auth.enforce` | `report` (default: log + serve) or `enforce` (401 / 403). Owner `App\Ops\PolicyKeys`; fallback `config('ops.auth.enforce')` |
+| middleware | `ops.actor:<spec>` | `App\Http\Middleware\OpsAuthenticate`; every route in `api_ops.php`, `api_partner_delivery.php`, the partner/courier routes in `api_agentops.php`, `api_geo.php` stores/couriers |
+| middleware | `ops.session` | `App\Http\Middleware\OpsPanelSession`; starts the admin session only when its cookie is sent |
+| class | `App\Ops\Auth\OpsActor`, `App\Ops\Auth\OpsActorResolver` | the proven caller: `customer`, `store` (`store_details.id`), `courier` (`providers.id`), `admin`, `service` |
+| log channel | `ops_auth` | `storage/logs/ops-auth-*.log`: `ops_auth_unauthenticated`, `ops_auth_mismatch`, `ops_auth_not_owner` |
+| error codes | `OPS_AUTH_REQUIRED` (401), `OPS_FORBIDDEN` (403) | only under `enforce` |
+| env | `OPS_AUTH_ENFORCE`, `OPS_SERVICE_TOKEN` | `config/ops.php` `auth.*` |
+| route | `post:customer:vipps_confirm` | `POST /api/customer/vipps/confirm` — the app's `ApiConst.endPointVippsConfirm` |
+| route | `post:webhook:store_vipps` | `POST /api/webhook/store/vipps` — store-order Vipps webhook; re-reads the payment from Vipps |
+| class | `App\Services\StoreOrderVippsPayment` | the one place a store order becomes Vipps-paid |
+| env | `VIPPS_VERIFY_STORE_PAYMENTS` | `config/vipps.php`; default `true` |
+| env | `POINTS_ORDER_SOURCE`, `POINTS_SIGNAL_SOURCE` | now read as `config('points.order_source' / 'points.signal_source')` |
+| config | `dugnad.tunables.*` | the `DUGNAD_*` numbers services used to read with `env()` |
+
+**Step 2 — order backbone**
+
+| Kind | Name | Notes |
+|---|---|---|
+| ~~flag~~ | ~~`ops.legacy_bridge`~~ | **Removed 2026-10-07 (user decision): no legacy → ops mapping.** `ops_state` moves only through `POST api/ops/orders/{id}/transition` (and the ops services). Orders handled in the legacy Store/Driver apps stay `placed` until the new Partner/Bud apps send transitions (Step 6); the gaps carry `OPS-TEMP` markers in the legacy handlers, `LegacyOrderObserver`, `CustomerTrackingReadModel` and the app's Sporing |
+| policy | `ops.require_arrived_customer` | default `false`; `true` refuses picked_up → delivered |
+| policy | `proof.value_threshold_ore` | default `30000` (300 kr); replaces `DeliveryProofService::VALUE_THRESHOLD_ORE` (kept as fallback). `customer_prefs.always_code` now forces a code |
+| listener | `App\Points\Listeners\AwardPointsOnOpsDelivered` | ops `order.delivered` earns points; dedupe `order.delivered:{orderId}` shared with the legacy path |
+| schedule | `points:sync --since=<2 days>` hourly at :20 | `LegacyBookingSource::delivered` also reads `ops_state = delivered` |
+
+**Step 3 — points API for the app**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `points.rules` `GET /api/points/rules` | public, `Cache-Control: public, max-age=300` + ETag. `{config_version, kjop_per_10kr, earn_percent, first_order_bonus, referral{referrer, referee, min_order_ore}, signup_bonus{enabled, amount}, missions{points_min, points_max}|null, fiske{daily_cap, points_per_catch}}` |
+| route | `points.me.tier` `GET /api/points/me/tier` | house handshake; `{tier{index, name, next_name, points_to_next, threshold, next_threshold, since, protected_until, review_at, keep_gap}, tiers[], earned_12m, policy_version}` |
+| query | `points.me.ledger` `?order={id}` | filters on `ref_type=order, ref_id` |
+| payload | tracking `points_preview` | `{base, first_order_bonus, total, earned}` on `ops.customer.tracking` only (not lists); null for guests |
+| policy | `points.signup_bonus` (50), `points.signup_bonus_window_days` (30) | `config/points.php` keys |
+| flag | `points.signup_bonus.enabled` | `App\Points\FeatureFlags::SIGNUP_BONUS`; **on by default** (user decision 2026-10-07) via config `points.signup_bonus_enabled` / env `POINTS_SIGNUP_BONUS_ENABLED=true`; a flag row wins |
+| ledger | rule `signup`, ref `signup` | `PtsLedger::RULE_SIGNUP`, dedupe `signup:{userId}` |
+| dart | `lib/data/points/points_rules.dart` | `PointsRules`, `splitPointsByStage`; `OpsCustomerApi.rules()` (cached 5 min, no login needed) |
+
+**Step 4 — tracking and Levert payload** (all additive)
+
+| Kind | Name | Notes |
+|---|---|---|
+| payload | `ops.customer.tracking` + lists: `delivered_at` | ops `delivered` event time, else the verified delivery code; null before delivery |
+| payload | `courier.since`, `courier.rating`, `courier.rating_count` | `providers.created_at`; average of `transport_driver_rating` (1 decimal), null / 0 without ratings |
+| payload | `store.story` | `store_details.description` (tags stripped); feed bio fallback after Step 9 |
+| payload | `ops.customer.tracking` only: `distance_metres` | haversine from the courier's live position, else the store, to the order's `lat_long`; null without coordinates |
+| payload | `ops.customer.tracking` only: `door_note` | `{flat_no, landmark, door_line, courier_note}` from the order + the consented door profile (`DeliveryProofService::addressKeyFor(delivery_address)`); null when empty |
+| payload | `ops.customer.tracking` only: `month_local_count` | the customer's delivered orders (ops `delivered` or legacy status 9) created this month, Oslo time |
+| route | `ops.customer.receipt` `GET /api/ops/customer/orders/{orderId}/receipt` | house handshake, own order; `application/pdf` (`OrderReceiptPdfService`), 503 `RECEIPT_UNAVAILABLE` |
+
+**Step 5 — support v1** (no AI, no money)
+
+| Kind | Name | Notes |
+|---|---|---|
+| table | `support_conversations`, `support_messages` | `App\Models\Support\*`; states `assistant` → `queued` → `human` → `closed`; topics `support`, `mangler`, `feil`, `kom_aldri`; message `author` `customer|assistant|human|system`, `attachments{card{type,ref,title,sub}, chips[]}` |
+| column | `ops_problems.customer_kind` | `missing_item`, `wrong_item`, `quality`, `not_delivered` (→ ops type `wrong_order`, `wrong_order`, `damage`, `wrong_address`); customer cases have no triage deadline |
+| route | `ops.customer.problem` `kind` + `photo_url` | the four case kinds (old `missing` = `missing_item`); one open case per order (`existing: true`); response adds `case` |
+| routes | `/api/support/*` (`support.*`) | `config` (public); `guest/lookup {order_no, phone?}`, `guest/verify {order_no, code}` → `guest_token` (rate limiter `support-guest`); `conversations` (list, open `{topic, order_id?}`), `conversations/{id}/messages` (GET `?after=`, POST `{body}`), `…/escalate`, `…/close`; `cases`, `cases/{id}`, `cases/{id}/reopen`; `uploads/sign` (Cloudinary). Auth: house `user_id`+`access_token` or `guest_token` (scoped to one order) |
+| policies | `support.hours_open` (8), `support.hours_close` (23), `support.answer_minutes` (30), `support.on_call` ([]), `support.guest_token_minutes` (120) | `App\Ops\PolicyKeys`; Drift → Policy «Kundeservice» |
+| admin | `get:admin:support_inbox` `/admin/drift/kundeservice` | queue, take over, reply, close (restyled in Step 14) |
+| dart | `SupportStore` / `SupportAssistent` / `SupportConfig` (`lib/screens/bergen/hjelp/support.dart`) | server first; the scripted rules stay on the device only as the offline fallback; cases from the server (no prefs store); `OpsCustomerApi.support*` |
+
+**Step 6 — Order Ops completions for the Partner and Bud apps** (backend only; Hare-Store and Hare-Driver unchanged)
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `ops.store.live` `GET /api/ops/stores/{storeId}/live` | Partner snapshot: `store{availability, busy, autodrift, hours}`, `live`, `devices`, `needs_you`, `counts`, `orders[]` in `OpsOrder.fromJson` shape (+ `placed_at`, `adjusted_by_minutes`); paid orders only; `ETag` / `If-None-Match` → 304 |
+| route | `ops.store.extend_all` / `ops.store.extend_all.end` `POST /api/ops/store/extend-all[/end]` | busy mode `{store_id, minutes 5–60, for_minutes 15–240}`: +N as a time adjustment (`reason = busy:extend_all`) on open orders and on each order accepted while it lasts; events `store.busy_extended` / `store.busy_ended` |
+| route | `ops.assignment.progress` `POST /api/ops/assignments/{ref}/progress` | `{courier_id, to: en_route_pickup\|arrived_pickup\|en_route_drop\|arrived_drop, lat?, lng?}`; skipped steps walked; `arrived_pickup` with a bag not ready → `waiting` (server-set, `assignment.waiting_started`); `arrived_drop` → orders `arrived_customer`; 422 `INVALID_PROGRESS`, `NOT_ASSIGNED`, `POSITION_REQUIRED`, `OUTSIDE_GEOFENCE` |
+| route | `ops.assignment.proof` / `.proof.prevalidate` / `ops.assignment.upload_sign` | proof `{courier_id, order_id, photo_url? (res.cloudinary.com), recipient_name?, pin?, photo_meta?, retake?, lat?, lng?}` → `DeliveryProofService::capture` → `delivered`; 422 `NOT_PICKED_UP`, `NOT_ON_RUN`, `PIN_REQUIRED`, `PHOTO_REQUIRED`, … |
+| route | `ops.courier.live` `GET /api/ops/couriers/me/live`, `ops.courier.earnings` `GET /api/ops/couriers/me/earnings` | Bud snapshot: `courier{mode av_vakt\|paa_vakt\|paa_oppdrag}`, `limits`, `offers[]` (area only, `drop_area`), `runs[]` (store, orders with shelf slot, proof type, door note, `waiting{since, seconds, pay_ore}`), ETag; earnings `periods{today, week, month[, range]}` + `recent[]` |
+| route | `ops.door_profiles.show` / `ops.door_profiles.store` `GET\|POST /api/ops/door-profiles` | read for the courier on the run; save after delivery only with `customer_prefs.door_profile_consent` (`points.me.prefs` accepts `door_profile_consent=0\|1`) |
+| behaviour | scan, typed code, `ops.proof.pin` | only the courier whose accepted run carries the order (`NOT_ASSIGNED` otherwise) — the null-assignee loophole is closed |
+| behaviour | `TransitionEffects` after every order transition | accepted: busy +N, dispatch considered; seen/ready: dispatch considered; picked_up: run follows, PIN issued for code orders (customer app only, no SMS); delivered: run ends, priced once per run (`MoneyEngine::priceRun`, anchored on its first order) |
+| flag | `ops.dispatch.auto` (SurfaceFlags, stage courier; targetable by `store_ids`) | off: no automatic assignments or offers. On: assignment at `dispatchAtFor` (ready − `dispatch.travel_s`), one candidate at a time, OFFER push, expiry → next candidate (`assignment.expired`, `assignment.offered`), nobody left → exception `no_courier` |
+| policies | `ops.checkout.honour_availability` (false), `ops.geofence.enforce` (false), `ops.geofence.pickup_m` (150), `ops.geofence.drop_m` (100), `dispatch.travel_s` (600) | Drift → Policy «Levering» / «Tildeling» |
+| sweep | `ops:sweep` | + Autodrift «auto» accept (paid, live Kasse), manual pause auto-resume, busy expiry, sold-out restore, offer expiry/re-offer/dispatch, push delivery |
+| push | `OPS_PUSH_DRIVER` `log` (default) \| `fcm` | `OpsPushSender` delivers queued `ops_notifications` (`courier` → providers.device_token, `store_device` → ops_store_devices.push_token, `customer` → users.device_token); escalation step 1 queues `ORDER_UNSEEN` per device |
+| columns | `store_details.ops_busy_extend_minutes`, `ops_busy_until`; `store_product_details.ops_available_again_at`; `customer_prefs.door_profile_consent`; `ops_notifications.attempts`, `last_error` | migration `2026_10_10_000000_backend_step6_ops_completions` |
+| hours | `StoreHoursService` | one source: `ops_store_hours` when set, else read-through to legacy `store_timings` (`all` wins; 00:00–00:00 closed); every ops write mirrored back to `store_timings` |
+| code | `OrderCode::ALPHABET` | Q and Z dropped for new codes (spec: no I, L, O, Q, S, Z); the allocator never repeats a code shown today |
+
+**Step 7 — Ægil backend**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `agent.me.memory.forget_one` `DELETE /api/agent/me/memory/{id}` (+ spec alias `agent.me.preferences.forget` `DELETE /api/agent/me/preferences/{id}`) | forget one line; another customer's line or a gone one → 404 `MEMORY_NOT_FOUND`. App «Fjern» (`AegilRepo.forget`, `UI-TEMP` #10 removed) |
+| route | `agent.me.pause` `POST /api/agent/me/pause` | `{days 1–30}` pauses, `{resume: 1}` ends it; answers `settings` |
+| routes | `agent.me.reminders` (GET/POST/DELETE `{id}`), `agent.me.availability_subscriptions` (POST/DELETE `{id}`) | «si fra»: `product_id` = `store_product_details.id`; price-drop reminder (default: any drop; second ask 422 `REMINDER_DUPLICATE`), back-on-sale subscription. Fired from `ProductChangeLogger` (`ReminderAlerts`) → `AgentPushGate` |
+| route | `agent.availability_subscriptions.app` `POST /api/agent/availability-subscriptions` | the path the app already called (404 before): `{product_id, kind: price_drop\|back_in_stock}`; a second tap answers `existing: true` |
+| column | `agent_reminders.store_product_id`, `agent_availability_subscriptions.store_product_id` | migration `2026_10_11_000000_backend_step7_aegil` |
+| points | rule key `aegil_onboarding`, ref `aegil_answer`; policy keys `aegil_answer` (5), `aegil_answer_cap` (50); flag `points.aegil_answer.enabled` (config `POINTS_AEGIL_ANSWER_ENABLED`, **off**) | `POST agent/me/preferences/batch` answers `points{enabled, per_answer, cap, earned, total}`; each answer pays once per customer ever. `GET points/rules` adds `aegil_answer{enabled, per_answer, cap}`. App: onboarding «+N Ægil-poeng» only when on (`UI-TEMP` #11, #12 removed); the toast shows what was earned |
+| flag | `aegil_level_max` enforced | unset (no flag row, no `FLAG_AEGIL_LEVEL_MAX`) = no cap, as before; set = the highest level a customer may choose (422 `LEVEL_ABOVE_MAX`) and the level Ægil acts at (`AgentSetting::effectiveLevel`); settings answer `level_cap`, `effective_level`, `levels[].available` |
+| push | `AgentPushGate` → `ops_notifications` (`channel push_agent`, recipient `customer`) | delivered by `OpsPushSender` (`OPS_PUSH_DRIVER`); deferred (quiet hours) released every minute by `ops:sweep` (`releaseDue`) within the caps |
+| tray | `SuggestionService::expireStale` (agent:daily-maintenance); tray/deck skip expired | |
+| advice | `AgainstInterestEngine` on each newly served suggestion → `meta.against_interest`; payload `against_interest[]` (switch and silenced checks applied) | |
+
+**Step 8 — Hjem and Kategori data**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `ops.customer.stores.presence_batch` `GET /api/ops/customer/stores/presence?ids=` | public; ≤ 60 ids → `stores[{store_id, viewers_now, typical_order_ore}]` (median paid order, 90 days, null under 3). App: Kategori «N nå» and the card's coin = `PointsRules.pointsForOre(typical)`, both hidden without data (`UI-TEMP` #23 removed) |
+| route | `ops.customer.free_delivery` `GET /api/ops/customer/free-delivery?lat=&lng=` | public; the nearest store open now with `offer_min_amount` → `store{id, name, image, threshold_ore, distance_metres}` or null. App: Under kaien FRAKT card (#15) |
+| behaviour | `ops.customer.categories.pulse` `stores_open` | now «open now» (`StoreOpenNow`: service on + approved, not paused, opening hours open) — was «not paused». App: the wheel/category «N åpne nå» fallback (the `kBergenLive` placeholders are gone) |
+| table | `category_launch`, `category_launch_waitlist` | `App\Models\Catalog\CategoryLaunch`; the migration inserts the prototype's four (mat_fisk, mote, interior, gaver) into an empty table; `Step08LaunchCategoriesSeeder` resets them locally |
+| routes | `catalog.launch_categories` `GET /api/catalog/launch-categories`; `catalog.launch_categories.notify` / `.unnotify` `POST\|DELETE …/{id}/notify` | list public (`id, key, slot, state, title, description, aegil_quote, target_count, ready_count` (active stores counted), `notify` with the house login); notify needs the login (401). App: «Kommer snart» sheet and «Varsle meg» from the server, prefs list removed (`UI-TEMP` #16 removed) |
+| app | Hjem | #4 Tilbud row hidden without discounts; #5 / #14 / #15 Under kaien shows only real finds («Ingen funn i kveld» when none); #6 / #13 Vindu «Bestill igjen» = the customer's last two shops (`ops.customer.orders`), one tap refills the basket (`bestill_igjen.dart`, shared with Ordrehistorikk) |
+
+**Step 9 — Feed backend (Aerend-Feed + the Laravel bridge)**
+
+| Kind | Name | Notes |
+|---|---|---|
+| route | `ops.feed.events.internal` `POST /api/internal/feed/events` | the contract's documented path; same HMAC handler as `POST /api/ops/feed/events`. The feed's `FEED_EVENTS_WEBHOOK_PATH` default is now `/api/ops/feed/events` |
+| route | `ops.feed.health.internal` `GET /api/internal/feed-health` | `require_service_token` (the feed's `LARAVEL_INTERNAL_TOKEN`); the feed's `/ready` probe. `/ready` now says `unauthorized` on a token mismatch and shows `outbox_pending` |
+| routes | `feed.internal.product` `GET /api/internal/feed-products/{productId}`; `feed.internal.coverage` `GET /api/internal/feed-coverage?lat=&lng=` | service token. Product `{id, store_id, name, price_ore (sale-aware), was_price_ore, available}`, 404 `product_not_found`; coverage `{cell, covered, store_ids[]}` from `CoverageService::lookup(…, recordUnmet: false)` |
+| behaviour | `POST /api/ops/feed/stores/{storeId}/eligibility` | admin session or service token **in every `ops.auth.enforce` mode** (401 otherwise); no app calls it |
+| behaviour | eligibility = one source | `FeedBridge::setEligibility` also queues `feed.admin.store_eligibility` in `ops_feed_outbox` → `PUT {OPS_FEED_BASE_URL}/internal/admin/stores/{id}/eligibility {enabled, reason, changed_by, changed_at}` (service token); the feed keeps the newest `changed_at`. `ops:feed-eligibility-sync` queues every row (run once when the bridge is switched on) |
+| behaviour | `order.delivered` → feed | queued in `ops_feed_outbox` when `source_post_id` is set; `store-place-order` accepts `source_post_id` (`"42"` / `"p_42"`, anything else ignored) → `ops_source_post_id` |
+| event | `feed.post.flagged` v1 | feed → monolith on a customer report (`EVENT_CONTRACT.md` "v1 additions — 2026-10-08"); kept in `ops_feed_inbox` for the moderation queue (Step 13) |
+| env | `OPS_FEED_BASE_URL`, `OPS_FEED_EVENTS_PATH`, `OPS_FEED_WEBHOOK_SECRET`, `OPS_FEED_SERVICE_TOKEN`, `OPS_FEED_TIMEOUT` | now in `.env.example`; the secret equals the feed's `FEED_WEBHOOK_SECRET`, the service token the feed's `LARAVEL_INTERNAL_TOKEN` |
+| feed routes | `POST /v1/store/posts` | + optional `store_product_id` (must be the store's own, available; price taken from the monolith), `post_type` (`generic`, `tilbud`, `ny_i_hyllene`, `nytt_i_hyllene`, `dagens_rett`, `apent_sent`; `tilbud` needs a product), `category`, `headline`, `expires_at` (≤ 30 days), `bydel`. Today's caption + media body is unchanged |
+| feed routes | `GET /v1/store/posts` | items + `status` (`live\|hidden\|removed`), `hidden_reason`, `post_type`, `headline`, `store_product_id`, `price_ore`, `expires_at`, `attributed_order_count`; hidden and Ærend-removed posts included |
+| feed routes | `POST /v1/posts/:id/report {reason: spam\|misleading\|offensive\|wrong_price\|other, note?}` | customer; 201 first, 200 `already_reported` after; table `feed_reports` (one per customer per post) |
+| feed routes | `GET /v1/feed/unread?tab=&lat=&lng=` → `{unread (≤ 99), capped, seen_at}`; `POST /v1/feed/seen {tab}` | customer; table `feed_seen`; never seen = the last 72 h |
+| feed routes | `GET /v1/feed/notice` → `{notice: {post_id, note, caption, pinned_until, published_at}\|null}` | the newest pinned `drift` post. `feed_posts.pinned_until` (composer `pinned_until`, drift only); a pinned drift post leads page 1 of I nærheten. App: `OpsCustomerApi.driftNotice()` without a store reads it |
+| feed routes | `GET\|PUT\|DELETE /v1/me/aerend-follow` → `{following}` | opt-in push when Ærend publishes (table `feed_aerend_follows`); drift notices are not pushed |
+| feed env | `FEED_NAERHETEN_DELIVERABLE` (false) | on: I nærheten (and its unread count) with the app's `lat`/`lng` = coverage stores + Ærend posts + followed stores, last 72 h; coverage cached 10 min per ~100 m |
+| feed | `feed_outbox` + `event_id`, `next_attempt_at`, `last_error`, `failed_at` | every outbound event is written first, sent at once, retried by the minute sweep (`POST /internal/admin/schedule-sweep` now also answers `outbox{sent, failed, pending}`); 8 attempts |
+| feed push | Norwegian templates; `feed_aerend_post` job | sent as `feed_new_post` with `publisher_type: aerend` |
+| dart | `FeedRepo.fetchUnread / markSeen / fetchNotice / reportPost / fetchAerendFollow / setAerendFollow`, `feedAddressLatLng()`, `FeedAttribution` | Utforsk badge from the server (`a1_utforsk_feed_seen_at` pref gone); a feed card's «Legg til» remembers its post per store for 24 h and `store-place-order` sends it; `reportFeedPost` (legacy kebab). Follow-up (2026-10-08): Konto switch «Nytt fra Ærend» (`konto-aerend`, opt-in, `KontoScreen(feedRepo:)`); a flag beside share on the Bergen card (`a1_feed_report_{id}`, `FeedPostCard.onReport`) and in post detail's app bar (`post-detail-report`) open the reason sheet; `UI-TEMP` #26 and #27 removed |
+| dart | `CustomerPrefs.doorProfileConsent`, `PointsAppRepo.updatePrefs(doorProfileConsent:)` | Meg row «Husk døra mi» (`meg-rad-dora`) under «Krev alltid kode» posts `points/me/prefs door_profile_consent=0\|1`; off until the customer turns it on (`UI-TEMP` #25 removed, Step 9 follow-up) |
+| feed env | `FEED_NAERHETEN_DELIVERABLE=false` | user decision 2026-10-08: off; also in the feed's `.env.local.example` and `do-app-platform.yaml` (with `FEED_EVENTS_WEBHOOK_PATH=/api/ops/feed/events`) |
+
+**Step 10 — Commercial admin shell and theme** (admin panel only; no API change)
+
+| Kind | Name | Notes |
+|---|---|---|
+| class | `App\Admin\CommercialNav` | the sidebar from the prototype's `NAV_COMMERCIAL` (19 items, order, labels, icons, active aliases), filtered by the `admin_module` permissions the `adminRole` middleware resolved; design screens not built yet are muted with «snart» (not links); «Drift og agenter» (Drift, Agentsenter, Poeng & Ægil) and «Mer» (legacy entries). `ASSET_VERSION` is the one CSS version string |
+| css | `public/assets/css/aerend-commercial.css` | the `.adm--com` theme (teal, sand, mint, orange CTA, Plus Jakarta Sans) and the prototype's component classes, every selector scoped to `.adm-app.adm--com` / `body.adm-body--com`; `dugnad-shell.css` is not edited |
+| blade | `admin.partials.aerend_modeswitch` | Dugnad ↔ Kommersiell on `get:admin:panel_switch` (roles 1, 4) |
+| blade | `<x-adm.*>` (`resources/views/components/adm/`) | `kpi`, `page-head`, `crumbs`, `tabs`, `badge`, `table`, `tabletop`, `modal`, `mode-note`, `nav-card`, `toggle`, `field`, `empty`, `banner`, `def-row`, `list-row`, `avatar` |
+| shell | `@section('crumbs')`; `$admInlineFlash` | multi-level crumbs; a page that shows its own flash banner shares `admInlineFlash` and the shell skips its toast |
+
+**Step 11 — Admin · Oversikt, Ordrer, Kunder** (admin panel only; no API change)
+
+«Commercial» means a marketplace order: `user_store_product_booking.campaign_id IS NULL`. Dugnad campaign orders are never counted or listed on these screens.
+
+| Kind | Name | Notes |
+|---|---|---|
+| class | `App\Services\Ops\AdminOverviewReadModel` | `overview(now, areaId)` → `kpis` (active orders = `placed` + in-flight ops states; couriers online = distinct ids on an open `ops_courier_shifts` shift or seen in `geo_courier_presence` in 15 min, over the courier list's total; partners open = `StoreOpenNow::openStoreIds()` over active non-club stores; revenue today = paid, not cancelled `total_pay`, delta vs the same weekday last week **up to the same time of day**) and `cards` (feed reports = `feed.post.flagged` in `ops_feed_inbox` last 7 days, outbox, active zones, proposed geo proposals, open/queued support conversations, open customer cases, exceptions, pending payouts, `moderation_waiting` = held + reported feed posts from the feed's `/internal/admin/overview`, cached 60 s, 0 without a configured feed — Step 13). Reads `PanelReadModel::now()`; never calls the feed, Stripe or Vipps |
+| class | `App\Services\Ops\CommercialOrdersReadModel` | tabs `alle` / `aktive` / `venter` / `levert`; a row has code, customer, partner, courier, zone (delivery cell's zone, else the store's), stage label + tone, the case (latest customer case on the order: `Åpen` / `Gjenåpnet` / `Lukket` + kind) and a refund (legacy `user_refund_status = 1`). No `ops_state`: the legacy `status` decides (9 delivered; 3, 4 cancelled; 10 payment failed; else waiting) |
+| class | `App\Services\Ops\CustomerReadModel` | list (orders, paid spend, zone, usual payment, «Kunde siden») and detail (KPIs, info, purchase history, payment methods, activity log) from `users`, orders, `card_details` (last four only; number and CVV never leave the class), `user_wallet_transaction` (`wallet_provider_type` 0 only), `pts_balances`, cases and support. Contact details go through `User::Email2Stars` / `ContactNumber2Stars` |
+| class | `App\Http\Controllers\Admin\CommercialAdminController` | `overview`, `orders`, `customers` (`?fane=` kunder, katalog, gebyr, kampanjer, betaling), `customer` (`?fane=` oversikt, kjop, betaling, logg). Outside the commercial shell it redirects to the legacy page; it checks `CommercialNav::allows()` (the same `admin_module` grant as the sidebar); role 4 sees its own area |
+| route | `get:admin:dashboard` | commercial shell → the commercial Oversikt; otherwise the legacy dashboard, unchanged |
+| route | `get:admin:dashboard_legacy` `GET /admin/dashboard/klassisk` | the legacy dashboard, first entry under «Mer» («Klassisk oversikt») |
+| route | `get:admin:commercial_orders` `GET /admin/ordrer` | «Kommersielle ordrer» (`?fane=`, `?q=`, `?side=`) |
+| route | `get:admin:commercial_order` `GET /admin/ordrer/{code}` | the existing `ops/ordre` timeline (`OpsAdminController@order`), restyled, with crumbs «Ordrer › code»; `get:admin:ops_order` (`/admin/drift/ordre?code=`) is unchanged |
+| route | `get:admin:customers` `GET /admin/kunder`; `get:admin:customer` `GET /admin/kunder/{id}` | «Kunde-styring» and a customer. The legacy `get:admin:user_list` stays under «Mer» |
+| method | `CommercialNav::allows(Request, itemId)` | the sidebar's permission rule for a design item, for screens with no `admin_module` row of their own |
+| blade | `<x-adm.pager>` | «Side x av y» with previous/next, keeping the other query values |
+| class | `App\Admin\FormReturn` | (Step 11 follow-up) an existing form opened from a commercial screen carries hidden `adm_return` (the page it came from); promo, product and customer saves return there. Only same-host `/admin/` paths, only in the commercial shell; otherwise the legacy redirect |
+| css / blade | `.adm-legacy`; `admin.partials.adm_form_head`, `adm_form_return` | (Step 11 follow-up) existing create/edit forms re-dressed in the commercial theme (crumbs, page head, cards, inputs, buttons) with markup, field names and scripts unchanged: product add/edit, promo add/edit, delivery-charge bands, Innstillinger, customer edit. Outside the commercial shell they look as before |
+
+Edits stay on the existing flows: «Ny vare» → `get:admin:add_store_product`, «Ny kampanje» → `get:admin:store:add_promocode`, promo on/off → `get:admin:store:promocode_change_status`, distance bands → `get:admin:store_delivery_charges`, payment settings → `get:admin:general_setting`. «Betaling» reads whether Stripe and Vipps keys are set, never their values.
+
+**Step 12 — Admin · Partnere, Kategorier, Tilbud og fremheving** (`UI-TEMP` #15, #17, #20–22)
+
+| Kind | Name | Notes |
+|---|---|---|
+| table | `store_surface_order` (`surface` home \| wheel \| list, `store_id`, `position`) | the admin's store order per customer-app surface; a surface without rows keeps today's order |
+| api | `POST /api/customer/delivery/store-list` + optional `surface` | default `list`; the admin order applies after the existing filters, **open stores still before closed**, unpositioned stores keep their distance order. App: Hjem rail sends `home`, a Kategori page sends `wheel` |
+| table | `store_policy_overrides` (`store_id`, `key`, `value` json, `reason`, `changed_by_*`) | `PolicyService::forStore($key, $storeId)` / `setForStore(…, $reason)` (reason required, audited `ops.policy.store_override`). Settlement and the payment-sorting agent use the partner's `money.store_commission_bps` |
+| column | `store_product_details.sync_locked` | «Lås mot sync». `DraftApprovalService`: a draft whose EAN matches a product the store already sells re-syncs that product (price, description) instead of adding a duplicate; a locked product is left untouched (draft reason «Låst mot sync») |
+| tables | `featured_offers` (kind `offer` \| `free_delivery`, eyebrow, title, sub, badge, was/now øre, store or all, banner, grad, window, active, sort); `swipe_deals` (store product, offer øre, tag, blurb, window); `home_sections` (kind featured \| swipe \| stores, title, store_ids, active, sort; seeded with today's two) | «Tilbud og fremheving» |
+| api | `GET /api/catalog/home` (`catalog.home`, public) | `{featured[], free_delivery?, swipe[], sections[]}` — live offers only (active and inside their window); stores carry `id, name, banner_url, logo_url, address, eta_minutes, open` |
+| api | `POST …/delivery/hare-swipe` | curated `swipe_deals` first at their offer price (`amount`, `original_amount`, `discount_amount`, `discount_percent` always numeric; extra `deal_id`, `deal_tag`, `deal_blurb`), then the automatic ≥ 20 % discounts; a product is listed once |
+| tables | `personal_offers` (user, store or all, kind pct \| kr, value, valid_until, single_use, revealed_at, redeemed_at, batch_id); `personal_offer_batches` | issued by rule (one per customer; audience `active_30d` \| `all`) |
+| api | `GET /api/offers/mine`, `POST /api/offers/{id}/reveal` (`offers.mine`, `offers.reveal`, house login) | a mystery offer hides `title`, `value_label`, `store` until revealed; `redeemable_at_checkout: false` — **redemption is Step 15 (🔒)** |
+| table | `category_showcases` (`category_key` = `category_launch.key` or a service-category slug, `week_start`, title, subtitle, `items` [{product_id, quote, who}], gift_wrap, occasions, active) | «Ukens utstilling» |
+| api | `GET /api/catalog/showcase?category=` (`catalog.showcase`, public) | the latest active showcase whose week has started; items resolved to live products (`price_ore`, `image_url`, `store{id,name,eta_minutes,rating}`), unpublished ones left out; `showcase: null` when none |
+| routes | `get:admin:partners` `/admin/partnere` (+ `post:admin:partners_reorder`, `…_default_commission`, `…_product_availability`, `…_product_lock`), `get:admin:partner` `/admin/partnere/{id}` (+ `post:admin:partner_commission`), `get:admin:import_review` `/admin/import` (+ `post:admin:import_decide`, `post:admin:import_bulk`), `get:admin:categories` `/admin/kategorier` (+ reorder, toggle, rename, launch, `get:admin:category` store picker, showcase editor), `get:admin:offers` `/admin/tilbud` (+ featured editor, swipe add, sections save, personal issue, toggle/remove) | commercial shell, `CommercialNav::allows` with the existing modules (`provider_list`, `agentops`, `ordering_service_category_list`, `home_page_feature_store_list`) |
+| dart | `OpsCustomerApi.catalogHome()`, `.showcase(key)`, `.myOffers()`, `.revealOffer(id)`; `BergenStoreRepo.fetch(id, surface:)` | `HjemPersonlig`, `KatUtstilling` / `KatUtstillingVare` (`fraJson`) |
+| app | `UI-TEMP` #15, #17, #20–22 removed | Hjem «Ærend-tilbud»: the admin's hero offers first, then the swipe discounts; the mystery coupon only when `offers/mine` has one, «Avslør» reveals on the server. FRAKT: the `free_delivery` campaign, else the nearest store's own threshold («Åpen nå»). Gaver / Mote «Ukens utstilling» from `catalog/showcase` (shops, quotes, occasions, gift wrap); taps open the shop; no showcase → Gaver says so, Mote shows none |
+
+**Step 13 — Admin · Ærend Feed, Moderering, Push-varsler**
+
+| Kind | Name | Notes |
+|---|---|---|
+| feed table | `feed_moderation_log` (`subject_type` post \| comment \| user \| store \| settings, `subject_id`, `action`, `reason`, `actor_id`, `meta`) | every moderation decision, kept (migration `0003_step13_moderation`) |
+| feed tables | `feed_settings` (`key`, `enabled`); `feed_user_mutes` (`user_id`, `reason`, `muted_until` null = until lifted); `feed_store_review` (`store_id`, `review_required`, `reason`) | no `feed_settings` row = the default, i.e. today's behaviour |
+| feed columns | `feed_posts.featured_until`; `feed_reports.comment_id`, `resolution`, `resolved_by`, `resolved_at` | post statuses gain `pending_review` and `rejected` (both unreadable). Unique report per (post, reporter) where `comment_id` is null and per (comment, reporter) otherwise |
+| feed api (service token, `X-Ops-Actor-Id`) | `GET /internal/admin/overview` (+ `settings`, `cloudinary_cloud_name`); `GET/PATCH /internal/admin/posts/:id`; `POST …/posts/:id/{feature,unfeature,approve,reject,reports/keep}`; `GET /internal/admin/reports`; `POST /internal/admin/comments/:id/{delete,reports/keep}`; `GET /internal/admin/mutes`; `POST /internal/admin/users/:id/{mute,unmute}`; `GET/PUT /internal/admin/settings`; `GET /internal/admin/stores`; `PUT /internal/admin/stores/:id/review`; `GET /internal/admin/log`; `POST /internal/admin/uploads/sign` | `GET /internal/admin/posts` rows gain `caption`, `media`, `like_count`, `comment_count`, `open_report_count`, `featured_until`, `pinned_until`, `created_by`, `created_at`, filter `reported=1`. `POST /internal/admin/posts` takes `media` (image only). Hide/remove close the post's open reports. Reasons are required for hide, remove, reject, comment delete, mute and a review hold (422 `reason_required`) |
+| feed api (customer) | `POST /v1/comments/:id/report` `{reason, note?}`; `GET /v1/feed/config` → `{stories, comments, explore, like_counts, sharing}` | server-enforced switches: `comments` (403 `comments_disabled`), `stories` (`/v1/stories` empty), `explore` (`/v1/feed/explore` empty), `require_approval` (store posts publish `pending_review`). A muted customer gets 403 `user_muted` on comment. A featured post leads I nærheten after a pinned drift notice (`featured_until` on tab items) |
+| feed api | `GET /v1/posts/:id` and comments for an Ærend post with no shop | `store: {id: "", name: "Ærend", …}` plus `publisher` and `headline` (the Step 9 gap) |
+| class | `App\Services\Ops\FeedAdminApi` | the panel's client for the above; never throws (`ok: false` + Norwegian message); `ready()` = `OPS_FEED_BASE_URL` and `OPS_FEED_SERVICE_TOKEN` set |
+| routes | `get:admin:feed` `/admin/feed` (`?fane=` butikker, aerend, profiler, moderering, funksjoner; `?status=`, `?q=`), `get:admin:feed_post_new` / `get:admin:feed_post` `/admin/feed/innlegg/ny\|{id}` (+ save, `post:admin:feed_upload_sign`, post/comment actions, mute/unmute, `post:admin:feed_settings`, `post:admin:feed_store`), `get:admin:moderation` `/admin/moderering` (`?vis=` ko, holdt, rapportert, avvist, alle; `?innlegg=`) + `post:admin:moderation_decide` (approve \| reject \| keep \| hide), `get:admin:push` `/admin/push` (+ `post:admin:push_send`, `post:admin:push_test`, `post:admin:push_guard`, `post:admin:push_cancel`) | commercial shell; feed and moderation under the `ops_feed` module, push under `push_notification`. Publishing access per store stays Laravel's `ops_store_feed_eligibility` (Step 9) through `FeedBridge::setEligibility`. The picture is uploaded by the browser straight to Cloudinary with the feed's signature |
+| tables | `push_campaigns` (title 65, body 140, image, `target` home \| offers \| swipe \| category \| store \| cart \| orders \| profile + `target_ref`/`target_name`, `audience` all \| zone \| vip \| new \| waitlist + ref/label, `status` scheduled \| sending \| sent \| cancelled, counts `recipients`/`delivered`/`failed`/`held`/`opened`, `source` admin \| launch); `push_campaign_recipients` (`campaign_id`, `user_id` unique, `state` queued \| sent \| failed \| held, `opened_at`) | audiences: device token and not deleted; zone = newest saved address's geo zone; VIP = `pts_balances.tier ≥ 2`; new = signed up ≤ 30 days |
+| class | `App\Services\Ops\PushCampaignService`, `App\Services\Ops\PushAudienceService` | sends through the ops `PushTransport` (`log` unless `OPS_PUSH_DRIVER=fcm`), 500 recipients per batch |
+| policy | `push.allowlist_only`, `push.allowlist_user_ids` (owner `App\Ops\PushPolicyKeys`, not seeded) | default **on outside production**, decided where it is read; on → only the allowlisted customers get the push, the rest are `held`. Changed on «Testmodus» with a reason |
+| console | `ops:push-campaigns` (every minute, `withoutOverlapping`) | starts due campaigns, sends the next batch |
+| api | `POST /api/ops/customer/push/{campaignId}/opened` (`ops.customer.push_opened`, house login) | `{counted}`: once per recipient that was sent the push |
+| push payload | `type`/`kind` = `aerend_push`, `campaign_id`, `target`, `target_ref`, `target_name`, `target_slug`, `deep_link` (`aerend://home`, `aerend://store/{id}`, `aerend://category/{slug}`, …), `image` | the test send carries `campaign_id` 0 |
+| hook | Step 8 launch | `CategoryAdminController::launch` going live → `PushCampaignService::forCategoryLaunch`: the waitlist (not yet notified) gets one push to the category, `notified_at` set; once per launch |
+| dart | `PushDeepLink` (payload → route; holds a cold-start route until the shell is up), `OpsCustomerApi.pushOpened(id)`, `FeedRepo.fetchConfig()` / `.reportComment()`, `FeedConfig` | campaign and `aerend://` ops pushes route before the chat branch; the open ping fires before the login gate |
+| app | Bergen Utforsk + post detail | `like_counts` / `sharing` / `comments` switches; «Rapporter kommentar» on someone else's comment; an Ærend post with no shop opens without a store link |
+
+**Step 14 — Admin · Kurérer, Support, Økonomi, Leveringspriser, Team, Innstillinger, Områder**
+
+| Kind | Name | Notes |
+|---|---|---|
+| routes | `get:admin:couriers` `/admin/kurerer` (`?fane=` kurerer, dispatch, inntjening, ytelse; `?vis=`), `get:admin:courier` `/admin/kurerer/{id}` (`providers.id`; 8 tabs) + `post:admin:couriers_dispatch`, `…_auto_assign`, `post:admin:courier_delete` (soft, reason), `post:admin:courier_document` | Kurér-styring. Deliveries cover both id spaces (ops runs by `providers.id`, legacy `delivery_people_id` = `transport_driver_details.id`). «Inviter kurér» (BankID/Idura) and Stripe Connect are «Kommer» |
+| policy | `dispatch.offer_radius_m` (`PolicyKeys`, default 5000) | `OpsCandidateSource` drops couriers whose last free ping is farther from the store; stores without coordinates are not filtered |
+| routes | `get:admin:support` `/admin/support` (`?fane=` samtaler, saker, kunnskapsbase, kvalitet; `?samtale=`, `?sak=`) + take-over, reply, hand-back, close, note, case decide, KB create / update / unpublish, gap approve / reject, canned replies, assistant switch | Support module. Cases are decided with non-money resolutions (`CustomerCaseService::decide`); refunds, Agent F, ledger, adjustments and Kopilot are «Kommer». In the commercial shell the Step 5 inbox redirects here |
+| tables | `support_notes` (internal only), `support_kb_articles` (versioned, `kunde` \| `intern`, `utkast` \| `publisert`), `support_kb_gaps`, `support_canned_replies`; `support_conversations.csat_score`, `rated_at` | the assistant cites published `kunde` articles before its fallback and logs a gap when nothing matches |
+| api | `POST /api/support/conversations/{id}/rating` `{score 1–5}` (`support.conversations.rating`) | owner only, after close, once; 422 `CONVERSATION_OPEN` / `ALREADY_RATED`. Every conversation payload carries `can_rate`, `csat_score` |
+| policy | `support.assistant_enabled` (`SupportPolicyKeys`, default true) | off: new conversations queue straight to a person |
+| routes | `get:admin:finance` `/admin/oppgjor` (`?vis=` partner, kurer) + `get:admin:finance_export` (CSV), `post:admin:finance_partner_paid` / `…_update`, `post:admin:finance_courier_paid` / `…_adjust` | Provisjon & oppgjør. «Marker utbetalt (manuelt)» needs a reference and moves no money (`MoneyEngine::markPaid($p, 'manual', $ref)` for couriers). Account numbers masked (last 4). «Utbetal alle» is «Kommer» (Step 15) |
+| table | `partner_settlement_payouts` (store, weekly period, gross / commission / fee / net øre, `pending` \| `paid_manual`, reference) | materialised from `SettlementService`; paid rows are frozen |
+| routes | `get:admin:delivery_pricing` / `post:admin:delivery_pricing` `/admin/leveringspriser` | tier editor; legacy delivery-cost / driver-salary pages are «Gammelt oppsett» |
+| table | `delivery_tiers` (`from_km`, `to_km`, `customer_ore`, `courier_ore`, `active`, `source_delivery_cost_id`) | seeded from `delivery_cost` 1–13; saving writes the linked `delivery_cost.fee` (read- and write-through), so checkout prices stay the same while the flag is off |
+| flag | `pricing.tiers_v2` (default **off**) | on: `checkDeliveryCharge` uses the tiers + `pricing.base_fee_ore`, free over `pricing.free_over_ore` (place-order and preview pass the subtotal). `courier_ore` is planning only; MoneyEngine pay is unchanged |
+| routes | `get:admin:team` `/admin/team`, `get:admin:my_account` `/admin/min-konto` (+ `post:admin:my_account_profile`), `get:admin:settings_support` / `post:admin:settings_support` `/admin/innstillinger/kundeservice` | Team & tilgang over the legacy sub- / city-admin forms (restyled, return here; roles 1–3 can't be edited or deleted there). Min konto: profile, password (min 12), role, logout; 2FA and notification preferences «Kommer». Innstillinger edits the five `support.*` policies with a reason; secrets are no longer printed in the settings form |
+| routes | `get:admin:geo` (restyled, 9 tabs: oversikt, kart, forslag, butikker, bud, demand, packs, kontroll, maler), `get:admin:geo_legacy` `/admin/omrader/gammelt` (read-only) + `post:admin:geo_paint`, `…_zone_pause` / `…_zone_resume` / `…_zone_rules`, `…_place`, `…_agent_pin`, `…_courier_approve` / `…_courier_optout`, `…_agent`, `…_template` | cell picker on the Leaflet map (geohash_7) with a required reason; manual placement and «Bruk agentens pin»; courier qualification. «Opprett region» and proposal cell edits are «Kommer» |
+| columns, table | `geo_zones.pause_until`, `pause_message`; `geo_message_templates` | pause with a message (optional notice to partners and couriers); `geo:prune-presence` resumes due zones |
+| api | `GET /api/geo/coverage` → `paused: {zone_id, zone_name, until, message} \| null` | set when the cell is in a paused zone (`covered: false`) |
+| dart | `OpsCustomerApi.rateConversation(id, score)`; `SupportSamtale.kanVurdere` / `vurdering` | 1-tap «Hvordan var hjelpen?» rating in the Bergen support chat when a conversation is closed and `can_rate` |
+
+**Step 16 — final pass** (no new names)
+
+- The registry `tests/fixtures/contract/names.backend.json` holds 254 entries. By kind:
+
+  | route | class | policy | table | env | column | console | flag | event |
+  |---|---|---|---|---|---|---|---|---|
+  | 121 | 59 | 21 | 20 | 13 | 13 | 4 | 2 | 1 |
+
+  `ContractNamesTest` is at its 24 pre-existing failures: the agil-3 dart routes, which go green on merge day.
+- Remaining placeholders:
+  - **App:** `UI-TEMP` #8, tipping (🔒 Step 15), is the only marker left.
+  - **Panel:** 39 `ADMIN-TEMP` markers, each tied to a blocker: 🔒 Step 15 money / Agent F, Idura, model host, payout rails, region service, or a design decision. The list is in the Step 16 report (backend plan §8).
+- Feed service names (Aerend-Feed migrations `0001`–`0003`) are listed in the backend plan's Step 16 report. They are not in this Laravel registry.
+
+Credentials each ops caller sends (no new login): customer `user_id` + `access_token`;
+store `store_id` + the store login's `access_token` (or `Authorization: Bearer`);
+courier `courier_id` + the driver login's `access_token`; admin panel session
+(+ `X-CSRF-TOKEN` on writes); service `X-Service-Token`.
 
 ---
 

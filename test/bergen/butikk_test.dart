@@ -47,11 +47,17 @@ class _FakeButikk extends OpsButikkApi {
 }
 
 class _FakeCustomer extends OpsCustomerApi {
-  _FakeCustomer({this.pulse, this.populaerListe = const []});
+  _FakeCustomer({this.pulse, this.populaerListe = const [], this.utstillinger = const {}});
 
   final Map<String, dynamic>? pulse;
   final Map<String, dynamic>? presence = null;
   final List<Map<String, dynamic>> populaerListe;
+
+  /// `catalog/showcase` per key (Step 12).
+  final Map<String, Map<String, dynamic>> utstillinger;
+
+  @override
+  Future<Map<String, dynamic>?> showcase(String category) async => utstillinger[category];
 
   @override
   Future<List<Map<String, dynamic>>> populaert(int categoryId) async => populaerListe;
@@ -332,14 +338,36 @@ void main() {
       expect(find.byKey(const Key('a1_kat_bilde')), findsOneWidget);
     });
 
+    // Step 12 (#20–22): «Ukens utstilling» from the admin's showcase.
+    Map<String, dynamic> utstilling(String tittel, List<(int, String, int, String, String?)> varer, {List<String> anledninger = const []}) => {
+      'title': tittel,
+      'subtitle': null,
+      'gift_wrap': true,
+      'occasions': anledninger,
+      'store_count': varer.map((v) => v.$4).toSet().length,
+      'items': [
+        for (final v in varer)
+          {'product_id': v.$1, 'name': v.$2, 'price_ore': v.$3 * 100, 'image_url': '', 'store': {'id': v.$1 + 100, 'name': v.$4}, 'quote': v.$5, 'who': 'Ida'},
+      ],
+    };
+
     testWidgets('Gaver has its own page, Mote its exhibition', (tester) async {
+      final kunde = _FakeCustomer(utstillinger: {
+        'gaver': utstilling('Ukens utstilling · Gaver', [(1, 'Rosebukett', 449, 'Blomsterhjørnet', 'Ferske i dag'), (2, 'Fyllepenn', 590, 'Papirbutikken', null)], anledninger: ['Bursdag', 'Takk']),
+        'mote': utstilling('Ukens utstilling · Mote', [(3, 'Hettejakke «Ives»', 2499, 'Torgboden Mote', 'Den jeg tar på hver regndag')]),
+      });
       await vis(
         tester,
-        KategoriScreen(slug: 'gaver', categoryId: 5, name: 'Gaver', api: _FakeButikk(), customerApi: _FakeCustomer()),
+        KategoriScreen(slug: 'gaver', categoryId: 5, name: 'Gaver', api: _FakeButikk(), customerApi: kunde),
       );
+      await tester.pump();
       expect(find.byKey(const Key('a1_kat_gaver')), findsOneWidget);
       expect(find.byKey(const Key('a1_kat_gave_aegil')), findsOneWidget);
       expect(find.byKey(const Key('a1_kat_bilde')), findsNothing);
+      expect(find.text('Ukens utstilling · Gaver'), findsOneWidget);
+      expect(find.text('Bursdag'), findsOneWidget, reason: 'occasions from the showcase');
+      expect(find.text('Blomsterhjørnet'), findsWidgets, reason: 'the shops in the showcase, not invented ones');
+      expect(find.text('Gavehuset'), findsNothing);
 
       await vis(
         tester,
@@ -349,11 +377,27 @@ void main() {
           categoryId: 6,
           name: 'Mote',
           api: _FakeButikk(stores: [_store('Holzweiler')]),
-          customerApi: _FakeCustomer(),
+          customerApi: kunde,
         ),
       );
+      await tester.pump();
       expect(find.byKey(const Key('a1_kat_mote')), findsOneWidget);
       expect(find.text('Ukens utstilling · Mote'), findsOneWidget);
+      expect(find.text('Hettejakke «Ives»'), findsWidgets);
+    });
+
+    testWidgets('Without a showcase this week, Gaver says so and Mote shows none', (tester) async {
+      await vis(tester, KategoriScreen(slug: 'gaver', categoryId: 5, name: 'Gaver', api: _FakeButikk(), customerApi: _FakeCustomer()));
+      await tester.pump();
+      expect(find.byKey(const Key('a1_kat_gaver_tom')), findsOneWidget);
+      expect(find.text('Anledninger'), findsNothing);
+
+      await vis(
+        tester,
+        KategoriScreen(key: const ValueKey('mote2'), slug: 'mote', categoryId: 6, name: 'Mote', api: _FakeButikk(stores: [_store('Holzweiler')]), customerApi: _FakeCustomer()),
+      );
+      await tester.pump();
+      expect(find.byKey(const Key('a1_kat_mote')), findsNothing);
     });
 
     testWidgets('Kategori respects reduced motion', (tester) async {

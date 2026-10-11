@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 
 import '../aegil/aegil_guide.dart';
@@ -7,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
+import '../../../data/points/points_rules.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_home.dart';
@@ -200,6 +203,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
     _name = widget.name ?? args['name'];
     _produkter = args['fane'] == 'produkter';
     _load();
+    _lastRegler();
     WidgetsBinding.instance.addPostFrameCallback((_) => _maal());
     if (kDebugMode && HjemHarness.katScroll != null) {
       Future.delayed(const Duration(milliseconds: 2500), () {
@@ -217,6 +221,17 @@ class _KategoriScreenState extends State<KategoriScreen> {
     _sokTekst.dispose();
     _sokFokus.dispose();
     super.dispose();
+  }
+
+  /// `GET /api/points/rules` (backend plan Step 3): the product coins.
+  PointsRules? _regler;
+
+  /// Store id → `{viewers_now, typical_order_ore}` (backend plan Step 8).
+  Map<int, Map<String, dynamic>> _presence = const {};
+
+  Future<void> _lastRegler() async {
+    final r = await _customer.rules();
+    if (mounted && r != null) setState(() => _regler = r);
   }
 
   Future<void> _load() async {
@@ -239,6 +254,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
       final stores = await _api.storesInCategory(id);
       if (!mounted) return;
       setState(() => _stores = stores);
+      // «N nå» and each shop's typical order in one call (backend plan Step 8).
+      unawaited(_customer.storesPresence([for (final s in stores) if (s.storeId != null) s.storeId!]).then((m) {
+        if (mounted && m.isNotEmpty) setState(() => _presence = m);
+      }));
       final p = await products;
       if (!mounted) return;
       setState(() => _products = p);
@@ -345,8 +364,18 @@ class _KategoriScreenState extends State<KategoriScreen> {
     return v > 0 ? '★ ${v.toStringAsFixed(1).replaceAll('.', ',')}' : null;
   }
 
+  int? _live(int? storeId) {
+    final n = (_presence[storeId]?['viewers_now'] as num?)?.toInt() ?? 0;
+    return n > 0 ? n : null;
+  }
+
+  int? _butikkPoeng(int? storeId) {
+    final ore = (_presence[storeId]?['typical_order_ore'] as num?)?.toInt();
+    final n = ore == null ? 0 : (_regler?.pointsForOre(ore) ?? 0);
+    return n > 0 ? n : null;
+  }
+
   KatButikkVis _butikkVis(StoreListItem s, int n, int? populaerId) {
-    final k = _slot;
     final sub = (s.description ?? '').trim().isNotEmpty
         ? s.description!.trim()
         : (s.storeProducts ?? '');
@@ -361,11 +390,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
           ? KatCopy.minutter(s.orderDeliveryTime!)
           : null,
       midt: _rating(s.averageRatings),
-      // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-      // (How many are ordering from the shop right now, and the points an
-      // order earns there — the prototype's own numbers.)
-      live: 1 + ((n * 3 + k) % 4),
-      poeng: (6 + ((n * 7 + k * 3) % 11)) * 5,
+      // How many are following an order from the shop right now, and what a
+      // typical order there earns (backend plan Step 8). Hidden without data.
+      live: _live(s.storeId),
+      poeng: _butikkPoeng(s.storeId),
       tag: s.storeId != null && s.storeId == populaerId ? KatCopy.populaer : null,
     );
   }
@@ -391,9 +419,12 @@ class _KategoriScreenState extends State<KategoriScreen> {
       eta: (store?.orderDeliveryTime ?? 0) > 0
           ? KatCopy.minutter(store!.orderDeliveryTime!)
           : null,
-      // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-      // (Ærend-kroner for the product: the prototype's 5 %.)
-      kroner: math.max(3, (ore / 100 * .05).round()),
+      // Ærend-kroner for the product: what KjopRule pays for its price
+      // (`points/rules` kjop_per_10kr). Hidden without rules or below 10 kr.
+      kroner: () {
+        final n = _regler?.pointsForOre(ore) ?? 0;
+        return n > 0 ? n : null;
+      }(),
       tag: n == 0 && solgt > 0
           ? KatCopy.mestKjopt
           : (was > ore ? KatCopy.tilbud : null),
@@ -410,6 +441,23 @@ class _KategoriScreenState extends State<KategoriScreen> {
     if (teller.isEmpty) return null;
     return (teller.entries.toList()..sort((a, b) => b.value - a.value)).first.key;
   }
+
+  // ── Ukens utstilling (Step 12) ──────────────────────────────────────────
+
+  /// `catalog/showcase` per key (`mote`, `gaver`), loaded once on first build.
+  final Map<String, KatUtstilling?> _utstillinger = {};
+  final Set<String> _utstillingLaster = {};
+
+  KatUtstilling? _utstillingFor(BuildContext context, String key) {
+    if (!_utstillinger.containsKey(key) && _utstillingLaster.add(key)) {
+      _customer.showcase(key).then((j) {
+        if (mounted) setState(() => _utstillinger[key] = KatUtstilling.fraJson(j));
+      });
+    }
+    return _utstillinger[key];
+  }
+
+  void _openButikk(int id) => _openStore(id, '');
 
   // ── Actions ─────────────────────────────────────────────────────────────
 
@@ -980,13 +1028,15 @@ class _KategoriScreenState extends State<KategoriScreen> {
         children: [
           if (gaver)
             KatGaverSide(
+              utstilling: _utstillingFor(context, 'gaver'),
               onAegil: () => _askAegil('gift'),
-              onSnart: () => showBergenToast(context, BergenRoutes.kommerSnart),
+              onButikk: _openButikk,
             )
           else ...[
             if (mote)
               KatMoteUtstilling(
-                onSnart: () => showBergenToast(context, BergenRoutes.kommerSnart),
+                utstilling: _utstillingFor(context, 'mote'),
+                onButikk: _openButikk,
               ),
             if (_produkter) _produktGrid(context) else ..._butikkKort(context),
           ],
