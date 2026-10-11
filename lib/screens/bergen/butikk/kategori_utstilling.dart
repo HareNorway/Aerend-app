@@ -156,7 +156,8 @@ List<_Gavebutikk> _gavebutikker(KatUtstilling u) {
           u.gaveinnpakning,
           20,
           f.rating != null && f.rating! > 0 ? '★ ${f.rating!.toStringAsFixed(1).replaceAll('.', ',')}' : 'Ny',
-          sitert.sitat ?? '',
+          // The prototype's quote row: «…» — name, shop.
+          sitert.sitat == null ? '' : '«${sitert.sitat}»',
           [sitert.hvem, f.butikk].whereType<String>().join(', '),
           [for (final v in e.value) (v.navn, v.prisKr, _gaveType(v.navn))],
         );
@@ -554,7 +555,9 @@ class KatGaverSide extends StatelessWidget {
           topp: 20,
           bunn: 0,
           hoyre: Text(
-            u.undertittel ?? 'Sveip · ${u.antallButikker} ${u.antallButikker == 1 ? 'butikk' : 'butikker'}',
+            // The prototype's label is the shop count (`Sveip · 3 butikker`);
+            // the admin's subtitle has no place in the design.
+            'Sveip · ${u.antallButikker} ${u.antallButikker == 1 ? 'butikk' : 'butikker'}',
             style: bText(context, 11, weight: FontWeight.w700, color: rgba(255, 255, 255, .62)),
           ),
         ),
@@ -1214,7 +1217,8 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
     return MoteSkive(
       key: const Key('a1_kat_mote'),
       tittel: u.tittel,
-      undertittel: u.undertittel ?? '${u.antallButikker} ${u.antallButikker == 1 ? 'butikk' : 'butikker'}',
+      // `mkAntall`: the shop count, as in the prototype (not the subtitle).
+      undertittel: '${u.antallButikker} ${u.antallButikker == 1 ? 'butikk' : 'butikker'}',
       knapp: 'Velg størrelse',
       varer: [
         for (final v in varer)

@@ -206,11 +206,14 @@ class _KategoriScreenState extends State<KategoriScreen> {
     _lastRegler();
     WidgetsBinding.instance.addPostFrameCallback((_) => _maal());
     if (kDebugMode && HjemHarness.katScroll != null) {
-      Future.delayed(const Duration(milliseconds: 2500), () {
-        if (mounted && _liste.hasClients) {
-          _liste.jumpTo(HjemHarness.katScroll! * context.bs);
-        }
-      });
+      // Twice: Gaver / Mote grow when their showcase arrives.
+      for (final ms in const [2500, 5000]) {
+        Future.delayed(Duration(milliseconds: ms), () {
+          if (mounted && _liste.hasClients) {
+            _liste.jumpTo(HjemHarness.katScroll! * context.bs);
+          }
+        });
+      }
     }
   }
 
