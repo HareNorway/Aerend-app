@@ -303,7 +303,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    if (widget.embedded) kurvSkjulerNav.value = false;
+    // Not during unmount: listeners may not rebuild while the tree is locked.
+    if (widget.embedded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => kurvSkjulerNav.value = false);
+    }
     _rull.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _note.dispose();
