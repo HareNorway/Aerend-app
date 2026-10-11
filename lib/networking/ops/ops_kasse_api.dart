@@ -36,10 +36,23 @@ class OpsKasseApi {
     try {
       final json = await CheckoutRepo().callOrderPreviewApi();
       if (json is! Map<String, dynamic> || json['status'] != 1) return null;
-      return OrderPreviewPojo.fromJson(json);
+      return previewFromJson(json);
     } catch (_) {
       return null;
     }
+  }
+
+  /// Today's `order-preview` answers `sub_total`, `delivery_fee` and
+  /// `order_fee` (service fee + tax) — not the legacy `total_item_cost`,
+  /// `delivery_cost`, `tax_cost` the pojo reads — so the fee the checkout
+  /// charges was missing from Kassen's total.
+  static OrderPreviewPojo previewFromJson(Map<String, dynamic> json) {
+    final pojo = OrderPreviewPojo.fromJson(json);
+    double? d(String k) => json[k] is num ? (json[k] as num).toDouble() : double.tryParse('${json[k] ?? ''}');
+    if (!json.containsKey('delivery_cost')) pojo.deliveryCost = d('delivery_fee') ?? 0;
+    if (!json.containsKey('tax_cost')) pojo.taxCost = d('order_fee') ?? 0;
+    if (!json.containsKey('total_item_cost')) pojo.totalItemCost = d('sub_total') ?? 0;
+    return pojo;
   }
 
   Future<bool> changeQuantity(int cartId, int quantity) async {

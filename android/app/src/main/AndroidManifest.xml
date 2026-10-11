@@ -152,6 +152,8 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="aerend" android:host="stripe-redirect"/>
+                <!-- Vipps store payments return to aerend://payment/vipps?orderId=… (VIPPS_STORE_RETURN_BASE_URL). -->
+                <data android:scheme="aerend" android:host="payment"/>
                 <data android:scheme="aerend" android:host="vipps-login"/>
                 <data android:scheme="aerend" android:host="vipps-login" android:pathPrefix="/callback"/>
                 <data android:scheme="http" android:host="hare.io" android:pathPrefix="/payment/vipps"/>

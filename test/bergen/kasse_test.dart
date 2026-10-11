@@ -170,25 +170,40 @@ void main() {
           'product_id': 10,
           'product_name': 'Melk',
           'quantity': 2,
-          'product_amount': 25,
+          // The API's line total: 2 × 25.
+          'product_amount': 50,
           'store_id': 7,
           'snurre_conversation_id': 44,
         },
         {
           'id': 2,
           'product_id': 11,
-          'product_name': 'Burger',
+          'product_name': 'Gyros',
           'quantity': 1,
-          'product_amount': 149,
-          'discount_amount': 129,
+          // 169 kr with 33.80 kr off: the line total is 135.20 and
+          // `discount_amount` is the kroner off, not a price.
+          'product_amount': 135.2,
+          'discount_amount': 33.8,
           'store_id': 7,
         },
       ],
     });
     expect(state.lines.length, 2);
     expect(state.aegilLines.single.name, 'Melk');
-    expect(state.lines[1].unitPrice, 129);
-    expect(state.subtotal, 50 + 129);
+    expect(state.lines[0].unitPrice, 25);
+    expect(state.lines[1].unitPrice, 135.2);
+    expect(state.subtotal, closeTo(50 + 135.2, 0.001));
+  });
+
+  test('the preview fills delivery and the service fee from today\'s keys', () {
+    final p = OpsKasseApi.previewFromJson({'status': 1, 'store_id': 7, 'sub_total': 135.2, 'delivery_fee': 39, 'order_fee': 15});
+    expect(p.deliveryCost, 39);
+    expect(p.taxCost, 15);
+    expect(p.totalItemCost, 135.2);
+    // A legacy answer keeps its own fields.
+    final legacy = OpsKasseApi.previewFromJson({'status': 1, 'store_id': 7, 'delivery_cost': 20, 'tax_cost': 4, 'order_fee': 15});
+    expect(legacy.deliveryCost, 20);
+    expect(legacy.taxCost, 4);
   });
 
   test('a slot renders the legacy schedule format', () {
