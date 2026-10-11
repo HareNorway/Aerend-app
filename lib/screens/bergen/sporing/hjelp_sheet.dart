@@ -531,10 +531,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
                       ),
                       const SizedBox(width: 6),
                       Flexible(
+                        // Wraps like the prototype's line («… · sykler / siden mars»).
                         child: Text(
                           under,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: inter(11.5, color: rgba(255, 255, 255, .65)),
                         ),
                       ),

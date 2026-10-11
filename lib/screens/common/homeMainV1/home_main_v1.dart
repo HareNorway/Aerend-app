@@ -209,11 +209,14 @@ class HomeMainV1State extends State<HomeMainV1> {
                       234,
                       HjemLiveAerend(
                         data: ordre.data,
-                        onTap: () {
-                          // `liveApne`: Sporing grows out of the pill.
+                        onTap: (deler) {
+                          // `liveApne`: Sporing grows out of the pill, its pieces flying in.
                           final navn = '/bergen/sporing/${ordre.orderId}';
                           final side = BergenRoutes.generate(RouteSettings(name: navn));
                           if (side is! PageRoute) {
+                            for (final d in deler) {
+                              d.bilde.dispose();
+                            }
                             openScreen(context, TrackOrder(orderId: ordre.orderId));
                             return;
                           }
@@ -227,6 +230,7 @@ class HomeMainV1State extends State<HomeMainV1> {
                               page: (context, a, sa) => side.buildPage(context, a, sa),
                             ),
                           );
+                          LiveFlukt.vis(context, deler);
                         },
                       ),
                     ),

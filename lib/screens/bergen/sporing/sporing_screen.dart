@@ -286,7 +286,11 @@ class _SporingScreenState extends State<SporingScreen> {
     final dir = await getTemporaryDirectory();
     final fil = File('${dir.path}/kvittering-${_t?.code ?? _id}.pdf');
     await fil.writeAsBytes(pdf, flush: true);
-    await Share.shareXFiles([XFile(fil.path, mimeType: 'application/pdf')], subject: SporingCopy.a1_sporing_kvittering);
+    if (!mounted) return;
+    // iOS 26 refuses a share sheet without an anchor (sharePositionOrigin).
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    await Share.shareXFiles([XFile(fil.path, mimeType: 'application/pdf')], subject: SporingCopy.a1_sporing_kvittering, sharePositionOrigin: origin);
   }
 
   void _fjordfiske() => BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
@@ -294,7 +298,8 @@ class _SporingScreenState extends State<SporingScreen> {
   Future<void> _delBillett() async {
     final code = _vervKode;
     if (code == null) return;
-    await Share.share(code);
+    final box = context.findRenderObject() as RenderBox?;
+    await Share.share(code, sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size);
   }
 
   Future<void> _kopierBillett() async {
@@ -322,6 +327,10 @@ class _SporingScreenState extends State<SporingScreen> {
         // Two seconds after the screen settles, so a screenshot can catch it.
         await Future<void>.delayed(const Duration(milliseconds: 2000));
         if (mounted) _visSkifte(_t?.stage ?? 0);
+      }
+      if (HjemHarness.sporingKvittering) {
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+        if (mounted) _kvittering();
       }
       if (HjemHarness.sporingHjelp case final h?) {
         _openHelp(HjelpState.values.firstWhere((s) => s.name == h, orElse: () => HjelpState.main));
@@ -549,17 +558,15 @@ class _SporingScreenState extends State<SporingScreen> {
     // block so the panel covers no more of them than in the frame.
     final topp = math.max(0.0, mq.padding.top - 12);
     final s0 = t.stage.clamp(0, 3);
-    // The map's arrival card must clear the panel; the house's title must
-    // clear the ETA block.
-    final sceneTopp = math.max(
-      0.0,
-      mq.padding.top -
-          (s0 == 3
-              ? 12
-              : (s0 == 2 && !t.isPickup)
-              ? 36
-              : 32),
-    );
+    // The device's status bar and home indicator take ~60 px the frame
+    // doesn't have. The house's title must clear the ETA block; the map's
+    // arrival card must clear the panel with its bar and «N km igjen», so the
+    // map rises 13 px above its place in the frame and slides under the ETA
+    // block (which the prototype layers over the map's top edge too).
+    final kart = s0 == 2 && !t.isPickup;
+    final sceneTopp = kart
+        ? (mq.padding.top - 75).clamp(-20.0, double.infinity)
+        : math.max(0.0, mq.padding.top - (s0 == 3 ? 12 : 32));
     final bunn = mq.padding.bottom;
     final h = mq.size.height;
     final s = t.stage.clamp(0, 3);
@@ -586,7 +593,8 @@ class _SporingScreenState extends State<SporingScreen> {
             : s == 2
             ? 176.0
             : 150.0) +
-        sceneTopp;
+        // On the map the courier's pill keeps its place under «om N min».
+        (kart ? topp : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
     final slotVerv = _fersk && !_vervLukket && _vervKode != null;
     final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && (hent ? s == 2 : s == 3);

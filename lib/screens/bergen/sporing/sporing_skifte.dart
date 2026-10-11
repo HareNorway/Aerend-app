@@ -1,10 +1,13 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../../common/auth/launch/launch_onboarding.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../../common/splash/splash_sticker_painter.dart';
+import '../kit/bergen_perf.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 
@@ -297,12 +300,45 @@ class _Gnist extends StatelessWidget {
 }
 
 /// The Æ mark landing in 3D (`skifteLogoInn .85s .12s`) then swinging
-/// (`skifteLogoSving 2.8s .97s`): eleven darkened slices stacked behind the
+/// (`skifteLogoSving 2.8s .97s`): ten darkened slices stacked behind the
 /// face give it depth, and a glint sweeps across at .74 s.
 class _Logo3d extends StatelessWidget {
   const _Logo3d();
 
   static const double _w = 140, _h = 112;
+
+  /// The slices' depth and CSS filter (`brightness(b) saturate(s)`), back to
+  /// front, as the prototype stacks them (L6462).
+  static const List<(double, double, double)> _lag = [
+    (-13, .34, 1.2), (-11.7, .37, 1.2), (-10.4, .4, 1.2), (-9.1, .42, 1.2), (-7.8, .44, 1.2),
+    (-6.5, .46, 1.2), (-5.2, .49, 1.2), (-3.9, .52, 1.2), (-2.6, .56, 1.15), (-1.3, .66, 1.1),
+  ];
+  static final Map<double, List<ui.Image>> _bilder = {};
+
+  static List<({double z, ui.Image bilde})> _skiver(BuildContext context) {
+    final tier = BergenPerf.of(context);
+    if (tier == BergenTier.still) return const [];
+    final dpr = MediaQuery.devicePixelRatioOf(context).clamp(1.0, 3.0);
+    final bilder = _bilder[dpr] ??= [for (final l in _lag) _tone(dpr, l.$2, l.$3)];
+    final valgt = tier == BergenTier.full ? const [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] : const [0, 2, 4, 6, 8];
+    return [for (final i in valgt) (z: _lag[i].$1, bilde: bilder[i])];
+  }
+
+  /// The mark painted once, through `brightness(b) saturate(s)`.
+  static ui.Image _tone(double dpr, double b, double s) {
+    final rec = ui.PictureRecorder();
+    final c = Canvas(rec)..scale(dpr);
+    final m = <double>[
+      b * (.213 + .787 * s), b * (.715 - .715 * s), b * (.072 - .072 * s), 0, 0,
+      b * (.213 - .213 * s), b * (.715 + .285 * s), b * (.072 - .072 * s), 0, 0,
+      b * (.213 - .213 * s), b * (.715 - .715 * s), b * (.072 + .928 * s), 0, 0,
+      0, 0, 0, 1, 0,
+    ];
+    c.saveLayer(const Rect.fromLTWH(0, 0, _w, _h), Paint()..colorFilter = ColorFilter.matrix(m));
+    const SplashStickerPainter().paint(c, const Size(_w, _h));
+    c.restore();
+    return rec.endRecording().toImageSync((_w * dpr).round(), (_h * dpr).round());
+  }
 
   @override
   Widget build(BuildContext context) => LfLoop(
@@ -336,16 +372,15 @@ class _Logo3d extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Five of the prototype's eleven slices: enough depth, and the
-              // raster thread keeps up on the simulator.
-              for (var n = 10; n >= 2; n -= 2)
+              // The prototype's ten darkened slices behind the face (its
+              // eleventh layer, the bright one in front, is the glint below),
+              // each a pre-tinted image so no layer is composited per frame:
+              // all ten at `full`, five at `lite`, none at `still`.
+              for (final sk in _skiver(context))
                 Transform(
                   alignment: Alignment.center,
-                  transform: m.clone()..translateByDouble(0, 0, -1.3 * n, 1),
-                  child: ColorFiltered(
-                    colorFilter: ColorFilter.mode(rgba(0, 0, 0, (1 - (.34 + .032 * (10 - n))).clamp(0, 1)), BlendMode.srcATop),
-                    child: const LfMerke(w: _w, h: _h),
-                  ),
+                  transform: m.clone()..translateByDouble(0, 0, sk.z, 1),
+                  child: RawImage(image: sk.bilde, width: _w, height: _h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
                 ),
               Transform(
                 alignment: Alignment.center,

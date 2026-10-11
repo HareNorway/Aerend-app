@@ -6,7 +6,9 @@ import '../../common/auth/launch/launch_onboarding.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../kit/svg_sti.dart';
+import '../kit/bergen_perf.dart';
 import 'sporing_bits.dart';
+import 'sporing_gl.dart';
 
 /// What the scenes print on their signs, notes and labels.
 class SpSceneInfo {
@@ -135,6 +137,9 @@ class SpSceneKai extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pal = SpPal.of(spVaer());
+    // Reduced motion / `still`: the boat's arrival jumps to its end (LfOnce).
+    final fast = MediaQuery.disableAnimationsOf(context) || BergenPerf.of(context) == BergenTier.still;
     return SpSceneKamera(
       child: SizedBox(
         width: 390,
@@ -143,8 +148,32 @@ class SpSceneKai extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              // The quay, live: the prototype's own shader (`spGlInit`, ported
+              // as `shaders/sp_kai.frag`); the baked frame shows until the
+              // first one is drawn. `uBoat` is the rowing boat's waterline
+              // (`[data-spbaat]`: its centre, 84 % down), for its reflection
+              // and wake.
               Positioned.fill(
-                child: Image.asset('assets/images/sporing/kai.jpg', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+                child: SpGl(
+                  key: const Key('sp-kai-gl'),
+                  asset: 'shaders/sp_kai.frag',
+                  w: 390,
+                  h: 472,
+                  still: Image.asset('assets/images/sporing/kai.jpg', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+                  uniforms: (f, _, age, _) {
+                    f(pal.night);
+                    f(pal.rain);
+                    f(pal.snow);
+                    f(pal.wet);
+                    f(pal.sunset);
+                    pal.skT.forEach(f);
+                    pal.skH.forEach(f);
+                    final b = _Baat.vann(fast ? 99 : age);
+                    f(b.dx);
+                    f(b.dy);
+                    f(b.dx > -40 && b.dx < 430 ? 1 : 0);
+                  },
+                ),
               ),
               // The storefront's props (left 92, top 84, 204 × 218).
               Positioned(left: 92, top: 84, width: 204, height: 218, child: _Butikkfront(info: info)),
@@ -393,6 +422,16 @@ class _Baat extends StatelessWidget {
   const _Baat({required this.dur, required this.delay});
 
   final double dur, delay;
+
+  /// The boat's waterline in the scene at [age] s (`roAnkomst 2.9s .25s`,
+  /// scaled about its centre): what the prototype reads from `[data-spbaat]`.
+  static Offset vann(double age) {
+    final p = const Cubic(.25, .7, .25, 1).transform(((age * 1000 - 250) / 2900).clamp(0.0, 1.0));
+    final x = kf(p, const [0, .55, 1], const [-360, -120, 0]);
+    final y = kf(p, const [0, .55, 1], const [14, 5, 0]);
+    final k = kf(p, const [0, .55, 1], const [.82, .94, 1]);
+    return Offset(96 + 32 + x, 282 + y + 22 + 44 * k * (.84 - .5));
+  }
 
   @override
   Widget build(BuildContext context) => LfOnce(

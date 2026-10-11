@@ -135,6 +135,11 @@ flutter:
   shaders:
     - shaders/sjo.frag
     - shaders/meg_stadion.frag
+    - shaders/sp_kai.frag
+    - shaders/sp_kjokken.frag
+    - shaders/sp_disk.frag
+    - shaders/sp_kart.frag
+    - shaders/sp_hus.frag
 
   fonts:
     - family: CustomIcons

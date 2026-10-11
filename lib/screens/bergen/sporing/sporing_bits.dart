@@ -583,18 +583,32 @@ double spAlternate(double t, double dur, double delay) {
 }
 
 /// The order's points from `points/me/ledger`: a direct `points` / `amount`
-/// / `earned` field, else the sum of the ledger's `earn` rows for this order.
+/// / `earned` field, else the sum of the ledger's `earn` rows for this order
+/// — without the first-time bonus at the store (`forste_gang`), which the
+/// prototype shows on its own row («+50 poeng · første gang hos …»).
 int? spPoengForOrdre(Map<String, dynamic>? p, int orderId) {
   if (p == null) return null;
   final direkte = (p['points'] ?? p['amount'] ?? p['earned']) as num?;
   if (direkte != null) return direkte.toInt();
+  return _ledgerSum(p, orderId, (r) => r != 'forste_gang');
+}
+
+/// The first-time bonus at the store this order earned (`forste_gang`), or null.
+int? spForsteGang(Map<String, dynamic>? p, int orderId) {
+  if (p == null) return null;
+  final direkte = (p['first_time_bonus'] ?? p['first_time']) as num?;
+  if (direkte != null) return direkte.toInt();
+  return _ledgerSum(p, orderId, (r) => r == 'forste_gang');
+}
+
+int? _ledgerSum(Map<String, dynamic> p, int orderId, bool Function(String rule) ta) {
   final ledger = p['ledger'];
   if (ledger is! List) return null;
   var sum = 0;
   var traff = false;
   for (final r in ledger) {
     if (r is! Map) continue;
-    if ('${r['ref_type']}' == 'order' && '${r['ref_id']}' == '$orderId' && '${r['kind']}' == 'earn') {
+    if ('${r['ref_type']}' == 'order' && '${r['ref_id']}' == '$orderId' && '${r['kind']}' == 'earn' && ta('${r['rule_key']}')) {
       sum += ((r['amount'] ?? 0) as num).toInt();
       traff = true;
     }

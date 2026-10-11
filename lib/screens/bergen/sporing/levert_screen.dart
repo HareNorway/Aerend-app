@@ -194,7 +194,7 @@ class _LevertScreenState extends State<LevertScreen> {
     final early = t.promisedEnd == null ? null : t.promisedEnd!.difference(levertKl).inMinutes;
     final points = _points;
     final earned = widget.poeng ?? spPoengForOrdre(points, _id);
-    final firstTime = (points?['first_time_bonus'] ?? points?['first_time']) as num?;
+    final firstTime = spForsteGang(points, _id);
     final leagueGap = points?['league_gap'];
     final byWhom = t.isPartner ? t.deliveredByLabel : (t.courier?.firstName ?? SporingCopy.a1_sporing_Budet.toLowerCase());
     final codeConfirmed = t.deliveryCode?.verifiedAt != null;

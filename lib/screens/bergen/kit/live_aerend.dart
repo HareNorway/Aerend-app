@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../hjem/hjem_harness.dart';
 import 'bergen_perf.dart';
 
 // ── Live-ærend (prototype L9598, `liveVals`/`liveData`) ────────────────────
@@ -41,7 +45,9 @@ class HjemLiveAerend extends StatefulWidget {
   const HjemLiveAerend({super.key, required this.data, required this.onTap});
 
   final HjemLiveData data;
-  final VoidCallback onTap;
+
+  /// Opens Sporing; gets the pill's pieces to fly in ([LiveFlukt]).
+  final void Function(List<LiveDel> deler) onTap;
 
   @override
   State<HjemLiveAerend> createState() => _HjemLiveAerendState();
@@ -49,6 +55,24 @@ class HjemLiveAerend extends StatefulWidget {
 
 class _HjemLiveAerendState extends State<HjemLiveAerend> {
   late final DateTime _t0 = DateTime.now();
+
+  // `liveDeler`: the pieces that fly into Sporing when the pill opens.
+  final _kAv = GlobalKey(), _kNavn = GlobalKey(), _kTid = GlobalKey(), _kSeg = GlobalKey(), _kPil = GlobalKey();
+
+  /// Snapshots of the pill's avatar, stage name, time row, segments and arrow
+  /// with their place on screen (empty in reduced motion / `still`).
+  List<LiveDel> _deler() {
+    if (MediaQuery.disableAnimationsOf(context) || BergenPerf.of(context) == BergenTier.still) return const [];
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final ut = <LiveDel>[];
+    for (final (k, del) in [(_kTid, LiveDelType.tid), (_kNavn, LiveDelType.navn), (_kSeg, LiveDelType.seg), (_kAv, LiveDelType.av), (_kPil, LiveDelType.pil)]) {
+      final ro = k.currentContext?.findRenderObject();
+      if (ro is! RenderRepaintBoundary || !ro.hasSize || ro.debugNeedsPaint) continue;
+      final rect = MatrixUtils.transformRect(ro.getTransformTo(null), Offset.zero & ro.size);
+      ut.add(LiveDel(del, ro.toImageSync(pixelRatio: dpr * rect.width / ro.size.width), rect));
+    }
+    return ut;
+  }
   Timer? _tikk;
 
   @override
@@ -57,6 +81,12 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
     _tikk = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted && TickerMode.of(context)) setState(() {});
     });
+    if (kDebugMode && HjemHarness.liveApne) {
+      HjemHarness.liveApne = false;
+      Future<void>.delayed(const Duration(seconds: 3), () {
+        if (mounted) widget.onTap(_deler());
+      });
+    }
   }
 
   @override
@@ -108,7 +138,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
       button: true,
       label: 'Bestillingen din: $navn${gront ? '' : ', $tid igjen'}. Trykk for å åpne sporingen.',
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: () => widget.onTap(_deler()),
         child: ValueListenableBuilder<bool>(
           valueListenable: liveApner,
           builder: (context, apner, child) => AnimatedOpacity(
@@ -289,7 +319,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                               padding: const EdgeInsets.fromLTRB(6, 0, 9, 0),
                               child: Row(
                                 children: [
-                                  _Avatar(ring: ring, aeg: aeg, merke: ferdig ? '✓' : '${s + 1}/4', gront: gront),
+                                  RepaintBoundary(key: _kAv, child: _Avatar(ring: ring, aeg: aeg, merke: ferdig ? '✓' : '${s + 1}/4', gront: gront)),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Column(
@@ -303,20 +333,20 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                                             Flexible(
                                               child: _Flipp(
                                                 nokkel: s,
-                                                child: Text(
+                                                child: RepaintBoundary(key: _kNavn, child: Text(
                                                   navn.toUpperCase(),
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
                                                   style: inter(9, weight: FontWeight.w800, em: .12, color: gront ? const Color(0xFFF2FFFA) : const Color(0xFF9FF0D4)).copyWith(
                                                     shadows: const [Shadow(color: Color.fromRGBO(3, 14, 20, .45), offset: Offset(0, 1))],
                                                   ),
-                                                ),
+                                                )),
                                               ),
                                             ),
                                           ],
                                         ),
                                         const SizedBox(height: 3),
-                                        Row(
+                                        RepaintBoundary(key: _kTid, child: Row(
                                           crossAxisAlignment: CrossAxisAlignment.baseline,
                                           textBaseline: TextBaseline.alphabetic,
                                           children: [
@@ -342,9 +372,9 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                                               ),
                                             ),
                                           ],
-                                        ),
+                                        )),
                                         const SizedBox(height: 3),
-                                        Container(
+                                        RepaintBoundary(key: _kSeg, child: Container(
                                           padding: const EdgeInsets.all(2),
                                           decoration: BoxDecoration(
                                             color: const Color.fromRGBO(2, 12, 18, .4),
@@ -357,12 +387,12 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                                               for (var k = 0; k < 4; k++) ...[if (k > 0) const SizedBox(width: 3), _Segment(ferdig: k < s || ferdig, naa: k == s && !ferdig, gront: gront)],
                                             ],
                                           ),
-                                        ),
+                                        )),
                                       ],
                                     ),
                                   ),
                                   const SizedBox(width: 10),
-                                  SizedBox(
+                                  RepaintBoundary(key: _kPil, child: SizedBox(
                                     width: 36,
                                     height: 39,
                                     child: Stack(
@@ -404,7 +434,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                                         ),
                                       ],
                                     ),
-                                  ),
+                                  )),
                                 ],
                               ),
                             ),
@@ -886,4 +916,135 @@ class _GnistPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GnistPainter old) => old.p != p || old.n != n;
+}
+
+// ── liveDeler (prototype L19215, L19283–19320) ───────────────────────────────
+
+enum LiveDelType { tid, navn, seg, av, pil }
+
+/// One piece of the pill, snapshotted where it sits on screen.
+class LiveDel {
+  const LiveDel(this.type, this.bilde, this.rect);
+
+  final LiveDelType type;
+  final ui.Image bilde;
+  final Rect rect;
+}
+
+/// The pill's pieces flying into Sporing as it grows out of the pill
+/// (`liveApne`): the time row to the ETA block (scaled to 62 % of its height,
+/// at most 3.2×), the stage name to the block's top (1.6×, 20 ms later), the
+/// segments to the stage bar (70 % of its width, at most 6×, 50 ms), the
+/// avatar to the screen's middle (3×, 30 ms) — each 720 ms minus its delay,
+/// `cubic-bezier(.55,0,.18,1)`, passing 60 % / 42 % of the way at half time
+/// — while the arrow swells and spins away (300 ms). Then everything fades
+/// out over 260 ms. Targets are the prototype's defaults (`liveSpPos`): the
+/// ETA block 160 × 76 at y 52, the stage bar 58 tall at 64 % of the height.
+class LiveFlukt extends StatefulWidget {
+  const LiveFlukt._({required this.deler, required this.ferdig});
+
+  final List<LiveDel> deler;
+  final VoidCallback ferdig;
+
+  static void vis(BuildContext context, List<LiveDel> deler) {
+    if (deler.isEmpty) return;
+    final overlay = Overlay.of(context, rootOverlay: true);
+    late final OverlayEntry e;
+    e = OverlayEntry(
+      builder: (_) => IgnorePointer(
+        child: LiveFlukt._(
+          deler: deler,
+          ferdig: () {
+            e.remove();
+            for (final d in deler) {
+              d.bilde.dispose();
+            }
+          },
+        ),
+      ),
+    );
+    overlay.insert(e);
+  }
+
+  @override
+  State<LiveFlukt> createState() => _LiveFluktState();
+}
+
+class _LiveFluktState extends State<LiveFlukt> with SingleTickerProviderStateMixin {
+  static const double _d = 720, _fade = 260, _tot = _d + 10 + _fade;
+  static const Cubic _e = Cubic(.55, 0, .18, 1);
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 990))
+    ..forward().whenComplete(widget.ferdig);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final W = mq.size.width, H = mq.size.height, s = W / 390;
+    final eta = Rect.fromLTWH(W / 2 - 80 * s, mq.padding.top + 40 * s, 160 * s, 76 * s);
+    final stg = Rect.fromLTWH(22 * s, H * .64, W - 44 * s, 58 * s);
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final ms = _c.value * _tot;
+        final ut = ms <= _d + 10 ? 1.0 : 1 - Curves.easeOut.transform(((ms - _d - 10) / _fade).clamp(0.0, 1.0));
+        return Stack(
+          children: [
+            for (final d in widget.deler) _del(d, ms, ut, eta, stg, W, H),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _del(LiveDel d, double ms, double ut, Rect eta, Rect stg, double W, double H) {
+    final r = d.rect;
+    Matrix4 m;
+    double o = ut;
+    if (d.type == LiveDelType.pil) {
+      final p = Curves.easeIn.transform((ms / 300).clamp(0.0, 1.0));
+      final k = kf(p, const [0, .35, 1], const [1, 1.2, 0]);
+      final rot = kf(p, const [0, .35, 1], const [0, 10, -60]);
+      o = kf(p, const [0, .35, 1], const [1, 1, 0]);
+      m = Matrix4.identity()
+        ..translateByDouble(r.center.dx, r.center.dy, 0, 1)
+        ..rotateZ(rot * math.pi / 180)
+        ..scaleByDouble(k, k, 1, 1)
+        ..translateByDouble(-r.center.dx, -r.center.dy, 0, 1);
+    } else {
+      final (mal, k1, dl) = switch (d.type) {
+        LiveDelType.tid => (eta.center, math.min(3.2, eta.height * .62 / r.height), 0.0),
+        LiveDelType.navn => (Offset(eta.center.dx, eta.top + 12), 1.6, 20.0),
+        LiveDelType.seg => (stg.center, math.min(6.0, stg.width * .7 / r.width), 50.0),
+        _ => (Offset(W / 2, H * .42), 3.0, 30.0),
+      };
+      final p = _e.transform(((ms - dl) / (_d - dl)).clamp(0.0, 1.0));
+      final dx = mal.dx - r.center.dx, dy = mal.dy - r.center.dy;
+      final x = kf(p, const [0, .5, 1], [0, dx * .6, dx]);
+      final y = kf(p, const [0, .5, 1], [0, dy * .42, dy]);
+      final k = kf(p, const [0, .5, 1], [1, 1 + (k1 - 1) * .62, k1]);
+      m = Matrix4.identity()
+        ..translateByDouble(r.center.dx + x, r.center.dy + y, 0, 1)
+        ..scaleByDouble(k, k, 1, 1)
+        ..translateByDouble(-r.center.dx, -r.center.dy, 0, 1);
+    }
+    return Positioned.fill(
+      child: Transform(
+        transform: m,
+        child: Stack(
+          children: [
+            Positioned.fromRect(
+              rect: r,
+              child: RawImage(image: d.bilde, width: r.width, height: r.height, fit: BoxFit.fill, opacity: AlwaysStoppedAnimation(o.clamp(0.0, 1.0)), filterQuality: FilterQuality.medium),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

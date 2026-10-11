@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
@@ -5,8 +6,10 @@ import 'package:flutter/material.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../kit/svg_sti.dart';
+import '../kit/bergen_perf.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import 'sporing_gl.dart';
 import 'sporing_scene_kai.dart';
 
 /// **Sporing · Levert** (L6896): the house at night (baked from the
@@ -23,6 +26,9 @@ class SpSceneHus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final drar = !info.henting && !info.partner;
+    final pal = SpPal.of(spVaer());
+    // Reduced motion / `still`: the overlays jump to their end (LfOnce).
+    final fast = MediaQuery.disableAnimationsOf(context) || BergenPerf.of(context) == BergenTier.still;
     final spart = info.spartSek ?? 0;
     return SpSceneInn(
       child: SizedBox(
@@ -32,8 +38,36 @@ class SpSceneHus extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              // The street, live: the prototype's own shader (`spLvInit`,
+              // ported as `shaders/sp_hus.frag`); the baked frame shows until
+              // the first one is drawn. It lights the street from the bike's or
+              // van's lamps and shades Ægil, from where they are (`_HusLys`).
               Positioned.fill(
-                child: Image.asset('assets/images/sporing/hus.jpg', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+                child: SpGl(
+                  key: const Key('sp-hus-gl'),
+                  asset: 'shaders/sp_hus.frag',
+                  w: 390,
+                  h: 480,
+                  still: Image.asset('assets/images/sporing/hus.jpg', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+                  uniforms: (f, _, age, _) {
+                    final a = fast ? 99.0 : age;
+                    f(pal.night);
+                    f(pal.rain);
+                    f(pal.snow);
+                    f(pal.wet);
+                    f(a);
+                    final lys = _HusLys(a, drar: drar, bil: !info.sykkel);
+                    f(lys.ut);
+                    f(((a - 2.3) / .5).clamp(0.0, 1.0));
+                    f(pal.night > .45 && pal.rain == 0 ? 1 : 0);
+                    pal.skT.forEach(f);
+                    pal.skH.forEach(f);
+                    lys.va.forEach(f);
+                    lys.vb.forEach(f);
+                    lys.vc.forEach(f);
+                    lys.ae.forEach(f);
+                  },
+                ),
               ),
               // The street number (left 225, top 246, 12 × 12).
               if (info.husnummer.isNotEmpty)
@@ -520,3 +554,52 @@ Widget spBlur(Widget child, double sigma) => ImageFiltered(
   imageFilter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
   child: child,
 );
+
+/// What `spLvTegn` reads from the page at [age] s: the vehicle's rect
+/// (`[data-lvkjt]`, rolling off with `lvKjor`) for its head- and tail-light
+/// pools and shadow (`uVA`, `uVB`, `uVC`), when the light trail has left
+/// (`uUt`), and Ægil (`[data-lvaeg]`, walking with `lvGaa` then fading) for
+/// his shadow (`uAe`).
+class _HusLys {
+  factory _HusLys(double age, {required bool drar, required bool bil}) {
+    if (!drar) {
+      // Ægil stays on the step (`lvBlir`); no vehicle.
+      return const _HusLys._([0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [163 + 33, 238 + 66 * .955, 66, 1], -1);
+    }
+    final left = bil ? 26.0 : 60.0, top = bil ? 211.0 : 228.0, w = bil ? 172.0 : 120.0;
+    final delay = bil ? 7.2 : 6.9, dur = bil ? 2.5 : 2.3;
+    double x(double a) => -430 * _kjor.transform(((a - delay) / dur).clamp(0.0, 1.0));
+    final l = left + x(age);
+    // The prototype smooths the speed over a few frames.
+    final spd = ((x(age - .075) - x(age)) / .075).clamp(0.0, 900.0);
+    final on = age < 6.3 ? 0.0 : age < 6.75 ? (math.sin(age * 60) > 0 ? 1.0 : .25) : 1.0;
+    final va = [l + w * (bil ? .085 : .26), top + w * (bil ? .59 : .57), l + w * (bil ? .935 : .7), top + w * (bil ? .6 : .68)];
+    final vb = [top + w * (bil ? .765 : .955), l + w * (bil ? .2 : .27), l + w * (bil ? .74 : .68), spd];
+    final vc = [on, bil ? 1.0 : 0.0, l + w > -60 ? 1.0 : 0.0, w * (bil ? .9 : .7)];
+    // `ut` starts 0.7 s after the vehicle has left the frame.
+    final gone = _gone[bil] ??= () {
+      for (var a = delay; a <= delay + dur; a += .001) {
+        if (left + x(a) + w < -8) return a;
+      }
+      return double.infinity;
+    }();
+    final utAt = math.max(gone, 6.5) + .7;
+    // Ægil walking to the vehicle (`lvGaa 2.1s 3.9s linear`, origin 50 % 95 %), gone at 5.95 s.
+    final g = ((age - 3.9) / 2.1).clamp(0.0, 1.0);
+    const st = [0.0, .12, .24, .55, .7, .8, 1.0];
+    final tx = kf(g, st, const [0, -5, -10, -26, -33, -37, -46]);
+    final ty = kf(g, st, const [0, 7, 14, 24, 29, 35, 42]);
+    final k = kf(g, st, const [1, 1.01, 1.03, 1.12, 1.17, 1.21, 1.3]);
+    final vis = age < 5.95 ? 1.0 : math.max(0.0, 1 - (age - 5.95) / .2);
+    final ae = [163 + tx + 33, 238 + ty + 62.7 - 62.7 * k + 66 * k * .955, 66 * k, vis];
+    return _HusLys._(va, vb, vc, ae, age > utAt ? age - utAt : -1);
+  }
+
+  const _HusLys._(this.va, this.vb, this.vc, this.ae, this.ut);
+
+  static const Cubic _kjor = Cubic(.5, 0, .92, .55);
+  static final Map<bool, double> _gone = {};
+
+  final List<double> va, vb, vc, ae;
+  final double ut;
+}

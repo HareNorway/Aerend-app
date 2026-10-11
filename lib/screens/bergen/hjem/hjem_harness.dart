@@ -145,6 +145,13 @@ abstract final class HjemHarness {
   static String? sporingArk, sporingHjelp, levertArk;
   static bool sporingSkifte = false, sporingFersk = false;
 
+  /// Taps the Live pill once Hjem has settled (`liveApne`: Sporing grows out
+  /// of it and its pieces fly in).
+  static bool liveApne = false;
+
+  /// Sporing: runs «Kvittering» once loaded (the PDF in the share sheet).
+  static bool sporingKvittering = false;
+
   /// Utforsk (Step 9): `utfSeg` (`feed` / `pose`), `feedFane` (`naer` /
   /// `folger` / `aerend`), `feedKat` (an orb slug), `utfScroll` (design px),
   /// `feedDrift` (show the prototype's Drift note — no API carries one
@@ -252,7 +259,7 @@ abstract final class HjemHarness {
         hurtigScroll = null;
         sporing = levert = null;
         sporingArk = sporingHjelp = levertArk = null;
-        sporingSkifte = sporingFersk = false;
+        sporingSkifte = sporingFersk = liveApne = sporingKvittering = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         fiskeFase = fiskeAgn = null;
         aegil = aegTekst = guide = null;
@@ -332,6 +339,8 @@ abstract final class HjemHarness {
       levertArk = m['levertArk'] as String?;
       sporingSkifte = m['sporingSkifte'] == true;
       sporingFersk = m['sporingFersk'] == true;
+      liveApne = m['liveApne'] == true;
+      sporingKvittering = m['sporingKvittering'] == true;
       utfSeg = m['utfSeg'] as String?;
       feedFane = m['feedFane'] as String?;
       feedKat = m['feedKat'] as String?;
