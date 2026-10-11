@@ -152,13 +152,20 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="aerend" android:host="stripe-redirect"/>
-                <!-- Vipps store payments return to aerend://payment/vipps?orderId=… (VIPPS_STORE_RETURN_BASE_URL). -->
-                <data android:scheme="aerend" android:host="payment"/>
                 <data android:scheme="aerend" android:host="vipps-login"/>
                 <data android:scheme="aerend" android:host="vipps-login" android:pathPrefix="/callback"/>
                 <data android:scheme="http" android:host="hare.io" android:pathPrefix="/payment/vipps"/>
                 <data android:scheme="http" android:host="hare.io" android:pathPrefix="/invite"/>
                 <data android:scheme="https"/>
+            </intent-filter>
+            <!-- Vipps store payments return to aerend://payment/vipps?orderId=…
+                 (VIPPS_STORE_RETURN_BASE_URL). Its own filter: in the one above,
+                 every <data> combines, so its path prefixes would refuse /vipps. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="aerend" android:host="payment"/>
             </intent-filter>
         </activity>
 
