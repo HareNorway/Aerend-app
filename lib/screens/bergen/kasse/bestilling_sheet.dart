@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_kit.dart';
+import '../sporing/hjelp_sheet.dart';
 import 'kasse_copy.dart';
 
 /// Bestillingsdetaljer (≈L5641 in `Ærend Kunde Bergen.dc.html`) at
@@ -538,11 +539,9 @@ class _BestillingScreenState extends State<BestillingScreen> {
             SizedBox(height: 8 * s),
             BergenCard(
               key: const Key('a1_kasse_best_kundeservice'),
-              onTap: () => BergenRoutes.push(
-                context,
-                '/bergen/kundeservice',
-                arguments: {'order_id': '$_id'},
-              ),
+              // The Hjelp sheet over this page, as Meg opens it (the
+              // standalone route has no page under it).
+              onTap: () => HjelpScreen.apne(context, initial: HjelpState.kundeservice, orderId: _id == 0 ? null : _id),
               padding: EdgeInsets.symmetric(
                 horizontal: 14 * s,
                 vertical: 12 * s,

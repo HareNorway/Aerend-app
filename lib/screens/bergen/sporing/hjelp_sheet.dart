@@ -15,6 +15,7 @@ import '../../common/auth/launch/lf_widgets.dart';
 import '../../snurre/snurre_launcher_policy.dart';
 import '../hjelp/support.dart';
 import '../hjem/hjem_harness.dart';
+import '../aegil/aegil_bits.dart' show AeIkon;
 import '../kit/bergen_kit.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
@@ -152,10 +153,17 @@ class _HjelpScreenState extends State<HjelpScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _startChat(tema) : null);
     }
     _msg.addListener(() => setState(() {}));
+    // The hub reads the config (hours, phone, e-mail) and the cases as they land.
+    SupportStore.instance.endret.addListener(_storeEndret);
+  }
+
+  void _storeEndret() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    SupportStore.instance.endret.removeListener(_storeEndret);
     _callTimer?.cancel();
     _msg.dispose();
     _door.dispose();
@@ -170,7 +178,16 @@ class _HjelpScreenState extends State<HjelpScreen> {
       _state = HjelpState.main;
       return;
     }
-    if (kDebugMode && HjemHarness.hjelpHub) return;
+    if (kDebugMode && HjemHarness.hjelpHub) {
+      // Parity Step 10: `hjelpChat` starts the support chat from the hub.
+      if (HjemHarness.hjelpChat) {
+        HjemHarness.hjelpChat = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _startChat(SupportTema.support);
+        });
+      }
+      return;
+    }
     try {
       final rows = await _api.orders();
       final row = rows.where((r) => SupportOrdre.fraRad(r).aktiv).firstOrNull;

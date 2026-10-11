@@ -212,10 +212,16 @@ abstract final class HjemHarness {
   static List<String>? hjelpSi;
   static bool hjelpMenneske = false, hjelpGjest = false, hjelpHub = false;
 
+  /// With `hjelpHub`: start the support chat from the hub (parity Step 10).
+  static bool hjelpChat = false;
+
   /// Step 13: Ordrehistorikk opens this order's sheet (`ohOrdre`), or its
   /// «Noe galt» flow (`ohNoeGalt`).
   static int? ohOrdre;
   static bool ohNoeGalt = false;
+
+  /// With `ohNoeGalt`: open «Noe galt» at step 2 or 3 (parity Step 10).
+  static int ohNoeGaltSteg = 1;
   static List<String>? aegSi;
   static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
   static double? aegScroll;
@@ -288,6 +294,7 @@ abstract final class HjemHarness {
         hjelpMenneske = hjelpGjest = hjelpHub = false;
         ohOrdre = null;
         ohNoeGalt = false;
+        ohNoeGaltSteg = 1;
         aegSi = null;
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegScroll = null;
@@ -385,8 +392,10 @@ abstract final class HjemHarness {
       hjelpMenneske = m['hjelpMenneske'] == true;
       hjelpGjest = m['hjelpGjest'] == true;
       hjelpHub = m['hjelpHub'] == true;
+      hjelpChat = m['hjelpChat'] == true;
       ohOrdre = (m['ohOrdre'] as num?)?.toInt();
       ohNoeGalt = m['ohNoeGalt'] == true;
+      ohNoeGaltSteg = (m['ohNoeGaltSteg'] as num?)?.toInt() ?? 1;
       aegTekst = m['aegTekst'] as String?;
       aegSi = (m['aegSi'] as List?)?.cast<String>();
       aegTenk = m['aegTenk'] == true;

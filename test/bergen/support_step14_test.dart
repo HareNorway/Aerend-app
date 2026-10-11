@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:aerend_customer/l10n/app_localizations.dart';
 import 'package:aerend_customer/main.dart' as app;
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
+import 'package:aerend_customer/screens/bergen/aegil/aegil_bits.dart' show AeIkon;
 import 'package:aerend_customer/screens/bergen/hjelp/support.dart';
 import 'package:aerend_customer/screens/bergen/sporing/hjelp_sheet.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
@@ -194,8 +195,8 @@ void main() {
     // Read-only: the chosen stars, no buttons.
     expect(find.byKey(const Key('a1_hjelp_vurdering_1')), findsNothing);
     for (var n = 1; n <= 5; n++) {
-      final icon = tester.widget<Icon>(find.descendant(of: find.byKey(Key('a1_hjelp_vurdering_vist_$n')), matching: find.byType(Icon)));
-      expect(icon.color, n <= 4 ? const Color(0xFFF2C14E) : isNot(const Color(0xFFF2C14E)));
+      final star = tester.widget<AeIkon>(find.descendant(of: find.byKey(Key('a1_hjelp_vurdering_vist_$n')), matching: find.byType(AeIkon)));
+      expect(star.fill, n <= 4 ? const Color(0xFFF2C14E) : isNull);
     }
     expect(SupportStore.instance.samtaler.single.vurdering, 4);
 

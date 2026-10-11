@@ -142,9 +142,10 @@ class _SupportChatState extends State<_SupportChat> {
     final aapen = SupportConfig.aapen();
     final human = s?.erMenneske ?? false;
     final lukket = s?.lukket ?? false;
-    final dot = lukket ? rgba(255, 255, 255, .4) : (human || s == null ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4)));
+    final dot = lukket ? rgba(255, 255, 255, .4) : (human ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4)));
+    // A guest (no conversation yet) is still talking to the assistant.
     final under = s == null
-        ? ''
+        ? (aapen ? SupportCopy.aiUnder : SupportCopy.stengtUnder(SupportConfig.aapnerKl))
         : lukket
         ? SupportCopy.avsluttetUnder
         : human
@@ -581,10 +582,13 @@ class _VurderingState extends State<_Vurdering> {
     );
   }
 
-  Widget _stjerne(bool fylt) => Icon(
-    Icons.star_rounded,
-    size: 24,
-    color: fylt ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .3),
+  /// The prototype's star (its rating chip's path), gold when chosen.
+  Widget _stjerne(bool fylt) => AeIkon(
+    'M12 2.5l2.9 5.9 6.6 1-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-1z',
+    size: 22,
+    stroke: 1.6,
+    color: fylt ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .34),
+    fill: fylt ? const Color(0xFFF2C14E) : null,
   );
 }
 

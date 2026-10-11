@@ -313,7 +313,7 @@ class SupportStore {
 
   /// `GET support/cases` (and the config, for the hours and the e-mail).
   Future<void> oppdater() async {
-    unawaited(SupportConfig.last(api));
+    unawaited(SupportConfig.last(api).then((_) => endret.value++));
     final j = await api.supportCases(guestToken: gjestToken);
     final list = j?['cases'];
     if (list is! List) return;
@@ -882,6 +882,7 @@ abstract final class SupportCopy {
   static String get harAlleredeLinje => '$ack · du følger den på bestillingen.';
   static const String mottatt = 'Vi har mottatt saken.';
   static const String saksreferanse = 'SAKSREFERANSE';
+  static const String kopiert = 'Kopiert';
   static const String ferdig = 'Ferdig';
   static String get registrert => 'Saken er registrert · svar innen ${SupportConfig.svarMin} min';
   static const String naa = 'Nå';

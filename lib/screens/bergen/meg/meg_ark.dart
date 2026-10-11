@@ -4,8 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart' show AeIkon;
+import '../../snurre/snurre_launcher_policy.dart';
 import '../kit/bergen_kit.dart';
-import 'meg_shine.dart';
+import '../../common/auth/launch/lf_motion.dart';
 import '../kit/bergen_perf.dart';
 
 /// The design's Ark (`kVisArk` ≈L7333): the cream frosted sheet the Meg rows
@@ -79,6 +80,8 @@ Future<T?> showMegArk<T>(
 }) {
   return showModalBottomSheet<T>(
     context: context,
+    // Like every Bergen sheet: no floating Ægil launcher over the Ark.
+    routeSettings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}ark'),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
@@ -506,74 +509,93 @@ class MegArkCard extends StatelessWidget {
   }
 }
 
-/// The gold code card (`kVisArkTekst`): label, the code in wide caps, the
-/// dark Kopier pill, and the slow shine.
+/// The gold card (`kVisArkTekst`, L9217): the label, the text in Jakarta,
+/// the dark-gold «Kopier» pill, and the `skinn` sweep (5 s, 1 s in).
+/// Gullbilletten's code and Noe galt's case reference.
 class MegArkCodeCard extends StatelessWidget {
-  const MegArkCodeCard({super.key, required this.label, required this.code, required this.onCopy});
+  const MegArkCodeCard({super.key, required this.label, required this.code, required this.onCopy, this.tapKey = const Key('meg-ark-kode'), this.codeKey});
 
   final String label;
   final String code;
   final VoidCallback onCopy;
+  final Key tapKey;
+  final Key? codeKey;
+
+  static const _kopi = 'M11.5 9h6a2.5 2.5 0 0 1 2.5 2.5v6a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 9 17.5v-6A2.5 2.5 0 0 1 11.5 9zM15 5.5H6.5A2 2 0 0 0 4.5 7.5V16';
 
   @override
   Widget build(BuildContext context) {
+    const r = BorderRadius.all(Radius.circular(22));
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
-        key: const Key('meg-ark-kode'),
+        key: tapKey,
+        behavior: HitTestBehavior.opaque,
         onTap: onCopy,
-        child: MegShine(
-          borderRadius: BorderRadius.circular(18),
-          period: const Duration(seconds: 5),
-          delay: const Duration(seconds: 1),
-          bandFraction: .3,
-          opacity: .5,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: const LinearGradient(begin: Alignment(-.6, -1), end: Alignment(.6, 1), colors: [Color(0xFFFFF6DC), Color(0xFFF2DDA8), Color(0xFFE3C377)], stops: [0, .55, 1]),
-              border: Border.all(color: Colors.white.withValues(alpha: .8)),
-              boxShadow: const [
-                BoxShadow(color: Color(0xFFC9A85E), offset: Offset(0, 1.5)),
-                BoxShadow(color: Color.fromRGBO(120, 80, 10, .32), offset: Offset(0, 3.5)),
-              ],
-            ),
-            child: Row(
+        child: CssBox(
+          radius: r,
+          bg: const [CssLinear(152, [Color(0xFFFFF6DC), Color(0xFFF2DDA8), Color(0xFFE3C377)], [0, .55, 1])],
+          shadows: const [
+            CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .75)),
+            CssShadow.inset(0, -3, 6, 0, Color.fromRGBO(150, 100, 20, .18)),
+            CssShadow(0, 14, 22, -14, Color.fromRGBO(120, 80, 10, .65)),
+          ],
+          child: ClipRRect(
+            borderRadius: r,
+            child: Stack(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(label, style: megInter(9.5, FontWeight.w800, letterSpacing: 1.3, color: Color(0xFF3F2C06))),
-                      const SizedBox(height: 3),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(code, style: BergenTokens.display(22, weight: FontWeight.w800, color: const Color(0xFF3A2708), letterSpacingEm: .08, height: 1.2)),
+                // `skinn`: translateX(-120% → 220%), 5 s ease-in-out, 1 s in.
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: LayoutBuilder(
+                      builder: (context, box) => LfLoop(
+                        frozenMs: -1,
+                        builder: (context, t, child) {
+                          if (t < 1000) return const SizedBox.shrink();
+                          final p = cssEaseInOut.transform(((t - 1000) / 5000) % 1.0);
+                          return Transform.translate(offset: Offset((-1.2 + 3.4 * p) * box.maxWidth, 0), child: child);
+                        },
+                        child: const CssBox(
+                          bg: [CssLinear(112, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, .5), Color.fromRGBO(255, 255, 255, 0)], [.38, .5, .62])],
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  height: 36,
-                  padding: const EdgeInsets.symmetric(horizontal: 13),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    gradient: MegArkInk.goldCta,
-                    border: Border.all(color: const Color.fromRGBO(255, 240, 200, .3)),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0xFF241A08), offset: Offset(0, 1.5)),
-                      BoxShadow(color: Color.fromRGBO(20, 14, 4, .5), offset: Offset(0, 3)),
-                    ],
-                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.copy_rounded, size: 13, color: Color(0xFFFBE8B4)),
-                      SizedBox(width: 5),
-                      Text('Kopier', style: megInter(11.5, FontWeight.w800, color: Color(0xFFFBE8B4))),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(label, style: inter(10.5, weight: FontWeight.w800, em: .14, color: const Color(0xFF7A5A1A))),
+                            const SizedBox(height: 4),
+                            Text(code, key: codeKey, style: jakarta(16, em: -.01, color: const Color(0xFF3A2708)).copyWith(height: 1.35)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      CssBox(
+                        height: 36,
+                        radius: const BorderRadius.all(Radius.circular(999)),
+                        bg: const [CssLinear(180, [Color(0xFF6B5120), Color(0xFF3E2D12)])],
+                        shadows: const [
+                          CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 240, 200, .3)),
+                          CssShadow.inset(0, -2, 4, 0, Color.fromRGBO(0, 0, 0, .3)),
+                          CssShadow(0, 6, 10, -6, Color.fromRGBO(40, 26, 6, .7)),
+                        ],
+                        padding: const EdgeInsets.symmetric(horizontal: 13),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const AeIkon(_kopi, size: 12, stroke: 2.2, color: Color(0xFFFBE8B4)),
+                            const SizedBox(width: 5),
+                            Text('Kopier', style: inter(12, weight: FontWeight.w800, color: const Color(0xFFFBE8B4))),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
