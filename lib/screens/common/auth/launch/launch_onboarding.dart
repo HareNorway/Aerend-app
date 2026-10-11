@@ -14,6 +14,7 @@ import '../../../../commonView/social_login.dart';
 import '../../../../dialogs/forgotPasswordDialog/forgot_password_dialog.dart';
 import '../../../../utils/guest_auth_helper.dart';
 import '../../../../utils/utils.dart';
+import '../../home/bergen/bergen_home.dart';
 import '../../homeMainV1/home_main_v1.dart';
 import '../../login/login_dl.dart';
 import '../../login/vipps_login_helper.dart';
@@ -482,6 +483,8 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
     final c = from?.center ?? Offset(size.width / 2, size.height * .8);
     HapticFeedback.heavyImpact();
     final nav = Navigator.of(context);
+    // `hjemInn`: the Hjem under the ring rises in once.
+    BergenHome.hjemInn = true;
     nav.pushAndRemoveUntil(
       lfWowRoute(const HomeMainV1(isShowDialog: true), c, coins: coins),
       (r) => false,

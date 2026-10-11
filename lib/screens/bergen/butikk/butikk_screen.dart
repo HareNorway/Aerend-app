@@ -12,6 +12,7 @@ import 'butikk_copy.dart';
 import 'mote_butikk_screen.dart';
 import 'produkt_sheet.dart';
 import 'restaurant_body.dart';
+import '../hjem/hjem_ny.dart';
 
 export 'restaurant_body.dart'
     show RestaurantButikkBody, RestaurantButikkBodyState;
@@ -70,6 +71,8 @@ class _ButikkScreenState extends State<ButikkScreen> {
     _routeRead = true;
     final args = BergenRoutes.argsOf(context);
     _id = widget.storeId ?? int.tryParse(args['id'] ?? '') ?? 0;
+    // «Ny i bydelen» goes out once the customer has opened the new shop.
+    HjemNy.merkSett(_id);
     _name = widget.name ?? args['name'];
     _category = widget.category ?? args['category'];
     _productId = widget.productId ?? int.tryParse(args['product_id'] ?? '');

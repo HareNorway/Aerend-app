@@ -148,6 +148,8 @@ class StoreListItem {
 
   StoreListItem.fromJson(dynamic json) {
     _storeId = json['store_id'];
+    // Parity Step 4: joined Ærend in the last 14 days («Ny i bydelen»).
+    newOnAerend = json['new_on_aerend'] == true;
     _storeName = json['store_name'];
     _storeBanner = json['store_banner'];
     _storeProducts = json['store_products'];
@@ -173,6 +175,9 @@ class StoreListItem {
   String? get description => _description;
 
   int? _storeId;
+
+  /// The shop joined Ærend in the last 14 days (`new_on_aerend`).
+  bool newOnAerend = false;
   String? _storeName;
   String? _storeBanner;
   String? _storeProducts;

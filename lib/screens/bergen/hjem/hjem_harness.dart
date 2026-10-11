@@ -15,6 +15,10 @@ abstract final class HjemHarness {
   /// Pin the motion tier (`"full"`, `"lite"`, `"still"`; parity plan §3.1).
   static String? perf;
 
+  /// Light «Ny i bydelen» on «Mat & fisk», as the prototype's sample data
+  /// does (no shop joined locally in the last 14 days).
+  static bool nyButikk = false;
+
   static HjemVaer? vaer;
   static bool demoFloats = false;
   static int? unread;
@@ -199,6 +203,7 @@ abstract final class HjemHarness {
       if (!await f.exists()) {
         if (perf != null) BergenPerf.force(null);
         perf = null;
+        nyButikk = false;
         vaer = null;
         demoFloats = false;
         unread = null;
@@ -264,6 +269,7 @@ abstract final class HjemHarness {
       }
       final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
       perf = m['perf'] as String?;
+      nyButikk = m['nyButikk'] == true;
       BergenPerf.force(perf == null ? null : BergenTier.values.byName(perf!));
       vaer = m['vaer'] == null ? null : HjemVaer.values.byName(m['vaer'] as String);
       demoFloats = m['demoFloats'] == true;

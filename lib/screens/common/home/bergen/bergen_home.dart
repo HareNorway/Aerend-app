@@ -66,6 +66,8 @@ import 'bergen_nav.dart';
 import 'bergen_painters.dart';
 import 'bergen_rails.dart';
 import 'bergen_store_repo.dart';
+import '../../../bergen/kit/bergen_motion.dart';
+import '../../../bergen/hjem/hjem_ny.dart';
 
 // Hjem — the `erHjem` screen of "Ærend Kunde Bergen" (ROM style).
 //
@@ -115,11 +117,17 @@ class BergenHome extends StatefulWidget {
   final int orderId;
   final bool isShowDialog;
 
+  /// Set by the onboarding right before it opens Hjem through the ring
+  /// (`onbWow`): the next Hjem plays `hjemInn` once, then clears it.
+  static bool hjemInn = false;
+
   @override
   State<BergenHome> createState() => _BergenHomeState();
 }
 
 class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
+  /// `hjemInn` plays once, on the Hjem the onboarding's ring opens.
+  final bool _inn = BergenHome.hjemInn;
   late final HomeBloc _bloc;
   final BergenStoreRepo _storeRepo = BergenStoreRepo();
   final ScrollController _scroll = ScrollController();
@@ -212,6 +220,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    BergenHome.hjemInn = false;
+    HjemNy.endret.addListener(_nyEndret);
     DrapePek.lytt();
     _playIntro = !_introPlayed;
     _introPlayed = true;
@@ -414,6 +424,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    HjemNy.endret.removeListener(_nyEndret);
     WidgetsBinding.instance.removeObserver(this);
     _trackTimer?.cancel();
     _trackSub?.cancel();
@@ -1132,6 +1143,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   static String _kr(double v) =>
       '${v == v.roundToDouble() ? v.toInt() : v.toStringAsFixed(2).replaceAll('.', ',')} kr';
 
+  static String? _vurdering(Object? raw) {
+    final v = double.tryParse('${raw ?? ''}'.replaceAll(',', '.'));
+    if (v == null || v <= 0) return null;
+    return v.toStringAsFixed(1).replaceAll('.', ',');
+  }
+
   BergenStoreCard _storeFromList(StoreListItem s) => BergenStoreCard(
     id: s.storeId ?? 0,
     name: s.storeName ?? '',
@@ -1143,7 +1160,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     eta: (s.orderDeliveryTime ?? 0) > 0
         ? BergenCopy.minutes(s.orderDeliveryTime!)
         : null,
-    rating: s.averageRatings == null ? null : '${s.averageRatings}',
+    // The design's «4,6»: one decimal with a comma; no rating shows nothing
+    // (the API sends «0.00» for a store nobody has rated).
+    rating: _vurdering(s.averageRatings),
     offer: (s.offer ?? '').isEmpty ? null : s.offer,
   );
 
@@ -1154,7 +1173,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     open: true,
     bannerUrl: s.storeImage.isEmpty ? null : s.storeImage,
     eta: s.deliveryTime > 0 ? BergenCopy.minutes(s.deliveryTime) : null,
-    rating: s.storeRating > 0 ? s.storeRating.toStringAsFixed(1) : null,
+    rating: s.storeRating > 0 ? s.storeRating.toStringAsFixed(1).replaceAll('.', ',') : null,
   );
 
   void _ensurePopulaert(BergenCategory cat) {
@@ -1191,6 +1210,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           setState(() {
             _storesLoading.remove(cat.id);
             _storesByCat[cat.id] = [for (final s in list) _storeFromList(s)];
+            for (final s in list) {
+              if (s.newOnAerend && (s.storeId ?? 0) > 0) HjemNy.nye.add(s.storeId!);
+            }
           });
         })
         .catchError((Object e) {
@@ -1231,6 +1253,20 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     if (HjemHarness.pose) return true;
     final t = DateTime.now().hour;
     return (t >= 11 && t < 14) || (t >= 16 && t < 21);
+  }
+
+  /// The wheel slot holding a shop that is «Ny i bydelen» (`vsNyLykt`), or
+  /// null. The debug harness lights «Mat & fisk», as the prototype does.
+  int? _nyKat(Map<int, BergenCategory> slots) {
+    if (HjemNy.tvunget) return 1;
+    for (final e in slots.entries) {
+      if ((_storesByCat[e.value.id] ?? const []).any((b) => HjemNy.uapnet(b.id))) return e.key;
+    }
+    return null;
+  }
+
+  void _nyEndret() {
+    if (mounted) setState(() {});
   }
 
   // ── Actions ─────────────────────────────────────────────────────────────
@@ -1450,7 +1486,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                           right: 0,
                           top: safeTop,
                           bottom: 0,
-                          child: ClipRect(
+                          child: _HjemInn(
+                            on: _inn,
+                            index: 1,
+                            child: ClipRect(
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
@@ -1487,6 +1526,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               ],
                             ),
                           ),
+                          ),
                         ),
 
                         // ── Under kaien (L2663): behind the sheet's end ──
@@ -1496,7 +1536,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             right: 0,
                             bottom: 0,
                             height: 300 * s,
-                            child: LfFrame(
+                            // Behind the sheet's end: hidden until the sheet's
+                            // `hjemInn` is done, so it never shows through the
+                            // sheet while it fades in.
+                            child: _HjemInn(
+                              on: _inn,
+                              index: 5,
+                              etterArk: true,
+                              child: LfFrame(
                               child: HjemUnderKaien(
                                 vist: _kaien,
                                 reker: _underKaien == null
@@ -1513,6 +1560,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                 frakt: _kaienFrakt(),
                               ),
                             ),
+                            ),
                           ),
 
                         // ── Sheet (ark) ────────────────────────────────
@@ -1526,7 +1574,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               screenH -
                               (safeTop + _kSheetTop * s) +
                               _kSheetSlide * s,
-                          child: _Sheet(
+                          child: _HjemInn(
+                            on: _inn,
+                            index: 5,
+                            ark: true,
+                            child: _Sheet(
                             controller: _scroll,
                             child: _sheetBody(
                               context,
@@ -1542,7 +1594,19 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               tilbud: _tilbud(swipe),
                             ),
                           ),
+                          ),
                         ),
+
+                        // ── «Ny i bydelen» lantern (L2508, z 4) ──────────
+                        // In the prototype it sits behind the Forundringspose
+                        // float and under the sheet on Hjem, so it only reads
+                        // in Vindu, over the open water.
+                        if (_vindu && _nyKat(slots) != null)
+                          Positioned(
+                            left: 84 * s,
+                            top: safeTop + 160 * s,
+                            child: const HjemNyLykt(),
+                          ),
 
                         // ── Header row (`visKromOver`) ─────────────────
                         if (!_vindu)
@@ -1551,7 +1615,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             right: 0,
                             top: safeTop + _kHeaderTop * s,
                             height: 56 * s,
-                            child: LfFrame(
+                            child: _HjemInn(
+                              on: _inn,
+                              index: 0,
+                              child: LfFrame(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -1583,6 +1650,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                   },
                                 ),
                               ),
+                            ),
                             ),
                           ),
 
@@ -1807,6 +1875,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     ikon: k,
                     snart: _erSnart(k),
                     varsles: _snartVarsle.contains(k),
+                    ny: _nyKat(slots) == k,
                   ),
               ],
               index: _hjulI,
@@ -1921,6 +1990,64 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         // the bottom of the screen behind the sheet, shows through.
         SizedBox(height: (296 + 316) * s),
       ],
+    );
+  }
+}
+
+// ── hjemInn (prototype L17389) ─────────────────────────────────────────────
+
+/// `hjemInn`: once after the onboarding, Hjem's first nine visible pieces
+/// rise in, 85 ms apart from 260 ms (`cubic-bezier(.2,.9,.3,1)` over the
+/// whole run, `fill: backwards`). The sheet slides up 220 px with a 10 px
+/// overshoot (900 ms); the rest rise 26 px from scale .97 (650 ms). The
+/// prototype's order puts the header at 0, the hero at 1 and the sheet at 5.
+class _HjemInn extends StatelessWidget {
+  const _HjemInn({required this.on, required this.index, required this.child, this.ark = false, this.etterArk = false});
+
+  final bool on;
+  final int index;
+  final bool ark;
+
+  /// Stays hidden until the sheet at [index] has risen (Under kaien).
+  final bool etterArk;
+  final Widget child;
+
+  static const Cubic _e = Cubic(.2, .9, .3, 1);
+
+  @override
+  Widget build(BuildContext context) {
+    if (!on) return child;
+    if (etterArk) {
+      return BergenOnce(
+        durationMs: 1,
+        delayMs: 260 + index * 85.0 + 900,
+        child: child,
+        builder: (context, p, child) => Opacity(opacity: p >= 1 ? 1 : 0, child: child),
+      );
+    }
+    return RepaintBoundary(
+      child: BergenOnce(
+        durationMs: ark ? 900 : 650,
+        delayMs: 260 + index * 85.0,
+        child: child,
+        builder: (context, p, child) {
+          final e = _e.transform(p.clamp(0.0, 1.0));
+          if (ark) {
+            final y = e < .7 ? 220 + (-10 - 220) * (e / .7) : -10 + 10 * ((e - .7) / .3);
+            return Opacity(
+              opacity: (e / .7).clamp(0.0, 1.0),
+              child: Transform.translate(offset: Offset(0, y), child: child),
+            );
+          }
+          return Opacity(
+            opacity: e,
+            child: Transform.translate(
+              offset: Offset(0, 26 * (1 - e)),
+              child: Transform.scale(scale: .97 + .03 * e, child: child),
+            ),
+          );
+        },
+      ),
     );
   }
 }

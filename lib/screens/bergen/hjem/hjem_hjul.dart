@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
+import 'hjem_ny.dart';
 
 // ── Kategorirad · the 3D wheel (`katHjul`, prototype L2783–2806) ────────────
 // The categories stand on a ring (r 116) tilted 68° back in a 760px
@@ -18,7 +19,7 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 // shows the "Kommer snart · Varsle meg" chip.
 
 class HjemHjulKat {
-  const HjemHjulKat({required this.navn, required this.live, required this.ikon, required this.snart, this.varsles = false});
+  const HjemHjulKat({required this.navn, required this.live, required this.ikon, required this.snart, this.varsles = false, this.ny = false});
 
   final String navn;
   final String live;
@@ -29,6 +30,10 @@ class HjemHjulKat {
 
   /// "Varsle meg" already tapped (bell badge, mint chip).
   final bool varsles;
+
+  /// A shop here is «Ny i bydelen» (`friKat.ny`): the «Ny» tag under the
+  /// orb when it is not the focused one.
+  final bool ny;
 }
 
 /// `STI` and `SIDE` per icon.
@@ -594,6 +599,9 @@ class _Orb extends StatelessWidget {
             top: 13,
             child: HjemKatIkon(ikon: kat.ikon, size: 34, dybde: .9, perspektiv: 760, delayMs: delay),
           ),
+          // «Ny» under the orb: the 4 px gap and 8 px live dot, then −16 px.
+          if (kat.ny && !aktiv)
+            const Positioned(left: -10, right: -10, top: 56, child: Center(child: HjemNyTag())),
           if (kat.snart) ...[
             Positioned(
               left: -5,
