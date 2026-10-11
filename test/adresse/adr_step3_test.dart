@@ -90,7 +90,12 @@ void main() {
     expect(adrMerke('Jobb'), 'Jobb');
     expect(adrMerke('Hytte'), 'Hytte');
     expect(adrMerke('Annet'), 'Annet');
-    expect(adrType('Hjem'), 'Hjemme');
+    expect(adrType('Hjem'), 'home');
+    expect(adrType('Jobb'), 'work');
+    expect(adrType('Hytte'), 'cabin');
+    expect(adrType('Annet'), 'other');
+    expect(adrMerke('cabin'), 'Hytte');
+    expect(adrMerke('other'), 'Annet');
     expect(adrGateNr('Nygårdsgaten 5, 5015 Bergen'), ('Nygårdsgaten', '5'));
     expect(adrGateNr('Bryggen 11B'), ('Bryggen', '11B'));
     expect(adrGateNr('Torget'), ('Torget', null));
@@ -218,7 +223,7 @@ void main() {
 
     await tester.tap(find.text('Lagre og lever hit'));
     await tester.pump(const Duration(milliseconds: 600));
-    expect(k.lagt.single, (adresse: 'Bryggen 11, 5003 Bergen', type: 'Hytte', info: '3. etasje'));
+    expect(k.lagt.single, (adresse: 'Bryggen 11, 5003 Bergen', type: 'cabin', info: '3. etasje'));
     expect(k.toasts, contains('Lagret · leverer til Bryggen 11'));
     expect(find.text('Hvor skal ærendet?'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
