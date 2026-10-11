@@ -113,6 +113,10 @@ abstract final class HjemHarness {
   /// Open the Kurv's `levering` or `betaling` sheet once loaded.
   static String? kurvArk;
 
+  /// Kassen's back key once loaded, then 4 s later the store's back key
+  /// (`maybePop`) — the Kassen ⇄ store round trip.
+  static bool kurvTilbake = false;
+
   /// Open «Betalt» (the payment-confirmed sequence) for this order.
   static int? betalt;
 
@@ -251,6 +255,7 @@ abstract final class HjemHarness {
         kurvFlere = false;
         kurvHenting = false;
         kurvArk = null;
+        kurvTilbake = false;
         betalt = null;
         katLive = false;
         hurtig = hurtigTenk = false;
@@ -319,6 +324,7 @@ abstract final class HjemHarness {
       kurvFlere = m['kurvFlere'] == true;
       kurvHenting = m['kurvHenting'] == true;
       kurvArk = m['kurvArk'] as String?;
+      kurvTilbake = m['kurvTilbake'] == true;
       betalt = m['betalt'] as int?;
       // `treg`: slow every animation down this many times (frame checks).
       timeDilation = (m['treg'] as num?)?.toDouble() ?? 1.0;

@@ -293,6 +293,15 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
           if (ark == 'betaling') _openBetaling();
         });
       }
+      if (HjemHarness.kurvTilbake) {
+        HjemHarness.kurvTilbake = false;
+        Future.delayed(const Duration(milliseconds: 3000), () {
+          if (!mounted) return;
+          final nav = Navigator.of(context);
+          _tilbake();
+          Future.delayed(const Duration(milliseconds: 4000), () => nav.maybePop());
+        });
+      }
       if (HjemHarness.kurvScroll case final y?) {
         Future.delayed(const Duration(milliseconds: 2000), () {
           if (mounted && _rull.hasClients) _rull.jumpTo(y * context.bs);
@@ -473,9 +482,13 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   }
 
   /// `tilButikk`: back to the basket's store; an empty basket goes to Hjem.
+  /// From the Kurv tab the shell turns to Hjem underneath first: the store's
+  /// back goes to Hjem (`tilHjem` in the prototype), not into Kassen again —
+  /// popping the store onto the Kurv tab made Kassen ⇄ store a loop.
   void _tilButikk() {
     final cart = _cart;
     if (cart != null && !cart.isEmpty) {
+      if (widget.embedded) context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(BergenTab.home.index);
       BergenRoutes.push(context, '/bergen/butikk/${cart.storeId}', arguments: {'name': _preview?.storeName ?? ''});
       return;
     }
