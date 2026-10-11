@@ -614,7 +614,7 @@ class CheckOutBloc extends Bloc {
                 isPending: false)
           ]),
           googlePay: const PaymentSheetGooglePay(
-              merchantCountryCode: 'NO', testEnv: false),
+              merchantCountryCode: 'NO', testEnv: true),
           style: ThemeMode.light,
         ),
       );
@@ -629,7 +629,7 @@ class CheckOutBloc extends Bloc {
               merchantName: 'Ærend',
               allowCreditCards: true,
               isEmailRequired: false,
-              testEnv: false,
+              testEnv: true,
               currencyCode: 'nok',
               merchantCountryCode: 'no',
             ),

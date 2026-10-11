@@ -10,8 +10,8 @@ export 'colors.dart';
 export 'dimensions.dart';
 
 const stripePublishableKey =
-    // "pk_test_51OuAwNRtRZ7Sf1Zqmbk7Mk06ucjWs3mHkemPKETlFEj3EpUzkCPIk03A6XpuuuscghAzL0y4etcoXuhvRLmRpbPF00Erk10Stm";
-    "pk_live_51OuAwNRtRZ7Sf1ZqAc9zzKogVcHgR1yw2fug6ulaFq7Atw47Ea3eZkAQ4W549R8ZgIcnPqStnIhhZcbDGT59e3po00pJ8dR0sg";
+    "pk_test_51OuAwNRtRZ7Sf1Zqmbk7Mk06ucjWs3mHkemPKETlFEj3EpUzkCPIk03A6XpuuuscghAzL0y4etcoXuhvRLmRpbPF00Erk10Stm";
+    // "pk_live_51OuAwNRtRZ7Sf1ZqAc9zzKogVcHgR1yw2fug6ulaFq7Atw47Ea3eZkAQ4W549R8ZgIcnPqStnIhhZcbDGT59e3po00pJ8dR0sg";
 const firebaseTopicName = "HareCustomer";
 const appleId = "6478966156";
 
