@@ -20,6 +20,8 @@ void main() {
   setUpAll(() => a3Bootstrap());
   setUp(() {
     A3Services.addressLine = () async => 'Nygårdsgaten 5';
+    A3Services.rules = () async => null;
+    A3Services.addressList = () async => const [];
     A3Services.paymentLine = () async => 'Visa •• 4471';
   });
   tearDown(() {
@@ -37,6 +39,15 @@ void main() {
   Future<void> settle(WidgetTester t) async {
     await t.pump();
     await t.pump(const Duration(milliseconds: 50));
+  }
+
+  /// New Bergen: the Poeng card and the Nivå / Liga / Gullbillett rows sit
+  /// inside «Poeng, nivå og konkurranser»; open it.
+  Future<void> apnePoeng(WidgetTester t) async {
+    await t.ensureVisible(find.byKey(const Key('meg-poeng-knapp')));
+    await t.tap(find.byKey(const Key('meg-poeng-knapp')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 700));
   }
 
   final balance = PointsBalance(
@@ -100,6 +111,10 @@ void main() {
     expect(find.text('Kari fra Møhlenpris'), findsOneWidget);
     expect(find.byKey(const Key('meg-gullbillett')), findsOneWidget);
     expect(find.text('Gi 200 · få 200 poeng'), findsOneWidget);
+    // New Bergen: «POENG, NIVÅ OG KONKURRANSER» opens to the Poeng card.
+    expect(find.text('POENG, NIVÅ OG KONKURRANSER'), findsOneWidget);
+    expect(find.byKey(const Key('meg-nivaa-card')), findsNothing);
+    await apnePoeng(tester);
 
     expect(find.byKey(const Key('meg-nivaa-card')), findsOneWidget);
     expect(find.text('GULL'), findsOneWidget);
@@ -108,7 +123,7 @@ void main() {
     for (final n in ['Bronse', 'Sølv', 'Gull', 'Platina']) {
       expect(find.text(n), findsWidgets, reason: n);
     }
-    expect(find.text('1 340'), findsOneWidget);
+    expect(find.text('1 340'), findsWidgets);
     expect(find.text('Opptjent i alt: 3 600 poeng'), findsOneWidget);
     expect(find.text('+30 kommer når ordren er levert'), findsOneWidget);
     expect(find.textContaining('Mål: gratis pizza fra casa maria · 20 poeng igjen'), findsOneWidget);
@@ -121,13 +136,14 @@ void main() {
     final p = api();
     await tester.pumpWidget(app(p));
     await settle(tester);
+    await apnePoeng(tester);
 
     expect(find.byKey(const Key('meg-rad-nivaa')), findsOneWidget);
-    expect(find.text('2 400 til Platina'), findsOneWidget);
+    expect(find.text('2 400 til Platina'), findsWidgets);
     expect(find.byKey(const Key('meg-rad-liga')), findsOneWidget);
     expect(find.text('Bli med'), findsOneWidget);
     expect(find.byKey(const Key('meg-rad-gullbillett')), findsOneWidget);
-    expect(find.textContaining('KARI200'), findsOneWidget);
+    expect(find.textContaining('KARI200'), findsWidgets);
     // The Launch design has no Ukens oppdrag row on Meg.
     expect(find.text('UKENS OPPDRAG'), findsNothing);
   });
@@ -238,6 +254,7 @@ void main() {
     A3Services.aegilRepo = () => FakeAegilRepo();
     await tester.pumpWidget(a3App(const MegScreen()));
     await settle(tester);
+    await apnePoeng(tester);
     expect(find.byKey(const Key('meg-nivaa-card')), findsOneWidget);
     expect(medalFor('Platina').ink, medalFor('Ulriken').ink);
     expect(medalFor('Bronse').accent, isNot(medalFor('Gull').accent));
@@ -263,7 +280,7 @@ void main() {
     expect(find.byKey(const Key('meg-innstillinger-rader')), findsOneWidget);
   });
 
-  testWidgets('Gullbilletten sheet: code, board, ladder step, friend tickets, Vilkår', (tester) async {
+  testWidgets('Gullbilletten sheet (dark): code ticket, board with the cap, friend tickets, Vilkår', (tester) async {
     tall(tester);
     final p = api();
     p.referralValue = const Referral(
@@ -284,13 +301,14 @@ void main() {
     expect(find.byKey(const Key('meg-billett-sheet')), findsOneWidget);
     expect(find.text('Gullbilletten din'), findsOneWidget);
     expect(find.text('DIN DELINGSKODE'), findsOneWidget);
-    expect(find.text('DIDRIK-BGO'), findsOneWidget);
+    // The code is on the Meg ticket and on the sheet's ticket.
+    expect(find.text('DIDRIK-BGO'), findsNWidgets(2));
     expect(find.text('BILLETTENE DINE'), findsOneWidget);
     expect(find.byKey(const Key('meg-billett-antall')), findsOneWidget);
     expect(find.text('700 poeng hentet inn · 200 for hver ny'), findsOneWidget);
-    expect(find.text('BRONSEBILLETT NÅDD'), findsOneWidget);
-    expect(find.text('Sølvbillett ved 10 vervede · +500 bonus'), findsOneWidget);
-    expect(find.text('7 igjen'), findsOneWidget);
+    // D5: the real monthly cap, not «Ingen grense».
+    expect(find.text('0 av 5 denne måneden'), findsOneWidget);
+    expect(find.text('Ingen grense'), findsNothing);
     expect(find.text('Neste venn'), findsOneWidget);
     expect(find.text('Kari'), findsWidgets);
     expect(find.text('Ola'), findsOneWidget);
@@ -318,7 +336,9 @@ void main() {
     );
     await tester.pumpWidget(app(p));
     await settle(tester);
+    await apnePoeng(tester);
 
+    await tester.ensureVisible(find.byKey(const Key('meg-nivaa-open')));
     await tester.tap(find.byKey(const Key('meg-nivaa-open')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
@@ -341,25 +361,46 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   });
 
-  testWidgets('Del in the hero and in the Gullbilletten row open the Gullbilletten sheet', (tester) async {
+  testWidgets('the Meg ticket and the Gullbilletten row open the Gullbilletten sheet', (tester) async {
     tall(tester);
     final p = api()..referralValue = const Referral(code: 'KARI200', ladder: [VervStep(at: 3, name: 'Bronsebillett', bonus: 100)]);
     await tester.pumpWidget(app(p));
     await settle(tester);
-    await tester.tap(find.byKey(const Key('meg-del')));
+    await tester.tap(find.byKey(const Key('meg-gullbillett')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const Key('meg-billett-sheet')), findsOneWidget);
     await tester.tap(find.byKey(const Key('meg-ark-lukk')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
+    await apnePoeng(tester);
     await tester.ensureVisible(find.byKey(const Key('meg-del-2')));
     await tester.tap(find.byKey(const Key('meg-del-2')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const Key('meg-billett-sheet')), findsOneWidget);
-    expect(find.byKey(const Key('meg-billett-stige')), findsOneWidget);
+    expect(find.byKey(const Key('meg-billett-board')), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Logg ut asks first; Avbryt keeps you in (Bergen Step 8)', (tester) async {
+    tall(tester);
+    await tester.pumpWidget(app(api()));
+    await settle(tester);
+    await tester.ensureVisible(find.byKey(const Key('meg-logg-ut')));
+    await tester.tap(find.byKey(const Key('meg-logg-ut')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Logge ut?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('meg-logg-ut-avbryt')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Logge ut?'), findsNothing);
+    expect(find.byKey(const Key('meg-logg-ut')), findsOneWidget);
+    // The D2 group is there, below the design's rows.
+    expect(find.text('FLERE INNSTILLINGER'), findsOneWidget);
+    expect(find.byKey(const Key('meg-d2-rader')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 9));
   });
 
   testWidgets('Adresser, Betaling and Språk open as sheets', (tester) async {

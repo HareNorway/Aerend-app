@@ -1,14 +1,11 @@
-import 'dart:math' as math;
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../data/aegil/aegil_models.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
-import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfToast;
+import '../meg/mork_rad.dart';
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
 
@@ -193,11 +190,11 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
     var k = 0;
     Widget kort(Widget Function(double delayMs) b) => b(k++ * 40.0);
     final rader = <Widget>[
-      _Seksjon(AeInnstCopy.s1, AeInnstCopy.s1Under, verdi: AeInnstCopy.nivaa(vis)),
+      MorkSeksjon(AeInnstCopy.s1, AeInnstCopy.s1Under, verdi: AeInnstCopy.nivaa(vis)),
       for (var i = 0; i < 5; i++) ...[
         if (i == 4)
           kort(
-            (d) => _Kort(
+            (d) => MorkRad(
               key: const Key('ae-innst-nivaa-4'),
               delayMs: d,
               tileTx: '4',
@@ -211,7 +208,7 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
           )
         else
           kort(
-            (d) => _Kort(
+            (d) => MorkRad(
               key: Key('ae-innst-nivaa-$i'),
               delayMs: d,
               tileTx: '$i',
@@ -224,18 +221,18 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
               onTap: () => _velg(i),
             ),
           ),
-        if (i == 1 && legacy) kort((d) => _Kort(key: const Key('ae-innst-nivaa-legacy'), delayMs: d, tileTx: '1', navn: level1?.name ?? 'Foreslå', under: level1?.body, valgt: true, onTap: () {})),
+        if (i == 1 && legacy) kort((d) => MorkRad(key: const Key('ae-innst-nivaa-legacy'), delayMs: d, tileTx: '1', navn: level1?.name ?? 'Foreslå', under: level1?.body, valgt: true, onTap: () {})),
       ],
-      _Seksjon(AeInnstCopy.s2, vis >= 3 ? AeInnstCopy.s2Handler : AeInnstCopy.s2Senere),
+      MorkSeksjon(AeInnstCopy.s2, vis >= 3 ? AeInnstCopy.s2Handler : AeInnstCopy.s2Senere),
       kort(
         (d) =>
-            _Kort(key: const Key('ae-innst-grense'), delayMs: d, ikon: _Ik.lommebok, navn: AeInnstCopy.grense, under: AeInnstCopy.grenseUnder, felt: _felt(), onTap: () => _grenseFokus.requestFocus()),
+            MorkRad(key: const Key('ae-innst-grense'), delayMs: d, ikon: MorkIk.lommebok, navn: AeInnstCopy.grense, under: AeInnstCopy.grenseUnder, felt: _felt(), onTap: () => _grenseFokus.requestFocus()),
       ),
       kort(
-        (d) => _Kort(
+        (d) => MorkRad(
           key: const Key('ae-innst-billig'),
           delayMs: d,
-          ikon: _Ik.ned,
+          ikon: MorkIk.ned,
           navn: AeInnstCopy.billig,
           under: AeInnstCopy.billigUnder,
           bryter: s.againstInterestEnabled,
@@ -244,20 +241,20 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
       ),
       // Not in the design (kept, needs sign-off): the limits the app already had.
       kort(
-        (d) => _Kort(
+        (d) => MorkRad(
           key: const Key('ae-innst-butikker'),
           delayMs: d,
-          ikon: _Ik.butikk,
+          ikon: MorkIk.butikk,
           navn: AeCopy.rmBut,
           verdi: s.allowedStoreMode == 'allowlist' ? AeCopy.rmButFav : AeCopy.rmButAlle,
           onTap: widget.onButikker,
         ),
       ),
       kort(
-        (d) => _Kort(
+        (d) => MorkRad(
           key: const Key('ae-innst-kategorier'),
           delayMs: d,
-          ikon: _Ik.hylle,
+          ikon: MorkIk.hylle,
           navn: AeCopy.rmKat,
           verdi: kat,
           onTap: () {
@@ -268,10 +265,10 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
         ),
       ),
       kort(
-        (d) => _Kort(
+        (d) => MorkRad(
           key: const Key('ae-innst-ro'),
           delayMs: d,
-          ikon: _Ik.klokke,
+          ikon: MorkIk.klokke,
           navn: AeCopy.rmRo,
           verdi: ro,
           onTap: () {
@@ -284,12 +281,12 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
           },
         ),
       ),
-      _Seksjon(AeInnstCopy.s3, AeInnstCopy.s3Under),
+      MorkSeksjon(AeInnstCopy.s3, AeInnstCopy.s3Under),
       kort(
-        (d) => _Kort(
+        (d) => MorkRad(
           key: const Key('ae-innst-laer'),
           delayMs: d,
-          ikon: _Ik.hist,
+          ikon: MorkIk.hist,
           navn: AeCopy.rmLaer,
           bryter: s.learningEnabled,
           onTap: () => _bryter('learning_enabled', s.learningEnabled, AeCopy.rmLaer),
@@ -344,366 +341,6 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
         ),
       ],
     ),
-  );
-}
-
-abstract final class _Ik {
-  static const String lommebok = 'M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4zM4 7l11-3v3M16 13.5h.01';
-  static const String klokke = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2';
-  static const String ned = 'M12 4v14M6 12l6 6 6-6';
-  static const String hist = 'M3 12a9 9 0 1 0 3-6.7M3 4v4h4M12 8v4l3 2';
-  static const String butikk = 'M4 10l1.6-5h12.8L20 10M4 10h16M5 10v10h14V10M10 20v-5h4v5';
-  static const String hylle = 'M4 6h16M4 12h16M4 18h16M7 6v12M17 6v12';
-}
-
-/// A section head: the glowing mint dot, the name in capitals, its line and
-/// (for the levels) the «Nivå N» chip.
-class _Seksjon extends StatelessWidget {
-  const _Seksjon(this.navn, this.under, {this.verdi});
-
-  final String navn;
-  final String under;
-  final String? verdi;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(4, 12, 4, 2),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF5CE0B8),
-                      boxShadow: [BoxShadow(color: Color.fromRGBO(92, 224, 184, .8), blurRadius: 8 / 2 / .57735)],
-                    ),
-                  ),
-                  const SizedBox(width: 7),
-                  Flexible(
-                    child: Text(
-                      navn.toUpperCase(),
-                      style: inter(11, weight: FontWeight.w800, em: .1, color: const Color(0xFF7FF0CB)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              Text(under, style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62))),
-            ],
-          ),
-        ),
-        if (verdi != null) ...[const SizedBox(width: 10), _Verdi(verdi!)],
-      ],
-    ),
-  );
-}
-
-class _Verdi extends StatelessWidget {
-  const _Verdi(this.t, {this.snart = false});
-
-  final String t;
-  final bool snart;
-
-  @override
-  Widget build(BuildContext context) => CssBox(
-    radius: BorderRadius.circular(999),
-    bg: [CssSolid(snart ? const Color.fromRGBO(245, 196, 81, .16) : const Color.fromRGBO(255, 255, 255, .12))],
-    shadows: [CssShadow.inset(0, 0, 0, 1, snart ? const Color.fromRGBO(245, 196, 81, .55) : const Color.fromRGBO(255, 255, 255, .2))],
-    padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-    child: Text(
-      t,
-      maxLines: 1,
-      softWrap: false,
-      style: inter(11, weight: FontWeight.w800, color: snart ? const Color(0xFFFFE08A) : Colors.white),
-    ),
-  );
-}
-
-/// One card row (`radMork`): the tile (icon or number), the name and line,
-/// and on the right a chip, a field, a switch, the mint check or an arrow.
-class _Kort extends StatelessWidget {
-  const _Kort({
-    super.key,
-    required this.delayMs,
-    required this.navn,
-    required this.onTap,
-    this.ikon,
-    this.tileTx,
-    this.under,
-    this.verdi,
-    this.felt,
-    this.bryter,
-    this.valgt = false,
-    this.pil = false,
-    this.snart = false,
-  });
-
-  final double delayMs;
-  final String navn;
-  final VoidCallback onTap;
-  final String? ikon;
-  final String? tileTx;
-  final String? under;
-  final String? verdi;
-  final Widget? felt;
-  final bool? bryter;
-  final bool valgt;
-  final bool pil;
-  final bool snart;
-
-  @override
-  Widget build(BuildContext context) {
-    final v = valgt;
-    final tBd = snart ? const Color.fromRGBO(245, 196, 81, .4) : (v ? const Color.fromRGBO(127, 240, 203, .55) : const Color.fromRGBO(255, 255, 255, .2));
-    final tC = snart ? const Color(0xFFFFE08A) : (v ? const Color(0xFF7FF0CB) : Colors.white);
-    final tile = CssBox(
-      width: 40,
-      height: 40,
-      radius: BorderRadius.circular(13),
-      bg: [
-        CssLinear(
-          160,
-          snart
-              ? const [Color.fromRGBO(245, 196, 81, .22), Color.fromRGBO(245, 196, 81, .05)]
-              : v
-              ? const [Color.fromRGBO(127, 240, 203, .4), Color.fromRGBO(92, 224, 184, .14)]
-              : const [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .06)],
-        ),
-      ],
-      shadows: [const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow.inset(0, 0, 0, 1, tBd), const CssShadow(0, 8, 12, -6, Color.fromRGBO(0, 0, 0, .5))],
-      child: Center(
-        child: tileTx != null ? Text(tileTx!, style: jakarta(13, color: tC)) : AeIkon(ikon ?? _Ik.hist, size: 18, stroke: 2.1, color: tC),
-      ),
-    );
-    final Widget? hoyre =
-        felt ??
-        (bryter != null
-            ? _Bryter(paa: bryter!)
-            : verdi != null
-            ? _Verdi(verdi!, snart: snart)
-            : v
-            ? const _Hake()
-            : pil
-            ? const _Pil()
-            : null);
-    final innhold = Row(
-      children: [
-        tile,
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(navn, style: inter(14, weight: FontWeight.w800, em: -.01, height: 1.3)),
-              if (under != null && under!.isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Text(under!, style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62))),
-              ],
-            ],
-          ),
-        ),
-        if (hoyre != null) ...[const SizedBox(width: 12), hoyre],
-      ],
-    );
-    // `transition: box-shadow .25s ease, background .25s ease` between the
-    // plain and the chosen look; «Kommer snart» has its own stripes.
-    final kort = snart
-        ? CustomPaint(
-            painter: const _Striper(),
-            child: CssBox(
-              radius: BorderRadius.circular(20),
-              shadows: const [CssShadow(0, 0, 0, 1.5, Color.fromRGBO(245, 196, 81, .32)), CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .18))],
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 60),
-                child: Padding(padding: const EdgeInsets.fromLTRB(14, 12, 14, 12), child: innhold),
-              ),
-            ),
-          )
-        : TweenAnimationBuilder<double>(
-            tween: Tween(end: v ? 1 : 0),
-            duration: const Duration(milliseconds: 250),
-            curve: cssEase,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 60),
-              child: Padding(padding: const EdgeInsets.fromLTRB(14, 12, 14, 12), child: innhold),
-            ),
-            builder: (context, a, child) {
-              Color l(Color x, Color y) => Color.lerp(x, y, a)!;
-              return CssBox(
-                radius: BorderRadius.circular(20),
-                bg: [
-                  CssLinear(180, [
-                    l(const Color.fromRGBO(255, 255, 255, .14), const Color.fromRGBO(92, 224, 184, .24)),
-                    l(const Color.fromRGBO(255, 255, 255, .05), const Color.fromRGBO(92, 224, 184, .08)),
-                  ]),
-                ],
-                shadows: [
-                  CssShadow(0, 0, 0, 1.5, l(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(127, 240, 203, .75))),
-                  const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .18)),
-                  // `0 12px 20px -14px rgba(4,18,26,.8)` ↔ `0 0 22px -6px rgba(92,224,184,.7)`.
-                  CssShadow(0, 12 * (1 - a), 20 + 2 * a, -14 + 8 * a, l(const Color.fromRGBO(4, 18, 26, .8), const Color.fromRGBO(92, 224, 184, .7))),
-                ],
-                child: child,
-              );
-            },
-          );
-    return _Stag(
-      delayMs: delayMs,
-      child: AePress(
-        onTap: onTap,
-        dy: 0,
-        scale: .985,
-        child: kort,
-      ),
-    );
-  }
-}
-
-/// `repeating-linear-gradient(135deg, white .05 0 8px, white .02 8px 16px)`
-/// behind «Kommer snart».
-class _Striper extends CustomPainter {
-  const _Striper();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const k = 16 / math.sqrt2;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(20)),
-      Paint()
-        ..shader = ui.Gradient.linear(
-          Offset.zero,
-          const Offset(k, k),
-          const [Color.fromRGBO(255, 255, 255, .05), Color.fromRGBO(255, 255, 255, .05), Color.fromRGBO(255, 255, 255, .02), Color.fromRGBO(255, 255, 255, .02)],
-          const [0, .5, .5, 1],
-          TileMode.repeated,
-        ),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_Striper o) => false;
-}
-
-/// `kortStag .45s <delay> cubic-bezier(.2,.9,.3,1) both`.
-class _Stag extends StatelessWidget {
-  const _Stag({required this.delayMs, required this.child});
-
-  final double delayMs;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => LfOnce(
-    ms: 450 + delayMs,
-    child: child,
-    builder: (context, t, child) {
-      final e = const Cubic(.2, .9, .3, 1).transform(kfP(t, delayMs, 450));
-      return Opacity(
-        opacity: e.clamp(0.0, 1.0),
-        child: Transform(alignment: Alignment.center, transform: Matrix4.translationValues(0, 18 * (1 - e), 0)..scaleByDouble(.97 + .03 * e, .97 + .03 * e, 1, 1), child: child),
-      );
-    },
-  );
-}
-
-/// The switch: 46 × 28, mint when on, the knob springing 18 px
-/// (`cubic-bezier(.34,1.56,.64,1)` .3 s).
-class _Bryter extends StatelessWidget {
-  const _Bryter({required this.paa});
-  final bool paa;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    toggled: paa,
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      width: 46,
-      height: 28,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: paa ? null : const Color.fromRGBO(255, 255, 255, .14),
-        gradient: paa ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9E)]) : null,
-        border: Border.all(color: paa ? const Color.fromRGBO(255, 255, 255, .4) : const Color.fromRGBO(255, 255, 255, .2)),
-      ),
-      child: Stack(
-        children: [
-          // `inset 0 2px 4px rgba(0,0,0,.3)`.
-          Positioned.fill(
-            child: CssBox(radius: BorderRadius.circular(999), clip: true, shadows: const [CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(0, 0, 0, .3))]),
-          ),
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: const Cubic(.34, 1.56, .64, 1),
-            left: paa ? 20 : 2,
-            top: 2,
-            child: Container(
-              width: 22,
-              height: 22,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white, Color(0xFFE4ECEE)]),
-                boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, .35), offset: Offset(0, 2), blurRadius: 5 / 2 / .57735)],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-/// The mint check of the chosen level (`klask .4s`).
-class _Hake extends StatelessWidget {
-  const _Hake();
-
-  @override
-  Widget build(BuildContext context) => LfOnce(
-    ms: 400,
-    builder: (context, t, child) {
-      final p = kfP(t, 0, 400);
-      const c = Cubic(.3, 1.4, .5, 1);
-      final s = kf(p, const [0, .6, 1], const [1.15, .98, 1], c);
-      final o = kf(p, const [0, .6, 1], const [0, 1, 1], c);
-      return Opacity(
-        opacity: o.clamp(0.0, 1.0),
-        child: Transform.scale(scale: s, child: child),
-      );
-    },
-    child: Container(
-      width: 28,
-      height: 28,
-      alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]),
-        boxShadow: [BoxShadow(color: Color.fromRGBO(92, 224, 184, .6), blurRadius: 14 / 2 / .57735)],
-      ),
-      child: const AeIkon('M5 12.5l4.5 4.5L19 7.5', size: 13, stroke: 3.6, color: Color(0xFF0F2B33)),
-    ),
-  );
-}
-
-class _Pil extends StatelessWidget {
-  const _Pil();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 30,
-    height: 30,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: const Color.fromRGBO(255, 255, 255, .12),
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
-    ),
-    child: const AeIkon('M9 6l6 6-6 6', size: 11, stroke: 3),
   );
 }
 

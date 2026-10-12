@@ -5,6 +5,8 @@ import '../../../utils/shared_pref_utill.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
 import '../../../data/aegil/aegil_repo.dart';
 import '../../../data/points/points_app_repo.dart';
+import '../../../data/points/points_rules.dart';
+import '../../../networking/ops/ops_customer_api.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/manageAddress/manage_address_repo.dart';
 import '../../common/manageCard/manage_card_dl.dart';
@@ -32,6 +34,9 @@ abstract final class A3Services {
   /// radio can pick the delivery address the way Velg leveringsadresse does.
   static Future<List<AddressListItem>> Function() addressList = _defaultAddressList;
 
+  /// `points/rules` (Slik får du poeng, Bergen Step 8).
+  static Future<PointsRules?> Function() rules = () => OpsCustomerApi().rules();
+
   @visibleForTesting
   static void reset() {
     points = () => PointsAppRepo();
@@ -43,6 +48,7 @@ abstract final class A3Services {
     addresses = _defaultAddresses;
     cards = _defaultCards;
     addressList = _defaultAddressList;
+    rules = () => OpsCustomerApi().rules();
   }
 }
 

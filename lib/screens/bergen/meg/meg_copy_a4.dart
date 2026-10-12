@@ -89,6 +89,7 @@ abstract final class A4MegCopy {
   static const String a4_meg_av = 'Av';
   static const String a4_meg_adresser = 'Adresser';
   static const String a4_meg_adresser_bare = 'bare for deg';
+  static String a4_meg_steder(int n) => n == 1 ? '1 sted' : '$n steder';
   static const String a4_meg_adresser_tom = 'Legg til adresse';
   static const String a4_meg_adresser_dor = 'Adresser og dørtekst';
   static const String a4_meg_ordrer = 'Ordrehistorikk';
@@ -136,6 +137,32 @@ abstract final class A4MegCopy {
   };
   static String a4_meg_fra_poeng(int n, String gift) => 'Fra ${_nf(n)} poeng opptjent · f.eks. $gift';
   static const String a4_meg_du_er_her = 'Du er her';
+
+  // Ark · Slik får du poeng (new Bergen, dark): the rates from points/rules.
+  static String a4_meg_rate_kjop(int n) => '$n poeng per 10 kr du handler for';
+  static const String a4_meg_rate_kr = '1 per kr';
+  static String a4_meg_rate_per10(int n) => '$n per 10 kr';
+  static String a4_meg_rate_forste(int n) => '+$n poeng, én gang per butikk';
+  static String a4_meg_rate_napp(int n) => '+$n poeng for det første funnet hver dag';
+  static String a4_meg_rate_verving(int n) => '+$n poeng når vennen får sin første ordre levert';
+  static String a4_meg_du_er(String tier) => 'Du er $tier';
+  static String a4_meg_poeng_opptjent(int n) => '${_nf(n)} poeng opptjent';
+  static const String a4_meg_slik_s1 = '1 · Slik tjener du poeng';
+  static const String a4_meg_slik_s1_under = 'Kommer automatisk når ordren er levert';
+  static const String a4_meg_slik_s2 = '2 · Nivåene';
+  static const String a4_meg_slik_s2_under = 'Hvert nivå åpner en ny hylle med premier';
+  static String a4_meg_tier_rad(String name, int n) => '$name · ${_nf(n)} poeng';
+  static String a4_meg_tier_eks(String gift) => gift.isEmpty ? '' : 'f.eks. $gift';
+  static String a4_meg_tier_igjen(int n) => '${_nf(n)} igjen';
+  static const String a4_meg_naadd_chip = 'Nådd';
+
+  // Premier · Mine premier tom (new Bergen L7759–7784).
+  static const String a4_hylla_ingen_enna = 'Ingen ennå';
+  static const String a4_hylla_tom_tittel = 'Hylla di er tom, foreløpig';
+  static const String a4_hylla_tom_linje = 'Premiene du henter for poengene dine ligger her. Sett en som mål, så hjelper Ægil deg dit.';
+  static String a4_hylla_tom_nok(int k) => 'Du har allerede nok poeng til $k ${k == 1 ? 'premie' : 'premier'}. Hent en, så ligger den her.';
+  static String a4_hylla_aa_bruke(String n) => '$n poeng å bruke';
+  static const String a4_hylla_finn = 'Finn en premie';
   static const String a4_meg_bruk_senker_aldri = 'Å bruke poeng senker aldri nivået';
   static const String a4_meg_bruk_senker_sub = 'Nivået følger poengene du har tjent opp, ikke saldoen din';
 

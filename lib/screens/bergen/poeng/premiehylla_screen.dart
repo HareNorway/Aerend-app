@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show OverflowBoxFit;
 
@@ -11,6 +12,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import '../aegil/aegil_bits.dart';
 import '../kit/bergen_kit.dart';
+import '../hjem/hjem_harness.dart';
 import '../meg/a3_services.dart';
 import '../meg/meg_ark.dart';
 import '../meg/meg_copy_a4.dart';
@@ -44,6 +46,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   PointsBalance? _balance;
   Premiehylla? _shelf;
   List<PrizeClaim> _claims = const [];
+
+  /// «Finn en premie» scrolls here (`[data-premiehylla]`).
+  final GlobalKey _hyllaKey = GlobalKey();
   bool _loading = true;
 
   @override
@@ -58,7 +63,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     setState(() {
       _balance = r[0] as PointsBalance?;
       _shelf = r[1] as Premiehylla?;
-      _claims = (r[2] as List<PrizeClaim>?) ?? const [];
+      _claims = kDebugMode && HjemHarness.hyllaTom ? const [] : (r[2] as List<PrizeClaim>?) ?? const [];
       _loading = false;
     });
   }
@@ -352,8 +357,39 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                     ),
                   ),
                 ],
+                // New Bergen L7759–7784: «Mine premier · Ingen ennå» and the
+                // empty shelf when nothing has been claimed yet.
+                if (_claims.isEmpty && b != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
+                    child: Row(
+                      children: [
+                        Text(A4MegCopy.a4_hylla_mine, style: jakarta(16, em: -.02)),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(8, 2.5, 8, 2.5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(999),
+                            color: const Color.fromRGBO(255, 255, 255, .08),
+                            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+                          ),
+                          child: Text(A4MegCopy.a4_hylla_ingen_enna, style: inter(10, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .75))),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _MineTom(
+                    poeng: b.available,
+                    klare: klare,
+                    onFinn: () {
+                      final c = _hyllaKey.currentContext;
+                      if (c != null) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 600), curve: const Cubic(.3, 1, .4, 1), alignment: .02);
+                    },
+                  ),
+                ],
                 if (b != null) ...[
                   Padding(
+                    key: _hyllaKey,
                     padding: const EdgeInsets.fromLTRB(2, 18, 2, 2),
                     child: Row(
                       children: [
@@ -1973,4 +2009,199 @@ class _Vilkaar extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// «Hylla di er tom, foreløpig» (new Bergen L7764–7783): two dashed empty
+/// slots floating (`mineTomSvev 5s`), Ægil with a voucher (`aegStaa 3.4s`),
+/// the line (how many prizes the points already reach), «N poeng å bruke» and
+/// «Finn en premie».
+class _MineTom extends StatelessWidget {
+  const _MineTom({required this.poeng, required this.klare, required this.onFinn});
+
+  final int poeng;
+  final int klare;
+  final VoidCallback onFinn;
+
+  static String _nf(int n) => n.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ' ');
+
+  Widget _plass(Color kant, Color fyll, double delay) => LfLoop(
+    builder: (context, t, child) {
+      final p = kfLoop(t, delay, 5000) ?? 0;
+      return Transform.translate(offset: Offset(0, kf(p, const [0, .5, 1], const [0, -6, 0], cssEaseInOut)), child: child);
+    },
+    child: CustomPaint(
+      painter: _StipletKant(kant),
+      child: Container(width: 62, height: 78, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: fyll)),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) => LfRise(
+    dur: 450,
+    child: CssBox(
+      key: const Key('hylla-mine-tom'),
+      radius: BorderRadius.circular(22),
+      clip: true,
+      bg: const [
+        CssRadial([Color.fromRGBO(242, 193, 78, .16), Color.fromRGBO(242, 193, 78, 0)], stops: [0, .6], rx: .9, ry: .8, cx: 0, cy: 1),
+        CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+      ],
+      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
+      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)), CssShadow(0, 18, 26, -18, Color.fromRGBO(4, 18, 26, .9))],
+      child: Stack(
+        children: [
+          Positioned(
+            right: -26,
+            top: 10,
+            child: IgnorePointer(
+              child: Transform.rotate(
+                angle: -8 * math.pi / 180,
+                child: Row(
+                  children: [
+                    _plass(const Color.fromRGBO(255, 255, 255, .22), const Color.fromRGBO(255, 255, 255, .03), 0),
+                    const SizedBox(width: 8),
+                    _plass(const Color.fromRGBO(246, 210, 122, .35), const Color.fromRGBO(242, 193, 78, .05), 1200),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(13, 15, 15, 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    SizedBox(
+                      width: 84,
+                      height: 92,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Positioned(
+                            left: 8,
+                            right: 8,
+                            bottom: 0,
+                            height: 9,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(gradient: RadialGradient(colors: [Color.fromRGBO(3, 14, 20, .55), Color.fromRGBO(3, 14, 20, 0)])),
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            bottom: 3,
+                            width: 84,
+                            child: LfLoop(
+                              builder: (context, t, child) => Transform(alignment: Alignment.bottomCenter, transform: aegStaa(t, 3400), child: child),
+                              child: Image.asset(aePose('voucher'), width: 84, fit: BoxFit.fitWidth),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(A4MegCopy.a4_hylla_tom_tittel, style: jakarta(16, em: -.015, height: 1.2)),
+                            const SizedBox(height: 4),
+                            Text(
+                              klare > 0 ? A4MegCopy.a4_hylla_tom_nok(klare) : A4MegCopy.a4_hylla_tom_linje,
+                              style: inter(11.5, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .74)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 30,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: const Color.fromRGBO(242, 193, 78, .14),
+                          border: Border.all(color: const Color.fromRGBO(246, 210, 122, .45)),
+                        ),
+                        child: Row(
+                          children: [
+                            const AeIkon('M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4-4.9-4.4 6.5-.7z', size: 12, stroke: 0, fill: Color(0xFFF6D27A)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                A4MegCopy.a4_hylla_aa_bruke(_nf(poeng)),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                softWrap: false,
+                                style: aeTab(inter(11.5, weight: FontWeight.w800, color: const Color(0xFFF6D27A))),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    AePress(
+                      key: const Key('hylla-finn-premie'),
+                      onTap: onFinn,
+                      dy: 2,
+                      child: CssBox(
+                        height: 38,
+                        radius: BorderRadius.circular(999),
+                        bg: const [
+                          CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
+                        ],
+                        shadows: const [CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .4)), CssShadow(0, 2, 0, 0, Color(0xFFC4491A)), CssShadow(0, 8, 14, -8, Color.fromRGBO(200, 70, 25, .85))],
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(A4MegCopy.a4_hylla_finn, style: inter(12.5, weight: FontWeight.w800)),
+                            const SizedBox(width: 6),
+                            const AeIkon('M12 5v14M6 13l6 6 6-6', size: 12, stroke: 2.8),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// `border: 1.5px dashed` on the floating empty slots.
+class _StipletKant extends CustomPainter {
+  const _StipletKant(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rr = RRect.fromRectAndRadius((Offset.zero & size).deflate(.75), const Radius.circular(14));
+    final p = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (final m in (Path()..addRRect(rr)).computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 7) {
+        canvas.drawPath(m.extractPath(d, math.min(d + 4, m.length)), p);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StipletKant o) => o.color != color;
 }

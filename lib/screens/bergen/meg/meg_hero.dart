@@ -71,10 +71,11 @@ class MegHero extends StatelessWidget {
                 ),
               ),
             ),
-            // The bubble (`right:16px;bottom:94px;max-width:150px`).
+            // The bubble (new Bergen L7425: `right:12px;bottom:92px;max-width:150px`,
+            // white, 14 px round, with a tail toward Ægil).
             Positioned(
-              right: 16,
-              bottom: 94,
+              right: 12,
+              bottom: 92,
               child: GestureDetector(
                 onTap: onAegil,
                 child: ConstrainedBox(
@@ -85,17 +86,34 @@ class MegHero extends StatelessWidget {
                     ms: n == 0 ? 500 : (n.isOdd ? 420 : 450),
                     delay: n == 0 ? 450 : 120,
                     curve: n.isOdd ? const Cubic(.25, 1.25, .45, 1) : const Cubic(.3, 1.3, .5, 1),
-                    alignment: const Alignment(.7, 1),
-                    child: Container(
-                      key: const Key('meg-boble'),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), topRight: Radius.circular(14), bottomLeft: Radius.circular(14), bottomRight: Radius.circular(4)),
-                        color: const Color.fromRGBO(255, 255, 255, .86),
-                        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .95)),
-                        boxShadow: const [BoxShadow(color: Color.fromRGBO(15, 31, 43, .4), offset: Offset(0, 10), blurRadius: 9, spreadRadius: -12)],
-                      ),
-                      child: Text(bubble, style: inter(10.5, weight: FontWeight.w700, height: 1.35, color: const Color(0xFF173E48))),
+                    // `transform-origin: calc(100% - 42px) 100%`.
+                    alignment: const Alignment(.44, 1),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          right: 36,
+                          bottom: -5,
+                          child: Transform.rotate(
+                            angle: math.pi / 4,
+                            child: Container(
+                              width: 12,
+                              height: 12,
+                              decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.only(bottomRight: Radius.circular(3))),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          key: const Key('meg-boble'),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: Colors.white,
+                            boxShadow: const [BoxShadow(color: Color.fromRGBO(15, 31, 43, .55), offset: Offset(0, 10), blurRadius: 18 / 2 / .57735, spreadRadius: -10)],
+                          ),
+                          child: Text(bubble, style: inter(10.5, weight: FontWeight.w700, height: 1.35, color: const Color(0xFF173E48))),
+                        ),
+                      ],
                     ),
                   ),
                 ),

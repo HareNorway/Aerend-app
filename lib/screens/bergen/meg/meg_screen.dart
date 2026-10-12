@@ -11,13 +11,15 @@ import '../../../data/aegil/aegil_repo.dart';
 import '../../../data/points/league_models.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
+import '../../../data/points/points_rules.dart';
+import '../../common/home/home_repo.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../common/manageAddress/manage_address.dart';
 import '../../common/manageCard/manage_card.dart';
 import '../../common/manageAddress/add_new_address.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/notifications/notifications_dl.dart';
-import '../../../utils/utils.dart' show setChangedLanguage;
+import '../../../utils/utils.dart' show setChangedLanguage, logout;
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeatherLook;
 import '../aegil/aegil_bits.dart';
@@ -33,11 +35,12 @@ import '../../../networking/ops/ops_customer_api.dart';
 import 'bestillinger_screen.dart' show OhCopy;
 import '../sporing/hjelp_sheet.dart';
 import 'meg_ark.dart';
+import 'meg_bergen.dart';
+import 'meg_billett.dart';
 import 'meg_copy_a4.dart';
 import 'meg_hero.dart';
 import 'meg_mark.dart';
 import 'meg_nivaa_card.dart';
-import 'meg_pill.dart';
 import 'meg_shine.dart';
 import 'min_bio.dart';
 import 'min_bio_ark.dart';
@@ -80,8 +83,12 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   CustomerPrefs? _prefs;
   AegilSettings? _settings;
   List<AegilLevel> _levels = const [];
+  PointsRules? _regler;
+
+  /// Debug harness: the points card opened (`megArk: poeng`).
+  bool _poengApen = false;
+  List<AddressListItem> _adresser = const [];
   List<Occasion> _occasions = const [];
-  List<PrizeClaim> _claims = const [];
   String? _addressLine;
   String? _paymentLine;
   List<Map<String, dynamic>> _ordrer = const [];
@@ -119,11 +126,12 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(_api.prefs),
       a3Try(_aegilRepo.fetchSettings),
       a3Try(_aegil.occasions),
-      a3Try(_api.claims),
       a3Try(A3Services.addressLine),
       a3Try(A3Services.paymentLine),
       a3Try(() => OpsCustomerApi().orders(limit: 50)),
       a3Try(_aegilRepo.fetchMemory),
+      a3Try(A3Services.rules),
+      a3Try(A3Services.addressList),
     ]);
     if (!mounted) return;
     final settings = r[5] as ({AegilSettings? settings, List<AegilLevel> levels})?;
@@ -136,11 +144,12 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       _settings = settings?.settings;
       _levels = settings?.levels ?? const [];
       _occasions = (r[6] as List<Occasion>?) ?? const [];
-      _claims = (r[7] as List<PrizeClaim>?) ?? const [];
-      _addressLine = r[8] as String?;
-      _paymentLine = r[9] as String?;
-      _ordrer = (r[10] as List<Map<String, dynamic>>?) ?? const [];
-      _minne = (r[11] as List<MemoryEntry>?) ?? const [];
+      _addressLine = r[7] as String?;
+      _paymentLine = r[8] as String?;
+      _ordrer = (r[9] as List<Map<String, dynamic>>?) ?? const [];
+      _minne = (r[10] as List<MemoryEntry>?) ?? const [];
+      _regler = r[11] as PointsRules?;
+      _adresser = (r[12] as List<AddressListItem>?) ?? const [];
       _loading = false;
     });
     // Debug: `megArk` opens one of Meg's Ark sheets (parity Step 9, row 43).
@@ -153,7 +162,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       switch (ark) {
         case 'billett': _openBillett();
         case 'nivaa': _openNivaa();
-        case 'slik': if (b != null) MegSheets.slikPoeng(context, b);
+        case 'slik': if (b != null) MegSheets.slikPoeng(context, b, regler: _regler);
         case 'vilkaar': MegSheets.vilkaar(context);
         case 'nivaa4': MegSheets.nivaa4(context);
         case 'adresser': _openAdresser();
@@ -166,6 +175,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'ukeshandel': _ukeshandel();
         case 'bio': _openBio();
         case 'aegilInnst': _aegilInnstillinger();
+        case 'gbDelt': _feirDelt();
+        case 'poeng': setState(() => _poengApen = true);
         case 'bioLagre': _openBio(autoLagre: const Duration(milliseconds: 1500));
       }
     }
@@ -202,10 +213,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     return g.reached ? A4MegCopy.a4_meg_boble_klar(g.label) : A4MegCopy.a4_meg_boble_til(g.remaining, g.label);
   }
 
-  bool get _hasDeliveryGift => _claims.any((c) => c.isGift && c.state == 'claimed');
 
   /// The tier gift waiting to be used, for «Premie: …».
-  String get _giftName => _claims.where((c) => c.isGift && c.state == 'claimed').firstOrNull?.prizeName ?? '';
 
   String get _code => _referral?.code ?? a3Pref(prefReferralCode);
 
@@ -270,11 +279,57 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final code = _code;
     final text = A4MegCopy.a4_meg_del_tekst(_referral?.pointsForThem ?? 200, code, _referral?.link);
     try {
-      await Share.share(text, subject: A4MegCopy.a4_meg_gullbilletten);
+      final r = await Share.share(text, subject: A4MegCopy.a4_meg_gullbilletten);
+      // New Bergen: «Gullbillett delt» once the share went out.
+      if (r.status == ShareResultStatus.success && mounted) _feirDelt();
       return;
     } catch (_) {}
     await Clipboard.setData(ClipboardData(text: _referral?.link ?? code));
     if (mounted) showBergenToast(context, A4MegCopy.a4_meg_kopiert(code), icon: Icons.copy_rounded);
+  }
+
+  /// «Gullbillett delt» (L9963–10017); «Del med flere» shares again.
+  void _feirDelt() {
+    visGullbillettDelt(
+      context,
+      kode: _code,
+      initial: _firstName.isEmpty ? 'D' : _firstName.substring(0, 1).toUpperCase(),
+      poeng: _referral?.pointsForMe ?? 200,
+      onIgjen: _share,
+    );
+  }
+
+  /// «+47 400 12 345» for «Logget inn som …» (the saved phone, else the email).
+  String get _kontakt {
+    final tlf = a3Pref(prefContactNumber).trim();
+    if (tlf.isNotEmpty) {
+      final d = tlf.replaceAll(RegExp(r'\D'), '');
+      final n = d.length > 8 ? d.substring(d.length - 8) : d;
+      return n.length == 8 ? '+47 ${n.substring(0, 3)} ${n.substring(3, 5)} ${n.substring(5)}' : tlf;
+    }
+    return a3Pref(prefEmail).trim();
+  }
+
+  /// «Logg ut» (L7630–7648): the app's own logout, as Konto does it.
+  Future<void> _loggUt() async {
+    try {
+      await HomeRepo().callLogoutApi();
+    } catch (_) {}
+    if (!mounted) return;
+    logout(context);
+  }
+
+  /// «Hjem · Nygårdsgaten 5 · 2 steder» (`kMegRader` Adresser): the delivery
+  /// address's kind, its street and how many places are saved.
+  (String, String)? get _adresseRad {
+    final list = _adresser;
+    if (list.isEmpty) return null;
+    final id = prefGetInt(prefNewDeliveryAddressId);
+    final a = list.firstWhere((x) => x.addressId == id, orElse: () => list.first);
+    String rens(String s) => s.trim().toUpperCase() == 'N/A' ? '' : s.trim();
+    final deler = a.address.split(',').map(rens).where((d) => d.isNotEmpty).toList();
+    final type = switch (a.type) { 'home' => 'Hjem', 'work' => 'Jobb', _ => 'Annen' };
+    return (type, '$type · ${deler.isEmpty ? a.address : deler.first} · ${A4MegCopy.a4_meg_steder(list.length)}');
   }
 
   /// «Husk døra mi»: may the courier save a door note for next time
@@ -483,7 +538,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                             key: const Key('meg-list'),
                             padding: const EdgeInsets.fromLTRB(16, 10, 16, 130),
                             children: [
-                              // --- Header ---------------------------------------------
+                              // --- Header (new Bergen L7432–7457) --------------------------
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
                                 child: Column(
@@ -498,77 +553,83 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                       ),
                                     ),
                                     const SizedBox(height: 7),
-                                    Wrap(
-                                      spacing: 7,
-                                      runSpacing: 4,
-                                      crossAxisAlignment: WrapCrossAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${A4MegCopy.a4_meg_bydel} · ${A4MegCopy.a4_meg_region}',
-                                          style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .66)),
-                                        ),
-                                        if (_hasDeliveryGift) GestureDetector(onTap: () => _go('/bergen/premiehylla'), child: _PremieChip(navn: _giftName)),
-                                      ],
+                                    Text(
+                                      '${A4MegCopy.a4_meg_bydel} · ${A4MegCopy.a4_meg_region}',
+                                      style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .66)),
                                     ),
-                                    const SizedBox(height: 10),
-                                    _GullbillettCard(give: give, get: get, onDel: _openBillett, onOpen: _openBillett),
-                                    // --- Min Bio (L7458) ------------------------------------
-                                    const SizedBox(height: 14),
-                                    MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio),
                                   ],
                                 ),
                               ),
-                              if (borte != null) ...[const SizedBox(height: 12), borte],
                               const SizedBox(height: 14),
-                              // --- Poeng (L7377) ----------------------------------------
-                              if (b != null)
-                                MegNivaaCard(
-                                  balance: b,
-                                  goal: _goal,
-                                  onOpenPremiehylla: () => _go('/bergen/premiehylla'),
-                                  onOpenNivaa: _openNivaa,
-                                  onOpenSlik: () => MegSheets.slikPoeng(context, b),
-                                  onHentPremie: () => _goal?.prizeId != null ? _go('/bergen/premie', arguments: _goal!.prizeId) : _go('/bergen/premiehylla'),
+                              // --- Gullbilletten (L7439) --------------------------------
+                              MegGullBillett(kode: code, linje: A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
+                              // --- Min Bio (L7458) --------------------------------------
+                              const SizedBox(height: 14),
+                              MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio),
+                              if (borte != null) ...[const SizedBox(height: 12), borte],
+                              // --- Poeng, nivå og konkurranser (L7480) -------------------
+                              if (b != null) ...[
+                                const SizedBox(height: 14),
+                                MegPoengKort(
+                                  key: ValueKey('poeng-$_poengApen'),
+                                  apen: _poengApen,
+                                  poeng: b.available,
+                                  tierName: b.tierName,
+                                  pct: b.tierProgress,
+                                  avstand: b.nextTierName == null || b.pointsToNextTier == null ? A4MegCopy.a4_meg_hoyeste : A4MegCopy.a4_meg_avstand(b.pointsToNextTier!, b.nextTierName!),
+                                  ligaPlass: l?.optedIn == true ? l?.own?.rank : null,
+                                  innhold: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      MegNivaaCard(
+                                        balance: b,
+                                        goal: _goal,
+                                        onOpenPremiehylla: () => _go('/bergen/premiehylla'),
+                                        onOpenNivaa: _openNivaa,
+                                        onOpenSlik: () => MegSheets.slikPoeng(context, b, regler: _regler),
+                                        onHentPremie: () => _goal?.prizeId != null ? _go('/bergen/premie', arguments: _goal!.prizeId) : _go('/bergen/premiehylla'),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _Gruppe(
+                                        key: const Key('meg-rader'),
+                                        children: [
+                                          _Rad(
+                                            key: const Key('meg-rad-nivaa'),
+                                            sterk: true,
+                                            tile: MegMedal(name: b.tierName, size: 36, animate: false),
+                                            navn: '${A4MegCopy.a4_meg_rad_nivaa} · ${b.tierName}',
+                                            under: A4MegCopy.a4_meg_nivaa_note,
+                                            merke: b.nextTierName == null || b.pointsToNextTier == null ? A4MegCopy.a4_meg_hoyeste : A4MegCopy.a4_meg_avstand(b.pointsToNextTier!, b.nextTierName!),
+                                            onTap: _openNivaa,
+                                          ),
+                                          _Rad(
+                                            key: const Key('meg-rad-liga'),
+                                            sterk: true,
+                                            tile: const _LigaTile(),
+                                            navn: A4MegCopy.a4_meg_rad_liga,
+                                            under: l?.optedIn == true ? A4MegCopy.a4_meg_liga_med : A4MegCopy.a4_meg_liga_ute,
+                                            merke: l?.optedIn == true && l?.own != null ? A4MegCopy.a4_meg_plass(l!.own!.rank) : null,
+                                            knapp: l?.optedIn == true ? null : A4MegCopy.a4_meg_bli_med,
+                                            onKnapp: () => _go('/bergen/liga'),
+                                            onTap: () => _go('/bergen/liga'),
+                                          ),
+                                          _Rad(
+                                            key: const Key('meg-rad-gullbillett'),
+                                            sterk: true,
+                                            tile: const _TicketStub(width: 46, height: 34, radius: 9, animate: true),
+                                            navn: A4MegCopy.a4_meg_gullbilletten,
+                                            under: A4MegCopy.a4_meg_gi_faa_kode(give, get, code),
+                                            del: true,
+                                            onKnapp: _openBillett,
+                                            onTap: _openBillett,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              // --- Meg-rader (L7430) -------------------------------------
-                              const SizedBox(height: 12),
-                              _Gruppe(
-                                key: const Key('meg-rader'),
-                                children: [
-                                  if (b != null)
-                                    _Rad(
-                                      key: const Key('meg-rad-nivaa'),
-                                      sterk: true,
-                                      tile: MegMedal(name: b.tierName, size: 36, animate: false),
-                                      navn: '${A4MegCopy.a4_meg_rad_nivaa} · ${b.tierName}',
-                                      under: A4MegCopy.a4_meg_nivaa_note,
-                                      merke: b.nextTierName == null || b.pointsToNextTier == null ? A4MegCopy.a4_meg_hoyeste : A4MegCopy.a4_meg_avstand(b.pointsToNextTier!, b.nextTierName!),
-                                      onTap: _openNivaa,
-                                    ),
-                                  _Rad(
-                                    key: const Key('meg-rad-liga'),
-                                    sterk: true,
-                                    tile: const _LigaTile(),
-                                    navn: A4MegCopy.a4_meg_rad_liga,
-                                    under: l?.optedIn == true ? A4MegCopy.a4_meg_liga_med : A4MegCopy.a4_meg_liga_ute,
-                                    merke: l?.optedIn == true && l?.own != null ? A4MegCopy.a4_meg_plass(l!.own!.rank) : null,
-                                    knapp: l?.optedIn == true ? null : A4MegCopy.a4_meg_bli_med,
-                                    onKnapp: () => _go('/bergen/liga'),
-                                    onTap: () => _go('/bergen/liga'),
-                                  ),
-                                  _Rad(
-                                    key: const Key('meg-rad-gullbillett'),
-                                    sterk: true,
-                                    tile: const _TicketStub(width: 46, height: 34, radius: 9, animate: true),
-                                    navn: A4MegCopy.a4_meg_gullbilletten,
-                                    under: A4MegCopy.a4_meg_gi_faa_kode(give, get, code),
-                                    del: true,
-                                    onKnapp: _openBillett,
-                                    onTap: _openBillett,
-                                  ),
-                                ],
-                              ),
-                              // --- kMegRader --------------------------------------------
+                              ],
+                              // --- kMegRader (L7604–7627) --------------------------------
                               const SizedBox(height: 12),
                               _Gruppe(
                                 key: const Key('meg-innstillinger-rader'),
@@ -581,60 +642,20 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     onTap: () => _go('/bergen/meg/bestillinger'),
                                   ),
                                   _Rad(
-                                    key: const Key('meg-rad-anledninger'),
-                                    tile: const _GlassTile(rot: 2, d: 'M4 9h16v11H4zM4 9l2-4h4l2 4 2-4h4l2 4M12 9v11'),
-                                    navn: A4MegCopy.a4_meg_anledninger,
-                                    under: _occasions.isEmpty ? A4MegCopy.a4_meg_anledninger_tom : '${_occasions.map((o) => '${o.person} · ${MegSheets.pretty(o.next ?? o.date)}').join(' · ')} · ${A4MegCopy.a4_meg_anledninger_paaminnelse}',
-                                    onTap: _anledninger,
-                                  ),
-                                  _Rad(
-                                    key: const Key('meg-rad-ukeshandel'),
-                                    tile: const _GlassTile(rot: 3, d: 'M5 8h14l-1.2 11.4a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8Z M9 8V6a3 3 0 0 1 6 0v2'),
-                                    navn: A4MegCopy.a4_meg_ukeshandel,
-                                    under: A4MegCopy.a4_meg_ukeshandel_sub,
-                                    onTap: _ukeshandel,
-                                  ),
-                                  // New Bergen: «Innstillinger for Ægil · Nivå 2 · Varsle og
-                                  // foreslå · Endre» opens the dark settings Ark.
-                                  _Rad(
                                     key: const Key('meg-rad-aegil'),
-                                    tile: const _GlassTile(rot: -3, d: 'M12 3l8 18-8-5-8 5z'),
+                                    tile: const _GlassTile(rot: -3, d: 'M4 6h9M17 6h3M15 4v4M4 12h3M11 12h9M9 10v4M4 18h11M19 18h1M17 16v4'),
                                     navn: AeInnstCopy.tittel,
                                     under: '${AeInnstCopy.nivaa(aeVisNivaa(_settings ?? const AegilSettings()))} · ${aeNivaaNavn(_settings ?? const AegilSettings(), _levels)}',
                                     merke: AeInnstCopy.endreMerke,
                                     onTap: _aegilInnstillinger,
                                   ),
                                   _Rad(
-                                    key: const Key('meg-rad-kode'),
-                                    tile: const _GlassTile(rot: 4, d: 'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z'),
-                                    navn: A4MegCopy.a4_meg_krev_kode,
-                                    under: _prefs?.alwaysCode == true ? A4MegCopy.a4_meg_kode_paa : A4MegCopy.a4_meg_kode_av(kA4CodeThresholdKr),
-                                    merke: _prefs?.alwaysCode == true ? A4MegCopy.a4_meg_paa : A4MegCopy.a4_meg_av,
-                                    merkeDempet: _prefs?.alwaysCode != true,
-                                    onTap: _toggleKode,
-                                  ),
-                                  _Rad(
-                                    key: const Key('meg-rad-dora'),
-                                    tile: const _GlassTile(rot: -3, d: 'M6 21V3h12v18M4 21h16M15 12h.01'),
-                                    navn: A4MegCopy.a4_meg_husk_dora,
-                                    under: _prefs?.doorProfileConsent == true ? A4MegCopy.a4_meg_dora_paa : A4MegCopy.a4_meg_dora_av,
-                                    merke: _prefs?.doorProfileConsent == true ? A4MegCopy.a4_meg_paa : A4MegCopy.a4_meg_av,
-                                    merkeDempet: _prefs?.doorProfileConsent != true,
-                                    onTap: _toggleDora,
-                                  ),
-                                  _Rad(
                                     key: const Key('meg-rad-adresser'),
                                     tile: const _GlassTile(rot: -2, d: 'M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4'),
                                     navn: A4MegCopy.a4_meg_adresser,
-                                    under: _addressLine == null ? A4MegCopy.a4_meg_adresser_tom : '$_addressLine · ${A4MegCopy.a4_meg_adresser_bare}',
+                                    under: _adresseRad?.$2 ?? (_addressLine == null ? A4MegCopy.a4_meg_adresser_tom : '$_addressLine · ${A4MegCopy.a4_meg_adresser_bare}'),
+                                    merke: _adresseRad?.$1,
                                     onTap: _openAdresser,
-                                  ),
-                                  _Rad(
-                                    key: const Key('meg-rad-betaling'),
-                                    tile: const _GlassTile(rot: 3, d: 'M2 7h20v10H2zM6 12h1M17 12h1'),
-                                    navn: A4MegCopy.a4_meg_betaling,
-                                    under: _paymentLine ?? A4MegCopy.a4_meg_betaling_vipps,
-                                    onTap: _openBetaling,
                                   ),
                                   _Rad(
                                     key: const Key('meg-rad-varsler'),
@@ -683,6 +704,54 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     navn: A4MegCopy.a4_meg_hjelp,
                                     onTap: _hjelp,
                                   ),
+                                ],
+                              ),
+                              // --- Not in the design: needs sign-off (D2) ----------------
+                              // The rows new Bergen took out of Meg, kept in one group so
+                              // they can go in one change once the manager approves.
+                              const MegGruppeHode(MegB8Copy.flere),
+                              _Gruppe(
+                                key: const Key('meg-d2-rader'),
+                                children: [
+                                  _Rad(
+                                    key: const Key('meg-rad-anledninger'),
+                                    tile: const _GlassTile(rot: 2, d: 'M4 9h16v11H4zM4 9l2-4h4l2 4 2-4h4l2 4M12 9v11'),
+                                    navn: A4MegCopy.a4_meg_anledninger,
+                                    under: _occasions.isEmpty ? A4MegCopy.a4_meg_anledninger_tom : '${_occasions.map((o) => '${o.person} · ${MegSheets.pretty(o.next ?? o.date)}').join(' · ')} · ${A4MegCopy.a4_meg_anledninger_paaminnelse}',
+                                    onTap: _anledninger,
+                                  ),
+                                  _Rad(
+                                    key: const Key('meg-rad-ukeshandel'),
+                                    tile: const _GlassTile(rot: 3, d: 'M5 8h14l-1.2 11.4a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8Z M9 8V6a3 3 0 0 1 6 0v2'),
+                                    navn: A4MegCopy.a4_meg_ukeshandel,
+                                    under: A4MegCopy.a4_meg_ukeshandel_sub,
+                                    onTap: _ukeshandel,
+                                  ),
+                                  _Rad(
+                                    key: const Key('meg-rad-kode'),
+                                    tile: const _GlassTile(rot: 4, d: 'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z'),
+                                    navn: A4MegCopy.a4_meg_krev_kode,
+                                    under: _prefs?.alwaysCode == true ? A4MegCopy.a4_meg_kode_paa : A4MegCopy.a4_meg_kode_av(kA4CodeThresholdKr),
+                                    merke: _prefs?.alwaysCode == true ? A4MegCopy.a4_meg_paa : A4MegCopy.a4_meg_av,
+                                    merkeDempet: _prefs?.alwaysCode != true,
+                                    onTap: _toggleKode,
+                                  ),
+                                  _Rad(
+                                    key: const Key('meg-rad-dora'),
+                                    tile: const _GlassTile(rot: -3, d: 'M6 21V3h12v18M4 21h16M15 12h.01'),
+                                    navn: A4MegCopy.a4_meg_husk_dora,
+                                    under: _prefs?.doorProfileConsent == true ? A4MegCopy.a4_meg_dora_paa : A4MegCopy.a4_meg_dora_av,
+                                    merke: _prefs?.doorProfileConsent == true ? A4MegCopy.a4_meg_paa : A4MegCopy.a4_meg_av,
+                                    merkeDempet: _prefs?.doorProfileConsent != true,
+                                    onTap: _toggleDora,
+                                  ),
+                                  _Rad(
+                                    key: const Key('meg-rad-betaling'),
+                                    tile: const _GlassTile(rot: 3, d: 'M2 7h20v10H2zM6 12h1M17 12h1'),
+                                    navn: A4MegCopy.a4_meg_betaling,
+                                    under: _paymentLine ?? A4MegCopy.a4_meg_betaling_vipps,
+                                    onTap: _openBetaling,
+                                  ),
                                   _Rad(
                                     key: const Key('meg-rad-konto'),
                                     tile: const _FargeTile(rot: -2, farger: [Color(0xFFCFE6E0), Color(0xFF4E8C82)], d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'),
@@ -692,6 +761,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   ),
                                 ],
                               ),
+                              // --- Logg ut (L7630–7648) -----------------------------------
+                              MegLoggUt(konto: MegB8Copy.loggetInn(_firstName, _kontakt), onLoggUt: _loggUt),
                             ],
                           ),
                   ),
@@ -723,76 +794,6 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   }
 }
 
-/// The gold ticket (design "Gullbilletten · Gi 200 · få 200 poeng · Del"): the
-/// cream pill on its ridge, the perforated ticket with the Æ mark and the
-/// shine sweep, the two text lines and the Del cta3d.
-class _GullbillettCard extends StatelessWidget {
-  const _GullbillettCard({required this.give, required this.get, required this.onDel, required this.onOpen});
-
-  final int give;
-  final int get;
-  final VoidCallback onDel;
-  final VoidCallback onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: GestureDetector(
-        key: const Key('meg-gullbillett'),
-        behavior: HitTestBehavior.opaque,
-        onTap: onOpen,
-        child: MegShine(
-          borderRadius: BorderRadius.circular(999),
-          bandFraction: .28,
-          opacity: .5,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(7, 6, 7, 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFDF4), Color(0xFFF6EFDC)]),
-              border: Border.all(color: Colors.white.withValues(alpha: .95)),
-              boxShadow: const [
-                BoxShadow(color: Color(0xFFE7DCC0), offset: Offset(0, 1.5)),
-                BoxShadow(color: Color.fromRGBO(150, 115, 25, .22), offset: Offset(0, 3)),
-                BoxShadow(color: Color.fromRGBO(120, 85, 10, .25), offset: Offset(0, 6), blurRadius: 10, spreadRadius: -4),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const _TicketStub(width: 46, height: 32, animate: true),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        A4MegCopy.a4_meg_gullbilletten,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BergenTokens.display(13, weight: FontWeight.w800, color: const Color(0xFF3A2708), letterSpacingEm: -0.01, height: 1.1),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        A4MegCopy.a4_meg_gi_faa(give, get),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: BergenTokens.text(10, weight: FontWeight.w700, color: const Color(0xFF8A6A2A), height: 1.1),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                MegPill(key: const Key('meg-del'), label: A4MegCopy.a4_meg_del, icon: Icons.ios_share_rounded, expand: false, height: 34, fontSize: 12.5, onPressed: onDel),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// The small perforated gold ticket (design: 46×32, notches, dashed tear line,
 /// the Æ mark, three printed lines, the shine sweep).
@@ -896,32 +897,6 @@ class _DashedLine extends CustomPainter {
   bool shouldRepaint(_DashedLine old) => old.color != color;
 }
 
-/// "Premie: gratis levering" (design: the green-mint pill with the varde).
-class _PremieChip extends StatelessWidget {
-  const _PremieChip({required this.navn});
-
-  final String navn;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(9, 3, 9, 3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: const Color(0xFF3F8F5F).withValues(alpha: .14),
-        border: Border.all(color: const Color(0xFF3F8F5F).withValues(alpha: .45)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.landscape_rounded, size: 11, color: BergenTokens.mint),
-          const SizedBox(width: 4),
-          Text(navn.isEmpty ? A4MegCopy.a4_meg_premie_levering : A4MegCopy.a4_meg_premie(navn), style: megInter(9.5, FontWeight.w800, color: BergenTokens.mint)),
-        ],
-      ),
-    );
-  }
-}
 
 // ── Launch rows (`Meg-rader` L7430, `kMegRader`) ─────────────────────────────
 
