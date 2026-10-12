@@ -114,6 +114,105 @@ Future<T?> showMegArk<T>(
   );
 }
 
+/// The dark Ark that glides (`ARK_GLID`, L18934–18947, L18969–18977): up with
+/// a little overshoot (640 ms, `translate3d(0,100%)` → −1.2 % at .72 → 0),
+/// the backdrop fading in over 420 ms; closing lifts 10 px and drops below
+/// the edge (440 ms). Min Bio is the one sheet that does this. A modal bottom
+/// sheet cannot take the curve, so it is a route of its own; the keyboard
+/// pushes the sheet up.
+Future<T?> showMegArkGlid<T>(
+  BuildContext context, {
+  required String title,
+  String? subtitle,
+  required MegArkBody body,
+  required MegArkButton Function(BuildContext context) primaryBuilder,
+  Key? key,
+}) {
+  final still = BergenPerf.of(context) == BergenTier.still;
+  return Navigator.of(context).push<T>(
+    _GlidRute<T>(
+      still: still,
+      builder: (ctx) => MegArkSkala(
+        child: StatefulBuilder(
+          builder: (ctx, setState) => MegArk(key: key, title: title, subtitle: subtitle, body: body(ctx, setState), primary: primaryBuilder(ctx), mork: true),
+        ),
+      ),
+    ),
+  );
+}
+
+class _GlidRute<T> extends PopupRoute<T> {
+  _GlidRute({required this.builder, required this.still}) : super(settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}ark'));
+
+  final WidgetBuilder builder;
+  final bool still;
+
+  static const Cubic _inn = Cubic(.22, 1, .36, 1);
+  static const Cubic _ut = Cubic(.45, 0, .65, .25);
+
+  @override
+  Color? get barrierColor => null;
+
+  @override
+  bool get barrierDismissible => true;
+
+  @override
+  String? get barrierLabel => 'Lukk';
+
+  @override
+  Duration get transitionDuration => still ? Duration.zero : const Duration(milliseconds: 640);
+
+  @override
+  Duration get reverseTransitionDuration => still ? Duration.zero : const Duration(milliseconds: 440);
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) =>
+      // The text fields need a Material, as the modal sheet gives one.
+      Material(type: MaterialType.transparency, child: builder(context));
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+    final inset = MediaQuery.viewInsetsOf(context).bottom;
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (context, child) {
+        final v = animation.value;
+        double frac, px, bak;
+        if (animation.status == AnimationStatus.reverse) {
+          final e = _ut.transform(1 - v);
+          frac = e < .18 ? 0 : 1.04 * (e - .18) / .82;
+          px = e < .18 ? -10 * e / .18 : -10 * (1 - (e - .18) / .82);
+          bak = 1 - cssEaseIn.transform(1 - v);
+        } else {
+          final e = _inn.transform(v);
+          frac = e < .72 ? 1 + (-.012 - 1) * e / .72 : -.012 * (1 - (e - .72) / .28);
+          px = 0;
+          bak = cssEaseOut.transform((v * 640 / 420).clamp(0.0, 1.0));
+        }
+        return Stack(
+          children: [
+            Positioned.fill(child: IgnorePointer(child: ColoredBox(color: Color.fromRGBO(15, 25, 30, .5 * bak)))),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: inset),
+                child: IgnorePointer(
+                  ignoring: animation.status == AnimationStatus.reverse,
+                  child: FractionalTranslation(
+                    translation: Offset(0, frac),
+                    child: Transform.translate(offset: Offset(0, px), child: child),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 /// The Ark in the design's 390-px frame, scaled to the device width like
 /// the screens it opens over (`LfFrame`): `MediaQuery` inside reports design
 /// px, so the 86 % height cap, the home indicator and the keyboard line up.

@@ -38,6 +38,9 @@ import 'meg_mark.dart';
 import 'meg_nivaa_card.dart';
 import 'meg_pill.dart';
 import 'meg_shine.dart';
+import 'min_bio.dart';
+import 'min_bio_ark.dart';
+import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
 import 'varsler_panel.dart';
 
@@ -81,6 +84,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   String? _addressLine;
   String? _paymentLine;
   List<Map<String, dynamic>> _ordrer = const [];
+  List<MemoryEntry> _minne = const [];
+  int _bioPuls = 0;
   bool _loading = true;
 
   @override
@@ -117,6 +122,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(A3Services.addressLine),
       a3Try(A3Services.paymentLine),
       a3Try(() => OpsCustomerApi().orders(limit: 50)),
+      a3Try(_aegilRepo.fetchMemory),
     ]);
     if (!mounted) return;
     final settings = r[5] as ({AegilSettings? settings, List<AegilLevel> levels})?;
@@ -133,6 +139,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       _addressLine = r[8] as String?;
       _paymentLine = r[9] as String?;
       _ordrer = (r[10] as List<Map<String, dynamic>>?) ?? const [];
+      _minne = (r[11] as List<MemoryEntry>?) ?? const [];
       _loading = false;
     });
     // Debug: `megArk` opens one of Meg's Ark sheets (parity Step 9, row 43).
@@ -156,8 +163,27 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'varsler': _varsler();
         case 'anledninger': _anledninger();
         case 'ukeshandel': _ukeshandel();
+        case 'bio': _openBio();
+        case 'bioLagre': _openBio(autoLagre: const Duration(milliseconds: 1500));
       }
     }
+  }
+
+  MinBio get _bio => minBioFra(_minne, _settings);
+
+  /// Min Bio (Bergen Step 6): the sheet saves; Meg reloads what Ægil knows
+  /// and the card glows once (`bioKortPuls`).
+  Future<void> _openBio({Duration? autoLagre}) async {
+    final n = await visMinBio(context, repo: _aegilRepo, bio: _bio, minne: _minne, autoLagre: autoLagre);
+    if (n == null || !mounted) return;
+    final r = await Future.wait<Object?>([a3Try(_aegilRepo.fetchMemory), a3Try(_aegilRepo.fetchSettings)]);
+    if (!mounted) return;
+    final settings = r[1] as ({AegilSettings? settings, List<AegilLevel> levels})?;
+    setState(() {
+      _minne = (r[0] as List<MemoryEntry>?) ?? _minne;
+      _settings = settings?.settings ?? _settings;
+      _bioPuls++;
+    });
   }
 
   void _go(String route, {Object? arguments}) => Navigator.of(context).pushNamed(route, arguments: arguments);
@@ -446,6 +472,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     ),
                                     const SizedBox(height: 10),
                                     _GullbillettCard(give: give, get: get, onDel: _openBillett, onOpen: _openBillett),
+                                    // --- Min Bio (L7458) ------------------------------------
+                                    const SizedBox(height: 14),
+                                    MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio),
                                   ],
                                 ),
                               ),

@@ -50,6 +50,8 @@ class AegilSettings {
     this.allowedCategories = const [],
     this.capPerOrderOre,
     this.capPerWeekOre,
+    this.bioText,
+    this.noAllergies = false,
   });
 
   final int level;
@@ -79,6 +81,10 @@ class AegilSettings {
   final int? capPerOrderOre;
   final int? capPerWeekOre;
 
+  /// Min Bio (Bergen Step 6): the customer's own words and «Ingen allergier».
+  final String? bioText;
+  final bool noAllergies;
+
   bool get hasQuietHours => quietHoursFrom != null && quietHoursTo != null;
 
   factory AegilSettings.fromJson(Map<String, dynamic> json) {
@@ -104,6 +110,8 @@ class AegilSettings {
       allowedCategories: ((json['allowed_categories'] as List?) ?? const []).map((e) => '$e').toList(),
       capPerOrderOre: (json['cap_per_order'] as num?)?.toInt(),
       capPerWeekOre: (json['cap_per_week'] as num?)?.toInt(),
+      bioText: json['bio_text'] as String?,
+      noAllergies: json['no_allergies'] as bool? ?? false,
     );
   }
 }

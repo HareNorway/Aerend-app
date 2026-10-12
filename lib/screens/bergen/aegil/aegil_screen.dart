@@ -30,6 +30,9 @@ import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../hurtig/hurtig_data.dart';
 import '../kit/bergen_cart.dart';
+import '../meg/min_bio.dart';
+import '../meg/min_bio_ark.dart';
+import 'aegil_minne.dart';
 import '../kit/bergen_routes.dart';
 import '../meg/a3_services.dart';
 import 'aegil_bits.dart';
@@ -696,12 +699,30 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   // ── Memory ────────────────────────────────────────────────────────────────
 
-  AeMinneData get _minneData => AeMinneData(_minne.where((m) => !_skjult.contains(m.id)).toList());
+  List<MemoryEntry> get _synlig => _minne.where((m) => !_skjult.contains(m.id)).toList();
+
+  AeMinneData get _minneData => AeMinneData(_synlig);
+
+  /// Min Bio (Bergen Step 6), from the memory and the own words.
+  MinBio get _bio => minBioFra(_synlig, _settings);
+
+  Future<void> _apneBio() async {
+    final n = await visMinBio(context, repo: _repo, bio: _bio, minne: _synlig);
+    if (n == null || !mounted) return;
+    final s = await a3Try(_repo.fetchSettings);
+    if (mounted && s?.settings != null) setState(() => _settings = s!.settings);
+    await _lastMinne();
+  }
 
   Future<void> _glemAlt() async {
     HapticFeedback.mediumImpact();
     final ok = await a3Try(_repo.forgetAll);
     if (!mounted) return;
+    // «Min Bio og alt Ægil har lært slettes»: the own words and «Ingen
+    // allergier» go too.
+    final bio = ok == true ? await a3Try(() => _repo.updateSettings({'bio_text': '', 'no_allergies': false})) : null;
+    if (!mounted) return;
+    if (bio?.settings != null) setState(() => _settings = bio!.settings);
     if (ok == true) {
       setState(() => _skjult.clear());
       await _lastMinne();
@@ -1094,6 +1115,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       case 'minne':
         return AeMinneView(
           data: _minneData,
+          bio: _bio,
+          onBio: _apneBio,
           varsler: _varsler,
           nivaaNavn: _nivaaer.where((n) => n.level == (_settings?.level ?? 2)).firstOrNull?.name ?? '',
           onFjern: _fjern,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +15,8 @@ import 'package:aerend_customer/screens/bergen/aegil/aegil_launch_copy.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_screen.dart';
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_data.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
+import 'package:aerend_customer/screens/bergen/meg/min_bio.dart' show BioCopy;
+import 'package:aerend_customer/screens/common/auth/launch/lf_widgets.dart' show LfPress;
 
 import '../a3/a3_fakes.dart';
 
@@ -282,30 +286,43 @@ void main() {
   });
 
   group('Minne, nivå, onboarding', () {
-    testWidgets('Det Ægil vet om deg: groups, Fjern, Glem alt', (tester) async {
+    testWidgets('Det Ægil vet om deg: Min Bio, groups, ×, Glem alt asks first', (tester) async {
       _frame(tester);
       final repo = FakeAegilRepo();
       await tester.pumpWidget(_app(_skjerm(repo: repo, steg: 'minne')));
       await _settle(tester);
-      expect(find.text(AeCopy.minneTittel), findsOneWidget);
-      expect(find.text(AeCopy.duLiker), findsOneWidget);
+      // Bergen Step 6: the panel is Min Bio and its groups.
+      expect(find.text(BioCopy.minneKicker), findsOneWidget);
+      expect(find.text('Du liker'), findsOneWidget);
+      expect(find.text('Reker'), findsOneWidget);
       expect(find.text('Ingen nøtter'), findsOneWidget);
-      expect(find.text(AeCopy.brukesAlltid), findsOneWidget);
+      expect(find.text('Torgboden'), findsOneWidget);
 
-      await tester.tap(find.text(AeCopy.fjern).first);
-      await tester.pump();
-      expect(find.text('Reker'), findsNothing);
-      // Backend plan Step 7: «Fjern» forgets the line on the server.
+      // × forgets the line on the server (backend plan Step 7).
+      final kryss = find.descendant(of: find.byKey(const Key('a1_aegil_minne_2')), matching: find.byType(LfPress));
+      // Mid-sheet: the sheet's header sits over the top of its scroll view.
+      unawaited(Scrollable.ensureVisible(tester.element(kryss), alignment: .5));
       await _settle(tester);
+      await tester.tap(kryss);
+      await _settle(tester);
+      expect(repo.calls, contains('forget:2'));
+      expect(find.text('Torgboden'), findsNothing);
       expect(repo.calls.any((c) => c.startsWith('forget:')), isTrue);
-      expect(find.text('Reker'), findsNothing);
 
-      await tester.ensureVisible(find.byKey(const Key('a1_aegil_glem')));
+      // «Glem alt» asks first; «Ja, glem alt» forgets the memory and the bio.
+      unawaited(Scrollable.ensureVisible(tester.element(find.byKey(const Key('a1_aegil_glem'))), alignment: .5));
+      await _settle(tester);
       await tester.tap(find.byKey(const Key('a1_aegil_glem')));
       await _settle(tester);
+      expect(repo.calls, isNot(contains('forget')));
+      unawaited(Scrollable.ensureVisible(tester.element(find.byKey(const Key('a1_aegil_glem_ja'))), alignment: .5));
+      await _settle(tester);
+      await tester.tap(find.byKey(const Key('a1_aegil_glem_ja')));
+      await _settle(tester);
       expect(repo.calls, contains('forget'));
+      expect(repo.calls.any((c) => c.contains('bio_text')), isTrue);
       expect(find.text(AeCopy.minneTom), findsOneWidget);
-      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(seconds: 9));
     });
 
     testWidgets('Så mye kan Ægil gjøre: levels and limits go to the settings', (tester) async {
