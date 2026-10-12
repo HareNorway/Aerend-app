@@ -55,7 +55,14 @@ abstract final class A3PoengCopy {
     ['Utestengelse', 'Kontoer med uvanlig mønster tas ut av listen'],
   ];
   static String a3_poeng_liga_min_plass(int rank, String navn) => '$rank. plass · vises som $navn';
-  static const String a3_poeng_liga_ute = 'Ikke med — velg et visningsnavn for å bli med';
+  static const String a3_poeng_liga_ute = 'Ikke med ennå · velg et visningsnavn';
+  // Bergen Step 10 (`ligaDagerTx`, the badge, the bubble, the marker).
+  static const String a3_poeng_liga_siste_dag = 'Siste dag';
+  static String a3_poeng_liga_dager(int n) => n == 1 ? '1 dag igjen' : '$n dager igjen';
+  static const String a3_poeng_liga_topp3 = 'Topp 3 · Ulriken-toppen';
+  static String a3_poeng_liga_til_plass(int poeng, int plass) => '${poeng < 1 ? 1 : poeng} poeng til $plass. plass';
+  static const String a3_poeng_liga_deg = 'Deg';
+  static const String a3_poeng_liga_du = 'Du?';
   static String a3_poeng_liga_navn_rad(String navn) => 'Navn i ligaen · $navn';
   static const String a3_poeng_liga_ikke_valgt = 'Ikke valgt ennå';
   static String a3_poeng_liga_syn(String syn) => 'Synlighet: $syn';

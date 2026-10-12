@@ -1,8 +1,6 @@
-import 'dart:math' as math;
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
@@ -12,18 +10,23 @@ import '../aegil/aegil_bits.dart';
 import '../hjelp/noe_galt_sheet.dart';
 import '../hjelp/support.dart';
 import '../hjem/hjem_harness.dart';
+import '../hurtig/hurtig_glass.dart' show HbFlisInn;
 import '../kit/bergen_kit.dart';
+import '../kit/bergen_perf.dart';
+import '../kit/butikk_bilder.dart';
 import 'bestill_igjen.dart';
 import 'meg_ark.dart';
 import 'meg_nav.dart';
 
-/// Ordrehistorikk (`erOrdrer`, L7841–7896 in `Ærend Kunde Launch.dc.html`,
-/// design px): the orders the customer has placed (`ops.customer.orders`),
-/// «Bestill igjen · Dine faste» — the stores ordered from most, floating —
-/// then the orders by month, each with its store tile, code and day, the sum,
-/// the Ærend-kroner it earned (from the points ledger, when any), the items,
-/// the status and «Bestill igjen». A tap opens the order: the timeline and the
-/// receipt. «Bestill igjen» only fills the basket; paying stays in Kurv.
+/// Ordrehistorikk (new Bergen `erOrdrer`, L8036–8089, + `ohVals` L15336):
+/// the orders the customer has placed (`ops.customer.orders`), «Bestill igjen
+/// · Dine faste» — the stores ordered from most, each with its banner, logo,
+/// «N×» and the last order's sum on the key — then the orders by month, each
+/// with the store's logo, code and day, the sum, the «+N poeng» it earned
+/// (from the points ledger, when any), the item count and items, the status
+/// (or «Sak løst») and «Bestill igjen». A tap opens the order in the dark Ark:
+/// status and timeline, the three numbers, the receipt, the case and «Noe
+/// galt». «Bestill igjen» only fills the basket; paying stays in Kurv.
 class BestillingerScreen extends StatefulWidget {
   const BestillingerScreen({super.key, this.api, this.kasse});
 
@@ -48,9 +51,10 @@ class _Ordre {
   num get levering => (raw['delivery_cost'] as num?) ?? 0;
   String get state => '${raw['state'] ?? ''}';
   String get stageLabel => '${raw['stage_label'] ?? ''}';
+  bool get betalt => raw['paid'] == true;
   bool get levert => state == 'delivered' || state == 'completed';
   bool get avbestilt => state == 'cancelled';
-  bool get aktiv => raw['paid'] == true && !levert && !avbestilt;
+  bool get aktiv => betalt && !levert && !avbestilt;
 
   /// How many of Bestilt · Bekreftet · Tilberedes · På vei · Levert are done,
   /// from the order's ops state. An unpaid order that is still under way
@@ -68,11 +72,26 @@ class _Ordre {
   String get varer => linjer.map((l) => '${l['name'] ?? ''}').where((x) => x.isNotEmpty).join(' · ');
 }
 
+/// What the status pill says and how it looks (`statusTx` / `statusBg` …).
+class _Status {
+  const _Status(this.tekst, {this.gull = false, this.ikon = _ikHake, this.oransje = false});
+  final String tekst;
+  final bool gull;
+  final bool oransje;
+  final String ikon;
+}
+
+const String _ikHake = 'M5 12.5l4.5 4.5L19 7.5';
+const String _ikKryss = 'M7 7l10 10M17 7L7 17';
+const String _ikSkjold = 'M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6z M9 12l2 2 4-4';
+const String _ikIgjen = 'M20 11a8 8 0 1 0-2.3 5.7 M20 4v7h-7';
+
 class _BestillingerScreenState extends State<BestillingerScreen> {
   late final OpsCustomerApi _api = widget.api ?? OpsCustomerApi();
   late final OpsKasseApi _kasse = widget.kasse ?? OpsKasseApi();
   List<_Ordre> _ordrer = const [];
   final Map<int, int> _kroner = {};
+  final Map<int, ButikkBilder> _bilder = {};
   bool _loading = true;
 
   @override
@@ -101,6 +120,13 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
         ..addAll(kr);
       _loading = false;
     });
+    // The logos and banners (the store page), a dozen stores at most.
+    final ids = <int>[];
+    for (final o in _ordrer) {
+      if (o.storeId > 0 && !ids.contains(o.storeId)) ids.add(o.storeId);
+    }
+    final b = await ButikkBilder.alle(ids.take(12));
+    if (mounted) setState(() => _bilder.addAll(b));
     if (HjemHarness.ohOrdre case final id? when kDebugMode) {
       final noeGalt = HjemHarness.ohNoeGalt;
       HjemHarness.ohOrdre = null;
@@ -123,6 +149,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
   /// (shared with Hjem's Vindu, `bestill_igjen.dart`).
   Future<void> _igjen(_Ordre o) => bestillIgjen(context, kasse: _kasse, storeId: o.storeId, butikk: o.butikk, linjer: [for (final l in o.linjer) Map<String, dynamic>.from(l)]);
 
+  /// The order in the dark Ark (`kArk ordre`, L9861–9891).
   void _apne(_Ordre o) {
     if (o.aktiv) {
       BergenRoutes.push(context, '/bergen/sporing/${o.id}');
@@ -130,18 +157,28 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     }
     final kr = _kroner[o.id];
     final steg = o.avbestilt ? 1 : o.ferdigeSteg;
+    final status = _status(o, medSak: false);
     showMegArk<void>(
       context,
       key: const Key('oh-ordre-sheet'),
+      mork: true,
       title: '${o.kode} · ${o.butikk}',
-      subtitle: [OhCopy.dag(o.naar), _status(o).$1, if (kr != null) OhCopy.kronerLinje(kr)].join(' · '),
+      subtitle: OhCopy.arkLinje,
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _Tidslinje(ferdig: steg),
-          const SizedBox(height: 8),
+          _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt),
+          const SizedBox(height: 10),
+          _Tall(
+            fliser: [
+              (OhCopy.kr(o.sum.round()), o.betalt ? OhCopy.betalt : OhCopy.totalt.toLowerCase(), 0),
+              if (kr != null) ('+$kr', OhCopy.kronerNavn, 1),
+              (status.tekst, OhCopy.dag(o.naar), 2),
+            ],
+          ),
+          const SizedBox(height: 10),
           _Kvittering(o: o),
-          // Sak på ordren (L9237) and «Noe galt med bestillingen?».
+          // Sak på ordren (L9883) and «Noe galt med bestillingen?».
           ValueListenableBuilder<int>(
             valueListenable: SupportStore.instance.endret,
             builder: (context, _, _) {
@@ -176,10 +213,15 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     );
   }
 
-  (String, Color, Color) _status(_Ordre o) {
-    if (o.levert) return (OhCopy.levert, const Color.fromRGBO(92, 224, 184, .16), const Color(0xFF7FF0CC));
-    if (o.avbestilt) return (OhCopy.avbestilt, const Color.fromRGBO(242, 109, 61, .2), const Color(0xFFFFB08A));
-    return (o.stageLabel.isEmpty ? OhCopy.paaVei : o.stageLabel, const Color.fromRGBO(92, 224, 184, .16), const Color(0xFF7FF0CC));
+  /// The pill: «Sak løst» (gold) for an order whose case is resolved; else
+  /// the order's own status. The design's «· 89 kr tilbake» needs the credit,
+  /// which the case does not carry, so it is left out.
+  _Status _status(_Ordre o, {bool medSak = true}) {
+    final sak = medSak ? SupportStore.instance.sakFor(o.id) : null;
+    if (sak != null && sak.loest) return const _Status(OhCopy.sakLoest, gull: true, ikon: _ikSkjold);
+    if (o.levert) return const _Status(OhCopy.levert);
+    if (o.avbestilt) return const _Status(OhCopy.avbestilt, oransje: true, ikon: _ikKryss);
+    return _Status(o.stageLabel.isEmpty ? OhCopy.paaVei : o.stageLabel);
   }
 
   @override
@@ -220,89 +262,118 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                   Positioned.fill(
                     child: _loading
                         ? const Center(child: CircularProgressIndicator(color: BergenTokens.mint))
-                        : ListView(
-                            key: const Key('oh-list'),
-                            padding: EdgeInsets.fromLTRB(16, top, 16, 130),
-                            children: [
-                              Align(alignment: Alignment.centerLeft, child: OhTilbake(onTap: () => Navigator.of(context).maybePop())),
-                              const SizedBox(height: 14),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 4),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(OhCopy.tittel, style: jakarta(27, em: -.035)),
-                                    const SizedBox(height: 3),
-                                    Text(OhCopy.under(O.length, kr), key: const Key('oh-under'), style: inter(12.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DC))),
-                                  ],
-                                ),
-                              ),
-                              if (O.isEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
-                                  child: Column(
-                                    children: [
-                                      Image.asset(aePose('find'), width: 150, height: 150, fit: BoxFit.contain),
-                                      const SizedBox(height: 10),
-                                      Text(OhCopy.tom, style: jakarta(17)),
-                                      const SizedBox(height: 10),
-                                      SizedBox(width: 240, child: Text(OhCopy.tomSub, textAlign: TextAlign.center, style: inter(12.5, color: const Color(0xFFBFD6DC)))),
-                                    ],
-                                  ),
-                                )
-                              else ...[
-                                const SizedBox(height: 22),
+                        : ListenableBuilder(
+                            listenable: SupportStore.instance.endret,
+                            builder: (context, _) => ListView(
+                              key: const Key('oh-list'),
+                              padding: EdgeInsets.fromLTRB(16, top, 16, 130),
+                              children: [
+                                Align(alignment: Alignment.centerLeft, child: OhTilbake(onTap: () => Navigator.of(context).maybePop())),
+                                const SizedBox(height: 14),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                                    textBaseline: TextBaseline.alphabetic,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(child: Text(OhCopy.bestillIgjen, style: jakarta(17, em: -.02))),
-                                      Text(OhCopy.dineFaste, style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFF9FC2CC))),
+                                      Text(OhCopy.tittel, style: jakarta(27, em: -.035)),
+                                      const SizedBox(height: 3),
+                                      Text(OhCopy.under(O.length, kr), key: const Key('oh-under'), style: inter(12.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DC))),
                                     ],
                                   ),
                                 ),
-                                SizedBox(
-                                  height: 8 + 10 + 149 + 26,
-                                  child: OverflowBox(
-                                    maxWidth: 390,
-                                    child: ListView(
-                                      key: const Key('oh-faste'),
-                                      scrollDirection: Axis.horizontal,
-                                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 26),
+                                if (O.isEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 10),
+                                    child: Column(
                                       children: [
-                                        for (final (i, l) in faste.take(4).indexed) ...[
-                                          if (i > 0) const SizedBox(width: 12),
-                                          _Fast(o: l.first, ganger: l.length, delayMs: i * 900.0, onApne: () => _apne(l.first), onIgjen: () => _igjen(l.first)),
-                                        ],
+                                        Image.asset(aePose('find'), width: 150, height: 150, fit: BoxFit.contain),
+                                        const SizedBox(height: 10),
+                                        Text(OhCopy.tom, style: jakarta(17)),
+                                        const SizedBox(height: 10),
+                                        SizedBox(width: 240, child: Text(OhCopy.tomSub, textAlign: TextAlign.center, style: inter(12.5, color: const Color(0xFFBFD6DC)))),
                                       ],
                                     ),
-                                  ),
-                                ),
-                                for (final g in grupper.entries) ...[
-                                  const SizedBox(height: 6),
+                                  )
+                                else ...[
+                                  const SizedBox(height: 20),
                                   Padding(
-                                    padding: const EdgeInsets.fromLTRB(4, 6, 4, 10),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
                                     child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                                      textBaseline: TextBaseline.alphabetic,
                                       children: [
-                                        Expanded(child: Text(g.key.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .12, color: const Color(0xFF7FF0CC)))),
-                                        Text(
-                                          '${OhCopy.antBestillinger(g.value.length)} · ${OhCopy.kr(g.value.fold<num>(0, (a, o) => a + o.sum).round())}',
-                                          style: aeTab(inter(11, weight: FontWeight.w700, color: const Color(0xFF9FC2CC))),
+                                        Flexible(child: Text(OhCopy.bestillIgjen, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(18, em: -.02))),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          key: const Key('oh-dine-faste'),
+                                          height: 22,
+                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(999),
+                                            color: const Color.fromRGBO(92, 224, 184, .18),
+                                            border: Border.all(color: const Color.fromRGBO(92, 224, 184, .4)),
+                                          ),
+                                          child: Text(OhCopy.dineFaste, style: inter(11, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  for (final (i, o) in g.value.indexed) ...[
-                                    if (i > 0) const SizedBox(height: 12),
-                                    _OrdreKort(o: o, kroner: _kroner[o.id], status: _status(o), onApne: () => _apne(o), onIgjen: () => _igjen(o)),
+                                  SizedBox(
+                                    height: 10 + 2 + _Fast.hoyde + 18,
+                                    child: OverflowBox(
+                                      maxWidth: 390,
+                                      child: ListView(
+                                        key: const Key('oh-faste'),
+                                        scrollDirection: Axis.horizontal,
+                                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+                                        children: [
+                                          for (final (i, l) in faste.take(4).indexed) ...[
+                                            if (i > 0) const SizedBox(width: 10),
+                                            HbFlisInn(
+                                              delayMs: 60 + i * 80.0,
+                                              child: _Fast(o: l.first, ganger: l.length, bilder: _bilder[l.first.storeId], onApne: () => _apne(l.first), onIgjen: () => _igjen(l.first)),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  for (final g in grupper.entries) ...[
+                                    const SizedBox(height: 4),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(4, 6, 4, 10),
+                                      child: Row(
+                                        children: [
+                                          Flexible(child: Text(g.key.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(11, weight: FontWeight.w800, em: .12, color: const Color(0xFF7FF0CB)))),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Container(
+                                              height: 1,
+                                              constraints: const BoxConstraints(minWidth: 12),
+                                              decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color.fromRGBO(127, 240, 203, .4), Color.fromRGBO(127, 240, 203, 0)])),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Flexible(
+                                            flex: 3,
+                                            child: Text(
+                                              '${OhCopy.antBestillinger(g.value.length)} · ${OhCopy.kr(g.value.fold<num>(0, (a, o) => a + o.sum).round())}',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              softWrap: false,
+                                              style: aeTab(inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7))),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    for (final (i, o) in g.value.indexed) ...[
+                                      if (i > 0) const SizedBox(height: 10),
+                                      _OrdreKort(o: o, kroner: _kroner[o.id], bilder: _bilder[o.storeId], status: _status(o), onApne: () => _apne(o), onIgjen: () => _igjen(o)),
+                                    ],
                                   ],
                                 ],
                               ],
-                            ],
+                            ),
                           ),
                   ),
                   const Positioned(left: 0, right: 0, bottom: 0, child: MegNav()),
@@ -316,7 +387,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
   }
 }
 
-/// The store tile colour (`PAL`, by the store's name).
+/// The store tint (`farge`, by the store's name).
 List<Color> _farge(String navn) {
   const pal = [
     [Color(0xFF4FA3B3), Color(0xFF1E4F5C)],
@@ -333,385 +404,725 @@ List<Color> _farge(String navn) {
   return pal[h % pal.length];
 }
 
-class _Tile extends StatelessWidget {
-  const _Tile({required this.navn, required this.size, required this.r, required this.font});
-  final String navn;
-  final double size;
-  final double r;
-  final double font;
-
-  @override
-  Widget build(BuildContext context) => CssBox(
-    width: size,
-    height: size,
-    radius: BorderRadius.circular(r),
-    bg: [CssLinear(160, _farge(navn))],
-    shadows: const [
-      CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
-      CssShadow.inset(0, -3, 5, 0, Color.fromRGBO(0, 0, 0, .22)),
-      CssShadow(0, 8, 12, -6, Color.fromRGBO(3, 14, 20, .7)),
-    ],
-    child: Center(
-      child: Text(navn.isEmpty ? '?' : navn.characters.first, style: jakarta(font).copyWith(shadows: const [Shadow(color: Color.fromRGBO(0, 0, 0, .2), offset: Offset(0, 1), blurRadius: 1)])),
-    ),
-  );
+/// The kind icon on the tint when there is no logo (`KI`).
+String _katIkon(String navn) {
+  final n = navn.toLowerCase();
+  if (RegExp(r'wok|thai').hasMatch(n)) return 'M4 11h16a8 8 0 0 1-16 0z M9 7l6-4 M12 7l6-3';
+  if (RegExp(r'pizza|maria|napoli|trattoria').hasMatch(n)) return 'M12 3 21 20H3z M10 12v.01 M14 15v.01';
+  return 'M3 13h18a9 9 0 0 1-18 0z M12 4v3';
 }
 
-const List<CssBg> _glass = [
-  CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
-];
-const List<CssShadow> _glassSh = [
-  CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-  CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
-  CssShadow(0, 18, 28, -18, Color.fromRGBO(3, 14, 20, .8)),
-];
+/// The store's logo on white (80 %, contained), else the tint and its icon.
+class _Logo extends StatelessWidget {
+  const _Logo({required this.navn, required this.url, required this.size, required this.ikon});
+  final String navn;
+  final String? url;
+  final double size;
+  final double ikon;
 
-/// The orange «+ N kr» / «+ Bestill igjen» key.
+  @override
+  Widget build(BuildContext context) {
+    final tint = DecoratedBox(
+      decoration: BoxDecoration(gradient: LinearGradient(begin: const Alignment(-.34, -.94), end: const Alignment(.34, .94), colors: _farge(navn))),
+      child: Center(child: AeIkon(_katIkon(navn), size: ikon, stroke: 2)),
+    );
+    return SizedBox(
+      width: size,
+      height: size,
+      child: url == null
+          ? tint
+          : ColoredBox(
+              color: Colors.white,
+              child: Center(
+                child: SizedBox(
+                  width: size * .8,
+                  height: size * .8,
+                  child: CachedNetworkImage(imageUrl: url!, memCacheWidth: 160, fit: BoxFit.contain, errorWidget: (_, _, _) => tint, placeholder: (_, _) => const SizedBox.shrink()),
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+/// The glass card (`.14 → .05`, 1px white .16, the top light and the drop),
+/// with CSS shadows (a Flutter `BoxShadow` would show through the glass).
+Widget _glas({
+  required double r,
+  required Widget child,
+  EdgeInsets? padding,
+  double? width,
+  double? height,
+  bool clip = false,
+  double topp = .24,
+  double toppY = 1.5,
+  CssShadow fall = const CssShadow(0, 18, 30, -20, Color.fromRGBO(0, 10, 16, .9)),
+}) => CssBox(
+  width: width,
+  height: height,
+  radius: BorderRadius.circular(r),
+  clip: clip,
+  padding: padding,
+  bg: const [
+    CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+  ],
+  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+  shadows: [CssShadow.inset(0, toppY, 0, 0, Color.fromRGBO(255, 255, 255, topp)), fall],
+  child: child,
+);
+
+/// The orange «↻ …» key (`o.igjen` / `f.igjen`): 13 round, the 3 px base.
 class _Igjen extends StatelessWidget {
-  const _Igjen({super.key, required this.tekst, required this.onTap, this.full = false});
+  const _Igjen({super.key, required this.tekst, required this.onTap, this.hoyde = 38, this.fontPx = 13, this.full = false});
   final String tekst;
   final VoidCallback onTap;
+  final double hoyde;
+  final double fontPx;
   final bool full;
 
   @override
   Widget build(BuildContext context) => AePress(
     onTap: onTap,
+    dy: 2,
     child: CssBox(
-      height: 36,
-      radius: BorderRadius.circular(999),
+      height: hoyde,
+      radius: BorderRadius.circular(13),
       bg: const [
-        CssLinear(180, [Color(0xFFF68450), Color(0xFFE65A28)]),
+        CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
       ],
       shadows: const [
-        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
-        CssShadow.inset(0, -3, 6, 0, Color.fromRGBO(150, 40, 10, .3)),
+        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .45)),
+        CssShadow(0, 3, 0, 0, Color.fromRGBO(160, 60, 20, .6)),
+        CssShadow(0, 12, 20, -10, Color.fromRGBO(242, 109, 61, .8)),
       ],
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         mainAxisSize: full ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const AeIkon('M12 5v14M5 12h14', size: 11, stroke: 3.2),
-          const SizedBox(width: 5),
-          Text(tekst, style: aeTab(inter(full ? 12.5 : 12, weight: FontWeight.w800))),
+          const AeIkon(_ikIgjen, size: 14, stroke: 2.6),
+          const SizedBox(width: 6),
+          Text(tekst, style: aeTab(inter(fontPx, weight: FontWeight.w800))),
         ],
       ),
     ),
   );
 }
 
-/// A «Dine faste» card (156 wide, floating `aeKnSvev 3.4s`, .9 s apart, over
-/// its shadow).
+/// A «Dine faste» card (168 wide, L8053–8067): the banner (or the tint),
+/// «↻ N×», the logo over the banner's edge, name, items and the sum key.
 class _Fast extends StatelessWidget {
-  const _Fast({required this.o, required this.ganger, required this.delayMs, required this.onApne, required this.onIgjen});
+  const _Fast({required this.o, required this.ganger, required this.bilder, required this.onApne, required this.onIgjen});
   final _Ordre o;
   final int ganger;
-  final double delayMs;
+  final ButikkBilder? bilder;
   final VoidCallback onApne;
   final VoidCallback onIgjen;
 
+  static const double hoyde = 206;
+
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 156,
-    child: RepaintBoundary(
-      child: LfLoop(
-        builder: (context, t, _) {
-          final p = ((t + delayMs) / 3400) % 1.0;
-          final y = kf(p, const [0, .5, 1], const [0, -5, 0], cssEaseInOut);
-          final sx = kf(p, const [0, .5, 1], const [1, .82, 1], cssEaseInOut);
-          final op = kf(p, const [0, .5, 1], const [1, .6, 1], cssEaseInOut);
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                left: 156 * .12,
-                right: 156 * .12,
-                bottom: -16 + 5 * (1 - (sx - .82) / .18),
-                height: 14,
-                child: Opacity(
-                  opacity: op,
-                  child: Transform.scale(
-                    scaleX: sx,
-                    child: const DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.elliptical(60, 7)),
-                        gradient: RadialGradient(colors: [Color.fromRGBO(0, 10, 14, .55), Color.fromRGBO(0, 0, 0, 0)], stops: [0, .72]),
+  Widget build(BuildContext context) {
+    final banner = bilder?.banner;
+    return AePress(
+      onTap: onApne,
+      dy: 0,
+      scale: .98,
+      child: _glas(
+        r: 22,
+        width: 168,
+        height: hoyde,
+        clip: true,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 64,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: const Alignment(-.34, -.94), end: const Alignment(.34, .94), colors: _farge(o.butikk)))),
+                      if (banner != null)
+                        // `bpKB 16s ease-in-out infinite alternate` (rests in lite / still).
+                        LfLoop(
+                          builder: (context, t, child) {
+                            final ping = (t / 16000) % 2;
+                            final p = cssEaseInOut.transform(ping <= 1 ? ping : 2 - ping);
+                            return Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.identity()
+                                ..scaleByDouble(1.04 + .13 * p, 1.04 + .13 * p, 1, 1)
+                                ..translateByDouble(-.025 * 168 * p, -.02 * 64 * p, 0, 1),
+                              child: child,
+                            );
+                          },
+                          child: CachedNetworkImage(imageUrl: banner, memCacheWidth: BergenPerf.decodeWidth, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox.shrink()),
+                        ),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(10, 26, 34, 0), Color.fromRGBO(10, 26, 34, .5)])),
                       ),
-                    ),
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          height: 22,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(999),
+                            color: const Color.fromRGBO(10, 26, 34, .5),
+                            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const AeIkon(_ikIgjen, size: 11, stroke: 2.6, color: Color(0xFF7FF0CB)),
+                              const SizedBox(width: 4),
+                              Text('$ganger×', style: aeTab(inter(11, weight: FontWeight.w800))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              Transform.translate(
-                offset: Offset(0, y),
-                child: AePress(
-                  onTap: onApne,
-                  dy: 0,
-                  scale: .98,
-                  child: CssBox(
-                    height: 149,
-                    radius: BorderRadius.circular(22),
-                    bg: _glass,
-                    shadows: _glassSh,
-                    padding: const EdgeInsets.all(12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 22 + 6, 12, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Row(
-                          children: [
-                            _Tile(navn: o.butikk, size: 38, r: 13, font: 15),
-                            const SizedBox(width: 9),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13, weight: FontWeight.w800)),
-                                  Text('$ganger× · ${OhCopy.dag(o.naar)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, color: const Color(0xFF9FC2CC))),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(14.5, weight: FontWeight.w800, em: -.01)),
+                        const SizedBox(height: 1),
+                        SizedBox(
+                          height: 31,
+                          child: Text(o.varer, maxLines: 2, overflow: TextOverflow.clip, style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .7))),
                         ),
-                        const SizedBox(height: 10),
-                        SizedBox(height: 31, child: Text(o.varer, maxLines: 2, overflow: TextOverflow.clip, style: inter(11.5, height: 1.35, color: const Color(0xFFDCE9EC)))),
                         const Spacer(),
-                        _Igjen(key: Key('oh-fast-${o.storeId}'), tekst: OhCopy.kr(o.sum.round()), onTap: onIgjen, full: true),
+                        _Igjen(key: Key('oh-fast-${o.storeId}'), tekst: OhCopy.kr(o.sum.round()), onTap: onIgjen, hoyde: 40, fontPx: 13.5, full: true),
                       ],
                     ),
                   ),
                 ),
+              ],
+            ),
+            // The logo over the banner's edge (`margin-top: -22px`).
+            Positioned(
+              left: 12,
+              top: 64 - 22,
+              child: CssBox(
+                width: 44,
+                height: 44,
+                radius: BorderRadius.circular(14),
+                clip: true,
+                border: Border.all(color: const Color(0xFF1F5463), width: 3),
+                shadows: const [CssShadow(0, 8, 14, -8, Color.fromRGBO(0, 10, 16, .9))],
+                child: _Logo(navn: o.butikk, url: bilder?.logo, size: 38, ikon: 19),
               ),
-            ],
-          );
-        },
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
-/// An order (L7867–7886).
+/// An order (L8069–8086).
 class _OrdreKort extends StatelessWidget {
-  const _OrdreKort({required this.o, required this.kroner, required this.status, required this.onApne, required this.onIgjen});
+  const _OrdreKort({required this.o, required this.kroner, required this.bilder, required this.status, required this.onApne, required this.onIgjen});
   final _Ordre o;
   final int? kroner;
-  final (String, Color, Color) status;
+  final ButikkBilder? bilder;
+  final _Status status;
   final VoidCallback onApne;
   final VoidCallback onIgjen;
 
   @override
-  Widget build(BuildContext context) => AePress(
-    key: Key('oh-ordre-${o.id}'),
-    onTap: onApne,
-    dy: 0,
-    scale: .99,
-    child: CssBox(
-      radius: BorderRadius.circular(24),
-      bg: _glass,
-      shadows: _glassSh,
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+  Widget build(BuildContext context) {
+    final (bg, bd, c, ikBg, ikC) = status.gull
+        ? (const Color.fromRGBO(242, 193, 78, .14), const Color.fromRGBO(242, 193, 78, .4), const Color(0xFFFFD98A), const [Color(0xFFFFE08A), Color(0xFFF2C14E)], const Color(0xFF5E4318))
+        : status.oransje
+        ? (const Color.fromRGBO(242, 109, 61, .16), const Color.fromRGBO(242, 109, 61, .45), const Color(0xFFFFB08A), const [Color(0xFFFFC29E), Color(0xFFF26D3D)], Colors.white)
+        : (const Color.fromRGBO(92, 224, 184, .14), const Color.fromRGBO(92, 224, 184, .4), const Color(0xFF7FF0CB), const [Color(0xFFB4F9E2), Color(0xFF5CE0B8)], const Color(0xFF0F2B33));
+    return AePress(
+      key: Key('oh-ordre-${o.id}'),
+      onTap: onApne,
+      dy: 0,
+      scale: .99,
+      child: _glas(
+        r: 22,
+        padding: const EdgeInsets.all(12),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Tile(navn: o.butikk, size: 46, r: 15, font: 18),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(14.5, weight: FontWeight.w800, em: -.01)),
-                    const SizedBox(height: 2),
-                    Text('${o.kode} · ${OhCopy.dag(o.naar)}', maxLines: 1, overflow: TextOverflow.ellipsis, style: aeTab(inter(11.5, color: const Color(0xFF9FC2CC)))),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Row(
                 children: [
-                  Text(OhCopy.kr(o.sum.round()), style: aeTab(jakarta(17, em: -.02))),
-                  if (kroner != null) ...[
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        color: const Color.fromRGBO(242, 193, 78, .18),
-                        border: Border.all(color: const Color.fromRGBO(242, 193, 78, .3)),
-                      ),
-                      child: Text(OhCopy.kroner(kroner!), style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFFF7D27A))),
+                  Container(
+                    width: 48,
+                    height: 48,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: const [
+                        BoxShadow(color: Color.fromRGBO(255, 255, 255, .18), spreadRadius: 1),
+                        BoxShadow(color: Color.fromRGBO(0, 10, 16, .9), offset: Offset(0, 8), blurRadius: 14 / 2 / .57735, spreadRadius: -8),
+                      ],
                     ),
-                  ],
+                    child: _Logo(navn: o.butikk, url: bilder?.logo, size: 48, ikon: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(15, weight: FontWeight.w800, em: -.01)),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(o.kode, style: aeTab(inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66)))),
+                            const SizedBox(width: 6),
+                            Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .45))),
+                            const SizedBox(width: 6),
+                            Flexible(child: Text(OhCopy.dag(o.naar), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66)))),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(OhCopy.kr(o.sum.round()), style: aeTab(inter(17, weight: FontWeight.w800, em: -.02))),
+                      if (kroner != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          height: 22,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(999),
+                            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 224, 138, .22), Color.fromRGBO(242, 193, 78, .14)]),
+                            border: Border.all(color: const Color.fromRGBO(242, 193, 78, .45)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const AeIkon('M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z', size: 11, stroke: 0, fill: Color(0xFFF2C14E)),
+                              const SizedBox(width: 4),
+                              Text(OhCopy.kroner(kroner!), style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFD98A))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Container(
+                    height: 24,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: const Color.fromRGBO(255, 255, 255, .08),
+                      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const AeIkon('M5 7h14l-1.3 11H6.3z M9 7V5.5a3 3 0 0 1 6 0V7', size: 11, stroke: 2.4, color: Color(0xFFDCE9EC)),
+                        const SizedBox(width: 4),
+                        Text(OhCopy.antVarer(o.antall), style: inter(11, weight: FontWeight.w800, color: const Color(0xFFDCE9EC))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(child: Text(o.varer, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12.5, weight: FontWeight.w600, color: const Color(0xFFDCE9EC)))),
+                ],
+              ),
+              Container(height: 1, margin: const EdgeInsets.only(top: 10), color: const Color.fromRGBO(255, 255, 255, .1)),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                      key: Key('oh-status-${o.id}'),
+                      height: 30,
+                      padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: bg, border: Border.all(color: bd)),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(shape: BoxShape.circle, gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: ikBg)),
+                            alignment: Alignment.center,
+                            child: AeIkon(status.ikon, size: 11, stroke: 3, color: ikC),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(child: Text(status.tekst, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(11.5, weight: FontWeight.w800, color: c))),
+                        ],
+                      ),
+                    ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _Igjen(key: Key('oh-igjen-${o.id}'), tekst: OhCopy.bestillIgjen, onTap: onIgjen),
                 ],
               ),
             ],
-          ),
-          const SizedBox(height: 11),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1)),
-                child: Text(OhCopy.antVarer(o.antall), style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFFCFE3E9))),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Text(o.varer, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, color: const Color(0xFFDCE9EC)))),
-            ],
-          ),
-          Container(height: 1, margin: const EdgeInsets.only(top: 12), color: const Color.fromRGBO(255, 255, 255, .1)),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: status.$2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      AeIkon('M5 12.5l4.5 4.5L19 7.5', size: 11, stroke: 3.4, color: status.$3),
-                      const SizedBox(width: 5),
-                      Flexible(child: Text(status.$1, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, color: status.$3))),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              _Igjen(key: Key('oh-igjen-${o.id}'), tekst: OhCopy.bestillIgjen, onTap: onIgjen),
-            ],
-          ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
-/// The order's timeline (`kOrdreTid`): five mint steps on a mint rail.
-class _Tidslinje extends StatelessWidget {
-  const _Tidslinje({required this.ferdig});
+/// The dark sheet's glass card (`.14 → .05`, white .16, top light .22).
+Widget _arkKort({required Widget child, EdgeInsets padding = const EdgeInsets.fromLTRB(14, 12, 14, 14), double r = 22, Clip clip = Clip.none}) => _glas(
+  r: r,
+  padding: padding,
+  clip: clip != Clip.none,
+  topp: .22,
+  toppY: 1,
+  fall: const CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85)),
+  child: child,
+);
+
+/// «Ordre · status» (L9862): the mint glow, the status chip and the day, and
+/// the five steps on the rail (`ordFyll .9s .15s`, steps `bpFlisInn`).
+class _StatusKort extends StatelessWidget {
+  const _StatusKort({required this.status, required this.dato, required this.ferdig, required this.avbestilt});
+  final String status;
+  final String dato;
   final int ferdig;
+  final bool avbestilt;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 52,
+  Widget build(BuildContext context) => _arkKort(
+    padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+    clip: Clip.antiAlias,
     child: Stack(
+      clipBehavior: Clip.none,
       children: [
-        Positioned(
-          left: 28,
-          right: 28,
-          top: 6 + 10,
-          height: 4,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: const LinearGradient(colors: [Color(0xFF5CE0B8), Color(0xFF2FB893)]),
+        const Positioned(
+          left: 0,
+          right: 0,
+          top: -54,
+          child: Center(
+            child: SizedBox(
+              width: 240,
+              height: 90,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.elliptical(120, 45)),
+                  gradient: RadialGradient(colors: [Color.fromRGBO(92, 224, 184, .32), Color.fromRGBO(92, 224, 184, 0)]),
+                ),
+              ),
             ),
           ),
         ),
-        Positioned.fill(
-          top: 6,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (final (i, s) in OhCopy.tid.indexed)
-                SizedBox(
-                  width: 56,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: i < ferdig ? const RadialGradient(center: Alignment(-.32, -.44), radius: .9, colors: [Color(0xFFA8F5DC), Color(0xFF3FCB9F), Color(0xFF23A07C)], stops: [0, .58, 1]) : null,
-                          color: i < ferdig ? null : const Color(0xFFDDD8CE),
-                          boxShadow: const [BoxShadow(color: Color(0xFFF5F3EF), spreadRadius: 3), BoxShadow(color: Color.fromRGBO(10, 90, 66, .45), offset: Offset(0, 4), blurRadius: 4, spreadRadius: -2)],
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                children: [
+                  Container(
+                    height: 26,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: avbestilt ? const Color.fromRGBO(242, 109, 61, .18) : const Color.fromRGBO(92, 224, 184, .18),
+                      border: Border.all(color: avbestilt ? const Color.fromRGBO(242, 109, 61, .45) : const Color.fromRGBO(92, 224, 184, .45)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: avbestilt ? const Color(0xFFF26D3D) : const Color(0xFF5CE0B8),
+                            boxShadow: [BoxShadow(color: avbestilt ? const Color(0xFFF26D3D) : const Color(0xFF5CE0B8), blurRadius: 8 / 2 / .57735)],
+                          ),
                         ),
-                        alignment: Alignment.center,
-                        child: i < ferdig ? const AeIkon('M5 12.5l4.5 4.5L19 7.5', size: 11, stroke: 3.6) : null,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(s, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF2E6B47))),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(status, style: inter(12, weight: FontWeight.w800, color: avbestilt ? const Color(0xFFFFB08A) : const Color(0xFF7FF0CB))),
+                      ],
+                    ),
                   ),
-                ),
-            ],
-          ),
+                  const Spacer(),
+                  Text(dato, style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .66))),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 30 + 6 + 16,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 2 + 26,
+                    right: 2 + 26,
+                    top: 13,
+                    height: 4,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: ColoredBox(
+                        color: const Color.fromRGBO(255, 255, 255, .12),
+                        child: LfOnce(
+                          ms: 1050,
+                          builder: (context, t, child) => FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: ((ferdig - 1) / 4).clamp(0.0, 1.0) * const Cubic(.2, .8, .2, 1).transform(kfP(t, 150, 900)),
+                            child: child,
+                          ),
+                          child: const DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(Radius.circular(999)),
+                              gradient: LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]),
+                              boxShadow: [BoxShadow(color: Color.fromRGBO(92, 224, 184, .6), blurRadius: 10 / 2 / .57735)],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          for (final (i, s) in OhCopy.tid.indexed)
+                            HbFlisInn(
+                              ms: 450,
+                              delayMs: 80 + i * 70.0,
+                              child: SizedBox(
+                                width: 56,
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: i < ferdig ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : null,
+                                        color: i < ferdig ? null : const Color(0xFF2A5866),
+                                        border: Border.all(color: const Color(0xFF1B4A57), width: 3),
+                                        boxShadow: i < ferdig ? const [BoxShadow(color: Color.fromRGBO(92, 224, 184, .55), blurRadius: 12 / 2 / .57735)] : null,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: i < ferdig ? const AeIkon(_ikHake, size: 12, stroke: 3.6, color: Color(0xFF0F2B33)) : null,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      s,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      overflow: TextOverflow.visible,
+                                      style: inter(10.5, weight: FontWeight.w800, color: i == 4 && ferdig >= 5 ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .78)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     ),
   );
 }
 
-/// The mono receipt (KVITTERING, the lines with dotted leaders, delivery, the
-/// double rule and Totalt).
+/// «Ordre · tall» (L9869): betalt, the points, the status — three glass tiles.
+class _Tall extends StatelessWidget {
+  const _Tall({required this.fliser});
+
+  /// (number, label, kind 0 betalt / 1 points / 2 status).
+  final List<(String, String, int)> fliser;
+
+  static const List<(String, List<Color>, Color, Color, Color)> _slag = [
+    ('M3 7h18v10H3z M3 11h18 M7 15h3', [Colors.white, Color(0xFFF2EFE8)], kAeTeal, Colors.white, Color.fromRGBO(255, 255, 255, .3)),
+    ('M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z', [Color(0xFFFFE08A), Color(0xFFF2C14E), Color(0xFFD49528)], Color(0xFF5E4318), Color(0xFFFFD98A), Color.fromRGBO(242, 193, 78, .45)),
+    (_ikHake, [Color(0xFFB4F9E2), Color(0xFF5CE0B8)], Color(0xFF0F2B33), Color(0xFF7FF0CB), Color.fromRGBO(92, 224, 184, .45)),
+  ];
+
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      for (final (i, (n, navn, k)) in fliser.indexed) ...[
+        if (i > 0) const SizedBox(width: 6),
+        Expanded(
+          child: HbFlisInn(
+            delayMs: 120 + i * 80.0,
+            child: _arkKort(
+              r: 16,
+              clip: Clip.antiAlias,
+              padding: const EdgeInsets.fromLTRB(4, 10, 4, 9),
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  Positioned(
+                    top: -28,
+                    child: SizedBox(
+                      width: 60,
+                      height: 40,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.all(Radius.elliptical(30, 20)),
+                          gradient: RadialGradient(colors: [_slag[k].$5, const Color.fromRGBO(0, 0, 0, 0)]),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _slag[k].$2),
+                          boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .7), offset: Offset(0, 4), blurRadius: 8 / 2 / .57735, spreadRadius: -4)],
+                        ),
+                        alignment: Alignment.center,
+                        child: AeIkon(_slag[k].$1, size: 15, stroke: 2.3, color: _slag[k].$3),
+                      ),
+                      const SizedBox(height: 5),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(n, maxLines: 1, softWrap: false, style: aeTab(inter(16, weight: FontWeight.w800, em: -.02, height: 1, color: _slag[k].$4))),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+/// «Ordre · kvittering» (L9872): the receipt key, «Kvittering · N varer fra
+/// …», the lines with their count chips, Levering, the dashed rule, Totalt.
 class _Kvittering extends StatelessWidget {
   const _Kvittering({required this.o});
   final _Ordre o;
 
-  TextStyle _mono(double px, {FontWeight w = FontWeight.w600, Color c = const Color(0xFF24231F), double em = 0}) =>
-      GoogleFonts.ibmPlexMono(fontSize: px, fontWeight: w, color: c, letterSpacing: px * em, fontFeatures: const [FontFeature.tabularFigures()]);
-
-  Widget _rad(Widget a, String b, TextStyle s) => Padding(
-    padding: const EdgeInsets.only(top: 8),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        a,
-        Expanded(child: Padding(padding: const EdgeInsets.fromLTRB(8, 0, 8, 4), child: CustomPaint(painter: _Prikker(), child: const SizedBox(height: 1.5)))),
-        Text(b, style: s.copyWith(fontWeight: FontWeight.w700)),
-      ],
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
     final varer = o.sum - o.levering;
-    return CssBox(
-      radius: BorderRadius.circular(22),
-      bg: const [
-        CssLinear(180, [Colors.white, Color(0xFFFAF8F4)]),
-      ],
-      shadows: const [
-        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .95)),
-        CssShadow(0, 0, 0, 1, Color.fromRGBO(35, 32, 29, .04)),
-        CssShadow(0, 12, 20, -14, Color.fromRGBO(8, 24, 32, .45)),
-      ],
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    return _arkKort(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(OhCopy.kvittering, style: _mono(10.5, w: FontWeight.w700, c: const Color(0xFF8C847C), em: .2)),
-          ),
-          CustomPaint(painter: _Strek(), child: const SizedBox(height: 1.5)),
-          for (final l in o.linjer)
-            _rad(
-              Flexible(
-                flex: 0,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(11),
+                  gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white, Color(0xFFF2EFE8)]),
+                  boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .7), offset: Offset(0, 4), blurRadius: 8 / 2 / .57735, spreadRadius: -4)],
+                ),
+                alignment: Alignment.center,
+                child: const AeIkon('M6 3h12v18l-3-2-3 2-3-2-3 2z M9 8h6 M9 12h6', size: 16, stroke: 2.3, color: kAeTeal),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${((l['quantity'] ?? 1) as num).toInt()}', style: _mono(13, w: FontWeight.w700, c: kAeTeal)),
-                    const SizedBox(width: 8),
-                    ConstrainedBox(constraints: const BoxConstraints(maxWidth: 170), child: Text('${l['name'] ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: _mono(13))),
+                    Text(OhCopy.kvittering, style: inter(14, weight: FontWeight.w800)),
+                    Text(OhCopy.antFra(o.linjer.length, o.butikk), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .62))),
                   ],
                 ),
               ),
-              OhCopy.kr((((l['unit_price'] ?? 0) as num) * ((l['quantity'] ?? 1) as num)).round()),
-              _mono(13),
+            ],
+          ),
+          const SizedBox(height: 4),
+          for (final l in o.linjer)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 30),
+                    height: 26,
+                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(9),
+                      color: const Color.fromRGBO(92, 224, 184, .16),
+                      border: Border.all(color: const Color.fromRGBO(92, 224, 184, .4)),
+                    ),
+                    child: Text('${((l['quantity'] ?? l['qty'] ?? 1) as num).toInt()}', style: aeTab(inter(12, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text('${l['name'] ?? ''}', style: inter(14, weight: FontWeight.w700, height: 1.3))),
+                  const SizedBox(width: 10),
+                  Text(OhCopy.kr((((l['unit_price'] ?? 0) as num) * ((l['quantity'] ?? 1) as num)).round()), style: aeTab(inter(14, weight: FontWeight.w800))),
+                ],
+              ),
             ),
-          if (o.levering > 0) _rad(Text(OhCopy.levering, style: _mono(12.5, c: const Color(0xFF57534B))), OhCopy.kr(o.levering.round()), _mono(12.5, c: const Color(0xFF57534B))),
-          const SizedBox(height: 10),
-          Container(height: 3, decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(43, 42, 39, .28)), bottom: BorderSide(color: Color.fromRGBO(43, 42, 39, .28))))),
-          const SizedBox(height: 9),
+          if (o.levering > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 30,
+                    height: 26,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(9),
+                      color: const Color.fromRGBO(255, 255, 255, .08),
+                      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+                    ),
+                    child: const AeIkon(
+                      'M5.5 17.5a2.5 2.5 0 1 0 0-.01 M18.5 17.5a2.5 2.5 0 1 0 0-.01 M8 17.5h7.5 M15.5 17.5 13 9h-3 M13 9l2.5-3h2.5 M5.5 17.5 9 11h5.5',
+                      size: 15,
+                      stroke: 2.2,
+                      color: Color(0xFFDCE9EC),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(OhCopy.levering, style: inter(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .75)))),
+                  Text(OhCopy.kr(o.levering.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
+                ],
+              ),
+            ),
+          const SizedBox(height: 12),
+          CustomPaint(painter: _Stiplet(), child: const SizedBox(height: 1)),
+          const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Expanded(child: Text(OhCopy.totalt, style: jakarta(15, color: const Color(0xFF24231F)))),
-              Text(OhCopy.kr(math.max(o.sum, varer).round()), style: _mono(20, w: FontWeight.w700, c: const Color(0xFF1B2A2E), em: -.03)),
+              Expanded(child: Text(OhCopy.totalt, style: inter(14, weight: FontWeight.w800))),
+              Text(OhCopy.kr((o.sum > varer ? o.sum : varer).round()), style: aeTab(inter(26, weight: FontWeight.w800, em: -.02))),
             ],
           ),
         ],
@@ -720,32 +1131,20 @@ class _Kvittering extends StatelessWidget {
   }
 }
 
-class _Prikker extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = const Color.fromRGBO(43, 42, 39, .28);
-    for (double x = 0; x < size.width; x += 4) {
-      canvas.drawCircle(Offset(x + .75, .75), .75, p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_Prikker old) => false;
-}
-
-class _Strek extends CustomPainter {
+/// `border-top: 1px dashed rgba(255,255,255,.22)`.
+class _Stiplet extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()
-      ..color = const Color.fromRGBO(43, 42, 39, .2)
-      ..strokeWidth = 1.5;
+      ..color = const Color.fromRGBO(255, 255, 255, .22)
+      ..strokeWidth = 1;
     for (double x = 0; x < size.width; x += 6) {
-      canvas.drawLine(Offset(x, .75), Offset(math.min(x + 3, size.width), .75), p);
+      canvas.drawLine(Offset(x, .5), Offset((x + 3).clamp(0, size.width), .5), p);
     }
   }
 
   @override
-  bool shouldRepaint(_Strek old) => false;
+  bool shouldRepaint(_Stiplet old) => false;
 }
 
 /// The glass back key of the history and the league.
@@ -779,7 +1178,7 @@ class OhTilbake extends StatelessWidget {
 /// Copy for Ordrehistorikk.
 abstract final class OhCopy {
   static const String tittel = 'Ordrehistorikk';
-  static String under(int n, int kr) => kr > 0 ? '${antBestillinger(n)} · ${_nf(kr)} Ærend-kroner opptjent' : antBestillinger(n);
+  static String under(int n, int kr) => kr > 0 ? '${antBestillinger(n)} · ${_nf(kr)} Ærend Poeng opptjent' : antBestillinger(n);
   static const String tom = 'Ingen bestillinger ennå';
   static const String tomSub = 'Når du har bestilt, ligger alt her, klart til å bestilles igjen.';
   static const String bestillIgjen = 'Bestill igjen';
@@ -787,13 +1186,17 @@ abstract final class OhCopy {
   static String bestillIgjenSum(int kr) => 'Bestill igjen · ${_nf(kr)} kr';
   static String antBestillinger(int n) => '$n ${n == 1 ? 'bestilling' : 'bestillinger'}';
   static String antVarer(int n) => '$n ${n == 1 ? 'vare' : 'varer'}';
+  static String antFra(int n, String butikk) => '${antVarer(n)} fra $butikk';
   static String kr(int n) => '${_nf(n)} kr';
-  static String kroner(int n) => '+$n Ærend-kr';
-  static String kronerLinje(int n) => '+$n Ærend-kroner';
+  static String kroner(int n) => '+$n poeng';
+  static const String kronerNavn = 'Ærend-kroner';
+  static const String betalt = 'betalt';
+  static const String arkLinje = 'Kvittering og status for bestillingen';
   static const String levert = 'Levert';
   static const String avbestilt = 'Avbestilt';
   static const String paaVei = 'På vei';
-  static const String kvittering = 'KVITTERING';
+  static const String sakLoest = 'Sak løst';
+  static const String kvittering = 'Kvittering';
   static const String levering = 'Levering';
   static const String totalt = 'Totalt';
   static const List<String> tid = ['Bestilt', 'Bekreftet', 'Tilberedes', 'På vei', 'Levert'];

@@ -9,6 +9,9 @@ import 'package:aerend_customer/data/points/points_rules.dart';
 import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
+import 'package:aerend_customer/data/points/league_models.dart';
+import 'package:aerend_customer/screens/bergen/poeng/poeng_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/butikk_bilder.dart';
 import 'package:aerend_customer/screens/bergen/meg/bestillinger_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/favoritter_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/konto_screen.dart';
@@ -221,22 +224,29 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   });
 
-  testWidgets('Bergen-ligaen: place, table, bydel toggle, prizes; leaving asks first', (tester) async {
+  testWidgets('Bergen-ligaen: place, days left, the table with your row, prizes; no filter; leaving asks first', (tester) async {
     phone(tester, h: 2000);
     final api = FakePointsApi();
     await tester.pumpWidget(a3App(LigaScreen(api: api)));
     await settle(tester);
 
     expect(find.byKey(const Key('liga-plass')), findsOneWidget);
+    expect(find.byKey(const Key('liga-dager')), findsOneWidget);
+    expect(find.text(A3PoengCopy.a3_poeng_liga_topp3), findsOneWidget);
     expect(find.byKey(const Key('liga-tabell')), findsOneWidget);
     expect(find.byKey(const Key('liga-rad-1')), findsOneWidget);
     expect(find.text('1 000'), findsOneWidget);
-    expect(find.byKey(const Key('liga-premier')), findsOneWidget);
-
-    await tester.tap(find.text('Din bydel'));
-    await settle(tester);
+    // Your own row under the top list (14th), and no «Hele Bergen / Din bydel».
     expect(find.byKey(const Key('liga-rad-14')), findsOneWidget);
     expect(find.text('320'), findsOneWidget);
+    expect(find.text('Din bydel'), findsNothing);
+    expect(find.byKey(const Key('liga-premier')), findsOneWidget);
+    // You climb to your place; the one above (13th) is not in the top list,
+    // so no bubble.
+    await tester.pump(const Duration(seconds: 3));
+    expect(find.byKey(const Key('liga-deg')), findsOneWidget);
+    expect(find.text(A3PoengCopy.a3_poeng_liga_deg), findsOneWidget);
+    expect(find.byKey(const Key('liga-boble')), findsNothing);
 
     await tester.ensureVisible(find.byKey(const Key('liga-bli-av')));
     await tester.tap(find.byKey(const Key('liga-bli-av')));
@@ -247,7 +257,66 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(api.calls, contains('optin:false'));
-    await tester.pump(const Duration(seconds: 4));
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Bergen-ligaen: in at 3rd, the bubble counts the points to 2nd', (tester) async {
+    phone(tester, h: 2000);
+    final api = FakePointsApi(
+      leagueValue: const League(
+        month: '2026-10',
+        optedIn: true,
+        participants: 4,
+        top: [
+          LeagueStanding(rank: 1, userId: 100, points: 1000, name: 'Kari'),
+          LeagueStanding(rank: 2, userId: 101, points: 900, name: 'Jonas'),
+          LeagueStanding(rank: 3, userId: 999, points: 820, name: 'Deg'),
+          LeagueStanding(rank: 4, userId: 102, points: 700, name: 'Mette'),
+        ],
+        own: LeagueStanding(rank: 3, userId: 999, points: 820, name: 'Deg'),
+        displayName: 'Didrik M.',
+      ),
+    );
+    await tester.pumpWidget(a3App(LigaScreen(api: api)));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 3));
+
+    expect(find.text(A3PoengCopy.a3_poeng_liga_min_plass(3, 'Didrik M.')), findsOneWidget);
+    expect(find.byKey(const Key('liga-boble')), findsOneWidget);
+    expect(find.text(A3PoengCopy.a3_poeng_liga_til_plass(80, 2)), findsOneWidget);
+    // Your dot is not drawn twice: the climbers are the other three.
+    expect(find.byKey(const Key('liga-klatrer-3')), findsNothing);
+    expect(find.byKey(const Key('liga-klatrer-2')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('Bergen-ligaen: not in, «Du?» at the foot and «Bli med» opens the dark name sheet', (tester) async {
+    phone(tester, h: 2000);
+    final api = FakePointsApi(
+      leagueValue: const League(
+        month: '2026-10',
+        participants: 2,
+        top: [
+          LeagueStanding(rank: 1, userId: 100, points: 1000, name: 'Kari'),
+          LeagueStanding(rank: 2, userId: 101, points: 900, name: 'Jonas'),
+        ],
+      ),
+    );
+    await tester.pumpWidget(a3App(LigaScreen(api: api)));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 3));
+
+    expect(find.text(A3PoengCopy.a3_poeng_liga_ute), findsOneWidget);
+    expect(find.text(A3PoengCopy.a3_poeng_liga_du), findsOneWidget);
+    // «Du ville vært nr. N · Med poengene du alt har» is left out: joining
+    // starts the month at 0 points.
+    expect(find.textContaining('Du ville vært'), findsNothing);
+    await tester.tap(find.byKey(const Key('liga-bli-med')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('meg-liga-navn-sheet')), findsOneWidget);
+    expect(find.text(A4MegCopy.a4_meg_liga_bli_title), findsWidgets);
+    await tester.pump(const Duration(seconds: 6));
   });
 
   testWidgets('Opprykk: the medal, the gift and the shelf line', (tester) async {
@@ -276,23 +345,41 @@ void main() {
         {'ref_type': 'order', 'ref_id': '41', 'amount': 13},
       ],
     );
+    final hentet = <int>[];
+    ButikkBilder.hent = (id) async {
+      hentet.add(id);
+      return id == 6 ? const BergenStoreInfo(id: 6, name: 'Holy Cow', kind: BergenStoreKind.restaurant, logoUrl: 'http://x/logo.png') : null;
+    };
+    addTearDown(ButikkBilder.reset);
     await tester.pumpWidget(a3App(BestillingerScreen(api: api)));
     await settle(tester);
 
     expect(find.text(OhCopy.tittel), findsOneWidget);
     expect(find.text(OhCopy.under(2, 13)), findsOneWidget);
+    expect(find.text('2 bestillinger · 13 Ærend Poeng opptjent'), findsOneWidget);
+    expect(find.byKey(const Key('oh-dine-faste')), findsOneWidget);
     expect(find.byKey(const Key('oh-faste')), findsOneWidget);
+    expect(find.byKey(const Key('oh-fast-6')), findsOneWidget);
     expect(find.byKey(const Key('oh-ordre-41')), findsOneWidget);
-    expect(find.text(OhCopy.kroner(13)), findsOneWidget);
+    expect(find.text('+13 poeng'), findsOneWidget);
+    expect(find.text(OhCopy.antVarer(2)), findsWidgets);
     expect(find.text(OhCopy.levert), findsOneWidget);
     expect(find.text(OhCopy.avbestilt), findsOneWidget);
+    // One lookup per store for the logos.
+    expect(hentet.toSet(), {6, 9});
 
     await tester.tap(find.byKey(const Key('oh-ordre-41')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const Key('oh-ordre-sheet')), findsOneWidget);
+    expect(find.text(OhCopy.arkLinje), findsOneWidget);
     expect(find.text(OhCopy.kvittering), findsOneWidget);
+    expect(find.text(OhCopy.antFra(2, 'Holy Cow')), findsOneWidget);
+    expect(find.text(OhCopy.betalt), findsOneWidget);
+    expect(find.text('+13'), findsOneWidget);
+    expect(find.text(OhCopy.kronerNavn), findsOneWidget);
     expect(find.byKey(const Key('oh-ordre-igjen')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('Favoritter: tabs, a card per store with Sist bestilt, un-heart with Angre, then the empty state', (tester) async {

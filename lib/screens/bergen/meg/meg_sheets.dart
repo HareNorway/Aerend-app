@@ -14,6 +14,7 @@ import '../../common/notifications/notifications_dl.dart';
 import '../poeng/prize_art.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_toast.dart';
+import 'liga_ark.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
 import 'meg_mark.dart';
@@ -212,6 +213,8 @@ abstract final class MegSheets {
   /// nothing is chosen until the customer picks a name (the CTA stays grey
   /// and says so), «1 · Velg visningsnavn» / «2 · Hvem ser navnet» head the
   /// two groups, and once in, the second key leaves the league ([onMeldAv]).
+  /// `ligaBli` / `ligaNavn`: the dark sheet with the written name and «Vær
+  /// anonym» (Bergen Step 10, `liga_ark.dart`).
   static Future<League?> ligaNavn(
     BuildContext context, {
     required PointsAppApi api,
@@ -219,67 +222,10 @@ abstract final class MegSheets {
     required String firstName,
     String? bydel,
     VoidCallback? onMeldAv,
-  }) {
-    final options = <String, String>{
-      firstName: A4MegCopy.a4_meg_navn_fornavn,
-      '$firstName ${firstName.isNotEmpty ? firstName.substring(0, 1).toUpperCase() : ''}.': A4MegCopy.a4_meg_navn_initial,
-      if (bydel != null && bydel.isNotEmpty) '$firstName · $bydel': A4MegCopy.a4_meg_navn_bydel,
-      'Klatrer ${league.own?.rank ?? 1}': A4MegCopy.a4_meg_navn_anonym,
-    };
-    String? name = league.displayName;
-    var syn = league.visibility;
-    final bli = !league.optedIn;
+  }) => LigaArk.navn(context, api: api, league: league, onMeldAv: onMeldAv);
 
-    return showMegArk<League?>(
-      context,
-      key: const Key('meg-liga-navn-sheet'),
-      title: bli ? A4MegCopy.a4_meg_liga_bli_title : A4MegCopy.a4_meg_navn_liga,
-      subtitle: A4MegCopy.a4_meg_liga_navn_linje,
-      body: (ctx, setState) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          MegArkRow(
-            title: A4MegCopy.a4_meg_liga_steg1,
-            sub: name == null ? A4MegCopy.a4_meg_liga_steg1_tom : A4MegCopy.a4_meg_liga_valgt(name!),
-            value: name == null ? A4MegCopy.a4_meg_liga_maa_velges : A4MegCopy.a4_meg_liga_valgt_pill,
-          ),
-          for (final e in options.entries)
-            MegArkRow(
-              key: Key('liga-navn-${options.keys.toList().indexOf(e.key)}'),
-              title: e.key,
-              sub: e.value,
-              selected: name == e.key,
-              onTap: () => setState(() => name = e.key),
-            ),
-          MegArkRow(title: A4MegCopy.a4_meg_liga_steg2, sub: (A4MegCopy.a4_meg_ligasyn.where((x) => x[0] == syn).firstOrNull ?? A4MegCopy.a4_meg_ligasyn.first)[2]),
-          for (final s in A4MegCopy.a4_meg_ligasyn)
-            MegArkRow(key: Key('liga-syn-${s[0]}'), title: s[1], sub: s[2], selected: syn == s[0], onTap: () => setState(() => syn = s[0])),
-          const MegArkRow(title: A4MegCopy.a4_meg_liga_aldri, sub: A4MegCopy.a4_meg_liga_aldri_sub),
-        ],
-      ),
-      secondary: !bli && onMeldAv != null
-          ? MegArkButton(label: A4MegCopy.a4_meg_liga_meld_av, onTap: () {
-              Navigator.of(context).pop();
-              onMeldAv();
-            })
-          : MegArkButton(label: A4MegCopy.a4_meg_liga_vilkaar, onTap: () => vilkaar(context)),
-      primaryBuilder: (ctx) => MegArkButton(
-        key: const Key('liga-navn-lagre'),
-        label: name == null ? A4MegCopy.a4_meg_liga_velg_forst : (bli ? A4MegCopy.a4_meg_liga_bli_som(name!) : A4MegCopy.a4_meg_lagre),
-        gradient: name == null ? MegArkInk.disabledCta : null,
-        onTap: () async {
-          if (name == null) {
-            showBergenToast(context, A4MegCopy.a4_meg_liga_velg_forst);
-            return;
-          }
-          final nav = Navigator.of(context);
-          if (bli) await api.leagueOptIn(true);
-          final updated = await api.setLeagueName(name: name!, visibility: syn);
-          nav.pop(updated);
-        },
-      ),
-    );
-  }
+  /// `ligaVilkaar`.
+  static Future<void> ligaVilkaar(BuildContext context) => LigaArk.vilkaar(context);
 
   // ---------------------------------------------------------------- Innstillinger
 

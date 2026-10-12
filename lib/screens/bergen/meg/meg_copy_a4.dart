@@ -174,6 +174,19 @@ abstract final class A4MegCopy {
   static const String a4_meg_liga_bli_title = 'Bli med i Bergen-ligaen';
   static const String a4_meg_liga_navn_linje = 'Ligaen viser bare navnet du velger her. Fullt navn, adresse og hva du kjøper vises aldri — og vi henter ingenting automatisk.';
   static const String a4_meg_liga_steg1 = '1 · Velg visningsnavn';
+  // Bergen Step 10: the name you write (`lnFelt`) and «Vær anonym».
+  static const String a4_meg_liga_steg1_ny = '1 · Navnet ditt i ligaen';
+  static const String a4_meg_liga_steg1_under = 'Skriv det du vil hete, eller vær anonym.';
+  static const String a4_meg_liga_visningsnavn = 'VISNINGSNAVN';
+  static const String a4_meg_liga_navn_hint = 'F.eks. Didrik M.';
+  static const String a4_meg_liga_slik_ser = 'Slik ser andre deg';
+  static const String a4_meg_liga_skriv_navn = 'Skriv et navn';
+  static const String a4_meg_liga_anonym = 'Vær anonym';
+  static String a4_meg_liga_anonym_under(String navn) => 'Du vises som «$navn». Ingen kan se at det er deg.';
+  static String a4_meg_liga_anonym_paa(String navn) => 'Du er anonym · vises som $navn';
+  static const String a4_meg_liga_anonym_av = 'Navnet ditt vises igjen';
+  static const String a4_meg_liga_skriv_forst = 'Skriv et visningsnavn først';
+  static const String a4_meg_liga_skriv_eller_anonym = 'Skriv et visningsnavn, eller velg anonym';
   static const String a4_meg_liga_steg1_tom = 'Ingenting vises før du velger';
   static String a4_meg_liga_valgt(String n) => 'Valgt: $n';
   static const String a4_meg_liga_maa_velges = 'Må velges';

@@ -25,10 +25,12 @@ class SakPaaOrdren extends StatelessWidget {
     return Container(
       key: const Key('oh-sak'),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      // The dark Ark's glass (new Bergen L9883).
       decoration: BoxDecoration(
-        color: const Color.fromRGBO(242, 193, 78, .16),
+        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color.fromRGBO(35, 32, 29, .08)),
+        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+        boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .85), offset: Offset(0, 12), blurRadius: 20 / 2 / .57735, spreadRadius: -14)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,18 +40,22 @@ class SakPaaOrdren extends StatelessWidget {
               Container(
                 width: 8,
                 height: 8,
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFE0913A)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: sak.loest ? const Color(0xFF5CE0B8) : const Color(0xFFF2C14E),
+                  boxShadow: [BoxShadow(color: sak.loest ? const Color(0xFF5CE0B8) : const Color(0xFFF2C14E), blurRadius: 8 / 2 / .57735)],
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   SupportCopy.ack,
-                  style: inter(13.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
+                  style: inter(13.5, weight: FontWeight.w800, color: Colors.white),
                 ),
               ),
               Text(
                 naar,
-                style: inter(11, weight: FontWeight.w700, color: const Color(0xFF8C847C)),
+                style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62)),
               ),
             ],
           ),
@@ -57,11 +63,11 @@ class SakPaaOrdren extends StatelessWidget {
             const SizedBox(height: 8),
             Text.rich(
               TextSpan(
-                style: inter(12.5, height: 1.45, color: const Color(0xFF57534B)),
+                style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .8)),
                 children: [
                   TextSpan(
                     text: 'Ærend: ',
-                    style: inter(12.5, weight: FontWeight.w800, height: 1.45, color: const Color(0xFF23201D)),
+                    style: inter(12.5, weight: FontWeight.w800, height: 1.45, color: Colors.white),
                   ),
                   TextSpan(text: sak.customerSees),
                 ],
@@ -88,34 +94,34 @@ class NoeGaltRad extends StatelessWidget {
     dy: 0,
     scale: .985,
     child: CssBox(
-      radius: BorderRadius.circular(22),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      radius: BorderRadius.circular(20),
+      padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+      // The dark Ark's glass (new Bergen L9890).
       bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFFAF8F4)]),
+        CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
       ],
       shadows: const [
-        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .95)),
-        CssShadow(0, 0, 0, 1, Color.fromRGBO(35, 32, 29, .04)),
-        CssShadow(0, 12, 20, -14, Color.fromRGBO(8, 24, 32, .45)),
+        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
+        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16)),
+        CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85)),
       ],
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 32),
+        constraints: const BoxConstraints(minHeight: 36),
         child: Row(
           children: [
             CssBox(
-              width: 40,
-              height: 40,
-              radius: BorderRadius.circular(13),
+              width: 42,
+              height: 42,
+              radius: BorderRadius.circular(14),
               clip: true,
               bg: const [
                 CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1]),
               ],
               shadows: const [
                 CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
-                CssShadow.inset(0, -3, 5, 0, Color.fromRGBO(4, 20, 28, .42)),
-                CssShadow(0, 8, 12, -6, Color.fromRGBO(8, 24, 32, .55)),
+                CssShadow(0, 6, 10, -6, Color.fromRGBO(0, 10, 16, .7)),
               ],
-              child: Center(child: Image.asset('assets/images/dashboard/invitation.png', width: 36, height: 36, fit: BoxFit.contain)),
+              child: Center(child: Image.asset('assets/images/dashboard/invitation.png', width: 38, height: 38, fit: BoxFit.contain)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -124,22 +130,22 @@ class NoeGaltRad extends StatelessWidget {
                 children: [
                   Text(
                     SupportCopy.noeGalt,
-                    style: inter(13.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
+                    style: inter(14, weight: FontWeight.w800, color: Colors.white),
                   ),
-                  Text(SupportCopy.noeGaltUnder, style: inter(11.5, color: const Color(0xFF6E6862))),
+                  Text(SupportCopy.noeGaltUnder, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66))),
                 ],
               ),
             ),
             const SizedBox(width: 12),
-            const CssBox(
-              width: 30,
-              height: 30,
-              radius: BorderRadius.all(Radius.circular(999)),
-              bg: [
-                CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE9EEED)]),
-              ],
-              shadows: [CssShadow.inset(0, -2, 4, 0, Color.fromRGBO(30, 79, 92, .14)), CssShadow(0, 4, 8, -4, Color.fromRGBO(8, 24, 32, .4))],
-              child: Center(child: AeIkon('M9 6l6 6-6 6', size: 11, stroke: 3, color: Color(0xFF1E4F5C))),
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(11),
+                color: const Color.fromRGBO(255, 255, 255, .12),
+                border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+              ),
+              child: const Center(child: AeIkon('M9 6l6 6-6 6', size: 12, stroke: 3)),
             ),
           ],
         ),

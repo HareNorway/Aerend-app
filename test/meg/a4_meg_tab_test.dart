@@ -7,6 +7,7 @@ import 'package:aerend_customer/data/points/league_models.dart';
 import 'package:aerend_customer/data/points/points_models.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/meg/borte_entry.dart';
+import 'package:aerend_customer/screens/bergen/meg/meg_copy_a4.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_host.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_nivaa_card.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_screen.dart';
@@ -202,7 +203,7 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('Navn i ligaen: pick a name and visibility, opt in and save', (tester) async {
+  testWidgets('Navn i ligaen: write a name, pick who sees it, opt in and save', (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
@@ -213,17 +214,44 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const Key('meg-liga-navn-sheet')), findsOneWidget);
-    expect(find.text('Kari'), findsOneWidget);
-    expect(find.text('Kari K.'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('liga-navn-1')));
+    // New Bergen: no «Bare min bydel» any more.
+    expect(find.byKey(const Key('liga-syn-bydel')), findsNothing);
+    // Nothing to save before a name is written.
+    expect(find.text(A4MegCopy.a4_meg_liga_skriv_forst), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('liga-navn-felt')), 'Kari K.');
     await tester.pump();
-    await tester.tap(find.byKey(const Key('liga-syn-bydel')));
+    expect(find.text('7/20'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('liga-navn-forhaand'))).data, 'Kari K.');
+    expect(find.text(A4MegCopy.a4_meg_liga_bli_som('Kari K.')), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('liga-syn-skjult')));
+    await tester.tap(find.byKey(const Key('liga-syn-skjult')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('liga-navn-lagre')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(p.calls, contains('optin:true'));
-    expect(p.calls, contains('leaguename:Kari K.:bydel'));
+    expect(p.calls, contains('leaguename:Kari K.:skjult'));
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('Navn i ligaen: «Vær anonym» joins without a name, hidden', (tester) async {
+    tall(tester);
+    final p = api();
+    await tester.pumpWidget(app(p));
+    await settle(tester);
+
+    await tester.ensureVisible(find.byKey(const Key('meg-rad-navn-liga')));
+    await tester.tap(find.byKey(const Key('meg-rad-navn-liga')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.byKey(const Key('liga-anonym')));
+    await tester.pump();
+    expect(find.textContaining('Du er anonym · vises som Klatrer'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('liga-navn-lagre')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(p.calls, contains('optin:true'));
+    expect(p.calls, contains('leaguename:null:skjult'));
     await tester.pump(const Duration(seconds: 4));
   });
 
