@@ -307,6 +307,21 @@ class OpsCustomerApi {
         }),
       );
 
+  /// `ops.customer.favourite_products` (Bergen Step 9, D4) — the customer's
+  /// favourite products, newest first (`product_ids` plus a row per product
+  /// with its store). Null when offline or logged out.
+  Future<Map<String, dynamic>?> favouriteProducts() =>
+      _guarded(() => _get('${_base}favourite-products'));
+
+  /// `ops.customer.favourite_products.set` — heart or un-heart one product.
+  /// Null when the write did not land.
+  Future<Map<String, dynamic>?> setFavouriteProduct(int productId, bool favourite) =>
+      _guarded(
+        () => _post('${_base}favourite-products/$productId', {
+          'is_favourite': favourite ? 1 : 0,
+        }),
+      );
+
   // ── other agil-1 reads (Phase 2+) ───────────────────────────────────────
 
   /// «Populært i {kategori}» (the Hjem Ark):

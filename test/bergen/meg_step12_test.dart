@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/data/ops/butikk_models.dart';
+import 'package:aerend_customer/data/ops/favourite_products.dart';
 import 'package:aerend_customer/data/ops/favourite_stores.dart';
 import 'package:aerend_customer/data/points/points_models.dart';
+import 'package:aerend_customer/data/points/points_rules.dart';
 import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
@@ -75,7 +78,38 @@ class _FakeFavs extends OpsCustomerApi {
     favourite ? server.add(storeId) : server.remove(storeId);
     return {'status': 1, 'store_id': storeId, 'is_favourite': favourite, 'total': server.length};
   }
+
+  final Set<int> produkter = {1, 2};
+
+  @override
+  Future<Map<String, dynamic>?> favouriteProducts() async => {
+    'status': 1,
+    'product_ids': produkter.toList(),
+    'total': produkter.length,
+    'products': [
+      {'product_id': 1, 'name': 'Margherita', 'price_ore': 18900, 'store_id': 5, 'store_name': 'Trattoria Del Napoli', 'eta_minutes': 15, 'open': true},
+      {'product_id': 2, 'name': 'Fiskesuppe', 'price_ore': 5900, 'store_id': 6, 'store_name': 'Nordnes Fisk', 'eta_minutes': 25, 'open': false},
+    ].where((p) => produkter.contains(p['product_id'])).toList(),
+  };
+
+  @override
+  Future<Map<String, dynamic>?> setFavouriteProduct(int productId, bool favourite) async {
+    calls.add('${favourite ? '+' : '-'}p$productId');
+    favourite ? produkter.add(productId) : produkter.remove(productId);
+    return {'status': 1, 'product_id': productId, 'is_favourite': favourite};
+  }
 }
+
+const _regler = PointsRules(
+  kjopPer10kr: 1,
+  firstOrderBonus: 0,
+  referrer: 0,
+  referee: 0,
+  signupBonus: 0,
+  signupEnabled: false,
+  fiskePerCatch: 0,
+  configVersion: '1',
+);
 
 Map<String, dynamic> _ordre(int id, String state, {String butikk = 'Holy Cow', int storeId = 6, num sum = 248, bool paid = true}) => {
   'order_id': id,
@@ -261,30 +295,102 @@ void main() {
     expect(find.byKey(const Key('oh-ordre-igjen')), findsOneWidget);
   });
 
-  testWidgets('Favoritter: the count, a card per store, un-heart in place, then the empty state', (tester) async {
-    phone(tester, h: 900);
+  testWidgets('Favoritter: tabs, a card per store with Sist bestilt, un-heart with Angre, then the empty state', (tester) async {
+    phone(tester, h: 2400);
     final api = _FakeFavs();
     FavouriteStores.instance.reset(api: api);
+    FavouriteProducts.instance.reset(api: api);
+    A3Services.rules = () async => _regler;
+    FavoritterScreen.butikkInfo = (id) async => BergenStoreInfo(
+      id: id,
+      name: id == 5 ? 'Trattoria Del Napoli' : 'Nordnes Fisk',
+      kind: BergenStoreKind.restaurant,
+      categoryName: id == 5 ? 'Italiensk' : 'Sjømat',
+      open: id == 5,
+      deliveryMinutes: id == 5 ? 15 : 25,
+      deliveryChargeKr: id == 5 ? 39 : 0,
+    );
+    FavoritterScreen.ordrer = () async => [
+      {
+        ..._ordre(3, 'delivered', butikk: 'Trattoria Del Napoli', storeId: 5),
+        'items': [
+          {'product_id': 1, 'name': 'Margherita', 'quantity': 1, 'unit_price': 189},
+          {'product_id': 2, 'name': 'Tiramisu', 'quantity': 1, 'unit_price': 59},
+        ],
+      },
+      _ordre(4, 'cancelled', butikk: 'Trattoria Del Napoli', storeId: 5),
+    ];
+    addTearDown(FavoritterScreen.reset);
+    addTearDown(FavouriteProducts.instance.reset);
     await tester.pumpWidget(a3App(const FavoritterScreen()));
     await settle(tester);
 
-    expect(find.text('2 steder'), findsOneWidget);
+    expect(find.text(FavTekst.butikker), findsOneWidget);
     expect(find.byKey(const Key('fav-store-5')), findsOneWidget);
+    expect(find.byKey(const Key('fav-store-6')), findsOneWidget);
     expect(find.text('Trattoria Del Napoli'), findsOneWidget);
-    expect(find.text('15 min · Åpen nå'), findsOneWidget);
-    expect(find.text('25 min · Stengt nå · ★ 4.6'), findsOneWidget);
-    expect(find.byKey(const Key('fav-kast')), findsNothing);
+    expect(find.text('Italiensk · Nøstegaten 51'), findsOneWidget);
+    expect(find.text(FavTekst.aapenMin(15)), findsOneWidget);
+    expect(find.text(FavTekst.stengt), findsOneWidget);
+    expect(find.text(FavTekst.levering(39)), findsOneWidget);
+    expect(find.text(FavTekst.gratisLevering), findsOneWidget);
+    expect(find.text('Margherita, Tiramisu'), findsOneWidget);
+    expect(find.text(FavTekst.bestillIgjen(248)), findsOneWidget);
+    expect(find.text('+24'), findsOneWidget); // 248 kr × 1 per 10 kr
+    expect(find.byKey(const Key('fav-ofte-5-1')), findsOneWidget);
+    expect(find.byKey(const Key('fav-igjen-6')), findsNothing); // no order there
 
-    await tester.tap(find.byKey(const Key('fav-heart-5')));
+    await tester.tap(find.byKey(const Key('fav-fjern-5')));
     await settle(tester);
     expect(api.calls, contains('-5'));
     expect(find.byKey(const Key('fav-store-5')), findsNothing);
-    expect(find.text('1 sted'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('fav-heart-6')));
+    expect(find.text(FavTekst.fjernet('Trattoria Del Napoli')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('bergen-toast-angre')));
     await settle(tester);
-    expect(find.byKey(const Key('fav-kast')), findsOneWidget);
-    expect(find.text('0 steder'), findsOneWidget);
+    expect(api.calls, contains('+5'));
+    expect(find.byKey(const Key('fav-store-5')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('fav-fjern-5')));
+    await settle(tester);
+    await tester.tap(find.byKey(const Key('fav-fjern-6')));
+    await settle(tester);
+    expect(find.byKey(const Key('fav-butikker-tom')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('Favoritter › Produkter: the summary, a card per product, un-heart, then the empty state', (tester) async {
+    phone(tester, h: 1600);
+    final api = _FakeFavs();
+    FavouriteStores.instance.reset(api: api);
+    FavouriteProducts.instance.reset(api: api);
+    A3Services.rules = () async => _regler;
+    FavoritterScreen.butikkInfo = (id) async => null;
+    FavoritterScreen.ordrer = () async => [];
+    addTearDown(FavoritterScreen.reset);
+    addTearDown(FavouriteProducts.instance.reset);
+    await tester.pumpWidget(a3App(const FavoritterScreen(fane: 'produkter')));
+    await settle(tester);
+
+    expect(find.text(FavTekst.antallProdukter(2)), findsOneWidget);
+    expect(find.text(FavTekst.altSammen('248 kr', 2)), findsOneWidget);
+    expect(find.byKey(const Key('fav-produkt-1')), findsOneWidget);
+    expect(find.text('Margherita'), findsOneWidget);
+    expect(find.text('189 kr'), findsOneWidget);
+    expect(find.text('+18'), findsOneWidget);
+    expect(find.byKey(const Key('fav-legg-2')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('fav-fjern-p1')));
+    await settle(tester);
+    expect(api.calls, contains('-p1'));
+    expect(find.byKey(const Key('fav-produkt-1')), findsNothing);
+    await tester.pump(const Duration(seconds: 4));
+    await tester.tap(find.byKey(const Key('fav-fjern-p2')));
+    await settle(tester);
+    expect(find.byKey(const Key('fav-produkter-tom')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('fav-fane-butikker')));
+    await settle(tester);
+    expect(find.byKey(const Key('fav-store-5')), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));
   });
 

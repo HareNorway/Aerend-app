@@ -222,6 +222,10 @@ abstract final class HjemHarness {
   static String? rute;
   static Object? ruteArg;
 
+  /// Bergen Step 9: heart these products first (`favProdukter`), through
+  /// [FavouriteProducts] as the product sheet's heart does.
+  static List<int>? favProdukter;
+
   /// Step 13: in the support chat, send these lines in turn (`hjelpSi`);
   /// `hjelpMenneske` asks for a person and lets one take over (the only way
   /// to see that state: there is no support desk behind the app yet);
@@ -314,6 +318,7 @@ abstract final class HjemHarness {
         fiskeFase = fiskeAgn = null;
         aegil = aegTekst = guide = null;
         rute = ruteArg = null;
+        favProdukter = null;
         hjelpSi = null;
         hjelpMenneske = hjelpGjest = hjelpHub = false;
         ohOrdre = null;
@@ -419,6 +424,7 @@ abstract final class HjemHarness {
       fiskeAgn = m['fiskeAgn'] as String?;
       aegil = m['aegil'] as String?;
       rute = m['rute'] as String?;
+      favProdukter = (m['favProdukter'] as List?)?.cast<int>();
       ruteArg = m['ruteArg'] is Map ? Map<String, String>.from((m['ruteArg'] as Map).map((k, v) => MapEntry('$k', '$v'))) : m['ruteArg']?.toString();
       hjelpSi = (m['hjelpSi'] as List?)?.cast<String>();
       hjelpMenneske = m['hjelpMenneske'] == true;

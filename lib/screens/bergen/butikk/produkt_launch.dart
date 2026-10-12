@@ -3,11 +3,16 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/ops/butikk_models.dart';
+import '../../../data/ops/favourite_products.dart';
+import '../../../networking/ops/ops_customer_api.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
+import '../kit/bergen_fav_heart.dart' show FavCopy;
+import '../kit/bergen_toast.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'butikk_copy.dart';
@@ -32,6 +37,7 @@ class ProduktHero extends StatelessWidget {
     required this.name,
     required this.sum,
     required this.onClose,
+    this.hjerte,
   });
 
   final ValueListenable<double> fold;
@@ -39,6 +45,9 @@ class ProduktHero extends StatelessWidget {
   final String name;
   final String sum;
   final VoidCallback onClose;
+
+  /// The favourite heart beside the close key (Bergen Step 9, D4).
+  final Widget? hjerte;
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +143,12 @@ class ProduktHero extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (hjerte != null && fx > 0)
+                    Positioned(
+                      top: 14 * s,
+                      right: 60 * s,
+                      child: Opacity(opacity: fx, child: IgnorePointer(ignoring: fx < .5, child: hjerte!)),
+                    ),
                   Positioned(
                     top: 14 * s,
                     right: 14 * s,
@@ -1059,4 +1074,66 @@ List<BergenMenuItem> produktOfteMed(BergenMenuItem item, List<BergenMenuItem> me
 double produktRullE(double scroll, double s) {
   final y = (scroll / s / 190).clamp(0.0, 1.0);
   return y * y * (3 - 2 * y);
+}
+
+/// The product's favourite heart (Bergen Step 9, decision D4; not in the
+/// design, so it borrows the design's own heart key from Favoritter: a
+/// `#FCFBF8` disc with an orange heart, `scale(.85)` while pressed).
+/// Writes `ops.customer.favourite_products` through [FavouriteProducts].
+class ProduktHjerte extends StatelessWidget {
+  const ProduktHjerte({super.key, required this.productId});
+
+  final int productId;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    final favs = FavouriteProducts.instance;
+    return ValueListenableBuilder<Set<int>>(
+      valueListenable: favs.ids,
+      builder: (context, ids, _) {
+        final paa = ids.contains(productId);
+        return OnbPressable(
+          key: const Key('a1_butikk_produkt_hjerte'),
+          pressDy: 0,
+          pressScale: .85,
+          onTap: () async {
+            if (OpsCustomerApi.authParams() == null) {
+              showBergenToast(context, FavCopy.loggInn);
+              return;
+            }
+            final ok = await favs.set(productId, !paa);
+            if (!context.mounted) return;
+            showBergenToast(context, !ok ? FavCopy.feil : (paa ? FavCopy.fjernet : FavCopy.lagtTil));
+          },
+          child: Semantics(
+            button: true,
+            toggled: paa,
+            label: paa ? FavCopy.fjern : FavCopy.leggTil,
+            child: Container(
+              width: 38 * s,
+              height: 38 * s,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFCFBF8),
+                boxShadow: [BoxShadow(color: rgba(0, 0, 0, .45), offset: Offset(0, 8 * s), blurRadius: onbBlur(14 * s), spreadRadius: -4 * s)],
+              ),
+              child: AnimatedScale(
+                scale: paa ? 1 : .92,
+                duration: const Duration(milliseconds: 180),
+                curve: const Cubic(.3, 1.5, .5, 1),
+                child: SvgPicture.string(
+                  '<svg viewBox="0 0 24 24"><path d="M12 20.4l-7.2-7.2a4.9 4.9 0 1 1 7-7l.2.3.2-.3a4.9 4.9 0 1 1 7 7z" '
+                  'fill="${paa ? '#F26D3D' : 'none'}" stroke="${paa ? '#C4491A' : '#23201D'}" stroke-width="${paa ? 1.6 : 1.9}" stroke-linejoin="round"/></svg>',
+                  width: 17 * s,
+                  height: 17 * s,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

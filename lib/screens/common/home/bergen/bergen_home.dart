@@ -61,6 +61,7 @@ import 'bergen_floats.dart';
 import 'bergen_hjem_ark.dart';
 import 'bergen_kit.dart';
 import 'bergen_nav.dart';
+import '../../../../data/ops/favourite_products.dart';
 import 'bergen_painters.dart';
 import 'bergen_rails.dart';
 import 'bergen_store_repo.dart';
@@ -346,6 +347,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             if (r == '/bergen/kundeservice' && arg is Map && arg['vis'] != null) {
               // The Hjelp sheet sits over Hjem, as Meg opens it.
               HjelpScreen.apne(context, initial: arg['vis'] == 'chat' ? HjelpState.chat : HjelpState.hub);
+            } else if (HjemHarness.favProdukter case final ids?) {
+              final nav = Navigator.of(context);
+              unawaited(Future.wait([for (final id in ids) FavouriteProducts.instance.set(id, true)]).then((_) => nav.push<dynamic>(BergenRoutes.generate(RouteSettings(name: r, arguments: arg))!)));
             } else {
               BergenRoutes.push<dynamic>(context, r, arguments: arg);
             }

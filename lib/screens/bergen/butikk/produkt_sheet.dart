@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/ops/favourite_products.dart';
 import '../../../data/ops/butikk_models.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
@@ -179,6 +181,8 @@ class _ProduktSheetState extends State<ProduktSheet> {
   @override
   void initState() {
     super.initState();
+    // The heart's state (Bergen Step 9); logged out, the call is a no-op.
+    if (OpsCustomerApi.authParams() != null) unawaited(FavouriteProducts.instance.ensureLoaded());
     _options = widget.options;
     _detail = widget.detail;
     if (_options == null) _loadOptions();
@@ -414,6 +418,7 @@ class _ProduktSheetState extends State<ProduktSheet> {
                   name: item.name,
                   sum: ButikkCopy.kr(_sum),
                   onClose: _close,
+                  hjerte: item.id > 0 ? ProduktHjerte(productId: item.id) : null,
                 ),
                 Flexible(
                   // `pVann`: scrolled, the content sinks under a moving

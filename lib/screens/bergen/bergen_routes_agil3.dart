@@ -7,6 +7,7 @@ import 'meg/favoritter_screen.dart';
 import 'meg/konto_screen.dart';
 import 'meg/meg_screen.dart';
 import 'meg/varsler_panel.dart';
+import 'kit/bergen_routes.dart';
 import 'fiske/fjordfiske_screen.dart';
 import 'poeng/liga_screen.dart';
 import 'poeng/opprykk_screen.dart';
@@ -36,7 +37,10 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
       '/bergen/aegil': (_) => const AegilScreen(),
       '/bergen/aegil/minne': (_) => const AegilScreen(steg: 'minne'),
       '/bergen/meg': (_) => const MegScreenBody(),
-      '/bergen/meg/favoritter': (_) => const FavoritterScreen(),
+      '/bergen/meg/favoritter': (ctx) {
+        final a = BergenRoutes.argsOf(ctx);
+        return FavoritterScreen(fane: (a['fane'] ?? a['id']) == 'produkter' ? 'produkter' : 'butikker');
+      },
       '/bergen/meg/konto': (_) => const KontoScreen(),
       '/bergen/meg/bestillinger': (_) => const BestillingerScreen(),
       '/bergen/meg/varsler': (_) => const VarslerScreen(),

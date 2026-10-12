@@ -3,9 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:aerend_customer/data/aegil/suggestion_models.dart';
+import 'package:aerend_customer/data/ops/favourite_products.dart';
 import 'package:aerend_customer/data/ops/favourite_stores.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
+import 'package:aerend_customer/screens/bergen/butikk/produkt_launch.dart' show ProduktHjerte;
 import 'package:aerend_customer/screens/bergen/kit/bergen_fav_heart.dart';
+import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/meg/favoritter_screen.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
@@ -37,6 +40,26 @@ class _FakeFavs extends OpsCustomerApi {
     if (failWrites) return null;
     favourite ? server.add(storeId) : server.remove(storeId);
     return {'status': 1, 'store_id': storeId, 'is_favourite': favourite, 'total': server.length};
+  }
+
+  final Set<int> produkter = {};
+
+  @override
+  Future<Map<String, dynamic>?> favouriteProducts() async => {
+    'status': 1,
+    'product_ids': produkter.toList(),
+    'total': produkter.length,
+    'products': [
+      for (final id in produkter) {'product_id': id, 'name': 'Vare $id', 'price_ore': 9900, 'store_id': 12, 'store_name': 'Butikk 12'},
+    ],
+  };
+
+  @override
+  Future<Map<String, dynamic>?> setFavouriteProduct(int productId, bool favourite) async {
+    calls.add('${favourite ? '+' : '-'}p$productId');
+    if (failWrites) return null;
+    favourite ? produkter.add(productId) : produkter.remove(productId);
+    return {'status': 1, 'product_id': productId, 'is_favourite': favourite};
   }
 }
 
@@ -150,8 +173,14 @@ void main() {
     await _login();
     final api = _FakeFavs()..server.addAll({31, 32});
     FavouriteStores.instance.reset(api: api);
+    FavouriteProducts.instance.reset(api: api);
+    FavoritterScreen.butikkInfo = (id) async => null;
+    FavoritterScreen.ordrer = () async => [];
+    A3Services.rules = () async => null;
+    addTearDown(FavoritterScreen.reset);
+    addTearDown(A3Services.reset);
 
-    tester.view.physicalSize = const Size(390, 900);
+    tester.view.physicalSize = const Size(390, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -161,14 +190,55 @@ void main() {
     expect(find.byKey(const Key('fav-store-31')), findsOneWidget);
     expect(find.text('Butikk 31'), findsOneWidget);
     expect(find.text('Butikk 12'), findsOneWidget);
-    expect(find.byKey(const Key('fav-kast')), findsNothing);
+    expect(find.byKey(const Key('fav-butikker-tom')), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 400)); // the page's entrance
-    await tester.tap(find.byKey(const Key('fav-heart-31')));
+    await tester.tap(find.byKey(const Key('fav-fjern-31')));
     await tester.pump();
     expect(find.text('Butikk 31'), findsNothing);
     expect(api.calls, contains('-31'));
     await tester.pump(const Duration(seconds: 4));
+  });
+
+  group('ProduktHjerte', () {
+    testWidgets('hearts the product, fills it and says so; again un-hearts', (tester) async {
+      await _login();
+      final api = _FakeFavs();
+      FavouriteProducts.instance.reset(api: api);
+
+      await tester.pumpWidget(_host(const ProduktHjerte(productId: 88)));
+      await tester.pump();
+      expect(tester.getSemantics(find.byKey(const Key('a1_butikk_produkt_hjerte'))).label, contains(FavCopy.leggTil));
+
+      await tester.tap(find.byKey(const Key('a1_butikk_produkt_hjerte')));
+      await tester.pump();
+      expect(api.calls, contains('+p88'));
+      expect(FavouriteProducts.instance.isFavourite(88), isTrue);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text(FavCopy.lagtTil), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 4));
+      await tester.tap(find.byKey(const Key('a1_butikk_produkt_hjerte')));
+      await tester.pump();
+      expect(api.calls, contains('-p88'));
+      expect(FavouriteProducts.instance.isFavourite(88), isFalse);
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('a guest is asked to log in and nothing is written', (tester) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      await initSharedPreferences();
+      final api = _FakeFavs();
+      FavouriteProducts.instance.reset(api: api);
+
+      await tester.pumpWidget(_host(const ProduktHjerte(productId: 88)));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('a1_butikk_produkt_hjerte')));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(FavCopy.loggInn), findsOneWidget);
+      expect(api.calls.where((c) => c.startsWith('+')), isEmpty);
+      await tester.pump(const Duration(seconds: 4));
+    });
   });
 
   test('Suggestion reads the Fjordfiske card facts', () {

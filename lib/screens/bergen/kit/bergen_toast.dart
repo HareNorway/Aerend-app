@@ -7,10 +7,14 @@ import '../../../theme/bergen_tokens.dart';
 /// The Bergen toast (design `.toast`): a dark pill near the bottom that fades
 /// in, holds for [BergenTokens.motionToast], and fades out. One at a time.
 class BergenToast extends StatelessWidget {
-  const BergenToast({super.key, required this.message, this.icon});
+  const BergenToast({super.key, required this.message, this.icon, this.angre, this.angreTekst = 'Angre'});
 
   final String message;
   final IconData? icon;
+
+  /// The design's undo (`kSi(tx, angre)`): a mint «Angre» at the end.
+  final VoidCallback? angre;
+  final String angreTekst;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +53,21 @@ class BergenToast extends StatelessWidget {
                   ),
                 ),
               ),
+              if (angre != null) ...[
+                const SizedBox(width: 12),
+                GestureDetector(
+                  key: const Key('bergen-toast-angre'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    hideBergenToast();
+                    angre!();
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(angreTekst, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w800, color: BergenTokens.mint)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -65,6 +84,7 @@ void showBergenToast(
   String message, {
   IconData? icon,
   Duration? duration,
+  VoidCallback? angre,
 }) {
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) return;
@@ -84,7 +104,8 @@ void showBergenToast(
         if (_current == entry) _current = null;
         entry.remove();
       },
-      child: BergenToast(message: message, icon: icon),
+      tappable: angre != null,
+      child: BergenToast(message: message, icon: icon, angre: angre),
     ),
   );
   _current = entry;
@@ -103,8 +124,10 @@ class _ToastHost extends StatefulWidget {
     required this.hold,
     required this.onDone,
     required this.child,
+    this.tappable = false,
   });
 
+  final bool tappable;
   final Duration fade;
   final Duration hold;
   final VoidCallback onDone;
@@ -152,6 +175,7 @@ class _ToastHostState extends State<_ToastHost>
       right: 16,
       bottom: bottom,
       child: IgnorePointer(
+        ignoring: !widget.tappable,
         child: FadeTransition(
           opacity: _c,
           child: Center(child: widget.child),
