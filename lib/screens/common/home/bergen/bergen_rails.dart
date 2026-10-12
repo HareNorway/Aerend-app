@@ -116,10 +116,16 @@ class _RailState extends State<BergenRail> {
   double _turns = 0;
   Timer? _auto;
 
+  /// The `still` tier: no auto-turn, and a tap turns the ring at once.
+  bool? _stille;
+
   @override
-  void initState() {
-    super.initState();
-    _start();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final stille = BergenPerf.of(context) == BergenTier.still;
+    if (stille == _stille) return;
+    _stille = stille;
+    stille ? _auto?.cancel() : _start();
   }
 
   @override
@@ -134,7 +140,7 @@ class _RailState extends State<BergenRail> {
 
   void _start() {
     _auto?.cancel();
-    if (widget.count < 2) return;
+    if (widget.count < 2 || _stille == true) return;
     _auto = Timer.periodic(Duration(milliseconds: widget.intervalMs), (_) {
       if (!mounted) return;
       _advance(1);
@@ -224,7 +230,7 @@ class _RailState extends State<BergenRail> {
       width: 252 * s,
       child: TweenAnimationBuilder<double>(
         tween: Tween(end: (i - _turns) * step),
-        duration: const Duration(milliseconds: 1250),
+        duration: _stille == true ? Duration.zero : const Duration(milliseconds: 1250),
         curve: const Cubic(.62, .02, .34, 1),
         builder: (context, a, child) {
           // Design slots at ±120°: x ±134, z −170, rotateY ∓30°, scale .92,

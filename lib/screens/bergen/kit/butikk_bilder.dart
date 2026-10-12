@@ -16,7 +16,8 @@ class ButikkBilder {
   static const ButikkBilder ingen = ButikkBilder();
 
   /// The store page (tests swap it).
-  static Future<BergenStoreInfo?> Function(int storeId) hent = (id) => OpsButikkApi().store(id);
+  static Future<BergenStoreInfo?> Function(int storeId) hent = (id) =>
+      OpsButikkApi().store(id);
 
   static final Map<int, Future<ButikkBilder>> _cache = {};
 
@@ -27,7 +28,10 @@ class ButikkBilder {
       try {
         final info = await hent(storeId);
         if (info == null) throw StateError('no store');
-        return ButikkBilder(logo: _url(info.logoUrl), banner: _url(info.bannerUrl));
+        return ButikkBilder(
+          logo: _url(info.logoUrl),
+          banner: _url(info.bannerUrl),
+        );
       } catch (_) {
         unawaited(Future<void>.microtask(() => _cache.remove(storeId)));
         return ingen;
@@ -42,7 +46,8 @@ class ButikkBilder {
     return {for (var i = 0; i < ids.length; i++) ids[i]: ut[i]};
   }
 
-  static String? _url(String? s) => s == null || s.trim().isEmpty ? null : s.trim();
+  static String? _url(String? s) =>
+      s == null || s.trim().isEmpty ? null : s.trim();
 
   static void reset() {
     _cache.clear();

@@ -120,13 +120,6 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
         ..addAll(kr);
       _loading = false;
     });
-    // The logos and banners (the store page), a dozen stores at most.
-    final ids = <int>[];
-    for (final o in _ordrer) {
-      if (o.storeId > 0 && !ids.contains(o.storeId)) ids.add(o.storeId);
-    }
-    final b = await ButikkBilder.alle(ids.take(12));
-    if (mounted) setState(() => _bilder.addAll(b));
     if (HjemHarness.ohOrdre case final id? when kDebugMode) {
       final noeGalt = HjemHarness.ohNoeGalt;
       HjemHarness.ohOrdre = null;
@@ -134,6 +127,13 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
       final o = _ordrer.where((x) => x.id == id).firstOrNull;
       if (o != null) WidgetsBinding.instance.addPostFrameCallback((_) => noeGalt ? _noeGalt(o) : _apne(o));
     }
+    // The logos and banners (the store page), a dozen stores at most.
+    final ids = <int>[];
+    for (final o in _ordrer) {
+      if (o.storeId > 0 && !ids.contains(o.storeId)) ids.add(o.storeId);
+    }
+    final b = await ButikkBilder.alle(ids.take(12));
+    if (mounted) setState(() => _bilder.addAll(b));
   }
 
   /// «Noe galt med bestillingen?» on [o].

@@ -424,6 +424,8 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
 
 /// `bpInn .32s cubic-bezier(.2,.9,.3,1)`: in from 28 px to the right, fading.
 Widget _bpInn(BuildContext context, Animation<double> a, Animation<double> b, Widget child) {
+  // `still` (and reduced motion): straight in, as the Dråpe route does.
+  if (MediaQuery.disableAnimationsOf(context)) return child;
   final c = CurvedAnimation(parent: a, curve: const Cubic(.2, .9, .3, 1));
   return FadeTransition(
     opacity: c,

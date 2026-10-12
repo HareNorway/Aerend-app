@@ -324,22 +324,30 @@ class _Natt extends StatelessWidget {
             width: 390 + 60,
             height: 160,
             child: IgnorePointer(
-              child: RepaintBoundary(
-                child: LfLoop(
-                  builder: (context, t, _) {
-                    var q = ((t + fra) / ms) % 1.0;
-                    if (rev) q = 1 - q;
-                    final sx = kf(q, const [0, .5, 1], const [-4, 3, -4], cssEaseInOut);
-                    final tx = kf(q, const [0, .5, 1], const [0, 9, 0], cssEaseInOut);
-                    return Opacity(
-                      opacity: op,
-                      child: ImageFiltered(
-                        imageFilter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                        child: CustomPaint(size: const Size(450, 160), painter: _Nordlys(p, w, farger, stopp, sx, tx)),
-                      ),
-                    );
-                  },
+              // The stroke is blurred once (cached in its own layer); the
+              // sway only moves that layer (`sway` on the SVG path, origin 0 0).
+              child: LfLoop(
+                child: Opacity(
+                  opacity: op,
+                  child: RepaintBoundary(
+                    child: ImageFiltered(
+                      imageFilter: ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                      child: CustomPaint(size: const Size(450, 160), painter: _Nordlys(p, w, farger, stopp)),
+                    ),
+                  ),
                 ),
+                builder: (context, t, child) {
+                  var q = ((t + fra) / ms) % 1.0;
+                  if (rev) q = 1 - q;
+                  final sx = kf(q, const [0, .5, 1], const [-4, 3, -4], cssEaseInOut);
+                  final tx = kf(q, const [0, .5, 1], const [0, 9, 0], cssEaseInOut);
+                  return Transform(
+                    alignment: Alignment.topLeft,
+                    origin: const Offset(30, 40),
+                    transform: Matrix4.skewX(rad(sx))..translateByDouble(tx, 0, 0, 1),
+                    child: child,
+                  );
+                },
               ),
             ),
           ),
@@ -359,19 +367,15 @@ class _Natt extends StatelessWidget {
 }
 
 class _Nordlys extends CustomPainter {
-  _Nordlys(this.p, this.w, this.farger, this.stopp, this.skewDeg, this.tx);
+  _Nordlys(this.p, this.w, this.farger, this.stopp);
   final Path p;
   final double w;
   final List<Color> farger;
   final List<double> stopp;
-  final double skewDeg;
-  final double tx;
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas
-      ..translate(30, 40)
-      ..transform((Matrix4.skewX(rad(skewDeg))..translateByDouble(tx, 0, 0, 1)).storage);
+    canvas.translate(30, 40);
     canvas.drawPath(
       p,
       Paint()
@@ -382,7 +386,7 @@ class _Nordlys extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_Nordlys o) => o.skewDeg != skewDeg || o.tx != tx;
+  bool shouldRepaint(_Nordlys o) => false;
 }
 
 /// One twinkle (`ligaGlimt`): (x, y, size, colour, glow, glow px, s, delay s).
@@ -526,15 +530,16 @@ class _Fjell extends CustomPainter {
     }
   }
 
+  /// The dot and its `box-shadow: 0 0 Npx` glow, drawn as a radial fade
+  /// (cheaper per frame than a mask blur for thirty dots).
   static void _prikk(Canvas canvas, double x, double y, double s, Color c, Color g, double gpx, double op) {
     final o = Offset(x + s / 2, y + s / 2);
+    final r = s / 2 + gpx;
     canvas
       ..drawCircle(
         o,
-        s / 2 + gpx / 2,
-        Paint()
-          ..color = g.withValues(alpha: g.a * op)
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, gpx / 2 / .57735 / 2),
+        r,
+        Paint()..shader = ui.Gradient.radial(o, r, [g.withValues(alpha: g.a * op), g.withValues(alpha: 0)], [s / 2 / r, 1]),
       )
       ..drawCircle(o, s / 2, Paint()..color = c.withValues(alpha: op));
   }
