@@ -49,4 +49,21 @@ class FeedStoreProfile {
       deeplinkPath: json['deeplink_path'] as String,
     );
   }
+
+  FeedStoreProfile copyWith({bool? isFollowing, int? followerCount}) => FeedStoreProfile(
+    id: id,
+    name: name,
+    slug: slug,
+    logoUrl: logoUrl,
+    coverUrl: coverUrl,
+    isActive: isActive,
+    isSportsClub: isSportsClub,
+    isFollowing: isFollowing ?? this.isFollowing,
+    followerCount: followerCount ?? this.followerCount,
+    postCount: postCount,
+    bio: bio,
+    description: description,
+    hasActiveStories: hasActiveStories,
+    deeplinkPath: deeplinkPath,
+  );
 }

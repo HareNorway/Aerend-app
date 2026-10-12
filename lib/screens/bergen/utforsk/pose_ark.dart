@@ -67,8 +67,8 @@ Future<void> visPoseArk(BuildContext context, UtfPose p, {PointsRules? rules, Vo
       onTap: () {
         final nav = Navigator.of(context);
         nav.maybePop();
-        // Butikkprofil is Bergen Step 4; until then the store's own screen.
-        BergenRoutes.push<dynamic>(nav.context, '/bergen/butikk/${p.storeId}');
+        // `bpApne(p.butikk)`: the store's profile in Ærend Feed.
+        BergenRoutes.push<dynamic>(nav.context, '/bergen/butikkprofil/${p.storeId}');
       },
     ),
     primaryBuilder: (ctx) => pose.sikret

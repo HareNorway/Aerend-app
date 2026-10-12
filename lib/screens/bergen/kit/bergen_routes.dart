@@ -1,3 +1,4 @@
+import '../utforsk/butikk_profil.dart' show butikkProfilRute;
 import 'package:flutter/material.dart';
 
 import '../../snurre/snurre_launcher_policy.dart';
@@ -97,6 +98,8 @@ abstract final class BergenRoutes {
     if (key == '/bergen/butikk') {
       return DrapeRoute<dynamic>(settings: ruteSettings, builder: builder);
     }
+    // Butikkprofil comes in from the side (`bpInn`).
+    if (key == '/bergen/butikkprofil') return butikkProfilRute(ruteSettings, builder);
     return MaterialPageRoute<dynamic>(settings: ruteSettings, builder: builder);
   }
 

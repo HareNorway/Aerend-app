@@ -456,6 +456,7 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
           following: storeId == 0 ? null : _following[storeId],
           playing: _playing == item.id,
           onOpen: () => _open(item),
+          onProfil: item.store == null ? null : () => BergenRoutes.push<dynamic>(context, '/bergen/butikkprofil/${item.store!.id}'),
           onLike: () => _toggleLike(item),
           onShare: () => _share(item),
           onReport: () => reportFeedPost(context, item.id, repo: _repo),

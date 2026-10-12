@@ -11,6 +11,7 @@ import 'sok/sok_screen.dart';
 import 'sporing/hjelp_sheet.dart';
 import 'sporing/levert_screen.dart';
 import 'sporing/sporing_screen.dart';
+import 'utforsk/butikk_profil.dart';
 import 'utforsk/feed_nyheter_screen.dart';
 import 'utforsk/utforsk_screen.dart';
 
@@ -31,6 +32,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   // Phase 4 — parameters arrive as `RouteSettings.arguments` (see BergenRoutes).
   '/bergen/kategori': (_) => const KategoriScreen(),
   '/bergen/butikk': (_) => const ButikkScreen(),
+  // Bergen Step 4: the store's page in Ærend Feed (`/bergen/butikkprofil/{id}`).
+  '/bergen/butikkprofil': (_) => const ButikkProfilScreen(),
   '/bergen/automat': (_) => const AutomatScreen(),
   // Phase 5
   '/bergen/kurv': (_) => const KurvScreen(embedded: false),

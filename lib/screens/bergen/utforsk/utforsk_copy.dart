@@ -169,6 +169,46 @@ abstract final class UtforskCopy {
   static String get a1_pose_lagt_ut_idag => _t('Lagt ut i dag', 'Put out today');
   static String a1_pose_lagt_ut_kl(String kl) => _t('Lagt ut i dag $kl', 'Put out today $kl');
   static String get a1_pose_skriver => _t('1 · Butikken skriver om posen', '1 · The shop on the bag');
+
+  // ── Bergen Step 4: Butikkprofil (L10189–10320) ──────────────────────────
+  static String get a1_bp_innlegg => _t('innlegg', 'posts');
+  static String get a1_bp_folgere => _t('følgere', 'followers');
+  static String a1_bp_folgere_tall(int n) {
+    if (n >= 10000) return '${(n / 1000).toStringAsFixed(1).replaceAll('.', _en ? '.' : ',')}k';
+    final s = '$n';
+    return s.length <= 3 ? s : '${s.substring(0, s.length - 3)}${_en ? ',' : ' '}${s.substring(s.length - 3)}';
+  }
+  static String get a1_bp_min_levering => _t('min levering', 'min delivery');
+  static String get a1_bp_folg => _t('Følg', 'Follow');
+  static String get a1_bp_folger => _t('Følger', 'Following');
+  static String a1_bp_folger_toast(String navn) => _t('Du følger $navn · innleggene havner under «Følger» i Utforsk', 'You follow $navn · their posts land under «Følger» in Explore');
+  static String a1_bp_folger_ikke_toast(String navn) => _t('Du følger ikke $navn lenger', 'You no longer follow $navn');
+  static String get a1_bp_se_menyen => _t('Se menyen', 'See the menu');
+  static String get a1_bp_apen => _t('Åpen', 'Open');
+  static String a1_bp_apen_til(String kl) => _t('Åpen · stenger $kl', 'Open · closes $kl');
+  static String get a1_bp_stengt => _t('Stengt', 'Closed');
+  static String a1_bp_stengt_til(String kl) => _t('Stengt · åpner $kl', 'Closed · opens $kl');
+  static String get a1_bp_fane_innlegg => _t('Innlegg', 'Posts');
+  static String get a1_bp_fane_tilbud => _t('Tilbud', 'Offers');
+  static String get a1_bp_fane_aerend => _t('Fra Ærend', 'From Ærend');
+  static String a1_bp_aerend_info(String navn) => _t('Ærend skriver om butikker i nærheten. $navn ser innleggene og kan skjule dem.', 'Ærend writes about shops nearby. $navn sees the posts and can hide them.');
+  static String get a1_bp_nytt => _t('NYTT', 'NEW');
+  static String get a1_bp_video => _t('Video', 'Video');
+  static String get a1_bp_tom_tilbud => _t('Ingen tilbud akkurat nå', 'No offers right now');
+  static String a1_bp_tom_tilbud_under(String navn) => _t('Følg $navn, så ser du nye tilbud i «Følger».', 'Follow $navn to see new offers in «Følger».');
+  static String a1_bp_tom_aerend(String navn) => _t('Ærend har ikke skrevet om $navn ennå', 'Ærend hasn’t written about $navn yet');
+  static String get a1_bp_tom_aerend_under => _t('Ærend skriver om butikker i nærheten når det skjer noe der.', 'Ærend writes about shops nearby when something happens there.');
+  static String get a1_bp_tom_innlegg => _t('Ingen innlegg ennå', 'No posts yet');
+  static String a1_bp_tom_innlegg_under(String navn) => _t('$navn har ikke lagt ut noe ennå.', '$navn hasn’t posted anything yet.');
+  static String get a1_bp_over_innlegg => _t('INNLEGG', 'POSTS');
+  static String get a1_bp_over_tilbud => _t('TILBUD', 'OFFERS');
+  static String get a1_bp_over_aerend => _t('FRA ÆREND', 'FROM ÆREND');
+  static String a1_bp_aerend_skriver(String dato) => _t('Ærend skriver · $dato', 'Ærend writes · $dato');
+  static String a1_bp_i_dag(String kl) => _t('i dag $kl', 'today $kl');
+  static String a1_bp_i_gar(String kl) => _t('i går $kl', 'yesterday $kl');
+  static String a1_bp_ukedag(int d) => (_en ? const ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] : const ['man', 'tir', 'ons', 'tor', 'fre', 'lør', 'søn'])[d - 1];
+  static String get a1_bp_legg_i_kurven => _t('Legg i kurven', 'Add to basket');
+  static String a1_bp_legg_i_kurven_vare(String vare) => _t('Legg i kurven · $vare', 'Add to basket · $vare');
   static String a1_pose_kort_under(String what, int valueKr) =>
       _t('$what · verdi minst $valueKr kr', '$what · worth at least $valueKr kr');
   static String a1_pose_hentes_til(String time) => _t('Hentes til $time', 'Pick up by $time');

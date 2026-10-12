@@ -19,6 +19,12 @@ class FeedPost {
   /// Ærend posts carry a headline above the caption; null for most.
   final String? headline;
 
+  /// A store profile's post (Bergen UI Step 4, `GET /v1/stores/:id/posts`):
+  /// its type (`tilbud`, `ny_i_hyllene` …), price and the product it sells.
+  final String? postType;
+  final int? priceOre;
+  final String? storeProductId;
+
   const FeedPost({
     required this.id,
     required this.store,
@@ -31,7 +37,13 @@ class FeedPost {
     this.publishedAt,
     this.publisherType = 'store',
     this.headline,
+    this.postType,
+    this.priceOre,
+    this.storeProductId,
   });
+
+  /// The post has a picture or video (a text-only post has none).
+  bool get hasMedia => media.cloudinaryPublicId.isNotEmpty;
 
   /// Ærend's post with no shop behind it: no store profile, no follow.
   bool get hasStore => store.hasStore;
@@ -51,10 +63,15 @@ class FeedPost {
       commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
       isLiked: json['is_liked'] as bool? ?? false,
       publishedAt: parseFeedDateTimeOrNull(json['published_at']),
-      publisherType: publisher is Map
+      publisherType: json['publisher_type'] is String
+          ? json['publisher_type'] as String
+          : publisher is Map
           ? '${publisher['type'] ?? 'store'}'
           : (storeJson is Map<String, dynamic> && '${storeJson['id'] ?? ''}'.isNotEmpty ? 'store' : 'aerend'),
       headline: json['headline'] as String?,
+      postType: json['post_type'] as String?,
+      priceOre: (json['price_ore'] as num?)?.toInt(),
+      storeProductId: json['store_product_id'] == null ? null : '${json['store_product_id']}',
     );
   }
 }

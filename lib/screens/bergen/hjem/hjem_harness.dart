@@ -41,6 +41,11 @@ abstract final class HjemHarness {
   static int? poseArk;
   static bool poseSikre = false, poseArkRull = false;
 
+  /// Bergen Step 4: Butikkprofil's tab (`bpFane`: tilbud / aerend) and the
+  /// post viewer at post N of that tab (`bpPost`).
+  static String? bpFane;
+  static int? bpPost;
+
   /// Open the window (`sone: 'vindu'`).
   static bool vindu = false;
 
@@ -255,6 +260,8 @@ abstract final class HjemHarness {
         pose = false;
         poseArk = null;
         poseSikre = poseArkRull = false;
+        bpFane = null;
+        bpPost = null;
         vindu = false;
         borte = false;
         fane = null;
@@ -332,6 +339,8 @@ abstract final class HjemHarness {
       poseArk = m['poseArk'] as int?;
       poseSikre = m['poseSikre'] == true;
       poseArkRull = m['poseArkRull'] == true;
+      bpFane = m['bpFane'] as String?;
+      bpPost = m['bpPost'] as int?;
       vindu = m['vindu'] == true;
       borte = m['borte'] == true;
       fane = m['fane'] as int?;

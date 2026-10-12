@@ -38,6 +38,7 @@ class FeedPostCard extends StatefulWidget {
     this.following,
     this.playing = false,
     this.onOpen,
+    this.onProfil,
     this.onLike,
     this.onComments,
     this.onShare,
@@ -74,6 +75,10 @@ class FeedPostCard extends StatefulWidget {
   final bool playing;
 
   final VoidCallback? onOpen;
+
+  /// The store's logo and name open its profile (new Bergen `p.profil`,
+  /// L5592–5610); null for a post with no store behind it.
+  final VoidCallback? onProfil;
   final VoidCallback? onLike;
   final VoidCallback? onComments;
   final VoidCallback? onShare;
@@ -551,12 +556,17 @@ class _FeedPostCardState extends State<FeedPostCard>
     var meta = metaParts.join(' · ');
     if (item.isFromAerend) meta += ' · ${UtforskCopy.a1_feed_published_by_aerend}';
 
+    final profil = item.store != null ? widget.onProfil : null;
     return Row(
       children: [
-        _logo(context),
+        GestureDetector(key: const Key('a1_feed_profil_logo'), behavior: HitTestBehavior.opaque, onTap: profil, child: _logo(context)),
         const SizedBox(width: 9),
         Expanded(
-          child: Column(
+          child: GestureDetector(
+            key: const Key('a1_feed_profil_navn'),
+            behavior: HitTestBehavior.opaque,
+            onTap: profil,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -593,6 +603,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                 ),
               ),
             ],
+          ),
           ),
         ),
         if (item.store != null) ...[
