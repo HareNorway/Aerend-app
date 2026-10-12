@@ -460,6 +460,11 @@ class KurvLinje extends StatelessWidget {
   final VoidCallback onMinus;
   final VoidCallback onPlus;
 
+  /// A secured Forundringspose just landed on its row (`upTilKurv`, new
+  /// Bergen L19960): the row with this product greets it — its picture
+  /// bounces and the row glows mint. Set by the flight, cleared here.
+  static final ValueNotifier<int?> landet = ValueNotifier<int?>(null);
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
@@ -489,7 +494,9 @@ class KurvLinje extends StatelessWidget {
         ),
       ),
     );
-    return Container(
+    return _LandGlod(
+      productId: line.productId,
+      child: Container(
       key: Key('a1_kasse_linje_${line.cartId}'),
       padding: EdgeInsets.symmetric(vertical: 12 * s),
       decoration: BoxDecoration(
@@ -498,7 +505,8 @@ class KurvLinje extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          KurvFlis(imageUrl: line.imageUrl),
+          // The flight's target (found by this key) and its bounce.
+          KeyedSubtree(key: ValueKey('kurv_flis_${line.productId}'), child: _LandHopp(productId: line.productId, child: KurvFlis(imageUrl: line.imageUrl))),
           SizedBox(width: 12 * s),
           Expanded(
             child: Column(
@@ -582,8 +590,113 @@ class KurvLinje extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
+}
+
+/// The row's mint glow when its bag lands (1.3 s, ease-out): `box-shadow 0 0
+/// 0 2px rgba(92,224,184,.55), 0 0 22px .35` and `rgba(92,224,184,.12)`,
+/// peaking at 30 %.
+class _LandGlod extends StatefulWidget {
+  const _LandGlod({required this.productId, required this.child});
+
+  final int productId;
+  final Widget child;
+
+  @override
+  State<_LandGlod> createState() => _LandGlodState();
+}
+
+class _LandGlodState extends State<_LandGlod> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1300));
+
+  @override
+  void initState() {
+    super.initState();
+    KurvLinje.landet.addListener(_paa);
+  }
+
+  void _paa() {
+    if (KurvLinje.landet.value != widget.productId) return;
+    _c.forward(from: 0);
+    // The picture's bounce reads the same signal; clear it after both start.
+    WidgetsBinding.instance.addPostFrameCallback((_) => KurvLinje.landet.value = null);
+  }
+
+  @override
+  void dispose() {
+    KurvLinje.landet.removeListener(_paa);
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _c,
+    child: widget.child,
+    builder: (context, child) {
+      if (!_c.isAnimating) return child!;
+      final k = kf(Curves.easeOut.transform(_c.value), const [0, .3, 1], const [0, 1, 0], const Cubic(0, 0, 1, 1));
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: Color.fromRGBO(92, 224, 184, .12 * k),
+          boxShadow: [
+            BoxShadow(color: Color.fromRGBO(92, 224, 184, .55 * k), spreadRadius: 2),
+            BoxShadow(color: Color.fromRGBO(92, 224, 184, .35 * k), blurRadius: 11),
+          ],
+        ),
+        child: child,
+      );
+    },
+  );
+}
+
+/// The row picture's bounce when its bag lands (520 ms, cubic-bezier(.3,1.3,
+/// .5,1)): scale 1 → 1.18 / −5° (35 %) → .95 / 2° (70 %) → 1.
+class _LandHopp extends StatefulWidget {
+  const _LandHopp({required this.productId, required this.child});
+
+  final int productId;
+  final Widget child;
+
+  @override
+  State<_LandHopp> createState() => _LandHoppState();
+}
+
+class _LandHoppState extends State<_LandHopp> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+
+  @override
+  void initState() {
+    super.initState();
+    KurvLinje.landet.addListener(_paa);
+  }
+
+  void _paa() {
+    if (KurvLinje.landet.value == widget.productId) _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    KurvLinje.landet.removeListener(_paa);
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _c,
+    child: widget.child,
+    builder: (context, child) {
+      if (!_c.isAnimating) return child!;
+      final p = const Cubic(.3, 1.3, .5, 1).transform(_c.value);
+      const at = [0.0, .35, .7, 1.0];
+      final sc = kf(p, at, const [1, 1.18, .95, 1], const Cubic(0, 0, 1, 1));
+      final r = kf(p, at, const [0, -5, 2, 0], const Cubic(0, 0, 1, 1));
+      return Transform.rotate(angle: r * 3.14159265 / 180, child: Transform.scale(scale: sc, child: child));
+    },
+  );
 }
 
 /// The product tile (`48 r16 {{tint}}`, the white rim and plate shadow, the

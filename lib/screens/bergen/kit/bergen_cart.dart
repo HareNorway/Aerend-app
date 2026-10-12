@@ -26,6 +26,8 @@ abstract final class BergenCart {
     int sizeId = 0,
     int colourId = 0,
     List<int> optionIds = const [],
+    /// No toast when it goes through (the caller shows its own).
+    bool stille = false,
   }) async {
     if (storeId == 0 || productId == 0) {
       showBergenToast(context, 'Kommer snart');
@@ -52,7 +54,7 @@ abstract final class BergenCart {
       if (response.messageCode == 1) {
         prefSetInt(prefCartCount, response.countOrder);
         syncBadge(context, response.countOrder);
-        showBergenToast(context, toast ?? response.message);
+        if (!stille) showBergenToast(context, toast ?? response.message);
         return true;
       }
       showBergenToast(context, response.message);

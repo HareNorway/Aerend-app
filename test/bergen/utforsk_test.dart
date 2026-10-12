@@ -202,9 +202,10 @@ void main() {
       await tester.pump();
 
       expect(find.text('Sandviken Bakeri'), findsOneWidget);
-      expect(find.text('99 kr'), findsOneWidget);
-      expect(find.textContaining('Hentes til 18:00'), findsOneWidget);
-      expect(find.text(UtforskCopy.a1_utforsk_pose_secure), findsOneWidget);
+      // The card's price pill and the Poseautomaten module's key.
+      expect(find.text('99 kr'), findsNWidgets(2));
+      // No pickup window from the store: the store's hours stand in.
+      expect(find.textContaining('hentes til 18:00'), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_pose_empty')), findsNothing);
     });
 

@@ -87,8 +87,9 @@ class BergenProductCard {
 /// the ring — 0 faces you, ±120° are the two behind — and the ring turns as
 /// one continuous angle, so a card swings round the back instead of cutting
 /// across the front (the design's `railSving`).
-class _Rail extends StatefulWidget {
-  const _Rail({
+class BergenRail extends StatefulWidget {
+  const BergenRail({
+    super.key,
     required this.height,
     required this.cardTop,
     required this.count,
@@ -105,10 +106,10 @@ class _Rail extends StatefulWidget {
   final ValueChanged<int> onOpen;
 
   @override
-  State<_Rail> createState() => _RailState();
+  State<BergenRail> createState() => _RailState();
 }
 
-class _RailState extends State<_Rail> {
+class _RailState extends State<BergenRail> {
   int _focus = 0;
 
   /// How many steps the ring has turned in total; drives the angle tween.
@@ -122,7 +123,7 @@ class _RailState extends State<_Rail> {
   }
 
   @override
-  void didUpdateWidget(_Rail old) {
+  void didUpdateWidget(BergenRail old) {
     super.didUpdateWidget(old);
     if (old.count != widget.count) {
       _focus = 0;
@@ -319,7 +320,7 @@ class BergenStoreRail extends StatelessWidget {
     final list = stores.take(3).toList();
     return BergenRailSnart(
       snart: snart,
-      child: _Rail(
+      child: BergenRail(
         height: 252,
         cardTop: 6,
         count: list.length,
@@ -357,7 +358,7 @@ class _StoreCardBody extends StatelessWidget {
               borderRadius: BorderRadius.vertical(
                 bottom: Radius.circular(26 * s),
               ),
-              child: const _Holo(
+              child: const BergenHolo(
                 colors: [
                   Color.fromRGBO(255, 255, 255, 0),
                   Color.fromRGBO(255, 190, 160, .34),
@@ -384,7 +385,7 @@ class _StoreCardBody extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       const ColoredBox(color: Color(0xFFEFE6D3)),
-                      _KenBurns(
+                      BergenKenBurns(
                         seconds: 9 + seed,
                         reverse: seed.isOdd,
                         child: _image(
@@ -410,7 +411,7 @@ class _StoreCardBody extends StatelessWidget {
                       ),
                       // The colour-dodge holo at .32.
                       const IgnorePointer(
-                        child: _Holo(
+                        child: BergenHolo(
                           dodge: true,
                           colors: [
                             Color.fromRGBO(255, 255, 255, 0),
@@ -777,7 +778,7 @@ class BergenProductRail extends StatelessWidget {
     final list = products.take(3).toList();
     return BergenRailSnart(
       snart: snart,
-      child: _Rail(
+      child: BergenRail(
         height: 214,
         cardTop: 4,
         count: list.length,
@@ -824,7 +825,7 @@ class _ProductCardBody extends StatelessWidget {
               borderRadius: BorderRadius.vertical(
                 bottom: Radius.circular(26 * s),
               ),
-              child: const _Holo(
+              child: const BergenHolo(
                 colors: [
                   Color.fromRGBO(255, 255, 255, 0),
                   Color.fromRGBO(255, 190, 160, .34),
@@ -861,7 +862,7 @@ class _ProductCardBody extends StatelessWidget {
                         ),
                       ),
                       const IgnorePointer(
-                        child: _Holo(
+                        child: BergenHolo(
                           dodge: true,
                           colors: [
                             Color.fromRGBO(255, 255, 255, 0),
@@ -908,7 +909,7 @@ class _ProductCardBody extends StatelessWidget {
                       ),
                       if (product.imageUrl != null ||
                           product.imageAsset != null)
-                        _KenBurns(
+                        BergenKenBurns(
                           seconds: 8 + seed,
                           reverse: seed.isOdd,
                           product: true,
@@ -1262,8 +1263,9 @@ Widget _offerTag(BuildContext context, String text, {bool small = false}) {
 }
 
 /// `kenBurns` — slow zoom and drift on a banner.
-class _KenBurns extends StatelessWidget {
-  const _KenBurns({
+class BergenKenBurns extends StatelessWidget {
+  const BergenKenBurns({
+    super.key,
     required this.child,
     required this.seconds,
     required this.reverse,
@@ -1402,8 +1404,8 @@ class _Pulse extends StatelessWidget {
 
 /// `bm3Holo` 5s alternate: a rainbow band sliding across (background-size
 /// 260%), optionally colour-dodged at .32 over a picture.
-class _Holo extends StatelessWidget {
-  const _Holo({required this.colors, required this.stops, this.dodge = false});
+class BergenHolo extends StatelessWidget {
+  const BergenHolo({super.key, required this.colors, required this.stops, this.dodge = false});
 
   final List<Color> colors;
   final List<double> stops;

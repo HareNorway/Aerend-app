@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/feed/feed_tab_item.dart';
-import 'package:aerend_customer/data/points/points_models.dart';
+import 'package:aerend_customer/data/ops/kasse_models.dart';
 import 'package:aerend_customer/networking/feed/feed_repo.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
+import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/butikk/automat_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/feed_post_card.dart';
+import 'package:aerend_customer/screens/bergen/utforsk/pose_segment.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_copy.dart';
 import 'package:aerend_customer/screens/bergen/utforsk/utforsk_screen.dart';
 
@@ -20,7 +22,11 @@ import '../layout/reduced_motion_harness.dart';
 /// switch, and the machine's claw, pull, landing and fishing states.
 
 final _bags = <Map<String, dynamic>>[
-  {'id': '793', 'name': 'Forundringspose', 'description': 'Bakst', 'store_id': 10, 'store_name': 'Sandviken Bakeri', 'price_ore': 9900, 'value_ore': 25000, 'pickup_window': 'til 18:00', 'left': null},
+  {
+    'id': '793', 'name': 'Forundringspose', 'description': 'Det som ble igjen av dagens bakst.', 'category': 'Bakst', 'store_id': 10,
+    'store_name': 'Sandviken Bakeri', 'price_ore': 9900, 'value_ore': 25000, 'pickup_window': 'til 18:00', 'left': 2, 'capacity': 5,
+    'pickup_from': '16:00', 'pickup_to': '18:00',
+  },
   {'id': '794', 'name': 'Forundringspose', 'description': 'Frukt og grønt', 'store_id': 28, 'store_name': 'Grønt & Godt', 'price_ore': 7900, 'value_ore': 20000, 'left': null},
   {'id': '795', 'name': 'Forundringspose', 'description': 'Fisk', 'store_id': 6, 'store_name': 'Torgboden', 'price_ore': 9900, 'value_ore': 25000, 'left': null},
 ];
@@ -71,54 +77,64 @@ void main() {
   });
   tearDown(A3Services.reset);
 
+  // Bergen Step 3: the bags in the 3D carousel, the Poseautomaten module (the
+  // feed and goal cards are gone from the design), the dark bag sheet, and
+  // «Sikret» from the cart.
   group('Forundringspose segment', () {
-    testWidgets('bags float with price, value, discount and the live count', (tester) async {
+    testWidgets('bags in the carousel: price, value, discount, stock and pickup', (tester) async {
       _frame(tester);
       await tester.pumpWidget(MaterialApp(home: UtforskScreen(api: _Api(bags: _bags), feedRepo: _Repo(), initialTab: UtforskScreen.tabPose)));
       await _settle(tester);
 
-      expect(find.text(UtforskCopy.a1_utforsk_pose_left_today(3)), findsOneWidget);
+      // Stock where the store tracks it (2 left), the other two bags counted.
+      expect(find.text(UtforskCopy.a1_utforsk_pose_left_today(4)), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_linje), findsOneWidget);
       expect(find.text('Sandviken Bakeri'), findsOneWidget);
-      expect(find.text(UtforskCopy.a1_pose_kort_under('Bakst', 250)), findsOneWidget);
+      expect(find.text('Bakst · hentes 16–18'), findsOneWidget);
       expect(find.text('−60 %'), findsWidgets);
-      expect(find.text('Hentes til 18:00'), findsOneWidget);
-      // No stock is tracked: no «N igjen» chip on the cards.
-      expect(find.text(UtforskCopy.a1_utforsk_pose_left(2)), findsNothing);
+      expect(find.text(UtforskCopy.a1_utforsk_pose_left(2)), findsOneWidget);
+      // A bag without stock shows no «N igjen» and falls back to its own line.
+      expect(find.byKey(const Key('a1_pose_kort_igjen')), findsOneWidget);
       expect(find.byKey(const Key('a1_utforsk_automat')), findsOneWidget);
-      expect(find.byKey(const Key('a1_pose_feed')), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_trekk), findsOneWidget);
+      expect(find.byKey(const Key('a1_pose_feed')), findsNothing);
     });
 
-    testWidgets('the goal card reads the shelf goal and the balance', (tester) async {
+    testWidgets('the front card opens the dark sheet: tiles, the store text, «Sikre en»', (tester) async {
       _frame(tester);
-      A3Services.points = () => FakePointsApi(
-        balanceValue: const PointsBalance(available: 1240),
-        shelfValue: const Premiehylla(
-          prizes: [],
-          goal: PointGoal(kind: 'prize', label: 'Gratis pizza fra Casa Maria', current: 1240, target: 1360, remaining: 120, percent: 91),
+      await tester.pumpWidget(MaterialApp(home: UtforskScreen(api: _Api(bags: _bags), feedRepo: _Repo(), initialTab: UtforskScreen.tabPose)));
+      await _settle(tester);
+
+      await tester.tap(find.text('Sandviken Bakeri'));
+      await _settle(tester);
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text(UtforskCopy.a1_pose_tittel_under('bakst')), findsOneWidget);
+      expect(find.text('16–18'), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_hentes_idag), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_du_sparer(151)), findsOneWidget);
+      expect(find.text('Det som ble igjen av dagens bakst.'), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_sikre_cta(99)), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_se_butikken), findsOneWidget);
+    });
+
+    testWidgets('a bag already in the cart is «Sikret»', (tester) async {
+      _frame(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CustomScrollView(
+              slivers: [UtforskPoseSegment(api: _Api(bags: _bags), kasseApi: _Kasse(), onAutomat: () {})],
+            ),
+          ),
         ),
       );
-      await tester.pumpWidget(MaterialApp(home: UtforskScreen(api: _Api(bags: _bags), feedRepo: _Repo(), initialTab: UtforskScreen.tabPose)));
       await _settle(tester);
 
-      expect(find.text(UtforskCopy.a1_maal_igjen('gratis pizza fra casa maria', 120)), findsOneWidget);
-      expect(find.text(UtforskCopy.a1_poeng(1240)), findsOneWidget);
-      expect(find.byKey(const Key('a1_pose_premiehylla')), findsOneWidget);
-    });
-
-    testWidgets('the Ærend-feed card and the Feed segment switch back', (tester) async {
-      _frame(tester);
-      await tester.pumpWidget(MaterialApp(home: UtforskScreen(api: _Api(bags: _bags), feedRepo: _Repo(), initialTab: UtforskScreen.tabPose)));
-      await _settle(tester);
-      expect(find.byKey(const Key('a1_utforsk_filters')), findsNothing);
-
-      await tester.tap(find.byKey(const Key('a1_pose_feed')));
-      await _settle(tester);
-      expect(find.byKey(const Key('a1_utforsk_filters')), findsOneWidget);
-      expect(find.byKey(const Key('a1_pose_feed')), findsNothing);
-
-      await tester.tap(find.byKey(const Key('a1_utforsk_tab_pose')));
-      await _settle(tester);
-      expect(find.byKey(const Key('a1_pose_feed')), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_pose_sikret), findsOneWidget);
+      // One of the two left is the customer's own.
+      expect(find.text(UtforskCopy.a1_utforsk_pose_left(1)), findsOneWidget);
+      expect(find.text(UtforskCopy.a1_utforsk_pose_left_today(3)), findsOneWidget);
     });
   });
 
@@ -233,4 +249,12 @@ void main() {
       expect(find.text(UtforskCopy.a1_auto_din), findsOneWidget);
     });
   });
+}
+
+class _Kasse extends OpsKasseApi {
+  @override
+  Future<KurvState> cart() async => const KurvState(
+    storeId: 10,
+    lines: [KurvLine(cartId: 1, productId: 793, name: 'Forundringspose', quantity: 1, unitPrice: 99, storeId: 10)],
+  );
 }

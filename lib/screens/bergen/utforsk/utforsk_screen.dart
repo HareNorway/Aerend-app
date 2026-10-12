@@ -9,7 +9,6 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
-import '../../common/home/bergen/bergen_nav.dart';
 import '../aegil/aegil_guide.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart' show rgba;
@@ -211,7 +210,6 @@ class _UtforskScreenState extends State<UtforskScreen> {
   @override
   Widget build(BuildContext context) {
     final isPose = _tab == UtforskScreen.tabPose;
-    final newest = _posts.isEmpty ? null : _posts.first;
 
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),
@@ -294,23 +292,9 @@ class _UtforskScreenState extends State<UtforskScreen> {
                           UtforskPoseSegment(
                             api: widget.api,
                             butikkApi: widget.butikkApi,
-                            newest: newest == null ? null : UtforskCopy.a1_pose_feed_linje(newest.publisherName, newest.title),
-                            unread: _unread,
                             segSeq: _segSeq,
                             segSince: _segSince,
                             onAutomat: _tilAutomat,
-                            onFeed: () {
-                              _markFeedSeen();
-                              setState(() {
-                                _tab = UtforskScreen.tabFeed;
-                                _fane = 'naer';
-                                _segSeq++;
-                                _segSince = DateTime.now();
-                                _segDir = -1;
-                              });
-                            },
-                            onMeg: () => _shell?.switchToTab(BergenTab.me.index),
-                            onPremier: () => BergenRoutes.push(context, '/bergen/premiehylla'),
                           ),
                         SliverToBoxAdapter(child: SizedBox(height: bottom)),
                       ],

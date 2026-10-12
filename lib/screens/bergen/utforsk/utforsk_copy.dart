@@ -134,6 +134,41 @@ abstract final class UtforskCopy {
 
   // Forundringspose segment (L5632–5707).
   static String a1_pose_rabatt(int pct) => '−$pct %';
+
+  // ── Bergen Step 3: the carousel, the module and the bag sheet ───────────
+  static String get a1_pose_linje => _t(
+    'Overskudd fra butikkene til en brøkdel av prisen. Trykk på en pose for å se hva butikken har lagt i den.',
+    'Surplus from the shops at a fraction of the price. Tap a bag to see what the shop has put in it.',
+  );
+  static String a1_pose_hentes(String vindu) => _t('hentes $vindu', 'pick up $vindu');
+  static String get a1_pose_sikret => _t('Sikret', 'Secured');
+  static String get a1_pose_sikre_label => _t('Sikre en pose', 'Secure a bag');
+  static String a1_pose_sikret_toast(String vindu) =>
+      vindu.isEmpty ? _t('Posen er sikret', 'The bag is secured') : _t('Posen er sikret · hentes i dag $vindu', 'The bag is secured · pick up today $vindu');
+  static String a1_pose_avstand(double km) {
+    if (km < 1) {
+      final m = (km * 1000 / 50).round() * 50;
+      return '${m < 50 ? 50 : m} m';
+    }
+    return '${km.toStringAsFixed(1).replaceAll('.', _en ? '.' : ',')} km';
+  }
+  static String get a1_pose_tilfeldig => _t('Tilfeldig pose', 'Random bag');
+  static String get a1_pose_automat_linje => _t('En pose fra kveldens butikker, alltid verdt minst det dobbelte.', 'A bag from tonight’s shops, always worth at least double.');
+  static String get a1_pose_trekk => _t('Trekk i spaken', 'Pull the lever');
+  static String get a1_pose_automat_label => _t('Åpne Poseautomaten', 'Open the bag machine');
+  static String a1_pose_tittel_under(String? kat) => kat == null ? 'Forundringspose' : 'Forundringspose · $kat';
+  static String get a1_pose_se_butikken => _t('Se butikken', 'See the shop');
+  static String a1_pose_sikre_cta(int kr) => _t('Sikre en · $kr kr', 'Secure one · $kr kr');
+  static String a1_pose_sikret_cta(String vindu) => vindu.isEmpty ? _t('Sikret', 'Secured') : _t('Sikret · hentes $vindu', 'Secured · pick up $vindu');
+  static String get a1_pose_overraskelse => _t('Overraskelse fra dagens overskudd', 'A surprise from today’s surplus');
+  static String a1_pose_poeng(int n) => _t('+$n poeng', '+$n points');
+  static String a1_pose_pluss_poeng(int n) => _t('+$n poeng', '+$n points');
+  static String a1_pose_du_betaler(int kr) => _t('Du betaler $kr kr', 'You pay $kr kr');
+  static String a1_pose_du_sparer(int kr) => _t('Du sparer minst $kr kr', 'You save at least $kr kr');
+  static String get a1_pose_hentes_idag => _t('Hentes i dag', 'Pick up today');
+  static String get a1_pose_lagt_ut_idag => _t('Lagt ut i dag', 'Put out today');
+  static String a1_pose_lagt_ut_kl(String kl) => _t('Lagt ut i dag $kl', 'Put out today $kl');
+  static String get a1_pose_skriver => _t('1 · Butikken skriver om posen', '1 · The shop on the bag');
   static String a1_pose_kort_under(String what, int valueKr) =>
       _t('$what · verdi minst $valueKr kr', '$what · worth at least $valueKr kr');
   static String a1_pose_hentes_til(String time) => _t('Hentes til $time', 'Pick up by $time');

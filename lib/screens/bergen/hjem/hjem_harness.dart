@@ -35,6 +35,12 @@ abstract final class HjemHarness {
   /// Show the Forundringspose card whatever the hour.
   static bool pose = false;
 
+  /// Bergen Step 3: open the Forundringspose sheet of bag N on Utforsk's
+  /// segment (`poseArk`), and press its «Sikre en» (`poseSikre`: one real cart
+  /// line, no payment).
+  static int? poseArk;
+  static bool poseSikre = false, poseArkRull = false;
+
   /// Open the window (`sone: 'vindu'`).
   static bool vindu = false;
 
@@ -247,6 +253,8 @@ abstract final class HjemHarness {
         scroll = null;
         snart = null;
         pose = false;
+        poseArk = null;
+        poseSikre = poseArkRull = false;
         vindu = false;
         borte = false;
         fane = null;
@@ -321,6 +329,9 @@ abstract final class HjemHarness {
       scroll = (m['scroll'] as num?)?.toDouble();
       snart = m['snart'] as int?;
       pose = m['pose'] == true;
+      poseArk = m['poseArk'] as int?;
+      poseSikre = m['poseSikre'] == true;
+      poseArkRull = m['poseArkRull'] == true;
       vindu = m['vindu'] == true;
       borte = m['borte'] == true;
       fane = m['fane'] as int?;

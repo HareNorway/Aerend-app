@@ -7,6 +7,7 @@ import '../aegil/aegil_bits.dart' show AeIkon;
 import '../../snurre/snurre_launcher_policy.dart';
 import '../kit/bergen_kit.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../kit/bergen_perf.dart';
 
 /// The design's Ark (`kVisArk` ≈L7333): the cream frosted sheet the Meg rows
@@ -54,11 +55,15 @@ abstract final class MegArkInk {
 }
 
 class MegArkButton {
-  const MegArkButton({required this.label, required this.onTap, this.gradient, this.deg = 180, this.key});
+  const MegArkButton({required this.label, required this.onTap, this.gradient, this.deg = 180, this.key, this.av = false});
 
   final String label;
   final VoidCallback onTap;
   final Gradient? gradient;
+
+  /// Done / not available (`kArkCtaBg: '#A9BEC3'`): on the dark Ark a glass
+  /// pill with dimmed text instead of the orange key.
+  final bool av;
 
   /// The CSS angle of [gradient] (`linear-gradient(<deg>, …)`).
   final double deg;
@@ -77,6 +82,8 @@ Future<T?> showMegArk<T>(
   Key? key,
   /// A primary that follows the sheet's state (rebuilt with [body]).
   MegArkButton Function(BuildContext context)? primaryBuilder,
+  /// The dark Ark of new Bergen (`kArkMork`, L9688): teal glass, white type.
+  bool mork = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -100,6 +107,7 @@ Future<T?> showMegArk<T>(
           body: body == null ? null : body(ctx, setState),
           primary: primaryBuilder?.call(ctx) ?? primary,
           secondary: secondary,
+          mork: mork,
         ),
       ),
     ),
@@ -143,13 +151,18 @@ class MegArkSkala extends StatelessWidget {
 }
 
 class MegArk extends StatelessWidget {
-  const MegArk({super.key, required this.title, this.subtitle, this.body, this.primary, this.secondary});
+  const MegArk({super.key, required this.title, this.subtitle, this.body, this.primary, this.secondary, this.mork = false});
 
   final String title;
   final String? subtitle;
   final Widget? body;
   final MegArkButton? primary;
   final MegArkButton? secondary;
+
+  /// New Bergen's dark Ark (`kArkMork`, L9688–9692): a mint glow over
+  /// `#22596A → #1A4652 → #122F3A`, the 30 px blur, a light top edge, the
+  /// 21 px white title, 70 % white line, glass close key and footer.
+  final bool mork;
 
   @override
   Widget build(BuildContext context) {
@@ -162,27 +175,39 @@ class MegArk extends StatelessWidget {
           enabled: BergenPerf.blurOn(context),
           filter: BergenPerf.blur(context, 30, 30),
           child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F3EF).withValues(alpha: .96),
-              border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .95), width: 1.5)),
-            ),
-            child: SafeArea(
+            decoration: mork
+                ? const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF22596A), Color(0xFF1A4652), Color(0xFF122F3A)],
+                      stops: [0, .45, 1],
+                    ),
+                  )
+                : BoxDecoration(
+                    color: const Color(0xFFF5F3EF).withValues(alpha: .96),
+                    border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .95), width: 1.5)),
+                  ),
+            // The dark Ark's mint glow and inner edge are drawn over the fill.
+            child: CustomPaint(
+              painter: mork ? const _MorkKant() : null,
+              child: SafeArea(
               top: false,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // The handle: 40 × 5, `rgba(35,32,29,.16)`, 8 px from the top.
+                  // The handle: 40 × 5, `rgba(35,32,29,.16)` (dark: white .28), 8 px from the top.
                   Center(
                     child: Container(
                       width: 40,
                       height: 5,
                       margin: const EdgeInsets.only(top: 8),
-                      decoration: BoxDecoration(color: const Color.fromRGBO(35, 32, 29, .16), borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: mork ? const Color.fromRGBO(255, 255, 255, .28) : const Color.fromRGBO(35, 32, 29, .16), borderRadius: BorderRadius.circular(999)),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
+                    padding: mork ? const EdgeInsets.fromLTRB(18, 14, 18, 10) : const EdgeInsets.fromLTRB(18, 16, 18, 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -190,23 +215,31 @@ class MegArk extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(title, style: BergenTokens.display(19, weight: FontWeight.w800, color: MegArkInk.ink, letterSpacingEm: -0.02)),
+                              Text(
+                                title,
+                                style: mork
+                                    ? BergenTokens.display(21, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.03)
+                                    : BergenTokens.display(19, weight: FontWeight.w800, color: MegArkInk.ink, letterSpacingEm: -0.02),
+                              ),
                               if (subtitle != null && subtitle!.isNotEmpty) ...[
-                                const SizedBox(height: 3),
-                                Text(subtitle!, style: BergenTokens.text(12.5, weight: FontWeight.w600, color: MegArkInk.sub, height: 1.45)),
+                                SizedBox(height: mork ? 4 : 3),
+                                Text(
+                                  subtitle!,
+                                  style: BergenTokens.text(12.5, weight: FontWeight.w600, color: mork ? const Color.fromRGBO(255, 255, 255, .7) : MegArkInk.sub, height: 1.45),
+                                ),
                               ],
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        _CloseSquare(onTap: () => Navigator.of(context).maybePop()),
+                        SizedBox(width: mork ? 12 : 10),
+                        _CloseSquare(onTap: () => Navigator.of(context).maybePop(), mork: mork),
                       ],
                     ),
                   ),
                   if (body != null)
                     Flexible(
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
+                        padding: mork ? const EdgeInsets.fromLTRB(18, 8, 18, 8) : const EdgeInsets.fromLTRB(18, 0, 18, 8),
                         child: body,
                       ),
                     ),
@@ -215,9 +248,9 @@ class MegArk extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
                       child: Row(
                         children: [
-                          if (secondary != null) Expanded(flex: 10, child: _ArkSecondary(button: secondary!)),
+                          if (secondary != null) Expanded(flex: 10, child: _ArkSecondary(button: secondary!, mork: mork)),
                           if (secondary != null && primary != null) const SizedBox(width: 8),
-                          if (primary != null) Expanded(flex: 16, child: _ArkPrimary(button: primary!)),
+                          if (primary != null) Expanded(flex: 16, child: _ArkPrimary(button: primary!, mork: mork)),
                         ],
                       ),
                     )
@@ -226,6 +259,7 @@ class MegArk extends StatelessWidget {
                 ],
               ),
             ),
+            ),
           ),
         ),
       ),
@@ -233,14 +267,64 @@ class MegArk extends StatelessWidget {
   }
 }
 
+/// The dark Ark's light: the mint glow top-left (`radial-gradient(90% 40% at
+/// 20% 0%, rgba(127,240,203,.12), transparent 60%)`), the inner top edge
+/// (`inset 0 1.5px 0 .3`) and the faint ring (`inset 0 0 0 1px .08`).
+class _MorkKant extends CustomPainter {
+  const _MorkKant();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = Offset.zero & size;
+    canvas.save();
+    canvas.translate(size.width * .2, 0);
+    canvas.scale(size.width * .9, size.height * .4);
+    canvas.drawCircle(
+      Offset.zero,
+      1,
+      Paint()..shader = const RadialGradient(colors: [Color.fromRGBO(127, 240, 203, .12), Color.fromRGBO(127, 240, 203, 0)], stops: [0, .6]).createShader(Rect.fromCircle(center: Offset.zero, radius: 1)),
+    );
+    canvas.restore();
+    final rr = RRect.fromRectAndCorners(r, topLeft: const Radius.circular(28), topRight: const Radius.circular(28));
+    canvas.drawRRect(rr.deflate(.5), Paint()..style = PaintingStyle.stroke..strokeWidth = 1..color = const Color.fromRGBO(255, 255, 255, .08));
+    canvas.save();
+    canvas.clipRRect(rr);
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, 1.5), Paint()..color = const Color.fromRGBO(255, 255, 255, .3));
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _MorkKant old) => false;
+}
+
 /// The 40 px round close key (`#FFFFFF → #E9EEED`, the teal ✕).
 class _CloseSquare extends StatelessWidget {
-  const _CloseSquare({required this.onTap});
+  const _CloseSquare({required this.onTap, this.mork = false});
 
   final VoidCallback onTap;
+  final bool mork;
 
   @override
   Widget build(BuildContext context) {
+    if (mork) {
+      // Dark: glass (`.22 → .08`), a .28 white ring, the white ✕.
+      return GestureDetector(
+        key: const Key('meg-ark-lukk'),
+        onTap: onTap,
+        child: const CssBox(
+          width: 40,
+          height: 40,
+          radius: BorderRadius.all(Radius.circular(20)),
+          bg: [CssLinear(180, [Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, .08)])],
+          shadows: [
+            CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .28)),
+            CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+            CssShadow(0, 8, 14, -8, Color.fromRGBO(0, 0, 0, .6)),
+          ],
+          child: Center(child: AeIkon('M6 6l12 12M18 6L6 18', size: 14, stroke: 2.8, color: Colors.white)),
+        ),
+      );
+    }
     return GestureDetector(
       key: const Key('meg-ark-lukk'),
       onTap: onTap,
@@ -260,12 +344,39 @@ class _CloseSquare extends StatelessWidget {
 }
 
 class _ArkSecondary extends StatelessWidget {
-  const _ArkSecondary({required this.button});
+  const _ArkSecondary({required this.button, this.mork = false});
 
   final MegArkButton button;
+  final bool mork;
 
   @override
   Widget build(BuildContext context) {
+    if (mork) {
+      // Dark (L9957): glass `.2 → .07`, a .26 ring, the top light, white 14 px.
+      return LfPress(
+        key: button.key,
+        onTap: button.onTap,
+        dy: 2,
+        ms: 140,
+        child: CssBox(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          radius: BorderRadius.circular(999),
+          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
+          shadows: const [
+            CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .26)),
+            CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
+            CssShadow(0, 12, 18, -12, Color.fromRGBO(4, 18, 26, .8)),
+          ],
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(button.label, textAlign: TextAlign.center, style: BergenTokens.text(14, weight: FontWeight.w800, color: Colors.white)),
+            ),
+          ),
+        ),
+      );
+    }
     return GestureDetector(
       key: button.key,
       onTap: button.onTap,
@@ -293,12 +404,53 @@ class _ArkSecondary extends StatelessWidget {
 }
 
 class _ArkPrimary extends StatelessWidget {
-  const _ArkPrimary({required this.button});
+  const _ArkPrimary({required this.button, this.mork = false});
 
   final MegArkButton button;
+  final bool mork;
 
   @override
   Widget build(BuildContext context) {
+    if (mork) {
+      // Dark (L19012): the orange 3D key — or, done, a glass pill with
+      // dimmed text (`#A9BEC3` in the design's data).
+      final av = button.av;
+      return LfPress(
+        key: button.key,
+        onTap: button.onTap,
+        dy: 3,
+        ms: 140,
+        child: CssBox(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          radius: BorderRadius.circular(999),
+          bg: [
+            av
+                ? const CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)])
+                : const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
+          ],
+          shadows: av
+              ? const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .2))]
+              : const [
+                  CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .45)),
+                  CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
+                  CssShadow(0, 3, 0, 0, Color(0xFFC4491A)),
+                  CssShadow(0, 5, 0, 0, Color.fromRGBO(120, 45, 15, .22)),
+                  CssShadow(0, 14, 18, -10, Color.fromRGBO(200, 70, 25, .8)),
+                ],
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                button.label,
+                textAlign: TextAlign.center,
+                style: BergenTokens.text(14.5, weight: FontWeight.w800, color: av ? const Color.fromRGBO(255, 255, 255, .62) : Colors.white),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final g = button.gradient ?? MegArkInk.gtCta;
     return GestureDetector(
       key: button.key,
