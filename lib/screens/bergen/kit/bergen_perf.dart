@@ -199,6 +199,11 @@ abstract final class BergenPerf {
   /// Shader pixel budget: the prototype's in `full`, 55 % in `lite`.
   static double shaderBudget(BuildContext context, double full) =>
       of(context) == BergenTier.lite ? full * .55 : full;
+
+  /// A one-shot state transition (a focus ring, a press): the prototype's
+  /// time in `full` and `lite`, none in `still` (it jumps to the end state).
+  static Duration oneShot(BuildContext context, int ms) =>
+      of(context) == BergenTier.still ? Duration.zero : Duration(milliseconds: ms);
 }
 
 /// Puts [BergenPerf.tier] into the tree. Goes inside the reduced-motion

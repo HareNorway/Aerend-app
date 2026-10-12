@@ -8,6 +8,7 @@ import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
+import '../aegil/aegil_guide.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import '../meg/a3_services.dart' show a3Pref;
@@ -18,7 +19,7 @@ import '../meg/meg_nav.dart';
 import '../meg/meg_sheets.dart';
 import 'poeng_copy.dart';
 
-/// Fløyen-ligaen (`erLigaSide`, L7771–7839 in `Ærend Kunde Launch.dc.html`,
+/// Bergen-ligaen (`erLigaSide`, L7771–7839 in `Ærend Kunde Launch.dc.html`,
 /// design px): the night header with the aurora, «Vilkår», your place, and
 /// the month's top ten climbing the Fløyen slope (you in orange, the top
 /// three mint); the cream sheet — «Hele Bergen» / «Din bydel» on a springing
@@ -188,6 +189,7 @@ class _LigaScreenState extends State<LigaScreen> {
                     ),
                   ),
                   const Positioned(left: 0, right: 0, bottom: 0, child: MegNav()),
+                  Positioned.fill(child: AegilGuide(skjerm: 'liga', tips: aegilGuideTips('liga'))),
                 ],
               ),
             );

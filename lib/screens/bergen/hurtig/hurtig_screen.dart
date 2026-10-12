@@ -117,6 +117,8 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     WidgetsBinding.instance.addObserver(this);
     _h = HurtigHjerne(HurtigData.tom, now: widget.now);
     _tekst.addListener(() => setState(() {}));
+    // New Bergen L15941: the field lights up while focused (`hbFokus`).
+    _fokus.addListener(() => setState(() {}));
     _tenker = true;
     _load();
   }
@@ -147,6 +149,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       if (mod != null) _send(_modTekst(mod), modul: mod);
       if (HjemHarness.hurtigSi case final t?) _send(t);
       if (HjemHarness.hurtigTekst case final t?) _tekst.text = t;
+      if (HjemHarness.hurtigFokus) _fokus.requestFocus();
       if (HjemHarness.hurtigBestilt case final id?) {
         final rows = await HurtigKilde.customer().orders(limit: 20);
         final o = rows.where((o) => '${o['order_id']}' == '$id').firstOrNull;
@@ -1276,76 +1279,155 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
             ],
           ),
           const SizedBox(height: 9),
-          CssBox(
+          _felt(context, harTekst),
+        ],
+      ),
+    );
+  }
+
+  /// The input pill (new Bergen L4541–4545, `hbFelt*` / `hbLyn*` / `hbSend*`
+  /// L15941–15947). Focused, it lifts 2 px, turns a lighter teal with a mint
+  /// border, ring and glow, and — while still empty — a mint shine sweeps
+  /// across (`bioSkann 2.4s`); the bolt warms and grows (and turns once
+  /// there is text); the send button wakes from grey to full orange.
+  Widget _felt(BuildContext context, bool t) {
+    final f = _fokus.hasFocus;
+    Duration d(int ms) => BergenPerf.oneShot(context, ms);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: f ? 1 : 0),
+      duration: d(350),
+      curve: const Cubic(.3, 1.4, .5, 1),
+      builder: (context, y, child) => Transform.translate(offset: Offset(0, -2 * y), child: child),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: f ? 1 : 0),
+        duration: d(400),
+        curve: const Cubic(.3, 1, .4, 1),
+        builder: (context, r, child) => TweenAnimationBuilder<double>(
+          tween: Tween(end: f ? 1 : 0),
+          duration: d(300),
+          curve: cssEase,
+          builder: (context, c, child) => CssBox(
             height: 54,
             radius: BorderRadius.circular(999),
-            bg: const [CssLinear(180, [Color(0xFF2B5F6E), Color(0xFF1E4F5C)])],
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .28)),
-            shadows: const [
-              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-              CssShadow(0, 18, 34, -14, Color.fromRGBO(4, 18, 26, .85)),
+            bg: [
+              CssLinear(180, [
+                Color.lerp(const Color(0xFF2B5F6E), const Color(0xFF33707F), c)!,
+                Color.lerp(const Color(0xFF1E4F5C), const Color(0xFF22596A), c)!,
+              ]),
             ],
-            padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
-            child: Row(
-              children: [
-                const HbIkon(HbIkoner.lyn, size: 14, fill: Color(0xFFF26D3D)),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Semantics(
-                    label: HurtigCopy.skrivTilAegil,
-                    child: TextField(
-                      key: const Key('a1_hurtig_felt'),
-                      controller: _tekst,
-                      focusNode: _fokus,
-                      style: hbJ(14, weight: FontWeight.w700, color: Colors.white),
-                      cursorColor: kHbMint,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: _send,
-                      decoration: InputDecoration(
-                        isCollapsed: true,
-                        isDense: true,
-                        filled: false,
-                        fillColor: Colors.transparent,
-                        contentPadding: EdgeInsets.zero,
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        hintText: HurtigCopy.placeholder,
-                        hintStyle: hbJ(14, weight: FontWeight.w700, color: const Color(0xFFA9A9A9)),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 9),
-                Semantics(
-                  button: true,
-                  label: HurtigCopy.sendTilAegil,
-                  child: HbPress(
-                    scale: .92,
-                    ms: 140,
-                    onTap: () => _send(_tekst.text),
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: harTekst ? 1 : .5,
-                      child: CssBox(
-                        width: 42,
-                        height: 42,
-                        radius: BorderRadius.circular(21),
-                        bg: const [CssLinear(160, [Color(0xFFFF9466), Color(0xFFE95C2C)])],
-                        shadows: const [
-                          CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .45)),
-                          CssShadow(0, 2.5, 0, 0, Color(0xFFA63A12)),
-                          CssShadow(0, 10, 14, -8, Color.fromRGBO(3, 16, 24, .75)),
-                        ],
-                        child: const Center(child: HbIkon(HbIkoner.send, size: 17, stroke: Colors.white, width: 2.8)),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            border: Border.all(color: Color.lerp(const Color.fromRGBO(255, 255, 255, .28), const Color.fromRGBO(127, 240, 203, .8), c)!),
+            shadows: [
+              const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+              CssShadow(0, 0, 0, 4 * r, const Color.fromRGBO(92, 224, 184, .16)),
+              CssShadow(0, 0, 26, -6, Color.fromRGBO(92, 224, 184, .55 * r)),
+              const CssShadow(0, 18, 34, -14, Color.fromRGBO(4, 18, 26, .85)),
+            ],
+            child: child,
           ),
-        ],
+          child: child,
+        ),
+        child: Stack(
+          children: [
+            // `hbFeltSveipOp`: the shine, only while focused and empty.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(end: f && !t ? 1 : 0),
+                    duration: d(300),
+                    curve: cssEase,
+                    builder: (context, o, child) => o <= 0 ? const SizedBox.shrink() : Opacity(opacity: o, child: child),
+                    child: LayoutBuilder(
+                      builder: (context, box) => RepaintBoundary(
+                        child: LfLoop(
+                          builder: (context, ms, child) {
+                            final w = box.maxWidth * .3;
+                            final p = (ms / 2400) % 1.0;
+                            return Transform.translate(offset: Offset(-w + w * (-1 + 4.4 * p), 0), child: child);
+                          },
+                          child: const Align(
+                            alignment: Alignment.centerLeft,
+                            child: FractionallySizedBox(
+                              widthFactor: .3,
+                              heightFactor: 1,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(colors: [Color.fromRGBO(127, 240, 203, 0), Color.fromRGBO(127, 240, 203, .18), Color.fromRGBO(127, 240, 203, 0)]),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
+              child: Row(
+                children: [
+                  // `hbLynSk` / `hbLynRot` (.4s spring) and `hbLynC` (.3s ease).
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(end: f ? 1 : 0),
+                    duration: d(300),
+                    curve: cssEase,
+                    builder: (context, c, _) => TweenAnimationBuilder<double>(
+                      tween: Tween(end: t ? 2 : (f ? 1 : 0)),
+                      duration: d(400),
+                      curve: const Cubic(.3, 1.6, .5, 1),
+                      builder: (context, k, child) => Transform.rotate(
+                        angle: -12 * math.max(0, k - 1) * math.pi / 180,
+                        child: Transform.scale(scale: 1 + .1 * k, child: child),
+                      ),
+                      child: HbIkon(HbIkoner.lyn, size: 14, fill: Color.lerp(const Color(0xFFF26D3D), const Color(0xFFFFB48E), c)!),
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Semantics(
+                      label: HurtigCopy.skrivTilAegil,
+                      child: TextField(
+                        key: const Key('a1_hurtig_felt'),
+                        controller: _tekst,
+                        focusNode: _fokus,
+                        style: hbJ(14, weight: FontWeight.w700, color: Colors.white),
+                        cursorColor: kHbMint,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: _send,
+                        decoration: InputDecoration(
+                          isCollapsed: true,
+                          isDense: true,
+                          filled: false,
+                          fillColor: Colors.transparent,
+                          contentPadding: EdgeInsets.zero,
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          hintText: HurtigCopy.placeholder,
+                          hintStyle: hbJ(14, weight: FontWeight.w700, color: const Color(0xFFA9A9A9)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  Semantics(
+                    button: true,
+                    label: HurtigCopy.sendTilAegil,
+                    child: HbPress(
+                      scale: .92,
+                      ms: 140,
+                      onTap: () => _send(_tekst.text),
+                      child: _HbSend(paa: t),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1587,4 +1669,58 @@ class _Striper extends CustomPainter {
 
   @override
   bool shouldRepaint(_Striper o) => false;
+}
+
+/// The send button (`hbSendOp/Sk/Sat/Ring`): .55 opacity, .92 scale and
+/// 45 % saturation while empty; full, 1.06 and an orange ring with text.
+class _HbSend extends StatelessWidget {
+  const _HbSend({required this.paa});
+
+  final bool paa;
+
+  static List<double> _metning(double s) => [
+    .213 + .787 * s, .715 - .715 * s, .072 - .072 * s, 0, 0,
+    .213 - .213 * s, .715 + .285 * s, .072 - .072 * s, 0, 0,
+    .213 - .213 * s, .715 - .715 * s, .072 + .928 * s, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    Duration d(int ms) => BergenPerf.oneShot(context, ms);
+    final v = paa ? 1.0 : 0.0;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: v),
+      duration: d(250),
+      curve: cssEase,
+      builder: (context, o, child) => Opacity(
+        opacity: .55 + .45 * o,
+        child: o >= 1 ? child : ColorFiltered(colorFilter: ColorFilter.matrix(_metning(.45 + .55 * o)), child: child),
+      ),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: v),
+        duration: d(350),
+        curve: const Cubic(.3, 1.6, .5, 1),
+        builder: (context, k, child) => Transform.scale(scale: .92 + .14 * k, child: child),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: v),
+          duration: d(350),
+          curve: cssEase,
+          builder: (context, r, _) => CssBox(
+            width: 42,
+            height: 42,
+            radius: BorderRadius.circular(21),
+            bg: const [CssLinear(160, [Color(0xFFFF9466), Color(0xFFE95C2C)])],
+            shadows: [
+              const CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .45)),
+              const CssShadow(0, 2.5, 0, 0, Color(0xFFA63A12)),
+              const CssShadow(0, 10, 14, -8, Color.fromRGBO(3, 16, 24, .75)),
+              CssShadow(0, 0, 0, 4 * r, const Color.fromRGBO(242, 109, 61, .22)),
+            ],
+            child: const Center(child: HbIkon(HbIkoner.send, size: 17, stroke: Colors.white, width: 2.8)),
+          ),
+        ),
+      ),
+    );
+  }
 }

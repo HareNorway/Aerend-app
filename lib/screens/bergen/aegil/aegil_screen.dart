@@ -1197,14 +1197,14 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   Widget _obSteg(int n) {
     final o = _ob;
-    Widget chips(List<String> l, bool Function(String) paa, void Function(String) velg, {double gap = 9}) => Wrap(
+    Widget chips(List<String> l, bool Function(String) paa, void Function(String) velg, {double gap = 9, bool Function(String)? nei}) => Wrap(
       spacing: gap,
       runSpacing: gap,
-      children: [for (final t in l) AeObChip(key: ValueKey(t), t: t, paa: paa(t), onTap: () => setState(() => velg(t)))],
+      children: [for (final t in l) AeObChip(key: ValueKey(t), t: t, paa: paa(t), nei: nei?.call(t) ?? false, onTap: () => setState(() => velg(t)))],
     );
     Widget kicker(String t) => Padding(
-      padding: const EdgeInsets.only(top: 14, bottom: 9),
-      child: Text(t, style: inter(10, weight: FontWeight.w800, em: .1, color: const Color(0xFF8C847C))),
+      padding: const EdgeInsets.only(top: 16, bottom: 9),
+      child: Text(t, style: inter(10, weight: FontWeight.w800, em: .1, color: const Color.fromRGBO(255, 255, 255, .55))),
     );
     final (sp, hint, innhold, valg, poeng) = switch (n) {
       1 => (AeCopy.ob1, AeCopy.ob1Hint, chips(AeCopy.kat, o.kat.contains, (t) => o.veksle(o.kat, t)), o.kat.length, o.kat.length * _perSvar),
@@ -1226,7 +1226,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
             GestureDetector(
               key: const Key('a1_aegil_vis_flere'),
               onTap: () => setState(() => _butArk = true),
-              child: Text(AeCopy.visFlere, style: inter(11.5, weight: FontWeight.w800, color: kAeTeal)),
+              child: Text(AeCopy.visFlere, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
             ),
           ],
         ),
@@ -1241,7 +1241,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           children: [
             chips(AeCopy.hus, (t) => o.hus == t, (t) => o.hus = o.hus == t ? '' : t),
             kicker(AeCopy.unngaar),
-            chips(AeCopy.kost, o.kost.contains, (t) => o.veksle(o.kost, t)),
+            // The first four are allergens: orange when chosen (`nei`).
+            chips(AeCopy.kost, o.kost.contains, (t) => o.veksle(o.kost, t), nei: (t) => AeCopy.kost.indexOf(t) < 4),
           ],
         ),
         o.hus.isEmpty ? 0 : 1,
@@ -1257,17 +1258,19 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
             kicker(AeCopy.naarTilbud),
             chips(AeCopy.varsel, (t) => o.varsel == t, (t) => o.varsel = o.varsel == t ? '' : t),
             const SizedBox(height: 11),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: const Color.fromRGBO(30, 79, 92, .07)),
+            CssBox(
+              radius: BorderRadius.circular(12),
+              bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
+              shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))],
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
               child: Row(
                 children: [
-                  AeIkon('M18 15.5A6 6 0 0 1 12 21a6 6 0 0 1-6-5.5${AeIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2', size: 13, stroke: 2.2, color: kAeTeal),
+                  AeIkon('M18 15.5A6 6 0 0 1 12 21a6 6 0 0 1-6-5.5${AeIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2', size: 13, stroke: 2.2, color: const Color(0xFF7FF0CB)),
                   const SizedBox(width: 7),
                   Expanded(
                     child: Text(
                       AeCopy.roligeTimer(_settings?.hasQuietHours ?? false ? '${_settings!.quietHoursFrom}–${_settings!.quietHoursTo}' : '21:00–08:00'),
-                      style: inter(11, weight: FontWeight.w700, color: kAeTeal),
+                      style: inter(11, weight: FontWeight.w700, color: const Color(0xFFCFEFE6)),
                     ),
                   ),
                 ],

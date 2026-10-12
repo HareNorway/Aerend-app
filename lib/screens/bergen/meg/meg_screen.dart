@@ -47,7 +47,7 @@ const int kA4CodeThresholdKr = 300;
 
 /// Meg (design `meg` ≈L5912–6124, agil-4): the hero with Ægil's goal bubble,
 /// the header (name · bydel, Premie: gratis levering, Gullbilletten), the Poeng
-/// card, the four Meg-rader (Nivå, Fløyen-ligaen, Ukens oppdrag, Gullbilletten)
+/// card, the four Meg-rader (Nivå, Bergen-ligaen, Ukens oppdrag, Gullbilletten)
 /// and the settings rows (Anledninger … Hjelp og kontakt).
 ///
 /// Data: `points/me`, `points/prizes` (goal), `points/mission`, `points/league`,

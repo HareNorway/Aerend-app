@@ -254,6 +254,7 @@ abstract final class AeCopy {
 
   // ── Onboarding (`agOb1`–`agOb5`, `agObSum`) ───────────────────────────────
   static String get hoppOverAlt => _t('Hopp over alt', 'Skip all');
+  static String get avFem => _t('av 5', 'of 5');
   static String get hoppOver => _t('Hopp over', 'Skip');
   static String get neste => _t('Neste', 'Next');
   static String get ferdig => _t('Ferdig', 'Done');
@@ -271,7 +272,7 @@ abstract final class AeCopy {
   static String get visFlere => _t('Vis flere butikker', 'Show more stores');
   static String get unngaar => _t('DETTE UNNGÅR JEG ALLTID', 'I ALWAYS AVOID THIS');
   static String get naarTilbud => _t('NÅR KAN JEG SI FRA OM TILBUD?', 'WHEN CAN I TELL YOU ABOUT OFFERS?');
-  static String roligeTimer(String ro) => _t('Rolige timer $ro — da er jeg stille.', 'Quiet hours $ro — I stay quiet then.');
+  static String roligeTimer(String ro) => _t('Rolige timer $ro. Da er jeg stille.', 'Quiet hours $ro. I stay quiet then.');
   static String get sumTittel => _t('Nå kjenner jeg deg litt!', 'Now I know you a little!');
   static String sumTekst(String s) => s.isEmpty ? _t('Ikke så mye ennå — jeg lærer av bestillingene dine.', 'Not much yet — I learn from your orders.') : '$s.';
   static String get minnetStartet => _t('Minnet er startet', 'Memory started');
@@ -337,6 +338,8 @@ abstract final class AeCopy {
   static String gKurvIgjen(int kr) => _t('Du er $kr kr fra gratis levering. Legg til litt, så slipper du frakten.', 'You’re $kr kr from free delivery. Add a little and skip the fee.');
   static String get gKurvGratis => _t('Gratis levering er låst opp. Betal, så ror jeg av gårde med en gang.', 'Free delivery is unlocked. Pay and I’ll row off right away.');
   static String get gKurv2 => _t('Du kan endre adresse og leveringstid før du betaler.', 'You can change address and delivery time before you pay.');
+  static String get gLiga => _t('Bergen-ligaen', 'Bergen-ligaen');
+  static String get gLiga1 => _t('Verv venner og handle lokalt for å klatre på lista. Topp tre kommer på Ulriken-toppen.', 'Refer friends and shop locally to climb the list. The top three make it to the top of Ulriken.');
 
   static String _stor(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
   static String _kr(int n) => n >= 1000 ? '${n ~/ 1000} ${(n % 1000).toString().padLeft(3, '0')}' : '$n';

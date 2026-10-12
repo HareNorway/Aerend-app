@@ -1,4 +1,4 @@
-/// Fløyen-ligaen data shapes (AGIL-2 Phase 5).
+/// Bergen-ligaen data shapes (AGIL-2 Phase 5).
 library;
 
 class LeagueStanding {

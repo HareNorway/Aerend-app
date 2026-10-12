@@ -41,6 +41,24 @@ class CssShadow {
   final bool inset;
 }
 
+/// CSS box-shadow interpolation between two lists at [t]: pairs them by
+/// index and pads the shorter with transparent zero shadows of the other's
+/// kind (inset or outer), as browsers do for `transition: box-shadow`.
+List<CssShadow> cssLerpShadows(List<CssShadow> a, List<CssShadow> b, double t) {
+  if (t <= 0) return a;
+  if (t >= 1) return b;
+  CssShadow tom(CssShadow s) => CssShadow(0, 0, 0, 0, s.color.withValues(alpha: 0), inset: s.inset);
+  double l(double p, double q) => p + (q - p) * t;
+  final n = a.length > b.length ? a.length : b.length;
+  return [
+    for (var i = 0; i < n; i++)
+      () {
+        final x = i < a.length ? a[i] : tom(b[i]), y = i < b.length ? b[i] : tom(a[i]);
+        return CssShadow(l(x.dx, y.dx), l(x.dy, y.dy), l(x.blur, y.blur), l(x.spread, y.spread), Color.lerp(x.color, y.color, t)!, inset: y.inset);
+      }(),
+  ];
+}
+
 /// One CSS background layer.
 sealed class CssBg {
   const CssBg();

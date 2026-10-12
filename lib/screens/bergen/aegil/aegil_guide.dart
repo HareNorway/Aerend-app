@@ -48,6 +48,7 @@ List<AeGTip> aegilGuideTips(String skjerm, {double sum = 0, double? gratisOver})
             if (igjen != null) igjen > 0 ? AeGTip(AeCopy.gKurvIgjen(igjen), pose: 'popup') : AeGTip(AeCopy.gKurvGratis, pose: 'voucher'),
             AeGTip(AeCopy.gKurv2),
           ],
+    'liga' => [AeGTip(AeCopy.gLiga1, pose: 'popup')],
     _ => const [],
   };
 }
@@ -57,6 +58,7 @@ String aegilGuideTittel(String skjerm) => switch (skjerm) {
   'kategori' => AeCopy.gKategori,
   'butikk' => AeCopy.gButikk,
   'kurv' => AeCopy.gKurv,
+  'liga' => AeCopy.gLiga,
   _ => '',
 };
 

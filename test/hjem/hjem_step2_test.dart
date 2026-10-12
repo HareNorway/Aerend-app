@@ -235,7 +235,7 @@ void main() {
             Column(
               children: [
                 HjemHurtigInngang(linje: 'Fiskesuppe · Torgboden · 347 kr', onTap: () => trykk.add('hurtig')),
-                HjemSeksjonHode(tittel: 'Butikker på Bryggen', chip: HjemChip.bergensk, chipTekst: 'Bergensk', prikker: 5, onSeAlle: () => trykk.add('se alle')),
+                const HjemSeksjonHode(tittel: 'Butikker i Bergen', em: -.02, prikker: 5),
                 HjemUtforskKort(linje: '2 nye innlegg fra butikker du følger', onTap: () => trykk.add('utforsk')),
                 HjemPoseKort(tittel: 'Det som er igjen i kveld', igjen: '2 igjen i kveld', verdi: 'verdi minst 250 kr', under: 'Sandviken Bakeri', kr: '99', onTap: () => trykk.add('pose')),
               ],
@@ -246,15 +246,15 @@ void main() {
       ),
     );
     await tester.pump();
-    for (final t in ['Hurtigbestilling', 'Bestill', 'Butikker på Bryggen', 'Se alle', 'Fjordfiske, poser og nytt', 'Åpne', 'FORUNDRINGSPOSE', '99 kr', 'Sikre en']) {
+    for (final t in ['Hurtigbestilling', 'Bestill', 'Butikker i Bergen', 'Fjordfiske, poser og nytt', 'Åpne', 'FORUNDRINGSPOSE', '99 kr', 'Sikre en']) {
       expect(find.text(t), findsOneWidget, reason: t);
     }
     await tester.tap(find.text('Bestill'));
-    await tester.tap(find.text('Se alle'));
+    expect(find.text('Se alle'), findsNothing);
     await tester.tap(find.text('Åpne'));
     await tester.tap(find.text('Sikre en'));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(trykk, ['hurtig', 'se alle', 'utforsk', 'pose']);
+    expect(trykk, ['hurtig', 'utforsk', 'pose']);
   });
 
   testWidgets('Under kaien: three finds', (tester) async {

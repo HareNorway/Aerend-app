@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../commonView/social_login.dart';
@@ -90,6 +91,8 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
   bool _vervOk = false;
   String _vervSvar = '';
   final TextEditingController _verv = TextEditingController();
+  // New Bergen L2066–2068 / L18407: the field lights up while focused (`onbVervFok`).
+  final FocusNode _vervFokus = FocusNode();
   bool _en = LfCopy.en;
   bool _knottPop = false;
 
@@ -146,6 +149,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
   @override
   void initState() {
     super.initState();
+    _vervFokus.addListener(() => setState(() {}));
     _logg = widget.loginTab;
     if (_steg == LfSteg.konto) _metode = LfMetode.epost;
     final pending = prefGetString(prefPendingReferCode);
@@ -181,6 +185,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
       c.dispose();
     }
     _kodeFokus.dispose();
+    _vervFokus.dispose();
     super.dispose();
   }
 
@@ -681,6 +686,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
         }
         _fane = m['verv'] == true;
         _kodeAapen = m['kodeAapen'] == true;
+        if (m['vervFokus'] == true) Future.delayed(const Duration(milliseconds: 400), () => _vervFokus.requestFocus());
         if (m['vervKode'] != null) _verv.text = m['vervKode'];
         if (m['vervOk'] != null) _vervOk = m['vervOk'] == true;
         if (m['vervSvar'] != null) _vervSvar = m['vervSvar'];

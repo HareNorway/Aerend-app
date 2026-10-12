@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../kit/bergen_perf.dart';
 import '../kit/svg_sti.dart';
 
 // ── Ægil · shared pieces (Launch prototype L4500–5120, design px) ───────────
@@ -210,7 +211,8 @@ class AeTw extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
     tween: Tween<double>(end: v),
-    duration: Duration(milliseconds: ms),
+    // A one-shot transition: none in the `still` tier (it jumps to the end).
+    duration: BergenPerf.oneShot(context, ms),
     curve: curve,
     builder: (context, t, _) => builder(t),
   );
@@ -252,6 +254,9 @@ enum AeInn {
 
   /// `skjermInn` — translate(0,14px) scale(.978), opacity at 55%.
   skjermInn,
+
+  /// `spOpp` — translateY(12px) → 0, opacity 0 → 1.
+  spOpp,
 }
 
 class AeOnce extends StatelessWidget {
@@ -330,6 +335,10 @@ Widget aeInn(AeInn kind, double p, Curve curve, Alignment a, Widget child) {
       dy = kf(p, const [0, 1], const [14, 0], curve);
       s = kf(p, const [0, 1], const [.978, 1], curve);
       o = kf(p, const [0, .55, 1], const [0, 1, 1], curve);
+    case AeInn.spOpp:
+      final e = curve.transform(p);
+      dy = 12 * (1 - e);
+      o = e;
   }
   if (o >= 1 && dx == 0 && dy == 0 && s == 1 && r == 0) return child;
   return Opacity(

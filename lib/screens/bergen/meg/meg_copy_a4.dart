@@ -41,7 +41,7 @@ abstract final class A4MegCopy {
   static const String a4_meg_rad_nivaa = 'Nivå';
   static const String a4_meg_nivaa_note = 'Nivået påvirkes aldri av at du bruker poeng';
   static String a4_meg_avstand(int n, String next) => '${_nf(n)} til $next';
-  static const String a4_meg_rad_liga = 'Fløyen-ligaen';
+  static const String a4_meg_rad_liga = 'Bergen-ligaen';
   static const String a4_meg_liga_med = 'Du klatrer denne måneden';
   static const String a4_meg_liga_ute = 'Ikke med · bli med når du vil';
   static const String a4_meg_bli_med = 'Bli med';
@@ -111,7 +111,7 @@ abstract final class A4MegCopy {
   static const String a4_meg_varsler = 'Varsler';
   static const String a4_meg_varsler_sub = 'Oppdrag, premier og verving';
   static const String a4_meg_navn_liga = 'Navn i ligaen';
-  static const String a4_meg_navn_liga_ute = 'Ikke med i Fløyen-ligaen';
+  static const String a4_meg_navn_liga_ute = 'Ikke med i Bergen-ligaen';
   static const String a4_meg_velg_navn = 'Velg navn';
   static const String a4_meg_spraak = 'Språk';
   static const String a4_meg_favoritter = 'Favoritter';
@@ -144,7 +144,7 @@ abstract final class A4MegCopy {
   static String a4_meg_nivaa_linje(String name) => 'Du er på $name.';
 
   // Ark · Navn i ligaen (ligaNavn / ligaBli)
-  static const String a4_meg_liga_bli_title = 'Bli med i Fløyen-ligaen';
+  static const String a4_meg_liga_bli_title = 'Bli med i Bergen-ligaen';
   static const String a4_meg_liga_navn_linje = 'Ligaen viser bare navnet du velger her. Fullt navn, adresse og hva du kjøper vises aldri — og vi henter ingenting automatisk.';
   static const String a4_meg_liga_steg1 = '1 · Velg visningsnavn';
   static const String a4_meg_liga_steg1_tom = 'Ingenting vises før du velger';

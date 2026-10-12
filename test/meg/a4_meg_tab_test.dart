@@ -14,7 +14,7 @@ import 'package:aerend_customer/screens/bergen/meg/meg_screen.dart';
 import '../a3/a3_fakes.dart';
 
 /// agil-4 — the Meg tab to the 21des design: hero bubble, header, Gullbilletten,
-/// the Poeng card with the four-rung ladder, the Meg-rader (Nivå, Fløyen-ligaen,
+/// the Poeng card with the four-rung ladder, the Meg-rader (Nivå, Bergen-ligaen,
 /// Ukens oppdrag with Godta, Gullbilletten) and the settings rows.
 void main() {
   setUpAll(() => a3Bootstrap());
@@ -94,7 +94,7 @@ void main() {
     expect(find.byKey(const Key('meg-open-premiehylla')), findsOneWidget);
   });
 
-  testWidgets('Meg-rader: Nivå, Fløyen-ligaen (Bli med), Gullbilletten code', (tester) async {
+  testWidgets('Meg-rader: Nivå, Bergen-ligaen (Bli med), Gullbilletten code', (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
@@ -124,7 +124,7 @@ void main() {
     expect(find.text('Nygårdsgaten 5 · bare for deg'), findsOneWidget);
     expect(find.text('Visa •• 4471'), findsOneWidget);
     expect(find.text('Oppdrag, premier og verving'), findsOneWidget);
-    expect(find.text('Ikke med i Fløyen-ligaen'), findsOneWidget);
+    expect(find.text('Ikke med i Bergen-ligaen'), findsOneWidget);
     expect(find.text('Velg navn'), findsOneWidget);
     expect(find.text('Norsk bokmål'), findsOneWidget);
     expect(find.text('Nytt fra butikkene'), findsOneWidget);

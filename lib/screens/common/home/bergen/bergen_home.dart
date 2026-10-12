@@ -1285,11 +1285,6 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
-  void _openArk() {
-    HapticFeedback.selectionClick();
-    setState(() => _arkOpen = true);
-  }
-
   void _closeArk() => setState(() => _arkOpen = false);
 
   Future<List<HjemArkProduct>> _loadPopulaert(int categoryId) async {
@@ -1835,8 +1830,6 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     required List<HjemTilbud> tilbud,
   }) {
     final s = context.bs;
-    // `katBydel` follows the wheel, also for coming-soon categories.
-    final district = BergenCategoryLook.all[_hjulI].district;
     final openCount = stores.where((e) => e.open).length;
 
     return Column(
@@ -1914,12 +1907,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               lfFlow(
                 358,
                 HjemSeksjonHode(
-                  tittel: BergenCopy.storesIn(district),
-                  chip: HjemChip.bergensk,
-                  chipTekst: BergenCopy.bergensk,
+                  tittel: BergenCopy.storesInBergen,
+                  em: -.02,
                   prikker: 5,
                   prikk: _hjulI,
-                  onSeAlle: _openArk,
                 ),
               ),
               SizedBox(height: 8 * s),
@@ -1968,10 +1959,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 358,
                 HjemSeksjonHode(
                   tittel: BergenCopy.popularTonight,
-                  chip: HjemChip.bydel,
-                  chipTekst: BergenCopy.bergenhus,
                   topp: 26,
-                  onSeAlle: _openArk,
                 ),
               ),
               SizedBox(height: 10 * s),

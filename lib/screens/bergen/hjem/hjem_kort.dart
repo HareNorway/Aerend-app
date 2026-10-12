@@ -174,26 +174,23 @@ class HjemHurtigInngang extends StatelessWidget {
   }
 }
 
-enum HjemChip { bergensk, bydel }
-
-/// "Butikker på Bryggen" / "Populært i kveld" with its chip, the category
-/// dots (stores only) and the "Se alle" pill.
+/// «Butikker i Bergen» / «Populært i kveld» (Bergen L2933–2940, L3214–3216):
+/// the title and, for the stores, the category dots under it. New Bergen
+/// dropped the bydel, the «Bergensk» / bydel chip and the «Se alle» pill.
 class HjemSeksjonHode extends StatelessWidget {
   const HjemSeksjonHode({
     super.key,
     required this.tittel,
-    required this.chip,
-    required this.chipTekst,
-    required this.onSeAlle,
+    this.em = -.01,
     this.prikker,
     this.prikk = 0,
     this.topp = 12,
   });
 
   final String tittel;
-  final HjemChip chip;
-  final String chipTekst;
-  final VoidCallback onSeAlle;
+
+  /// Letter spacing in em (the stores' title is -0.02, Populært's -0.01).
+  final double em;
 
   /// Number of category dots under the title (null: none).
   final int? prikker;
@@ -202,123 +199,32 @@ class HjemSeksjonHode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gull = chip == HjemChip.bergensk;
     return Padding(
       padding: EdgeInsets.fromLTRB(4, topp, 0, 0),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(tittel, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: jakarta(15, em: gull ? -.02 : -.01)),
-                    ),
-                    SizedBox(width: gull ? 7 : 8),
-                    CssBox(
-                      height: 24,
-                      radius: BorderRadius.circular(999),
-                      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .05)])],
-                      shadows: const [
-                        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
-                        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
-                      ],
-                      padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CssBox(
-                            width: 16,
-                            height: 16,
-                            radius: BorderRadius.circular(8),
-                            bg: [
-                              gull
-                                  ? const CssLinear(180, [Color(0xFFFFE7A8), Color(0xFFE9AC3C)])
-                                  : const CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
-                            ],
-                            shadows: [
-                              CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, gull ? .7 : .5)),
-                              CssShadow(0, 1, 0, 0, gull ? const Color(0xFFA87418) : const Color(0xFFA63A12)),
-                            ],
-                            child: Center(
-                              child: SvgPicture.string(
-                                gull
-                                    ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#5A3C10"><path d="M12 2.5l9 8.2V21H3V10.7z"/></svg>'
-                                    : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.6a2.6 2.6 0 1 1 0-5.2 2.6 2.6 0 0 1 0 5.2z"/></svg>',
-                                width: 9,
-                                height: 9,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(chipTekst, style: inter(10.5, weight: FontWeight.w800, em: .01, color: const Color(0xFFF5F3EF))),
-                        ],
+          Text(tittel, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: jakarta(15, em: em)),
+          if (prikker != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                children: [
+                  for (var n = 0; n < prikker!; n++) ...[
+                    if (n > 0) const SizedBox(width: 4),
+                    Container(
+                      width: n == 0 ? 14 : 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        gradient: n == prikk ? const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)]) : null,
+                        color: n == prikk ? null : const Color.fromRGBO(242, 138, 85, .4),
                       ),
                     ),
                   ],
-                ),
-                if (prikker != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        for (var n = 0; n < prikker!; n++) ...[
-                          if (n > 0) const SizedBox(width: 4),
-                          Container(
-                            width: n == 0 ? 14 : 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(2),
-                              gradient: n == prikk ? const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)]) : null,
-                              color: n == prikk ? null : const Color.fromRGBO(242, 138, 85, .4),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          LfPress(
-            scale: .95,
-            ms: 140,
-            onTap: onSeAlle,
-            child: CssBox(
-              height: 32,
-              radius: BorderRadius.circular(999),
-              bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, .08)])],
-              shadows: const [
-                CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .38)),
-                CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16)),
-                CssShadow(0, 8, 16, -10, Color.fromRGBO(3, 16, 24, .8)),
-              ],
-              padding: const EdgeInsets.fromLTRB(13, 0, 5, 0),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Se alle', style: inter(12, weight: FontWeight.w800, em: -.005)),
-                  const SizedBox(width: 7),
-                  CssBox(
-                    width: 22,
-                    height: 22,
-                    radius: BorderRadius.circular(11),
-                    bg: const [CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE4EEF0)])],
-                    shadows: const [CssShadow(0, 1.5, 0, 0, Color.fromRGBO(10, 40, 48, .35)), CssShadow(0, 4, 8, -4, Color.fromRGBO(3, 16, 24, .7))],
-                    child: Center(
-                      child: SvgPicture.string(
-                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5l6.5 6.5-6.5 6.5"/></svg>',
-                        width: 10,
-                        height: 10,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
-          ),
         ],
       ),
     );

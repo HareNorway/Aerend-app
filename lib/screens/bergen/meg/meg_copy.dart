@@ -27,7 +27,7 @@ abstract final class A3MegCopy {
 
   // Meg-rader (≈L6031)
   static const String a3_meg_rad_nivaa = 'Nivå';
-  static const String a3_meg_rad_liga = 'Fløyen-ligaen';
+  static const String a3_meg_rad_liga = 'Bergen-ligaen';
   static const String a3_meg_rad_liga_bli = 'Bli med';
   static const String a3_meg_rad_oppdrag = 'UKENS OPPDRAG';
   static const String a3_meg_rad_godta = 'Godta';

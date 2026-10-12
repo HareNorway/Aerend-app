@@ -37,8 +37,8 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_velger_tom = 'Hylla er tom akkurat nå.';
 
   // Liga (≈L6368)
-  static const String a3_poeng_liga_med_toast = 'Du er med i Fløyen-ligaen';
-  static const String a3_poeng_liga_av_title = 'Meld deg av Fløyen-ligaen';
+  static const String a3_poeng_liga_med_toast = 'Du er med i Bergen-ligaen';
+  static const String a3_poeng_liga_av_title = 'Meld deg av Bergen-ligaen';
   static const String a3_poeng_liga_av_linje = 'Du beholder poengene dine. Navnet ditt forsvinner fra listen med én gang.';
   static const String a3_poeng_liga_av_poeng = 'Poengene dine';
   static const String a3_poeng_liga_av_poeng_sub = 'Blir som de er';
@@ -46,7 +46,7 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_liga_av_premie_sub = 'Du er ikke med i kåringen';
   static const String a3_poeng_liga_meld_meg_av = 'Meld meg av';
   static const String a3_poeng_liga_av_toast = 'Meldt av · navnet ditt er fjernet fra listene';
-  static const String a3_poeng_liga_vilkaar_title = 'Vilkår for Fløyen-ligaen';
+  static const String a3_poeng_liga_vilkaar_title = 'Vilkår for Bergen-ligaen';
   static const String a3_poeng_liga_vilkaar_linje = 'Ligaen nullstilles den første i hver måned.';
   static const List<List<String>> a3_poeng_liga_vilkaar_rader = [
     ['Teller', 'Poengene du samler i måneden'],
@@ -60,7 +60,7 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_liga_ikke_valgt = 'Ikke valgt ennå';
   static String a3_poeng_liga_syn(String syn) => 'Synlighet: $syn';
   static const String a3_poeng_liga_navn_ute = 'Du velger navnet selv — fullt navn vises aldri';
-  static const String a3_poeng_liga_bli_med_tittel = 'Bli med i Fløyen-ligaen';
+  static const String a3_poeng_liga_bli_med_tittel = 'Bli med i Bergen-ligaen';
   static const String a3_poeng_liga_maanedens = 'Månedens premier';
   static const String a3_poeng_liga_kan_ikke = 'Kan ikke kjøpes på hylla';
   static const String a3_poeng_liga_se_slutt = 'Se månedsslutten';
@@ -70,7 +70,7 @@ abstract final class A3PoengCopy {
     final m = int.tryParse((month ?? '').split('-').elementAtOrNull(1) ?? '');
     return m == null || m < 1 || m > 12 ? 'POENG' : 'POENG I ${_mnd[m - 1]}';
   }
-  static const String a3_poeng_liga_title = 'Fløyen-ligaen';
+  static const String a3_poeng_liga_title = 'Bergen-ligaen';
   static const String a3_poeng_liga_vilkaar = 'Vilkår';
   static const String a3_poeng_liga_hele = 'Hele Bergen';
   static const String a3_poeng_liga_bydel = 'Din bydel';

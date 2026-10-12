@@ -4243,7 +4243,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get meg_rad_nivaa => 'Nivå';
 
   @override
-  String get meg_rad_liga => 'Fløyen-ligaen';
+  String get meg_rad_liga => 'Bergen-ligaen';
 
   @override
   String get meg_rad_liga_bli => 'Bli med';
@@ -5199,7 +5199,7 @@ class AppLocalizationsDa extends AppLocalizations {
   String get pts_velger_tom => 'Hylla er tom akkurat nå.';
 
   @override
-  String get pts_liga_title => 'Fløyen-ligaen';
+  String get pts_liga_title => 'Bergen-ligaen';
 
   @override
   String get pts_liga_vilkaar => 'Vilkår';

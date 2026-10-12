@@ -8003,7 +8003,7 @@ abstract class AppLocalizations {
   /// No description provided for @meg_rad_liga.
   ///
   /// In en, this message translates to:
-  /// **'Fløyen-ligaen'**
+  /// **'Bergen-ligaen'**
   String get meg_rad_liga;
 
   /// No description provided for @meg_rad_liga_bli.
@@ -9683,7 +9683,7 @@ abstract class AppLocalizations {
   /// No description provided for @pts_liga_title.
   ///
   /// In en, this message translates to:
-  /// **'Fløyen-ligaen'**
+  /// **'Bergen-ligaen'**
   String get pts_liga_title;
 
   /// No description provided for @pts_liga_vilkaar.

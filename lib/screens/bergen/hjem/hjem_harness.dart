@@ -133,11 +133,12 @@ abstract final class HjemHarness {
 
   /// Open Hurtigbestilling (`/bergen/hurtig`); `hurtigMod` presses a module
   /// key (`oftest` / `forrige` / `pref`), `hurtigSi` sends a line,
-  /// `hurtigTekst` types into the composer, `hurtigBestilt` shows the
+  /// `hurtigTekst` types into the composer, `hurtigFokus` focuses it,
+  /// `hurtigBestilt` shows the
   /// «Bestilt» card for that (paid) order, `hurtigTeller` freezes the
   /// countdown at N seconds (nothing is ordered), `hurtigScroll` scrolls the
   /// conversation (design px).
-  static bool hurtig = false, hurtigTenk = false;
+  static bool hurtig = false, hurtigTenk = false, hurtigFokus = false;
   static String? hurtigMod, hurtigSi, hurtigTekst, hurtigAct;
   static int? hurtigBestilt, hurtigTeller;
   static double? hurtigScroll;
@@ -280,7 +281,7 @@ abstract final class HjemHarness {
         kurvTilbake = false;
         betalt = null;
         katLive = false;
-        hurtig = hurtigTenk = false;
+        hurtig = hurtigTenk = hurtigFokus = false;
         hurtigMod = hurtigSi = hurtigTekst = hurtigAct = null;
         hurtigBestilt = hurtigTeller = null;
         hurtigScroll = null;
@@ -361,6 +362,7 @@ abstract final class HjemHarness {
       hurtigMod = m['hurtigMod'] as String?;
       hurtigSi = m['hurtigSi'] as String?;
       hurtigTekst = m['hurtigTekst'] as String?;
+      hurtigFokus = m['hurtigFokus'] == true;
       hurtigAct = m['hurtigAct'] as String?;
       hurtigBestilt = m['hurtigBestilt'] as int?;
       hurtigTeller = m['hurtigTeller'] as int?;

@@ -341,13 +341,13 @@ class _HjemHeroState extends State<HjemHero> {
               child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onFjordfiske),
             ),
           ),
-          // Fjordfiske-knapp (right 124, top 196-14).
+          // Fjordfiske-knapp (right 124, top 196-11; new Bergen L2420: 158×40).
           if (!vi)
             Positioned(
               right: 124,
-              top: 196 - 14,
-              width: 180,
-              height: 46,
+              top: 196 - 11,
+              width: 158,
+              height: 40,
               child: IgnorePointer(
                 ignoring: _intro,
                 child: AnimatedOpacity(
@@ -1298,8 +1298,8 @@ class _FjordfiskeKnapp extends StatelessWidget {
             const Positioned(
               left: 4,
               right: 4,
-              top: 31,
-              height: 16,
+              top: 27,
+              height: 14,
               child: CssBox(
                 bg: [
                   CssRadial.closestSide([Color.fromRGBO(4, 20, 28, .55), Color.fromRGBO(4, 20, 28, 0)]),
@@ -1310,8 +1310,8 @@ class _FjordfiskeKnapp extends StatelessWidget {
               Positioned(
                 left: 0,
                 right: 0,
-                top: 30,
-                height: 15,
+                top: 26,
+                height: 13,
                 child: _skvulp(
                   durMs: 4000,
                   delayMs: d,
@@ -1334,9 +1334,9 @@ class _FjordfiskeKnapp extends StatelessWidget {
                       left: 0,
                       right: 0,
                       top: 4,
-                      height: 38,
+                      height: 32,
                       child: CssBox(
-                        radius: BorderRadius.circular(19),
+                        radius: BorderRadius.circular(16),
                         clip: true,
                         bg: const [
                           CssLinear(180, [Color(0xFF438C9D), Color(0xFF2A6474), Color(0xFF1E4F5C)], [0, .46, 1]),
@@ -1351,13 +1351,13 @@ class _FjordfiskeKnapp extends StatelessWidget {
                         child: Stack(
                           children: [
                             Positioned(
-                              left: 12,
-                              right: 46,
+                              left: 10,
+                              right: 38,
                               top: 2,
-                              height: 13,
+                              height: 11,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(10),
                                   gradient: const LinearGradient(
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -1369,7 +1369,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
                             const Positioned(
                               left: 0,
                               right: 0,
-                              top: 32,
+                              top: 27,
                               bottom: 0,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
@@ -1378,17 +1378,17 @@ class _FjordfiskeKnapp extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            Positioned(left: 8, right: 8, top: 32, height: 1.5, child: _glans()),
+                            Positioned(left: 8, right: 8, top: 27, height: 1.5, child: _glans()),
                           ],
                         ),
                       ),
                     ),
                     // The bobber (`duppNapp`).
                     Positioned(
-                      left: 7,
+                      left: 6,
                       top: 0,
-                      width: 28,
-                      height: 40,
+                      width: 24,
+                      height: 34,
                       child: LfLoop(
                         builder: (context, t, child) {
                           final p = (t / 5200) % 1.0;
@@ -1404,10 +1404,10 @@ class _FjordfiskeKnapp extends StatelessWidget {
                           clipBehavior: Clip.none,
                           children: [
                             const Positioned(
-                              left: 13,
+                              left: 11,
                               top: 0,
                               width: 2,
-                              height: 11,
+                              height: 9,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.all(Radius.circular(1)),
@@ -1416,7 +1416,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
                               ),
                             ),
                             const Positioned(
-                              left: 11.5,
+                              left: 9.5,
                               top: -2,
                               width: 5,
                               height: 5,
@@ -1430,11 +1430,11 @@ class _FjordfiskeKnapp extends StatelessWidget {
                             ),
                             Positioned(
                               left: 1,
-                              top: 9,
-                              width: 26,
-                              height: 26,
+                              top: 8,
+                              width: 22,
+                              height: 22,
                               child: CssBox(
-                                radius: BorderRadius.circular(13),
+                                radius: BorderRadius.circular(11),
                                 clip: true,
                                 bg: const [
                                   CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C), Color(0xFFC9461C), Color(0xFFF8F6F1), Color(0xFFD3DFE3)], [0, .47, .5, .52, 1]),
@@ -1448,10 +1448,10 @@ class _FjordfiskeKnapp extends StatelessWidget {
                                 child: Stack(
                                   children: [
                                     Positioned(
-                                      left: 4,
+                                      left: 3,
                                       top: 3,
-                                      width: 10,
-                                      height: 6,
+                                      width: 8,
+                                      height: 5,
                                       child: Transform.rotate(
                                         angle: rad(-25),
                                         child: const CssBox(
@@ -1470,8 +1470,8 @@ class _FjordfiskeKnapp extends StatelessWidget {
                       ),
                     ),
                     Positioned(
-                      left: 42,
-                      top: 7,
+                      left: 35,
+                      top: 6,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1479,7 +1479,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
                             HjemHeroCopy.fjordfiske,
                             softWrap: false,
                             style: jakarta(
-                              13,
+                              11.5,
                               em: -.01,
                               height: 1.05,
                               shadows: const [Shadow(color: Color.fromRGBO(3, 16, 24, .35), offset: Offset(0, 1), blurRadius: 2)],
@@ -1488,16 +1488,16 @@ class _FjordfiskeKnapp extends StatelessWidget {
                           Text(
                             HjemHeroCopy.fjordfiskeSub,
                             softWrap: false,
-                            style: inter(9.5, weight: FontWeight.w700, height: 1.15, color: const Color(0xFF9FF0D4)),
+                            style: inter(8.5, weight: FontWeight.w700, height: 1.15, color: const Color(0xFF9FF0D4)),
                           ),
                         ],
                       ),
                     ),
                     Positioned(
-                      right: 7,
-                      top: 11,
-                      width: 24,
-                      height: 24,
+                      right: 6,
+                      top: 10,
+                      width: 20,
+                      height: 20,
                       child: CssBox(
                         radius: BorderRadius.circular(999),
                         bg: const [
@@ -1511,8 +1511,8 @@ class _FjordfiskeKnapp extends StatelessWidget {
                         child: Center(
                           child: SvgPicture.string(
                             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
-                            width: 10,
-                            height: 10,
+                            width: 9,
+                            height: 9,
                           ),
                         ),
                       ),

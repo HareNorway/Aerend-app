@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/aegil_models.dart';
@@ -1354,8 +1356,9 @@ class AeOb {
   int poengMed(PointsRules? regler) => regler?.aegilPointsFor(linjer) ?? 0;
 }
 
-/// The step frame: progress, Ægil asking in a white bubble, the white card
-/// with the chips and «Hopp over» / «+N Ægil-poeng» / «Neste».
+/// The step frame (new Bergen L4906–5045): five progress segments, the
+/// mint «N av 5» pill, Ægil asking in the mint-white bubble, and the glass
+/// card with the chips and «Hopp over» / «+N Ægil-poeng» / «Neste».
 class AeObSteg extends StatelessWidget {
   const AeObSteg({
     super.key,
@@ -1395,139 +1398,189 @@ class AeObSteg extends StatelessWidget {
         children: [
           Row(
             children: [
+              // `obSeg`: 7 px segments, gap 4, lit up to this step (.4s ease).
               Expanded(
-                child: Container(
-                  height: 6,
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: const Color.fromRGBO(255, 255, 255, .14)),
-                  clipBehavior: Clip.antiAlias,
-                  child: AeTw(
-                    v: steg / 5,
-                    ms: 550,
-                    curve: const Cubic(.2, .9, .3, 1),
-                    builder: (f) => Align(
-                      alignment: Alignment.centerLeft,
-                      child: FractionallySizedBox(
-                        widthFactor: f.clamp(0.0, 1.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(3),
-                            gradient: const LinearGradient(colors: [kAeMint, kAeTeal]),
+                child: Row(
+                  children: [
+                    for (var i = 1; i <= 5; i++) ...[
+                      if (i > 1) const SizedBox(width: 4),
+                      Expanded(
+                        child: AeTw(
+                          v: i <= steg ? 1 : 0,
+                          ms: 400,
+                          builder: (f) => CssBox(
+                            height: 7,
+                            radius: BorderRadius.circular(999),
+                            bg: [
+                              CssLinear(90, [
+                                Color.lerp(const Color.fromRGBO(255, 255, 255, .14), kAeMint, f)!,
+                                Color.lerp(const Color.fromRGBO(255, 255, 255, .14), kAeMintLys, f)!,
+                              ]),
+                            ],
+                            shadows: [CssShadow(0, 0, 8, 0, Color.fromRGBO(92, 224, 184, .5 * f))],
                           ),
                         ),
                       ),
-                    ),
-                  ),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                '$steg/5',
-                style: aeTab(inter(10, weight: FontWeight.w800, color: kAeMintLys)),
+              const SizedBox(width: 10),
+              Container(
+                height: 22,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: const Color.fromRGBO(92, 224, 184, .14),
+                  border: Border.all(color: const Color.fromRGBO(92, 224, 184, .42)),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$steg ${AeCopy.avFem}',
+                  style: aeTab(inter(10.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               GestureDetector(
                 key: const Key('a1_aegil_ob_avbryt'),
                 onTap: onAvbryt,
                 child: Text(
                   AeCopy.hoppOverAlt,
-                  style: inter(10.5, weight: FontWeight.w800, color: kAeSub),
+                  style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .7)),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
           AeObSporsmaal(steg: steg, tittel: sporsmaal, hint: hint),
-          const SizedBox(height: 12),
-          _ObKort(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                innhold,
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    GestureDetector(
-                      key: const Key('a1_aegil_ob_hopp'),
-                      behavior: HitTestBehavior.opaque,
-                      onTap: onHopp,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
-                        child: Text(
-                          AeCopy.hoppOver,
-                          maxLines: 1,
-                          style: inter(12, weight: FontWeight.w800, color: const Color(0xFF6E6862)),
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    // «+N Ægil-poeng» only when the answer points are on (backend plan Step 7).
-                    if (harValg && poeng > 0) ...[
-                      Flexible(
-                        flex: 3,
-                        child: AeOnce(
-                          key: ValueKey('p$poeng'),
-                          kind: AeInn.klask,
-                          ms: 400,
-                          curve: const Cubic(.3, 1.4, .5, 1),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 14,
-                                height: 14,
-                                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF3F8F5F)),
-                                alignment: Alignment.center,
-                                child: const AeIkon('M4.5 12.5l5 5 10-11', size: 8, stroke: 4),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  AeCopy.poeng(poeng),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF2E6B47)),
-                                ),
-                              ),
-                            ],
+          const SizedBox(height: 14),
+          AeOnce(
+            kind: AeInn.spOpp,
+            ms: 400,
+            delay: 80,
+            curve: cssEaseOut,
+            child: _ObKort(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  innhold,
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.only(top: 12),
+                    decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
+                    child: Row(
+                      children: [
+                        GestureDetector(
+                          key: const Key('a1_aegil_ob_hopp'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onHopp,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+                            child: Text(
+                              AeCopy.hoppOver,
+                              maxLines: 1,
+                              style: inter(12, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .7)),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 9),
-                    ],
-                    AePress(
-                      key: const Key('a1_aegil_ob_neste'),
-                      onTap: onNeste,
-                      dy: 0,
-                      scale: .95,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 11),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
-                          color: harValg ? kAeTeal : const Color.fromRGBO(35, 32, 29, .08),
-                          boxShadow: [BoxShadow(color: harValg ? const Color.fromRGBO(30, 79, 92, .7) : Colors.transparent, offset: const Offset(0, 10), blurRadius: 9, spreadRadius: -8)],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              siste ? AeCopy.ferdig : AeCopy.neste,
-                              style: inter(12.5, weight: FontWeight.w800, color: harValg ? Colors.white : const Color(0xFF6E6862)),
+                        const Spacer(),
+                        // «+N Ægil-poeng» only when the answer points are on (backend plan Step 7).
+                        if (harValg && poeng > 0) ...[
+                          Flexible(
+                            flex: 3,
+                            child: AeOnce(
+                              key: ValueKey('p$poeng'),
+                              kind: AeInn.klask,
+                              ms: 400,
+                              curve: const Cubic(.3, 1.4, .5, 1),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 14,
+                                    height: 14,
+                                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF3FCB9F)),
+                                    alignment: Alignment.center,
+                                    child: const AeIkon('M4.5 12.5l5 5 10-11', size: 8, stroke: 4),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      AeCopy.poeng(poeng),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(width: 6),
-                            AeIkon('M9 5l7 7-7 7', size: 12, stroke: 3.2, color: harValg ? Colors.white : const Color(0xFF6E6862)),
-                          ],
+                          ),
+                          const SizedBox(width: 9),
+                        ],
+                        AePress(
+                          key: const Key('a1_aegil_ob_neste'),
+                          onTap: onNeste,
+                          dy: 0,
+                          scale: .95,
+                          child: _ObNeste(paa: harValg, tekst: siste ? AeCopy.ferdig : AeCopy.neste),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     ),
+  );
+}
+
+/// «Neste» (`obNesteBg/Fg/Sh`): the orange 3D pill once something is
+/// chosen, glass before (`transition: all .25s ease`).
+class _ObNeste extends StatelessWidget {
+  const _ObNeste({required this.paa, required this.tekst});
+
+  final bool paa;
+  final String tekst;
+
+  static const _av = [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16))];
+  static const _paa = [
+    CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .35)),
+    CssShadow(0, 2, 0, 0, Color(0xFFC4491A)),
+    CssShadow(0, 10, 16, -8, Color.fromRGBO(200, 70, 25, .8)),
+  ];
+
+  @override
+  Widget build(BuildContext context) => AeTw(
+    v: paa ? 1 : 0,
+    ms: 250,
+    builder: (f) {
+      const glass = Color.fromRGBO(255, 255, 255, .1);
+      final fg = Color.lerp(const Color.fromRGBO(255, 255, 255, .55), Colors.white, f)!;
+      return CssBox(
+        radius: BorderRadius.circular(999),
+        bg: [
+          CssLinear(
+            180,
+            [Color.lerp(glass, const Color(0xFFF9A273), f)!, Color.lerp(glass, const Color(0xFFF26D3D), f)!, Color.lerp(glass, const Color(0xFFDD5A25), f)!],
+            const [0, .56, 1],
+          ),
+        ],
+        shadows: cssLerpShadows(_av, _paa, f),
+        padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 11),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(tekst, style: inter(12.5, weight: FontWeight.w800, color: fg)),
+            const SizedBox(width: 6),
+            AeIkon('M9 5l7 7-7 7', size: 12, stroke: 3.2, color: fg),
+          ],
+        ),
+      );
+    },
   );
 }
 
@@ -1538,22 +1591,37 @@ class _ObKort extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(22),
-    bg: const [CssSolid(Colors.white)],
-    shadows: const [CssShadow(0, 1, 2, 0, Color.fromRGBO(35, 32, 29, .07)), CssShadow(0, 20, 34, -22, Color.fromRGBO(30, 79, 92, .55))],
+    bg: const [
+      CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)]),
+    ],
+    shadows: const [
+      CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16)),
+      CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .18)),
+      CssShadow(0, 18, 28, -22, Color.fromRGBO(4, 18, 26, .85)),
+    ],
     padding: const EdgeInsets.all(14),
     child: child,
   );
 }
 
-/// Ægil asking: the 56 px portrait with its pulse and the step badge, and
-/// the white bubble (`bobleFraAegil .5s`).
+/// Ægil asking (new Bergen L4913–4919): the 56 px portrait — a turning
+/// conic ring (`bioSkannRing 3.6s`), Ægil standing (`aegStaa 3.4s`) on dark
+/// teal, the badge — and the mint-white bubble with its tail
+/// (`bobleFraAegil .5s`). The steps use the mint ring with the gold step
+/// number; the summary passes the gold ring and the mint tick.
 class AeObSporsmaal extends StatelessWidget {
-  const AeObSporsmaal({super.key, required this.steg, required this.tittel, this.hint, this.tekst});
+  const AeObSporsmaal({super.key, required this.steg, required this.tittel, this.hint, this.tekst, this.ring = const Color(0xFF7FF0CB), this.merke});
 
   final int steg;
   final String tittel;
   final String? hint;
   final String? tekst;
+
+  /// The ring's colour (mint on the steps, gold `#F6D27A` on the summary).
+  final Color ring;
+
+  /// The badge; null = the gold step number.
+  final Widget? merke;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -1565,92 +1633,97 @@ class AeObSporsmaal extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Positioned(
-              left: -4,
-              top: -4,
-              right: -4,
-              bottom: -4,
+            Positioned.fill(
               child: RepaintBoundary(
                 child: LfLoop(
-                  builder: (context, t, _) {
-                    final (s, o) = aegPuls(t, 2800);
-                    return Opacity(
-                      opacity: o,
-                      child: Transform.scale(
-                        scale: s,
-                        child: const DecoratedBox(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: RadialGradient(colors: [Color.fromRGBO(92, 224, 184, .35), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .7]),
-                          ),
-                        ),
+                  builder: (context, t, child) => Transform.rotate(angle: (t / 3600 % 1) * 2 * math.pi, child: child),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      // conic-gradient(from 0deg, …) starts at 12 o'clock.
+                      gradient: SweepGradient(
+                        transform: const GradientRotation(-math.pi / 2),
+                        colors: [ring.withValues(alpha: 0), ring.withValues(alpha: .95), ring.withValues(alpha: 0), ring.withValues(alpha: 0)],
+                        stops: const [0, 80 / 360, 150 / 360, 1],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
             ),
             Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [Color(0xFFDCE9EC), Color(0xFF9FB6C2)]),
-                  boxShadow: [BoxShadow(color: Color.fromRGBO(30, 79, 92, .6), offset: Offset(0, 6), blurRadius: 6, spreadRadius: -6)],
-                ),
-                clipBehavior: Clip.antiAlias,
+              left: 2.5,
+              top: 2.5,
+              right: 2.5,
+              bottom: 2.5,
+              child: CssBox(
+                radius: BorderRadius.circular(999),
+                clip: true,
+                bg: const [
+                  CssLinear(165, [Color(0xFF2F6E80), Color(0xFF173E48)]),
+                ],
+                shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .25))],
                 child: Stack(
                   clipBehavior: Clip.hardEdge,
                   children: [
                     Positioned(
-                      left: -10,
-                      top: 2,
-                      width: 74,
-                      child: AeLoop(m: (t) => aegVink(t, 2600), child: Image.asset(aePose('popup'), width: 74)),
+                      left: (51 - 50) / 2,
+                      bottom: -9,
+                      width: 50,
+                      child: AeLoop(m: (t) => aeStaa(t, 3400), child: Image.asset(aePose('front'), width: 50, cacheWidth: 150)),
                     ),
                   ],
                 ),
               ),
             ),
-            Positioned(
-              right: -3,
-              bottom: -3,
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: kAeTeal,
-                  boxShadow: [BoxShadow(color: Colors.white, spreadRadius: 2)],
-                ),
-                alignment: Alignment.center,
-                child: Text('$steg', style: aeTab(inter(9.5, weight: FontWeight.w800))),
-              ),
-            ),
+            Positioned(right: -3, bottom: -2, child: merke ?? _StegMerke(steg)),
           ],
         ),
       ),
       const SizedBox(width: 10),
       Expanded(
-        child: AeOnce(
-          key: ValueKey(tittel),
-          kind: AeInn.bobleFraAegil,
-          ms: 500,
-          curve: const Cubic(.3, 1.3, .5, 1),
-          alignment: Alignment.bottomLeft,
-          child: CssBox(
-            radius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16), bottomLeft: Radius.circular(5), bottomRight: Radius.circular(16)),
-            bg: const [CssSolid(Colors.white)],
-            shadows: const [CssShadow(0, 1, 2, 0, Color.fromRGBO(35, 32, 29, .07)), CssShadow(0, 12, 22, -16, Color.fromRGBO(30, 79, 92, .5))],
-            padding: EdgeInsets.symmetric(horizontal: 13, vertical: tekst != null ? 11 : 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: AeOnce(
+            key: ValueKey(tittel),
+            kind: AeInn.bobleFraAegil,
+            ms: 500,
+            curve: const Cubic(.3, 1.3, .5, 1),
+            alignment: Alignment.centerLeft,
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                Text(
-                  tittel,
-                  style: jakarta(15, em: -.015, height: tekst != null ? 1.3 : 1.25, color: kAeInk),
+                // The tail (12 px square at left -5, top 19, turned 45°).
+                Positioned(
+                  left: -5,
+                  top: 19,
+                  width: 12,
+                  height: 12,
+                  child: Transform.rotate(
+                    angle: math.pi / 4,
+                    child: const DecoratedBox(decoration: BoxDecoration(color: Color(0xFFF7FBFA), borderRadius: BorderRadius.all(Radius.circular(2)))),
+                  ),
                 ),
-                if (hint != null) ...[const SizedBox(height: 3), Text(hint!, style: inter(11, color: const Color(0xFF57534B)))],
-                if (tekst != null) ...[const SizedBox(height: 4), Text(tekst!, style: inter(12.5, height: 1.45, color: const Color(0xFF3E372F)))],
+                CssBox(
+                  width: double.infinity,
+                  radius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomLeft: Radius.circular(6), bottomRight: Radius.circular(18)),
+                  bg: const [
+                    CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEAF5F1)]),
+                  ],
+                  shadows: const [CssShadow(0, 10, 18, -10, Color.fromRGBO(0, 10, 16, .8))],
+                  padding: EdgeInsets.symmetric(horizontal: 13, vertical: tekst != null ? 11 : 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tittel,
+                        style: jakarta(15, em: -.015, height: tekst != null ? 1.3 : 1.25, color: const Color(0xFF173E48)),
+                      ),
+                      if (hint != null) ...[const SizedBox(height: 3), Text(hint!, style: inter(11.5, height: 1.4, color: const Color(0xFF3E6670)))],
+                      if (tekst != null) ...[const SizedBox(height: 4), Text(tekst!, style: inter(12.5, height: 1.45, color: const Color(0xFF3E6670)))],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -1660,49 +1733,113 @@ class AeObSporsmaal extends StatelessWidget {
   );
 }
 
-/// One answer chip (`obKat` …): cream, or teal with a tick and lifted.
+/// The gold step number on Ægil's portrait.
+class _StegMerke extends StatelessWidget {
+  const _StegMerke(this.steg);
+  final int steg;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 22,
+    height: 22,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)]),
+      boxShadow: [
+        BoxShadow(color: Color(0xFF23596A), spreadRadius: 2),
+        BoxShadow(color: Color.fromRGBO(242, 193, 78, .55), blurRadius: 5),
+      ],
+    ),
+    alignment: Alignment.center,
+    child: Text('$steg', style: aeTab(inter(10, weight: FontWeight.w800, color: const Color(0xFF4A300A)))),
+  );
+}
+
+/// The summary's badge: the mint tick (new Bergen L5053).
+class AeObSumMerke extends StatelessWidget {
+  const AeObSumMerke({super.key});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 22,
+    height: 22,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9F)]),
+      boxShadow: [
+        BoxShadow(color: Color(0xFF23596A), spreadRadius: 2),
+        BoxShadow(color: Color.fromRGBO(92, 224, 184, .6), blurRadius: 5),
+      ],
+    ),
+    alignment: Alignment.center,
+    child: const AeIkon('M4.5 12.5l5 5 10-11', size: 11, stroke: 3.6, color: Color(0xFF0B3A2E)),
+  );
+}
+
+/// One answer chip (`obKat` …, new Bergen L16573): glass, or lit and lifted
+/// with a tick — mint, or orange for an allergen ([nei]).
 class AeObChip extends StatelessWidget {
-  const AeObChip({super.key, required this.t, required this.paa, required this.onTap});
+  const AeObChip({super.key, required this.t, required this.paa, required this.onTap, this.nei = false});
 
   final String t;
   final bool paa;
   final VoidCallback onTap;
 
+  /// An allergen in «Dette unngår jeg alltid»: orange when chosen.
+  final bool nei;
+
   @override
-  Widget build(BuildContext context) => AePress(
-    onTap: onTap,
-    dy: 0,
-    scale: .93,
-    child: AeTw(
-      v: paa ? 1 : 0,
-      ms: 300,
-      curve: const Cubic(.3, 1.5, .5, 1),
-      builder: (s) => Transform.scale(
-        scale: 1 + .06 * s,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          padding: EdgeInsets.fromLTRB(paa ? 11 : 15, 9, 15, 9),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            color: paa ? null : const Color(0xFFF5F2EC),
-            gradient: paa ? const LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [Color(0xFF2A6272), kAeTeal]) : null,
-            border: Border.all(color: paa ? Colors.white : const Color.fromRGBO(35, 32, 29, .08), width: paa ? 2 : 1),
-            boxShadow: [BoxShadow(color: paa ? const Color.fromRGBO(30, 79, 92, .65) : Colors.transparent, offset: const Offset(0, 8), blurRadius: 7, spreadRadius: -6)],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (paa) ...[const AeOnce(kind: AeInn.klask, ms: 350, curve: Cubic(.3, 1.4, .5, 1), child: AeIkon('M4.5 12.5l5 5 10-11', size: 11, stroke: 3.4)), const SizedBox(width: 6)],
-              Text(
-                t,
-                style: inter(12.5, weight: FontWeight.w800, em: -.01, color: paa ? Colors.white : kAeInk),
-              ),
+  Widget build(BuildContext context) {
+    final bg = paa
+        ? (nei
+              ? const CssLinear(180, [Color.fromRGBO(249, 162, 115, .34), Color.fromRGBO(233, 92, 44, .18)])
+              : const CssLinear(180, [Color.fromRGBO(92, 224, 184, .32), Color.fromRGBO(92, 224, 184, .14)]))
+        : const CssSolid(Color.fromRGBO(255, 255, 255, .07));
+    final bd = paa ? (nei ? const Color.fromRGBO(249, 162, 115, .85) : const Color.fromRGBO(127, 240, 203, .85)) : const Color.fromRGBO(255, 255, 255, .2);
+    final fg = paa ? (nei ? const Color(0xFFFFE3D5) : const Color(0xFFE8FFF7)) : Colors.white;
+    return AePress(
+      onTap: onTap,
+      dy: 0,
+      scale: .93,
+      child: AeTw(
+        v: paa ? 1 : 0,
+        ms: 300,
+        curve: const Cubic(.3, 1.5, .5, 1),
+        builder: (s) => Transform.scale(
+          scale: 1 + .04 * s,
+          child: CssBox(
+            radius: BorderRadius.circular(999),
+            bg: [bg],
+            shadows: [
+              CssShadow.inset(0, 0, 0, 1, bd),
+              if (paa) ...const [
+                CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .25)),
+                CssShadow(0, 6, 12, -8, Color.fromRGBO(0, 10, 16, .8)),
+              ],
             ],
+            // 9px 14px (+ the 1 px border; 9 vertical matches the design's
+            // 35 px chip with Inter's line box), 10 px on the left with the tick.
+            padding: EdgeInsets.fromLTRB(paa ? 11 : 15, 9, 15, 9),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (paa) ...[
+                  AeOnce(
+                    kind: AeInn.klask,
+                    ms: 350,
+                    curve: const Cubic(.3, 1.4, .5, 1),
+                    child: AeIkon('M4.5 12.5l5 5 10-11', size: 11, stroke: 3.4, color: nei ? const Color(0xFFFFC7AE) : kAeMintLys),
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(t, style: inter(12.5, weight: FontWeight.w800, em: -.01, color: fg)),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 /// `agObSum` — «Nå kjenner jeg deg litt!» and «Minnet er startet».
@@ -1726,7 +1863,7 @@ class AeObSum extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AeObSporsmaal(steg: 5, tittel: AeCopy.sumTittel, tekst: oppsummering),
+          AeObSporsmaal(steg: 5, tittel: AeCopy.sumTittel, tekst: oppsummering, ring: const Color(0xFFF6D27A), merke: const AeObSumMerke()),
           const SizedBox(height: 12),
           _ObKort(
             child: Column(

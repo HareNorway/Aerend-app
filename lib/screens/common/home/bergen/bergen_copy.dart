@@ -98,6 +98,7 @@ abstract final class BergenCopy {
       ? 'på'
       : 'i';
   static String get seeAll => _t('Se alle', 'See all');
+  static String get storesInBergen => _t('Butikker i Bergen', 'Stores in Bergen');
   static String get open => _t('Åpen', 'Open');
   static String get closed => _t('Stengt', 'Closed');
   static String get free => _t('Gratis', 'Free');
@@ -117,7 +118,6 @@ abstract final class BergenCopy {
 
   // ── Populært ──────────────────────────────────────────────────────────────
   static String get popularTonight => _t('Populært i kveld', 'Popular tonight');
-  static String get bergenhus => 'Bergenhus';
   static String get noProductsYet =>
       _t('Ingen varer her ennå', 'No items here yet');
 

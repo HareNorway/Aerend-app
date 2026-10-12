@@ -56,9 +56,17 @@ abstract final class LfIco {
   static const pencil = 'M4 20l5-1 10-10-4-4L5 15z';
   static const kickOff = 'M5 19L19 5M11 5h8v8';
   static const store = 'M4 10h16l-1.5-5h-13zM5 10v10h14V10M10 20v-5h4v5';
-  static const bikeExtra =
-      '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/>'
-      '<path d="M6 17l4-8h5l3 8M10 9l-1-3H7M15 9h3"/>';
+  /// The «Ett bud henter alt» bike with the mint saddle bag (new Bergen L2054),
+  /// drawn whole at 21 px: its parts have their own colours.
+  static const bikeBag =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+      '<rect x="2.4" y="5.6" width="5.8" height="4.4" rx="1.1" fill="#7FF0CB"/>'
+      '<path d="M5.3 5.6v4.4" stroke="#1A4654" stroke-width="1"/>'
+      '<path d="M2.2 11H8.4M3.4 11l2.2 6.4" stroke="#FFFFFF" stroke-width="1.5"/>'
+      '<circle cx="5.6" cy="17.4" r="3.2" stroke="#FFFFFF" stroke-width="1.6"/>'
+      '<circle cx="18.4" cy="17.4" r="3.2" stroke="#FFFFFF" stroke-width="1.6"/>'
+      '<path d="M5.6 17.4h6l4.6-5.2M5.6 17.4l4.4-5.2h6.2M11.6 17.4L9.7 10.4M8.5 10.4h2.5M16.2 12.2l2.2 5.2M16.2 12.2l-.8-2.8M14.2 9.4h2.6" stroke="#FFFFFF" stroke-width="1.6"/>'
+      '</svg>';
   static const star =
       'M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z';
   static const userExtra =

@@ -20,7 +20,7 @@ import 'package:aerend_customer/utils/shared_pref_utill.dart';
 import '../a3/a3_fakes.dart';
 
 /// Launch UI Step 12 — Meg and the points screens: Premiehylla, Ægil velger,
-/// Fløyen-ligaen, Opprykk, Ordrehistorikk, Favoritter and Konto render from
+/// Bergen-ligaen, Opprykk, Ordrehistorikk, Favoritter and Konto render from
 /// the API models, and their actions reach the API.
 /// «Nytt fra Ærend» on the feed (Step 9), without a network.
 class _FakeAerend extends FeedRepo {
@@ -187,7 +187,7 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   });
 
-  testWidgets('Fløyen-ligaen: place, table, bydel toggle, prizes; leaving asks first', (tester) async {
+  testWidgets('Bergen-ligaen: place, table, bydel toggle, prizes; leaving asks first', (tester) async {
     phone(tester, h: 2000);
     final api = FakePointsApi();
     await tester.pumpWidget(a3App(LigaScreen(api: api)));

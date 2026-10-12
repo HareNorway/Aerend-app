@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/points/league_models.dart';
 import '../../../theme/bergen_tokens.dart';
 
-/// Fløyen-ligaen.
+/// Bergen-ligaen.
 ///
 /// Three things this widget is careful about, all from the shared design rules:
 ///

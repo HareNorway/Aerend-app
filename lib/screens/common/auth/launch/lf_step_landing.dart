@@ -343,7 +343,7 @@ extension _Landing on LaunchOnboardingState {
       children: [
         Expanded(child: chip(const LfStroke(LfIco.store, size: 16, color: Colors.white, width: 2.4), LfCopy.chipButikker, 220)),
         const SizedBox(width: 8),
-        Expanded(child: chip(const LfStroke('', extra: LfIco.bikeExtra, size: 16, color: Colors.white, width: 2.4), LfCopy.chipBud, 280)),
+        Expanded(child: chip(SvgPicture.string(LfIco.bikeBag, width: 21, height: 21), LfCopy.chipBud, 280)),
         const SizedBox(width: 8),
         Expanded(child: chip(const LfStroke(LfIco.star, size: 16, color: Colors.white, width: 2.4), LfCopy.chipPoeng, 340)),
       ],
@@ -367,28 +367,45 @@ extension _Landing on LaunchOnboardingState {
               ),
             ),
           ),
+          // `onbVervFeltBg` / `onbVervFeltSh`: a mint ring while focused
+          // (transition: box-shadow .22s ease, background .22s ease).
           Positioned.fill(
-            child: CssBox(
-              radius: BorderRadius.circular(18),
-              bg: const [
-                CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)]),
-              ],
-              shadows: const [
-                CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(3, 16, 24, .35)),
-                CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18)),
-                CssShadow(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .12)),
-              ],
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: _vervFokus.hasFocus ? 1 : 0),
+              duration: BergenPerf.oneShot(context, 220),
+              curve: Curves.ease,
+              builder: (context, f, _) => CssBox(
+                radius: BorderRadius.circular(18),
+                bg: [
+                  CssLinear(180, [
+                    Color.lerp(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(255, 255, 255, .22), f)!,
+                    Color.lerp(const Color.fromRGBO(255, 255, 255, .07), const Color.fromRGBO(255, 255, 255, .1), f)!,
+                  ]),
+                ],
+                shadows: cssLerpShadows(_vervFeltAv, _vervFeltPaa, f),
+              ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 6, 6, 6),
             child: Row(
               children: [
-                const LfStroke('', extra: LfIco.ticketExtra, size: 16, color: Color(0xFF9FF0D4), width: 2.2),
+                // `onbVervIkonTr`: scale(1.15) rotate(-8deg), .25s cubic-bezier(.3,1.6,.5,1).
+                TweenAnimationBuilder<double>(
+                  tween: Tween(end: _vervFokus.hasFocus ? 1 : 0),
+                  duration: BergenPerf.oneShot(context, 250),
+                  curve: const Cubic(.3, 1.6, .5, 1),
+                  builder: (context, f, child) => Transform.rotate(
+                    angle: -8 * f * math.pi / 180,
+                    child: Transform.scale(scale: 1 + .15 * f, child: child),
+                  ),
+                  child: const LfStroke('', extra: LfIco.ticketExtra, size: 16, color: Color(0xFF9FF0D4), width: 2.2),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
                     controller: _verv,
+                    focusNode: _vervFokus,
                     textCapitalization: TextCapitalization.characters,
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(14),
@@ -740,3 +757,16 @@ class _Knapp3DState extends State<_Knapp3D> {
     );
   }
 }
+
+// The referral field's shadows, unfocused and focused (new Bergen L18409).
+const _vervFeltAv = [
+  CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(3, 16, 24, .35)),
+  CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18)),
+  CssShadow(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .12)),
+];
+const _vervFeltPaa = [
+  CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(3, 16, 24, .3)),
+  CssShadow.inset(0, 0, 0, 1.5, Color.fromRGBO(92, 224, 184, .75)),
+  CssShadow(0, 0, 0, 4, Color.fromRGBO(92, 224, 184, .16)),
+  CssShadow(0, 10, 22, -10, Color.fromRGBO(92, 224, 184, .55)),
+];
