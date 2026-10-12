@@ -13,6 +13,7 @@ abstract final class BergenCopy {
   static String get deliverTo => _t('Leverer til', 'Deliver to');
 
   // Forundringspose card (L3177).
+  static String get poseKortTittel => 'Forundringspose';
   static String get poseTittel => _t('Det som er igjen i kveld', 'What is left tonight');
   static String poseIgjen(int n) => _t('$n igjen i kveld', '$n left tonight');
   static String poseVerdi(int kr) => _t('verdi minst $kr kr', 'worth at least $kr kr');
@@ -110,10 +111,9 @@ abstract final class BergenCopy {
   // ── Utforsk-kort ──────────────────────────────────────────────────────────
   static String get exploreTitle =>
       _t('Fjordfiske, poser og nytt', 'Fjordfiske, bags and news');
-  static String get exploreLine => _t(
-    '2 nye innlegg fra butikker du følger',
-    '2 new posts from stores you follow',
-  );
+  static String exploreNye(int n) => n == 1
+      ? _t('1 nytt innlegg fra butikker du følger', '1 new post from stores you follow')
+      : _t('$n nye innlegg fra butikker du følger', '$n new posts from stores you follow');
   static String get openBtn => _t('Åpne', 'Open');
 
   // ── Populært ──────────────────────────────────────────────────────────────

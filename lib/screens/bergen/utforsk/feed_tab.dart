@@ -181,6 +181,8 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
         if (kDebugMode && HjemHarness.feedSpill != null) _playing = HjemHarness.feedSpill;
       });
       widget.onPostsLoaded?.call(page.items);
+      // Read: Hjem's «N nye innlegg fra butikker du følger» starts again from now.
+      if (widget.fane == 'folger' && page.items.isNotEmpty) unawaited(_repo.markSeen(tab: 'folger').catchError((_) {}));
       unawaited(_loadStores(page.items));
       final rapport = kDebugMode ? HjemHarness.feedRapport : null;
       if (rapport != null) {

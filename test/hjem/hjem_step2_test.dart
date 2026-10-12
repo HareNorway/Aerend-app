@@ -224,7 +224,7 @@ void main() {
     expect(r.verdi, '50 kr');
   });
 
-  testWidgets('Sheet cards: Hurtigbestilling, section header, Utforsk, Forundringspose', (tester) async {
+  testWidgets('Sheet cards: the three button cards (Hurtig, Utforsk, Forundringspose) and the header', (tester) async {
     phone(tester);
     final trykk = <String>[];
     await tester.pumpWidget(
@@ -236,8 +236,9 @@ void main() {
               children: [
                 HjemHurtigInngang(linje: 'Fiskesuppe · Torgboden · 347 kr', onTap: () => trykk.add('hurtig')),
                 const HjemSeksjonHode(tittel: 'Butikker i Bergen', em: -.02, prikker: 5),
-                HjemUtforskKort(linje: '2 nye innlegg fra butikker du følger', onTap: () => trykk.add('utforsk')),
-                HjemPoseKort(tittel: 'Det som er igjen i kveld', igjen: '2 igjen i kveld', verdi: 'verdi minst 250 kr', under: 'Sandviken Bakeri', kr: '99', onTap: () => trykk.add('pose')),
+                HjemUtforskKort(tittel: 'Fjordfiske, poser og nytt', linje: '2 nye innlegg fra butikker du følger', onTap: () => trykk.add('utforsk')),
+                HjemUtforskKort(tittel: 'Utforsk uten linje', onTap: () {}),
+                HjemPoseKort(tittel: 'Forundringspose', igjen: '2 igjen i kveld', verdi: 'verdi minst 250 kr', kr: '99', onTap: () => trykk.add('pose')),
               ],
             ),
           ),
@@ -246,13 +247,19 @@ void main() {
       ),
     );
     await tester.pump();
-    for (final t in ['Hurtigbestilling', 'Bestill', 'Butikker i Bergen', 'Fjordfiske, poser og nytt', 'Åpne', 'FORUNDRINGSPOSE', '99 kr', 'Sikre en']) {
+    for (final t in ['Hurtigbestilling', 'Bestill', 'Butikker i Bergen', 'Fjordfiske, poser og nytt', '2 nye innlegg fra butikker du følger', 'Forundringspose', '99 kr']) {
       expect(find.text(t), findsOneWidget, reason: t);
     }
+    // New Bergen: the bag card lost its kicker and «Sikre en»; the line is «N igjen · verdi».
+    for (final t in ['FORUNDRINGSPOSE', 'Sikre en', 'Det som er igjen i kveld']) {
+      expect(find.text(t), findsNothing, reason: t);
+    }
+    expect(find.text('2 igjen i kveld · verdi minst 250 kr', findRichText: true), findsOneWidget);
+    expect(find.text('Åpne'), findsNWidgets(2));
     await tester.tap(find.text('Bestill'));
     expect(find.text('Se alle'), findsNothing);
-    await tester.tap(find.text('Åpne'));
-    await tester.tap(find.text('Sikre en'));
+    await tester.tap(find.text('Åpne').first);
+    await tester.tap(find.text('99 kr'));
     await tester.pump(const Duration(milliseconds: 300));
     expect(trykk, ['hurtig', 'utforsk', 'pose']);
   });

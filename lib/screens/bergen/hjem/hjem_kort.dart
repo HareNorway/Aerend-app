@@ -11,12 +11,51 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 
 const String _kLyn = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.6 2L4.4 13.6h6.3L9.4 22l10.2-12.8h-6.5z" fill="#FFFFFF"/></svg>';
 
-/// Hurtigbestilling · inngang (L2841): Ægil with a lightning badge, the
-/// usual order, and the orange "Bestill" key.
-class HjemHurtigInngang extends StatelessWidget {
-  const HjemHurtigInngang({super.key, required this.linje, required this.onTap});
+const String _kStjerne = 'M12 2.6l2.4 6.6 7 .3-5.5 4.3 1.9 6.7L12 16.6l-5.8 3.9 1.9-6.7-5.5-4.3 7-.3z';
 
-  final String linje;
+/// The teal "button card" of new Bergen (L2900 Hurtigbestilling, L3023
+/// Utforsk, L3201 Forundringspose): a 50 px picture tile with a star (or
+/// bolt) badge that wiggles now and then (`hbLyn 3.2s`, each card at its
+/// own delay), a 15 px title, an 11.5 px line, and the orange 3D key.
+/// Pressed, the card sinks 2 px (.14 s).
+class HjemKnappKort extends StatelessWidget {
+  const HjemKnappKort({
+    super.key,
+    required this.flisFarger,
+    this.flisLys = .55,
+    required this.flis,
+    required this.merkeFarger,
+    required this.merkeSvg,
+    this.merkeForsinkelse = 0,
+    required this.tittel,
+    required this.under,
+    required this.knapp,
+    this.knappPad = const EdgeInsets.fromLTRB(15, 0, 13, 0),
+    required this.onTap,
+  });
+
+  /// The tile's top → bottom colours (0 / 55 / 100 %).
+  final List<Color> flisFarger;
+
+  /// The tile's inner top light (`inset 0 1.5px 0 rgba(255,255,255,…)`).
+  final double flisLys;
+
+  /// What stands in the tile (Ægil, the bag), laid out in its 50 × 50 box.
+  final Widget flis;
+
+  /// The badge's top → bottom colours, and its 24-unit glyph.
+  final List<Color> merkeFarger;
+  final String merkeSvg;
+
+  /// `hbLyn`'s animation-delay in ms.
+  final double merkeForsinkelse;
+
+  final String tittel;
+  final Widget under;
+
+  /// The key's content (text, arrow …) and its padding.
+  final Widget knapp;
+  final EdgeInsets knappPad;
   final VoidCallback onTap;
 
   @override
@@ -47,25 +86,12 @@ class HjemHurtigInngang extends StatelessWidget {
                     child: CssBox(
                       radius: BorderRadius.circular(16),
                       clip: true,
-                      bg: const [CssLinear(180, [Color(0xFFA9C5D9), Color(0xFF7E9DAD), Color(0xFF4E7383)], [0, .55, 1])],
-                      shadows: const [
-                        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .55)),
-                        CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .45)),
+                      bg: [CssLinear(180, flisFarger, const [0, .55, 1])],
+                      shadows: [
+                        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, flisLys)),
+                        const CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .45)),
                       ],
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          Positioned(
-                            left: 25 - 31,
-                            bottom: -7,
-                            width: 62,
-                            child: LfLoop(
-                              builder: (context, t, child) => Transform(alignment: Alignment.bottomCenter, transform: aegStaa(t, 3800), child: child),
-                              child: Image.asset('assets/images/dashboard/popup.png', width: 62, filterQuality: FilterQuality.medium),
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: flis,
                     ),
                   ),
                   Positioned(
@@ -75,13 +101,13 @@ class HjemHurtigInngang extends StatelessWidget {
                     height: 22,
                     child: CssBox(
                       radius: BorderRadius.circular(11),
-                      bg: const [CssLinear(180, [Color(0xFFFFA77C), Color(0xFFE95C2C)])],
+                      bg: [CssLinear(180, merkeFarger)],
                       shadows: const [CssShadow(0, 0, 0, 2.5, Color(0xFF1E4F5C)), CssShadow(0, 2, 0, 2.5, Color(0xFF0F2F38))],
                       child: Center(
                         child: LfLoop(
-                          // hbLyn 3.2s
+                          // hbLyn 3.2s (origin 50% 55%), from its delay on.
                           builder: (context, t, child) {
-                            final p = (t / 3200) % 1.0;
+                            final p = (math.max(0, t - merkeForsinkelse) / 3200) % 1.0;
                             const st = [0.0, .62, .66, .71, .76, .82, 1.0];
                             final s = kf(p, st, const [1, 1, 1.22, .92, 1.12, 1, 1], cssEaseInOut);
                             final r = kf(p, st, const [0, 0, -8, 4, -3, 0, 0], cssEaseInOut);
@@ -93,7 +119,7 @@ class HjemHurtigInngang extends StatelessWidget {
                               child: child,
                             );
                           },
-                          child: SvgPicture.string(_kLyn, width: 11, height: 11),
+                          child: SvgPicture.string(merkeSvg, width: 11, height: 11),
                         ),
                       ),
                     ),
@@ -106,15 +132,9 @@ class HjemHurtigInngang extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Hurtigbestilling', style: jakarta(15, em: -.015, height: 1.2)),
+                  Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(15, em: -.015, height: 1.2)),
                   const SizedBox(height: 2),
-                  Text(
-                    linje,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    softWrap: false,
-                    style: inter(11.5, color: const Color(0xFFC4D8DE)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-                  ),
+                  under,
                 ],
               ),
             ),
@@ -130,17 +150,18 @@ class HjemHurtigInngang extends StatelessWidget {
                 CssShadow(0, 3, 0, 0, Color(0xFFA63A12)),
                 CssShadow(0, 10, 14, -8, Color.fromRGBO(120, 40, 10, .6)),
               ],
-              padding: const EdgeInsets.fromLTRB(13, 0, 15, 0),
+              padding: knappPad,
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  const Positioned(
-                    left: 8 - 13,
-                    right: 8 - 15,
+                  // The key's gloss: left/right 8 px of the key, top 2, 45 % high.
+                  Positioned(
+                    left: 8 - knappPad.left,
+                    right: 8 - knappPad.right,
                     top: 2,
                     height: 40 * .45,
-                    child: DecoratedBox(
+                    child: const DecoratedBox(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.elliptical(11, 11),
@@ -156,14 +177,7 @@ class HjemHurtigInngang extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SvgPicture.string(_kLyn, width: 13, height: 13),
-                      const SizedBox(width: 6),
-                      Text('Bestill', style: jakarta(13.5, shadows: const [Shadow(color: Color.fromRGBO(120, 40, 10, .35), offset: Offset(0, 1))])),
-                    ],
-                  ),
+                  knapp,
                 ],
               ),
             ),
@@ -172,6 +186,58 @@ class HjemHurtigInngang extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The key's label (13.5 px, white, a 1 px brown drop).
+TextStyle _knappTekst() => jakarta(13.5, shadows: const [Shadow(color: Color.fromRGBO(120, 40, 10, .35), offset: Offset(0, 1))]);
+
+/// The card's line (11.5 px, `#C4D8DE`, tabular).
+TextStyle _underTekst({Color farge = const Color(0xFFC4D8DE), FontWeight vekt = FontWeight.w600}) =>
+    inter(11.5, weight: vekt, color: farge).copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+
+/// Ægil in a tile, standing (`aegStaa 3.8s`, origin 50% 100%).
+Widget _aegilFlis(String bilde, {required double bredde, required double bunn}) => Stack(
+  clipBehavior: Clip.none,
+  children: [
+    Positioned(
+      left: 25 - bredde / 2,
+      bottom: bunn,
+      width: bredde,
+      child: LfLoop(
+        builder: (context, t, child) => Transform(alignment: Alignment.bottomCenter, transform: aegStaa(t, 3800), child: child),
+        child: Image.asset(bilde, width: bredde, cacheWidth: (bredde * 3).round(), filterQuality: FilterQuality.medium),
+      ),
+    ),
+  ],
+);
+
+/// Hurtigbestilling · inngang (L2900): Ægil with the bolt, the usual order,
+/// and «Bestill».
+class HjemHurtigInngang extends StatelessWidget {
+  const HjemHurtigInngang({super.key, required this.linje, required this.onTap});
+
+  final String linje;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => HjemKnappKort(
+    flisFarger: const [Color(0xFFA9C5D9), Color(0xFF7E9DAD), Color(0xFF4E7383)],
+    flis: _aegilFlis('assets/images/dashboard/popup.png', bredde: 62, bunn: -7),
+    merkeFarger: const [Color(0xFFFFA77C), Color(0xFFE95C2C)],
+    merkeSvg: _kLyn,
+    tittel: 'Hurtigbestilling',
+    under: Text(linje, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: _underTekst()),
+    knappPad: const EdgeInsets.fromLTRB(13, 0, 15, 0),
+    knapp: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SvgPicture.string(_kLyn, width: 13, height: 13),
+        const SizedBox(width: 6),
+        Text('Bestill', style: _knappTekst()),
+      ],
+    ),
+    onTap: onTap,
+  );
 }
 
 /// «Butikker i Bergen» / «Populært i kveld» (Bergen L2933–2940, L3214–3216):
@@ -268,166 +334,58 @@ class HjemPrikker extends StatelessWidget {
   }
 }
 
-/// Utforsk-kort (L3004, `visUtforskMellom`): Ægil waving, the northern-light
-/// streak, "Fjordfiske, poser og nytt" and an orange "Åpne".
+/// Utforsk-kort (new Bergen L3023, `visUtforskMellom`): Ægil exploring on a
+/// sky tile with the mint star, «Fjordfiske, poser og nytt», the line about
+/// new posts from followed stores (left out when there are none), «Åpne ›».
 class HjemUtforskKort extends StatelessWidget {
-  const HjemUtforskKort({super.key, required this.linje, required this.onTap});
+  const HjemUtforskKort({super.key, required this.tittel, this.linje, required this.onTap});
 
-  final String linje;
+  final String tittel;
+
+  /// «N nye innlegg fra butikker du følger»; null hides the line.
+  final String? linje;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    return LfPress(
-      scale: .985,
-      ms: 160,
-      onTap: onTap,
-      child: CssBox(
-        radius: BorderRadius.circular(22),
-        clip: true,
-        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .08), Color.fromRGBO(255, 255, 255, .08)])],
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
-        shadows: const [
-          CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
-          CssShadow(0, 18, 30, -14, Color.fromRGBO(4, 18, 26, .7)),
-        ],
-        padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // The blurred streak (opacity .35 × .7, `glod` 4.5s), baked once.
-            Positioned(
-              left: -20 - 13,
-              top: -22 - 10,
-              width: 360,
-              height: 70,
-              child: IgnorePointer(
-                child: LfLoop(
-                  builder: (context, t, child) {
-                    final p = (t / 4500) % 1.0;
-                    return Opacity(opacity: .35 * kf(p, const [0, .5, 1], const [.7, 1, .7], cssEaseInOut), child: child);
-                  },
-                  child: const RepaintBoundary(child: CustomPaint(painter: _Nordlys(18, 9, [Offset(0, 60), Offset(70, 24), Offset(140, 50), Offset(210, 20), Offset(260, 2), Offset(310, 16), Offset(360, 0)]))),
-                ),
-              ),
-            ),
-            Row(
-              children: [
-                SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      const Positioned(
-                        bottom: 1,
-                        width: 30,
-                        height: 6,
-                        // blur(3px) drawn as a soft radial instead of a filter layer.
-                        child: CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(0, 15, 22, .5), Color.fromRGBO(0, 15, 22, .5), Color.fromRGBO(0, 15, 22, 0)], stops: [0, .45, 1])]),
-                      ),
-                      LfLoop(
-                        // aegVink 3.6s
-                        builder: (context, t, child) {
-                          final p = (t / 3600) % 1.0;
-                          return Transform.rotate(
-                            alignment: Alignment.bottomCenter,
-                            angle: rad(kf(p, const [0, .25, .75, 1], const [0, -6, 6, 0], cssEaseInOut)),
-                            child: child,
-                          );
-                        },
-                        child: Image.asset('assets/images/dashboard/explore.png', width: 40, filterQuality: FilterQuality.medium),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Fjordfiske, poser og nytt', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(13, em: -.015, height: 1.2)),
-                      const SizedBox(height: 1),
-                      Text(linje, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .6))),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                CssBox(
-                  radius: BorderRadius.circular(999),
-                  bg: const [CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)])],
-                  shadows: const [
-                    CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
-                    CssShadow(0, 4, 10, -5, Color.fromRGBO(120, 50, 10, .7)),
-                  ],
-                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Åpne', style: inter(11.5, weight: FontWeight.w800)),
-                      const SizedBox(width: 5),
-                      SvgPicture.string(
-                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
-                        width: 11,
-                        height: 11,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
+  Widget build(BuildContext context) => HjemKnappKort(
+    flisFarger: const [Color(0xFFA9C5D9), Color(0xFF7E9DAD), Color(0xFF4E7383)],
+    flis: _aegilFlis('assets/images/dashboard/explore.png', bredde: 58, bunn: -6),
+    merkeFarger: const [Color(0xFF9FF0D4), Color(0xFF3FCB9F)],
+    merkeSvg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="$_kStjerne" fill="#0E4A3A"/></svg>',
+    merkeForsinkelse: 800,
+    tittel: tittel,
+    under: linje == null ? const SizedBox.shrink() : Text(linje!, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: _underTekst()),
+    knapp: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Åpne', style: _knappTekst()),
+        const SizedBox(width: 6),
+        SvgPicture.string(
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+          width: 12,
+          height: 12,
         ),
-      ),
-    );
-  }
+      ],
+    ),
+    onTap: onTap,
+  );
 }
 
-/// A blurred stroke along a smooth path with the `nl-grad` mint → violet
-/// gradient (the prototype's `filter:blur()` on an SVG path).
-class _Nordlys extends CustomPainter {
-  const _Nordlys(this.bredde, this.blur, this.pkt);
-
-  final double bredde, blur;
-  final List<Offset> pkt;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // M p0 C p1 p2 p3 C p4 p5 p6
-    final path = Path()
-      ..moveTo(pkt[0].dx, pkt[0].dy)
-      ..cubicTo(pkt[1].dx, pkt[1].dy, pkt[2].dx, pkt[2].dy, pkt[3].dx, pkt[3].dy)
-      ..cubicTo(pkt[4].dx, pkt[4].dy, pkt[5].dx, pkt[5].dy, pkt[6].dx, pkt[6].dy);
-    final b = path.getBounds();
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = bredde
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, blur / 2)
-        ..shader = const LinearGradient(colors: [Color(0xFF5CE0B8), Color(0xFF9C7BE8)]).createShader(b),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Forundringspose (L3173, lunch and dinner hours only): the bag rocking on
-/// the water with a ring spreading under it, and "Sikre en".
+/// Forundringspose (new Bergen L3198, lunch and dinner hours only): the
+/// button card rocking on the water with a ring spreading under it — the 3D
+/// bag on a sand tile with the gold star, «Forundringspose», «N igjen i
+/// kveld · verdi minst … kr», and the price as the key.
 class HjemPoseKort extends StatelessWidget {
   const HjemPoseKort({
     super.key,
     required this.tittel,
     required this.igjen,
     required this.verdi,
-    required this.under,
     required this.kr,
     required this.onTap,
   });
 
-  final String tittel, igjen, verdi, under, kr;
+  final String tittel, igjen, verdi, kr;
   final VoidCallback onTap;
 
   @override
@@ -488,151 +446,48 @@ class HjemPoseKort extends StatelessWidget {
               ),
             ),
           ),
-          LfPress(
-            scale: .985,
-            ms: 160,
-            onTap: onTap,
-            child: CssBox(
-              radius: BorderRadius.circular(22),
-              clip: true,
-              bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .08), Color.fromRGBO(255, 255, 255, .08)])],
-              border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
-              shadows: const [
-                CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
-                CssShadow(0, 20, 30, -16, Color.fromRGBO(4, 18, 26, .7)),
-              ],
-              padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Positioned.fill(child: IgnorePointer(child: _SveipLys())),
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 56,
-                        height: 54,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            const Positioned(
-                              left: 4,
-                              right: 4,
-                              bottom: 2,
-                              height: 10,
-                              child: CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(60, 48, 30, .3), Color.fromRGBO(60, 48, 30, .15), Color.fromRGBO(60, 48, 30, 0)], stops: [0, .55, 1])]),
-                            ),
-                            Positioned(
-                              left: 0,
-                              top: 0,
-                              width: 56,
-                              height: 50,
-                              child: DecoratedBox(
-                                decoration: const BoxDecoration(
-                                  boxShadow: [BoxShadow(color: Color.fromRGBO(60, 48, 30, .2), offset: Offset(0, 6), blurRadius: 8, spreadRadius: -6)],
-                                ),
-                                child: SvgPicture.asset('assets/svgs/hjem/hjem_pose_kort.svg', width: 56, height: 50),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 11),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                SvgPicture.string(
-                                  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#F2C14E" stroke-width="3" stroke-linejoin="round"><path d="M12 3l2.6 6.2 6.4.5-4.9 4.2 1.5 6.1L12 16.7 6.4 20l1.5-6.1L3 9.7l6.4-.5z"/></svg>',
-                                  width: 9,
-                                  height: 9,
-                                ),
-                                const SizedBox(width: 5),
-                                Text('FORUNDRINGSPOSE', style: inter(9, weight: FontWeight.w800, em: .06, color: const Color.fromRGBO(255, 255, 255, .55))),
-                              ],
-                            ),
-                            const SizedBox(height: 1),
-                            Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14.5, em: -.02)),
-                            const SizedBox(height: 3),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(color: const Color.fromRGBO(242, 136, 78, .22), borderRadius: BorderRadius.circular(999)),
-                                  child: Text(igjen, style: inter(9.5, weight: FontWeight.w800, color: const Color(0xFFFFC9A8))),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(verdi, style: inter(9.5, weight: FontWeight.w800, color: const Color(0xFF5CE0B8)).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(10, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .6))),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 11),
-                      CssBox(
-                        radius: BorderRadius.circular(16),
-                        bg: const [CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)])],
-                        shadows: const [
-                          CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-                          CssShadow(0, 2, 0, 0, Color.fromRGBO(150, 60, 15, .9)),
-                          CssShadow(0, 9, 16, -8, Color.fromRGBO(120, 50, 10, .7)),
-                        ],
-                        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('$kr kr', style: jakarta(15, height: 1).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
-                            const SizedBox(height: 1),
-                            Text('Sikre en', style: inter(8.5, weight: FontWeight.w800, color: const Color(0xFFFFE4D2))),
-                          ],
-                        ),
-                      ),
-                    ],
+          HjemKnappKort(
+            flisFarger: const [Color(0xFFF6EAD2), Color(0xFFE6D3AE), Color(0xFFC9AE7E)],
+            flisLys: .6,
+            flis: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  left: 3,
+                  top: 6,
+                  width: 44,
+                  height: 40,
+                  child: LfLoop(
+                    builder: (context, t, child) => Transform(alignment: Alignment.bottomCenter, transform: aegStaa(t, 3800), child: child),
+                    child: SvgPicture.asset('assets/svgs/hjem/hjem_pose_kort.svg', width: 44, height: 40),
                   ),
+                ),
+              ],
+            ),
+            merkeFarger: const [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
+            merkeSvg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="$_kStjerne" fill="#5A3C10"/></svg>',
+            merkeForsinkelse: 1600,
+            tittel: tittel,
+            under: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: igjen, style: _underTekst(farge: const Color(0xFFFFC9A8), vekt: FontWeight.w800)),
+                  if (verdi.isNotEmpty) ...[
+                    TextSpan(text: ' · ', style: _underTekst()),
+                    TextSpan(text: verdi, style: _underTekst(farge: const Color(0xFF7FF0CB), vekt: FontWeight.w800)),
+                  ],
                 ],
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
             ),
+            knappPad: const EdgeInsets.symmetric(horizontal: 15),
+            knapp: Text('$kr kr', style: _knappTekst().copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+            onTap: onTap,
           ),
         ],
       ),
-    );
-  }
-}
-
-/// `sveipLysSjelden` 18s (1.4s delay): a rare sweep of light.
-class _SveipLys extends StatelessWidget {
-  const _SveipLys();
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, box) {
-        // inset: -40% -60% → 220% × 180% of the card.
-        final w = box.maxWidth * 2.2, h = box.maxHeight * 1.8;
-        return OverflowBox(
-          minWidth: w,
-          maxWidth: w,
-          minHeight: h,
-          maxHeight: h,
-          child: LfLoop(
-            builder: (context, t, child) {
-              final e = t - 1400;
-              if (e < 0) return const SizedBox.shrink();
-              final p = (e / 18000) % 1.0;
-              final x = kf(p, const [0, .15, 1], const [-1.2, 1.2, 1.2], cssEaseInOut);
-              return Transform.translate(offset: Offset(x * w, 0), child: child);
-            },
-            child: const CssBox(
-              bg: [CssLinear(100, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, 0)], [.44, .5, .56])],
-            ),
-          ),
-        );
-      },
     );
   }
 }

@@ -12,10 +12,7 @@ import '../../../deliveryService/home/ds_home.dart';
 import '../../../deliveryService/home/ds_home_store_list_pojo.dart';
 import '../../../deliveryService/storeDetail/store_detail.dart';
 import '../../../../networking/ops/ops_customer_api.dart';
-import '../../../../networking/ops/ops_butikk_api.dart';
-import '../../../../data/ops/butikk_models.dart';
 import '../../../bergen/sporing/hjelp_sheet.dart';
-import '../../../bergen/utforsk/feed_tab.dart' show utfPoseHentes;
 import '../../../bergen/utforsk/utforsk_screen.dart';
 import '../../../bergen/kasse/kjop_sekvens.dart' show KjopBekreftetScreen;
 import '../../../bergen/kit/drape_route.dart' show DrapePek;
@@ -54,6 +51,7 @@ import '../../swipeAerend/swipe_aerend_dl.dart';
 import '../home_bloc.dart';
 import '../home_dl.dart';
 import '../home_post_order_feedback.dart';
+import '../../../../networking/feed/feed_repo.dart';
 import '../../../bergen/adresse/adr_ark.dart' show AdrArkProve, visAdresseArk;
 import 'bergen_adr_kilde.dart';
 import 'bergen_cards.dart';
@@ -273,6 +271,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       if (isDemoApp && widget.isShowDialog) _bloc.openDemoDialog();
     });
     _loadUnderKaien();
+    _lastFolgerNye();
     _refreshSeams();
     // Hurtigbestilling's entry line: the habit of the day, loaded once.
     HurtigKilde.load();
@@ -396,6 +395,20 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
+  /// The Utforsk card's line (`utforskLinje`): posts from the stores the
+  /// customer follows since they last read the Følger tab, counted by the
+  /// feed service (`GET /v1/feed/unread?tab=folger`). None, or no answer:
+  /// the line is left out.
+  int _folgerNye = 0;
+
+  Future<void> _lastFolgerNye() async {
+    if (isGuestUser()) return;
+    try {
+      final r = await FeedRepo().fetchUnread(tab: 'folger');
+      if (mounted && r.unread != _folgerNye) setState(() => _folgerNye = r.unread);
+    } catch (_) {}
+  }
+
   Future<void> _loadUnderKaien() async {
     if (isGuestUser()) return;
     final finds = await OpsCustomerApi().underKaien();
@@ -419,6 +432,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       _bloc.callHomeTrackOrderApi();
       _syncCartBadge();
       _refreshSeams();
+      _lastFolgerNye();
     }
   }
 
@@ -466,18 +480,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   }
 
   /// Tonight's bags (`GET /api/ops/products?kind=pose`) for the
-  /// Forundringspose card: the first bag, its shop's hours, and the count.
+  /// Forundringspose card: the first bag and the count.
   List<Map<String, dynamic>> _poser = const [];
-  BergenStoreInfo? _poseButikk;
 
   Future<void> _lastPose() async {
     final bags = await OpsCustomerApi().poser();
     if (!mounted || bags.isEmpty) return;
     setState(() => _poser = bags);
-    final id = (bags.first['store_id'] as num?)?.toInt() ?? 0;
-    if (id == 0) return;
-    final info = await OpsButikkApi().store(id);
-    if (mounted && info != null) setState(() => _poseButikk = info);
   }
 
   /// `scenePose` / `poseFn`: Utforsk on the Forundringspose segment.
@@ -538,19 +547,16 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
-  /// The Forundringspose card (L3177) from the first real bag; the count is
-  /// the bags themselves (no stock is tracked).
+  /// The Forundringspose card (new Bergen L3198) from the first real bag;
+  /// the count is the bags themselves (no stock is tracked, Step 3).
   Widget _hjemPoseKort() {
     final bag = _poser.isEmpty ? null : _poser.first;
     final kr = bag == null ? 0 : ((bag['price_ore'] as num?)?.toInt() ?? 0) ~/ 100;
     final verdi = bag == null ? 0 : ((bag['value_ore'] as num?)?.toInt() ?? 0) ~/ 100;
-    final butikk = bag == null ? '' : '${bag['store_name'] ?? ''}';
-    final hentes = bag == null ? '' : utfPoseHentes(bag, _poseButikk);
     return HjemPoseKort(
-      tittel: BergenCopy.poseTittel,
+      tittel: BergenCopy.poseKortTittel,
       igjen: BergenCopy.poseIgjen(_poser.length),
       verdi: verdi > 0 ? BergenCopy.poseVerdi(verdi) : '',
-      under: [butikk, if (hentes.isNotEmpty) hentes.toLowerCase()].where((e) => e.isNotEmpty).join(' · '),
       kr: '$kr',
       onTap: _openPose,
     );
@@ -1932,7 +1938,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 child: lfFlow(
                   358,
                   HjemUtforskKort(
-                    linje: BergenCopy.exploreLine,
+                    tittel: BergenCopy.exploreTitle,
+                    linje: _folgerNye > 0 ? BergenCopy.exploreNye(_folgerNye) : null,
                     onTap: _toExplore,
                   ),
                 ),
