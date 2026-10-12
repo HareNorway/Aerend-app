@@ -12,7 +12,6 @@ import '../../../data/points/league_models.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../utils/shared_pref_utill.dart';
-import '../../aegil/widgets/aegil_settings_panel.dart';
 import '../../common/manageAddress/manage_address.dart';
 import '../../common/manageCard/manage_card.dart';
 import '../../common/manageAddress/add_new_address.dart';
@@ -22,6 +21,8 @@ import '../../../utils/utils.dart' show setChangedLanguage;
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeatherLook;
 import '../aegil/aegil_bits.dart';
+import '../aegil/aegil_innst.dart';
+import '../aegil/aegil_launch_copy.dart' show AeCopy;
 import '../aegil/aegil_screen.dart';
 import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
@@ -164,6 +165,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'anledninger': _anledninger();
         case 'ukeshandel': _ukeshandel();
         case 'bio': _openBio();
+        case 'aegilInnst': _aegilInnstillinger();
         case 'bioLagre': _openBio(autoLagre: const Duration(milliseconds: 1500));
       }
     }
@@ -330,35 +332,75 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     await MegSheets.ukeshandel(context, items: items, level: _settings?.level ?? 2, onOpenAegilSettings: _aegilInnstillinger);
   }
 
-  void _aegilInnstillinger() {
-    final s = _settings;
+  /// «Innstillinger for Ægil» (new Bergen `aegilInnst`, L20363–20393): the
+  /// dark Ark with the same list as the Ægil screen, «Hva Ægil vet» (→ Det
+  /// Ægil vet om deg) and «Ferdig».
+  Future<void> _aegilInnstillinger() async {
+    var s = _settings;
+    if (s == null) {
+      final r = await a3Try(_aegilRepo.fetchSettings);
+      if (!mounted) return;
+      s = r?.settings;
+      if (r != null) _levels = r.levels;
+    }
     if (s == null) {
       _go('/bergen/aegil');
       return;
     }
-    showBergenSheet<void>(
+    var naa = s;
+    if (!mounted) return;
+    await showMegArk<void>(
       context,
-      onDark: true,
-      builder: (ctx) => AegilSettingsPanel(
-        settings: s,
-        levels: _levels,
-        onLevelChanged: (level) async {
-          final r = await _aegilRepo.updateSettings({'level': level});
-          if (mounted) setState(() => _settings = r.settings ?? _settings);
+      key: const Key('meg-ark-aegil-innst'),
+      mork: true,
+      tastatur: true,
+      title: AeInnstCopy.tittel,
+      subtitle: AeInnstCopy.linjeMeg,
+      body: (ctx, setArk) {
+        Future<void> endre(Map<String, dynamic> endring, {String? toast}) async {
+          final r = await a3Try(() => _aegilRepo.updateSettings(endring));
+          if (!mounted) return;
+          if (r?.settings != null) {
+            naa = r!.settings!;
+            setArk(() {});
+            setState(() => _settings = naa);
+            if (toast != null) showBergenToast(context, toast);
+          } else {
+            showBergenToast(context, r?.error == 'LEVEL_REQUIRES_RECURRING' ? AeInnstCopy.snartToast : A4MegCopy.a4_meg_lagret_feil, icon: Icons.error_outline_rounded);
+          }
+        }
+
+        return AegilInnstListe(
+          settings: naa,
+          levels: _levels,
+          onEndre: endre,
+          onButikker: () async {
+            if (naa.allowedStoreMode == 'allowlist') return endre({'allowed_store_mode': 'all', 'allowed_store_ids': <int>[]});
+            final fav = await a3Try(() => OpsCustomerApi().favourites());
+            final ids = [
+              for (final f in ((fav?['favourites'] ?? fav?['stores'] ?? const []) as List).whereType<Map>()) (f['store_id'] ?? f['id']) as num?,
+            ].whereType<num>().map((e) => e.toInt()).toList();
+            if (!mounted) return;
+            if (ids.isEmpty) return showBergenToast(context, AeCopy.ingenFavoritter);
+            await endre({'allowed_store_mode': 'allowlist', 'allowed_store_ids': ids});
+          },
+        );
+      },
+      secondary: MegArkButton(
+        key: const Key('meg-ark-aegil-hva-vet'),
+        label: AeInnstCopy.hvaVet,
+        onTap: () {
+          Navigator.of(context).pop();
+          Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AegilScreen(steg: 'minne')));
         },
-        onToggle: (field, value) async {
-          final r = await _aegilRepo.updateSettings({field: value});
-          if (mounted) setState(() => _settings = r.settings ?? _settings);
+      ),
+      primary: MegArkButton(
+        key: const Key('meg-ark-aegil-ferdig'),
+        label: AeInnstCopy.ferdig,
+        onTap: () {
+          Navigator.of(context).pop();
+          showBergenToast(context, AeInnstCopy.lagretMeg(aeVisNivaa(naa)));
         },
-        onPause: (days) async {
-          final r = await _aegilRepo.updateSettings({'pause_days': days});
-          if (mounted) setState(() => _settings = r.settings ?? _settings);
-        },
-        onResume: () async {
-          final r = await _aegilRepo.updateSettings({'pause_days': 0});
-          if (mounted) setState(() => _settings = r.settings ?? _settings);
-        },
-        onForgetAll: () => _go('/bergen/aegil/minne'),
       ),
     );
   }
@@ -392,8 +434,6 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final get = ref?.pointsForMe ?? 200;
     final code = ref?.code ?? a3Pref(prefReferralCode);
     final lang = A4MegCopy.a4_meg_spraak_navn[_safeLanguage()] ?? 'Norsk bokmål';
-    final niv = _settings?.level ?? 2;
-    final nivNavn = _levels.where((x) => x.level == niv).firstOrNull?.name ?? _settings?.levelName ?? '';
 
     return ValueListenableBuilder<bool>(
       valueListenable: A3Services.reducedMotion,
@@ -554,13 +594,15 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     under: A4MegCopy.a4_meg_ukeshandel_sub,
                                     onTap: _ukeshandel,
                                   ),
+                                  // New Bergen: «Innstillinger for Ægil · Nivå 2 · Varsle og
+                                  // foreslå · Endre» opens the dark settings Ark.
                                   _Rad(
                                     key: const Key('meg-rad-aegil'),
                                     tile: const _GlassTile(rot: -3, d: 'M12 3l8 18-8-5-8 5z'),
-                                    navn: A4MegCopy.a4_meg_saa_mye,
-                                    under: '${A4MegCopy.a4_meg_rad_nivaa} $niv${nivNavn.isEmpty ? '' : ' · $nivNavn'}',
-                                    merke: niv >= 4 ? A4MegCopy.a4_meg_fast : A4MegCopy.a4_meg_nivaa4,
-                                    onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AegilScreen(steg: 'nivaa'))),
+                                    navn: AeInnstCopy.tittel,
+                                    under: '${AeInnstCopy.nivaa(aeVisNivaa(_settings ?? const AegilSettings()))} · ${aeNivaaNavn(_settings ?? const AegilSettings(), _levels)}',
+                                    merke: AeInnstCopy.endreMerke,
+                                    onTap: _aegilInnstillinger,
                                   ),
                                   _Rad(
                                     key: const Key('meg-rad-kode'),

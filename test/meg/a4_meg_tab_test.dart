@@ -67,6 +67,28 @@ void main() {
 
   Widget app(FakePointsApi p, {FakeAegilApi? a}) => a3App(MegScreenBody(api: p, aegil: a ?? FakeAegilApi(), aegilRepo: FakeAegilRepo()));
 
+  testWidgets('Innstillinger for Ægil: the dark Ark lists the levels and saves a choice (Bergen Step 5+7)', (tester) async {
+    tall(tester);
+    final repo = FakeAegilRepo();
+    await tester.pumpWidget(a3App(MegScreenBody(api: api(), aegil: FakeAegilApi(), aegilRepo: repo)));
+    await settle(tester);
+    await tester.ensureVisible(find.byKey(const Key('meg-rad-aegil')));
+    await tester.tap(find.byKey(const Key('meg-rad-aegil')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('meg-ark-aegil-innst')), findsOneWidget);
+    expect(find.text('Kommer snart'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('ae-innst-nivaa-3')));
+    await tester.tap(find.byKey(const Key('ae-innst-nivaa-3')));
+    await settle(tester);
+    expect(repo.calls.any((c) => c.contains('level: 3')), isTrue);
+    await tester.tap(find.byKey(const Key('meg-ark-aegil-ferdig')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const Key('meg-ark-aegil-innst')), findsNothing);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
   testWidgets('hero, header, Gullbilletten and the Poeng card render from the API', (tester) async {
     tall(tester);
     final p = api();
@@ -119,7 +141,8 @@ void main() {
     expect(find.textContaining('Mamma · 14. mars · én påminnelse sju dager før'), findsOneWidget);
     expect(find.text('Handleliste · Middag denne uken · Ukens kurv'), findsOneWidget);
     expect(find.text('Nivå 2 · Varsle og foreslå'), findsOneWidget);
-    expect(find.text('Nivå 4 →'), findsOneWidget);
+    // New Bergen: «Innstillinger for Ægil · Nivå 2 · Varsle og foreslå · Endre».
+    expect(find.text('Innstillinger for Ægil'), findsOneWidget);
     expect(find.text('Av · kreves over 300 kr'), findsOneWidget);
     expect(find.text('Nygårdsgaten 5 · bare for deg'), findsOneWidget);
     expect(find.text('Visa •• 4471'), findsOneWidget);

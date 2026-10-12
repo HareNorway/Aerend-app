@@ -1,16 +1,28 @@
+import 'dart:ui' as ui;
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/auth/launch/lf_css.dart';
-import '../kit/bergen_css.dart';
+import '../../common/auth/launch/lf_motion.dart';
+import '../kit/bergen_perf.dart';
 import 'hurtig_bits.dart';
 import 'hurtig_brain.dart';
 import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
+import 'hurtig_glass.dart';
 
-// ── Hurtigbestilling · the module cards and the draft (prototype L4289–4475) ─
+// ── Hurtigbestilling · the module cards and the draft (new Bergen L4264–4535)
+// New Bergen turned every card from white to dark glass and gave each its
+// own layout: the favourite as a hero, store logos everywhere, the last order
+// as a glass receipt with «TIDLIGERE» tiles, and «Slik kjenner Ægil deg» as
+// a set of tiles. The cards span the chat's full width (`margin-left:-41px`).
 
-/// «Hurtig · oftest bestilt» (L4289): the four most ordered products with
-/// their medals and bars, and the habit of the day with its calendar leaf.
+const String _kOmIgjen = 'M20 11a8 8 0 1 0-2.3 5.7 M20 4v7h-7';
+const String _kStjerne = 'M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z';
+
+/// «Hurtig · oftest bestilt» (L4264): «Din favoritt» as a hero card, the
+/// rest as ranked rows with logos, and the habit of the day.
 class HbOftestKort extends StatelessWidget {
   const HbOftestKort({super.key, required this.rader, required this.under, required this.vane, required this.onVelg, required this.onVane});
 
@@ -20,304 +32,345 @@ class HbOftestKort extends StatelessWidget {
   final ValueChanged<int> onVelg;
   final VoidCallback onVane;
 
-  static const List<(List<Color>, Color, Color)> _med = [
-    ([Color(0xFFFFF3C4), Color(0xFFF2C14E), Color(0xFFC98F1E)], Color(0xFF9A6A10), Color(0xFF5A3C10)),
-    ([Color(0xFFFFFFFF), Color(0xFFCDD6DA), Color(0xFF8E9BA1)], Color(0xFF6E7B80), Color(0xFF33424A)),
-    ([Color(0xFFFFE1C7), Color(0xFFD8915A), Color(0xFFA9612E)], Color(0xFF7E4520), Color(0xFF4A260E)),
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    return CssBox(
-      radius: BorderRadius.circular(24),
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE8EFEF)]),
-      ],
-      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 4, 0, 0, Color.fromRGBO(6, 30, 38, .5)), CssShadow(0, 20, 28, -16, Color.fromRGBO(3, 14, 20, .9))],
-      padding: const EdgeInsets.fromLTRB(10, 14, 10, 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(6, 0, 6, 11),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      HbSeksjon(HurtigCopy.oftestBestilt, under: under),
+      if (rader.isNotEmpty) ...[const SizedBox(height: 10), _topp(rader.first)],
+      for (var i = 1; i < rader.length; i++) ...[const SizedBox(height: 10), HbFlisInn(delayMs: 180 + (i - 1) * 70, child: _rad(rader[i]))],
+      if (vane != null) ...[const SizedBox(height: 10), _vane(vane!)],
+    ],
+  );
+
+  Widget _leggKnapp(HbOftestVis r, {required bool bred}) {
+    final Widget knapp = r.lagt
+        ? VcKnapp(
+            key: ValueKey('lagt-${r.id}'),
+            ms: 350,
+            child: CssBox(
+              width: bred ? null : 40,
+              height: 40,
+              radius: BorderRadius.circular(13),
+              bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .16))],
+              border: Border.all(color: const Color.fromRGBO(127, 240, 203, .5)),
+              padding: bred ? const EdgeInsets.symmetric(horizontal: 17) : null,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  HbIkon(HbIkoner.hake, size: bred ? 13 : 15, stroke: kHbMintLys, width: 3.2),
+                  if (bred) ...[
+                    const SizedBox(width: 6),
+                    Text(
+                      HurtigCopy.lagtTilKnapp,
+                      style: hbI(13.5, weight: FontWeight.w800, color: kHbMintLys),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          )
+        : CssBox(
+            key: ValueKey('legg-${r.id}'),
+            width: bred ? null : 40,
+            height: 40,
+            radius: BorderRadius.circular(13),
+            bg: kHbOransjeBg,
+            shadows: hbOransjeSkygge(),
+            padding: bred ? const EdgeInsets.symmetric(horizontal: 16) : null,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  HurtigCopy.oftestBestilt,
-                  style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbTeal),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  under,
-                  style: hbI(11, weight: FontWeight.w700, color: kHbInkFaint),
-                ),
+                HbIkon(HbIkoner.pluss, size: bred ? 13 : 15, stroke: Colors.white, width: 3),
+                if (bred) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    HurtigCopy.leggTilKnapp,
+                    style: hbI(13.5, weight: FontWeight.w800, color: Colors.white),
+                  ),
+                ],
               ],
             ),
-          ),
-          for (var i = 0; i < rader.length; i++) ...[if (i > 0) const SizedBox(height: 6), _rad(rader[i], i)],
-          if (vane != null) ...[const SizedBox(height: 10), _vane(vane!)],
-        ],
-      ),
+          );
+    return Semantics(
+      button: true,
+      label: r.lagt ? HurtigCopy.fjernFraUtkastet : HurtigCopy.leggIUtkastet,
+      child: HbPress(dy: 2, onTap: () => onVelg(r.id), child: knapp),
     );
   }
 
-  Widget _rad(HbOftestVis r, int i) {
-    final md = i < _med.length ? _med[i] : null;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: cssEase,
-      padding: const EdgeInsets.fromLTRB(12, 10, 9, 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(17),
-        gradient: r.lagt
-            ? cssLinear(100, const [Color(0xFFE0F8EF), Color(0xFFFFFFFF)], const [0, .75])
-            : i == 0
-            ? cssLinear(100, const [Color(0xFFFFF3D2), Color(0xFFFFFFFF)], const [0, .75])
-            : cssLinear(100, const [Color(0xFFFFFFFF), Color(0xFFFFFFFF)]),
-        boxShadow: [
-          const BoxShadow(color: Color.fromRGBO(35, 32, 29, .35), offset: Offset(0, 6), blurRadius: 12 / 2 / .57735, spreadRadius: -8),
-          if (!r.lagt) const BoxShadow(color: Color.fromRGBO(35, 32, 29, .06), offset: Offset(0, 1)),
-        ],
-      ),
-      foregroundDecoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(17),
-        border: Border.all(color: r.lagt ? const Color.fromRGBO(60, 199, 159, .55) : Colors.transparent, width: 1.5),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 42,
-            height: 42,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                HbFlis(ini: r.ini, bg: r.bg, fg: r.fg, size: 42, radius: 13, fontSize: 12.5),
-                Positioned(
-                  left: -7,
-                  top: -7,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: md != null
-                          ? RadialGradient(center: const Alignment(-.3, -.4), radius: .7, colors: md.$1, stops: const [0, .55, 1])
-                          : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFFFF), Color(0xFFE6ECEE)]),
-                      boxShadow: [
-                        const BoxShadow(color: Color(0xFFFFFFFF), spreadRadius: 2),
-                        BoxShadow(color: md?.$2 ?? const Color(0xFFB9C4C7), offset: const Offset(0, 2.5), spreadRadius: 2),
-                        const BoxShadow(color: Color.fromRGBO(3, 16, 24, .28), offset: Offset(0, 6), blurRadius: 8 / 2 / .57735, spreadRadius: 1),
-                      ],
-                    ),
-                    foregroundDecoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color.fromRGBO(255, 255, 255, .75), Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(0, 0, 0, .12)],
-                        stops: [0, .08, .92, 1],
+  Widget _topp(HbOftestVis r) => HbGlass(
+    clip: true,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HbTint(
+          farge: r.b.bg,
+          height: 62,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 12,
+                top: 10,
+                child: HbBandChip(
+                  bg: const [
+                    CssLinear(180, [Color.fromRGBO(255, 224, 138, .3), Color.fromRGBO(242, 193, 78, .2)]),
+                  ],
+                  kant: const Color.fromRGBO(242, 193, 78, .55),
+                  child: Row(
+                    children: [
+                      const HbIkon(_kStjerne, size: 11, fill: Color(0xFFF2C14E)),
+                      const SizedBox(width: 4),
+                      Text(
+                        HurtigCopy.dinFavorittChip,
+                        style: hbI(11, weight: FontWeight.w800, color: const Color(0xFFFFE2A0)),
                       ),
-                    ),
-                    child: Text('${r.nr}', style: hbJ(10, color: md?.$3 ?? const Color(0xFF57534B), tabular: true)),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(r.navn, maxLines: 2, overflow: TextOverflow.ellipsis, style: hbJ(13.5, em: -.01, height: 1.2)),
-                const SizedBox(height: 3),
-                Text(
-                  r.butikk,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: false,
-                  style: hbI(10.5, weight: FontWeight.w700, color: kHbInkFaint),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Flexible(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 70),
-                        child: Container(
-                          height: 6,
-                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: const Color.fromRGBO(35, 32, 29, .08)),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: CssBox(radius: BorderRadius.circular(3), clip: true, shadows: const [CssShadow.inset(0, 1, 1, 0, Color.fromRGBO(35, 32, 29, .14))]),
-                              ),
-                              FractionallySizedBox(
-                                widthFactor: r.pst.clamp(0, 1),
-                                child: CssBox(
-                                  height: 6,
-                                  radius: BorderRadius.circular(3),
-                                  clip: true,
-                                  bg: const [
-                                    CssLinear(180, [Color(0xFF8CF0D2), Color(0xFF2FB893)]),
-                                  ],
-                                  shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .55))],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+              ),
+              Positioned(
+                right: 10,
+                top: 10,
+                child: HbBandChip(
+                  child: Row(
+                    children: [
+                      const HbIkon(_kOmIgjen, size: 11, stroke: kHbMintLys, width: 2.6),
+                      const SizedBox(width: 4),
+                      Text(
+                        r.ganger,
+                        style: hbI(11, weight: FontWeight.w800, color: Colors.white, tabular: true),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      r.ganger,
-                      style: hbI(10, weight: FontWeight.w800, color: kHbTeal, tabular: true),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 11),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(r.pris, style: hbJ(13, tabular: true)),
-              const SizedBox(height: 6),
-              HbPress(
-                dy: 3,
-                onTap: () => onVelg(r.id),
-                child: r.lagt
-                    ? VcKnapp(
-                        key: ValueKey('lagt-${r.id}'),
-                        ms: 350,
-                        child: CssBox(
-                          width: 40,
-                          height: 32,
-                          radius: BorderRadius.circular(12),
-                          bg: const [
-                            CssLinear(180, [Color(0xFFA6F8DD), Color(0xFF5CE0B8), Color(0xFF3CC79F)], [0, .55, 1]),
-                          ],
-                          shadows: const [
-                            CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .65)),
-                            CssShadow.inset(0, -2, 0, 0, Color.fromRGBO(0, 0, 0, .06)),
-                            CssShadow(0, 3, 0, 0, Color(0xFF23946F)),
-                            CssShadow(0, 9, 12, -6, Color.fromRGBO(20, 110, 80, .6)),
-                          ],
-                          child: const Center(child: HbIkon(HbIkoner.hake, size: 14, stroke: Color(0xFF0F3A40), width: 3.4)),
-                        ),
-                      )
-                    : CssBox(
-                        key: ValueKey('legg-${r.id}'),
-                        width: 40,
-                        height: 32,
-                        radius: BorderRadius.circular(12),
-                        bg: const [
-                          CssLinear(180, [Color(0xFFFFA77C), Color(0xFFF26D3D), Color(0xFFE95C2C)], [0, .55, 1]),
-                        ],
-                        shadows: const [
-                          CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .5)),
-                          CssShadow.inset(0, -2, 0, 0, Color.fromRGBO(0, 0, 0, .08)),
-                          CssShadow(0, 3, 0, 0, Color(0xFFA63A12)),
-                          CssShadow(0, 9, 12, -6, Color.fromRGBO(120, 40, 10, .6)),
-                        ],
-                        child: const Center(child: HbIkon(HbIkoner.pluss, size: 14, stroke: Colors.white, width: 3.4)),
-                      ),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Overlapp(
+                opp: 25,
+                child: HbLogo(b: r.b, size: 50, radius: 16, ikon: 24, kant: 3, skygge: const [CssShadow(0, 8, 14, -8, Color.fromRGBO(0, 10, 16, .9))]),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 7),
+                  Text(
+                    r.navn,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: hbJ(17, em: -.02, height: 1.2, color: Colors.white),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    r.butikk,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66)),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(r.pris, style: hbJ(19, em: -.02, color: Colors.white, tabular: true)),
+                      ),
+                      const SizedBox(width: 10),
+                      _leggKnapp(r, bred: true),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _rad(HbOftestVis r) => HbGlass(
+    radius: 18,
+    padding: const EdgeInsets.all(10),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 46,
+          height: 46,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              HbLogo(b: r.b, size: 46, radius: 15, ikon: 22, skygge: const [CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18)), CssShadow(0, 8, 14, -8, Color.fromRGBO(0, 10, 16, .9))]),
+              Positioned(
+                right: -5,
+                bottom: -5,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFF173E48),
+                    border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22), width: 1.5),
+                  ),
+                  child: Text(
+                    '${r.nr}',
+                    style: hbI(10, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                r.navn,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: hbI(14, weight: FontWeight.w800, em: -.01, color: Colors.white),
+              ),
+              const SizedBox(height: 1),
+              Text(
+                r.butikk,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: hbI(11.5, color: const Color.fromRGBO(255, 255, 255, .66)),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    r.pris,
+                    style: hbI(12.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 3,
+                    height: 3,
+                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .4)),
+                  ),
+                  const SizedBox(width: 6),
+                  const HbIkon(_kOmIgjen, size: 10, stroke: kHbMintPale, width: 2.6),
+                  const SizedBox(width: 3),
+                  Flexible(
+                    child: Text(
+                      r.ganger,
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.fade,
+                      style: hbI(11, weight: FontWeight.w700, color: kHbMintPale, tabular: true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        _leggKnapp(r, bred: false),
+      ],
+    ),
+  );
 
   Widget _vane(HbVaneVis v) => HbPress(
-    dy: 3,
+    scale: .99,
+    ms: 140,
     onTap: onVane,
-    child: CssBox(
-      radius: BorderRadius.circular(18),
-      clip: true,
+    child: HbGlass(
+      radius: 20,
+      padding: const EdgeInsets.all(12),
+      kant: const Color.fromRGBO(255, 180, 142, .3),
       bg: const [
-        CssRadial([Color.fromRGBO(255, 148, 102, .3), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: 1.2, cx: 1, cy: 0),
-        CssLinear(160, [Color(0xFF2F6C7D), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .58, 1]),
+        CssRadial([Color.fromRGBO(255, 148, 102, .24), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: 1.3, cx: 1, cy: 0),
+        ...kHbGlassBg,
       ],
-      shadows: const [
-        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .08)),
-        CssShadow(0, 4, 0, 0, Color(0xFF0E2E36)),
-        CssShadow(0, 14, 20, -12, Color.fromRGBO(4, 18, 26, .85)),
-      ],
-      padding: const EdgeInsets.all(11),
       child: Row(
         children: [
           CssBox(
-            width: 44,
-            radius: BorderRadius.circular(11),
+            width: 46,
+            radius: BorderRadius.circular(12),
             clip: true,
-            bg: const [
-              CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE9F0F1)]),
-            ],
-            shadows: const [CssShadow(0, 3, 0, 0, Color(0xFF92A9B0)), CssShadow(0, 9, 12, -6, Color.fromRGBO(0, 0, 0, .6))],
+            bg: const [CssSolid(Color.fromRGBO(10, 26, 34, .4))],
+            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+            padding: const EdgeInsets.all(1),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                CssBox(
+                Container(
                   height: 16,
-                  width: 44,
-                  bg: const [
-                    CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
-                  ],
-                  shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .4))],
-                  child: Center(
-                    child: Text(
-                      v.dag,
-                      style: hbI(8.5, weight: FontWeight.w800, em: .12, color: Colors.white),
-                    ),
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF9A273), Color(0xFFE95C2C)]),
+                  ),
+                  child: Text(
+                    v.dag,
+                    style: hbI(8.5, weight: FontWeight.w800, em: .12, color: Colors.white),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 5, 0, 6),
-                  child: Text(v.kl, style: hbJ(11.5, color: kHbTealDeep, tabular: true)),
+                  child: Text(
+                    v.kl,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: hbJ(11.5, color: Colors.white, tabular: true),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   v.tittel,
-                  style: hbI(9.5, weight: FontWeight.w800, em: .1, color: kHbMintPale),
+                  style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbFersken),
                 ),
-                const SizedBox(height: 2),
-                LfPretty(v.varer, style: hbJ(12.5, color: Colors.white, height: 1.3)),
-                const SizedBox(height: 2),
-                Text(
-                  v.sum,
-                  style: hbI(11, weight: FontWeight.w800, color: const Color(0xFFFFD2BD), tabular: true),
-                ),
+                const SizedBox(height: 3),
+                LfPretty(v.varer, style: hbJ(13, color: Colors.white, height: 1.3)),
               ],
             ),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: 12),
           CssBox(
-            height: 34,
-            radius: BorderRadius.circular(11),
-            bg: const [
-              CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE4EDEF)]),
-            ],
-            shadows: const [CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 3, 0, 0, Color(0xFF8FA6AD)), CssShadow(0, 9, 12, -6, Color.fromRGBO(0, 0, 0, .55))],
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Center(
-              child: Text(
-                HurtigCopy.settOpp,
-                style: hbI(12, weight: FontWeight.w800, color: kHbTealDeep),
-              ),
+            height: 44,
+            radius: BorderRadius.circular(13),
+            bg: kHbOransjeBg,
+            shadows: hbOransjeSkygge(),
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  HurtigCopy.settOpp,
+                  style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
+                ),
+                Opacity(
+                  opacity: .9,
+                  child: Text(
+                    v.sum,
+                    style: hbI(10.5, weight: FontWeight.w700, color: Colors.white, tabular: true),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -326,31 +379,40 @@ class HbOftestKort extends StatelessWidget {
   );
 }
 
+/// `margin-top:-N` on a tile that rides over the header band: it takes
+/// [opp] px of the body and pokes the rest up over the band.
+class _Overlapp extends StatelessWidget {
+  const _Overlapp({required this.opp, required this.child});
+  final double opp;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: opp,
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: -opp,
+          child: Align(alignment: Alignment.topLeft, child: child),
+        ),
+      ],
+    ),
+  );
+}
+
 /// One «oftest» row as the card shows it.
 class HbOftestVis {
-  const HbOftestVis({
-    required this.id,
-    required this.nr,
-    required this.navn,
-    required this.butikk,
-    required this.ini,
-    required this.bg,
-    this.fg = Colors.white,
-    required this.ganger,
-    required this.pst,
-    required this.pris,
-    required this.lagt,
-  });
+  const HbOftestVis({required this.id, required this.nr, required this.navn, required this.butikk, required this.b, required this.ganger, required this.pris, required this.lagt});
 
   final int id;
   final int nr;
   final String navn;
   final String butikk;
-  final String ini;
-  final Color bg;
-  final Color fg;
+  final HbButikk b;
   final String ganger;
-  final double pst;
   final String pris;
   final bool lagt;
 }
@@ -364,8 +426,9 @@ class HbVaneVis {
   final String sum;
 }
 
-/// «Hurtig · bestilt forrige gang» (L4322): the last order as a receipt with
-/// the LEVERT stamp, «Bestill det samme igjen», and the two before it.
+/// «Hurtig · bestilt forrige gang» (L4307): the last order as a glass card
+/// (logo, code · date, sum, «Levert», the lines, «Bestill det samme igjen»),
+/// then the orders before it as «TIDLIGERE» tiles in a row.
 class HbForrigeKort extends StatelessWidget {
   const HbForrigeKort({super.key, required this.fo, required this.tidligere, required this.onIgjen});
 
@@ -374,267 +437,298 @@ class HbForrigeKort extends StatelessWidget {
   final ValueChanged<HbOrdreVis> onIgjen;
 
   @override
-  Widget build(BuildContext context) {
-    return CssBox(
-      radius: BorderRadius.circular(24),
-      bg: const [
-        CssLinear(180, [Color(0xFFF3F7F7), Color(0xFFE2EAEB)]),
-      ],
-      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 4, 0, 0, Color.fromRGBO(6, 30, 38, .5)), CssShadow(0, 20, 28, -16, Color.fromRGBO(3, 14, 20, .9))],
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Row(
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      HbSeksjon(HurtigCopy.bestiltForrigeGang, under: fo.dato),
+      const SizedBox(height: 10),
+      HbGlass(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               children: [
-                HbFlis(ini: fo.ini, bg: fo.bg, fg: fo.fg, size: 44, radius: 14, fontSize: 13.5),
-                const SizedBox(width: 11),
+                HbLogo(b: fo.b, size: 48, radius: 15, ikon: 23, skygge: const [CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18)), CssShadow(0, 8, 14, -8, Color.fromRGBO(0, 10, 16, .9))]),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        HurtigCopy.bestiltForrigeGang,
-                        style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbTeal),
+                        fo.butikk,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                        style: hbI(15, weight: FontWeight.w800, em: -.01, color: Colors.white),
                       ),
-                      const SizedBox(height: 1),
-                      Text(fo.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: hbJ(15.5, em: -.01)),
-                      Text(
-                        fo.under,
-                        style: hbI(11, weight: FontWeight.w700, color: kHbInkFaint),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              fo.kode,
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.fade,
+                              style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66), tabular: true),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .45)),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              fo.dato,
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.fade,
+                              style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66)),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 11),
-                Transform.rotate(
-                  angle: rad(-8),
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFF2FB893), width: 2),
-                      color: const Color.fromRGBO(227, 245, 238, .75),
-                      boxShadow: const [BoxShadow(color: Color.fromRGBO(20, 110, 80, .55), offset: Offset(0, 3), blurRadius: 8 / 2 / .57735, spreadRadius: -4)],
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(fo.sum, style: hbJ(17, em: -.02, color: Colors.white, tabular: true)),
+                    const SizedBox(height: 4),
+                    CssBox(
+                      height: 24,
+                      radius: BorderRadius.circular(999),
+                      bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
+                      border: Border.all(color: const Color.fromRGBO(92, 224, 184, .35)),
+                      padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 18,
+                            height: 18,
+                            alignment: Alignment.center,
+                            decoration: const BoxDecoration(shape: BoxShape.circle, color: kHbMint),
+                            child: const HbIkon(HbIkoner.hake, size: 10, stroke: Color(0xFF0F3A40), width: 3.2),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            HurtigCopy.levertChip,
+                            style: hbI(11, weight: FontWeight.w800, color: kHbMintLys),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const HbIkon(HbIkoner.hake, size: 9, stroke: Color(0xFF1F8A66), width: 3.8),
-                        const SizedBox(width: 4),
-                        Text(
-                          HurtigCopy.levert,
-                          style: hbI(9.5, weight: FontWeight.w800, em: .12, color: const Color(0xFF1F8A66)),
-                        ),
-                      ],
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.only(top: 4),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1))),
+              ),
+              child: Column(
+                children: [
+                  for (final x in fo.linjer)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      child: Row(
+                        children: [
+                          CssBox(
+                            height: 24,
+                            radius: BorderRadius.circular(8),
+                            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
+                            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(minWidth: 14),
+                              child: Center(
+                                widthFactor: 1,
+                                child: Text(
+                                  x.ant,
+                                  style: hbI(11, weight: FontWeight.w800, color: kHbMintPale, tabular: true),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              x.navn,
+                              style: hbI(13, weight: FontWeight.w700, height: 1.3, color: const Color(0xFFDCE9EC), tabular: true),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            x.pris,
+                            style: hbI(13, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            HbPress(
+              dy: 2,
+              onTap: () => onIgjen(fo),
+              child: CssBox(
+                height: 48,
+                radius: BorderRadius.circular(15),
+                bg: kHbOransjeBg,
+                shadows: hbOransjeSkygge(),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const HbIkon(_kOmIgjen, size: 16, stroke: Colors.white, width: 2.6),
+                    const SizedBox(width: 8),
+                    Text(HurtigCopy.bestillDetSammeIgjen, style: hbJ(14.5, color: Colors.white)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      if (tidligere.isNotEmpty) ...[
+        const SizedBox(height: 10),
+        HbSeksjon(HurtigCopy.tidligere),
+        const SizedBox(height: 10),
+        // `margin:0 -16px; padding:0 16px 6px; overflow-x:auto`: the tiles
+        // start at the column's edge and scroll past it, unclipped.
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < tidligere.length; i++) ...[
+                if (i > 0) const SizedBox(width: 10),
+                HbFlisInn(delayMs: 150 + i * 80, child: _tidligere(tidligere[i])),
+              ],
+            ],
+          ),
+        ),
+      ],
+    ],
+  );
+
+  Widget _tidligere(HbOrdreVis t) => SizedBox(
+    width: 168,
+    child: HbGlass(
+      radius: 20,
+      clip: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HbTint(
+            farge: t.b.bg,
+            height: 54,
+            child: Stack(
+              children: [
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: HbBandChip(
+                    h: 22,
+                    pad: 8,
+                    child: Text(
+                      t.dato,
+                      style: hbI(10.5, weight: FontWeight.w800, color: Colors.white),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
-          CssBox(
-            radius: const BorderRadius.vertical(top: Radius.circular(14)),
-            bg: const [CssSolid(Color(0xFFFFFFFF))],
-            shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF))],
-            padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final x in fo.linjer)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Row(
-                      children: [
-                        CssBox(
-                          height: 22,
-                          radius: BorderRadius.circular(7),
-                          bg: const [CssSolid(Color(0xFFEAF1F2))],
-                          shadows: const [CssShadow.inset(0, -1.5, 0, 0, Color.fromRGBO(30, 79, 92, .14))],
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minWidth: 16),
-                            child: Center(
-                              child: Text(
-                                x.ant,
-                                style: hbI(11, weight: FontWeight.w800, color: kHbTeal, tabular: true),
+                _Overlapp(
+                  opp: 20,
+                  child: HbLogo(b: t.b, size: 40, radius: 13, ikon: 19, kant: 3, skygge: const [CssShadow(0, 8, 14, -8, Color.fromRGBO(0, 10, 16, .9))]),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 6),
+                    Text(
+                      t.butikk,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      softWrap: false,
+                      style: hbI(14, weight: FontWeight.w800, em: -.01, color: Colors.white),
+                    ),
+                    const SizedBox(height: 1),
+                    SizedBox(
+                      height: 31,
+                      child: Text(
+                        t.varer,
+                        maxLines: 2,
+                        overflow: TextOverflow.clip,
+                        style: hbI(11.5, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .7)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Semantics(
+                      button: true,
+                      label: HurtigCopy.bestillIgjen,
+                      child: HbPress(
+                        dy: 2,
+                        onTap: () => onIgjen(t),
+                        child: CssBox(
+                          height: 38,
+                          radius: BorderRadius.circular(12),
+                          bg: kHbOransjeBg,
+                          shadows: hbOransjeSkygge(),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const HbIkon(_kOmIgjen, size: 13, stroke: Colors.white, width: 2.6),
+                              const SizedBox(width: 6),
+                              Text(
+                                t.sum,
+                                style: hbI(13, weight: FontWeight.w800, color: Colors.white, tabular: true),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 9),
-                        Expanded(
-                          child: Text(x.navn, style: hbI(13, weight: FontWeight.w700, height: 1.25, tabular: true)),
-                        ),
-                        const SizedBox(width: 9),
-                        Text(x.pris, style: hbI(13, weight: FontWeight.w800, tabular: true)),
-                      ],
+                      ),
                     ),
-                  ),
-                const Padding(padding: EdgeInsets.fromLTRB(0, 7, 0, 9), child: HbStiplet()),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      HurtigCopy.betalt,
-                      style: hbI(12, weight: FontWeight.w800, color: kHbInkSoft),
-                    ),
-                    Text(fo.sum, style: hbJ(18, em: -.02, tabular: true)),
                   ],
                 ),
               ],
             ),
           ),
-          const HbPerforering(),
-          const SizedBox(height: 12),
-          HbPress(
-            dy: 3,
-            onTap: () => onIgjen(fo),
-            child: HbOransje(
-              height: 48,
-              radius: 15,
-              edge: 4,
-              glossInset: 10,
-              glossTop: 12,
-              glossBottom: 30,
-              deep: const CssShadow(0, 12, 16, -8, Color.fromRGBO(120, 40, 10, .6)),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const HbIkon(HbIkoner.omstart, size: 15, stroke: Colors.white, width: 2.8),
-                  const SizedBox(width: 8),
-                  Text(
-                    HurtigCopy.bestillDetSammeIgjen,
-                    style: hbJ(
-                      14,
-                      color: Colors.white,
-                      tabular: true,
-                      shadows: const [Shadow(color: Color.fromRGBO(120, 40, 10, .35), offset: Offset(0, 1))],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (tidligere.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 16, 4, 7),
-              child: Text(
-                HurtigCopy.tidligere,
-                style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbInkFaint),
-              ),
-            ),
-            for (var i = 0; i < tidligere.length; i++) ...[if (i > 0) const SizedBox(height: 6), _tidligere(tidligere[i])],
-          ],
         ],
       ),
-    );
-  }
-
-  Widget _tidligere(HbOrdreVis t) => CssBox(
-    radius: BorderRadius.circular(16),
-    bg: const [CssSolid(Color(0xFFFFFFFF))],
-    shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 1, 0, 0, Color.fromRGBO(35, 32, 29, .06)), CssShadow(0, 6, 12, -8, Color.fromRGBO(35, 32, 29, .35))],
-    padding: const EdgeInsets.fromLTRB(10, 9, 9, 9),
-    child: Row(
-      children: [
-        HbFlis(ini: t.ini, bg: t.bg, fg: t.fg, size: 36, radius: 11, fontSize: 11),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Expanded(
-                    child: Text(
-                      t.butikk,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      softWrap: false,
-                      style: hbI(13, weight: FontWeight.w800),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(t.sum, style: hbI(12, weight: FontWeight.w800, tabular: true)),
-                ],
-              ),
-              const SizedBox(height: 1),
-              Text(
-                t.dato,
-                style: hbI(10.5, weight: FontWeight.w800, color: kHbTeal),
-              ),
-              Text(
-                t.varer,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                softWrap: false,
-                style: hbI(10.5, color: kHbInkFaint),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 10),
-        HbPress(
-          dy: 3,
-          onTap: () => onIgjen(t),
-          child: CssBox(
-            height: 32,
-            radius: BorderRadius.circular(11),
-            bg: const [
-              CssLinear(165, [Color(0xFF33788A), Color(0xFF1E4F5C)]),
-            ],
-            shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 3, 0, 0, Color(0xFF0E2E36)), CssShadow(0, 8, 12, -6, Color.fromRGBO(4, 18, 26, .6))],
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const HbIkon(HbIkoner.omstart, size: 11, stroke: Color(0xFF7FF0CB), width: 2.8),
-                const SizedBox(width: 5),
-                Text(
-                  HurtigCopy.igjen,
-                  style: hbI(11.5, weight: FontWeight.w800, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     ),
   );
 }
 
 /// An order as the «forrige» card shows it.
 class HbOrdreVis {
-  const HbOrdreVis({
-    required this.ordre,
-    required this.butikk,
-    required this.ini,
-    required this.bg,
-    this.fg = Colors.white,
-    required this.sum,
-    required this.dato,
-    required this.varer,
-    this.under = '',
-    this.linjer = const [],
-  });
+  const HbOrdreVis({required this.ordre, required this.butikk, required this.b, required this.sum, required this.dato, required this.varer, this.kode = '', this.linjer = const []});
 
   final HbOrdre ordre;
   final String butikk;
-  final String ini;
-  final Color bg;
-  final Color fg;
+  final HbButikk b;
   final String sum;
   final String dato;
   final String varer;
-  final String under;
+  final String kode;
   final List<HbLinjeVis> linjer;
 }
 
@@ -645,8 +739,9 @@ class HbLinjeVis {
   final String pris;
 }
 
-/// «Hurtig · dine preferanser» (L4356): what Ægil has learned, the household
-/// stepper, the shellfish toggle, and «Ægil foreslår i kveld».
+/// «Hurtig · dine preferanser» (L4339): «Slik kjenner Ægil deg» with the
+/// taste tiles and «Endre» (→ Min Bio), the favourite stores, the household
+/// and allergy tiles, the dinner days, and «Ægil foreslår i kveld».
 class HbPrefKort extends StatelessWidget {
   const HbPrefKort({
     super.key,
@@ -658,318 +753,818 @@ class HbPrefKort extends StatelessWidget {
     required this.onHusPluss,
     required this.unngaaSkalldyr,
     required this.onSkalldyr,
-    required this.rytme,
-    required this.forslagLinje,
-    required this.forslagButikk,
-    required this.grunner,
-    required this.forslagSum,
-    required this.onForslag,
+    required this.middagDager,
+    required this.idag,
+    required this.kl,
+    required this.forslag,
     required this.onMinne,
   });
 
   final String under;
   final List<String> liker;
-  final List<String> butikker;
-  final String hus;
+  final List<HbButikk> butikker;
+  final int hus;
   final VoidCallback onHusMinus;
   final VoidCallback onHusPluss;
   final bool unngaaSkalldyr;
   final VoidCallback onSkalldyr;
-  final String rytme;
-  final String forslagLinje;
-  final String forslagButikk;
-  final List<String> grunner;
-  final String forslagSum;
-  final VoidCallback onForslag;
+
+  /// Dinner days, lower case, and today (`hbDag()`).
+  final List<String> middagDager;
+  final String idag;
+  final String kl;
+
+  /// «Ægil foreslår i kveld» (null: nothing to suggest yet).
+  final HbPrefForslagVis? forslag;
   final VoidCallback onMinne;
 
-  static const BoxDecoration _linje = BoxDecoration(
-    border: Border(top: BorderSide(color: Color.fromRGBO(35, 32, 29, .07))),
-  );
+  static const String _ikButikk = 'M4 9l1.5-5h13L20 9 M4 9h16v11H4z M9 20v-6h6v6';
+  static const String _ikHus = 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z M2.5 20a6.5 6.5 0 0 1 13 0 M16 4.5a3.5 3.5 0 0 1 0 6.5 M18 14.5a6 6 0 0 1 3.5 5.5';
+  static const String _ikSkjold = 'M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z';
+  static const String _ikKlokke = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 7v5l3 2';
+  static const String _ikKort = 'M3 6h18v13H3z M3 10.5h18';
+  static const String _ikSkaal = 'M3 13h18a9 9 0 0 1-18 0z M12 4v3';
+  static const String _ikBlyant = 'M4 20h4L19 9l-4-4L4 16z M14 6l4 4';
+  static const String _ikPerson = 'M10 1.8a4.2 4.2 0 1 0 0 8.4a4.2 4.2 0 1 0 0-8.4M2 22.5c0-4.9 3.6-8.5 8-8.5s8 3.6 8 8.5z';
 
-  Widget _rad(String label, Widget child, {double pad = 8, CrossAxisAlignment align = CrossAxisAlignment.start, double labelTop = 4}) => Container(
-    decoration: _linje,
-    padding: EdgeInsets.fromLTRB(2, pad, 2, pad),
-    child: Row(
-      crossAxisAlignment: align,
-      children: [
-        SizedBox(
-          width: 64,
-          child: Padding(
-            padding: EdgeInsets.only(top: align == CrossAxisAlignment.start ? labelTop : 0),
-            child: Text(
-              label,
-              style: hbI(10.5, weight: FontWeight.w800, color: kHbInkFaint),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(child: child),
-      ],
-    ),
-  );
+  /// `grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 8px`.
+  static Widget _rutenett(double w, List<Widget> barn, {double min = 86, double gap = 8}) {
+    final n = ((w + gap) / (min + gap)).floor().clamp(1, 99);
+    final bw = (w - gap * (n - 1)) / n;
+    return Wrap(
+      spacing: gap,
+      runSpacing: gap,
+      children: [for (final b in barn) SizedBox(width: bw, child: b)],
+    );
+  }
 
-  Widget _chips(List<String> items, Color bg, Color fg) => Wrap(
-    spacing: 5,
-    runSpacing: 5,
+  Widget _hode(String ik, String tittel, {bool fersken = false, Widget? hoyre}) => Row(
     children: [
-      for (final t in items)
-        Container(
-          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: bg),
-          child: Text(
-            t,
-            style: hbI(11, weight: FontWeight.w800, color: fg),
-          ),
+      HbHodeIkon(ik, fersken: fersken),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          tittel,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+          style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
         ),
+      ),
+      if (hoyre != null) ...[const SizedBox(width: 8), hoyre],
     ],
   );
 
   @override
-  Widget build(BuildContext context) {
-    return CssBox(
-      radius: BorderRadius.circular(22),
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEEF2F2)]),
-      ],
-      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 3, 0, 0, Color.fromRGBO(6, 30, 38, .5)), CssShadow(0, 16, 24, -14, Color.fromRGBO(3, 14, 20, .85))],
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(2, 0, 2, 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  HurtigCopy.dinePreferanser,
-                  style: hbI(10, weight: FontWeight.w800, em: .1, color: kHbTeal),
-                ),
-                Text(
-                  under,
-                  style: hbI(10.5, weight: FontWeight.w700, color: kHbInkFaint),
-                ),
-              ],
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      HbSeksjon(HurtigCopy.dinePreferanser, under: under),
+      const SizedBox(height: 10),
+      HbFlisInn(delayMs: 100, child: _kjenner()),
+      if (butikker.isNotEmpty) ...[const SizedBox(height: 10), HbFlisInn(delayMs: 200, child: _butikker())],
+      const SizedBox(height: 10),
+      IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: HbFlisInn(delayMs: 280, child: _husstand())),
+            const SizedBox(width: 10),
+            Expanded(
+              child: KeyedSubtree(
+                key: ValueKey('sk-$unngaaSkalldyr'),
+                child: HbFlisInn(delayMs: unngaaSkalldyr ? 340 : 100, child: _allergi()),
+              ),
             ),
-          ),
-          _rad(HurtigCopy.liker, _chips(liker, const Color(0xFFE3F5EE), kHbTealDeep)),
-          _rad(HurtigCopy.butikker, _chips(butikker, const Color.fromRGBO(35, 32, 29, .06), kHbInk)),
-          _rad(
-            HurtigCopy.husstand,
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(35, 32, 29, .06)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
+      HbFlisInn(delayMs: 400, child: _rytme()),
+      if (forslag != null) ...[const SizedBox(height: 10), _Forslag(f: forslag!)],
+    ],
+  );
+
+  Widget _kjenner() => HbGlass(
+    radius: 24,
+    clip: true,
+    bg: const [
+      CssRadial([Color.fromRGBO(92, 224, 184, .2), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .6], rx: .8, ry: .9, cx: 0, cy: 0),
+      ...kHbGlassBg,
+    ],
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 52,
+                height: 52,
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    HbPress(
-                      scale: .9,
-                      onTap: onHusMinus,
+                    const Positioned(left: -3, top: -3, right: -3, bottom: -3, child: ClipOval(child: HbSkannRing())),
+                    Positioned.fill(
                       child: Container(
-                        width: 26,
-                        height: 26,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(color: Color.fromRGBO(35, 32, 29, .15), offset: Offset(0, 1)),
-                            BoxShadow(color: Color.fromRGBO(35, 32, 29, .4), offset: Offset(0, 3), blurRadius: 6 / 2 / .57735, spreadRadius: -3),
-                          ],
+                        decoration: const BoxDecoration(shape: BoxShape.circle, color: kHbKant),
+                        padding: const EdgeInsets.all(2),
+                        child: const HbAegilFjes(size: 48, topp: -.06),
+                      ),
+                    ),
+                    Positioned(
+                      right: -1,
+                      bottom: 1,
+                      child: HbPusteDot(
+                        child: Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: kHbMint,
+                            border: Border.all(color: kHbKant, width: 2),
+                          ),
                         ),
-                        child: const Center(child: HbIkon(HbIkoner.minus, size: 11, stroke: kHbInk, width: 3)),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(minWidth: 74),
-                      child: Text(
-                        hus,
-                        textAlign: TextAlign.center,
-                        style: hbI(12, weight: FontWeight.w800, tabular: true),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    HbPress(
-                      scale: .9,
-                      onTap: onHusPluss,
-                      child: CssBox(
-                        width: 26,
-                        height: 26,
-                        radius: BorderRadius.circular(13),
-                        bg: const [
-                          CssLinear(165, [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
-                        ],
-                        shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .26)), CssShadow(0, 2, 0, 0, Color.fromRGBO(11, 38, 45, .9))],
-                        child: const Center(child: HbIkon(HbIkoner.pluss, size: 11, stroke: Colors.white, width: 3)),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            pad: 7,
-            align: CrossAxisAlignment.center,
-          ),
-          _rad(
-            HurtigCopy.allergier,
-            Row(
-              children: [
-                HbPress(
-                  scale: .95,
-                  onTap: onSkalldyr,
-                  child: unngaaSkalldyr
-                      ? CssBox(
-                          radius: BorderRadius.circular(999),
-                          bg: const [CssSolid(Color(0xFFFCE6DC))],
-                          shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(176, 71, 44, .25))],
-                          padding: const EdgeInsets.fromLTRB(8, 5, 11, 5),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const HbIkon(HbIkoner.kryss, size: 10, stroke: Color(0xFF9A3B22), width: 3.2),
-                              const SizedBox(width: 6),
-                              Text(
-                                HurtigCopy.unngaarSkalldyr,
-                                style: hbI(11, weight: FontWeight.w800, color: const Color(0xFF9A3B22)),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Container(
-                          padding: const EdgeInsets.fromLTRB(8, 5, 11, 5),
-                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color(0xFFE3F5EE)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const HbIkon(HbIkoner.hake, size: 10, stroke: Color(0xFF2E7E4F), width: 3.4),
-                              const SizedBox(width: 6),
-                              Text(
-                                HurtigCopy.skalldyrOk,
-                                style: hbI(11, weight: FontWeight.w800, color: const Color(0xFF2E7E4F)),
-                              ),
-                            ],
-                          ),
-                        ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(HurtigCopy.slikKjenner, style: hbJ(16, em: -.02, height: 1.2, color: Colors.white)),
+                    const SizedBox(height: 2),
+                    Text(under, style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66))),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(
-                    HurtigCopy.trykkForAaEndre,
-                    style: hbI(10, weight: FontWeight.w700, color: const Color(0xFF8C847C)),
+              ),
+              const SizedBox(width: 12),
+              HbPress(
+                key: const Key('hb-pref-endre'),
+                scale: .95,
+                onTap: onMinne,
+                child: CssBox(
+                  height: 32,
+                  radius: BorderRadius.circular(999),
+                  bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
+                  border: Border.all(color: const Color.fromRGBO(127, 240, 203, .4)),
+                  padding: const EdgeInsets.symmetric(horizontal: 13),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const HbIkon(_ikBlyant, size: 12, stroke: kHbMintPale, width: 2.6),
+                      const SizedBox(width: 5),
+                      Text(
+                        HurtigCopy.endre,
+                        style: hbI(12, weight: FontWeight.w800, color: kHbMintPale),
+                      ),
+                    ],
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (liker.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  HurtigCopy.duLikerKicker,
+                  style: hbI(10.5, weight: FontWeight.w800, em: .12, color: const Color.fromRGBO(255, 255, 255, .55)),
+                ),
+                const SizedBox(height: 8),
+                LayoutBuilder(
+                  builder: (context, box) => _rutenett(box.maxWidth, [for (var i = 0; i < liker.length; i++) HbFlisInn(delayMs: 180 + i * 70, child: _smak(liker[i], i))]),
                 ),
               ],
             ),
-            pad: 7,
-            align: CrossAxisAlignment.center,
           ),
-          _rad(
-            HurtigCopy.middag,
-            Text(rytme, style: hbI(12, weight: FontWeight.w800)),
-            align: CrossAxisAlignment.center,
-          ),
-          _rad(
-            HurtigCopy.betaling,
-            Text(HurtigCopy.vippsPaaDora, style: hbI(12, weight: FontWeight.w800)),
-            align: CrossAxisAlignment.center,
-          ),
-          const SizedBox(height: 6),
+      ],
+    ),
+  );
+
+  Widget _smak(String t, int i) => HbTenn(
+    delayMs: 1200 + i * 900,
+    builder: (lys) => CssBox(
+      radius: BorderRadius.circular(16),
+      bg: const [
+        CssLinear(180, [Color.fromRGBO(92, 224, 184, .14), Color.fromRGBO(92, 224, 184, .04)]),
+      ],
+      border: Border.all(color: Color.lerp(const Color.fromRGBO(127, 240, 203, .3), const Color.fromRGBO(127, 240, 203, .9), lys)!),
+      shadows: lys > 0 ? [CssShadow(0, 0, 14, 1, Color.fromRGBO(92, 224, 184, .5 * lys))] : const [],
+      padding: const EdgeInsets.fromLTRB(7, 13, 7, 11),
+      child: Column(
+        children: [
           CssBox(
-            radius: BorderRadius.circular(18),
-            clip: true,
+            width: 40,
+            height: 40,
+            radius: BorderRadius.circular(20),
             bg: const [
-              CssRadial([Color.fromRGBO(255, 148, 102, .26), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: 1.2, cx: 1, cy: 0),
-              CssLinear(160, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .6, 1]),
+              CssLinear(160, [Color(0xFF8CF0D2), Color(0xFF3CC79F)]),
             ],
-            shadows: const [
-              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
-              CssShadow(0, 3, 0, 0, Color.fromRGBO(11, 38, 45, .85)),
-              CssShadow(0, 10, 18, -12, Color.fromRGBO(4, 18, 26, .8)),
-            ],
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  HurtigCopy.foreslaarIKveld,
-                  style: hbI(9.5, weight: FontWeight.w800, em: .1, color: kHbMintPale),
-                ),
-                const SizedBox(height: 4),
-                Text(forslagLinje, style: hbJ(14, color: Colors.white, height: 1.3)),
-                const SizedBox(height: 2),
-                Text(
-                  forslagButikk,
-                  style: hbI(11, weight: FontWeight.w700, color: const Color(0xFFC4D8DE)),
-                ),
-                const SizedBox(height: 9),
-                Wrap(
-                  spacing: 5,
-                  runSpacing: 5,
+            shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .55)), CssShadow(0, 6, 12, -6, Color.fromRGBO(60, 199, 159, .8))],
+            child: Center(child: HbIkon(hbSmakIkon(t), size: 20, stroke: const Color(0xFF0F3A40), width: 2.2)),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            t,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+            style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
+          ),
+        ],
+      ),
+    ),
+  );
+
+  Widget _butikker() => HbGlass(
+    padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _hode(
+          _ikButikk,
+          HurtigCopy.favorittbutikker,
+          hoyre: Text(
+            HurtigCopy.lagret(butikker.length),
+            style: hbI(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)),
+          ),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, box) => _rutenett(box.maxWidth, [
+            for (var i = 0; i < butikker.length; i++)
+              HbFlisInn(
+                delayMs: 260 + i * 70,
+                child: Column(
                   children: [
-                    for (final g in grunner)
-                      CssBox(
-                        radius: BorderRadius.circular(999),
-                        bg: const [CssSolid(Color.fromRGBO(127, 240, 203, .14))],
-                        shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(127, 240, 203, .32))],
-                        padding: const EdgeInsets.fromLTRB(8, 3, 8, 3),
-                        child: Text(
-                          g,
-                          style: hbI(10, weight: FontWeight.w800, color: const Color(0xFFC8F7E6)),
-                        ),
-                      ),
+                    HbLogo(
+                      b: butikker[i],
+                      size: 52,
+                      radius: 17,
+                      ikon: 24,
+                      skygge: const [CssShadow(0, 0, 0, 2, Color.fromRGBO(127, 240, 203, .28)), CssShadow(0, 10, 16, -8, Color.fromRGBO(0, 10, 16, .9))],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      butikker[i].navn,
+                      textAlign: TextAlign.center,
+                      style: hbI(12, weight: FontWeight.w800, height: 1.25, color: Colors.white),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 11),
-                HbPress(
-                  dy: 2.5,
-                  onTap: onForslag,
-                  child: CssBox(
-                    height: 42,
-                    radius: BorderRadius.circular(13),
-                    bg: const [
-                      CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
-                    ],
-                    shadows: const [
-                      CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .45)),
-                      CssShadow(0, 3, 0, 0, Color(0xFFA63A12)),
-                      CssShadow(0, 10, 14, -8, Color.fromRGBO(3, 16, 24, .75)),
-                    ],
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const HbIkon(HbIkoner.lyn, size: 12, fill: Colors.white),
-                          const SizedBox(width: 7),
-                          Text(
-                            HurtigCopy.settOppSum(forslagSum),
-                            style: hbI(13, weight: FontWeight.w800, color: Colors.white, tabular: true),
-                          ),
-                        ],
+              ),
+          ]),
+        ),
+      ],
+    ),
+  );
+
+  Widget _husstand() => HbGlass(
+    padding: const EdgeInsets.fromLTRB(12, 13, 12, 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _hode(_ikHus, HurtigCopy.husstand),
+        const SizedBox(height: 10),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('$hus', style: hbJ(30, em: -.03, height: 1, color: Colors.white, tabular: true)),
+            const SizedBox(width: 5),
+            Text(
+              HurtigCopy.personOrd(hus),
+              style: hbI(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            for (var i = 0; i < 8; i++) ...[
+              if (i > 0) const SizedBox(width: 3),
+              i < hus ? HbPop(key: ValueKey('p$i-on'), delayMs: 350 + i * 50, child: const _Figur(on: true)) : const _Figur(on: false),
+            ],
+          ],
+        ),
+        const SizedBox(height: 10),
+        const Spacer(),
+        Row(
+          children: [
+            Expanded(child: _steg(HbIkoner.minus, HurtigCopy.faerre, onHusMinus)),
+            const SizedBox(width: 6),
+            Expanded(child: _steg(HbIkoner.pluss, HurtigCopy.flere, onHusPluss)),
+          ],
+        ),
+      ],
+    ),
+  );
+
+  Widget _steg(String ik, String navn, VoidCallback onTap) => Semantics(
+    button: true,
+    label: navn,
+    child: HbPress(
+      scale: .9,
+      onTap: onTap,
+      child: CssBox(
+        height: 34,
+        radius: BorderRadius.circular(11),
+        bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
+        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+        child: Center(child: HbIkon(ik, size: 13, stroke: kHbMintPale, width: 3)),
+      ),
+    ),
+  );
+
+  Widget _allergi() {
+    final u = unngaaSkalldyr;
+    return HbPress(
+      scale: .98,
+      ms: 140,
+      onTap: onSkalldyr,
+      child: HbGlass(
+        padding: const EdgeInsets.fromLTRB(12, 13, 12, 12),
+        clip: true,
+        kant: u ? const Color.fromRGBO(255, 180, 142, .32) : const Color.fromRGBO(255, 255, 255, .16),
+        bg: u
+            ? const [
+                CssRadial([Color.fromRGBO(255, 148, 102, .26), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .65], rx: 1, ry: .8, cx: 1, cy: 0),
+                ...kHbGlassBg,
+              ]
+            : kHbGlassBg,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _hode(_ikSkjold, HurtigCopy.allergier, fersken: u),
+            const SizedBox(height: 11),
+            Text(
+              u ? HurtigCopy.unngaarKicker : HurtigCopy.tillattKicker,
+              style: hbI(10.5, weight: FontWeight.w800, em: .12, color: u ? kHbFersken : kHbMintLys),
+            ),
+            const SizedBox(height: 2),
+            Text(HurtigCopy.skalldyr, style: hbJ(19, em: -.02, color: Colors.white)),
+            const SizedBox(height: 2),
+            Text(u ? HurtigCopy.holdesUnna : HurtigCopy.kanKomme, style: hbI(11, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .66))),
+            const SizedBox(height: 10),
+            const Spacer(),
+            SizedBox(
+              height: 34,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      HurtigCopy.trykkForAaEndre,
+                      style: hbI(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  CssBox(
+                    width: 42,
+                    height: 24,
+                    radius: BorderRadius.circular(999),
+                    bg: u
+                        ? const [
+                            CssLinear(180, [Color(0xFFF9A273), Color(0xFFE95C2C)]),
+                          ]
+                        : const [CssSolid(Color.fromRGBO(255, 255, 255, .16))],
+                    shadows: u ? const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .4))] : const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(0, 0, 0, .25))],
+                    child: Align(
+                      alignment: u ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        width: 18,
+                        height: 18,
+                        margin: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, .25), offset: Offset(0, 2), blurRadius: 4 / 2 / .57735)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rytme() => HbGlass(
+    padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _hode(
+          _ikKlokke,
+          HurtigCopy.middagsrytme,
+          hoyre: CssBox(
+            height: 24,
+            radius: BorderRadius.circular(999),
+            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
+            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Center(
+              widthFactor: 1,
+              child: Text(
+                HurtigCopy.rundtKl(kl),
+                style: hbI(11.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            for (var i = 0; i < 7; i++) ...[if (i > 0) const SizedBox(width: 5), Expanded(child: _dag(i))],
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.only(top: 12),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08))),
+          ),
+          child: Row(
+            children: [
+              const HbHodeIkon(_ikKort),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      HurtigCopy.betaling,
+                      style: hbI(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      HurtigCopy.vippsPaaDora,
+                      style: hbI(13, weight: FontWeight.w800, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                width: 22,
+                height: 22,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(shape: BoxShape.circle, color: kHbMint),
+                child: const HbIkon(HbIkoner.hake, size: 11, stroke: Color(0xFF0F3A40), width: 3.4),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _dag(int i) {
+    final navn = HurtigCopy.dagerNo[i];
+    final on = middagDager.contains(navn);
+    final iDag = idag == navn;
+    final k = HurtigCopy.dagKort(i);
+    final Widget flis = on
+        ? HbPop(
+            key: ValueKey('d$i-on'),
+            delayMs: 450 + i * 50,
+            ms: 450,
+            child: CssBox(
+              height: 46,
+              radius: BorderRadius.circular(13),
+              bg: kHbOransjeBg,
+              shadows: hbOransjeSkygge(dyp: 10, blur: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    k,
+                    style: hbI(11.5, weight: FontWeight.w800, color: Colors.white),
+                  ),
+                  const SizedBox(height: 2),
+                  const HbIkon(_ikSkaal, size: 12, stroke: Colors.white, width: 2.4),
+                ],
+              ),
+            ),
+          )
+        : CssBox(
+            key: ValueKey('d$i-av'),
+            height: 46,
+            radius: BorderRadius.circular(13),
+            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
+            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
+            child: Center(
+              child: Text(
+                k,
+                style: hbI(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .5)),
+              ),
+            ),
+          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        flis,
+        const SizedBox(height: 5),
+        SizedBox(
+          height: 6,
+          child: iDag
+              ? OverflowBox(
+                  maxHeight: 20,
+                  child: Text(
+                    HurtigCopy.iDagKicker,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: hbI(9, weight: FontWeight.w800, em: .06, color: kHbMintLys),
+                  ),
+                )
+              : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _Figur extends StatelessWidget {
+  const _Figur({required this.on});
+  final bool on;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 13,
+    height: 15,
+    child: FittedBox(
+      fit: BoxFit.fill,
+      child: SizedBox(
+        width: 24 * 20 / 24,
+        height: 24,
+        child: HbIkon(HbPrefKort._ikPerson, size: 24, fill: on ? kHbMintLys : const Color.fromRGBO(255, 255, 255, .16)),
+      ),
+    ),
+  );
+}
+
+/// What «Ægil foreslår i kveld» shows.
+class HbPrefForslagVis {
+  const HbPrefForslagVis({required this.linje, required this.butikk, required this.grunner, required this.sum, required this.retter, required this.wok, required this.onTap, this.bilde});
+
+  final String linje;
+  final String butikk;
+  final List<String> grunner;
+  final String sum;
+  final int retter;
+
+  /// `/wok|thai/` picks the warm tint and the bowl.
+  final bool wok;
+
+  /// The main dish's photo, when the menu has one.
+  final String? bilde;
+  final VoidCallback onTap;
+}
+
+/// «ÆGIL FORESLÅR I KVELD» (L4401): a picture band (the dish, else the
+/// design's tint with its icon), Ægil, the store, the dish line, the reasons
+/// and «Sett opp · sum».
+class _Forslag extends StatelessWidget {
+  const _Forslag({required this.f});
+  final HbPrefForslagVis f;
+
+  static const String _ikWok = 'M4 11h16a8 8 0 0 1-16 0z M9 7l6-4 M12 7l6-3';
+  static const String _ikFisk = 'M3 12c3-4 8-5 12-3l4-3v12l-4-3c-4 2-9 1-12-3z M15.5 11v.01';
+
+  Widget _chip(BuildContext context, Widget child, Color kant) {
+    final Widget c = CssBox(
+      height: 26,
+      radius: BorderRadius.circular(999),
+      bg: const [CssSolid(Color.fromRGBO(10, 26, 34, .55))],
+      border: Border.all(color: kant),
+      padding: const EdgeInsets.symmetric(horizontal: 11),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [child]),
+    );
+    if (!BergenPerf.blurOn(context, secondary: true)) return c;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(filter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4), child: c),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final url = f.bilde;
+    return HbGlass(
+      clip: true,
+      kant: const Color.fromRGBO(255, 180, 142, .3),
+      bg: const [
+        CssRadial([Color.fromRGBO(255, 148, 102, .22), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: 1.2, cx: 1, cy: 0),
+        ...kHbGlassBg,
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: 156,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(.4, -.4),
+                      radius: .8,
+                      colors: f.wok ? const [Color(0xFFE0A050), Color(0xFF8A5A1E)] : const [Color(0xFF6FA3B2), Color(0xFF2A6272)],
+                      stops: const [0, .7],
+                    ),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 84,
+                      height: 84,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color.fromRGBO(255, 255, 255, .16),
+                        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .28)),
+                      ),
+                      child: HbIkon(f.wok ? _ikWok : _ikFisk, size: 40, stroke: Colors.white, width: 1.8),
+                    ),
+                  ),
+                ),
+                if (url != null && url.isNotEmpty)
+                  // `bpKB 16s ease-in-out infinite alternate` (rests in lite / still).
+                  LfLoop(
+                    builder: (context, t, child) {
+                      final ping = (t / 16000) % 2;
+                      final p = cssEaseInOut.transform(ping <= 1 ? ping : 2 - ping);
+                      return Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..scaleByDouble(1.04 + .13 * p, 1.04 + .13 * p, 1, 1)
+                          ..translateByDouble(-.025 * 360 * p, -.02 * 156 * p, 0, 1),
+                        child: child,
+                      );
+                    },
+                    child: CachedNetworkImage(
+                      imageUrl: url,
+                      memCacheWidth: BergenPerf.decodeWidth,
+                      fit: BoxFit.cover,
+                      fadeInDuration: const Duration(milliseconds: 200),
+                      errorWidget: (_, _, _) => const SizedBox.shrink(),
+                    ),
+                  ),
+                const IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color.fromRGBO(10, 26, 34, .38), Color.fromRGBO(10, 26, 34, 0), Color.fromRGBO(10, 26, 34, 0), Color.fromRGBO(23, 62, 72, .85)],
+                        stops: [0, .34, .58, 1],
                       ),
                     ),
                   ),
                 ),
+                Positioned(
+                  left: 12,
+                  top: 12,
+                  child: _chip(
+                    context,
+                    Row(
+                      children: [
+                        const HbIkon(HbIkoner.lyn, size: 11, fill: kHbFersken),
+                        const SizedBox(width: 5),
+                        Text(
+                          HurtigCopy.foreslaarIKveld,
+                          style: hbI(10.5, weight: FontWeight.w800, em: .1, color: kHbFersken),
+                        ),
+                      ],
+                    ),
+                    const Color.fromRGBO(255, 180, 142, .4),
+                  ),
+                ),
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: _chip(
+                    context,
+                    Text(
+                      HurtigCopy.retter(f.retter),
+                      style: hbI(11.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                    ),
+                    const Color.fromRGBO(255, 255, 255, .22),
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onMinne,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(13, 0, 13, 13),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  HurtigCopy.endreDetAegilVet,
-                  style: hbI(11.5, weight: FontWeight.w800, color: kHbTeal),
+                _Overlapp(
+                  opp: 24,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: kHbKant,
+                          boxShadow: [
+                            BoxShadow(color: Color.fromRGBO(127, 240, 203, .6), spreadRadius: 2),
+                            BoxShadow(color: Color.fromRGBO(0, 10, 16, .8), offset: Offset(0, 8), blurRadius: 12 / 2 / .57735, spreadRadius: -6),
+                          ],
+                        ),
+                        child: const HbAegilFjes(size: 42),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 3),
+                          child: Text(
+                            f.butikk,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            softWrap: false,
+                            style: hbI(11.5, color: const Color.fromRGBO(255, 255, 255, .66)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(width: 5),
-                const HbIkon(HbIkoner.videre, size: 11, stroke: kHbTeal, width: 2.8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 10),
+                    LfPretty(f.linje, style: hbJ(15.5, em: -.01, height: 1.3, color: Colors.white)),
+                    if (f.grunner.isNotEmpty) ...[
+                      const SizedBox(height: 9),
+                      Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        children: [
+                          for (final g in f.grunner)
+                            CssBox(
+                              height: 24,
+                              radius: BorderRadius.circular(999),
+                              bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
+                              border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    decoration: const BoxDecoration(shape: BoxShape.circle, color: kHbMint),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    g,
+                                    style: hbI(11, weight: FontWeight.w700, color: const Color(0xFFDCE9EC)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    HbPress(
+                      dy: 2,
+                      onTap: f.onTap,
+                      child: CssBox(
+                        height: 46,
+                        radius: BorderRadius.circular(14),
+                        bg: kHbOransjeBg,
+                        shadows: hbOransjeSkygge(),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const HbIkon(HbIkoner.lyn, size: 13, fill: Colors.white),
+                            const SizedBox(width: 7),
+                            Text(HurtigCopy.settOppSum(f.sum), style: hbJ(14, color: Colors.white, tabular: true)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -979,7 +1574,8 @@ class HbPrefKort extends StatelessWidget {
   }
 }
 
-/// «Hurtig · bestilt» (L4385): the confirmation inside the chat.
+/// «Hurtig · bestilt» (L4435): the confirmation inside the chat, in glass
+/// with a mint border.
 class HbBestiltKort extends StatelessWidget {
   const HbBestiltKort({super.key, required this.kode, required this.butikk, required this.klar, required this.linje, required this.kr, required this.sum, required this.onFolg});
 
@@ -992,118 +1588,106 @@ class HbBestiltKort extends StatelessWidget {
   final VoidCallback onFolg;
 
   @override
-  Widget build(BuildContext context) {
-    return CssBox(
-      radius: BorderRadius.circular(22),
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEEF2F2)]),
-      ],
-      shadows: const [
-        CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
-        CssShadow(0, 0, 0, 2, Color.fromRGBO(92, 224, 184, .55)),
-        CssShadow(0, 3, 0, 2, Color.fromRGBO(6, 30, 38, .45)),
-        CssShadow(0, 18, 26, -14, Color.fromRGBO(3, 14, 20, .85)),
-      ],
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              CssBox(
-                width: 44,
-                height: 44,
-                radius: BorderRadius.circular(22),
-                bg: const [
-                  CssLinear(180, [Color(0xFF8CF0D2), Color(0xFF3CC79F)]),
+  Widget build(BuildContext context) => CssBox(
+    radius: BorderRadius.circular(22),
+    bg: const [
+      CssLinear(180, [Color.fromRGBO(255, 255, 255, .09), Color.fromRGBO(255, 255, 255, .04)]),
+    ],
+    border: Border.all(color: const Color.fromRGBO(127, 240, 203, .4)),
+    shadows: const [CssShadow(0, 18, 30, -20, Color.fromRGBO(0, 10, 16, .9))],
+    padding: const EdgeInsets.fromLTRB(13, 15, 13, 13),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: kHbMint,
+                boxShadow: [
+                  BoxShadow(color: Color(0xFF23946F), offset: Offset(0, 3)),
+                  BoxShadow(color: Color.fromRGBO(20, 110, 80, .7), offset: Offset(0, 10), blurRadius: 16 / 2 / .57735, spreadRadius: -8),
                 ],
-                shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .6)), CssShadow(0, 3, 0, 0, Color(0xFF23946F)), CssShadow(0, 10, 16, -8, Color.fromRGBO(20, 110, 80, .7))],
-                child: const Center(child: HbIkon(HbIkoner.hake, size: 20, stroke: Color(0xFF0F3A40), width: 3.2)),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      HurtigCopy.bestiltKode(kode),
-                      style: hbI(10, weight: FontWeight.w800, em: .1, color: const Color(0xFF2E8B5E)),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(butikk, style: hbJ(15.5, em: -.01)),
-                    Text(
-                      klar,
-                      style: hbI(11.5, weight: FontWeight.w700, color: kHbInkSoft),
-                    ),
-                  ],
-                ),
+              child: const HbIkon(HbIkoner.hake, size: 19, stroke: Color(0xFF0F3A40), width: 3.2),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    HurtigCopy.bestiltKode(kode),
+                    style: hbI(10, weight: FontWeight.w800, em: .1, color: kHbMintLys),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(butikk, style: hbJ(15.5, em: -.01, color: Colors.white)),
+                  Text(klar, style: hbI(11.5, color: const Color.fromRGBO(255, 255, 255, .6))),
+                ],
               ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        LfPretty(linje, style: hbI(12, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .7))),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.only(top: 10),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08))),
           ),
-          const SizedBox(height: 10),
-          LfPretty(linje, style: hbI(12, color: kHbInkSoft, height: 1.4)),
-          const SizedBox(height: 9),
-          const HbStiplet(color: Color.fromRGBO(35, 32, 29, .2), dash: 3, gap: 3),
-          const SizedBox(height: 9),
-          Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.fromLTRB(9, 4, 9, 4),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color(0xFFE3F5EE)),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(92, 224, 184, .14)),
                 child: Text(
                   kr,
-                  style: hbI(10.5, weight: FontWeight.w800, color: const Color(0xFF2E7E4F)),
+                  style: hbI(10.5, weight: FontWeight.w800, color: kHbMintLys),
                 ),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(
-                    HurtigCopy.vipps,
-                    style: hbI(11, weight: FontWeight.w700, color: kHbInkFaint),
-                  ),
+                  Text(HurtigCopy.vipps, style: hbI(11, color: const Color.fromRGBO(255, 255, 255, .6))),
                   const SizedBox(width: 6),
-                  Text(sum, style: hbJ(16, tabular: true)),
+                  Text(sum, style: hbJ(16, color: Colors.white, tabular: true)),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          HbPress(
-            dy: 2.5,
-            onTap: onFolg,
-            child: CssBox(
-              height: 44,
-              radius: BorderRadius.circular(14),
-              bg: const [
-                CssLinear(165, [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
-              ],
-              shadows: const [
-                CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)),
-                CssShadow(0, 3, 0, 0, Color.fromRGBO(11, 38, 45, .9)),
-                CssShadow(0, 10, 14, -8, Color.fromRGBO(15, 45, 55, .8)),
-              ],
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      HurtigCopy.folgBestillingen,
-                      style: hbI(13.5, weight: FontWeight.w800, color: Colors.white),
-                    ),
-                    const SizedBox(width: 7),
-                    const HbIkon(HbIkoner.videre, size: 13, stroke: Color(0xFF7FF0CB), width: 2.8),
-                  ],
+        ),
+        const SizedBox(height: 12),
+        HbPress(
+          scale: .98,
+          onTap: onFolg,
+          child: CssBox(
+            height: 44,
+            radius: BorderRadius.circular(14),
+            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
+            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  HurtigCopy.folgBestillingen,
+                  style: hbI(13.5, weight: FontWeight.w800, color: Colors.white),
                 ),
-              ),
+                const SizedBox(width: 7),
+                const HbIkon(HbIkoner.videre, size: 13, stroke: kHbMintLys, width: 2.8),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
 
 /// «Hurtig · ordreutkast» (L4417): the draft with its lines and steppers,
@@ -1157,20 +1741,13 @@ class HbUtkastKort extends StatelessWidget {
   final VoidCallback onTidBytt;
   final VoidCallback onTilKurv;
 
-  static const List<CssShadow> _flat = [
-    CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
-    CssShadow(0, 1, 0, 0, Color.fromRGBO(35, 32, 29, .06)),
-    CssShadow(0, 6, 12, -8, Color.fromRGBO(35, 32, 29, .35)),
-  ];
+  static const Color _svak = Color.fromRGBO(255, 255, 255, .66);
+  static const Border _kant = Border.fromBorderSide(BorderSide(color: Color.fromRGBO(255, 255, 255, .08)));
 
-  Widget _rund(Widget icon) => CssBox(
+  Widget _rund(Widget icon) => Container(
     width: 28,
     height: 28,
-    radius: BorderRadius.circular(14),
-    bg: const [
-      CssLinear(180, [Color(0xFFEAF4F5), Color(0xFFD2E4E7)]),
-    ],
-    shadows: const [CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 1.5, 0, 0, Color(0xFFAFC4C9))],
+    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(92, 224, 184, .12)),
     child: Center(child: icon),
   );
 
@@ -1181,10 +1758,11 @@ class HbUtkastKort extends StatelessWidget {
     return CssBox(
       radius: BorderRadius.circular(26),
       bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE8EFEF)]),
+        CssLinear(180, [Color.fromRGBO(255, 255, 255, .09), Color.fromRGBO(255, 255, 255, .04)]),
       ],
-      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 5, 0, 0, Color.fromRGBO(6, 30, 38, .55)), CssShadow(0, 26, 36, -16, Color.fromRGBO(3, 14, 20, .9))],
-      padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
+      shadows: const [CssShadow(0, 22, 34, -20, Color.fromRGBO(0, 10, 16, .9))],
+      padding: const EdgeInsets.fromLTRB(13, 15, 13, 13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1200,24 +1778,30 @@ class HbUtkastKort extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const HbIkon(HbIkoner.lyn, size: 10, fill: Color(0xFFE95C2C)),
+                          const HbIkon(HbIkoner.lyn, size: 10, fill: Color(0xFFFF9466)),
                           const SizedBox(width: 5),
                           Text(
                             HurtigCopy.aegilsUtkast,
-                            style: hbI(10, weight: FontWeight.w800, em: .12, color: const Color(0xFFD2501F)),
+                            style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbFersken),
                           ),
                         ],
                       ),
                       const SizedBox(height: 1),
-                      Text(butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: hbJ(16, em: -.015)),
+                      Text(
+                        butikk,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        softWrap: false,
+                        style: hbJ(16, em: -.015, color: Colors.white),
+                      ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const HbIkon(HbIkoner.klokke, size: 11, stroke: kHbTeal, width: 2.6),
+                          const HbIkon(HbIkoner.klokke, size: 11, stroke: kHbMintPale, width: 2.6),
                           const SizedBox(width: 5),
                           Text(
                             klar,
-                            style: hbI(11, weight: FontWeight.w700, color: kHbInkSoft, tabular: true),
+                            style: hbI(11, weight: FontWeight.w700, color: _svak, tabular: true),
                           ),
                         ],
                       ),
@@ -1238,7 +1822,7 @@ class HbUtkastKort extends StatelessWidget {
                 children: [
                   Text(
                     HurtigCopy.leggTil,
-                    style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbInkFaint),
+                    style: hbI(10, weight: FontWeight.w800, em: .12, color: _svak),
                   ),
                   const SizedBox(height: 7),
                   Wrap(spacing: 7, runSpacing: 7, children: [for (final f in forslag) _forslag(f)]),
@@ -1249,8 +1833,7 @@ class HbUtkastKort extends StatelessWidget {
           const SizedBox(height: 12),
           CssBox(
             radius: BorderRadius.circular(17),
-            bg: const [CssSolid(Color.fromRGBO(30, 79, 92, .06))],
-            shadows: const [CssShadow.inset(0, 1.5, 3, 0, Color.fromRGBO(30, 60, 70, .13)), CssShadow(0, 1, 0, 0, Color(0xFFFFFFFF))],
+            bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .14))],
             padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1260,11 +1843,11 @@ class HbUtkastKort extends StatelessWidget {
                   children: [
                     Text(
                       HurtigCopy.varer,
-                      style: hbI(12, weight: FontWeight.w700, color: kHbInkSoft),
+                      style: hbI(12, weight: FontWeight.w700, color: _svak),
                     ),
                     Text(
                       varer,
-                      style: hbI(12, weight: FontWeight.w700, color: kHbInkSoft, tabular: true),
+                      style: hbI(12, weight: FontWeight.w700, color: _svak, tabular: true),
                     ),
                   ],
                 ),
@@ -1274,23 +1857,22 @@ class HbUtkastKort extends StatelessWidget {
                   children: [
                     Text(
                       HurtigCopy.levering,
-                      style: hbI(12, weight: FontWeight.w700, color: kHbInkSoft),
+                      style: hbI(12, weight: FontWeight.w700, color: _svak),
                     ),
                     if (levGratis)
                       CssBox(
                         radius: BorderRadius.circular(999),
-                        bg: const [CssSolid(Color(0xFFD9F4EA))],
-                        shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(47, 184, 147, .35))],
+                        bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
                         padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                         child: Text(
                           HurtigCopy.gratis,
-                          style: hbI(11, weight: FontWeight.w800, color: const Color(0xFF1F7A55)),
+                          style: hbI(11, weight: FontWeight.w800, color: kHbMintLys),
                         ),
                       )
                     else
                       Text(
                         lev,
-                        style: hbI(12, weight: FontWeight.w700, color: kHbInkSoft, tabular: true),
+                        style: hbI(12, weight: FontWeight.w700, color: _svak, tabular: true),
                       ),
                   ],
                 ),
@@ -1300,12 +1882,9 @@ class HbUtkastKort extends StatelessWidget {
                     Expanded(
                       child: Container(
                         height: 8,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: const Color.fromRGBO(35, 32, 29, .1)),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: const Color.fromRGBO(255, 255, 255, .1)),
                         child: Stack(
                           children: [
-                            Positioned.fill(
-                              child: CssBox(radius: BorderRadius.circular(4), clip: true, shadows: const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(35, 32, 29, .22))]),
-                            ),
                             TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0, end: levPst.clamp(0, 1)),
                               duration: const Duration(milliseconds: 600),
@@ -1317,9 +1896,8 @@ class HbUtkastKort extends StatelessWidget {
                                   radius: BorderRadius.circular(4),
                                   clip: true,
                                   bg: [
-                                    levGratis ? const CssLinear(180, [Color(0xFF8CF0D2), Color(0xFF2FB893)]) : const CssLinear(180, [Color(0xFFFFB089), Color(0xFFF26D3D)]),
+                                    levGratis ? const CssLinear(180, [Color(0xFF8CF0D2), Color(0xFF2FB893)]) : const CssLinear(90, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
                                   ],
-                                  shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .55))],
                                 ),
                               ),
                             ),
@@ -1330,20 +1908,23 @@ class HbUtkastKort extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       levTekst,
-                      style: hbI(10.5, weight: FontWeight.w800, color: levGratis ? const Color(0xFF1F7A55) : const Color(0xFFC2481C)),
+                      style: hbI(10.5, weight: FontWeight.w800, color: levGratis ? kHbMintLys : kHbFersken),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Container(height: 1, color: const Color.fromRGBO(35, 32, 29, .1)),
+                Container(height: 1, color: const Color.fromRGBO(255, 255, 255, .08)),
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(HurtigCopy.totalt, style: hbI(13, weight: FontWeight.w800)),
-                    Text(total, style: hbJ(22, em: -.03, tabular: true)),
+                    Text(
+                      HurtigCopy.totalt,
+                      style: hbI(13, weight: FontWeight.w800, color: Colors.white),
+                    ),
+                    Text(total, style: hbJ(22, em: -.03, color: Colors.white, tabular: true)),
                   ],
                 ),
               ],
@@ -1352,12 +1933,12 @@ class HbUtkastKort extends StatelessWidget {
           const SizedBox(height: 10),
           CssBox(
             radius: BorderRadius.circular(14),
-            bg: const [CssSolid(Color(0xFFFFFFFF))],
-            shadows: _flat,
-            padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
+            border: _kant,
+            padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
             child: Row(
               children: [
-                _rund(const HbIkon(HbIkoner.pin, size: 13, fill: kHbTeal)),
+                _rund(const HbIkon(HbIkoner.pin, size: 13, fill: kHbMintPale)),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Column(
@@ -1365,14 +1946,14 @@ class HbUtkastKort extends StatelessWidget {
                     children: [
                       Text(
                         HurtigCopy.leveresTil,
-                        style: hbI(9.5, weight: FontWeight.w800, color: const Color(0xFF8C847C)),
+                        style: hbI(9.5, weight: FontWeight.w800, color: _svak),
                       ),
                       Text(
                         adresse,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
-                        style: hbI(12.5, weight: FontWeight.w800),
+                        style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
                       ),
                     ],
                   ),
@@ -1391,12 +1972,12 @@ class HbUtkastKort extends StatelessWidget {
                     onTap: onTidBytt,
                     child: CssBox(
                       radius: BorderRadius.circular(14),
-                      bg: const [CssSolid(Color(0xFFFFFFFF))],
-                      shadows: const [CssShadow.inset(0, 0, 0, 1.5, Color.fromRGBO(42, 98, 114, .38)), CssShadow(0, 6, 12, -8, Color.fromRGBO(35, 32, 29, .35))],
-                      padding: const EdgeInsets.fromLTRB(10, 8, 9, 8),
+                      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
+                      border: Border.all(color: const Color.fromRGBO(127, 240, 203, .3)),
+                      padding: const EdgeInsets.fromLTRB(11, 9, 10, 9),
                       child: Row(
                         children: [
-                          _rund(const HbIkon(HbIkoner.klokke, size: 13, stroke: kHbTeal, width: 2.6)),
+                          _rund(const HbIkon(HbIkoner.klokke, size: 13, stroke: kHbMintPale, width: 2.6)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
@@ -1404,20 +1985,20 @@ class HbUtkastKort extends StatelessWidget {
                               children: [
                                 Text(
                                   HurtigCopy.naar,
-                                  style: hbI(9.5, weight: FontWeight.w800, color: kHbTeal),
+                                  style: hbI(9.5, weight: FontWeight.w800, color: kHbMintPale),
                                 ),
                                 Text(
                                   tid,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   softWrap: false,
-                                  style: hbI(12.5, weight: FontWeight.w800, tabular: true),
+                                  style: hbI(12.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const HbIkon(HbIkoner.tidBytt, size: 12, stroke: kHbTeal, width: 2.8),
+                          const HbIkon(HbIkoner.tidBytt, size: 12, stroke: kHbMintPale, width: 2.8),
                         ],
                       ),
                     ),
@@ -1427,12 +2008,12 @@ class HbUtkastKort extends StatelessWidget {
                 Expanded(
                   child: CssBox(
                     radius: BorderRadius.circular(14),
-                    bg: const [CssSolid(Color(0xFFFFFFFF))],
-                    shadows: _flat,
-                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
+                    border: _kant,
+                    padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
                     child: Row(
                       children: [
-                        _rund(const HbIkon(HbIkoner.kort, size: 13, stroke: kHbTeal, width: 2.6)),
+                        _rund(const HbIkon(HbIkoner.kort, size: 13, stroke: kHbMintPale, width: 2.6)),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Column(
@@ -1440,7 +2021,7 @@ class HbUtkastKort extends StatelessWidget {
                             children: [
                               Text(
                                 HurtigCopy.betaling,
-                                style: hbI(9.5, weight: FontWeight.w800, color: const Color(0xFF8C847C)),
+                                style: hbI(9.5, weight: FontWeight.w800, color: _svak),
                               ),
                               const SizedBox(height: 2),
                               CssBox(
@@ -1449,7 +2030,7 @@ class HbUtkastKort extends StatelessWidget {
                                 bg: const [CssSolid(Color(0xFFFF5B24))],
                                 shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .35)), CssShadow(0, 1.5, 0, 0, Color(0xFFC23A0C))],
                                 padding: const EdgeInsets.symmetric(horizontal: 7),
-                                child: Center(child: Image.asset('assets/images/vipps_logo_hvit.png', height: 10, filterQuality: FilterQuality.medium)),
+                                child: Center(widthFactor: 1, child: Image.asset('assets/images/vipps_logo_hvit.png', height: 10, filterQuality: FilterQuality.medium)),
                               ),
                             ],
                           ),
@@ -1539,7 +2120,7 @@ class HbUtkastKort extends StatelessWidget {
             Center(
               child: Text(
                 HurtigCopy.betalesMedVipps,
-                style: hbI(11.5, weight: FontWeight.w700, color: kHbInkSoft),
+                style: hbI(11.5, weight: FontWeight.w700, color: _svak),
               ),
             )
           else
@@ -1549,11 +2130,11 @@ class HbUtkastKort extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const HbIkon(HbIkoner.kurv, size: 13, stroke: kHbTeal, width: 2.6),
+                  const HbIkon(HbIkoner.kurv, size: 13, stroke: kHbMintPale, width: 2.6),
                   const SizedBox(width: 6),
                   Text(
                     HurtigCopy.leggIKurvenIStedet,
-                    style: hbI(12, weight: FontWeight.w800, color: kHbTeal),
+                    style: hbI(12, weight: FontWeight.w800, color: kHbMintPale),
                   ),
                 ],
               ),
@@ -1565,20 +2146,25 @@ class HbUtkastKort extends StatelessWidget {
 
   Widget _linje(HbUtkastLinjeVis l) => CssBox(
     radius: BorderRadius.circular(16),
-    bg: const [CssSolid(Color(0xFFFFFFFF))],
-    shadows: _flat,
-    padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
+    border: _kant,
+    padding: const EdgeInsets.fromLTRB(13, 11, 11, 11),
     child: Row(
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l.navn, maxLines: 2, overflow: TextOverflow.ellipsis, style: hbJ(13.5, em: -.01, height: 1.2)),
+              Text(
+                l.navn,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: hbJ(13.5, em: -.01, height: 1.2, color: Colors.white),
+              ),
               const SizedBox(height: 3),
               Text(
                 HurtigCopy.perStk(l.enhet),
-                style: hbI(11, weight: FontWeight.w700, color: kHbInkFaint, tabular: true),
+                style: hbI(11, weight: FontWeight.w700, color: _svak, tabular: true),
               ),
             ],
           ),
@@ -1590,8 +2176,7 @@ class HbUtkastKort extends StatelessWidget {
             CssBox(
               height: 36,
               radius: BorderRadius.circular(999),
-              bg: const [CssSolid(Color(0xFFE4ECED))],
-              shadows: const [CssShadow.inset(0, 1.5, 3, 0, Color.fromRGBO(30, 60, 70, .24)), CssShadow(0, 1, 0, 0, Color(0xFFFFFFFF))],
+              bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
               padding: const EdgeInsets.all(4),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1599,35 +2184,31 @@ class HbUtkastKort extends StatelessWidget {
                   HbPress(
                     dy: 2,
                     onTap: l.onMinus,
-                    child: CssBox(
+                    child: Container(
                       width: 28,
                       height: 28,
-                      radius: BorderRadius.circular(14),
-                      bg: const [
-                        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEEF3F4)]),
-                      ],
-                      shadows: const [CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 2, 0, 0, Color(0xFFB5C4C8)), CssShadow(0, 4, 6, -3, Color.fromRGBO(30, 60, 70, .4))],
-                      child: const Center(child: HbIkon(HbIkoner.minus, size: 11, stroke: kHbInk, width: 3.2)),
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                      child: const Center(child: HbIkon(HbIkoner.minus, size: 11, stroke: kHbMintPale, width: 3.2)),
                     ),
                   ),
                   const SizedBox(width: 2),
                   SizedBox(
                     width: 26,
-                    child: Text('${l.ant}', textAlign: TextAlign.center, style: hbJ(14, tabular: true)),
+                    child: Text(
+                      '${l.ant}',
+                      textAlign: TextAlign.center,
+                      style: hbJ(14, color: Colors.white, tabular: true),
+                    ),
                   ),
                   const SizedBox(width: 2),
                   HbPress(
                     dy: 2,
                     onTap: l.onPluss,
-                    child: CssBox(
+                    child: Container(
                       width: 28,
                       height: 28,
-                      radius: BorderRadius.circular(14),
-                      bg: const [
-                        CssLinear(180, [Color(0xFF3A8296), Color(0xFF1E4F5C)]),
-                      ],
-                      shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)), CssShadow(0, 2, 0, 0, Color(0xFF0E2E36)), CssShadow(0, 4, 6, -3, Color.fromRGBO(4, 18, 26, .6))],
-                      child: const Center(child: HbIkon(HbIkoner.pluss, size: 11, stroke: Colors.white, width: 3.2)),
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                      child: const Center(child: HbIkon(HbIkoner.pluss, size: 11, stroke: kHbMintPale, width: 3.2)),
                     ),
                   ),
                 ],
@@ -1636,7 +2217,7 @@ class HbUtkastKort extends StatelessWidget {
             const SizedBox(height: 5),
             Padding(
               padding: const EdgeInsets.only(right: 4),
-              child: Text(l.sum, style: hbJ(13, tabular: true)),
+              child: Text(l.sum, style: hbJ(13, color: Colors.white, tabular: true)),
             ),
           ],
         ),
@@ -1650,11 +2231,9 @@ class HbUtkastKort extends StatelessWidget {
     child: CssBox(
       height: 34,
       radius: BorderRadius.circular(999),
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF3F7F7)]),
-      ],
-      shadows: const [CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 2.5, 0, 0, Color(0xFFC5D2D5)), CssShadow(0, 7, 10, -6, Color.fromRGBO(30, 60, 70, .4))],
-      padding: const EdgeInsets.fromLTRB(4, 0, 12, 0),
+      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .07))],
+      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
+      padding: const EdgeInsets.fromLTRB(5, 0, 13, 0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1663,17 +2242,19 @@ class HbUtkastKort extends StatelessWidget {
             height: 26,
             radius: BorderRadius.circular(13),
             bg: const [
-              CssLinear(180, [Color(0xFFFFA77C), Color(0xFFE95C2C)]),
+              CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)]),
             ],
-            shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .5)), CssShadow(0, 1.5, 0, 0, Color(0xFFA63A12))],
             child: const Center(child: HbIkon(HbIkoner.pluss, size: 11, stroke: Colors.white, width: 3.4)),
           ),
           const SizedBox(width: 7),
-          Text(f.navn, style: hbI(11.5, weight: FontWeight.w800, tabular: true)),
+          Text(
+            f.navn,
+            style: hbI(11.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+          ),
           const SizedBox(width: 7),
           Text(
             f.pris,
-            style: hbI(11, weight: FontWeight.w800, color: kHbTeal, tabular: true),
+            style: hbI(11, weight: FontWeight.w800, color: kHbMintPale, tabular: true),
           ),
         ],
       ),

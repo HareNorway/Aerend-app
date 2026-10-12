@@ -11,6 +11,7 @@ import 'package:aerend_customer/data/points/points_rules.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
 import 'package:aerend_customer/networking/ops/ops_kasse_api.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_guide.dart';
+import 'package:aerend_customer/screens/bergen/aegil/aegil_innst.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_launch_copy.dart';
 import 'package:aerend_customer/screens/bergen/aegil/aegil_screen.dart';
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_data.dart';
@@ -124,7 +125,8 @@ void main() {
       expect(find.textContaining('Reker', findRichText: true), findsOneWidget);
       expect(find.text(AeCopy.taco), findsOneWidget);
       expect(find.text(AeCopy.gave), findsOneWidget);
-      expect(find.text(AeCopy.foreslaa), findsOneWidget);
+      // New Bergen: the level chip names the level («Varsle og foreslå»).
+      expect(find.text(AeInnstCopy.navn[2]), findsOneWidget);
       // No delivered order: no «Ægil tipper».
       expect(find.byKey(const Key('a1_aegil_tipper')), findsNothing);
     });
@@ -325,17 +327,29 @@ void main() {
       await tester.pump(const Duration(seconds: 9));
     });
 
-    testWidgets('Så mye kan Ægil gjøre: levels and limits go to the settings', (tester) async {
+    testWidgets('Innstillinger for Ægil: levels, Av = pause, limits go to the settings', (tester) async {
       _frame(tester);
       final repo = FakeAegilRepo();
       await tester.pumpWidget(_app(_skjerm(repo: repo, steg: 'nivaa')));
       await _settle(tester);
-      expect(find.text(AeCopy.nivaaTittel), findsOneWidget);
-      expect(find.text('2 · Varsle og foreslå'), findsOneWidget);
-      await tester.ensureVisible(find.byKey(const Key('a1_aegil_ramme_4')));
-      await tester.tap(find.byKey(const Key('a1_aegil_ramme_4')));
+      expect(find.text(AeInnstCopy.tittel), findsOneWidget);
+      expect(find.text(AeInnstCopy.nivaa(2)), findsOneWidget);
+      expect(find.text('Varsle og foreslå'), findsWidgets);
+      expect(find.text(AeInnstCopy.kommerSnart), findsOneWidget);
+      // The pause and «Tilbake til Ægil» are gone (the pause is «0 · Av»).
+      expect(find.byKey(const Key('a1_aegil_pause')), findsNothing);
+      await _tapV(tester, find.byKey(const Key('ae-innst-nivaa-1')));
+      await _settle(tester);
+      expect(repo.calls.any((c) => c.contains('level') && c.contains('0')), isTrue);
+      await _tapV(tester, find.byKey(const Key('ae-innst-nivaa-0')));
+      await _settle(tester);
+      expect(repo.calls.any((c) => c.contains('paused_until')), isTrue);
+      await _tapV(tester, find.byKey(const Key('ae-innst-laer')));
       await _settle(tester);
       expect(repo.calls.any((c) => c.contains('learning_enabled')), isTrue);
+      await _tapV(tester, find.byKey(const Key('ae-innst-ferdig')));
+      await _settle(tester);
+      expect(find.text(AeInnstCopy.tittel), findsNothing);
       await tester.pump(const Duration(seconds: 3));
     });
 
@@ -376,13 +390,18 @@ void main() {
       await _tapV(tester, find.byKey(const Key('a1_aegil_ob_neste')));
       await _settle(tester);
       expect(find.text(AeCopy.sumTittel), findsOneWidget);
+      // New Bergen summary: «Minnet er startet» with the answers as chips.
+      expect(find.text(AeCopy.lagretIMinne), findsOneWidget);
+      expect(find.text(AeCopy.kat[1]), findsOneWidget);
+      expect(find.text('Ingen ${AeCopy.kost[3].toLowerCase()}'), findsOneWidget);
+      expect(find.text('Middag ${AeCopy.dager[3].toLowerCase()}'), findsOneWidget);
       await _tapV(tester, find.byKey(const Key('a1_aegil_ob_stemmer')));
       await _settle(tester);
       final chips = repo.calls.firstWhere((c) => c.startsWith('chips:'));
       expect(chips, contains('kategori:mat og fisk'));
       expect(chips, contains('skalldyr'));
       expect(chips, contains('torsdag'));
-      expect(find.text(AeCopy.nivaaTittel), findsOneWidget);
+      expect(find.text(AeInnstCopy.tittel), findsOneWidget);
       await tester.pump(const Duration(seconds: 3));
     });
   });

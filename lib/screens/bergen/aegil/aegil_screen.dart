@@ -37,6 +37,7 @@ import '../kit/bergen_routes.dart';
 import '../meg/a3_services.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
+import 'aegil_innst.dart';
 import 'aegil_laer.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_scene.dart';
@@ -601,15 +602,6 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     }
   }
 
-  void _velgNivaa(int k) {
-    HapticFeedback.selectionClick();
-    if (k == 4 && !(_settings?.recurringAgreement ?? false)) {
-      LfToast.show(context, AeCopy.fastUkeshandel);
-      return;
-    }
-    _endre({'level': k});
-  }
-
   List<AegilLevel> get _nivaaer => _levels.isNotEmpty
       ? _levels
       : const [
@@ -624,40 +616,6 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
             requiresRecurring: true,
           ),
         ];
-
-  static const List<String> _matFisk = ['fisk', 'gront', 'bakeri', 'mat'];
-
-  List<AeRamme> get _rammer {
-    final s = _settings ?? const AegilSettings();
-    String ro(AegilSettings s) => s.hasQuietHours ? '${s.quietHoursFrom}–${s.quietHoursTo}' : AeCopy.rmRoIngen;
-    final kat = s.allowedCategories.isEmpty
-        ? AeCopy.rmKatAlle
-        : (s.allowedCategories.contains('restaurant') ? AeCopy.rmKatMatRest : AeCopy.rmKatMat);
-    final bel = s.capPerOrderOre == null ? AeCopy.rmBelIngen : AeCopy.rmBelVerdi(s.capPerOrderOre! ~/ 100, (s.capPerWeekOre ?? 0) ~/ 100);
-    const mint = Color(0xFF7FF0CB);
-    return [
-      AeRamme(AeCopy.rmBut, s.allowedStoreMode == 'allowlist' ? AeCopy.rmButFav : AeCopy.rmButAlle, AeCopy.endre, mint, _byttButikker),
-      AeRamme(AeCopy.rmKat, kat, AeCopy.endre, mint, () {
-        final neste = s.allowedCategories.isEmpty ? _matFisk : (s.allowedCategories.contains('restaurant') ? <String>[] : [..._matFisk, 'restaurant']);
-        _endre({'allowed_categories': neste});
-      }),
-      AeRamme(AeCopy.rmBel, bel, AeCopy.endre, mint, () {
-        const valg = [(60000, 150000), (40000, 100000), (100000, 300000), null];
-        final i = valg.indexWhere((v) => v?.$1 == s.capPerOrderOre);
-        final n = valg[(i + 1) % valg.length];
-        _endre({'cap_per_order': n?.$1, 'cap_per_week': n?.$2});
-      }),
-      AeRamme(AeCopy.rmRo, ro(s), AeCopy.endre, mint, () {
-        const valg = [('21:00', '08:00'), ('22:00', '09:00'), null];
-        final i = valg.indexWhere((v) => v?.$1 == s.quietHoursFrom);
-        final n = valg[(i + 1) % valg.length];
-        _endre({'quiet_hours': n == null ? null : {'from': n.$1, 'to': n.$2}});
-      }),
-      AeRamme(AeCopy.rmLaer, s.learningEnabled ? AeCopy.paa : AeCopy.av, s.learningEnabled ? AeCopy.slaaAv : AeCopy.slaaPaa, s.learningEnabled ? const Color(0xFFFF9A6B) : mint, () {
-        _endre({'learning_enabled': !s.learningEnabled});
-      }),
-    ];
-  }
 
   /// «Alle i nærheten» ↔ «Bare favoritter» (the allowlist is the customer's
   /// favourite stores).
@@ -676,14 +634,6 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       return;
     }
     _endre({'allowed_store_mode': 'allowlist', 'allowed_store_ids': ids});
-  }
-
-  void _pause() {
-    final pauset = _settings?.paused ?? false;
-    _endre(
-      {'paused_until': pauset ? null : DateTime.now().add(const Duration(days: 365)).toIso8601String()},
-      toast: pauset ? AeCopy.iGangIgjen : AeCopy.pauset,
-    );
   }
 
   String get _varsler {
@@ -791,18 +741,27 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     if (mounted) setState(() => _obButikker = liste);
   }
 
-  String get _oppsummering {
+  /// `obSumChips`: tastes (or categories), stores, household, the diets
+  /// (mint) and what to keep out (orange), the dinner days, the offers alert.
+  List<AeObSumChip> get _obChips {
     final o = _ob;
-    String del(Iterable<String> a) => a.where((x) => x.isNotEmpty).join(', ');
-    final hus = o.hus.isEmpty ? '' : '${o.hus} ${o.hus == '1' ? AeCopy.personer1 : AeCopy.personer}';
-    final kost = o.kost.where((k) => k != AeCopy.kost.last);
-    return del([
-      del((o.mat.isNotEmpty ? o.mat : o.kat).map((x) => x.toLowerCase())),
-      del([for (final b in _obButikker) if (o.but.contains(b.id)) b.navn]),
-      hus,
-      if (kost.isNotEmpty) '${AeCopy.ingen} ${del(kost.map((x) => x.toLowerCase()))}',
-      if (o.dager.isNotEmpty) '${AeCopy.middag} ${del(o.dager.map((x) => x.toLowerCase()))}',
-    ]);
+    final kost = AeCopy.kost;
+    final dietter = kost.sublist(4, 7);
+    return [
+      for (final t in (o.mat.isNotEmpty ? o.mat : o.kat)) AeObSumChip(t, AeObSumChip.hjerte),
+      for (final b in _obButikker)
+        if (o.but.contains(b.id)) AeObSumChip(b.navn, AeObSumChip.but),
+      if (o.hus.isNotEmpty) AeObSumChip('${o.hus} ${o.hus == '1' ? AeCopy.personer1 : AeCopy.personer}', AeObSumChip.folk),
+      for (final k in kost)
+        if (o.kost.contains(k) && k != kost.last) dietter.contains(k) ? AeObSumChip(k, AeObSumChip.blad) : AeObSumChip('${_stor(AeCopy.ingen)} ${k.toLowerCase()}', AeObSumChip.varsel, oransje: true),
+      if (o.dager.isNotEmpty)
+        AeObSumChip(
+          '${_stor(AeCopy.middag)} ${[for (final d in AeCopy.dager)
+            if (o.dager.contains(d)) d.toLowerCase()].join(', ')}',
+          AeObSumChip.kal,
+        ),
+      if (o.varsel.isNotEmpty) AeObSumChip(AeCopy.tilbudChip(o.varsel.toLowerCase()), AeObSumChip.bjelle),
+    ];
   }
 
   /// `obStemmer`: the answers to `agent/me/preferences/batch`, the alert
@@ -1068,7 +1027,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       ),
       AePress(
         key: const Key('a1_aegil_nivaa_chip'),
-        onTap: _byttNivaa,
+        // New Bergen: the chip names the level and opens the settings.
+        onTap: () => _gaa('nivaa'),
         dy: 0,
         scale: .95,
         child: CssBox(
@@ -1091,7 +1051,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                 ),
               ),
               const SizedBox(width: 6),
-              Text(handler ? AeCopy.handle : AeCopy.foreslaa, style: inter(11.5, weight: FontWeight.w800)),
+              Text(aeNivaaNavn(_settings ?? const AegilSettings(), _nivaaer), style: inter(11.5, weight: FontWeight.w800)),
               const SizedBox(width: 6),
               Container(
                 width: 24,
@@ -1118,7 +1078,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           bio: _bio,
           onBio: _apneBio,
           varsler: _varsler,
-          nivaaNavn: _nivaaer.where((n) => n.level == (_settings?.level ?? 2)).firstOrNull?.name ?? '',
+          nivaaNavn: aeNivaaNavn(_settings ?? const AegilSettings(), _nivaaer),
           onFjern: _fjern,
           onStemmer: _stemmer,
           onLeggTil: _obStart,
@@ -1126,15 +1086,17 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           onGlem: _glemAlt,
         );
       case 'nivaa':
+        final s = _settings ?? const AegilSettings();
         return AeNivaaView(
-          nivaaer: _nivaaer,
-          valgt: _settings?.level ?? 2,
-          rammer: _rammer,
-          pauset: _settings?.paused ?? false,
-          onVelg: _velgNivaa,
-          onPause: _pause,
-          onGlem: _glemAlt,
-          onTilbake: () => _gaa('start'),
+          settings: s,
+          levels: _nivaaer,
+          onEndre: _endre,
+          onButikker: _byttButikker,
+          onHvaVet: () => _gaa('minne'),
+          onFerdig: () {
+            _gaa('start');
+            LfToast.show(context, AeInnstCopy.lagretToast(aeVisNivaa(s), aeNivaaNavn(s, _nivaaer)));
+          },
         );
       case 'tillatelse':
         return AeTillatelseView(
@@ -1149,14 +1111,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           },
         );
       case 'obSum':
-        return AeObSum(
-          oppsummering: AeCopy.sumTekst(_oppsummering),
-          poeng: _ob.poengMed(_regler),
-          linjer: _ob.linjer,
-          lagrer: _obLagrer,
-          onStemmer: _obLagre,
-          onEndre: () => _gaa('ob1'),
-        );
+        return AeObSum(chips: _obChips, poeng: _ob.poengMed(_regler), linjer: _ob.linjer, lagrer: _obLagrer, onStemmer: _obLagre, onEndre: () => _gaa('ob1'));
     }
     return _start();
   }

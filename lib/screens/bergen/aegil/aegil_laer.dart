@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../hurtig/hurtig_data.dart' show HbButikk;
 import 'aegil_bits.dart';
+import 'aegil_innst.dart';
 import 'aegil_launch_copy.dart';
 
 // ── Start (`agS0`, L4634–4690) ──────────────────────────────────────────────
@@ -544,39 +545,21 @@ class _Sveip extends StatelessWidget {
   );
 }
 
-// ── Så mye kan Ægil gjøre (`agNivaaSkjerm`, L4834–4858) ─────────────────────
+// ── Innstillinger for Ægil (`agNivaaSkjerm`, new Bergen L5082–5092) ────────
 
-/// One RAMMER row: what, the current value, and its key.
-class AeRamme {
-  const AeRamme(this.t, this.v, this.k, this.fg, this.onTap);
-  final String t;
-  final String v;
-  final String k;
-  final Color fg;
-  final VoidCallback onTap;
-}
-
+/// «Innstillinger for Ægil»: the title and line, the shared settings list
+/// (levels, Rammer, what Ægil can use), «Hva Ægil vet» and «Ferdig». New
+/// Bergen took away «Pause Ægil», «Glem alt» and «Tilbake til Ægil»: the
+/// pause is now the level «0 · Av», «Glem alt» lives in «Det Ægil vet om deg».
 class AeNivaaView extends StatelessWidget {
-  const AeNivaaView({
-    super.key,
-    required this.nivaaer,
-    required this.valgt,
-    required this.rammer,
-    required this.pauset,
-    required this.onVelg,
-    required this.onPause,
-    required this.onGlem,
-    required this.onTilbake,
-  });
+  const AeNivaaView({super.key, required this.settings, required this.levels, required this.onEndre, required this.onButikker, required this.onHvaVet, required this.onFerdig});
 
-  final List<AegilLevel> nivaaer;
-  final int valgt;
-  final List<AeRamme> rammer;
-  final bool pauset;
-  final ValueChanged<int> onVelg;
-  final VoidCallback onPause;
-  final VoidCallback onGlem;
-  final VoidCallback onTilbake;
+  final AegilSettings settings;
+  final List<AegilLevel> levels;
+  final AeInnstEndre onEndre;
+  final VoidCallback onButikker;
+  final VoidCallback onHvaVet;
+  final VoidCallback onFerdig;
 
   @override
   Widget build(BuildContext context) => AeOnce(
@@ -588,235 +571,15 @@ class AeNivaaView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AeCopy.nivaaTittel, style: jakarta(20, em: -.02, height: 1.2)),
+          Text(AeInnstCopy.tittel, style: jakarta(20, em: -.02, height: 1.2)),
           const SizedBox(height: 5),
-          Text(AeCopy.nivaaSub, style: inter(12, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .72))),
-          const SizedBox(height: 14),
-          for (final (i, n) in nivaaer.indexed) ...[if (i > 0) const SizedBox(height: 8), _Nivaa(n: n, paa: n.level == valgt, onTap: () => onVelg(n.level))],
-          const SizedBox(height: 20),
-          Text(
-            AeCopy.rammer,
-            style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .6)),
-          ),
-          const SizedBox(height: 8),
-          CssBox(
-            radius: BorderRadius.circular(20),
-            bg: const [
-              CssLinear(165, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)]),
-            ],
-            shadows: const [
-              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .24)),
-              CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
-              CssShadow(0, 14, 24, -16, Color.fromRGBO(2, 12, 18, .9)),
-            ],
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Column(
-              children: [
-                for (final (i, r) in rammer.indexed)
-                  GestureDetector(
-                    key: Key('a1_aegil_ramme_$i'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: r.onTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 11),
-                      decoration: BoxDecoration(
-                        border: i == rammer.length - 1 ? null : const Border(bottom: BorderSide(color: Color.fromRGBO(255, 255, 255, .08))),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(r.t, style: inter(12.5, weight: FontWeight.w800)),
-                                const SizedBox(height: 2),
-                                Text(r.v, style: aeTab(inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          CssBox(
-                            radius: BorderRadius.circular(999),
-                            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-                            shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            child: Text(
-                              r.k,
-                              style: inter(11, weight: FontWeight.w800, color: r.fg),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: AePress(
-                  key: const Key('a1_aegil_pause'),
-                  onTap: onPause,
-                  dy: 2,
-                  child: CssBox(
-                    height: 46,
-                    radius: BorderRadius.circular(999),
-                    bg: const [
-                      CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
-                    ],
-                    shadows: const [
-                      CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-                      CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .22)),
-                      CssShadow(0, 10, 16, -10, Color.fromRGBO(2, 12, 18, .9)),
-                    ],
-                    child: Center(
-                      child: Text(pauset ? AeCopy.startIgjen : AeCopy.pause, style: inter(12.5, weight: FontWeight.w800)),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AePress(
-                  key: const Key('a1_aegil_nivaa_glem'),
-                  onTap: onGlem,
-                  dy: 2,
-                  child: CssBox(
-                    height: 46,
-                    radius: BorderRadius.circular(999),
-                    bg: const [CssSolid(Color.fromRGBO(242, 109, 61, .1))],
-                    shadows: const [CssShadow.inset(0, 0, 0, 1.5, Color.fromRGBO(255, 154, 107, .7))],
-                    child: Center(
-                      child: Text(
-                        AeCopy.glemAlt,
-                        style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFFFF9A6B)),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          GestureDetector(
-            key: const Key('a1_aegil_tilbake'),
-            behavior: HitTestBehavior.opaque,
-            onTap: onTilbake,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                AeCopy.tilbake,
-                textAlign: TextAlign.center,
-                style: inter(12, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)),
-              ),
-            ),
-          ),
+          Text(AeInnstCopy.linjeAegil, style: inter(12, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .72))),
+          const SizedBox(height: 6),
+          AegilInnstListe(settings: settings, levels: levels, onEndre: onEndre, onButikker: onButikker),
+          const SizedBox(height: 18),
+          AegilInnstKnapper(onHvaVet: onHvaVet, onFerdig: onFerdig),
         ],
       ),
-    ),
-  );
-}
-
-class _Nivaa extends StatelessWidget {
-  const _Nivaa({required this.n, required this.paa, required this.onTap});
-
-  final AegilLevel n;
-  final bool paa;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => AePress(
-    key: Key('a1_aegil_nivaa_${n.level}'),
-    onTap: onTap,
-    dy: 0,
-    scale: .985,
-    child: AnimatedSwitcher(
-      duration: const Duration(milliseconds: 250),
-      child: CssBox(
-        key: ValueKey(paa),
-        radius: BorderRadius.circular(18),
-        bg: paa
-            ? const [
-                CssLinear(165, [Color.fromRGBO(127, 240, 203, .2), Color.fromRGBO(127, 240, 203, .07)]),
-              ]
-            : const [
-                CssLinear(165, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)]),
-              ],
-        shadows: paa
-            ? const [
-                CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-                CssShadow(0, 0, 0, 1.5, Color.fromRGBO(127, 240, 203, .75)),
-                CssShadow(0, 14, 24, -14, Color.fromRGBO(2, 12, 18, .9)),
-              ]
-            : const [
-                CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
-                CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
-                CssShadow(0, 12, 20, -16, Color.fromRGBO(2, 12, 18, .9)),
-              ],
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: paa ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .45), width: 2),
-                ),
-                alignment: Alignment.center,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: paa ? const Color(0xFF7FF0CB) : Colors.transparent,
-                    boxShadow: [BoxShadow(color: paa ? const Color(0xFF7FF0CB) : Colors.transparent, blurRadius: 4)],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text('${n.level} · ${n.name}', style: inter(13, weight: FontWeight.w800)),
-                      if (n.isDefault) _merke(AeCopy.standard, const Color(0xFF7FF0CB), const Color.fromRGBO(127, 240, 203, .16), const Color.fromRGBO(127, 240, 203, .4)),
-                      if (n.requiresRecurring) _merke(AeCopy.bareDagligvarer, const Color(0xFFF7D57E), const Color.fromRGBO(242, 193, 78, .16), const Color.fromRGBO(242, 193, 78, .45)),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    n.body,
-                    style: inter(11.5, weight: FontWeight.w500, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .72)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  Widget _merke(String t, Color fg, Color bg, Color ring) => CssBox(
-    radius: BorderRadius.circular(999),
-    bg: [CssSolid(bg)],
-    shadows: [CssShadow.inset(0, 0, 0, 1, ring)],
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-    child: Text(
-      t,
-      style: inter(9, weight: FontWeight.w800, color: fg),
     ),
   );
 }
@@ -1494,16 +1257,38 @@ class AeObChip extends StatelessWidget {
   }
 }
 
-/// `agObSum` — «Nå kjenner jeg deg litt!» and «Minnet er startet».
-class AeObSum extends StatelessWidget {
-  const AeObSum({super.key, required this.oppsummering, required this.poeng, required this.linjer, required this.lagrer, required this.onStemmer, required this.onEndre});
+/// One remembered answer on the summary card (`obSumChips`): mint, or
+/// orange for something to keep out («Ingen skalldyr»).
+class AeObSumChip {
+  const AeObSumChip(this.tx, this.ik, {this.oransje = false});
+  final String tx;
+  final String ik;
+  final bool oransje;
 
-  final String oppsummering;
+  static const String hjerte = 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z';
+  static const String but = 'M4 9l1.5-5h13L20 9 M4 9v11h16V9 M4 9h16 M9 20v-6h6v6';
+  static const String folk = 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 5.5a3 3 0 0 1 0 5.5 M18 14.5c1.8.8 3 2.6 3 5.5';
+  static const String varsel = 'M12 3l9.5 17h-19z M12 10v4 M12 17v.01';
+  static const String blad = 'M5 19c0-8 5-13 14-14 0 9-5 14-13 14z M5 19l7-7';
+  static const String kal = 'M4 6h16v14H4z M4 10h16 M8 3v4 M16 3v4';
+  static const String bjelle = 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 21h4';
+}
+
+/// `agObSum` (new Bergen L5046–5080): Ægil in the gold ring asks «Nå kjenner
+/// jeg deg litt! · Her er det jeg husker. Stemmer det?», and the glass card
+/// says «LAGRET I ÆGILS MINNE · Minnet er startet» with the points and line
+/// count, the answers as chips (or «Ikke så mye ennå …»), «Stemmer» / «Endre».
+class AeObSum extends StatelessWidget {
+  const AeObSum({super.key, required this.chips, required this.poeng, required this.linjer, required this.lagrer, required this.onStemmer, required this.onEndre});
+
+  final List<AeObSumChip> chips;
   final int poeng;
   final int linjer;
   final bool lagrer;
   final VoidCallback onStemmer;
   final VoidCallback onEndre;
+
+  static const Color _mint = Color(0xFF7FF0CB);
 
   @override
   Widget build(BuildContext context) => AeOnce(
@@ -1515,90 +1300,325 @@ class AeObSum extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AeObSporsmaal(steg: 5, tittel: AeCopy.sumTittel, tekst: oppsummering, ring: const Color(0xFFF6D27A), merke: const AeObSumMerke()),
-          const SizedBox(height: 12),
-          _ObKort(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    AeOnce(
-                      kind: AeInn.klask,
-                      ms: 500,
-                      curve: const Cubic(.3, 1.4, .5, 1),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [kAeMint, Color(0xFF2E9B7C)]),
-                          boxShadow: [BoxShadow(color: Color.fromRGBO(46, 155, 124, .7), offset: Offset(0, 6), blurRadius: 6, spreadRadius: -6)],
-                        ),
-                        alignment: Alignment.center,
-                        child: const AeIkon('M4.5 12.5l5 5 10-11', size: 18, stroke: 3.2),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AeCopy.minnetStartet,
-                            style: inter(13, weight: FontWeight.w800, color: kAeInk),
-                          ),
-                          Text(
-                            poeng > 0 ? AeCopy.minnetLinje(poeng, linjer) : AeCopy.minnetLinjeUtenPoeng(linjer),
-                            style: inter(11, weight: FontWeight.w700, color: const Color(0xFF2E6B47)),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: AePress(
-                        key: const Key('a1_aegil_ob_stemmer'),
-                        onTap: lagrer ? null : onStemmer,
-                        dy: 0,
-                        scale: .96,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(999),
-                            color: kAeTeal,
-                            boxShadow: const [BoxShadow(color: Color.fromRGBO(30, 79, 92, .7), offset: Offset(0, 10), blurRadius: 9, spreadRadius: -8)],
-                          ),
-                          child: Text(AeCopy.stemmer, style: inter(13, weight: FontWeight.w800)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    AePress(
-                      key: const Key('a1_aegil_ob_endre'),
-                      onTap: onEndre,
-                      dy: 0,
-                      scale: .96,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(35, 32, 29, .06)),
-                        child: Text(
-                          AeCopy.endre,
-                          style: inter(13, weight: FontWeight.w800, color: kAeInk),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+          AeObSporsmaal(steg: 5, tittel: AeCopy.sumTittel, hint: AeCopy.sumHint, ring: const Color(0xFFF6D27A), merke: const AeObSumMerke()),
+          const SizedBox(height: 14),
+          LfRise(
+            delay: 100,
+            dur: 450,
+            child: CssBox(
+              radius: BorderRadius.circular(24),
+              clip: true,
+              bg: const [
+                CssRadial([Color.fromRGBO(92, 224, 184, .2), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .6], rx: .9, ry: .8, cx: 1, cy: 0),
+                CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
               ],
+              border: Border.all(color: const Color.fromRGBO(127, 240, 203, .34)),
+              shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 22, 32, -22, Color.fromRGBO(4, 18, 26, .95))],
+              child: Stack(
+                children: [
+                  const Positioned.fill(child: IgnorePointer(child: _Skinn())),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(15, 16, 15, 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            const _LagretMerke(),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    AeCopy.lagretIMinne,
+                                    style: inter(10, weight: FontWeight.w800, em: .12, color: _mint),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(AeCopy.minnetStartet, style: jakarta(18, em: -.02)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            // `aegil_answer` points: shown only when the rule pays.
+                            if (poeng > 0)
+                              _sumChip(
+                                bg: const Color.fromRGBO(242, 193, 78, .16),
+                                bd: const Color.fromRGBO(246, 210, 122, .6),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const AeIkon('M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z', size: 11, stroke: 0, fill: Color(0xFFFFE7A8)),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      AeCopy.aegilPoengChip(poeng),
+                                      style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFE7A8)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            _sumChip(
+                              bg: const Color.fromRGBO(255, 255, 255, .08),
+                              bd: const Color.fromRGBO(255, 255, 255, .18),
+                              child: Text(
+                                AeCopy.tingLagret(linjer),
+                                style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .85)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (chips.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(top: 12),
+                            padding: const EdgeInsets.only(top: 12),
+                            decoration: const BoxDecoration(
+                              border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1))),
+                            ),
+                            child: Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [for (final (i, c) in chips.indexed) LfRise(delay: 200 + i * 50.0, dur: 350, child: _svar(c))],
+                            ),
+                          )
+                        else
+                          Container(
+                            margin: const EdgeInsets.only(top: 12),
+                            child: CssBox(
+                              radius: BorderRadius.circular(14),
+                              bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
+                              shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))],
+                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: AeCopy.aegilKolon,
+                                      style: inter(12, weight: FontWeight.w700, height: 1.45, color: _mint),
+                                    ),
+                                    TextSpan(text: ' ${AeCopy.ikkeSaaMye}'),
+                                  ],
+                                ),
+                                style: inter(12, weight: FontWeight.w700, height: 1.45),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AePress(
+                                key: const Key('a1_aegil_ob_stemmer'),
+                                onTap: lagrer ? null : onStemmer,
+                                dy: 2,
+                                scale: .98,
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(999),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)],
+                                      stops: [0, .56, 1],
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(color: Color.fromRGBO(255, 255, 255, .35), spreadRadius: 1),
+                                      BoxShadow(color: Color(0xFFC4491A), offset: Offset(0, 2)),
+                                      BoxShadow(color: Color.fromRGBO(200, 70, 25, .85), offset: Offset(0, 12), blurRadius: 18 / 2 / .57735, spreadRadius: -10),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const AeIkon('M4.5 12.5l5 5 10-11', size: 14, stroke: 3.2),
+                                      const SizedBox(width: 7),
+                                      Text(AeCopy.stemmer, style: inter(13.5, weight: FontWeight.w800)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            AePress(
+                              key: const Key('a1_aegil_ob_endre'),
+                              onTap: onEndre,
+                              dy: 0,
+                              scale: .96,
+                              child: Container(
+                                height: 48,
+                                padding: const EdgeInsets.symmetric(horizontal: 18),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  color: const Color.fromRGBO(255, 255, 255, .1),
+                                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const AeIkon('M4 20h4L19 9l-4-4L4 16z', size: 13, stroke: 2.6),
+                                    const SizedBox(width: 6),
+                                    Text(AeCopy.endre, style: inter(13, weight: FontWeight.w800)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
+      ),
+    ),
+  );
+
+  Widget _sumChip({required Color bg, required Color bd, required Widget child}) => Container(
+    height: 26,
+    padding: const EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(999),
+      color: bg,
+      border: Border.all(color: bd),
+    ),
+    child: Row(mainAxisSize: MainAxisSize.min, children: [child]),
+  );
+
+  Widget _svar(AeObSumChip c) {
+    final fg = c.oransje ? const Color(0xFFFFE3D5) : const Color(0xFFE8FFF7);
+    return Container(
+      height: 28,
+      padding: const EdgeInsets.fromLTRB(8, 0, 10, 0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: c.oransje ? const [Color.fromRGBO(249, 162, 115, .34), Color.fromRGBO(233, 92, 44, .18)] : const [Color.fromRGBO(92, 224, 184, .3), Color.fromRGBO(92, 224, 184, .14)],
+        ),
+        border: Border.all(color: c.oransje ? const Color.fromRGBO(249, 162, 115, .85) : const Color.fromRGBO(127, 240, 203, .8)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AeIkon(c.ik, size: 12, stroke: 2.5, color: fg),
+          const SizedBox(width: 5),
+          Text(
+            c.tx,
+            style: inter(11.5, weight: FontWeight.w800, color: fg),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The mint tick that lands (`klask .5s .25s`) on its breathing glow
+/// (`bioPuls 3.4s`).
+class _LagretMerke extends StatelessWidget {
+  const _LagretMerke();
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 46,
+    height: 46,
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          left: -6,
+          top: -6,
+          right: -6,
+          bottom: -6,
+          child: LfLoop(
+            builder: (context, t, child) {
+              final p = kfLoop(t, 0, 3400) ?? 0;
+              final sk = kf(p, const [0, .5, 1], const [.92, 1.08, .92], cssEaseInOut);
+              final o = kf(p, const [0, .5, 1], const [.6, 1, .6], cssEaseInOut);
+              return Opacity(
+                opacity: o,
+                child: Transform.scale(scale: sk, child: child),
+              );
+            },
+            child: const DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(colors: [Color.fromRGBO(92, 224, 184, .45), Color.fromRGBO(92, 224, 184, 0)]),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: AeOnce(
+            kind: AeInn.klask,
+            ms: 500,
+            delay: 250,
+            curve: const Cubic(.3, 1.4, .5, 1),
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9F)]),
+                boxShadow: [BoxShadow(color: Color.fromRGBO(30, 160, 120, .7), offset: Offset(0, 8), blurRadius: 14 / 2 / .57735, spreadRadius: -6)],
+              ),
+              foregroundDecoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .6), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .06]),
+              ),
+              alignment: Alignment.center,
+              child: const AeIkon('M4.5 12.5l5 5 10-11', size: 20, stroke: 3.2, color: Color(0xFF0B3A2E)),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// `skinnSveip3 11s 1.2s`: a light band (30 % wide, skewed −18°) crossing
+/// the card in the first third of each 11 s.
+class _Skinn extends StatelessWidget {
+  const _Skinn();
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) => RepaintBoundary(
+      child: LfLoop(
+        builder: (context, t, _) {
+          final p = kfLoop(t, 1200, 11000);
+          if (p == null || p > 1 / 3) return const SizedBox.shrink();
+          final x = kf(p, const [0, 1 / 3], const [-1.4, 2.4], const Cubic(.4, 0, .2, 1));
+          final o = kf(p, const [0, .0667, 1 / 3], const [0, .7, 0]);
+          final w = box.maxWidth * .3;
+          return Stack(
+            children: [
+              Positioned(
+                left: x * w,
+                top: -box.maxHeight * .4,
+                bottom: -box.maxHeight * .4,
+                width: w,
+                child: Opacity(
+                  opacity: o,
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.skewX(math.tan(-18 * math.pi / 180)),
+                    child: const DecoratedBox(
+                      decoration: BoxDecoration(gradient: LinearGradient(colors: [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, .1), Color.fromRGBO(255, 255, 255, 0)])),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     ),
   );

@@ -63,6 +63,28 @@ abstract final class HurtigCopy {
   static String get foreslaarIKveld => _t('ÆGIL FORESLÅR I KVELD', 'ÆGIL SUGGESTS TONIGHT');
   static String settOppSum(String kr) => _t('Sett opp · $kr', 'Set up · $kr');
   static String get endreDetAegilVet => _t('Endre det Ægil vet om deg', 'Change what Ægil knows about you');
+
+  // ── new Bergen: the dark cards (L4264–4431) ─────────────────────────────
+  static String get leggTilKnapp => _t('Legg til', 'Add');
+  static String get lagtTilKnapp => _t('Lagt til', 'Added');
+  static String get dinFavorittChip => _t('Din favoritt', 'Your favourite');
+  static String get levertChip => _t('Levert', 'Delivered');
+  static String get slikKjenner => _t('Slik kjenner Ægil deg', 'How Ægil knows you');
+  static String get endre => _t('Endre', 'Edit');
+  static String get duLikerKicker => _t('DU LIKER', 'YOU LIKE');
+  static String get favorittbutikker => _t('Favorittbutikker', 'Favourite shops');
+  static String lagret(int n) => _t('$n lagret', '$n saved');
+  static String personOrd(int n) => _t(n == 1 ? 'person' : 'personer', n == 1 ? 'person' : 'people');
+  static String get unngaarKicker => _t('UNNGÅR', 'AVOIDS');
+  static String get tillattKicker => _t('TILLATT', 'ALLOWED');
+  static String get skalldyr => _t('Skalldyr', 'Shellfish');
+  static String get holdesUnna => _t('Holdes unna forslagene', 'Kept out of the suggestions');
+  static String get kanKomme => _t('Kan komme i forslagene', 'Can come up in the suggestions');
+  static String get middagsrytme => _t('Middagsrytme', 'Dinner rhythm');
+  static String rundtKl(String kl) => _t('rundt kl $kl', 'around $kl');
+  static String get iDagKicker => _t('I DAG', 'TODAY');
+  static String dagKort(int i) => (_en ? const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] : const ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'])[i];
+  static String retter(int n) => _t('$n ${n == 1 ? 'rett' : 'retter'}', '$n ${n == 1 ? 'dish' : 'dishes'}');
   static String erMiddagsdag(String dag) => _t('$dag er middagsdag', '$dag is dinner day');
   static String duLiker(String hva) => _t('Du liker $hva', 'You like $hva');
   static String get regnNoeVarmt => _t('Regn, noe varmt', 'Rain, something warm');

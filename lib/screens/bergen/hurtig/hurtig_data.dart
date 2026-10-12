@@ -22,22 +22,16 @@ import 'hurtig_copy.dart';
 
 /// A product Ægil can put in the draft (`HB_MENY` row).
 class HbVare {
-  const HbVare({
-    required this.id,
-    required this.navn,
-    required this.butikkId,
-    required this.butikk,
-    required this.pris,
-    required this.ord,
-    this.hoved = false,
-    this.skalldyr = false,
-  });
+  const HbVare({required this.id, required this.navn, required this.butikkId, required this.butikk, required this.pris, required this.ord, this.hoved = false, this.skalldyr = false, this.bilde});
 
   final int id;
   final String navn;
   final int butikkId;
   final String butikk;
   final double pris;
+
+  /// The product photo, when the menu has one.
+  final String? bilde;
 
   /// Words the customer may type for it, lower case; the full name first.
   final List<String> ord;
@@ -60,6 +54,7 @@ class HbButikk {
     this.aapner,
     this.frakt = 39,
     this.gratisOver = 300,
+    this.logo,
   });
 
   final int id;
@@ -67,6 +62,9 @@ class HbButikk {
   final String ini;
   final Color bg;
   final Color fg;
+
+  /// The store's logo (new Bergen draws a logo tile in every Hurtig card).
+  final String? logo;
 
   /// Minutes until it is at the door.
   final int min;
@@ -206,6 +204,16 @@ class HurtigData {
 
   HbVare? vare(int id) => meny[id];
   HbButikk butikk(int id, [String? navn]) => butikker[id] ?? HbButikk.ukjent(id, navn ?? '');
+
+  /// A store by its name (the remembered favourite stores are names): one
+  /// the customer has ordered from, else a tile coloured by the name.
+  HbButikk butikkNavn(String navn) {
+    final n = navn.trim().toLowerCase();
+    for (final b in butikker.values) {
+      if (b.navn.trim().toLowerCase() == n) return b;
+    }
+    return HbButikk.ukjent(navn.hashCode & 0x7fffffff, navn);
+  }
 }
 
 /// Reads the pieces and keeps the last result for the session, so Hjem's
@@ -324,6 +332,7 @@ abstract final class HurtigKilde {
         aapner: info?.openTime,
         frakt: frakt > 0 ? frakt : 39,
         gratisOver: terskel > 0 ? terskel : 300,
+        logo: info?.logoUrl,
       );
       if (info != null) {
         for (final item in info.allItems) {
@@ -424,6 +433,7 @@ abstract final class HurtigKilde {
     ord: _ord(item.name),
     hoved: hoved,
     skalldyr: _erSkalldyr(item.name, item.allergens),
+    bilde: item.imageUrl,
   );
 
   static bool _erSkalldyr(String navn, List<String> allergens) {
@@ -456,7 +466,7 @@ abstract final class HurtigKilde {
       final v = meny[id]!;
       final ord = [v.ord.first, for (final o in v.ord.skip(1)) if ((count[o] ?? 0) == 1) o];
       if (ord.length != v.ord.length) {
-        meny[id] = HbVare(id: v.id, navn: v.navn, butikkId: v.butikkId, butikk: v.butikk, pris: v.pris, ord: ord, hoved: v.hoved, skalldyr: v.skalldyr);
+        meny[id] = HbVare(id: v.id, navn: v.navn, butikkId: v.butikkId, butikk: v.butikk, pris: v.pris, ord: ord, hoved: v.hoved, skalldyr: v.skalldyr, bilde: v.bilde);
       }
     }
   }

@@ -84,6 +84,9 @@ Future<T?> showMegArk<T>(
   MegArkButton Function(BuildContext context)? primaryBuilder,
   /// The dark Ark of new Bergen (`kArkMork`, L9688): teal glass, white type.
   bool mork = false,
+
+  /// The sheet has a text field: it rides up on the keyboard.
+  bool tastatur = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -98,19 +101,20 @@ Future<T?> showMegArk<T>(
       duration: BergenTokens.motion(context, const Duration(milliseconds: 300)),
       reverseDuration: BergenTokens.motion(context, BergenTokens.motionBase),
     ),
-    builder: (ctx) => MegArkSkala(
-      child: StatefulBuilder(
-        builder: (ctx, setState) => MegArk(
-          key: key,
-          title: title,
-          subtitle: subtitle,
-          body: body == null ? null : body(ctx, setState),
-          primary: primaryBuilder?.call(ctx) ?? primary,
-          secondary: secondary,
-          mork: mork,
+    builder: (ctx) {
+      final ark = MegArkSkala(
+        child: StatefulBuilder(
+          builder: (ctx, setState) =>
+              MegArk(key: key, title: title, subtitle: subtitle, body: body == null ? null : body(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
         ),
-      ),
-    ),
+      );
+      return tastatur
+          ? Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+              child: ark,
+            )
+          : ark;
+    },
   );
 }
 

@@ -276,6 +276,14 @@ abstract final class AeCopy {
   static String get sumTittel => _t('Nå kjenner jeg deg litt!', 'Now I know you a little!');
   static String sumTekst(String s) => s.isEmpty ? _t('Ikke så mye ennå — jeg lærer av bestillingene dine.', 'Not much yet — I learn from your orders.') : '$s.';
   static String get minnetStartet => _t('Minnet er startet', 'Memory started');
+  // New Bergen summary card (L5048–5077).
+  static String get sumHint => _t('Her er det jeg husker. Stemmer det?', 'Here is what I remember. Is that right?');
+  static String get lagretIMinne => _t('LAGRET I ÆGILS MINNE', 'SAVED IN ÆGIL’S MEMORY');
+  static String aegilPoengChip(int n) => _t('+$n Ægil-poeng', '+$n Ægil points');
+  static String tingLagret(int n) => _t('$n ting lagret', '$n things saved');
+  static String get aegilKolon => 'Ægil:';
+  static String get ikkeSaaMye => _t('Ikke så mye ennå. Jeg lærer av bestillingene dine.', 'Not much yet. I learn from your orders.');
+  static String tilbudChip(String v) => _t('Tilbud: $v', 'Offers: $v');
   /// The same line with Ægil answer points off (backend plan Step 7).
   static String minnetLinjeUtenPoeng(int linjer) => _t('$linjer linjer lagret', '$linjer lines saved');
   static String minnetLinje(int poeng, int linjer) => _t('+$poeng Ægil-poeng · $linjer linjer lagret', '+$poeng Ægil points · $linjer lines saved');

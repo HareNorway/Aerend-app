@@ -319,18 +319,24 @@ void main() {
       await tester.tap(find.text('Bestilt forrige gang'));
       await svar(tester);
       expect(find.byType(HbForrigeKort), findsOneWidget);
-      expect(find.text('LEVERT'), findsOneWidget);
+      // New Bergen: the glass receipt with «Levert», the TIDLIGERE tiles.
+      expect(find.text('Levert'), findsOneWidget);
       expect(find.text('Bestill det samme igjen'), findsOneWidget);
       expect(find.text('TIDLIGERE'), findsOneWidget);
       await tester.tap(find.text('Dine preferanser'));
       await svar(tester);
       expect(find.byType(HbPrefKort), findsOneWidget);
-      expect(find.text('Unngår skalldyr'), findsOneWidget);
-      expect(find.text('Tirsdag og torsdag · rundt 17'), findsOneWidget);
+      expect(find.text('Slik kjenner Ægil deg'), findsOneWidget);
+      expect(find.byKey(const Key('hb-pref-endre')), findsOneWidget);
+      expect(find.text('UNNGÅR'), findsOneWidget);
+      expect(find.text('Holdes unna forslagene'), findsOneWidget);
+      expect(find.text('rundt kl 17'), findsOneWidget);
+      expect(find.text('Tir'), findsOneWidget);
       expect(find.text('ÆGIL FORESLÅR I KVELD'), findsOneWidget);
-      // The shellfish toggle flips in place.
-      await trykk(tester, find.text('Unngår skalldyr'));
-      expect(find.text('Skalldyr er ok'), findsOneWidget);
+      // The shellfish tile flips in place.
+      await trykk(tester, find.text('Holdes unna forslagene'));
+      expect(find.text('TILLATT'), findsOneWidget);
+      expect(find.text('Kan komme i forslagene'), findsOneWidget);
     });
 
     testWidgets('typing a dish sets up a draft; the countdown shows Angre and stops', (tester) async {
