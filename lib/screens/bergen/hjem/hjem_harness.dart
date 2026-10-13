@@ -179,6 +179,9 @@ abstract final class HjemHarness {
   /// Premiehylla as if nothing had been claimed (`hyllaTom`, Bergen Step 8).
   static bool hyllaTom = false;
 
+  /// Meg's «Logge ut?» question open (`loggUt`, gap audit).
+  static bool loggUt = false;
+
   /// Sporing: runs «Kvittering» once loaded (the PDF in the share sheet).
   static bool sporingKvittering = false;
 
@@ -313,6 +316,7 @@ abstract final class HjemHarness {
         megScroll = null;
         megArk = null;
         hyllaTom = false;
+        loggUt = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         feedRapport = feedInnlegg = null;
         fiskeFase = fiskeAgn = null;
@@ -407,6 +411,7 @@ abstract final class HjemHarness {
       megScroll = (m['megScroll'] as num?)?.toDouble();
       megArk = m['megArk'] as String?;
       hyllaTom = m['hyllaTom'] == true;
+      loggUt = m['loggUt'] == true;
       sporingKvittering = m['sporingKvittering'] == true;
       utfSeg = m['utfSeg'] as String?;
       feedFane = m['feedFane'] as String?;

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
+import '../hjem/hjem_harness.dart';
 import 'meg_mark.dart';
 import 'meg_nivaa_card.dart' show medalFor;
 
@@ -929,6 +931,13 @@ class _MegLoggUtState extends State<MegLoggUt> {
   bool _sporr = false;
   bool _jobber = false;
   Timer? _tilbake;
+
+  @override
+  void initState() {
+    super.initState();
+    // Debug harness only: open on the question (no fallback timer).
+    if (kDebugMode && HjemHarness.loggUt) _sporr = true;
+  }
 
   void _start() {
     setState(() => _sporr = true);
