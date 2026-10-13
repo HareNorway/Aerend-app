@@ -182,6 +182,10 @@ abstract final class HjemHarness {
   /// Meg's «Logge ut?» question open (`loggUt`, gap audit).
   static bool loggUt = false;
 
+  /// Open the Varsler panel on this filter (`varsler`: "Alle", "Bestillinger",
+  /// …; Gap Step 1).
+  static String? varsler;
+
   /// Sporing: runs «Kvittering» once loaded (the PDF in the share sheet).
   static bool sporingKvittering = false;
 
@@ -317,6 +321,7 @@ abstract final class HjemHarness {
         megArk = null;
         hyllaTom = false;
         loggUt = false;
+        varsler = null;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         feedRapport = feedInnlegg = null;
         fiskeFase = fiskeAgn = null;
@@ -412,6 +417,7 @@ abstract final class HjemHarness {
       megArk = m['megArk'] as String?;
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
+      varsler = m['varsler'] as String?;
       sporingKvittering = m['sporingKvittering'] == true;
       utfSeg = m['utfSeg'] as String?;
       feedFane = m['feedFane'] as String?;

@@ -36,6 +36,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
       '/bergen/fjordfiske': (_) => const FjordfiskeScreen(),
       '/bergen/aegil': (_) => const AegilScreen(),
       '/bergen/aegil/minne': (_) => const AegilScreen(steg: 'minne'),
+      // Gap Step 1: «Innstillinger for varsler» in the Varsler panel.
+      '/bergen/aegil/nivaa': (_) => const AegilScreen(steg: 'nivaa'),
       '/bergen/meg': (_) => const MegScreenBody(),
       '/bergen/meg/favoritter': (ctx) {
         final a = BergenRoutes.argsOf(ctx);

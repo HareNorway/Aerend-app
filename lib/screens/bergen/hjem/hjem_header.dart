@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
+import '../kit/bergen_perf.dart';
 
 // ── Hjem · header (`visKromOver`, L2217) ────────────────────────────────────
 // `left:16px; right:16px; top:10px; height:56px`: the address chip
@@ -28,6 +31,7 @@ class HjemHeader extends StatelessWidget {
     required this.unread,
     required this.onAddress,
     required this.onBell,
+    this.bjelleTilt = 0,
   });
 
   /// `adresseKort`; empty → `adrChipVelg` ("Velg adresse").
@@ -39,6 +43,9 @@ class HjemHeader extends StatelessWidget {
   final int unread;
   final VoidCallback onAddress;
   final VoidCallback onBell;
+
+  /// Bumped when a new varsel arrives: the bell plays `bjelleTilt .3s`.
+  final int bjelleTilt;
 
   static const List<CssShadow> _sh = [
     CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
@@ -128,7 +135,9 @@ class HjemHeader extends StatelessWidget {
             child: LfPress(
               scale: .93,
               onTap: onBell,
-              child: SizedBox(
+              child: _BjelleTilt(
+                nokkel: bjelleTilt,
+                child: SizedBox(
                 width: 44,
                 height: 44,
                 child: Stack(
@@ -175,6 +184,7 @@ class HjemHeader extends StatelessWidget {
                       ),
                   ],
                 ),
+              ),
               ),
             ),
           ),
@@ -274,3 +284,31 @@ const String _kPluss =
 const String _kBjelle =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
     '<path d="M18 8.6a6 6 0 1 0-12 0c0 5.9-2.2 7.4-2.2 7.4h16.4S18 14.5 18 8.6z"/><path d="M10.3 19.6a2 2 0 0 0 3.4 0"/></svg>';
+
+/// `bjelleTilt .3s ease-in-out` (L57): 0° → 8° (30 %) → −4° (65 %) → 0°,
+/// replayed each time [nokkel] changes; none at 0 or in the `still` tier.
+class _BjelleTilt extends StatelessWidget {
+  const _BjelleTilt({required this.nokkel, required this.child});
+
+  final int nokkel;
+  final Widget child;
+
+  static double _grader(double p) {
+    if (p < .3) return 8 * Curves.easeInOut.transform(p / .3);
+    if (p < .65) return 8 - 12 * Curves.easeInOut.transform((p - .3) / .35);
+    return -4 + 4 * Curves.easeInOut.transform((p - .65) / .35);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ms = BergenPerf.oneShot(context, 300);
+    if (nokkel == 0 || ms == Duration.zero) return child;
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(nokkel),
+      tween: Tween(begin: 0, end: 1),
+      duration: ms,
+      child: child,
+      builder: (context, p, child) => Transform.rotate(angle: _grader(p) * math.pi / 180, child: child),
+    );
+  }
+}

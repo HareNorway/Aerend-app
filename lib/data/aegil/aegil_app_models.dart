@@ -118,6 +118,7 @@ class AwayItem {
     required this.action,
     this.deepLink,
     this.undoable = false,
+    this.at,
   });
 
   final int id;
@@ -126,12 +127,16 @@ class AwayItem {
   final String? deepLink;
   final bool undoable;
 
+  /// When Ægil did it (`at`, ISO 8601); the Varsler panel groups by day.
+  final DateTime? at;
+
   factory AwayItem.fromJson(Map<String, dynamic> json) => AwayItem(
     id: (json['id'] as num?)?.toInt() ?? 0,
     text: (json['text'] as String?) ?? '',
     action: (json['action'] as String?) ?? '',
     deepLink: json['deep_link'] as String?,
     undoable: json['undoable'] == true,
+    at: DateTime.tryParse((json['at'] as String?) ?? '')?.toLocal(),
   );
 }
 

@@ -20,6 +20,7 @@ import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/hjem/hjem_harness.dart';
 import '../../../bergen/sok/sok_screen.dart';
 import '../../../bergen/hjem/hjem_header.dart';
+import '../../../bergen/hjem/hjem_varsler.dart';
 import '../../../bergen/hjem/hjem_hero.dart';
 import '../../auth/launch/lf_css.dart' show LfFrame, lfFlow;
 import '../../../bergen/hjem/hjem_hjul.dart';
@@ -46,7 +47,6 @@ import '../../../snurre/snurre_chat_screen.dart';
 import '../../auth/onboarding_kit.dart';
 import '../../homeMainV1/home_main_v1.dart';
 import '../../manageAddress/manage_address_dl.dart';
-import '../../notifications/notifications.dart';
 import '../../swipeAerend/swipe_aerend_dl.dart';
 import '../home_bloc.dart';
 import '../home_dl.dart';
@@ -216,11 +216,25 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   StreamSubscription<AddressListItem?>? _adrSub;
   String? _hodeEta;
 
+  /// The bell tilts (`bjelleTilt .3s`) when the count rises while Hjem is up.
+  int _bjelleTilt = 0;
+  int _sisteUleste = -1;
+
+  void _ulesteEndret() {
+    if (!mounted) return;
+    final n = HjemVarsler.uleste.value;
+    setState(() {
+      if (_sisteUleste >= 0 && n > _sisteUleste) _bjelleTilt++;
+      _sisteUleste = n;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     BergenHome.hjemInn = false;
     HjemNy.endret.addListener(_nyEndret);
+    HjemVarsler.uleste.addListener(_ulesteEndret);
     DrapePek.lytt();
     _playIntro = !_introPlayed;
     _introPlayed = true;
@@ -375,6 +389,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               _openCategory(c, fane: HjemHarness.katFane);
             }
           }
+          if (HjemHarness.varsler case final f?) {
+            HjemVarsler.apne(context, filter: f);
+          }
           final k = HjemHarness.snart;
           if (k != null) {
             setState(() => _hjulI = k);
@@ -395,6 +412,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     await Future.wait<Object?>([
       refreshAegilFindCount(),
       refreshMensDuVarBorte(),
+      HjemVarsler.oppdater(),
     ]);
     if (mounted) setState(() {});
   }
@@ -443,6 +461,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   @override
   void dispose() {
     HjemNy.endret.removeListener(_nyEndret);
+    HjemVarsler.uleste.removeListener(_ulesteEndret);
     WidgetsBinding.instance.removeObserver(this);
     _trackTimer?.cancel();
     _trackSub?.cancel();
@@ -1640,17 +1659,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                       eta: _hodeEta,
                                       unread:
                                           HjemHarness.unread ??
-                                          home?.totalUnreadMessage ??
-                                          0,
+                                          HjemVarsler.uleste.value,
                                       onAddress: _openAddressSheet,
-                                      onBell: () => BergenRoutes.pushOr(
-                                        context,
-                                        '/bergen/meg/varsler',
-                                        orElse: () => openScreen(
-                                          context,
-                                          const Notifications(),
-                                        ),
-                                      ),
+                                      bjelleTilt: _bjelleTilt,
+                                      onBell: () => HjemVarsler.apne(context),
                                     );
                                   },
                                 ),
@@ -1698,8 +1710,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         : raw.split(',').first.trim(),
                                     uleste:
                                         HjemHarness.unread ??
-                                        home?.totalUnreadMessage ??
-                                        0,
+                                        HjemVarsler.uleste.value,
                                     live: [
                                       restLive,
                                       for (var k = 1; k < 5; k++)
@@ -1710,14 +1721,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                       1.0,
                                     ),
                                     onAdresse: _openAddressSheet,
-                                    onBjelle: () => BergenRoutes.pushOr(
-                                      context,
-                                      '/bergen/meg/varsler',
-                                      orElse: () => openScreen(
-                                        context,
-                                        const Notifications(),
-                                      ),
-                                    ),
+                                    onBjelle: () => HjemVarsler.apne(context),
                                     onSok: () => BergenRoutes.pushOr(
                                       context,
                                       '/bergen/sok',

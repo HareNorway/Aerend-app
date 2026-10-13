@@ -18,6 +18,8 @@ abstract class AegilAppApi {
   Future<bool> dismiss(int suggestionId);
   Future<bool> never(int suggestionId, String reasonCode);
   Future<List<AwayItem>> away();
+  /// Gap Step 1: marks Ægil's actions seen (`POST agent/me/away/seen`).
+  Future<bool> awaySeen();
   Future<TrustLedger?> trustLedger();
   Future<AegilTurn?> photoOrder(List<String> items);
   Future<String?> doorNote(String note);
@@ -81,6 +83,9 @@ class AegilAppRepo implements AegilAppApi {
 
   @override
   Future<bool> dismiss(int suggestionId) => _feedback('me/suggestions/$suggestionId/dismiss');
+
+  @override
+  Future<bool> awaySeen() => _feedback('me/away/seen');
 
   @override
   Future<bool> never(int suggestionId, String reasonCode) => _feedback('me/suggestions/$suggestionId/never', {'reason_code': reasonCode});

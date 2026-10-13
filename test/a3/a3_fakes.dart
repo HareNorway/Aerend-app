@@ -360,6 +360,12 @@ class FakeAegilApi implements AegilAppApi {
 
   @override
   Future<List<AwayItem>> away() async => awayValue;
+  int awaySeenCalls = 0;
+  @override
+  Future<bool> awaySeen() async {
+    awaySeenCalls++;
+    return true;
+  }
 
   @override
   Future<TrustLedger?> trustLedger() async => const TrustLedger(

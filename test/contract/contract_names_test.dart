@@ -49,6 +49,7 @@ const List<String> kReservedAgil3 = [
   '/bergen/fjordfiske',
   kAegilRoute,
   '/bergen/aegil/minne',
+  '/bergen/aegil/nivaa', // Gap Step 1: «Innstillinger for varsler»
   '/bergen/meg',
   '/bergen/meg/favoritter',
   '/bergen/meg/konto',
