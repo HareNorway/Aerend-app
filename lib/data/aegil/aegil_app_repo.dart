@@ -20,6 +20,8 @@ abstract class AegilAppApi {
   Future<List<AwayItem>> away();
   /// Gap Step 1: marks Ægil's actions seen (`POST agent/me/away/seen`).
   Future<bool> awaySeen();
+  /// Gap Step 3: everything Ægil did in the last [days] (`GET agent/me/actions`).
+  Future<List<AwayItem>> actions({int days = 30});
   Future<TrustLedger?> trustLedger();
   Future<AegilTurn?> photoOrder(List<String> items);
   Future<String?> doorNote(String note);
@@ -86,6 +88,20 @@ class AegilAppRepo implements AegilAppApi {
 
   @override
   Future<bool> awaySeen() => _feedback('me/away/seen');
+
+  @override
+  Future<List<AwayItem>> actions({int days = 30}) async {
+    try {
+      final json = _ok(await _api.get('me/actions?${_query({..._auth(), 'days': '$days'})}'));
+      if (json == null) return const [];
+      return ((json['items'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => AwayItem.fromJson(e.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
 
   @override
   Future<bool> never(int suggestionId, String reasonCode) => _feedback('me/suggestions/$suggestionId/never', {'reason_code': reasonCode});

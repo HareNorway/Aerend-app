@@ -39,6 +39,7 @@ import '../../../../networking/ops/ops_kasse_api.dart';
 import '../../../bergen/aegil/brett_entry.dart';
 import '../../../bergen/kit/bergen_routes.dart';
 import '../../../bergen/meg/a3_services.dart';
+import '../../../bergen/meg/aegil_logg.dart';
 import '../../../bergen/meg/borte_entry.dart';
 import '../../../../data/aegil/aegil_app_models.dart' show AwayItem;
 import '../../../bergen/meg/konto_screen.dart' show kPrefA3Rolig;
@@ -389,6 +390,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               _openCategory(c, fane: HjemHarness.katFane);
             }
           }
+          if (HjemHarness.logg) AegilLogg.vis(context);
           if (HjemHarness.varsler case final f?) {
             HjemVarsler.apne(context, filter: f);
           }

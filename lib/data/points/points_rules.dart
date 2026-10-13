@@ -17,6 +17,8 @@ class PointsRules {
     this.aegilAnswerEnabled = false,
     this.aegilPerAnswer = 0,
     this.aegilAnswerCap = 0,
+    this.claimExpiryDays,
+    this.pointsExpiryMonths,
   });
 
   /// Points per whole 10 kr paid (`points.kjop_per_10kr`).
@@ -45,6 +47,12 @@ class PointsRules {
   final int aegilPerAnswer;
   final int aegilAnswerCap;
 
+  /// Gap Step 3: how long a claimed prize lasts (`claim_expiry_days`) and
+  /// how long points live (`points_expiry_months`). Null on an older server:
+  /// the rows that use them are hidden.
+  final int? claimExpiryDays;
+  final int? pointsExpiryMonths;
+
   /// What [answers] onboarding answers would earn, under the cap; 0 when off.
   int aegilPointsFor(int answers) {
     if (!aegilAnswerEnabled || aegilPerAnswer <= 0 || answers <= 0) return 0;
@@ -72,6 +80,8 @@ class PointsRules {
       aegilAnswerEnabled: aegil['enabled'] == true,
       aegilPerAnswer: _int(aegil['per_answer']),
       aegilAnswerCap: _int(aegil['cap']),
+      claimExpiryDays: json['claim_expiry_days'] == null ? null : _int(json['claim_expiry_days']),
+      pointsExpiryMonths: json['points_expiry_months'] == null ? null : _int(json['points_expiry_months']),
     );
   }
 

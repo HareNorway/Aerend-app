@@ -364,6 +364,17 @@ abstract final class A4MegCopy {
   static const String a4_hylla_dette_skjer = 'Dette skjer';
   static const String a4_hylla_gyldighet = 'Gyldighet';
   static const String a4_hylla_60_dager = 'Gjelder i 60 dager';
+  static String a4_hylla_gyldig_dager(int d) => 'Gjelder i $d dager';
+
+  // Ark · Vilkår for premier (new Bergen `premieVilkaar`, L20250; Gap Step 3)
+  static const String a4_premie_vilkaar_title = 'Vilkår for premier';
+  static const String a4_premie_vilkaar_linje = 'Poeng er ikke penger og kan ikke veksles i kroner.';
+  static const String a4_premie_vilkaar_gyldighet = 'Gyldighet';
+  static String a4_premie_vilkaar_gyldig(int d) => 'En hentet premie gjelder i $d dager';
+  static const String a4_premie_vilkaar_partner = 'Partnerpremier';
+  static const String a4_premie_vilkaar_partner_sub = 'Butikken står for varen, Ærend for poengprisen';
+  static const String a4_premie_vilkaar_poeng = 'Poeng';
+  static String a4_premie_vilkaar_poeng_sub(int m) => 'Utløper $m måneder etter at de er tjent';
   static const String a4_hylla_poeng_etter = 'Poeng etter';
   static String a4_hylla_hent_for(int n) => 'Hent for ${_nf(n)} poeng';
   static String a4_hylla_hentet(String name) => '$name ligger under Mine premier';

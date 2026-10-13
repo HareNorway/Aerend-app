@@ -361,6 +361,9 @@ class FakeAegilApi implements AegilAppApi {
   @override
   Future<List<AwayItem>> away() async => awayValue;
   int awaySeenCalls = 0;
+  List<AwayItem> actionsValue = const [];
+  @override
+  Future<List<AwayItem>> actions({int days = 30}) async => actionsValue;
   @override
   Future<bool> awaySeen() async {
     awaySeenCalls++;

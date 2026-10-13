@@ -186,6 +186,11 @@ abstract final class HjemHarness {
   /// …; Gap Step 1).
   static String? varsler;
 
+  /// Gap Step 3: Premiehylla opens «Vilkår for premier» (`hyllaArk: "vilkaar"`);
+  /// Hjem opens «Ægil de siste 30 dagene» (`logg`).
+  static String? hyllaArk;
+  static bool logg = false;
+
   /// Sporing: runs «Kvittering» once loaded (the PDF in the share sheet).
   static bool sporingKvittering = false;
 
@@ -322,6 +327,8 @@ abstract final class HjemHarness {
         hyllaTom = false;
         loggUt = false;
         varsler = null;
+        hyllaArk = null;
+        logg = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
         feedRapport = feedInnlegg = null;
         fiskeFase = fiskeAgn = null;
@@ -418,6 +425,8 @@ abstract final class HjemHarness {
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
       varsler = m['varsler'] as String?;
+      hyllaArk = m['hyllaArk'] as String?;
+      logg = m['logg'] == true;
       sporingKvittering = m['sporingKvittering'] == true;
       utfSeg = m['utfSeg'] as String?;
       feedFane = m['feedFane'] as String?;

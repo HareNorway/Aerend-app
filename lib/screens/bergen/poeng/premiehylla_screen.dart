@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart' show OverflowBoxFit;
 
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
+import '../../../data/points/points_rules.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
@@ -20,6 +21,7 @@ import '../meg/meg_nav.dart';
 import '../meg/meg_nivaa_card.dart' show MegMedal, medalFor;
 import '../meg/meg_sheets.dart';
 import 'aegil_velger_screen.dart';
+import 'premie_ark.dart';
 import 'prize_art.dart';
 import '../kit/bergen_perf.dart';
 
@@ -47,6 +49,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   Premiehylla? _shelf;
   List<PrizeClaim> _claims = const [];
 
+  /// `points/rules`: the claim validity and points expiry (Gap Step 3).
+  PointsRules? _regler;
+
   /// «Finn en premie» scrolls here (`[data-premiehylla]`).
   final GlobalKey _hyllaKey = GlobalKey();
   bool _loading = true;
@@ -58,14 +63,19 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _load() async {
-    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims)]);
+    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules)]);
     if (!mounted) return;
     setState(() {
+      _regler = r[3] as PointsRules? ?? _regler;
       _balance = r[0] as PointsBalance?;
       _shelf = r[1] as Premiehylla?;
       _claims = kDebugMode && HjemHarness.hyllaTom ? const [] : (r[2] as List<PrizeClaim>?) ?? const [];
       _loading = false;
     });
+    if (kDebugMode && HjemHarness.hyllaArk == 'vilkaar') {
+      HjemHarness.hyllaArk = null;
+      PremieArk.vilkaar(context, regler: _regler);
+    }
   }
 
   int get _points => _balance?.available ?? 0;
@@ -92,103 +102,8 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       await _setGoal(p);
       return;
     }
-    final claimed = await _krevArk(p);
+    final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: _regler?.claimExpiryDays);
     if (claimed == true && mounted) _load();
-  }
-
-  /// `krev`: what happens, how long it lasts, points after — and the boat asks
-  /// for its name first (identity prize).
-  Future<bool?> _krevArk(Prize p) {
-    final after = (_points - p.pointPrice).clamp(0, 1 << 30);
-    final identity = p.type == 'identity';
-    final name = TextEditingController();
-    var busy = false;
-    String? error;
-    StateSetter? sheetSet;
-
-    return showMegArk<bool>(
-      context,
-      key: const Key('hylla-krev-sheet'),
-      title: p.name,
-      subtitle: identity ? A4MegCopy.a4_hylla_baat_linje : '${A4MegCopy.nf(p.pointPrice)} poeng${p.partnerName == null ? '' : ' · ${p.partnerName}'}',
-      body: (ctx, setState) {
-        sheetSet = setState;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (identity)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: TextField(
-                  key: const Key('hylla-baat-navn'),
-                  controller: name,
-                  maxLength: 20,
-                  onChanged: (_) => setState(() {}),
-                  style: BergenTokens.text(15, weight: FontWeight.w800, color: MegArkInk.ink),
-                  decoration: InputDecoration(
-                    hintText: A4MegCopy.a4_hylla_baat_hint,
-                    counterText: '${name.text.length} av 20 tegn',
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: .7),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: .9), width: 1.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: .9), width: 1.5),
-                    ),
-                  ),
-                ),
-              ),
-            MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: identity ? A4MegCopy.a4_hylla_baat_skjer : _hvordan(p.type)),
-            MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: identity ? A4MegCopy.a4_hylla_baat_gyldig : A4MegCopy.a4_hylla_60_dager),
-            MegArkRow(title: A4MegCopy.a4_hylla_poeng_etter, sub: '${A4MegCopy.nf(after)} poeng'),
-            if (error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(error!, style: megInter(12, FontWeight.w700, color: const Color(0xFFB9441A))),
-              ),
-          ],
-        );
-      },
-      primary: MegArkButton(
-        key: const Key('hylla-krev-cta'),
-        label: identity ? A4MegCopy.a4_hylla_baat_cta : A4MegCopy.a4_hylla_hent_for(p.pointPrice),
-        onTap: () async {
-          if (busy) return;
-          if (identity && name.text.trim().isEmpty) {
-            showBergenToast(context, A4MegCopy.a4_hylla_baat_navn_forst);
-            return;
-          }
-          busy = true;
-          final nav = Navigator.of(context);
-          final r = await _api.claim(p.id, identityName: identity ? name.text.trim() : null);
-          busy = false;
-          if (r.claim != null) {
-            nav.pop(true);
-            if (mounted) showBergenToast(context, A4MegCopy.a4_hylla_hentet(p.name), icon: Icons.check_rounded);
-          } else {
-            sheetSet?.call(() => error = r.error ?? A4MegCopy.a4_hylla_feil);
-          }
-        },
-      ),
-    );
-  }
-
-  static String _hvordan(String type) {
-    switch (type) {
-      case 'voucher':
-        return 'Brukes automatisk på neste levering';
-      case 'physical':
-        return 'Sendes hjem til deg';
-      case 'donation':
-        return 'Gis til klubben du velger';
-      case 'identity':
-        return 'Båten din legges i Vågen';
-      default:
-        return 'Kode vises her';
-    }
   }
 
   void _openVelger() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AegilVelgerScreen(api: _api))).then((_) => _load());
@@ -202,7 +117,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: _hvordan(p?.type ?? '')),
+          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: PremieArk.hvordan(p?.type ?? '')),
           if ((c.voucherCode ?? '').isNotEmpty) MegArkRow(title: A4MegCopy.a4_hylla_kode, sub: c.voucherCode!),
           if (c.expiresAt != null) MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: A4MegCopy.a4_hylla_dager_igjen(_dagerIgjen(c))),
         ],
@@ -482,7 +397,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                     ),
                 ],
                 const SizedBox(height: 9),
-                _Vilkaar(onTap: () => MegSheets.vilkaar(context)),
+                _Vilkaar(onTap: () => PremieArk.vilkaar(context, regler: _regler)),
               ],
             ),
           ],
@@ -1185,7 +1100,7 @@ class _Billett extends StatelessWidget {
                               Text(c.prizeName ?? prize?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14, em: -.015, height: 1.2)),
                               const SizedBox(height: 2),
                               Text(
-                                _PremiehyllaScreenState._hvordan(prize?.type ?? ''),
+                                PremieArk.hvordan(prize?.type ?? ''),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: inter(11, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .72)),

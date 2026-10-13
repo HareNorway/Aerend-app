@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
 import 'a3_services.dart';
+import 'aegil_logg.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_copy.dart';
 import '../../common/auth/launch/lf_css.dart';
@@ -112,33 +113,15 @@ class _BorteCardState extends State<_BorteCard> {
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 7),
                 decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .14)))),
-                child: Text.rich(
-                  TextSpan(
-                    text: a.text,
-                    style: inter(13, color: hvit),
-                    children: [
-                      if (a.undoable) ...[
-                        const TextSpan(text: ' · '),
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.baseline,
-                          baseline: TextBaseline.alphabetic,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() => _items = _items.where((x) => x.id != a.id).toList());
-                              _away = _items;
-                              showBergenUndo(context, message: 'Angret', onUndo: () => setState(() => _items = [..._items, a]));
-                            },
-                            child: Text(A3MegCopy.a3_meg_varsler_angre, style: inter(13, weight: FontWeight.w800, color: const Color(0xFF5CE0B8))),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
+                // Gap Step 3: no «Angre» until an undo route exists. It used
+                // to hide the line on the phone and say «Angret» while Ægil's
+                // action stayed done.
+                child: Text(a.text, style: inter(13, color: hvit)),
               ),
             const SizedBox(height: 6),
             GestureDetector(
-              onTap: () => Navigator.of(context).pushNamed('/bergen/meg/varsler'),
+              key: const Key('borte-logg'),
+              onTap: () => AegilLogg.vis(context),
               child: Text(A3MegCopy.a3_meg_borte_se, style: inter(12, weight: FontWeight.w800, color: const Color(0xFF5CE0B8))),
             ),
           ],

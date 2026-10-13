@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../poeng/premie_ark.dart';
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
 import '../../../data/aegil/aegil_models.dart';
@@ -117,6 +118,20 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     super.dispose();
   }
 
+  /// «Hent premie» when the goal is reached (`hentMaal`, L19658): the claim
+  /// sheet (`krev`) for the goal prize, as on Premiehylla (Gap Step 3).
+  /// Without a goal prize on the shelf, Premiehylla.
+  Future<void> _hentPremie() async {
+    final id = _goal?.prizeId;
+    final p = id == null ? null : _shelf?.prizes.where((x) => x.id == id).firstOrNull;
+    if (p == null) {
+      _go('/bergen/premiehylla');
+      return;
+    }
+    final claimed = await PremieArk.krev(context, p: p, poeng: _balance?.available ?? 0, api: _api, gyldigDager: _regler?.claimExpiryDays);
+    if (claimed == true && mounted) _load();
+  }
+
   Future<void> _load() async {
     final r = await Future.wait<Object?>([
       a3Try(_api.balance),
@@ -176,6 +191,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'bio': _openBio();
         case 'aegilInnst': _aegilInnstillinger();
         case 'gbDelt': _feirDelt();
+        case 'krev': _hentPremie();
         case 'poeng': setState(() => _poengApen = true);
         case 'bioLagre': _openBio(autoLagre: const Duration(milliseconds: 1500));
       }
@@ -587,7 +603,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                         onOpenPremiehylla: () => _go('/bergen/premiehylla'),
                                         onOpenNivaa: _openNivaa,
                                         onOpenSlik: () => MegSheets.slikPoeng(context, b, regler: _regler),
-                                        onHentPremie: () => _goal?.prizeId != null ? _go('/bergen/premie', arguments: _goal!.prizeId) : _go('/bergen/premiehylla'),
+                                        onHentPremie: _hentPremie,
                                       ),
                                       const SizedBox(height: 12),
                                       _Gruppe(
