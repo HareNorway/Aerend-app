@@ -5,8 +5,7 @@ import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/poeng/napp_entry.dart';
 import 'package:aerend_customer/screens/bergen/poeng/poeng_entry.dart';
-import 'package:aerend_customer/screens/bergen/poeng/poeng_screen.dart';
-import 'package:aerend_customer/screens/bergen/poeng/premie_screen.dart';
+import 'package:aerend_customer/screens/bergen/poeng/premie_ark.dart';
 
 import '../a3/a3_fakes.dart';
 
@@ -22,14 +21,19 @@ void main() {
     await t.pump(const Duration(milliseconds: 50));
   }
 
-  testWidgets('Premie: Hent claims through the API', (tester) async {
+  testWidgets('Premie: the claim sheet claims through the API (Gap Step 4: the old page is gone)', (tester) async {
     final api = FakePointsApi();
-    await tester.pumpWidget(a3App(PremieScreen(prize: kPrize, api: api)));
-    await settle(tester);
+    late BuildContext ctx;
+    await tester.pumpWidget(a3App(Builder(builder: (c) {
+      ctx = c;
+      return const Scaffold(body: SizedBox());
+    })));
+    PremieArk.krev(ctx, p: kPrize, poeng: 420, api: api);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('Kaffe hos Kaffemisjonen'), findsOneWidget);
-    expect(find.text('300 poeng'), findsOneWidget);
-    await tester.tap(find.text('Hent premien'));
+    await tester.tap(find.byKey(const Key('hylla-krev-cta')));
     await settle(tester);
     expect(api.calls, contains('claim:7'));
     await tester.pump(const Duration(seconds: 4));
@@ -56,17 +60,14 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('Poeng hub and entry card render the balance', (tester) async {
+  testWidgets('Poeng entry card renders the balance (the old hub page went in Gap Step 4)', (tester) async {
     final api = FakePointsApi();
     A3Services.points = () => api;
-    await tester.pumpWidget(a3App(Scaffold(body: Column(children: [Builder(builder: poengEntryCard), Expanded(child: PoengScreen(api: api))]))));
+    await tester.pumpWidget(a3App(Scaffold(body: Column(children: [Builder(builder: poengEntryCard)]))));
     await settle(tester);
 
     expect(find.byKey(const Key('poeng-entry')), findsOneWidget);
     expect(find.textContaining('420 poeng'), findsWidgets);
-    expect(find.byKey(const Key('poeng-hylla')), findsOneWidget);
-    expect(find.byKey(const Key('poeng-fiske')), findsOneWidget);
-    expect(find.text('Handle hos to bergenske butikker'), findsOneWidget);
   });
 
   test('AegilPick exposes the prize fields', () {

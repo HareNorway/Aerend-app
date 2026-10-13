@@ -1,9 +1,14 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../networking/feed/feed_repo.dart';
+import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
+import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
+import '../utforsk/utforsk_screen.dart' show UtforskScreen;
 import '../poeng/premie_ark.dart';
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
@@ -47,7 +52,7 @@ import 'min_bio.dart';
 import 'min_bio_ark.dart';
 import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
-import 'varsler_panel.dart';
+import '../hjem/hjem_varsler.dart' show varslerLoader;
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -132,7 +137,34 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     if (claimed == true && mounted) _load();
   }
 
+  /// «Nytt fra butikkene»: new posts from the stores you follow (feed
+  /// `unread?tab=folger`); 0 or no answer hides the badge.
+  int _feedNye = 0;
+
+  /// The row opens Utforsk on Feed › Nær and marks the posts read (design
+  /// `tilFeed`, L16922: `utfSeg: 'feed', feedFane: 'naer', feedLest: true`).
+  void _tilFeed() {
+    unawaited(MegFeed.lest());
+    setState(() => _feedNye = 0);
+    final shell = HomeMainV1State.current;
+    if (shell == null) {
+      BergenRoutes.push(context, '/bergen/utforsk', arguments: const {'tab': 'feed'});
+      return;
+    }
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    UtforskScreen.apneSegment = UtforskScreen.tabFeed;
+    shell.switchToTab(BergenTab.explore.index);
+  }
+
+  /// Apart from [_load]: the feed service may be off (Docker), and Meg must
+  /// not wait for it.
+  Future<void> _lastFeedNye() async {
+    final n = await a3Try(MegFeed.nye) ?? 0;
+    if (mounted && n != _feedNye) setState(() => _feedNye = n);
+  }
+
   Future<void> _load() async {
+    unawaited(_lastFeedNye());
     final r = await Future.wait<Object?>([
       a3Try(_api.balance),
       a3Try(_api.shelf),
@@ -165,6 +197,10 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       _minne = (r[10] as List<MemoryEntry>?) ?? const [];
       _regler = r[11] as PointsRules?;
       _adresser = (r[12] as List<AddressListItem>?) ?? const [];
+      if (MegApne.poeng) {
+        MegApne.poeng = false;
+        _poengApen = true;
+      }
       _loading = false;
     });
     // Debug: `megArk` opens one of Meg's Ark sheets (parity Step 9, row 43).
@@ -192,6 +228,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'aegilInnst': _aegilInnstillinger();
         case 'gbDelt': _feirDelt();
         case 'krev': _hentPremie();
+        case 'nytt': _tilFeed();
         case 'poeng': setState(() => _poengApen = true);
         case 'bioLagre': _openBio(autoLagre: const Duration(milliseconds: 1500));
       }
@@ -712,7 +749,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                       d: 'M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM8 9h8M8 13h5',
                                     ),
                                     navn: A4MegCopy.a4_meg_nytt,
-                                    onTap: () => BergenRoutes.push(context, '/bergen/utforsk', arguments: const {'tab': 'feed'}),
+                                    merke: _feedNye > 0 ? '$_feedNye' : null,
+                                    merkePille: true,
+                                    onTap: _tilFeed,
                                   ),
                                   _Rad(
                                     key: const Key('meg-rad-hjelp'),
@@ -956,6 +995,7 @@ class _Rad extends StatelessWidget {
     this.under,
     this.merke,
     this.merkeDempet = false,
+    this.merkePille = false,
     this.knapp,
     this.del = false,
     this.onKnapp,
@@ -968,6 +1008,9 @@ class _Rad extends StatelessWidget {
   final String? under;
   final String? merke;
   final bool merkeDempet;
+
+  /// The mint count pill (`feedUlest`, L7620): «Nytt fra butikkene».
+  final bool merkePille;
   final String? knapp;
   final bool del;
   final VoidCallback? onKnapp;
@@ -1001,10 +1044,17 @@ class _Rad extends StatelessWidget {
             ),
             if (merke != null) ...[
               const SizedBox(width: 11),
-              Text(
-                merke!,
-                style: aeTab(inter(12.5, weight: FontWeight.w800, color: merkeDempet ? const Color.fromRGBO(255, 255, 255, .7) : const Color(0xFF7FF0CB))),
-              ),
+              if (merkePille)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                  decoration: BoxDecoration(color: const Color(0xFF5CE0B8), borderRadius: BorderRadius.circular(999)),
+                  child: Text(merke!, style: aeTab(inter(11, weight: FontWeight.w800, color: const Color(0xFF0F1F2B)))),
+                )
+              else
+                Text(
+                  merke!,
+                  style: aeTab(inter(12.5, weight: FontWeight.w800, color: merkeDempet ? const Color.fromRGBO(255, 255, 255, .7) : const Color(0xFF7FF0CB))),
+                ),
             ],
             if (knapp != null) ...[
               const SizedBox(width: 11),
@@ -1144,3 +1194,16 @@ class _FargeTile extends StatelessWidget {
     ),
   );
 }
+
+/// One-shot: Meg opens with «Poeng, nivå og konkurranser» unfolded (the
+/// old `/bergen/poeng` route lands here, Gap Step 4).
+abstract final class MegApne {
+  static bool poeng = false;
+}
+
+/// The feed calls behind «Nytt fra butikkene»; tests swap them.
+abstract final class MegFeed {
+  static Future<int> Function() nye = () async => (await FeedRepo().fetchUnread(tab: 'folger')).unread;
+  static Future<void> Function() lest = () => FeedRepo().markSeen(tab: 'folger');
+}
+

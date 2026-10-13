@@ -15,7 +15,7 @@ import '../kit/bergen_perf.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/live_aerend.dart';
 import '../meg/a3_services.dart';
-import '../meg/varsler_panel.dart' show varslerLoader;
+import '../../common/notifications/notifications_repo.dart';
 import '../../snurre/snurre_launcher_policy.dart';
 
 // ── Varsler panel (Gap Step 1) ──────────────────────────────────────────────
@@ -28,6 +28,17 @@ import '../../snurre/snurre_launcher_policy.dart';
 // unseen actions (`agent/me/away`) and the active order. The per-user inbox
 // (kinds, swipe to remove / mute, the rich «Ny på Ærend» card) waits for the
 // backend (gap Step 2); those parts are hidden, not faked (G2).
+
+/// The broadcasts source (`mass-notification-list`); tests swap it. It lived
+/// in the old Varsler page, removed in Gap Step 4.
+typedef VarslerLoader = Future<List<MassNotificationItem>> Function();
+
+Future<List<MassNotificationItem>> _defaultLoader() async {
+  final json = await NotificationsRepo().callNotificationsApi(1, perPage: 30);
+  return NotificationsPojo.fromJson(json).massNotificationList;
+}
+
+VarslerLoader varslerLoader = _defaultLoader;
 
 abstract final class VarslerCopy {
   static const tittel = 'Varsler';

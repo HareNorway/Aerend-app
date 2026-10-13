@@ -12,7 +12,6 @@ import 'sporing/hjelp_sheet.dart';
 import 'sporing/levert_screen.dart';
 import 'sporing/sporing_screen.dart';
 import 'utforsk/butikk_profil.dart';
-import 'utforsk/feed_nyheter_screen.dart';
 import 'utforsk/utforsk_screen.dart';
 
 /// agil-1 named routes (AGIL-CONTRACT §2.2, §3.4). Filled phase by phase by
@@ -45,11 +44,7 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   '/bergen/sporing/hjelp': (_) => const HjelpScreen(),
   '/bergen/levert': (_) => const LevertScreen(),
   '/bergen/kundeservice': (_) => const KundeserviceScreen(),
-  // Phase 2. `?tab=feed` (agil-3's Meg row "Nytt fra butikkene") is the
-  // design's `feed` screen; any other tab opens Utforsk on that segment.
-  '/bergen/utforsk': (ctx) {
-    final tab = BergenRoutes.argsOf(ctx)['tab'];
-    if (tab == UtforskScreen.tabFeed) return const FeedNyheterScreen();
-    return UtforskScreen(embedded: false, initialTab: tab);
-  },
+  // Phase 2: Utforsk on the segment in `?tab=` (feed / fiske / pose). The
+  // old separate «Nytt fra butikkene» page is gone (Gap Step 4).
+  '/bergen/utforsk': (ctx) => UtforskScreen(embedded: false, initialTab: BergenRoutes.argsOf(ctx)['tab']),
 };
