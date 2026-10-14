@@ -596,9 +596,13 @@ class ProduktTilvalg extends StatelessWidget {
     required this.keyPrefix,
     required this.onTap,
     this.paakrevd = false,
+    this.regel,
   });
 
   final String tittel;
+
+  /// The group's rule when it has bounds («Velg minst 2»); else the default.
+  final String? regel;
 
   /// One choice (`type: 'en'`) — or several (`'ja'`).
   final bool en;
@@ -612,7 +616,7 @@ class ProduktTilvalg extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final n = options.where((v) => picked.contains(v.id)).length;
-    final ok = !en || n > 0;
+    final ok = !(en || paakrevd) || n > 0;
     final (String merke, Color bg, Color kant, Color fg) = en
         ? (ok
               ? (
@@ -655,7 +659,7 @@ class ProduktTilvalg extends StatelessWidget {
                     Text(tittel, style: bDisplay(context, 15, letterSpacingEm: -.015)),
                     SizedBox(height: 2 * s),
                     Text(
-                      en ? ButikkCopy.a1_butikk_prod_velg_en : ButikkCopy.a1_butikk_prod_valgfritt,
+                      regel ?? (en ? ButikkCopy.a1_butikk_prod_velg_en : ButikkCopy.a1_butikk_prod_valgfritt),
                       style: bText(context, 11.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .58)),
                     ),
                   ],

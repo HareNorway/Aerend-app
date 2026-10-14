@@ -1,0 +1,76 @@
+{
+ "status": 1,
+ "message": "success!",
+ "message_code": 1,
+ "service_category_id": null,
+ "options_list": [
+  {
+   "id": 950,
+   "selection_type": 1,
+   "optional_type": 0,
+   "minimum": 1,
+   "maximum": 1,
+   "name": "Styrke",
+   "options": [
+    {
+     "id": 1796,
+     "name": "Mild",
+     "amount": 0
+    },
+    {
+     "id": 1797,
+     "name": "Medium",
+     "amount": 0
+    },
+    {
+     "id": 1798,
+     "name": "Sterk",
+     "amount": 0
+    }
+   ]
+  },
+  {
+   "id": 951,
+   "selection_type": 1,
+   "optional_type": 0,
+   "minimum": 1,
+   "maximum": 1,
+   "name": "Ekstra kjøtt",
+   "options": [
+    {
+     "id": 1799,
+     "name": "Ja",
+     "amount": 30
+    },
+    {
+     "id": 1800,
+     "name": "Nei",
+     "amount": 0
+    }
+   ]
+  },
+  {
+   "id": 952,
+   "selection_type": 1,
+   "optional_type": 0,
+   "minimum": 1,
+   "maximum": 1,
+   "name": "Ekstra ost",
+   "options": [
+    {
+     "id": 1801,
+     "name": "Ja",
+     "amount": 20
+    },
+    {
+     "id": 1802,
+     "name": "Nei",
+     "amount": 0
+    }
+   ]
+  }
+ ],
+ "size_list": [],
+ "color_list": [],
+ "variants": []
+}

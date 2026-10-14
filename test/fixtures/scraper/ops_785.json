@@ -1,0 +1,82 @@
+{
+ "id": 785,
+ "name": "36. Pita Kebab Med Lam",
+ "description": "Lammekjøtt, salat, mais, løk og dressing",
+ "image": null,
+ "store_id": 875014,
+ "store_name": "LOCAL-TEST Scraper Store",
+ "allergens": [],
+ "vegan": false,
+ "halal": false,
+ "has_sizes": false,
+ "ready_minutes": null,
+ "ordered_today": 0,
+ "most_ordered": false,
+ "points_per_10kr": 1,
+ "price_ore": 16000,
+ "was_price_ore": null,
+ "variants": [],
+ "sizes": [],
+ "colours": [],
+ "stock": {
+  "mode": "none",
+  "updated_at": "2026-10-14T19:56:46+05:30",
+  "label": null
+ },
+ "images": [],
+ "modifiers": [
+  {
+   "name": "Styrke",
+   "required": true,
+   "min": 1,
+   "max": 1,
+   "options": [
+    {
+     "name": "Mild",
+     "delta_ore": 0
+    },
+    {
+     "name": "Medium",
+     "delta_ore": 0
+    },
+    {
+     "name": "Sterk",
+     "delta_ore": 0
+    }
+   ]
+  },
+  {
+   "name": "Ekstra kjøtt",
+   "required": true,
+   "min": 1,
+   "max": 1,
+   "options": [
+    {
+     "name": "Ja",
+     "delta_ore": 3000
+    },
+    {
+     "name": "Nei",
+     "delta_ore": 0
+    }
+   ]
+  },
+  {
+   "name": "Ekstra ost",
+   "required": true,
+   "min": 1,
+   "max": 1,
+   "options": [
+    {
+     "name": "Ja",
+     "delta_ore": 2000
+    },
+    {
+     "name": "Nei",
+     "delta_ore": 0
+    }
+   ]
+  }
+ ],
+ "allergen_codes": []
+}

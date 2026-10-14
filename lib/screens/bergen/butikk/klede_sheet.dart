@@ -10,6 +10,12 @@ import '../kit/bergen_perf.dart';
 /// The Klede sheet (`visKlede` ≈L2630 in `Ærend Kunde Bergen.dc.html`):
 /// colour, size with stock, quantity, "Prøv hjemme. Budet henter returen
 /// gratis innen 14 dager." and "Legg i kurv · X kr".
+///
+/// Catalogue sync (scraper plan Chunk 8): colour swatches with hex; a size
+/// greys out when it is sold out in the chosen colour; «3 igjen i din
+/// størrelse» at three or fewer; «Lager ikke bekreftet» when the shop did not
+/// say; «Lager oppdatert for 2 t siden» for web stock; a swipe gallery; øre
+/// prices from `ops.customer.product`; an error state with retry.
 Future<void> showKledeSheet(
   BuildContext context, {
   required BergenMenuItem item,
@@ -30,6 +36,7 @@ class KledeSheet extends StatefulWidget {
     required this.api,
     this.brand,
     this.options,
+    this.detail,
   });
 
   final BergenMenuItem item;
@@ -37,20 +44,27 @@ class KledeSheet extends StatefulWidget {
   final String? brand;
   final BergenProductOptions? options;
 
+  /// Preloaded `ops.customer.product` (tests).
+  final BergenProductDetail? detail;
+
   @override
   State<KledeSheet> createState() => _KledeSheetState();
 }
 
 class _KledeSheetState extends State<KledeSheet> {
   BergenProductOptions? _options;
+  BergenProductDetail? _detail;
+  bool _failed = false;
   int? _colour;
   int? _size;
   int _qty = 1;
+  int _image = 0;
 
   @override
   void initState() {
     super.initState();
     _options = widget.options;
+    _detail = widget.detail;
     if (_options == null) {
       _load();
     } else {
@@ -59,10 +73,19 @@ class _KledeSheetState extends State<KledeSheet> {
   }
 
   Future<void> _load() async {
-    final o = await widget.api.options(widget.item.id);
+    setState(() => _failed = false);
+    final results = await Future.wait([
+      widget.api.optionsResult(widget.item.id),
+      widget.api.productDetailResult(widget.item.id),
+    ]);
     if (!mounted) return;
+    final o = results[0] as ButikkResult<BergenProductOptions>;
+    final d = results[1] as ButikkResult<BergenProductDetail>;
     setState(() {
-      _options = o;
+      // The sheet cannot offer sizes it could not read: an honest error, not an empty sheet.
+      _failed = o.failed;
+      _options = o.value;
+      _detail = d.value ?? _detail;
       _defaults();
     });
   }
@@ -70,17 +93,55 @@ class _KledeSheetState extends State<KledeSheet> {
   void _defaults() {
     final o = _options;
     if (o == null) return;
-    if (o.colours.isNotEmpty)
+    if (o.colours.isNotEmpty && _colour == null) {
       _colour = o.colours
-          .firstWhere((c) => c.inStock, orElse: () => o.colours.first)
+          .firstWhere((c) => c.inStock && _colourHasStock(c), orElse: () => o.colours.first)
           .id;
+    }
   }
+
+  String? get _colourName =>
+      _options?.colours.where((c) => c.id == _colour).firstOrNull?.name;
+
+  /// The grid cell for a size in the chosen colour (the ops grid first).
+  BergenCell? _cell(BergenVariant size) {
+    final colour = _colourName;
+    for (final c in _detail?.cells ?? const <BergenCell>[]) {
+      if ((c.size ?? '').toLowerCase() == size.name.toLowerCase() &&
+          (colour == null || (c.colour ?? '').toLowerCase() == colour.toLowerCase())) {
+        return c;
+      }
+    }
+    return _options?.cell(size.name, colour);
+  }
+
+  /// true / false / null (unknown) for a size in the chosen colour.
+  bool? _sizeStock(BergenVariant size) {
+    final cell = _cell(size);
+    if (cell != null) return cell.inStock;
+    return size.stock;
+  }
+
+  int? _sizeQty(BergenVariant size) => _cell(size)?.stockQty ?? size.stockQty;
+
+  bool _colourHasStock(BergenVariant colour) {
+    final cells = [...?_detail?.cells, ...?_options?.cells]
+        .where((c) => (c.colour ?? '').toLowerCase() == colour.name.toLowerCase());
+    if (cells.isEmpty) return colour.inStock;
+    return cells.any((c) => c.inStock != false);
+  }
+
+  double get _base => _detail?.priceKr ?? widget.item.price;
+  double? get _was => _detail?.wasPriceKr ?? widget.item.wasPrice;
 
   double get _sum {
     final o = _options;
-    var unit = widget.item.price;
+    var unit = _base;
     final size = o?.sizes.where((v) => v.id == _size).firstOrNull;
-    if (size != null) unit += size.priceDelta;
+    if (size != null) {
+      final cell = _cell(size);
+      unit += cell != null ? cell.priceDeltaOre / 100 : size.priceDelta;
+    }
     return unit * _qty;
   }
 
@@ -101,15 +162,63 @@ class _KledeSheetState extends State<KledeSheet> {
     if (ok && mounted) Navigator.of(context).pop();
   }
 
+  List<String> get _images {
+    final d = _detail?.images ?? const <String>[];
+    if (d.isNotEmpty) return d;
+    final one = widget.item.imageUrl ?? _detail?.imageUrl;
+    return one == null ? const [] : [one];
+  }
+
+  Widget _picture(BuildContext context, String? url) {
+    final s = context.bs;
+    return url != null
+        ? Image.network(
+            cacheWidth: BergenPerf.decodeWidth,
+            url,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFFE9E2D2)),
+          )
+        : Container(
+            color: BergenTokens.paperWarm,
+            child: Icon(Icons.checkroom_rounded, size: 48 * s, color: BergenTokens.teal),
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
     final item = widget.item;
     final o = _options;
-    final colourName = o?.colours
-        .where((c) => c.id == _colour)
-        .firstOrNull
-        ?.name;
+    final d = _detail;
+    final colourName = _colourName;
+    final images = _images;
+    final selectedSize = o?.sizes.where((v) => v.id == _size).firstOrNull;
+    final selectedQty = selectedSize == null ? null : _sizeQty(selectedSize);
+    final selectedStock = selectedSize == null ? null : _sizeStock(selectedSize);
+
+    if (_failed && o == null) {
+      return Column(
+        key: const Key('a1_butikk_klede_feil'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(height: 24 * s),
+          Icon(Icons.wifi_off_rounded, size: 36 * s, color: BergenTokens.inkFaint),
+          SizedBox(height: 10 * s),
+          Text(
+            ButikkCopy.a1_butikk_scr_feil,
+            textAlign: TextAlign.center,
+            style: bText(context, 13, weight: FontWeight.w700, color: BergenTokens.ink),
+          ),
+          SizedBox(height: 14 * s),
+          BergenCta3d(
+            key: const Key('a1_butikk_klede_prov_igjen'),
+            label: ButikkCopy.a1_butikk_scr_prov_igjen,
+            onPressed: _load,
+          ),
+          SizedBox(height: 16 * s),
+        ],
+      );
+    }
 
     return Column(
       key: const Key('a1_butikk_klede_sheet'),
@@ -121,79 +230,72 @@ class _KledeSheetState extends State<KledeSheet> {
           child: SizedBox(
             height: 220 * s,
             width: double.infinity,
-            child: item.imageUrl != null
-                ? Image.network(cacheWidth: BergenPerf.decodeWidth, 
-                    item.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
-                        const ColoredBox(color: Color(0xFFE9E2D2)),
+            child: images.length > 1
+                ? Stack(
+                    children: [
+                      PageView(
+                        key: const Key('a1_butikk_klede_galleri'),
+                        onPageChanged: (i) => setState(() => _image = i),
+                        children: [for (final u in images) _picture(context, u)],
+                      ),
+                      Positioned(
+                        bottom: 8 * s,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var i = 0; i < images.length; i++)
+                              Container(
+                                width: (i == _image ? 16 : 6) * s,
+                                height: 6 * s,
+                                margin: EdgeInsets.symmetric(horizontal: 2 * s),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  color: i == _image ? BergenTokens.orange : BergenTokens.paperBright,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   )
-                : Container(
-                    color: BergenTokens.paperWarm,
-                    child: Icon(
-                      Icons.checkroom_rounded,
-                      size: 48 * s,
-                      color: BergenTokens.teal,
-                    ),
-                  ),
+                : _picture(context, images.firstOrNull),
           ),
         ),
         SizedBox(height: 12 * s),
         if (widget.brand != null || item.categoryName != null)
           Text(
             (widget.brand ?? item.categoryName!).toUpperCase(),
-            style: bText(
-              context,
-              10,
-              weight: FontWeight.w800,
-              color: BergenTokens.inkFaint,
-            ),
+            style: bText(context, 10, weight: FontWeight.w800, color: BergenTokens.inkFaint),
           ),
         Text(
           item.name,
           key: const Key('a1_butikk_klede_navn'),
-          style: bDisplay(
-            context,
-            20,
-            weight: FontWeight.w800,
-            color: BergenTokens.ink,
-          ),
+          style: bDisplay(context, 20, weight: FontWeight.w800, color: BergenTokens.ink),
         ),
         Row(
           children: [
             Text(
-              ButikkCopy.kr(item.price),
-              style: bDisplay(
-                context,
-                17,
-                weight: FontWeight.w800,
-                color: BergenTokens.ink,
-              ),
+              ButikkCopy.kr(_base),
+              key: const Key('a1_butikk_klede_pris'),
+              style: bDisplay(context, 17, weight: FontWeight.w800, color: BergenTokens.ink),
             ),
-            if (item.wasPrice != null) ...[
+            if (_was != null && _was! > _base) ...[
               SizedBox(width: 8 * s),
               Text(
-                ButikkCopy.kr(item.wasPrice!),
-                style: bText(
-                  context,
-                  12,
-                  weight: FontWeight.w600,
-                  color: BergenTokens.inkFaint,
-                ).copyWith(decoration: TextDecoration.lineThrough),
+                ButikkCopy.kr(_was!),
+                style: bText(context, 12, weight: FontWeight.w600, color: BergenTokens.inkFaint)
+                    .copyWith(decoration: TextDecoration.lineThrough),
               ),
             ],
           ],
         ),
-        if (item.description != null) ...[
+        if (item.description != null || d?.description != null) ...[
           SizedBox(height: 4 * s),
           Text(
-            item.description!,
-            style: bText(
-              context,
-              12.5,
-              weight: FontWeight.w500,
-              color: BergenTokens.inkSecondary,
-            ),
+            (item.description ?? d!.description)!,
+            style: bText(context, 12.5, weight: FontWeight.w500, color: BergenTokens.inkSecondary),
           ),
         ],
         if (o != null && o.colours.isNotEmpty) ...[
@@ -202,23 +304,14 @@ class _KledeSheetState extends State<KledeSheet> {
             children: [
               Text(
                 ButikkCopy.a1_butikk_klede_farge,
-                style: bDisplay(
-                  context,
-                  14,
-                  weight: FontWeight.w800,
-                  color: BergenTokens.ink,
-                ),
+                style: bDisplay(context, 14, weight: FontWeight.w800, color: BergenTokens.ink),
               ),
               if (colourName != null) ...[
                 SizedBox(width: 6 * s),
                 Text(
                   colourName,
-                  style: bText(
-                    context,
-                    11,
-                    weight: FontWeight.w700,
-                    color: BergenTokens.inkFaint,
-                  ),
+                  key: const Key('a1_butikk_klede_fargenavn'),
+                  style: bText(context, 11, weight: FontWeight.w700, color: BergenTokens.inkFaint),
                 ),
               ],
             ],
@@ -229,14 +322,25 @@ class _KledeSheetState extends State<KledeSheet> {
             runSpacing: 8 * s,
             children: [
               for (final c in o.colours)
-                BergenChip(
-                  key: Key('a1_butikk_klede_farge_${c.id}'),
-                  label: c.name,
-                  selected: _colour == c.id,
-                  onTap: c.inStock
-                      ? () => setState(() => _colour = c.id)
-                      : null,
-                ),
+                _hexOf(c) != null
+                    ? _Swatch(
+                        key: Key('a1_butikk_klede_farge_${c.id}'),
+                        hex: _hexOf(c)!,
+                        selected: _colour == c.id,
+                        available: _colourHasStock(c),
+                        onTap: () => setState(() {
+                          _colour = c.id;
+                          // A size sold out in the new colour is let go.
+                          final size = o.sizes.where((v) => v.id == _size).firstOrNull;
+                          if (size != null && _sizeStock(size) == false) _size = null;
+                        }),
+                      )
+                    : BergenChip(
+                        key: Key('a1_butikk_klede_farge_${c.id}'),
+                        label: c.name,
+                        selected: _colour == c.id,
+                        onTap: _colourHasStock(c) ? () => setState(() => _colour = c.id) : null,
+                      ),
             ],
           ),
         ],
@@ -246,22 +350,12 @@ class _KledeSheetState extends State<KledeSheet> {
             children: [
               Text(
                 ButikkCopy.a1_butikk_klede_storrelse,
-                style: bDisplay(
-                  context,
-                  14,
-                  weight: FontWeight.w800,
-                  color: BergenTokens.ink,
-                ),
+                style: bDisplay(context, 14, weight: FontWeight.w800, color: BergenTokens.ink),
               ),
               SizedBox(width: 6 * s),
               Text(
                 ButikkCopy.a1_butikk_klede_velg_str,
-                style: bText(
-                  context,
-                  11,
-                  weight: FontWeight.w700,
-                  color: BergenTokens.inkFaint,
-                ),
+                style: bText(context, 11, weight: FontWeight.w700, color: BergenTokens.inkFaint),
               ),
             ],
           ),
@@ -273,12 +367,40 @@ class _KledeSheetState extends State<KledeSheet> {
               for (final v in o.sizes)
                 BergenChip(
                   key: Key('a1_butikk_klede_str_${v.id}'),
-                  label:
-                      '${v.name} · ${v.inStock ? ButikkCopy.a1_butikk_klede_paa_lager : ButikkCopy.a1_butikk_klede_utsolgt}',
+                  label: '${v.name} · ${switch (_sizeStock(v)) {
+                    true => ButikkCopy.a1_butikk_klede_paa_lager,
+                    false => ButikkCopy.a1_butikk_klede_utsolgt,
+                    null => ButikkCopy.a1_butikk_scr_lager_ukjent,
+                  }}',
                   selected: _size == v.id,
-                  onTap: v.inStock ? () => setState(() => _size = v.id) : null,
+                  // Sold out in this colour: greyed (no tap). Unknown stays choosable.
+                  onTap: _sizeStock(v) != false ? () => setState(() => _size = v.id) : null,
                 ),
             ],
+          ),
+          if (selectedSize != null && selectedStock == true && selectedQty != null && selectedQty > 0 && selectedQty <= 3) ...[
+            SizedBox(height: 6 * s),
+            Text(
+              ButikkCopy.a1_butikk_scr_igjen(selectedQty),
+              key: const Key('a1_butikk_klede_igjen'),
+              style: bText(context, 11.5, weight: FontWeight.w800, color: BergenTokens.orangeDeep),
+            ),
+          ],
+          if (selectedSize != null && selectedStock == null) ...[
+            SizedBox(height: 6 * s),
+            Text(
+              ButikkCopy.a1_butikk_scr_lager_ukjent,
+              key: const Key('a1_butikk_klede_lager_ukjent'),
+              style: bText(context, 11.5, weight: FontWeight.w700, color: BergenTokens.inkFaint),
+            ),
+          ],
+        ],
+        if (d?.stockMode == 'web' && d?.stockUpdatedAt != null) ...[
+          SizedBox(height: 6 * s),
+          Text(
+            ButikkCopy.a1_butikk_scr_oppdatert(d!.stockUpdatedAt!),
+            key: const Key('a1_butikk_klede_lager_oppdatert'),
+            style: bText(context, 11, weight: FontWeight.w600, color: BergenTokens.inkFaint),
           ),
         ],
         SizedBox(height: 14 * s),
@@ -291,21 +413,12 @@ class _KledeSheetState extends State<KledeSheet> {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.autorenew_rounded,
-                size: 16 * s,
-                color: BergenTokens.mintDeep,
-              ),
+              Icon(Icons.autorenew_rounded, size: 16 * s, color: BergenTokens.mintDeep),
               SizedBox(width: 8 * s),
               Expanded(
                 child: Text(
                   ButikkCopy.a1_butikk_klede_prov,
-                  style: bText(
-                    context,
-                    11.5,
-                    weight: FontWeight.w700,
-                    color: BergenTokens.ink,
-                  ),
+                  style: bText(context, 11.5, weight: FontWeight.w700, color: BergenTokens.ink),
                 ),
               ),
             ],
@@ -333,21 +446,14 @@ class _KledeSheetState extends State<KledeSheet> {
                       child: Icon(
                         Icons.remove_rounded,
                         size: 18 * s,
-                        color: _qty > 1
-                            ? BergenTokens.ink
-                            : BergenTokens.inkFaint,
+                        color: _qty > 1 ? BergenTokens.ink : BergenTokens.inkFaint,
                       ),
                     ),
                   ),
                   Text(
                     '$_qty',
                     key: const Key('a1_butikk_klede_qty'),
-                    style: bDisplay(
-                      context,
-                      15,
-                      weight: FontWeight.w800,
-                      color: BergenTokens.ink,
-                    ),
+                    style: bDisplay(context, 15, weight: FontWeight.w800, color: BergenTokens.ink),
                   ),
                   GestureDetector(
                     key: const Key('a1_butikk_klede_plus'),
@@ -356,11 +462,7 @@ class _KledeSheetState extends State<KledeSheet> {
                     child: SizedBox(
                       width: 40 * s,
                       height: 44 * s,
-                      child: Icon(
-                        Icons.add_rounded,
-                        size: 18 * s,
-                        color: BergenTokens.ink,
-                      ),
+                      child: Icon(Icons.add_rounded, size: 18 * s, color: BergenTokens.ink),
                     ),
                   ),
                 ],
@@ -377,6 +479,63 @@ class _KledeSheetState extends State<KledeSheet> {
           ],
         ),
       ],
+    );
+  }
+
+  /// The colour's hex: from the colour list, else the grid, else the ops colours.
+  String? _hexOf(BergenVariant c) {
+    if (c.hex != null) return c.hex;
+    for (final x in [...?_detail?.cells, ...?_options?.cells]) {
+      if ((x.colour ?? '').toLowerCase() == c.name.toLowerCase() && x.hex != null) return x.hex;
+    }
+    for (final x in _detail?.colours ?? const <({String label, String? hex})>[]) {
+      if (x.label.toLowerCase() == c.name.toLowerCase()) return x.hex;
+    }
+    return null;
+  }
+}
+
+/// A colour swatch (`farger` in the design): the colour itself, ringed in the
+/// accent when chosen, faded when every size of it is sold out.
+class _Swatch extends StatelessWidget {
+  const _Swatch({
+    super.key,
+    required this.hex,
+    required this.selected,
+    required this.available,
+    required this.onTap,
+  });
+
+  final String hex;
+  final bool selected;
+  final bool available;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    final colour = Color(int.parse('FF${hex.substring(1)}', radix: 16));
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Opacity(
+        opacity: available ? 1 : .4,
+        child: Container(
+          width: 34 * s,
+          height: 34 * s,
+          padding: EdgeInsets.all(3 * s),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: selected ? BergenTokens.orange : BergenTokens.paperWarm,
+              width: selected ? 2 * s : 1 * s,
+            ),
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(shape: BoxShape.circle, color: colour),
+          ),
+        ),
+      ),
     );
   }
 }

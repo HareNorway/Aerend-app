@@ -570,6 +570,10 @@ class ProductListItem {
 
   int get sizeOptional => _sizeOptional ?? 0;
 
+  /// The raw `size_optoinal` / `color_optional` (null when the key was missing).
+  int? get sizeOptionalRaw => _sizeOptional;
+  int? get colorOptionalRaw => _colorOptional;
+
   int get colorOptional => _colorOptional ?? 0;
 
   String get productImage => _productImage ?? "";

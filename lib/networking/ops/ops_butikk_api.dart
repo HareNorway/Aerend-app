@@ -122,6 +122,42 @@ class OpsButikkApi {
     return null;
   }
 
+  /// [options] for the product sheet: a failed request is `failed`, so the
+  /// sheet can show an error with retry instead of a product without choices.
+  Future<ButikkResult<BergenProductOptions>> optionsResult(int productId) async {
+    if (_off) return const ButikkResult.ok(BergenProductOptions());
+    try {
+      final json = await AddOnRepo().getToppingsAndOptions(productId);
+      if (json is Map<String, dynamic> && json['status'] == 1) {
+        return ButikkResult.ok(BergenProductOptions.fromJson(json));
+      }
+      if (json is Map<String, dynamic>) return const ButikkResult.ok(BergenProductOptions());
+      return const ButikkResult.failed();
+    } catch (_) {
+      return const ButikkResult.failed();
+    }
+  }
+
+  /// [productDetail] for the product sheet: not found is `ok(null)`; a
+  /// network or server failure is `failed`.
+  Future<ButikkResult<BergenProductDetail>> productDetailResult(int productId) async {
+    if (_off) return const ButikkResult.ok(null);
+    try {
+      final json = await ApiBaseHelper(baseUrl: BaseUrl.domain).get(
+        'api/ops/customer/products/$productId',
+      );
+      if (json is Map<String, dynamic> && json['id'] != null) {
+        return ButikkResult.ok(BergenProductDetail.fromJson(json));
+      }
+      return const ButikkResult.ok(null);
+    } catch (e) {
+      // A product the endpoint does not know (404) is not a failure: the
+      // sheet shows what the menu row carries.
+      if ('$e'.contains('StatusCode : 404')) return const ButikkResult.ok(null);
+      return const ButikkResult.failed();
+    }
+  }
+
   /// `POST /api/agent/availability-subscriptions` (agil-2, guarded): "si fra
   /// hvis prisen faller". Null when the route is not on this tree.
   Future<bool> subscribeToPrice(int productId) async {

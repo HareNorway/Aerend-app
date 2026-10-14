@@ -164,6 +164,9 @@ class ProduktSheet extends StatefulWidget {
 class _ProduktSheetState extends State<ProduktSheet> {
   BergenProductOptions? _options;
   BergenProductDetail? _detail;
+
+  /// The options read failed (network / server): the error state with retry.
+  bool _failed = false;
   int _qty = 1;
   int? _size;
   final Set<int> _picked = {};
@@ -219,22 +222,49 @@ class _ProduktSheetState extends State<ProduktSheet> {
   }
 
   Future<void> _loadOptions() async {
-    final o = await widget.api.options(widget.item.id);
+    final o = await widget.api.optionsResult(widget.item.id);
     if (!mounted) return;
     setState(() {
-      _options = o;
+      _failed = o.failed;
+      _options = o.value;
       _defaults();
     });
   }
 
   Future<void> _loadDetail() async {
-    final d = await widget.api.productDetail(widget.item.id);
-    if (!mounted || d == null) return;
+    final d = await widget.api.productDetailResult(widget.item.id);
+    if (!mounted || d.value == null) return;
     setState(() {
-      _detail = d;
+      _detail = d.value;
       _defaults();
     });
   }
+
+  void _retry() {
+    setState(() => _failed = false);
+    _loadOptions();
+    if (_detail == null) _loadDetail();
+  }
+
+  /// A group's bounds: the legacy group's own, else the catalogue modifier
+  /// of the same name (`ops.customer.product` `modifiers`).
+  BergenOptionGroup _rules(BergenOptionGroup g) {
+    if (g.min > 0 || g.max > 0) return g;
+    final m = _detail?.modifiers
+        .where((m) => m.name.toLowerCase() == g.name.toLowerCase())
+        .firstOrNull;
+    if (m == null) return g;
+    return BergenOptionGroup(
+      name: g.name,
+      single: g.single || m.max == 1,
+      required: g.required || m.required || m.min > 0,
+      min: m.min,
+      max: m.max,
+      options: g.options,
+    );
+  }
+
+  int _chosen(BergenOptionGroup g) => g.options.where((v) => _picked.contains(v.id)).length;
 
   /// The design opens on "Vanlig" — the standard, no-extra-cost choice —
   /// for sizes and for every required or strength group.
@@ -261,9 +291,12 @@ class _ProduktSheetState extends State<ProduktSheet> {
     }
   }
 
+  /// The base price: øre from the catalogue when sent, else the menu row.
+  double get _base => _detail?.priceKr ?? widget.item.price;
+
   double get _unit {
     final o = _options;
-    var unit = widget.item.price;
+    var unit = _base;
     if (o != null) {
       final size = o.sizes.where((v) => v.id == _size).firstOrNull;
       if (size != null) unit += size.priceDelta;
@@ -285,6 +318,12 @@ class _ProduktSheetState extends State<ProduktSheet> {
 
   void _togglePick(BergenOptionGroup g, BergenVariant v) {
     if (!v.inStock) return;
+    final r = _rules(g);
+    // `max`: one more is refused with a toast, not silently dropped.
+    if (!r.single && !_picked.contains(v.id) && !r.canAdd(_chosen(g))) {
+      showBergenToast(context, ButikkCopy.a1_butikk_scr_maks(r.max));
+      return;
+    }
     _change(() {
       if (g.single) {
         for (final other in g.options) {
@@ -298,6 +337,18 @@ class _ProduktSheetState extends State<ProduktSheet> {
   }
 
   Future<void> _add() async {
+    // `min` / required: the first group still short is named in a toast.
+    for (final g in _options?.groups ?? const <BergenOptionGroup>[]) {
+      if (_rules(g).missing(_chosen(g))) {
+        showBergenToast(
+          context,
+          ButikkCopy.a1_butikk_scr_mangler(
+            g.name.isEmpty ? ButikkCopy.a1_butikk_prod_tillegg : g.name,
+          ),
+        );
+        return;
+      }
+    }
     final name = widget.item.name;
     final ok = await BergenCart.add(
       context,
@@ -322,8 +373,11 @@ class _ProduktSheetState extends State<ProduktSheet> {
     final item = widget.item;
     final o = _options;
     final d = _detail;
+    // EU-14 codes from the catalogue first, in the user's language.
     final allergens = widget.allergens.isNotEmpty
         ? widget.allergens
+        : (d != null && d.allergenCodes.isNotEmpty)
+        ? [for (final c in d.allergenCodes) ButikkCopy.a1_butikk_allergen(c)]
         : (d?.allergens ?? const <String>[]);
 
     final strength = o?.groups.where(ProduktSheet.isStrength).toList() ?? [];
@@ -346,9 +400,11 @@ class _ProduktSheetState extends State<ProduktSheet> {
         _Head(
           name: item.name,
           description: item.description ?? d?.description,
-          price: item.price,
+          price: _base,
         ),
       ),
+      if (_failed && o == null)
+        trinn(_Feil(onRetry: _retry)),
       if (o != null && o.sizes.isNotEmpty)
         trinn(
           ProduktTilvalg(
@@ -363,12 +419,19 @@ class _ProduktSheetState extends State<ProduktSheet> {
           ),
         ),
       // `Tilvalg · {tittel}`: one choice as round checks, several as square.
-      for (final g in [...cards, ...strength, ...checks])
+      for (final g in [...cards, ...strength, ...checks].map(_rules))
         trinn(
           ProduktTilvalg(
             tittel: g.name.isEmpty ? ButikkCopy.a1_butikk_prod_tillegg : g.name,
             en: g.single,
             paakrevd: g.required,
+            regel: g.single
+                ? null
+                : g.min > 0
+                ? ButikkCopy.a1_butikk_scr_velg_min(g.min)
+                : g.max > 0
+                ? ButikkCopy.a1_butikk_scr_velg_opptil(g.max)
+                : null,
             options: g.options,
             picked: _picked,
             keyPrefix: 'a1_butikk_prod_opt_',
@@ -466,6 +529,36 @@ class _ProduktSheetState extends State<ProduktSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The options could not be read: say so, with «Prøv igjen».
+class _Feil extends StatelessWidget {
+  const _Feil({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return Column(
+      key: const Key('a1_butikk_produkt_feil'),
+      children: [
+        Icon(Icons.wifi_off_rounded, size: 30 * s, color: rgba(255, 255, 255, .62)),
+        SizedBox(height: 8 * s),
+        Text(
+          ButikkCopy.a1_butikk_scr_feil,
+          textAlign: TextAlign.center,
+          style: bText(context, 13, weight: FontWeight.w700, color: Colors.white),
+        ),
+        SizedBox(height: 12 * s),
+        BergenCta3d(
+          key: const Key('a1_butikk_produkt_prov_igjen'),
+          label: ButikkCopy.a1_butikk_scr_prov_igjen,
+          onPressed: onRetry,
+        ),
+      ],
     );
   }
 }

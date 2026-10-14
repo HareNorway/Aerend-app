@@ -9,6 +9,7 @@ import '../../../networking/ops/ops_kasse_api.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_kit.dart';
 import 'butikk_copy.dart';
+import 'klede_sheet.dart';
 import 'mote_butikk_screen.dart';
 import 'produkt_sheet.dart';
 import 'restaurant_body.dart';
@@ -109,6 +110,9 @@ class _ButikkScreenState extends State<ButikkScreen> {
       final body = _bodyKey.currentState;
       if (body != null) {
         body.open(item);
+      } else if (store.kind == BergenStoreKind.fashion) {
+        // The Mote page opens garments in the Klede sheet; a deep link too.
+        showKledeSheet(context, item: item, api: _api, brand: item.categoryName);
       } else {
         showProduktSheet(
           context,
