@@ -45,3 +45,32 @@ New ARB keys `ops_butikk_scr_*` and `ops_butikk_allergen_*` (EN template + NB); 
 ## Tests
 
 `test/bergen/scraper_product_sheet_test.dart` (14) over real local-backend responses in `test/fixtures/scraper/` (Holzweiler jacket 782: web stock, 8 images, XXL sold out; Pita kebab 785: three required groups, +30 / +20 kr). The existing `test/bergen/butikk_test.dart` (27) still passes.
+
+## Device check (Galaxy A15, 2026-10-16)
+
+Debug `flutter run` against the scraper backend over the LAN (`dev_api_override` = the PC's LAN IP; harness `hjem_state.json` with store 875014, product 782 / 785, guest mode). Screenshots in `docs/scraper-shots/`:
+
+| Screenshot | Result |
+|---|---|
+| `holzweiler_picker.png` | works (after fix 1): Dk. Brown swatch, XS–XL «På lager», «1 igjen i din størrelse» |
+| `holzweiler_soldout.png` | fixed (fix 2): XXL «Utsolgt» faded and not tappable |
+| `gallery.png` | works: swipe, image 2 of 8, dots |
+| `stock_freshness.png` | works: «Lager oppdatert for 1 d siden» |
+| `kebab_modifiers.png` | works: Ekstra kjøtt +30 kr, Ekstra ost +20 kr → «Legg til · 210 kr»; the folded header follows the sum. No negative delta in the test data |
+| `allergens.png` | works: no allergens from the source → «Butikken har ikke lagt inn allergener ennå — spør butikken før du bestiller.» |
+| `error_state.png` | works: server down → «Kunne ikke hente produktet.» + «Prøv igjen»; server back → retry loads the sizes |
+
+Fixes (`ee6fa7a`, `klede_sheet.dart` and `produkt_sheet.dart` only):
+
+1. Klede sheet overflowed the bottom by 128 px with a gallery, a long description and two rows of sizes: the content now scrolls under a height cap, quantity + «Legg i kurv» stay pinned.
+2. A sold-out size looked like the others (it was only untappable): now faded like a sold-out swatch.
+3. «Legg i kurv» / «Legg til» added the product while the options were still loading or after they failed, so without a size or required choices: both sheets now wait for the options, with the «Kunne ikke hente produktet.» toast when the read failed.
+
+Seen, not changed (outside the sheet files):
+
+- The shared API client's connect timeout is 3 min (`api_base_helper.dart`): on a network that drops instead of refusing, the error state takes up to 3 min; meanwhile the sheet shows no loading hint.
+- «Ofte kjøpt med» under a kebab suggests jackets, and their thumbnails are blank: all imported test products sit in one category (backend gap: no source-category mapping).
+- The store page's product cards for the Holzweiler jackets show no picture (restaurant body, not the sheets).
+- `assets/json/` (gitignored `service_account.json`) must exist for `flutter run`; an empty folder is enough for the product sheets.
+
+Tests after the fixes: `scraper_product_sheet_test.dart` + `butikk_test.dart` 41/41. Full `flutter test test/`: 735 passed, 4 failed, all outside this branch's files (`contract_names_test` ×2: `/bergen/butikkprofil` not reserved, `/bergen/bestilling` overflow in `hurtig_screen.dart`; `sok_test` nav X; `utforsk_test` Fjordfiske).
