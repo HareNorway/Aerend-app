@@ -147,7 +147,12 @@ class _KledeSheetState extends State<KledeSheet> {
 
   Future<void> _add() async {
     final o = _options;
-    if (o != null && o.sizes.isNotEmpty && _size == null) {
+    // Sizes not read yet: a jacket could go in the basket without one.
+    if (o == null) {
+      if (_failed) showBergenToast(context, ButikkCopy.a1_butikk_scr_feil);
+      return;
+    }
+    if (o.sizes.isNotEmpty && _size == null) {
       showBergenToast(context, ButikkCopy.a1_butikk_klede_velg_str);
       return;
     }
@@ -220,8 +225,46 @@ class _KledeSheetState extends State<KledeSheet> {
       );
     }
 
-    return Column(
+    // The sheet host lays its child out unbounded: a long description and two
+    // rows of sizes ran past the screen. Cap the height (the host's 92 %
+    // minus its handle row, padding and the safe area), scroll the content
+    // and keep quantity + «Legg i kurv» pinned.
+    final mq = MediaQuery.of(context);
+    final maxHeight = mq.size.height * .92 - mq.padding.bottom - 116 * s;
+
+    return ConstrainedBox(
       key: const Key('a1_butikk_klede_sheet'),
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              key: const Key('a1_butikk_klede_rull'),
+              child: _content(context, s, item, o, d, colourName, images, selectedSize, selectedQty, selectedStock),
+            ),
+          ),
+          SizedBox(height: 16 * s),
+          _bar(context, s),
+        ],
+      ),
+    );
+  }
+
+  Widget _content(
+    BuildContext context,
+    double s,
+    BergenMenuItem item,
+    BergenProductOptions? o,
+    BergenProductDetail? d,
+    String? colourName,
+    List<String> images,
+    BergenVariant? selectedSize,
+    int? selectedQty,
+    bool? selectedStock,
+  ) {
+    return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -365,16 +408,21 @@ class _KledeSheetState extends State<KledeSheet> {
             runSpacing: 8 * s,
             children: [
               for (final v in o.sizes)
-                BergenChip(
-                  key: Key('a1_butikk_klede_str_${v.id}'),
-                  label: '${v.name} · ${switch (_sizeStock(v)) {
-                    true => ButikkCopy.a1_butikk_klede_paa_lager,
-                    false => ButikkCopy.a1_butikk_klede_utsolgt,
-                    null => ButikkCopy.a1_butikk_scr_lager_ukjent,
-                  }}',
-                  selected: _size == v.id,
-                  // Sold out in this colour: greyed (no tap). Unknown stays choosable.
-                  onTap: _sizeStock(v) != false ? () => setState(() => _size = v.id) : null,
+                // Sold out in this colour: greyed (faded like a sold-out
+                // swatch; the chip itself has no disabled look) and no tap.
+                // Unknown stays choosable.
+                Opacity(
+                  opacity: _sizeStock(v) == false ? .4 : 1,
+                  child: BergenChip(
+                    key: Key('a1_butikk_klede_str_${v.id}'),
+                    label: '${v.name} · ${switch (_sizeStock(v)) {
+                      true => ButikkCopy.a1_butikk_klede_paa_lager,
+                      false => ButikkCopy.a1_butikk_klede_utsolgt,
+                      null => ButikkCopy.a1_butikk_scr_lager_ukjent,
+                    }}',
+                    selected: _size == v.id,
+                    onTap: _sizeStock(v) != false ? () => setState(() => _size = v.id) : null,
+                  ),
                 ),
             ],
           ),
@@ -424,59 +472,62 @@ class _KledeSheetState extends State<KledeSheet> {
             ],
           ),
         ),
-        SizedBox(height: 16 * s),
-        Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: BergenTokens.paperBright,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: BergenTokens.paperWarm),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    key: const Key('a1_butikk_klede_minus'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _qty > 1 ? () => setState(() => _qty--) : null,
-                    child: SizedBox(
-                      width: 40 * s,
-                      height: 44 * s,
-                      child: Icon(
-                        Icons.remove_rounded,
-                        size: 18 * s,
-                        color: _qty > 1 ? BergenTokens.ink : BergenTokens.inkFaint,
-                      ),
-                    ),
+      ],
+    );
+  }
+
+  /// Quantity and «Legg i kurv · X kr», pinned under the scrolling content.
+  Widget _bar(BuildContext context, double s) {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: BergenTokens.paperBright,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: BergenTokens.paperWarm),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                key: const Key('a1_butikk_klede_minus'),
+                behavior: HitTestBehavior.opaque,
+                onTap: _qty > 1 ? () => setState(() => _qty--) : null,
+                child: SizedBox(
+                  width: 40 * s,
+                  height: 44 * s,
+                  child: Icon(
+                    Icons.remove_rounded,
+                    size: 18 * s,
+                    color: _qty > 1 ? BergenTokens.ink : BergenTokens.inkFaint,
                   ),
-                  Text(
-                    '$_qty',
-                    key: const Key('a1_butikk_klede_qty'),
-                    style: bDisplay(context, 15, weight: FontWeight.w800, color: BergenTokens.ink),
-                  ),
-                  GestureDetector(
-                    key: const Key('a1_butikk_klede_plus'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _qty++),
-                    child: SizedBox(
-                      width: 40 * s,
-                      height: 44 * s,
-                      child: Icon(Icons.add_rounded, size: 18 * s, color: BergenTokens.ink),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-            SizedBox(width: 12 * s),
-            Expanded(
-              child: BergenCta3d(
-                key: const Key('a1_butikk_klede_legg'),
-                label: ButikkCopy.a1_butikk_klede_legg(ButikkCopy.kr(_sum)),
-                onPressed: _add,
+              Text(
+                '$_qty',
+                key: const Key('a1_butikk_klede_qty'),
+                style: bDisplay(context, 15, weight: FontWeight.w800, color: BergenTokens.ink),
               ),
-            ),
-          ],
+              GestureDetector(
+                key: const Key('a1_butikk_klede_plus'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => setState(() => _qty++),
+                child: SizedBox(
+                  width: 40 * s,
+                  height: 44 * s,
+                  child: Icon(Icons.add_rounded, size: 18 * s, color: BergenTokens.ink),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 12 * s),
+        Expanded(
+          child: BergenCta3d(
+            key: const Key('a1_butikk_klede_legg'),
+            label: ButikkCopy.a1_butikk_klede_legg(ButikkCopy.kr(_sum)),
+            onPressed: _add,
+          ),
         ),
       ],
     );

@@ -337,6 +337,12 @@ class _ProduktSheetState extends State<ProduktSheet> {
   }
 
   Future<void> _add() async {
+    // Groups not read yet (loading or failed): their rules are unknown, so
+    // a required choice could be skipped. Refuse until they are in.
+    if (_options == null) {
+      if (_failed) showBergenToast(context, ButikkCopy.a1_butikk_scr_feil);
+      return;
+    }
     // `min` / required: the first group still short is named in a toast.
     for (final g in _options?.groups ?? const <BergenOptionGroup>[]) {
       if (_rules(g).missing(_chosen(g))) {
