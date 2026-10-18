@@ -8,7 +8,6 @@ import 'package:aerend_customer/screens/bergen/bergen_routes_agil1.dart';
 import 'package:aerend_customer/screens/bergen/hjelp/support.dart';
 import 'package:aerend_customer/screens/bergen/sporing/hjelp_sheet.dart';
 import 'package:aerend_customer/screens/bergen/sporing/leveringskode_card.dart';
-import 'package:aerend_customer/screens/bergen/sporing/levert_screen.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_copy.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_screen.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
@@ -624,88 +623,4 @@ void main() {
     );
   });
 
-  testWidgets(
-    'Levert: time, early line, points when the ledger answers, thanks for courier only, rating',
-    (tester) async {
-      _frame(tester);
-      var rated = 0;
-      final p = payload(
-        state: 'delivered',
-        stage: 3,
-        label: 'Levert',
-        deliveredAt: '2026-09-25T18:20:00+02:00',
-        code: {
-          'pin': '4821',
-          'reason_copy_key': 'x',
-          'verified_at': '2026-09-25T18:20:00+02:00',
-        },
-      );
-      await tester.pumpWidget(
-        _app(
-          LevertScreen(
-            key: UniqueKey(),
-            orderId: 4471,
-            tracking: OpsTracking.fromJson(p),
-            api: _FakeApi(ledger: {'points': 34, 'first_time_bonus': 50}),
-            rating: (id, stars) async => rated = stars,
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-      expect(
-        find.byKey(const Key('a1_sporing_levert_for')),
-        findsOneWidget,
-        reason: 'two minutes early',
-      );
-      expect(find.byKey(const Key('a1_sporing_poeng')), findsOneWidget);
-      expect(find.text('+34'), findsOneWidget);
-      expect(find.byKey(const Key('a1_sporing_takk')), findsOneWidget);
-      expect(
-        find.textContaining('koden ble bekreftet av Jonas'),
-        findsOneWidget,
-      );
-      await tester.tap(find.byKey(const Key('a1_sporing_vurder')));
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('a1_sporing_alt_stemte')));
-      await tester.pump();
-      await tester.pump();
-      expect(rated, 5);
-
-      final partner = payload(
-        state: 'delivered',
-        stage: 3,
-        label: 'Levert',
-        actor: 'partner',
-        deliveredAt: '2026-09-25T18:30:00+02:00',
-      );
-      await tester.pumpWidget(
-        _app(
-          LevertScreen(
-            key: UniqueKey(),
-            orderId: 4471,
-            tracking: OpsTracking.fromJson(partner),
-            api: _FakeApi(),
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-      expect(
-        find.text('—'),
-        findsOneWidget,
-        reason: 'no points known on 404',
-      );
-      expect(
-        find.byKey(const Key('a1_sporing_takk')),
-        findsNothing,
-        reason: 'no courier to thank',
-      );
-      expect(
-        find.byKey(const Key('a1_sporing_levert_for')),
-        findsNothing,
-        reason: 'not early',
-      );
-    },
-  );
 }

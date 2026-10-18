@@ -292,7 +292,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: BergenPerfScope(child: appChild),
             );
 
-            return Stack(children: [calmChild, const _GlobalSnurreLauncher()]);
+            // The floating Snurre chat chip is removed (no global AI chat entry).
+            return calmChild;
           },
           debugShowCheckedModeBanner: false,
           locale: selectedLocale,
@@ -384,100 +385,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
         ),
       ),
-    );
-  }
-}
-
-class _GlobalSnurreLauncher extends StatefulWidget {
-  const _GlobalSnurreLauncher();
-
-  @override
-  State<_GlobalSnurreLauncher> createState() => _GlobalSnurreLauncherState();
-}
-
-class _GlobalSnurreLauncherState extends State<_GlobalSnurreLauncher> {
-  bool _opening = false;
-
-  Future<void> _openSnurre() async {
-    if (_opening || snurreChatRouteOnTop.value) return;
-    if (!canUseSnurreLauncher()) {
-      openSimpleSnackbar('Please log in to use AI chat.');
-      return;
-    }
-    final nav = navigatorKey.currentState;
-    if (nav == null) return;
-
-    setState(() => _opening = true);
-    try {
-      await nav.push(
-        MaterialPageRoute<void>(
-          settings: RouteSettings(
-            name: snurreLauncherRouteNameFor(const SnurreChatScreen()),
-          ),
-          builder: (_) => const SnurreChatScreen(),
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _opening = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: Listenable.merge([
-        snurreLauncherVisible,
-        snurreChatRouteOnTop,
-      ]),
-      builder: (context, _) {
-        if (!shouldShowSnurreLauncherForRoute(
-          snurreLauncherNavigatorObserver.topRoute,
-        )) {
-          return const SizedBox.shrink();
-        }
-
-        final top = MediaQuery.of(context).padding.top + kToolbarHeight + 16;
-        return Positioned(
-          right: -32,
-          top: top,
-          child: Semantics(
-            button: true,
-            label: 'Open Snurre chat',
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _opening ? null : _openSnurre,
-              child: SizedBox(
-                width: 64,
-                height: 44,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: ScSaasThemeTokens.primary.withValues(alpha: 0.16),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Align(
-                    alignment: Alignment(-0.55, 0),
-                    child: Icon(
-                      Icons.auto_awesome_rounded,
-                      color: ScSaasThemeTokens.primary,
-                      size: 22,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }

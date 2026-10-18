@@ -9,7 +9,6 @@ import 'kasse/kurv_screen.dart';
 import 'kit/bergen_routes.dart';
 import 'sok/sok_screen.dart';
 import 'sporing/hjelp_sheet.dart';
-import 'sporing/levert_screen.dart';
 import 'sporing/sporing_screen.dart';
 import 'utforsk/butikk_profil.dart';
 import 'utforsk/utforsk_screen.dart';
@@ -42,7 +41,9 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   // Phase 6
   '/bergen/sporing': (_) => const SporingScreen(),
   '/bergen/sporing/hjelp': (_) => const HjelpScreen(),
-  '/bergen/levert': (_) => const LevertScreen(),
+  // The separate «Levert» page is removed; the name stays reserved and opens
+  // Sporing for the order, which shows the delivered state.
+  '/bergen/levert': (_) => const SporingScreen(),
   '/bergen/kundeservice': (_) => const KundeserviceScreen(),
   // Phase 2: Utforsk on the segment in `?tab=` (feed / fiske / pose). The
   // old separate «Nytt fra butikkene» page is gone (Gap Step 4).

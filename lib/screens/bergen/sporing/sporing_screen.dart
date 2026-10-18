@@ -23,7 +23,6 @@ import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
 import 'hjelp_sheet.dart';
 import 'leveringskode_card.dart';
-import 'levert_screen.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import 'sporing_panel.dart';
@@ -33,6 +32,7 @@ import 'sporing_scene_kai.dart';
 import 'sporing_scene_kart.dart';
 import 'sporing_scene_kjokken.dart';
 import 'sporing_skifte.dart';
+import '../../common/homeMainV1/home_main_v1.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
 ///
@@ -223,15 +223,15 @@ class _SporingScreenState extends State<SporingScreen> {
     });
   }
 
-  void _toLevert() {
-    final t = _t;
-    if (t == null) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        settings: RouteSettings(name: '$snurreLauncherHiddenRoutePrefix/bergen/levert/$_id'),
-        builder: (_) => LevertScreen(orderId: _id, tracking: t, api: _api, levertKl: _levertKl, poeng: _poeng),
-      ),
-    );
+  /// «Avslutt bestillingen»: back to Hjem (the separate «Levert» page is gone).
+  void _avslutt() {
+    final nav = Navigator.of(context);
+    if (nav.canPop()) {
+      nav.popUntil((r) => r.isFirst);
+      return;
+    }
+    // Opened on its own (a push, a cold-started link): Hjem under it first.
+    nav.pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const HomeMainV1(homeIndex: 0)), (_) => false);
   }
 
   void _openHelp([HjelpState initial = HjelpState.main]) {
@@ -791,7 +791,7 @@ class _SporingScreenState extends State<SporingScreen> {
                 poengNeste: SporingScreen.stegPoeng(t),
                 onSammendrag: () => setState(() => _ark = SpArk.sammendrag),
                 onDetaljer: () => setState(() => _ark = SpArk.detaljer),
-                onAvslutt: _toLevert,
+                onAvslutt: _avslutt,
                 onFjordfiske: _fjordfiske,
                 onVisVeien: () => _showMapSheet(t),
                 onChat: () => _openHelp(HjelpState.melding),
