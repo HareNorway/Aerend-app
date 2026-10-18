@@ -924,11 +924,20 @@ class _Dupp extends StatelessWidget {
                         right: -10,
                         top: -42,
                         height: 31,
-                        child: Align(
+                        // Grows upward when the fonts run taller than the design's
+                        // (it overflowed by ~1.4 px on a real phone), and shrinks to
+                        // the flag's width when a price with øre and a «før» price is
+                        // longer than the design's («139,30 kr» overflowed by 8 px).
+                        child: OverflowBox(
                           alignment: Alignment.bottomCenter,
-                          child: LfLoop(
+                          maxHeight: double.infinity,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.bottomCenter,
+                            child: LfLoop(
                             builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, flagMs, flagDelay), child: child),
                             child: _Flagg(type: et.$1, bg: et.$2, pris: pris, forPris: forPris, tx: et.$3, sub: et.$4, kant: et.$5, napp: napp),
+                          ),
                           ),
                         ),
                       ),
