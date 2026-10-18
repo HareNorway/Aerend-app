@@ -62,6 +62,7 @@ import 'bergen_floats.dart';
 import 'bergen_hjem_ark.dart';
 import 'bergen_kit.dart';
 import 'bergen_nav.dart';
+import '../../../bergen/kit/fane_bytte.dart';
 import '../../../../data/ops/favourite_products.dart';
 import 'bergen_painters.dart';
 import 'bergen_rails.dart';
@@ -244,6 +245,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _adrSub = _bloc.deliveryAddress.listen(_hentHodeEta);
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
+    BergenFaneBytte.aktiv.addListener(_faneVist);
+    _sistLastet = DateTime.now();
     _lastSnart();
     _lastPose();
     _lastFrakt();
@@ -450,6 +453,26 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
   }
 
+  /// When the kept Hjem tab was last refreshed.
+  DateTime _sistLastet = DateTime.now();
+
+  /// Hjem is kept while another tab is up and shows what it had at once;
+  /// after a minute away it refreshes in place (no reset, no spinners over
+  /// data already shown).
+  void _faneVist() {
+    if (BergenFaneBytte.aktiv.value != BergenTab.home.index) return;
+    if (DateTime.now().difference(_sistLastet) < const Duration(minutes: 1)) return;
+    _sistLastet = DateTime.now();
+    _bloc.callHomeTrackOrderApi();
+    _syncCartBadge();
+    _refreshSeams();
+    _lastFolgerNye();
+    _lastPose();
+    _lastKatalog();
+    _lastPersonlig();
+    _lastIgjen();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -464,6 +487,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   void dispose() {
     HjemNy.endret.removeListener(_nyEndret);
     HjemVarsler.uleste.removeListener(_ulesteEndret);
+    BergenFaneBytte.aktiv.removeListener(_faneVist);
     WidgetsBinding.instance.removeObserver(this);
     _trackTimer?.cancel();
     _trackSub?.cancel();
@@ -1938,6 +1962,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                     'stores-${focused.id}-${stores.length}-$_hjulI',
                   ),
                   stores: stores,
+                  // Not answered yet for this category: placeholders, not «ingen ennå».
+                  loading: storesLoading || focused.id == 0 || !_storesByCat.containsKey(focused.id),
                   // A wrapped card opens the Kommer snart sheet.
                   onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openStore,
                   snart: _erSnart(_hjulI),
@@ -1983,6 +2009,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               BergenProductRail(
                 snart: _erSnart(_hjulI),
                 products: products,
+                loading: focused.id == 0 || !_populaertByCat.containsKey(focused.id),
                 onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
               ),

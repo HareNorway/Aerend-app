@@ -27,6 +27,7 @@ abstract final class KasseCopy {
   static String get a1_kasse_stengt => _t('Stengt nå', 'Closed now');
   static String get a1_kasse_betaling_avbrutt =>
       _t('Betalingen ble avbrutt. Ordren er ikke betalt.', 'The payment was cancelled. The order is not paid.');
+  static String get a1_kasse_vipps_bekrefter => _t('Bekrefter betalingen …', 'Confirming the payment …');
   static String get a1_kasse_betaling_venter =>
       _t('Betalingen er ikke bekreftet ennå. Prøv igjen om litt.', 'The payment is not confirmed yet. Try again shortly.');
   static String a1_kasse_stengt_line(String? aapner) => aapner == null

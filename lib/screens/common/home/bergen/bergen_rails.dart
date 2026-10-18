@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
@@ -301,10 +302,14 @@ class BergenStoreRail extends StatelessWidget {
     required this.stores,
     required this.onOpen,
     this.snart = false,
+    this.loading = false,
   });
 
   /// The focused category is coming soon: the cards are gift-wrapped.
   final bool snart;
+
+  /// The stores are still on their way: placeholder cards, not «ingen ennå».
+  final bool loading;
 
   final List<BergenStoreCard> stores;
   final ValueChanged<BergenStoreCard> onOpen;
@@ -312,6 +317,9 @@ class BergenStoreRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    if (stores.isEmpty && loading) {
+      return const BergenRailSkeleton(height: 252, cardWidth: 200, key: Key('stores-loading'));
+    }
     if (stores.isEmpty) {
       return SizedBox(
         height: 120 * s,
@@ -758,10 +766,14 @@ class BergenProductRail extends StatelessWidget {
     required this.onOpen,
     required this.onAdd,
     this.snart = false,
+    this.loading = false,
   });
 
   /// The focused category is coming soon: the cards are gift-wrapped.
   final bool snart;
+
+  /// The products are still on their way: placeholder cards.
+  final bool loading;
 
   final List<BergenProductCard> products;
   final ValueChanged<BergenProductCard> onOpen;
@@ -770,6 +782,9 @@ class BergenProductRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    if (products.isEmpty && loading) {
+      return const BergenRailSkeleton(height: 214, cardWidth: 150, key: Key('products-loading'));
+    }
     if (products.isEmpty) {
       return SizedBox(
         height: 100 * s,
@@ -1464,4 +1479,56 @@ class _HoloPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HoloPainter old) => old.p != p;
+}
+
+// ── Loading placeholders ────────────────────────────────────────────────────
+
+/// A rail's cards while its data loads: three glass cards with a light sweep
+/// (still with reduced motion). Same height as the rail it stands in for, so
+/// nothing jumps when the real cards arrive.
+class BergenRailSkeleton extends StatelessWidget {
+  const BergenRailSkeleton({super.key, required this.height, required this.cardWidth});
+
+  /// Design px (the rail's height).
+  final double height;
+  final double cardWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    final cards = Row(
+      children: [
+        for (var i = 0; i < 3; i++)
+          Container(
+            width: cardWidth * s,
+            height: (height - 24) * s,
+            margin: EdgeInsets.only(right: 12 * s),
+            decoration: BoxDecoration(
+              color: const Color(0x1FFFFFFF),
+              borderRadius: BorderRadius.circular(20 * s),
+            ),
+          ),
+      ],
+    );
+    return SizedBox(
+      height: height * s,
+      child: ClipRect(
+        child: OverflowBox(
+          alignment: Alignment.topLeft,
+          maxWidth: double.infinity,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16 * s, 8 * s, 0, 0),
+            child: MediaQuery.disableAnimationsOf(context)
+                ? cards
+                : Shimmer.fromColors(
+                    baseColor: const Color(0x1FFFFFFF),
+                    highlightColor: const Color(0x40FFFFFF),
+                    period: const Duration(milliseconds: 1400),
+                    child: cards,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -293,9 +293,20 @@ class MegGullBillett extends StatelessWidget {
                     children: [
                       Expanded(
                         flex: 72,
+                        // Centred in the ticket and scaled down when the fonts run
+                        // taller than the design's (font metrics, OS text size up to
+                        // 1.15): the bottom line («Gi 200 · få 200 poeng») never
+                        // falls out of the fixed-height ticket.
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(16, ark ? 16 : 15, 12, 0),
-                          child: Column(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 12, 8),
+                          child: LayoutBuilder(
+                            builder: (context, box) => FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: SizedBox(
+                                width: box.maxWidth,
+                                child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
@@ -332,6 +343,9 @@ class MegGullBillett extends StatelessWidget {
                                 ],
                               ),
                             ],
+                          ),
+                              ),
+                            ),
                           ),
                         ),
                       ),

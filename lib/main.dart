@@ -313,16 +313,24 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               name.contains('://') ? name : 'aerend://local$name',
             );
 
+            // `aerend://payment/vipps?orderId=N`: the full link on a cold
+            // start, or `/vipps?orderId=N` when the running app receives it
+            // (Flutter keeps only path + query of a pushed deep link).
             final isVippsPayment =
                 name.contains('payment/vipps') ||
                 (uri?.host == 'payment' &&
-                    (uri?.path.contains('vipps') ?? false));
+                    (uri?.path.contains('vipps') ?? false)) ||
+                (uri?.host == 'local' && uri?.path == '/vipps');
             if (isVippsPayment) {
               final orderId =
                   int.tryParse(uri?.queryParameters['orderId'] ?? '') ??
                   prefGetInt('vipps_pending_order_id');
               if (orderId > 0) {
                 return MaterialPageRoute(
+                  // A hidden route: no chat button over the payment handover.
+                  settings: const RouteSettings(
+                    name: '${snurreLauncherHiddenRoutePrefix}vipps-retur',
+                  ),
                   builder: (context) =>
                       VippsPaymentReturnScreen(orderId: orderId),
                 );

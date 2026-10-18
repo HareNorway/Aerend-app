@@ -1,32 +1,42 @@
 import 'package:flutter/material.dart';
 
-import '../../bergen/kasse/kjop_sekvens.dart';
-
 import '../../../theme/bergen_tokens.dart';
-import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
-import '../../../ui/kit/ae_subpage_shell.dart';
-import '../account/settings_design_kit.dart';
+import '../../bergen/kasse/kasse_copy.dart';
+import '../../bergen/kasse/kjop_sekvens.dart';
+import '../../bergen/kit/bergen_toast.dart';
 import '../../deliveryService/checkout/checkout_repo.dart';
+import '../home/bergen/bergen_kit.dart';
+import '../homeMainV1/home_main_v1.dart';
 import '../login/login_dl.dart';
 import '../login/vipps_login_helper.dart';
 
+/// The Vipps return (`aerend://payment/vipps?orderId=N`).
+///
+/// It only asks the backend to confirm the payment and then hands over to the
+/// Bergen screens — no result page of its own (the old lavender «Vipps-retur»
+/// showed first and the Bergen screens only after it was closed):
+///
+/// - paid → [KjopBekreftetScreen] («Betalt»), which opens Sporing;
+/// - not paid → back to Kassen with the Bergen toast, as a card payment that
+///   fails does.
+///
+/// When the app was started by the return itself (nothing under this route),
+/// Hjem is put underneath first, so «tilbake» from Sporing / Kassen lands there.
 class VippsPaymentReturnScreen extends StatefulWidget {
-  const VippsPaymentReturnScreen({super.key, required this.orderId});
+  const VippsPaymentReturnScreen({super.key, required this.orderId, this.confirm});
 
   final int orderId;
 
+  /// Tests: the backend confirm call (`vipps/confirm`).
+  final Future<Map<String, dynamic>> Function(int orderId)? confirm;
+
   @override
-  State<VippsPaymentReturnScreen> createState() =>
-      _VippsPaymentReturnScreenState();
+  State<VippsPaymentReturnScreen> createState() => _VippsPaymentReturnScreenState();
 }
 
-enum _VippsReturnState { pending, ok, bad }
-
-/// «Vipps-retur» — mirrors design `settings-screens.jsx` `VippsReturnScreen`
-/// (`.dgv-burst` + 25/800 h1 + 15px gray body + primary CTA + `.dga-cancel`).
 class _VippsPaymentReturnScreenState extends State<VippsPaymentReturnScreen> {
-  _VippsReturnState _state = _VippsReturnState.pending;
+  bool _done = false;
 
   @override
   void initState() {
@@ -35,111 +45,71 @@ class _VippsPaymentReturnScreenState extends State<VippsPaymentReturnScreen> {
   }
 
   Future<void> _confirm() async {
-    if (mounted) setState(() => _state = _VippsReturnState.pending);
+    Map<String, dynamic>? response;
     try {
-      final response = await CheckoutRepo().confirmVippsViaBackend(
-        widget.orderId,
-      );
-      if (!mounted) return;
-
-      if (response['status'] == 1) {
-        prefSetInt('vipps_pending_order_id', 0);
-        prefSetInt(prefCartCount, 0);
-        setState(() => _state = _VippsReturnState.ok);
-        return;
-      }
-
-      openSimpleSnackbar(
-        response['message']?.toString() ?? 'Payment not completed',
-      );
-      setState(() => _state = _VippsReturnState.bad);
-    } catch (e) {
-      if (!mounted) return;
-      openSimpleSnackbar(e.toString());
-      setState(() => _state = _VippsReturnState.bad);
+      final call = widget.confirm ?? (int id) async => Map<String, dynamic>.from(await CheckoutRepo().confirmVippsViaBackend(id) as Map);
+      response = await call(widget.orderId);
+    } catch (_) {
+      response = null;
     }
-  }
+    if (!mounted || _done) return;
+    _done = true;
 
-  /// Success routing: the Bergen purchase sequence (AGIL-1 v2 Phase 5) —
-  /// Bekreftet, then the Sporing route — and clears the stack.
-  void _openTracking() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => KjopBekreftetScreen(orderId: widget.orderId),
-      ),
-      (route) => route.isFirst,
-    );
+    final paid = response?['status'] == 1;
+    if (paid) {
+      prefSetInt('vipps_pending_order_id', 0);
+      prefSetInt(prefCartCount, 0);
+    }
+    final nav = Navigator.of(context);
+    final alone = !nav.canPop();
+
+    if (paid) {
+      final bekreftet = MaterialPageRoute<void>(
+        builder: (_) => KjopBekreftetScreen(orderId: widget.orderId, fjernUnder: true),
+      );
+      if (alone) {
+        nav.pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const HomeMainV1(homeIndex: 0)), (_) => false);
+        nav.push(bekreftet);
+      } else {
+        nav.pushReplacement(bekreftet);
+      }
+      return;
+    }
+
+    // Not paid: Kassen again (it reloads the basket on resume), with the reason.
+    if (alone) {
+      nav.pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const HomeMainV1(homeIndex: 1)), (_) => false);
+    } else {
+      nav.pop();
+    }
+    final overlayContext = navigatorKey.currentState?.overlay?.context;
+    if (overlayContext != null) {
+      showBergenToast(overlayContext, KasseCopy.a1_kasse_betaling_avbrutt);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_state == _VippsReturnState.pending) {
-      return const Scaffold(
-        backgroundColor: kDgPageBackground,
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final ok = _state == _VippsReturnState.ok;
-
-    return Scaffold(
-      backgroundColor: kDgPageBackground,
-      body: AeFixedTypography(
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              // .ae-body { padding: 0 26px 30px; gap: 14 }
-              padding: const EdgeInsets.fromLTRB(26, 0, 26, 30),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(child: DgvBurst(ok: ok)),
-                  const SizedBox(height: 14),
-                  Text(
-                    ok
-                        ? 'Betalingen er godkjent' // TODO(l10n)
-                        : 'Betalingen ble avbrutt', // TODO(l10n)
-                    textAlign: TextAlign.center,
-                    style: dgText(25, FontWeight.w800, letterSpacingEm: -0.02),
-                  ),
-                  const SizedBox(height: 14),
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                      child: Text(
-                        ok
-                            // TODO(l10n)
-                            ? 'Vipps bekreftet betalingen. Butikken har fått '
-                                  'bestillingen din. 💜'
-                            // TODO(l10n)
-                            : 'Ingen penger er trukket. Du kan prøve igjen, '
-                                  'eller velge en annen betalingsmåte.',
-                        textAlign: TextAlign.center,
-                        style: dgText(
-                          15,
-                          FontWeight.w500,
-                          height: 1.5,
-                          color: ScSaasThemeTokens.gray500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 26), // 14 gap + marginTop 12
-                  DgPrimaryButton(
-                    label: ok
-                        ? 'Følg bestillingen' // TODO(l10n)
-                        : languages.tryAgain,
-                    onPressed: ok ? _openTracking : _confirm,
-                  ),
-                  if (!ok)
-                    DgCancelButton(
-                      label: 'Tilbake til kassen', // TODO(l10n)
-                      onTap: () => Navigator.of(context).pop(),
-                    ),
-                ],
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: kBergenScreenGradient),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Column(
+            key: const Key('vipps-return-pending'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 34,
+                height: 34,
+                child: CircularProgressIndicator(strokeWidth: 3, color: BergenTokens.mint),
               ),
-            ),
+              const SizedBox(height: 16),
+              Text(
+                KasseCopy.a1_kasse_vipps_bekrefter,
+                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
         ),
       ),

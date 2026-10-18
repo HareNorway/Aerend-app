@@ -17,6 +17,7 @@ import '../../../networking/ops/ops_butikk_api.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/home/bergen/bergen_nav.dart';
+import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../deliveryService/checkout/checkout_dl.dart';
@@ -283,6 +284,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       });
     }
     WidgetsBinding.instance.addObserver(this);
+    BergenFaneBytte.aktiv.addListener(_faneVist);
     _load();
     if (kDebugMode) {
       if (HjemHarness.kurvFlere) _more = true;
@@ -318,6 +320,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       WidgetsBinding.instance.addPostFrameCallback((_) => kurvSkjulerNav.value = false);
     }
     _rull.dispose();
+    BergenFaneBytte.aktiv.removeListener(_faneVist);
     WidgetsBinding.instance.removeObserver(this);
     _note.dispose();
     _door.dispose();
@@ -328,6 +331,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) _load();
+  }
+
+  /// The shell keeps the tab while another is up: the basket may have
+  /// changed elsewhere (a store, Hurtig), so read it again when shown.
+  void _faneVist() {
+    if (widget.embedded && BergenFaneBytte.aktiv.value == BergenTab.cart.index) _load();
   }
 
   /// Public so the shell can refresh the tab when it is shown.

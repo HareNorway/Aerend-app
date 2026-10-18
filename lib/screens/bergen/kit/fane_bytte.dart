@@ -11,7 +11,11 @@ import 'package:flutter/scheduler.dart';
 // back, 300ms, 30ms apart); the new one comes down from above in five bands
 // and lands (320ms from 60ms). Both screens are snapshotted once and the
 // bands are drawn from the snapshots, so neither screen renders five times.
-// Only the active tab is built, as before.
+//
+// A tab is built the first time it is opened and then kept (offstage, its
+// tickers paused) while another tab is up, so coming back shows it as it was
+// instead of loading it from nothing. The screens refresh themselves when they
+// become active again ([BergenFaneBytte.aktiv]).
 
 class BergenFaneBytte extends StatefulWidget {
   const BergenFaneBytte({super.key, required this.index, required this.builder, required this.background});
@@ -22,12 +26,20 @@ class BergenFaneBytte extends StatefulWidget {
   /// What shows between the bands (the screen behind the tabs).
   final Gradient background;
 
+  /// The tab that is up (for kept tabs that refresh when shown again).
+  static final ValueNotifier<int> aktiv = ValueNotifier<int>(0);
+
   @override
   State<BergenFaneBytte> createState() => _BergenFaneBytteState();
 }
 
 class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProviderStateMixin {
-  final GlobalKey _flate = GlobalKey();
+  /// One snapshot boundary per kept tab.
+  final Map<int, GlobalKey> _flater = {};
+  GlobalKey _flate(int i) => _flater.putIfAbsent(i, GlobalKey.new);
+
+  /// The tabs built so far (kept while another one is up).
+  final Set<int> _bygd = {};
   late int _aktiv = widget.index;
   late final AnimationController _c;
   ui.Image? _gml, _ny;
@@ -40,6 +52,14 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
   void initState() {
     super.initState();
     _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _bygd.add(_aktiv);
+    BergenFaneBytte.aktiv.value = _aktiv;
+  }
+
+  void _vis(int til) {
+    _aktiv = til;
+    _bygd.add(til);
+    BergenFaneBytte.aktiv.value = til;
   }
 
   @override
@@ -48,7 +68,7 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     if (widget.index == _aktiv || widget.index == _mot) return;
     final til = widget.index;
     if (MediaQuery.disableAnimationsOf(context)) {
-      setState(() => _aktiv = til);
+      setState(() => _vis(til));
       return;
     }
     _bytt(til);
@@ -71,7 +91,7 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     _dir = til > _aktiv ? 1 : -1;
     setState(() {
       _gml = gml;
-      _aktiv = til;
+      _vis(til);
       _mot = null;
       _dekk = gml != null;
     });
@@ -91,7 +111,7 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
   }
 
   Future<ui.Image?> _bilde() async {
-    final ro = _flate.currentContext?.findRenderObject();
+    final ro = _flate(_aktiv).currentContext?.findRenderObject();
     if (ro is! RenderRepaintBoundary || !ro.hasSize) return null;
     try {
       final gpu = await ro.toImage(pixelRatio: math.min(2.0, MediaQuery.devicePixelRatioOf(context)));
@@ -127,10 +147,17 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     return Stack(
       fit: StackFit.expand,
       children: [
-        RepaintBoundary(
-          key: _flate,
-          child: KeyedSubtree(key: ValueKey(_aktiv), child: widget.builder(context, _aktiv)),
-        ),
+        for (final i in (_bygd.toList()..sort()))
+          Offstage(
+            offstage: i != _aktiv,
+            child: TickerMode(
+              enabled: i == _aktiv,
+              child: RepaintBoundary(
+                key: _flate(i),
+                child: KeyedSubtree(key: ValueKey(i), child: widget.builder(context, i)),
+              ),
+            ),
+          ),
         if (_dekk)
           Positioned.fill(
             child: IgnorePointer(

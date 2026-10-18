@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../networking/feed/feed_repo.dart';
 import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
+import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
 import '../utforsk/utforsk_screen.dart' show UtforskScreen;
 import '../poeng/premie_ark.dart';
@@ -102,9 +103,19 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   int _bioPuls = 0;
   bool _loading = true;
 
+  /// Production only (tests inject their own data sources).
+  bool get _brukerCache => widget.api == null && widget.aegil == null && widget.aegilRepo == null;
+
+  DateTime _sistLastet = DateTime.fromMillisecondsSinceEpoch(0);
+
   @override
   void initState() {
     super.initState();
+    // Meg opens with what it showed last (same user) and refreshes quietly;
+    // the spinner is only for the very first load.
+    final c = _brukerCache ? _MegCache.forUser(prefGetInt(prefUserId)) : null;
+    if (c != null) _fra(c);
+    BergenFaneBytte.aktiv.addListener(_faneVist);
     _load();
     // Debug: `megScroll` (design px) once the rows have loaded.
     final y = kDebugMode ? HjemHarness.megScroll : null;
@@ -119,8 +130,34 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   @override
   void dispose() {
+    BergenFaneBytte.aktiv.removeListener(_faneVist);
     _rull.dispose();
     super.dispose();
+  }
+
+  /// The kept Meg tab shown again: refresh in place after 30 s away.
+  void _faneVist() {
+    if (BergenFaneBytte.aktiv.value != BergenTab.me.index || _loading) return;
+    if (DateTime.now().difference(_sistLastet) < const Duration(seconds: 30)) return;
+    _load();
+  }
+
+  void _fra(_MegCache c) {
+    _balance = c.balance;
+    _shelf = c.shelf;
+    _league = c.league;
+    _referral = c.referral;
+    _prefs = c.prefs;
+    _settings = c.settings;
+    _levels = c.levels;
+    _occasions = c.occasions;
+    _addressLine = c.addressLine;
+    _paymentLine = c.paymentLine;
+    _ordrer = c.ordrer;
+    _minne = c.minne;
+    _regler = c.regler;
+    _adresser = c.adresser;
+    _loading = false;
   }
 
   /// «Hent premie» when the goal is reached (`hentMaal`, L19658): the claim
@@ -163,9 +200,32 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     if (mounted && n != _feedNye) setState(() => _feedNye = n);
   }
 
+  /// One of [_load]'s answers into its field (null = no answer).
+  void _sett(int i, Object? v) {
+    switch (i) {
+      case 0: _balance = v as PointsBalance?;
+      case 1: _shelf = v as Premiehylla?;
+      case 2: _league = v as League?;
+      case 3: _referral = v as Referral?;
+      case 4: _prefs = v as CustomerPrefs?;
+      case 5:
+        final settings = v as ({AegilSettings? settings, List<AegilLevel> levels})?;
+        _settings = settings?.settings;
+        _levels = settings?.levels ?? const [];
+      case 6: _occasions = (v as List<Occasion>?) ?? const [];
+      case 7: _addressLine = v as String?;
+      case 8: _paymentLine = v as String?;
+      case 9: _ordrer = (v as List<Map<String, dynamic>>?) ?? const [];
+      case 10: _minne = (v as List<MemoryEntry>?) ?? const [];
+      case 11: _regler = v as PointsRules?;
+      case 12: _adresser = (v as List<AddressListItem>?) ?? const [];
+    }
+  }
+
   Future<void> _load() async {
+    _sistLastet = DateTime.now();
     unawaited(_lastFeedNye());
-    final r = await Future.wait<Object?>([
+    final kall = <Future<Object?>>[
       a3Try(_api.balance),
       a3Try(_api.shelf),
       a3Try(_api.league),
@@ -179,30 +239,37 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(_aegilRepo.fetchMemory),
       a3Try(A3Services.rules),
       a3Try(A3Services.addressList),
-    ]);
+    ];
+    // Each section fills in as its answer arrives: the slowest call no longer
+    // holds the whole sheet behind one spinner (only until the first answer).
+    for (var i = 0; i < kall.length; i++) {
+      unawaited(kall[i].then((v) {
+        if (!mounted || v == null) return;
+        setState(() {
+          _sett(i, v);
+          _loading = false;
+        });
+      }));
+    }
+    final r = await Future.wait<Object?>(kall);
     if (!mounted) return;
-    final settings = r[5] as ({AegilSettings? settings, List<AegilLevel> levels})?;
     setState(() {
-      _balance = r[0] as PointsBalance?;
-      _shelf = r[1] as Premiehylla?;
-      _league = r[2] as League?;
-      _referral = r[3] as Referral?;
-      _prefs = r[4] as CustomerPrefs?;
-      _settings = settings?.settings;
-      _levels = settings?.levels ?? const [];
-      _occasions = (r[6] as List<Occasion>?) ?? const [];
-      _addressLine = r[7] as String?;
-      _paymentLine = r[8] as String?;
-      _ordrer = (r[9] as List<Map<String, dynamic>>?) ?? const [];
-      _minne = (r[10] as List<MemoryEntry>?) ?? const [];
-      _regler = r[11] as PointsRules?;
-      _adresser = (r[12] as List<AddressListItem>?) ?? const [];
+      for (var i = 0; i < r.length; i++) {
+        _sett(i, r[i]);
+      }
       if (MegApne.poeng) {
         MegApne.poeng = false;
         _poengApen = true;
       }
       _loading = false;
     });
+    if (_brukerCache) {
+      _MegCache.lagre(_MegCache(
+        userId: prefGetInt(prefUserId), balance: _balance, shelf: _shelf, league: _league, referral: _referral,
+        prefs: _prefs, settings: _settings, levels: _levels, occasions: _occasions, addressLine: _addressLine,
+        paymentLine: _paymentLine, ordrer: _ordrer, minne: _minne, regler: _regler, adresser: _adresser,
+      ));
+    }
     // Debug: `megArk` opens one of Meg's Ark sheets (parity Step 9, row 43).
     final ark = kDebugMode ? HjemHarness.megArk : null;
     if (ark != null) {
@@ -1207,3 +1274,46 @@ abstract final class MegFeed {
   static Future<void> Function() lest = () => FeedRepo().markSeen(tab: 'folger');
 }
 
+/// Meg's last loaded data for this app session, per user (in memory only:
+/// a new user or a restart starts empty). Meg shows it at once and refreshes.
+class _MegCache {
+  _MegCache({
+    required this.userId,
+    this.balance,
+    this.shelf,
+    this.league,
+    this.referral,
+    this.prefs,
+    this.settings,
+    this.levels = const [],
+    this.occasions = const [],
+    this.addressLine,
+    this.paymentLine,
+    this.ordrer = const [],
+    this.minne = const [],
+    this.regler,
+    this.adresser = const [],
+  });
+
+  final int userId;
+  final PointsBalance? balance;
+  final Premiehylla? shelf;
+  final League? league;
+  final Referral? referral;
+  final CustomerPrefs? prefs;
+  final AegilSettings? settings;
+  final List<AegilLevel> levels;
+  final List<Occasion> occasions;
+  final String? addressLine;
+  final String? paymentLine;
+  final List<Map<String, dynamic>> ordrer;
+  final List<MemoryEntry> minne;
+  final PointsRules? regler;
+  final List<AddressListItem> adresser;
+
+  static _MegCache? _siste;
+
+  static _MegCache? forUser(int userId) => (_siste != null && _siste!.userId == userId && userId > 0) ? _siste : null;
+
+  static void lagre(_MegCache c) => _siste = c;
+}
