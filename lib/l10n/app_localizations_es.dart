@@ -6633,4 +6633,98 @@ class AppLocalizationsEs extends AppLocalizations {
   String ops_butikk_stk(int n) {
     return '$n pcs';
   }
+
+  @override
+  String get ops_butikk_scr_lager_ukjent => 'Stock not confirmed';
+
+  @override
+  String ops_butikk_scr_igjen(int n) {
+    return '$n left in your size';
+  }
+
+  @override
+  String ops_butikk_scr_oppdatert_min(int n) {
+    return 'Stock updated $n min ago';
+  }
+
+  @override
+  String ops_butikk_scr_oppdatert_timer(int n) {
+    return 'Stock updated $n h ago';
+  }
+
+  @override
+  String ops_butikk_scr_oppdatert_dager(int n) {
+    return 'Stock updated $n d ago';
+  }
+
+  @override
+  String ops_butikk_scr_velg_min(int n) {
+    return 'Choose at least $n';
+  }
+
+  @override
+  String ops_butikk_scr_velg_opptil(int n) {
+    return 'Choose up to $n';
+  }
+
+  @override
+  String ops_butikk_scr_maks(int n) {
+    return 'You can choose up to $n';
+  }
+
+  @override
+  String ops_butikk_scr_mangler(String gruppe) {
+    return 'Choose $gruppe first';
+  }
+
+  @override
+  String get ops_butikk_scr_feil => 'Could not load the product.';
+
+  @override
+  String get ops_butikk_scr_prov_igjen => 'Try again';
+
+  @override
+  String get ops_butikk_scr_farge_utsolgt => 'Sold out in this colour';
+
+  @override
+  String get ops_butikk_allergen_gluten => 'Gluten';
+
+  @override
+  String get ops_butikk_allergen_skalldyr => 'Crustaceans';
+
+  @override
+  String get ops_butikk_allergen_egg => 'Egg';
+
+  @override
+  String get ops_butikk_allergen_fisk => 'Fish';
+
+  @override
+  String get ops_butikk_allergen_peanotter => 'Peanuts';
+
+  @override
+  String get ops_butikk_allergen_notter => 'Tree nuts';
+
+  @override
+  String get ops_butikk_allergen_melk => 'Milk';
+
+  @override
+  String get ops_butikk_allergen_soya => 'Soy';
+
+  @override
+  String get ops_butikk_allergen_selleri => 'Celery';
+
+  @override
+  String get ops_butikk_allergen_sennep => 'Mustard';
+
+  @override
+  String get ops_butikk_allergen_sesam => 'Sesame';
+
+  @override
+  String get ops_butikk_allergen_sulfitt => 'Sulphites';
+
+  @override
+  String get ops_butikk_allergen_lupin => 'Lupin';
+
+  @override
+  String get ops_butikk_allergen_blotdyr => 'Molluscs';
 }

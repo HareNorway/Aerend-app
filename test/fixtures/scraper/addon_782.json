@@ -1,0 +1,124 @@
+{
+ "status": 1,
+ "message": "success!",
+ "message_code": 1,
+ "service_category_id": null,
+ "options_list": [],
+ "size_list": [
+  {
+   "id": 803,
+   "product_id": 782,
+   "name": "XS",
+   "amount": 0,
+   "stock": 1,
+   "stock_qty": 1
+  },
+  {
+   "id": 804,
+   "product_id": 782,
+   "name": "S",
+   "amount": 0,
+   "stock": 1,
+   "stock_qty": 1
+  },
+  {
+   "id": 805,
+   "product_id": 782,
+   "name": "M",
+   "amount": 0,
+   "stock": 1,
+   "stock_qty": 1
+  },
+  {
+   "id": 806,
+   "product_id": 782,
+   "name": "L",
+   "amount": 0,
+   "stock": 1,
+   "stock_qty": 1
+  },
+  {
+   "id": 807,
+   "product_id": 782,
+   "name": "XL",
+   "amount": 0,
+   "stock": 1,
+   "stock_qty": 1
+  },
+  {
+   "id": 808,
+   "product_id": 782,
+   "name": "XXL",
+   "amount": 0,
+   "stock": 0,
+   "stock_qty": 0
+  }
+ ],
+ "color_list": [
+  {
+   "id": 211,
+   "product_id": 782,
+   "name": "Dk. Brown",
+   "amount": 0,
+   "stock": 1,
+   "stock_qty": 5,
+   "hex": "#352C2C"
+  }
+ ],
+ "variants": [
+  {
+   "variant_key": "xs|dk. brown",
+   "size": "XS",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "s|dk. brown",
+   "size": "S",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "m|dk. brown",
+   "size": "M",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "l|dk. brown",
+   "size": "L",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "xl|dk. brown",
+   "size": "XL",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "xxl|dk. brown",
+   "size": "XXL",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 0,
+   "in_stock": false
+  }
+ ]
+}

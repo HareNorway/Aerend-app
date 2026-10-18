@@ -250,8 +250,10 @@ class BergenMenuItem {
       description: p.description.isEmpty ? null : p.description,
       imageUrl: p.hasProductImage ? p.productImage : null,
       categoryName: categoryName,
-      hasSizes: p.sizeOptional == 0,
-      hasColours: p.colorOptional == 0,
+      // `size_optoinal` 0 = a size must be chosen. A missing key means no
+      // sizes (the old getter defaults to 0, which made every item "sized").
+      hasSizes: p.sizeOptionalRaw == 0,
+      hasColours: p.colorOptionalRaw == 0,
       rating: p.rateCount > 0
           ? (p.rateSum / p.rateCount).toStringAsFixed(1).replaceAll('.', ',')
           : null,
@@ -260,17 +262,43 @@ class BergenMenuItem {
   }
 }
 
-/// `get-topping-option`: option groups, sizes and colours for one product.
+/// A stock flag from the API: true / false, or null when it was not sent —
+/// unknown, never assumed in stock.
+bool? bergenStock(dynamic v) {
+  if (v == null) return null;
+  if (v is bool) return v;
+  if (v is num) return v > 0;
+  final t = '$v'.trim().toLowerCase();
+  if (t == '1' || t == 'true' || t == 'yes') return true;
+  if (t == '0' || t == 'false' || t == 'no') return false;
+  return null;
+}
+
+/// `get-topping-option`: option groups, sizes and colours for one product,
+/// plus the size × colour grid when the product follows a catalogue source.
 class BergenProductOptions {
   const BergenProductOptions({
     this.groups = const [],
     this.sizes = const [],
     this.colours = const [],
+    this.cells = const [],
   });
 
   final List<BergenOptionGroup> groups;
   final List<BergenVariant> sizes;
   final List<BergenVariant> colours;
+
+  /// The size × colour grid (`variants`), empty for a hand-made product.
+  final List<BergenCell> cells;
+
+  /// The grid cell for a size in a colour, if the product has a grid.
+  BergenCell? cell(String? size, String? colour) {
+    final s = (size ?? '').toLowerCase(), c = (colour ?? '').toLowerCase();
+    for (final x in cells) {
+      if ((x.size ?? '').toLowerCase() == s && (x.colour ?? '').toLowerCase() == c) return x;
+    }
+    return null;
+  }
 
   static double _d(dynamic v) =>
       v is num ? v.toDouble() : (double.tryParse('$v') ?? 0);
@@ -283,21 +311,22 @@ class BergenProductOptions {
             id: (v['id'] as num?)?.toInt() ?? 0,
             name: '${v['name'] ?? ''}',
             priceDelta: _d(v['amount'] ?? v['price'] ?? 0),
-            inStock:
-                v['stock'] == null || v['stock'] == 1 || v['stock'] == true,
+            // A missing `stock` is unknown, not in stock.
+            inStock: bergenStock(v['stock']),
+            stockQty: (v['stock_qty'] as num?)?.toInt(),
+            hex: BergenCell.hexOf(v['hex']),
           ),
     ];
     return BergenProductOptions(
+      cells: BergenCell.listFrom(json['variants']),
       groups: [
         for (final g
             in (json['options_list'] is List
                 ? json['options_list'] as List
                 : const []))
           if (g is Map)
-            BergenOptionGroup(
-              name: '${g['name'] ?? g['category_name'] ?? ''}',
-              single: (g['selection_type'] as num?)?.toInt() == 1,
-              required: (g['selection_type'] as num?)?.toInt() == 1,
+            BergenOptionGroup.fromJson(
+              g,
               options: [
                 for (final o
                     in (g['options'] is List ? g['options'] as List : const []))
@@ -321,13 +350,47 @@ class BergenOptionGroup {
     required this.name,
     this.single = false,
     this.required = false,
+    this.min = 0,
+    this.max = 0,
     this.options = const [],
   });
 
   final String name;
   final bool single;
   final bool required;
+
+  /// Fewest and most choices; `max` 0 = no upper limit.
+  final int min;
+  final int max;
   final List<BergenVariant> options;
+
+  /// The legacy group: `selection_type` 1 = one choice; `optional_type` 0 =
+  /// required (when sent; else one choice counts as required, as before);
+  /// `minimum` / `maximum` bound a multi-choice group.
+  factory BergenOptionGroup.fromJson(Map g, {required List<BergenVariant> options}) {
+    final selection = (g['selection_type'] as num?)?.toInt();
+    final optional = (g['optional_type'] as num?)?.toInt();
+    final max = (g['maximum'] as num?)?.toInt() ?? (selection == 1 ? 1 : 0);
+    final required = optional != null ? optional == 0 : selection == 1;
+    final min = (g['minimum'] as num?)?.toInt() ?? (required ? 1 : 0);
+    return BergenOptionGroup(
+      name: '${g['name'] ?? g['category_name'] ?? ''}',
+      single: selection == 1 || max == 1,
+      required: required || min > 0,
+      min: required && min < 1 ? 1 : min,
+      max: max,
+      options: options,
+    );
+  }
+
+  /// Fewest choices before the item can go in the basket.
+  int get needed => required ? (min < 1 ? 1 : min) : min;
+
+  /// Too few chosen to add to the basket?
+  bool missing(int chosen) => chosen < needed;
+
+  /// May one more be chosen?
+  bool canAdd(int chosen) => max <= 0 || chosen < max;
 }
 
 class BergenVariant {
@@ -335,13 +398,81 @@ class BergenVariant {
     required this.id,
     required this.name,
     this.priceDelta = 0,
-    this.inStock = true,
-  });
+    bool? inStock = true,
+    this.stockQty,
+    this.hex,
+  }) : stock = inStock;
 
   final int id;
   final String name;
   final double priceDelta;
-  final bool inStock;
+
+  /// true / false, or null = unknown (the API did not say).
+  final bool? stock;
+  final int? stockQty;
+
+  /// `#RRGGBB` for a colour, when known.
+  final String? hex;
+
+  /// Selectable: in stock, or unknown («Lager ikke bekreftet»).
+  bool get inStock => stock != false;
+  bool get stockUnknown => stock == null;
+}
+
+/// One cell of the size × colour grid (`variants`).
+class BergenCell {
+  const BergenCell({
+    this.size,
+    this.colour,
+    this.hex,
+    this.priceDeltaOre = 0,
+    this.stockQty,
+    this.inStock,
+  });
+
+  final String? size;
+  final String? colour;
+  final String? hex;
+  final int priceDeltaOre;
+  final int? stockQty;
+
+  /// null = unknown.
+  final bool? inStock;
+
+  static String? hexOf(dynamic v) {
+    final t = '${v ?? ''}'.trim();
+    return RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(t) ? t : null;
+  }
+
+  static List<BergenCell> listFrom(dynamic list) => [
+    for (final v in (list is List ? list : const []))
+      if (v is Map)
+        BergenCell(
+          size: v['size'] == null ? null : '${v['size']}',
+          colour: v['colour'] == null ? null : '${v['colour']}',
+          hex: hexOf(v['colour_hex']),
+          priceDeltaOre: (v['price_delta_ore'] as num?)?.toInt() ?? 0,
+          stockQty: (v['stock_qty'] as num?)?.toInt(),
+          inStock: bergenStock(v['in_stock']),
+        ),
+  ];
+}
+
+/// A modifier group from `ops.customer.product` (øre deltas, may be negative).
+class BergenModifierGroup {
+  const BergenModifierGroup({
+    required this.name,
+    this.required = false,
+    this.min = 0,
+    this.max = 0,
+    this.options = const [],
+  });
+
+  final String name;
+  final bool required;
+  final int min;
+  final int max;
+  final List<({String name, int deltaOre})> options;
 }
 
 /// `ops.customer.product` — what the product sheet shows beyond the menu
@@ -357,7 +488,34 @@ class BergenProductDetail {
     this.readyMinutes,
     this.mostOrdered = false,
     this.pointsPer10Kr,
+    this.priceOre,
+    this.wasPriceOre,
+    this.cells = const [],
+    this.colours = const [],
+    this.stockMode,
+    this.stockUpdatedAt,
+    this.images = const [],
+    this.modifiers = const [],
+    this.allergenCodes = const [],
   });
+
+  /// Catalogue sync (scraper plan Chunk 8): øre prices, the size × colour
+  /// grid, colours with hex, where stock comes from and when it was read,
+  /// our copies of the images, modifier groups and EU-14 allergen codes.
+  final int? priceOre;
+  final int? wasPriceOre;
+  final List<BergenCell> cells;
+  final List<({String label, String? hex})> colours;
+
+  /// pos | web | manual | none.
+  final String? stockMode;
+  final DateTime? stockUpdatedAt;
+  final List<String> images;
+  final List<BergenModifierGroup> modifiers;
+  final List<String> allergenCodes;
+
+  double? get priceKr => priceOre == null ? null : priceOre! / 100;
+  double? get wasPriceKr => wasPriceOre == null ? null : wasPriceOre! / 100;
 
   final String? description;
   final String? imageUrl;
@@ -389,6 +547,47 @@ class BergenProductDetail {
       readyMinutes: (json['ready_minutes'] as num?)?.toInt(),
       mostOrdered: json['most_ordered'] == true,
       pointsPer10Kr: (json['points_per_10kr'] as num?)?.toInt(),
+      priceOre: (json['price_ore'] as num?)?.toInt(),
+      wasPriceOre: (json['was_price_ore'] as num?)?.toInt(),
+      cells: BergenCell.listFrom(json['variants']),
+      colours: [
+        for (final c in (json['colours'] is List ? json['colours'] as List : const []))
+          if (c is Map && text(c['label']) != null) (label: text(c['label'])!, hex: BergenCell.hexOf(c['hex'])),
+      ],
+      stockMode: json['stock'] is Map ? text((json['stock'] as Map)['mode']) : null,
+      stockUpdatedAt: json['stock'] is Map ? DateTime.tryParse('${(json['stock'] as Map)['updated_at'] ?? ''}') : null,
+      images: [
+        for (final u in (json['images'] is List ? json['images'] as List : const []))
+          if (text(u) != null) text(u)!,
+      ],
+      modifiers: [
+        for (final g in (json['modifiers'] is List ? json['modifiers'] as List : const []))
+          if (g is Map)
+            BergenModifierGroup(
+              name: '${g['name'] ?? ''}',
+              required: g['required'] == true,
+              min: (g['min'] as num?)?.toInt() ?? 0,
+              max: (g['max'] as num?)?.toInt() ?? 0,
+              options: [
+                for (final o in (g['options'] is List ? g['options'] as List : const []))
+                  if (o is Map) (name: '${o['name'] ?? ''}', deltaOre: (o['delta_ore'] as num?)?.toInt() ?? 0),
+              ],
+            ),
+      ],
+      allergenCodes: [
+        for (final a in (json['allergen_codes'] is List ? json['allergen_codes'] as List : const []))
+          if (text(a) != null) text(a)!,
+      ],
     );
   }
+}
+
+/// A read that can fail: the product sheet shows an error state with retry
+/// instead of an empty sheet when the network or the server failed.
+class ButikkResult<T> {
+  const ButikkResult.ok(this.value) : failed = false;
+  const ButikkResult.failed() : value = null, failed = true;
+
+  final T? value;
+  final bool failed;
 }

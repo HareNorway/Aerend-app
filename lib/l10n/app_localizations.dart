@@ -11995,6 +11995,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n} pcs'**
   String ops_butikk_stk(int n);
+
+  /// No description provided for @ops_butikk_scr_lager_ukjent.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock not confirmed'**
+  String get ops_butikk_scr_lager_ukjent;
+
+  /// No description provided for @ops_butikk_scr_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} left in your size'**
+  String ops_butikk_scr_igjen(int n);
+
+  /// No description provided for @ops_butikk_scr_oppdatert_min.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock updated {n} min ago'**
+  String ops_butikk_scr_oppdatert_min(int n);
+
+  /// No description provided for @ops_butikk_scr_oppdatert_timer.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock updated {n} h ago'**
+  String ops_butikk_scr_oppdatert_timer(int n);
+
+  /// No description provided for @ops_butikk_scr_oppdatert_dager.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock updated {n} d ago'**
+  String ops_butikk_scr_oppdatert_dager(int n);
+
+  /// No description provided for @ops_butikk_scr_velg_min.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least {n}'**
+  String ops_butikk_scr_velg_min(int n);
+
+  /// No description provided for @ops_butikk_scr_velg_opptil.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose up to {n}'**
+  String ops_butikk_scr_velg_opptil(int n);
+
+  /// No description provided for @ops_butikk_scr_maks.
+  ///
+  /// In en, this message translates to:
+  /// **'You can choose up to {n}'**
+  String ops_butikk_scr_maks(int n);
+
+  /// No description provided for @ops_butikk_scr_mangler.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose {gruppe} first'**
+  String ops_butikk_scr_mangler(String gruppe);
+
+  /// No description provided for @ops_butikk_scr_feil.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the product.'**
+  String get ops_butikk_scr_feil;
+
+  /// No description provided for @ops_butikk_scr_prov_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get ops_butikk_scr_prov_igjen;
+
+  /// No description provided for @ops_butikk_scr_farge_utsolgt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold out in this colour'**
+  String get ops_butikk_scr_farge_utsolgt;
+
+  /// No description provided for @ops_butikk_allergen_gluten.
+  ///
+  /// In en, this message translates to:
+  /// **'Gluten'**
+  String get ops_butikk_allergen_gluten;
+
+  /// No description provided for @ops_butikk_allergen_skalldyr.
+  ///
+  /// In en, this message translates to:
+  /// **'Crustaceans'**
+  String get ops_butikk_allergen_skalldyr;
+
+  /// No description provided for @ops_butikk_allergen_egg.
+  ///
+  /// In en, this message translates to:
+  /// **'Egg'**
+  String get ops_butikk_allergen_egg;
+
+  /// No description provided for @ops_butikk_allergen_fisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Fish'**
+  String get ops_butikk_allergen_fisk;
+
+  /// No description provided for @ops_butikk_allergen_peanotter.
+  ///
+  /// In en, this message translates to:
+  /// **'Peanuts'**
+  String get ops_butikk_allergen_peanotter;
+
+  /// No description provided for @ops_butikk_allergen_notter.
+  ///
+  /// In en, this message translates to:
+  /// **'Tree nuts'**
+  String get ops_butikk_allergen_notter;
+
+  /// No description provided for @ops_butikk_allergen_melk.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk'**
+  String get ops_butikk_allergen_melk;
+
+  /// No description provided for @ops_butikk_allergen_soya.
+  ///
+  /// In en, this message translates to:
+  /// **'Soy'**
+  String get ops_butikk_allergen_soya;
+
+  /// No description provided for @ops_butikk_allergen_selleri.
+  ///
+  /// In en, this message translates to:
+  /// **'Celery'**
+  String get ops_butikk_allergen_selleri;
+
+  /// No description provided for @ops_butikk_allergen_sennep.
+  ///
+  /// In en, this message translates to:
+  /// **'Mustard'**
+  String get ops_butikk_allergen_sennep;
+
+  /// No description provided for @ops_butikk_allergen_sesam.
+  ///
+  /// In en, this message translates to:
+  /// **'Sesame'**
+  String get ops_butikk_allergen_sesam;
+
+  /// No description provided for @ops_butikk_allergen_sulfitt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sulphites'**
+  String get ops_butikk_allergen_sulfitt;
+
+  /// No description provided for @ops_butikk_allergen_lupin.
+  ///
+  /// In en, this message translates to:
+  /// **'Lupin'**
+  String get ops_butikk_allergen_lupin;
+
+  /// No description provided for @ops_butikk_allergen_blotdyr.
+  ///
+  /// In en, this message translates to:
+  /// **'Molluscs'**
+  String get ops_butikk_allergen_blotdyr;
 }
 
 class _AppLocalizationsDelegate

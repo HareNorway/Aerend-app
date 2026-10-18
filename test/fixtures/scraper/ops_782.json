@@ -1,0 +1,131 @@
+{
+ "id": 782,
+ "name": "Dovre Down Jacket – Dk. Brown",
+ "description": "The Dovre Down jacket is made from recycled and responsibly sourced materials. Padded with RDS-certified down, this mid-length jacket has been made from a technical fabric with 10K/10K Waterproof DWR finishing. Soft and breathable, it has a two-way zipped front and features both stick-in pockets and two large patch pockets at the front for storing valuables.",
+ "image": "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991048/hare/dev/stores/products/scr9399_oypp7z.jpg",
+ "store_id": 875014,
+ "store_name": "LOCAL-TEST Scraper Store",
+ "allergens": [],
+ "vegan": false,
+ "halal": false,
+ "has_sizes": true,
+ "ready_minutes": null,
+ "ordered_today": 0,
+ "most_ordered": false,
+ "points_per_10kr": 1,
+ "price_ore": 580000,
+ "was_price_ore": null,
+ "variants": [
+  {
+   "variant_key": "xs|dk. brown",
+   "size": "XS",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "s|dk. brown",
+   "size": "S",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "m|dk. brown",
+   "size": "M",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "l|dk. brown",
+   "size": "L",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "xl|dk. brown",
+   "size": "XL",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 1,
+   "in_stock": true
+  },
+  {
+   "variant_key": "xxl|dk. brown",
+   "size": "XXL",
+   "colour": "Dk. Brown",
+   "colour_hex": "#352C2C",
+   "price_delta_ore": 0,
+   "stock_qty": 0,
+   "in_stock": false
+  }
+ ],
+ "sizes": [
+  {
+   "label": "XS",
+   "price_delta_ore": 0,
+   "in_stock": true
+  },
+  {
+   "label": "S",
+   "price_delta_ore": 0,
+   "in_stock": true
+  },
+  {
+   "label": "M",
+   "price_delta_ore": 0,
+   "in_stock": true
+  },
+  {
+   "label": "L",
+   "price_delta_ore": 0,
+   "in_stock": true
+  },
+  {
+   "label": "XL",
+   "price_delta_ore": 0,
+   "in_stock": true
+  },
+  {
+   "label": "XXL",
+   "price_delta_ore": 0,
+   "in_stock": false
+  }
+ ],
+ "colours": [
+  {
+   "label": "Dk. Brown",
+   "hex": "#352C2C",
+   "price_delta_ore": 0,
+   "in_stock": true
+  }
+ ],
+ "stock": {
+  "mode": "web",
+  "updated_at": "2026-10-14T20:47:11+05:30",
+  "label": "Oppdatert for 2 min siden · kan henge etter"
+ },
+ "images": [
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991048/hare/dev/stores/products/scr9399_oypp7z.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991051/hare/dev/stores/products/scrB3F3_wm5xdd.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991055/hare/dev/stores/products/scrC27B_lr1wgc.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991061/hare/dev/stores/products/scrD76B_kjmlik.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991066/hare/dev/stores/products/scrEA68_ncph00.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991070/hare/dev/stores/products/scrFB9F_vdovjx.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991074/hare/dev/stores/products/scr871_dnjj2n.jpg",
+  "https://res.cloudinary.com/dybew1yxr/image/upload/f_auto,q_auto/v1791991078/hare/dev/stores/products/scr1C67_jjuumj.jpg"
+ ],
+ "modifiers": [],
+ "allergen_codes": []
+}

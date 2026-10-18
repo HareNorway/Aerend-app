@@ -171,6 +171,44 @@ abstract final class ButikkCopy {
   static String a1_butikk_klede_legg(String pris) => languages.ops_butikk_klede_legg(pris);
   static String get a1_butikk_klede_velg_str => languages.ops_butikk_klede_velg_str;
 
+  // ── Catalogue sync on the product sheet (scraper plan Chunk 8) ───────────
+  static String get a1_butikk_scr_lager_ukjent => languages.ops_butikk_scr_lager_ukjent;
+  static String a1_butikk_scr_igjen(int n) => languages.ops_butikk_scr_igjen(n);
+  static String get a1_butikk_scr_farge_utsolgt => languages.ops_butikk_scr_farge_utsolgt;
+  static String a1_butikk_scr_velg_min(int n) => languages.ops_butikk_scr_velg_min(n);
+  static String a1_butikk_scr_velg_opptil(int n) => languages.ops_butikk_scr_velg_opptil(n);
+  static String a1_butikk_scr_maks(int n) => languages.ops_butikk_scr_maks(n);
+  static String a1_butikk_scr_mangler(String gruppe) => languages.ops_butikk_scr_mangler(gruppe);
+  static String get a1_butikk_scr_feil => languages.ops_butikk_scr_feil;
+  static String get a1_butikk_scr_prov_igjen => languages.ops_butikk_scr_prov_igjen;
+
+  /// «Lager oppdatert for 2 t siden» — web stock may lag; [now] for tests.
+  static String a1_butikk_scr_oppdatert(DateTime at, {DateTime? now}) {
+    final min = (now ?? DateTime.now()).difference(at).inMinutes.clamp(0, 1 << 30);
+    if (min < 60) return languages.ops_butikk_scr_oppdatert_min(min);
+    if (min < 60 * 24) return languages.ops_butikk_scr_oppdatert_timer(min ~/ 60);
+    return languages.ops_butikk_scr_oppdatert_dager(min ~/ (60 * 24));
+  }
+
+  /// An EU-14 allergen code (as the backend sends it) in the user's language.
+  static String a1_butikk_allergen(String code) => switch (code.toLowerCase()) {
+    'gluten' => languages.ops_butikk_allergen_gluten,
+    'skalldyr' => languages.ops_butikk_allergen_skalldyr,
+    'egg' => languages.ops_butikk_allergen_egg,
+    'fisk' => languages.ops_butikk_allergen_fisk,
+    'peanøtter' => languages.ops_butikk_allergen_peanotter,
+    'nøtter' => languages.ops_butikk_allergen_notter,
+    'melk' => languages.ops_butikk_allergen_melk,
+    'soya' => languages.ops_butikk_allergen_soya,
+    'selleri' => languages.ops_butikk_allergen_selleri,
+    'sennep' => languages.ops_butikk_allergen_sennep,
+    'sesam' => languages.ops_butikk_allergen_sesam,
+    'sulfitt' => languages.ops_butikk_allergen_sulfitt,
+    'lupin' => languages.ops_butikk_allergen_lupin,
+    'bløtdyr' => languages.ops_butikk_allergen_blotdyr,
+    _ => code,
+  };
+
   // ── Food product sheet ──────────────────────────────────────────────────
   static String get a1_butikk_prod_mest_bestilt => languages.ops_butikk_prod_mest_bestilt;
   static String a1_butikk_prod_poeng(int n) => languages.ops_butikk_prod_poeng(n);
