@@ -52,6 +52,23 @@ class _EmptyRepo extends FeedRepo {
   Future<void> markSeen({String tab = 'naerheten'}) async {}
 }
 
+/// Counts the feed loads (pull to refresh).
+class _CountingRepo extends _EmptyRepo {
+  int tabs = 0;
+  int unread = 0;
+  @override
+  Future<FeedTabPage> fetchFeedTab({required String tab, String? cursor, int? limit, String? bydel, double? lat, double? lng}) {
+    tabs++;
+    return super.fetchFeedTab(tab: tab, cursor: cursor, limit: limit, bydel: bydel, lat: lat, lng: lng);
+  }
+
+  @override
+  Future<({int unread, bool capped})> fetchUnread({String tab = 'naerheten', double? lat, double? lng}) {
+    unread++;
+    return super.fetchUnread(tab: tab, lat: lat, lng: lng);
+  }
+}
+
 Widget _app(Widget child) => MaterialApp(home: child);
 
 /// The design frame: the Bergen screens scale from 390 wide.
@@ -130,6 +147,29 @@ void main() {
       expect(find.byKey(const Key('a1_utforsk_filters')), findsOneWidget);
       // No Drift note from the API → the notice is hidden.
       expect(find.byKey(const Key('a1_utforsk_drift')), findsNothing);
+    });
+
+    testWidgets('pulling down reloads the feed and the unread dots', (tester) async {
+      _frame(tester);
+      final repo = _CountingRepo();
+      await tester.pumpWidget(_app(UtforskScreen(api: _FakeApi(), feedRepo: repo)));
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const Key('a1_utforsk_refresh')), findsOneWidget);
+      final tabs = repo.tabs;
+      final unread = repo.unread;
+      expect(tabs, greaterThan(0));
+
+      await tester.fling(find.byKey(const Key('a1_utforsk_scroll')), const Offset(0, 400), 1200);
+      await tester.pump();
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      expect(repo.tabs, tabs + 1);
+      expect(repo.unread, greaterThan(unread));
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(seconds: 2));
     });
 
     testWidgets('the Drift notice shows only with a note', (tester) async {

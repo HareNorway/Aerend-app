@@ -81,6 +81,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
   int _segDir = -1;
 
   final ScrollController _scroll = ScrollController();
+  final GlobalKey<UtforskFeedTabState> _feedKey = GlobalKey<UtforskFeedTabState>();
 
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
 
@@ -142,6 +143,17 @@ class _UtforskScreenState extends State<UtforskScreen> {
         if (mounted && _scroll.hasClients) _scroll.jumpTo(y.clamp(0, _scroll.position.maxScrollExtent));
       }
     });
+  }
+
+  Future<void> _refresh() async {
+    // Each part fails on its own (the feed shows its own error state); the
+    // spinner always ends.
+    Future<void> safe(Future<void> f) => f.catchError((Object _) {});
+    await Future.wait<void>([
+      if (_tab != UtforskScreen.tabPose) safe(_feedKey.currentState?.refresh() ?? Future<void>.value()),
+      safe(_loadDrift()),
+      safe(_loadUnread()),
+    ]);
   }
 
   Future<void> _loadDrift() async {
@@ -258,9 +270,17 @@ class _UtforskScreenState extends State<UtforskScreen> {
                     right: 0,
                     top: top + 56,
                     bottom: 0,
-                    child: CustomScrollView(
+                    // Pull down to refresh: the feed (in place), the drift note and the unread dots.
+                    child: RefreshIndicator(
+                      key: const Key('a1_utforsk_refresh'),
+                      color: const Color(0xFF5CE0B8),
+                      backgroundColor: const Color(0xFF173E48),
+                      onRefresh: _refresh,
+                      child: CustomScrollView(
                       key: const Key('a1_utforsk_scroll'),
                       controller: _scroll,
+                      // Pullable also when the posts do not fill the screen.
+                      physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
                         SliverPadding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -273,6 +293,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
                           visible: !isPose,
                           maintainState: true,
                           sliver: UtforskFeedTab(
+                            key: _feedKey,
                             sliver: true,
                             bottomReserve: 0,
                             drift: _drift,
@@ -298,6 +319,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
                           ),
                         SliverToBoxAdapter(child: SizedBox(height: bottom)),
                       ],
+                    ),
                     ),
                   ),
                   // The Ægil-guide (L9495) — Utforsk's three tips.

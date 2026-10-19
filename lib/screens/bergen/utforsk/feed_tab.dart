@@ -112,10 +112,10 @@ class UtforskFeedTab extends StatefulWidget {
   };
 
   @override
-  State<UtforskFeedTab> createState() => _UtforskFeedTabState();
+  State<UtforskFeedTab> createState() => UtforskFeedTabState();
 }
 
-class _UtforskFeedTabState extends State<UtforskFeedTab> {
+class UtforskFeedTabState extends State<UtforskFeedTab> {
   List<FeedTabItem>? _items;
   bool _error = false;
   String _filter = 'alle';
@@ -167,11 +167,17 @@ class _UtforskFeedTabState extends State<UtforskFeedTab> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _items = null;
-      _error = false;
-    });
+  /// Pull to refresh (Utforsk): the posts again, the current ones stay on
+  /// screen until the new page is in (no spinner over them).
+  Future<void> refresh() => _load(quiet: true);
+
+  Future<void> _load({bool quiet = false}) async {
+    if (!quiet || _items == null) {
+      setState(() {
+        _items = null;
+        _error = false;
+      });
+    }
     try {
       final at = feedAddressLatLng();
       final page = await _repo.fetchFeedTab(tab: UtforskFeedTab.tabFor(widget.fane), limit: 30, lat: at?.lat, lng: at?.lng);
