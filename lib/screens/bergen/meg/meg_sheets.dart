@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
@@ -7,6 +9,7 @@ import '../../../data/points/league_models.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../common/auth/launch/lf_css.dart' show CssBox, CssLinear, CssShadow;
 import '../../common/auth/launch/lf_motion.dart' show LfRise;
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
@@ -468,7 +471,7 @@ abstract final class MegSheets {
   /// `varslinger` (dark): the newest notices («Nytt» when they arrived
   /// after the last visit; order notices open Ordrehistorikk), then what is
   /// notified.
-  static Future<void> varsler(BuildContext context, {required List<MassNotificationItem> items, DateTime? seenAt, VoidCallback? onOrdre}) {
+  static Future<void> varsler(BuildContext context, {required List<MassNotificationItem> items, DateTime? seenAt, VoidCallback? onOrdre, CusApi? cus}) {
     bool ny(MassNotificationItem n) {
       final t = DateTime.tryParse(n.datetime);
       return seenAt == null || (t != null && t.isAfter(seenAt));
@@ -481,6 +484,26 @@ abstract final class MegSheets {
 
     final nye = items.where(ny).length;
     const innstIk = [MorkIk.gave, MorkIk.stjerne, MorkIk.pokal];
+    // Customer Step 3: Premier / Nivå / Ligaen are the inbox mutes `premier`,
+    // `nivaa`, `liga` (null while the inbox is off or loading: a plain «På»).
+    const innstNokler = ['premier', 'nivaa', 'liga'];
+    final api = cus ?? CusApi();
+    final mutes = ValueNotifier<Set<String>?>(null);
+    unawaited(api.varsler(limit: 1).then((i) => mutes.value = i?.mutes.toSet()).catchError((_) => null));
+    Future<void> bytt(BuildContext ctx, String key, String navn) async {
+      final for_ = mutes.value;
+      if (for_ == null) return;
+      final av = !for_.contains(key);
+      mutes.value = av ? {...for_, key} : ({...for_}..remove(key));
+      final svar = await api.varselDemp(key, av: av);
+      if (svar == null) {
+        mutes.value = for_;
+        if (ctx.mounted) showBergenToast(ctx, BergenRoutes.ikkeSendt);
+        return;
+      }
+      mutes.value = svar.toSet();
+      if (ctx.mounted) showBergenToast(ctx, A4MegCopy.a4_meg_varsel_lagret(navn, !av));
+    }
     var k = 0;
     return showMegArk<void>(
       context,
@@ -510,12 +533,24 @@ abstract final class MegSheets {
                   : () {},
             ),
           ],
-          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-          // (No per-kind notification settings exist; these pushes are always sent, so «På» holds.
-          // The design's switches are shown as a plain «På» until they can be turned off.)
           for (final (i, r) in A4MegCopy.a4_meg_varsel_innst.indexed) ...[
             if (k > 0) const SizedBox(height: 8),
-            MorkRad(delayMs: k++ * 40.0, ikon: innstIk[i % innstIk.length], navn: r[0], under: r[1], verdi: A4MegCopy.a4_meg_paa, stil: MorkStil.valgt, onTap: () {}),
+            ValueListenableBuilder<Set<String>?>(
+              valueListenable: mutes,
+              builder: (ctx, m, _) {
+                final av = m?.contains(innstNokler[i]) ?? false;
+                return MorkRad(
+                  key: Key('meg-varsel-${innstNokler[i]}'),
+                  delayMs: (k + i) * 40.0,
+                  ikon: innstIk[i % innstIk.length],
+                  navn: r[0],
+                  under: r[1],
+                  verdi: av ? A4MegCopy.a4_meg_av : A4MegCopy.a4_meg_paa,
+                  stil: av ? MorkStil.vanlig : MorkStil.valgt,
+                  onTap: () => bytt(ctx, innstNokler[i], r[0]),
+                );
+              },
+            ),
           ],
         ],
       ),

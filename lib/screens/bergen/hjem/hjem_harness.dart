@@ -195,6 +195,10 @@ abstract final class HjemHarness {
   /// …; Gap Step 1).
   static String? varsler;
 
+  /// Customer Step 3: the Varsler card at this index swiped open
+  /// (`varslerSveip`), or removed with the «Angre» toast showing (`varslerFjern`).
+  static int? varslerSveip, varslerFjern;
+
   /// Gap Step 3: Premiehylla opens «Vilkår for premier» (`hyllaArk: "vilkaar"`);
   /// Hjem opens «Ægil de siste 30 dagene» (`logg`).
   static String? hyllaArk;
@@ -342,6 +346,7 @@ abstract final class HjemHarness {
         hyllaTom = false;
         loggUt = false;
         varsler = null;
+        varslerSveip = varslerFjern = null;
         hyllaArk = null;
         logg = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
@@ -451,6 +456,8 @@ abstract final class HjemHarness {
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
       varsler = m['varsler'] as String?;
+      varslerSveip = m['varslerSveip'] as int?;
+      varslerFjern = m['varslerFjern'] as int?;
       hyllaArk = m['hyllaArk'] as String?;
       logg = m['logg'] == true;
       sporingKvittering = m['sporingKvittering'] == true;

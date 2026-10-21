@@ -87,6 +87,7 @@ abstract final class A4MegCopy {
     ['Ligaen', 'Si fra ved månedsslutt'],
   ];
   static const String a4_meg_av = 'Av';
+  static String a4_meg_varsel_lagret(String navn, bool paa) => 'Varsler om ${navn.toLowerCase()}: ${paa ? 'på' : 'av'}';
   static const String a4_meg_adresser = 'Adresser';
   static const String a4_meg_adresser_bare = 'bare for deg';
   static String a4_meg_steder(int n) => n == 1 ? '1 sted' : '$n steder';
