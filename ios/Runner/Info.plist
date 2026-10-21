@@ -31,7 +31,6 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fb000</string>
 				<string>aerendapp</string>
 			</array>
 		</dict>
@@ -46,19 +45,11 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>FacebookAppID</key>
-	<string>000</string>
-	<key>FacebookClientToken</key>
-	<string>000000000</string>
-	<key>FacebookDisplayName</key>
-	<string>Ærend</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-		<string>fb000</string>
 		<string>fb-messenger-share-api</string>
-		<string>fbauth2</string>
 		<string>fbshareextension</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>

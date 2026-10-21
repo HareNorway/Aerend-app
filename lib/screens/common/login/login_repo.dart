@@ -64,9 +64,4 @@ class LoginRepo {
     );
     return response;
   }
-
-  facebookGraphRequest(String url) async {
-    final response = await _apiBaseHelper.get(url);
-    return response;
-  }
 }

@@ -73,7 +73,6 @@ State<Chatting>? chatState;
 State<Notifications>? notificationState;
 
 //LOGIN TYPE
-const loginTypeFacebook = "facebook";
 const loginTypeGoogle = "google";
 const loginTypeEmail = "email";
 const loginTypeApple = "apple";
