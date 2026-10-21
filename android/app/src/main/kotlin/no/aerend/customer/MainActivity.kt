@@ -1,4 +1,4 @@
-package com.reen.customer
+package no.aerend.customer
 
 import android.app.ActivityManager
 import android.content.BroadcastReceiver

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Reen Dugnad</string>
+    <string name="app_name" translatable="false">Ærend</string>
 
     <!--FACEBOOK-->
     <string name="facebook_app_id" translatable="false">157613636565860</string>

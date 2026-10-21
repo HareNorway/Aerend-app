@@ -390,6 +390,53 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261783605700:android:6f7b12d4741993c76c5491",
+        "android_client_info": {
+          "package_name": "no.aerend.customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "261783605700-di5ihdpsdqtlgl12qphklodm2cqht8rq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "no.aerend.customer",
+            "certificate_hash": "24ca022fc43b44b0bec257fba08e25fee08aa0c2"
+          }
+        },
+        {
+          "client_id": "261783605700-uhib6st3sm5eic02mce2hbvfsdoccj69.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_DlJOOaScC7zoeAx8vT5vXm8TrNqQ63c"
+        },
+        {
+          "current_key": "AIzaSyCZbqMl6le2iMwVOzOD5ipt1eWHxDd2jQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "261783605700-uhib6st3sm5eic02mce2hbvfsdoccj69.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "261783605700-1de7u9j7gufidf5t3ebf9hll8c0rp0bi.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hare.driver"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

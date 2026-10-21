@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyB_DlJOOaScC7zoeAx8vT5vXm8TrNqQ63c',
-    appId: '1:261783605700:android:9a9ba1e03240ceb76c5491',
+    appId: '1:261783605700:android:6f7b12d4741993c76c5491',
     messagingSenderId: '261783605700',
     projectId: 'hare-89094',
     databaseURL: 'https://hare-89094-default-rtdb.firebaseio.com',
@@ -60,15 +60,15 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyD0pv_LZaqd3t8Rwf8VnijIawrbueWzDDM',
-    appId: '1:261783605700:ios:f6825edb910317ca6c5491',
+    appId: '1:261783605700:ios:3f69f5e794f275f36c5491',
     messagingSenderId: '261783605700',
     projectId: 'hare-89094',
     databaseURL: 'https://hare-89094-default-rtdb.firebaseio.com',
     storageBucket: 'hare-89094.firebasestorage.app',
     androidClientId:
-        '261783605700-1d8em8fr0iuqr0c7s8i70edkvk7mqfbh.apps.googleusercontent.com',
+        '261783605700-0kika1d3o1ir4376n027chbq6qg68ah3.apps.googleusercontent.com',
     iosClientId:
-        '261783605700-s3pchmpsqilc1vg1jptritva1eqbtp0d.apps.googleusercontent.com',
-    iosBundleId: 'com.reen.customer',
+        '261783605700-97s87clrl7fhcs691nstulsco6hqh5sn.apps.googleusercontent.com',
+    iosBundleId: 'no.aerend.customer',
   );
 }
