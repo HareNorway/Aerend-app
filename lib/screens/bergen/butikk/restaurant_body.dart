@@ -38,7 +38,6 @@ import 'info_sheet.dart';
 import 'produkt_launch.dart' show produktOfteMed;
 import 'produkt_sheet.dart';
 import '../kit/bergen_perf.dart';
-import '../../../constant/constant.dart' show appUrlScheme;
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
 ///
