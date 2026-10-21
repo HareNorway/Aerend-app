@@ -193,6 +193,7 @@ class OpsDeliveryCode {
     this.reason,
     required this.reasonCopyKey,
     this.qrPayload,
+    this.qrUrl,
     this.locked = false,
     this.verifiedAt,
   });
@@ -201,6 +202,11 @@ class OpsDeliveryCode {
   final String? reason;
   final String reasonCopyKey;
   final String? qrPayload;
+
+  /// The QR the courier scans (Customer Step 2, D-K17):
+  /// `https://aerend.no/k/<ops_code>-<pin>` while `cus.delivery_qr` is on;
+  /// null shows the PIN only.
+  final String? qrUrl;
   final bool locked;
   final DateTime? verifiedAt;
 
@@ -210,6 +216,7 @@ class OpsDeliveryCode {
     reasonCopyKey:
         '${j['reason_copy_key'] ?? 'a1_sporing_kode_reason_default'}',
     qrPayload: j['qr_payload']?.toString(),
+    qrUrl: j['qr_url']?.toString(),
     locked: j['locked'] == true,
     verifiedAt: OpsTracking._t(j['verified_at']),
   );

@@ -38,6 +38,7 @@ import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../kit/bergen_kit.dart';
 import 'a3_services.dart';
 import 'borte_entry.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import 'bestillinger_screen.dart' show OhCopy;
 import '../sporing/hjelp_sheet.dart';
@@ -466,6 +467,14 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       return;
     }
     setState(() => _prefs = p);
+    // Customer Step 2: the door profiles the courier reads (every saved
+    // address, from its door note; withdrawn = removed).
+    final skrevet = await CusApi().dorProfil(samtykke: p.doorProfileConsent);
+    if (!mounted) return;
+    if (!skrevet) {
+      showBergenToast(context, A4MegCopy.a4_meg_lagret_feil, icon: Icons.error_outline_rounded);
+      return;
+    }
     showBergenToast(context, p.doorProfileConsent ? A4MegCopy.a4_meg_dora_lagret_paa : A4MegCopy.a4_meg_dora_lagret_av, icon: Icons.door_front_door_outlined);
   }
 

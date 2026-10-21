@@ -383,62 +383,66 @@ void main() {
   );
 
   testWidgets(
-    'the delivery code card: the PIN, who takes it, the visual only online',
+    'the delivery code card (21 Oct): the QR of qr_url, «Bare PIN» remembered per order, PIN only offline',
     (tester) async {
       _frame(tester);
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      await initSharedPreferences();
+      final t = OpsTracking.fromJson(payload(state: 'arrived_customer', stage: 3, label: 'Fremme'));
       const code = OpsDeliveryCode(
         pin: '4821',
         reason: 'value',
         reasonCopyKey: 'a1_sporing_kode_reason_value',
         qrPayload: 'aerend:code:abc',
+        qrUrl: 'https://aerend.no/k/42K-4821',
       );
-      await tester.pumpWidget(
-        _app(const Scaffold(body: LeveringskodeCard(code: code))),
-      );
+      Finder iPin(String d) => find.descendant(of: find.byKey(const Key('ops-delivery-code-pin')), matching: find.text(d));
+
+      await tester.pumpWidget(_app(Scaffold(body: LeveringskodeCard(code: code, tracking: t))));
+      await tester.pump(const Duration(seconds: 1));
       expect(find.byKey(const Key('ops-delivery-code-card')), findsOneWidget);
-      expect(find.text('4821'), findsOneWidget);
-      expect(find.text(SporingCopy.a1_sporing_vis_budet), findsOneWidget);
-      expect(
-        find.byKey(const Key('ops-delivery-code-no-leave-at-door')),
-        findsOneWidget,
-      );
       expect(find.byKey(const Key('ops-delivery-code-qr')), findsOneWidget);
+      expect(find.text(SporingCopy.a1_sporing_vis_budet), findsOneWidget);
+      expect(find.byKey(const Key('cus-kode-qr-linje')), findsOneWidget);
 
-      await tester.pumpWidget(
-        _app(
-          const Scaffold(body: LeveringskodeCard(code: code, offline: true)),
-        ),
-      );
+      await tester.tap(find.byKey(const Key('cus-kode-bare-pin')));
+      await tester.pump(const Duration(seconds: 1));
       expect(find.byKey(const Key('ops-delivery-code-qr')), findsNothing);
-      expect(find.textContaining(SporingCopy.a1_sporing_uten_nett_kode), findsOneWidget);
+      for (final d in ['4', '8', '2', '1']) {
+        expect(iPin(d), findsOneWidget);
+      }
+      expect(prefGetString(LeveringskodeCard.prefVis(t.orderId)), 'pin', reason: 'remembered for this order');
 
+      // A fresh card for the same order opens on the PIN.
+      await tester.pumpWidget(_app(Scaffold(body: LeveringskodeCard(key: UniqueKey(), code: code, tracking: t))));
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byKey(const Key('ops-delivery-code-qr')), findsNothing);
+      expect(find.byKey(const Key('cus-kode-vis-qr')), findsOneWidget);
+
+      // Offline: the PIN alone, no switch, «Uten nett».
+      await tester.pumpWidget(_app(Scaffold(body: LeveringskodeCard(key: UniqueKey(), code: code, tracking: t, offline: true))));
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byKey(const Key('ops-delivery-code-qr')), findsNothing);
+      expect(find.byKey(const Key('cus-kode-vis-qr')), findsNothing);
+      expect(find.text(CusKodeCopy.cus_kode_uten_nett(t.courier!.firstName)), findsOneWidget);
+
+      // No QR URL (flag off): the PIN only.
       await tester.pumpWidget(
         _app(
-          const Scaffold(
-            body: LeveringskodeCard(
-              code: OpsDeliveryCode(pin: '1111', reasonCopyKey: 'x'),
-            ),
+          Scaffold(
+            body: LeveringskodeCard(key: UniqueKey(), code: const OpsDeliveryCode(pin: '1111', reasonCopyKey: 'x')),
           ),
         ),
       );
-      expect(
-        find.byKey(const Key('ops-delivery-code-qr')),
-        findsNothing,
-        reason: 'no visual without a payload',
-      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byKey(const Key('ops-delivery-code-qr')), findsNothing, reason: 'no QR without qr_url');
     },
   );
 
-  test('the visual code is stable for a payload', () {
-    expect(
-      LeveringskodeCard.pattern('aerend:code:abc'),
-      LeveringskodeCard.pattern('aerend:code:abc'),
-    );
-    expect(
-      LeveringskodeCard.pattern('a'),
-      isNot(LeveringskodeCard.pattern('b')),
-    );
-    expect(LeveringskodeCard.pattern('a').length, 49);
+  test('the QR is version 3 (29 × 29) of the URL', () {
+    final m = LeveringskodeCard.moduler('https://aerend.no/k/42K-4821');
+    expect(m.length, 29);
+    expect(m.every((r) => r.length == 29), isTrue);
   });
 
   testWidgets(

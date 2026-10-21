@@ -168,6 +168,11 @@ abstract final class HjemHarness {
   static String? sporingArk, sporingHjelp, levertArk;
   static bool sporingSkifte = false, sporingFersk = false;
 
+  /// Customer Step 2: the Leveringskode card's view for this order (`pin` /
+  /// `qr`), and Sporing held offline (the PIN-only card).
+  static String? sporingKode;
+  static bool sporingOffline = false;
+
   /// Taps the Live pill once Hjem has settled (`liveApne`: Sporing grows out
   /// of it and its pieces fly in).
   static bool liveApne = false;
@@ -330,6 +335,8 @@ abstract final class HjemHarness {
         sporing = levert = null;
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = liveApne = sporingKvittering = false;
+        sporingKode = null;
+        sporingOffline = false;
         megScroll = null;
         megArk = null;
         hyllaTom = false;
@@ -436,6 +443,8 @@ abstract final class HjemHarness {
       levertArk = m['levertArk'] as String?;
       sporingSkifte = m['sporingSkifte'] == true;
       sporingFersk = m['sporingFersk'] == true;
+      sporingKode = m['sporingKode'] as String?;
+      sporingOffline = m['sporingOffline'] == true;
       liveApne = m['liveApne'] == true;
       megScroll = (m['megScroll'] as num?)?.toDouble();
       megArk = m['megArk'] as String?;

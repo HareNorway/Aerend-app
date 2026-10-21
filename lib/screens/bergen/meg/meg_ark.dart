@@ -87,6 +87,10 @@ Future<T?> showMegArk<T>(
 
   /// The sheet has a text field: it rides up on the keyboard.
   bool tastatur = false,
+
+  /// A fixed strip between the scrolling body and the footer (the bud
+  /// chat's chips and input, `Budchat · skriv`), rebuilt with [body].
+  MegArkBody? fot,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -104,7 +108,7 @@ Future<T?> showMegArk<T>(
       final ark = MegArkSkala(
         child: StatefulBuilder(
           builder: (ctx, setState) =>
-              MegArk(key: key, title: title, subtitle: subtitle, body: body == null ? null : body(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
+              MegArk(key: key, title: title, subtitle: subtitle, body: body == null ? null : body(ctx, setState), fot: fot?.call(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
         ),
       );
       return tastatur
@@ -253,11 +257,14 @@ class MegArkSkala extends StatelessWidget {
 }
 
 class MegArk extends StatelessWidget {
-  const MegArk({super.key, required this.title, this.subtitle, this.body, this.primary, this.secondary, this.mork = false});
+  const MegArk({super.key, required this.title, this.subtitle, this.body, this.fot, this.primary, this.secondary, this.mork = false});
 
   final String title;
   final String? subtitle;
   final Widget? body;
+
+  /// Fixed under the scrolling body, above the footer.
+  final Widget? fot;
   final MegArkButton? primary;
   final MegArkButton? secondary;
 
@@ -345,6 +352,7 @@ class MegArk extends StatelessWidget {
                         child: body,
                       ),
                     ),
+                  if (fot != null) fot!,
                   if (primary != null || secondary != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),

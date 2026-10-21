@@ -78,6 +78,7 @@ dependencies:
   dashed_circular_progress_bar: any
   flutter_stripe: ^11.1.0
   qr_flutter: ^4.1.0
+  qr: ^3.0.2
   appinio_swiper: ^1.0.0
   circular_motion: ^0.0.6
 

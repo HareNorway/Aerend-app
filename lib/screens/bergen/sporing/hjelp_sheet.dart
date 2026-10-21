@@ -152,6 +152,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
       _state = _standalone ? HjelpState.kundeservice : HjelpState.main;
       WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _startChat(tema) : null);
     }
+    // «Ring {navn}» from the bud chat: straight into the call.
+    if (start == HjelpState.ring) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _ring() : null);
     _msg.addListener(() => setState(() {}));
     // The hub reads the config (hours, phone, e-mail) and the cases as they land.
     SupportStore.instance.endret.addListener(_storeEndret);

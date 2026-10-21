@@ -21,6 +21,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../hjelp/demo_panel.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
+import 'bud_chat_ark.dart';
 import 'hjelp_sheet.dart';
 import 'leveringskode_card.dart';
 import 'sporing_bits.dart';
@@ -32,6 +33,7 @@ import 'sporing_scene_kai.dart';
 import 'sporing_scene_kart.dart';
 import 'sporing_scene_kjokken.dart';
 import 'sporing_skifte.dart';
+import 'takk_ark.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
@@ -124,6 +126,7 @@ class _SporingScreenState extends State<SporingScreen> {
       _timer = Timer.periodic(SporingScreen.pollEvery, (_) => _refresh());
       _conn = Connectivity().onConnectivityChanged.listen((results) {
         final down = results.every((r) => r == ConnectivityResult.none);
+        if (_forceOffline) return;
         if (mounted && down != _offline) setState(() => _offline = down);
         if (!down) _refresh();
       });
@@ -147,7 +150,7 @@ class _SporingScreenState extends State<SporingScreen> {
     if (_forceOffline) return;
     try {
       final json = await _api.tracking(_id);
-      if (!mounted) return;
+      if (!mounted || _forceOffline) return;
       final next = OpsTracking.fromJson(json);
       final changed = _lastStage != null && next.stage != _lastStage;
       setState(() {
@@ -255,6 +258,33 @@ class _SporingScreenState extends State<SporingScreen> {
     );
   }
 
+  /// The chat key: the dark bud chat when a courier carries the order
+  /// (21 Oct `budchat`); the store's driver and the counter keep the help
+  /// sheet's message state.
+  void _chat() {
+    final t = _t;
+    if (t == null || t.isPickup || t.isPartner || t.courier == null) {
+      _openHelp(HjelpState.melding);
+      return;
+    }
+    visBudChat(context, orderId: _id, tracking: t, api: _api, onRing: () => _openHelp(HjelpState.ring));
+  }
+
+  /// The courier's first name once they have delivered (not the store's
+  /// driver, not a pickup): the thank-you note's addressee.
+  String? _takkNavn(OpsTracking t) => t.isDelivered && !t.isPickup && !t.isPartner && t.courier != null ? t.courier!.firstName : null;
+
+  /// Sent from this device (pref) or anywhere (`thanks_sent` in the payload).
+  late bool _takkSendt = prefGetString(takkPref(_id)) == '1';
+  bool get _takket => _takkSendt || _t?.raw['thanks_sent'] == true;
+
+  Future<void> _takk() async {
+    final navn = _t == null ? null : _takkNavn(_t!);
+    if (navn == null || _takket) return;
+    final ok = await visTakkArk(context, orderId: _id, navn: navn);
+    if (ok && mounted) setState(() => _takkSendt = true);
+  }
+
   Future<void> _wait() async {
     final res = await _api.problem(_id, kind: 'wait');
     if (!mounted) return;
@@ -315,13 +345,27 @@ class _SporingScreenState extends State<SporingScreen> {
     if (!kDebugMode || _harness || HjemHarness.sporing == null) return;
     _harness = true;
     if (HjemHarness.sporingFersk) _fersk = true;
+    if (HjemHarness.sporingKode case final v?) prefSetString(LeveringskodeCard.prefVis('$_id'), v);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       for (var i = 0; i < 40 && _t == null && mounted; i++) {
         await Future<void>.delayed(const Duration(milliseconds: 100));
       }
       if (!mounted) return;
+      if (HjemHarness.sporingOffline) {
+        setState(() {
+          _forceOffline = true;
+          _offline = true;
+        });
+      }
       if (HjemHarness.sporingArk case final a?) {
-        setState(() => _ark = a == 'detaljer' ? SpArk.detaljer : SpArk.sammendrag);
+        switch (a) {
+          case 'budchat':
+            _chat();
+          case 'takk':
+            _takk();
+          default:
+            setState(() => _ark = a == 'detaljer' ? SpArk.detaljer : SpArk.sammendrag);
+        }
       }
       if (HjemHarness.sporingSkifte) {
         // Two seconds after the screen settles, so a screenshot can catch it.
@@ -589,7 +633,8 @@ class _SporingScreenState extends State<SporingScreen> {
     final gift = '${t.raw['gift_to'] ?? ''}';
     final budTop =
         (s >= 3
-            ? 444.0
+            // 21 Oct (`kBudTop`): 12 px higher while the code slot shows (stage 3, sheet closed).
+            ? ((hent ? s == 2 : s == 3) && _ark == null ? 432.0 : 444.0)
             : s == 2
             ? 176.0
             : 150.0) +
@@ -597,7 +642,10 @@ class _SporingScreenState extends State<SporingScreen> {
         (kart ? topp : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
     final slotVerv = _fersk && !_vervLukket && _vervKode != null;
-    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && (hent ? s == 2 : s == 3);
+    // The design's stage 3, and (Customer Step 2) while the courier carries
+    // the order with the code not yet used — when the courier scans it.
+    final kodeUnderveis = !hent && s == 2 && (t.state == 'picked_up' || t.state == 'arrived_customer') && t.deliveryCode?.verifiedAt == null;
+    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && (hent ? s == 2 : s == 3 || kodeUnderveis);
     final stadieNavn = t.isCancelled
         ? SporingCopy.a1_sporing_avbestilt
         : t.findingCourier
@@ -794,11 +842,14 @@ class _SporingScreenState extends State<SporingScreen> {
                 onAvslutt: _avslutt,
                 onFjordfiske: _fjordfiske,
                 onVisVeien: () => _showMapSheet(t),
-                onChat: () => _openHelp(HjelpState.melding),
+                onChat: _chat,
                 onRing: _openHelp,
                 onLukkVerv: () => setState(() => _vervLukket = true),
                 onDelBillett: _delBillett,
                 onKopierBillett: _kopierBillett,
+                takkNavn: _takkNavn(t),
+                takkSendt: _takket,
+                onTakk: _takk,
               ),
             ],
           ),
