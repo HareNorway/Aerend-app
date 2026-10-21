@@ -343,6 +343,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               }
             }
 
+            // Legacy: `/invite?code=…` arrives from old hare.io invite links. No screen creates
+            // them any more; kept on purpose so an old link still lands somewhere sensible.
             if (settings.name?.startsWith('/invite') ?? false) {
               final uri = Uri.parse(settings.name!);
               final code = uri.queryParameters['code'];
