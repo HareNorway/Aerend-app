@@ -34,12 +34,14 @@ void setAegilFindCountForTest(int n) => _findCount = n;
 /// The Brett (D-K20): all of Ægil's finds, from Under kaien's line on Hjem
 /// (the floats show two). agil-2's [SuggestionTray] — Legg til / Ikke nå /
 /// Ikke for meg through `agent/me/suggestions/{id}/add|dismiss|never` — in
-/// the full-width Meg Ark (the narrow Launch-era sheet is gone).
+/// the full-width dark Meg Ark (the narrow Launch-era sheet is gone).
 Future<void> showAegilBrett(BuildContext context, {AegilAppApi? api}) async {
   final a = api ?? A3Services.aegil();
   await showMegArk<void>(
     context,
     key: const Key('aegil-brett-ark'),
+    // The dark Ark: the tray's cards are drawn for a dark ground.
+    mork: true,
     title: A3AegilCopy.a3_aegil_brett_title,
     body: (ctx, _) => _Brett(api: a),
   );
