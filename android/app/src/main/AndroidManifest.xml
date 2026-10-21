@@ -138,34 +138,34 @@
             </intent-filter>
 
             <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <!-- Vipps Login's HTTPS callback on Ærend's own domain, verified through
+                 https://commercial.ailogistics.no/.well-known/assetlinks.json. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data
                     android:scheme="https"
-                    android:host="api.ailogistics.no"
+                    android:host="commercial.ailogistics.no"
                     android:pathPrefix="/vipps/login/callback"/>
             </intent-filter>
+            <!-- Returns into the app on Ærend's own scheme (appUrlScheme in constant.dart; not
+                 `aerend`, which Reen Dugnad registers): the Stripe redirect and the Vipps Login
+                 callback. One scheme per filter: every <data> in a filter combines with the others. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="aerend" android:host="stripe-redirect"/>
-                <data android:scheme="aerend" android:host="vipps-login"/>
-                <data android:scheme="aerend" android:host="vipps-login" android:pathPrefix="/callback"/>
-                <data android:scheme="http" android:host="hare.io" android:pathPrefix="/payment/vipps"/>
-                <data android:scheme="http" android:host="hare.io" android:pathPrefix="/invite"/>
-                <data android:scheme="https"/>
+                <data android:scheme="aerendapp" android:host="stripe-redirect"/>
+                <data android:scheme="aerendapp" android:host="vipps-login"/>
             </intent-filter>
-            <!-- Vipps store payments return to aerend://payment/vipps?orderId=…
-                 (VIPPS_STORE_RETURN_BASE_URL). Its own filter: in the one above,
-                 every <data> combines, so its path prefixes would refuse /vipps. -->
+            <!-- Vipps store payments return to aerendapp://payment/vipps?orderId=…
+                 (VIPPS_STORE_RETURN_BASE_URL on the backend). -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="aerend" android:host="payment"/>
+                <data android:scheme="aerendapp" android:host="payment"/>
             </intent-filter>
         </activity>
 

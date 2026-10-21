@@ -5,7 +5,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:intercom_flutter/intercom_flutter.dart';
 
 import '../../../blocs/bloc.dart';
 import '../../../dialogs/simple_dialog_util.dart';
@@ -100,12 +99,6 @@ class SplashBloc extends Bloc {
       if (token == null || token.isEmpty) return;
       prefSetString(prefDeviceToken, token);
       logd(tag, "Token : $token");
-      try {
-        await Intercom.instance.sendTokenToIntercom(token);
-      } catch (e) {
-        // Intercom identity verification is often unset in local/dev builds.
-        logd(tag, "Intercom sendTokenToIntercom skipped: $e");
-      }
     });
 
     // Cold-start flow: Splash → Login (landing) → Vilkår → Konto / provider

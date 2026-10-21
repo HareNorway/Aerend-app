@@ -45,6 +45,8 @@ class PushNotificationService {
   Future initialise() async {
     try {
       await FirebaseMessaging.instance.subscribeToTopic(firebaseTopicName);
+      // A test install from before Ærend had its own app id may still hold Reen Dugnad's topic.
+      await FirebaseMessaging.instance.unsubscribeFromTopic(legacyFirebaseTopicName);
     } catch (e) {
       debugPrint("FCM subscribeToTopic failed (likely iOS Simulator): $e");
     }

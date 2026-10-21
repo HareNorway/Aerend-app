@@ -13,6 +13,7 @@ import '../kit/bergen_kit.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'butikk_copy.dart';
 import '../kit/bergen_perf.dart';
+import '../../../constant/constant.dart' show appUrlScheme;
 
 /// The store's Info sheet (`sheetInfo`, L8584): the shared teal sheet with
 /// the store's name, the sliding Allergener / Åpningstider / Mer switch, and
@@ -479,7 +480,7 @@ class _InfoSheetState extends State<InfoSheet> {
         OnbPressable(
           pressDy: 2.5,
           onTap: () async {
-            await Clipboard.setData(ClipboardData(text: 'aerend://bergen/butikk/${store.id}'));
+            await Clipboard.setData(ClipboardData(text: '$appUrlScheme://bergen/butikk/${store.id}'));
             if (context.mounted) showBergenToast(context, ButikkCopy.a1_butikk_info_kopiert);
           },
           child: BergenCssShadow(

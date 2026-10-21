@@ -12,7 +12,18 @@ export 'dimensions.dart';
 const stripePublishableKey =
     "pk_test_51OuAwNRtRZ7Sf1Zqmbk7Mk06ucjWs3mHkemPKETlFEj3EpUzkCPIk03A6XpuuuscghAzL0y4etcoXuhvRLmRpbPF00Erk10Stm";
     // "pk_live_51OuAwNRtRZ7Sf1ZqAc9zzKogVcHgR1yw2fug6ulaFq7Atw47Ea3eZkAQ4W549R8ZgIcnPqStnIhhZcbDGT59e3po00pJ8dR0sg";
-const firebaseTopicName = "HareCustomer";
+// The Firebase project is shared with Reen Dugnad (hare-89094), so Ærend's broadcasts go to its
+// own topic. It must equal the backend's general_settings.fcm_user_topic_name (set to
+// AerendCustomer by the first-run migrate, docs/four-plans/deployment). Reen Dugnad keeps
+// HareCustomer.
+const firebaseTopicName = "AerendCustomer";
+const legacyFirebaseTopicName = "HareCustomer";
+
+/// The URL scheme registered with the OS (Info.plist, AndroidManifest.xml) for links that reopen
+/// the app from outside: the Stripe redirect, the Vipps payment return, the Vipps Login callback.
+/// Not `aerend`: Reen Dugnad registers that one, and two apps with one scheme open each other.
+/// Push payloads keep their internal `aerend://` links (PushDeepLink); the app parses those itself.
+const appUrlScheme = "aerendapp";
 const appleId = "6478966156";
 
 final CountryCode defaultCountryCode = CountryCode(

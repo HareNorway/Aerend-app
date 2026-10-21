@@ -11,7 +11,7 @@ import '../homeMainV1/home_main_v1.dart';
 import '../login/login_dl.dart';
 import '../login/vipps_login_helper.dart';
 
-/// The Vipps return (`aerend://payment/vipps?orderId=N`).
+/// The Vipps return (`aerendapp://payment/vipps?orderId=N`).
 ///
 /// It only asks the backend to confirm the payment and then hands over to the
 /// Bergen screens — no result page of its own (the old lavender «Vipps-retur»

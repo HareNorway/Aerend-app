@@ -18,7 +18,6 @@ import 'package:redux/redux.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:translator/translator.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:intercom_flutter/intercom_flutter.dart';
 
 import 'firebase_options.dart';
 import 'redux/store.dart';
@@ -60,13 +59,6 @@ Future<void> firebaseMessagingBackgroundHandler(
   } catch (_) {}
   Map<String, dynamic> notificationData = notification.data;
   debugPrint("handleBackNotification message==> $notificationData");
-  Map<String, String> stringNotificationData = notificationData.map(
-    (key, value) => MapEntry(key, value.toString()),
-  );
-  if (await Intercom.instance.isIntercomPush(stringNotificationData)) {
-    await Intercom.instance.handlePush(stringNotificationData);
-    return;
-  }
 }
 
 Future<void> main() async {
@@ -79,13 +71,6 @@ Future<void> main() async {
   Stripe.merchantIdentifier = 'merchant.com.reen.customer';
   Stripe.urlScheme = 'flutterstripe';
   await Stripe.instance.applySettings();
-
-  // Initialize Intercom
-  await Intercom.instance.initialize(
-    'rom4281p',
-    androidApiKey: 'android_sdk-b83eca055509ac844d38323af68c6912dfc06fb4',
-    iosApiKey: 'ios_sdk-80a6ca15c52d94177c6d439d43be89bb414d550b',
-  );
 
   // Initialize timezone
   try {
@@ -314,7 +299,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               name.contains('://') ? name : 'aerend://local$name',
             );
 
-            // `aerend://payment/vipps?orderId=N`: the full link on a cold
+            // `aerendapp://payment/vipps?orderId=N`: the full link on a cold
             // start, or `/vipps?orderId=N` when the running app receives it
             // (Flutter keeps only path + query of a pushed deep link).
             final isVippsPayment =
@@ -344,7 +329,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 isVippsLoginHttpsCallback ||
                 name.contains('vipps-login') ||
                 uri?.host == 'vipps-login' ||
-                (uri?.scheme == 'aerend' &&
+                ((uri?.scheme == appUrlScheme || uri?.scheme == 'aerend') &&
                     (uri?.host == 'vipps-login' ||
                         uri?.path.contains('vipps-login') == true));
             if (isVippsLogin) {

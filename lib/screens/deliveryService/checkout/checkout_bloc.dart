@@ -30,6 +30,8 @@ import 'checkout.dart';
 import 'checkout_dl.dart';
 import 'checkout_preview_utils.dart';
 import 'checkout_repo.dart';
+import '../../../constant/constant.dart' show appUrlScheme;
+import '../../../utils/stripe_server_key.dart';
 
 bool _vippsInitiateApiOk(dynamic status) {
   if (status == null) return false;
@@ -596,13 +598,14 @@ class CheckOutBloc extends Bloc {
 
   Future _stripePaymentProcess(dynamic paymentIntent, int paymentType,
       PlaceOrderPojo paymentDetail) async {
+    await useServerStripeKey(paymentIntent);
     if (paymentType == 1) {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           // Using default flow: presentPaymentSheet handles confirmation itself.
           customFlow: false,
           allowsDelayedPaymentMethods: true,
-          returnURL: 'aerend://stripe-redirect',
+          returnURL: '$appUrlScheme://stripe-redirect',
           merchantDisplayName: 'Ærend',
           paymentIntentClientSecret: paymentIntent['paymentIntent'],
           customerEphemeralKeySecret: paymentIntent['ephemeralKey'],
@@ -613,8 +616,8 @@ class CheckOutBloc extends Bloc {
                 amount: '${paymentDetail.totalPay}',
                 isPending: false)
           ]),
-          googlePay: const PaymentSheetGooglePay(
-              merchantCountryCode: 'NO', testEnv: true),
+          googlePay: PaymentSheetGooglePay(
+              merchantCountryCode: 'NO', testEnv: stripeTestMode),
           style: ThemeMode.light,
         ),
       );
@@ -624,12 +627,12 @@ class CheckOutBloc extends Bloc {
       if (Platform.isAndroid) {
         await Stripe.instance.confirmPlatformPayPaymentIntent(
           clientSecret: paymentIntent['paymentIntent'],
-          confirmParams: const PlatformPayConfirmParams.googlePay(
+          confirmParams: PlatformPayConfirmParams.googlePay(
             googlePay: GooglePayParams(
               merchantName: 'Ærend',
               allowCreditCards: true,
               isEmailRequired: false,
-              testEnv: true,
+              testEnv: stripeTestMode,
               currencyCode: 'nok',
               merchantCountryCode: 'no',
             ),

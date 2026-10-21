@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:aerend_customer/screens/dev/dev_env_screen.dart';
 import 'package:aerend_customer/screens/common/account/account_detail.dart';
 import 'package:aerend_customer/screens/common/account/redeem_code.dart';
-import 'package:intercom_flutter/intercom_flutter.dart';
 
 import '../../../commonView/guest_empty_state.dart';
 import '../../../commonView/surface_decorations.dart';
@@ -28,9 +27,6 @@ class AccountState extends State<Account> {
   void initState() {
     super.initState();
     bloc = AccountBloc(context, this);
-    if (prefGetString(prefAccessToken) != '') {
-      Intercom.instance.loginIdentifiedUser(email: prefGetString(prefEmail));
-    }
   }
 
   @override

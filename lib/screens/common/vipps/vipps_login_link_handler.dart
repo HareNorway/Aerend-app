@@ -6,6 +6,7 @@ import '../../../main.dart';
 import '../../../utils/utils.dart';
 import '../login/login_dl.dart';
 import '../login/vipps_login_helper.dart';
+import '../../../constant/constant.dart' show appUrlScheme;
 
 /// Supplements Flutter's built-in deep linking for Vipps Login (esp. iOS UL).
 /// Does not replace `onGenerateRoute` — shared guards prevent double-complete.
@@ -48,7 +49,7 @@ class VippsLoginLinkHandler {
     final host = uri.host;
     if (path.contains('/vipps/login/callback')) return true;
     if (host == 'vipps-login') return true;
-    if (uri.scheme == 'aerend' &&
+    if ((uri.scheme == appUrlScheme || uri.scheme == 'aerend') &&
         (host == 'vipps-login' || path.contains('vipps-login'))) {
       return true;
     }
