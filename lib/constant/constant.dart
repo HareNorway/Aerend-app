@@ -24,7 +24,8 @@ const legacyFirebaseTopicName = "HareCustomer";
 /// Not `aerend`: Reen Dugnad registers that one, and two apps with one scheme open each other.
 /// Push payloads keep their internal `aerend://` links (PushDeepLink); the app parses those itself.
 const appUrlScheme = "aerendapp";
-const appleId = "6478966156";
+/// Ærend's App Store id (App Store Connect → the app → Apple ID); the forced-update dialog links to it.
+const appleId = "6825240770";
 
 final CountryCode defaultCountryCode = CountryCode(
   name: "Norge",
