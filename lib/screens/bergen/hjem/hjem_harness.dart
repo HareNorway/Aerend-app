@@ -8,9 +8,13 @@ import 'package:path_provider/path_provider.dart';
 import '../kit/bergen_perf.dart';
 import 'hjem_hero.dart';
 
-/// Debug builds only: `Documents/hjem_state.json` pins Hjem's weather, uses
-/// the prototype's sample floats and sets the unread count, so the screen
-/// can be compared with the prototype's default state. Ignored in release.
+/// Debug builds only: `Documents/kunde_state.json` (Customer plan Step 0;
+/// `hjem_state.json` when it is absent) pins Hjem's weather, uses the
+/// prototype's sample floats, opens screens and sheets, so each state can be
+/// compared with the prototype. Ignored in release. `kunde_state.json` also
+/// takes neutral names: `route` / `routeArg` / `tab` for `rute` / `ruteArg` /
+/// `fane`, and `sheet` for the open screen's sheet key (`sporingArk` with
+/// `sporing`, else `megArk` on the Meg tab). Keys: `ui-tools/kunde_states.md`.
 abstract final class HjemHarness {
   /// Pin the motion tier (`"full"`, `"lite"`, `"still"`; parity plan §3.1).
   static String? perf;
@@ -258,6 +262,9 @@ abstract final class HjemHarness {
   static int ohNoeGaltSteg = 1;
   static List<String>? aegSi;
   static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
+
+  /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
+  static bool brett = false;
   static double? aegScroll;
   static int? guideIdx;
 
@@ -265,7 +272,8 @@ abstract final class HjemHarness {
     if (!kDebugMode) return;
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final f = File('${dir.path}/hjem_state.json');
+      final kunde = File('${dir.path}/kunde_state.json');
+      final f = await kunde.exists() ? kunde : File('${dir.path}/hjem_state.json');
       if (!await f.exists()) {
         if (perf != null) BergenPerf.force(null);
         perf = null;
@@ -344,13 +352,22 @@ abstract final class HjemHarness {
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegScroll = null;
         guideIdx = null;
+        brett = false;
         utfScroll = null;
         feedDrift = automat = false;
         autoValg = null;
         autoHentet = null;
         return;
       }
-      final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+      final m = {...jsonDecode(await f.readAsString()) as Map<String, dynamic>};
+      void alias(String navn, String nokkel) {
+        if (m.containsKey(navn) && !m.containsKey(nokkel)) m[nokkel] = m[navn];
+      }
+
+      alias('route', 'rute');
+      alias('routeArg', 'ruteArg');
+      alias('tab', 'fane');
+      alias('sheet', m['sporing'] != null ? 'sporingArk' : 'megArk');
       perf = m['perf'] as String?;
       nyButikk = m['nyButikk'] == true;
       betaltKurv = (m['betaltKurv'] as num?)?.toInt();
@@ -463,6 +480,7 @@ abstract final class HjemHarness {
       aegScroll = (m['aegScroll'] as num?)?.toDouble();
       guide = m['guide'] as String?;
       guideIdx = m['guideIdx'] as int?;
+      brett = m['brett'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

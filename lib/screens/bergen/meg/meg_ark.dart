@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart' show AeIkon;
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../kit/bergen_kit.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
@@ -90,8 +90,7 @@ Future<T?> showMegArk<T>(
 }) {
   return showModalBottomSheet<T>(
     context: context,
-    // Like every Bergen sheet: no floating Ægil launcher over the Ark.
-    routeSettings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}ark'),
+    routeSettings: const RouteSettings(name: '${appRoutePrefix}ark'),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
@@ -146,7 +145,7 @@ Future<T?> showMegArkGlid<T>(
 }
 
 class _GlidRute<T> extends PopupRoute<T> {
-  _GlidRute({required this.builder, required this.still}) : super(settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}ark'));
+  _GlidRute({required this.builder, required this.still}) : super(settings: const RouteSettings(name: '${appRoutePrefix}ark'));
 
   final WidgetBuilder builder;
   final bool still;

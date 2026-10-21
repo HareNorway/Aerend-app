@@ -54,7 +54,7 @@ final _reglerPaa = PointsRules.fromJson({
 
 class _FeilApi extends FakeAegilApi {
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId}) async => throw Exception('offline');
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient}) async => throw Exception('offline');
 }
 
 const _kurvTurn = AegilTurn(

@@ -12,7 +12,7 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../hjelp/support.dart';
 import '../hjem/hjem_harness.dart';
 import '../aegil/aegil_bits.dart' show AeIkon;
@@ -59,7 +59,7 @@ class HjelpScreen extends StatefulWidget {
     return Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
-        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}bergen/kundeservice'),
+        settings: const RouteSettings(name: '${appRoutePrefix}bergen/kundeservice'),
         transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
         reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
         pageBuilder: (_, __, ___) => HjelpScreen(orderId: orderId, initial: initial),

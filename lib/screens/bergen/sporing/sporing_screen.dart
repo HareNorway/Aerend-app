@@ -15,7 +15,7 @@ import '../../../data/points/points_rules.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../hjelp/demo_panel.dart';
@@ -240,7 +240,7 @@ class _SporingScreenState extends State<SporingScreen> {
     Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
-        settings: RouteSettings(name: '$snurreLauncherHiddenRoutePrefix/bergen/sporing/$_id/hjelp'),
+        settings: RouteSettings(name: '$appRoutePrefix/bergen/sporing/$_id/hjelp'),
         transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
         reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
         pageBuilder: (_, __, ___) => HjelpScreen(orderId: _id, tracking: t, api: _api, initial: initial, items: _ordre?.linjer.map((l) => l.navn).toList() ?? const [], adresse: _ordre?.adresse),

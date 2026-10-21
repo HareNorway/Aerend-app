@@ -22,8 +22,8 @@ class KurvLine {
   final String? imageUrl;
   final String? description;
 
-  /// A line Ægil put in the basket (the cart row carries a Snurre
-  /// conversation) — rendered as "Lagt i kurven av Ægil … · Angre".
+  /// A line Ægil put in the basket (the cart row's `snurre_conversation_id`
+  /// or `added_by: aegil`) — rendered as "Lagt i kurven av Ægil … · Angre".
   final bool addedByAegil;
 
   double get sum => unitPrice * quantity;

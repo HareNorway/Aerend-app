@@ -16,7 +16,7 @@ import '../kit/bergen_routes.dart';
 import '../kit/live_aerend.dart';
 import '../meg/a3_services.dart';
 import '../../common/notifications/notifications_repo.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 
 // ── Varsler panel (Gap Step 1) ──────────────────────────────────────────────
 // New Bergen `vsAapent` (L8524–8627, logic `apneVarsler` / `varslerVals`
@@ -194,7 +194,7 @@ abstract final class HjemVarsler {
       PageRouteBuilder<void>(
         opaque: false,
         barrierDismissible: false,
-        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}bergen/varsler'),
+        settings: const RouteSettings(name: '${appRoutePrefix}bergen/varsler'),
         transitionDuration: Duration(milliseconds: rolig ? 0 : 440),
         reverseTransitionDuration: Duration(milliseconds: rolig ? 0 : 220),
         pageBuilder: (_, a, __) => VarslerPanel(filter: filter, inn: a),

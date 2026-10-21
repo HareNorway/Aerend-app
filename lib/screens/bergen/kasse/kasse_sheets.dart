@@ -10,7 +10,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/auth/launch/lf_css.dart' show LfFrame;
 import '../../common/auth/onboarding_kit.dart' show OnbPressable, onbBlur;
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
@@ -92,7 +92,7 @@ Future<T?> visKasseArk<T>(
   final reduce = MediaQuery.disableAnimationsOf(context);
   return Navigator.of(context, rootNavigator: true).push<T>(
     PageRouteBuilder<T>(
-      settings: RouteSettings(name: '$snurreLauncherHiddenRoutePrefix$navn'),
+      settings: RouteSettings(name: '$appRoutePrefix$navn'),
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,

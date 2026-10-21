@@ -6,7 +6,6 @@ import '../../../services/push_deep_link.dart';
 import '../../../services/push_notification_service.dart';
 import '../../../utils/utils.dart';
 import '../../bergen/utforsk/utforsk_screen.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../../bergen/meg/meg_host.dart';
 import '../../bergen/sok/sok_screen.dart';
 import '../home/bergen/bergen_home.dart';
@@ -147,12 +146,7 @@ class HomeMainV1State extends State<HomeMainV1> {
   /// the search draft as the first line when there is one.
   void _openAegil(String draft) {
     final q = draft.trim();
-    BergenRoutes.pushOr(
-      context,
-      kAegilRoute,
-      arguments: {if (q.isNotEmpty) 'q': q},
-      orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: q)),
-    );
+    BergenRoutes.push<void>(context, kAegilRoute, arguments: {if (q.isNotEmpty) 'q': q});
   }
 
   @override

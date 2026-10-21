@@ -23,6 +23,7 @@ import '../kit/bergen_perf.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import 'utforsk_copy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 
 /// Butikkprofil (new Bergen L10189–10290, `bpVals` L16721): the store's
 /// page in Ærend Feed — the header (back, name, the «bergensk» dot), the
@@ -138,7 +139,7 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
     final liste = _liste;
     await Navigator.of(context).push<void>(
       PageRouteBuilder<void>(
-        settings: const RouteSettings(name: 'snurre-hide/bergen/butikkprofil/innlegg'),
+        settings: const RouteSettings(name: '${appRoutePrefix}bergen/butikkprofil/innlegg'),
         transitionDuration: BergenPerf.oneShot(context, 280),
         reverseTransitionDuration: BergenPerf.oneShot(context, 220),
         pageBuilder: (_, _, _) => _PostViser(

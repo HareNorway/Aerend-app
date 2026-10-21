@@ -5,6 +5,7 @@ import '../../../data/aegil/suggestion_models.dart';
 import '../../aegil/widgets/suggestion_tray.dart';
 import '../meg/a3_services.dart';
 import '../kit/bergen_kit.dart';
+import '../meg/meg_ark.dart';
 import 'aegil_copy.dart';
 
 /// The last count the Brett learned (kept so the Hjem card can render
@@ -30,15 +31,17 @@ Future<int> refreshAegilFindCount({AegilAppApi? api}) async {
 @visibleForTesting
 void setAegilFindCountForTest(int n) => _findCount = n;
 
-/// Ægil-relevanskort tap → the Brett sheet (design `brett` ≈L2205): the
-/// suggestion drawer with agil-2's [SuggestionTray] — Legg til / Ikke for meg
-/// through `agent/me/suggestions/{id}/add|dismiss|never`.
+/// The Brett (D-K20): all of Ægil's finds, from Under kaien's line on Hjem
+/// (the floats show two). agil-2's [SuggestionTray] — Legg til / Ikke nå /
+/// Ikke for meg through `agent/me/suggestions/{id}/add|dismiss|never` — in
+/// the full-width Meg Ark (the narrow Launch-era sheet is gone).
 Future<void> showAegilBrett(BuildContext context, {AegilAppApi? api}) async {
   final a = api ?? A3Services.aegil();
-  await showBergenSheet<void>(
+  await showMegArk<void>(
     context,
-    onDark: false,
-    builder: (ctx) => _Brett(api: a),
+    key: const Key('aegil-brett-ark'),
+    title: A3AegilCopy.a3_aegil_brett_title,
+    body: (ctx, _) => _Brett(api: a),
   );
 }
 
@@ -81,9 +84,6 @@ class _BrettState extends State<_Brett> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 6),
-        Text(A3AegilCopy.a3_aegil_brett_title, style: BergenTokens.display(BergenTokens.textTitle, color: BergenTokens.ink)),
-        const SizedBox(height: 10),
         if (_loading)
           const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator(color: BergenTokens.teal)))
         else

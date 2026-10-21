@@ -38,6 +38,7 @@ import '../meg/a3_services.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 import 'aegil_innst.dart';
+import 'aegil_kontekst.dart';
 import 'aegil_laer.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_scene.dart';
@@ -76,8 +77,16 @@ class AegilScreen extends StatefulWidget {
   /// Pref: the first-time disclosure has been seen.
   static const String prefTillatelse = 'a1_aegil_tillatelse';
 
-  /// Pref: «Ikke nå» on the memory offer.
+  /// Pref (until Customer Step 0): «Ikke nå» on the memory offer, for good.
   static const String prefAvslaatt = 'a1_aegil_minne_avslaatt';
+
+  /// Pref: when «Ikke nå» was pressed (ISO date); the offer comes back after
+  /// the settings' `reinvite_days` (`cus.aegil.reinvite_days`, D-K20).
+  static const String prefAvslaattDato = 'cus_aegil_minne_avslaatt_dato';
+
+  /// Whether «Ikke nå» from [avslaatt] still holds at [naa].
+  static bool avslaattGjelder(DateTime? avslaatt, int dager, DateTime naa) =>
+      avslaatt != null && naa.isBefore(avslaatt.add(Duration(days: dager)));
 
   @override
   State<AegilScreen> createState() => _AegilScreenState();
@@ -96,6 +105,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   String _steg = 'start';
   int _tikk = 0;
+
+  // What Ægil was opened about (D-K20), and the route's intent, which goes
+  // with the first line only.
+  AeKontekst? _ktx;
+  String? _ventIntent;
 
   // The chat (`vc`).
   final List<AeMelding> _vc = [];
@@ -118,7 +132,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   /// `points/rules`, for the onboarding's «+N Ægil-poeng» (backend plan Step 7).
   PointsRules? _regler;
   int get _perSvar => (_regler?.aegilAnswerEnabled ?? false) ? _regler!.aegilPerAnswer : 0;
-  bool _avslaatt = false;
+  DateTime? _avslaattDato;
+  bool get _avslaatt => AegilScreen.avslaattGjelder(_avslaattDato, _settings?.reinviteDays ?? 7, DateTime.now());
 
   final Set<int> _lagt = {};
   final Set<String> _alleLagt = {};
@@ -135,7 +150,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   void initState() {
     super.initState();
     _steg = widget.steg ?? (prefGetBool(AegilScreen.prefTillatelse) ? 'start' : 'tillatelse');
-    _avslaatt = prefGetBool(AegilScreen.prefAvslaatt);
+    _avslaattDato = DateTime.tryParse(prefGetString(AegilScreen.prefAvslaattDato));
+    if (_avslaattDato == null && prefGetBool(AegilScreen.prefAvslaatt)) {
+      // A «for good» from before: the wait starts now.
+      _avslaattDato = DateTime.now();
+      prefSetString(AegilScreen.prefAvslaattDato, _avslaattDato!.toIso8601String());
+      prefRemove(AegilScreen.prefAvslaatt);
+    }
     _fokus.addListener(() => setState(() {}));
     _tekst.addListener(() => setState(() {}));
     _last();
@@ -202,14 +223,23 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     });
   }
 
-  /// The route's `q` / `intent` (Søk's «Spør Ægil», the basket's door note).
+  /// The route's context (D-K20): `q` (Søk's «Spør Ægil», the basket's door
+  /// note) is sent at once; `intent`, `store_id` / `store`, `category` and
+  /// `for` become the context chip and go with the chat. Without a `q` Ægil
+  /// opens and waits — no stand-in question.
   void _fraRute() {
     final a = BergenRoutes.argsOf(context);
     final q = (a['q'] ?? '').trim();
-    final intent = a['intent'];
-    if (q.isNotEmpty || (intent != null && intent.isNotEmpty)) {
+    final ktx = AeKontekst.fra(a);
+    if (ktx != null) {
+      setState(() {
+        _ktx = ktx;
+        _ventIntent = ktx.intent;
+      });
+    }
+    if (q.isNotEmpty) {
       if (_steg == 'tillatelse') _steg = 'start';
-      _si(q.isEmpty ? AeCopy.tacoSi : q, intent: intent);
+      _si(q);
     }
   }
 
@@ -236,7 +266,10 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     final t0 = DateTime.now();
     AegilTurn? turn;
     try {
-      turn = await _api.chat(text: tx, intent: intent).timeout(const Duration(seconds: 20));
+      final k = _ktx;
+      final i = intent ?? _ventIntent;
+      _ventIntent = null;
+      turn = await _api.chat(text: tx, intent: i, storeId: k?.storeId, category: k?.category, recipient: k?.recipient).timeout(const Duration(seconds: 20));
     } catch (_) {
       turn = null;
     }
@@ -584,6 +617,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       if (toast != null) LfToast.show(context, toast);
     } else if (r?.error == 'LEVEL_REQUIRES_RECURRING') {
       LfToast.show(context, AeCopy.fastUkeshandel);
+    } else if (r?.error == 'LEVEL_ABOVE_MAX') {
+      // The cap moved since the list was drawn: say so and redraw with it.
+      LfToast.show(context, AeInnstCopy.cus_aegil_nivaa_over_grense);
+      final f = await a3Try(_repo.fetchSettings);
+      if (mounted && f?.settings != null) setState(() => _settings = f!.settings);
     } else {
       LfToast.show(context, BergenRoutes.ikkeLagret);
     }
@@ -594,6 +632,10 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   void _byttNivaa() {
     HapticFeedback.selectionClick();
     final level = _settings?.level ?? 2;
+    if (level < 3 && !(_settings?.tillatt(3) ?? true)) {
+      LfToast.show(context, AeInnstCopy.cus_aegil_nivaa_over_grense);
+      return;
+    }
     if (level >= 3) {
       _endre({'level': math.min(_forrigeNivaa ?? 2, 2)}, toast: AeCopy.toastForeslaa);
     } else {
@@ -988,9 +1030,24 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
               key: const Key('a1_aegil_rull'),
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: KeyedSubtree(key: ValueKey(_vcAktiv ? 'vc' : _steg), child: _innhold()),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_ktx?.etikett case final e? when _steg == 'start' || _vcAktiv) ...[
+                    AeKontekstChip(
+                      etikett: e,
+                      onFjern: () => setState(() {
+                        _ktx = null;
+                        _ventIntent = null;
+                      }),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: KeyedSubtree(key: ValueKey(_vcAktiv ? 'vc' : _steg), child: _innhold()),
+                  ),
+                ],
               ),
             ),
           ),
@@ -1134,8 +1191,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       onMinne: () => _gaa('minne'),
       onObStart: _obStart,
       onIkkeNaa: () {
-        prefSetBool(AegilScreen.prefAvslaatt, true);
-        setState(() => _avslaatt = true);
+        final naa = DateTime.now();
+        prefSetString(AegilScreen.prefAvslaattDato, naa.toIso8601String());
+        setState(() => _avslaattDato = naa);
       },
       onBestill: _bestillIgjen,
       onEndre: () => _si(AeCopy.endreSist(tips?.butikk ?? '')),
@@ -1440,11 +1498,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     ];
   }
 
-  /// The orange key: Ægil (`agAvOp`) and the mic (`agMikX`) when empty, the
-  /// arrow (`agPil*`) with text; 92 → 46 wide in use.
+  /// The orange key: Ægil (`agAvOp`) when empty, the arrow (`agPil*`) with
+  /// text (dimmed while the field is focused and empty); 92 → 46 wide in use.
+  /// The design's mic (`agMikX`) is not drawn: voice is the keyboard's
+  /// dictation key (D-K2), so an empty key focuses the field.
   Widget _knapp(bool fok, bool har) => AePress(
     key: const Key('a1_aegil_send'),
-    onTap: har ? () => _si(_tekst.text) : () => LfToast.show(context, AeCopy.stemme),
+    onTap: har ? () => _si(_tekst.text) : _fokus.requestFocus,
     dy: 0,
     scale: .92,
     child: AnimatedContainer(
@@ -1486,30 +1546,6 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                 ),
               ),
             ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: const Cubic(.3, 1.25, .4, 1),
-              left: fok ? 16 : 61,
-              top: 16,
-              width: 14,
-              height: 14,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 220),
-                opacity: har ? 0 : 1,
-                child: AeTw(
-                  v: har ? 1 : 0,
-                  ms: 400,
-                  curve: const Cubic(.3, 1.4, .5, 1),
-                  builder: (t) => Transform.scale(
-                    scale: 1 - .7 * t,
-                    child: Transform.rotate(
-                      angle: rad(-30 * t),
-                      child: const AeIkon('M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21', size: 14, stroke: 2.2),
-                    ),
-                  ),
-                ),
-              ),
-            ),
             Positioned(
               left: 14,
               top: 14,
@@ -1517,9 +1553,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
               height: 18,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 220),
-                opacity: har ? 1 : 0,
+                opacity: har ? 1 : fok ? .45 : 0,
                 child: AeTw(
-                  v: har ? 0 : 1,
+                  v: har || fok ? 0 : 1,
                   ms: 450,
                   curve: const Cubic(.3, 1.5, .5, 1),
                   builder: (t) => Transform.translate(

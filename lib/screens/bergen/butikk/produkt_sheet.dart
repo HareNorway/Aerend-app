@@ -13,7 +13,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_vann.dart';
 import 'butikk_copy.dart';
@@ -45,8 +45,7 @@ Future<void> showProduktSheet(
 }) {
   return Navigator.of(context).push<void>(
     PageRouteBuilder<void>(
-      // The Snurre launcher stays off over the sheet.
-      settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}produkt'),
+      settings: const RouteSettings(name: '${appRoutePrefix}produkt'),
       opaque: false,
       barrierDismissible: true,
       barrierLabel: ButikkCopy.a1_butikk_prod_lukk,

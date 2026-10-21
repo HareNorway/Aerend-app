@@ -12,7 +12,9 @@ import 'suggestion_models.dart';
 /// Screens take an [AegilAppApi] so tests can inject a fake; this class is
 /// the network implementation.
 abstract class AegilAppApi {
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId});
+  /// One chat turn. [storeId], [category] and [recipient] (sent as `for`)
+  /// are the context Ægil was opened with (D-K20).
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient});
   Future<List<Suggestion>> suggestions({String? context});
   Future<bool> add(int suggestionId);
   Future<bool> dismiss(int suggestionId);
@@ -52,13 +54,15 @@ class AegilAppRepo implements AegilAppApi {
   }
 
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient}) async {
     try {
       final json = _ok(await _api.post('chat', body: {
         ..._auth(),
         if (text != null) 'text': text,
         if (intent != null) 'intent': intent,
         if (storeId != null) 'store_id': storeId,
+        if (category != null) 'category': category,
+        if (recipient != null) 'for': recipient,
       }));
       return json == null ? null : AegilTurn.fromJson(json);
     } catch (_) {

@@ -7,7 +7,7 @@ import '../../common/auth/launch/lf_css.dart' show LfFrame;
 import '../../common/auth/onboarding_kit.dart' show OnbPressable, onbBlur;
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../deliveryService/home/ds_home_store_list_pojo.dart';
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
@@ -30,7 +30,7 @@ Future<void> showInfoSheet(
   final reduce = MediaQuery.disableAnimationsOf(context);
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
-      settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}info'),
+      settings: const RouteSettings(name: '${appRoutePrefix}info'),
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,

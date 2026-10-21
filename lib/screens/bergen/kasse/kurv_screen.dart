@@ -21,7 +21,6 @@ import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../deliveryService/checkout/checkout_dl.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_css.dart';
@@ -41,7 +40,7 @@ import 'kurv_betal.dart';
 import 'kurv_kvittering.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -274,7 +273,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         if (!mounted) return;
         Navigator.of(context).push(
           PageRouteBuilder<void>(
-            settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+            settings: const RouteSettings(name: '${appRoutePrefix}betalt'),
             opaque: false,
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
@@ -526,12 +525,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _tilButikk();
   }
 
-  void _tolk() => BergenRoutes.pushOr(
-    context,
-    kAegilRoute,
-    arguments: {'intent': 'door', 'q': _door.text.trim()},
-    orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: _door.text.trim())),
-  );
+  void _tolk() => BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': 'door', 'q': _door.text.trim()});
 
   String get _fullNote {
     final parts = <String>[
@@ -697,7 +691,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final fra = _betalRect;
     Navigator.of(context).push(
       PageRouteBuilder<void>(
-        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+        settings: const RouteSettings(name: '${appRoutePrefix}betalt'),
         opaque: false,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,

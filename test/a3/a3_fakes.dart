@@ -314,9 +314,13 @@ class FakeAegilApi implements AegilAppApi {
   List<Suggestion> suggestionValue;
   final List<String> calls = [];
 
+  /// The context each chat turn carried (D-K20).
+  final List<Map<String, Object?>> chats = [];
+
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient}) async {
     calls.add('chat:${text ?? intent}');
+    chats.add({'text': text, 'intent': intent, 'store_id': storeId, 'category': category, 'for': recipient});
     return turn ??
         const AegilTurn(
           state: 'agForslag',

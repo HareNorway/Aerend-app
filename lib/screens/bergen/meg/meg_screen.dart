@@ -54,6 +54,7 @@ import 'min_bio_ark.dart';
 import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
 import '../hjem/hjem_varsler.dart' show varslerLoader;
+import 'meg_paaminnelser.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -291,6 +292,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'varsler': _varsler();
         case 'anledninger': _anledninger();
         case 'ukeshandel': _ukeshandel();
+        case 'paaminnelser': visPaaminnelser(context, repo: _aegilRepo);
         case 'bio': _openBio();
         case 'aegilInnst': _aegilInnstillinger();
         case 'gbDelt': _feirDelt();
@@ -540,6 +542,14 @@ class _MegScreenBodyState extends State<MegScreenBody> {
             setArk(() {});
             setState(() => _settings = naa);
             if (toast != null) showBergenToast(context, toast);
+          } else if (r?.error == 'LEVEL_ABOVE_MAX') {
+            // The cap moved since the list was drawn: say so and redraw with it.
+            showBergenToast(context, AeInnstCopy.cus_aegil_nivaa_over_grense, icon: Icons.error_outline_rounded);
+            final f = await a3Try(_aegilRepo.fetchSettings);
+            if (!mounted || f?.settings == null) return;
+            naa = f!.settings!;
+            setArk(() {});
+            setState(() => _settings = naa);
           } else {
             showBergenToast(context, r?.error == 'LEVEL_REQUIRES_RECURRING' ? AeInnstCopy.snartToast : A4MegCopy.a4_meg_lagret_feil, icon: Icons.error_outline_rounded);
           }
@@ -841,6 +851,14 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     navn: A4MegCopy.a4_meg_anledninger,
                                     under: _occasions.isEmpty ? A4MegCopy.a4_meg_anledninger_tom : '${_occasions.map((o) => '${o.person} · ${MegSheets.pretty(o.next ?? o.date)}').join(' · ')} · ${A4MegCopy.a4_meg_anledninger_paaminnelse}',
                                     onTap: _anledninger,
+                                  ),
+                                  // Customer Step 0 (D-K20): the reminders Ægil keeps.
+                                  _Rad(
+                                    key: const Key('cus-meg-rad-paaminnelser'),
+                                    tile: const _GlassTile(rot: -2, d: 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0'),
+                                    navn: CusPaaminnelserCopy.cus_meg_paaminnelser,
+                                    under: CusPaaminnelserCopy.cus_meg_paaminnelser_sub,
+                                    onTap: () => visPaaminnelser(context, repo: _aegilRepo),
                                   ),
                                   _Rad(
                                     key: const Key('meg-rad-ukeshandel'),

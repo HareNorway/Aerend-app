@@ -52,6 +52,9 @@ class AegilSettings {
     this.capPerWeekOre,
     this.bioText,
     this.noAllergies = false,
+    this.levelCap,
+    this.effectiveLevel,
+    this.reinviteDays = 7,
   });
 
   final int level;
@@ -85,6 +88,18 @@ class AegilSettings {
   final String? bioText;
   final bool noAllergies;
 
+  /// The rollout cap (`aegil_level_max`; null: none) and the level Ægil acts
+  /// at under it (null: [level]). A level above the cap is refused with
+  /// `LEVEL_ABOVE_MAX` (D-K20).
+  final int? levelCap;
+  final int? effectiveLevel;
+
+  /// Days before «Ikke nå» on the memory offer expires (`cus.aegil.reinvite_days`).
+  final int reinviteDays;
+
+  /// Whether the rollout lets the customer choose backend [level] now.
+  bool tillatt(int level) => levelCap == null || level <= levelCap!;
+
   bool get hasQuietHours => quietHoursFrom != null && quietHoursTo != null;
 
   factory AegilSettings.fromJson(Map<String, dynamic> json) {
@@ -112,6 +127,9 @@ class AegilSettings {
       capPerWeekOre: (json['cap_per_week'] as num?)?.toInt(),
       bioText: json['bio_text'] as String?,
       noAllergies: json['no_allergies'] as bool? ?? false,
+      levelCap: (json['level_cap'] as num?)?.toInt(),
+      effectiveLevel: (json['effective_level'] as num?)?.toInt(),
+      reinviteDays: (json['reinvite_days'] as num?)?.toInt() ?? 7,
     );
   }
 }

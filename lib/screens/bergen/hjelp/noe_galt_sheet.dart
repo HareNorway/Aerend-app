@@ -7,7 +7,7 @@ import '../aegil/aegil_bits.dart';
 import '../kit/bergen_kit.dart';
 import '../hjem/hjem_harness.dart';
 import '../meg/meg_ark.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import 'support.dart';
 
 /// «Sak på ordren» (Launch L9237, `sakVals`): the case filed on this order —
@@ -174,7 +174,7 @@ Future<void> visNoeGalt(BuildContext context, {required SupportOrdre ordre, requ
   }
   return showModalBottomSheet<void>(
     context: context,
-    routeSettings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}noe-galt'),
+    routeSettings: const RouteSettings(name: '${appRoutePrefix}noe-galt'),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,

@@ -9,7 +9,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../../common/manageAddress/manage_address_dl.dart';
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
 import 'adr_scene.dart';
 import 'adr_tegning.dart';
 import '../kit/bergen_perf.dart';
@@ -176,7 +176,6 @@ const _kSoppel =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFAD8F" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><path d="M6.5 7l.9 11.6A1.6 1.6 0 0 0 9 20h6a1.6 1.6 0 0 0 1.6-1.4L17.5 7"/><path d="M10.2 11v5M13.8 11v5"/></svg>';
 const _kHake = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1F8A66" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 const _kPil = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5l6.5 6.5-6.5 6.5"/></svg>';
-const _kMik = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5CE0B8" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>';
 const _kNaal = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#7FF0CB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
 
 Color _husFarge(String merke) => merke == 'Annet' ? const Color(0xFFC98F3E) : const Color(0xFF3E8FA3);
@@ -195,7 +194,7 @@ Future<void> visAdresseArk(BuildContext context, AdrKilde kilde, {bool ny = fals
   final reduce = MediaQuery.disableAnimationsOf(context);
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
-      settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}adresse'),
+      settings: const RouteSettings(name: '${appRoutePrefix}adresse'),
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
@@ -746,22 +745,25 @@ class _AdrArkState extends State<_AdrArk> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => har ? _dor.clear() : k.toast('Kommer snart'),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, har ? .1 : .12)),
-                    alignment: Alignment.center,
-                    child: har
-                        ? SvgPicture.string(
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-                            width: 10,
-                            height: 10,
-                          )
-                        : SvgPicture.string(_kMik, width: 13, height: 13),
+                // No mic: voice is the keyboard's dictation key (D-K2); the
+                // slot keeps its width so the hint wraps as in the design.
+                if (!har)
+                  const SizedBox(width: 32, height: 32)
+                else
+                  GestureDetector(
+                    onTap: _dor.clear,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                      alignment: Alignment.center,
+                      child: SvgPicture.string(
+                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+                        width: 10,
+                        height: 10,
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -1744,17 +1746,6 @@ class _NyAdresseState extends State<_NyAdresse> {
                     hintText: 'Etasje, ring på, inngang, kode …',
                     hintStyle: jakarta(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .45)),
                   ),
-                ),
-              ),
-              const SizedBox(width: 9),
-              GestureDetector(
-                onTap: () => widget.kilde.toast('Kommer snart'),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)),
-                  alignment: Alignment.center,
-                  child: SvgPicture.string(_kMik, width: 13, height: 13),
                 ),
               ),
             ],

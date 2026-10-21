@@ -14,7 +14,6 @@ import '../../../networking/ops/ops_kasse_api.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart';
@@ -282,12 +281,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
     });
   }
 
-  void _askAegil() => BergenRoutes.pushOr(
-    context,
-    kAegilRoute,
-    arguments: {'intent': 'store', 'store_id': '${store.id}', 'store': store.name},
-    orElse: () => openScreen(context, const SnurreChatScreen()),
-  );
+  void _askAegil() => BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': 'store', 'store_id': '${store.id}', 'store': store.name});
 
   Future<void> _share() async {
     await Clipboard.setData(ClipboardData(text: '$appUrlScheme://bergen/butikk/${store.id}'));

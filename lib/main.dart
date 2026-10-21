@@ -9,8 +9,7 @@ import 'l10n/app_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
-import 'package:aerend_customer/screens/snurre/snurre_chat_screen.dart';
-import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:aerend_customer/blocs/bloc.dart';
 import 'package:aerend_customer/screens/common/account/redeem_code.dart';
@@ -277,22 +276,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: BergenPerfScope(child: appChild),
             );
 
-            // The floating Snurre chat chip is removed (no global AI chat entry).
             return calmChild;
           },
           debugShowCheckedModeBanner: false,
           locale: selectedLocale,
-          initialRoute: snurreLauncherRouteNameFor(const Splash()),
+          initialRoute: routeNameFor(const Splash()),
           routes: {
-            snurreLauncherRouteNameFor(const Splash()): (_) => const Splash(),
+            routeNameFor(const Splash()): (_) => const Splash(),
             // Sync C (AGIL-CONTRACT §2.2): each branch owns one route map.
             ...bergenRoutesAgil1(),
             ...bergenRoutesAgil3(),
           },
-          navigatorObservers: [
-            snurreRouteObserver,
-            snurreLauncherNavigatorObserver,
-          ],
           onGenerateRoute: (settings) {
             final name = settings.name ?? '';
             final uri = Uri.tryParse(
@@ -313,9 +307,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   prefGetInt('vipps_pending_order_id');
               if (orderId > 0) {
                 return MaterialPageRoute(
-                  // A hidden route: no chat button over the payment handover.
                   settings: const RouteSettings(
-                    name: '${snurreLauncherHiddenRoutePrefix}vipps-retur',
+                    name: '${appRoutePrefix}vipps-retur',
                   ),
                   builder: (context) =>
                       VippsPaymentReturnScreen(orderId: orderId),

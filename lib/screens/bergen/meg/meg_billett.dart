@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
 import '../kit/bergen_perf.dart';
 import 'meg_bergen.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 
 // ── Gullbilletten (Bergen Step 8, new Bergen L9844–9859, L9963–10017) ──────
 
@@ -375,7 +376,7 @@ Future<void> visGullbillettDelt(BuildContext context, {required String kode, req
       opaque: false,
       transitionDuration: Duration.zero,
       reverseTransitionDuration: const Duration(milliseconds: 220),
-      settings: const RouteSettings(name: 'snurre-hide/gb-delt'),
+      settings: const RouteSettings(name: '${appRoutePrefix}gb-delt'),
       pageBuilder: (ctx, a, _) => FadeTransition(
         opacity: ReverseAnimation(ReverseAnimation(a)),
         child: GbDelt(

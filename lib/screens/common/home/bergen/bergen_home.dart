@@ -44,7 +44,6 @@ import '../../../bergen/meg/borte_entry.dart';
 import '../../../../data/aegil/aegil_app_models.dart' show AwayItem;
 import '../../../bergen/meg/konto_screen.dart' show kPrefA3Rolig;
 import '../../../bergen/poeng/napp_entry.dart';
-import '../../../snurre/snurre_chat_screen.dart';
 import '../../auth/onboarding_kit.dart';
 import '../../homeMainV1/home_main_v1.dart';
 import '../../manageAddress/manage_address_dl.dart';
@@ -360,6 +359,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (HjemHarness.aegil != null) {
             BergenRoutes.push<dynamic>(context, kAegilRoute);
           }
+          if (HjemHarness.brett) {
+            unawaited(refreshAegilFindCount().then((_) {
+              if (mounted) _openBrett();
+            }));
+          }
           if (HjemHarness.rute case final r?) {
             final arg = HjemHarness.ruteArg;
             if (r == '/bergen/kundeservice' && arg is Map && arg['vis'] != null) {
@@ -519,13 +523,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   void _openAegil() {
     HapticFeedback.mediumImpact();
-    // AGIL-CONTRACT §2.2: the greeting pushes `kAegilRoute`; the legacy chat
-    // until agil-3's screen is on this tree.
-    BergenRoutes.pushOr(
-      context,
-      kAegilRoute,
-      orElse: () => openScreen(context, const SnurreChatScreen()),
-    );
+    // AGIL-CONTRACT §2.2: the greeting pushes `kAegilRoute`.
+    BergenRoutes.push<void>(context, kAegilRoute);
   }
 
   /// Tonight's bags (`GET /api/ops/products?kind=pose`) for the
@@ -612,6 +611,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   }
 
   void _openFjordfiske() => BergenRoutes.push(context, '/bergen/fjordfiske');
+
+  /// Under kaien's line → all of Ægil's finds (the Brett, D-K20).
+  Future<void> _openBrett() async {
+    HapticFeedback.selectionClick();
+    await showAegilBrett(context);
+    if (mounted) setState(() {});
+  }
 
   void _onUnderKaienOffer() {
     final o = _underKaien;
@@ -1608,6 +1614,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                       ),
                                 pose: _kaienPose(),
                                 frakt: _kaienFrakt(),
+                                onLinje: aegilFindCount() > 0 ? _openBrett : null,
                               ),
                             ),
                             ),
