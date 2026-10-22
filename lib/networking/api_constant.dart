@@ -8,7 +8,10 @@ class BaseUrl {
 
   // static const String prodDomain = 'https://api.ailogistics.no/';
   // static const String prodDomain = 'http://10.224.247.180:8000/';
-  static const String prodDomain = 'http://127.0.0.1:8000/';
+  /// The API the app talks to. Release builds name it at build time
+  /// (`--dart-define=API_BASE_URL=https://commercial.ailogistics.no/`), so
+  /// this file needs no edit for a build; without it, the local backend.
+  static const String prodDomain = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://127.0.0.1:8000/');
   /// Dev tunnel for Vipps webhooks; use Dev Env screen or --dart-define for app testing.
   static const String devTunnelDomain =
       'https://1gl51l6h-8000.inc1.devtunnels.ms/';
