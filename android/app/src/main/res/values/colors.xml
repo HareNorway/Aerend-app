@@ -5,4 +5,5 @@
     <!-- Reen splash navy — matches Flutter splash panel so cold start does not
          flash the old Ærend lavender / purple mark. -->
     <color name="launch_background">#14273F</color>
+	<color name="ic_launcher_background">#173E48</color>
 </resources>

@@ -7,8 +7,10 @@ class FeedBaseUrl {
 
   // static const String prodDomain =
   //     'https://aerend-feed-88chd.ondigitalocean.app/';
-  static const String prodDomain =
-      'http://127.0.0.1:3000/';
+  /// The feed service. Release builds name it at build time
+  /// (`--dart-define=FEED_BASE_URL=https://aerend-feed-88chd.ondigitalocean.app/`);
+  /// without it, the local feed.
+  static const String prodDomain = String.fromEnvironment('FEED_BASE_URL', defaultValue: 'http://127.0.0.1:3000/');
   // static const String prodDomain =
       // 'http://172.16.37.180:3000/';
   static const String localIOS = 'http://localhost:3000/';

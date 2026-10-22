@@ -3,7 +3,7 @@ description: A new Flutter application.
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 1.0.0+2
 # Used flutter version: 3.35.6
 environment:
   sdk: ^3.8.0
@@ -155,6 +155,6 @@ flutter_launcher_icons:
   ios: true
   image_path: icon/aerend_app_icon.png
   remove_alpha_ios: true
-  android_adaptive_icon_background: "#173E48"
-  android_adaptive_icon_foreground: "icon/aerend_app_icon_fg.png"
+  adaptive_icon_background: "#173E48"
+  adaptive_icon_foreground: "icon/aerend_app_icon_fg.png"
   min_sdk_android: 21
