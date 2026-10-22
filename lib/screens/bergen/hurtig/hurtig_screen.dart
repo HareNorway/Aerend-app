@@ -1383,9 +1383,11 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                 ),
               ),
             ),
-            Padding(
+            Positioned.fill(
+              child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // `hbLynSk` / `hbLynRot` (.4s spring) and `hbLynC` (.3s ease).
                   TweenAnimationBuilder<double>(
@@ -1444,6 +1446,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                 ],
               ),
             ),
+            ),
           ],
         ),
       ),
@@ -1469,23 +1472,18 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       return HbPress(
         dy: 2,
         onTap: () => AiArk.flyt(context, 'velg', fraHurtig: true),
-        child: Container(
+        child: CssBox(
           key: const Key('cus-ai-hurtig-rad'),
           height: 50,
+          radius: BorderRadius.circular(16),
           padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
-            boxShadow: const [
-              BoxShadow(color: Color.fromRGBO(255, 255, 255, .12), spreadRadius: 1),
-              BoxShadow(color: Color.fromRGBO(6, 22, 30, .6), offset: Offset(0, 3)),
-              BoxShadow(color: Color.fromRGBO(2, 12, 18, .9), offset: Offset(0, 12), blurRadius: 18 / 2 / .57735, spreadRadius: -12),
-            ],
-          ),
-          foregroundDecoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .28), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .04]),
-          ),
+          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])],
+          shadows: const [
+            CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
+            CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
+            CssShadow(0, 3, 0, 0, Color.fromRGBO(6, 22, 30, .6)),
+            CssShadow(0, 12, 18, -12, Color.fromRGBO(2, 12, 18, .9)),
+          ],
           child: Row(
             children: [
               SizedBox(width: 68, height: 28, child: Stack(clipBehavior: Clip.none, children: [merke('Gemini', 40), merke('ChatGPT', 20), merke('Claude', 0)])),
@@ -1524,28 +1522,24 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     return HbPress(
       dy: 2,
       onTap: () => _send(_modTekst(k), modul: k),
-      child: AnimatedContainer(
+      // CssBox, not a Container: a box-shadow never shows through its own
+      // translucent glass (the dark drop made the chips look black).
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: a ? 1 : 0),
         duration: const Duration(milliseconds: 200),
         curve: cssEase,
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
-          boxShadow: [
-            BoxShadow(color: a ? const Color.fromRGBO(127, 240, 203, .9) : const Color.fromRGBO(255, 255, 255, .16), spreadRadius: a ? 1.5 : 1),
-            const BoxShadow(color: Color.fromRGBO(6, 22, 30, .6), offset: Offset(0, 3)),
-            const BoxShadow(color: Color.fromRGBO(2, 12, 18, .9), offset: Offset(0, 12), blurRadius: 18 / 2 / .57735, spreadRadius: -12),
+        builder: (context, r, child) => CssBox(
+          height: 50,
+          radius: BorderRadius.circular(16),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])],
+          shadows: [
+            const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
+            CssShadow(0, 0, 0, 1 + .5 * r, Color.lerp(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(127, 240, 203, .9), r)!),
+            const CssShadow(0, 3, 0, 0, Color.fromRGBO(6, 22, 30, .6)),
+            const CssShadow(0, 12, 18, -12, Color.fromRGBO(2, 12, 18, .9)),
           ],
-        ),
-        foregroundDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromRGBO(255, 255, 255, .28), Color.fromRGBO(255, 255, 255, 0)],
-            stops: [0, .04],
-          ),
+          child: child,
         ),
         child: Row(
           children: [
