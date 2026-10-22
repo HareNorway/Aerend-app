@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../../../ui/kit/ae_haptic.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Ærend-tilbud (prototype L3011–3100, `tbVals`) ──────────────────────────
@@ -160,7 +161,6 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   int _i = 0;
   double _dx = 0;
   bool _hold = false, _drar = false;
-  double _x0 = 0;
   bool _myst = false;
   DateTime _sist = DateTime.now();
   Timer? _rot, _snapT;
@@ -203,13 +203,20 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     super.dispose();
   }
 
-  double get _pos => _fra + (_til - _fra) * _ease.transform(_glid.value);
+  /// The auto-turn glides 1.2s ease-in-out; a released swipe settles faster
+  /// with an ease-out, continuing the finger's motion.
+  Curve _kurve = _ease;
+  static const Duration _auto = Duration(milliseconds: 1200), _swipe = Duration(milliseconds: 420);
+
+  double get _pos => _fra + (_til - _fra) * _kurve.transform(_glid.value);
 
   void _gaaTil(int i, {bool snap = false}) {
     final from = _pos;
     setState(() => _i = i);
     _fra = snap ? i.toDouble() : from;
     _til = i.toDouble();
+    _kurve = _ease;
+    _glid.duration = _auto;
     if (snap || MediaQuery.disableAnimationsOf(context)) {
       _glid.value = 1;
     } else {
@@ -235,42 +242,60 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     }
   }
 
-  void _ned(PointerDownEvent e) {
-    _x0 = e.position.dx;
-    _drar = false;
+  /// The finger takes the row: whatever glide was running stops where it is,
+  /// and the loop copy of the first coupon becomes the first coupon itself
+  /// (they look the same), so the drag never starts from a slide that is
+  /// about to jump.
+  void _ned(DragStartDetails _) {
+    final n = _n;
+    if (n <= 1) return;
+    _snapT?.cancel();
+    var p = _pos;
+    if (p >= n - .5) p -= n;
+    _glid.stop();
+    _fra = _til = p;
+    _glid.value = 1;
+    setState(() => _i = p.round().clamp(0, n - 1));
+    _dx = 0;
+    _drar = true;
     _hold = true;
     _prikk.stop();
   }
 
-  void _flytt(PointerMoveEvent e) {
+  void _flytt(DragUpdateDetails d) {
     if (!_hold) return;
-    final d = (e.position.dx - _x0) / (MediaQuery.sizeOf(context).width / 390);
-    if (d.abs() > 6) _drar = true;
-    if (_drar) setState(() => _dx = d);
+    setState(() => _dx += d.delta.dx / (MediaQuery.sizeOf(context).width / 390));
   }
 
-  void _slipp() {
+  void _slipp(DragEndDetails d) {
     if (!_hold) return;
     _hold = false;
-    _snapT?.cancel();
-    final n = _n, ia = _i % n;
-    final ny = _dx.abs() > 44 ? ia + (_dx < 0 ? 1 : -1) : ia;
+    final n = _n, ia = _i;
+    final v = d.primaryVelocity ?? 0;
+    // Past 44px, or a flick, turns one coupon. Left from the last one goes on
+    // to the loop copy and lands on the first, like the auto-turn.
+    var ny = ia;
+    if (_dx < -44 || v < -350) ny = ia + 1;
+    if (_dx > 44 || v > 350) ny = ia - 1;
+    final m = ny.clamp(0, n);
     _sist = DateTime.now();
     // The row continues from where the finger let go.
     final from = _pos - _dx / (_w + _gap);
-    setState(() => _dx = 0);
-    final m = ny.clamp(0, n - 1);
-    if (m != _i) {
+    setState(() {
+      _dx = 0;
       _i = m;
-      _fra = from;
-      _til = m.toDouble();
-      _glid.forward(from: 0);
-      _prikk.forward(from: 0);
-    } else {
-      _fra = from;
-      _til = m.toDouble();
-      _glid.forward(from: 0);
-      _prikk.forward();
+    });
+    if (m != ia) aeTick();
+    _fra = from;
+    _til = m.toDouble();
+    _kurve = Curves.easeOutCubic;
+    _glid.duration = _swipe;
+    _glid.forward(from: 0);
+    m != ia ? _prikk.forward(from: 0) : _prikk.forward();
+    if (m == n) {
+      _snapT = Timer(_swipe + const Duration(milliseconds: 30), () {
+        if (mounted && !_hold) _gaaTil(0, snap: true);
+      });
     }
     Future.delayed(const Duration(milliseconds: 60), () => _drar = false);
   }
@@ -302,11 +327,14 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
           ),
         ),
         const SizedBox(height: 10),
-        Listener(
-          onPointerDown: _ned,
-          onPointerMove: _flytt,
-          onPointerUp: (_) => _slipp(),
-          onPointerCancel: (_) => _slipp(),
+        // A horizontal drag in the gesture arena, so a vertical page scroll
+        // and a coupon swipe never both move.
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragStart: _n > 1 ? _ned : null,
+          onHorizontalDragUpdate: _n > 1 ? _flytt : null,
+          onHorizontalDragEnd: _n > 1 ? _slipp : null,
+          onHorizontalDragCancel: _n > 1 ? () => _slipp(DragEndDetails()) : null,
           child: SizedBox(
             height: 168,
             child: ClipRect(
@@ -314,7 +342,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
                 animation: _glid,
                 builder: (context, _) {
                   var dx = _dx;
-                  if ((_i == 0 && dx > 0) || (_i >= n - 1 && dx < 0)) dx *= .35;
+                  if (_i == 0 && dx > 0) dx *= .35; // left from the last coupon runs on to the loop copy
                   final pos = _pos;
                   return Stack(
                     clipBehavior: Clip.none,
