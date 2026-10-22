@@ -22,7 +22,7 @@ class HjemKaienFunn {
 }
 
 class HjemUnderKaien extends StatelessWidget {
-  const HjemUnderKaien({super.key, required this.vist, this.reker, this.pose, this.frakt});
+  const HjemUnderKaien({super.key, required this.vist, this.reker, this.pose, this.frakt, this.onLinje});
 
   /// `kaien`: the sheet is at its end (the finds rise to full opacity).
   final bool vist;
@@ -31,6 +31,10 @@ class HjemUnderKaien extends StatelessWidget {
   /// tray, tonight's Forundringspose, and the nearest free-delivery store. A
   /// missing one is left out rather than filled with the design's sample.
   final HjemKaienFunn? reker, pose, frakt;
+
+  /// Ægil's line opens all his finds (the Brett) when he has any (D-K20);
+  /// null leaves the line as text.
+  final VoidCallback? onLinje;
 
   int get _antall => [reker, pose, frakt].where((f) => f != null).length;
 
@@ -256,41 +260,46 @@ class HjemUnderKaien extends StatelessWidget {
                 top: 46,
                 child: _Opp(
                   delayMs: 60,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 36,
-                        height: 36,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(center: Alignment(0, -.4), colors: [Color(0xFF2A6272), Color(0xFF173E48)], stops: [0, .8]),
-                          boxShadow: [
-                            BoxShadow(color: Color.fromRGBO(190, 232, 244, .5), spreadRadius: 1.5),
-                            BoxShadow(color: Color.fromRGBO(0, 0, 0, .8), offset: Offset(0, 6), blurRadius: 6, spreadRadius: -6),
-                          ],
+                  child: GestureDetector(
+                    key: const Key('cus_kaien_brett'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onLinje,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          clipBehavior: Clip.antiAlias,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: RadialGradient(center: Alignment(0, -.4), colors: [Color(0xFF2A6272), Color(0xFF173E48)], stops: [0, .8]),
+                            boxShadow: [
+                              BoxShadow(color: Color.fromRGBO(190, 232, 244, .5), spreadRadius: 1.5),
+                              BoxShadow(color: Color.fromRGBO(0, 0, 0, .8), offset: Offset(0, 6), blurRadius: 6, spreadRadius: -6),
+                            ],
+                          ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [Positioned(left: 0, right: 0, bottom: -3, child: Image.asset('assets/images/dashboard/front.png', width: 36))],
+                          ),
                         ),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [Positioned(left: 0, right: 0, bottom: -3, child: Image.asset('assets/images/dashboard/front.png', width: 36))],
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('UNDER KAIEN', style: inter(9, weight: FontWeight.w800, em: .08, color: const Color(0xFF9FD3DE))),
+                              Text(
+                                _linje,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: jakarta(13, em: -.015, height: 1.2, color: const Color(0xFFF5F3EF), shadows: const [Shadow(color: Color.fromRGBO(0, 0, 0, .5), offset: Offset(0, 1), blurRadius: 3)]),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('UNDER KAIEN', style: inter(9, weight: FontWeight.w800, em: .08, color: const Color(0xFF9FD3DE))),
-                            Text(
-                              _linje,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: jakarta(13, em: -.015, height: 1.2, color: const Color(0xFFF5F3EF), shadows: const [Shadow(color: Color.fromRGBO(0, 0, 0, .5), offset: Offset(0, 1), blurRadius: 3)]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

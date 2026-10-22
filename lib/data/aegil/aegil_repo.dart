@@ -2,6 +2,7 @@ import '../../networking/api_base_helper.dart';
 import '../../utils/shared_pref_utill.dart';
 import '../../utils/utils.dart';
 import 'aegil_models.dart';
+import 'against_interest_models.dart';
 
 /// Networking for the customer's own Ægil (`/api/agent/me/*`).
 ///
@@ -36,18 +37,21 @@ class AegilRepo {
   }
 
   /// Returns the updated settings, or the backend's error code —
-  /// LEVEL_REQUIRES_RECURRING when level 4 is asked for without a Vipps agreement.
+  /// LEVEL_REQUIRES_RECURRING when level 4 is asked for without a Vipps
+  /// agreement, LEVEL_ABOVE_MAX above the rollout cap (both are 422s, read
+  /// from the body).
   Future<({AegilSettings? settings, String? error})> updateSettings(
     Map<String, dynamic> changes,
   ) async {
     try {
-      final response = await _api.post('me/settings', body: {
+      final result = await _api.postAllowClientError('me/settings', body: {
         ..._auth(),
         ...changes,
         // The route is a PATCH; the rest of this app posts, so the method is overridden
         // rather than introducing a second transport style.
         '_method': 'PATCH',
       });
+      final response = result.data;
 
       final json = _ok(response);
       if (json == null) return (settings: null, error: _message(response));
@@ -117,6 +121,38 @@ class AegilRepo {
       );
     } catch (e) {
       return (stored: 0, earned: 0, error: e.toString());
+    }
+  }
+
+  /// What Ægil is waiting to tell the customer (`GET me/reminders`, D-K20):
+  /// price reminders and «back in stock» subscriptions (kind
+  /// `availability`, named by their `query`), newest first. Null when the
+  /// call failed.
+  Future<List<AgentReminderItem>?> reminders() async {
+    try {
+      final json = _ok(await _api.get('me/reminders?${_query(_auth())}'));
+      if (json == null) return null;
+      List<Map<String, dynamic>> rader(String k) => ((json[k] as List?) ?? const []).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+      return [
+        for (final r in rader('reminders')) AgentReminderItem.fromJson(r),
+        for (final s in rader('subscriptions')) AgentReminderItem.fromJson({...s, 'kind': kAvailabilityKind, 'product_name': s['query']}),
+      ];
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The kind [reminders] gives a «back in stock» subscription.
+  static const String kAvailabilityKind = 'availability';
+
+  /// Cancels one item from [reminders] (`DELETE me/reminders/{id}` or
+  /// `me/availability_subscriptions/{id}`).
+  Future<bool> cancelReminder(AgentReminderItem r) async {
+    final path = r.kind == kAvailabilityKind ? 'me/availability_subscriptions' : 'me/reminders';
+    try {
+      return _ok(await _api.delete('$path/${r.id}?${_query(_auth())}')) != null;
+    } catch (_) {
+      return false;
     }
   }
 

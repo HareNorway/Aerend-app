@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
 import '../../common/auth/launch/lf_css.dart';
@@ -14,6 +15,8 @@ import '../hurtig/hurtig_glass.dart' show HbFlisInn;
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/butikk_bilder.dart';
+import '../ai/ai_bits.dart';
+import '../ai/ai_copy.dart';
 import 'bestill_igjen.dart';
 import 'meg_ark.dart';
 import 'meg_nav.dart';
@@ -28,10 +31,11 @@ import 'meg_nav.dart';
 /// status and timeline, the three numbers, the receipt, the case and «Noe
 /// galt». «Bestill igjen» only fills the basket; paying stays in Kurv.
 class BestillingerScreen extends StatefulWidget {
-  const BestillingerScreen({super.key, this.api, this.kasse});
+  const BestillingerScreen({super.key, this.api, this.kasse, this.cus});
 
   final OpsCustomerApi? api;
   final OpsKasseApi? kasse;
+  final CusApi? cus;
 
   @override
   State<BestillingerScreen> createState() => _BestillingerScreenState();
@@ -89,6 +93,10 @@ const String _ikIgjen = 'M20 11a8 8 0 1 0-2.3 5.7 M20 4v7h-7';
 class _BestillingerScreenState extends State<BestillingerScreen> {
   late final OpsCustomerApi _api = widget.api ?? OpsCustomerApi();
   late final OpsKasseApi _kasse = widget.kasse ?? OpsKasseApi();
+  late final CusApi _cus = widget.cus ?? CusApi();
+
+  /// Customer Step 10: the issue window per order, read when its sheet opens.
+  final Map<int, CusIssueStatus?> _sakStatus = {};
   List<_Ordre> _ordrer = const [];
   final Map<int, int> _kroner = {};
   final Map<int, ButikkBilder> _bilder = {};
@@ -102,8 +110,12 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     SupportStore.instance.oppdater();
   }
 
+  /// Customer Step 14: order id → the assistant whose request became the order («Via {AI}»).
+  Map<int, CusAiVia> _via = const {};
+
   Future<void> _load() async {
     final rows = await _api.orders(limit: 50);
+    _cus.aiOrdersVia().then((v) { if (mounted && v.isNotEmpty) setState(() => _via = v); });
     final ledger = await _api.pointsLedger();
     if (!mounted) return;
     final kr = <int, int>{};
@@ -125,7 +137,9 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
       HjemHarness.ohOrdre = null;
       HjemHarness.ohNoeGalt = false;
       final o = _ordrer.where((x) => x.id == id).firstOrNull;
-      if (o != null) WidgetsBinding.instance.addPostFrameCallback((_) => noeGalt ? _noeGalt(o) : _apne(o));
+      final sak = HjemHarness.ohSak;
+      HjemHarness.ohSak = false;
+      if (o != null) WidgetsBinding.instance.addPostFrameCallback((_) => noeGalt ? _noeGalt(o) : (sak ? _noeGalt(o) : _apne(o)));
     }
     // The logos and banners (the store page), a dozen stores at most.
     final ids = <int>[];
@@ -136,14 +150,28 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     if (mounted) setState(() => _bilder.addAll(b));
   }
 
-  /// «Noe galt med bestillingen?» on [o].
-  void _noeGalt(_Ordre o) => visNoeGalt(
-    context,
-    ordre: SupportOrdre.fraRad(o.raw),
-    linjer: [
-      for (final l in o.linjer) (((l['quantity'] ?? l['qty'] ?? 1) as num).toInt(), '${l['name'] ?? ''}', (((l['unit_price'] as num?) ?? 0) * ((l['quantity'] ?? 1) as num)).round()),
-    ],
-  );
+  /// «Noe galt med bestillingen?» on [o] — the C2 sheet when the surface is
+  /// on (Customer Step 10), else the plain three-step sheet.
+  Future<void> _noeGalt(_Ordre o, {CusIssueStatus? status}) async {
+    final issue = await noeGaltFlyt(
+      context,
+      ordre: SupportOrdre.fraRad(o.raw),
+      api: _cus,
+      status: status,
+      linjer: [
+        for (final l in o.linjer) (((l['quantity'] ?? l['qty'] ?? 1) as num).toInt(), '${l['name'] ?? ''}', (((l['unit_price'] as num?) ?? 0) * ((l['quantity'] ?? 1) as num)).round()),
+      ],
+    );
+    if (issue != null && mounted) SupportStore.instance.settSak(issue);
+  }
+
+  /// «Ikke løst»: the case goes back to a person.
+  Future<void> _ikkeLost(CusIssue i) async {
+    final r = await _cus.issueReopen(i.id);
+    if (!mounted) return;
+    if (r != null) SupportStore.instance.settSak(r);
+    showBergenToast(context, r == null ? BergenRoutes.provIgjen : CusIssueCopy.cus_sak_gjenaapnet);
+  }
 
   /// «Bestill igjen»: the order's lines into the basket, then the basket
   /// (shared with Hjem's Vindu, `bestill_igjen.dart`).
@@ -154,6 +182,15 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     if (o.aktiv) {
       BergenRoutes.push(context, '/bergen/sporing/${o.id}');
       return;
+    }
+    // Customer Step 10: the issue window and the case on this order (null → the surface is off).
+    if (o.levert && !_sakStatus.containsKey(o.id)) {
+      _cus.issueStatus(o.id).then((st) {
+        if (!mounted) return;
+        setState(() => _sakStatus[o.id] = st);
+        if (st?.issue != null) SupportStore.instance.settSak(st!.issue!);
+        SupportStore.instance.endret.value++;
+      });
     }
     final kr = _kroner[o.id];
     final steg = o.avbestilt ? 1 : o.ferdigeSteg;
@@ -167,6 +204,11 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Customer Step 14: «Bestilt via {AI} · {dato}» (design Kvittering 10054).
+          if (_via[o.id] case final via?) ...[
+            Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, OhCopy.dag(o.naar)), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
+            const SizedBox(height: 10),
+          ],
           _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt),
           const SizedBox(height: 10),
           _Tall(
@@ -178,21 +220,27 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
           ),
           const SizedBox(height: 10),
           _Kvittering(o: o),
-          // Sak på ordren (L9883) and «Noe galt med bestillingen?».
+          // Sak på ordren (L9883) and «Noe galt med bestillingen?» — with the C2
+          // issue (Customer Step 10) when one exists; the entry row inside the window.
           ValueListenableBuilder<int>(
             valueListenable: SupportStore.instance.endret,
             builder: (context, _, _) {
-              final sak = SupportStore.instance.sakFor(o.id);
+              final issue = SupportStore.instance.issueFor(o.id);
+              final sak = issue == null ? SupportStore.instance.sakFor(o.id) : null;
+              final st = _sakStatus[o.id];
+              final kanMelde = st == null ? !o.avbestilt : st.canReport;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (issue != null) ...[const SizedBox(height: 10), IssueSakRad(issue: issue, onIkkeLost: () => _ikkeLost(issue))],
                   if (sak != null) ...[const SizedBox(height: 10), SakPaaOrdren(sak: sak)],
-                  if (!o.avbestilt) ...[
+                  if (kanMelde && (issue == null || issue.open)) ...[
                     const SizedBox(height: 10),
                     NoeGaltRad(
+                      under: st == null ? null : CusIssueCopy.cus_sak_rad_under(st.slaMinutes),
                       onTap: () {
                         Navigator.of(context).pop();
-                        _noeGalt(o);
+                        _noeGalt(o, status: st);
                       },
                     ),
                   ],
@@ -368,7 +416,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                     ),
                                     for (final (i, o) in g.value.indexed) ...[
                                       if (i > 0) const SizedBox(height: 10),
-                                      _OrdreKort(o: o, kroner: _kroner[o.id], bilder: _bilder[o.storeId], status: _status(o), onApne: () => _apne(o), onIgjen: () => _igjen(o)),
+                                      _OrdreKort(o: o, kroner: _kroner[o.id], bilder: _bilder[o.storeId], status: _status(o), via: _via[o.id], onApne: () => _apne(o), onIgjen: () => _igjen(o)),
                                     ],
                                   ],
                                 ],
@@ -630,8 +678,11 @@ class _Fast extends StatelessWidget {
 
 /// An order (L8069–8086).
 class _OrdreKort extends StatelessWidget {
-  const _OrdreKort({required this.o, required this.kroner, required this.bilder, required this.status, required this.onApne, required this.onIgjen});
+  const _OrdreKort({required this.o, required this.kroner, required this.bilder, required this.status, required this.onApne, required this.onIgjen, this.via});
   final _Ordre o;
+
+  /// Customer Step 14: «Via {AI}» (design Ordrer 8233).
+  final CusAiVia? via;
   final int? kroner;
   final ButikkBilder? bilder;
   final _Status status;
@@ -684,6 +735,7 @@ class _OrdreKort extends StatelessWidget {
                             const SizedBox(width: 6),
                             Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .45))),
                             const SizedBox(width: 6),
+                            if (via != null) ...[AiViaChip(via!.name), const SizedBox(width: 6)],
                             Flexible(child: Text(OhCopy.dag(o.naar), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66)))),
                           ],
                         ),

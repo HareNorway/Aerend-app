@@ -30,17 +30,23 @@ import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../hurtig/hurtig_data.dart';
 import '../kit/bergen_cart.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../meg/min_bio.dart';
 import '../meg/min_bio_ark.dart';
+import '../sporing/hjelp_sheet.dart' show HjelpScreen;
 import 'aegil_minne.dart';
 import '../kit/bergen_routes.dart';
 import '../meg/a3_services.dart';
+import 'aegil_agenter.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 import 'aegil_innst.dart';
+import 'aegil_kontekst.dart';
 import 'aegil_laer.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_scene.dart';
+import 'aegil_verktoy.dart';
+import 'cus_level3.dart';
 
 /// Ægil (`erAgent`, L4500–5120 in `Ærend Kunde Launch.dc.html`, design px).
 ///
@@ -76,8 +82,16 @@ class AegilScreen extends StatefulWidget {
   /// Pref: the first-time disclosure has been seen.
   static const String prefTillatelse = 'a1_aegil_tillatelse';
 
-  /// Pref: «Ikke nå» on the memory offer.
+  /// Pref (until Customer Step 0): «Ikke nå» on the memory offer, for good.
   static const String prefAvslaatt = 'a1_aegil_minne_avslaatt';
+
+  /// Pref: when «Ikke nå» was pressed (ISO date); the offer comes back after
+  /// the settings' `reinvite_days` (`cus.aegil.reinvite_days`, D-K20).
+  static const String prefAvslaattDato = 'cus_aegil_minne_avslaatt_dato';
+
+  /// Whether «Ikke nå» from [avslaatt] still holds at [naa].
+  static bool avslaattGjelder(DateTime? avslaatt, int dager, DateTime naa) =>
+      avslaatt != null && naa.isBefore(avslaatt.add(Duration(days: dager)));
 
   @override
   State<AegilScreen> createState() => _AegilScreenState();
@@ -97,16 +111,31 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   String _steg = 'start';
   int _tikk = 0;
 
+  // What Ægil was opened about (D-K20), and the route's intent, which goes
+  // with the first line only.
+  AeKontekst? _ktx;
+  String? _ventIntent;
+
   // The chat (`vc`).
   final List<AeMelding> _vc = [];
   bool _tenker = false;
   List<String> _forslag = const [];
   int _sendSeq = 0;
 
+  // Customer Step 5: the conversation (`cv_…`) the chat continues and resumes
+  // after a relaunch; the tool cards as they are now (a proposal applied or
+  // undone since its reply); the proposals being sent.
+  String? _samtaleId;
+  final Map<String, AeVerktoy> _verktoyNaa = {};
+  final Set<String> _venterPaa = {};
+
   // Data.
   AegilSettings? _settings;
   List<AegilLevel> _levels = const [];
   List<MemoryEntry> _minne = const [];
+  CusBio? _cusBio;
+  // Customer Step 7: what Ægil noticed (`agent/me/patterns`).
+  List<LearnedPatternItem> _monstre = const [];
   bool _minneLastet = false;
   final Set<int> _skjult = {};
   HurtigData? _h;
@@ -118,7 +147,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   /// `points/rules`, for the onboarding's «+N Ægil-poeng» (backend plan Step 7).
   PointsRules? _regler;
   int get _perSvar => (_regler?.aegilAnswerEnabled ?? false) ? _regler!.aegilPerAnswer : 0;
-  bool _avslaatt = false;
+  DateTime? _avslaattDato;
+  bool get _avslaatt => AegilScreen.avslaattGjelder(_avslaattDato, _settings?.reinviteDays ?? 7, DateTime.now());
 
   final Set<int> _lagt = {};
   final Set<String> _alleLagt = {};
@@ -135,7 +165,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   void initState() {
     super.initState();
     _steg = widget.steg ?? (prefGetBool(AegilScreen.prefTillatelse) ? 'start' : 'tillatelse');
-    _avslaatt = prefGetBool(AegilScreen.prefAvslaatt);
+    _avslaattDato = DateTime.tryParse(prefGetString(AegilScreen.prefAvslaattDato));
+    if (_avslaattDato == null && prefGetBool(AegilScreen.prefAvslaatt)) {
+      // A «for good» from before: the wait starts now.
+      _avslaattDato = DateTime.now();
+      prefSetString(AegilScreen.prefAvslaattDato, _avslaattDato!.toIso8601String());
+      prefRemove(AegilScreen.prefAvslaatt);
+    }
     _fokus.addListener(() => setState(() {}));
     _tekst.addListener(() => setState(() {}));
     _last();
@@ -144,7 +180,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     unawaited(a3Try(_customer.rules).then((r) {
       if (mounted && r != null) setState(() => _regler = r);
     }));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fraRute());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fraRute();
+      // Customer Step 5: the last conversation, unless the route brought its own.
+      if (mounted) unawaited(_gjenoppta());
+    });
     if (kDebugMode && HjemHarness.aegil != null) _harness();
   }
 
@@ -178,11 +218,42 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     if (sist != null) _hentButikk(sist.butikkId);
   }
 
+  /// Customer Step 5: the chat picks up where it was — the customer's latest
+  /// open conversation from the last 24 hours — unless the route brought its
+  /// own question or context, or the customer has started typing.
+  Future<void> _gjenoppta() async {
+    final a = BergenRoutes.argsOf(context);
+    if ((a['q'] ?? '').trim().isNotEmpty || AeKontekst.fra(a) != null) return;
+    final samtaler = await a3Try(_api.conversations);
+    final s = samtaler?.where((c) => c.open).firstOrNull;
+    if (s == null || s.lastMessageAt == null || DateTime.now().difference(s.lastMessageAt!).inHours >= 24) return;
+    final linjer = await a3Try(() => _api.conversation(s.id));
+    if (!mounted || linjer == null || linjer.isEmpty || _vc.isNotEmpty || _sendSeq > 0) return;
+    setState(() {
+      _samtaleId = s.id;
+      if (_steg != 'start' && _steg != 'tillatelse') _steg = 'start';
+      for (final l in linjer) {
+        _vc.add(l.meg ? AeMelding.meg(l.tekst) : _svar('', l.turn));
+      }
+      _forslag = _vc.lastOrNull?.forslag ?? const [];
+      _tikk++;
+    });
+    for (final m in _vc) {
+      for (final k in m.kort) {
+        _hentButikk(k.storeId);
+      }
+    }
+    _rullNed();
+  }
+
   Future<void> _lastMinne() async {
-    final m = await a3Try(_repo.fetchMemory);
+    final r = await Future.wait<Object?>([a3Try(_repo.fetchMemory), a3Try(CusApi().bio), a3Try(_api.patterns)]);
     if (!mounted) return;
     setState(() {
-      _minne = m ?? const [];
+      _minne = (r[0] as List<MemoryEntry>?) ?? const [];
+      // Customer Step 6: the server's bio (null while `cus.bio` is off).
+      _cusBio = r[1] as CusBio?;
+      _monstre = (r[2] as List<LearnedPatternItem>?) ?? const [];
       _minneLastet = true;
     });
   }
@@ -202,15 +273,55 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     });
   }
 
-  /// The route's `q` / `intent` (Søk's «Spør Ægil», the basket's door note).
+  /// The route's context (D-K20): `q` (Søk's «Spør Ægil», the basket's door
+  /// note) is sent at once; `intent`, `store_id` / `store`, `category` and
+  /// `for` become the context chip and go with the chat. Without a `q` Ægil
+  /// opens and waits — no stand-in question.
   void _fraRute() {
     final a = BergenRoutes.argsOf(context);
     final q = (a['q'] ?? '').trim();
-    final intent = a['intent'];
-    if (q.isNotEmpty || (intent != null && intent.isNotEmpty)) {
-      if (_steg == 'tillatelse') _steg = 'start';
-      _si(q.isEmpty ? AeCopy.tacoSi : q, intent: intent);
+    final ktx = AeKontekst.fra(a);
+    if (ktx != null) {
+      setState(() {
+        _ktx = ktx;
+        _ventIntent = ktx.intent;
+      });
     }
+    if (q.isNotEmpty) {
+      if (_steg == 'tillatelse') _steg = 'start';
+      _si(q);
+    } else if (ktx?.intent == 'gift' || ktx?.intent == 'photo') {
+      // Customer Step 9: «La Ægil finne en gave» / «Bestill fra bilde» open as a card at once.
+      if (_steg == 'tillatelse') _steg = 'start';
+      _startIntent(ktx!.intent!);
+    }
+  }
+
+  /// An intent with no line: the server's entry card (`gift_brief`, `reorder_prompt`).
+  Future<void> _startIntent(String intent) async {
+    if (_tenker) return;
+    final seq = ++_sendSeq;
+    setState(() {
+      if (_steg != 'start') _steg = 'start';
+      _tenker = true;
+      _tikk++;
+    });
+    _ventIntent = null;
+    AegilTurn? turn;
+    try {
+      final k = _ktx;
+      turn = await _api.chat(intent: intent, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId).timeout(const Duration(seconds: 12));
+    } catch (_) {
+      turn = null;
+    }
+    if (!mounted || seq != _sendSeq) return;
+    if (turn?.conversationId != null) _samtaleId = turn!.conversationId;
+    setState(() {
+      _tenker = false;
+      if (turn != null) _vc.add(_svar('', turn));
+      _tikk++;
+    });
+    _rullNed();
   }
 
   // ── The chat (`vcSend`) ───────────────────────────────────────────────────
@@ -236,13 +347,17 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     final t0 = DateTime.now();
     AegilTurn? turn;
     try {
-      turn = await _api.chat(text: tx, intent: intent).timeout(const Duration(seconds: 20));
+      final k = _ktx;
+      final i = intent ?? _ventIntent;
+      _ventIntent = null;
+      turn = await _api.chat(text: tx, intent: i, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId, orderId: k?.orderId).timeout(const Duration(seconds: 20));
     } catch (_) {
       turn = null;
     }
     final vent = 850 - DateTime.now().difference(t0).inMilliseconds;
     if (vent > 0) await Future.delayed(Duration(milliseconds: vent));
     if (!mounted || seq != _sendSeq) return;
+    if (turn?.conversationId != null) _samtaleId = turn!.conversationId;
     final svar = _svar(tx, turn);
     for (final s in svar.kort) {
       _hentButikk(s.storeId);
@@ -304,7 +419,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       'agIkkeFunnet' || 'agAldersblokk' => 'lei',
       _ => 'glad',
     };
-    final forslag = tema?.$5 ??
+    // Customer Step 5: a reply with tool cards carries its own card; the
+    // app's topic card would only repeat it.
+    final medVerktoy = turn.verktoy.isNotEmpty;
+    final forslag = (turn.chips.isNotEmpty ? turn.chips : null) ??
+        tema?.$5 ??
         switch (turn.state) {
           'agForslag' => [AeCopy.chipBillig, AeCopy.chipGave, AeCopy.chipHjelp],
           'agFunn' => [AeCopy.chipTaco, AeCopy.chipBillig],
@@ -322,9 +441,10 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       sammen: turn.state == 'agSammen' ? turn.comparison : null,
       dor: turn.doorNote,
       bytt: turn.swap,
-      app: tema?.$3 ?? const [],
-      knapper: tema?.$4 ?? const [],
+      app: medVerktoy ? const [] : (tema?.$3 ?? const []),
+      knapper: medVerktoy ? const [] : (tema?.$4 ?? const []),
       forslag: forslag,
+      verktoy: turn.verktoy,
       humor: humor,
     );
   }
@@ -344,6 +464,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   void _nyPrat() {
     _sendSeq++;
+    // Customer Step 5: the chat is closed; the next line starts a new one.
+    final id = _samtaleId;
+    if (id != null) unawaited(a3Try(() => _api.closeConversation(id)));
+    _samtaleId = null;
+    _verktoyNaa.clear();
     setState(() {
       _vc.clear();
       _tenker = false;
@@ -356,6 +481,82 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   @override
   bool get handler => (_settings?.level ?? 2) >= 3;
+
+  // ── Customer Step 5: the tool cards ───────────────────────────────────────
+
+  @override
+  AeVerktoy verktoy(AeVerktoy v) => _verktoyNaa[v.id ?? ''] ?? v;
+
+  @override
+  bool venter(String id) => _venterPaa.contains(id);
+
+  /// The tap on a proposal: the commerce layer changes the basket, the card
+  /// turns into the receipt with «Angre».
+  @override
+  Future<void> brukForslag(AeVerktoy v) async {
+    final id = v.id;
+    if (id == null || _venterPaa.contains(id)) return;
+    HapticFeedback.selectionClick();
+    setState(() => _venterPaa.add(id));
+    final r = await _api.applyAction(id);
+    if (!mounted) return;
+    setState(() {
+      _venterPaa.remove(id);
+      _verktoyNaa[id] = r.kort != null ? v.med(r.kort!.data) : v.med({'status': 'failed', 'error_copy': r.feil});
+    });
+    if (r.kort != null) {
+      HapticFeedback.mediumImpact();
+      await _kurvTall();
+    }
+  }
+
+  /// The basket again, and its count in the tab bar's pill.
+  Future<void> _kurvTall() async {
+    await _lastKurv();
+    if (!mounted) return;
+    prefSetInt(prefCartCount, _kurv.lines.length);
+    BergenCart.syncBadge(context, _kurv.lines.length);
+  }
+
+  @override
+  Future<void> avslaa(AeVerktoy v) async {
+    final id = v.id;
+    if (id == null) return;
+    setState(() => _verktoyNaa[id] = v.med({'status': 'declined'}));
+  }
+
+  @override
+  Future<void> angre(AeVerktoy v) async {
+    final id = v.id;
+    if (id == null || _venterPaa.contains(id)) return;
+    HapticFeedback.selectionClick();
+    setState(() => _venterPaa.add(id));
+    final r = await _api.undoAction(id);
+    if (!mounted) return;
+    setState(() {
+      _venterPaa.remove(id);
+      if (r.kort != null) _verktoyNaa[id] = v.med(r.kort!.data);
+    });
+    if (r.kort != null) {
+      await _kurvTall();
+    } else if (mounted) {
+      LfToast.show(context, r.feil ?? AeVerktoyCopy.cus_aegil_feilet);
+    }
+  }
+
+  @override
+  void sporing(int orderId) => orderId > 0 ? BergenRoutes.push(context, '/bergen/sporing/$orderId') : _tilSporing();
+
+  /// «Snakk med et menneske»: Hjelp, about the order the chat was opened from.
+  @override
+  void menneske() => HjelpScreen.apne(context, orderId: _ktx?.orderId);
+
+  @override
+  void minBio() {
+    unawaited(visMinBio(context, repo: _repo, bio: minBioVelg(_cusBio, _minne, _settings), minne: _minne).then((n) {
+      if (n != null && mounted) unawaited(_lastMinne());
+    }));
+  }
 
   @override
   bool erLagt(int suggestionId) => _lagt.contains(suggestionId);
@@ -457,10 +658,232 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   @override
   Future<void> lagreDor(String note) async {
+    // Customer Step 9 (C4): the line is structured and written as the door profile of the
+    // first saved address; the code stays for this order only (no consent asked here).
+    final adresser = await a3Try(A3Services.addressList) ?? const [];
+    final adresseId = adresser.firstOrNull?.addressId ?? 0;
+    final p = adresseId > 0 ? await a3Try(() => _api.doorParse(adresseId, note)) : null;
+    if (p != null) {
+      final c = await a3Try(() => _api.doorConfirm(p.id, codeConsent: false));
+      if (!mounted) return;
+      if (c != null && c.saved) {
+        setState(() => _dorLagret.add(note));
+        LfToast.show(context, c.codeOnce != null ? '${AeAgentCopy.cus_dor_lagret(c.line ?? '')} · ${AeAgentCopy.cus_dor_kode_denne}' : AeAgentCopy.cus_dor_lagret(c.line ?? ''));
+        return;
+      }
+    }
     final r = await a3Try(() => _api.doorNote(note));
     if (!mounted || r == null) return;
     setState(() => _dorLagret.add(note));
     LfToast.show(context, AeCopy.lagret);
+  }
+
+  // ── Customer Step 9: the customer agents' cards ───────────────────────────
+
+  void _leggSvar(String tekst, List<AeVerktoy> kort, {String humor = 'glad', List<String> forslag = const []}) {
+    setState(() {
+      _tenker = false;
+      _vc.add(AeMelding.aeg(tekst: tekst, verktoy: kort, humor: humor, forslag: forslag));
+      _tikk++;
+    });
+    _rullNed();
+  }
+
+  void _tenk() {
+    setState(() {
+      _tenker = true;
+      _tikk++;
+    });
+    _rullNed();
+  }
+
+  void _merk(AeVerktoy v, Map<String, dynamic> nytt) {
+    final id = v.id;
+    if (id == null) return;
+    setState(() => _verktoyNaa[id] = (_verktoyNaa[id] ?? v).med(nytt));
+  }
+
+  AeVerktoy _gaveKort(String type, GiftResult g, [Map<String, dynamic> ekstra = const {}]) => AeVerktoy(type, {'id': '$type:${g.id}:${g.round}', 'gift': g.raw, ...ekstra});
+
+  @override
+  Future<void> giftBrief(Map<String, dynamic> fields, String text) async {
+    if (_tenker) return;
+    _tenk();
+    final r = await _api.giftBrief(text: text, fields: fields);
+    if (!mounted) return;
+    final g = r.gift;
+    if (g == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, r.feil ?? AeCopy.utenNett);
+      return;
+    }
+    if (g.empty) {
+      _leggSvar(g.text, [_gaveKort('gift_empty', g)], humor: 'lei');
+    } else {
+      _leggSvar(AeAgentCopy.cus_gave_riktig, [_gaveKort('gift_readback', g)], humor: 'tenker');
+    }
+  }
+
+  @override
+  Future<void> giftConfirm(GiftResult g) async {
+    final lest = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_readback' && v.map('gift')['id'] == g.id).firstOrNull;
+    if (lest != null) _merk(lest, {'svart': true});
+    _leggSvar(g.title ?? AeAgentCopy.cus_gave_finn, [_gaveKort('gift_set', g)], humor: 'spent');
+  }
+
+  @override
+  void giftEdit(GiftResult g) {
+    _leggSvar(AeAgentCopy.cus_gave_fortell, [AeVerktoy('gift_brief', {'id': 'gift_brief:${g.id}:${_tikk}', 'prefill': g.parsed, 'text': '${g.raw['brief'] ?? ''}'})], humor: 'glad');
+  }
+
+  @override
+  Future<void> giftMore(GiftResult g) async {
+    if (_tenker) return;
+    _tenk();
+    final ny = await _api.giftMore(g.id);
+    if (!mounted) return;
+    if (ny == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, AeCopy.utenNett);
+      return;
+    }
+    if (ny.exhausted) {
+      setState(() => _tenker = false);
+      LfToast.show(context, ny.message ?? AeAgentCopy.cus_gave_ingen_flere);
+      return;
+    }
+    _leggSvar(ny.title ?? AeAgentCopy.cus_gave_se_tre_til, [_gaveKort('gift_set', ny)], humor: 'spent');
+  }
+
+  @override
+  Future<void> giftChoose(GiftResult g, GiftCard c) async {
+    if (_tenker) return;
+    HapticFeedback.selectionClick();
+    _tenk();
+    var lagt = false;
+    try {
+      final r = await StoreDetailRepo().callOrderCartApi(c.storeId, c.storeProductId, 1);
+      lagt = r is Map && r['message_code'] == 1;
+      if (!lagt && r is Map && mounted) LfToast.show(context, '${r['message'] ?? ''}');
+    } catch (_) {}
+    final v = await _api.giftChoose(g.id, c.storeProductId);
+    if (!mounted) return;
+    final ny = v.gift;
+    if (ny == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, v.feil ?? AeCopy.utenNett);
+      return;
+    }
+    if (lagt) {
+      await _lastKurv();
+      if (!mounted) return;
+      prefSetInt(prefCartCount, _kurv.lines.length);
+      BergenCart.syncBadge(context, _kurv.lines.length);
+    }
+    GiftPending.current = GiftPendingInfo(requestId: ny.id, storeId: c.storeId, toLabel: ny.gift['to_label'] as String?, cardText: ny.cardText, name: c.name);
+    final sett = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_set' && v.map('gift')['id'] == g.id).firstOrNull;
+    if (sett != null) _merk(sett, {'valgt': c.storeProductId});
+    _leggSvar(AeAgentCopy.cus_gave_kortet, [_gaveKort('gift_card', ny, {'til': c.name})], humor: 'glad');
+  }
+
+  @override
+  Future<void> giftCard(GiftResult g, String action, String? text) async {
+    final kort = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_card' && v.map('gift')['id'] == g.id).firstOrNull;
+    final ny = await a3Try(() => _api.giftCard(g.id, action, text: text));
+    if (!mounted) return;
+    if (ny == null) {
+      LfToast.show(context, AeCopy.utenNett);
+      return;
+    }
+    final p = GiftPending.current;
+    if (p != null && p.requestId == g.id) {
+      GiftPending.current = GiftPendingInfo(requestId: p.requestId, storeId: p.storeId, toLabel: p.toLabel, cardText: ny.cardText, name: p.name);
+    }
+    if (kort != null) _merk(kort, {'gift': ny.raw, if (action != 'rewrite') 'brukt': true});
+    if (action != 'rewrite') {
+      LfToast.show(context, AeAgentCopy.cus_gave_i_kurven);
+      _tilFane(2);
+    }
+  }
+
+  @override
+  void giftSave(AeVerktoy v, GiftCard c) {
+    final naa = (_verktoyNaa[v.id ?? ''] ?? v).data['lagret'];
+    final liste = ((naa as List?) ?? const []).map((e) => (e as num).toInt()).toSet()..add(c.storeProductId);
+    _merk(v, {'lagret': liste.toList()});
+    LfToast.show(context, AeAgentCopy.cus_gave_lagret);
+  }
+
+  @override
+  Future<void> giftRetry(GiftResult g, String day) async {
+    final p = g.parsed;
+    final max = (p['budget_max_ore'] as num?)?.toInt();
+    await giftBrief({
+      if (p['to'] != null) 'to': p['to'],
+      if (p['occasion'] != null) 'occasion': p['occasion'],
+      if (max != null) 'budget': max <= 30000 ? 'under_300' : (max <= 60000 ? '300_600' : (max <= 100000 ? '600_1000' : 'more')),
+      'deliver_by': day,
+      if (p['interests'] is List && (p['interests'] as List).isNotEmpty) 'interests': p['interests'],
+    }, '');
+  }
+
+  @override
+  Future<void> reorderShoot() async {
+    if (_tenker) return;
+    final path = await A3Services.velgBilde();
+    if (!mounted) return;
+    if (path == null) {
+      LfToast.show(context, AeAgentCopy.cus_bilde_ingen_kamera);
+      return;
+    }
+    await _skann(filePath: path);
+  }
+
+  Future<void> _skann({String? filePath, String? dataUrl}) async {
+    _tenk();
+    final r = await _api.reorderScan(filePath: filePath, dataUrl: dataUrl);
+    if (!mounted) return;
+    final s = r.scan;
+    if (s == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, r.feil ?? AeCopy.utenNett);
+      return;
+    }
+    final tekst = switch (s.hit) {
+      'one' => AeAgentCopy.cus_bilde_fant(s.tookMs),
+      'ask' => AeAgentCopy.cus_bilde_var_det,
+      _ => AeAgentCopy.cus_bilde_beklager,
+    };
+    _leggSvar(tekst, [AeVerktoy('reorder_result', {'id': 'reorder_result:${s.id}', 'scan': s.raw})], humor: s.hit == 'none' ? 'lei' : 'spent');
+  }
+
+  @override
+  Future<void> reorderChoose(AeVerktoy v, ReorderResult r, ReorderCandidate? c) async {
+    if (c == null) {
+      _merk(v, {'gjort': 'nei'});
+      unawaited(a3Try(() => _api.reorderChoose(r.id)));
+      if (r.hit == 'ask') await reorderShoot();
+      return;
+    }
+    HapticFeedback.selectionClick();
+    final res = await _api.reorderChoose(r.id, storeProductId: c.storeProductId, add: true);
+    if (!mounted) return;
+    if (res.scan == null) {
+      LfToast.show(context, res.feil ?? AeCopy.utenNett);
+      return;
+    }
+    _merk(v, {'gjort': 'lagt'});
+    await _lastKurv();
+    if (!mounted) return;
+    prefSetInt(prefCartCount, _kurv.lines.length);
+    BergenCart.syncBadge(context, _kurv.lines.length);
+    HapticFeedback.mediumImpact();
+    LfToast.show(context, AeAgentCopy.cus_bilde_lagt);
+  }
+
+  @override
+  void reorderSearch(String text) {
+    if (text.trim().isNotEmpty) _si(text.trim());
   }
 
   @override
@@ -584,6 +1007,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       if (toast != null) LfToast.show(context, toast);
     } else if (r?.error == 'LEVEL_REQUIRES_RECURRING') {
       LfToast.show(context, AeCopy.fastUkeshandel);
+    } else if (r?.error == 'LEVEL_ABOVE_MAX') {
+      // The cap moved since the list was drawn: say so and redraw with it.
+      LfToast.show(context, AeInnstCopy.cus_aegil_nivaa_over_grense);
+      final f = await a3Try(_repo.fetchSettings);
+      if (mounted && f?.settings != null) setState(() => _settings = f!.settings);
     } else {
       LfToast.show(context, BergenRoutes.ikkeLagret);
     }
@@ -594,6 +1022,10 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   void _byttNivaa() {
     HapticFeedback.selectionClick();
     final level = _settings?.level ?? 2;
+    if (level < 3 && !(_settings?.tillatt(3) ?? true)) {
+      LfToast.show(context, AeInnstCopy.cus_aegil_nivaa_over_grense);
+      return;
+    }
     if (level >= 3) {
       _endre({'level': math.min(_forrigeNivaa ?? 2, 2)}, toast: AeCopy.toastForeslaa);
     } else {
@@ -653,8 +1085,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   AeMinneData get _minneData => AeMinneData(_synlig);
 
-  /// Min Bio (Bergen Step 6), from the memory and the own words.
-  MinBio get _bio => minBioFra(_synlig, _settings);
+  /// Min Bio (Bergen Step 6), from the memory and the own words — or the
+  /// server's bio (Customer Step 6).
+  MinBio get _bio => minBioVelg(_cusBio, _synlig, _settings);
 
   Future<void> _apneBio() async {
     final n = await visMinBio(context, repo: _repo, bio: _bio, minne: _synlig);
@@ -667,6 +1100,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   Future<void> _glemAlt() async {
     HapticFeedback.mediumImpact();
     final ok = await a3Try(_repo.forgetAll);
+    // Customer Step 6: the bio on the server (its chips and consent) goes too.
+    if (ok == true && _cusBio != null) await a3Try(CusApi().bioSlett);
     if (!mounted) return;
     // «Min Bio og alt Ægil har lært slettes»: the own words and «Ingen
     // allergier» go too.
@@ -699,6 +1134,18 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   }
 
   /// «Stemmer»: the line restated as an explicit choice.
+  /// Customer Step 7: «Stemmer» confirms a pattern, ✕ rejects it (`me/patterns/{id}/confirm|reject`).
+  Future<void> _monster(LearnedPatternItem p, bool stemmer) async {
+    final r = await _api.decidePattern(p.id, confirm: stemmer);
+    if (!mounted) return;
+    if (r == null) {
+      LfToast.show(context, BergenRoutes.ikkeLagret);
+      return;
+    }
+    LfToast.show(context, stemmer ? CusLevel3Copy.cus_monster_bekreftet_toast : CusLevel3Copy.cus_monster_avvist);
+    await _lastMinne();
+  }
+
   Future<void> _stemmer(MemoryEntry m) async {
     final r = await a3Try(() => _repo.submitChips([OnboardingChip(kind: m.kind, value: m.value, label: m.label ?? m.value, selected: true)]));
     if (!mounted || r == null) return;
@@ -786,6 +1233,16 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         if (o.dager.contains(d)) OnboardingChip(kind: 'dinner', value: dagNo[i], label: _stor(AeCopy.dagerLang[i]), selected: true),
     ];
     setState(() => _obLagrer = true);
+    // Customer Step 6: with Min bio on, allergies and diets are stored only there, with consent —
+    // they wait in Min bio as suggestions, and the batch carries the rest.
+    if (await a3Try(CusApi().bio) != null) {
+      const vent = ['all:Nøtter', 'all:Gluten', 'all:Melk', 'all:Skalldyr', 'kost:Vegetar', 'kost:Veganer', 'kost:Halal'];
+      await BioVentende.legg([
+        for (final (i, k) in AeCopy.kost.indexed)
+          if (i < 7 && o.kost.contains(k)) vent[i],
+      ]);
+      chips.removeWhere((c) => c.kind == 'allergen' || c.kind == 'diet');
+    }
     final r = chips.isEmpty ? (stored: 0, earned: 0, error: null) : await a3Try(() => _repo.submitChips(chips));
     if (o.varsel.isNotEmpty) {
       final i = AeCopy.varsel.indexOf(o.varsel);
@@ -988,9 +1445,24 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
               key: const Key('a1_aegil_rull'),
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: KeyedSubtree(key: ValueKey(_vcAktiv ? 'vc' : _steg), child: _innhold()),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_ktx?.etikett case final e? when _steg == 'start' || _vcAktiv) ...[
+                    AeKontekstChip(
+                      etikett: e,
+                      onFjern: () => setState(() {
+                        _ktx = null;
+                        _ventIntent = null;
+                      }),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: KeyedSubtree(key: ValueKey(_vcAktiv ? 'vc' : _steg), child: _innhold()),
+                  ),
+                ],
               ),
             ),
           ),
@@ -1007,7 +1479,15 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AeCopy.navn, style: jakarta(19, em: -.025, height: 1.05)),
+            // Customer Step 5: «Ægil er en AI» in the header, after the name.
+            Wrap(
+              spacing: 7,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(AeCopy.navn, style: jakarta(19, em: -.025, height: 1.05)),
+                const AeAiMerke(),
+              ],
+            ),
             const SizedBox(height: 4),
             Row(
               children: [
@@ -1084,6 +1564,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           onLeggTil: _obStart,
           onNivaa: () => _gaa('nivaa'),
           onGlem: _glemAlt,
+          monstre: _monstre,
+          onMonster: _monster,
         );
       case 'nivaa':
         final s = _settings ?? const AegilSettings();
@@ -1134,8 +1616,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       onMinne: () => _gaa('minne'),
       onObStart: _obStart,
       onIkkeNaa: () {
-        prefSetBool(AegilScreen.prefAvslaatt, true);
-        setState(() => _avslaatt = true);
+        final naa = DateTime.now();
+        prefSetString(AegilScreen.prefAvslaattDato, naa.toIso8601String());
+        setState(() => _avslaattDato = naa);
       },
       onBestill: _bestillIgjen,
       onEndre: () => _si(AeCopy.endreSist(tips?.butikk ?? '')),
@@ -1153,7 +1636,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AeNyPrat(onTap: _nyPrat),
+          AeChatTopp(onNy: _nyPrat, onMenneske: menneske),
           for (final (i, m) in _vc.indexed) ...[
             const SizedBox(height: 14),
             if (m.meg)
@@ -1440,11 +1923,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     ];
   }
 
-  /// The orange key: Ægil (`agAvOp`) and the mic (`agMikX`) when empty, the
-  /// arrow (`agPil*`) with text; 92 → 46 wide in use.
+  /// The orange key: Ægil (`agAvOp`) when empty, the arrow (`agPil*`) with
+  /// text (dimmed while the field is focused and empty); 92 → 46 wide in use.
+  /// The design's mic (`agMikX`) is not drawn: voice is the keyboard's
+  /// dictation key (D-K2), so an empty key focuses the field.
   Widget _knapp(bool fok, bool har) => AePress(
     key: const Key('a1_aegil_send'),
-    onTap: har ? () => _si(_tekst.text) : () => LfToast.show(context, AeCopy.stemme),
+    onTap: har ? () => _si(_tekst.text) : _fokus.requestFocus,
     dy: 0,
     scale: .92,
     child: AnimatedContainer(
@@ -1486,30 +1971,6 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                 ),
               ),
             ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 500),
-              curve: const Cubic(.3, 1.25, .4, 1),
-              left: fok ? 16 : 61,
-              top: 16,
-              width: 14,
-              height: 14,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 220),
-                opacity: har ? 0 : 1,
-                child: AeTw(
-                  v: har ? 1 : 0,
-                  ms: 400,
-                  curve: const Cubic(.3, 1.4, .5, 1),
-                  builder: (t) => Transform.scale(
-                    scale: 1 - .7 * t,
-                    child: Transform.rotate(
-                      angle: rad(-30 * t),
-                      child: const AeIkon('M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21', size: 14, stroke: 2.2),
-                    ),
-                  ),
-                ),
-              ),
-            ),
             Positioned(
               left: 14,
               top: 14,
@@ -1517,9 +1978,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
               height: 18,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 220),
-                opacity: har ? 1 : 0,
+                opacity: har ? 1 : fok ? .45 : 0,
                 child: AeTw(
-                  v: har ? 0 : 1,
+                  v: har || fok ? 0 : 1,
                   ms: 450,
                   curve: const Cubic(.3, 1.5, .5, 1),
                   builder: (t) => Transform.translate(
@@ -1562,6 +2023,41 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         if (!mounted) return;
         await _si(t);
         await Future.delayed(const Duration(milliseconds: 1200));
+      }
+      // Customer Step 9: the gift flow (`aegGave`: brief | funn | kort | tom) and the photo flow (`aegBilde`: prompt | skann).
+      if (HjemHarness.aegGave case final g?) {
+        _ktx = AeKontekst.fra({'intent': 'gift', 'category': 'Gaver'});
+        await _startIntent('gift');
+        await Future.delayed(const Duration(milliseconds: 1200));
+        if (g != 'brief' && mounted) {
+          final tom = g == 'tom';
+          await giftBrief({'to': 'mamma', 'occasion': 'bursdag', 'budget': tom ? 'under_300' : '300_600', 'deliver_by': tom ? 'today' : 'lørdag', 'interests': ['hage']}, '');
+          await Future.delayed(const Duration(milliseconds: 1200));
+          final lest = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_readback').firstOrNull;
+          if (lest != null && mounted && g != 'tom') {
+            await giftConfirm(GiftResult.fromJson(lest.map('gift')));
+            await Future.delayed(const Duration(milliseconds: 1200));
+            final sett = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_set').firstOrNull;
+            final r = sett == null ? null : GiftResult.fromJson(sett.map('gift'));
+            if (g == 'kort' && r != null && r.cards.isNotEmpty && mounted) await giftChoose(r, r.cards.first);
+          }
+        }
+      }
+      if (HjemHarness.aegBilde case final b?) {
+        _ktx = AeKontekst.fra({'intent': 'photo', 'category': 'Mat & fisk'});
+        await _startIntent('photo');
+        await Future.delayed(const Duration(milliseconds: 1200));
+        if (b == 'skann' && mounted) await _skann(dataUrl: HjemHarness.aegBildeData ?? kAeTestJpeg);
+      }
+      // Customer Step 5: the tap on the last proposal, and «Angre».
+      final forslag = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'cart_proposal').firstOrNull;
+      if (HjemHarness.aegBruk && forslag != null && mounted) {
+        await brukForslag(forslag);
+        if (HjemHarness.aegAngre && mounted) {
+          await Future.delayed(const Duration(milliseconds: 800));
+          await angre(verktoy(forslag));
+        }
+        _rullNed();
       }
       if (HjemHarness.aegTenk && mounted) {
         setState(() {
@@ -1690,3 +2186,7 @@ class LfLoopBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LfLoop(child: child, builder: (context, t, c) => builder(t, c!));
 }
+
+/// A 1 × 1 JPEG for the harness' photo scan (the fake driver answers it).
+const String kAeTestJpeg =
+    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';

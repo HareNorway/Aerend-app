@@ -11,7 +11,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
 import '../kit/bergen_kit.dart';
-import '../../snurre/snurre_launcher_policy.dart' show isSnurreLauncherHiddenRoute, snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
 import 'kasse_copy.dart';
 
 /// Betalt (`betOvergang`, L17590): the moment the payment is through. The
@@ -57,13 +57,13 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
     _sum = widget.sum;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      // The Vipps return pushes this screen unnamed, which shows the chat
-      // button; the prototype has none here, so step onto a hidden route.
+      // The Vipps return pushes this screen in an unnamed page route; the
+      // sequence runs on its own instant route, as it does from Kassen.
       final route = ModalRoute.of(context);
-      if (route != null && !isSnurreLauncherHiddenRoute(route)) {
+      if (route != null && !isAppRoute(route)) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder<void>(
-            settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+            settings: const RouteSettings(name: '${appRoutePrefix}betalt'),
             // Over Kassen it stays see-through: the overlay grows out of the slider.
             opaque: widget.fra == null,
             transitionDuration: Duration.zero,

@@ -124,7 +124,7 @@ class FakePointsApi implements PointsAppApi {
       );
 
   @override
-  Future<List<PrizeClaim>> claims() async => const [
+  Future<List<PrizeClaim>> claims() async => claimsValue ?? const [
     PrizeClaim(
       id: 1,
       prizeId: 3,
@@ -133,6 +133,9 @@ class FakePointsApi implements PointsAppApi {
       pointsSpent: 0,
     ),
   ];
+
+  /// Customer Step 12: the claims a test wants on «Mine premier».
+  List<PrizeClaim>? claimsValue;
 
   @override
   Future<({PrizeClaim? claim, String? error})> claim(
@@ -167,19 +170,17 @@ class FakePointsApi implements PointsAppApi {
     );
   }
 
+  /// Customer Step 12: no mission at all (the fake's default is one).
+  bool missionNone = false;
+
   @override
   Future<Mission?> mission() async =>
-      missionValue ??
-      const Mission(
-        id: 1,
-        title: 'Handle hos to bergenske butikker',
-        body: 'Denne uka',
-        points: 50,
-      );
+      missionNone ? null : (missionValue ?? const Mission(id: 1, title: 'Prøv Nordnes Fisk', body: 'Én bestilling', points: 50));
 
   @override
   Future<({Mission? replacement, String? error})> declineMission() async {
     calls.add('decline');
+    if (feilKode != null) return (replacement: null, error: feilKode);
     return (replacement: null, error: null);
   }
 
@@ -257,17 +258,29 @@ class FakePointsApi implements PointsAppApi {
   // agil-4
   CustomerPrefs prefsValue = const CustomerPrefs(alwaysCode: false, notificationsUnseen: 2, favourites: 2);
 
+  /// Customer Step 12: a code here makes accept / decline / cancel / name refuse with it.
+  String? feilKode;
+
   @override
-  Future<Mission?> acceptMission() async {
+  Future<({Mission? mission, String? error})> acceptMission() async {
     calls.add('accept');
+    if (feilKode != null) return (mission: null, error: feilKode);
     final m = await mission();
-    return m == null ? null : Mission(id: m.id, title: m.title, body: m.body, points: m.points, state: m.state, progress: m.progress, target: m.target, wordingSource: m.wordingSource, accepted: true);
+    return (error: null, mission: m == null ? null : Mission(id: m.id, title: m.title, body: m.body, points: m.points, state: m.state, progress: m.progress, target: m.target, wordingSource: m.wordingSource, accepted: true));
   }
 
   @override
-  Future<League?> setLeagueName({String? name, String? visibility}) async {
+  Future<({League? league, String? error})> setLeagueName({String? name, String? visibility}) async {
     calls.add('leaguename:$name:$visibility');
-    return league();
+    if (feilKode != null) return (league: null, error: feilKode);
+    return (league: await league(), error: null);
+  }
+
+  @override
+  Future<({PrizeClaim? claim, String? error})> cancelClaim(int claimId) async {
+    calls.add('cancel:$claimId');
+    if (feilKode != null) return (claim: null, error: feilKode);
+    return (claim: PrizeClaim(id: claimId, prizeId: 3, prizeName: 'Premie', state: 'cancelled', pointsSpent: 300), error: null);
   }
 
   @override
@@ -303,6 +316,12 @@ const kSuggestion2 = Suggestion(
 );
 
 class FakeAegilApi implements AegilAppApi {
+  /// Customer Step 12: Meg's month summary row (null hides it).
+  MonthlySummary? summaryValue;
+
+  @override
+  Future<MonthlySummary?> monthlySummary() async => summaryValue;
+
   FakeAegilApi({
     this.turn,
     this.awayValue = const [],
@@ -314,9 +333,13 @@ class FakeAegilApi implements AegilAppApi {
   List<Suggestion> suggestionValue;
   final List<String> calls = [];
 
+  /// The context each chat turn carried (D-K20).
+  final List<Map<String, Object?>> chats = [];
+
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId}) async {
     calls.add('chat:${text ?? intent}');
+    chats.add({'text': text, 'intent': intent, 'store_id': storeId, 'category': category, 'for': recipient, if (conversationId != null) 'conversation_id': conversationId, if (orderId != null) 'order_id': orderId});
     return turn ??
         const AegilTurn(
           state: 'agForslag',
@@ -364,6 +387,45 @@ class FakeAegilApi implements AegilAppApi {
   List<AwayItem> actionsValue = const [];
   @override
   Future<List<AwayItem>> actions({int days = 30}) async => actionsValue;
+  // Customer Step 7.
+  final List<LearnedPatternItem> patternsList = [];
+  final List<AgentLine> agentLinesList = [];
+  final List<(int, bool)> decided = [];
+  final List<int> undoneLines = [];
+  final List<int> undoneActions = [];
+  bool? invited;
+
+  @override
+  Future<List<LearnedPatternItem>> patterns() async => patternsList;
+
+  @override
+  Future<LearnedPatternItem?> decidePattern(int id, {required bool confirm}) async {
+    decided.add((id, confirm));
+    final p = patternsList.where((x) => x.id == id).firstOrNull;
+    return p == null ? null : LearnedPatternItem(id: p.id, type: p.type, text: p.text, support: p.support, confirmed: confirm);
+  }
+
+  @override
+  Future<List<AgentLine>> agentLines() async => agentLinesList;
+
+  @override
+  Future<bool> undoLine(int cartId) async {
+    undoneLines.add(cartId);
+    return true;
+  }
+
+  @override
+  Future<bool> undoAgentAction(int actionId) async {
+    undoneActions.add(actionId);
+    return true;
+  }
+
+  @override
+  Future<bool> pushInvite({required bool accept}) async {
+    invited = accept;
+    return true;
+  }
+
   @override
   Future<bool> awaySeen() async {
     awaySeenCalls++;
@@ -409,8 +471,249 @@ class FakeAegilApi implements AegilAppApi {
     return occasionsValue;
   }
 
+  List<ShoppingListItem> listItems = const [ShoppingListItem(id: 1, text: 'Melk', qty: 2, done: false, source: 'user', addedByAgent: false)];
+
   @override
-  Future<List<ShoppingListItem>> shoppingList() async => const [ShoppingListItem(id: 1, text: 'Melk', qty: 2, done: false, source: 'user', addedByAgent: false)];
+  Future<List<ShoppingListItem>> shoppingList() async => listItems;
+
+  // Customer Step 8: Ukeshandel. `weeklyValue` is what `GET agent/me/weekly`
+  // answers; the edits mutate it so the sheet re-reads a changed basket.
+  WeeklyView? weeklyValue;
+  WeeklyOrder? builtValue;
+  String? weeklyFeil;
+  List<WeeklyConfirmation> confirmations = const [];
+  int confirmed = 0;
+
+  @override
+  Future<WeeklyView?> weekly() async => weeklyValue;
+
+  @override
+  Future<({WeeklyOrder? weekly, String? feil})> buildWeekly({bool force = false}) async {
+    calls.add('weekly-build${force ? ':force' : ''}');
+    if (builtValue != null) weeklyValue = (weeklyValue ?? const WeeklyView()).copyWith(weekly: builtValue);
+    return (weekly: builtValue, feil: builtValue == null ? weeklyFeil : null);
+  }
+
+  WeeklyOrder _edited(WeeklyOrder o, List<WeeklyLine> lines, {String? state}) {
+    final ore = lines.fold<int>(0, (s, l) => s + (int.tryParse(l.price.replaceAll(RegExp(r'\D'), '')) ?? 0) * 100);
+    final saving = lines.fold<int>(0, (s, l) => s + (int.tryParse((l.saving ?? '').replaceAll(RegExp(r'\D'), '')) ?? 0) * 100);
+    return WeeklyOrder(
+      id: o.id, week: o.week, state: state ?? o.state, total: '${ore ~/ 100} kr', savings: '${saving ~/ 100} kr', savingsOre: saving,
+      lines: lines, dropped: o.dropped, reviewUntil: o.reviewUntil, overCap: o.overCap,
+      pendingAccept: lines.where((l) => l.pendingAccept).length, orderIds: o.orderIds, placedAt: o.placedAt,
+    );
+  }
+
+  @override
+  Future<WeeklyOrder?> weeklyLine(int id, int lineId, String action, {int? qty}) async {
+    calls.add('weekly-line:$lineId:$action${qty == null ? '' : ':$qty'}');
+    final o = weeklyValue?.weekly;
+    if (o == null) return null;
+    final lines = [
+      for (final l in o.lines)
+        if (l.lineId != lineId)
+          l
+        else if (action == 'accept')
+          WeeklyLine(lineId: l.lineId, name: l.name, store: l.store, storeId: l.storeId, qty: l.qty, source: l.source, price: l.price, saving: l.saving, substitution: l.substitution, needsAccept: l.needsAccept, accepted: true)
+        else if (action == 'qty')
+          WeeklyLine(lineId: l.lineId, name: l.name, store: l.store, storeId: l.storeId, qty: qty ?? l.qty, source: l.source, price: l.price, saving: l.saving),
+    ];
+    final ny = _edited(o, lines);
+    weeklyValue = weeklyValue!.copyWith(weekly: ny);
+    return ny;
+  }
+
+  @override
+  Future<WeeklyOrder?> weeklySkip(int id) async {
+    calls.add('weekly-skip:$id');
+    final o = weeklyValue?.weekly;
+    if (o == null) return null;
+    final ny = _edited(o, o.lines, state: 'cancelled');
+    weeklyValue = weeklyValue!.copyWith(weekly: ny);
+    return ny;
+  }
+
+  @override
+  Future<({bool ok, String? feil})> weeklyBasket(int id) async {
+    calls.add('weekly-basket:$id');
+    return (ok: weeklyFeil == null, feil: weeklyFeil);
+  }
+
+  @override
+  Future<({WeeklyConfirmation? conf, String? feil})> weeklyCheckout(int id) async {
+    calls.add('weekly-checkout:$id');
+    if (weeklyFeil != null || confirmations.isEmpty) return (conf: null, feil: weeklyFeil);
+    confirmed = 0;
+    return (conf: confirmations.first, feil: null);
+  }
+
+  @override
+  Future<({WeeklyConfirmResult? res, String? feil})> weeklyConfirm(int id, String confirmToken, {String payment = 'vipps'}) async {
+    calls.add('weekly-confirm:$id:$confirmToken:$payment');
+    if (confirmed >= confirmations.length || confirmations[confirmed].confirmToken != confirmToken) return (res: null, feil: 'Ingen butikk er under betaling.');
+    confirmed++;
+    final done = confirmed >= confirmations.length;
+    final o = weeklyValue?.weekly;
+    if (done && o != null) weeklyValue = weeklyValue!.copyWith(weekly: _edited(o, o.lines, state: 'placed'));
+    return (res: WeeklyConfirmResult(done: done, orderId: 9000 + confirmed, next: done ? null : confirmations[confirmed], orders: [for (var i = 1; i <= confirmed; i++) 9000 + i]), feil: null);
+  }
+
+  @override
+  Future<List<DinnerDay>?> setDinnerPlan(String week, int weekday, {String? choiceType, int? storeProductId}) async {
+    calls.add('dinner:$week:$weekday:${choiceType ?? '-'}:${storeProductId ?? '-'}');
+    final v = weeklyValue;
+    if (v == null) return null;
+    final c = v.candidates.where((c) => c.storeProductId == storeProductId).firstOrNull;
+    final plan = [
+      for (final d in v.plan)
+        if (d.weekday != weekday)
+          d
+        else
+          DinnerDay(weekday: d.weekday, name: d.name, rhythm: d.rhythm, choiceType: choiceType, storeProductId: storeProductId, label: c == null ? null : '${c.name} · ${c.store}', price: c?.price),
+    ];
+    weeklyValue = v.copyWith(plan: plan);
+    return plan;
+  }
+
+  @override
+  Future<List<ShoppingListItem>?> toggleListItem(int id) async {
+    calls.add('list-toggle:$id');
+    listItems = [for (final i in listItems) i.id == id ? ShoppingListItem(id: i.id, text: i.text, qty: i.qty, done: !i.done, source: i.source, addedByAgent: i.addedByAgent) : i];
+    weeklyValue = weeklyValue?.copyWith(items: listItems);
+    return listItems;
+  }
+
+  // Customer Step 9: the customer agents.
+  GiftResult? giftValue;
+  GiftResult? giftMoreValue;
+  String? giftFeil;
+  ReorderResult? scanValue;
+  String? scanFeil;
+  DoorResult? doorValue;
+  Map<String, dynamic>? lastGiftFields;
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async {
+    calls.add('gift-brief:${text.isEmpty ? '-' : text}');
+    lastGiftFields = fields;
+    return (gift: giftValue, feil: giftValue == null ? giftFeil : null);
+  }
+
+  @override
+  Future<GiftResult?> giftMore(int id) async {
+    calls.add('gift-more:$id');
+    return giftMoreValue ?? giftValue;
+  }
+
+  @override
+  Future<GiftResult?> giftCard(int id, String action, {String? text}) async {
+    calls.add('gift-card:$id:$action${text == null ? '' : ':$text'}');
+    final g = giftValue;
+    if (g == null) return null;
+    final raw = {...g.raw, 'card_text': action == 'none' ? null : (action == 'rewrite' ? 'Hipp hurra for deg, mamma.\nEn liten ting.\nKlem.' : (text ?? g.cardText)), 'card_source': action == 'use' ? 'customer' : 'fallback'};
+    return giftValue = GiftResult.fromJson(raw);
+  }
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftChoose(int id, int storeProductId) async {
+    calls.add('gift-choose:$id:$storeProductId');
+    final g = giftValue;
+    if (g == null) return (gift: null, feil: giftFeil);
+    final raw = {...g.raw, 'state': 'chosen', 'chosen_store_product_id': storeProductId, 'gift': {'request_id': id, 'to': g.parsed['to'], 'to_label': g.parsed['to'], 'card_text': g.cardText, 'store_product_id': storeProductId}};
+    return (gift: giftValue = GiftResult.fromJson(raw), feil: null);
+  }
+
+  @override
+  Future<bool> giftAttach(int id, int orderId) async {
+    calls.add('gift-attach:$id:$orderId');
+    return true;
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderScan({String? filePath, String? dataUrl}) async {
+    calls.add('reorder-scan:${filePath != null ? 'file' : 'data'}');
+    return (scan: scanValue, feil: scanValue == null ? scanFeil : null);
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderChoose(int id, {int? storeProductId, bool add = false}) async {
+    calls.add('reorder-choose:$id:${storeProductId ?? '-'}${add ? ':add' : ''}');
+    final s = scanValue;
+    return (scan: s == null ? null : ReorderResult.fromJson({...s.raw, 'state': storeProductId == null ? 'rejected' : 'chosen', 'added': add}), feil: scanFeil);
+  }
+
+  @override
+  Future<DoorResult?> doorParse(int addressId, String text) async {
+    calls.add('door-parse:$addressId:$text');
+    return doorValue;
+  }
+
+  @override
+  Future<DoorResult?> doorConfirm(int id, {Map<String, dynamic> fields = const {}, bool codeConsent = false}) async {
+    calls.add('door-confirm:$id:${fields.isEmpty ? '-' : fields.entries.map((e) => '${e.key}=${e.value}').join(',')}:${codeConsent ? 'samtykke' : 'ikke'}');
+    final d = doorValue;
+    if (d == null) return null;
+    final f = {...(d.raw['fields'] as Map? ?? {}), ...fields};
+    final line = DoorFields.fromJson(f.cast<String, dynamic>()).line(withCode: codeConsent);
+    return doorValue = DoorResult.fromJson({...d.raw, 'fields': f, 'state': 'confirmed', 'code_consent': codeConsent && d.hasCode, 'line': line, 'saved': true, 'code_once': d.hasCode && !codeConsent ? f['code'] : null});
+  }
+
+  @override
+  Future<DoorResult?> doorUndo(int id) async {
+    calls.add('door-undo:$id');
+    final d = doorValue;
+    if (d == null) return null;
+    return doorValue = DoorResult.fromJson({...d.raw, 'state': 'undone', 'code_consent': false, 'line': d.fields.line(withCode: false)});
+  }
+
+  @override
+  Future<List<ShoppingListItem>?> removeListItem(int id) async {
+    calls.add('list-remove:$id');
+    listItems = listItems.where((i) => i.id != id).toList();
+    weeklyValue = weeklyValue?.copyWith(items: listItems);
+    return listItems;
+  }
+
+  // Customer Step 5: chat history and the cart proposals.
+  List<AegilSamtale> samtalerValue = const [];
+  Map<String, List<AegilSamtaleLinje>> samtaleValue = {};
+  AeVerktoy? actionValue;
+
+  @override
+  Future<List<AegilSamtale>> conversations() async {
+    calls.add('conversations');
+    return samtalerValue;
+  }
+
+  @override
+  Future<List<AegilSamtaleLinje>?> conversation(String id) async {
+    calls.add('conversation:$id');
+    return samtaleValue[id];
+  }
+
+  @override
+  Future<bool> closeConversation(String id) async {
+    calls.add('close:$id');
+    return true;
+  }
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> applyAction(String id) async {
+    calls.add('apply:$id');
+    return (kort: actionValue, feil: actionValue == null ? 'Forslaget gjelder ikke lenger.' : null);
+  }
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> undoAction(String id) async {
+    calls.add('undo:$id');
+    return (kort: actionValue?.med({'status': 'undone'}), feil: null);
+  }
+
+  @override
+  Future<bool> neverProduct(int storeProductId) async {
+    calls.add('never-product:$storeProductId');
+    return true;
+  }
 }
 
 class FakeAegilRepo extends AegilRepo {

@@ -1,6 +1,8 @@
 /// Suggestion tray data shapes (AGIL-2 Phase 7).
 library;
 
+import 'against_interest_models.dart';
+
 class Suggestion {
   const Suggestion({
     required this.id,
@@ -18,6 +20,7 @@ class Suggestion {
     this.storeName,
     this.etaMinutes,
     this.priceOre,
+    this.againstInterest = const [],
   });
 
   final int id;
@@ -44,6 +47,10 @@ class Suggestion {
   final int? etaMinutes;
   final int? priceOre;
 
+  /// Customer Step 5 (T21): what Ægil found against the sale, as the server
+  /// rendered it (`against_interest`); empty when the customer turned the lines off.
+  final List<AgainstInterestLine> againstInterest;
+
   factory Suggestion.fromJson(Map<String, dynamic> json) => Suggestion(
         id: (json['id'] as num?)?.toInt() ?? 0,
         reasonCode: (json['reason_code'] as String?) ?? '',
@@ -62,6 +69,11 @@ class Suggestion {
         storeName: json['store_name'] as String?,
         etaMinutes: (json['eta_minutes'] as num?)?.toInt(),
         priceOre: (json['price_ore'] as num?)?.toInt(),
+        againstInterest: ((json['against_interest'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((e) => AgainstInterestLine.fromJson(e.cast<String, dynamic>()))
+            .where((l) => l.line.isNotEmpty)
+            .toList(),
       );
 }
 

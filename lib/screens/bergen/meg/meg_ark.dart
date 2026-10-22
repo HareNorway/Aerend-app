@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart' show AeIkon;
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../kit/bergen_kit.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
@@ -55,7 +55,7 @@ abstract final class MegArkInk {
 }
 
 class MegArkButton {
-  const MegArkButton({required this.label, required this.onTap, this.gradient, this.deg = 180, this.key, this.av = false});
+  const MegArkButton({required this.label, required this.onTap, this.gradient, this.deg = 180, this.key, this.av = false, this.rod = false});
 
   final String label;
   final VoidCallback onTap;
@@ -64,6 +64,9 @@ class MegArkButton {
   /// Done / not available (`kArkCtaBg: '#A9BEC3'`): on the dark Ark a glass
   /// pill with dimmed text instead of the orange key.
   final bool av;
+
+  /// On the dark Ark, the red key (`kArkCtaRod`: «Koble fra», «Slett bioen»).
+  final bool rod;
 
   /// The CSS angle of [gradient] (`linear-gradient(<deg>, …)`).
   final double deg;
@@ -87,11 +90,19 @@ Future<T?> showMegArk<T>(
 
   /// The sheet has a text field: it rides up on the keyboard.
   bool tastatur = false,
+
+  /// A fixed strip between the scrolling body and the footer (the bud
+  /// chat's chips and input, `Budchat · skriv`), rebuilt with [body].
+  MegArkBody? fot,
+
+  /// Customer Step 8: a title and subtitle that follow the sheet's state
+  /// («Ukens kurv · 421 kr» after a line is taken out), rebuilt with [body].
+  String Function()? titleBuilder,
+  String? Function()? subtitleBuilder,
 }) {
   return showModalBottomSheet<T>(
     context: context,
-    // Like every Bergen sheet: no floating Ægil launcher over the Ark.
-    routeSettings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}ark'),
+    routeSettings: const RouteSettings(name: '${appRoutePrefix}ark'),
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
@@ -105,7 +116,7 @@ Future<T?> showMegArk<T>(
       final ark = MegArkSkala(
         child: StatefulBuilder(
           builder: (ctx, setState) =>
-              MegArk(key: key, title: title, subtitle: subtitle, body: body == null ? null : body(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
+              MegArk(key: key, title: titleBuilder?.call() ?? title, subtitle: subtitleBuilder != null ? subtitleBuilder() : subtitle, body: body == null ? null : body(ctx, setState), fot: fot?.call(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
         ),
       );
       return tastatur
@@ -146,7 +157,7 @@ Future<T?> showMegArkGlid<T>(
 }
 
 class _GlidRute<T> extends PopupRoute<T> {
-  _GlidRute({required this.builder, required this.still}) : super(settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}ark'));
+  _GlidRute({required this.builder, required this.still}) : super(settings: const RouteSettings(name: '${appRoutePrefix}ark'));
 
   final WidgetBuilder builder;
   final bool still;
@@ -254,11 +265,14 @@ class MegArkSkala extends StatelessWidget {
 }
 
 class MegArk extends StatelessWidget {
-  const MegArk({super.key, required this.title, this.subtitle, this.body, this.primary, this.secondary, this.mork = false});
+  const MegArk({super.key, required this.title, this.subtitle, this.body, this.fot, this.primary, this.secondary, this.mork = false});
 
   final String title;
   final String? subtitle;
   final Widget? body;
+
+  /// Fixed under the scrolling body, above the footer.
+  final Widget? fot;
   final MegArkButton? primary;
   final MegArkButton? secondary;
 
@@ -346,6 +360,7 @@ class MegArk extends StatelessWidget {
                         child: body,
                       ),
                     ),
+                  if (fot != null) fot!,
                   if (primary != null || secondary != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
@@ -518,6 +533,7 @@ class _ArkPrimary extends StatelessWidget {
       // Dark (L19012): the orange 3D key — or, done, a glass pill with
       // dimmed text (`#A9BEC3` in the design's data).
       final av = button.av;
+      final rod = button.rod && !av;
       return LfPress(
         key: button.key,
         onTap: button.onTap,
@@ -530,11 +546,21 @@ class _ArkPrimary extends StatelessWidget {
           bg: [
             av
                 ? const CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)])
-                : const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
+                : rod
+                    ? const CssLinear(180, [Color(0xFFF28A78), Color(0xFFD9452F), Color(0xFFB5301D)], [0, .56, 1])
+                    : const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
           ],
           shadows: av
               ? const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .2))]
-              : const [
+              : rod
+                  ? const [
+                      CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .4)),
+                      CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
+                      CssShadow(0, 3, 0, 0, Color(0xFF8E2416)),
+                      CssShadow(0, 5, 0, 0, Color.fromRGBO(90, 20, 10, .25)),
+                      CssShadow(0, 14, 18, -10, Color.fromRGBO(190, 50, 30, .8)),
+                    ]
+                  : const [
                   CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .45)),
                   CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
                   CssShadow(0, 3, 0, 0, Color(0xFFC4491A)),

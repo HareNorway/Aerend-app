@@ -11,6 +11,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
+import '../../../services/customer/client_flags.dart';
 import 'utforsk_copy.dart';
 import '../kit/bergen_perf.dart';
 
@@ -555,6 +556,8 @@ class _FeedPostCardState extends State<FeedPostCard>
     ];
     var meta = metaParts.join(' · ');
     if (item.isFromAerend) meta += ' · ${UtforskCopy.a1_feed_published_by_aerend}';
+    // Customer Step 11 (Addendum §10 #4, `cus.feed.disclosure`): an agent-written post says so.
+    final disclosure = item.disclosure && ClientFlags.on(ClientFlags.feedDisclosure);
 
     final profil = item.store != null ? widget.onProfil : null;
     return Row(
@@ -594,6 +597,14 @@ class _FeedPostCardState extends State<FeedPostCard>
                   ],
                 ],
               ),
+              if (disclosure)
+                Text(
+                  UtforskCopy.cus_feed_disclosure,
+                  key: const Key('cus-feed-disclosure'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: inter(10.5, weight: FontWeight.w700, color: const Color(0xFFF2C14E)).copyWith(shadows: shadow),
+                ),
               Text(
                 meta,
                 maxLines: 1,

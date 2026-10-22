@@ -6,7 +6,6 @@ import '../../../services/push_deep_link.dart';
 import '../../../services/push_notification_service.dart';
 import '../../../utils/utils.dart';
 import '../../bergen/utforsk/utforsk_screen.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../../bergen/meg/meg_host.dart';
 import '../../bergen/sok/sok_screen.dart';
 import '../home/bergen/bergen_home.dart';
@@ -19,6 +18,7 @@ import '../../bergen/kit/bergen_routes.dart';
 import '../auth/launch/lf_css.dart' show lfFlow;
 import '../../deliveryService/trackOrder/track_order.dart';
 import '../../bergen/kasse/kurv_screen.dart';
+import '../../bergen/kit/server_banner.dart';
 
 /// The Bergen shell: Hjem · Utforsk · Kurv · Meg behind the design's pill nav
 /// plus the round search orb (search field + Ægil pill, long-press → Ægil).
@@ -147,12 +147,7 @@ class HomeMainV1State extends State<HomeMainV1> {
   /// the search draft as the first line when there is one.
   void _openAegil(String draft) {
     final q = draft.trim();
-    BergenRoutes.pushOr(
-      context,
-      kAegilRoute,
-      arguments: {if (q.isNotEmpty) 'q': q},
-      orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: q)),
-    );
+    BergenRoutes.push<void>(context, kAegilRoute, arguments: {if (q.isNotEmpty) 'q': q});
   }
 
   @override
@@ -179,6 +174,8 @@ class HomeMainV1State extends State<HomeMainV1> {
         fit: StackFit.expand,
         children: [
           Positioned.fill(child: pageView),
+          // Customer Step 16: the server banner (`agents/flags`) over every tab.
+          const Positioned(top: 0, left: 0, right: 0, child: SafeArea(bottom: false, child: CusServerBanner())),
           ValueListenableBuilder<bool>(
             valueListenable: sokOpen,
             builder: (context, open, _) => open

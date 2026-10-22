@@ -10,10 +10,8 @@ import '../../../data/ops/kasse_models.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
-import '../../../utils/utils.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart';
@@ -327,19 +325,13 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
       showBergenToast(context, res != null ? ButikkCopy.a1_butikk_melding_sendt : BergenRoutes.ikkeSendt);
       return;
     }
-    BergenRoutes.pushOr(
-      context,
-      kAegilRoute,
-      arguments: {'intent': 'store', 'store_id': '${store.id}', 'q': text},
-      orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: text)),
-    );
+    BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': 'store', 'store_id': '${store.id}', 'store': store.name, 'q': text});
   }
 
-  void _askAegilGift() => BergenRoutes.pushOr(
+  void _askAegilGift() => BergenRoutes.push<void>(
     context,
     kAegilRoute,
-    arguments: {'intent': 'gift', 'store_id': '${store.id}', if (_forWhom != null) 'for': _forWhom!},
-    orElse: () => openScreen(context, const SnurreChatScreen()),
+    arguments: {'intent': 'gift', 'store_id': '${store.id}', 'store': store.name, if (_forWhom != null) 'for': _forWhom!},
   );
 
   void _toggleSok() {

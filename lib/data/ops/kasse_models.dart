@@ -22,11 +22,17 @@ class KurvLine {
   final String? imageUrl;
   final String? description;
 
-  /// A line Ægil put in the basket (the cart row carries a Snurre
-  /// conversation) — rendered as "Lagt i kurven av Ægil … · Angre".
+  /// A line Ægil put in the basket (the cart row's `snurre_conversation_id`
+  /// or `added_by: aegil`) — rendered as "Lagt i kurven av Ægil … · Angre".
   final bool addedByAegil;
 
   double get sum => unitPrice * quantity;
+
+  /// Customer Step 7: the same line, marked as Ægil's (`agent/me/cart/agent-lines`).
+  KurvLine medAegil(bool v) => KurvLine(
+    cartId: cartId, productId: productId, name: name, quantity: quantity, unitPrice: unitPrice, storeId: storeId,
+    imageUrl: imageUrl, description: description, addedByAegil: v,
+  );
 
   static double _d(dynamic v) =>
       v is num ? v.toDouble() : (double.tryParse('$v') ?? 0);
@@ -70,6 +76,12 @@ class KurvState {
 
   bool get isEmpty => lines.isEmpty;
   double get subtotal => lines.fold(0, (a, l) => a + l.sum);
+
+  /// Customer Step 7: the lines in [ids] are Ægil's (level-3 merge).
+  KurvState medAegilLinjer(Set<int> ids) => KurvState(
+    lines: [for (final l in lines) ids.contains(l.cartId) ? l.medAegil(true) : l],
+    storeId: storeId, serviceCategoryId: serviceCategoryId, count: count,
+  );
   List<KurvLine> get aegilLines => [
     for (final l in lines)
       if (l.addedByAegil) l,

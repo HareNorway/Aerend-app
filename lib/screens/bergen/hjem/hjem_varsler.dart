@@ -1,22 +1,32 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/ops/tracking_models.dart';
+import '../../../networking/feed/feed_repo.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
+import '../../../services/push_deep_link.dart';
+import '../../../services/push_notification_service.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import '../../common/notifications/notifications_dl.dart';
+import '../aegil/cus_level3.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/bergen_routes.dart';
+import '../kit/bergen_toast.dart';
 import '../kit/live_aerend.dart';
+import '../hjelp/support.dart';
+import '../sporing/hjelp_sheet.dart' show HjelpScreen, HjelpState;
+import 'hjem_harness.dart';
 import '../meg/a3_services.dart';
 import '../../common/notifications/notifications_repo.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 
 // ── Varsler panel (Gap Step 1) ──────────────────────────────────────────────
 // New Bergen `vsAapent` (L8524–8627, logic `apneVarsler` / `varslerVals`
@@ -24,10 +34,13 @@ import '../../snurre/snurre_launcher_policy.dart';
 // summary, «Lukk», six filters, «PÅ VEI NÅ» while an order is under way, and
 // the cards grouped by day.
 //
-// Real sources only (gap plan G1): the broadcast pushes («Fra Ærend»), Ægil's
-// unseen actions (`agent/me/away`) and the active order. The per-user inbox
-// (kinds, swipe to remove / mute, the rich «Ny på Ærend» card) waits for the
-// backend (gap Step 2); those parts are hidden, not faked (G2).
+// Customer Step 3 (gap Step 2): the cards come from the per-user inbox
+// (`GET api/customer/notifications`: order status and notices, the courier's
+// replies, Ægil, broadcasts) with read state (read after ~1 s on screen),
+// swipe to «Ikke slike varsler» / «Fjern» with «Angre», the rich «Ny på
+// Ærend» card and «Velg». While the inbox is off or unreachable the panel
+// shows its older sources (broadcasts, Ægil's unseen actions) without those
+// actions (gap plan G1/G2).
 
 /// The broadcasts source (`mass-notification-list`); tests swap it. It lived
 /// in the old Varsler page, removed in Gap Step 4.
@@ -52,6 +65,12 @@ abstract final class VarslerCopy {
   static const innstillinger = 'Innstillinger for varsler';
   static const fraAerend = 'Fra Ærend';
   static const aegil = 'Ægil';
+  static const ikkeSlike = 'Ikke slike varsler';
+  static const fjern = 'Fjern';
+  static const angre = 'Angre';
+  static const dempet = 'Skrudde av slike varsler';
+  static const folg = 'Følg', folger = 'Følger', seMeny = 'Se meny';
+  static String fjernet(String tittel) => 'Fjernet: $tittel';
   static const _ord = ['Ingenting', 'Én', 'To', 'Tre', 'Fire', 'Fem', 'Seks', 'Sju', 'Åtte', 'Ni'];
   static const _dager = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
   static const _mnd = ['jan.', 'feb.', 'mars', 'apr.', 'mai', 'juni', 'juli', 'aug.', 'sep.', 'okt.', 'nov.', 'des.'];
@@ -96,7 +115,37 @@ class Varsel {
     required this.tid,
     this.ulest = false,
     this.lenke,
+    this.key,
+    this.muteKey,
+    this.handling,
+    this.rik = false,
+    this.bilder = const [],
+    this.storeId,
+    this.orderId,
+    this.actionId,
+    this.conversationId,
   });
+
+  /// A card from the inbox (Customer Step 3).
+  factory Varsel.fraInbox(CusVarsel c) => Varsel(
+    id: c.key,
+    conversationId: c.conversationId,
+    key: c.key,
+    type: c.type,
+    muteKey: c.muteKey,
+    tittel: c.title,
+    grunn: c.body,
+    avs: c.sender,
+    tid: c.at,
+    ulest: !c.read,
+    lenke: c.deepLink,
+    handling: c.action,
+    rik: c.rich,
+    bilder: c.photos,
+    storeId: c.storeId,
+    orderId: c.orderId,
+    actionId: c.actionId,
+  );
 
   final String id;
   final String type;
@@ -106,17 +155,77 @@ class Varsel {
   final DateTime tid;
   final bool ulest;
 
-  /// A `/bergen/…` route to open on tap (Ægil's `deep_link`).
+  /// A `/bergen/…` route or an `aerend://` link to open on tap.
   final String? lenke;
+
+  /// The inbox key (`n:12`); null for the older sources (no swipe, no read).
+  final String? key;
+
+  /// What «Ikke slike varsler» mutes (defaults to [type]).
+  final String? muteKey;
+
+  /// A button on the card («Velg»).
+  final String? handling;
+
+  /// «Ny på Ærend»: [bilder] + «Følg» / «Se meny» for [storeId].
+  final bool rik;
+  final List<String> bilder;
+  final int? storeId;
+  final int? orderId;
+
+  /// Customer Step 7: the Ægil receipt an «Angre» card undoes.
+  final int? actionId;
+
+  /// Customer Step 10: the Hjelp thread «Svar {navn}» continues.
+  final int? conversationId;
+
+  Varsel lest() => Varsel(
+    id: id,
+    type: type,
+    tittel: tittel,
+    grunn: grunn,
+    avs: avs,
+    tid: tid,
+    lenke: lenke,
+    key: key,
+    muteKey: muteKey,
+    handling: handling,
+    rik: rik,
+    bilder: bilder,
+    storeId: storeId,
+    orderId: orderId,
+    actionId: actionId,
+    conversationId: conversationId,
+  );
+
+  /// Customer Step 7: the card after «Angre» (no button).
+  Varsel utenHandling() => Varsel(
+    id: id,
+    type: type,
+    tittel: tittel,
+    grunn: grunn,
+    avs: avs,
+    tid: tid,
+    lenke: lenke,
+    key: key,
+    muteKey: muteKey,
+    handling: null,
+    rik: rik,
+    bilder: bilder,
+    storeId: storeId,
+    orderId: orderId,
+    actionId: actionId,
+    conversationId: conversationId,
+  );
 }
 
 /// The design's filter → kinds (`VFILT`, L16362).
 const Map<String, List<String>> kVarselFilter = {
-  'Bestillinger': ['ordre', 'valg'],
+  'Bestillinger': ['ordre', 'valg', 'ai'],
   'Tilbud': ['tilbud', 'rytme', 'butikk'],
   'Nytt i byen': ['nybyen', 'nabolag'],
   'Belønninger': ['belonning', 'verving', 'liga', 'ukeshandel', 'agil'],
-  'Fra Ærend': ['aerend'],
+  'Fra Ærend': ['aerend', 'ai'],
 };
 
 /// The «PÅ VEI NÅ» card's data, from the order under way.
@@ -131,7 +240,37 @@ class VarselOrdre {
 
 /// Where the panel reads from; tests swap it.
 class HjemVarslerKilde {
-  const HjemVarslerKilde({required this.pushes, required this.aegil, required this.unseen, required this.markerSett, required this.ordre});
+  const HjemVarslerKilde({
+    required this.pushes,
+    required this.aegil,
+    required this.unseen,
+    required this.markerSett,
+    required this.ordre,
+    this.inbox = _ingenInbox,
+    this.antall = _ingenAntall,
+    this.les = _ingenSvar,
+    this.fjern = _ingenFjern,
+    this.demp = _ingenDemp,
+  });
+
+  static Future<CusInbox?> _ingenInbox() async => null;
+  static Future<int?> _ingenAntall() async => null;
+  static Future<bool> _ingenSvar(String _) async => false;
+  static Future<bool> _ingenFjern(String _, bool __) async => false;
+  static Future<List<String>?> _ingenDemp(String _, bool __) async => null;
+
+  /// The per-user inbox (Customer Step 3); null → the older sources.
+  final Future<CusInbox?> Function() inbox;
+
+  /// The bells' number from the inbox; null → the older count.
+  final Future<int?> Function() antall;
+  final Future<bool> Function(String key) les;
+
+  /// «Fjern» / («Angre»: [angre] true).
+  final Future<bool> Function(String key, bool angre) fjern;
+
+  /// «Ikke slike varsler» ([av] true) / «Angre» ([av] false).
+  final Future<List<String>?> Function(String muteKey, bool av) demp;
 
   final Future<List<MassNotificationItem>> Function() pushes;
   final Future<List<AwayItem>> Function() aegil;
@@ -152,6 +291,11 @@ class HjemVarslerKilde {
       await Future.wait([A3Services.points().updatePrefs(markNotificationsSeen: true), A3Services.aegil().awaySeen()]);
     },
     ordre: _ordreFraSporing,
+    inbox: () => CusApi().varsler(limit: 50),
+    antall: () => CusApi().varslerUleste(),
+    les: (k) => CusApi().varselLest(k),
+    fjern: (k, angre) => CusApi().varselFjern(k, angre: angre),
+    demp: (k, av) async => CusApi().varselDemp(k, av: av),
   );
 
   static Future<VarselOrdre?> _ordreFraSporing(int orderId) async {
@@ -182,6 +326,11 @@ abstract final class HjemVarsler {
 
   static Future<void> oppdater() async {
     try {
+      // The inbox's unread count when it is on; else broadcasts + Ægil.
+      if (await kilde.antall().catchError((_) => null) case final n?) {
+        uleste.value = n;
+        return;
+      }
       final r = await Future.wait([kilde.unseen(), kilde.aegil()]);
       uleste.value = (r[0] as ({int antall, DateTime? sett})).antall + (r[1] as List<AwayItem>).length;
     } catch (_) {}
@@ -194,7 +343,7 @@ abstract final class HjemVarsler {
       PageRouteBuilder<void>(
         opaque: false,
         barrierDismissible: false,
-        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}bergen/varsler'),
+        settings: const RouteSettings(name: '${appRoutePrefix}bergen/varsler'),
         transitionDuration: Duration(milliseconds: rolig ? 0 : 440),
         reverseTransitionDuration: Duration(milliseconds: rolig ? 0 : 220),
         pageBuilder: (_, a, __) => VarslerPanel(filter: filter, inn: a),
@@ -225,20 +374,61 @@ class _VarslerPanelState extends State<VarslerPanel> {
   VarselOrdre? _ordre;
   bool _lastet = false;
 
+  /// The cards came from the inbox (read, swipe, remove, mute work).
+  bool _inbox = false;
+
+  /// The open card (swiped to −166) and the toast with «Angre».
+  String? _aap;
+  ({String tekst, VoidCallback angre})? _bekreft;
+  Timer? _bekreftT;
+
+  /// Read-on-view: a card counts as seen after two 500 ms ticks on screen.
+  final Map<String, GlobalKey> _kortNokler = {};
+  final Map<String, int> _sett = {};
+  final GlobalKey _listeNokkel = GlobalKey();
+  Timer? _lesT;
+
+  /// Stores followed from a «Ny på Ærend» card.
+  final Set<int> _folger = {};
+
   @override
   void initState() {
     super.initState();
     _last();
   }
 
+  @override
+  void dispose() {
+    _lesT?.cancel();
+    _bekreftT?.cancel();
+    super.dispose();
+  }
+
   Future<void> _last() async {
     final k = HjemVarsler.kilde;
     final live = hjemLiveOrdre.value;
+    final ordre = live == null ? Future<VarselOrdre?>.value() : k.ordre(live.orderId).catchError((_) => null);
+    final inbox = await k.inbox().catchError((_) => null);
+    if (inbox != null) {
+      final o = await ordre;
+      if (!mounted) return;
+      setState(() {
+        _alle = [for (final c in inbox.items) Varsel.fraInbox(c)];
+        _ordre = o;
+        _inbox = true;
+        _lastet = true;
+      });
+      HjemVarsler.uleste.value = inbox.unread;
+      _lesT = Timer.periodic(const Duration(milliseconds: 500), (_) => _lesSynlige());
+      _harness();
+      unawaited(k.markerSett().catchError((_) {}));
+      return;
+    }
     final r = await Future.wait<Object?>([
       k.pushes().catchError((_) => const <MassNotificationItem>[]),
       k.aegil().catchError((_) => const <AwayItem>[]),
       k.unseen().catchError((_) => (antall: 0, sett: null)),
-      if (live != null) k.ordre(live.orderId).catchError((_) => null),
+      ordre,
     ]);
     if (!mounted) return;
     final pushes = r[0] as List<MassNotificationItem>;
@@ -253,20 +443,181 @@ class _VarslerPanelState extends State<VarslerPanel> {
     ]..sort((x, y) => y.tid.compareTo(x.tid));
     setState(() {
       _alle = liste;
-      _ordre = live == null ? null : r[3] as VarselOrdre?;
+      _ordre = r[3] as VarselOrdre?;
       _lastet = true;
     });
-    // Opening Varsler counts as seeing them (the design marks a card read
-    // after ~1 s on screen; the backend has one «seen» time, not per card).
+    // Opening Varsler counts as seeing them (the older sources have one
+    // «seen» time, not per card).
     unawaited(k.markerSett().catchError((_) {}));
+  }
+
+  /// Debug harness (`kunde_state.json`): a card swiped open, or removed.
+  void _harness() {
+    if (!kDebugMode) return;
+    final kort = _alle.where((v) => v.key != null).toList();
+    if (HjemHarness.varslerSveip case final i? when i < kort.length) setState(() => _aap = kort[i].key);
+    if (HjemHarness.varslerFjern case final i? when i < kort.length) _fjern(kort[i], varighet: const Duration(seconds: 30));
+  }
+
+  /// `apneVarsler`'s 500 ms check: a card at least 12 px inside the list for
+  /// two ticks in a row is read.
+  void _lesSynlige() {
+    final liste = _listeNokkel.currentContext?.findRenderObject() as RenderBox?;
+    if (!mounted || liste == null || !liste.hasSize) return;
+    final top = liste.localToGlobal(Offset.zero).dy, bunn = top + liste.size.height;
+    final nye = <String>[];
+    for (final v in _alle) {
+      final key = v.key;
+      if (key == null || !v.ulest) continue;
+      final box = _kortNokler[key]?.currentContext?.findRenderObject() as RenderBox?;
+      if (box == null || !box.attached || !box.hasSize) continue;
+      final y = box.localToGlobal(Offset.zero).dy;
+      if (y < bunn - 12 && y + box.size.height > top + 12) {
+        _sett[key] = (_sett[key] ?? 0) + 1;
+        if (_sett[key] == 2) nye.add(key);
+      } else {
+        _sett[key] = 0;
+      }
+    }
+    if (nye.isEmpty) return;
+    setState(() => _alle = [for (final v in _alle) nye.contains(v.key) ? v.lest() : v]);
+    HjemVarsler.uleste.value = _alle.where((v) => v.ulest).length;
+    for (final key in nye) {
+      unawaited(HjemVarsler.kilde.les(key).catchError((_) => false));
+    }
+  }
+
+  void _visBekreftelse(String tekst, VoidCallback angre, {Duration varighet = const Duration(seconds: 5)}) {
+    _bekreftT?.cancel();
+    setState(() => _bekreft = (tekst: tekst, angre: angre));
+    _bekreftT = Timer(varighet, () => mounted ? setState(() => _bekreft = null) : null);
+  }
+
+  /// «Fjern» (`vsFjernet`), with «Angre».
+  void _fjern(Varsel v, {Duration varighet = const Duration(seconds: 5)}) {
+    final key = v.key;
+    if (key == null) return;
+    final i = _alle.indexOf(v);
+    setState(() {
+      _alle = [..._alle]..remove(v);
+      _aap = null;
+    });
+    unawaited(HjemVarsler.kilde.fjern(key, false).catchError((_) => false));
+    _visBekreftelse(varighet: varighet, VarslerCopy.fjernet(v.tittel), () {
+      _bekreftT?.cancel();
+      setState(() {
+        _alle = [..._alle]..insert(i.clamp(0, _alle.length), v);
+        _bekreft = null;
+      });
+      unawaited(HjemVarsler.kilde.fjern(key, true).catchError((_) => false));
+    });
+  }
+
+  /// «Ikke slike varsler» (`vsDempet`): the kind goes, here and on the phone.
+  void _demp(Varsel v) {
+    final mute = v.muteKey ?? v.type;
+    final bort = _alle.where((x) => (x.muteKey ?? x.type) == mute).toList();
+    final for_ = _alle;
+    setState(() {
+      _alle = _alle.where((x) => (x.muteKey ?? x.type) != mute).toList();
+      _aap = null;
+    });
+    unawaited(HjemVarsler.kilde.demp(mute, true).catchError((_) => null));
+    _visBekreftelse(VarslerCopy.dempet, () {
+      _bekreftT?.cancel();
+      setState(() {
+        _alle = [for (final x in for_) if (bort.contains(x) || _alle.contains(x)) x];
+        _bekreft = null;
+      });
+      unawaited(HjemVarsler.kilde.demp(mute, false).catchError((_) => null));
+    });
+  }
+
+  Future<void> _folg(Varsel v) async {
+    final id = v.storeId;
+    if (id == null) return;
+    final pa = _folger.contains(id);
+    setState(() => pa ? _folger.remove(id) : _folger.add(id));
+    try {
+      if (pa) {
+        await FeedRepo().unfollowStore('$id');
+      } else {
+        await FeedRepo().followStore('$id');
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => pa ? _folger.add(id) : _folger.remove(id));
+      showBergenToast(context, BergenRoutes.ikkeSendt);
+    }
   }
 
   void _lukk() => Navigator.of(context).maybePop();
 
+  /// Where a card goes (`vsMaal`): its link, else by kind.
   void _apneKort(Varsel v) {
+    if (_aap != null) {
+      setState(() => _aap = null);
+      return;
+    }
     final lenke = v.lenke;
     _lukk();
-    if (lenke != null && lenke.startsWith('/bergen/')) BergenRoutes.push<void>(context, lenke);
+    if (lenke != null && lenke.startsWith('/bergen/')) {
+      BergenRoutes.push<void>(context, lenke);
+      return;
+    }
+    if (lenke != null && lenke.startsWith(PushDeepLink.scheme)) {
+      if (PushDeepLink.fromLink(lenke) case final r?) {
+        PushNotificationService.openPushRoute(r);
+        return;
+      }
+    }
+    final rute = switch (v.type) {
+      'ordre' || 'valg' || 'ai' => v.orderId == null ? null : '/bergen/sporing/${v.orderId}',
+      'tilbud' => '/bergen/aegil',
+      'nybyen' => v.storeId == null ? null : '/bergen/butikk/${v.storeId}',
+      'belonning' || 'verving' || 'liga' => '/bergen/meg',
+      'ukeshandel' || 'agil' => '/bergen/kurv',
+      _ => null,
+    };
+    if (rute != null) BergenRoutes.pushOr(context, rute, orElse: () {});
+  }
+
+  void _handling(Varsel v) {
+    // Customer Step 7: «Angre» on a level-3 merge's receipt.
+    if (v.handling == CusLevel3Copy.cus_angre && v.actionId != null) {
+      unawaited(_angre(v));
+      return;
+    }
+    // Customer Step 10 (design C2.10): «Svar Mari» continues the Hjelp thread the person answered in.
+    if ((v.handling ?? '').startsWith('Svar ') && v.conversationId != null) {
+      SupportStore.instance.fortsettSamtale = v.conversationId;
+      HjelpScreen.apne(context, initial: HjelpState.chat, orderId: v.orderId);
+      return;
+    }
+    if (v.orderId != null) {
+      _tilSporing(v.orderId!);
+    } else {
+      _apneKort(v);
+    }
+  }
+
+  Future<void> _angre(Varsel v) async {
+    final ok = await A3Services.aegil().undoAgentAction(v.actionId!);
+    if (!mounted) return;
+    if (!ok) {
+      showBergenToast(context, CusLevel3Copy.cus_angre_feil);
+      return;
+    }
+    setState(() {
+      _alle = [for (final x in _alle) x == v ? x.utenHandling() : x];
+      _aap = null;
+    });
+    showBergenToast(context, CusLevel3Copy.cus_angret_toast);
+  }
+
+  void _seMeny(Varsel v) {
+    _lukk();
+    if (v.storeId != null) BergenRoutes.pushOr(context, '/bergen/butikk/${v.storeId}', orElse: () {});
   }
 
   void _tilSporing(int id) {
@@ -435,7 +786,9 @@ class _VarslerPanelState extends State<VarslerPanel> {
             right: 0,
             top: 146,
             bottom: 0,
-            child: ListView(
+            child: KeyedSubtree(
+              key: _listeNokkel,
+              child: ListView(
               key: const Key('varsler-liste'),
               padding: EdgeInsets.fromLTRB(16, 4, 16, 96 + bunn),
               children: [
@@ -443,10 +796,29 @@ class _VarslerPanelState extends State<VarslerPanel> {
                 for (final g in [0, 1, 2])
                   if (grupper[g] case final del?) ...[
                     _Overskrift(navn[g]),
-                    for (final v in del) _Kort(key: Key('varsel-${v.id}'), v: v, naa: naa, onTap: () => _apneKort(v)),
+                    for (final v in del)
+                      _SveipKort(
+                        key: _kortNokler.putIfAbsent(v.key ?? v.id, GlobalKey.new),
+                        aapen: _aap == v.key,
+                        kanSveipe: _inbox && v.key != null,
+                        onAapen: (a) => setState(() => _aap = a ? v.key : null),
+                        onDemp: () => _demp(v),
+                        onFjern: () => _fjern(v),
+                        child: _Kort(
+                          key: Key('varsel-${v.id}'),
+                          v: v,
+                          naa: naa,
+                          onTap: () => _apneKort(v),
+                          onHandling: () => _handling(v),
+                          folger: v.storeId != null && _folger.contains(v.storeId),
+                          onFolg: () => _folg(v),
+                          onSeMeny: () => _seMeny(v),
+                        ),
+                      ),
                   ],
                 if (tomt) const _Tomt(),
               ],
+            ),
             ),
           ),
           // ── Footer ──────────────────────────────────────────────────────
@@ -464,7 +836,14 @@ class _VarslerPanelState extends State<VarslerPanel> {
                   stops: [0, .42],
                 ),
               ),
-              child: _Innstillinger(onTap: _innstillinger),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_bekreft case final b?) ...[_Bekreftelse(key: ValueKey(b.tekst), tekst: b.tekst, onAngre: b.angre), const SizedBox(height: 9)],
+                  _Innstillinger(onTap: _innstillinger),
+                ],
+              ),
             ),
           ),
         ],
@@ -717,6 +1096,8 @@ const Map<String, (Color, String, double)> _kVst = {
   'ukeshandel': (Color(0xFFA9CDB6), 'Baat', -2),
   'agil': (Color(0xFFC7B8E8), 'Aegil', 3),
   'aerend': (Color(0xFFDCE9EC), 'Merke', -2),
+  // Customer Step 14: an assistant's request / order / link.
+  'ai': (Color(0xFF1E4F5C), 'Merke', 2),
 };
 
 const Map<String, String> _kIkon = {
@@ -749,11 +1130,13 @@ const Map<String, Size> _kIkonStr = {
 };
 
 class _Kort extends StatelessWidget {
-  const _Kort({super.key, required this.v, required this.naa, required this.onTap});
+  const _Kort({super.key, required this.v, required this.naa, required this.onTap, this.onHandling, this.folger = false, this.onFolg, this.onSeMeny});
 
   final Varsel v;
   final DateTime naa;
   final VoidCallback onTap;
+  final VoidCallback? onHandling, onFolg, onSeMeny;
+  final bool folger;
 
   @override
   Widget build(BuildContext context) {
@@ -785,7 +1168,10 @@ class _Kort extends StatelessWidget {
               CssShadow(0, 16, 26, -18, Color.fromRGBO(4, 18, 26, .9)),
             ],
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 13),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Transform.rotate(
@@ -840,7 +1226,7 @@ class _Kort extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 SizedBox(
-                  height: 34 + 8,
+                  height: v.handling != null ? 44 : 34 + 8,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -857,12 +1243,33 @@ class _Kort extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                       ],
-                      _pil(mFg),
+                      if (v.handling case final h?)
+                        _Handling(tekst: h, oransje: v.type == 'valg', onTap: onHandling ?? onTap)
+                      else if (!v.rik)
+                        _pil(mFg),
                     ],
                   ),
                 ),
               ],
             ),
+            if (v.rik) ...[
+              const SizedBox(height: 11),
+              _Bilder(urls: v.bilder),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _RikKnapp(key: const Key('varsel-folg'), tekst: folger ? VarslerCopy.folger : VarslerCopy.folg, oransje: folger, onTap: onFolg ?? () {}),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _RikKnapp(key: const Key('varsel-se-meny'), tekst: VarslerCopy.seMeny, onTap: onSeMeny ?? onTap),
+                  ),
+                ],
+              ),
+            ],
+          ],
+          ),
           ),
         ),
       ),
@@ -933,6 +1340,248 @@ class _Innstillinger extends StatelessWidget {
           ],
         ),
       ),
+    ),
+  );
+}
+
+// ── Customer Step 3: swipe, toast, actions ─────────────────────────────────
+
+/// A card that swipes left to −166 px (`vsAap`) over «Ikke slike varsler»
+/// (92 px) and «Fjern» (74 px); let go past −70 to keep it open.
+class _SveipKort extends StatefulWidget {
+  const _SveipKort({
+    super.key,
+    required this.child,
+    required this.aapen,
+    required this.kanSveipe,
+    required this.onAapen,
+    required this.onDemp,
+    required this.onFjern,
+  });
+
+  final Widget child;
+  final bool aapen, kanSveipe;
+  final ValueChanged<bool> onAapen;
+  final VoidCallback onDemp, onFjern;
+
+  @override
+  State<_SveipKort> createState() => _SveipKortState();
+}
+
+class _SveipKortState extends State<_SveipKort> {
+  static const double _bredde = 166;
+  double? _drag;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.kanSveipe) return widget.child;
+    final base = widget.aapen ? -_bredde : 0.0;
+    final dx = _drag ?? base;
+    final bak = dx < -2;
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 9,
+          child: IgnorePointer(
+            ignoring: !bak,
+            child: AnimatedOpacity(
+              opacity: bak ? 1 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      key: const Key('varsel-demp'),
+                      onTap: widget.onDemp,
+                      child: Container(
+                        width: 92,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        color: const Color.fromRGBO(255, 255, 255, .14),
+                        child: Text(VarslerCopy.ikkeSlike, textAlign: TextAlign.center, style: inter(10, weight: FontWeight.w800, height: 1.25)),
+                      ),
+                    ),
+                    GestureDetector(
+                      key: const Key('varsel-fjern'),
+                      onTap: widget.onFjern,
+                      child: Container(
+                        width: 74,
+                        alignment: Alignment.center,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF26D3D), Color(0xFFC94A22)]),
+                        ),
+                        child: Text(VarslerCopy.fjern, style: inter(11.5, weight: FontWeight.w800)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        GestureDetector(
+          onHorizontalDragStart: (_) => setState(() => _drag = base),
+          onHorizontalDragUpdate: (d) => setState(() => _drag = ((_drag ?? base) + d.delta.dx).clamp(-_bredde, 0.0)),
+          onHorizontalDragEnd: (_) {
+            final aapne = (_drag ?? base) < -70;
+            setState(() => _drag = null);
+            widget.onAapen(aapne);
+          },
+          onHorizontalDragCancel: () => setState(() => _drag = null),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: dx),
+            // `transform .3s cubic-bezier(.2,.9,.3,1)`, none while dragging.
+            duration: _drag != null ? Duration.zero : BergenPerf.oneShot(context, 300),
+            curve: const Cubic(.2, .9, .3, 1),
+            builder: (context, x, child) => Transform.translate(offset: Offset(x, 0), child: child),
+            child: widget.child,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// «Fjernet: …» / «Skrudde av slike varsler» with «Angre» (`vsBekr`, 5 s;
+/// `klask .34s cubic-bezier(.3,1.4,.5,1)` — the design's stamp, which ends at −5°).
+class _Bekreftelse extends StatelessWidget {
+  const _Bekreftelse({super.key, required this.tekst, required this.onAngre});
+
+  final String tekst;
+  final VoidCallback onAngre;
+
+  @override
+  Widget build(BuildContext context) => LfOnce(
+    ms: 340,
+    builder: (context, t, child) {
+      const c = Cubic(.3, 1.4, .5, 1);
+      final u = (t / 340).clamp(0.0, 1.0);
+      final double rot, skala, op;
+      if (u < .6) {
+        final e = c.transform(u / .6);
+        rot = -5 + -2 * e;
+        skala = 1.15 + (.98 - 1.15) * e;
+        op = e.clamp(0.0, 1.0);
+      } else {
+        final e = c.transform((u - .6) / .4);
+        rot = -7 + 2 * e;
+        skala = .98 + .02 * e;
+        op = 1;
+      }
+      return Opacity(
+        opacity: op,
+        child: Transform(alignment: Alignment.center, transform: Matrix4.rotationZ(rot * 3.14159265 / 180)..scaleByDouble(skala, skala, 1, 1), child: child),
+      );
+    },
+    child: Container(
+      key: const Key('varsler-bekreftelse'),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F1F2B),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+        boxShadow: const [BoxShadow(color: Color.fromRGBO(4, 18, 26, .9), offset: Offset(0, 12), blurRadius: 22, spreadRadius: -12)],
+      ),
+      child: Row(
+        children: [
+          Expanded(child: Text(tekst, maxLines: 2, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w700))),
+          const SizedBox(width: 10),
+          GestureDetector(
+            key: const Key('varsler-angre'),
+            onTap: onAngre,
+            child: Text(VarslerCopy.angre, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFFF2C14E))),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// The card's button («Velg»): 44 high, orange for `valg`.
+class _Handling extends StatelessWidget {
+  const _Handling({required this.tekst, required this.oransje, required this.onTap});
+
+  final String tekst;
+  final bool oransje;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => LfPress(
+    key: const Key('varsel-handling'),
+    scale: .94,
+    onTap: onTap,
+    child: CssBox(
+      height: 44,
+      radius: BorderRadius.circular(999),
+      bg: oransje ? _oransje : _hvitGlass,
+      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .25)),
+      shadows: oransje ? _oransjeSkygge : _hvitSkygge,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Center(widthFactor: 1, child: Text(tekst, style: inter(11.5, weight: FontWeight.w800))),
+    ),
+  );
+}
+
+/// «Ny på Ærend»: three photos (64 high, 1.4 : 1 : 1); the design's warm
+/// gradients stand in until a photo loads, or when the store has none.
+class _Bilder extends StatelessWidget {
+  const _Bilder({required this.urls});
+
+  final List<String> urls;
+
+  static const _fyll = [
+    [Color(0xFFE9D6B4), Color(0xFFC99B62)],
+    [Color(0xFFDCE9EC), Color(0xFF8FB3BE)],
+    [Color(0xFFEFE7D8), Color(0xFFB9A98C)],
+  ];
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      for (var i = 0; i < 3; i++) ...[
+        if (i > 0) const SizedBox(width: 6),
+        Expanded(
+          flex: i == 0 ? 14 : 10,
+          child: CssBox(
+            height: 64,
+            radius: BorderRadius.circular(13),
+            clip: true,
+            bg: [CssLinear(160, _fyll[i])],
+            shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .5)), CssShadow(0, 6, 12, -8, Color.fromRGBO(4, 18, 26, .8))],
+            child: i < urls.length
+                ? Image.network(urls[i], fit: BoxFit.cover, width: double.infinity, height: 64, errorBuilder: (_, __, ___) => const SizedBox.shrink())
+                : const SizedBox.expand(),
+          ),
+        ),
+      ],
+    ],
+  );
+}
+
+/// «Følg» / «Følger» (orange) and «Se meny».
+class _RikKnapp extends StatelessWidget {
+  const _RikKnapp({super.key, required this.tekst, required this.onTap, this.oransje = false});
+
+  final String tekst;
+  final VoidCallback onTap;
+  final bool oransje;
+
+  @override
+  Widget build(BuildContext context) => LfPress(
+    scale: .97,
+    onTap: onTap,
+    child: CssBox(
+      height: 44,
+      radius: BorderRadius.circular(999),
+      bg: oransje ? _oransje : _hvitGlass,
+      border: Border.all(color: Color.fromRGBO(255, 255, 255, oransje ? .28 : .22)),
+      shadows: oransje ? _oransjeSkygge : _hvitSkygge,
+      child: Center(child: Text(tekst, style: inter(12.5, weight: FontWeight.w800))),
     ),
   );
 }

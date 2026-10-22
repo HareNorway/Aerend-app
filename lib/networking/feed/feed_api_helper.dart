@@ -6,6 +6,7 @@ import '../../exceptions/feed/feed_api_exception.dart';
 import 'feed_api_constant.dart';
 import 'feed_auth_interceptor.dart';
 import 'feed_locale_interceptor.dart';
+import '../../services/customer/beacons.dart';
 
 class FeedApiHelper {
   static final FeedApiHelper instance = FeedApiHelper._();
@@ -62,6 +63,7 @@ class FeedApiHelper {
       );
       return _parseResponse(response.data);
     } on DioException catch (e) {
+      CusBeacons.onDio(e);
       throw FeedApiException.fromDio(e);
     }
   }
@@ -78,6 +80,7 @@ class FeedApiHelper {
       );
       return _parseResponse(response.data);
     } on DioException catch (e) {
+      CusBeacons.onDio(e);
       throw FeedApiException.fromDio(e);
     }
   }
@@ -94,6 +97,7 @@ class FeedApiHelper {
       );
       return _parseResponse(response.data);
     } on DioException catch (e) {
+      CusBeacons.onDio(e);
       throw FeedApiException.fromDio(e);
     }
   }
@@ -110,6 +114,7 @@ class FeedApiHelper {
       );
       return _parseResponse(response.data);
     } on DioException catch (e) {
+      CusBeacons.onDio(e);
       throw FeedApiException.fromDio(e);
     }
   }

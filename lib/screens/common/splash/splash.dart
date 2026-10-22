@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../auth/launch/lf_css.dart';
 import '../auth/launch/lf_splash.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../consent/reen_flip_mark.dart';
 import 'splash_bloc.dart';
 
@@ -116,7 +116,7 @@ class SplashState extends State<Splash> with SingleTickerProviderStateMixin {
 /// of the 3.4s clock (`spxUt 3.4s linear`, 86% → 100%).
 PageRoute<T> lfSplashFadeRoute<T extends Object?>(Widget screen) {
   return PageRouteBuilder<T>(
-    settings: RouteSettings(name: snurreLauncherRouteNameFor(screen)),
+    settings: RouteSettings(name: routeNameFor(screen)),
     pageBuilder: (context, animation, secondaryAnimation) => screen,
     transitionDuration: const Duration(milliseconds: 476),
     reverseTransitionDuration: Duration.zero,

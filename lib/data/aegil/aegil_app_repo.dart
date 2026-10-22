@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart' show MultipartFile;
+
 import '../../networking/api_base_helper.dart';
 import '../../utils/shared_pref_utill.dart';
 import '../../utils/utils.dart';
@@ -12,7 +14,31 @@ import 'suggestion_models.dart';
 /// Screens take an [AegilAppApi] so tests can inject a fake; this class is
 /// the network implementation.
 abstract class AegilAppApi {
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId});
+  /// One chat turn. [storeId], [category] and [recipient] (sent as `for`)
+  /// are the context Ægil was opened with (D-K20).
+  ///
+  /// Customer Step 5: [conversationId] continues a chat (`cv_…`); [orderId]
+  /// is the order «Spør Ægil» was opened from on its tracking view.
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId});
+
+  /// Customer Step 5: the customer's chats, newest first, and one chat's
+  /// lines — the screen resumes the last one after a relaunch.
+  Future<List<AegilSamtale>> conversations();
+  Future<List<AegilSamtaleLinje>?> conversation(String id);
+
+  /// «Ny prat»: the chat is closed; the next line starts a new one.
+  Future<bool> closeConversation(String id);
+
+  /// The customer's tap on a cart proposal (`pa_…`): the card back as a
+  /// receipt — or [feil], the server's words, when it could not be done.
+  Future<({AeVerktoy? kort, String? feil})> applyAction(String id);
+
+  /// Angre: the basket as it was before the tap.
+  Future<({AeVerktoy? kort, String? feil})> undoAction(String id);
+
+  /// «Aldri dette» on a Hjem float: stored as a product exclusion.
+  Future<bool> neverProduct(int storeProductId);
+
   Future<List<Suggestion>> suggestions({String? context});
   Future<bool> add(int suggestionId);
   Future<bool> dismiss(int suggestionId);
@@ -23,6 +49,9 @@ abstract class AegilAppApi {
   /// Gap Step 3: everything Ægil did in the last [days] (`GET agent/me/actions`).
   Future<List<AwayItem>> actions({int days = 30});
   Future<TrustLedger?> trustLedger();
+
+  /// Customer Step 12: this month's summary for Meg's row (null hides it).
+  Future<MonthlySummary?> monthlySummary() async => null;
   Future<AegilTurn?> photoOrder(List<String> items);
   Future<String?> doorNote(String note);
 
@@ -31,6 +60,41 @@ abstract class AegilAppApi {
   Future<List<Occasion>> addOccasion({required String person, required String date, String? label});
   Future<List<Occasion>> removeOccasion(int id);
   Future<List<ShoppingListItem>> shoppingList();
+
+  // Customer Step 7: learned patterns, the level-3 merge's lines and receipts, the push invitation.
+  // Plain defaults, so a fake that does not know them still compiles.
+  Future<List<LearnedPatternItem>> patterns() async => const [];
+  Future<LearnedPatternItem?> decidePattern(int id, {required bool confirm}) async => null;
+  Future<List<AgentLine>> agentLines() async => const [];
+  Future<bool> undoLine(int cartId) async => false;
+  Future<bool> undoAgentAction(int actionId) async => false;
+  Future<bool> pushInvite({required bool accept}) async => false;
+
+  // Customer Step 8: Ukeshandel — the week's basket, its review, the level-3
+  // checkout (one confirmation per store), the dinner plan, the list's chips.
+  // `feil` carries the server's words when a call is refused.
+  Future<WeeklyView?> weekly() async => null;
+  Future<({WeeklyOrder? weekly, String? feil})> buildWeekly({bool force = false}) async => (weekly: null, feil: null);
+  Future<WeeklyOrder?> weeklyLine(int id, int lineId, String action, {int? qty}) async => null;
+  Future<WeeklyOrder?> weeklySkip(int id) async => null;
+  Future<({bool ok, String? feil})> weeklyBasket(int id) async => (ok: false, feil: null);
+  Future<({WeeklyConfirmation? conf, String? feil})> weeklyCheckout(int id) async => (conf: null, feil: null);
+  Future<({WeeklyConfirmResult? res, String? feil})> weeklyConfirm(int id, String confirmToken, {String payment = 'vipps'}) async => (res: null, feil: null);
+  Future<List<DinnerDay>?> setDinnerPlan(String week, int weekday, {String? choiceType, int? storeProductId}) async => null;
+  Future<List<ShoppingListItem>?> toggleListItem(int id) async => null;
+  Future<List<ShoppingListItem>?> removeListItem(int id) async => null;
+
+  // Customer Step 9: the customer agents. `feil` carries the server's words when refused.
+  Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async => (gift: null, feil: null);
+  Future<GiftResult?> giftMore(int id) async => null;
+  Future<GiftResult?> giftCard(int id, String action, {String? text}) async => null;
+  Future<({GiftResult? gift, String? feil})> giftChoose(int id, int storeProductId) async => (gift: null, feil: null);
+  Future<bool> giftAttach(int id, int orderId) async => false;
+  Future<({ReorderResult? scan, String? feil})> reorderScan({String? filePath, String? dataUrl}) async => (scan: null, feil: null);
+  Future<({ReorderResult? scan, String? feil})> reorderChoose(int id, {int? storeProductId, bool add = false}) async => (scan: null, feil: null);
+  Future<DoorResult?> doorParse(int addressId, String text) async => null;
+  Future<DoorResult?> doorConfirm(int id, {Map<String, dynamic> fields = const {}, bool codeConsent = false}) async => null;
+  Future<DoorResult?> doorUndo(int id) async => null;
 }
 
 class AegilAppRepo implements AegilAppApi {
@@ -52,17 +116,83 @@ class AegilAppRepo implements AegilAppApi {
   }
 
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId}) async {
     try {
       final json = _ok(await _api.post('chat', body: {
         ..._auth(),
         if (text != null) 'text': text,
         if (intent != null) 'intent': intent,
         if (storeId != null) 'store_id': storeId,
+        if (category != null) 'category': category,
+        if (recipient != null) 'for': recipient,
+        if (conversationId != null) 'conversation_id': conversationId,
+        if (orderId != null) 'order_id': orderId,
       }));
       return json == null ? null : AegilTurn.fromJson(json);
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<List<AegilSamtale>> conversations() async {
+    try {
+      final json = _ok(await _api.get('chat/conversations?${_query(_auth())}'));
+      return ((json?['conversations'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => AegilSamtale.fromJson(e.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<List<AegilSamtaleLinje>?> conversation(String id) async {
+    try {
+      final json = _ok(await _api.get('chat/conversations/$id?${_query(_auth())}'));
+      if (json == null) return null;
+      return ((json['messages'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => AegilSamtaleLinje.fromJson(e.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> closeConversation(String id) async {
+    try {
+      return _ok(await _api.post('chat/conversations/$id/close', body: _auth())) != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<({AeVerktoy? kort, String? feil})> _action(String id, String what) async {
+    try {
+      final r = await _api.post('chat/actions/$id/$what', body: _auth());
+      final json = _ok(r);
+      if (json != null && json['card'] is Map) return (kort: AeVerktoy.fromJson((json['card'] as Map).cast<String, dynamic>()), feil: null);
+      return (kort: null, feil: r is Map ? r['message'] as String? : null);
+    } catch (_) {
+      return (kort: null, feil: null);
+    }
+  }
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> applyAction(String id) => _action(id, 'apply');
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> undoAction(String id) => _action(id, 'undo');
+
+  @override
+  Future<bool> neverProduct(int storeProductId) async {
+    try {
+      return _ok(await _api.post('me/never', body: {..._auth(), 'store_product_id': storeProductId})) != null;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -88,6 +218,49 @@ class AegilAppRepo implements AegilAppApi {
 
   @override
   Future<bool> awaySeen() => _feedback('me/away/seen');
+
+  // ── Customer Step 7 ──────────────────────────────────────────────────────
+
+  @override
+  Future<List<LearnedPatternItem>> patterns() async {
+    try {
+      final json = _ok(await _api.get('me/patterns?${_query(_auth())}'));
+      if (json == null) return const [];
+      return ((json['patterns'] as List?) ?? const []).whereType<Map>().map((e) => LearnedPatternItem.fromJson(e.cast<String, dynamic>())).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<LearnedPatternItem?> decidePattern(int id, {required bool confirm}) async {
+    try {
+      final json = _ok(await _api.post('me/patterns/$id/${confirm ? 'confirm' : 'reject'}', body: _auth()));
+      return json != null && json['pattern'] is Map ? LearnedPatternItem.fromJson((json['pattern'] as Map).cast<String, dynamic>()) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<AgentLine>> agentLines() async {
+    try {
+      final json = _ok(await _api.get('me/cart/agent-lines?${_query(_auth())}'));
+      if (json == null) return const [];
+      return ((json['lines'] as List?) ?? const []).whereType<Map>().map((e) => AgentLine.fromJson(e.cast<String, dynamic>())).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<bool> undoLine(int cartId) => _feedback('me/cart/lines/$cartId/undo');
+
+  @override
+  Future<bool> undoAgentAction(int actionId) => _feedback('me/agent_actions/$actionId/undo');
+
+  @override
+  Future<bool> pushInvite({required bool accept}) => _feedback('me/push-invite', {'accept': accept});
 
   @override
   Future<List<AwayItem>> actions({int days = 30}) async {
@@ -134,6 +307,17 @@ class AegilAppRepo implements AegilAppApi {
       final json = _ok(await _api.get('me/trust-ledger?${_query(_auth())}'));
       final ledger = json?['ledger'];
       return ledger is Map ? TrustLedger.fromJson(ledger.cast<String, dynamic>()) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<MonthlySummary?> monthlySummary() async {
+    try {
+      final json = _ok(await _api.get('me/monthly-summary?${_query(_auth())}'));
+      final s = json?['summary'];
+      return s is Map ? MonthlySummary.fromJson(s.cast<String, dynamic>()) : null;
     } catch (_) {
       return null;
     }
@@ -195,12 +379,225 @@ class AegilAppRepo implements AegilAppApi {
   Future<List<ShoppingListItem>> shoppingList() async {
     try {
       final json = _ok(await _api.get('me/shopping-list?${_query(_auth())}'));
-      return ((json?['items'] as List?) ?? const [])
-          .whereType<Map>()
-          .map((e) => ShoppingListItem.fromJson(e.cast<String, dynamic>()))
-          .toList();
+      return _items(json) ?? const [];
     } catch (_) {
       return const [];
+    }
+  }
+
+  List<ShoppingListItem>? _items(Map<String, dynamic>? json) => json == null
+      ? null
+      : ((json['items'] as List?) ?? const []).whereType<Map>().map((e) => ShoppingListItem.fromJson(e.cast<String, dynamic>())).toList();
+
+  // Customer Step 8.
+
+  /// A refused call's words (`status 0`): the message, else null.
+  String? _feil(dynamic response) => response is Map && response['status'] != 1 ? (response['message'] as String?) : null;
+
+  WeeklyOrder? _weekly(Map<String, dynamic>? json) => json?['weekly'] is Map ? WeeklyOrder.fromJson((json!['weekly'] as Map).cast<String, dynamic>()) : null;
+
+  @override
+  Future<WeeklyView?> weekly() async {
+    try {
+      final json = _ok(await _api.get('me/weekly?${_query(_auth())}'));
+      return json == null ? null : WeeklyView.fromJson(json);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<({WeeklyOrder? weekly, String? feil})> buildWeekly({bool force = false}) async {
+    try {
+      final r = await _api.post('me/weekly/build', body: {..._auth(), if (force) 'force': true});
+      return (weekly: _weekly(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (weekly: null, feil: null);
+    }
+  }
+
+  @override
+  Future<WeeklyOrder?> weeklyLine(int id, int lineId, String action, {int? qty}) async {
+    try {
+      return _weekly(_ok(await _api.post('me/weekly/$id/lines/$lineId', body: {..._auth(), 'action': action, if (qty != null) 'qty': qty})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<WeeklyOrder?> weeklySkip(int id) async {
+    try {
+      return _weekly(_ok(await _api.post('me/weekly/$id/skip', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<({bool ok, String? feil})> weeklyBasket(int id) async {
+    try {
+      final r = await _api.post('me/weekly/$id/basket', body: _auth());
+      return (ok: _ok(r) != null, feil: _feil(r));
+    } catch (_) {
+      return (ok: false, feil: null);
+    }
+  }
+
+  @override
+  Future<({WeeklyConfirmation? conf, String? feil})> weeklyCheckout(int id) async {
+    try {
+      final r = await _api.post('me/weekly/$id/checkout', body: _auth());
+      final json = _ok(r);
+      return (conf: json == null ? null : WeeklyConfirmation.fromJson(json), feil: _feil(r));
+    } catch (_) {
+      return (conf: null, feil: null);
+    }
+  }
+
+  @override
+  Future<({WeeklyConfirmResult? res, String? feil})> weeklyConfirm(int id, String confirmToken, {String payment = 'vipps'}) async {
+    try {
+      final r = await _api.post('me/weekly/$id/confirm', body: {..._auth(), 'confirm_token': confirmToken, 'payment': payment});
+      final json = _ok(r);
+      return (res: json == null ? null : WeeklyConfirmResult.fromJson(json), feil: _feil(r));
+    } catch (_) {
+      return (res: null, feil: null);
+    }
+  }
+
+  @override
+  Future<List<DinnerDay>?> setDinnerPlan(String week, int weekday, {String? choiceType, int? storeProductId}) async {
+    try {
+      final json = _ok(await _api.post('me/dinner_plans/$week', body: {
+        ..._auth(),
+        'weekday': weekday,
+        if (choiceType != null) 'choice_type': choiceType,
+        if (storeProductId != null) 'store_product_id': storeProductId,
+      }));
+      return json == null ? null : ((json['plan'] as List?) ?? const []).whereType<Map>().map((e) => DinnerDay.fromJson(e.cast<String, dynamic>())).toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<ShoppingListItem>?> toggleListItem(int id) async {
+    try {
+      return _items(_ok(await _api.post('me/shopping-list/$id/toggle', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<ShoppingListItem>?> removeListItem(int id) async {
+    try {
+      return _items(_ok(await _api.post('me/shopping-list/$id/remove', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Customer Step 9.
+
+  GiftResult? _gift(Map<String, dynamic>? json) => json?['gift'] is Map ? GiftResult.fromJson((json!['gift'] as Map).cast<String, dynamic>()) : null;
+  ReorderResult? _scan(Map<String, dynamic>? json) => json?['scan'] is Map ? ReorderResult.fromJson((json!['scan'] as Map).cast<String, dynamic>()) : null;
+  DoorResult? _door(Map<String, dynamic>? json) => json?['door'] is Map ? DoorResult.fromJson((json!['door'] as Map).cast<String, dynamic>()) : null;
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async {
+    try {
+      final r = await _api.post('me/gifts/brief', body: {..._auth(), if (text.isNotEmpty) 'text': text, ...fields});
+      return (gift: _gift(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (gift: null, feil: null);
+    }
+  }
+
+  @override
+  Future<GiftResult?> giftMore(int id) async {
+    try {
+      return _gift(_ok(await _api.post('me/gifts/$id/more', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<GiftResult?> giftCard(int id, String action, {String? text}) async {
+    try {
+      return _gift(_ok(await _api.post('me/gifts/$id/card', body: {..._auth(), 'action': action, if (text != null) 'text': text})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftChoose(int id, int storeProductId) async {
+    try {
+      final r = await _api.post('me/gifts/$id/choose', body: {..._auth(), 'store_product_id': storeProductId});
+      return (gift: _gift(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (gift: null, feil: null);
+    }
+  }
+
+  @override
+  Future<bool> giftAttach(int id, int orderId) async {
+    try {
+      return _ok(await _api.post('me/gifts/$id/attach', body: {..._auth(), 'order_id': orderId})) != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderScan({String? filePath, String? dataUrl}) async {
+    try {
+      final r = filePath != null
+          ? await _api.postFormData('me/reorder/scan', body: {..._auth(), 'photo': await MultipartFile.fromFile(filePath, filename: 'pakke.jpg')})
+          : await _api.post('me/reorder/scan', body: {..._auth(), 'image': dataUrl});
+      return (scan: _scan(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (scan: null, feil: null);
+    }
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderChoose(int id, {int? storeProductId, bool add = false}) async {
+    try {
+      final r = await _api.post('me/reorder/$id/choose', body: {..._auth(), if (storeProductId != null) 'store_product_id': storeProductId, if (add) 'add': true});
+      return (scan: _scan(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (scan: null, feil: null);
+    }
+  }
+
+  @override
+  Future<DoorResult?> doorParse(int addressId, String text) async {
+    try {
+      return _door(_ok(await _api.post('me/addresses/$addressId/door/parse', body: {..._auth(), 'text': text})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<DoorResult?> doorConfirm(int id, {Map<String, dynamic> fields = const {}, bool codeConsent = false}) async {
+    try {
+      return _door(_ok(await _api.post('me/door/$id/confirm', body: {..._auth(), ...fields, 'code_consent': codeConsent})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<DoorResult?> doorUndo(int id) async {
+    try {
+      return _door(_ok(await _api.post('me/door/$id/undo', body: _auth())));
+    } catch (_) {
+      return null;
     }
   }
 }

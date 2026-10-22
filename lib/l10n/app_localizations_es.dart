@@ -2839,7 +2839,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String cartSubstitutionDetail(String requested, String matched) {
-    return 'Snurre matched $requested to $matched. Review before paying.';
+    return 'We matched $requested to $matched. Review before paying.';
   }
 
   @override
@@ -2875,15 +2875,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get splashTagline => 'Every order supports the team';
-
-  @override
-  String get snurreSuggestion1 => 'Where can I buy the cheapest sunglasses?';
-
-  @override
-  String get snurreSuggestion2 => 'How long are restaurants in Bergen open?';
-
-  @override
-  String get snurreWriteMessage => 'Write a message';
 
   @override
   String get checkoutTitle => 'Checkout';
@@ -3146,37 +3137,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get checkoutOrderFee => 'Order fee';
-
-  @override
-  String get snurreLoginRequired => 'Please log in to use AI chat.';
-
-  @override
-  String get snurreProductUnavailable => 'Product is unavailable.';
-
-  @override
-  String get snurreCouldNotAddToCart => 'Could not add to cart.';
-
-  @override
-  String get snurreAddedToCart => 'Added to cart';
-
-  @override
-  String get snurreClose => 'Close';
-
-  @override
-  String get snurreStoreUnavailable => 'Store is unavailable.';
-
-  @override
-  String get snurreBuy => 'Buy';
-
-  @override
-  String get snurreBuyNow => 'Buy Now';
-
-  @override
-  String get snurreVisitStore => 'Visit Store';
-
-  @override
-  String get snurreStoreSelectionUnavailable =>
-      'Store selection is unavailable.';
 
   @override
   String get chatTypeMessage => 'Type message';

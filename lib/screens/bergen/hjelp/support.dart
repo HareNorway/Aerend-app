@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 
 /// Support for the customer (Launch `scStart` / `scSvar` / `sakVals`,
@@ -239,6 +240,9 @@ class SupportSamtale {
 
   /// `ai` → `human`; `iKo` once the customer asked for a person.
   bool iKo = false;
+
+  /// `queue_position` while queued (Customer Step 10: the SLA line shows it).
+  int? koPlass;
   String? menneske;
   bool lukket = false;
   SupportSak? sak;
@@ -291,6 +295,24 @@ class SupportStore {
   final List<SupportSak> _saker = [];
   Timer? _poll;
 
+  /// Customer Step 10: the C2 issues (`GET customer/issues`), newest first,
+  /// and the one «Svar {navn}» asked to continue (the card's conversation).
+  final List<CusIssue> _issues = [];
+  int? fortsettSamtale;
+
+  /// Replaced in tests.
+  CusApi cus = CusApi();
+
+  CusIssue? issueFor(int ordreId) => _issues.where((i) => i.orderId == ordreId).firstOrNull;
+
+  /// Keeps [i] as the order's newest issue (filed or changed from a sheet).
+  void settSak(CusIssue i) {
+    _issues
+      ..removeWhere((x) => x.id == i.id || x.orderId == i.orderId)
+      ..insert(0, i);
+    endret.value++;
+  }
+
   SupportSamtale? get aapen => samtaler.reversed.where((s) => !s.lukket).firstOrNull;
 
   SupportSamtale ny(SupportTema tema, String emne, {SupportOrdre? ordre, int? serverId}) {
@@ -311,9 +333,19 @@ class SupportStore {
 
   SupportSak? sakFor(int ordreId) => _saker.where((s) => s.ordreId == ordreId).firstOrNull;
 
-  /// `GET support/cases` (and the config, for the hours and the e-mail).
+  /// `GET support/cases` (and the config, for the hours and the e-mail), and
+  /// the C2 issues (Customer Step 10).
   Future<void> oppdater() async {
     unawaited(SupportConfig.last(api).then((_) => endret.value++));
+    unawaited(
+      cus.issues().then((list) {
+        if (list.isEmpty) return;
+        _issues
+          ..clear()
+          ..addAll(list);
+        endret.value++;
+      }),
+    );
     final j = await api.supportCases(guestToken: gjestToken);
     final list = j?['cases'];
     if (list is! List) return;
@@ -366,6 +398,7 @@ class SupportStore {
     }
     final state = '${c['state'] ?? ''}';
     s.iKo = state == 'queued' || state == 'human';
+    s.koPlass = (c['queue_position'] as num?)?.toInt();
     final navn = c['assignee_name']?.toString();
     if (state == 'human' && navn != null && navn.isNotEmpty) s.menneske = navn;
     if (state == 'closed') s.lukket = true;
@@ -478,6 +511,14 @@ abstract final class SupportAssistent {
   static Future<SupportSamtale> start(SupportTema tema, {required String fornavn, SupportOrdre? ordre, int? ordreId}) async {
     final store = SupportStore.instance;
     final orderId = ordre?.id ?? ordreId ?? store.gjestOrdreId;
+    // Customer Step 10 (support spec §2.1, Customer spec §4.7): one Hjelp
+    // thread per customer — a general question continues the open
+    // conversation (or the one a Varsler card pointed at) instead of
+    // opening a new one; the order topics still start their own.
+    if (tema == SupportTema.support || store.fortsettSamtale != null) {
+      final fortsett = await _aapenSamtale(store);
+      if (fortsett != null) return fortsett;
+    }
     final j = await store.api.supportOpen(topic: tema.server, orderId: orderId, guestToken: store.gjestToken);
     final c = j?['conversation'];
     if (c is Map<String, dynamic> && c['id'] != null) {
@@ -493,6 +534,36 @@ abstract final class SupportAssistent {
       return s;
     }
     return _startLokal(tema, fornavn: fornavn, ordre: ordre);
+  }
+
+  /// The open server conversation to continue: the one «Svar {navn}» named,
+  /// else the newest not closed. Null when none, or offline.
+  static Future<SupportSamtale?> _aapenSamtale(SupportStore store) async {
+    final wanted = store.fortsettSamtale;
+    store.fortsettSamtale = null;
+    final already = store.samtaler.where((s) => !s.lukket && s.serverId != null && (wanted == null || s.serverId == wanted)).lastOrNull;
+    if (already != null) return already;
+    int? id = wanted;
+    if (id == null) {
+      final j = await store.api.supportConversations(guestToken: store.gjestToken);
+      final list = (j?['conversations'] as List? ?? const []).whereType<Map>().toList();
+      final open = list.where((c) => '${c['state']}' != 'closed').toList();
+      if (open.isEmpty) return null;
+      id = (open.last['id'] as num?)?.toInt();
+    }
+    if (id == null) return null;
+    final j = await store.api.supportPoll(id, 0, guestToken: store.gjestToken);
+    final c = j?['conversation'];
+    if (c is! Map<String, dynamic> || c['id'] == null) return null;
+    final serverTema = switch ('${c['topic'] ?? ''}') {
+      'mangler' => SupportTema.mangler,
+      'feil' => SupportTema.feil,
+      'kom_aldri' => SupportTema.komAldri,
+      _ => SupportTema.support,
+    };
+    final s = store.ny(serverTema, _emne(serverTema), serverId: (c['id'] as num).toInt());
+    store.flett(s, c);
+    return s;
   }
 
   static Future<SupportSamtale> _startLokal(SupportTema tema, {required String fornavn, SupportOrdre? ordre}) async {
@@ -801,9 +872,10 @@ abstract final class SupportCopy {
   };
 
   // Chat chrome.
-  // Support v1 has no AI (backend plan Step 5): the assistant is scripted
-  // server-side rules, so the chrome doesn't say «AI».
-  static const String aiUnder = 'Ærend-assistent · svarer på sekunder';
+  // Customer Step 10 (support spec §4.3 «Transparency», design `scUnder`): the
+  // chrome says «AI» — layer 2 (Ærend AI) answers in the same thread.
+  static const String aiUnder = 'Ærend-assistent · AI · svarer på sekunder';
+  static String koUnder(int? plass, int min) => plass == null ? 'I kø for et menneske · svar innen $min min' : 'Nummer $plass i køen · svar innen $min min';
   static String stengtUnder(String kl) => 'Stengt · vi svarer fra $kl';
   static String menneskeUnder(String navn) => '$navn fra Ærend · menneske';
   static const String avsluttetUnder = 'Samtalen er avsluttet';
@@ -815,7 +887,7 @@ abstract final class SupportCopy {
   static const String vurderFeil = 'Fikk ikke sendt. Trykk på en stjerne for å prøve igjen.';
   static String vurderStjerne(int n) => '$n av 5 stjerner';
   static String merkeDu(String kl) => 'DU · $kl';
-  static String merkeAi(String kl) => 'ÆREND-ASSISTENT · $kl';
+  static String merkeAi(String kl, {String? navn}) => navn == 'Ærend AI' ? 'ÆREND AI · $kl' : 'ÆREND-ASSISTENT · $kl';
   static String merkeMenneske(String navn, String kl) => '${navn.toUpperCase()} FRA ÆREND · $kl';
   static const String skrivAi = 'Skriv med vanlige ord …';
   static String skrivTil(String navn) => 'Skriv til $navn …';

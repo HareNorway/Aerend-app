@@ -100,6 +100,7 @@ FeedTabItem feedInnleggItem(FeedPost post) => FeedTabItem(
   store: post.hasStore ? post.store : null,
   postType: 'generic',
   headline: post.headline,
+  disclosure: post.disclosure,
   caption: post.caption,
   locationName: post.locationName,
   media: post.media,

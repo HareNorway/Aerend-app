@@ -260,28 +260,28 @@ abstract final class SporingCopy {
   static String a1_sporing_ordre_over(String kode, String modus) => _t('Ordre $kode · $modus', 'Order $kode · $modus');
   static String get a1_sporing_levering_ord => _t('levering', 'delivery');
   static String get a1_sporing_henting_ord => _t('henting', 'pickup');
-  static String get a1_sporing_leveres_til => _t('LEVERES TIL', 'DELIVERED TO');
-  static String get a1_sporing_hentes_hos_stor => _t('HENTES HOS', 'PICKED UP AT');
+  static String get a1_sporing_leveres_til => _t('Leveres til', 'Delivered to');
+  static String get a1_sporing_hentes_hos_stor => _t('Hentes hos', 'Picked up at');
   static String get a1_sporing_ring_paa => _t('Ring på', 'Ring the bell');
   static String a1_sporing_ring_paa_hos(String navn) => _t('Ring på hos $navn', 'Ring the bell at $navn');
   static String a1_sporing_du_henter(String navn) => _t('Du henter i disken · si «$navn»', 'You pick up at the counter · say «$navn»');
-  static String get a1_sporing_bestilling_stor => 'BESTILLING';
+  static String get a1_sporing_bestilling_stor => _t('Bestilling', 'Order');
   static String a1_sporing_varer(int n) => _t('$n ${n == 1 ? 'vare' : 'varer'}', '$n ${n == 1 ? 'item' : 'items'}');
   static String get a1_sporing_se_alt => _t('Se alt', 'See all');
-  static String get a1_sporing_betalt_med_vipps => _t('BETALT MED VIPPS', 'PAID WITH VIPPS');
+  static String get a1_sporing_betalt_med_vipps => _t('Betalt med Vipps', 'Paid with Vipps');
   static String a1_sporing_betalt_kl(String t) => _t('Betalt $t', 'Paid $t');
   static String get a1_sporing_kvittering => _t('Kvittering', 'Receipt');
   static String get a1_sporing_klar_knapp => _t('Klar', 'Done');
-  static String get a1_sporing_ordrestatus => 'ORDRESTATUS';
+  static String get a1_sporing_ordrestatus => _t('Ordrestatus', 'Order status');
   static String get a1_sporing_din_bestilling => _t('Din bestilling', 'Your order');
   static String get a1_sporing_totalsum => _t('Totalsum', 'Total');
   static String get a1_sporing_betaling => _t('Betaling', 'Payment');
   static String get a1_sporing_betalt_ord => _t('Betalt', 'Paid');
   static String get a1_sporing_butikken_tittel => _t('Butikken', 'The shop');
-  static String get a1_sporing_ordrenummer => 'ORDRENUMMER';
-  static String get a1_sporing_aerend_id => 'ÆREND-ID';
-  static String get a1_sporing_tidsstempel => 'TIDSSTEMPEL';
-  static String get a1_sporing_kvittering_stor => 'KVITTERING';
+  static String get a1_sporing_ordrenummer => _t('Ordrenummer', 'Order number');
+  static String get a1_sporing_aerend_id => 'Ærend-ID';
+  static String get a1_sporing_tidsstempel => _t('Tidsstempel', 'Timestamp');
+  static String get a1_sporing_kvittering_stor => _t('Kvittering', 'Receipt');
   static String get a1_sporing_meg_bestillinger => _t('Meg · Bestillinger', 'Me · Orders');
   static String get a1_sporing_kontakt_kundeservice => _t('Kontakt kundeservice', 'Contact customer service');
   static String get a1_sporing_kvittering_feil => _t('Kvitteringen kan ikke lages akkurat nå', "The receipt can't be made right now");
@@ -376,4 +376,29 @@ abstract final class SporingCopy {
   static String get a1_sporing_vis_sjaforen => _t('VIS DENNE TIL SJÅFØREN', 'SHOW THIS TO THE DRIVER');
   static String get a1_sporing_vis_budet => _t('VIS DENNE TIL BUDET', 'SHOW THIS TO THE COURIER');
   static String get a1_sporing_bankid_verifisert => _t('BankID-verifisert', 'BankID verified');
+
+  // ── Customer Step 10: «Utført av Ærend AI» (contract §5, DoneByAi text keys) and the notice card ──
+  static String get cus_ai_utfort_eyebrow => _t('Utført av Ærend AI', 'Done by Ærend AI');
+  static const Map<String, (String, String)> _utfort = {
+    'ai_done_reassigned': ('Utført av Ærend AI: et nytt bud er spurt', 'Done by Ærend AI: a new courier was asked'),
+    'ai_done_store_nudged': ('Utført av Ærend AI: vi ringte butikken', 'Done by Ærend AI: we called the store'),
+    'ai_done_delay_notice': ('Utført av Ærend AI: du fikk ny tid', 'Done by Ærend AI: you got a new time'),
+    'ai_done_courier_released': ('Utført av Ærend AI: budet ble frigitt med ventekompensasjon', 'Done by Ærend AI: the courier was released with waiting pay'),
+    'ai_done_cancelled_with_policy': ('Utført av Ærend AI: ordren ble kansellert med full refusjon', 'Done by Ærend AI: the order was cancelled with a full refund'),
+  };
+
+  /// The line for a text key, else the server's own text (NO / EN).
+  static String cus_ai_utfort(String key, String text, String textEn) {
+    final k = _utfort[key];
+    return k == null ? _t(text, textEn) : _t(k.$1, k.$2);
+  }
+
+  static String cus_varsel_vent_vindu(String vindu) => _t('Vent · $vindu', 'Wait · $vindu');
+  static String get cus_varsel_avbestill_full => _t('Avbestill · full refusjon', 'Cancel · full refund');
+  static String cus_varsel_butikk_linje(String butikk) => _t('$butikk leverer selv. Vent på det nye vinduet, eller avbestill med full refusjon. Ingenting skjer før du velger.', '$butikk delivers itself. Wait for the new window, or cancel with a full refund. Nothing happens until you choose.');
+  static String cus_varsel_venter(String vindu) => _t('Vi venter · ny tid $vindu', 'We wait · new time $vindu');
+
+  // ── Customer Step 11: partner-delivered tracking (self-delivery spec §5) ──
+  static String get cus_sporing_butikken_regner => _t('Butikkens tid', "The store's time");
+  static String get cus_sporing_butikkens_tid => _t('butikkens eget anslag', "the store's own estimate");
 }

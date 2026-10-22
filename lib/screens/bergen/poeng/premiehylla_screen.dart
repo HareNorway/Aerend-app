@@ -21,6 +21,7 @@ import '../meg/meg_nav.dart';
 import '../meg/meg_nivaa_card.dart' show MegMedal, medalFor;
 import '../meg/meg_sheets.dart';
 import 'aegil_velger_screen.dart';
+import 'poeng_feil.dart';
 import 'premie_ark.dart';
 import 'prize_art.dart';
 import '../kit/bergen_perf.dart';
@@ -69,12 +70,34 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       _regler = r[3] as PointsRules? ?? _regler;
       _balance = r[0] as PointsBalance?;
       _shelf = r[1] as Premiehylla?;
-      _claims = kDebugMode && HjemHarness.hyllaTom ? const [] : (r[2] as List<PrizeClaim>?) ?? const [];
+      // Customer Step 12: a cancelled claim (the points came back) is not a prize of yours any more.
+      _claims = kDebugMode && HjemHarness.hyllaTom ? const [] : ((r[2] as List<PrizeClaim>?) ?? const []).where((c) => c.state != 'cancelled').toList();
       _loading = false;
     });
     if (kDebugMode && HjemHarness.hyllaArk == 'vilkaar') {
       HjemHarness.hyllaArk = null;
       PremieArk.vilkaar(context, regler: _regler);
+    }
+    // Customer Step 12 harness: Ægil velger from the shelf (`hyllaArk: velger`).
+    if (kDebugMode && HjemHarness.hyllaArk == 'velger') {
+      HjemHarness.hyllaArk = null;
+      _openVelger();
+    }
+    // Customer Step 12 harness: a claim's sheet open (`hyllaClaim`), and its «Angre» pressed (`hyllaAngre`).
+    final claimId = kDebugMode ? HjemHarness.hyllaClaim : null;
+    if (claimId != null) {
+      HjemHarness.hyllaClaim = null;
+      final c = _claims.where((c) => c.id == claimId).firstOrNull;
+      if (c != null) {
+        final byId = {for (final p in _shelf?.prizes ?? const <Prize>[]) p.id: p};
+        _visClaim(c, byId[c.prizeId]);
+        if (HjemHarness.hyllaAngre) {
+          HjemHarness.hyllaAngre = false;
+          Future<void>.delayed(const Duration(milliseconds: 1800), () {
+            if (mounted) _angreClaim(c);
+          });
+        }
+      }
     }
   }
 
@@ -90,6 +113,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     if (g != null) {
       showBergenToast(context, A4MegCopy.a4_hylla_satt_maal(p.pointPrice - _points), icon: Icons.flag_rounded);
       _load();
+    } else {
+      // Customer Step 12: a refused goal (GOAL_PRIZE_NOT_FOUND …) says so.
+      showBergenToast(context, A4MegCopy.cus_hylla_maal_feil, icon: Icons.error_outline_rounded);
     }
   }
 
@@ -120,9 +146,37 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
           MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: PremieArk.hvordan(p?.type ?? '')),
           if ((c.voucherCode ?? '').isNotEmpty) MegArkRow(title: A4MegCopy.a4_hylla_kode, sub: c.voucherCode!),
           if (c.expiresAt != null) MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: A4MegCopy.a4_hylla_dager_igjen(_dagerIgjen(c))),
+          // Customer Step 12 (Points spec §4.3): within 24 h before fulfilment the claim can be undone.
+          if (c.cancellable) MegArkRow(key: const Key('cus-hylla-angre-rad'), title: A4MegCopy.cus_hylla_angre, sub: A4MegCopy.cus_hylla_angre_til(_frist(c))),
         ],
       ),
+      primary: c.cancellable ? MegArkButton(key: const Key('cus-hylla-angre-cta'), label: A4MegCopy.cus_hylla_angre_cta, rod: true, onTap: () => _angreClaim(c)) : null,
     );
+  }
+
+  /// «til kl 12:57» today, «til kl 13.10. 12:57» another day.
+  static String _frist(PrizeClaim c) {
+    final d = c.cancelDeadlineAt?.toLocal();
+    if (d == null) return '';
+    String to(int n) => n.toString().padLeft(2, '0');
+    final now = DateTime.now();
+    final kl = '${to(d.hour)}:${to(d.minute)}';
+    return d.year == now.year && d.month == now.month && d.day == now.day ? kl : '${d.day}.${d.month}. $kl';
+  }
+
+  /// `DELETE points/claims/{id}`: the points come back, the shelf reloads;
+  /// CLAIM_CANCEL_WINDOW_CLOSED / CLAIM_ALREADY_CANCELLED in words.
+  Future<void> _angreClaim(PrizeClaim c) async {
+    final nav = Navigator.of(context);
+    final r = await _api.cancelClaim(c.id);
+    if (!mounted) return;
+    if (r.claim == null) {
+      showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.cus_hylla_angre_feil), icon: Icons.error_outline_rounded);
+      return;
+    }
+    nav.pop();
+    showBergenToast(context, A4MegCopy.cus_hylla_angret(c.pointsSpent), icon: Icons.undo_rounded);
+    _load();
   }
 
   static int _dagerIgjen(PrizeClaim c) => c.expiresAt == null ? 60 : math.max(0, c.expiresAt!.difference(DateTime.now()).inHours ~/ 24);
@@ -265,7 +319,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                         children: [
                           for (final (i, c) in _claims.indexed) ...[
                             if (i > 0) const SizedBox(width: 10),
-                            _Billett(claim: c, prize: byId[c.prizeId], dager: _dagerIgjen(c), onTap: () => _visClaim(c, byId[c.prizeId])),
+                            _Billett(key: Key('cus-hylla-claim-${c.id}'), claim: c, prize: byId[c.prizeId], dager: _dagerIgjen(c), onTap: () => _visClaim(c, byId[c.prizeId])),
                           ],
                         ],
                       ),
@@ -1027,7 +1081,7 @@ class _LitenMedalje extends StatelessWidget {
 /// the name and how it is used, then — under a dashed line — the days left
 /// with their bar and «Detaljer».
 class _Billett extends StatelessWidget {
-  const _Billett({required this.claim, required this.prize, required this.dager, required this.onTap});
+  const _Billett({super.key, required this.claim, required this.prize, required this.dager, required this.onTap});
 
   final PrizeClaim claim;
   final Prize? prize;

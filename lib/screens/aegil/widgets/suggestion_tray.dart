@@ -105,7 +105,12 @@ class SuggestionTray extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
+          // A Wrap, not a Row: the Brett's Meg Ark is 390 design px wide and
+          // the three keys must not overflow it (Customer Step 0).
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               ElevatedButton(
                 key: Key('suggestion-add-${suggestion.id}'),
@@ -117,7 +122,6 @@ class SuggestionTray extends StatelessWidget {
                 ),
                 child: const Text('Legg til'),
               ),
-              const SizedBox(width: 8),
               TextButton(
                 key: Key('suggestion-dismiss-${suggestion.id}'),
                 onPressed: onDismiss == null ? null : () => onDismiss!(suggestion),
@@ -129,7 +133,6 @@ class SuggestionTray extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(),
               TextButton(
                 key: Key('suggestion-never-${suggestion.id}'),
                 onPressed: onNotForMe == null ? null : () => onNotForMe!(suggestion),

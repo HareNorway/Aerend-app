@@ -20,6 +20,7 @@ class FeedTabItem {
     this.category,
     this.headline,
     this.bydel,
+    this.disclosure = false,
     this.locationName,
     this.likeCount = 0,
     this.commentCount = 0,
@@ -49,6 +50,9 @@ class FeedTabItem {
   final String postType;
   final String? category;
   final String? headline;
+
+  /// Customer Step 11: an agent-written post (feed `origin = agent`) — the card says «Skrevet automatisk av Ærend».
+  final bool disclosure;
   final String? bydel;
 
   final String caption;
@@ -105,6 +109,7 @@ class FeedTabItem {
       category: json['category'] as String?,
       headline: json['headline'] as String?,
       bydel: json['bydel'] as String?,
+      disclosure: json['disclosure'] == true || json['origin'] == 'agent',
       caption: (json['caption'] ?? '').toString(),
       locationName: json['location_name'] as String?,
       media: FeedMedia.fromJson(json['media'] as Map<String, dynamic>),

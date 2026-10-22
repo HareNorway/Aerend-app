@@ -1,16 +1,20 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+import 'services/customer/client_flags.dart';
 import 'package:flutter/services.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
-import 'package:aerend_customer/screens/snurre/snurre_chat_screen.dart';
-import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:aerend_customer/blocs/bloc.dart';
 import 'package:aerend_customer/screens/common/account/redeem_code.dart';
@@ -34,6 +38,8 @@ import 'screens/bergen/bergen_routes_agil3.dart';
 import 'screens/bergen/kit/bergen_routes.dart';
 import 'screens/bergen/meg/a3_services.dart';
 import 'screens/bergen/kit/bergen_perf.dart';
+import 'screens/bergen/kit/server_banner.dart';
+import 'services/customer/beacons.dart';
 
 //Created at 20/05/2021 11:30 AM
 
@@ -138,7 +144,50 @@ Future<void> main() async {
     ),
   );
 
+  // Customer Step 11: the `cus.*` flags the app renders on (silent, the last answer stays offline).
+  unawaited(ClientFlags.refresh());
+
+  // Customer Step 16: the client beacons (technical events, no PII, signed
+  // after login) and the per-version flags / banner / min_version.
+  await _startBeacons();
+
   runApp(MyApp(store));
+}
+
+/// The app version the beacons and `agents/flags` carry.
+String cusAppVersion = '0.0.0';
+
+Future<void> _startBeacons() async {
+  try {
+    final info = await PackageInfo.fromPlatform();
+    cusAppVersion = '${info.version}+${info.buildNumber}';
+  } catch (_) {
+    // The plugin is missing in a test host: the version stays 0.0.0.
+  }
+  final device = prefGetString(prefDeviceToken);
+  final b = CusBeacons(
+    transport: DioCusBeaconTransport(),
+    version: cusAppVersion,
+    platform: Platform.isAndroid ? 'android' : 'ios',
+    locale: prefGetStringWithDefaultValue(prefSelectedLanguageCode, 'no'),
+    device: device.isEmpty ? '' : CusBeacon.hash(device),
+  );
+  CusBeacons.current = b;
+  b.start();
+  unawaited(b.loadFlags());
+  final prev = FlutterError.onError;
+  FlutterError.onError = (details) {
+    CusBeacons.uncaught(details.exception, details.stack);
+    if (prev != null) {
+      prev(details);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    CusBeacons.uncaught(error, stack);
+    return false;
+  };
 }
 
 class MyApp extends StatefulWidget {
@@ -188,6 +237,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    ClientFlags.agents.addListener(_oppdaterSjekk);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       VippsLoginLinkHandler.bootstrap();
@@ -196,9 +246,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    ClientFlags.agents.removeListener(_oppdaterSjekk);
     WidgetsBinding.instance.removeObserver(this);
     unawaited(VippsLoginLinkHandler.dispose());
     super.dispose();
+  }
+
+  /// Customer Step 16: the `min_version` prompt when `agents/flags` says so.
+  void _oppdaterSjekk() {
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null) return;
+    unawaited(CusOppdaterArk.visHvis(ctx, ClientFlags.agents.value, cusAppVersion));
   }
 
   @override
@@ -206,9 +264,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       _resumedFromBackground = true;
+      // Customer Step 16: the beacons go out before the app sleeps.
+      if (state == AppLifecycleState.paused) unawaited(CusBeacons.current?.flush() ?? Future.value());
     }
     if (state == AppLifecycleState.resumed && _resumedFromBackground) {
       _resumedFromBackground = false;
+      // Customer Step 16: the flags, banner and min_version again on resume.
+      unawaited(ClientFlags.refresh());
+      unawaited(CusBeacons.current?.loadFlags() ?? Future.value());
       WidgetsBinding.instance.addPostFrameCallback((_) {
         resumePendingVippsLoginIfNeeded();
       });
@@ -277,22 +340,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: BergenPerfScope(child: appChild),
             );
 
-            // The floating Snurre chat chip is removed (no global AI chat entry).
             return calmChild;
           },
           debugShowCheckedModeBanner: false,
           locale: selectedLocale,
-          initialRoute: snurreLauncherRouteNameFor(const Splash()),
+          initialRoute: routeNameFor(const Splash()),
           routes: {
-            snurreLauncherRouteNameFor(const Splash()): (_) => const Splash(),
+            routeNameFor(const Splash()): (_) => const Splash(),
             // Sync C (AGIL-CONTRACT §2.2): each branch owns one route map.
             ...bergenRoutesAgil1(),
             ...bergenRoutesAgil3(),
           },
-          navigatorObservers: [
-            snurreRouteObserver,
-            snurreLauncherNavigatorObserver,
-          ],
           onGenerateRoute: (settings) {
             final name = settings.name ?? '';
             final uri = Uri.tryParse(
@@ -313,9 +371,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   prefGetInt('vipps_pending_order_id');
               if (orderId > 0) {
                 return MaterialPageRoute(
-                  // A hidden route: no chat button over the payment handover.
                   settings: const RouteSettings(
-                    name: '${snurreLauncherHiddenRoutePrefix}vipps-retur',
+                    name: '${appRoutePrefix}vipps-retur',
                   ),
                   builder: (context) =>
                       VippsPaymentReturnScreen(orderId: orderId),
@@ -359,6 +416,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               return MaterialPageRoute(
                 builder: (context) => RedeemCode(discountCode: code),
               );
+            }
+
+            // Customer Step 14: `aerendapp://bergen/ai/foresporsel/<id>` (the
+            // hand-off link) on a cold start — the host is the first segment.
+            if ((uri?.scheme == appUrlScheme || uri?.scheme == 'aerend') && uri?.host == 'bergen') {
+              // Customer Step 15: the query stays (`/hurtig?mod=forrige`, the shortcuts).
+              final r = BergenRoutes.generate(RouteSettings(name: '/bergen${uri!.path}${uri.hasQuery ? '?${uri.query}' : ''}', arguments: settings.arguments));
+              if (r != null) return r;
             }
 
             // agil-1 Phase 2 (AGIL-CONTRACT §3.4): `/bergen/...` names with a
