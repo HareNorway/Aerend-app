@@ -1,4 +1,6 @@
 import 'dart:async';
+import '../../../../data/aegil/aegil_app_models.dart';
+import '../../../bergen/meg/a3_services.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -87,6 +89,16 @@ class BergenAdrKilde implements AdrKilde {
     final lokal = prefGetString(_dorNokkel(a.addressId));
     return lokal.isNotEmpty ? lokal : adrDor(a);
   }
+
+  // Customer Step 9 (C4): Ægil's door interpretation, through the chat's API seam.
+  @override
+  Future<DoorResult?> dorTolk(AddressListItem a, String tekst) => A3Services.aegil().doorParse(a.addressId, tekst);
+
+  @override
+  Future<DoorResult?> dorBekreft(int id, {int? etasje, bool samtykke = false}) => A3Services.aegil().doorConfirm(id, fields: {if (etasje != null) 'floor': etasje}, codeConsent: samtykke);
+
+  @override
+  Future<DoorResult?> dorAngre(int id) => A3Services.aegil().doorUndo(id);
 
   @override
   Future<bool> lagreDor(AddressListItem a, String tekst) async {

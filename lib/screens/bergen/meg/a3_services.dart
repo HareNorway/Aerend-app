@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../utils/shared_pref_utill.dart';
 
@@ -42,6 +43,10 @@ abstract final class A3Services {
   /// placed (the basket's own path, `OpsKasseApi.vippsRedirect`).
   static Future<String?> Function(int orderId) vippsUrl = (id) => OpsKasseApi().vippsRedirect(id);
 
+  /// Customer Step 9 (C3): the photo for «Bestill fra bilde» — the camera,
+  /// the library when there is none (the simulator). The path, or null.
+  static Future<String?> Function() velgBilde = _defaultVelgBilde;
+
   @visibleForTesting
   static void reset() {
     points = () => PointsAppRepo();
@@ -55,6 +60,7 @@ abstract final class A3Services {
     addressList = _defaultAddressList;
     rules = () => OpsCustomerApi().rules();
     vippsUrl = (id) => OpsKasseApi().vippsRedirect(id);
+    velgBilde = _defaultVelgBilde;
   }
 }
 
@@ -114,5 +120,21 @@ String a3Pref(String key) {
     return prefGetString(key);
   } catch (_) {
     return '';
+  }
+}
+
+Future<String?> _defaultVelgBilde() async {
+  final picker = ImagePicker();
+  try {
+    final f = await picker.pickImage(source: ImageSource.camera, maxWidth: 1600, imageQuality: 85);
+    if (f != null) return f.path;
+  } catch (_) {
+    // No camera (the simulator): the library.
+  }
+  try {
+    final f = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1600, imageQuality: 85);
+    return f?.path;
+  } catch (_) {
+    return null;
   }
 }

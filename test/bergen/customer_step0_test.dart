@@ -138,11 +138,14 @@ void main() {
       final api = FakeAegilApi();
       await tester.pumpWidget(_medArgs({'intent': 'gift', 'store_id': '5', 'store': 'Kollektivet', 'for': 'Mamma'}, api: api));
       await _settle(tester);
-      expect(api.calls, isEmpty);
+      // Customer Step 9: a gift (or photo) intent opens as Ægil's entry card at once — the
+      // intent turn with no line, never a stand-in question; the recipient rides along.
+      expect(api.calls, ['chat:gift']);
+      expect(api.chats.single, {'text': null, 'intent': 'gift', 'store_id': 5, 'category': null, 'for': 'Mamma'});
       expect(find.text('Gave til Mamma · Kollektivet'), findsOneWidget);
       await _skriv(tester, 'Noe til 300 kr');
-      expect(api.chats.single['intent'], 'gift');
-      expect(api.chats.single['for'], 'Mamma');
+      expect(api.chats.last['intent'], isNull);
+      expect(api.chats.last['for'], 'Mamma');
 
       expect(AeKontekst.fra(const {'intent': 'category', 'category': 'Bakeri'})!.etikett, 'Om Bakeri');
       expect(AeKontekst.fra(const {'q': 'sushi'}), isNull);

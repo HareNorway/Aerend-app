@@ -37,6 +37,7 @@ import '../sporing/hjelp_sheet.dart' show HjelpScreen;
 import 'aegil_minne.dart';
 import '../kit/bergen_routes.dart';
 import '../meg/a3_services.dart';
+import 'aegil_agenter.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 import 'aegil_innst.dart';
@@ -289,7 +290,38 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     if (q.isNotEmpty) {
       if (_steg == 'tillatelse') _steg = 'start';
       _si(q);
+    } else if (ktx?.intent == 'gift' || ktx?.intent == 'photo') {
+      // Customer Step 9: «La Ægil finne en gave» / «Bestill fra bilde» open as a card at once.
+      if (_steg == 'tillatelse') _steg = 'start';
+      _startIntent(ktx!.intent!);
     }
+  }
+
+  /// An intent with no line: the server's entry card (`gift_brief`, `reorder_prompt`).
+  Future<void> _startIntent(String intent) async {
+    if (_tenker) return;
+    final seq = ++_sendSeq;
+    setState(() {
+      if (_steg != 'start') _steg = 'start';
+      _tenker = true;
+      _tikk++;
+    });
+    _ventIntent = null;
+    AegilTurn? turn;
+    try {
+      final k = _ktx;
+      turn = await _api.chat(intent: intent, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId).timeout(const Duration(seconds: 12));
+    } catch (_) {
+      turn = null;
+    }
+    if (!mounted || seq != _sendSeq) return;
+    if (turn?.conversationId != null) _samtaleId = turn!.conversationId;
+    setState(() {
+      _tenker = false;
+      if (turn != null) _vc.add(_svar('', turn));
+      _tikk++;
+    });
+    _rullNed();
   }
 
   // ── The chat (`vcSend`) ───────────────────────────────────────────────────
@@ -626,10 +658,232 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   @override
   Future<void> lagreDor(String note) async {
+    // Customer Step 9 (C4): the line is structured and written as the door profile of the
+    // first saved address; the code stays for this order only (no consent asked here).
+    final adresser = await a3Try(A3Services.addressList) ?? const [];
+    final adresseId = adresser.firstOrNull?.addressId ?? 0;
+    final p = adresseId > 0 ? await a3Try(() => _api.doorParse(adresseId, note)) : null;
+    if (p != null) {
+      final c = await a3Try(() => _api.doorConfirm(p.id, codeConsent: false));
+      if (!mounted) return;
+      if (c != null && c.saved) {
+        setState(() => _dorLagret.add(note));
+        LfToast.show(context, c.codeOnce != null ? '${AeAgentCopy.cus_dor_lagret(c.line ?? '')} · ${AeAgentCopy.cus_dor_kode_denne}' : AeAgentCopy.cus_dor_lagret(c.line ?? ''));
+        return;
+      }
+    }
     final r = await a3Try(() => _api.doorNote(note));
     if (!mounted || r == null) return;
     setState(() => _dorLagret.add(note));
     LfToast.show(context, AeCopy.lagret);
+  }
+
+  // ── Customer Step 9: the customer agents' cards ───────────────────────────
+
+  void _leggSvar(String tekst, List<AeVerktoy> kort, {String humor = 'glad', List<String> forslag = const []}) {
+    setState(() {
+      _tenker = false;
+      _vc.add(AeMelding.aeg(tekst: tekst, verktoy: kort, humor: humor, forslag: forslag));
+      _tikk++;
+    });
+    _rullNed();
+  }
+
+  void _tenk() {
+    setState(() {
+      _tenker = true;
+      _tikk++;
+    });
+    _rullNed();
+  }
+
+  void _merk(AeVerktoy v, Map<String, dynamic> nytt) {
+    final id = v.id;
+    if (id == null) return;
+    setState(() => _verktoyNaa[id] = (_verktoyNaa[id] ?? v).med(nytt));
+  }
+
+  AeVerktoy _gaveKort(String type, GiftResult g, [Map<String, dynamic> ekstra = const {}]) => AeVerktoy(type, {'id': '$type:${g.id}:${g.round}', 'gift': g.raw, ...ekstra});
+
+  @override
+  Future<void> giftBrief(Map<String, dynamic> fields, String text) async {
+    if (_tenker) return;
+    _tenk();
+    final r = await _api.giftBrief(text: text, fields: fields);
+    if (!mounted) return;
+    final g = r.gift;
+    if (g == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, r.feil ?? AeCopy.utenNett);
+      return;
+    }
+    if (g.empty) {
+      _leggSvar(g.text, [_gaveKort('gift_empty', g)], humor: 'lei');
+    } else {
+      _leggSvar(AeAgentCopy.cus_gave_riktig, [_gaveKort('gift_readback', g)], humor: 'tenker');
+    }
+  }
+
+  @override
+  Future<void> giftConfirm(GiftResult g) async {
+    final lest = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_readback' && v.map('gift')['id'] == g.id).firstOrNull;
+    if (lest != null) _merk(lest, {'svart': true});
+    _leggSvar(g.title ?? AeAgentCopy.cus_gave_finn, [_gaveKort('gift_set', g)], humor: 'spent');
+  }
+
+  @override
+  void giftEdit(GiftResult g) {
+    _leggSvar(AeAgentCopy.cus_gave_fortell, [AeVerktoy('gift_brief', {'id': 'gift_brief:${g.id}:${_tikk}', 'prefill': g.parsed, 'text': '${g.raw['brief'] ?? ''}'})], humor: 'glad');
+  }
+
+  @override
+  Future<void> giftMore(GiftResult g) async {
+    if (_tenker) return;
+    _tenk();
+    final ny = await _api.giftMore(g.id);
+    if (!mounted) return;
+    if (ny == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, AeCopy.utenNett);
+      return;
+    }
+    if (ny.exhausted) {
+      setState(() => _tenker = false);
+      LfToast.show(context, ny.message ?? AeAgentCopy.cus_gave_ingen_flere);
+      return;
+    }
+    _leggSvar(ny.title ?? AeAgentCopy.cus_gave_se_tre_til, [_gaveKort('gift_set', ny)], humor: 'spent');
+  }
+
+  @override
+  Future<void> giftChoose(GiftResult g, GiftCard c) async {
+    if (_tenker) return;
+    HapticFeedback.selectionClick();
+    _tenk();
+    var lagt = false;
+    try {
+      final r = await StoreDetailRepo().callOrderCartApi(c.storeId, c.storeProductId, 1);
+      lagt = r is Map && r['message_code'] == 1;
+      if (!lagt && r is Map && mounted) LfToast.show(context, '${r['message'] ?? ''}');
+    } catch (_) {}
+    final v = await _api.giftChoose(g.id, c.storeProductId);
+    if (!mounted) return;
+    final ny = v.gift;
+    if (ny == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, v.feil ?? AeCopy.utenNett);
+      return;
+    }
+    if (lagt) {
+      await _lastKurv();
+      if (!mounted) return;
+      prefSetInt(prefCartCount, _kurv.lines.length);
+      BergenCart.syncBadge(context, _kurv.lines.length);
+    }
+    GiftPending.current = GiftPendingInfo(requestId: ny.id, storeId: c.storeId, toLabel: ny.gift['to_label'] as String?, cardText: ny.cardText, name: c.name);
+    final sett = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_set' && v.map('gift')['id'] == g.id).firstOrNull;
+    if (sett != null) _merk(sett, {'valgt': c.storeProductId});
+    _leggSvar(AeAgentCopy.cus_gave_kortet, [_gaveKort('gift_card', ny, {'til': c.name})], humor: 'glad');
+  }
+
+  @override
+  Future<void> giftCard(GiftResult g, String action, String? text) async {
+    final kort = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_card' && v.map('gift')['id'] == g.id).firstOrNull;
+    final ny = await a3Try(() => _api.giftCard(g.id, action, text: text));
+    if (!mounted) return;
+    if (ny == null) {
+      LfToast.show(context, AeCopy.utenNett);
+      return;
+    }
+    final p = GiftPending.current;
+    if (p != null && p.requestId == g.id) {
+      GiftPending.current = GiftPendingInfo(requestId: p.requestId, storeId: p.storeId, toLabel: p.toLabel, cardText: ny.cardText, name: p.name);
+    }
+    if (kort != null) _merk(kort, {'gift': ny.raw, if (action != 'rewrite') 'brukt': true});
+    if (action != 'rewrite') {
+      LfToast.show(context, AeAgentCopy.cus_gave_i_kurven);
+      _tilFane(2);
+    }
+  }
+
+  @override
+  void giftSave(AeVerktoy v, GiftCard c) {
+    final naa = (_verktoyNaa[v.id ?? ''] ?? v).data['lagret'];
+    final liste = ((naa as List?) ?? const []).map((e) => (e as num).toInt()).toSet()..add(c.storeProductId);
+    _merk(v, {'lagret': liste.toList()});
+    LfToast.show(context, AeAgentCopy.cus_gave_lagret);
+  }
+
+  @override
+  Future<void> giftRetry(GiftResult g, String day) async {
+    final p = g.parsed;
+    final max = (p['budget_max_ore'] as num?)?.toInt();
+    await giftBrief({
+      if (p['to'] != null) 'to': p['to'],
+      if (p['occasion'] != null) 'occasion': p['occasion'],
+      if (max != null) 'budget': max <= 30000 ? 'under_300' : (max <= 60000 ? '300_600' : (max <= 100000 ? '600_1000' : 'more')),
+      'deliver_by': day,
+      if (p['interests'] is List && (p['interests'] as List).isNotEmpty) 'interests': p['interests'],
+    }, '');
+  }
+
+  @override
+  Future<void> reorderShoot() async {
+    if (_tenker) return;
+    final path = await A3Services.velgBilde();
+    if (!mounted) return;
+    if (path == null) {
+      LfToast.show(context, AeAgentCopy.cus_bilde_ingen_kamera);
+      return;
+    }
+    await _skann(filePath: path);
+  }
+
+  Future<void> _skann({String? filePath, String? dataUrl}) async {
+    _tenk();
+    final r = await _api.reorderScan(filePath: filePath, dataUrl: dataUrl);
+    if (!mounted) return;
+    final s = r.scan;
+    if (s == null) {
+      setState(() => _tenker = false);
+      LfToast.show(context, r.feil ?? AeCopy.utenNett);
+      return;
+    }
+    final tekst = switch (s.hit) {
+      'one' => AeAgentCopy.cus_bilde_fant(s.tookMs),
+      'ask' => AeAgentCopy.cus_bilde_var_det,
+      _ => AeAgentCopy.cus_bilde_beklager,
+    };
+    _leggSvar(tekst, [AeVerktoy('reorder_result', {'id': 'reorder_result:${s.id}', 'scan': s.raw})], humor: s.hit == 'none' ? 'lei' : 'spent');
+  }
+
+  @override
+  Future<void> reorderChoose(AeVerktoy v, ReorderResult r, ReorderCandidate? c) async {
+    if (c == null) {
+      _merk(v, {'gjort': 'nei'});
+      unawaited(a3Try(() => _api.reorderChoose(r.id)));
+      if (r.hit == 'ask') await reorderShoot();
+      return;
+    }
+    HapticFeedback.selectionClick();
+    final res = await _api.reorderChoose(r.id, storeProductId: c.storeProductId, add: true);
+    if (!mounted) return;
+    if (res.scan == null) {
+      LfToast.show(context, res.feil ?? AeCopy.utenNett);
+      return;
+    }
+    _merk(v, {'gjort': 'lagt'});
+    await _lastKurv();
+    if (!mounted) return;
+    prefSetInt(prefCartCount, _kurv.lines.length);
+    BergenCart.syncBadge(context, _kurv.lines.length);
+    HapticFeedback.mediumImpact();
+    LfToast.show(context, AeAgentCopy.cus_bilde_lagt);
+  }
+
+  @override
+  void reorderSearch(String text) {
+    if (text.trim().isNotEmpty) _si(text.trim());
   }
 
   @override
@@ -1770,6 +2024,31 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         await _si(t);
         await Future.delayed(const Duration(milliseconds: 1200));
       }
+      // Customer Step 9: the gift flow (`aegGave`: brief | funn | kort | tom) and the photo flow (`aegBilde`: prompt | skann).
+      if (HjemHarness.aegGave case final g?) {
+        _ktx = AeKontekst.fra({'intent': 'gift', 'category': 'Gaver'});
+        await _startIntent('gift');
+        await Future.delayed(const Duration(milliseconds: 1200));
+        if (g != 'brief' && mounted) {
+          final tom = g == 'tom';
+          await giftBrief({'to': 'mamma', 'occasion': 'bursdag', 'budget': tom ? 'under_300' : '300_600', 'deliver_by': tom ? 'today' : 'lørdag', 'interests': ['hage']}, '');
+          await Future.delayed(const Duration(milliseconds: 1200));
+          final lest = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_readback').firstOrNull;
+          if (lest != null && mounted && g != 'tom') {
+            await giftConfirm(GiftResult.fromJson(lest.map('gift')));
+            await Future.delayed(const Duration(milliseconds: 1200));
+            final sett = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'gift_set').firstOrNull;
+            final r = sett == null ? null : GiftResult.fromJson(sett.map('gift'));
+            if (g == 'kort' && r != null && r.cards.isNotEmpty && mounted) await giftChoose(r, r.cards.first);
+          }
+        }
+      }
+      if (HjemHarness.aegBilde case final b?) {
+        _ktx = AeKontekst.fra({'intent': 'photo', 'category': 'Mat & fisk'});
+        await _startIntent('photo');
+        await Future.delayed(const Duration(milliseconds: 1200));
+        if (b == 'skann' && mounted) await _skann(dataUrl: HjemHarness.aegBildeData ?? kAeTestJpeg);
+      }
       // Customer Step 5: the tap on the last proposal, and «Angre».
       final forslag = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'cart_proposal').firstOrNull;
       if (HjemHarness.aegBruk && forslag != null && mounted) {
@@ -1907,3 +2186,7 @@ class LfLoopBuilder extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LfLoop(child: child, builder: (context, t, c) => builder(t, c!));
 }
+
+/// A 1 × 1 JPEG for the harness' photo scan (the fake driver answers it).
+const String kAeTestJpeg =
+    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==';

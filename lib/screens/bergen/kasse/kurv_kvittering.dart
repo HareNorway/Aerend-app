@@ -1185,3 +1185,63 @@ class _Merke extends CustomPainter {
   @override
   bool shouldRepaint(_Merke old) => false;
 }
+
+/// Customer Step 9 (design C1.7 «Kassen med gavelinje»): the gift the
+/// customer picked with Ægil — «GAVE · MED KORT», who it is for, the card
+/// text. Shown while the basket holds that store; the order carries it
+/// (`cus_gift_json`) once placed.
+class KvGave extends StatelessWidget {
+  const KvGave({super.key, required this.navn, this.til, this.kort});
+
+  final String navn;
+  final String? til;
+  final String? kort;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.bs;
+    return Container(
+      key: const Key('a1_kasse_gave_kort'),
+      margin: EdgeInsets.only(top: 12 * s),
+      padding: EdgeInsets.fromLTRB(13 * s, 12 * s, 13 * s, 12 * s),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18 * s),
+        color: Colors.white,
+        border: Border.all(color: rgba(35, 32, 29, .05)),
+        boxShadow: [BoxShadow(color: rgba(90, 60, 30, .55), offset: Offset(0, 12 * s), blurRadius: onbBlur(22 * s), spreadRadius: -18 * s)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(navn, style: bText(context, 14, weight: FontWeight.w800, color: const Color(0xFF23201D))),
+                    if (til != null && til!.isNotEmpty)
+                      Text('${KasseCopy.a1_kasse_gave_til} $til', style: bText(context, 11.5, weight: FontWeight.w700, color: const Color(0xFF8C847C))),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 5 * s),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color(0xFFE6DDF5)),
+                child: Text(kort == null || kort!.isEmpty ? 'GAVE' : 'GAVE · MED KORT', style: bText(context, 10, weight: FontWeight.w800, letterSpacingEm: .06, color: const Color(0xFF4A3B7A))),
+              ),
+            ],
+          ),
+          if (kort != null && kort!.isNotEmpty) ...[
+            SizedBox(height: 10 * s),
+            Container(
+              padding: EdgeInsets.fromLTRB(12 * s, 10 * s, 12 * s, 10 * s),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14 * s), color: const Color(0xFFFBF7EE), border: Border.all(color: rgba(35, 32, 29, .08))),
+              child: Text(kort!, style: bText(context, 12.5, weight: FontWeight.w700, color: const Color(0xFF23201D)).copyWith(height: 1.5)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

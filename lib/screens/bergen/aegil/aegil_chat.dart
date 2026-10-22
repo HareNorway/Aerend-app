@@ -119,6 +119,19 @@ abstract interface class AeHandling {
   void sporing(int orderId);
   void menneske();
   void minBio();
+
+  // Customer Step 9: the customer agents' cards (gift, reorder by photo).
+  Future<void> giftBrief(Map<String, dynamic> fields, String text) async {}
+  Future<void> giftConfirm(GiftResult r) async {}
+  void giftEdit(GiftResult r) {}
+  Future<void> giftMore(GiftResult r) async {}
+  Future<void> giftCard(GiftResult r, String action, String? text) async {}
+  Future<void> giftChoose(GiftResult r, GiftCard c) async {}
+  void giftSave(AeVerktoy v, GiftCard c) {}
+  Future<void> giftRetry(GiftResult r, String day) async {}
+  Future<void> reorderShoot() async {}
+  Future<void> reorderChoose(AeVerktoy v, ReorderResult r, ReorderCandidate? c) async {}
+  void reorderSearch(String text) {}
 }
 
 /// The user's line (`m.meg`): white, right, `vcMeg .38s`.

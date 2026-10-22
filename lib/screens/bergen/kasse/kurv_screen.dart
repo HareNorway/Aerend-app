@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import '../../../data/aegil/aegil_app_repo.dart';
@@ -38,6 +39,8 @@ import 'kjop_sekvens.dart' show KjopBekreftetScreen;
 import '../../common/swipeAerend/swipe_aerend_repo.dart';
 import '../../common/swipeAerend/swipe_aerend_dl.dart' show SwipeCardModel, HareSwipeListPojo;
 import 'kurv_betal.dart';
+import '../aegil/aegil_agenter.dart' show GiftPending;
+import '../meg/a3_services.dart';
 import 'kurv_kvittering.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
@@ -625,6 +628,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (_codeAtDoor && orderId > 0) {
       await _customer.requestCode(orderId);
     }
+    // Customer Step 9 (C1): the gift line onto the order (tracking shows «gave»).
+    if (GiftPending.current case final g? when g.storeId == cart.storeId && orderId > 0) {
+      unawaited(A3Services.aegil().giftAttach(g.requestId, orderId));
+      GiftPending.current = null;
+    }
     if (apiPaymentType != 3) {
       return _payWithStripe(response, orderId, apiPaymentType, cart);
     }
@@ -1040,6 +1048,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                   action: KasseCopy.a1_kasse_endre,
                   onTap: _editNote,
                 ),
+              // Customer Step 9 (C1): the gift picked with Ægil rides with this store's order.
+              if (GiftPending.current case final g? when g.storeId == cart.storeId)
+                KvGave(navn: g.name, til: g.toLabel, kort: g.cardText),
               KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more)),
             ],
           ),

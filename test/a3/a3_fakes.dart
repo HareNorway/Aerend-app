@@ -564,6 +564,89 @@ class FakeAegilApi implements AegilAppApi {
     return listItems;
   }
 
+  // Customer Step 9: the customer agents.
+  GiftResult? giftValue;
+  GiftResult? giftMoreValue;
+  String? giftFeil;
+  ReorderResult? scanValue;
+  String? scanFeil;
+  DoorResult? doorValue;
+  Map<String, dynamic>? lastGiftFields;
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async {
+    calls.add('gift-brief:${text.isEmpty ? '-' : text}');
+    lastGiftFields = fields;
+    return (gift: giftValue, feil: giftValue == null ? giftFeil : null);
+  }
+
+  @override
+  Future<GiftResult?> giftMore(int id) async {
+    calls.add('gift-more:$id');
+    return giftMoreValue ?? giftValue;
+  }
+
+  @override
+  Future<GiftResult?> giftCard(int id, String action, {String? text}) async {
+    calls.add('gift-card:$id:$action${text == null ? '' : ':$text'}');
+    final g = giftValue;
+    if (g == null) return null;
+    final raw = {...g.raw, 'card_text': action == 'none' ? null : (action == 'rewrite' ? 'Hipp hurra for deg, mamma.\nEn liten ting.\nKlem.' : (text ?? g.cardText)), 'card_source': action == 'use' ? 'customer' : 'fallback'};
+    return giftValue = GiftResult.fromJson(raw);
+  }
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftChoose(int id, int storeProductId) async {
+    calls.add('gift-choose:$id:$storeProductId');
+    final g = giftValue;
+    if (g == null) return (gift: null, feil: giftFeil);
+    final raw = {...g.raw, 'state': 'chosen', 'chosen_store_product_id': storeProductId, 'gift': {'request_id': id, 'to': g.parsed['to'], 'to_label': g.parsed['to'], 'card_text': g.cardText, 'store_product_id': storeProductId}};
+    return (gift: giftValue = GiftResult.fromJson(raw), feil: null);
+  }
+
+  @override
+  Future<bool> giftAttach(int id, int orderId) async {
+    calls.add('gift-attach:$id:$orderId');
+    return true;
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderScan({String? filePath, String? dataUrl}) async {
+    calls.add('reorder-scan:${filePath != null ? 'file' : 'data'}');
+    return (scan: scanValue, feil: scanValue == null ? scanFeil : null);
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderChoose(int id, {int? storeProductId, bool add = false}) async {
+    calls.add('reorder-choose:$id:${storeProductId ?? '-'}${add ? ':add' : ''}');
+    final s = scanValue;
+    return (scan: s == null ? null : ReorderResult.fromJson({...s.raw, 'state': storeProductId == null ? 'rejected' : 'chosen', 'added': add}), feil: scanFeil);
+  }
+
+  @override
+  Future<DoorResult?> doorParse(int addressId, String text) async {
+    calls.add('door-parse:$addressId:$text');
+    return doorValue;
+  }
+
+  @override
+  Future<DoorResult?> doorConfirm(int id, {Map<String, dynamic> fields = const {}, bool codeConsent = false}) async {
+    calls.add('door-confirm:$id:${fields.isEmpty ? '-' : fields.entries.map((e) => '${e.key}=${e.value}').join(',')}:${codeConsent ? 'samtykke' : 'ikke'}');
+    final d = doorValue;
+    if (d == null) return null;
+    final f = {...(d.raw['fields'] as Map? ?? {}), ...fields};
+    final line = DoorFields.fromJson(f.cast<String, dynamic>()).line(withCode: codeConsent);
+    return doorValue = DoorResult.fromJson({...d.raw, 'fields': f, 'state': 'confirmed', 'code_consent': codeConsent && d.hasCode, 'line': line, 'saved': true, 'code_once': d.hasCode && !codeConsent ? f['code'] : null});
+  }
+
+  @override
+  Future<DoorResult?> doorUndo(int id) async {
+    calls.add('door-undo:$id');
+    final d = doorValue;
+    if (d == null) return null;
+    return doorValue = DoorResult.fromJson({...d.raw, 'state': 'undone', 'code_consent': false, 'line': d.fields.line(withCode: false)});
+  }
+
   @override
   Future<List<ShoppingListItem>?> removeListItem(int id) async {
     calls.add('list-remove:$id');

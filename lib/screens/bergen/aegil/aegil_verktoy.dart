@@ -9,6 +9,7 @@ import '../../../utils/utils.dart' show resolveSelectedLanguage;
 import '../../common/auth/launch/lf_css.dart';
 import '../hjem/hjem_harness.dart' show HjemHarness;
 import '../meg/min_bio.dart' show CusBioCopy;
+import 'aegil_agenter.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 
@@ -102,6 +103,14 @@ class AeVerktoyKort extends StatelessWidget {
     'products' => AeVarerKort(v: v, vare: _vare, notis: _notis),
     'cart_proposal' => AeEndringKort(v: v, h: h),
     'gate' || 'error' => _notis((v.data['copy'] as String?) ?? AeVerktoyCopy.cus_aegil_feilet),
+    // Customer Step 9: the customer agents.
+    'gift_brief' => AeGaveBrief(v: v, h: h),
+    'gift_readback' => AeGaveLest(v: v, h: h),
+    'gift_set' => AeGaveSett(v: v, h: h),
+    'gift_card' => AeGaveKort(v: v, h: h),
+    'gift_empty' => AeGaveTom(v: v, h: h),
+    'reorder_prompt' => AeBildePrompt(v: v, h: h),
+    'reorder_result' => AeBildeSvar(v: v, h: h),
     _ => const SizedBox.shrink(),
   };
 

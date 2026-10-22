@@ -687,3 +687,210 @@ class WeeklyConfirmResult {
     );
   }
 }
+
+// Customer Step 9: the customer agents C1 (gift), C3 (reorder by photo),
+// C4 (door interpretation) — `agent/me/gifts/*`, `me/reorder/*`, `me/door/*`.
+
+/// One gift card: store, name, price, «Rekker fram lørdag», the Derfor-line.
+class GiftCard {
+  const GiftCard({required this.storeProductId, required this.name, this.store = '', this.storeId = 0, this.price = '', this.priceOre = 0, this.deliver = '', this.reason = '', this.offer = false});
+
+  final int storeProductId;
+  final String name;
+  final String store;
+  final int storeId;
+  final String price;
+  final int priceOre;
+  final String deliver;
+  final String reason;
+  final bool offer;
+
+  factory GiftCard.fromJson(Map<String, dynamic> j) => GiftCard(
+    storeProductId: (j['store_product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    store: '${j['store'] ?? ''}',
+    storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+    price: _display(j['price']),
+    priceOre: (j['price_ore'] as num?)?.toInt() ?? 0,
+    deliver: '${j['deliver'] ?? ''}',
+    reason: '${j['reason'] ?? ''}',
+    offer: j['offer'] == true,
+  );
+}
+
+/// A gift search as the server presents it: the brief read back, the round's
+/// cards, the card text — or the honest empty card with the next day.
+class GiftResult {
+  const GiftResult({required this.id, this.raw = const {}, this.state = 'open', this.readback = '', this.title, this.cards = const [], this.cardText, this.cardSource, this.round = 1, this.more = false, this.empty = false, this.text = '', this.sub = '', this.nextDay, this.nextLabel, this.nextCount = 0, this.chosenStoreProductId, this.gift = const {}, this.parsed = const {}, this.exhausted = false, this.message});
+
+  /// The server's map, for the chat's cards.
+  final Map<String, dynamic> raw;
+  final int id;
+  final String state;
+  final String readback;
+  final String? title;
+  final List<GiftCard> cards;
+  final String? cardText;
+  final String? cardSource;
+  final int round;
+  final bool more;
+  final bool empty;
+  final String text;
+  final String sub;
+  final String? nextDay;
+  final String? nextLabel;
+  final int nextCount;
+  final int? chosenStoreProductId;
+  final Map<String, dynamic> gift;
+  final Map<String, dynamic> parsed;
+  final bool exhausted;
+  final String? message;
+
+  factory GiftResult.fromJson(Map<String, dynamic> j) => GiftResult(
+    raw: j,
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    state: '${j['state'] ?? 'open'}',
+    readback: '${j['readback'] ?? ''}',
+    title: j['title'] as String?,
+    cards: ((j['cards'] as List?) ?? const []).whereType<Map>().map((e) => GiftCard.fromJson(e.cast<String, dynamic>())).toList(),
+    cardText: j['card_text'] as String?,
+    cardSource: j['card_source'] as String?,
+    round: (j['round'] as num?)?.toInt() ?? 1,
+    more: j['more'] == true,
+    empty: j['empty'] == true,
+    text: '${j['text'] ?? ''}',
+    sub: '${j['sub'] ?? ''}',
+    nextDay: j['next_day'] as String?,
+    nextLabel: j['next_label'] as String?,
+    nextCount: (j['next_count'] as num?)?.toInt() ?? 0,
+    chosenStoreProductId: (j['chosen_store_product_id'] as num?)?.toInt(),
+    gift: j['gift'] is Map ? (j['gift'] as Map).cast<String, dynamic>() : const {},
+    parsed: j['parsed'] is Map ? (j['parsed'] as Map).cast<String, dynamic>() : const {},
+    exhausted: j['exhausted'] == true,
+    message: j['message'] as String?,
+  );
+}
+
+/// A product the photo may be (`candidates`), with how sure the engine is.
+class ReorderCandidate {
+  const ReorderCandidate({required this.storeProductId, required this.name, this.store = '', this.storeId = 0, this.price = '', this.confidence = 0, this.reason = '', this.usualStore = false});
+
+  final int storeProductId;
+  final String name;
+  final String store;
+  final int storeId;
+  final String price;
+  final double confidence;
+  final String reason;
+  final bool usualStore;
+
+  factory ReorderCandidate.fromJson(Map<String, dynamic> j) => ReorderCandidate(
+    storeProductId: (j['store_product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    store: '${j['store'] ?? ''}',
+    storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+    price: _display(j['price']),
+    confidence: (j['confidence'] as num?)?.toDouble() ?? 0,
+    reason: '${j['reason'] ?? ''}',
+    usualStore: j['usual_store'] == true,
+  );
+}
+
+/// `POST agent/me/reorder/scan`: one sure hit (`one`), «Var det denne?»
+/// (`ask`) or nothing (`none`; `blocked: age` for an age-restricted product).
+class ReorderResult {
+  const ReorderResult({required this.id, this.raw = const {}, this.hit = 'none', this.candidates = const [], this.ocrText, this.blocked, this.state = 'open', this.tookMs = 0, this.added = false, this.feil});
+
+  /// The server's map, for the chat's cards.
+  final Map<String, dynamic> raw;
+  final int id;
+  final String hit;
+  final List<ReorderCandidate> candidates;
+  final String? ocrText;
+  final String? blocked;
+  final String state;
+  final int tookMs;
+  final bool added;
+  final String? feil;
+
+  factory ReorderResult.fromJson(Map<String, dynamic> j) => ReorderResult(
+    raw: j,
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    hit: '${j['hit'] ?? 'none'}',
+    candidates: ((j['candidates'] as List?) ?? const []).whereType<Map>().map((e) => ReorderCandidate.fromJson(e.cast<String, dynamic>())).toList(),
+    ocrText: j['ocr_text'] as String?,
+    blocked: j['blocked'] as String?,
+    state: '${j['state'] ?? 'open'}',
+    tookMs: (j['took_ms'] as num?)?.toInt() ?? 0,
+    added: j['added'] == true,
+  );
+}
+
+/// The four door chips.
+class DoorFields {
+  const DoorFields({this.floor, this.bell, this.entrance, this.code});
+
+  final int? floor;
+  final String? bell;
+  final String? entrance;
+  final String? code;
+
+  factory DoorFields.fromJson(Map<String, dynamic> j) => DoorFields(
+    floor: (j['floor'] as num?)?.toInt(),
+    bell: j['bell'] as String?,
+    entrance: j['entrance'] as String?,
+    code: j['code'] as String?,
+  );
+
+  DoorFields copyWith({int? floor, bool clearFloor = false}) => DoorFields(floor: clearFloor ? null : floor ?? this.floor, bell: bell, entrance: entrance, code: code);
+
+  /// «Etasje 3 · Ring på Hansen · Inngang bakgården · Kode 1234».
+  String line({bool withCode = true}) => [
+    if (floor != null) 'Etasje $floor',
+    if (bell != null && bell!.isNotEmpty) 'Ring på $bell',
+    if (entrance != null && entrance!.isNotEmpty) 'Inngang $entrance',
+    if (withCode && code != null && code!.isNotEmpty) 'Kode $code',
+  ].join(' · ');
+
+  bool get isEmpty => floor == null && (bell ?? '').isEmpty && (entrance ?? '').isEmpty && (code ?? '').isEmpty;
+}
+
+/// `agent/me/addresses/{id}/door/parse` and the confirmation.
+class DoorResult {
+  const DoorResult({required this.id, this.raw = const {}, required this.fields, this.addressId, this.address, this.text = '', this.state = 'proposed', this.hasCode = false, this.codeConsent = false, this.needsFloor = false, this.preview = '', this.line, this.saved = false, this.codeOnce, this.source});
+
+  /// The server's map, for the chat's cards.
+  final Map<String, dynamic> raw;
+  final int id;
+  final DoorFields fields;
+  final int? addressId;
+  final String? address;
+  final String text;
+  final String state;
+  final bool hasCode;
+  final bool codeConsent;
+  final bool needsFloor;
+  final String preview;
+  final String? line;
+  final bool saved;
+  final String? codeOnce;
+  final String? source;
+
+  factory DoorResult.fromJson(Map<String, dynamic> j) => DoorResult(
+    raw: j,
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    fields: DoorFields.fromJson((j['fields'] as Map?)?.cast<String, dynamic>() ?? const {}),
+    addressId: (j['address_id'] as num?)?.toInt(),
+    address: j['address'] as String?,
+    text: '${j['text'] ?? ''}',
+    state: '${j['state'] ?? 'proposed'}',
+    hasCode: j['has_code'] == true,
+    codeConsent: j['code_consent'] == true,
+    needsFloor: j['needs_floor'] == true,
+    preview: '${j['preview'] ?? ''}',
+    line: j['line'] as String?,
+    saved: j['saved'] == true,
+    codeOnce: j['code_once'] as String?,
+    source: j['source'] as String?,
+  );
+}

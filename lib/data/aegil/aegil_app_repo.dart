@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart' show MultipartFile;
+
 import '../../networking/api_base_helper.dart';
 import '../../utils/shared_pref_utill.dart';
 import '../../utils/utils.dart';
@@ -78,6 +80,18 @@ abstract class AegilAppApi {
   Future<List<DinnerDay>?> setDinnerPlan(String week, int weekday, {String? choiceType, int? storeProductId}) async => null;
   Future<List<ShoppingListItem>?> toggleListItem(int id) async => null;
   Future<List<ShoppingListItem>?> removeListItem(int id) async => null;
+
+  // Customer Step 9: the customer agents. `feil` carries the server's words when refused.
+  Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async => (gift: null, feil: null);
+  Future<GiftResult?> giftMore(int id) async => null;
+  Future<GiftResult?> giftCard(int id, String action, {String? text}) async => null;
+  Future<({GiftResult? gift, String? feil})> giftChoose(int id, int storeProductId) async => (gift: null, feil: null);
+  Future<bool> giftAttach(int id, int orderId) async => false;
+  Future<({ReorderResult? scan, String? feil})> reorderScan({String? filePath, String? dataUrl}) async => (scan: null, feil: null);
+  Future<({ReorderResult? scan, String? feil})> reorderChoose(int id, {int? storeProductId, bool add = false}) async => (scan: null, feil: null);
+  Future<DoorResult?> doorParse(int addressId, String text) async => null;
+  Future<DoorResult?> doorConfirm(int id, {Map<String, dynamic> fields = const {}, bool codeConsent = false}) async => null;
+  Future<DoorResult?> doorUndo(int id) async => null;
 }
 
 class AegilAppRepo implements AegilAppApi {
@@ -466,6 +480,108 @@ class AegilAppRepo implements AegilAppApi {
   Future<List<ShoppingListItem>?> removeListItem(int id) async {
     try {
       return _items(_ok(await _api.post('me/shopping-list/$id/remove', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Customer Step 9.
+
+  GiftResult? _gift(Map<String, dynamic>? json) => json?['gift'] is Map ? GiftResult.fromJson((json!['gift'] as Map).cast<String, dynamic>()) : null;
+  ReorderResult? _scan(Map<String, dynamic>? json) => json?['scan'] is Map ? ReorderResult.fromJson((json!['scan'] as Map).cast<String, dynamic>()) : null;
+  DoorResult? _door(Map<String, dynamic>? json) => json?['door'] is Map ? DoorResult.fromJson((json!['door'] as Map).cast<String, dynamic>()) : null;
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async {
+    try {
+      final r = await _api.post('me/gifts/brief', body: {..._auth(), if (text.isNotEmpty) 'text': text, ...fields});
+      return (gift: _gift(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (gift: null, feil: null);
+    }
+  }
+
+  @override
+  Future<GiftResult?> giftMore(int id) async {
+    try {
+      return _gift(_ok(await _api.post('me/gifts/$id/more', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<GiftResult?> giftCard(int id, String action, {String? text}) async {
+    try {
+      return _gift(_ok(await _api.post('me/gifts/$id/card', body: {..._auth(), 'action': action, if (text != null) 'text': text})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<({GiftResult? gift, String? feil})> giftChoose(int id, int storeProductId) async {
+    try {
+      final r = await _api.post('me/gifts/$id/choose', body: {..._auth(), 'store_product_id': storeProductId});
+      return (gift: _gift(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (gift: null, feil: null);
+    }
+  }
+
+  @override
+  Future<bool> giftAttach(int id, int orderId) async {
+    try {
+      return _ok(await _api.post('me/gifts/$id/attach', body: {..._auth(), 'order_id': orderId})) != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderScan({String? filePath, String? dataUrl}) async {
+    try {
+      final r = filePath != null
+          ? await _api.postFormData('me/reorder/scan', body: {..._auth(), 'photo': await MultipartFile.fromFile(filePath, filename: 'pakke.jpg')})
+          : await _api.post('me/reorder/scan', body: {..._auth(), 'image': dataUrl});
+      return (scan: _scan(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (scan: null, feil: null);
+    }
+  }
+
+  @override
+  Future<({ReorderResult? scan, String? feil})> reorderChoose(int id, {int? storeProductId, bool add = false}) async {
+    try {
+      final r = await _api.post('me/reorder/$id/choose', body: {..._auth(), if (storeProductId != null) 'store_product_id': storeProductId, if (add) 'add': true});
+      return (scan: _scan(_ok(r)), feil: _feil(r));
+    } catch (_) {
+      return (scan: null, feil: null);
+    }
+  }
+
+  @override
+  Future<DoorResult?> doorParse(int addressId, String text) async {
+    try {
+      return _door(_ok(await _api.post('me/addresses/$addressId/door/parse', body: {..._auth(), 'text': text})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<DoorResult?> doorConfirm(int id, {Map<String, dynamic> fields = const {}, bool codeConsent = false}) async {
+    try {
+      return _door(_ok(await _api.post('me/door/$id/confirm', body: {..._auth(), ...fields, 'code_consent': codeConsent})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<DoorResult?> doorUndo(int id) async {
+    try {
+      return _door(_ok(await _api.post('me/door/$id/undo', body: _auth())));
     } catch (_) {
       return null;
     }

@@ -336,6 +336,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (HjemHarness.adresse case final a?) {
             AdrArkProve.sok = HjemHarness.adrSok;
             AdrArkProve.dor = HjemHarness.adrDor;
+            AdrArkProve.dorAuto = HjemHarness.adrDorAuto;
+            AdrArkProve.dorSamtykke = HjemHarness.adrDorSamtykke;
             AdrArkProve.velg = HjemHarness.adrVelg;
             _openAddressSheet(ny: a == 'ny');
           }

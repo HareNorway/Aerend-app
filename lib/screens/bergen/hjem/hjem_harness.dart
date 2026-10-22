@@ -299,6 +299,16 @@ abstract final class HjemHarness {
   /// Customer Step 6: tap «Vis likevel» on the products card (`aegVisLikevel`).
   static bool aegVisLikevel = false;
 
+  /// Customer Step 9, with `aegil: chat`: `aegGave` runs the gift flow to
+  /// `brief` (the chips), `funn` (three cards), `kort` (the card text) or
+  /// `tom` (nothing arrives in time); `aegBilde` the photo flow to `prompt`
+  /// or `skann` (a scan of `aegBildeData`, a data URL, else a 1 × 1 JPEG);
+  /// `adrDor` (the existing key) types the line into the address sheet's
+  /// door field; `adrDorAuto` presses Lagre once the chips are up and
+  /// `adrDorSamtykke` switches the code consent on first.
+  static String? aegGave, aegBilde, aegBildeData;
+  static bool adrDorAuto = false, adrDorSamtykke = false;
+
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
   static double? aegScroll;
@@ -393,6 +403,8 @@ abstract final class HjemHarness {
         ohNoeGalt = false;
         ohNoeGaltSteg = 1;
         aegSi = null;
+        aegGave = aegBilde = aegBildeData = null;
+        adrDorAuto = adrDorSamtykke = false;
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegBruk = aegAngre = false;
         aegVisLikevel = false;
@@ -533,6 +545,11 @@ abstract final class HjemHarness {
       aegTenk = m['aegTenk'] == true;
       aegBruk = m['aegBruk'] == true;
       aegVisLikevel = m['aegVisLikevel'] == true;
+      aegGave = m['aegGave'] as String?;
+      aegBilde = m['aegBilde'] as String?;
+      aegBildeData = m['aegBildeData'] as String?;
+      adrDorAuto = m['adrDorAuto'] == true;
+      adrDorSamtykke = m['adrDorSamtykke'] == true;
       sporingRull = (m['sporingRull'] as num?)?.toDouble();
       aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;
