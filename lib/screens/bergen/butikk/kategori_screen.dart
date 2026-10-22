@@ -21,6 +21,7 @@ import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hjul.dart' show hjemHjulIkon;
 import '../hjem/hjem_snart.dart' show kHjemKatNavn;
 import '../kit/bergen_css.dart';
+import '../kit/bergen_faner.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
@@ -500,10 +501,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
       _sok = !_sok;
       _sokTekst.clear();
     });
+    // Focus at once: the keyboard starts rising with the field, not after it.
     if (_sok) {
-      Future.delayed(const Duration(milliseconds: 120), () {
-        if (mounted && _sok) _sokFokus.requestFocus();
-      });
+      _sokFokus.requestFocus();
     } else {
       _sokFokus.unfocus();
     }
@@ -834,110 +834,50 @@ class _KategoriScreenState extends State<KategoriScreen> {
 
   Widget _faner(BuildContext context) {
     final s = context.bs;
-    Widget fane(bool produkter, String tekst, String ikon, int? antall) {
-      final paa = _produkter == produkter;
-      final fg = paa ? Colors.white : rgba(255, 255, 255, .6);
-      return Expanded(
-        child: OnbPressable(
+    BergenFane fane(bool produkter, String tekst, String ikon, int? antall) => BergenFane(
           key: Key(produkter ? 'a1_kat_tab_produkter' : 'a1_kat_tab_butikker'),
-          onTap: () {
-            if (_produkter == produkter) return;
-            HapticFeedback.selectionClick();
-            setState(() => _produkter = produkter);
-            if (_liste.hasClients) _liste.jumpTo(0);
-          },
-          pressDy: 0,
-          pressScale: .97,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.ease,
-            padding: EdgeInsets.symmetric(vertical: 10 * s),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: paa
-                    ? const [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)]
-                    : const [Color(0x00F9A273), Color(0x00F26D3D), Color(0x00DD5A25)],
-                stops: const [0, .56, 1],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: rgba(242, 109, 61, paa ? .9 : 0),
-                  offset: Offset(0, 4 * s),
-                  blurRadius: onbBlur(10 * s),
-                  spreadRadius: -4 * s,
-                ),
-              ],
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              clipBehavior: Clip.none,
+          bygg: (context, t) {
+            final fg = BergenFaner.farge(t);
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (paa)
-                  bergenInsetTop(
-                    radius: 999,
-                    height: 1.5 * s,
-                    alpha: .4,
-                    pad: EdgeInsets.symmetric(vertical: 10 * s),
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SokIkon(ikon, size: 14 * s, color: fg, stroke: 2.3),
-                    SizedBox(width: 7 * s),
-                    Text(
-                      tekst,
-                      style: bText(context, 12.5, weight: FontWeight.w800, color: fg),
-                    ),
-                    if (antall != null) ...[
-                      SizedBox(width: 7 * s),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 7 * s, vertical: 1 * s),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
-                          color: rgba(255, 255, 255, paa ? .28 : .1),
-                        ),
-                        child: Text(
-                          '$antall',
-                          style: bText(context, 10.5, weight: FontWeight.w800, color: fg),
-                        ),
-                      ),
-                    ],
-                  ],
+                SokIkon(ikon, size: 14 * s, color: fg, stroke: 2.3),
+                SizedBox(width: 7 * s),
+                Text(
+                  tekst,
+                  style: bText(context, 12.5, weight: FontWeight.w800, color: fg),
                 ),
+                if (antall != null) ...[
+                  SizedBox(width: 7 * s),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 7 * s, vertical: 1 * s),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      color: rgba(255, 255, 255, .1 + .18 * t),
+                    ),
+                    child: Text(
+                      '$antall',
+                      style: bText(context, 10.5, weight: FontWeight.w800, color: fg),
+                    ),
+                  ),
+                ],
               ],
-            ),
-          ),
-        ),
-      );
-    }
+            );
+          },
+        );
 
-    return Container(
-      margin: EdgeInsets.zero,
-      padding: EdgeInsets.all(3 * s),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: rgba(0, 0, 0, .28),
-        border: Border.all(color: rgba(255, 255, 255, .12)),
-      ),
-      foregroundDecoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [rgba(0, 0, 0, .18), rgba(0, 0, 0, 0)],
-          stops: const [0, .14],
-        ),
-      ),
-      child: Row(
-        children: [
-          fane(false, KatCopy.butikker, 'M4 10l1.2-5h13.6L20 10M4 10h16v10H4zM10 20v-5h4v5', _stores?.length),
-          SizedBox(width: 3 * s),
-          fane(true, KatCopy.produkter, 'M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2', _products?.length),
-        ],
-      ),
+    return BergenFaner(
+      scale: s,
+      valgt: _produkter ? 1 : 0,
+      onValg: (i) {
+        HapticFeedback.selectionClick();
+        setState(() => _produkter = i == 1);
+        if (_liste.hasClients) _liste.jumpTo(0);
+      },
+      faner: [
+        fane(false, KatCopy.butikker, 'M4 10l1.2-5h13.6L20 10M4 10h16v10H4zM10 20v-5h4v5', _stores?.length),
+        fane(true, KatCopy.produkter, 'M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2', _products?.length),
+      ],
     );
   }
 
@@ -1137,7 +1077,6 @@ class _KategoriScreenState extends State<KategoriScreen> {
     final bunn = math.max(MediaQuery.paddingOf(context).bottom, 16 * s);
     final tastatur = MediaQuery.viewInsetsOf(context).bottom;
     final y = math.max(bunn, tastatur + 12 * s);
-    const ut = Cubic(.3, 1.2, .5, 1);
     Widget chip(String id, String tekst, {bool hake = false}) {
       final paa = _filter == id;
       return OnbPressable(
@@ -1217,8 +1156,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
       );
     }
 
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 200),
+    // Not animated: the keyboard inset already moves every frame, and a
+    // tween on it restarts each frame and trails the keyboard.
+    return Positioned(
       left: 0,
       right: 0,
       bottom: y,
@@ -1269,11 +1209,11 @@ class _KategoriScreenState extends State<KategoriScreen> {
                           child: IgnorePointer(
                             ignoring: !_sok,
                             child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 260),
+                              duration: const Duration(milliseconds: 150),
                               opacity: _sok ? 1 : 0,
                               child: AnimatedScale(
-                                duration: const Duration(milliseconds: 300),
-                                curve: ut,
+                                duration: const Duration(milliseconds: 180),
+                                curve: Curves.easeOutCubic,
                                 alignment: Alignment.centerLeft,
                                 scale: _sok ? 1 : .96,
                                 child: _SokFelt(
@@ -1290,11 +1230,11 @@ class _KategoriScreenState extends State<KategoriScreen> {
                           child: IgnorePointer(
                             ignoring: _sok,
                             child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 260),
+                              duration: const Duration(milliseconds: 150),
                               opacity: _sok ? 0 : 1,
                               child: AnimatedScale(
-                                duration: const Duration(milliseconds: 300),
-                                curve: ut,
+                                duration: const Duration(milliseconds: 180),
+                                curve: Curves.easeOutCubic,
                                 alignment: Alignment.centerLeft,
                                 scale: _sok ? .96 : 1,
                                 child: ShaderMask(
@@ -1781,11 +1721,11 @@ class _SokOrb extends StatelessWidget {
       pressDy: 0,
       pressScale: .93,
       child: AnimatedRotation(
-        duration: const Duration(milliseconds: 280),
-        curve: const Cubic(.3, 1.2, .5, 1),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
         turns: apen ? .25 : 0,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 280),
+          duration: const Duration(milliseconds: 200),
           curve: Curves.ease,
           width: 58 * s,
           height: 58 * s,
