@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 import '../../../data/aegil/aegil_models.dart';
 import '../../../data/aegil/aegil_repo.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
@@ -20,10 +21,15 @@ import 'min_bio.dart';
 import 'min_bio_bits.dart';
 import 'min_bio_kort.dart' show bioNivC;
 
+/// What the sheet's pop means when the customer deleted the bio.
+const int minBioSlettet = -1;
+
 /// Opens Min Bio (the dark Ark that glides, design L9693–9762) and saves it on
-/// «Lagre i Ægils minne». Returns how many things Ægil now knows, or null
-/// when the sheet was closed without saving. The toast is shown here.
-Future<int?> visMinBio(BuildContext context, {required AegilRepo repo, required MinBio bio, required List<MemoryEntry> minne, Duration? autoLagre}) async {
+/// «Lagre i Ægils minne». Returns how many things Ægil now knows (0 after
+/// «Slett bioen»), or null when the sheet was closed without saving. The
+/// toast is shown here. With the server's bio ([MinBio.kilde], Customer Step
+/// 6) it saves through `customer/me/bio`, with the consent tick.
+Future<int?> visMinBio(BuildContext context, {required AegilRepo repo, required MinBio bio, required List<MemoryEntry> minne, Duration? autoLagre, CusApi? api}) async {
   final k = MinBioKontroll(bio);
   final lagre = _LagreHandle();
   // Debug harness (`megArk: bioLagre`): press «Lagre» after [autoLagre].
@@ -33,11 +39,15 @@ Future<int?> visMinBio(BuildContext context, {required AegilRepo repo, required 
     key: const Key('min-bio-ark'),
     title: BioCopy.tittel,
     subtitle: BioCopy.linje,
-    body: (ctx, _) => MinBioKropp(k: k, repo: repo, minne: minne, lagre: lagre),
+    body: (ctx, _) => MinBioKropp(k: k, repo: repo, minne: minne, lagre: lagre, api: api ?? CusApi()),
     primaryBuilder: (ctx) => MegArkButton(key: const Key('min-bio-lagre'), label: BioCopy.lagre, onTap: () => lagre.trykk?.call()),
   );
   // The route's exit animation still reads the controller for a moment.
   Future<void>.delayed(const Duration(milliseconds: 600), k.dispose);
+  if (n == minBioSlettet && context.mounted) {
+    showBergenToast(context, CusBioCopy.cus_bio_slettet, icon: Icons.check_rounded);
+    return 0;
+  }
   if (n != null && context.mounted) {
     showBergenToast(context, BioCopy.lagretToast(n), icon: Icons.check_rounded);
   }
@@ -48,14 +58,27 @@ class _LagreHandle {
   VoidCallback? trykk;
 }
 
+/// Debug harness (`megArk: bio`, `bioSamtykke` / `bioSlett`): the open sheet's
+/// state, so a key can tick the consent or ask «Slett bioen». Read in debug builds only.
+abstract final class MinBioHarness {
+  static bool samtykke = false;
+  static bool slett = false;
+
+  /// Scroll the open sheet to this offset (`bioScroll`).
+  static double? scroll;
+}
+
 /// The sheet's body. Public for the debug harness and tests.
 class MinBioKropp extends StatefulWidget {
-  const MinBioKropp({super.key, required this.k, required this.repo, required this.minne, required this.lagre});
+  const MinBioKropp({super.key, required this.k, required this.repo, required this.minne, required this.lagre, this.api});
 
   final MinBioKontroll k;
   final AegilRepo repo;
   final List<MemoryEntry> minne;
   final Object lagre;
+
+  /// The Customer plan's routes (Step 6); used when the bio is the server's.
+  final CusApi? api;
 
   @override
   State<MinBioKropp> createState() => _MinBioKroppState();
@@ -89,6 +112,13 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
 
   final TextEditingController _tekst = TextEditingController();
   final FocusNode _tekstFokus = FocusNode();
+
+  // Customer Step 6: the consent tick, Ærend AI reading the text, the consent card.
+  bool _samtykke = false;
+  bool _aiLeser = false;
+  String _aiSist = '';
+  int _samtykkePuls = 0;
+  final GlobalKey _samtykkeNokkel = GlobalKey();
   final Map<BioListe, TextEditingController> _ny = {for (final l in BioListe.values) l: TextEditingController()};
   final Map<BioListe, FocusNode> _nyFokus = {for (final l in BioListe.values) l: FocusNode()};
 
@@ -96,7 +126,26 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
   void initState() {
     super.initState();
     _tekst.text = k.bio.tekst;
-    _tekstFokus.addListener(() => setState(() {}));
+    _aiSist = k.bio.tekst.trim();
+    _tekstFokus.addListener(() {
+      setState(() {});
+      // `bioBlur`: Ærend AI reads the text when the customer leaves it.
+      if (!_tekstFokus.hasFocus) unawaited(_lesAi());
+    });
+    if (kDebugMode && MinBioHarness.samtykke) _samtykke = true;
+    if (kDebugMode && MinBioHarness.slett) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) unawaited(_slett());
+      });
+    }
+    final rull = kDebugMode ? MinBioHarness.scroll : null;
+    if (rull != null) {
+      MinBioHarness.scroll = null;
+      Future<void>.delayed(const Duration(milliseconds: 1200), () {
+        final pos = mounted ? Scrollable.maybeOf(_stack.currentContext ?? context)?.position : null;
+        pos?.jumpTo(rull.clamp(0, pos.maxScrollExtent));
+      });
+    }
     for (final f in _nyFokus.values) {
       f.addListener(() => setState(() {}));
     }
@@ -141,13 +190,96 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
     super.dispose();
   }
 
+  // ── Customer Step 6: consent, Ærend AI, delete ─────────────────────────────
+
+  bool get _server => k.bio.server && widget.api != null;
+  bool get _harSamtykke => k.bio.kilde?.samtykkeGjeldende ?? false;
+
+  /// `bioAiLes`: the text (≥ 12 characters, changed) to `bio/parse` — only with
+  /// consent. What the model finds joins the suggestions; the rules answer
+  /// (no model) is what the app already read, so it adds nothing.
+  Future<void> _lesAi() async {
+    final t = k.bio.tekst.trim();
+    if (!_server || t.length < 12 || t == _aiSist || !(_harSamtykke || _samtykke)) return;
+    _aiSist = t;
+    setState(() => _aiLeser = true);
+    final r = await widget.api!.bioTolk(t, samtykke: _samtykke);
+    if (!mounted) return;
+    setState(() => _aiLeser = false);
+    if (r == null || r.kilde != 'model' || k.bio.tekst.trim() != t) return;
+    final kost = <String>[], liker = <String>[], ikke = <String>[];
+    final all = <String, String>{};
+    for (final f in r.forslag) {
+      if (f.liste == 'preference') {
+        final n = bioKostKode.entries.where((e) => e.value == f.kode).firstOrNull?.key;
+        if (n != null) kost.add(n);
+      } else {
+        final n = bioAllKode.entries.where((e) => e.value == f.kode).firstOrNull?.key;
+        if (n != null) all[n] = f.liste == 'allergen' ? BioAll.allergi : (all[n] ?? BioAll.unnga);
+      }
+    }
+    k.settAi(BioFunn(kost: kost, all: all, liker: liker, ikke: ikke));
+  }
+
+  void _samtykkeTrykk() {
+    HapticFeedback.selectionClick();
+    setState(() => _samtykke = !_samtykke);
+    if (_samtykke) unawaited(_lesAi());
+  }
+
+  /// No tick yet: Ægil says so, and the consent card comes into view and pulses.
+  void _visSamtykke(String tx) {
+    k.si(tx);
+    setState(() => _samtykkePuls++);
+    final c = _samtykkeNokkel.currentContext;
+    if (c != null) unawaited(Scrollable.ensureVisible(c, duration: BergenPerf.oneShot(context, 420), curve: cssEaseInOut, alignment: .6));
+  }
+
+  /// «Slett bioen» → «Er du sikker?» → the bio, its consent and Ægil's memory of it gone.
+  Future<void> _slett() async {
+    MinBioHarness.slett = false;
+    final ja = await showMegArk<bool>(
+      context,
+      key: const Key('min-bio-slett-ark'),
+      mork: true,
+      title: CusBioCopy.cus_bio_slett_sporsmal,
+      subtitle: CusBioCopy.cus_bio_slett_linje,
+      secondary: MegArkButton(key: const Key('min-bio-slett-nei'), label: CusBioCopy.cus_bio_slett_nei, onTap: () => Navigator.of(context).pop(false)),
+      primaryBuilder: (ctx) => MegArkButton(
+        key: const Key('min-bio-slett-ja'),
+        label: CusBioCopy.cus_bio_slett_ja,
+        rod: true,
+        onTap: () => Navigator.of(ctx).pop(true),
+      ),
+    );
+    if (ja != true || !mounted) return;
+    final ok = await widget.api!.bioSlett();
+    if (!mounted) return;
+    if (!ok) {
+      showBergenToast(context, CusBioCopy.cus_bio_ikke_slettet, icon: Icons.error_outline_rounded);
+      return;
+    }
+    Navigator.of(context).pop(minBioSlettet);
+  }
+
   // ── Save (`bioLagre`) ────────────────────────────────────────────────────
 
   Future<void> _lagre() async {
     if (_lagrer) return;
+    if (_server && !_harSamtykke && !_samtykke && minBioSensitiv(k.bio)) {
+      FocusScope.of(context).unfocus();
+      _visSamtykke(CusBioCopy.cus_bio_samtykke_mangler);
+      return;
+    }
     _lagrer = true;
     FocusScope.of(context).unfocus();
-    final lagring = minBioLagre(widget.repo, k.bio, widget.minne);
+    String? feil;
+    final lagring = _server
+        ? minBioLagreCus(widget.api!, k.bio, samtykke: _samtykke && !_harSamtykke).then((r) {
+            feil = r.feil;
+            return r.n;
+          })
+        : minBioLagre(widget.repo, k.bio, widget.minne);
     int? svar;
     var ferdig = false;
     unawaited(lagring.then((n) {
@@ -165,6 +297,10 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
         _ringAt = null;
       });
       _lagrer = false;
+      if (feil == 'CONSENT_REQUIRED' || feil == 'CONSENT_VERSION') {
+        _visSamtykke(feil == 'CONSENT_VERSION' ? CusBioCopy.cus_bio_samtykke_ny : CusBioCopy.cus_bio_samtykke_mangler);
+        return;
+      }
       k.si(BioCopy.ikkeLagret);
       showBergenToast(context, BioCopy.ikkeLagret, icon: Icons.error_outline_rounded);
       return;
@@ -293,7 +429,7 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
                   decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8), boxShadow: [BoxShadow(color: Color(0xFF5CE0B8), blurRadius: 4)]),
                 ),
                 const SizedBox(width: 7),
-                Text(tittel, style: inter(11, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB))),
+                Flexible(child: Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB)))),
               ],
             ),
             if (sub != null) ...[
@@ -386,13 +522,18 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
         }(),
     ];
     Widget wrap(List<Widget> c) => Wrap(spacing: 6, runSpacing: 6, children: c);
+    final strenge = _server ? E.kost.where(bioStrengbar.contains).toList() : const <String>[];
     return [
       _hode(BioCopy.k1, BioCopy.k1Sub),
       wrap(kost),
+      // Customer Step 6: which diets are strict (a hard filter).
+      if (strenge.isNotEmpty) _BioKort(key: const Key('min-bio-streng'), children: [for (final x in strenge) _StrengRad(k: x, paa: b.streng.contains(x), onTap: () => k.strengTrykk(x))]),
       _NyFelt(liste: BioListe.kost, c: _ny[BioListe.kost]!, f: _nyFokus[BioListe.kost]!, onLegg: _legg),
       _hode(BioCopy.k2, BioCopy.k2Sub),
       wrap(all),
       _NyFelt(liste: BioListe.all, c: _ny[BioListe.all]!, f: _nyFokus[BioListe.all]!, onLegg: _legg),
+      // The honest allergen line (Customer spec §4.2).
+      if (_server) _Ansvar(tekst: _ansvar),
       _hode(BioCopy.k3, BioCopy.k3Sub),
       wrap(lik),
       _NyFelt(liste: BioListe.liker, c: _ny[BioListe.liker]!, f: _nyFokus[BioListe.liker]!, onLegg: _legg),
@@ -400,6 +541,18 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
       wrap(ikke),
       _NyFelt(liste: BioListe.ikke, c: _ny[BioListe.ikke]!, f: _nyFokus[BioListe.ikke]!, onLegg: _legg),
     ];
+  }
+
+  String get _ansvar {
+    final c = k.bio.kilde;
+    final tx = CusBioCopy.en ? c?.ansvarEn : c?.ansvar;
+    return (tx == null || tx.isEmpty) ? CusBioCopy.cus_bio_ansvar : tx;
+  }
+
+  String get _samtykkeTekst {
+    final c = k.bio.kilde;
+    final tx = CusBioCopy.en ? c?.samtykkeTekstEn : c?.samtykkeTekst;
+    return (tx == null || tx.isEmpty) ? CusBioCopy.cus_bio_samtykke : tx;
   }
 
   void _legg(BioListe l) {
@@ -529,6 +682,7 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
         c: _tekst,
         f: _tekstFokus,
         skriver: k.skriver,
+        aiLeser: _aiLeser,
         onEndret: k.skriv,
       ),
       if (fT.isNotEmpty)
@@ -567,11 +721,58 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
                     }(),
                 ],
               ),
+              // `bioAiTx`: what Ærend AI read, after a model reading.
+              if (k.aiTx != null) ...[
+                const SizedBox(height: 7),
+                Text(k.aiTx!, key: const Key('min-bio-ai-tx'), style: inter(11.5, weight: FontWeight.w700, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .75))),
+              ],
             ],
           ),
         ),
       // «6 · Slik bruker Ærend bioen» and «Skjul det jeg ikke tåler» are left
-      // out: only Ægil's own suggestions read the bio today (needs sign-off).
+      // out: only Ægil reads the bio (needs sign-off). The spec's strict toggle
+      // is per diet (above), and allergens always hide (Customer spec §4.2).
+      if (_server) ...[
+        _hode(CusBioCopy.cus_bio_samtykke_hode),
+        BioOmstart(
+          key: _samtykkeNokkel,
+          trigger: _samtykkePuls == 0 ? null : _samtykkePuls,
+          ms: 420,
+          vedStart: false,
+          builder: (context, t, child) => bioPop(t, child!),
+          child: _Samtykke(
+            tekst: _samtykkeTekst,
+            gitt: _harSamtykke ? k.bio.kilde?.samtykket : null,
+            paa: _harSamtykke || _samtykke,
+            varsel: _samtykkePuls > 0 && !_samtykke && !_harSamtykke,
+            onTap: _harSamtykke ? null : _samtykkeTrykk,
+          ),
+        ),
+        if (k.bio.kilde?.oppdatert case final d?)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 2, 4, 0),
+            child: Row(
+              children: [
+                const BioIkon(BioIk.stjerne, color: Color(0xFF7FF0CB), size: 11, fill: true),
+                const SizedBox(width: 6),
+                Expanded(child: Text(CusBioCopy.cus_bio_kjenner(CusBioCopy.dato(d)), key: const Key('min-bio-kjenner'), style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .72)))),
+              ],
+            ),
+          ),
+        if (k.bio.kilde?.kjent ?? false)
+          Center(
+            child: LfPress(
+              key: const Key('min-bio-slett'),
+              onTap: () => unawaited(_slett()),
+              scale: .95,
+              ms: 140,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Text(CusBioCopy.cus_bio_slett, style: inter(13, weight: FontWeight.w800, color: const Color(0xFFF28A78))),
+              ),
+            ),
+          ),
+      ],
     ];
     return Stack(
       key: _stack,
@@ -984,12 +1185,15 @@ class _Strek extends CustomPainter {
 
 /// «5 · Med egne ord»: the text, read as it is typed.
 class _Tekstfelt extends StatelessWidget {
-  const _Tekstfelt({required this.c, required this.f, required this.skriver, required this.onEndret});
+  const _Tekstfelt({required this.c, required this.f, required this.skriver, required this.onEndret, this.aiLeser = false});
 
   final TextEditingController c;
   final FocusNode f;
   final bool skriver;
   final ValueChanged<String> onEndret;
+
+  /// `bioAiTenker`: «Ærend AI leser» while `bio/parse` answers.
+  final bool aiLeser;
 
   @override
   Widget build(BuildContext context) {
@@ -1029,6 +1233,18 @@ class _Tekstfelt extends StatelessWidget {
                       Text(BioCopy.aegilLeser, style: inter(11, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
                     ],
                   ),
+                if (aiLeser) ...[
+                  if (skriver) const SizedBox(width: 8),
+                  Row(
+                    key: const Key('min-bio-ai-leser'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const BioIkon(BioIk.stjerne, color: Color(0xFFFFDD86), size: 11, fill: true),
+                      const SizedBox(width: 5),
+                      Text(CusBioCopy.cus_bio_ai_leser, style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFDD86))),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -1112,3 +1328,184 @@ class _Tekstfelt extends StatelessWidget {
     );
   }
 }
+
+// ── Customer Step 6 rows (not in the design: built from its section-6 card, needs sign-off) ──
+
+/// The glass card of the design's «6 · Slik bruker Ærend bioen» (radius 20, padding 2 14).
+class _BioKort extends StatelessWidget {
+  const _BioKort({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => CssBox(
+        radius: BorderRadius.circular(20),
+        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
+        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+        shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85))],
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (i, c) in children.indexed) ...[
+              if (i > 0) const Divider(height: 1, thickness: 1, color: Color.fromRGBO(255, 255, 255, .1)),
+              c,
+            ],
+          ],
+        ),
+      );
+}
+
+/// The design's 46 × 28 switch (`bioStrengtBg`, knob 22 px, `.3s cubic-bezier(.3,1.4,.5,1)`).
+class _Bryter extends StatelessWidget {
+  const _Bryter({required this.paa});
+
+  final bool paa;
+
+  @override
+  Widget build(BuildContext context) {
+    final ms = BergenPerf.oneShot(context, 300);
+    return AnimatedContainer(
+      duration: BergenPerf.oneShot(context, 250),
+      width: 46,
+      height: 28,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: paa ? null : const Color.fromRGBO(255, 255, 255, .18),
+        gradient: paa ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9F)]) : null,
+      ),
+      child: AnimatedAlign(
+        duration: ms,
+        curve: const Cubic(.3, 1.4, .5, 1),
+        alignment: paa ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          width: 22,
+          height: 22,
+          margin: const EdgeInsets.all(3),
+          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white, boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, .35), offset: Offset(0, 2), blurRadius: 5)]),
+        ),
+      ),
+    );
+  }
+}
+
+/// «Strengt: Halal · Ægil viser bare det butikken har merket» and its switch.
+class _StrengRad extends StatelessWidget {
+  const _StrengRad({required this.k, required this.paa, required this.onTap});
+
+  final String k;
+  final bool paa;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        key: ValueKey('min-bio-streng-$k'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(CusBioCopy.cus_bio_streng(k), style: inter(13, weight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text(CusBioCopy.cus_bio_streng_sub(k, paa), style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .68))),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 11),
+              _Bryter(paa: paa),
+            ],
+          ),
+        ),
+      );
+}
+
+/// The allergen disclaimer, in the section subtitles' type.
+class _Ansvar extends StatelessWidget {
+  const _Ansvar({required this.tekst});
+
+  final String tekst;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        key: const Key('min-bio-ansvar'),
+        padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(padding: EdgeInsets.only(top: 2), child: BioIkon(BioIk.varsel, color: Color.fromRGBO(255, 255, 255, .62), size: 12)),
+            const SizedBox(width: 7),
+            Expanded(child: Text(tekst, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62)))),
+          ],
+        ),
+      );
+}
+
+/// The consent (Addendum §15): an unticked box with its own words, or, once
+/// given, the date and how to withdraw it.
+class _Samtykke extends StatelessWidget {
+  const _Samtykke({required this.tekst, required this.gitt, required this.paa, required this.varsel, required this.onTap});
+
+  final String tekst;
+  final DateTime? gitt;
+  final bool paa;
+
+  /// Asked for and not ticked: the box rings orange.
+  final bool varsel;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ms = BergenPerf.oneShot(context, 250);
+    return GestureDetector(
+      key: const Key('min-bio-samtykke'),
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: _BioKort(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedContainer(
+                  duration: ms,
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(7),
+                    color: paa ? null : const Color.fromRGBO(255, 255, 255, .06),
+                    gradient: paa ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9F)]) : null,
+                    border: paa ? null : Border.all(color: varsel ? const Color(0xFFF9A273) : const Color.fromRGBO(255, 255, 255, .5), width: 1.5),
+                  ),
+                  child: paa ? const Center(child: BioIkon(BioIk.hake, color: Color(0xFF0E3A44), size: 14)) : null,
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tekst, style: inter(12.5, weight: FontWeight.w700, height: 1.45)),
+                      if (gitt != null) ...[
+                        const SizedBox(height: 6),
+                        Text(CusBioCopy.cus_bio_samtykket(CusBioCopy.dato(gitt!)), key: const Key('min-bio-samtykket'), style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .68))),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

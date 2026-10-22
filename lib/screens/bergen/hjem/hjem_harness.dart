@@ -194,6 +194,11 @@ abstract final class HjemHarness {
   /// Meg's «Logge ut?» question open (`loggUt`, gap audit).
   static bool loggUt = false;
 
+  /// Customer Step 6, with `megArk: bio`: the consent ticked (`bioSamtykke`),
+  /// «Slett bioen»'s «Er du sikker?» open (`bioSlett`).
+  static bool bioSamtykke = false, bioSlett = false;
+  static double? bioScroll;
+
   /// Open the Varsler panel on this filter (`varsler`: "Alle", "Bestillinger",
   /// …; Gap Step 1).
   static String? varsler;
@@ -279,6 +284,9 @@ abstract final class HjemHarness {
   /// «Angre» (`aegAngre`) — the receipt and the undone card.
   static bool aegBruk = false, aegAngre = false;
 
+  /// Customer Step 6: tap «Vis likevel» on the products card (`aegVisLikevel`).
+  static bool aegVisLikevel = false;
+
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
   static double? aegScroll;
@@ -352,6 +360,8 @@ abstract final class HjemHarness {
         megArk = null;
         hyllaTom = false;
         loggUt = false;
+        bioSamtykke = bioSlett = false;
+        bioScroll = null;
         varsler = null;
         varslerSveip = varslerFjern = null;
         hyllaArk = null;
@@ -370,6 +380,7 @@ abstract final class HjemHarness {
         aegSi = null;
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegBruk = aegAngre = false;
+        aegVisLikevel = false;
         sporingRull = null;
         aegScroll = null;
         guideIdx = null;
@@ -464,6 +475,9 @@ abstract final class HjemHarness {
       megArk = m['megArk'] as String?;
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
+      bioSamtykke = m['bioSamtykke'] == true;
+      bioSlett = m['bioSlett'] == true;
+      bioScroll = (m['bioScroll'] as num?)?.toDouble();
       varsler = m['varsler'] as String?;
       varslerSveip = m['varslerSveip'] as int?;
       varslerFjern = m['varslerFjern'] as int?;
@@ -500,6 +514,7 @@ abstract final class HjemHarness {
       aegSi = (m['aegSi'] as List?)?.cast<String>();
       aegTenk = m['aegTenk'] == true;
       aegBruk = m['aegBruk'] == true;
+      aegVisLikevel = m['aegVisLikevel'] == true;
       sporingRull = (m['sporingRull'] as num?)?.toDouble();
       aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;

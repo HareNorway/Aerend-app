@@ -1,10 +1,14 @@
 // ignore_for_file: non_constant_identifier_names
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/against_interest_models.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../utils/utils.dart' show resolveSelectedLanguage;
 import '../../common/auth/launch/lf_css.dart';
+import '../hjem/hjem_harness.dart' show HjemHarness;
+import '../meg/min_bio.dart' show CusBioCopy;
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 
@@ -95,15 +99,7 @@ class AeVerktoyKort extends StatelessWidget {
       lagt: false,
       onTap: h.minBio,
     ),
-    'products' => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final (i, p) in ((v.data['items'] as List?) ?? const []).whereType<Map>().take(3).indexed) ...[
-          if (i > 0) const SizedBox(height: 8),
-          _vare(p.cast<String, dynamic>()),
-        ],
-      ],
-    ),
+    'products' => AeVarerKort(v: v, vare: _vare, notis: _notis),
     'cart_proposal' => AeEndringKort(v: v, h: h),
     'gate' || 'error' => _notis((v.data['copy'] as String?) ?? AeVerktoyCopy.cus_aegil_feilet),
     _ => const SizedBox.shrink(),
@@ -149,11 +145,18 @@ class AeVerktoyKort extends StatelessWidget {
   Widget _vare(Map<String, dynamic> p) {
     final store = p['store'] is Map ? (p['store'] as Map).cast<String, dynamic>() : const <String, dynamic>{};
     final pris = p['price'] is Map ? _kr((p['price'] as Map).cast<String, dynamic>()) : null;
-    final storeId = (store['id'] as num?)?.toInt();
+    // The commerce layer's product: `store_id` / `store_name` (a `store` map elsewhere).
+    final storeId = (store['id'] as num?)?.toInt() ?? (p['store_id'] as num?)?.toInt();
+    final bio = p['bio'] is Map ? (p['bio'] as Map).cast<String, dynamic>() : const <String, dynamic>{};
+    // Customer Step 6: why the bio hid it (shown anyway), or «Allergener ikke oppgitt», or an avoid.
+    final merke = bio['hidden'] == true
+        ? bio['reason'] as String?
+        : (bio['allergens_unknown'] == true ? CusBioCopy.cus_bio_ukjent : bio['warn'] as String?);
     return AeKortRad(
       tile: const AeTile(d: _kurv),
       tittel: '${p['name'] ?? ''}',
-      sub: '${store['name'] ?? ''}',
+      // Shown anyway: the reason alone (it would be cut off after the store).
+      sub: bio['hidden'] == true && merke != null ? merke : [store['name'] ?? p['store_name'], merke].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
       pris: pris,
       cta: AeVerktoyCopy.cus_aegil_se,
       lagt: false,
@@ -449,3 +452,62 @@ class AeChatTopp extends StatelessWidget {
     ],
   );
 }
+
+/// The products card (`search_products`) with Min bio's hard filter
+/// (Customer Step 6): what the bio hid is one line, «N skjult på grunn av
+/// bioen din · Vis likevel»; the tap shows them with the reason. A gift gets
+/// the note that the bio is the customer's. Not in the design: needs sign-off.
+class AeVarerKort extends StatefulWidget {
+  const AeVarerKort({super.key, required this.v, required this.vare, required this.notis});
+
+  final AeVerktoy v;
+  final Widget Function(Map<String, dynamic> p) vare;
+  final Widget Function(String tekst) notis;
+
+  @override
+  State<AeVarerKort> createState() => _AeVarerKortState();
+}
+
+class _AeVarerKortState extends State<AeVarerKort> {
+  // Debug harness (`aegVisLikevel`): as if «Vis likevel» was tapped.
+  bool _vis = kDebugMode && HjemHarness.aegVisLikevel;
+
+  List<Map<String, dynamic>> _liste(String k) => ((widget.v.data[k] as List?) ?? const []).whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _liste('items').take(3).toList();
+    final skjult = _liste('hidden');
+    final bio = widget.v.data['bio'] is Map ? (widget.v.data['bio'] as Map).cast<String, dynamic>() : const <String, dynamic>{};
+    final rader = <Widget>[
+      for (final p in items) widget.vare(p),
+      if (skjult.isNotEmpty && !_vis)
+        KeyedSubtree(
+          key: const Key('ae-bio-skjult'),
+          child: AeKortRad(
+            tile: const AeTile(d: AeVerktoyKort._blad),
+            tittel: CusBioCopy.cus_bio_skjult,
+            sub: CusBioCopy.cus_bio_skjult_sub(skjult.length, skjult.first['bio'] is Map ? '${(skjult.first['bio'] as Map)['reason'] ?? ''}' : ''),
+            cta: CusBioCopy.cus_bio_vis_likevel,
+            lagt: false,
+            onTap: () {
+              setState(() => _vis = true);
+              CusApi().bioVistLikevel();
+            },
+          ),
+        ),
+      if (_vis) for (final p in skjult.take(3)) widget.vare(p),
+      if (bio['for_someone_else'] == true) widget.notis(CusBioCopy.cus_bio_gave),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, r) in rader.indexed) ...[
+          if (i > 0) const SizedBox(height: 8),
+          r,
+        ],
+      ],
+    );
+  }
+}
+

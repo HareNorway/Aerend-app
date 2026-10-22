@@ -30,6 +30,7 @@ import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../hurtig/hurtig_data.dart';
 import '../kit/bergen_cart.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../meg/min_bio.dart';
 import '../meg/min_bio_ark.dart';
 import '../sporing/hjelp_sheet.dart' show HjelpScreen;
@@ -130,6 +131,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   AegilSettings? _settings;
   List<AegilLevel> _levels = const [];
   List<MemoryEntry> _minne = const [];
+  CusBio? _cusBio;
   bool _minneLastet = false;
   final Set<int> _skjult = {};
   HurtigData? _h;
@@ -241,10 +243,12 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   }
 
   Future<void> _lastMinne() async {
-    final m = await a3Try(_repo.fetchMemory);
+    final r = await Future.wait<Object?>([a3Try(_repo.fetchMemory), a3Try(CusApi().bio)]);
     if (!mounted) return;
     setState(() {
-      _minne = m ?? const [];
+      _minne = (r[0] as List<MemoryEntry>?) ?? const [];
+      // Customer Step 6: the server's bio (null while `cus.bio` is off).
+      _cusBio = r[1] as CusBio?;
       _minneLastet = true;
     });
   }
@@ -513,7 +517,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   @override
   void minBio() {
-    unawaited(visMinBio(context, repo: _repo, bio: minBioFra(_minne, _settings), minne: _minne).then((n) {
+    unawaited(visMinBio(context, repo: _repo, bio: minBioVelg(_cusBio, _minne, _settings), minne: _minne).then((n) {
       if (n != null && mounted) unawaited(_lastMinne());
     }));
   }
@@ -823,8 +827,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   AeMinneData get _minneData => AeMinneData(_synlig);
 
-  /// Min Bio (Bergen Step 6), from the memory and the own words.
-  MinBio get _bio => minBioFra(_synlig, _settings);
+  /// Min Bio (Bergen Step 6), from the memory and the own words — or the
+  /// server's bio (Customer Step 6).
+  MinBio get _bio => minBioVelg(_cusBio, _synlig, _settings);
 
   Future<void> _apneBio() async {
     final n = await visMinBio(context, repo: _repo, bio: _bio, minne: _synlig);
@@ -837,6 +842,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   Future<void> _glemAlt() async {
     HapticFeedback.mediumImpact();
     final ok = await a3Try(_repo.forgetAll);
+    // Customer Step 6: the bio on the server (its chips and consent) goes too.
+    if (ok == true && _cusBio != null) await a3Try(CusApi().bioSlett);
     if (!mounted) return;
     // «Min Bio og alt Ægil har lært slettes»: the own words and «Ingen
     // allergier» go too.
@@ -956,6 +963,16 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         if (o.dager.contains(d)) OnboardingChip(kind: 'dinner', value: dagNo[i], label: _stor(AeCopy.dagerLang[i]), selected: true),
     ];
     setState(() => _obLagrer = true);
+    // Customer Step 6: with Min bio on, allergies and diets are stored only there, with consent —
+    // they wait in Min bio as suggestions, and the batch carries the rest.
+    if (await a3Try(CusApi().bio) != null) {
+      const vent = ['all:Nøtter', 'all:Gluten', 'all:Melk', 'all:Skalldyr', 'kost:Vegetar', 'kost:Veganer', 'kost:Halal'];
+      await BioVentende.legg([
+        for (final (i, k) in AeCopy.kost.indexed)
+          if (i < 7 && o.kost.contains(k)) vent[i],
+      ]);
+      chips.removeWhere((c) => c.kind == 'allergen' || c.kind == 'diet');
+    }
     final r = chips.isEmpty ? (stored: 0, earned: 0, error: null) : await a3Try(() => _repo.submitChips(chips));
     if (o.varsel.isNotEmpty) {
       final i = AeCopy.varsel.indexOf(o.varsel);

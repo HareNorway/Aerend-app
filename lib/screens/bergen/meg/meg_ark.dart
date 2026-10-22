@@ -55,7 +55,7 @@ abstract final class MegArkInk {
 }
 
 class MegArkButton {
-  const MegArkButton({required this.label, required this.onTap, this.gradient, this.deg = 180, this.key, this.av = false});
+  const MegArkButton({required this.label, required this.onTap, this.gradient, this.deg = 180, this.key, this.av = false, this.rod = false});
 
   final String label;
   final VoidCallback onTap;
@@ -64,6 +64,9 @@ class MegArkButton {
   /// Done / not available (`kArkCtaBg: '#A9BEC3'`): on the dark Ark a glass
   /// pill with dimmed text instead of the orange key.
   final bool av;
+
+  /// On the dark Ark, the red key (`kArkCtaRod`: «Koble fra», «Slett bioen»).
+  final bool rod;
 
   /// The CSS angle of [gradient] (`linear-gradient(<deg>, …)`).
   final double deg;
@@ -525,6 +528,7 @@ class _ArkPrimary extends StatelessWidget {
       // Dark (L19012): the orange 3D key — or, done, a glass pill with
       // dimmed text (`#A9BEC3` in the design's data).
       final av = button.av;
+      final rod = button.rod && !av;
       return LfPress(
         key: button.key,
         onTap: button.onTap,
@@ -537,11 +541,21 @@ class _ArkPrimary extends StatelessWidget {
           bg: [
             av
                 ? const CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)])
-                : const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
+                : rod
+                    ? const CssLinear(180, [Color(0xFFF28A78), Color(0xFFD9452F), Color(0xFFB5301D)], [0, .56, 1])
+                    : const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
           ],
           shadows: av
               ? const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .2))]
-              : const [
+              : rod
+                  ? const [
+                      CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .4)),
+                      CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
+                      CssShadow(0, 3, 0, 0, Color(0xFF8E2416)),
+                      CssShadow(0, 5, 0, 0, Color.fromRGBO(90, 20, 10, .25)),
+                      CssShadow(0, 14, 18, -10, Color.fromRGBO(190, 50, 30, .8)),
+                    ]
+                  : const [
                   CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .45)),
                   CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
                   CssShadow(0, 3, 0, 0, Color(0xFFC4491A)),

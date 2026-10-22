@@ -106,6 +106,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   String? _paymentLine;
   List<Map<String, dynamic>> _ordrer = const [];
   List<MemoryEntry> _minne = const [];
+  // Customer Step 6: the server's bio (null while `cus.bio` is off).
+  CusBio? _cusBio;
   int _bioPuls = 0;
   bool _loading = true;
 
@@ -226,6 +228,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       case 11: _regler = v as PointsRules?;
       case 12: _adresser = (v as List<AddressListItem>?) ?? const [];
       case 13: _tillit = v as TrustLedger?;
+      case 14: _cusBio = v as CusBio?;
     }
   }
 
@@ -248,6 +251,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(A3Services.addressList),
       // Customer Step 5: Tillitsregnskap.
       a3Try(_aegil.trustLedger),
+      // Customer Step 6: Min bio on the server.
+      a3Try(CusApi().bio),
     ];
     // Each section fills in as its answer arrives: the slowest call no longer
     // holds the whole sheet behind one spinner (only until the first answer).
@@ -303,7 +308,12 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'paaminnelser': visPaaminnelser(context, repo: _aegilRepo);
         // Customer Step 5: Tillitsregnskap.
         case 'tillit': TillitArk.vis(context, _tillit ?? const TrustLedger(month: ''));
-        case 'bio': _openBio();
+        case 'bio':
+          // Customer Step 6 harness: the consent ticked, or «Er du sikker?» open.
+          MinBioHarness.samtykke = HjemHarness.bioSamtykke;
+          MinBioHarness.slett = HjemHarness.bioSlett;
+          MinBioHarness.scroll = HjemHarness.bioScroll;
+          _openBio();
         case 'aegilInnst': _aegilInnstillinger();
         case 'gbDelt': _feirDelt();
         case 'krev': _hentPremie();
@@ -314,19 +324,20 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     }
   }
 
-  MinBio get _bio => minBioFra(_minne, _settings);
+  MinBio get _bio => minBioVelg(_cusBio, _minne, _settings);
 
   /// Min Bio (Bergen Step 6): the sheet saves; Meg reloads what Ægil knows
   /// and the card glows once (`bioKortPuls`).
   Future<void> _openBio({Duration? autoLagre}) async {
     final n = await visMinBio(context, repo: _aegilRepo, bio: _bio, minne: _minne, autoLagre: autoLagre);
     if (n == null || !mounted) return;
-    final r = await Future.wait<Object?>([a3Try(_aegilRepo.fetchMemory), a3Try(_aegilRepo.fetchSettings)]);
+    final r = await Future.wait<Object?>([a3Try(_aegilRepo.fetchMemory), a3Try(_aegilRepo.fetchSettings), a3Try(CusApi().bio)]);
     if (!mounted) return;
     final settings = r[1] as ({AegilSettings? settings, List<AegilLevel> levels})?;
     setState(() {
       _minne = (r[0] as List<MemoryEntry>?) ?? _minne;
       _settings = settings?.settings ?? _settings;
+      _cusBio = r[2] as CusBio? ?? _cusBio;
       _bioPuls++;
     });
   }

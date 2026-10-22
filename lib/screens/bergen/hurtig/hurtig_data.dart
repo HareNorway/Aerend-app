@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../data/aegil/aegil_models.dart';
 import '../../../data/aegil/aegil_repo.dart';
 import '../../../data/ops/butikk_models.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
@@ -228,6 +229,9 @@ abstract final class HurtigKilde {
   static OpsButikkApi Function() butikk = () => OpsButikkApi();
   static Future<List<MemoryEntry>> Function() memory = () => AegilRepo().fetchMemory();
 
+  /// Customer Step 6: Min bio on the server (null while `cus.bio` is off) — «Unngår skalldyr» reads it too.
+  static Future<CusBio?> Function() bio = () => CusApi().bio();
+
   @visibleForTesting
   static void reset() {
     cache.value = null;
@@ -236,6 +240,7 @@ abstract final class HurtigKilde {
     kasse = () => OpsKasseApi();
     butikk = () => OpsButikkApi();
     memory = () => AegilRepo().fetchMemory();
+    bio = () => CusApi().bio();
   }
 
   static Future<HurtigData> load({bool refresh = false}) {
@@ -265,6 +270,7 @@ abstract final class HurtigKilde {
       _guard(() => c.orders(limit: 50), const <Map<String, dynamic>>[]),
       _guard(memory, const <MemoryEntry>[]),
       _guard(k.addresses, const <dynamic>[]),
+      _guard<CusBio?>(bio, null),
     ]);
     final rows = results[0] as List<Map<String, dynamic>>;
     final mem = results[1] as List<MemoryEntry>;
@@ -354,7 +360,8 @@ abstract final class HurtigKilde {
     // Memory → the prototype's `minne` shape.
     final liker = <String>[], stores = <String>[], middag = <String>[];
     var hus = 2;
-    var skalldyr = false;
+    final cusBio = results[3] as CusBio?;
+    var skalldyr = cusBio != null && (cusBio.allergener.contains('crustaceans') || cusBio.unngaar.contains('crustaceans'));
     var kl = '17';
     for (final m in mem) {
       final label = (m.label ?? m.value).trim();
