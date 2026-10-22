@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import 'beacons.dart';
+
 import '../../networking/api_base_helper.dart';
 import '../../networking/api_constant.dart';
 import '../../networking/ops/ops_customer_api.dart';
@@ -40,7 +42,25 @@ abstract final class ClientFlags {
   }
 
   /// The flag's last known state; false until the server has answered once.
-  static bool on(String key) => _flags[key] ?? false;
+  /// A per-version override from `agents/flags` wins over the surface flag.
+  static bool on(String key) => _overrides[key] ?? _flags[key] ?? false;
+
+  // Customer Step 16: the per-version answer (overrides, banner, min_version).
+  static Map<String, bool> _overrides = const <String, bool>{};
+
+  /// The last `agents/flags` answer: the shell's banner and the update prompt read it.
+  static final ValueNotifier<CusClientFlags?> agents = ValueNotifier<CusClientFlags?>(null);
+
+  static void applyAgents(CusClientFlags f) {
+    _overrides = Map.of(f.flags);
+    agents.value = f;
+  }
+
+  @visibleForTesting
+  static void resetAgents() {
+    _overrides = const <String, bool>{};
+    agents.value = null;
+  }
 
   /// Reads the flags; silent on any failure (the last answer stays).
   static Future<void> refresh({ApiBaseHelper? helper}) async {

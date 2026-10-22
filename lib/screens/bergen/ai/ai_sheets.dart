@@ -341,7 +341,11 @@ abstract final class AiArk {
       if (_store.harness) {
         kode = CusAiKode(code: 'ÆR-7K2Q', raw: '7K2Q', status: 'pending', expiresAt: DateTime.now().add(const Duration(minutes: 10)), linkUrl: 'https://aerend.no/koble/7k2q');
       } else {
-        kode = await _api.aiLinkCode(clientId: AiNavn.clientId(navn), prefs: prefs);
+        try {
+          kode = await _api.aiLinkCode(clientId: AiNavn.clientId(navn), prefs: prefs);
+        } catch (_) {
+          kode = null; // the tiles show dots; «Tilbake» stands
+        }
       }
       if (!lukket) setState(() {});
     }
@@ -359,7 +363,12 @@ abstract final class AiArk {
           poll ??= Timer.periodic(const Duration(seconds: 3), (_) async {
             final k = kode;
             if (lukket || k == null || k.raw.isEmpty || _store.harness) return;
-            final st = await _api.aiLinkCodeStatus(k.raw);
+            CusAiKode? st;
+            try {
+              st = await _api.aiLinkCodeStatus(k.raw);
+            } catch (_) {
+              return;
+            }
             if (lukket || st == null) return;
             if (st.status == 'linked') {
               lukket = true;

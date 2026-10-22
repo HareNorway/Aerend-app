@@ -16,6 +16,7 @@ import 'ai_bits.dart';
 import 'ai_copy.dart';
 import 'ai_store.dart';
 import 'ai_tilbud.dart';
+import '../../../services/customer/beacons.dart';
 
 /// Customer plan Step 14 — «Handlekurv fra assistent» (design 8060–8187,
 /// `skjerm: 'aiKurv'`, route `/bergen/ai/foresporsel/{id}`, the hand-off
@@ -58,10 +59,15 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
     if (_tilstand != null && _tilstand!.isEmpty) _tilstand = 'normal';
     if (kDebugMode && HjemHarness.ai != null && HjemHarness.ai!.startsWith('kurv')) HjemHarness.ai = null;
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    _vakt.start();
   }
+
+  /// Customer Step 16: a loader longer than 20 s is a `stuck_screen` beacon.
+  final _vakt = CusStuckWatch('ai_kurv');
 
   @override
   void dispose() {
+    _vakt.stop();
     _laserT?.cancel();
     super.dispose();
   }
@@ -86,18 +92,25 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
       setState(() { _gjest = true; _laster = false; });
       return;
     }
-    final r = await _api.aiRequest(_id);
+    CusAiRequest? r;
+    try {
+      r = await _api.aiRequest(_id);
+    } catch (_) {
+      r = null; // the plain empty state (fallback audit)
+    }
     if (!mounted) return;
-    if (r != null && r.state == 'utlopt' && r.orderId == null) {
+    final gammel = r;
+    if (gammel != null && gammel.state == 'utlopt' && gammel.orderId == null) {
       // «Tilbudet har utløpt · vi har hentet et nytt tilbud» — re-quote at once, the old total shown struck through.
-      final ny = await _api.aiRequestRequote(r.id);
+      final ny = await _api.aiRequestRequote(gammel.id);
       if (!mounted) return;
       if (ny != null) {
-        setState(() { _r = ny; _gammelTotal = r.total; _laster = false; _bet = ny.paymentPref == 'card' ? 'card' : 'vipps'; });
+        setState(() { _r = ny; _gammelTotal = gammel.total; _laster = false; _bet = ny.paymentPref == 'card' ? 'card' : 'vipps'; });
         return;
       }
     }
     setState(() { _r = r; _laster = false; _bet = (r?.paymentPref ?? 'vipps') == 'card' ? 'card' : 'vipps'; });
+    _vakt.stop();
     // Harness: `aiBetal` releases the slider on the real request (acceptance runs; never the sample).
     if (kDebugMode && HjemHarness.aiBetal && r != null && r.state == 'normal' && _id.isNotEmpty && _id != 'demo') {
       HjemHarness.aiBetal = false;

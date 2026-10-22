@@ -45,6 +45,7 @@ import 'kurv_kvittering.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
+import '../../../services/customer/beacons.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -677,10 +678,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         );
       } on StripeException catch (_) {
         reset();
+        CusBeacons.melde('payment_failed', code: 'stripe_cancelled', screen: 'kasse');
         if (mounted) showBergenToast(context, KasseCopy.a1_kasse_betaling_avbrutt);
         return false;
       } catch (e) {
         reset();
+        CusBeacons.melde('payment_failed', code: 'stripe_sheet', screen: 'kasse');
         if (mounted) showBergenToast(context, '$e');
         return false;
       }

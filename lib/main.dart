@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'services/customer/client_flags.dart';
 import 'package:flutter/services.dart';
@@ -35,6 +38,8 @@ import 'screens/bergen/bergen_routes_agil3.dart';
 import 'screens/bergen/kit/bergen_routes.dart';
 import 'screens/bergen/meg/a3_services.dart';
 import 'screens/bergen/kit/bergen_perf.dart';
+import 'screens/bergen/kit/server_banner.dart';
+import 'services/customer/beacons.dart';
 
 //Created at 20/05/2021 11:30 AM
 
@@ -142,7 +147,47 @@ Future<void> main() async {
   // Customer Step 11: the `cus.*` flags the app renders on (silent, the last answer stays offline).
   unawaited(ClientFlags.refresh());
 
+  // Customer Step 16: the client beacons (technical events, no PII, signed
+  // after login) and the per-version flags / banner / min_version.
+  await _startBeacons();
+
   runApp(MyApp(store));
+}
+
+/// The app version the beacons and `agents/flags` carry.
+String cusAppVersion = '0.0.0';
+
+Future<void> _startBeacons() async {
+  try {
+    final info = await PackageInfo.fromPlatform();
+    cusAppVersion = '${info.version}+${info.buildNumber}';
+  } catch (_) {
+    // The plugin is missing in a test host: the version stays 0.0.0.
+  }
+  final device = prefGetString(prefDeviceToken);
+  final b = CusBeacons(
+    transport: DioCusBeaconTransport(),
+    version: cusAppVersion,
+    platform: Platform.isAndroid ? 'android' : 'ios',
+    locale: prefGetStringWithDefaultValue(prefSelectedLanguageCode, 'no'),
+    device: device.isEmpty ? '' : CusBeacon.hash(device),
+  );
+  CusBeacons.current = b;
+  b.start();
+  unawaited(b.loadFlags());
+  final prev = FlutterError.onError;
+  FlutterError.onError = (details) {
+    CusBeacons.uncaught(details.exception, details.stack);
+    if (prev != null) {
+      prev(details);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    CusBeacons.uncaught(error, stack);
+    return false;
+  };
 }
 
 class MyApp extends StatefulWidget {
@@ -192,6 +237,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    ClientFlags.agents.addListener(_oppdaterSjekk);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       VippsLoginLinkHandler.bootstrap();
@@ -200,9 +246,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    ClientFlags.agents.removeListener(_oppdaterSjekk);
     WidgetsBinding.instance.removeObserver(this);
     unawaited(VippsLoginLinkHandler.dispose());
     super.dispose();
+  }
+
+  /// Customer Step 16: the `min_version` prompt when `agents/flags` says so.
+  void _oppdaterSjekk() {
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null) return;
+    unawaited(CusOppdaterArk.visHvis(ctx, ClientFlags.agents.value, cusAppVersion));
   }
 
   @override
@@ -210,9 +264,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       _resumedFromBackground = true;
+      // Customer Step 16: the beacons go out before the app sleeps.
+      if (state == AppLifecycleState.paused) unawaited(CusBeacons.current?.flush() ?? Future.value());
     }
     if (state == AppLifecycleState.resumed && _resumedFromBackground) {
       _resumedFromBackground = false;
+      // Customer Step 16: the flags, banner and min_version again on resume.
+      unawaited(ClientFlags.refresh());
+      unawaited(CusBeacons.current?.loadFlags() ?? Future.value());
       WidgetsBinding.instance.addPostFrameCallback((_) {
         resumePendingVippsLoginIfNeeded();
       });

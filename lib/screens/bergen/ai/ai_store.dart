@@ -60,7 +60,9 @@ class AiStore extends ChangeNotifier {
     }
     loading = true;
     try {
-      final r = await Future.wait<Object?>([api.aiLinks(), api.aiClients(), api.aiRequestLatest()]);
+      // Customer Step 16 (fallback audit): a failing call answers nothing; the others still land.
+      Future<T?> safe<T>(Future<T?> f) => f.then<T?>((v) => v, onError: (Object _) => null);
+      final r = await Future.wait<Object?>([safe(api.aiLinks()), safe(api.aiClients()), safe(api.aiRequestLatest())]);
       links = (r[0] as List<CusAiLink>?) ?? links ?? [];
       clients = (r[1] as List<CusAiClient>?) ?? clients;
       latest = r[2] as CusAiRequest?;

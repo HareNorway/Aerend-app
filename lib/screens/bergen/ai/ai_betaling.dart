@@ -14,6 +14,7 @@ import '../kit/bergen_kit.dart';
 import 'ai_copy.dart';
 import 'ai_overlays.dart';
 import 'ai_store.dart';
+import '../../../services/customer/beacons.dart';
 
 /// Customer plan Step 14 — «Bekreft og betal» (Commerce stage 1, D-K16): the
 /// device check (O-4, `cus.ai.device_auth`) or the «Åpner Vipps …» overlay,
@@ -60,11 +61,13 @@ abstract final class AiBetaling {
         }
       } catch (_) {
         // Vipps could not be opened here; the order waits unpaid and Sporing says so.
+        CusBeacons.melde('payment_failed', code: 'vipps_open', screen: 'ai_kurv');
       }
     } else if (order.paymentIntent != null && order.paymentStatus != 'paid') {
       try {
         await kasseStripePay(apiPaymentType: 2, intent: {'paymentIntent': order.paymentIntent}, orderNo: order.number, total: order.total.ore / 100);
       } catch (_) {
+        CusBeacons.melde('payment_failed', code: 'stripe_sheet', screen: 'ai_kurv');
         if (context.mounted) showBergenToast(context, AiCopy.cus_ai_bet_feilet, icon: Icons.error_outline_rounded);
         return (ok: true, feil: 'payment', order: order);
       }

@@ -7,6 +7,7 @@ import 'package:flutter_pretty_dio_logger/flutter_pretty_dio_logger.dart';
 import '../utils/utils.dart';
 import 'api_constant.dart';
 import 'api_exceptions.dart';
+import '../services/customer/beacons.dart';
 
 export 'api_constant.dart';
 export 'api_exceptions.dart';
@@ -35,6 +36,8 @@ class ApiBaseHelper {
     }, onResponse: (response, handler) {
       return handler.next(response);
     }, onError: (DioException e, handler) {
+      // Customer Step 16: a beacon per failed call (endpoint template + status; timeouts on the agent / commerce endpoints).
+      CusBeacons.onDio(e);
       return handler.next(e);
     }));
     if (!kReleaseMode) {

@@ -44,6 +44,7 @@ abstract final class AiIk {
   static const String oppdater = 'M3 12a9 9 0 1 0 3-6.7M3 4v4h4';
   static const String sok = 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20.5 20.5l-4.3-4.3';
   static const String kryss = 'M6 6l12 12M18 6L6 18';
+  static const String info = 'M12 16v-4M12 8h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0z';
   static const String advarsel = 'M12 4l9 16H3zM12 10v4M12 17h.01';
   static const String hus = 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6';
   static const String hake = 'M4.5 12.5l5 5 10-11';
@@ -190,7 +191,19 @@ class _Prikker extends StatefulWidget {
 }
 
 class _PrikkerState extends State<_Prikker> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat();
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400));
+
+  /// Customer Step 16 (still pass): the dots stand still under reduced motion.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _c.stop();
+      _c.value = .5;
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
+  }
 
   @override
   void dispose() {
