@@ -452,8 +452,125 @@ class FakeAegilApi implements AegilAppApi {
     return occasionsValue;
   }
 
+  List<ShoppingListItem> listItems = const [ShoppingListItem(id: 1, text: 'Melk', qty: 2, done: false, source: 'user', addedByAgent: false)];
+
   @override
-  Future<List<ShoppingListItem>> shoppingList() async => const [ShoppingListItem(id: 1, text: 'Melk', qty: 2, done: false, source: 'user', addedByAgent: false)];
+  Future<List<ShoppingListItem>> shoppingList() async => listItems;
+
+  // Customer Step 8: Ukeshandel. `weeklyValue` is what `GET agent/me/weekly`
+  // answers; the edits mutate it so the sheet re-reads a changed basket.
+  WeeklyView? weeklyValue;
+  WeeklyOrder? builtValue;
+  String? weeklyFeil;
+  List<WeeklyConfirmation> confirmations = const [];
+  int confirmed = 0;
+
+  @override
+  Future<WeeklyView?> weekly() async => weeklyValue;
+
+  @override
+  Future<({WeeklyOrder? weekly, String? feil})> buildWeekly({bool force = false}) async {
+    calls.add('weekly-build${force ? ':force' : ''}');
+    if (builtValue != null) weeklyValue = (weeklyValue ?? const WeeklyView()).copyWith(weekly: builtValue);
+    return (weekly: builtValue, feil: builtValue == null ? weeklyFeil : null);
+  }
+
+  WeeklyOrder _edited(WeeklyOrder o, List<WeeklyLine> lines, {String? state}) {
+    final ore = lines.fold<int>(0, (s, l) => s + (int.tryParse(l.price.replaceAll(RegExp(r'\D'), '')) ?? 0) * 100);
+    final saving = lines.fold<int>(0, (s, l) => s + (int.tryParse((l.saving ?? '').replaceAll(RegExp(r'\D'), '')) ?? 0) * 100);
+    return WeeklyOrder(
+      id: o.id, week: o.week, state: state ?? o.state, total: '${ore ~/ 100} kr', savings: '${saving ~/ 100} kr', savingsOre: saving,
+      lines: lines, dropped: o.dropped, reviewUntil: o.reviewUntil, overCap: o.overCap,
+      pendingAccept: lines.where((l) => l.pendingAccept).length, orderIds: o.orderIds, placedAt: o.placedAt,
+    );
+  }
+
+  @override
+  Future<WeeklyOrder?> weeklyLine(int id, int lineId, String action, {int? qty}) async {
+    calls.add('weekly-line:$lineId:$action${qty == null ? '' : ':$qty'}');
+    final o = weeklyValue?.weekly;
+    if (o == null) return null;
+    final lines = [
+      for (final l in o.lines)
+        if (l.lineId != lineId)
+          l
+        else if (action == 'accept')
+          WeeklyLine(lineId: l.lineId, name: l.name, store: l.store, storeId: l.storeId, qty: l.qty, source: l.source, price: l.price, saving: l.saving, substitution: l.substitution, needsAccept: l.needsAccept, accepted: true)
+        else if (action == 'qty')
+          WeeklyLine(lineId: l.lineId, name: l.name, store: l.store, storeId: l.storeId, qty: qty ?? l.qty, source: l.source, price: l.price, saving: l.saving),
+    ];
+    final ny = _edited(o, lines);
+    weeklyValue = weeklyValue!.copyWith(weekly: ny);
+    return ny;
+  }
+
+  @override
+  Future<WeeklyOrder?> weeklySkip(int id) async {
+    calls.add('weekly-skip:$id');
+    final o = weeklyValue?.weekly;
+    if (o == null) return null;
+    final ny = _edited(o, o.lines, state: 'cancelled');
+    weeklyValue = weeklyValue!.copyWith(weekly: ny);
+    return ny;
+  }
+
+  @override
+  Future<({bool ok, String? feil})> weeklyBasket(int id) async {
+    calls.add('weekly-basket:$id');
+    return (ok: weeklyFeil == null, feil: weeklyFeil);
+  }
+
+  @override
+  Future<({WeeklyConfirmation? conf, String? feil})> weeklyCheckout(int id) async {
+    calls.add('weekly-checkout:$id');
+    if (weeklyFeil != null || confirmations.isEmpty) return (conf: null, feil: weeklyFeil);
+    confirmed = 0;
+    return (conf: confirmations.first, feil: null);
+  }
+
+  @override
+  Future<({WeeklyConfirmResult? res, String? feil})> weeklyConfirm(int id, String confirmToken, {String payment = 'vipps'}) async {
+    calls.add('weekly-confirm:$id:$confirmToken:$payment');
+    if (confirmed >= confirmations.length || confirmations[confirmed].confirmToken != confirmToken) return (res: null, feil: 'Ingen butikk er under betaling.');
+    confirmed++;
+    final done = confirmed >= confirmations.length;
+    final o = weeklyValue?.weekly;
+    if (done && o != null) weeklyValue = weeklyValue!.copyWith(weekly: _edited(o, o.lines, state: 'placed'));
+    return (res: WeeklyConfirmResult(done: done, orderId: 9000 + confirmed, next: done ? null : confirmations[confirmed], orders: [for (var i = 1; i <= confirmed; i++) 9000 + i]), feil: null);
+  }
+
+  @override
+  Future<List<DinnerDay>?> setDinnerPlan(String week, int weekday, {String? choiceType, int? storeProductId}) async {
+    calls.add('dinner:$week:$weekday:${choiceType ?? '-'}:${storeProductId ?? '-'}');
+    final v = weeklyValue;
+    if (v == null) return null;
+    final c = v.candidates.where((c) => c.storeProductId == storeProductId).firstOrNull;
+    final plan = [
+      for (final d in v.plan)
+        if (d.weekday != weekday)
+          d
+        else
+          DinnerDay(weekday: d.weekday, name: d.name, rhythm: d.rhythm, choiceType: choiceType, storeProductId: storeProductId, label: c == null ? null : '${c.name} · ${c.store}', price: c?.price),
+    ];
+    weeklyValue = v.copyWith(plan: plan);
+    return plan;
+  }
+
+  @override
+  Future<List<ShoppingListItem>?> toggleListItem(int id) async {
+    calls.add('list-toggle:$id');
+    listItems = [for (final i in listItems) i.id == id ? ShoppingListItem(id: i.id, text: i.text, qty: i.qty, done: !i.done, source: i.source, addedByAgent: i.addedByAgent) : i];
+    weeklyValue = weeklyValue?.copyWith(items: listItems);
+    return listItems;
+  }
+
+  @override
+  Future<List<ShoppingListItem>?> removeListItem(int id) async {
+    calls.add('list-remove:$id');
+    listItems = listItems.where((i) => i.id != id).toList();
+    weeklyValue = weeklyValue?.copyWith(items: listItems);
+    return listItems;
+  }
 
   // Customer Step 5: chat history and the cart proposals.
   List<AegilSamtale> samtalerValue = const [];

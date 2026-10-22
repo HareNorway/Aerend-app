@@ -188,6 +188,15 @@ abstract final class HjemHarness {
   /// `varsler`, `anledninger`, `ukeshandel`).
   static String? megArk;
 
+  /// Customer Step 8, with `megArk: ukeshandel`: the step to open (`liste`,
+  /// the default, or `kurv`).
+  static String? ukeSteg;
+
+  /// With `ukeSteg: kurv`: run the step's key once the sheet is up —
+  /// `kasse` says yes to a waiting swap and opens the first store's
+  /// confirmation, `betal` also confirms it (the local order, then Vipps).
+  static String? ukeAuto;
+
   /// Premiehylla as if nothing had been claimed (`hyllaTom`, Bergen Step 8).
   static bool hyllaTom = false;
 
@@ -361,6 +370,8 @@ abstract final class HjemHarness {
         sporingOffline = false;
         megScroll = null;
         megArk = null;
+        ukeSteg = null;
+        ukeAuto = null;
         hyllaTom = false;
         loggUt = false;
         bioSamtykke = bioSlett = false;
@@ -477,6 +488,8 @@ abstract final class HjemHarness {
       liveApne = m['liveApne'] == true;
       megScroll = (m['megScroll'] as num?)?.toDouble();
       megArk = m['megArk'] as String?;
+      ukeSteg = m['ukeSteg'] as String?;
+      ukeAuto = m['ukeAuto'] as String?;
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
       bioSamtykke = m['bioSamtykke'] == true;

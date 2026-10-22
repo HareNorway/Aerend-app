@@ -1,3 +1,4 @@
+import 'chat_card_models.dart' show ShoppingListItem;
 import 'suggestion_models.dart';
 
 /// One chat turn from `POST agent/chat` (agil-3 Phase 7). `state` is the
@@ -466,4 +467,223 @@ class VervFriend {
         status: (json['status'] as String?) ?? 'downloaded',
         at: json['at'] as String?,
       );
+}
+
+// Customer Step 8: Ukeshandel (`GET agent/me/weekly`, the dinner plan, the
+// level-3 checkout). Money comes as the server's `{amount_ore, display}`.
+
+String _display(dynamic v) => v is Map ? '${v['display'] ?? ''}' : (v == null ? '' : '$v');
+
+/// One line in «Ukens kurv».
+class WeeklyLine {
+  const WeeklyLine({required this.lineId, required this.name, this.store = '', this.storeId = 0, this.qty = 1, this.source = 'list', this.price = '', this.saving, this.substitution, this.needsAccept = false, this.accepted, this.notes = const []});
+
+  final int lineId;
+  final String name;
+  final String store;
+  final int storeId;
+  final int qty;
+
+  /// `list` or `dinner`.
+  final String source;
+  final String price;
+
+  /// «−40» material: the saving against the reference price, or null.
+  final String? saving;
+
+  /// «Friele i stedet for Evergood»: the original the store was out of.
+  final String? substitution;
+  final bool needsAccept;
+  final bool? accepted;
+  final List<String> notes;
+
+  bool get pendingAccept => needsAccept && accepted == null;
+
+  factory WeeklyLine.fromJson(Map<String, dynamic> j) {
+    final sub = j['substitution'];
+    return WeeklyLine(
+      lineId: (j['line_id'] as num?)?.toInt() ?? 0,
+      name: '${j['name'] ?? ''}',
+      store: '${j['store'] ?? ''}',
+      storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+      qty: (j['qty'] as num?)?.toInt() ?? 1,
+      source: '${j['source'] ?? 'list'}',
+      price: _display(j['price']),
+      saving: j['saving'] == null ? null : _display(j['saving']),
+      substitution: sub is Map ? '${sub['original'] ?? ''}' : null,
+      needsAccept: j['needs_accept'] == true,
+      accepted: j['accepted'] is bool ? j['accepted'] as bool : null,
+      notes: ((j['notes'] as List?) ?? const []).map((e) => '$e').toList(),
+    );
+  }
+}
+
+/// What the builder left out, with the reason it tells the customer.
+class WeeklyDropped {
+  const WeeklyDropped({required this.name, required this.reason, this.text = ''});
+
+  final String name;
+  final String reason;
+  final String text;
+
+  factory WeeklyDropped.fromJson(Map<String, dynamic> j) => WeeklyDropped(name: '${j['name'] ?? ''}', reason: '${j['reason'] ?? ''}', text: '${j['text'] ?? ''}');
+}
+
+/// The week's basket as the server presents it.
+class WeeklyOrder {
+  const WeeklyOrder({required this.id, required this.week, required this.state, this.total = '', this.savings = '', this.savingsOre = 0, this.lines = const [], this.dropped = const [], this.reviewUntil, this.overCap = false, this.pendingAccept = 0, this.orderIds = const [], this.placedAt});
+
+  final int id;
+  final String week;
+
+  /// `draft`, `ready`, `reviewed`, `placed`, `paid`, `cancelled`.
+  final String state;
+  final String total;
+  final String savings;
+  final int savingsOre;
+  final List<WeeklyLine> lines;
+  final List<WeeklyDropped> dropped;
+  final String? reviewUntil;
+  final bool overCap;
+  final int pendingAccept;
+  final List<int> orderIds;
+  final String? placedAt;
+
+  bool get open => state == 'ready' || state == 'reviewed';
+
+  factory WeeklyOrder.fromJson(Map<String, dynamic> j) => WeeklyOrder(
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    week: '${j['week'] ?? ''}',
+    state: '${j['state'] ?? ''}',
+    total: _display(j['total']),
+    savings: _display(j['savings']),
+    savingsOre: j['savings'] is Map ? ((j['savings'] as Map)['amount_ore'] as num?)?.toInt() ?? 0 : 0,
+    lines: ((j['lines'] as List?) ?? const []).whereType<Map>().map((e) => WeeklyLine.fromJson(e.cast<String, dynamic>())).toList(),
+    dropped: ((j['dropped'] as List?) ?? const []).whereType<Map>().map((e) => WeeklyDropped.fromJson(e.cast<String, dynamic>())).toList(),
+    reviewUntil: j['review_until'] as String?,
+    overCap: j['over_cap'] == true,
+    pendingAccept: (j['pending_accept'] as num?)?.toInt() ?? 0,
+    orderIds: ((j['order_ids'] as List?) ?? const []).map((e) => (e as num).toInt()).toList(),
+    placedAt: j['placed_at'] as String?,
+  );
+}
+
+/// One weekday of the dinner plan (`agent/me/dinner_plans/{week}`).
+class DinnerDay {
+  const DinnerDay({required this.weekday, required this.name, this.rhythm = false, this.choiceType, this.storeProductId, this.label, this.price});
+
+  final int weekday;
+  final String name;
+  final bool rhythm;
+
+  /// `restaurant`, `recipe`, `skip` or null (nothing planned).
+  final String? choiceType;
+  final int? storeProductId;
+  final String? label;
+  final String? price;
+
+  bool get planned => choiceType == 'restaurant' || choiceType == 'recipe';
+
+  factory DinnerDay.fromJson(Map<String, dynamic> j) => DinnerDay(
+    weekday: (j['weekday'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    rhythm: j['rhythm'] == true,
+    choiceType: j['choice_type'] as String?,
+    storeProductId: (j['store_product_id'] as num?)?.toInt(),
+    label: j['label'] as String?,
+    price: j['price'] == null ? null : _display(j['price']),
+  );
+}
+
+/// A dish the customer has had delivered before: a dinner candidate.
+class DinnerCandidate {
+  const DinnerCandidate({required this.storeProductId, required this.name, this.store = '', this.storeId = 0, this.price = ''});
+
+  final int storeProductId;
+  final String name;
+  final String store;
+  final int storeId;
+  final String price;
+
+  factory DinnerCandidate.fromJson(Map<String, dynamic> j) => DinnerCandidate(
+    storeProductId: (j['store_product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    store: '${j['store'] ?? ''}',
+    storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+    price: _display(j['price']),
+  );
+}
+
+/// `GET agent/me/weekly`: the week, its basket when built, the list, the plan
+/// and the dinner candidates — one read for both steps of the Ark.
+class WeeklyView {
+  const WeeklyView({this.week = '', this.weekly, this.items = const [], this.plan = const [], this.candidates = const []});
+
+  final String week;
+  final WeeklyOrder? weekly;
+  final List<ShoppingListItem> items;
+  final List<DinnerDay> plan;
+  final List<DinnerCandidate> candidates;
+
+  WeeklyView copyWith({WeeklyOrder? weekly, bool clearWeekly = false, List<ShoppingListItem>? items, List<DinnerDay>? plan}) =>
+      WeeklyView(week: week, weekly: clearWeekly ? null : weekly ?? this.weekly, items: items ?? this.items, plan: plan ?? this.plan, candidates: candidates);
+
+  factory WeeklyView.fromJson(Map<String, dynamic> j) => WeeklyView(
+    week: '${j['week'] ?? ''}',
+    weekly: j['weekly'] is Map ? WeeklyOrder.fromJson((j['weekly'] as Map).cast<String, dynamic>()) : null,
+    items: ((j['items'] as List?) ?? const []).whereType<Map>().map((e) => ShoppingListItem.fromJson(e.cast<String, dynamic>())).toList(),
+    plan: ((j['plan'] as List?) ?? const []).whereType<Map>().map((e) => DinnerDay.fromJson(e.cast<String, dynamic>())).toList(),
+    candidates: ((j['candidates'] as List?) ?? const []).whereType<Map>().map((e) => DinnerCandidate.fromJson(e.cast<String, dynamic>())).toList(),
+  );
+}
+
+/// One store's confirmation on the level-3 checkout (`weekly/{id}/checkout`
+/// and each `confirm`): the token the next confirm needs, and where we are.
+class WeeklyConfirmation {
+  const WeeklyConfirmation({required this.confirmToken, required this.storeId, this.store = '', this.total = '', this.storesTotal = 1, this.storesDone = 0});
+
+  final String confirmToken;
+  final int storeId;
+  final String store;
+  final String total;
+  final int storesTotal;
+  final int storesDone;
+
+  factory WeeklyConfirmation.fromJson(Map<String, dynamic> j) {
+    final c = (j['confirmation'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final summary = (c['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return WeeklyConfirmation(
+      confirmToken: '${c['confirm_token'] ?? ''}',
+      storeId: (c['store_id'] as num?)?.toInt() ?? 0,
+      store: '${c['store'] ?? ''}',
+      total: _display(summary['total']),
+      storesTotal: (j['stores_total'] as num?)?.toInt() ?? 1,
+      storesDone: (j['stores_done'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// `weekly/{id}/confirm`: the order just placed, then the next store's
+/// confirmation — or `done` with every order id.
+class WeeklyConfirmResult {
+  const WeeklyConfirmResult({required this.done, required this.orderId, this.next, this.orders = const [], this.weekly});
+
+  final bool done;
+  final int orderId;
+  final WeeklyConfirmation? next;
+  final List<int> orders;
+  final WeeklyOrder? weekly;
+
+  factory WeeklyConfirmResult.fromJson(Map<String, dynamic> j) {
+    final placed = (j['placed'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final order = (placed['order'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final done = j['done'] == true;
+    return WeeklyConfirmResult(
+      done: done,
+      orderId: (order['id'] as num?)?.toInt() ?? 0,
+      next: done ? null : WeeklyConfirmation.fromJson(j),
+      orders: ((j['orders'] as List?) ?? const []).map((e) => (e as num).toInt()).toList(),
+      weekly: j['weekly'] is Map ? WeeklyOrder.fromJson((j['weekly'] as Map).cast<String, dynamic>()) : null,
+    );
+  }
 }

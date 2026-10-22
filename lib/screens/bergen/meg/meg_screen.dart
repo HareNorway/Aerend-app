@@ -304,7 +304,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'liga': _ligaNavn();
         case 'varsler': _varsler();
         case 'anledninger': _anledninger();
-        case 'ukeshandel': _ukeshandel();
+        case 'ukeshandel': _ukeshandel(steg: HjemHarness.ukeSteg, auto: HjemHarness.ukeAuto);
         case 'paaminnelser': visPaaminnelser(context, repo: _aegilRepo);
         // Customer Step 5: Tillitsregnskap.
         case 'tillit': TillitArk.vis(context, _tillit ?? const TrustLedger(month: ''));
@@ -532,10 +532,22 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     if (list != null && mounted) setState(() => _occasions = list);
   }
 
-  Future<void> _ukeshandel() async {
-    final items = await a3Try(_aegil.shoppingList) ?? const [];
+  /// Customer Step 8: the Ark reads `agent/me/weekly` (the list, the dinner
+  /// plan and the week's basket in one); off the flag it falls back to the
+  /// plain list from `me/shopping-list`.
+  Future<void> _ukeshandel({String? steg, String? auto}) async {
+    final view = await a3Try(_aegil.weekly) ?? WeeklyView(items: await a3Try(_aegil.shoppingList) ?? const []);
     if (!mounted) return;
-    await MegSheets.ukeshandel(context, items: items, level: _settings?.level ?? 2, onOpenAegilSettings: _aegilInnstillinger);
+    await MegSheets.ukeshandel(
+      context,
+      api: _aegil,
+      view: view,
+      level: _settings?.level ?? 2,
+      steg: steg ?? 'liste',
+      auto: auto,
+      onOpenAegilSettings: _aegilInnstillinger,
+      onKurv: () => _go('/bergen/kurv'),
+    );
   }
 
   /// «Innstillinger for Ægil» (new Bergen `aegilInnst`, L20363–20393): the

@@ -94,6 +94,11 @@ Future<T?> showMegArk<T>(
   /// A fixed strip between the scrolling body and the footer (the bud
   /// chat's chips and input, `Budchat · skriv`), rebuilt with [body].
   MegArkBody? fot,
+
+  /// Customer Step 8: a title and subtitle that follow the sheet's state
+  /// («Ukens kurv · 421 kr» after a line is taken out), rebuilt with [body].
+  String Function()? titleBuilder,
+  String? Function()? subtitleBuilder,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -111,7 +116,7 @@ Future<T?> showMegArk<T>(
       final ark = MegArkSkala(
         child: StatefulBuilder(
           builder: (ctx, setState) =>
-              MegArk(key: key, title: title, subtitle: subtitle, body: body == null ? null : body(ctx, setState), fot: fot?.call(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
+              MegArk(key: key, title: titleBuilder?.call() ?? title, subtitle: subtitleBuilder != null ? subtitleBuilder() : subtitle, body: body == null ? null : body(ctx, setState), fot: fot?.call(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
         ),
       );
       return tastatur

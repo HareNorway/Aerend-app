@@ -7,6 +7,7 @@ import '../../../data/aegil/aegil_repo.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_rules.dart';
 import '../../../networking/ops/ops_customer_api.dart';
+import '../../../networking/ops/ops_kasse_api.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/manageAddress/manage_address_repo.dart';
 import '../../common/manageCard/manage_card_dl.dart';
@@ -37,6 +38,10 @@ abstract final class A3Services {
   /// `points/rules` (Slik får du poeng, Bergen Step 8).
   static Future<PointsRules?> Function() rules = () => OpsCustomerApi().rules();
 
+  /// Customer Step 8: the Vipps redirect for an order the weekly checkout
+  /// placed (the basket's own path, `OpsKasseApi.vippsRedirect`).
+  static Future<String?> Function(int orderId) vippsUrl = (id) => OpsKasseApi().vippsRedirect(id);
+
   @visibleForTesting
   static void reset() {
     points = () => PointsAppRepo();
@@ -49,6 +54,7 @@ abstract final class A3Services {
     cards = _defaultCards;
     addressList = _defaultAddressList;
     rules = () => OpsCustomerApi().rules();
+    vippsUrl = (id) => OpsKasseApi().vippsRedirect(id);
   }
 }
 
