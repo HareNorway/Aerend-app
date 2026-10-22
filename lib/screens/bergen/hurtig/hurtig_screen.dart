@@ -121,6 +121,8 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _h = HurtigHjerne(HurtigData.tom, now: widget.now);
+    // Customer Step 14: the linked list for the «Bestill med en annen AI» line.
+    if (ClientFlags.on(ClientFlags.aiLinking)) unawaited(AiStore.instance.load());
     _tekst.addListener(() => setState(() {}));
     // New Bergen L15941: the field lights up while focused (`hbFokus`).
     _fokus.addListener(() => setState(() {}));
@@ -845,25 +847,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                   ),
                 ),
               ),
-              // Customer Step 14: the AI marks button (design 2937, «Hurtig · AI-merker») → aiVelg.
-              if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
-                Semantics(
-                  button: true,
-                  label: AiCopy.cus_ai_hurtig_logo,
-                  child: HbPress(
-                    scale: .94,
-                    ms: 140,
-                    onTap: () => AiArk.flyt(context, 'velg', fraHurtig: true),
-                    child: Container(
-                      key: const Key('cus-ai-hurtig-logo'),
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .08)]), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))),
-                      child: Row(mainAxisSize: MainAxisSize.min, children: [const AiMerke('Claude', size: 24, radius: 8), const SizedBox(width: 4), const AiMerke('ChatGPT', size: 24, radius: 8)]),
-                    ),
-                  ),
-                ),
-              if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness) const SizedBox(width: 8),
               CssBox(
                 height: 30,
                 radius: BorderRadius.circular(999),
@@ -1056,38 +1039,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
             ],
             if (_tenker) ...[const SizedBox(height: 14), const _Tenker()],
             if (_utkast != null) ...[const SizedBox(height: 14), _utkastKort()],
-            // Customer Step 14: «Bestill med en annen AI» (design 4563–4567, `hbAiSub` from the linked list).
-            if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness) ...[
-              const SizedBox(height: 18),
-              ListenableBuilder(
-                listenable: AiStore.instance,
-                builder: (_, __) {
-                  final l = AiStore.instance.aktive.where((x) => x.vendor != 'siri').firstOrNull;
-                  return HbPress(
-                    dy: 1.5,
-                    onTap: () => AiArk.flyt(context, 'velg', fraHurtig: true),
-                    child: CssBox(
-                      key: const Key('cus-ai-hurtig-rad'),
-                      radius: BorderRadius.circular(18),
-                      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)])],
-                      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                      child: Row(children: [
-                        const AiMerke('Claude', size: 30, radius: 10),
-                        const SizedBox(width: 4),
-                        const AiMerke('ChatGPT', size: 30, radius: 10),
-                        const SizedBox(width: 10),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(AiCopy.cus_ai_hurtig_rad, style: hbI(13.5, weight: FontWeight.w800, color: Colors.white)),
-                          Text(l != null ? AiCopy.cus_ai_hurtig_sub_koblet(l.name) : AiCopy.cus_ai_hurtig_sub, style: hbI(11.5, color: const Color(0xFFBFD6DD))),
-                        ])),
-                        const HbIkon('M9 6l6 6-6 6', size: 12, stroke: Colors.white, width: 2.4),
-                      ]),
-                    ),
-                  );
-                },
-              ),
-            ],
           ],
         ),
       ),
@@ -1335,6 +1286,8 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Customer Step 14: «Bestill med en annen AI» (design L4563–4567, `hbAiSub`).
+          if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness) ...[_aiRad(context), const SizedBox(height: 9)],
           Row(
             children: [
               for (final (i, (k, ikon, tekst)) in [('oftest', HbIkoner.modOftest, HurtigCopy.modOftest), ('forrige', HbIkoner.modForrige, HurtigCopy.modForrige), ('pref', HbIkoner.modPref, HurtigCopy.modPref)].indexed) ...[
@@ -1496,6 +1449,75 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       ),
     );
   }
+
+  /// «Bestill med en annen AI» (design L4563–4567): the three marks stacked,
+  /// the line from the linked list (`hbAiSub`), the round chevron → aiVelg.
+  Widget _aiRad(BuildContext context) => ListenableBuilder(
+    listenable: AiStore.instance,
+    builder: (_, __) {
+      final l = AiStore.instance.aktive.where((x) => x.vendor != 'siri').firstOrNull;
+      Widget merke(String n, double left) => Positioned(
+        left: left,
+        top: 0,
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), boxShadow: const [BoxShadow(color: Color(0xFF2A5B69), spreadRadius: 2)]),
+          child: AiMerke(n, size: 28, radius: 9),
+        ),
+      );
+      return HbPress(
+        dy: 2,
+        onTap: () => AiArk.flyt(context, 'velg', fraHurtig: true),
+        child: Container(
+          key: const Key('cus-ai-hurtig-rad'),
+          height: 50,
+          padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
+            boxShadow: const [
+              BoxShadow(color: Color.fromRGBO(255, 255, 255, .12), spreadRadius: 1),
+              BoxShadow(color: Color.fromRGBO(6, 22, 30, .6), offset: Offset(0, 3)),
+              BoxShadow(color: Color.fromRGBO(2, 12, 18, .9), offset: Offset(0, 12), blurRadius: 18 / 2 / .57735, spreadRadius: -12),
+            ],
+          ),
+          foregroundDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .28), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .04]),
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: 68, height: 28, child: Stack(clipBehavior: Clip.none, children: [merke('Gemini', 40), merke('ChatGPT', 20), merke('Claude', 0)])),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(AiCopy.cus_ai_hurtig_rad, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(12.5, weight: FontWeight.w800, height: 1.2, color: Colors.white)),
+                    const SizedBox(height: 1),
+                    Text(l != null ? AiCopy.cus_ai_hurtig_sub_koblet(l.name) : AiCopy.cus_ai_hurtig_sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(10.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .62))),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color.fromRGBO(255, 255, 255, .12),
+                  boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .18), spreadRadius: 1)],
+                ),
+                child: const Center(child: HbIkon('M9 6l6 6-6 6', size: 12, stroke: Colors.white, width: 3)),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 
   Widget _modul(String k, String ikon, String tekst) {
     final a = _modAktiv == k;

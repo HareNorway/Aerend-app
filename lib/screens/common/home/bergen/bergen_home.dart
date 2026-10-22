@@ -25,6 +25,9 @@ import '../../../bergen/hjem/hjem_hero.dart';
 import '../../auth/launch/lf_css.dart' show LfFrame, lfFlow;
 import '../../../bergen/hjem/hjem_hjul.dart';
 import '../../../bergen/hjem/hjem_kort.dart';
+import '../../../bergen/ai/ai_sheets.dart';
+import '../../../bergen/ai/ai_store.dart';
+import '../../../../services/customer/client_flags.dart';
 import '../../../bergen/hurtig/hurtig_brain.dart';
 import '../../../bergen/hurtig/hurtig_data.dart';
 import '../../../bergen/hurtig/hurtig_screen.dart';
@@ -1947,6 +1950,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   valueListenable: HurtigKilde.cache,
                   builder: (context, d, _) => HjemHurtigInngang(
                     linje: hurtigHjemLinje(d),
+                    // Customer Step 14: the AI marks pill (design L2937) → «Bestill med en annen AI».
+                    onAi: ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness ? () => AiArk.flyt(context, 'velg', fraHurtig: true) : null,
                     onTap: () async {
                       final r = await BergenRoutes.push<dynamic>(context, '/bergen/hurtig');
                       if (r == HurtigScreen.tilKurv && context.mounted) {
