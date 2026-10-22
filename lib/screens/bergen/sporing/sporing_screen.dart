@@ -592,6 +592,7 @@ class _SporingScreenState extends State<SporingScreen> {
       meterIgjen: (t.raw['distance_metres'] as num?)?.toInt(),
       spartSek: spart,
       poeng: _poeng,
+      vindu: t.hasWindow ? t.windowText : null,
     );
   }
 

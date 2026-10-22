@@ -17,6 +17,7 @@ class FeedPostDetail extends FeedPost {
     super.publishedAt,
     super.publisherType,
     super.headline,
+    super.disclosure,
     required this.comments,
   });
 
@@ -35,6 +36,7 @@ class FeedPostDetail extends FeedPost {
       publishedAt: post.publishedAt,
       publisherType: post.publisherType,
       headline: post.headline,
+      disclosure: post.disclosure,
       comments: FeedPage.fromJson(
         commentsJson is Map<String, dynamic>
             ? commentsJson

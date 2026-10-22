@@ -31,6 +31,7 @@ class SpSceneInfo {
     this.meterIgjen,
     this.spartSek,
     this.poeng,
+    this.vindu,
   });
 
   final String butikk;
@@ -48,6 +49,9 @@ class SpSceneInfo {
   final bool sykkel;
   final bool partner;
   final bool henting;
+
+  /// Customer Step 11: the store's own window («22:23–22:28») for a partner-delivered order (self-delivery spec §5).
+  final String? vindu;
 
   /// Minutes left in the kitchen (the «På komfyren» pill).
   final int? minIgjen;

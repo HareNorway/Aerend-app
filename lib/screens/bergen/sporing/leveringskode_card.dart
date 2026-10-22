@@ -33,7 +33,8 @@ class BudIdentitetPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final courier = tracking.isPartner ? null : tracking.courier;
     final partner = tracking.isPartner;
-    final navn = partner ? SporingCopy.a1_sporing_leverer_selv(tracking.deliveredByLabel) : (courier?.firstName ?? SporingCopy.a1_sporing_Budet);
+    // Self-delivery spec §5 (Customer Step 11): «Leveres av {butikk}» — no courier identity.
+    final navn = partner ? SporingCopy.a1_sporing_leveres_av(tracking.deliveredByLabel) : (courier?.firstName ?? SporingCopy.a1_sporing_Budet);
     final kj = courier == null ? '' : kjoretoy(courier);
     final tittel = kj.isEmpty ? navn : '$navn · $kj';
     final verifisert = partner || (courier?.verified ?? false);

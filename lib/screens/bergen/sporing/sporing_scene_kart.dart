@@ -324,6 +324,37 @@ class _AnkommerState extends State<_Ankommer> {
     // Metres to the door from the tracking payload (`distance_metres`, backend
     // plan Step 4): the courier's live position when reported, else the store.
     final meter = info.meterIgjen;
+    // Self-delivery spec §5 (Customer Step 11): no courier position for a partner-delivered
+    // order — the store's own window stands where the countdown and the metres would be.
+    if (info.partner) {
+      return CssBox(
+        key: const Key('cus-sporing-butikk-vindu'),
+        width: 110,
+        radius: BorderRadius.circular(16),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+        bg: [
+          CssLinear(180, [rgba(10, 32, 42, .86), rgba(6, 22, 30, .93)]),
+        ],
+        shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 14, 22, -12, rgba(4, 20, 28, .9))],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                SpPuls(size: 5, color: kSpOrange, glow: rgba(242, 109, 61, .9)),
+                const SizedBox(width: 5),
+                Flexible(child: Text(SporingCopy.cus_sporing_butikken_regner.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(8.5, weight: FontWeight.w800, em: .08, color: kSpLabel))),
+              ],
+            ),
+            const SizedBox(height: 4),
+            FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(info.vindu ?? '…', maxLines: 1, style: jakarta(18, em: -.03, height: 1))),
+            const SizedBox(height: 4),
+            Text(SporingCopy.cus_sporing_butikkens_tid, style: inter(8.5, weight: FontWeight.w700, color: kSpLabel)),
+          ],
+        ),
+      );
+    }
     return CssBox(
       width: 110,
       radius: BorderRadius.circular(16),

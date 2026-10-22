@@ -224,4 +224,7 @@ abstract final class KasseCopy {
     if (parts.length > 1) out.write(',${parts[1]}');
     return out.toString();
   }
+
+  /// Customer Step 11 (v3 §11.4.6): the consequence stated at checkout when the code is on.
+  static String get cus_kasse_kode_retur => _t('Leveres bare til deg · uten mottaker går bestillingen tilbake til butikken, aldri ved døren', 'Handed only to you · with no receiver the order returns to the store, never left at the door');
 }

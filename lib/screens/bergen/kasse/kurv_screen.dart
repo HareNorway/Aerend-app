@@ -1132,7 +1132,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 },
                 kode: _codeAtDoor,
                 onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
-                kodeLinje: total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under,
+                // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.
+                kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
               ),
           ],
         ),

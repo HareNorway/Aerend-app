@@ -397,4 +397,8 @@ abstract final class SporingCopy {
   static String get cus_varsel_avbestill_full => _t('Avbestill · full refusjon', 'Cancel · full refund');
   static String cus_varsel_butikk_linje(String butikk) => _t('$butikk leverer selv. Vent på det nye vinduet, eller avbestill med full refusjon. Ingenting skjer før du velger.', '$butikk delivers itself. Wait for the new window, or cancel with a full refund. Nothing happens until you choose.');
   static String cus_varsel_venter(String vindu) => _t('Vi venter · ny tid $vindu', 'We wait · new time $vindu');
+
+  // ── Customer Step 11: partner-delivered tracking (self-delivery spec §5) ──
+  static String get cus_sporing_butikken_regner => _t('Butikkens tid', "The store's time");
+  static String get cus_sporing_butikkens_tid => _t('butikkens eget anslag', "the store's own estimate");
 }

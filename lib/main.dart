@@ -4,6 +4,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+
+import 'services/customer/client_flags.dart';
 import 'package:flutter/services.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -136,6 +138,9 @@ Future<void> main() async {
       statusBarBrightness: Brightness.dark,
     ),
   );
+
+  // Customer Step 11: the `cus.*` flags the app renders on (silent, the last answer stays offline).
+  unawaited(ClientFlags.refresh());
 
   runApp(MyApp(store));
 }
