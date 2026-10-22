@@ -376,4 +376,25 @@ abstract final class SporingCopy {
   static String get a1_sporing_vis_sjaforen => _t('VIS DENNE TIL SJÅFØREN', 'SHOW THIS TO THE DRIVER');
   static String get a1_sporing_vis_budet => _t('VIS DENNE TIL BUDET', 'SHOW THIS TO THE COURIER');
   static String get a1_sporing_bankid_verifisert => _t('BankID-verifisert', 'BankID verified');
+
+  // ── Customer Step 10: «Utført av Ærend AI» (contract §5, DoneByAi text keys) and the notice card ──
+  static String get cus_ai_utfort_eyebrow => _t('Utført av Ærend AI', 'Done by Ærend AI');
+  static const Map<String, (String, String)> _utfort = {
+    'ai_done_reassigned': ('Utført av Ærend AI: et nytt bud er spurt', 'Done by Ærend AI: a new courier was asked'),
+    'ai_done_store_nudged': ('Utført av Ærend AI: vi ringte butikken', 'Done by Ærend AI: we called the store'),
+    'ai_done_delay_notice': ('Utført av Ærend AI: du fikk ny tid', 'Done by Ærend AI: you got a new time'),
+    'ai_done_courier_released': ('Utført av Ærend AI: budet ble frigitt med ventekompensasjon', 'Done by Ærend AI: the courier was released with waiting pay'),
+    'ai_done_cancelled_with_policy': ('Utført av Ærend AI: ordren ble kansellert med full refusjon', 'Done by Ærend AI: the order was cancelled with a full refund'),
+  };
+
+  /// The line for a text key, else the server's own text (NO / EN).
+  static String cus_ai_utfort(String key, String text, String textEn) {
+    final k = _utfort[key];
+    return k == null ? _t(text, textEn) : _t(k.$1, k.$2);
+  }
+
+  static String cus_varsel_vent_vindu(String vindu) => _t('Vent · $vindu', 'Wait · $vindu');
+  static String get cus_varsel_avbestill_full => _t('Avbestill · full refusjon', 'Cancel · full refund');
+  static String cus_varsel_butikk_linje(String butikk) => _t('$butikk leverer selv. Vent på det nye vinduet, eller avbestill med full refusjon. Ingenting skjer før du velger.', '$butikk delivers itself. Wait for the new window, or cancel with a full refund. Nothing happens until you choose.');
+  static String cus_varsel_venter(String vindu) => _t('Vi venter · ny tid $vindu', 'We wait · new time $vindu');
 }

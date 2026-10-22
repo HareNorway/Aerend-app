@@ -21,6 +21,8 @@ import '../kit/bergen_perf.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import '../kit/live_aerend.dart';
+import '../hjelp/support.dart';
+import '../sporing/hjelp_sheet.dart' show HjelpScreen, HjelpState;
 import 'hjem_harness.dart';
 import '../meg/a3_services.dart';
 import '../../common/notifications/notifications_repo.dart';
@@ -121,11 +123,13 @@ class Varsel {
     this.storeId,
     this.orderId,
     this.actionId,
+    this.conversationId,
   });
 
   /// A card from the inbox (Customer Step 3).
   factory Varsel.fraInbox(CusVarsel c) => Varsel(
     id: c.key,
+    conversationId: c.conversationId,
     key: c.key,
     type: c.type,
     muteKey: c.muteKey,
@@ -172,6 +176,9 @@ class Varsel {
   /// Customer Step 7: the Ægil receipt an «Angre» card undoes.
   final int? actionId;
 
+  /// Customer Step 10: the Hjelp thread «Svar {navn}» continues.
+  final int? conversationId;
+
   Varsel lest() => Varsel(
     id: id,
     type: type,
@@ -188,6 +195,7 @@ class Varsel {
     storeId: storeId,
     orderId: orderId,
     actionId: actionId,
+    conversationId: conversationId,
   );
 
   /// Customer Step 7: the card after «Angre» (no button).
@@ -207,6 +215,7 @@ class Varsel {
     storeId: storeId,
     orderId: orderId,
     actionId: actionId,
+    conversationId: conversationId,
   );
 }
 
@@ -577,6 +586,12 @@ class _VarslerPanelState extends State<VarslerPanel> {
     // Customer Step 7: «Angre» on a level-3 merge's receipt.
     if (v.handling == CusLevel3Copy.cus_angre && v.actionId != null) {
       unawaited(_angre(v));
+      return;
+    }
+    // Customer Step 10 (design C2.10): «Svar Mari» continues the Hjelp thread the person answered in.
+    if ((v.handling ?? '').startsWith('Svar ') && v.conversationId != null) {
+      SupportStore.instance.fortsettSamtale = v.conversationId;
+      HjelpScreen.apne(context, initial: HjelpState.chat, orderId: v.orderId);
       return;
     }
     if (v.orderId != null) {

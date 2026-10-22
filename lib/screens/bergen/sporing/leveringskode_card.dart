@@ -608,11 +608,19 @@ class _QrPainter extends CustomPainter {
 /// **Valg som venter** (Launch L9008): the store has not seen the order —
 /// wait for a new window, or cancel with a full refund.
 class ValgSomVenterCard extends StatelessWidget {
-  const ValgSomVenterCard({super.key, required this.storeName, required this.onWait, required this.onCancel});
+  const ValgSomVenterCard({super.key, required this.storeName, required this.onWait, required this.onCancel, this.tittel, this.linje, this.ventLabel, this.avbestill = true});
 
   final String storeName;
   final VoidCallback onWait;
   final VoidCallback onCancel;
+
+  /// Customer Step 10: a proactive notice (agent.comms) brings its own title,
+  /// line and the new window on «Vent» («Vent · 13:07–13:31»); a notice
+  /// after pickup has no «Avbestill».
+  final String? tittel;
+  final String? linje;
+  final String? ventLabel;
+  final bool avbestill;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -637,11 +645,11 @@ class ValgSomVenterCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    SporingCopy.a1_sporing_valg_tittel(storeName),
+                    tittel ?? SporingCopy.a1_sporing_valg_tittel(storeName),
                     style: inter(14, weight: FontWeight.w800, color: kSpInk),
                   ),
                   Text(
-                    SporingCopy.a1_sporing_valg_line,
+                    linje ?? SporingCopy.a1_sporing_valg_line,
                     style: inter(12, weight: FontWeight.w600, height: 1.35, color: const Color(0xFF57534B)),
                   ),
                 ],
@@ -664,7 +672,7 @@ class ValgSomVenterCard extends StatelessWidget {
                     CssLinear(160, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .6, 1]),
                   ],
                   child: Center(
-                    child: Text(SporingCopy.a1_sporing_vent, style: inter(13.5, weight: FontWeight.w800)),
+                    child: Text(ventLabel ?? SporingCopy.a1_sporing_vent, style: inter(13.5, weight: FontWeight.w800)),
                   ),
                 ),
               ),

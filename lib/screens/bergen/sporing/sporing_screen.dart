@@ -13,12 +13,15 @@ import 'package:share_plus/share_plus.dart';
 import '../../../data/ops/tracking_models.dart';
 import '../../../data/points/points_rules.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../hjelp/demo_panel.dart';
+import '../hjelp/noe_galt_sheet.dart';
+import '../hjelp/support.dart' show SupportOrdre, SupportStore;
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_kit.dart';
 import 'bud_chat_ark.dart';
@@ -50,10 +53,14 @@ import '../../common/homeMainV1/home_main_v1.dart';
 /// store record. The app never maps states — the stage, its label, who
 /// delivers and whether a courier is being found all come from the payload.
 class SporingScreen extends StatefulWidget {
-  const SporingScreen({super.key, this.orderId, this.api, this.preloaded, this.poll = true, this.showMap = true, this.fersk = false});
+  // (Customer Step 10: `cus` is the issue / inbox client, replaced in tests.)
+  const SporingScreen({super.key, this.orderId, this.api, this.cus, this.preloaded, this.poll = true, this.showMap = true, this.fersk = false});
 
   final int? orderId;
   final OpsCustomerApi? api;
+
+  /// Customer Step 10: the issue and inbox client (replaced in tests).
+  final CusApi? cus;
 
   /// Tests inject the payload and disable polling / the platform map.
   final OpsTracking? preloaded;
@@ -96,6 +103,14 @@ class _SporingScreenState extends State<SporingScreen> {
   bool _shift = false;
   int _shiftSteg = 0;
   bool _waited = false;
+
+  /// Customer Step 10: the proactive notice answered on this screen (its
+  /// Varsler card is dismissed), and the C2 issue on the delivered order.
+  final Set<String> _noticeAnswered = {};
+  CusIssue? _issue;
+  bool _issueWindow = false;
+  int _issueSla = 30;
+  late final CusApi _cus = widget.cus ?? CusApi();
   bool _fersk = false;
   bool _vervLukket = false;
   String? _vervKode;
@@ -158,6 +173,10 @@ class _SporingScreenState extends State<SporingScreen> {
         _t = next;
         _offline = false;
         _missing = false;
+        final iw = next.raw['issue_window'];
+        _issueWindow = iw is Map && iw['open'] == true;
+        if (iw is Map && iw['sla_minutes'] is num) _issueSla = (iw['sla_minutes'] as num).toInt();
+        _issue = next.raw['issue'] is Map ? CusIssue.fromJson(Map<String, dynamic>.from(next.raw['issue'] as Map)) : null;
       });
       if (changed) _onStageChange(next);
       if (_lastStage == null && next.stage == 3) _etterLevert(next);
@@ -286,6 +305,50 @@ class _SporingScreenState extends State<SporingScreen> {
     if (ok && mounted) setState(() => _takkSendt = true);
   }
 
+  /// Customer Step 10: the notice's «Vent» — the new window stands; the card is answered.
+  Future<void> _noticeWait(OpsNotice n) async {
+    setState(() => _noticeAnswered.add(n.key));
+    unawaited(_cus.varselFjern(n.key));
+    final res = await _api.problem(_id, kind: 'wait');
+    if (!mounted) return;
+    final v = n.wait?.window ?? '';
+    showBergenToast(context, res == null ? BergenRoutes.ikkeSendt : (v.isEmpty ? SporingCopy.a1_sporing_venter : SporingCopy.cus_varsel_venter(v)));
+  }
+
+  /// The notice's «Avbestill» (policy `full_refund` before pickup): the existing cancel.
+  Future<void> _noticeCancel(OpsNotice n) async {
+    setState(() => _noticeAnswered.add(n.key));
+    unawaited(_cus.varselFjern(n.key));
+    await _cancel();
+  }
+
+  /// «Noe galt med bestillingen?» (C2) on the delivered order.
+  Future<void> _noeGalt() async {
+    final t = _t;
+    if (t == null) return;
+    final o = _ordre;
+    final ordre = SupportOrdre(id: _id, kode: t.code ?? o?.kode ?? 'Æ-$_id', butikk: t.store?.name ?? o?.butikk ?? '', total: o?.total.round() ?? 0, status: t.stageLabel, linjer: o?.linjer.map((l) => l.navn).toList() ?? const [], levert: true);
+    final issue = await noeGaltFlyt(context, ordre: ordre, api: _cus, linjer: [for (final l in o?.linjer ?? const <SpLinje>[]) (l.antall, l.navn, l.sum.round())]);
+    if (!mounted) return;
+    if (issue != null) {
+      setState(() => _issue = issue);
+      SupportStore.instance.settSak(issue);
+    }
+    await _refresh();
+  }
+
+  Future<void> _ikkeLost() async {
+    final i = _issue;
+    if (i == null) return;
+    final r = await _cus.issueReopen(i.id);
+    if (!mounted) return;
+    if (r != null) {
+      setState(() => _issue = r);
+      SupportStore.instance.settSak(r);
+    }
+    showBergenToast(context, r == null ? BergenRoutes.provIgjen : CusIssueCopy.cus_sak_gjenaapnet);
+  }
+
   Future<void> _wait() async {
     final res = await _api.problem(_id, kind: 'wait');
     if (!mounted) return;
@@ -385,6 +448,13 @@ class _SporingScreenState extends State<SporingScreen> {
       }
       if (HjemHarness.sporingHjelp case final h?) {
         _openHelp(HjelpState.values.firstWhere((s) => s.name == h, orElse: () => HjelpState.main));
+      }
+      if (HjemHarness.sporingSak) {
+        HjemHarness.sporingSak = false;
+        for (var i = 0; i < 30 && _ordre == null && mounted; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        }
+        if (mounted) _noeGalt();
       }
     });
   }
@@ -857,12 +927,32 @@ class _SporingScreenState extends State<SporingScreen> {
                 takkNavn: _takkNavn(t),
                 takkSendt: _takket,
                 onTakk: _takk,
+                issue: _issue,
+                onNoeGalt: _issueWindow && (_issue == null || _issue!.open) ? _noeGalt : null,
+                noeGaltUnder: CusIssueCopy.cus_sak_rad_under(_issueSla),
+                onIkkeLost: _ikkeLost,
               ),
             ],
           ),
         ),
-        // Valg som venter.
-        if (t.unseenByStore && !_waited && !t.isCancelled)
+        // Valg som venter — and, first, a proactive notice with its options (Customer Step 10, agent.comms).
+        if (t.notice case final n? when !_noticeAnswered.contains(n.key) && !t.isCancelled && !t.isDelivered)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 198 + math.max(bunn - 24, 0),
+            child: ValgSomVenterCard(
+              key: const Key('cus-sporing-varsel'),
+              storeName: t.store?.name ?? '',
+              tittel: n.title,
+              linje: t.isPartner ? SporingCopy.cus_varsel_butikk_linje(t.store?.name ?? SporingCopy.a1_sporing_Butikken) : n.body,
+              ventLabel: (n.wait?.window ?? '').isEmpty ? null : SporingCopy.cus_varsel_vent_vindu(n.wait!.window),
+              avbestill: n.cancel != null,
+              onWait: () => _noticeWait(n),
+              onCancel: () => _noticeCancel(n),
+            ),
+          )
+        else if (t.unseenByStore && !_waited && !t.isCancelled)
           Positioned(
             left: 16,
             right: 16,

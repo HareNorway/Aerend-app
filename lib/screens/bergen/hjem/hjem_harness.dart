@@ -309,6 +309,16 @@ abstract final class HjemHarness {
   static String? aegGave, aegBilde, aegBildeData;
   static bool adrDorAuto = false, adrDorSamtykke = false;
 
+  /// Customer Step 10: with `ohOrdre`, `ohSak` opens the C2 «Noe galt» sheet
+  /// on that order (`ohSakSteg: tenker` holds Ægil's thinking state;
+  /// `ohSakJson` renders a given issue as the outcome without the server);
+  /// with `sporing`, `sporingSak` opens it from the delivered panel;
+  /// `hjelpSamtale` continues that support conversation in the Hjelp chat.
+  static bool ohSak = false, sporingSak = false;
+  static String? ohSakSteg;
+  static Map<String, dynamic>? ohSakJson;
+  static int? hjelpSamtale;
+
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
   static double? aegScroll;
@@ -404,6 +414,10 @@ abstract final class HjemHarness {
         ohNoeGaltSteg = 1;
         aegSi = null;
         aegGave = aegBilde = aegBildeData = null;
+        ohSak = sporingSak = false;
+        ohSakSteg = null;
+        ohSakJson = null;
+        hjelpSamtale = null;
         adrDorAuto = adrDorSamtykke = false;
         aegTenk = aegFokus = aegOb = aegButArk = false;
         aegBruk = aegAngre = false;
@@ -550,6 +564,11 @@ abstract final class HjemHarness {
       aegBildeData = m['aegBildeData'] as String?;
       adrDorAuto = m['adrDorAuto'] == true;
       adrDorSamtykke = m['adrDorSamtykke'] == true;
+      ohSak = m['ohSak'] == true;
+      sporingSak = m['sporingSak'] == true;
+      ohSakSteg = m['ohSakSteg'] as String?;
+      ohSakJson = m['ohSakJson'] is Map ? Map<String, dynamic>.from(m['ohSakJson'] as Map) : null;
+      hjelpSamtale = (m['hjelpSamtale'] as num?)?.toInt();
       sporingRull = (m['sporingRull'] as num?)?.toDouble();
       aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;

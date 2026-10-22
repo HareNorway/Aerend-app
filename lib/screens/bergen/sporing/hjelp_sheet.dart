@@ -374,6 +374,11 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   Future<void> _startChatUten(SupportTema tema) async {
     final fra = _state == HjelpState.chat ? _fraChat : (_state == HjelpState.mangler || _state == HjelpState.feil || _state == HjelpState.komAldri ? HjelpState.main : _state);
+    // Customer Step 10 harness: continue a given support conversation.
+    if (kDebugMode && HjemHarness.hjelpSamtale != null) {
+      SupportStore.instance.fortsettSamtale = HjemHarness.hjelpSamtale;
+      HjemHarness.hjelpSamtale = null;
+    }
     if (OpsCustomerApi.authParams() == null || (kDebugMode && HjemHarness.hjelpGjest)) {
       HjemHarness.hjelpGjest = false;
       setState(() {

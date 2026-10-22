@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart' show MultipartFile;
+
 import '../api_base_helper.dart';
 import 'ops_customer_api.dart';
 
@@ -37,10 +39,16 @@ class CusVarsel {
     this.rich = false,
     this.read = false,
     this.actionId,
+    this.conversationId,
+    this.issueId,
   });
 
   /// Customer Step 7: the Ægil receipt behind an «Angre» card.
   final int? actionId;
+
+  /// Customer Step 10: the Hjelp thread «Svar {navn}» continues, and the case behind an issue card.
+  final int? conversationId;
+  final int? issueId;
 
   /// `n:<id>` / `b:<id>`.
   final String key;
@@ -84,6 +92,184 @@ class CusVarsel {
     rich: j['rich'] == true,
     read: j['read'] == true,
     actionId: (j['action_id'] as num?)?.toInt(),
+    conversationId: (j['conversation_id'] as num?)?.toInt(),
+    issueId: (j['issue_id'] as num?)?.toInt(),
+  );
+}
+
+// ── Customer Step 10: «Noe galt med bestillingen?» (C2) ─────────────────────
+
+/// The courier's proof at delivery (design C2.7: «Budets bilde · 18:19 · ved døren»).
+class CusProof {
+  const CusProof({this.type, this.photoUrl, this.time, this.label = '', this.recipientName, this.pinVerified = false, this.courier = ''});
+
+  final String? type;
+  final String? photoUrl;
+
+  /// «18:19» (Oslo).
+  final String? time;
+
+  /// «Levert ved døren», «Levert til Kari», «Levert med kode».
+  final String label;
+  final String? recipientName;
+  final bool pinVerified;
+
+  /// The courier's first name at the time the issue was filed.
+  final String courier;
+
+  factory CusProof.fromJson(Map<String, dynamic> j) => CusProof(
+    type: j['type'] as String?,
+    photoUrl: j['photo_url'] as String?,
+    time: j['time'] as String?,
+    label: '${j['label'] ?? ''}',
+    recipientName: j['recipient_name'] as String?,
+    pinVerified: j['pin_verified'] == true,
+    courier: '${j['courier'] ?? ''}',
+  );
+}
+
+/// A person's answer on an issue («— Mari, Ærend»).
+class CusIssueReply {
+  const CusIssueReply({required this.text, required this.by, this.at});
+
+  final String text;
+  final String by;
+  final DateTime? at;
+}
+
+/// An issue on a delivered order — `POST|GET customer/orders/{id}/issue`.
+class CusIssue {
+  const CusIssue({
+    required this.id,
+    required this.orderId,
+    required this.orderCode,
+    required this.caseRef,
+    required this.type,
+    required this.typeLabel,
+    required this.state,
+    required this.outcome,
+    required this.title,
+    required this.sub,
+    required this.statusText,
+    this.items = const [],
+    this.text,
+    this.photoUrl,
+    this.resolution,
+    this.reason,
+    this.amountOre,
+    this.amountDisplay,
+    this.slaMinutes = 30,
+    this.answerBy,
+    this.proof,
+    this.reply,
+    this.canReopen = false,
+    this.reopenCount = 0,
+    this.conversationId,
+    this.createdAt,
+    this.resolvedAt,
+    this.already = false,
+  });
+
+  final int id;
+  final int orderId;
+  final String orderCode;
+
+  /// «Æ-42K-1».
+  final String caseRef;
+  final String type;
+  final String typeLabel;
+
+  /// `open` · `escalated` · `reopened` · `resolved`.
+  final String state;
+
+  /// `resolved` (auto credit, C2.5) · `reviewing` (C2.6) · `not_delivered` (C2.7) · `reopened` · `approved` (C2.9) · `denied` (C2.10).
+  final String outcome;
+  final String title;
+  final String sub;
+
+  /// The one line on the order («Vi ser på det · svar innen 30 min», «Løst · 89 kr på saldoen»).
+  final String statusText;
+  final List<String> items;
+  final String? text;
+  final String? photoUrl;
+  final String? resolution;
+  final String? reason;
+  final int? amountOre;
+  final String? amountDisplay;
+  final int slaMinutes;
+
+  /// «18:52» (Oslo) — when a person answers by.
+  final String? answerBy;
+  final CusProof? proof;
+  final CusIssueReply? reply;
+  final bool canReopen;
+  final int reopenCount;
+  final int? conversationId;
+  final DateTime? createdAt;
+  final DateTime? resolvedAt;
+
+  /// C2.8: the case was already open; this is it.
+  final bool already;
+
+  bool get open => state == 'open' || state == 'escalated' || state == 'reopened';
+  bool get loest => state == 'resolved';
+
+  factory CusIssue.fromJson(Map<String, dynamic> j) => CusIssue(
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    orderId: (j['order_id'] as num?)?.toInt() ?? 0,
+    orderCode: '${j['order_code'] ?? ''}',
+    caseRef: '${j['case_ref'] ?? ''}',
+    type: '${j['type'] ?? 'other'}',
+    typeLabel: '${j['type_label'] ?? ''}',
+    state: '${j['state'] ?? 'open'}',
+    outcome: '${j['outcome'] ?? 'reviewing'}',
+    title: '${j['title'] ?? ''}',
+    sub: '${j['sub'] ?? ''}',
+    statusText: '${j['status_text'] ?? ''}',
+    items: [for (final x in (j['items'] as List? ?? const [])) '$x'],
+    text: j['text'] as String?,
+    photoUrl: j['photo_url'] as String?,
+    resolution: j['resolution'] as String?,
+    reason: j['reason'] as String?,
+    amountOre: ((j['amount'] as Map?)?['ore'] as num?)?.toInt(),
+    amountDisplay: (j['amount'] as Map?)?['display'] as String?,
+    slaMinutes: (j['sla_minutes'] as num?)?.toInt() ?? 30,
+    answerBy: j['answer_by'] as String?,
+    proof: j['proof'] is Map ? CusProof.fromJson(Map<String, dynamic>.from(j['proof'] as Map)) : null,
+    reply: j['reply'] is Map ? CusIssueReply(text: '${(j['reply'] as Map)['text'] ?? ''}', by: '${(j['reply'] as Map)['by'] ?? ''}', at: DateTime.tryParse('${(j['reply'] as Map)['at'] ?? ''}')?.toLocal()) : null,
+    canReopen: j['can_reopen'] == true,
+    reopenCount: (j['reopen_count'] as num?)?.toInt() ?? 0,
+    conversationId: (j['conversation_id'] as num?)?.toInt(),
+    createdAt: DateTime.tryParse('${j['created_at'] ?? ''}')?.toLocal(),
+    resolvedAt: DateTime.tryParse('${j['resolved_at'] ?? ''}')?.toLocal(),
+    already: j['already'] == true,
+  );
+}
+
+/// The order's issue window and its newest issue — `GET customer/orders/{id}/issue`.
+class CusIssueStatus {
+  const CusIssueStatus({required this.delivered, required this.canReport, this.windowEndsAt, this.slaMinutes = 30, this.types = const [], this.issue, this.proof});
+
+  final bool delivered;
+
+  /// Inside `cus.issue.window_hours` after delivery: the entry row shows.
+  final bool canReport;
+  final DateTime? windowEndsAt;
+  final int slaMinutes;
+
+  /// The chips, in the design's order.
+  final List<({String key, String label})> types;
+  final CusIssue? issue;
+  final CusProof? proof;
+
+  factory CusIssueStatus.fromJson(Map<String, dynamic> j) => CusIssueStatus(
+    delivered: j['delivered'] == true,
+    canReport: j['can_report'] == true,
+    windowEndsAt: DateTime.tryParse('${j['window_ends_at'] ?? ''}')?.toLocal(),
+    slaMinutes: (j['sla_minutes'] as num?)?.toInt() ?? 30,
+    types: [for (final t in (j['types'] as List? ?? const []).whereType<Map>()) (key: '${t['key']}', label: '${t['label']}')],
+    issue: j['issue'] is Map ? CusIssue.fromJson(Map<String, dynamic>.from(j['issue'] as Map)) : null,
+    proof: j['proof'] is Map ? CusProof.fromJson(Map<String, dynamic>.from(j['proof'] as Map)) : null,
   );
 }
 
@@ -334,4 +520,55 @@ class CusApi {
 
   /// «Vis likevel» was tapped (a count, for the rate).
   Future<void> bioVistLikevel() async => await _post('me/bio/shown-anyway', const {});
+
+  // ── «Noe galt med bestillingen?» (Step 10, C2) ───────────────────────────
+
+  /// The window, the newest issue and the courier's proof; null when the
+  /// surface is off (`ISSUE_OFF`), the order is not the customer's, or offline
+  /// — the caller then shows the plain three-step sheet.
+  Future<CusIssueStatus?> issueStatus(int orderId) async {
+    final j = await _get('orders/$orderId/issue');
+    return j == null ? null : CusIssueStatus.fromJson(j);
+  }
+
+  /// Files the issue (the chip, one line, an optional photo). `feil` is the
+  /// server's code when it refused (`ISSUE_WINDOW_CLOSED`, `ISSUE_NOT_DELIVERED`,
+  /// `INVALID`); both null when offline.
+  Future<({CusIssue? issue, String? feil})> issueOpen(int orderId, {String? type, String text = '', String? photoPath, bool append = false}) async {
+    final auth = OpsCustomerApi.authParams();
+    if (auth == null || !OpsCustomerApi.networkEnabled) return (issue: null, feil: null);
+    final body = <String, dynamic>{...auth, if (type != null) 'type': type, if (text.trim().isNotEmpty) 'text': text.trim(), if (append) 'append': 1};
+    try {
+      if (photoPath != null) {
+        final json = await _helper.postFormData('${_base}orders/$orderId/issue', body: {...body, 'photo': await MultipartFile.fromFile(photoPath, filename: 'sak.jpg')});
+        return json is Map<String, dynamic> && json['issue'] is Map ? (issue: CusIssue.fromJson(Map<String, dynamic>.from(json['issue'] as Map)), feil: null) : (issue: null, feil: '${json is Map ? json['error'] ?? 'FEIL' : 'FEIL'}');
+      }
+      final res = await _helper.postAllowClientError('${_base}orders/$orderId/issue', body: body);
+      final json = res.data;
+      if (json is Map<String, dynamic> && res.statusCode < 300 && json['issue'] is Map) {
+        return (issue: CusIssue.fromJson(Map<String, dynamic>.from(json['issue'] as Map)), feil: null);
+      }
+      return (issue: null, feil: json is Map ? '${json['error'] ?? 'FEIL'}' : 'FEIL');
+    } catch (_) {
+      return (issue: null, feil: null);
+    }
+  }
+
+  /// The customer's issues, newest first; empty offline.
+  Future<List<CusIssue>> issues() async {
+    final j = await _get('issues');
+    return [for (final m in (j?['issues'] as List? ?? const []).whereType<Map>()) CusIssue.fromJson(Map<String, dynamic>.from(m))];
+  }
+
+  /// C2.8 «Legg til i saken».
+  Future<CusIssue?> issueAppend(int id, String text) async {
+    final j = await _post('issues/$id/append', {'text': text});
+    return j?['issue'] is Map ? CusIssue.fromJson(Map<String, dynamic>.from(j!['issue'] as Map)) : null;
+  }
+
+  /// «Ikke løst»: back to a person.
+  Future<CusIssue?> issueReopen(int id, {String? text}) async {
+    final j = await _post('issues/$id/reopen', {if (text != null && text.trim().isNotEmpty) 'text': text.trim()});
+    return j?['issue'] is Map ? CusIssue.fromJson(Map<String, dynamic>.from(j!['issue'] as Map)) : null;
+  }
 }

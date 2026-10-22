@@ -150,6 +150,8 @@ class _SupportChatState extends State<_SupportChat> {
         ? SupportCopy.avsluttetUnder
         : human
         ? SupportCopy.menneskeUnder(s.menneske!.split(' ').first)
+        : s.iKo
+        ? SupportCopy.koUnder(s.koPlass, SupportConfig.svarMin)
         : (aapen ? SupportCopy.aiUnder : SupportCopy.stengtUnder(SupportConfig.aapnerKl));
     return Column(
       key: const Key('a1_hjelp_chat'),
@@ -627,7 +629,7 @@ class _ChatMelding extends StatelessWidget {
     }
     final meg = m.fra == SupportAvsender.du;
     final ai = m.fra == SupportAvsender.assistent;
-    final merke = meg ? SupportCopy.merkeDu(m.kl) : (ai ? SupportCopy.merkeAi(m.kl) : SupportCopy.merkeMenneske(m.navn ?? 'Ærend', m.kl));
+    final merke = meg ? SupportCopy.merkeDu(m.kl) : (ai ? SupportCopy.merkeAi(m.kl, navn: m.navn) : SupportCopy.merkeMenneske(m.navn ?? 'Ærend', m.kl));
     final merkeC = ai ? const Color(0xFFF2C14E) : (meg ? rgba(255, 255, 255, .5) : kSpMint);
     final k = m.kort;
     // `popp .32s cubic-bezier(.2,.9,.3,1)`: 1 → 1.16 → .96 → 1.

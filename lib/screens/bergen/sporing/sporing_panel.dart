@@ -11,6 +11,8 @@ import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import 'leveringskode_card.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import '../../../networking/ops/cus_api.dart' show CusIssue;
+import '../hjelp/noe_galt_sheet.dart' show IssueSakRad, NoeGaltRad;
 import 'takk_ark.dart' show CusTakkCopy;
 import '../aegil/aegil_bits.dart' show AeGevir;
 import '../hjem/hjem_harness.dart' show HjemHarness;
@@ -123,6 +125,10 @@ class SpPanel extends StatelessWidget {
     this.takkNavn,
     this.takkSendt = false,
     this.onTakk,
+    this.issue,
+    this.onNoeGalt,
+    this.noeGaltUnder,
+    this.onIkkeLost,
   });
 
   final OpsTracking tracking;
@@ -144,6 +150,14 @@ class SpPanel extends StatelessWidget {
   final String? takkNavn;
   final bool takkSendt;
   final VoidCallback? onTakk;
+
+  /// Customer Step 10 (design C2.1): the case on the delivered order and the
+  /// quiet «Noe galt med bestillingen?» row inside the issue window; null
+  /// hides each.
+  final CusIssue? issue;
+  final VoidCallback? onNoeGalt;
+  final String? noeGaltUnder;
+  final VoidCallback? onIkkeLost;
 
   static const Color _fyll1 = Color(0xFFE95C2C);
   static const Color _fyll2 = Color(0xFFF58A55);
@@ -221,6 +235,8 @@ class SpPanel extends StatelessWidget {
               ),
               const SizedBox(height: 11),
               if (s == 3) ...[
+                if (issue case final i?) ...[IssueSakRad(issue: i, onIkkeLost: onIkkeLost), const SizedBox(height: 8)],
+                if (onNoeGalt != null) ...[NoeGaltRad(onTap: onNoeGalt!, under: noeGaltUnder), const SizedBox(height: 8)],
                 if (takkNavn case final n? when onTakk != null) ...[_TakkPille(navn: n, sendt: takkSendt, onTap: onTakk!), const SizedBox(height: 8)],
                 _Avslutt(onTap: onAvslutt),
               ] else
@@ -1188,6 +1204,11 @@ class SpDetaljerArk extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Customer Step 10: «Utført av Ærend AI» — what an agent did on this order (contract §5, Agents Step 8).
+        if (t.effects.isNotEmpty) ...[
+          _Stag(delay: 20, child: _Effekter(effekter: t.effects)),
+          const SizedBox(height: 10),
+        ],
         // Ordrestatus
         _Stag(
           delay: 40,
@@ -1916,5 +1937,42 @@ class _Info extends StatelessWidget {
         style: mono ? GoogleFonts.ibmPlexMono(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white, height: 16 / 12.5).copyWith(leadingDistribution: TextLeadingDistribution.even) : inter(13, weight: FontWeight.w800, height: spLinje(13)).copyWith(fontFeatures: _kTab),
       ),
     ],
+  );
+}
+
+/// «Utført av Ærend AI: …» lines on the order's timeline (Customer Step 10;
+/// `agent.action_applied` with `done_by_ai`). The key maps to the app's own
+/// string; the server's text is the fallback.
+class _Effekter extends StatelessWidget {
+  const _Effekter({required this.effekter});
+
+  final List<OpsEffect> effekter;
+
+  @override
+  Widget build(BuildContext context) => _Glass(
+    radius: 22,
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+    child: Column(
+      key: const Key('cus-sporing-effekter'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Eyebrow(SporingCopy.cus_ai_utfort_eyebrow),
+        for (final (i, e) in effekter.indexed) ...[
+          SizedBox(height: i == 0 ? 6 : 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFF2C14E), boxShadow: [BoxShadow(color: Color(0xFFF2C14E), blurRadius: 6)])),
+              ),
+              const SizedBox(width: 9),
+              Expanded(child: Text(SporingCopy.cus_ai_utfort(e.textKey, e.text, e.textEn), style: inter(12.5, weight: FontWeight.w700, height: 1.4))),
+              if (e.at case final at?) ...[const SizedBox(width: 8), Text(spKlokke(at), style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62)).copyWith(fontFeatures: _kTab))],
+            ],
+          ),
+        ],
+      ],
+    ),
   );
 }
