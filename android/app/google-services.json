@@ -408,6 +408,14 @@
           }
         },
         {
+          "client_id": "261783605700-h2rn0nerkuvpigda312sler3i2tpasmq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "no.aerend.customer",
+            "certificate_hash": "c66d7f377136612a8de46464c5891a567dbc930e"
+          }
+        },
+        {
           "client_id": "261783605700-uhib6st3sm5eic02mce2hbvfsdoccj69.apps.googleusercontent.com",
           "client_type": 3
         }
