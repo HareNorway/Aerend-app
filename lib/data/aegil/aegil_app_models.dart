@@ -213,6 +213,7 @@ class AwayItem {
     this.deepLink,
     this.undoable = false,
     this.at,
+    this.undone = false,
   });
 
   final int id;
@@ -220,6 +221,9 @@ class AwayItem {
   final String action;
   final String? deepLink;
   final bool undoable;
+
+  /// Customer Step 7: a level-3 merge the customer already undid.
+  final bool undone;
 
   /// When Ægil did it (`at`, ISO 8601); the Varsler panel groups by day.
   final DateTime? at;
@@ -231,6 +235,50 @@ class AwayItem {
     deepLink: json['deep_link'] as String?,
     undoable: json['undoable'] == true,
     at: DateTime.tryParse((json['at'] as String?) ?? '')?.toLocal(),
+    undone: json['undone'] == true,
+  );
+}
+
+/// Something Ægil noticed (`GET agent/me/patterns`, Customer Step 7): a
+/// proposal until «Stemmer»; confirmed, it steers level 3 and the rhythm push.
+class LearnedPatternItem {
+  const LearnedPatternItem({required this.id, required this.type, required this.text, this.support = '', this.confirmed = false});
+
+  final int id;
+  final String type;
+  final String text;
+
+  /// «Sett i 5 av 6 bestillinger».
+  final String support;
+  final bool confirmed;
+
+  factory LearnedPatternItem.fromJson(Map<String, dynamic> j) => LearnedPatternItem(
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    type: '${j['type'] ?? ''}',
+    text: '${j['text'] ?? ''}',
+    support: '${j['support'] ?? ''}',
+    confirmed: j['confirmed'] == true,
+  );
+}
+
+/// A basket line Ægil merged at level 3 (`GET agent/me/cart/agent-lines`).
+class AgentLine {
+  const AgentLine({required this.lineId, required this.name, this.productId = 0, this.quantity = 1, this.price = '', this.actionId});
+
+  final int lineId;
+  final int productId;
+  final String name;
+  final int quantity;
+  final String price;
+  final int? actionId;
+
+  factory AgentLine.fromJson(Map<String, dynamic> j) => AgentLine(
+    lineId: (j['line_id'] as num?)?.toInt() ?? 0,
+    productId: (j['product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    quantity: (j['quantity'] as num?)?.toInt() ?? 1,
+    price: j['price'] is Map ? '${(j['price'] as Map)['display'] ?? ''}' : '${j['price'] ?? ''}',
+    actionId: (j['action_id'] as num?)?.toInt(),
   );
 }
 

@@ -368,6 +368,45 @@ class FakeAegilApi implements AegilAppApi {
   List<AwayItem> actionsValue = const [];
   @override
   Future<List<AwayItem>> actions({int days = 30}) async => actionsValue;
+  // Customer Step 7.
+  final List<LearnedPatternItem> patternsList = [];
+  final List<AgentLine> agentLinesList = [];
+  final List<(int, bool)> decided = [];
+  final List<int> undoneLines = [];
+  final List<int> undoneActions = [];
+  bool? invited;
+
+  @override
+  Future<List<LearnedPatternItem>> patterns() async => patternsList;
+
+  @override
+  Future<LearnedPatternItem?> decidePattern(int id, {required bool confirm}) async {
+    decided.add((id, confirm));
+    final p = patternsList.where((x) => x.id == id).firstOrNull;
+    return p == null ? null : LearnedPatternItem(id: p.id, type: p.type, text: p.text, support: p.support, confirmed: confirm);
+  }
+
+  @override
+  Future<List<AgentLine>> agentLines() async => agentLinesList;
+
+  @override
+  Future<bool> undoLine(int cartId) async {
+    undoneLines.add(cartId);
+    return true;
+  }
+
+  @override
+  Future<bool> undoAgentAction(int actionId) async {
+    undoneActions.add(actionId);
+    return true;
+  }
+
+  @override
+  Future<bool> pushInvite({required bool accept}) async {
+    invited = accept;
+    return true;
+  }
+
   @override
   Future<bool> awaySeen() async {
     awaySeenCalls++;

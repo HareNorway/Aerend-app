@@ -197,6 +197,9 @@ abstract final class HjemHarness {
   /// Customer Step 6, with `megArk: bio`: the consent ticked (`bioSamtykke`),
   /// «Slett bioen»'s «Er du sikker?» open (`bioSlett`).
   static bool bioSamtykke = false, bioSlett = false;
+
+  /// Customer Step 7: Hjem's push invitation card shown (`hjemInvitasjon`).
+  static bool hjemInvitasjon = false;
   static double? bioScroll;
 
   /// Open the Varsler panel on this filter (`varsler`: "Alle", "Bestillinger",
@@ -361,6 +364,7 @@ abstract final class HjemHarness {
         hyllaTom = false;
         loggUt = false;
         bioSamtykke = bioSlett = false;
+        hjemInvitasjon = false;
         bioScroll = null;
         varsler = null;
         varslerSveip = varslerFjern = null;
@@ -476,6 +480,7 @@ abstract final class HjemHarness {
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
       bioSamtykke = m['bioSamtykke'] == true;
+      hjemInvitasjon = m['hjemInvitasjon'] == true;
       bioSlett = m['bioSlett'] == true;
       bioScroll = (m['bioScroll'] as num?)?.toDouble();
       varsler = m['varsler'] as String?;

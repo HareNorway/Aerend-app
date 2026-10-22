@@ -1710,7 +1710,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         // var borte" card over the scene (design L9017, top
                         // 118), when agil-3 has something to say.
                         if (!_vindu)
-                          if (mensDuVarBorteCard(context) case final borte?)
+                          // Customer Step 7: the one-time push invitation takes the slot first (same card style).
+                          if (pushInviteCard(context) ?? mensDuVarBorteCard(context) case final borte?)
                             Positioned(
                               left: 0,
                               right: 0,

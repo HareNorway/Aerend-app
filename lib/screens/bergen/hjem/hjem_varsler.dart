@@ -16,6 +16,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import '../../common/notifications/notifications_dl.dart';
+import '../aegil/cus_level3.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
@@ -119,6 +120,7 @@ class Varsel {
     this.bilder = const [],
     this.storeId,
     this.orderId,
+    this.actionId,
   });
 
   /// A card from the inbox (Customer Step 3).
@@ -138,6 +140,7 @@ class Varsel {
     bilder: c.photos,
     storeId: c.storeId,
     orderId: c.orderId,
+    actionId: c.actionId,
   );
 
   final String id;
@@ -166,6 +169,9 @@ class Varsel {
   final int? storeId;
   final int? orderId;
 
+  /// Customer Step 7: the Ægil receipt an «Angre» card undoes.
+  final int? actionId;
+
   Varsel lest() => Varsel(
     id: id,
     type: type,
@@ -181,6 +187,26 @@ class Varsel {
     bilder: bilder,
     storeId: storeId,
     orderId: orderId,
+    actionId: actionId,
+  );
+
+  /// Customer Step 7: the card after «Angre» (no button).
+  Varsel utenHandling() => Varsel(
+    id: id,
+    type: type,
+    tittel: tittel,
+    grunn: grunn,
+    avs: avs,
+    tid: tid,
+    lenke: lenke,
+    key: key,
+    muteKey: muteKey,
+    handling: null,
+    rik: rik,
+    bilder: bilder,
+    storeId: storeId,
+    orderId: orderId,
+    actionId: actionId,
   );
 }
 
@@ -548,11 +574,30 @@ class _VarslerPanelState extends State<VarslerPanel> {
   }
 
   void _handling(Varsel v) {
+    // Customer Step 7: «Angre» on a level-3 merge's receipt.
+    if (v.handling == CusLevel3Copy.cus_angre && v.actionId != null) {
+      unawaited(_angre(v));
+      return;
+    }
     if (v.orderId != null) {
       _tilSporing(v.orderId!);
     } else {
       _apneKort(v);
     }
+  }
+
+  Future<void> _angre(Varsel v) async {
+    final ok = await A3Services.aegil().undoAgentAction(v.actionId!);
+    if (!mounted) return;
+    if (!ok) {
+      showBergenToast(context, CusLevel3Copy.cus_angre_feil);
+      return;
+    }
+    setState(() {
+      _alle = [for (final x in _alle) x == v ? x.utenHandling() : x];
+      _aap = null;
+    });
+    showBergenToast(context, CusLevel3Copy.cus_angret_toast);
   }
 
   void _seMeny(Varsel v) {

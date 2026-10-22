@@ -55,6 +55,8 @@ class AegilSettings {
     this.levelCap,
     this.effectiveLevel,
     this.reinviteDays = 7,
+    this.pushInvited = true,
+    this.patternsProposed = 0,
   });
 
   final int level;
@@ -97,6 +99,12 @@ class AegilSettings {
   /// Days before «Ikke nå» on the memory offer expires (`cus.aegil.reinvite_days`).
   final int reinviteDays;
 
+  /// Customer Step 7: false until the customer answered the push invitation card.
+  final bool pushInvited;
+
+  /// Patterns Ægil noticed and the customer has not answered.
+  final int patternsProposed;
+
   /// Whether the rollout lets the customer choose backend [level] now.
   bool tillatt(int level) => levelCap == null || level <= levelCap!;
 
@@ -130,6 +138,9 @@ class AegilSettings {
       levelCap: (json['level_cap'] as num?)?.toInt(),
       effectiveLevel: (json['effective_level'] as num?)?.toInt(),
       reinviteDays: (json['reinvite_days'] as num?)?.toInt() ?? 7,
+      // Customer Step 7: the push invitation answered; patterns waiting for «Stemmer».
+      pushInvited: json['push_invited'] as bool? ?? true,
+      patternsProposed: (json['patterns_proposed'] as num?)?.toInt() ?? 0,
     );
   }
 }

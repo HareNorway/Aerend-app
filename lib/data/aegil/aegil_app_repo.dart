@@ -55,6 +55,15 @@ abstract class AegilAppApi {
   Future<List<Occasion>> addOccasion({required String person, required String date, String? label});
   Future<List<Occasion>> removeOccasion(int id);
   Future<List<ShoppingListItem>> shoppingList();
+
+  // Customer Step 7: learned patterns, the level-3 merge's lines and receipts, the push invitation.
+  // Plain defaults, so a fake that does not know them still compiles.
+  Future<List<LearnedPatternItem>> patterns() async => const [];
+  Future<LearnedPatternItem?> decidePattern(int id, {required bool confirm}) async => null;
+  Future<List<AgentLine>> agentLines() async => const [];
+  Future<bool> undoLine(int cartId) async => false;
+  Future<bool> undoAgentAction(int actionId) async => false;
+  Future<bool> pushInvite({required bool accept}) async => false;
 }
 
 class AegilAppRepo implements AegilAppApi {
@@ -178,6 +187,49 @@ class AegilAppRepo implements AegilAppApi {
 
   @override
   Future<bool> awaySeen() => _feedback('me/away/seen');
+
+  // ── Customer Step 7 ──────────────────────────────────────────────────────
+
+  @override
+  Future<List<LearnedPatternItem>> patterns() async {
+    try {
+      final json = _ok(await _api.get('me/patterns?${_query(_auth())}'));
+      if (json == null) return const [];
+      return ((json['patterns'] as List?) ?? const []).whereType<Map>().map((e) => LearnedPatternItem.fromJson(e.cast<String, dynamic>())).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<LearnedPatternItem?> decidePattern(int id, {required bool confirm}) async {
+    try {
+      final json = _ok(await _api.post('me/patterns/$id/${confirm ? 'confirm' : 'reject'}', body: _auth()));
+      return json != null && json['pattern'] is Map ? LearnedPatternItem.fromJson((json['pattern'] as Map).cast<String, dynamic>()) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<AgentLine>> agentLines() async {
+    try {
+      final json = _ok(await _api.get('me/cart/agent-lines?${_query(_auth())}'));
+      if (json == null) return const [];
+      return ((json['lines'] as List?) ?? const []).whereType<Map>().map((e) => AgentLine.fromJson(e.cast<String, dynamic>())).toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<bool> undoLine(int cartId) => _feedback('me/cart/lines/$cartId/undo');
+
+  @override
+  Future<bool> undoAgentAction(int actionId) => _feedback('me/agent_actions/$actionId/undo');
+
+  @override
+  Future<bool> pushInvite({required bool accept}) => _feedback('me/push-invite', {'accept': accept});
 
   @override
   Future<List<AwayItem>> actions({int days = 30}) async {

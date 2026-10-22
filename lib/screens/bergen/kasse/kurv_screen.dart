@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../../data/aegil/aegil_app_repo.dart';
 import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -217,6 +218,9 @@ import 'package:aerend_customer/utils/route_names.dart';
 /// (`visNav`: not on `kurv` with lines) and the slider takes its place.
 final ValueNotifier<bool> kurvSkjulerNav = ValueNotifier(false);
 
+/// Customer Step 7: Ægil's routes for the basket's agent lines (tests swap it).
+AegilAppApi Function() kurvAegilApi = AegilAppRepo.new;
+
 class KurvScreen extends StatefulWidget {
   const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi, this.butikkApi});
 
@@ -342,7 +346,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<void> reload() => _load();
 
   Future<void> _load() async {
-    final cart = await _api.cart();
+    var cart = await _api.cart();
+    if (!cart.isEmpty && OpsCustomerApi.networkEnabled) {
+      // Customer Step 7: the lines Ægil merged at level 3 (`agent/me/cart/agent-lines`).
+      final agent = await kurvAegilApi().agentLines();
+      if (agent.isNotEmpty) cart = cart.medAegilLinjer({for (final l in agent) l.lineId});
+    }
     if (!mounted) return;
     setState(() => _cart = cart);
     if (widget.embedded) kurvSkjulerNav.value = !cart.isEmpty;
@@ -447,7 +456,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<void> _undoAegil() async {
     final lines = _cart?.aegilLines ?? const [];
     for (final l in lines) {
-      await _api.remove(l.cartId);
+      // Customer Step 7: through Ægil's own undo (the receipt closes too); the plain remove as before otherwise.
+      if (!OpsCustomerApi.networkEnabled || !await kurvAegilApi().undoLine(l.cartId)) await _api.remove(l.cartId);
     }
     if (!mounted) return;
     setState(() => _undone = lines);

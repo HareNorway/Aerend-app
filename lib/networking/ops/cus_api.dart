@@ -36,7 +36,11 @@ class CusVarsel {
     this.photos = const [],
     this.rich = false,
     this.read = false,
+    this.actionId,
   });
+
+  /// Customer Step 7: the Ægil receipt behind an «Angre» card.
+  final int? actionId;
 
   /// `n:<id>` / `b:<id>`.
   final String key;
@@ -79,6 +83,7 @@ class CusVarsel {
     photos: [for (final p in (j['photos'] as List? ?? const [])) '$p'],
     rich: j['rich'] == true,
     read: j['read'] == true,
+    actionId: (j['action_id'] as num?)?.toInt(),
   );
 }
 

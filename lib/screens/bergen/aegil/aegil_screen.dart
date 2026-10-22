@@ -45,6 +45,7 @@ import 'aegil_laer.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_scene.dart';
 import 'aegil_verktoy.dart';
+import 'cus_level3.dart';
 
 /// Ægil (`erAgent`, L4500–5120 in `Ærend Kunde Launch.dc.html`, design px).
 ///
@@ -132,6 +133,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   List<AegilLevel> _levels = const [];
   List<MemoryEntry> _minne = const [];
   CusBio? _cusBio;
+  // Customer Step 7: what Ægil noticed (`agent/me/patterns`).
+  List<LearnedPatternItem> _monstre = const [];
   bool _minneLastet = false;
   final Set<int> _skjult = {};
   HurtigData? _h;
@@ -243,12 +246,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   }
 
   Future<void> _lastMinne() async {
-    final r = await Future.wait<Object?>([a3Try(_repo.fetchMemory), a3Try(CusApi().bio)]);
+    final r = await Future.wait<Object?>([a3Try(_repo.fetchMemory), a3Try(CusApi().bio), a3Try(_api.patterns)]);
     if (!mounted) return;
     setState(() {
       _minne = (r[0] as List<MemoryEntry>?) ?? const [];
       // Customer Step 6: the server's bio (null while `cus.bio` is off).
       _cusBio = r[1] as CusBio?;
+      _monstre = (r[2] as List<LearnedPatternItem>?) ?? const [];
       _minneLastet = true;
     });
   }
@@ -876,6 +880,18 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   }
 
   /// «Stemmer»: the line restated as an explicit choice.
+  /// Customer Step 7: «Stemmer» confirms a pattern, ✕ rejects it (`me/patterns/{id}/confirm|reject`).
+  Future<void> _monster(LearnedPatternItem p, bool stemmer) async {
+    final r = await _api.decidePattern(p.id, confirm: stemmer);
+    if (!mounted) return;
+    if (r == null) {
+      LfToast.show(context, BergenRoutes.ikkeLagret);
+      return;
+    }
+    LfToast.show(context, stemmer ? CusLevel3Copy.cus_monster_bekreftet_toast : CusLevel3Copy.cus_monster_avvist);
+    await _lastMinne();
+  }
+
   Future<void> _stemmer(MemoryEntry m) async {
     final r = await a3Try(() => _repo.submitChips([OnboardingChip(kind: m.kind, value: m.value, label: m.label ?? m.value, selected: true)]));
     if (!mounted || r == null) return;
@@ -1294,6 +1310,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           onLeggTil: _obStart,
           onNivaa: () => _gaa('nivaa'),
           onGlem: _glemAlt,
+          monstre: _monstre,
+          onMonster: _monster,
         );
       case 'nivaa':
         final s = _settings ?? const AegilSettings();
