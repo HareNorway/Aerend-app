@@ -58,6 +58,11 @@ import 'meg_sheets.dart';
 import '../hjem/hjem_varsler.dart' show varslerLoader;
 import 'meg_paaminnelser.dart';
 import 'mork_rad.dart';
+import '../../../services/customer/client_flags.dart';
+import '../ai/ai_bits.dart';
+import '../ai/ai_copy.dart';
+import '../ai/ai_sheets.dart';
+import '../ai/ai_store.dart';
 import 'oppdrag_ark.dart';
 import 'oppsummering_ark.dart';
 import 'tillit_ark.dart';
@@ -291,6 +296,12 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       if (kDebugMode && HjemHarness.megOppdrag != null) _oppdrag = harnessOppdrag(HjemHarness.megOppdrag!);
       _loading = false;
     });
+    // Customer Step 14: the linked assistants for the rows; the harness opens a sheet (`ai`).
+    unawaited(AiStore.instance.load());
+    if (kDebugMode && HjemHarness.ai != null && !HjemHarness.ai!.startsWith('kurv')) {
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+      if (mounted) unawaited(AiArk.harness(context));
+    }
     if (_brukerCache) {
       _MegCache.lagre(_MegCache(
         userId: prefGetInt(prefUserId), balance: _balance, shelf: _shelf, league: _league, referral: _referral,
@@ -914,6 +925,28 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     under: _ordrer.isEmpty ? A4MegCopy.a4_meg_ordrer_tom : A4MegCopy.a4_meg_ordrer_sub(_ordrer.length, OhCopy.dag(DateTime.tryParse('${_ordrer.first['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now())),
                                     onTap: () => _go('/bergen/meg/bestillinger'),
                                   ),
+                                  // Customer Step 14: «Bestill via AI-assistent» and «Koblede assistenter» (design 20324–20325).
+                                  if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
+                                    _Rad(
+                                      key: const Key('cus-meg-rad-ai'),
+                                      tile: const _GlassTile(rot: -3, d: AiIk.kobling),
+                                      navn: AiCopy.cus_ai_meg_rad,
+                                      under: AiCopy.cus_ai_meg_rad_sub,
+                                      onTap: () => AiArk.flyt(context, 'inngang'),
+                                    ),
+                                  if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
+                                    ListenableBuilder(
+                                      listenable: AiStore.instance,
+                                      builder: (_, __) => _Rad(
+                                        key: const Key('cus-meg-rad-ai-koblede'),
+                                        tile: const _GlassTile(rot: 3, d: AiIk.person),
+                                        navn: AiCopy.cus_ai_meg_koblede,
+                                        under: AiCopy.cus_ai_meg_koblede_sub(AiStore.instance.aktive.length),
+                                        merke: AiStore.instance.aktive.isEmpty ? null : '${AiStore.instance.aktive.length}',
+                                        merkePille: true,
+                                        onTap: () => AiArk.flyt(context, 'koblede'),
+                                      ),
+                                    ),
                                   // Customer Step 5: «Ægil sparte deg N kr» → Tillitsregnskap (kMegRader[0]).
                                   _Rad(
                                     key: const Key('cus-meg-rad-tillit'),

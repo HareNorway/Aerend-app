@@ -19,6 +19,11 @@ import '../kit/bergen_cart.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import '../meg/a3_services.dart';
+import '../../../services/customer/client_flags.dart';
+import '../ai/ai_bits.dart';
+import '../ai/ai_copy.dart';
+import '../ai/ai_sheets.dart';
+import '../ai/ai_store.dart';
 import 'hurtig_bits.dart';
 import 'hurtig_brain.dart';
 import 'hurtig_copy.dart';
@@ -840,6 +845,25 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                   ),
                 ),
               ),
+              // Customer Step 14: the AI marks button (design 2937, «Hurtig · AI-merker») → aiVelg.
+              if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
+                Semantics(
+                  button: true,
+                  label: AiCopy.cus_ai_hurtig_logo,
+                  child: HbPress(
+                    scale: .94,
+                    ms: 140,
+                    onTap: () => AiArk.flyt(context, 'velg', fraHurtig: true),
+                    child: Container(
+                      key: const Key('cus-ai-hurtig-logo'),
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .08)]), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [const AiMerke('Claude', size: 24, radius: 8), const SizedBox(width: 4), const AiMerke('ChatGPT', size: 24, radius: 8)]),
+                    ),
+                  ),
+                ),
+              if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness) const SizedBox(width: 8),
               CssBox(
                 height: 30,
                 radius: BorderRadius.circular(999),
@@ -1032,6 +1056,38 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
             ],
             if (_tenker) ...[const SizedBox(height: 14), const _Tenker()],
             if (_utkast != null) ...[const SizedBox(height: 14), _utkastKort()],
+            // Customer Step 14: «Bestill med en annen AI» (design 4563–4567, `hbAiSub` from the linked list).
+            if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness) ...[
+              const SizedBox(height: 18),
+              ListenableBuilder(
+                listenable: AiStore.instance,
+                builder: (_, __) {
+                  final l = AiStore.instance.aktive.where((x) => x.vendor != 'siri').firstOrNull;
+                  return HbPress(
+                    dy: 1.5,
+                    onTap: () => AiArk.flyt(context, 'velg', fraHurtig: true),
+                    child: CssBox(
+                      key: const Key('cus-ai-hurtig-rad'),
+                      radius: BorderRadius.circular(18),
+                      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)])],
+                      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                      child: Row(children: [
+                        const AiMerke('Claude', size: 30, radius: 10),
+                        const SizedBox(width: 4),
+                        const AiMerke('ChatGPT', size: 30, radius: 10),
+                        const SizedBox(width: 10),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(AiCopy.cus_ai_hurtig_rad, style: hbI(13.5, weight: FontWeight.w800, color: Colors.white)),
+                          Text(l != null ? AiCopy.cus_ai_hurtig_sub_koblet(l.name) : AiCopy.cus_ai_hurtig_sub, style: hbI(11.5, color: const Color(0xFFBFD6DD))),
+                        ])),
+                        const HbIkon('M9 6l6 6-6 6', size: 12, stroke: Colors.white, width: 2.4),
+                      ]),
+                    ),
+                  );
+                },
+              ),
+            ],
           ],
         ),
       ),

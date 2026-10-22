@@ -15,6 +15,10 @@ import '../../utils/shared_pref_utill.dart';
 abstract final class ClientFlags {
   static const String _pref = 'cus_client_flags';
   static const String feedDisclosure = 'cus.feed.disclosure';
+  // Customer Step 14: the AI-assistant surfaces.
+  static const String aiLinking = 'cus.ai.linking';
+  static const String aiDeviceAuth = 'cus.ai.device_auth';
+  static const String aiIntents = 'cus.ai.intents';
 
   static Map<String, bool>? _cache;
 

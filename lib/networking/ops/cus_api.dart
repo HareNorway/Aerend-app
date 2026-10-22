@@ -571,4 +571,338 @@ class CusApi {
     final j = await _post('issues/$id/reopen', {if (text != null && text.trim().isNotEmpty) 'text': text.trim()});
     return j?['issue'] is Map ? CusIssue.fromJson(Map<String, dynamic>.from(j!['issue'] as Map)) : null;
   }
+  // ── AI assistants (Customer Step 13 backend, Step 14 screens) ─────────────
+
+  /// The assistants a customer can link (`GET customer/ai/clients`).
+  Future<List<CusAiClient>> aiClients() async {
+    final j = await _get('ai/clients');
+    return [for (final m in (j?['clients'] as List? ?? const []).whereType<Map>()) CusAiClient.fromJson(m.cast<String, dynamic>())];
+  }
+
+  /// A new «ÆR-7K2Q» for [clientId] (`POST customer/ai/link-codes`); the
+  /// in-app consent's choices ride on the code (D-K15).
+  Future<CusAiKode?> aiLinkCode({String? clientId, CusAiPrefs? prefs}) async {
+    final j = await _post('ai/link-codes', {
+      if (clientId != null) 'client_id': clientId,
+      if (prefs != null) ...prefs.toJson(),
+    });
+    return j == null ? null : CusAiKode.fromJson(j);
+  }
+
+  /// `pending` | `linked` | `expired` for the app's «Venter på at {AI} bruker koden …».
+  Future<CusAiKode?> aiLinkCodeStatus(String code) async {
+    final j = await _get('ai/link-codes/${Uri.encodeComponent(code)}');
+    return j == null ? null : CusAiKode.fromJson(j);
+  }
+
+  /// «Koblede assistenter» (`GET customer/ai/links`); null when off or offline.
+  Future<List<CusAiLink>?> aiLinks() async {
+    final j = await _get('ai/links');
+    if (j == null) return null;
+    return [for (final m in (j['links'] as List? ?? const []).whereType<Map>()) CusAiLink.fromJson(m.cast<String, dynamic>())];
+  }
+
+  /// One link with its activity (`GET customer/ai/links/{id}`).
+  Future<({CusAiLink link, List<CusAiAktivitet> aktivitet})?> aiLink(int id) async {
+    final j = await _get('ai/links/$id');
+    if (j == null || j['link'] is! Map) return null;
+    return (
+      link: CusAiLink.fromJson(Map<String, dynamic>.from(j['link'] as Map)),
+      aktivitet: [for (final m in (j['activity'] as List? ?? const []).whereType<Map>()) CusAiAktivitet.fromJson(m.cast<String, dynamic>())],
+    );
+  }
+
+  /// Scopes / caps / payment / address / Min bio (`PUT customer/ai/links/{id}` — sent as a POST with `_method`).
+  Future<CusAiLink?> aiLinkUpdate(int id, {List<String>? scopes, int? capPerOrderKr, int? capPerDayKr, String? paymentPref, String? addressPref, bool? shareBio}) async {
+    final j = await _post('ai/links/$id', {
+      '_method': 'PUT',
+      if (scopes != null) 'scopes': scopes,
+      if (capPerOrderKr != null) 'cap_per_order_kr': capPerOrderKr,
+      if (capPerDayKr != null) 'cap_per_day_kr': capPerDayKr,
+      if (paymentPref != null) 'payment_pref': paymentPref,
+      if (addressPref != null) 'address_pref': addressPref,
+      if (shareBio != null) 'share_bio': shareBio,
+    });
+    return j?['link'] is Map ? CusAiLink.fromJson(Map<String, dynamic>.from(j!['link'] as Map)) : null;
+  }
+
+  /// «Koble fra» (`DELETE customer/ai/links/{id}`); every token of the link dies.
+  Future<bool> aiLinkRevoke(int id) async => (await _post('ai/links/$id', const {'_method': 'DELETE'}))?['status'] == 1;
+
+  /// «Koble fra alle».
+  Future<int?> aiLinksRevokeAll() async => ((await _post('ai/links', const {'_method': 'DELETE'}))?['revoked'] as num?)?.toInt();
+
+  /// The newest open request (`GET customer/ai/requests`): the banner after a cold start.
+  Future<CusAiRequest?> aiRequestLatest() async {
+    final j = await _get('ai/requests');
+    return j?['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j!['request'] as Map)) : null;
+  }
+
+  /// One request («Handlekurv fra assistent»); null when unknown, off or offline.
+  Future<CusAiRequest?> aiRequest(String id) async {
+    final j = await _get('ai/requests/${Uri.encodeComponent(id)}');
+    return j?['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j!['request'] as Map)) : null;
+  }
+
+  /// «Bekreft og betal»: the order and how to pay it; the backend's code on a refusal
+  /// (`quote_expired`, `token_used`, `over_limit` …).
+  Future<({CusAiOrder? order, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps'}) async {
+    final auth = OpsCustomerApi.authParams();
+    if (auth == null || !OpsCustomerApi.networkEnabled) return (order: null, feil: null, request: null);
+    try {
+      final res = await _helper.postAllowClientError('${_base}ai/requests/${Uri.encodeComponent(id)}/confirm', body: {...auth, 'payment': payment});
+      final j = res.data;
+      if (j is! Map<String, dynamic>) return (order: null, feil: null, request: null);
+      final req = j['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j['request'] as Map)) : null;
+      if (res.statusCode >= 300 || j['order'] is! Map) return (order: null, feil: '${j['error'] ?? 'feil'}', request: req);
+      return (order: CusAiOrder.fromJson(Map<String, dynamic>.from(j['order'] as Map), Map<String, dynamic>.from((j['payment'] as Map?) ?? const {})), feil: null, request: req);
+    } catch (_) {
+      return (order: null, feil: null, request: null);
+    }
+  }
+
+  /// «Avvis» — nothing is ordered; the assistant's token dies.
+  Future<CusAiRequest?> aiRequestDecline(String id) async {
+    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/decline', const {});
+    return j?['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j!['request'] as Map)) : null;
+  }
+
+  /// A fresh quote on the same cart (`removeLineId` drops a sold-out line); the old request is replaced.
+  Future<CusAiRequest?> aiRequestRequote(String id, {int? removeLineId}) async {
+    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/requote', {if (removeLineId != null) 'remove_line_id': removeLineId});
+    return j?['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j!['request'] as Map)) : null;
+  }
+
+  /// «Sett meg på ventelisten».
+  Future<String?> aiRequestWaitlist(String id) async => (await _post('ai/requests/${Uri.encodeComponent(id)}/waitlist', const {}))?['waitlist_id'] as String?;
+
+  /// `order id → assistant` for «Via {AI}» on Ordrer and Kvittering; empty when off or offline.
+  Future<Map<int, CusAiVia>> aiOrdersVia() async {
+    final j = await _get('ai/orders-via');
+    final via = j?['via'];
+    if (via is! Map) return const {};
+    return {for (final e in via.entries) if (e.value is Map && int.tryParse('${e.key}') != null) int.parse('${e.key}'): CusAiVia.fromJson(Map<String, dynamic>.from(e.value as Map))};
+  }
+}
+
+
+// ── AI assistants (Customer Steps 13–14) ─────────────────────────────────────
+
+/// A money amount as the commerce layer sends it.
+class CusMoney {
+  const CusMoney({this.ore = 0, this.display = ''});
+  final int ore;
+  final String display;
+  static CusMoney? maybe(dynamic m) => m is Map ? CusMoney(ore: (m['amount_ore'] as num?)?.toInt() ?? 0, display: '${m['display'] ?? ''}') : null;
+  static CusMoney of(dynamic m) => maybe(m) ?? const CusMoney();
+  int get kr => ore ~/ 100;
+}
+
+/// A registered assistant vendor (`ai/clients`).
+class CusAiClient {
+  const CusAiClient({required this.clientId, required this.name, required this.vendor, this.active = true});
+  final String clientId;
+  final String name;
+  final String vendor;
+  final bool active;
+  factory CusAiClient.fromJson(Map<String, dynamic> j) => CusAiClient(clientId: '${j['client_id'] ?? ''}', name: '${j['name'] ?? ''}', vendor: '${j['vendor'] ?? 'other'}', active: j['active'] != false);
+}
+
+/// The in-app consent's choices (design `aiSamtykke`): ride on the link code and win on the consent page.
+class CusAiPrefs {
+  const CusAiPrefs({this.scopes = const ['catalog:read', 'cart:write', 'orders:read', 'orders:write', 'profile:read'], this.capPerOrderKr = 500, this.capPerDayKr = 1000, this.paymentPref = 'vipps', this.addressPref = 'home', this.shareBio = false});
+  final List<String> scopes;
+  final int capPerOrderKr;
+  final int capPerDayKr;
+  final String paymentPref;
+  final String addressPref;
+  final bool shareBio;
+  CusAiPrefs copyWith({List<String>? scopes, int? capPerOrderKr, int? capPerDayKr, String? paymentPref, String? addressPref, bool? shareBio}) => CusAiPrefs(
+    scopes: scopes ?? this.scopes, capPerOrderKr: capPerOrderKr ?? this.capPerOrderKr, capPerDayKr: capPerDayKr ?? this.capPerDayKr,
+    paymentPref: paymentPref ?? this.paymentPref, addressPref: addressPref ?? this.addressPref, shareBio: shareBio ?? this.shareBio,
+  );
+  Map<String, dynamic> toJson() => {'scopes': scopes, 'cap_per_order_kr': capPerOrderKr, 'cap_per_day_kr': capPerDayKr, 'payment_pref': paymentPref, 'address_pref': addressPref, 'share_bio': shareBio};
+}
+
+/// An app link code («ÆR-7K2Q») and its status.
+class CusAiKode {
+  const CusAiKode({required this.code, required this.raw, required this.status, this.expiresAt, this.minutes = 10, this.linkUrl, this.authorizeUrl, this.link});
+  final String code;
+  final String raw;
+  /// `pending` | `linked` | `expired`
+  final String status;
+  final DateTime? expiresAt;
+  final int minutes;
+  final String? linkUrl;
+  final String? authorizeUrl;
+  final CusAiLink? link;
+  factory CusAiKode.fromJson(Map<String, dynamic> j) => CusAiKode(
+    code: '${j['code'] ?? ''}', raw: '${j['raw'] ?? ''}', status: '${j['link_status'] ?? 'pending'}', expiresAt: DateTime.tryParse('${j['expires_at'] ?? ''}')?.toLocal(),
+    minutes: (j['minutes'] as num?)?.toInt() ?? 10, linkUrl: j['link_url'] as String?, authorizeUrl: j['authorize_url'] as String?,
+    link: j['link'] is Map ? CusAiLink.fromJson(Map<String, dynamic>.from(j['link'] as Map)) : null,
+  );
+}
+
+/// One permission row of a link (scope, on, locked, the design's words).
+class CusAiRett {
+  const CusAiRett({required this.scope, required this.on, required this.locked, required this.title, required this.line, this.lockedLabel});
+  final String scope;
+  final bool on;
+  final bool locked;
+  final String title;
+  final String line;
+  final String? lockedLabel;
+  factory CusAiRett.fromJson(Map<String, dynamic> j) => CusAiRett(scope: '${j['scope'] ?? ''}', on: j['on'] == true, locked: j['locked'] == true, title: '${j['title'] ?? ''}', line: '${j['line'] ?? ''}', lockedLabel: j['locked'] == true ? (j['locked_label'] as String? ?? j['lockedLabel'] as String? ?? (j['scope'] == 'catalog:read' ? 'Alltid på' : 'Påkrevd')) : null);
+}
+
+/// «Koblede assistenter»: one link as the app's cards and the detail read it.
+class CusAiLink {
+  const CusAiLink({
+    required this.id, required this.clientId, required this.name, required this.vendor, required this.active, this.scopes = const [], this.permissions = const [],
+    this.capPerOrder, this.capPerDay, this.usedToday = const CusMoney(), this.orders = 0, this.paymentPref = 'vipps', this.addressPref = 'home', this.addressId, this.shareBio = false,
+    this.grantedAt, this.revokedAt, this.lastUsedAt,
+  });
+  final int id;
+  final String clientId;
+  final String name;
+  final String vendor;
+  final bool active;
+  final List<String> scopes;
+  final List<CusAiRett> permissions;
+  final CusMoney? capPerOrder;
+  final CusMoney? capPerDay;
+  final CusMoney usedToday;
+  final int orders;
+  final String paymentPref;
+  final String addressPref;
+  final int? addressId;
+  final bool shareBio;
+  final DateTime? grantedAt;
+  final DateTime? revokedAt;
+  final DateTime? lastUsedAt;
+  factory CusAiLink.fromJson(Map<String, dynamic> j) => CusAiLink(
+    id: (j['id'] as num?)?.toInt() ?? 0, clientId: '${j['client_id'] ?? ''}', name: '${j['name'] ?? ''}', vendor: '${j['vendor'] ?? 'other'}', active: j['active'] == true,
+    scopes: [for (final s in (j['scopes'] as List? ?? const [])) '$s'],
+    permissions: [for (final m in (j['permissions'] as List? ?? const []).whereType<Map>()) CusAiRett.fromJson(m.cast<String, dynamic>())],
+    capPerOrder: CusMoney.maybe(j['cap_per_order']), capPerDay: CusMoney.maybe(j['cap_per_day']), usedToday: CusMoney.of(j['used_today']), orders: (j['orders'] as num?)?.toInt() ?? 0,
+    paymentPref: '${j['payment_pref'] ?? 'vipps'}', addressPref: '${j['address_pref'] ?? 'home'}', addressId: (j['address_id'] as num?)?.toInt(), shareBio: j['share_bio'] == true,
+    grantedAt: DateTime.tryParse('${j['granted_at'] ?? ''}')?.toLocal(), revokedAt: DateTime.tryParse('${j['revoked_at'] ?? ''}')?.toLocal(), lastUsedAt: DateTime.tryParse('${j['last_used_at'] ?? ''}')?.toLocal(),
+  );
+  bool has(String scope) => scopes.contains(scope);
+}
+
+/// One line of a link's activity (the tool-call log).
+class CusAiAktivitet {
+  const CusAiAktivitet({required this.tool, required this.outcome, this.at});
+  final String tool;
+  final String outcome;
+  final DateTime? at;
+  factory CusAiAktivitet.fromJson(Map<String, dynamic> j) => CusAiAktivitet(tool: '${j['tool'] ?? ''}', outcome: '${j['outcome'] ?? ''}', at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal());
+}
+
+/// A quote line as the request shows it, with its availability now.
+class CusAiLinje {
+  const CusAiLinje({required this.productId, required this.name, required this.quantity, this.lineId, this.options = const [], this.unitPrice = const CusMoney(), this.lineTotal = const CusMoney(), this.available = true});
+  final int productId;
+  final int? lineId;
+  final String name;
+  final int quantity;
+  final List<String> options;
+  final CusMoney unitPrice;
+  final CusMoney lineTotal;
+  final bool available;
+  factory CusAiLinje.fromJson(Map<String, dynamic> j) => CusAiLinje(
+    productId: (j['product_id'] as num?)?.toInt() ?? 0, lineId: (j['line_id'] as num?)?.toInt(), name: '${j['name'] ?? ''}', quantity: (j['quantity'] as num?)?.toInt() ?? 1,
+    options: [for (final o in (j['options'] as List? ?? const [])) o is Map ? '${o['name'] ?? o['label'] ?? ''}' : '$o'], unitPrice: CusMoney.of(j['unit_price']), lineTotal: CusMoney.of(j['line_total']), available: j['available'] != false,
+  );
+}
+
+/// One step of what the assistant did before asking.
+class CusAiLogg {
+  const CusAiLogg({required this.tool, required this.text, this.at});
+  final String tool;
+  final String text;
+  final DateTime? at;
+  factory CusAiLogg.fromJson(Map<String, dynamic> j) => CusAiLogg(tool: '${j['tool'] ?? ''}', text: '${j['text'] ?? ''}', at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal());
+}
+
+/// «Via {AI}» on an order.
+class CusAiVia {
+  const CusAiVia({required this.name, required this.vendor});
+  final String name;
+  final String vendor;
+  factory CusAiVia.fromJson(Map<String, dynamic> j) => CusAiVia(name: '${j['name'] ?? ''}', vendor: '${j['vendor'] ?? 'other'}');
+}
+
+/// The order «Bekreft og betal» created, and how it is paid.
+class CusAiOrder {
+  const CusAiOrder({required this.id, required this.number, this.total = const CusMoney(), this.paymentMethod = 'vipps', this.paymentStatus = 'pending', this.paymentIntent, this.trackingToken});
+  final int id;
+  final String number;
+  final CusMoney total;
+  final String paymentMethod;
+  final String paymentStatus;
+  final String? paymentIntent;
+  final String? trackingToken;
+  factory CusAiOrder.fromJson(Map<String, dynamic> o, Map<String, dynamic> p) => CusAiOrder(
+    id: (o['id'] as num?)?.toInt() ?? 0, number: '${o['number'] ?? ''}', total: CusMoney.of(o['total']), paymentMethod: '${p['method'] ?? 'vipps'}', paymentStatus: '${p['status'] ?? 'pending'}',
+    paymentIntent: p['payment_intent'] as String?, trackingToken: o['tracking_token'] as String?,
+  );
+}
+
+/// «Handlekurv fra assistent» / «Bekreft bestilling»: an assistant's request.
+class CusAiRequest {
+  const CusAiRequest({
+    required this.id, required this.state, required this.assistant, required this.vendor, required this.store, this.storeLine = '', this.log = const [], this.lines = const [],
+    this.subtotal = const CusMoney(), this.deliveryFee = const CusMoney(), this.serviceFee = const CusMoney(), this.total = const CusMoney(), this.windowDisplay = '', this.address = '',
+    this.deliveryMethod = 'delivery', this.expiresAt, this.secondsLeft = 0, this.capPerOrder, this.overCap = false, this.covered = true, this.waitlistId, this.paymentPref = 'vipps', this.linkId, this.orderId, this.orderCode, this.orderPaid = false, this.createdAt,
+  });
+  final String id;
+  /// `normal` | `utsolgt` | `utlopt` | `dekning` | `confirmed` | `declined` | `replaced`
+  final String state;
+  final String assistant;
+  final String vendor;
+  final String store;
+  final String storeLine;
+  final List<CusAiLogg> log;
+  final List<CusAiLinje> lines;
+  final CusMoney subtotal;
+  final CusMoney deliveryFee;
+  final CusMoney serviceFee;
+  final CusMoney total;
+  final String windowDisplay;
+  final String address;
+  final String deliveryMethod;
+  final DateTime? expiresAt;
+  final int secondsLeft;
+  final CusMoney? capPerOrder;
+  final bool overCap;
+  final bool covered;
+  final String? waitlistId;
+  final String paymentPref;
+  final int? linkId;
+  final int? orderId;
+  final String? orderCode;
+  final bool orderPaid;
+  final DateTime? createdAt;
+  bool get harUtsolgt => lines.any((l) => !l.available);
+  factory CusAiRequest.fromJson(Map<String, dynamic> j) {
+    final a = j['assistant'] is Map ? j['assistant'] as Map : const {};
+    final s = j['store'] is Map ? j['store'] as Map : const {};
+    final q = j['quote'] is Map ? j['quote'] as Map : const {};
+    final w = q['window'] is Map ? q['window'] as Map : const {};
+    final adr = q['address'] is Map ? q['address'] as Map : const {};
+    final o = j['order'] is Map ? j['order'] as Map : null;
+    return CusAiRequest(
+      id: '${j['id'] ?? ''}', state: '${j['state'] ?? 'normal'}', assistant: '${a['name'] ?? 'Assistent'}', vendor: '${a['vendor'] ?? 'other'}', store: '${s['name'] ?? ''}', storeLine: '${s['line'] ?? ''}',
+      log: [for (final m in (j['log'] as List? ?? const []).whereType<Map>()) CusAiLogg.fromJson(m.cast<String, dynamic>())],
+      lines: [for (final m in (j['lines'] as List? ?? const []).whereType<Map>()) CusAiLinje.fromJson(m.cast<String, dynamic>())],
+      subtotal: CusMoney.of(q['subtotal']), deliveryFee: CusMoney.of(q['delivery_fee']), serviceFee: CusMoney.of(q['service_fee']), total: CusMoney.of(q['total']),
+      windowDisplay: '${w['display'] ?? ''}', address: '${adr['text'] ?? ''}', deliveryMethod: '${(q['delivery_method'] is Map ? (q['delivery_method'] as Map)['key'] : q['delivery_method']) ?? 'delivery'}',
+      expiresAt: DateTime.tryParse('${j['expires_at'] ?? ''}')?.toLocal(), secondsLeft: (j['seconds_left'] as num?)?.toInt() ?? 0,
+      capPerOrder: CusMoney.maybe(j['cap_per_order']), overCap: j['over_cap'] == true, covered: j['covered'] != false, waitlistId: j['waitlist_id'] as String?,
+      paymentPref: '${j['payment_pref'] ?? 'vipps'}', linkId: (j['link_id'] as num?)?.toInt(),
+      orderId: o == null ? null : (o['id'] as num?)?.toInt(), orderCode: o == null ? null : '${o['code'] ?? ''}', orderPaid: o?['paid'] == true, createdAt: DateTime.tryParse('${j['created_at'] ?? ''}')?.toLocal(),
+    );
+  }
 }

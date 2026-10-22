@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
+import '../ai/ai_bits.dart';
 import 'leveringskode_card.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
@@ -1093,12 +1094,16 @@ class SpDetaljerArk extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      over.toUpperCase(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: inter(10, weight: FontWeight.w800, em: .1, color: _kMint, height: spLinje(10)),
-                                    ),
+                                    Row(children: [
+                                      Flexible(child: Text(
+                                        over.toUpperCase(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: inter(10, weight: FontWeight.w800, em: .1, color: _kMint, height: spLinje(10)),
+                                      )),
+                                      // Customer Step 14: «Via {AI}» (design `aiKilde`, 6544).
+                                      if (t.via != null) ...[const SizedBox(width: 6), AiViaChip(t.via!.name)],
+                                    ]),
                                     const SizedBox(height: 3),
                                     Text(detaljer ? SporingCopy.a1_sporing_bestillingsdetaljer : SporingCopy.a1_sporing_ordresammendrag, style: jakarta(21, em: -.03, height: 1.1)),
                                   ],

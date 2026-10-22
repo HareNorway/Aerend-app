@@ -329,6 +329,21 @@ abstract final class HjemHarness {
   static int? hyllaClaim;
   static bool hyllaAngre = false;
 
+  /// Customer Step 14: the AI-assistant states (design §4d, `aiFlyt`).
+  /// `ai` names the state (`inngang`, `velg`, `qr`, `qrAnnen`, `qrKopiert`,
+  /// `samtykke`, `samtykkeGjest`, `koblet`, `koblede`, `detalj`, `kobleFra`,
+  /// `kobleFraAlle`, `feilIkkeKoblet`, `feilBekreft`, `feilGenerisk`,
+  /// `bekreft`, `bekreftOver`, `bekreftFeilet`, `bekreftUtlopt`,
+  /// `bekreftTrukket`, `faceid`, `vipps`, `push`, `bytt`, `byttKurv`,
+  /// `kurv`, `kurvLaster`, `kurvGjest`, `kurvDekning`, `kurvUtsolgt`,
+  /// `kurvUtlopt`, `kurvVente`, `varsler`); `aiNavn` the assistant (Claude …);
+  /// `aiStart` `koblet` | `ingen` fakes the linked list; `aiReq` a real
+  /// request id (else the design's sample request renders).
+  static String? ai, aiNavn, aiStart, aiReq;
+
+  /// `aiBetal: true` releases the request screen's slider once the real request has loaded (Vipps).
+  static bool aiBetal = false;
+
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
   static double? aegScroll;
@@ -430,6 +445,8 @@ abstract final class HjemHarness {
         megOppdrag = null;
         hyllaClaim = null;
         hyllaAngre = false;
+        ai = aiNavn = aiStart = aiReq = null;
+        aiBetal = false;
         hjelpSamtale = null;
         adrDorAuto = adrDorSamtykke = false;
         aegTenk = aegFokus = aegOb = aegButArk = false;
@@ -585,6 +602,11 @@ abstract final class HjemHarness {
       megOppdrag = m['megOppdrag'] as String?;
       hyllaClaim = (m['hyllaClaim'] as num?)?.toInt();
       hyllaAngre = m['hyllaAngre'] == true;
+      ai = m['ai'] as String?;
+      aiNavn = m['aiNavn'] as String?;
+      aiStart = m['aiStart'] as String?;
+      aiReq = m['aiReq'] as String?;
+      aiBetal = m['aiBetal'] == true;
       sporingRull = (m['sporingRull'] as num?)?.toDouble();
       aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;

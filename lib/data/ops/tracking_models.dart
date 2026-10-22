@@ -27,6 +27,7 @@ class OpsTracking {
     this.eventsSince = 0,
     this.notice,
     this.effects = const [],
+    this.via,
     this.raw = const {},
   });
 
@@ -63,6 +64,10 @@ class OpsTracking {
   /// the order's timeline.
   final OpsNotice? notice;
   final List<OpsEffect> effects;
+
+  /// Customer Step 14: «Via {AI}» — the assistant whose request the customer
+  /// confirmed (name, vendor), null for the app's own orders.
+  final OpsVia? via;
   final Map<String, dynamic> raw;
 
   bool get isPickup => mode == modePickup;
@@ -116,6 +121,7 @@ class OpsTracking {
       eventsSince: (j['events_since'] as num?)?.toInt() ?? 0,
       notice: j['notice'] is Map ? OpsNotice.fromJson(Map<String, dynamic>.from(j['notice'] as Map)) : null,
       effects: [for (final e in (j['effects'] as List? ?? const []).whereType<Map>()) OpsEffect.fromJson(Map<String, dynamic>.from(e))],
+      via: j['via'] is Map ? OpsVia.fromJson(Map<String, dynamic>.from(j['via'] as Map)) : null,
       raw: j,
     );
   }
@@ -321,4 +327,12 @@ class OpsEffect {
     actionType: j['action_type'] as String?,
     at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal(),
   );
+}
+
+/// «Via {AI}» (Customer Step 14).
+class OpsVia {
+  const OpsVia({required this.name, required this.vendor});
+  final String name;
+  final String vendor;
+  factory OpsVia.fromJson(Map<String, dynamic> j) => OpsVia(name: '${j['name'] ?? ''}', vendor: '${j['vendor'] ?? 'other'}');
 }

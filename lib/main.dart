@@ -359,6 +359,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               );
             }
 
+            // Customer Step 14: `aerendapp://bergen/ai/foresporsel/<id>` (the
+            // hand-off link) on a cold start — the host is the first segment.
+            if ((uri?.scheme == appUrlScheme || uri?.scheme == 'aerend') && uri?.host == 'bergen') {
+              final r = BergenRoutes.generate(RouteSettings(name: '/bergen${uri!.path}', arguments: settings.arguments));
+              if (r != null) return r;
+            }
+
             // agil-1 Phase 2 (AGIL-CONTRACT §3.4): `/bergen/...` names with a
             // query or a trailing id resolve to the branch route maps.
             final bergenRoute = BergenRoutes.generate(settings);

@@ -15,6 +15,8 @@ import '../hurtig/hurtig_glass.dart' show HbFlisInn;
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/butikk_bilder.dart';
+import '../ai/ai_bits.dart';
+import '../ai/ai_copy.dart';
 import 'bestill_igjen.dart';
 import 'meg_ark.dart';
 import 'meg_nav.dart';
@@ -108,8 +110,12 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     SupportStore.instance.oppdater();
   }
 
+  /// Customer Step 14: order id → the assistant whose request became the order («Via {AI}»).
+  Map<int, CusAiVia> _via = const {};
+
   Future<void> _load() async {
     final rows = await _api.orders(limit: 50);
+    _cus.aiOrdersVia().then((v) { if (mounted && v.isNotEmpty) setState(() => _via = v); });
     final ledger = await _api.pointsLedger();
     if (!mounted) return;
     final kr = <int, int>{};
@@ -198,6 +204,11 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Customer Step 14: «Bestilt via {AI} · {dato}» (design Kvittering 10054).
+          if (_via[o.id] case final via?) ...[
+            Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, OhCopy.dag(o.naar)), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
+            const SizedBox(height: 10),
+          ],
           _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt),
           const SizedBox(height: 10),
           _Tall(
@@ -405,7 +416,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                     ),
                                     for (final (i, o) in g.value.indexed) ...[
                                       if (i > 0) const SizedBox(height: 10),
-                                      _OrdreKort(o: o, kroner: _kroner[o.id], bilder: _bilder[o.storeId], status: _status(o), onApne: () => _apne(o), onIgjen: () => _igjen(o)),
+                                      _OrdreKort(o: o, kroner: _kroner[o.id], bilder: _bilder[o.storeId], status: _status(o), via: _via[o.id], onApne: () => _apne(o), onIgjen: () => _igjen(o)),
                                     ],
                                   ],
                                 ],
@@ -667,8 +678,11 @@ class _Fast extends StatelessWidget {
 
 /// An order (L8069–8086).
 class _OrdreKort extends StatelessWidget {
-  const _OrdreKort({required this.o, required this.kroner, required this.bilder, required this.status, required this.onApne, required this.onIgjen});
+  const _OrdreKort({required this.o, required this.kroner, required this.bilder, required this.status, required this.onApne, required this.onIgjen, this.via});
   final _Ordre o;
+
+  /// Customer Step 14: «Via {AI}» (design Ordrer 8233).
+  final CusAiVia? via;
   final int? kroner;
   final ButikkBilder? bilder;
   final _Status status;
@@ -721,6 +735,7 @@ class _OrdreKort extends StatelessWidget {
                             const SizedBox(width: 6),
                             Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .45))),
                             const SizedBox(width: 6),
+                            if (via != null) ...[AiViaChip(via!.name), const SizedBox(width: 6)],
                             Flexible(child: Text(OhCopy.dag(o.naar), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66)))),
                           ],
                         ),

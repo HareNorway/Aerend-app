@@ -24,6 +24,8 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Ærend bekrefter en bestilling fra assistenten din med Face ID før betaling.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

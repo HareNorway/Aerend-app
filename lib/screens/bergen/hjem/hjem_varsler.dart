@@ -1096,6 +1096,8 @@ const Map<String, (Color, String, double)> _kVst = {
   'ukeshandel': (Color(0xFFA9CDB6), 'Baat', -2),
   'agil': (Color(0xFFC7B8E8), 'Aegil', 3),
   'aerend': (Color(0xFFDCE9EC), 'Merke', -2),
+  // Customer Step 14: an assistant's request / order / link.
+  'ai': (Color(0xFF1E4F5C), 'Merke', 2),
 };
 
 const Map<String, String> _kIkon = {

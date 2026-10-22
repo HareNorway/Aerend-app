@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../screens/bergen/ai/ai_push_hook.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -101,6 +102,11 @@ class PushNotificationService {
       remote.data,
     );
     logd(tag, notificationData.toString());
+
+    // Customer Step 14: «{AI} vil bestille» while the app is open → the in-app banner, not a system notification.
+    if ('${notificationData['kind'] ?? ''}' == 'ai_request') {
+      if (await AiPushHook.vis(notificationData)) return;
+    }
 
     final String? feedPayloadType =
         notificationData[NotificationConstant.feedType]?.toString();
@@ -344,6 +350,8 @@ class PushNotificationService {
     // Admin campaigns and the ops pushes (`aerend://` links) route by their
     // own target — before the chat branch, which would read an ops push with
     // a `user_id` and no `notification_type` as a chat message.
+    // Customer Step 14: a `/bergen/…` deep link (the assistant's request).
+    if (AiPushHook.apne(nd)) return;
     if (PushDeepLink.handles(nd)) {
       final route = PushDeepLink.resolve(nd);
       if (route != null) {
