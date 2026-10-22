@@ -19,6 +19,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../aegil/aegil_bits.dart';
 import '../butikk/kategori_kort.dart' show KatHolo, KatKortStag, KatMyntPille, KatRundKnapp;
+import '../../../ui/kit/ae_haptic.dart';
 import '../kit/bergen_faner.dart';
 import '../kit/bergen_fav_heart.dart' show FavCopy;
 import '../kit/bergen_kit.dart';
@@ -207,7 +208,9 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
       if (!mounted) return false;
       prefSetInt(prefCartCount, cart.lines.length);
       BergenCart.syncBadge(context, cart.lines.length);
-      return cart.lines.any((l) => l.productId == productId);
+      final lagt = cart.lines.any((l) => l.productId == productId);
+      if (lagt) aeConfirm();
+      return lagt;
     } catch (_) {
       return false;
     }

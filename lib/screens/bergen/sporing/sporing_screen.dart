@@ -33,6 +33,7 @@ import 'sporing_scene_kart.dart';
 import 'sporing_scene_kjokken.dart';
 import 'sporing_skifte.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
 ///
@@ -208,7 +209,7 @@ class _SporingScreenState extends State<SporingScreen> {
   }
 
   Future<void> _onStageChange(OpsTracking next) async {
-    HapticFeedback.mediumImpact();
+    aeSuccess();
     if (next.stage == 3) _etterLevert(next);
     _visSkifte(next.stage);
   }

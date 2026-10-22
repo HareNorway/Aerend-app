@@ -32,8 +32,8 @@ class MainActivity: FlutterFragmentActivity() {
             if (call.method == "info") result.success(perfState()) else result.notImplemented()
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "aerend/haptic").setMethodCallHandler { call, result ->
-            if (call.method == "tick") {
-                tick()
+            if (call.method == "play") {
+                haptic(call.arguments as? String ?: "tick")
                 result.success(null)
             } else result.notImplemented()
         }
@@ -54,12 +54,13 @@ class MainActivity: FlutterFragmentActivity() {
         runOnUiThread { perfChannel?.invokeMethod("changed", perfState()) }
     }
 
-    // A short click on the vibration motor (`aeTick` in Dart). It is not
-    // performHapticFeedback, which the phone's touch-vibration setting mutes,
-    // and it is tagged media: since Android 12 an untagged short effect is
-    // treated as touch feedback and muted by the same setting. Silent and
-    // vibration-off modes still apply.
-    private fun tick() {
+    // The vibration motor directly (`aeTick` / `aeConfirm` / `aeSuccess` in
+    // Dart): tick = a click, confirm = a heavy click, success = a double
+    // click. It is not performHapticFeedback, which the phone's
+    // touch-vibration setting mutes, and it is tagged media: since Android 12
+    // an untagged short effect is treated as touch feedback and muted by the
+    // same setting. Silent and vibration-off modes still apply.
+    private fun haptic(kind: String) {
         val v = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
         } else {
@@ -69,13 +70,27 @@ class MainActivity: FlutterFragmentActivity() {
         if (!v.hasVibrator()) return
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             @Suppress("DEPRECATION")
-            v.vibrate(15)
+            when (kind) {
+                "success" -> v.vibrate(longArrayOf(0, 25, 90, 25), -1)
+                "confirm" -> v.vibrate(30)
+                else -> v.vibrate(15)
+            }
             return
         }
         val effect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+            VibrationEffect.createPredefined(
+                when (kind) {
+                    "success" -> VibrationEffect.EFFECT_DOUBLE_CLICK
+                    "confirm" -> VibrationEffect.EFFECT_HEAVY_CLICK
+                    else -> VibrationEffect.EFFECT_CLICK
+                },
+            )
         } else {
-            VibrationEffect.createOneShot(15, VibrationEffect.DEFAULT_AMPLITUDE)
+            when (kind) {
+                "success" -> VibrationEffect.createWaveform(longArrayOf(0, 25, 90, 25), -1)
+                "confirm" -> VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE)
+                else -> VibrationEffect.createOneShot(15, VibrationEffect.DEFAULT_AMPLITUDE)
+            }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             v.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_MEDIA))
