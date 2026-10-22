@@ -112,6 +112,10 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with TickerProviderSt
       return;
     }
     _dir = til > _aktiv ? 1 : -1;
+    // Back to the start before the cover shows: left at the end of the last
+    // switch, the cover's first frames drew the old bands already fallen
+    // away and the new ones not yet there — the bare background, a blink.
+    _c.value = 0;
     setState(() {
       _gml = gml;
       _vis(til);
