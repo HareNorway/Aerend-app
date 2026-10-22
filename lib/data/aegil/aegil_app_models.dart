@@ -14,6 +14,12 @@ class AegilTurn {
     this.ageGate = false,
     this.gift = false,
     this.stored = 0,
+    this.conversationId,
+    this.messageId,
+    this.source,
+    this.aiLabel,
+    this.verktoy = const [],
+    this.chips = const [],
   });
 
   final String state;
@@ -26,6 +32,23 @@ class AegilTurn {
   final bool ageGate;
   final bool gift;
   final int stored;
+
+  /// Customer Step 5: the conversation this turn belongs to (`cv_…`) and its
+  /// message id — the app keeps the id and resumes the chat after a relaunch.
+  final String? conversationId;
+  final int? messageId;
+
+  /// Who answered: `model`, `template` (the template lines) or `rules`.
+  final String? source;
+
+  /// «Ægil er en AI».
+  final String? aiLabel;
+
+  /// The typed cards under the reply (`tool_cards`).
+  final List<AeVerktoy> verktoy;
+
+  /// Follow-ups the reply offers (`chips`); empty means the screen's own.
+  final List<String> chips;
 
   factory AegilTurn.fromJson(Map<String, dynamic> json) => AegilTurn(
     state: (json['state'] as String?) ?? 'agIkkeFunnet',
@@ -45,7 +68,78 @@ class AegilTurn {
     ageGate: json['age_gate'] == true,
     gift: json['gift'] == true,
     stored: (json['stored'] as num?)?.toInt() ?? 0,
+    conversationId: json['conversation_id'] as String?,
+    messageId: (json['message_id'] as num?)?.toInt(),
+    source: json['source'] as String?,
+    aiLabel: json['ai_label'] as String?,
+    verktoy: ((json['tool_cards'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => AeVerktoy.fromJson(e.cast<String, dynamic>()))
+        .where((v) => v.type.isNotEmpty)
+        .toList(),
+    chips: ((json['chips'] as List?) ?? const []).whereType<String>().toList(),
   );
+}
+
+/// Customer Step 5: a typed card under a chat reply (`tool_cards`) — an
+/// order's status, the basket, a cart change Ægil proposes (the tap applies
+/// it; then a receipt with Angre), a person (Hjelp), Min bio.
+class AeVerktoy {
+  const AeVerktoy(this.type, this.data);
+
+  factory AeVerktoy.fromJson(Map<String, dynamic> json) => AeVerktoy((json['type'] as String?) ?? '', json);
+
+  final String type;
+  final Map<String, dynamic> data;
+
+  /// A proposal's id (`pa_…`).
+  String? get id => data['id'] as String?;
+  String get status => (data['status'] as String?) ?? '';
+
+  AeVerktoy med(Map<String, dynamic> nytt) => AeVerktoy(type, {...data, ...nytt});
+
+  Map<String, dynamic> map(String k) => (data[k] is Map) ? (data[k] as Map).cast<String, dynamic>() : const {};
+}
+
+/// Customer Step 5: one of the customer's chats (`GET agent/chat/conversations`).
+class AegilSamtale {
+  const AegilSamtale({required this.id, this.title, this.messageCount = 0, this.lastMessageAt, this.open = true});
+
+  factory AegilSamtale.fromJson(Map<String, dynamic> json) => AegilSamtale(
+    id: (json['id'] as String?) ?? '',
+    title: json['title'] as String?,
+    messageCount: (json['message_count'] as num?)?.toInt() ?? 0,
+    lastMessageAt: DateTime.tryParse('${json['last_message_at'] ?? ''}'),
+    open: (json['status'] as String?) != 'closed',
+  );
+
+  final String id;
+  final String? title;
+  final int messageCount;
+  final DateTime? lastMessageAt;
+  final bool open;
+}
+
+/// Customer Step 5: a line of a stored chat — the customer's words, or
+/// Ægil's turn (read back through [AegilTurn.fromJson]).
+class AegilSamtaleLinje {
+  const AegilSamtaleLinje({required this.meg, required this.tekst, this.turn});
+
+  factory AegilSamtaleLinje.fromJson(Map<String, dynamic> json) {
+    final meg = json['role'] == 'customer';
+    final tekst = (json['text'] as String?) ?? '';
+    if (meg) return AegilSamtaleLinje(meg: true, tekst: tekst);
+    final payload = json['payload'] is Map ? (json['payload'] as Map).cast<String, dynamic>() : const <String, dynamic>{};
+    return AegilSamtaleLinje(
+      meg: false,
+      tekst: tekst,
+      turn: AegilTurn.fromJson({...payload, 'state': json['state'] ?? 'agSvar', 'reply': tekst, 'tool_cards': json['tool_cards'], 'chips': json['chips'], 'source': json['source']}),
+    );
+  }
+
+  final bool meg;
+  final String tekst;
+  final AegilTurn? turn;
 }
 
 class AegilBasketLine {
@@ -149,6 +243,7 @@ class TrustLedger {
     this.againstInterestShown = 0,
     this.waitRecommended = 0,
     this.cheaperElsewhereTaken = 0,
+    this.lines = const [],
   });
 
   final String month;
@@ -158,6 +253,9 @@ class TrustLedger {
   final int waitRecommended;
   final int cheaperElsewhereTaken;
 
+  /// Customer Step 5: the month's findings for Meg's sheet (newest first).
+  final List<({String text, String sub})> lines;
+
   factory TrustLedger.fromJson(Map<String, dynamic> json) => TrustLedger(
     month: (json['month'] as String?) ?? '',
     savedKr: (json['saved_kr'] as num?)?.toInt() ?? 0,
@@ -165,6 +263,11 @@ class TrustLedger {
     againstInterestShown: (json['against_interest_shown'] as num?)?.toInt() ?? 0,
     waitRecommended: (json['wait_recommended'] as num?)?.toInt() ?? 0,
     cheaperElsewhereTaken: (json['cheaper_elsewhere_taken'] as num?)?.toInt() ?? 0,
+    lines: ((json['lines'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => (text: '${e['text'] ?? ''}', sub: '${e['sub'] ?? ''}'))
+        .where((l) => l.text.isNotEmpty)
+        .toList(),
   );
 }
 

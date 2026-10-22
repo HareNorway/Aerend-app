@@ -12,13 +12,18 @@ import 'aegil_bits.dart';
 /// category and recipient go with every chat turn while the chip is shown.
 /// Nothing stands in for a question the customer did not ask.
 class AeKontekst {
-  const AeKontekst({this.intent, this.storeId, this.store, this.category, this.recipient});
+  const AeKontekst({this.intent, this.storeId, this.store, this.category, this.recipient, this.orderId, this.order});
 
   final String? intent;
   final int? storeId;
   final String? store;
   final String? category;
   final String? recipient;
+
+  /// Customer Step 5: «Spør Ægil» on an order's tracking view (`order_id`,
+  /// `order` = its number); the chat answers about that order first.
+  final int? orderId;
+  final String? order;
 
   /// Null when the route names no context.
   static AeKontekst? fra(Map<String, String> args) {
@@ -33,8 +38,10 @@ class AeKontekst {
       store: v('store'),
       category: v('category'),
       recipient: v('for'),
+      orderId: int.tryParse(v('order_id') ?? ''),
+      order: v('order'),
     );
-    if (k.storeId == null && k.store == null && k.category == null && k.recipient == null && k.intent == null) return null;
+    if (k.storeId == null && k.store == null && k.category == null && k.recipient == null && k.intent == null && k.orderId == null) return null;
     return k;
   }
 
@@ -44,6 +51,7 @@ class AeKontekst {
     return switch (intent) {
       'gift' => AeKtxCopy.cus_aegil_ktx_gave(recipient, hvor),
       'door' => AeKtxCopy.cus_aegil_ktx_dor,
+      _ when orderId != null => AeKtxCopy.cus_aegil_ktx_om(order ?? '#$orderId'),
       _ => hvor == null ? null : AeKtxCopy.cus_aegil_ktx_om(hvor),
     };
   }

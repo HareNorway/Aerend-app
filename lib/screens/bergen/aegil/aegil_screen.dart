@@ -32,6 +32,7 @@ import '../hurtig/hurtig_data.dart';
 import '../kit/bergen_cart.dart';
 import '../meg/min_bio.dart';
 import '../meg/min_bio_ark.dart';
+import '../sporing/hjelp_sheet.dart' show HjelpScreen;
 import 'aegil_minne.dart';
 import '../kit/bergen_routes.dart';
 import '../meg/a3_services.dart';
@@ -42,6 +43,7 @@ import 'aegil_kontekst.dart';
 import 'aegil_laer.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_scene.dart';
+import 'aegil_verktoy.dart';
 
 /// Ægil (`erAgent`, L4500–5120 in `Ærend Kunde Launch.dc.html`, design px).
 ///
@@ -117,6 +119,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   List<String> _forslag = const [];
   int _sendSeq = 0;
 
+  // Customer Step 5: the conversation (`cv_…`) the chat continues and resumes
+  // after a relaunch; the tool cards as they are now (a proposal applied or
+  // undone since its reply); the proposals being sent.
+  String? _samtaleId;
+  final Map<String, AeVerktoy> _verktoyNaa = {};
+  final Set<String> _venterPaa = {};
+
   // Data.
   AegilSettings? _settings;
   List<AegilLevel> _levels = const [];
@@ -165,7 +174,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     unawaited(a3Try(_customer.rules).then((r) {
       if (mounted && r != null) setState(() => _regler = r);
     }));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fraRute());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fraRute();
+      // Customer Step 5: the last conversation, unless the route brought its own.
+      if (mounted) unawaited(_gjenoppta());
+    });
     if (kDebugMode && HjemHarness.aegil != null) _harness();
   }
 
@@ -197,6 +210,34 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     setState(() => _h = h);
     final sist = h.hist.firstOrNull;
     if (sist != null) _hentButikk(sist.butikkId);
+  }
+
+  /// Customer Step 5: the chat picks up where it was — the customer's latest
+  /// open conversation from the last 24 hours — unless the route brought its
+  /// own question or context, or the customer has started typing.
+  Future<void> _gjenoppta() async {
+    final a = BergenRoutes.argsOf(context);
+    if ((a['q'] ?? '').trim().isNotEmpty || AeKontekst.fra(a) != null) return;
+    final samtaler = await a3Try(_api.conversations);
+    final s = samtaler?.where((c) => c.open).firstOrNull;
+    if (s == null || s.lastMessageAt == null || DateTime.now().difference(s.lastMessageAt!).inHours >= 24) return;
+    final linjer = await a3Try(() => _api.conversation(s.id));
+    if (!mounted || linjer == null || linjer.isEmpty || _vc.isNotEmpty || _sendSeq > 0) return;
+    setState(() {
+      _samtaleId = s.id;
+      if (_steg != 'start' && _steg != 'tillatelse') _steg = 'start';
+      for (final l in linjer) {
+        _vc.add(l.meg ? AeMelding.meg(l.tekst) : _svar('', l.turn));
+      }
+      _forslag = _vc.lastOrNull?.forslag ?? const [];
+      _tikk++;
+    });
+    for (final m in _vc) {
+      for (final k in m.kort) {
+        _hentButikk(k.storeId);
+      }
+    }
+    _rullNed();
   }
 
   Future<void> _lastMinne() async {
@@ -269,13 +310,14 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       final k = _ktx;
       final i = intent ?? _ventIntent;
       _ventIntent = null;
-      turn = await _api.chat(text: tx, intent: i, storeId: k?.storeId, category: k?.category, recipient: k?.recipient).timeout(const Duration(seconds: 20));
+      turn = await _api.chat(text: tx, intent: i, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId, orderId: k?.orderId).timeout(const Duration(seconds: 20));
     } catch (_) {
       turn = null;
     }
     final vent = 850 - DateTime.now().difference(t0).inMilliseconds;
     if (vent > 0) await Future.delayed(Duration(milliseconds: vent));
     if (!mounted || seq != _sendSeq) return;
+    if (turn?.conversationId != null) _samtaleId = turn!.conversationId;
     final svar = _svar(tx, turn);
     for (final s in svar.kort) {
       _hentButikk(s.storeId);
@@ -337,7 +379,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       'agIkkeFunnet' || 'agAldersblokk' => 'lei',
       _ => 'glad',
     };
-    final forslag = tema?.$5 ??
+    // Customer Step 5: a reply with tool cards carries its own card; the
+    // app's topic card would only repeat it.
+    final medVerktoy = turn.verktoy.isNotEmpty;
+    final forslag = (turn.chips.isNotEmpty ? turn.chips : null) ??
+        tema?.$5 ??
         switch (turn.state) {
           'agForslag' => [AeCopy.chipBillig, AeCopy.chipGave, AeCopy.chipHjelp],
           'agFunn' => [AeCopy.chipTaco, AeCopy.chipBillig],
@@ -355,9 +401,10 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       sammen: turn.state == 'agSammen' ? turn.comparison : null,
       dor: turn.doorNote,
       bytt: turn.swap,
-      app: tema?.$3 ?? const [],
-      knapper: tema?.$4 ?? const [],
+      app: medVerktoy ? const [] : (tema?.$3 ?? const []),
+      knapper: medVerktoy ? const [] : (tema?.$4 ?? const []),
       forslag: forslag,
+      verktoy: turn.verktoy,
       humor: humor,
     );
   }
@@ -377,6 +424,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   void _nyPrat() {
     _sendSeq++;
+    // Customer Step 5: the chat is closed; the next line starts a new one.
+    final id = _samtaleId;
+    if (id != null) unawaited(a3Try(() => _api.closeConversation(id)));
+    _samtaleId = null;
+    _verktoyNaa.clear();
     setState(() {
       _vc.clear();
       _tenker = false;
@@ -389,6 +441,82 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   @override
   bool get handler => (_settings?.level ?? 2) >= 3;
+
+  // ── Customer Step 5: the tool cards ───────────────────────────────────────
+
+  @override
+  AeVerktoy verktoy(AeVerktoy v) => _verktoyNaa[v.id ?? ''] ?? v;
+
+  @override
+  bool venter(String id) => _venterPaa.contains(id);
+
+  /// The tap on a proposal: the commerce layer changes the basket, the card
+  /// turns into the receipt with «Angre».
+  @override
+  Future<void> brukForslag(AeVerktoy v) async {
+    final id = v.id;
+    if (id == null || _venterPaa.contains(id)) return;
+    HapticFeedback.selectionClick();
+    setState(() => _venterPaa.add(id));
+    final r = await _api.applyAction(id);
+    if (!mounted) return;
+    setState(() {
+      _venterPaa.remove(id);
+      _verktoyNaa[id] = r.kort != null ? v.med(r.kort!.data) : v.med({'status': 'failed', 'error_copy': r.feil});
+    });
+    if (r.kort != null) {
+      HapticFeedback.mediumImpact();
+      await _kurvTall();
+    }
+  }
+
+  /// The basket again, and its count in the tab bar's pill.
+  Future<void> _kurvTall() async {
+    await _lastKurv();
+    if (!mounted) return;
+    prefSetInt(prefCartCount, _kurv.lines.length);
+    BergenCart.syncBadge(context, _kurv.lines.length);
+  }
+
+  @override
+  Future<void> avslaa(AeVerktoy v) async {
+    final id = v.id;
+    if (id == null) return;
+    setState(() => _verktoyNaa[id] = v.med({'status': 'declined'}));
+  }
+
+  @override
+  Future<void> angre(AeVerktoy v) async {
+    final id = v.id;
+    if (id == null || _venterPaa.contains(id)) return;
+    HapticFeedback.selectionClick();
+    setState(() => _venterPaa.add(id));
+    final r = await _api.undoAction(id);
+    if (!mounted) return;
+    setState(() {
+      _venterPaa.remove(id);
+      if (r.kort != null) _verktoyNaa[id] = v.med(r.kort!.data);
+    });
+    if (r.kort != null) {
+      await _kurvTall();
+    } else if (mounted) {
+      LfToast.show(context, r.feil ?? AeVerktoyCopy.cus_aegil_feilet);
+    }
+  }
+
+  @override
+  void sporing(int orderId) => orderId > 0 ? BergenRoutes.push(context, '/bergen/sporing/$orderId') : _tilSporing();
+
+  /// «Snakk med et menneske»: Hjelp, about the order the chat was opened from.
+  @override
+  void menneske() => HjelpScreen.apne(context, orderId: _ktx?.orderId);
+
+  @override
+  void minBio() {
+    unawaited(visMinBio(context, repo: _repo, bio: minBioFra(_minne, _settings), minne: _minne).then((n) {
+      if (n != null && mounted) unawaited(_lastMinne());
+    }));
+  }
 
   @override
   bool erLagt(int suggestionId) => _lagt.contains(suggestionId);
@@ -1064,7 +1192,15 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AeCopy.navn, style: jakarta(19, em: -.025, height: 1.05)),
+            // Customer Step 5: «Ægil er en AI» in the header, after the name.
+            Wrap(
+              spacing: 7,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(AeCopy.navn, style: jakarta(19, em: -.025, height: 1.05)),
+                const AeAiMerke(),
+              ],
+            ),
             const SizedBox(height: 4),
             Row(
               children: [
@@ -1211,7 +1347,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AeNyPrat(onTap: _nyPrat),
+          AeChatTopp(onNy: _nyPrat, onMenneske: menneske),
           for (final (i, m) in _vc.indexed) ...[
             const SizedBox(height: 14),
             if (m.meg)
@@ -1598,6 +1734,16 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         if (!mounted) return;
         await _si(t);
         await Future.delayed(const Duration(milliseconds: 1200));
+      }
+      // Customer Step 5: the tap on the last proposal, and «Angre».
+      final forslag = _vc.reversed.expand((m) => m.verktoy).where((v) => v.type == 'cart_proposal').firstOrNull;
+      if (HjemHarness.aegBruk && forslag != null && mounted) {
+        await brukForslag(forslag);
+        if (HjemHarness.aegAngre && mounted) {
+          await Future.delayed(const Duration(milliseconds: 800));
+          await angre(verktoy(forslag));
+        }
+        _rullNed();
       }
       if (HjemHarness.aegTenk && mounted) {
         setState(() {

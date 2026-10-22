@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -11,6 +12,9 @@ import 'leveringskode_card.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import 'takk_ark.dart' show CusTakkCopy;
+import '../aegil/aegil_bits.dart' show AeGevir;
+import '../hjem/hjem_harness.dart' show HjemHarness;
+import '../aegil/aegil_verktoy.dart' show AeVerktoyCopy;
 import '../kit/bergen_perf.dart';
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
@@ -949,6 +953,7 @@ class SpDetaljerArk extends StatelessWidget {
     required this.onKvittering,
     required this.onKundeservice,
     required this.onRingButikk,
+    this.onSporAegil,
   });
 
   final SpArk ark;
@@ -958,6 +963,21 @@ class SpDetaljerArk extends StatelessWidget {
   /// The screen height in design px.
   final double height;
   final VoidCallback onLukk, onDetaljer, onKvittering, onKundeservice, onRingButikk;
+
+  /// Customer Step 5: «Spør Ægil» about this order (not in the design).
+  final VoidCallback? onSporAegil;
+
+  /// Debug: `sporingRull` scrolls the sheet once its cards have landed (they
+  /// stagger in, so an initial offset would stop short).
+  static ScrollController? _harnessRull() {
+    final y = kDebugMode ? HjemHarness.sporingRull : null;
+    if (y == null) return null;
+    final c = ScrollController();
+    Future<void>.delayed(const Duration(milliseconds: 1500), () {
+      if (c.hasClients) c.jumpTo(y.clamp(0, c.position.maxScrollExtent).toDouble());
+    });
+    return c;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1077,6 +1097,7 @@ class SpDetaljerArk extends StatelessWidget {
                     ),
                     Flexible(
                       child: SingleChildScrollView(
+                        controller: _harnessRull(),
                         padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
                         child: detaljer ? _detaljer(t, o, navn, kode, butikk, adr, dato, klokke, total) : _sammendrag(t, o, adr, adrSub, klokke, total),
                       ),
@@ -1491,6 +1512,34 @@ class SpDetaljerArk extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
+        if (onSporAegil != null) ...[
+          _Stag(
+            delay: 310,
+            child: LfPress(
+              key: const Key('cus-sporing-spor-aegil'),
+              onTap: onSporAegil!,
+              dy: 2,
+              child: CssBox(
+                height: 52,
+                radius: BorderRadius.circular(999),
+                border: Border.all(color: rgba(159, 240, 212, .32)),
+                bg: [
+                  CssLinear(180, [rgba(92, 224, 184, .2), rgba(92, 224, 184, .07)]),
+                ],
+                shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .24)), CssShadow(0, 12, 18, -12, rgba(4, 18, 26, .8))],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const AeGevir(color: _kMint, w: 18, h: 11),
+                    const SizedBox(width: 8),
+                    Text(AeVerktoyCopy.cus_aegil_spor, style: inter(14, weight: FontWeight.w800, height: spLinje(14))),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
         _Stag(
           delay: 340,
           child: LfPress(

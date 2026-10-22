@@ -318,9 +318,9 @@ class FakeAegilApi implements AegilAppApi {
   final List<Map<String, Object?>> chats = [];
 
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId}) async {
     calls.add('chat:${text ?? intent}');
-    chats.add({'text': text, 'intent': intent, 'store_id': storeId, 'category': category, 'for': recipient});
+    chats.add({'text': text, 'intent': intent, 'store_id': storeId, 'category': category, 'for': recipient, if (conversationId != null) 'conversation_id': conversationId, if (orderId != null) 'order_id': orderId});
     return turn ??
         const AegilTurn(
           state: 'agForslag',
@@ -415,6 +415,47 @@ class FakeAegilApi implements AegilAppApi {
 
   @override
   Future<List<ShoppingListItem>> shoppingList() async => const [ShoppingListItem(id: 1, text: 'Melk', qty: 2, done: false, source: 'user', addedByAgent: false)];
+
+  // Customer Step 5: chat history and the cart proposals.
+  List<AegilSamtale> samtalerValue = const [];
+  Map<String, List<AegilSamtaleLinje>> samtaleValue = {};
+  AeVerktoy? actionValue;
+
+  @override
+  Future<List<AegilSamtale>> conversations() async {
+    calls.add('conversations');
+    return samtalerValue;
+  }
+
+  @override
+  Future<List<AegilSamtaleLinje>?> conversation(String id) async {
+    calls.add('conversation:$id');
+    return samtaleValue[id];
+  }
+
+  @override
+  Future<bool> closeConversation(String id) async {
+    calls.add('close:$id');
+    return true;
+  }
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> applyAction(String id) async {
+    calls.add('apply:$id');
+    return (kort: actionValue, feil: actionValue == null ? 'Forslaget gjelder ikke lenger.' : null);
+  }
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> undoAction(String id) async {
+    calls.add('undo:$id');
+    return (kort: actionValue?.med({'status': 'undone'}), feil: null);
+  }
+
+  @override
+  Future<bool> neverProduct(int storeProductId) async {
+    calls.add('never-product:$storeProductId');
+    return true;
+  }
 }
 
 class FakeAegilRepo extends AegilRepo {

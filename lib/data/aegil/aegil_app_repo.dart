@@ -14,7 +14,29 @@ import 'suggestion_models.dart';
 abstract class AegilAppApi {
   /// One chat turn. [storeId], [category] and [recipient] (sent as `for`)
   /// are the context Ægil was opened with (D-K20).
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient});
+  ///
+  /// Customer Step 5: [conversationId] continues a chat (`cv_…`); [orderId]
+  /// is the order «Spør Ægil» was opened from on its tracking view.
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId});
+
+  /// Customer Step 5: the customer's chats, newest first, and one chat's
+  /// lines — the screen resumes the last one after a relaunch.
+  Future<List<AegilSamtale>> conversations();
+  Future<List<AegilSamtaleLinje>?> conversation(String id);
+
+  /// «Ny prat»: the chat is closed; the next line starts a new one.
+  Future<bool> closeConversation(String id);
+
+  /// The customer's tap on a cart proposal (`pa_…`): the card back as a
+  /// receipt — or [feil], the server's words, when it could not be done.
+  Future<({AeVerktoy? kort, String? feil})> applyAction(String id);
+
+  /// Angre: the basket as it was before the tap.
+  Future<({AeVerktoy? kort, String? feil})> undoAction(String id);
+
+  /// «Aldri dette» on a Hjem float: stored as a product exclusion.
+  Future<bool> neverProduct(int storeProductId);
+
   Future<List<Suggestion>> suggestions({String? context});
   Future<bool> add(int suggestionId);
   Future<bool> dismiss(int suggestionId);
@@ -54,7 +76,7 @@ class AegilAppRepo implements AegilAppApi {
   }
 
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId}) async {
     try {
       final json = _ok(await _api.post('chat', body: {
         ..._auth(),
@@ -63,10 +85,74 @@ class AegilAppRepo implements AegilAppApi {
         if (storeId != null) 'store_id': storeId,
         if (category != null) 'category': category,
         if (recipient != null) 'for': recipient,
+        if (conversationId != null) 'conversation_id': conversationId,
+        if (orderId != null) 'order_id': orderId,
       }));
       return json == null ? null : AegilTurn.fromJson(json);
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<List<AegilSamtale>> conversations() async {
+    try {
+      final json = _ok(await _api.get('chat/conversations?${_query(_auth())}'));
+      return ((json?['conversations'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => AegilSamtale.fromJson(e.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  @override
+  Future<List<AegilSamtaleLinje>?> conversation(String id) async {
+    try {
+      final json = _ok(await _api.get('chat/conversations/$id?${_query(_auth())}'));
+      if (json == null) return null;
+      return ((json['messages'] as List?) ?? const [])
+          .whereType<Map>()
+          .map((e) => AegilSamtaleLinje.fromJson(e.cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> closeConversation(String id) async {
+    try {
+      return _ok(await _api.post('chat/conversations/$id/close', body: _auth())) != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<({AeVerktoy? kort, String? feil})> _action(String id, String what) async {
+    try {
+      final r = await _api.post('chat/actions/$id/$what', body: _auth());
+      final json = _ok(r);
+      if (json != null && json['card'] is Map) return (kort: AeVerktoy.fromJson((json['card'] as Map).cast<String, dynamic>()), feil: null);
+      return (kort: null, feil: r is Map ? r['message'] as String? : null);
+    } catch (_) {
+      return (kort: null, feil: null);
+    }
+  }
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> applyAction(String id) => _action(id, 'apply');
+
+  @override
+  Future<({AeVerktoy? kort, String? feil})> undoAction(String id) => _action(id, 'undo');
+
+  @override
+  Future<bool> neverProduct(int storeProductId) async {
+    try {
+      return _ok(await _api.post('me/never', body: {..._auth(), 'store_product_id': storeProductId})) != null;
+    } catch (_) {
+      return false;
     }
   }
 

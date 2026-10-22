@@ -34,6 +34,7 @@ import 'sporing_scene_kart.dart';
 import 'sporing_scene_kjokken.dart';
 import 'sporing_skifte.dart';
 import 'takk_ark.dart';
+import '../aegil/aegil_entry.dart' show kAegilRoute;
 import '../../common/homeMainV1/home_main_v1.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
@@ -306,6 +307,12 @@ class _SporingScreenState extends State<SporingScreen> {
   /// «Kvittering»: the order's real receipt PDF (backend plan Step 4), handed
   /// to the share sheet so the customer can mail, save or print it. Nothing is
   /// claimed as sent that was not.
+  void _sporAegil() {
+    setState(() => _ark = null);
+    final kode = _t?.code ?? _ordre?.kode;
+    BergenRoutes.push<void>(context, kAegilRoute, arguments: {'order_id': '$_id', if (kode != null && kode.isNotEmpty) 'order': kode});
+  }
+
   Future<void> _kvittering() async {
     final pdf = await _api.receiptPdf(_id);
     if (!mounted) return;
@@ -881,6 +888,8 @@ class _SporingScreenState extends State<SporingScreen> {
                 setState(() => _ark = null);
                 _openHelp();
               },
+              // Customer Step 5: «Spør Ægil» about this order.
+              onSporAegil: _id > 0 ? _sporAegil : null,
             ),
           ),
         // The stage change.

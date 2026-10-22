@@ -56,6 +56,7 @@ import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
 import '../hjem/hjem_varsler.dart' show varslerLoader;
 import 'meg_paaminnelser.dart';
+import 'tillit_ark.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -97,6 +98,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   /// Debug harness: the points card opened (`megArk: poeng`).
   bool _poengApen = false;
   List<AddressListItem> _adresser = const [];
+
+  /// Customer Step 5: this month's Tillitsregnskap (`agent/me/trust-ledger`).
+  TrustLedger? _tillit;
   List<Occasion> _occasions = const [];
   String? _addressLine;
   String? _paymentLine;
@@ -221,6 +225,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       case 10: _minne = (v as List<MemoryEntry>?) ?? const [];
       case 11: _regler = v as PointsRules?;
       case 12: _adresser = (v as List<AddressListItem>?) ?? const [];
+      case 13: _tillit = v as TrustLedger?;
     }
   }
 
@@ -241,6 +246,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(_aegilRepo.fetchMemory),
       a3Try(A3Services.rules),
       a3Try(A3Services.addressList),
+      // Customer Step 5: Tillitsregnskap.
+      a3Try(_aegil.trustLedger),
     ];
     // Each section fills in as its answer arrives: the slowest call no longer
     // holds the whole sheet behind one spinner (only until the first answer).
@@ -294,6 +301,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'anledninger': _anledninger();
         case 'ukeshandel': _ukeshandel();
         case 'paaminnelser': visPaaminnelser(context, repo: _aegilRepo);
+        // Customer Step 5: Tillitsregnskap.
+        case 'tillit': TillitArk.vis(context, _tillit ?? const TrustLedger(month: ''));
         case 'bio': _openBio();
         case 'aegilInnst': _aegilInnstillinger();
         case 'gbDelt': _feirDelt();
@@ -779,6 +788,14 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     navn: A4MegCopy.a4_meg_ordrer,
                                     under: _ordrer.isEmpty ? A4MegCopy.a4_meg_ordrer_tom : A4MegCopy.a4_meg_ordrer_sub(_ordrer.length, OhCopy.dag(DateTime.tryParse('${_ordrer.first['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now())),
                                     onTap: () => _go('/bergen/meg/bestillinger'),
+                                  ),
+                                  // Customer Step 5: «Ægil sparte deg N kr» → Tillitsregnskap (kMegRader[0]).
+                                  _Rad(
+                                    key: const Key('cus-meg-rad-tillit'),
+                                    tile: const _GlassTile(rot: -4, d: 'M4 19V10M10 19V5M16 19v-7M21 19H3'),
+                                    navn: A4MegCopy.a4_meg_sparte(_tillit?.savedKr ?? 0),
+                                    under: A4MegCopy.a4_meg_tillit_sub(_tillit?.againstInterestShown ?? 0),
+                                    onTap: () => TillitArk.vis(context, _tillit ?? const TrustLedger(month: '')),
                                   ),
                                   _Rad(
                                     key: const Key('meg-rad-aegil'),

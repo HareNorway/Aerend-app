@@ -173,6 +173,9 @@ abstract final class HjemHarness {
   static String? sporingKode;
   static bool sporingOffline = false;
 
+  /// Customer Step 5: the order sheet scrolled this far (design px), for its lower rows.
+  static double? sporingRull;
+
   /// Taps the Live pill once Hjem has settled (`liveApne`: Sporing grows out
   /// of it and its pieces fly in).
   static bool liveApne = false;
@@ -272,6 +275,10 @@ abstract final class HjemHarness {
   static List<String>? aegSi;
   static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
 
+  /// Customer Step 5: after `aegSi`, tap the last proposal (`aegBruk`), then
+  /// «Angre» (`aegAngre`) — the receipt and the undone card.
+  static bool aegBruk = false, aegAngre = false;
+
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
   static double? aegScroll;
@@ -362,6 +369,8 @@ abstract final class HjemHarness {
         ohNoeGaltSteg = 1;
         aegSi = null;
         aegTenk = aegFokus = aegOb = aegButArk = false;
+        aegBruk = aegAngre = false;
+        sporingRull = null;
         aegScroll = null;
         guideIdx = null;
         brett = false;
@@ -490,6 +499,9 @@ abstract final class HjemHarness {
       aegTekst = m['aegTekst'] as String?;
       aegSi = (m['aegSi'] as List?)?.cast<String>();
       aegTenk = m['aegTenk'] == true;
+      aegBruk = m['aegBruk'] == true;
+      sporingRull = (m['sporingRull'] as num?)?.toDouble();
+      aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;
       aegOb = m['aegOb'] == true;
       aegButArk = m['aegButArk'] == true;

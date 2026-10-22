@@ -1411,6 +1411,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   void _onFloatNever(BergenFloatItem f) {
     setState(() => _hiddenFloats.add(f.id));
     openSimpleSnackbar(BergenCopy.aegilRemembers);
+    // Customer Step 5: stored as a product exclusion (Det Ægil vet om deg can remove it).
+    if (f.productId > 0) unawaited(A3Services.aegil().neverProduct(f.productId).catchError((_) => false));
   }
 
   Future<void> _openAddressSheet({bool ny = false}) async {
