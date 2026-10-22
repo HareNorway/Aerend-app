@@ -362,7 +362,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
             // Customer Step 14: `aerendapp://bergen/ai/foresporsel/<id>` (the
             // hand-off link) on a cold start — the host is the first segment.
             if ((uri?.scheme == appUrlScheme || uri?.scheme == 'aerend') && uri?.host == 'bergen') {
-              final r = BergenRoutes.generate(RouteSettings(name: '/bergen${uri!.path}', arguments: settings.arguments));
+              // Customer Step 15: the query stays (`/hurtig?mod=forrige`, the shortcuts).
+              final r = BergenRoutes.generate(RouteSettings(name: '/bergen${uri!.path}${uri.hasQuery ? '?${uri.query}' : ''}', arguments: settings.arguments));
               if (r != null) return r;
             }
 

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'ai/ai_koblede_screen.dart';
 import 'ai/ai_kurv_screen.dart';
+import 'ai/siste_bestilling_screen.dart';
 import 'butikk/automat_screen.dart';
 import 'butikk/butikk_screen.dart';
 import 'butikk/kategori_screen.dart';
@@ -44,6 +45,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   // Customer Step 14: an assistant's request (the hand-off link's target) and «Koblede assistenter».
   '/bergen/ai/foresporsel': (_) => const AiKurvScreen(),
   '/bergen/ai/koblede': (_) => const AiKobledeScreen(),
+  // Customer Step 15: the TrackOrder intent / shortcut → the order to follow.
+  '/bergen/siste-bestilling': (_) => const SisteBestillingScreen(),
   '/bergen/sporing': (_) => const SporingScreen(),
   '/bergen/sporing/hjelp': (_) => const HjelpScreen(),
   // The separate «Levert» page is removed; the name stays reserved and opens

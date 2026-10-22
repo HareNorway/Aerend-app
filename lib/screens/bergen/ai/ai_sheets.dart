@@ -145,7 +145,7 @@ abstract final class AiArk {
           ])),
           AiSeksjon(AiCopy.cus_ai_stottede),
           Row(children: [
-            for (final n in AiNavn.alle) ...[
+            for (final n in _store.navn) ...[
               Expanded(child: AePress(
                 onTap: () => setState(() { valgt = n; stegN = 0; }),
                 dy: 1.5,
@@ -172,7 +172,7 @@ abstract final class AiArk {
                   ]),
                 ),
               )),
-              if (n != AiNavn.alle.last) const SizedBox(width: 6),
+              if (n != _store.navn.last) const SizedBox(width: 6),
             ],
           ]),
           if (link != null) ...[
@@ -284,7 +284,7 @@ abstract final class AiArk {
       title: AiCopy.cus_ai_velg_tittel,
       subtitle: AiCopy.cus_ai_velg_linje,
       body: (ctx, _) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        for (final (i, n) in AiNavn.alle.indexed) ...[
+        for (final (i, n) in _store.navn.indexed) ...[
           () {
             final l = _store.aktivFor(n);
             final ak = l != null;

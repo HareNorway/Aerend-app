@@ -12,6 +12,7 @@ import 'package:aerend_customer/screens/bergen/ai/ai_sheets.dart';
 import 'package:aerend_customer/screens/bergen/ai/ai_store.dart';
 import 'package:aerend_customer/screens/bergen/ai/ai_tilbud.dart';
 import 'package:aerend_customer/screens/bergen/hjem/hjem_harness.dart';
+import 'package:aerend_customer/services/customer/client_flags.dart';
 import 'package:aerend_customer/utils/utils.dart';
 
 import '../a3/a3_fakes.dart';
@@ -80,7 +81,11 @@ Future<void> open(WidgetTester t) async {
 }
 
 void main() {
-  setUpAll(() async => a3Bootstrap(prefs: {prefUserId: 656, prefAccessToken: 'tok', prefUserName: 'Kari Nordmann', prefUserVerified: 1}));
+  setUpAll(() async {
+    await a3Bootstrap(prefs: {prefUserId: 656, prefAccessToken: 'tok', prefUserName: 'Kari Nordmann', prefUserVerified: 1});
+    // Customer Step 15: Siri's chip and row need `cus.ai.intents`.
+    ClientFlags.flags = {ClientFlags.aiLinking: true, ClientFlags.aiIntents: true};
+  });
   late _Cus cus;
   setUp(() {
     cus = _Cus();

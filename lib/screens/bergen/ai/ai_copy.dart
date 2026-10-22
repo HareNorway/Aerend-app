@@ -88,6 +88,7 @@ abstract final class AiCopy {
   static String get cus_ai_velg_siri_under => _t('Si «Bestill det vanlige med Ærend»', 'Say «Order the usual with Ærend»');
   static String get cus_ai_bestill => _t('Bestill', 'Order');
   static String get cus_ai_legg_til => _t('Legg til', 'Add');
+  static String get cus_ai_ingen_bestilling => _t('Ingen bestilling å følge ennå.', 'No order to follow yet.');
   static String get cus_ai_koble => _t('Koble til', 'Link');
   static List<String> get cus_ai_velg_steg => [_t('Du spør assistenten', 'You ask the assistant'), _t('Ærend lager tilbudet', 'Ærend makes the offer'), _t('Du bekrefter her', 'You confirm here')];
   static String cus_ai_bestill_med(String navn) => _t('Bestill med $navn', 'Order with $navn');

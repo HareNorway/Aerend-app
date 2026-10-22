@@ -88,6 +88,9 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   final List<_Melding> _hb = [];
   HbUtkast? _utkast;
   HbUtkast? _forrigeU;
+
+  /// Customer Step 15: the route's `mod` / `si` applied once.
+  bool _rute = false;
   String _fase = 'utkast';
   int _teller = 0;
   bool _tenker = false;
@@ -145,6 +148,28 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     if (kDebugMode && HjemHarness.hurtig && !_harness) {
       _harness = true;
       _applyHarness();
+    }
+    // Customer Step 15: a deep link's module or line (`/bergen/hurtig?mod=forrige`
+    // from the OrderAgain intent / shortcut, `?si=Bestill …` for a favourite).
+    // The draft card is the confirmation step — nothing is ordered here.
+    if (!_rute) {
+      _rute = true;
+      // After the frame: the route is read through the context (`_load` may run from initState).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final a = BergenRoutes.argsOf(context);
+        final mod = a['mod'] ?? '';
+        final si = a['si'] ?? '';
+        if (!const ['oftest', 'forrige', 'pref'].contains(mod) && si.isEmpty) return;
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (!mounted) return;
+          if (mod.isNotEmpty) {
+            _send(_modTekst(mod), modul: mod);
+          } else {
+            _send(si);
+          }
+        });
+      });
     }
   }
 

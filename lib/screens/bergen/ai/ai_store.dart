@@ -33,6 +33,13 @@ class AiStore extends ChangeNotifier {
 
   bool get harness => kDebugMode && HjemHarness.aiStart != null;
 
+  /// Customer Step 15: Siri's chip and card need `cus.ai.intents` (the App
+  /// Intents / shortcuts ship with it); the harness shows them regardless.
+  bool get siri => harness || ClientFlags.on(ClientFlags.aiIntents);
+
+  /// The assistants to show.
+  List<String> get navn => siri ? AiNavn.alle : AiNavn.alle.where((n) => n != 'Siri').toList();
+
   List<CusAiLink> get alle => links ?? const [];
   List<CusAiLink> get aktive => alle.where((l) => l.active).toList();
   CusAiLink? linkFor(String navn) => alle.where((l) => l.name == navn || l.vendor == AiNavn.vendor(navn)).firstOrNull;
