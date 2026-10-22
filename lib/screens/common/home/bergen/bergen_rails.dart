@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../../../ui/kit/ae_haptic.dart';
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
@@ -17,8 +18,9 @@ import '../../../bergen/kit/bergen_perf.dart';
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
 // Three cards on a turntable: the focused card faces you, the other two sit
 // behind at ±134px, rotated 30° and scaled .92, blurred and dimmed. The rail
-// advances by itself (stores every 5.4s, products every 6.2s); tapping a
-// side card or a dot brings it to the front, tapping the front card opens it.
+// advances by itself (stores every 5.4s, products every 6.2s); a swipe turns
+// it with the finger (an `aeTick` per card), tapping a side card or a
+// dot brings it to the front, tapping the front card opens it.
 
 class BergenStoreCard {
   const BergenStoreCard({
@@ -110,15 +112,25 @@ class BergenRail extends StatefulWidget {
   State<BergenRail> createState() => _RailState();
 }
 
-class _RailState extends State<BergenRail> {
-  int _focus = 0;
+class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
+  /// The ring's position in steps (card `i` faces you at `i`); a drag moves
+  /// it with the finger, a turn or a release animates it to a whole step.
+  late final AnimationController _ring = AnimationController.unbounded(vsync: this)..addListener(_onRing);
 
-  /// How many steps the ring has turned in total; drives the angle tween.
-  double _turns = 0;
+  /// The whole step the ring is heading for.
+  double _target = 0;
+  int _focus = 0;
   Timer? _auto;
+
+  /// A finger is turning the ring (drag or its settle): each new front card
+  /// ticks a selection haptic. The timer and taps turn it silently.
+  bool _byHand = false;
 
   /// The `still` tier: no auto-turn, and a tap turns the ring at once.
   bool? _stille;
+
+  /// Finger travel for one step: a side card's distance from the centre.
+  static const double _stepPx = 134;
 
   @override
   void didChangeDependencies() {
@@ -133,10 +145,22 @@ class _RailState extends State<BergenRail> {
   void didUpdateWidget(BergenRail old) {
     super.didUpdateWidget(old);
     if (old.count != widget.count) {
+      _ring.stop();
+      _byHand = false;
+      _target = 0;
+      _ring.value = 0;
       _focus = 0;
-      _turns = 0;
       _start();
     }
+  }
+
+  void _onRing() {
+    final n = widget.count;
+    if (n == 0) return;
+    final f = _ring.value.round() % n;
+    if (f == _focus) return;
+    setState(() => _focus = f);
+    if (_byHand) aeTick();
   }
 
   void _start() {
@@ -148,11 +172,19 @@ class _RailState extends State<BergenRail> {
     });
   }
 
+  void _turnTo(double target, Duration duration, Curve curve) {
+    _target = target;
+    if (_stille == true) {
+      _ring.value = target;
+      _byHand = false;
+      return;
+    }
+    _ring.animateTo(target, duration: duration, curve: curve).whenCompleteOrCancel(() => _byHand = false);
+  }
+
   void _advance(int steps) {
-    setState(() {
-      _focus = (_focus + steps) % widget.count;
-      _turns += steps;
-    });
+    _byHand = false;
+    _turnTo(_target + steps, const Duration(milliseconds: 1250), const Cubic(.62, .02, .34, 1));
   }
 
   void _pick(int i) {
@@ -161,9 +193,31 @@ class _RailState extends State<BergenRail> {
     _start();
   }
 
+  void _dragStart(DragStartDetails _) {
+    _auto?.cancel();
+    _ring.stop();
+    _byHand = true;
+  }
+
+  void _dragUpdate(DragUpdateDetails d) {
+    // Swiping left brings the right-hand card forward.
+    _ring.value -= d.delta.dx / (_stepPx * context.bs);
+  }
+
+  void _dragEnd(DragEndDetails d) {
+    final v = -(d.primaryVelocity ?? 0); // px/s, positive towards the next card
+    var t = _ring.value.roundToDouble();
+    // A quick flick turns one card even short of halfway.
+    if (t == _target && v.abs() > 300) t += v.sign;
+    _byHand = true;
+    _turnTo(t, const Duration(milliseconds: 420), Curves.easeOutCubic);
+    _start();
+  }
+
   @override
   void dispose() {
     _auto?.cancel();
+    _ring.dispose();
     super.dispose();
   }
 
@@ -171,19 +225,32 @@ class _RailState extends State<BergenRail> {
   Widget build(BuildContext context) {
     final s = context.bs;
     final n = widget.count;
-    final order = List<int>.generate(n, (i) => i)
-      ..sort((a, b) {
-        final pa = (a - _focus + n) % n;
-        final pb = (b - _focus + n) % n;
-        return (pa == 0 ? 1 : 0).compareTo(pb == 0 ? 1 : 0);
-      });
+    // Built once per rebuild; the ring only moves them.
+    final cards = [for (var i = 0; i < n; i++) _cardBody(context, i)];
     return Column(
       children: [
-        SizedBox(
-          height: widget.height * s,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [for (final i in order) _card(context, i, n)],
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onHorizontalDragStart: n < 2 ? null : _dragStart,
+          onHorizontalDragUpdate: n < 2 ? null : _dragUpdate,
+          onHorizontalDragEnd: n < 2 ? null : _dragEnd,
+          onHorizontalDragCancel: n < 2 ? null : () => _dragEnd(DragEndDetails(primaryVelocity: 0)),
+          child: SizedBox(
+            height: widget.height * s,
+            child: AnimatedBuilder(
+              animation: _ring,
+              builder: (context, _) {
+                final step = 2 * math.pi / math.max(n, 3);
+                final angle = [for (var i = 0; i < n; i++) (i - _ring.value) * step];
+                // Back to front: the card nearest you is painted last.
+                final order = List<int>.generate(n, (i) => i)
+                  ..sort((a, b) => math.cos(angle[a]).compareTo(math.cos(angle[b])));
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [for (final i in order) _card(context, i, angle[i], cards[i])],
+                );
+              },
+            ),
           ),
         ),
         Row(
@@ -220,75 +287,72 @@ class _RailState extends State<BergenRail> {
     );
   }
 
-  Widget _card(BuildContext context, int i, int n) {
+  Widget _card(BuildContext context, int i, double a, Widget child) {
     final s = context.bs;
     final w = MediaQuery.sizeOf(context).width;
-    final step = 2 * math.pi / math.max(n, 3);
-    final front = i == _focus;
+    // Design slots at ±120°: x ±134, z −170, rotateY ∓30°, scale .92,
+    // opacity .48, blur 1.6.
+    final sn = math.sin(a);
+    final back = (1 - math.cos(a)) / 1.5; // 0 front … 1 at ±120°
+    final tx = 154.7 * sn;
+    final tz = -170 * back;
+    final ry = -34.6 * sn;
+    final sc = 1 - .08 * back;
+    final op = 1 - .52 * back;
+    final m = Matrix4.identity()
+      ..setEntry(3, 2, -1 / 1100)
+      ..translateByDouble(tx * s, 0, tz * s, 1)
+      ..rotateY(ry * math.pi / 180)
+      ..scaleByDouble(sc, sc, 1, 1);
+    Widget out = Transform(
+      alignment: Alignment.center,
+      transform: m,
+      child: Opacity(opacity: op.clamp(0.0, 1.0), child: child),
+    );
+    // The design blurs the back cards 1.6px (CSS `blur`, σ = px), growing as
+    // a card swings back. Only in the `full` tier: two small layers, and the
+    // cards are still in `lite` / `still` anyway.
+    if (back > .02 && BergenPerf.of(context) == BergenTier.full) {
+      final sigma = 1.6 * back.clamp(0.0, 1.0) * s;
+      out = ImageFiltered(
+        imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma, tileMode: TileMode.decal),
+        child: out,
+      );
+    }
     return Positioned(
+      key: ValueKey(i),
       left: w / 2 - 126 * s,
       top: widget.cardTop * s,
       width: 252 * s,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(end: (i - _turns) * step),
-        duration: _stille == true ? Duration.zero : const Duration(milliseconds: 1250),
-        curve: const Cubic(.62, .02, .34, 1),
-        builder: (context, a, child) {
-          // Design slots at ±120°: x ±134, z −170, rotateY ∓30°, scale .92,
-          // opacity .48, blur 1.6.
-          final sn = math.sin(a);
-          final back = (1 - math.cos(a)) / 1.5; // 0 front … 1 at ±120°
-          final tx = 154.7 * sn;
-          final tz = -170 * back;
-          final ry = -34.6 * sn;
-          final sc = 1 - .08 * back;
-          final op = 1 - .52 * back;
-          final m = Matrix4.identity()
-            ..setEntry(3, 2, -1 / 1100)
-            ..translateByDouble(tx * s, 0, tz * s, 1)
-            ..rotateY(ry * math.pi / 180)
-            ..scaleByDouble(sc, sc, 1, 1);
-          Widget out = Transform(
-            alignment: Alignment.center,
-            transform: m,
-            child: Opacity(opacity: op.clamp(0.0, 1.0), child: child),
-          );
-          // The design blurs the back cards 1.6px (CSS `blur`, σ = px),
-          // growing as a card swings back. Only in the `full` tier: two small
-          // layers, and the cards are still in `lite` / `still` anyway.
-          if (back > .02 && BergenPerf.of(context) == BergenTier.full) {
-            final sigma = 1.6 * back.clamp(0.0, 1.0) * s;
-            out = ImageFiltered(
-              imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma, tileMode: TileMode.decal),
-              child: out,
-            );
-          }
-          return out;
-        },
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => front ? widget.onOpen(i) : _pick(i),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: kBergenCardGradient,
-              borderRadius: BorderRadius.circular(26 * s),
-              border: Border.all(color: const Color(0xF2FFFFFF)),
-              boxShadow: [
-                const BoxShadow(
-                  color: Color.fromRGBO(4, 18, 26, .22),
-                  offset: Offset(0, 3),
-                ),
-                BoxShadow(
-                  color: Color.fromRGBO(90, 60, 30, front ? .65 : .5),
-                  offset: Offset(0, (front ? 30 : 16) * s),
-                  blurRadius: onbBlur((front ? 44 : 26) * s),
-                  spreadRadius: (front ? -20 : -18) * s,
-                ),
-              ],
+      child: out,
+    );
+  }
+
+  Widget _cardBody(BuildContext context, int i) {
+    final s = context.bs;
+    final front = i == _focus;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => front ? widget.onOpen(i) : _pick(i),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: kBergenCardGradient,
+          borderRadius: BorderRadius.circular(26 * s),
+          border: Border.all(color: const Color(0xF2FFFFFF)),
+          boxShadow: [
+            const BoxShadow(
+              color: Color.fromRGBO(4, 18, 26, .22),
+              offset: Offset(0, 3),
             ),
-            child: widget.builder(context, i, front),
-          ),
+            BoxShadow(
+              color: Color.fromRGBO(90, 60, 30, front ? .65 : .5),
+              offset: Offset(0, (front ? 30 : 16) * s),
+              blurRadius: onbBlur((front ? 44 : 26) * s),
+              spreadRadius: (front ? -20 : -18) * s,
+            ),
+          ],
         ),
+        child: widget.builder(context, i, front),
       ),
     );
   }
