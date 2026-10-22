@@ -49,6 +49,9 @@ abstract class AegilAppApi {
   /// Gap Step 3: everything Ægil did in the last [days] (`GET agent/me/actions`).
   Future<List<AwayItem>> actions({int days = 30});
   Future<TrustLedger?> trustLedger();
+
+  /// Customer Step 12: this month's summary for Meg's row (null hides it).
+  Future<MonthlySummary?> monthlySummary() async => null;
   Future<AegilTurn?> photoOrder(List<String> items);
   Future<String?> doorNote(String note);
 
@@ -304,6 +307,17 @@ class AegilAppRepo implements AegilAppApi {
       final json = _ok(await _api.get('me/trust-ledger?${_query(_auth())}'));
       final ledger = json?['ledger'];
       return ledger is Map ? TrustLedger.fromJson(ledger.cast<String, dynamic>()) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<MonthlySummary?> monthlySummary() async {
+    try {
+      final json = _ok(await _api.get('me/monthly-summary?${_query(_auth())}'));
+      final s = json?['summary'];
+      return s is Map ? MonthlySummary.fromJson(s.cast<String, dynamic>()) : null;
     } catch (_) {
       return null;
     }

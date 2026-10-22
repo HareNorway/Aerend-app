@@ -283,6 +283,36 @@ class AgentLine {
   );
 }
 
+/// Customer Step 12: the monthly summary (`GET agent/me/monthly-summary`,
+/// Points spec §8 «monthly summary (1st)»): points earned, spent and expired
+/// this month, Ægil's savings line (the old trust-ledger card) and how many
+/// times he acted.
+class MonthlySummary {
+  const MonthlySummary({required this.month, this.earned = 0, this.spent = 0, this.expired = 0, this.savedKr = 0, this.actions = 0});
+
+  final String month;
+  final int earned;
+  final int spent;
+  final int expired;
+  final int savedKr;
+  final int actions;
+
+  /// Nothing happened this month: Meg hides the row (D-K6 «hide what has no data»).
+  bool get tom => earned == 0 && spent == 0 && expired == 0 && savedKr == 0;
+
+  factory MonthlySummary.fromJson(Map<String, dynamic> j) {
+    final trust = j['trust'];
+    return MonthlySummary(
+      month: (j['month'] as String?) ?? '',
+      earned: (j['earned'] as num?)?.toInt() ?? 0,
+      spent: (j['spent'] as num?)?.toInt() ?? 0,
+      expired: (j['expired'] as num?)?.toInt() ?? 0,
+      savedKr: trust is Map ? ((trust['saved_kr'] as num?)?.toInt() ?? 0) : 0,
+      actions: (j['actions'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
 /// Tillitsregnskap (`GET agent/me/trust-ledger`).
 class TrustLedger {
   const TrustLedger({

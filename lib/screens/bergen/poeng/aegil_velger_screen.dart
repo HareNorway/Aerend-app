@@ -13,7 +13,9 @@ import '../aegil/aegil_bits.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import '../meg/a3_services.dart';
+import '../meg/meg_copy_a4.dart';
 import 'poeng_copy.dart';
+import 'poeng_feil.dart';
 import 'prize_art.dart';
 
 /// Ægil velger (`erVelger`, L7709–7768 in `Ærend Kunde Launch.dc.html`,
@@ -96,8 +98,9 @@ class _AegilVelgerScreenState extends State<AegilVelgerScreen> {
     if (r.claim != null) {
       showBergenToast(context, '${_pick?.prizeName} er din', icon: Icons.check_rounded);
       Navigator.of(context).maybePop();
-    } else if (r.error != null) {
-      showBergenToast(context, r.error!);
+    } else {
+      // Customer Step 12: the named 422 (PRIZE_TIER_LOCKED, PRIZE_SOLD_OUT, …) in words.
+      showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
     }
   }
 

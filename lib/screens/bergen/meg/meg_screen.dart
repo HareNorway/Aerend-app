@@ -10,6 +10,7 @@ import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
 import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
 import '../utforsk/utforsk_screen.dart' show UtforskScreen;
+import '../poeng/poeng_feil.dart';
 import '../poeng/premie_ark.dart';
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
@@ -56,6 +57,9 @@ import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
 import '../hjem/hjem_varsler.dart' show varslerLoader;
 import 'meg_paaminnelser.dart';
+import 'mork_rad.dart';
+import 'oppdrag_ark.dart';
+import 'oppsummering_ark.dart';
 import 'tillit_ark.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
@@ -108,6 +112,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   List<MemoryEntry> _minne = const [];
   // Customer Step 6: the server's bio (null while `cus.bio` is off).
   CusBio? _cusBio;
+  // Customer Step 12: Ukens oppdrag (`points/mission`) and the month's summary.
+  Mission? _oppdrag;
+  MonthlySummary? _oppsummering;
   int _bioPuls = 0;
   bool _loading = true;
 
@@ -229,6 +236,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       case 12: _adresser = (v as List<AddressListItem>?) ?? const [];
       case 13: _tillit = v as TrustLedger?;
       case 14: _cusBio = v as CusBio?;
+      case 15: _oppdrag = v as Mission?;
+      case 16: _oppsummering = v as MonthlySummary?;
     }
   }
 
@@ -253,6 +262,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(_aegil.trustLedger),
       // Customer Step 6: Min bio on the server.
       a3Try(CusApi().bio),
+      // Customer Step 12: Ukens oppdrag and the month's summary.
+      a3Try(_api.mission),
+      a3Try(_aegil.monthlySummary),
     ];
     // Each section fills in as its answer arrives: the slowest call no longer
     // holds the whole sheet behind one spinner (only until the first answer).
@@ -275,6 +287,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         MegApne.poeng = false;
         _poengApen = true;
       }
+      // Customer Step 12 harness: the mission row in a given state.
+      if (kDebugMode && HjemHarness.megOppdrag != null) _oppdrag = harnessOppdrag(HjemHarness.megOppdrag!);
       _loading = false;
     });
     if (_brukerCache) {
@@ -319,9 +333,70 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         case 'krev': _hentPremie();
         case 'nytt': _tilFeed();
         case 'poeng': setState(() => _poengApen = true);
+        // Customer Step 12: the mission sheet and the month's summary.
+        case 'oppdrag': setState(() => _poengApen = true); _visOppdrag();
+        case 'oppsummering': setState(() => _poengApen = true); _visOppsummering();
         case 'bioLagre': _openBio(autoLagre: const Duration(milliseconds: 1500));
       }
     }
+  }
+
+  // --- Customer Step 12: Ukens oppdrag (accept / decline from the row), the month's summary ---
+
+  /// `megOppdrag`: `ny` (Godta / Ikke dette), `tatt` (0 av 1), `ferdig`
+  /// (+50 poeng) or `nei` (no row) — the design's `oppdrag` states.
+  static Mission? harnessOppdrag(String s) => switch (s) {
+    'ny' => const Mission(id: 0, title: 'Prøv Nordnes Fisk', body: 'Én bestilling teller.', points: 50),
+    'tatt' => const Mission(id: 0, title: 'Prøv Nordnes Fisk', body: 'Én bestilling teller.', points: 50, accepted: true),
+    'ferdig' => const Mission(id: 0, title: 'Prøv Nordnes Fisk', body: 'Én bestilling teller.', points: 50, state: 'completed', progress: 1, accepted: true),
+    _ => null,
+  };
+
+  bool get _harOppdrag => _oppdrag != null && _oppdrag!.state != 'declined' && _oppdrag!.state != 'expired';
+
+  Future<void> _visOppdrag() async {
+    final m = _oppdrag;
+    if (m == null) return;
+    final svar = await OppdragArk.vis(context, m);
+    if (!mounted) return;
+    switch (svar) {
+      case 'godta': await _godtaOppdrag();
+      case 'nei': await _neiOppdrag();
+    }
+  }
+
+  /// `oppdragGodta`: «Oppdraget er ditt · …».
+  Future<void> _godtaOppdrag() async {
+    if (_oppdrag == null) return;
+    final r = await _api.acceptMission();
+    if (!mounted) return;
+    final m = r.mission;
+    if (m == null) {
+      showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.cus_meg_oppdrag_feil), icon: Icons.error_outline_rounded);
+      return;
+    }
+    setState(() => _oppdrag = m);
+    showBergenToast(context, A4MegCopy.a4_meg_oppdrag_ditt(m.title), icon: Icons.flag_rounded);
+  }
+
+  /// `oppdragNei`: «Greit · nytt oppdrag neste uke» (or the replacement's
+  /// title); a second decline the same week is `MISSION_DECLINE_LIMIT`.
+  Future<void> _neiOppdrag() async {
+    if (_oppdrag == null) return;
+    final r = await _api.declineMission();
+    if (!mounted) return;
+    if (r.error != null) {
+      showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.cus_meg_oppdrag_feil), icon: Icons.error_outline_rounded);
+      return;
+    }
+    setState(() => _oppdrag = r.replacement);
+    showBergenToast(context, r.replacement == null ? A4MegCopy.a4_meg_oppdrag_nei : A4MegCopy.cus_meg_oppdrag_nytt_toast(r.replacement!.title));
+  }
+
+  void _visOppsummering() {
+    final s = _oppsummering;
+    if (s == null) return;
+    OppsummeringArk.vis(context, s: s, balance: _balance, league: _league, mission: _oppdrag);
   }
 
   MinBio get _bio => minBioVelg(_cusBio, _minne, _settings);
@@ -784,6 +859,23 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                             onKnapp: () => _go('/bergen/liga'),
                                             onTap: () => _go('/bergen/liga'),
                                           ),
+                                          // Customer Step 12: Ukens oppdrag — «Godta» on a new mission («Ikke dette»
+                                          // in its sheet), «0 av 1» once taken, «+50 poeng» when done; no row without one.
+                                          if (_harOppdrag)
+                                            _Rad(
+                                              key: const Key('cus-meg-rad-oppdrag'),
+                                              sterk: true,
+                                              tile: const _GlassTile(rot: -4, d: MorkIk.flagg),
+                                              navn: A4MegCopy.cus_meg_oppdrag_rad,
+                                              under: A4MegCopy.cus_meg_oppdrag_under(_oppdrag!.title, _oppdrag!.points),
+                                              merke: OppdragArk.ny(_oppdrag!)
+                                                  ? null
+                                                  : (_oppdrag!.state == 'completed' ? A4MegCopy.a4_meg_pluss(_oppdrag!.points) : A4MegCopy.a4_meg_oppdrag_status(_oppdrag!.progress, _oppdrag!.target)),
+                                              knapp: OppdragArk.ny(_oppdrag!) ? A4MegCopy.a4_meg_godta : null,
+                                              knappKey: const Key('cus-meg-oppdrag-godta-rad'),
+                                              onKnapp: _godtaOppdrag,
+                                              onTap: _visOppdrag,
+                                            ),
                                           _Rad(
                                             key: const Key('meg-rad-gullbillett'),
                                             sterk: true,
@@ -794,6 +886,16 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                             onKnapp: _openBillett,
                                             onTap: _openBillett,
                                           ),
+                                          // Customer Step 12: the month's summary (Points spec §8) — hidden without data.
+                                          if (_oppsummering != null && !_oppsummering!.tom)
+                                            _Rad(
+                                              key: const Key('cus-meg-rad-oppsummering'),
+                                              sterk: true,
+                                              tile: const _GlassTile(rot: 3, d: MorkIk.hist),
+                                              navn: OppsummeringArk.tittel(_oppsummering!),
+                                              under: A4MegCopy.cus_meg_oppsummering_under(_oppsummering!.earned, _oppsummering!.spent, _oppsummering!.savedKr),
+                                              onTap: _visOppsummering,
+                                            ),
                                         ],
                                       ),
                                     ],
@@ -1131,6 +1233,7 @@ class _Rad extends StatelessWidget {
     this.merkeDempet = false,
     this.merkePille = false,
     this.knapp,
+    this.knappKey,
     this.del = false,
     this.onKnapp,
     this.sterk = false,
@@ -1146,6 +1249,7 @@ class _Rad extends StatelessWidget {
   /// The mint count pill (`feedUlest`, L7620): «Nytt fra butikkene».
   final bool merkePille;
   final String? knapp;
+  final Key? knappKey;
   final bool del;
   final VoidCallback? onKnapp;
   final bool sterk;
@@ -1193,7 +1297,7 @@ class _Rad extends StatelessWidget {
             if (knapp != null) ...[
               const SizedBox(width: 11),
               AePress(
-                key: const Key('meg-bli-med'),
+                key: knappKey ?? const Key('meg-bli-med'),
                 onTap: onKnapp,
                 dy: 1.5,
                 child: CssBox(

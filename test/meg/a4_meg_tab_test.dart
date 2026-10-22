@@ -145,8 +145,9 @@ void main() {
     expect(find.text('Bli med'), findsOneWidget);
     expect(find.byKey(const Key('meg-rad-gullbillett')), findsOneWidget);
     expect(find.textContaining('KARI200'), findsWidgets);
-    // The Launch design has no Ukens oppdrag row on Meg.
-    expect(find.text('UKENS OPPDRAG'), findsNothing);
+    // Customer Step 12: the Ukens oppdrag row (the Bergen design's `oppdragNy` state) with Godta / Ikke dette.
+    expect(find.byKey(const Key('cus-meg-rad-oppdrag')), findsOneWidget);
+    expect(find.text('Prøv Nordnes Fisk · +50 poeng'), findsOneWidget);
   });
 
   testWidgets('settings rows: occasions, Ægil level, code toggle, address, payment, counts, name, language', (tester) async {

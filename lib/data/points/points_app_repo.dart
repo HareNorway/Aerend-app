@@ -25,8 +25,15 @@ abstract class PointsAppApi {
   Future<EarnResult?> earn({required int catchNumber, int? suggestionId});
 
   // agil-4: the Meg tab.
-  Future<Mission?> acceptMission();
-  Future<League?> setLeagueName({String? name, String? visibility});
+  /// Customer Step 12: the refused accept (MISSION_NONE_ACTIVE) comes back as [error].
+  Future<({Mission? mission, String? error})> acceptMission();
+
+  /// Customer Step 12: cancel a claim inside its window (`cancellable`); the
+  /// backend's code (CLAIM_CANCEL_WINDOW_CLOSED, …) comes back as [error].
+  Future<({PrizeClaim? claim, String? error})> cancelClaim(int claimId);
+  /// Customer Step 12: a refused name (LEAGUE_NAME_INVALID, LEAGUE_MONTH_CLOSED,
+  /// LEAGUE_NOT_OPTED_IN) comes back as [error] instead of a silent null.
+  Future<({League? league, String? error})> setLeagueName({String? name, String? visibility});
   Future<CustomerPrefs?> prefs();
   Future<CustomerPrefs?> updatePrefs({bool? alwaysCode, bool? doorProfileConsent, bool markNotificationsSeen = false});
 }
@@ -132,29 +139,36 @@ class PointsAppRepo implements PointsAppApi {
   }
 
   @override
-  Future<Mission?> acceptMission() async {
+  Future<({Mission? mission, String? error})> acceptMission() async {
     try {
-      final json = _ok(await _api.post('mission/accept', body: _auth()));
+      final response = (await _api.postAllowClientError('mission/accept', body: _auth())).data;
+      final json = _ok(response);
       final m = json?['mission'];
-      return m is Map ? Mission.fromJson(m.cast<String, dynamic>()) : null;
+      if (m is Map) return (mission: Mission.fromJson(m.cast<String, dynamic>()), error: null);
+      return (mission: null, error: response is Map ? response['message'] as String? : null);
     } catch (_) {
-      return null;
+      return (mission: null, error: null);
     }
   }
 
   @override
-  Future<League?> setLeagueName({String? name, String? visibility}) async {
+  Future<({League? league, String? error})> setLeagueName({String? name, String? visibility}) async {
     try {
-      final json = _ok(await _api.post('league/name', body: {
+      final response = (await _api.postAllowClientError('league/name', body: {
         ..._auth(),
         if (name != null) 'display_name': name,
         if (visibility != null) 'visibility': visibility,
-      }));
-      return json == null ? null : League.fromJson(json);
+      })).data;
+      final json = _ok(response);
+      if (json == null) return (league: null, error: response is Map ? response['message'] as String? : null);
+      return (league: League.fromJson(json), error: null);
     } catch (_) {
-      return null;
+      return (league: null, error: null);
     }
   }
+
+  @override
+  Future<({PrizeClaim? claim, String? error})> cancelClaim(int claimId) => _points.cancelClaim(claimId);
 
   @override
   Future<CustomerPrefs?> prefs() async {

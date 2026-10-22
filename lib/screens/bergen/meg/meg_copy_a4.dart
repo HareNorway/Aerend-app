@@ -53,6 +53,45 @@ abstract final class A4MegCopy {
   static String a4_meg_oppdrag_ditt(String title) => 'Oppdraget er ditt · $title';
   static const String a4_meg_oppdrag_nei = 'Greit · nytt oppdrag neste uke';
   static String a4_meg_pluss(int n) => '+$n poeng';
+  // Customer Step 12: the Ukens oppdrag row, its sheet and the month's summary.
+  static const String cus_meg_oppdrag_rad = 'Ukens oppdrag';
+  static String cus_meg_oppdrag_under(String title, int points) => '$title · +${_nf(points)} poeng';
+  static const String cus_meg_oppdrag_ferdig = 'Fullført';
+  static const String cus_meg_oppdrag_tatt = 'Du er i gang';
+  static const String cus_meg_oppdrag_nytt = 'Nytt';
+  static const String cus_meg_oppdrag_ark_linje = 'Ægil velger ett oppdrag i uka ut fra det du liker. Ett nei i uka, så kommer et nytt neste mandag.';
+  static const String cus_meg_oppdrag_slik = 'Slik teller det';
+  static String cus_meg_oppdrag_poeng(int points) => '+${_nf(points)} poeng når ordren er levert';
+  static const String cus_meg_oppdrag_status = 'Status';
+  static const String cus_meg_oppdrag_feil = 'Fikk ikke svar fra Ægil akkurat nå.';
+  static String cus_meg_oppdrag_nytt_toast(String title) => 'Greit · nytt oppdrag: $title';
+  static String cus_meg_oppsummering_rad(String maaned) => '$maaned i poeng';
+  static String cus_meg_oppsummering_under(int earned, int spent, int savedKr) => '+${_nf(earned)} opptjent · ${_nf(spent)} brukt · Ægil sparte deg ${_nf(savedKr)} kr';
+  static const String cus_meg_oppsummering_linje = 'Det som skjedde med poengene dine denne måneden. Nivået påvirkes aldri av at du bruker poeng.';
+  static const String cus_meg_opps_opptjent = 'Opptjent';
+  static const String cus_meg_opps_brukt = 'Brukt';
+  static const String cus_meg_opps_utlopt = 'Utløpt';
+  static const String cus_meg_opps_nivaa = 'Nivå';
+  static const String cus_meg_opps_liga = 'Bergen-ligaen';
+  static const String cus_meg_opps_liga_ute = 'Ikke med denne måneden';
+  static const String cus_meg_opps_oppdrag = 'Beste oppdrag';
+  static const String cus_meg_opps_sparte = 'Ægil sparte deg';
+  static String cus_meg_opps_kr(int kr) => '${_nf(kr)} kr';
+  static String cus_meg_opps_poeng(int n) => '${_nf(n)} poeng';
+  static String cus_meg_opps_handlinger(int n) => n == 1 ? '1 handling fra Ægil' : '$n handlinger fra Ægil';
+  static const List<String> cus_meg_maaneder = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'];
+  /// «2026-10» → «Oktober».
+  static String cus_meg_maaned(String ym) {
+    final m = int.tryParse(ym.length >= 7 ? ym.substring(5, 7) : '') ?? 0;
+    return m >= 1 && m <= 12 ? cus_meg_maaneder[m - 1] : ym;
+  }
+  // Customer Step 12: the claim's «Angre» (Points spec §4.3, 24 h before fulfilment).
+  static const String cus_hylla_angre = 'Angre';
+  static String cus_hylla_angre_til(String kl) => 'Poengene kommer tilbake · til kl $kl';
+  static const String cus_hylla_angre_cta = 'Angre premien';
+  static String cus_hylla_angret(int poeng) => 'Angret · ${_nf(poeng)} poeng er tilbake';
+  static const String cus_hylla_angre_feil = 'Fikk ikke angret akkurat nå.';
+  static const String cus_hylla_maal_feil = 'Fikk ikke satt målet akkurat nå.';
 
   // Innstillinger-rader
   static const String a4_meg_anledninger = 'Anledninger';

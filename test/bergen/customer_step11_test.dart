@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aerend_customer/data/feed/feed_media.dart';
 import 'package:aerend_customer/data/feed/feed_post.dart';
 import 'package:aerend_customer/data/feed/feed_tab_item.dart';
 import 'package:aerend_customer/data/ops/tracking_models.dart';

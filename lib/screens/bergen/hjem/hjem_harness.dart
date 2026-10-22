@@ -319,6 +319,16 @@ abstract final class HjemHarness {
   static Map<String, dynamic>? ohSakJson;
   static int? hjelpSamtale;
 
+  /// Customer Step 12: Meg's Ukens oppdrag row in a given state (`ny`,
+  /// `tatt`, `ferdig`, `nei`) without the server; `megArk: oppdrag` /
+  /// `oppsummering` open the two sheets.
+  static String? megOppdrag;
+
+  /// Customer Step 12, on Premiehylla: the claim's sheet open (`hyllaClaim`,
+  /// the claim id) and, with `hyllaAngre`, its «Angre premien» pressed.
+  static int? hyllaClaim;
+  static bool hyllaAngre = false;
+
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
   static double? aegScroll;
@@ -417,6 +427,9 @@ abstract final class HjemHarness {
         ohSak = sporingSak = false;
         ohSakSteg = null;
         ohSakJson = null;
+        megOppdrag = null;
+        hyllaClaim = null;
+        hyllaAngre = false;
         hjelpSamtale = null;
         adrDorAuto = adrDorSamtykke = false;
         aegTenk = aegFokus = aegOb = aegButArk = false;
@@ -569,6 +582,9 @@ abstract final class HjemHarness {
       ohSakSteg = m['ohSakSteg'] as String?;
       ohSakJson = m['ohSakJson'] is Map ? Map<String, dynamic>.from(m['ohSakJson'] as Map) : null;
       hjelpSamtale = (m['hjelpSamtale'] as num?)?.toInt();
+      megOppdrag = m['megOppdrag'] as String?;
+      hyllaClaim = (m['hyllaClaim'] as num?)?.toInt();
+      hyllaAngre = m['hyllaAngre'] == true;
       sporingRull = (m['sporingRull'] as num?)?.toDouble();
       aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;

@@ -156,6 +156,25 @@ class ApiBaseHelper {
     return responseJson;
   }
 
+  /// [delete] that returns 4xx bodies instead of throwing (Customer Step 12:
+  /// `DELETE points/claims/{id}` answers 422 with the reason code).
+  Future<ApiClientResult> deleteAllowClientError(String url) async {
+    _syncBaseUrl();
+    print('[API] DELETE(ace) ${_dio.options.baseUrl}$url');
+    try {
+      final response = await _dio.delete(
+        url,
+        options: Options(validateStatus: (s) => s != null && s >= 200 && s < 500),
+      );
+      return ApiClientResult(
+        response.statusCode ?? 0,
+        _normalizeResponseData(response.data),
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<dynamic> delete(String url) async {
     _syncBaseUrl();
     print('[API] DELETE ${_dio.options.baseUrl}$url');

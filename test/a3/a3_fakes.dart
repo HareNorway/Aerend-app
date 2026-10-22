@@ -124,7 +124,7 @@ class FakePointsApi implements PointsAppApi {
       );
 
   @override
-  Future<List<PrizeClaim>> claims() async => const [
+  Future<List<PrizeClaim>> claims() async => claimsValue ?? const [
     PrizeClaim(
       id: 1,
       prizeId: 3,
@@ -133,6 +133,9 @@ class FakePointsApi implements PointsAppApi {
       pointsSpent: 0,
     ),
   ];
+
+  /// Customer Step 12: the claims a test wants on «Mine premier».
+  List<PrizeClaim>? claimsValue;
 
   @override
   Future<({PrizeClaim? claim, String? error})> claim(
@@ -167,19 +170,17 @@ class FakePointsApi implements PointsAppApi {
     );
   }
 
+  /// Customer Step 12: no mission at all (the fake's default is one).
+  bool missionNone = false;
+
   @override
   Future<Mission?> mission() async =>
-      missionValue ??
-      const Mission(
-        id: 1,
-        title: 'Handle hos to bergenske butikker',
-        body: 'Denne uka',
-        points: 50,
-      );
+      missionNone ? null : (missionValue ?? const Mission(id: 1, title: 'Prøv Nordnes Fisk', body: 'Én bestilling', points: 50));
 
   @override
   Future<({Mission? replacement, String? error})> declineMission() async {
     calls.add('decline');
+    if (feilKode != null) return (replacement: null, error: feilKode);
     return (replacement: null, error: null);
   }
 
@@ -257,17 +258,29 @@ class FakePointsApi implements PointsAppApi {
   // agil-4
   CustomerPrefs prefsValue = const CustomerPrefs(alwaysCode: false, notificationsUnseen: 2, favourites: 2);
 
+  /// Customer Step 12: a code here makes accept / decline / cancel / name refuse with it.
+  String? feilKode;
+
   @override
-  Future<Mission?> acceptMission() async {
+  Future<({Mission? mission, String? error})> acceptMission() async {
     calls.add('accept');
+    if (feilKode != null) return (mission: null, error: feilKode);
     final m = await mission();
-    return m == null ? null : Mission(id: m.id, title: m.title, body: m.body, points: m.points, state: m.state, progress: m.progress, target: m.target, wordingSource: m.wordingSource, accepted: true);
+    return (error: null, mission: m == null ? null : Mission(id: m.id, title: m.title, body: m.body, points: m.points, state: m.state, progress: m.progress, target: m.target, wordingSource: m.wordingSource, accepted: true));
   }
 
   @override
-  Future<League?> setLeagueName({String? name, String? visibility}) async {
+  Future<({League? league, String? error})> setLeagueName({String? name, String? visibility}) async {
     calls.add('leaguename:$name:$visibility');
-    return league();
+    if (feilKode != null) return (league: null, error: feilKode);
+    return (league: await league(), error: null);
+  }
+
+  @override
+  Future<({PrizeClaim? claim, String? error})> cancelClaim(int claimId) async {
+    calls.add('cancel:$claimId');
+    if (feilKode != null) return (claim: null, error: feilKode);
+    return (claim: PrizeClaim(id: claimId, prizeId: 3, prizeName: 'Premie', state: 'cancelled', pointsSpent: 300), error: null);
   }
 
   @override
@@ -303,6 +316,12 @@ const kSuggestion2 = Suggestion(
 );
 
 class FakeAegilApi implements AegilAppApi {
+  /// Customer Step 12: Meg's month summary row (null hides it).
+  MonthlySummary? summaryValue;
+
+  @override
+  Future<MonthlySummary?> monthlySummary() async => summaryValue;
+
   FakeAegilApi({
     this.turn,
     this.awayValue = const [],

@@ -63,14 +63,16 @@ class PointsRepo {
     String? donationTarget,
   }) async {
     try {
-      final response = await _api.post(
+      // Customer Step 12: a 422 (PRIZE_TIER_LOCKED, PRIZE_SOLD_OUT, …) is an
+      // answer, not a transport failure — its code reaches the sheet.
+      final response = (await _api.postAllowClientError(
         '${ApiConst.endPointPointsPrizes}/$prizeId/claim',
         body: {
           ..._auth(),
           if (identityName != null) 'identity_name': identityName,
           if (donationTarget != null) 'donation_target': donationTarget,
         },
-      );
+      )).data;
       final json = _ok(response);
       if (json == null) return (claim: null, error: _message(response));
 
@@ -130,10 +132,10 @@ class PointsRepo {
   /// Declining rerolls once a week; a second decline comes back as MISSION_DECLINE_LIMIT.
   Future<({Mission? replacement, String? error})> declineMission() async {
     try {
-      final response = await _api.post(
+      final response = (await _api.postAllowClientError(
         ApiConst.endPointPointsMissionDecline,
         body: _auth(),
-      );
+      )).data;
       final json = _ok(response);
       if (json == null) return (replacement: null, error: _message(response));
 
@@ -156,6 +158,26 @@ class PointsRepo {
     final json = response.cast<String, dynamic>();
 
     return json['status'] == 1 ? json : null;
+  }
+
+  /// Customer Step 12: `DELETE points/claims/{id}` inside the cancel window
+  /// (Points spec §4.3) — the points come back; CLAIM_CANCEL_WINDOW_CLOSED /
+  /// CLAIM_ALREADY_CANCELLED / CLAIM_NOT_FOUND otherwise.
+  Future<({PrizeClaim? claim, String? error})> cancelClaim(int claimId) async {
+    try {
+      final response = (await _api.deleteAllowClientError(
+        '${ApiConst.endPointPointsClaims}/$claimId?${_query(_auth())}',
+      )).data;
+      final json = _ok(response);
+      if (json == null) return (claim: null, error: _message(response));
+
+      return (
+        claim: PrizeClaim.fromJson((json['claim'] as Map).cast<String, dynamic>()),
+        error: null,
+      );
+    } catch (e) {
+      return (claim: null, error: e.toString());
+    }
   }
 
   String? _message(dynamic response) =>
