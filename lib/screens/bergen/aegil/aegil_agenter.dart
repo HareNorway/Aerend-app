@@ -151,13 +151,16 @@ const Color _kPapir = Colors.white;
 const Color _kMuted = Color(0xFF8C847C);
 const Color _kGronn = Color(0xFF2E6B47);
 
-Widget _papir({required Widget child, Key? key}) => CssBox(
+Widget _papir({required Widget child, Key? key, EdgeInsets padding = const EdgeInsets.fromLTRB(14, 12, 14, 12)}) => ClipRRect(
   key: key,
-  radius: BorderRadius.circular(18),
-  bg: const [CssSolid(_kPapir)],
-  shadows: kAePapirSh,
-  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-  child: child,
+  borderRadius: BorderRadius.circular(18),
+  child: CssBox(
+    radius: BorderRadius.circular(18),
+    bg: const [CssSolid(_kPapir)],
+    shadows: kAePapirSh,
+    padding: padding,
+    child: child,
+  ),
 );
 
 Widget _eyebrow(String t) => Padding(
@@ -275,12 +278,13 @@ class _AeGaveBriefState extends State<AeGaveBrief> {
   Widget _gruppe(String tittel, List<(String, String)> valg, String? naa, void Function(String?) sett, {String? Function(String)? annet}) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      _eyebrow(tittel),
+      Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: _eyebrow(tittel)),
+      // The chip rows run under the card's side padding and cut at its rounded edge (the design's C1.2 cuts «Venn» there too).
       SizedBox(
         height: 40,
         child: ListView(
           scrollDirection: Axis.horizontal,
-          clipBehavior: Clip.none,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           children: [
             for (final (i, (k, l)) in valg.indexed) ...[
               if (i > 0) const SizedBox(width: 6),
@@ -303,10 +307,11 @@ class _AeGaveBriefState extends State<AeGaveBrief> {
     final klar = _f.valgt >= 2 && !_sendt;
     return _papir(
       key: const Key('ae-gave-brief'),
+      padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AeAgentCopy.cus_gave_fortell, style: inter(13.5, weight: FontWeight.w800, color: kAeInk)),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 14), child: Text(AeAgentCopy.cus_gave_fortell, style: inter(13.5, weight: FontWeight.w800, color: kAeInk))),
           const SizedBox(height: 10),
           _gruppe(AeAgentCopy.cus_gave_til_hvem, AeAgentCopy.cus_gave_hvem, _f.to, (v) => setState(() => _f.to = v)),
           _gruppe(AeAgentCopy.cus_gave_anledning, AeAgentCopy.cus_gave_anledninger, _f.occasion, (v) => setState(() => _f.occasion = v)),
@@ -318,27 +323,33 @@ class _AeGaveBriefState extends State<AeGaveBrief> {
               setState(() => _f.deliverBy = v);
             }
           }),
-          Container(
-            height: 44,
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color(0xFFF5F3EF), border: Border.all(color: const Color.fromRGBO(35, 32, 29, .08))),
-            alignment: Alignment.centerLeft,
-            child: TextField(
-              key: const Key('gave-liker'),
-              controller: _f.liker,
-              style: inter(13, weight: FontWeight.w700, color: kAeInk),
-              decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: AeAgentCopy.cus_gave_liker, hintStyle: inter(13, weight: FontWeight.w700, color: _kMuted)),
+            child: Container(
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color(0xFFF5F3EF), border: Border.all(color: const Color.fromRGBO(35, 32, 29, .08))),
+              alignment: Alignment.centerLeft,
+              child: TextField(
+                key: const Key('gave-liker'),
+                controller: _f.liker,
+                style: inter(13, weight: FontWeight.w700, color: kAeInk),
+                decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: AeAgentCopy.cus_gave_liker, hintStyle: inter(13, weight: FontWeight.w700, color: _kMuted)),
+              ),
             ),
           ),
           const SizedBox(height: 12),
-          AeNokkel(
-            key: const Key('gave-finn'),
-            label: AeAgentCopy.cus_gave_finn,
-            av: !klar,
-            onTap: () {
-              setState(() => _sendt = true);
-              widget.h.giftBrief(_f.toMap(), (widget.v.data['text'] as String?) ?? '');
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: AeNokkel(
+              key: const Key('gave-finn'),
+              label: AeAgentCopy.cus_gave_finn,
+              av: !klar,
+              onTap: () {
+                setState(() => _sendt = true);
+                widget.h.giftBrief(_f.toMap(), (widget.v.data['text'] as String?) ?? '');
+              },
+            ),
           ),
         ],
       ),
