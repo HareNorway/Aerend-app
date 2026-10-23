@@ -3,4 +3,14 @@
 
     <string name="google_api_key" translatable="false">AIzaSyB_DlJOOaScC7zoeAx8vT5vXm8TrNqQ63c</string>
 
+    <!-- Customer Step 15: the static shortcuts (res/xml/shortcuts.xml). -->
+    <string name="snarvei_igjen">Bestill det vanlige</string>
+    <string name="snarvei_igjen_lang">Bestill det vanlige med Ærend</string>
+    <string name="snarvei_sporing">Følg bestillingen</string>
+    <string name="snarvei_sporing_lang">Følg bestillingen i Ærend</string>
+    <string name="snarvei_butikker">Butikker nær meg</string>
+    <string name="snarvei_butikker_lang">Finn butikker nær meg i Ærend</string>
+    <string name="snarvei_kurv">Åpne handlekurven</string>
+    <string name="snarvei_kurv_lang">Åpne handlekurven i Ærend</string>
+
 </resources>

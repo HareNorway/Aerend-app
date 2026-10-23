@@ -53,6 +53,45 @@ abstract final class A4MegCopy {
   static String a4_meg_oppdrag_ditt(String title) => 'Oppdraget er ditt · $title';
   static const String a4_meg_oppdrag_nei = 'Greit · nytt oppdrag neste uke';
   static String a4_meg_pluss(int n) => '+$n poeng';
+  // Customer Step 12: the Ukens oppdrag row, its sheet and the month's summary.
+  static const String cus_meg_oppdrag_rad = 'Ukens oppdrag';
+  static String cus_meg_oppdrag_under(String title, int points) => '$title · +${_nf(points)} poeng';
+  static const String cus_meg_oppdrag_ferdig = 'Fullført';
+  static const String cus_meg_oppdrag_tatt = 'Du er i gang';
+  static const String cus_meg_oppdrag_nytt = 'Nytt';
+  static const String cus_meg_oppdrag_ark_linje = 'Ægil velger ett oppdrag i uka ut fra det du liker. Ett nei i uka, så kommer et nytt neste mandag.';
+  static const String cus_meg_oppdrag_slik = 'Slik teller det';
+  static String cus_meg_oppdrag_poeng(int points) => '+${_nf(points)} poeng når ordren er levert';
+  static const String cus_meg_oppdrag_status = 'Status';
+  static const String cus_meg_oppdrag_feil = 'Fikk ikke svar fra Ægil akkurat nå.';
+  static String cus_meg_oppdrag_nytt_toast(String title) => 'Greit · nytt oppdrag: $title';
+  static String cus_meg_oppsummering_rad(String maaned) => '$maaned i poeng';
+  static String cus_meg_oppsummering_under(int earned, int spent, int savedKr) => '+${_nf(earned)} opptjent · ${_nf(spent)} brukt · Ægil sparte deg ${_nf(savedKr)} kr';
+  static const String cus_meg_oppsummering_linje = 'Det som skjedde med poengene dine denne måneden. Nivået påvirkes aldri av at du bruker poeng.';
+  static const String cus_meg_opps_opptjent = 'Opptjent';
+  static const String cus_meg_opps_brukt = 'Brukt';
+  static const String cus_meg_opps_utlopt = 'Utløpt';
+  static const String cus_meg_opps_nivaa = 'Nivå';
+  static const String cus_meg_opps_liga = 'Bergen-ligaen';
+  static const String cus_meg_opps_liga_ute = 'Ikke med denne måneden';
+  static const String cus_meg_opps_oppdrag = 'Beste oppdrag';
+  static const String cus_meg_opps_sparte = 'Ægil sparte deg';
+  static String cus_meg_opps_kr(int kr) => '${_nf(kr)} kr';
+  static String cus_meg_opps_poeng(int n) => '${_nf(n)} poeng';
+  static String cus_meg_opps_handlinger(int n) => n == 1 ? '1 handling fra Ægil' : '$n handlinger fra Ægil';
+  static const List<String> cus_meg_maaneder = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'];
+  /// «2026-10» → «Oktober».
+  static String cus_meg_maaned(String ym) {
+    final m = int.tryParse(ym.length >= 7 ? ym.substring(5, 7) : '') ?? 0;
+    return m >= 1 && m <= 12 ? cus_meg_maaneder[m - 1] : ym;
+  }
+  // Customer Step 12: the claim's «Angre» (Points spec §4.3, 24 h before fulfilment).
+  static const String cus_hylla_angre = 'Angre';
+  static String cus_hylla_angre_til(String kl) => 'Poengene kommer tilbake · til kl $kl';
+  static const String cus_hylla_angre_cta = 'Angre premien';
+  static String cus_hylla_angret(int poeng) => 'Angret · ${_nf(poeng)} poeng er tilbake';
+  static const String cus_hylla_angre_feil = 'Fikk ikke angret akkurat nå.';
+  static const String cus_hylla_maal_feil = 'Fikk ikke satt målet akkurat nå.';
 
   // Innstillinger-rader
   static const String a4_meg_anledninger = 'Anledninger';
@@ -87,6 +126,7 @@ abstract final class A4MegCopy {
     ['Ligaen', 'Si fra ved månedsslutt'],
   ];
   static const String a4_meg_av = 'Av';
+  static String a4_meg_varsel_lagret(String navn, bool paa) => 'Varsler om ${navn.toLowerCase()}: ${paa ? 'på' : 'av'}';
   static const String a4_meg_adresser = 'Adresser';
   static const String a4_meg_adresser_bare = 'bare for deg';
   static String a4_meg_steder(int n) => n == 1 ? '1 sted' : '$n steder';
@@ -232,6 +272,39 @@ abstract final class A4MegCopy {
   static const String a4_meg_handleliste = 'Handleliste';
   static const String a4_meg_handleliste_tom = 'Lista er tom. Si «legg til melk» til Ægil, så havner det her.';
   static const String a4_meg_se_ukens_kurv = 'Se ukens kurv';
+  // Customer Step 8 (design `kArk ukeshandel`, steg liste / kurv).
+  static String a4_meg_liste_linje(int n) => '$n ting · synkes med Ægil · trykk for å hake av';
+  static String a4_meg_middag(String dag) => 'Middag $dag';
+  static const String a4_meg_middag_velg = 'Velg';
+  static const String a4_meg_middag_hopp = 'Hopp over';
+  static const String a4_meg_middag_ingen = 'Ingen middag planlagt';
+  static const String a4_meg_middag_tittel = 'Middag';
+  static const String a4_meg_middag_linje = 'Retter du har fått levert før. Ægil legger den i ukens kurv.';
+  static const String a4_meg_middag_tom = 'Ingen leverte middager ennå · bestill en, så dukker den opp her.';
+  static const String a4_meg_middag_fjern = 'Ingen middag';
+  static String a4_meg_ukens_kurv(String kr) => 'Ukens kurv · $kr';
+  static const String a4_meg_uke_linje4 = 'Fast bestilling · bygget mandag 10:00 · du kan endre til 18:00 · tak 900 kr';
+  static const String a4_meg_uke_linje3 = 'Ægil har lagt den i kurven · se over før du betaler';
+  static const String a4_meg_uke_linje2 = 'Forslag · ingenting er lagt i kurven før du trykker';
+  static const String a4_meg_uke_tom = 'Ingen ukeskurv ennå · Ægil bygger den mandag 10:00 fra lista og middagene.';
+  static const String a4_meg_uke_bygg = 'Bygg den nå';
+  static const String a4_meg_uke_bygget = 'Ukens kurv er bygget';
+  static const String a4_meg_uke_bestilt = 'Ukens kurv er bestilt';
+  static const String a4_meg_uke_tak = 'Over ukens tak · ta ut noe før kassen';
+  static String a4_meg_bytte(String ny, String gammel) => 'Bytte: $ny i stedet for $gammel';
+  static const String a4_meg_bytte_svar = 'Si ja eller nei til byttet først.';
+  static const String a4_meg_bytte_ja = 'Ja';
+  static const String a4_meg_bytte_nei = 'Nei';
+  static String a4_meg_sparing(String kr) => 'Sparing $kr mot referansepris';
+  static const String a4_meg_til_kassen = 'Til kassen';
+  static const String a4_meg_legg_i_kurven = 'Legg i kurven';
+  static const String a4_meg_ikke_denne_uken = 'Ikke denne uken';
+  static const String a4_meg_uke_i_kurven = 'Ukens kurv er i kurven';
+  static const String a4_meg_uke_hoppet = 'Hoppet over denne uken';
+  static const String a4_meg_uke_fjernet = 'Tatt ut av ukens kurv';
+  static String a4_meg_uke_butikk(int n, int av, String butikk) => 'Butikk $n av $av · $butikk';
+  static const String a4_meg_uke_betal = 'Betal med Vipps';
+  static const String a4_meg_uke_vipps_feil = 'Vipps åpnet ikke · ordren venter på betaling under Bestillinger';
   static const String a4_meg_nivaa4_title = 'Fast bestilling · nivå 4';
   static const String a4_meg_nivaa4_linje = 'Ægil bygger kurven mandag 10:00, du kan endre til 18:00, tak 900 kr. Krever en Vipps-avtale for gjentakende trekk.';
   static const List<List<String>> a4_meg_nivaa4_rader = [

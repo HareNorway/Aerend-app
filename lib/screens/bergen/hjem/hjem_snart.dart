@@ -7,7 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
 import 'hjem_hjul.dart';
 import '../kit/bergen_perf.dart';
 
@@ -75,8 +75,7 @@ Future<void> visKommerSnart(BuildContext context, {required int k, required Hjem
   final reduce = MediaQuery.disableAnimationsOf(context);
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
-      // A sheet over the shell: the floating Snurre launcher stays out.
-      settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}kommer-snart'),
+      settings: const RouteSettings(name: '${appRoutePrefix}kommer-snart'),
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,

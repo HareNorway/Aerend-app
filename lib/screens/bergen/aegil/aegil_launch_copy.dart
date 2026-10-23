@@ -322,8 +322,6 @@ abstract final class AeCopy {
   static String get promptChat => _t('Skriv til Ægil …', 'Write to Ægil …');
   static String get sendTil => _t('Send til Ægil', 'Send to Ægil');
   static String get snakk => _t('Snakk med Ægil', 'Talk to Ægil');
-  static String get stemme =>
-      _t('Stemme: hold inne for å snakke — teksten vises før Ægil gjør noe', 'Voice: hold to talk — the text shows before Ægil does anything');
 
   // ── Ægil-guide (L9495, `gTips`) ───────────────────────────────────────────
   static String get gNeste => _t('Neste', 'Next');

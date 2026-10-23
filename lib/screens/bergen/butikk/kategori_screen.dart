@@ -15,7 +15,6 @@ import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_home.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../deliveryService/home/ds_home_store_list_pojo.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
 import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hjul.dart' show hjemHjulIkon;
@@ -487,12 +486,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
   }
 
   void _askAegil(String intent) {
-    BergenRoutes.pushOr(
-      context,
-      kAegilRoute,
-      arguments: {'intent': intent, 'category': _name ?? _slug},
-      orElse: () => openScreen(context, const SnurreChatScreen()),
-    );
+    BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': intent, 'category': _name ?? _slug});
   }
 
   void _toggleSok() {

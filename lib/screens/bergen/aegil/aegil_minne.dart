@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../data/aegil/aegil_app_models.dart' show LearnedPatternItem;
 import '../../../data/aegil/aegil_models.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
@@ -11,6 +12,7 @@ import '../meg/min_bio_bits.dart';
 import '../meg/min_bio_kort.dart' show bioNivC;
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
+import 'cus_level3.dart';
 
 // ── Det Ægil vet om deg · Min Bio (`agMinne`, new Bergen L4821–4905) ─────────
 
@@ -87,6 +89,8 @@ class AeMinneView extends StatefulWidget {
     required this.onNivaa,
     required this.onGlem,
     required this.onBio,
+    this.monstre = const [],
+    this.onMonster,
   });
 
   final AeMinneData data;
@@ -99,6 +103,10 @@ class AeMinneView extends StatefulWidget {
   final VoidCallback onNivaa;
   final VoidCallback onGlem;
   final VoidCallback onBio;
+
+  /// Customer Step 7: what Ægil noticed in the orders (`agent/me/patterns`), «Stemmer» / ✕.
+  final List<LearnedPatternItem> monstre;
+  final void Function(LearnedPatternItem p, bool stemmer)? onMonster;
 
   static bool bekreftet(MemoryEntry m) => m.source == 'stated' || m.source == 'onboarding' || m.source == 'settings';
 
@@ -295,7 +303,8 @@ class _AeMinneViewState extends State<AeMinneView> {
     final b = widget.bio;
     final E = bioEff(b);
     final score = bioScore(b, E);
-    final tom = d.tom && b.tekst.trim().isEmpty && !b.ingen;
+    // Customer Step 7: a pattern Ægil noticed is something known too.
+    final tom = d.tom && b.tekst.trim().isEmpty && !b.ingen && widget.monstre.isEmpty;
     final barn = <Widget>[
       if (tom)
         LfRise(
@@ -500,6 +509,56 @@ class _AeMinneViewState extends State<AeMinneView> {
             children: [
               _kortHode('M9 18h6 M10 21h4 M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z', _Tx.lagtMerke, _Tx.lagtMerkeSub),
               const SizedBox(height: 6),
+              // Customer Step 7: the learned patterns (design `mnLaert`), proposed first.
+              for (final p in widget.monstre)
+                Container(
+                  key: Key('a1_aegil_monster_${p.id}'),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08)))),
+                  child: Row(
+                    children: [
+                      () {
+                        final c = p.confirmed ? const Color(0xFF5CE0B8) : const Color(0xFFF6D27A);
+                        return Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 4)]));
+                      }(),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(p.text, style: inter(12.5, weight: FontWeight.w700, height: 1.35)),
+                            const SizedBox(height: 2),
+                            Text(
+                              p.confirmed ? CusLevel3Copy.cus_monster_bekreftet : CusLevel3Copy.cus_monster_forslag(p.support),
+                              style: inter(10.5, weight: FontWeight.w700, color: p.confirmed ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .58)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      if (!p.confirmed) ...[
+                        LfPress(
+                          key: Key('a1_aegil_monster_stemmer_${p.id}'),
+                          onTap: () => widget.onMonster?.call(p, true),
+                          scale: .94,
+                          child: Container(
+                            height: 28,
+                            padding: const EdgeInsets.symmetric(horizontal: 11),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color.fromRGBO(92, 224, 184, .16),
+                              border: Border.all(color: const Color.fromRGBO(127, 240, 203, .55)),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(CusLevel3Copy.cus_monster_stemmer, style: inter(11, weight: FontWeight.w800, color: _mintLys)),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      _kryss(() => widget.onMonster?.call(p, false), size: 28, ik: 10, w: 3.2, a: .14),
+                    ],
+                  ),
+                ),
               for (final m in d.laert)
                 Container(
                   key: Key('a1_aegil_minne_${m.id}'),

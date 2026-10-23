@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aerend_customer/screens/common/login/login.dart';
 import 'package:aerend_customer/screens/common/homeMainV1/home_main_v1.dart';
 import 'package:aerend_customer/screens/common/signUp/sign_up.dart';
-import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 import 'package:aerend_customer/utils/utils.dart';
 
@@ -130,7 +130,7 @@ Future<bool> showGuestLoginSheet(
                       context,
                       MaterialPageRoute(
                         settings: RouteSettings(
-                          name: snurreLauncherRouteNameFor(
+                          name: routeNameFor(
                             const Login(returnOnSuccess: true),
                           ),
                         ),

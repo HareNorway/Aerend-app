@@ -7,6 +7,7 @@ import 'package:flutter_pretty_dio_logger/flutter_pretty_dio_logger.dart';
 import '../utils/utils.dart';
 import 'api_constant.dart';
 import 'api_exceptions.dart';
+import '../services/customer/beacons.dart';
 
 export 'api_constant.dart';
 export 'api_exceptions.dart';
@@ -35,6 +36,8 @@ class ApiBaseHelper {
     }, onResponse: (response, handler) {
       return handler.next(response);
     }, onError: (DioException e, handler) {
+      // Customer Step 16: a beacon per failed call (endpoint template + status; timeouts on the agent / commerce endpoints).
+      CusBeacons.onDio(e);
       return handler.next(e);
     }));
     if (!kReleaseMode) {
@@ -154,6 +157,25 @@ class ApiBaseHelper {
       throw _handleError(e);
     }
     return responseJson;
+  }
+
+  /// [delete] that returns 4xx bodies instead of throwing (Customer Step 12:
+  /// `DELETE points/claims/{id}` answers 422 with the reason code).
+  Future<ApiClientResult> deleteAllowClientError(String url) async {
+    _syncBaseUrl();
+    print('[API] DELETE(ace) ${_dio.options.baseUrl}$url');
+    try {
+      final response = await _dio.delete(
+        url,
+        options: Options(validateStatus: (s) => s != null && s >= 200 && s < 500),
+      );
+      return ApiClientResult(
+        response.statusCode ?? 0,
+        _normalizeResponseData(response.data),
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 
   Future<dynamic> delete(String url) async {

@@ -2829,7 +2829,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String cartSubstitutionDetail(String requested, String matched) {
-    return 'Snurre matchet $requested til $matched. Se gjennom før du betaler.';
+    return 'Vi matchet $requested til $matched. Se gjennom før du betaler.';
   }
 
   @override
@@ -2865,16 +2865,6 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get splashTagline => 'Hver bestilling støtter laget';
-
-  @override
-  String get snurreSuggestion1 =>
-      'Hvor kan jeg kjøpe de billigste solbrillene?';
-
-  @override
-  String get snurreSuggestion2 => 'Hvor lenge er restauranter i Bergen åpne?';
-
-  @override
-  String get snurreWriteMessage => 'Skriv en melding';
 
   @override
   String get checkoutTitle => 'Til kassen';
@@ -3138,36 +3128,6 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get checkoutOrderFee => 'Ordregebyr';
-
-  @override
-  String get snurreLoginRequired => 'Logg inn for å bruke AI-chat.';
-
-  @override
-  String get snurreProductUnavailable => 'Produktet er utilgjengelig.';
-
-  @override
-  String get snurreCouldNotAddToCart => 'Kunne ikke legge til i kurven.';
-
-  @override
-  String get snurreAddedToCart => 'Lagt til i kurven';
-
-  @override
-  String get snurreClose => 'Avslutt';
-
-  @override
-  String get snurreStoreUnavailable => 'Butikken er utilgjengelig.';
-
-  @override
-  String get snurreBuy => 'Kjøp';
-
-  @override
-  String get snurreBuyNow => 'Kjøp nå';
-
-  @override
-  String get snurreVisitStore => 'Besøk butikk';
-
-  @override
-  String get snurreStoreSelectionUnavailable => 'Butikkvalg er utilgjengelig.';
 
   @override
   String get chatTypeMessage => 'Skriv melding';

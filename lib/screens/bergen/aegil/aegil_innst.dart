@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -52,6 +54,11 @@ abstract final class AeInnstCopy {
   static String get endreMerke => _t('Endre', 'Edit');
   static String get kommerSnart => _t('Kommer snart', 'Coming soon');
   static String get snartToast => _t('Fast bestilling kommer snart · vi sier fra når det er klart', 'Standing orders are coming soon · we will let you know');
+  // D-K20: a level above the rollout cap (`LEVEL_ABOVE_MAX`), and the level
+  // Ægil acts at when the cap is below the one chosen.
+  static String get cus_aegil_nivaa_ikke_enna => _t('Ikke ennå', 'Not yet');
+  static String get cus_aegil_nivaa_over_grense => _t('Det nivået er ikke åpnet ennå · vi sier fra når det er klart', 'That level is not open yet · we will let you know');
+  static String cus_aegil_nivaa_virker_som(int n, int e) => _t('Nivå $n · virker som $e', 'Level $n · acts as $e');
   static String nivaaToast(int n, String navn) => _t('Ægil er på nivå $n · $navn', 'Ægil is on level $n · $navn');
   static String lagretToast(int n, String navn) => _t('Lagret · Ægil er på nivå $n · $navn', 'Saved · Ægil is on level $n · $navn');
   static String lagretMeg(int n) => _t('Lagret · Ægil er på nivå $n', 'Saved · Ægil is on level $n');
@@ -183,6 +190,8 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
   Widget build(BuildContext context) {
     if (!_skriver && _grense.text != _grenseTx) _grense.text = _grenseTx;
     final vis = aeVisNivaa(s);
+    final eff = s.effectiveLevel;
+    final visEff = eff == null || s.paused || eff >= s.level ? null : aeVisNivaa(AegilSettings(level: eff));
     final legacy = !s.paused && s.level == 1;
     final level1 = widget.levels.where((l) => l.level == 1).firstOrNull;
     final kat = s.allowedCategories.isEmpty ? AeCopy.rmKatAlle : (s.allowedCategories.contains('restaurant') ? AeCopy.rmKatMatRest : AeCopy.rmKatMat);
@@ -190,7 +199,7 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
     var k = 0;
     Widget kort(Widget Function(double delayMs) b) => b(k++ * 40.0);
     final rader = <Widget>[
-      MorkSeksjon(AeInnstCopy.s1, AeInnstCopy.s1Under, verdi: AeInnstCopy.nivaa(vis)),
+      MorkSeksjon(AeInnstCopy.s1, AeInnstCopy.s1Under, verdi: visEff == null ? AeInnstCopy.nivaa(vis) : AeInnstCopy.cus_aegil_nivaa_virker_som(vis, visEff)),
       for (var i = 0; i < 5; i++) ...[
         if (i == 4)
           kort(
@@ -204,6 +213,20 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
               valgt: s.level >= 4 && !s.paused,
               verdi: s.level < 4 ? AeInnstCopy.kommerSnart : null,
               onTap: () => LfToast.show(context, AeInnstCopy.snartToast),
+            ),
+          )
+        else if (i >= 2 && !s.tillatt(i) && i != vis)
+          // Above the rollout cap: shown, not offered (as level 4 is).
+          kort(
+            (d) => MorkRad(
+              key: Key('ae-innst-nivaa-$i'),
+              delayMs: d,
+              tileTx: '$i',
+              navn: AeInnstCopy.navn[i],
+              under: AeInnstCopy.hva[i],
+              snart: true,
+              verdi: AeInnstCopy.cus_aegil_nivaa_ikke_enna,
+              onTap: () => LfToast.show(context, AeInnstCopy.cus_aegil_nivaa_over_grense),
             ),
           )
         else

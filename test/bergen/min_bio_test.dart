@@ -36,12 +36,13 @@ void main() {
     expect(p.ikke, ['Koriander']);
   });
 
-  test('allergies and diets from the text wait for a tap; soft finds count', () {
+  test('allergies, avoids and diets from the text wait for a tap; likes count', () {
     final b = const MinBio(tekst: 'Allergisk mot skalldyr. Jeg er vegetar. Elsker thai. Ikke melk.');
     final E = bioEff(b);
-    expect(E.all, {'Melk': BioAll.unnga});
+    // Customer Step 6: an «unngår» from the text is health data too — a suggestion.
+    expect(E.all, isEmpty);
     expect(E.kost, isEmpty);
-    expect(E.forslag, containsAll(['all:Skalldyr', 'kost:Vegetar']));
+    expect(E.forslag, containsAll(['all:Skalldyr', 'kost:Vegetar', 'all:Melk']));
     expect(E.liker, ['Thai']);
 
     final k = MinBioKontroll(b)..allTrykk('Skalldyr');

@@ -1,14 +1,23 @@
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../data/ops/tracking_models.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
+import '../ai/ai_bits.dart';
 import 'leveringskode_card.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import '../../../networking/ops/cus_api.dart' show CusIssue;
+import '../hjelp/noe_galt_sheet.dart' show IssueSakRad, NoeGaltRad;
+import 'takk_ark.dart' show CusTakkCopy;
+import '../aegil/aegil_bits.dart' show AeGevir;
+import '../hjem/hjem_harness.dart' show HjemHarness;
+import '../aegil/aegil_verktoy.dart' show AeVerktoyCopy;
 import '../kit/bergen_perf.dart';
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
@@ -114,6 +123,13 @@ class SpPanel extends StatelessWidget {
     this.vervKode = '',
     this.bunn = 0,
     this.poengNeste,
+    this.takkNavn,
+    this.takkSendt = false,
+    this.onTakk,
+    this.issue,
+    this.onNoeGalt,
+    this.noeGaltUnder,
+    this.onIkkeLost,
   });
 
   final OpsTracking tracking;
@@ -129,6 +145,20 @@ class SpPanel extends StatelessWidget {
   /// Points per stage for «Neste: X · +N poeng»: the order's real total
   /// split over the stages (`splitPointsByStage`). Null: no numbers.
   final List<int>? poengNeste;
+
+  /// «Takk til {navn}» over «Avslutt bestillingen» once a courier has
+  /// delivered (Customer Step 2); null hides it.
+  final String? takkNavn;
+  final bool takkSendt;
+  final VoidCallback? onTakk;
+
+  /// Customer Step 10 (design C2.1): the case on the delivered order and the
+  /// quiet «Noe galt med bestillingen?» row inside the issue window; null
+  /// hides each.
+  final CusIssue? issue;
+  final VoidCallback? onNoeGalt;
+  final String? noeGaltUnder;
+  final VoidCallback? onIkkeLost;
 
   static const Color _fyll1 = Color(0xFFE95C2C);
   static const Color _fyll2 = Color(0xFFF58A55);
@@ -205,9 +235,12 @@ class SpPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 11),
-              if (s == 3)
-                _Avslutt(onTap: onAvslutt)
-              else
+              if (s == 3) ...[
+                if (issue case final i?) ...[IssueSakRad(issue: i, onIkkeLost: onIkkeLost), const SizedBox(height: 8)],
+                if (onNoeGalt != null) ...[NoeGaltRad(onTap: onNoeGalt!, under: noeGaltUnder), const SizedBox(height: 8)],
+                if (takkNavn case final n? when onTakk != null) ...[_TakkPille(navn: n, sendt: takkSendt, onTap: onTakk!), const SizedBox(height: 8)],
+                _Avslutt(onTap: onAvslutt),
+              ] else
                 Row(
                   children: [
                     Expanded(
@@ -641,6 +674,41 @@ class _BredNokkel extends StatelessWidget {
   );
 }
 
+/// «Takk til {navn}»: the old Levert screen's glass pill (L7432, 44 high,
+/// `rgba(245,243,239,.16)`); after sending it reads «Takk sendt til {navn}».
+class _TakkPille extends StatelessWidget {
+  const _TakkPille({required this.navn, required this.sendt, required this.onTap});
+
+  final String navn;
+  final bool sendt;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final pille = Container(
+      key: const Key('cus-sporing-takk'),
+      height: 46, // 44 + the CSS border
+      decoration: BoxDecoration(
+        color: rgba(245, 243, 239, .16),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: rgba(245, 243, 239, .3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (sendt) ...[spIkon(kSpIkonHake, size: 14, color: const Color(0xFF7FF0CB), width: 2.8), const SizedBox(width: 7)],
+          Text(
+            sendt ? CusTakkCopy.cus_takk_sendt_kort(navn) : CusTakkCopy.cus_takk_til(navn),
+            style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF)),
+          ),
+        ],
+      ),
+    );
+    if (sendt) return Opacity(opacity: .75, child: pille);
+    return LfPress(onTap: onTap, dy: 0, scale: .985, child: pille);
+  }
+}
+
 /// «Avslutt bestillingen» — the floating orange pill (`stigOpp` in,
 /// `aeKnSvev` forever).
 class _Avslutt extends StatelessWidget {
@@ -863,11 +931,33 @@ class _Vervebillett extends StatelessWidget {
 /// Which sheet: the short summary or the full details.
 enum SpArk { sammendrag, detaljer }
 
-/// **Bestillingsdetaljer** (L7007): the paper sheet over the screen —
-/// Ordresammendrag (58 %: Leveres til / Bestilling / Betalt med Vipps, Klar)
-/// or Bestillingsdetaljer (80 %: ORDRESTATUS, Din bestilling, Betaling,
-/// Butikken, the info grid, Kontakt kundeservice). Lives inside the screen's
-/// Stack so everything stays in design px.
+// The 21 Oct sheet's icons (L7116–7170).
+const String _kIkonKlokke = 'M4 15h16M5.5 15a6.5 6.5 0 0 1 13 0M12 6.5V8.5M3 18h18';
+const String _kIkonKvittering = 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3';
+const String _kIkonKvitteringKort = 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6';
+const String _kIkonPin = 'M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z';
+const String _kIkonPose = 'M6 8h12l-1.2 12H7.2zM9 8V6.5a3 3 0 0 1 6 0V8';
+const String _kIkonHus = 'M4 11l8-7 8 7M6 9.5V20h12V9.5';
+const String _kIkonPil = 'M9 6l6 6-6 6';
+const String _kIkonHake = 'M5 12l5 5L20 7';
+const Color _kMint = Color(0xFF7FF0CB);
+const Color _kMintDyp = Color(0xFF5CE0B8);
+const List<FontFeature> _kTab = [FontFeature.tabularFigures()];
+
+/// Chrome's `line-height: normal` box for the design's fonts (ascent and
+/// descent rounded apart, as Blink does): Inter 0.96875 / 0.2412, Plus
+/// Jakarta Sans 1.02 / 0.27. Flutter's own metrics run ~2 px taller per
+/// line, which stacks up in the sheet's cards.
+double spLinje(double size, {bool jakarta = false}) =>
+    ((size * (jakarta ? 1.02 : .96875)).roundToDouble() + (size * (jakarta ? .27 : .2412)).roundToDouble()) / size;
+
+/// **Bestillingsdetaljer** (21 Oct L7116–7170, `spArk`): the dark teal glass
+/// sheet over the screen — Ordresammendrag (58 %: Leveres til / Bestilling /
+/// Betalt med Vipps, Klar) or Bestillingsdetaljer (80 %: Ordrestatus, Din
+/// bestilling, Betaling, Butikken with «Ring butikken», the info grid,
+/// Kontakt kundeservice). The sheet comes up with `arkOpp` (.42 s), its
+/// height eases between the two (.45 s), the cards come in with `kortStag`.
+/// Lives inside the screen's Stack so everything stays in design px.
 class SpDetaljerArk extends StatelessWidget {
   const SpDetaljerArk({
     super.key,
@@ -880,6 +970,7 @@ class SpDetaljerArk extends StatelessWidget {
     required this.onKvittering,
     required this.onKundeservice,
     required this.onRingButikk,
+    this.onSporAegil,
   });
 
   final SpArk ark;
@@ -889,6 +980,21 @@ class SpDetaljerArk extends StatelessWidget {
   /// The screen height in design px.
   final double height;
   final VoidCallback onLukk, onDetaljer, onKvittering, onKundeservice, onRingButikk;
+
+  /// Customer Step 5: «Spør Ægil» about this order (not in the design).
+  final VoidCallback? onSporAegil;
+
+  /// Debug: `sporingRull` scrolls the sheet once its cards have landed (they
+  /// stagger in, so an initial offset would stop short).
+  static ScrollController? _harnessRull() {
+    final y = kDebugMode ? HjemHarness.sporingRull : null;
+    if (y == null) return null;
+    final c = ScrollController();
+    Future<void>.delayed(const Duration(milliseconds: 1500), () {
+      if (c.hasClients) c.jumpTo(y.clamp(0, c.position.maxScrollExtent).toDouble());
+    });
+    return c;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -909,7 +1015,11 @@ class SpDetaljerArk extends StatelessWidget {
     final over = detaljer
         ? [butikk, if (bestilt != null) '${bestilt.day}. ${mnd[bestilt.month - 1]} kl. $klokke'].join(' · ')
         : SporingCopy.a1_sporing_ordre_over(kode, hent ? SporingCopy.a1_sporing_henting_ord : SporingCopy.a1_sporing_levering_ord);
-    return Stack(
+    // 58 % / 80 % of the frame the sheet sits in (design px), not the device.
+    return LayoutBuilder(
+      builder: (context, c) {
+        final hoyde = c.maxHeight.isFinite ? c.maxHeight : height;
+        return Stack(
       key: const Key('a1_sporing_ark'),
       children: [
         Positioned.fill(
@@ -920,7 +1030,13 @@ class SpDetaljerArk extends StatelessWidget {
               key: const Key('a1_sporing_ark_lukk'),
               behavior: HitTestBehavior.opaque,
               onTap: onLukk,
-              child: ColoredBox(color: rgba(8, 24, 32, .45)),
+              child: ClipRect(
+                child: BackdropFilter(
+                  enabled: BergenPerf.blurOn(context),
+                  filter: BergenPerf.blur(context, 1.5, 1.5),
+                  child: ColoredBox(color: rgba(6, 20, 28, .5)),
+                ),
+              ),
             ),
           ),
         ),
@@ -929,98 +1045,83 @@ class SpDetaljerArk extends StatelessWidget {
           right: 0,
           bottom: 0,
           child: LfOnce(
-            ms: 340,
+            ms: 420,
             builder: (context, t, child) {
-              final p = cssSkjerm.transform(kfP(t, 0, 340));
+              final p = const Cubic(.2, .9, .3, 1).transform(kfP(t, 0, 420));
               return Opacity(
                 opacity: .6 + .4 * p,
                 child: Transform.translate(offset: Offset(0, 26 * (1 - p)), child: child),
               );
             },
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: height * (detaljer ? .8 : .58)),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: hoyde * (detaljer ? .8 : .58)),
+              duration: BergenPerf.oneShot(context, 450),
+              curve: const Cubic(.22, 1, .36, 1),
+              builder: (context, maks, child) => ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: maks),
+                child: child,
+              ),
               child: CssBox(
-                radius: const BorderRadius.vertical(top: Radius.circular(30)),
+                key: const Key('cus-sporing-ark-mork'),
+                radius: const BorderRadius.vertical(top: Radius.circular(28)),
                 clip: true,
-                bg: const [
-                  CssLinear(180, [Color(0xFFFDFBF6), Color(0xFFF5F0E6)]),
+                bg: [
+                  CssRadial([rgba(127, 240, 203, .12), rgba(127, 240, 203, 0)], stops: const [0, .6], rx: .9, ry: .4, cx: .2, cy: 0),
+                  const CssLinear(180, [Color(0xFF22596A), Color(0xFF1A4652), Color(0xFF122F3A)], [0, .45, 1]),
                 ],
-                shadows: [const CssShadow.inset(0, 2, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .8)), CssShadow(0, -24, 50, -20, rgba(8, 24, 32, .7))],
-                child: Stack(
+                shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .3)), CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .08)), CssShadow(0, -30, 60, -20, rgba(8, 24, 32, .6))],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 0,
-                      height: 120,
-                      child: IgnorePointer(
-                        child: CssBox(
-                          bg: [
-                            CssRadial([rgba(255, 255, 255, .9), rgba(255, 255, 255, 0)], stops: const [0, .7], rx: 1.2, ry: .9, cx: .5, cy: 0),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-                          child: Column(
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 10),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 5,
+                            decoration: BoxDecoration(color: rgba(255, 255, 255, .28), borderRadius: BorderRadius.circular(999)),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
                             children: [
-                              CssBox(
-                                width: 44,
-                                height: 5,
-                                radius: BorderRadius.circular(3),
-                                bg: const [
-                                  CssLinear(180, [Color(0xFFD6CDBB), Color(0xFFBFB5A1)]),
-                                ],
-                                shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .7))],
+                              _Flis(
+                                mint: true,
+                                child: spIkon(detaljer ? _kIkonKvittering : _kIkonKlokke, size: detaljer ? 19 : 20, color: _kMint),
                               ),
-                              const SizedBox(height: 14),
-                              Row(
-                                children: [
-                                  SpTile(
-                                    size: 44,
-                                    radius: 15,
-                                    colors: kSpTileMat,
-                                    inner: rgba(60, 48, 30, .3),
-                                    child: detaljer ? spIkon(kSpIkonKvittering, size: 20, color: const Color(0xFF8A4A1E), width: 2.4) : bergenSvg('ico_mat', width: 30, height: 27),
-                                  ),
-                                  const SizedBox(width: 11),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          over.toUpperCase(),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: inter(9.5, weight: FontWeight.w800, em: .09, color: const Color(0xFF8C847C)),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(detaljer ? SporingCopy.a1_sporing_bestillingsdetaljer : SporingCopy.a1_sporing_ordresammendrag, style: jakarta(20, em: -.03, height: 1.1, color: kSpInk)),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  _LysKnapp(
-                                    size: 34,
-                                    onTap: onLukk,
-                                    child: spIkon(kSpIkonKryss, size: 12, color: kSpInk, width: 2.8),
-                                  ),
-                                ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(children: [
+                                      Flexible(child: Text(
+                                        over.toUpperCase(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: inter(10, weight: FontWeight.w800, em: .1, color: _kMint, height: spLinje(10)),
+                                      )),
+                                      // Customer Step 14: «Via {AI}» (design `aiKilde`, 6544).
+                                      if (t.via != null) ...[const SizedBox(width: 6), AiViaChip(t.via!.name)],
+                                    ]),
+                                    const SizedBox(height: 3),
+                                    Text(detaljer ? SporingCopy.a1_sporing_bestillingsdetaljer : SporingCopy.a1_sporing_ordresammendrag, style: jakarta(21, em: -.03, height: 1.1)),
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 12),
+                              _GlassRund(key: const Key('a1_sporing_ark_x'), onTap: onLukk, child: spIkon(kSpIkonKryss, size: 14, width: 2.8)),
                             ],
                           ),
-                        ),
-                        Flexible(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
-                            child: detaljer ? _detaljer(t, o, navn, kode, butikk, adr, dato, klokke, total) : _sammendrag(t, o, adr, adrSub, klokke, total),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
+                    ),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        controller: _harnessRull(),
+                        padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
+                        child: detaljer ? _detaljer(t, o, navn, kode, butikk, adr, dato, klokke, total) : _sammendrag(t, o, adr, adrSub, klokke, total),
+                      ),
                     ),
                   ],
                 ),
@@ -1030,81 +1131,69 @@ class SpDetaljerArk extends StatelessWidget {
         ),
       ],
     );
+      },
+    );
   }
 
   Widget _sammendrag(OpsTracking t, SpOrdre o, String adr, String adrSub, String klokke, String total) => Column(
+    key: const Key('cus-sporing-sammendrag'),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     mainAxisSize: MainAxisSize.min,
     children: [
-      _Kort(
-        tile: SpTile(
-          size: 42,
-          radius: 14,
-          colors: kSpTileTeal,
-          inner: rgba(20, 60, 72, .3),
-          child: spIkon(kSpIkonPin, size: 19, color: kSpPaperInk, width: 2.3, extra: kSpIkonPinExtra),
+      _Stag(
+        delay: 50,
+        child: _Kort(
+          tile: _Flis(child: spIkon(_kIkonPin, size: 19)),
+          eyebrow: t.isPickup ? SporingCopy.a1_sporing_hentes_hos_stor : SporingCopy.a1_sporing_leveres_til,
+          tittel: adr,
+          under: adrSub,
         ),
-        eyebrow: t.isPickup ? SporingCopy.a1_sporing_hentes_hos_stor : SporingCopy.a1_sporing_leveres_til,
-        tittel: adr,
-        under: adrSub,
       ),
-      const SizedBox(height: 10),
-      _Kort(
-        onTap: onDetaljer,
-        tile: SpTile(
-          size: 42,
-          radius: 14,
-          colors: kSpTileVarm,
-          child: spIkon(kSpIkonPose, size: 19, color: const Color(0xFF6E4212), width: 2.3),
+      const SizedBox(height: 9),
+      _Stag(
+        delay: 100,
+        child: _Kort(
+          key: const Key('cus-sporing-ark-bestilling'),
+          onTap: onDetaljer,
+          tile: _Flis(child: spIkon(_kIkonPose, size: 19)),
+          eyebrow: SporingCopy.a1_sporing_bestilling_stor,
+          tittel: o.vareLinje,
+          under: '${SporingCopy.a1_sporing_varer(o.antall)} · $total',
+          hale: _Chip(tekst: SporingCopy.a1_sporing_se_alt, pil: true),
         ),
-        eyebrow: SporingCopy.a1_sporing_bestilling_stor,
-        tittel: o.vareLinje,
-        under: '${SporingCopy.a1_sporing_varer(o.antall)} · $total',
-        hale: _Chip(tekst: SporingCopy.a1_sporing_se_alt, farge: kSpTeal, pil: true),
       ),
-      const SizedBox(height: 10),
-      _Kort(
-        tile: const _VippsTile(size: 42, radius: 14),
-        eyebrow: SporingCopy.a1_sporing_betalt_med_vipps,
-        tittel: total,
-        underWidget: Row(
-          children: [
-            spIkon(kSpIkonHake, size: 10, color: const Color(0xFF2E7E4F), width: 3.2),
-            const SizedBox(width: 4),
-            Text(
-              SporingCopy.a1_sporing_betalt_kl(klokke),
-              style: inter(11, weight: FontWeight.w600, color: const Color(0xFF2E7E4F)),
-            ),
-          ],
+      const SizedBox(height: 9),
+      _Stag(
+        delay: 150,
+        child: _Kort(
+          tile: const _VippsTile(),
+          eyebrow: SporingCopy.a1_sporing_betalt_med_vipps,
+          tittel: total,
+          underWidget: Padding(padding: const EdgeInsets.only(top: 4), child: _BetaltPille(SporingCopy.a1_sporing_betalt_kl(klokke))),
+          hale: _Chip(key: const Key('a1_sporing_ark_kvittering'), tekst: SporingCopy.a1_sporing_kvittering, ikon: _kIkonKvitteringKort, onTap: onKvittering),
         ),
-        hale: _Chip(tekst: SporingCopy.a1_sporing_kvittering, farge: kSpInk, ikon: kSpIkonKvitteringEnkel, onTap: onKvittering),
       ),
-      const SizedBox(height: 16),
-      LfPress(
-        key: const Key('a1_sporing_ark_klar'),
-        onTap: onLukk,
-        dy: 3,
-        child: CssBox(
-          height: 50,
-          radius: BorderRadius.circular(18),
-          bg: const [
-            CssLinear(180, [Color(0xFFF58F58), Color(0xFFEE7238), Color(0xFFE0662C)], [0, .55, 1]),
-          ],
-          shadows: [
-            CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .35)),
-            const CssShadow(0, 0, 0, 1.5, Color(0xFFFFFFFF)),
-            const CssShadow(0, 4, 0, 1.5, Color(0xFFB84A1E)),
-            CssShadow(0, 14, 22, -10, rgba(184, 74, 30, .7)),
-          ],
-          child: Center(
-            child: Text(
-              SporingCopy.a1_sporing_klar_knapp,
-              style: jakarta(
-                15,
-                em: -.01,
-                shadows: [Shadow(color: rgba(120, 40, 10, .3), offset: const Offset(0, 1))],
-              ),
-            ),
+      const SizedBox(height: 15),
+      _Stag(
+        delay: 220,
+        child: LfPress(
+          key: const Key('a1_sporing_ark_klar'),
+          onTap: onLukk,
+          dy: 3,
+          child: CssBox(
+            height: 52,
+            radius: BorderRadius.circular(999),
+            bg: const [
+              CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
+            ],
+            shadows: [
+              CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .45)),
+              CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .4)),
+              const CssShadow(0, 3, 0, 0, Color(0xFFC4491A)),
+              CssShadow(0, 5, 0, 0, rgba(120, 45, 15, .22)),
+              CssShadow(0, 14, 18, -10, rgba(200, 70, 25, .8)),
+            ],
+            child: Center(child: Text(SporingCopy.a1_sporing_klar_knapp, style: jakarta(15, height: spLinje(15, jakarta: true)))),
           ),
         ),
       ),
@@ -1114,364 +1203,445 @@ class SpDetaljerArk extends StatelessWidget {
   Widget _detaljer(OpsTracking t, SpOrdre o, List<String> navn, String kode, String butikk, String adr, String dato, String klokke, String total) {
     final s = t.stage.clamp(0, 3);
     final ordreNr = kode.isNotEmpty ? kode : o.ordreNr;
+    final modus = t.isPickup ? SporingCopy.a1_sporing_henting_ord : SporingCopy.a1_sporing_levering_ord;
     return Column(
+      key: const Key('cus-sporing-detaljer'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ORDRESTATUS
-        CssBox(
-          radius: BorderRadius.circular(20),
-          clip: true,
-          padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
-          bg: const [
-            CssLinear(165, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .6, 1]),
-          ],
-          shadows: [
-            CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
-            const CssShadow(0, 0, 0, 1.5, Color(0xFFFFFFFF)),
-            CssShadow(0, 3, 0, 1.5, rgba(11, 38, 45, .9)),
-            CssShadow(0, 16, 26, -14, rgba(15, 45, 55, .8)),
-          ],
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned(
-                right: -44,
-                top: -53,
-                child: SizedBox(
-                  width: 150,
+        // Customer Step 10: «Utført av Ærend AI» — what an agent did on this order (contract §5, Agents Step 8).
+        if (t.effects.isNotEmpty) ...[
+          _Stag(delay: 20, child: _Effekter(effekter: t.effects)),
+          const SizedBox(height: 10),
+        ],
+        // Ordrestatus
+        _Stag(
+          delay: 40,
+          child: _Glass(
+            radius: 22,
+            padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  right: -54,
+                  top: -63,
+                  width: 170,
                   height: 150,
-                  child: CssBox(
-                    radius: BorderRadius.circular(75),
-                    bg: [
-                      CssRadial([rgba(92, 224, 184, .28), rgba(92, 224, 184, 0)], stops: const [0, .7]),
-                    ],
+                  child: IgnorePointer(
+                    child: CssBox(
+                      bg: [
+                        CssRadial.closestSide([rgba(92, 224, 184, .26), rgba(92, 224, 184, 0)]),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              SporingCopy.a1_sporing_ordrestatus,
-                              style: inter(9, weight: FontWeight.w800, em: .09, color: const Color(0xFF9FD3DE)),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(t.isCancelled ? SporingCopy.a1_sporing_avbestilt : navn[s], style: jakarta(17, em: -.02)),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                        decoration: BoxDecoration(
-                          color: rgba(255, 255, 255, .14),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: rgba(255, 255, 255, .26)),
-                        ),
-                        child: Text(ordreNr, style: inter(10.5, weight: FontWeight.w800)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: SizedBox(
-                      height: 6,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: CssBox(bg: [CssSolid(rgba(0, 0, 0, .28))], shadows: [CssShadow.inset(0, 1, 2, 0, rgba(0, 0, 0, .4))]),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _Eyebrow(SporingCopy.a1_sporing_ordrestatus),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  const _PulsPrikk(),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(t.isCancelled ? SporingCopy.a1_sporing_avbestilt : navn[s], maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(17, em: -.02, height: spLinje(17, jakarta: true))),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          Positioned.fill(
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: FractionallySizedBox(
-                                widthFactor:
-                                    (.75 *
-                                            (s <= 0
-                                                ? 0
-                                                : s >= 3
-                                                ? 1
-                                                : s / 3))
-                                        .clamp(0.001, 1.0),
-                                heightFactor: 1,
-                                child: CssBox(
-                                  radius: BorderRadius.circular(99),
-                                  bg: const [
-                                    CssLinear(90, [Color(0xFF5CE0B8), Color(0xFF9FE8D3)]),
-                                  ],
-                                  shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .6)), CssShadow(0, 0, 10, 0, rgba(92, 224, 184, .6))],
+                        ),
+                        const SizedBox(width: 10),
+                        Container(
+                          height: 26,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: rgba(6, 22, 30, .35),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(color: rgba(255, 255, 255, .14)),
+                          ),
+                          child: Text(
+                            ordreNr,
+                            style: inter(11, weight: FontWeight.w800, height: spLinje(11)).copyWith(fontFeatures: _kTab),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: SizedBox(
+                        height: 8,
+                        child: Stack(
+                          children: [
+                            Positioned.fill(child: ColoredBox(color: rgba(255, 255, 255, .1))),
+                            Positioned.fill(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: FractionallySizedBox(
+                                  widthFactor:
+                                      (.75 *
+                                              (s <= 0
+                                                  ? 0
+                                                  : s >= 3
+                                                  ? 1
+                                                  : s / 3))
+                                          .clamp(0.001, 1.0),
+                                  heightFactor: 1,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(999),
+                                      gradient: const LinearGradient(colors: [_kMint, _kMintDyp]),
+                                      boxShadow: [BoxShadow(color: rgba(92, 224, 184, .6), blurRadius: 10)],
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 11),
-                  Row(
-                    children: [
-                      spIkon(kSpIkonHus, size: 14, color: const Color(0xFF9FD3DE)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${t.isPickup ? SporingCopy.a1_sporing_henting_ord[0].toUpperCase() + SporingCopy.a1_sporing_henting_ord.substring(1) : SporingCopy.a1_sporing_levering_ord[0].toUpperCase() + SporingCopy.a1_sporing_levering_ord.substring(1)} · $adr',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: inter(11.5, weight: FontWeight.w700, color: kSpSub),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Din bestilling
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Expanded(
-                child: Text(SporingCopy.a1_sporing_din_bestilling, style: jakarta(15, em: -.02, color: kSpInk)),
-              ),
-              Text(
-                SporingCopy.a1_sporing_varer(o.antall),
-                style: inter(11, weight: FontWeight.w700, color: const Color(0xFF8C847C)),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 9),
-        _Papir(
-          padding: const EdgeInsets.fromLTRB(14, 6, 14, 0),
-          child: Column(
-            children: [
-              for (final l in o.linjer)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: rgba(35, 32, 29, .07))),
-                  ),
-                  child: Row(
-                    children: [
-                      SpTile(
-                        size: 30,
-                        radius: 10,
-                        colors: kSpTileVarm,
-                        child: Text(
-                          '${l.antall}×',
-                          style: inter(11, weight: FontWeight.w800, color: const Color(0xFF6E4212)),
-                        ),
-                      ),
-                      const SizedBox(width: 11),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l.navn,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: inter(12.5, weight: FontWeight.w800, color: kSpInk),
-                            ),
-                            if (l.valg.isNotEmpty)
-                              Text(
-                                l.valg,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: inter(10.5, weight: FontWeight.w600, color: const Color(0xFF6E6862)),
-                              ),
                           ],
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            spKr(l.sum),
-                            style: inter(12.5, weight: FontWeight.w800, color: kSpInk),
+                    ),
+                    const SizedBox(height: 11),
+                    Row(
+                      children: [
+                        spIkon(_kIkonHus, size: 14, color: _kMint),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${modus[0].toUpperCase()}${modus.substring(1)} · $adr',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: inter(12, weight: FontWeight.w700, color: const Color(0xFFDCE9EC), height: spLinje(12)),
                           ),
-                          if (l.tillegg.isNotEmpty)
-                            Text(
-                              l.tillegg,
-                              style: inter(10.5, weight: FontWeight.w600, color: const Color(0xFF8C847C)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        // Din bestilling
+        _Stag(
+          delay: 100,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Seksjon(SporingCopy.a1_sporing_din_bestilling, hoyre: SporingCopy.a1_sporing_varer(o.antall)),
+              const SizedBox(height: 9),
+              _Glass(
+                radius: 22,
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 4),
+                child: Column(
+                  children: [
+                    for (final l in o.linjer)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(color: rgba(255, 255, 255, .1))),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              constraints: const BoxConstraints(minWidth: 32),
+                              height: 28,
+                              padding: const EdgeInsets.symmetric(horizontal: 7),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: rgba(92, 224, 184, .16),
+                                borderRadius: BorderRadius.circular(9),
+                                border: Border.all(color: rgba(92, 224, 184, .4)),
+                              ),
+                              child: Text(
+                                '${l.antall}×',
+                                style: inter(12, weight: FontWeight.w800, color: _kMint, height: spLinje(12)).copyWith(fontFeatures: _kTab),
+                              ),
                             ),
+                            const SizedBox(width: 11),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.navn,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: inter(13.5, weight: FontWeight.w800, height: spLinje(13.5)),
+                                  ),
+                                  if (l.valg.isNotEmpty) ...[
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      l.valg,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: inter(11.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .62), height: spLinje(11.5)),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  spKr(l.sum),
+                                  style: inter(13.5, weight: FontWeight.w800, height: spLinje(13.5)).copyWith(fontFeatures: _kTab),
+                                ),
+                                if (l.tillegg.isNotEmpty)
+                                  Text(
+                                    l.tillegg,
+                                    style: inter(11, weight: FontWeight.w600, color: rgba(255, 255, 255, .5), height: spLinje(11)).copyWith(fontFeatures: _kTab),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    Container(
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      // `inset 0 0 0 1px`: the ring sits inside the 10 / 12 padding.
+                      padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
+                      decoration: BoxDecoration(
+                        color: rgba(6, 22, 30, .3),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: rgba(255, 255, 255, .1)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              SporingCopy.a1_sporing_totalsum,
+                              style: inter(13, weight: FontWeight.w800, color: rgba(255, 255, 255, .75), height: spLinje(13)),
+                            ),
+                          ),
+                          Text(total, style: jakarta(21, em: -.02, height: spLinje(21, jakarta: true))),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 11, 0, 9),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        SporingCopy.a1_sporing_totalsum,
-                        style: inter(13, weight: FontWeight.w800, color: kSpInk),
-                      ),
                     ),
-                    Text(total, style: jakarta(18, em: -.02, color: kSpInk)),
                   ],
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         // Betaling
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Text(SporingCopy.a1_sporing_betaling, style: jakarta(15, em: -.02, color: kSpInk)),
-        ),
-        const SizedBox(height: 9),
-        _Kort(
-          tile: const _VippsTile(size: 42, radius: 14),
-          tittel: 'Vipps',
-          under: [dato, klokke].where((x) => x.isNotEmpty).join(' · '),
-          hale: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                total,
-                style: inter(13.5, weight: FontWeight.w800, color: kSpInk),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  spIkon(kSpIkonHake, size: 9, color: const Color(0xFF2E7E4F), width: 3.2),
-                  const SizedBox(width: 3),
-                  Text(
-                    SporingCopy.a1_sporing_betalt_ord,
-                    style: inter(10.5, weight: FontWeight.w700, color: const Color(0xFF2E7E4F)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        // Butikken
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Text(SporingCopy.a1_sporing_butikken_tittel, style: jakarta(15, em: -.02, color: kSpInk)),
-        ),
-        const SizedBox(height: 9),
-        _Kort(
-          tile: SpTile(size: 42, radius: 14, colors: kSpTileMat, inner: rgba(60, 48, 30, .3), child: bergenSvg('ico_mat', width: 28, height: 25)),
-          tittel: butikk,
-          under: t.store?.address ?? o.butikkAdresse,
-          hale: _LysKnapp(
-            size: 36,
-            radius: 12,
-            onTap: onRingButikk,
-            child: spIkon(kSpIkonTelefon2, size: 15, color: kSpTeal),
-          ),
-        ),
-        const SizedBox(height: 16),
-        // The info grid.
-        CssBox(
-          radius: BorderRadius.circular(20),
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          bg: [CssSolid(rgba(255, 255, 255, .55))],
-          shadows: [CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .9))],
+        _Stag(
+          delay: 160,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(child: _Info(SporingCopy.a1_sporing_ordrenummer, ordreNr)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _Info(SporingCopy.a1_sporing_aerend_id, o.ordreNr.isEmpty ? t.orderId : o.ordreNr)),
-                ],
-              ),
+              _Seksjon(SporingCopy.a1_sporing_betaling),
               const SizedBox(height: 9),
-              Row(
-                children: [
-                  Expanded(child: _Info(SporingCopy.a1_sporing_tidsstempel, [dato, klokke].where((x) => x.isNotEmpty).join(' · '))),
-                  const SizedBox(width: 12),
-                  Expanded(child: _Info(SporingCopy.a1_sporing_kvittering_stor, SporingCopy.a1_sporing_meg_bestillinger)),
-                ],
+              _Kort(
+                tile: const _VippsTile(),
+                tittel: 'Vipps',
+                under: [dato, klokke].where((x) => x.isNotEmpty).join(' · '),
+                hale: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      total,
+                      style: inter(14, weight: FontWeight.w800, height: spLinje(14)).copyWith(fontFeatures: _kTab),
+                    ),
+                    const SizedBox(height: 4),
+                    _BetaltPille(SporingCopy.a1_sporing_betalt_ord),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        SpSvev(
-          phase: 900,
+        const SizedBox(height: 14),
+        // Butikken
+        _Stag(
+          delay: 220,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Seksjon(SporingCopy.a1_sporing_butikken_tittel),
+              const SizedBox(height: 9),
+              _Kort(
+                tile: _Flis(child: spIkon(_kIkonKlokke, size: 19)),
+                tittel: butikk,
+                under: t.store?.address ?? o.butikkAdresse,
+                hale: Semantics(
+                  button: true,
+                  label: SporingCopy.a1_sporing_ring_butikken,
+                  child: LfPress(
+                    key: const Key('cus-sporing-ring-butikken'),
+                    onTap: onRingButikk,
+                    scale: .92,
+                    dy: 0,
+                    child: CssBox(
+                      width: 40,
+                      height: 40,
+                      radius: BorderRadius.circular(999),
+                      bg: const [
+                        CssLinear(180, [Color(0xFFB4F9E2), _kMintDyp]),
+                      ],
+                      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .6)), CssShadow(0, 2, 0, 0, rgba(20, 90, 70, .5)), CssShadow(0, 8, 14, -8, rgba(0, 0, 0, .6))],
+                      child: Center(child: spIkon(kSpIkonTelefon2, size: 16, color: const Color(0xFF0F2B33), width: 2.3)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        // The info grid.
+        _Stag(
+          delay: 280,
+          child: Container(
+            // `inset 0 0 0 1px`: the ring sits inside the 12 / 14 padding.
+            padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
+            decoration: BoxDecoration(
+              color: rgba(6, 22, 30, .3),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: rgba(255, 255, 255, .1)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _Info(SporingCopy.a1_sporing_ordrenummer, ordreNr)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _Info(SporingCopy.a1_sporing_aerend_id, o.ordreNr.isEmpty ? t.orderId : o.ordreNr, mono: true)),
+                  ],
+                ),
+                const SizedBox(height: 11),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _Info(SporingCopy.a1_sporing_tidsstempel, [dato, klokke].where((x) => x.isNotEmpty).join(' · '))),
+                    const SizedBox(width: 12),
+                    Expanded(child: _Info(SporingCopy.a1_sporing_kvittering_stor, SporingCopy.a1_sporing_meg_bestillinger)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        if (onSporAegil != null) ...[
+          _Stag(
+            delay: 310,
+            child: LfPress(
+              key: const Key('cus-sporing-spor-aegil'),
+              onTap: onSporAegil!,
+              dy: 2,
+              child: CssBox(
+                height: 52,
+                radius: BorderRadius.circular(999),
+                border: Border.all(color: rgba(159, 240, 212, .32)),
+                bg: [
+                  CssLinear(180, [rgba(92, 224, 184, .2), rgba(92, 224, 184, .07)]),
+                ],
+                shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .24)), CssShadow(0, 12, 18, -12, rgba(4, 18, 26, .8))],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const AeGevir(color: _kMint, w: 18, h: 11),
+                    const SizedBox(width: 8),
+                    Text(AeVerktoyCopy.cus_aegil_spor, style: inter(14, weight: FontWeight.w800, height: spLinje(14))),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        _Stag(
+          delay: 340,
           child: LfPress(
             key: const Key('a1_sporing_ark_kundeservice'),
             onTap: onKundeservice,
             dy: 2,
             child: CssBox(
-              height: 48,
+              height: 52, // 50 + the CSS border
               radius: BorderRadius.circular(999),
-              bg: const [
-                CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE9EEED)]),
+              border: Border.all(color: rgba(255, 255, 255, .26)),
+              bg: [
+                CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)]),
               ],
-              shadows: [CssShadow.inset(0, -3, 6, 0, rgba(30, 79, 92, .14))],
+              shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)), CssShadow(0, 12, 18, -12, rgba(4, 18, 26, .8))],
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  spIkon(kSpIkonChatBoble, size: 15, color: kSpTeal),
+                  spIkon(kSpIkonChatBoble, size: 16, color: _kMint),
                   const SizedBox(width: 8),
-                  Text(
-                    SporingCopy.a1_sporing_kontakt_kundeservice,
-                    style: inter(13, weight: FontWeight.w800, color: kSpTeal),
-                  ),
+                  Text(SporingCopy.a1_sporing_kontakt_kundeservice, style: inter(14, weight: FontWeight.w800, height: spLinje(14))),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
       ],
     );
   }
 }
 
-/// The paper card (radius 20, the stacked rims).
-class _Papir extends StatelessWidget {
-  const _Papir({required this.child, this.padding = const EdgeInsets.fromLTRB(13, 11, 13, 11), this.onTap});
+/// `kortStag .45s` with its delay.
+class _Stag extends StatelessWidget {
+  const _Stag({required this.child, required this.delay});
 
   final Widget child;
-  final EdgeInsets padding;
-  final VoidCallback? onTap;
+  final double delay;
 
   @override
-  Widget build(BuildContext context) {
-    final box = CssBox(
-      radius: BorderRadius.circular(20),
-      padding: padding,
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF8F4EC)]),
-      ],
-      shadows: [
-        const CssShadow(0, 0, 0, 1.5, Color(0xFFFFFFFF)),
-        const CssShadow(0, 2, 0, 1.5, Color(0xFFE6DCCB)),
-        CssShadow(0, 4, 0, 1.5, rgba(120, 100, 70, .22)),
-        CssShadow(0, 14, 22, -14, rgba(35, 32, 29, .45)),
-      ],
-      child: child,
-    );
-    if (onTap == null) return box;
-    return LfPress(onTap: onTap, dy: 1, child: box);
-  }
+  Widget build(BuildContext context) => LfOnce(
+    ms: delay + 450,
+    child: child,
+    builder: (context, t, child) {
+      final p = const Cubic(.2, .9, .3, 1).transform(kfP(t, delay, 450));
+      return Opacity(
+        opacity: p.clamp(0.0, 1.0),
+        child: Transform(alignment: Alignment.center, transform: Matrix4.translationValues(0, 18 * (1 - p), 0)..scaleByDouble(.97 + .03 * p, .97 + .03 * p, 1, 1), child: child),
+      );
+    },
+  );
+}
+
+/// The sheet's glass card (radius 20/22, the white rim, the deep drop).
+class _Glass extends StatelessWidget {
+  const _Glass({required this.child, this.radius = 20, this.padding = const EdgeInsets.fromLTRB(13, 12, 13, 12)});
+
+  final Widget child;
+  final double radius;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) => CssBox(
+    radius: BorderRadius.circular(radius),
+    clip: true,
+    // CSS draws the 1 px border outside the padding; CssBox paints it inside.
+    padding: padding + const EdgeInsets.all(1),
+    border: Border.all(color: rgba(255, 255, 255, .16)),
+    bg: [
+      CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .05)]),
+    ],
+    shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, rgba(0, 10, 16, .85))],
+    child: child,
+  );
 }
 
 class _Kort extends StatelessWidget {
-  const _Kort({required this.tile, this.eyebrow, required this.tittel, this.under, this.underWidget, this.hale, this.onTap});
+  const _Kort({super.key, required this.tile, this.eyebrow, required this.tittel, this.under, this.underWidget, this.hale, this.onTap});
 
   final Widget tile;
   final String? eyebrow;
@@ -1482,78 +1652,181 @@ class _Kort extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => _Papir(
-    onTap: onTap,
-    child: Row(
-      children: [
-        tile,
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (eyebrow != null)
+  Widget build(BuildContext context) {
+    final box = _Glass(
+      child: Row(
+        children: [
+          tile,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (eyebrow != null) ...[_Eyebrow(eyebrow!), const SizedBox(height: 2)],
                 Text(
-                  eyebrow!,
-                  style: inter(9, weight: FontWeight.w800, em: .08, color: const Color(0xFF8C847C)),
-                ),
-              if (eyebrow != null) const SizedBox(height: 1),
-              Text(
-                tittel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: eyebrow != null ? jakarta(13.5, em: -.015, color: kSpInk) : inter(12.5, weight: FontWeight.w800, color: kSpInk),
-              ),
-              const SizedBox(height: 1),
-              if (underWidget != null)
-                underWidget!
-              else if (under != null && under!.isNotEmpty)
-                Text(
-                  under!,
+                  tittel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: inter(11, weight: FontWeight.w600, color: const Color(0xFF6E6862)),
+                  style: eyebrow != null ? jakarta(14, em: -.015, height: spLinje(14, jakarta: true)) : inter(13.5, weight: FontWeight.w800, height: spLinje(13.5)),
                 ),
-            ],
+                if (underWidget != null)
+                  underWidget!
+                else if (under != null && under!.isNotEmpty) ...[
+                  const SizedBox(height: 1),
+                  Text(
+                    under!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: inter(11.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .62), height: spLinje(11.5)).copyWith(fontFeatures: _kTab),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (hale != null) ...[const SizedBox(width: 10), hale!],
+        ],
+      ),
+    );
+    if (onTap == null) return box;
+    return LfPress(onTap: onTap, dy: 0, scale: .985, child: box);
+  }
+}
+
+/// The 10 px uppercase label (`letter-spacing .09em`, 55 % white).
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow(this.tekst);
+
+  final String tekst;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    tekst.toUpperCase(),
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    style: inter(10, weight: FontWeight.w800, em: .09, color: rgba(255, 255, 255, .55), height: spLinje(10)),
+  );
+}
+
+/// A section title with its dot marker (11 px, mint, uppercase).
+class _Seksjon extends StatelessWidget {
+  const _Seksjon(this.tekst, {this.hoyre});
+
+  final String tekst;
+  final String? hoyre;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: Row(
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _kMintDyp,
+            boxShadow: [BoxShadow(color: rgba(92, 224, 184, .8), blurRadius: 8)],
           ),
         ),
-        if (hale != null) ...[const SizedBox(width: 10), hale!],
+        const SizedBox(width: 7),
+        Expanded(
+          child: Text(
+            tekst.toUpperCase(),
+            style: inter(11, weight: FontWeight.w800, em: .1, color: _kMint, height: spLinje(11)),
+          ),
+        ),
+        if (hoyre != null)
+          Text(
+            hoyre!,
+            style: inter(11, weight: FontWeight.w800, color: rgba(255, 255, 255, .6), height: spLinje(11)),
+          ),
       ],
     ),
   );
 }
 
-/// The Vipps tile with its V.
-class _VippsTile extends StatelessWidget {
-  const _VippsTile({required this.size, required this.radius});
+/// The 42 px tile: glass, or mint for the sheet's own icon.
+class _Flis extends StatelessWidget {
+  const _Flis({required this.child, this.mint = false});
 
-  final double size, radius;
+  final Widget child;
+  final bool mint;
 
   @override
-  Widget build(BuildContext context) => SpTile(
-    size: size,
-    radius: radius,
-    colors: kSpTileVipps,
-    inner: rgba(120, 40, 30, .3),
-    child: Text(
-      'V',
-      style: jakarta(
-        14,
-        em: -.04,
-        color: const Color(0xFF5A1E14),
-        shadows: [Shadow(color: rgba(255, 255, 255, .6), offset: const Offset(0, 1))],
-      ),
+  Widget build(BuildContext context) => CssBox(
+    width: 42,
+    height: 42,
+    radius: BorderRadius.circular(14),
+    bg: [
+      CssLinear(160, mint ? [rgba(127, 240, 203, .38), rgba(92, 224, 184, .1)] : [rgba(255, 255, 255, .22), rgba(255, 255, 255, .06)]),
+    ],
+    shadows: [
+      CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .3)),
+      CssShadow.inset(0, 0, 0, 1, mint ? rgba(127, 240, 203, .5) : rgba(255, 255, 255, .18)),
+      CssShadow(0, 8, 12, -6, rgba(0, 0, 0, .5)),
+    ],
+    child: Center(child: child),
+  );
+}
+
+/// The Vipps tile: orange with the white Vipps logo.
+class _VippsTile extends StatelessWidget {
+  const _VippsTile();
+
+  @override
+  Widget build(BuildContext context) => CssBox(
+    width: 42,
+    height: 42,
+    radius: BorderRadius.circular(14),
+    bg: const [
+      CssLinear(160, [Color(0xFFFF7A4D), Color(0xFFFF5B24), Color(0xFFE04A16)], [0, .6, 1]),
+    ],
+    shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .4)), CssShadow(0, 0, 0, 2, rgba(255, 255, 255, .9)), CssShadow(0, 8, 12, -6, rgba(0, 0, 0, .55))],
+    child: Center(
+      child: Image.asset('assets/images/vipps_logo_hvit.png', width: 42 * .74, filterQuality: FilterQuality.medium),
     ),
   );
 }
 
-/// A small light chip («Se alt», «Kvittering»).
-class _Chip extends StatelessWidget {
-  const _Chip({required this.tekst, required this.farge, this.pil = false, this.ikon, this.onTap});
+/// «Betalt 18:04»: the mint pill with a tick.
+class _BetaltPille extends StatelessWidget {
+  const _BetaltPille(this.tekst);
 
   final String tekst;
-  final Color farge;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    height: 22, // 20 + the CSS border
+    padding: const EdgeInsets.symmetric(horizontal: 8),
+    decoration: BoxDecoration(
+      color: rgba(92, 224, 184, .14),
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: rgba(127, 240, 203, .45)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        spIkon(_kIkonHake, size: 9, color: _kMint, width: 3.4),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            tekst,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: inter(10.5, weight: FontWeight.w800, color: _kMint, height: spLinje(10.5)),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// A glass chip («Se alt», «Kvittering»): 32 high.
+class _Chip extends StatelessWidget {
+  const _Chip({super.key, required this.tekst, this.pil = false, this.ikon, this.onTap});
+
+  final String tekst;
   final bool pil;
   final String? ikon;
   final VoidCallback? onTap;
@@ -1561,35 +1834,32 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final box = CssBox(
+      height: 34, // 32 + the CSS border
+      padding: const EdgeInsets.symmetric(horizontal: 13),
       radius: BorderRadius.circular(999),
-      padding: const EdgeInsets.fromLTRB(11, 7, 11, 7),
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
+      border: Border.all(color: rgba(255, 255, 255, .24)),
+      bg: [
+        CssLinear(180, [rgba(255, 255, 255, .12), rgba(255, 255, 255, .12)]),
       ],
-      shadows: const [CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 0, 0, 1, Color(0xFFFFFFFF)), CssShadow(0, 2, 0, 1, Color(0xFFE3D5BE))],
+      shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .22))],
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (ikon != null) ...[spIkon(ikon!, size: 12, color: farge), const SizedBox(width: 5)],
-          Text(
-            tekst,
-            style: inter(11, weight: FontWeight.w800, color: farge),
-          ),
-          if (pil) ...[const SizedBox(width: 4), spIkon(kSpIkonPil, size: 9, color: farge, width: 3.2)],
+          if (ikon != null) ...[spIkon(ikon!, size: 13), const SizedBox(width: 5)],
+          Text(tekst, style: inter(12, weight: FontWeight.w800, height: spLinje(12))),
+          if (pil) ...[const SizedBox(width: 5), spIkon(_kIkonPil, size: 10, width: 3.2)],
         ],
       ),
     );
     if (onTap == null) return box;
-    return LfPress(onTap: onTap, dy: 1, child: box);
+    return LfPress(onTap: onTap, scale: .95, dy: 0, child: box);
   }
 }
 
-/// A round light key (close, phone).
-class _LysKnapp extends StatelessWidget {
-  const _LysKnapp({required this.size, required this.child, required this.onTap, this.radius});
+/// The round glass key (close).
+class _GlassRund extends StatelessWidget {
+  const _GlassRund({super.key, required this.child, required this.onTap});
 
-  final double size;
-  final double? radius;
   final Widget child;
   final VoidCallback onTap;
 
@@ -1597,45 +1867,117 @@ class _LysKnapp extends StatelessWidget {
   Widget build(BuildContext context) => LfPress(
     onTap: onTap,
     scale: .92,
-    dy: 1,
+    dy: 0,
     child: CssBox(
-      width: size,
-      height: size,
-      radius: BorderRadius.circular(radius ?? 99),
-      bg: const [
-        CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
+      width: 42, // 40 + the CSS border
+      height: 42,
+      radius: BorderRadius.circular(999),
+      border: Border.all(color: rgba(255, 255, 255, .28)),
+      bg: [
+        CssLinear(180, [rgba(255, 255, 255, .22), rgba(255, 255, 255, .08)]),
       ],
-      shadows: [
-        const CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)),
-        const CssShadow(0, 0, 0, 1, Color(0xFFFFFFFF)),
-        const CssShadow(0, 2, 0, 1, Color(0xFFE3D5BE)),
-        CssShadow(0, 6, 10, -6, rgba(60, 48, 30, .45)),
-      ],
+      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .3)), CssShadow(0, 8, 14, -8, rgba(0, 0, 0, .6))],
       child: Center(child: child),
     ),
   );
 }
 
+/// The live dot with its `livePuls` ring.
+class _PulsPrikk extends StatelessWidget {
+  const _PulsPrikk();
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 8,
+    height: 8,
+    child: LfLoop(
+      builder: (context, t, _) {
+        final e = cssEaseOut.transform((t % 1800) / 1800);
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(
+              child: Opacity(
+                opacity: .9 * (1 - e),
+                child: Transform.scale(
+                  scale: .6 + 1.3 * e,
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: _kMintDyp),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _kMintDyp,
+                  boxShadow: [BoxShadow(color: rgba(92, 224, 184, .9), blurRadius: 8)],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
 class _Info extends StatelessWidget {
-  const _Info(this.label, this.verdi);
+  const _Info(this.label, this.verdi, {this.mono = false});
 
   final String label, verdi;
+  final bool mono;
 
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
-        label,
-        style: inter(9, weight: FontWeight.w800, em: .08, color: const Color(0xFF8C847C)),
-      ),
+      _Eyebrow(label),
       const SizedBox(height: 2),
       Text(
         verdi,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: inter(12, weight: FontWeight.w800, color: kSpInk),
+        style: mono ? GoogleFonts.ibmPlexMono(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white, height: 16 / 12.5).copyWith(leadingDistribution: TextLeadingDistribution.even) : inter(13, weight: FontWeight.w800, height: spLinje(13)).copyWith(fontFeatures: _kTab),
       ),
     ],
+  );
+}
+
+/// «Utført av Ærend AI: …» lines on the order's timeline (Customer Step 10;
+/// `agent.action_applied` with `done_by_ai`). The key maps to the app's own
+/// string; the server's text is the fallback.
+class _Effekter extends StatelessWidget {
+  const _Effekter({required this.effekter});
+
+  final List<OpsEffect> effekter;
+
+  @override
+  Widget build(BuildContext context) => _Glass(
+    radius: 22,
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+    child: Column(
+      key: const Key('cus-sporing-effekter'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Eyebrow(SporingCopy.cus_ai_utfort_eyebrow),
+        for (final (i, e) in effekter.indexed) ...[
+          SizedBox(height: i == 0 ? 6 : 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFF2C14E), boxShadow: [BoxShadow(color: Color(0xFFF2C14E), blurRadius: 6)])),
+              ),
+              const SizedBox(width: 9),
+              Expanded(child: Text(SporingCopy.cus_ai_utfort(e.textKey, e.text, e.textEn), style: inter(12.5, weight: FontWeight.w700, height: 1.4))),
+              if (e.at case final at?) ...[const SizedBox(width: 8), Text(spKlokke(at), style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62)).copyWith(fontFeatures: _kTab))],
+            ],
+          ),
+        ],
+      ],
+    ),
   );
 }

@@ -1,3 +1,4 @@
+import 'chat_card_models.dart' show ShoppingListItem;
 import 'suggestion_models.dart';
 
 /// One chat turn from `POST agent/chat` (agil-3 Phase 7). `state` is the
@@ -14,6 +15,12 @@ class AegilTurn {
     this.ageGate = false,
     this.gift = false,
     this.stored = 0,
+    this.conversationId,
+    this.messageId,
+    this.source,
+    this.aiLabel,
+    this.verktoy = const [],
+    this.chips = const [],
   });
 
   final String state;
@@ -26,6 +33,23 @@ class AegilTurn {
   final bool ageGate;
   final bool gift;
   final int stored;
+
+  /// Customer Step 5: the conversation this turn belongs to (`cv_…`) and its
+  /// message id — the app keeps the id and resumes the chat after a relaunch.
+  final String? conversationId;
+  final int? messageId;
+
+  /// Who answered: `model`, `template` (the template lines) or `rules`.
+  final String? source;
+
+  /// «Ægil er en AI».
+  final String? aiLabel;
+
+  /// The typed cards under the reply (`tool_cards`).
+  final List<AeVerktoy> verktoy;
+
+  /// Follow-ups the reply offers (`chips`); empty means the screen's own.
+  final List<String> chips;
 
   factory AegilTurn.fromJson(Map<String, dynamic> json) => AegilTurn(
     state: (json['state'] as String?) ?? 'agIkkeFunnet',
@@ -45,7 +69,78 @@ class AegilTurn {
     ageGate: json['age_gate'] == true,
     gift: json['gift'] == true,
     stored: (json['stored'] as num?)?.toInt() ?? 0,
+    conversationId: json['conversation_id'] as String?,
+    messageId: (json['message_id'] as num?)?.toInt(),
+    source: json['source'] as String?,
+    aiLabel: json['ai_label'] as String?,
+    verktoy: ((json['tool_cards'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => AeVerktoy.fromJson(e.cast<String, dynamic>()))
+        .where((v) => v.type.isNotEmpty)
+        .toList(),
+    chips: ((json['chips'] as List?) ?? const []).whereType<String>().toList(),
   );
+}
+
+/// Customer Step 5: a typed card under a chat reply (`tool_cards`) — an
+/// order's status, the basket, a cart change Ægil proposes (the tap applies
+/// it; then a receipt with Angre), a person (Hjelp), Min bio.
+class AeVerktoy {
+  const AeVerktoy(this.type, this.data);
+
+  factory AeVerktoy.fromJson(Map<String, dynamic> json) => AeVerktoy((json['type'] as String?) ?? '', json);
+
+  final String type;
+  final Map<String, dynamic> data;
+
+  /// A proposal's id (`pa_…`).
+  String? get id => data['id'] as String?;
+  String get status => (data['status'] as String?) ?? '';
+
+  AeVerktoy med(Map<String, dynamic> nytt) => AeVerktoy(type, {...data, ...nytt});
+
+  Map<String, dynamic> map(String k) => (data[k] is Map) ? (data[k] as Map).cast<String, dynamic>() : const {};
+}
+
+/// Customer Step 5: one of the customer's chats (`GET agent/chat/conversations`).
+class AegilSamtale {
+  const AegilSamtale({required this.id, this.title, this.messageCount = 0, this.lastMessageAt, this.open = true});
+
+  factory AegilSamtale.fromJson(Map<String, dynamic> json) => AegilSamtale(
+    id: (json['id'] as String?) ?? '',
+    title: json['title'] as String?,
+    messageCount: (json['message_count'] as num?)?.toInt() ?? 0,
+    lastMessageAt: DateTime.tryParse('${json['last_message_at'] ?? ''}'),
+    open: (json['status'] as String?) != 'closed',
+  );
+
+  final String id;
+  final String? title;
+  final int messageCount;
+  final DateTime? lastMessageAt;
+  final bool open;
+}
+
+/// Customer Step 5: a line of a stored chat — the customer's words, or
+/// Ægil's turn (read back through [AegilTurn.fromJson]).
+class AegilSamtaleLinje {
+  const AegilSamtaleLinje({required this.meg, required this.tekst, this.turn});
+
+  factory AegilSamtaleLinje.fromJson(Map<String, dynamic> json) {
+    final meg = json['role'] == 'customer';
+    final tekst = (json['text'] as String?) ?? '';
+    if (meg) return AegilSamtaleLinje(meg: true, tekst: tekst);
+    final payload = json['payload'] is Map ? (json['payload'] as Map).cast<String, dynamic>() : const <String, dynamic>{};
+    return AegilSamtaleLinje(
+      meg: false,
+      tekst: tekst,
+      turn: AegilTurn.fromJson({...payload, 'state': json['state'] ?? 'agSvar', 'reply': tekst, 'tool_cards': json['tool_cards'], 'chips': json['chips'], 'source': json['source']}),
+    );
+  }
+
+  final bool meg;
+  final String tekst;
+  final AegilTurn? turn;
 }
 
 class AegilBasketLine {
@@ -119,6 +214,7 @@ class AwayItem {
     this.deepLink,
     this.undoable = false,
     this.at,
+    this.undone = false,
   });
 
   final int id;
@@ -126,6 +222,9 @@ class AwayItem {
   final String action;
   final String? deepLink;
   final bool undoable;
+
+  /// Customer Step 7: a level-3 merge the customer already undid.
+  final bool undone;
 
   /// When Ægil did it (`at`, ISO 8601); the Varsler panel groups by day.
   final DateTime? at;
@@ -137,7 +236,81 @@ class AwayItem {
     deepLink: json['deep_link'] as String?,
     undoable: json['undoable'] == true,
     at: DateTime.tryParse((json['at'] as String?) ?? '')?.toLocal(),
+    undone: json['undone'] == true,
   );
+}
+
+/// Something Ægil noticed (`GET agent/me/patterns`, Customer Step 7): a
+/// proposal until «Stemmer»; confirmed, it steers level 3 and the rhythm push.
+class LearnedPatternItem {
+  const LearnedPatternItem({required this.id, required this.type, required this.text, this.support = '', this.confirmed = false});
+
+  final int id;
+  final String type;
+  final String text;
+
+  /// «Sett i 5 av 6 bestillinger».
+  final String support;
+  final bool confirmed;
+
+  factory LearnedPatternItem.fromJson(Map<String, dynamic> j) => LearnedPatternItem(
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    type: '${j['type'] ?? ''}',
+    text: '${j['text'] ?? ''}',
+    support: '${j['support'] ?? ''}',
+    confirmed: j['confirmed'] == true,
+  );
+}
+
+/// A basket line Ægil merged at level 3 (`GET agent/me/cart/agent-lines`).
+class AgentLine {
+  const AgentLine({required this.lineId, required this.name, this.productId = 0, this.quantity = 1, this.price = '', this.actionId});
+
+  final int lineId;
+  final int productId;
+  final String name;
+  final int quantity;
+  final String price;
+  final int? actionId;
+
+  factory AgentLine.fromJson(Map<String, dynamic> j) => AgentLine(
+    lineId: (j['line_id'] as num?)?.toInt() ?? 0,
+    productId: (j['product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    quantity: (j['quantity'] as num?)?.toInt() ?? 1,
+    price: j['price'] is Map ? '${(j['price'] as Map)['display'] ?? ''}' : '${j['price'] ?? ''}',
+    actionId: (j['action_id'] as num?)?.toInt(),
+  );
+}
+
+/// Customer Step 12: the monthly summary (`GET agent/me/monthly-summary`,
+/// Points spec §8 «monthly summary (1st)»): points earned, spent and expired
+/// this month, Ægil's savings line (the old trust-ledger card) and how many
+/// times he acted.
+class MonthlySummary {
+  const MonthlySummary({required this.month, this.earned = 0, this.spent = 0, this.expired = 0, this.savedKr = 0, this.actions = 0});
+
+  final String month;
+  final int earned;
+  final int spent;
+  final int expired;
+  final int savedKr;
+  final int actions;
+
+  /// Nothing happened this month: Meg hides the row (D-K6 «hide what has no data»).
+  bool get tom => earned == 0 && spent == 0 && expired == 0 && savedKr == 0;
+
+  factory MonthlySummary.fromJson(Map<String, dynamic> j) {
+    final trust = j['trust'];
+    return MonthlySummary(
+      month: (j['month'] as String?) ?? '',
+      earned: (j['earned'] as num?)?.toInt() ?? 0,
+      spent: (j['spent'] as num?)?.toInt() ?? 0,
+      expired: (j['expired'] as num?)?.toInt() ?? 0,
+      savedKr: trust is Map ? ((trust['saved_kr'] as num?)?.toInt() ?? 0) : 0,
+      actions: (j['actions'] as num?)?.toInt() ?? 0,
+    );
+  }
 }
 
 /// Tillitsregnskap (`GET agent/me/trust-ledger`).
@@ -149,6 +322,7 @@ class TrustLedger {
     this.againstInterestShown = 0,
     this.waitRecommended = 0,
     this.cheaperElsewhereTaken = 0,
+    this.lines = const [],
   });
 
   final String month;
@@ -158,6 +332,9 @@ class TrustLedger {
   final int waitRecommended;
   final int cheaperElsewhereTaken;
 
+  /// Customer Step 5: the month's findings for Meg's sheet (newest first).
+  final List<({String text, String sub})> lines;
+
   factory TrustLedger.fromJson(Map<String, dynamic> json) => TrustLedger(
     month: (json['month'] as String?) ?? '',
     savedKr: (json['saved_kr'] as num?)?.toInt() ?? 0,
@@ -165,6 +342,11 @@ class TrustLedger {
     againstInterestShown: (json['against_interest_shown'] as num?)?.toInt() ?? 0,
     waitRecommended: (json['wait_recommended'] as num?)?.toInt() ?? 0,
     cheaperElsewhereTaken: (json['cheaper_elsewhere_taken'] as num?)?.toInt() ?? 0,
+    lines: ((json['lines'] as List?) ?? const [])
+        .whereType<Map>()
+        .map((e) => (text: '${e['text'] ?? ''}', sub: '${e['sub'] ?? ''}'))
+        .where((l) => l.text.isNotEmpty)
+        .toList(),
   );
 }
 
@@ -315,4 +497,430 @@ class VervFriend {
         status: (json['status'] as String?) ?? 'downloaded',
         at: json['at'] as String?,
       );
+}
+
+// Customer Step 8: Ukeshandel (`GET agent/me/weekly`, the dinner plan, the
+// level-3 checkout). Money comes as the server's `{amount_ore, display}`.
+
+String _display(dynamic v) => v is Map ? '${v['display'] ?? ''}' : (v == null ? '' : '$v');
+
+/// One line in «Ukens kurv».
+class WeeklyLine {
+  const WeeklyLine({required this.lineId, required this.name, this.store = '', this.storeId = 0, this.qty = 1, this.source = 'list', this.price = '', this.saving, this.substitution, this.needsAccept = false, this.accepted, this.notes = const []});
+
+  final int lineId;
+  final String name;
+  final String store;
+  final int storeId;
+  final int qty;
+
+  /// `list` or `dinner`.
+  final String source;
+  final String price;
+
+  /// «−40» material: the saving against the reference price, or null.
+  final String? saving;
+
+  /// «Friele i stedet for Evergood»: the original the store was out of.
+  final String? substitution;
+  final bool needsAccept;
+  final bool? accepted;
+  final List<String> notes;
+
+  bool get pendingAccept => needsAccept && accepted == null;
+
+  factory WeeklyLine.fromJson(Map<String, dynamic> j) {
+    final sub = j['substitution'];
+    return WeeklyLine(
+      lineId: (j['line_id'] as num?)?.toInt() ?? 0,
+      name: '${j['name'] ?? ''}',
+      store: '${j['store'] ?? ''}',
+      storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+      qty: (j['qty'] as num?)?.toInt() ?? 1,
+      source: '${j['source'] ?? 'list'}',
+      price: _display(j['price']),
+      saving: j['saving'] == null ? null : _display(j['saving']),
+      substitution: sub is Map ? '${sub['original'] ?? ''}' : null,
+      needsAccept: j['needs_accept'] == true,
+      accepted: j['accepted'] is bool ? j['accepted'] as bool : null,
+      notes: ((j['notes'] as List?) ?? const []).map((e) => '$e').toList(),
+    );
+  }
+}
+
+/// What the builder left out, with the reason it tells the customer.
+class WeeklyDropped {
+  const WeeklyDropped({required this.name, required this.reason, this.text = ''});
+
+  final String name;
+  final String reason;
+  final String text;
+
+  factory WeeklyDropped.fromJson(Map<String, dynamic> j) => WeeklyDropped(name: '${j['name'] ?? ''}', reason: '${j['reason'] ?? ''}', text: '${j['text'] ?? ''}');
+}
+
+/// The week's basket as the server presents it.
+class WeeklyOrder {
+  const WeeklyOrder({required this.id, required this.week, required this.state, this.total = '', this.savings = '', this.savingsOre = 0, this.lines = const [], this.dropped = const [], this.reviewUntil, this.overCap = false, this.pendingAccept = 0, this.orderIds = const [], this.placedAt});
+
+  final int id;
+  final String week;
+
+  /// `draft`, `ready`, `reviewed`, `placed`, `paid`, `cancelled`.
+  final String state;
+  final String total;
+  final String savings;
+  final int savingsOre;
+  final List<WeeklyLine> lines;
+  final List<WeeklyDropped> dropped;
+  final String? reviewUntil;
+  final bool overCap;
+  final int pendingAccept;
+  final List<int> orderIds;
+  final String? placedAt;
+
+  bool get open => state == 'ready' || state == 'reviewed';
+
+  factory WeeklyOrder.fromJson(Map<String, dynamic> j) => WeeklyOrder(
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    week: '${j['week'] ?? ''}',
+    state: '${j['state'] ?? ''}',
+    total: _display(j['total']),
+    savings: _display(j['savings']),
+    savingsOre: j['savings'] is Map ? ((j['savings'] as Map)['amount_ore'] as num?)?.toInt() ?? 0 : 0,
+    lines: ((j['lines'] as List?) ?? const []).whereType<Map>().map((e) => WeeklyLine.fromJson(e.cast<String, dynamic>())).toList(),
+    dropped: ((j['dropped'] as List?) ?? const []).whereType<Map>().map((e) => WeeklyDropped.fromJson(e.cast<String, dynamic>())).toList(),
+    reviewUntil: j['review_until'] as String?,
+    overCap: j['over_cap'] == true,
+    pendingAccept: (j['pending_accept'] as num?)?.toInt() ?? 0,
+    orderIds: ((j['order_ids'] as List?) ?? const []).map((e) => (e as num).toInt()).toList(),
+    placedAt: j['placed_at'] as String?,
+  );
+}
+
+/// One weekday of the dinner plan (`agent/me/dinner_plans/{week}`).
+class DinnerDay {
+  const DinnerDay({required this.weekday, required this.name, this.rhythm = false, this.choiceType, this.storeProductId, this.label, this.price});
+
+  final int weekday;
+  final String name;
+  final bool rhythm;
+
+  /// `restaurant`, `recipe`, `skip` or null (nothing planned).
+  final String? choiceType;
+  final int? storeProductId;
+  final String? label;
+  final String? price;
+
+  bool get planned => choiceType == 'restaurant' || choiceType == 'recipe';
+
+  factory DinnerDay.fromJson(Map<String, dynamic> j) => DinnerDay(
+    weekday: (j['weekday'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    rhythm: j['rhythm'] == true,
+    choiceType: j['choice_type'] as String?,
+    storeProductId: (j['store_product_id'] as num?)?.toInt(),
+    label: j['label'] as String?,
+    price: j['price'] == null ? null : _display(j['price']),
+  );
+}
+
+/// A dish the customer has had delivered before: a dinner candidate.
+class DinnerCandidate {
+  const DinnerCandidate({required this.storeProductId, required this.name, this.store = '', this.storeId = 0, this.price = ''});
+
+  final int storeProductId;
+  final String name;
+  final String store;
+  final int storeId;
+  final String price;
+
+  factory DinnerCandidate.fromJson(Map<String, dynamic> j) => DinnerCandidate(
+    storeProductId: (j['store_product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    store: '${j['store'] ?? ''}',
+    storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+    price: _display(j['price']),
+  );
+}
+
+/// `GET agent/me/weekly`: the week, its basket when built, the list, the plan
+/// and the dinner candidates — one read for both steps of the Ark.
+class WeeklyView {
+  const WeeklyView({this.week = '', this.weekly, this.items = const [], this.plan = const [], this.candidates = const []});
+
+  final String week;
+  final WeeklyOrder? weekly;
+  final List<ShoppingListItem> items;
+  final List<DinnerDay> plan;
+  final List<DinnerCandidate> candidates;
+
+  WeeklyView copyWith({WeeklyOrder? weekly, bool clearWeekly = false, List<ShoppingListItem>? items, List<DinnerDay>? plan}) =>
+      WeeklyView(week: week, weekly: clearWeekly ? null : weekly ?? this.weekly, items: items ?? this.items, plan: plan ?? this.plan, candidates: candidates);
+
+  factory WeeklyView.fromJson(Map<String, dynamic> j) => WeeklyView(
+    week: '${j['week'] ?? ''}',
+    weekly: j['weekly'] is Map ? WeeklyOrder.fromJson((j['weekly'] as Map).cast<String, dynamic>()) : null,
+    items: ((j['items'] as List?) ?? const []).whereType<Map>().map((e) => ShoppingListItem.fromJson(e.cast<String, dynamic>())).toList(),
+    plan: ((j['plan'] as List?) ?? const []).whereType<Map>().map((e) => DinnerDay.fromJson(e.cast<String, dynamic>())).toList(),
+    candidates: ((j['candidates'] as List?) ?? const []).whereType<Map>().map((e) => DinnerCandidate.fromJson(e.cast<String, dynamic>())).toList(),
+  );
+}
+
+/// One store's confirmation on the level-3 checkout (`weekly/{id}/checkout`
+/// and each `confirm`): the token the next confirm needs, and where we are.
+class WeeklyConfirmation {
+  const WeeklyConfirmation({required this.confirmToken, required this.storeId, this.store = '', this.total = '', this.storesTotal = 1, this.storesDone = 0});
+
+  final String confirmToken;
+  final int storeId;
+  final String store;
+  final String total;
+  final int storesTotal;
+  final int storesDone;
+
+  factory WeeklyConfirmation.fromJson(Map<String, dynamic> j) {
+    final c = (j['confirmation'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final summary = (c['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
+    return WeeklyConfirmation(
+      confirmToken: '${c['confirm_token'] ?? ''}',
+      storeId: (c['store_id'] as num?)?.toInt() ?? 0,
+      store: '${c['store'] ?? ''}',
+      total: _display(summary['total']),
+      storesTotal: (j['stores_total'] as num?)?.toInt() ?? 1,
+      storesDone: (j['stores_done'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// `weekly/{id}/confirm`: the order just placed, then the next store's
+/// confirmation — or `done` with every order id.
+class WeeklyConfirmResult {
+  const WeeklyConfirmResult({required this.done, required this.orderId, this.next, this.orders = const [], this.weekly});
+
+  final bool done;
+  final int orderId;
+  final WeeklyConfirmation? next;
+  final List<int> orders;
+  final WeeklyOrder? weekly;
+
+  factory WeeklyConfirmResult.fromJson(Map<String, dynamic> j) {
+    final placed = (j['placed'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final order = (placed['order'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final done = j['done'] == true;
+    return WeeklyConfirmResult(
+      done: done,
+      orderId: (order['id'] as num?)?.toInt() ?? 0,
+      next: done ? null : WeeklyConfirmation.fromJson(j),
+      orders: ((j['orders'] as List?) ?? const []).map((e) => (e as num).toInt()).toList(),
+      weekly: j['weekly'] is Map ? WeeklyOrder.fromJson((j['weekly'] as Map).cast<String, dynamic>()) : null,
+    );
+  }
+}
+
+// Customer Step 9: the customer agents C1 (gift), C3 (reorder by photo),
+// C4 (door interpretation) — `agent/me/gifts/*`, `me/reorder/*`, `me/door/*`.
+
+/// One gift card: store, name, price, «Rekker fram lørdag», the Derfor-line.
+class GiftCard {
+  const GiftCard({required this.storeProductId, required this.name, this.store = '', this.storeId = 0, this.price = '', this.priceOre = 0, this.deliver = '', this.reason = '', this.offer = false});
+
+  final int storeProductId;
+  final String name;
+  final String store;
+  final int storeId;
+  final String price;
+  final int priceOre;
+  final String deliver;
+  final String reason;
+  final bool offer;
+
+  factory GiftCard.fromJson(Map<String, dynamic> j) => GiftCard(
+    storeProductId: (j['store_product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    store: '${j['store'] ?? ''}',
+    storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+    price: _display(j['price']),
+    priceOre: (j['price_ore'] as num?)?.toInt() ?? 0,
+    deliver: '${j['deliver'] ?? ''}',
+    reason: '${j['reason'] ?? ''}',
+    offer: j['offer'] == true,
+  );
+}
+
+/// A gift search as the server presents it: the brief read back, the round's
+/// cards, the card text — or the honest empty card with the next day.
+class GiftResult {
+  const GiftResult({required this.id, this.raw = const {}, this.state = 'open', this.readback = '', this.title, this.cards = const [], this.cardText, this.cardSource, this.round = 1, this.more = false, this.empty = false, this.text = '', this.sub = '', this.nextDay, this.nextLabel, this.nextCount = 0, this.chosenStoreProductId, this.gift = const {}, this.parsed = const {}, this.exhausted = false, this.message});
+
+  /// The server's map, for the chat's cards.
+  final Map<String, dynamic> raw;
+  final int id;
+  final String state;
+  final String readback;
+  final String? title;
+  final List<GiftCard> cards;
+  final String? cardText;
+  final String? cardSource;
+  final int round;
+  final bool more;
+  final bool empty;
+  final String text;
+  final String sub;
+  final String? nextDay;
+  final String? nextLabel;
+  final int nextCount;
+  final int? chosenStoreProductId;
+  final Map<String, dynamic> gift;
+  final Map<String, dynamic> parsed;
+  final bool exhausted;
+  final String? message;
+
+  factory GiftResult.fromJson(Map<String, dynamic> j) => GiftResult(
+    raw: j,
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    state: '${j['state'] ?? 'open'}',
+    readback: '${j['readback'] ?? ''}',
+    title: j['title'] as String?,
+    cards: ((j['cards'] as List?) ?? const []).whereType<Map>().map((e) => GiftCard.fromJson(e.cast<String, dynamic>())).toList(),
+    cardText: j['card_text'] as String?,
+    cardSource: j['card_source'] as String?,
+    round: (j['round'] as num?)?.toInt() ?? 1,
+    more: j['more'] == true,
+    empty: j['empty'] == true,
+    text: '${j['text'] ?? ''}',
+    sub: '${j['sub'] ?? ''}',
+    nextDay: j['next_day'] as String?,
+    nextLabel: j['next_label'] as String?,
+    nextCount: (j['next_count'] as num?)?.toInt() ?? 0,
+    chosenStoreProductId: (j['chosen_store_product_id'] as num?)?.toInt(),
+    gift: j['gift'] is Map ? (j['gift'] as Map).cast<String, dynamic>() : const {},
+    parsed: j['parsed'] is Map ? (j['parsed'] as Map).cast<String, dynamic>() : const {},
+    exhausted: j['exhausted'] == true,
+    message: j['message'] as String?,
+  );
+}
+
+/// A product the photo may be (`candidates`), with how sure the engine is.
+class ReorderCandidate {
+  const ReorderCandidate({required this.storeProductId, required this.name, this.store = '', this.storeId = 0, this.price = '', this.confidence = 0, this.reason = '', this.usualStore = false});
+
+  final int storeProductId;
+  final String name;
+  final String store;
+  final int storeId;
+  final String price;
+  final double confidence;
+  final String reason;
+  final bool usualStore;
+
+  factory ReorderCandidate.fromJson(Map<String, dynamic> j) => ReorderCandidate(
+    storeProductId: (j['store_product_id'] as num?)?.toInt() ?? 0,
+    name: '${j['name'] ?? ''}',
+    store: '${j['store'] ?? ''}',
+    storeId: (j['store_id'] as num?)?.toInt() ?? 0,
+    price: _display(j['price']),
+    confidence: (j['confidence'] as num?)?.toDouble() ?? 0,
+    reason: '${j['reason'] ?? ''}',
+    usualStore: j['usual_store'] == true,
+  );
+}
+
+/// `POST agent/me/reorder/scan`: one sure hit (`one`), «Var det denne?»
+/// (`ask`) or nothing (`none`; `blocked: age` for an age-restricted product).
+class ReorderResult {
+  const ReorderResult({required this.id, this.raw = const {}, this.hit = 'none', this.candidates = const [], this.ocrText, this.blocked, this.state = 'open', this.tookMs = 0, this.added = false, this.feil});
+
+  /// The server's map, for the chat's cards.
+  final Map<String, dynamic> raw;
+  final int id;
+  final String hit;
+  final List<ReorderCandidate> candidates;
+  final String? ocrText;
+  final String? blocked;
+  final String state;
+  final int tookMs;
+  final bool added;
+  final String? feil;
+
+  factory ReorderResult.fromJson(Map<String, dynamic> j) => ReorderResult(
+    raw: j,
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    hit: '${j['hit'] ?? 'none'}',
+    candidates: ((j['candidates'] as List?) ?? const []).whereType<Map>().map((e) => ReorderCandidate.fromJson(e.cast<String, dynamic>())).toList(),
+    ocrText: j['ocr_text'] as String?,
+    blocked: j['blocked'] as String?,
+    state: '${j['state'] ?? 'open'}',
+    tookMs: (j['took_ms'] as num?)?.toInt() ?? 0,
+    added: j['added'] == true,
+  );
+}
+
+/// The four door chips.
+class DoorFields {
+  const DoorFields({this.floor, this.bell, this.entrance, this.code});
+
+  final int? floor;
+  final String? bell;
+  final String? entrance;
+  final String? code;
+
+  factory DoorFields.fromJson(Map<String, dynamic> j) => DoorFields(
+    floor: (j['floor'] as num?)?.toInt(),
+    bell: j['bell'] as String?,
+    entrance: j['entrance'] as String?,
+    code: j['code'] as String?,
+  );
+
+  DoorFields copyWith({int? floor, bool clearFloor = false}) => DoorFields(floor: clearFloor ? null : floor ?? this.floor, bell: bell, entrance: entrance, code: code);
+
+  /// «Etasje 3 · Ring på Hansen · Inngang bakgården · Kode 1234».
+  String line({bool withCode = true}) => [
+    if (floor != null) 'Etasje $floor',
+    if (bell != null && bell!.isNotEmpty) 'Ring på $bell',
+    if (entrance != null && entrance!.isNotEmpty) 'Inngang $entrance',
+    if (withCode && code != null && code!.isNotEmpty) 'Kode $code',
+  ].join(' · ');
+
+  bool get isEmpty => floor == null && (bell ?? '').isEmpty && (entrance ?? '').isEmpty && (code ?? '').isEmpty;
+}
+
+/// `agent/me/addresses/{id}/door/parse` and the confirmation.
+class DoorResult {
+  const DoorResult({required this.id, this.raw = const {}, required this.fields, this.addressId, this.address, this.text = '', this.state = 'proposed', this.hasCode = false, this.codeConsent = false, this.needsFloor = false, this.preview = '', this.line, this.saved = false, this.codeOnce, this.source});
+
+  /// The server's map, for the chat's cards.
+  final Map<String, dynamic> raw;
+  final int id;
+  final DoorFields fields;
+  final int? addressId;
+  final String? address;
+  final String text;
+  final String state;
+  final bool hasCode;
+  final bool codeConsent;
+  final bool needsFloor;
+  final String preview;
+  final String? line;
+  final bool saved;
+  final String? codeOnce;
+  final String? source;
+
+  factory DoorResult.fromJson(Map<String, dynamic> j) => DoorResult(
+    raw: j,
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    fields: DoorFields.fromJson((j['fields'] as Map?)?.cast<String, dynamic>() ?? const {}),
+    addressId: (j['address_id'] as num?)?.toInt(),
+    address: j['address'] as String?,
+    text: '${j['text'] ?? ''}',
+    state: '${j['state'] ?? 'proposed'}',
+    hasCode: j['has_code'] == true,
+    codeConsent: j['code_consent'] == true,
+    needsFloor: j['needs_floor'] == true,
+    preview: '${j['preview'] ?? ''}',
+    line: j['line'] as String?,
+    saved: j['saved'] == true,
+    codeOnce: j['code_once'] as String?,
+    source: j['source'] as String?,
+  );
 }

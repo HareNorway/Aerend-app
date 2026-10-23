@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../../home/bergen/bergen_nav.dart';
 
 // ── onbWow / hjemInn / myntRegn ─────────────────────────────────────────────
@@ -19,7 +19,7 @@ double _ease(double p) => p < .5 ? 4 * p * p * p : 1 - math.pow(-2 * p + 2, 3) /
 /// [center] (global logical px); the previous route stays visible outside it.
 PageRoute<T> lfWowRoute<T extends Object?>(Widget screen, Offset center, {bool coins = true}) {
   return PageRouteBuilder<T>(
-    settings: RouteSettings(name: snurreLauncherRouteNameFor(screen)),
+    settings: RouteSettings(name: routeNameFor(screen)),
     opaque: false,
     transitionDuration: const Duration(milliseconds: 1050),
     reverseTransitionDuration: Duration.zero,

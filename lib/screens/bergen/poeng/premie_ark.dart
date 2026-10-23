@@ -7,6 +7,7 @@ import '../kit/bergen_kit.dart';
 import '../meg/meg_ark.dart';
 import '../meg/meg_copy_a4.dart';
 import '../meg/mork_rad.dart';
+import 'poeng_feil.dart';
 
 /// The prize sheets shared by Premiehylla and Meg (Gap Step 3):
 /// - `krev` (L19658, new Bergen): claim a prize. Meg's «Hent premie» opens it
@@ -86,7 +87,7 @@ abstract final class PremieArk {
             nav.pop(true);
             if (context.mounted) showBergenToast(context, A4MegCopy.a4_hylla_hentet(p.name), icon: Icons.check_rounded);
           } else {
-            sheetSet?.call(() => error = r.error ?? A4MegCopy.a4_hylla_feil);
+            sheetSet?.call(() => error = CusPoengFeil.tekst(r.error, ellers: A4MegCopy.a4_hylla_feil));
           }
         },
       ),

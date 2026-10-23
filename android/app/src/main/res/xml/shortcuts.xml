@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Customer Step 15 (Commerce spec §10, D-K19): the four static shortcuts, the
+     Android twins of the iOS App Shortcuts. Each only opens the app at a Bergen
+     route; OrderAgain lands on Hurtig's confirmation step — nothing is ordered
+     from a shortcut alone. App Actions (BIIs) need Play review: later. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="order_again"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/snarvei_igjen"
+        android:shortcutLongLabel="@string/snarvei_igjen_lang">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="aerendapp://bergen/hurtig?mod=forrige"
+            android:targetPackage="no.aerend.customer"
+            android:targetClass="no.aerend.customer.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="track_order"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/snarvei_sporing"
+        android:shortcutLongLabel="@string/snarvei_sporing_lang">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="aerendapp://bergen/siste-bestilling"
+            android:targetPackage="no.aerend.customer"
+            android:targetClass="no.aerend.customer.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="find_stores_near_me"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/snarvei_butikker"
+        android:shortcutLongLabel="@string/snarvei_butikker_lang">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="aerendapp://bergen/sok?naer=1"
+            android:targetPackage="no.aerend.customer"
+            android:targetClass="no.aerend.customer.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="open_cart"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/snarvei_kurv"
+        android:shortcutLongLabel="@string/snarvei_kurv_lang">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="aerendapp://bergen/kurv"
+            android:targetPackage="no.aerend.customer"
+            android:targetClass="no.aerend.customer.MainActivity" />
+    </shortcut>
+</shortcuts>

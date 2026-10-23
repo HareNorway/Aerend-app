@@ -28,6 +28,7 @@ class HjemKnappKort extends StatelessWidget {
     required this.merkeSvg,
     this.merkeForsinkelse = 0,
     required this.tittel,
+    this.tittelEtter,
     required this.under,
     required this.knapp,
     this.knappPad = const EdgeInsets.fromLTRB(15, 0, 13, 0),
@@ -51,6 +52,9 @@ class HjemKnappKort extends StatelessWidget {
   final double merkeForsinkelse;
 
   final String tittel;
+
+  /// Something after the title on its row (the AI marks pill, L2937), 8 px gap.
+  final Widget? tittelEtter;
   final Widget under;
 
   /// The key's content (text, arrow …) and its padding.
@@ -132,7 +136,14 @@ class HjemKnappKort extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(15, em: -.015, height: 1.2)),
+                  if (tittelEtter == null)
+                    Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(15, em: -.015, height: 1.2))
+                  else
+                    Row(children: [
+                      Flexible(child: Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(15, em: -.015, height: 1.2))),
+                      const SizedBox(width: 8),
+                      tittelEtter!,
+                    ]),
                   const SizedBox(height: 2),
                   under,
                 ],
@@ -214,10 +225,14 @@ Widget _aegilFlis(String bilde, {required double bredde, required double bunn}) 
 /// Hurtigbestilling · inngang (L2900): Ægil with the bolt, the usual order,
 /// and «Bestill».
 class HjemHurtigInngang extends StatelessWidget {
-  const HjemHurtigInngang({super.key, required this.linje, required this.onTap});
+  const HjemHurtigInngang({super.key, required this.linje, required this.onTap, this.onAi});
 
   final String linje;
   final VoidCallback onTap;
+
+  /// Customer Step 14: the AI marks pill after the title (design L2937,
+  /// «Hurtig · AI-merker») → aiVelg; null hides it (`cus.ai.linking` off).
+  final VoidCallback? onAi;
 
   @override
   Widget build(BuildContext context) => HjemKnappKort(
@@ -226,6 +241,7 @@ class HjemHurtigInngang extends StatelessWidget {
     merkeFarger: const [Color(0xFFFFA77C), Color(0xFFE95C2C)],
     merkeSvg: _kLyn,
     tittel: 'Hurtigbestilling',
+    tittelEtter: onAi == null ? null : HjemAiMerker(onTap: onAi!),
     under: Text(linje, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: _underTekst()),
     knappPad: const EdgeInsets.fromLTRB(13, 0, 15, 0),
     knapp: Row(
@@ -238,6 +254,63 @@ class HjemHurtigInngang extends StatelessWidget {
     ),
     onTap: onTap,
   );
+}
+
+/// The AI marks pill on the Hurtigbestilling card (design L2937): a 22 px
+/// dark pill with the Claude and ChatGPT marks overlapping and a chevron.
+class HjemAiMerker extends StatelessWidget {
+  const HjemAiMerker({super.key, required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget merke(String n, List<Color> bg) => Container(
+      width: 17,
+      height: 17,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: bg, stops: const [0, .62, 1]),
+        boxShadow: const [BoxShadow(color: Color(0xFF24596A), spreadRadius: 1.5)],
+      ),
+      child: Image.asset('assets/images/ai/$n.png', width: 12.5, height: 12.5, fit: BoxFit.contain),
+    );
+    return Semantics(
+      button: true,
+      label: 'Bestill med Claude eller ChatGPT',
+      child: LfPress(
+        scale: .92,
+        ms: 140,
+        onTap: onTap,
+        child: Container(
+          key: const Key('cus-ai-hjem-merker'),
+          height: 22,
+          padding: const EdgeInsets.fromLTRB(3, 0, 7, 0),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(999)),
+            color: Color.fromRGBO(6, 22, 30, .32),
+            boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .14), spreadRadius: 1)],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 29,
+                height: 17,
+                child: Stack(clipBehavior: Clip.none, children: [
+                  Positioned(left: 12, top: 0, child: merke('chatgpt', const [Color(0xFFFFFFFF), Color(0xFFF2F4F4), Color(0xFFDDE3E4)])),
+                  Positioned(left: 0, top: 0, child: merke('claude', const [Color(0xFFFFFFFF), Color(0xFFF7F1E6), Color(0xFFEADFCB)])),
+                ]),
+              ),
+              const SizedBox(width: 4),
+              SvgPicture.string('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>', width: 9, height: 9),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// «Butikker i Bergen» / «Populært i kveld» (Bergen L2933–2940, L3214–3216):

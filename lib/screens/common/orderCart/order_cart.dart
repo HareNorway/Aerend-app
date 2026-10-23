@@ -555,7 +555,7 @@ class OrderCartState extends State<OrderCart> {
                             overflow: TextOverflow.ellipsis,
                             style: coItemQty,
                           ),
-                        // Snurre review badge.
+                        // Substitution review badge (the backend's `snurre_*` cart fields).
                         if (order['snurre_flag_review'] == true ||
                             order['snurre_flag_review'] == 1) ...[
                           const SizedBox(height: 6),

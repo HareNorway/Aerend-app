@@ -1,7 +1,7 @@
 import '../utforsk/butikk_profil.dart' show butikkProfilRute;
 import 'package:flutter/material.dart';
 
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../bergen_routes_agil1.dart';
 import '../bergen_routes_agil3.dart';
 import 'bergen_toast.dart';
@@ -87,11 +87,8 @@ abstract final class BergenRoutes {
     if (key == null) return null;
     final builder = (bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!;
     final ruteSettings = RouteSettings(
-      // The Bergen prototype has no floating chat launcher on any of its
-      // screens — Ægil lives in the nav, the Søk card and the game — so a
-      // pushed Bergen route carries the launcher's hidden prefix, the same
-      // way the shell does. `argsOf` reads the arguments, not the name.
-      name: '$snurreLauncherHiddenRoutePrefix$name',
+      // `argsOf` reads the arguments, not the name.
+      name: '$appRoutePrefix$name',
       arguments: arguments(name, settings.arguments),
     );
     // Into and out of a store through the "Dråpe" portal.

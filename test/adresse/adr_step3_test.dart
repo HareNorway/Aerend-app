@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:aerend_customer/screens/bergen/adresse/adr_ark.dart';
@@ -51,6 +53,15 @@ class _Kilde implements AdrKilde {
   void minPosisjon(void Function() ferdig) => ferdig();
   @override
   void toast(String tekst) => toasts.add(tekst);
+  @override
+  Future<DoorResult?> dorTolk(AddressListItem a, String tekst) async => null;
+
+  @override
+  Future<DoorResult?> dorBekreft(int id, {int? etasje, bool samtykke = false}) async => null;
+
+  @override
+  Future<DoorResult?> dorAngre(int id) async => null;
+
 }
 
 AddressListItem _adr(int id, String type, String address, {String landmark = ''}) =>

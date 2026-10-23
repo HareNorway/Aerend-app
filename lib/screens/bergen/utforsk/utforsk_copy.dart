@@ -278,4 +278,7 @@ abstract final class UtforskCopy {
     }
     return b.toString();
   }
+
+  /// Customer Step 11: the disclosure line on an agent-written post (Addendum §10 #4).
+  static String get cus_feed_disclosure => _t('Skrevet automatisk av Ærend', 'Written automatically by Ærend');
 }

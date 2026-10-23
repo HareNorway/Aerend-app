@@ -1,19 +1,25 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
-import '../../../data/aegil/chat_card_models.dart';
 import '../../../data/points/league_models.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../common/auth/launch/lf_css.dart' show CssBox, CssLinear, CssShadow;
 import '../../common/auth/launch/lf_motion.dart' show LfRise;
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import '../../common/notifications/notifications_dl.dart';
 import '../poeng/prize_art.dart';
 import '../kit/bergen_kit.dart';
+import '../kit/bergen_routes.dart' show BergenRoutes;
 import '../kit/bergen_toast.dart';
+import 'a3_services.dart';
 import 'liga_ark.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
@@ -324,36 +330,407 @@ abstract final class MegSheets {
     );
   }
 
-  /// `ukeshandel`: the shopping list, and "Se ukens kurv" → nivå 4.
-  static Future<void> ukeshandel(BuildContext context, {required List<ShoppingListItem> items, required int level, VoidCallback? onOpenAegilSettings}) {
+  /// `ukeshandel` (Customer Step 8, design `kArk ukeshandel`): two steps on
+  /// the light Ark. `liste` — the list as chips (tap to tick off), the
+  /// planned dinners as rows (tap to change), «Se ukens kurv». `kurv` — the
+  /// week's basket in a white card (name · green saving · kr), «Bytte: …»
+  /// with «Ja» / «Nei» while a substitution waits, «Sparing N kr mot
+  /// referansepris», then «Til kassen» (level 3: one Vipps confirmation per
+  /// store) or «Legg i kurven» (below), and «Ikke denne uken». No basket yet
+  /// → «Bygg den nå». [view] is `GET agent/me/weekly`; below the flag it only
+  /// carries the list.
+  static Future<void> ukeshandel(
+    BuildContext context, {
+    required AegilAppApi api,
+    required WeeklyView view,
+    required int level,
+    String steg = 'liste',
+    VoidCallback? onOpenAegilSettings,
+    VoidCallback? onKurv,
+    /// Harness only (`ukeAuto`): `kasse` answers a waiting swap and goes to
+    /// the first store's confirmation, `betal` also confirms it.
+    String? auto,
+  }) {
+    return steg == 'kurv' ? _ukeKurv(context, api: api, view: view, level: level, onKurv: onKurv, auto: auto) : _ukeListe(context, api: api, view: view, level: level, onKurv: onKurv);
+  }
+
+  static Future<void> _ukeListe(BuildContext context, {required AegilAppApi api, required WeeklyView view, required int level, VoidCallback? onKurv}) {
+    var v = view;
     return showMegArk<void>(
       context,
       key: const Key('meg-ukeshandel-sheet'),
       title: A4MegCopy.a4_meg_handleliste,
-      subtitle: items.isEmpty ? A4MegCopy.a4_meg_handleliste_tom : null,
-      body: items.isEmpty
-          ? null
-          : (ctx, _) => Column(
+      subtitleBuilder: () => v.items.isEmpty ? A4MegCopy.a4_meg_handleliste_tom : A4MegCopy.a4_meg_liste_linje(v.items.length),
+      body: (ctx, setState) {
+        final planned = v.plan.where((d) => d.planned).toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (v.items.isNotEmpty) ...[
+              Wrap(
+                spacing: 7,
+                runSpacing: 7,
                 children: [
-                  for (final i in items)
-                    MegArkRow(
-                      title: '${i.qty > 1 ? '${i.qty} × ' : ''}${i.text}',
-                      sub: i.addedByAgent ? A4MegCopy.a4_meg_aegil_la_til : null,
-                      value: i.done ? A4MegCopy.a4_meg_kjopt : null,
+                  for (final i in v.items)
+                    _UkeChip(
+                      key: Key('uke-chip-${i.id}'),
+                      text: '${i.qty > 1 ? '${i.qty} × ' : ''}${i.text}',
+                      done: i.done,
+                      onTap: () async {
+                        final items = await api.toggleListItem(i.id);
+                        if (items != null && ctx.mounted) setState(() => v = v.copyWith(items: items));
+                      },
+                      onLongPress: () async {
+                        final items = await api.removeListItem(i.id);
+                        if (items != null && ctx.mounted) setState(() => v = v.copyWith(items: items));
+                      },
                     ),
                 ],
               ),
+              const SizedBox(height: 12),
+            ],
+            for (final d in planned)
+              MegArkRow(
+                key: Key('uke-middag-${d.weekday}'),
+                title: A4MegCopy.a4_meg_middag(d.name.toLowerCase()),
+                sub: d.label,
+                value: d.price,
+                onTap: () async {
+                  final plan = await _middagRett(ctx, api: api, view: v, weekday: d.weekday);
+                  if (plan != null && ctx.mounted) setState(() => v = v.copyWith(plan: plan));
+                },
+              ),
+            if (v.plan.isNotEmpty)
+              MegArkRow(
+                key: const Key('uke-middag-velg'),
+                title: A4MegCopy.a4_meg_middag_tittel,
+                sub: planned.isEmpty ? A4MegCopy.a4_meg_middag_ingen : A4MegCopy.a4_meg_middag_linje,
+                value: A4MegCopy.a4_meg_middag_velg,
+                onTap: () async {
+                  final plan = await _middagDag(ctx, api: api, view: v);
+                  if (plan != null && ctx.mounted) setState(() => v = v.copyWith(plan: plan));
+                },
+              ),
+          ],
+        );
+      },
       primary: MegArkButton(
+        key: const Key('uke-se-kurv'),
         label: A4MegCopy.a4_meg_se_ukens_kurv,
         onTap: () {
           Navigator.of(context).pop();
-          if (level >= 4) {
-            showBergenToast(context, A4MegCopy.a4_meg_fast, icon: Icons.shopping_basket_rounded);
-          } else {
-            nivaa4(context, onOpenAegilSettings: onOpenAegilSettings);
-          }
+          _ukeKurv(context, api: api, view: v, level: level, onKurv: onKurv);
         },
       ),
+    );
+  }
+
+  /// The week's days: which one to plan a dinner for.
+  static Future<List<DinnerDay>?> _middagDag(BuildContext context, {required AegilAppApi api, required WeeklyView view}) {
+    return showMegArk<List<DinnerDay>>(
+      context,
+      key: const Key('meg-middag-dag-sheet'),
+      title: A4MegCopy.a4_meg_middag_tittel,
+      subtitle: A4MegCopy.a4_meg_middag_linje,
+      body: (ctx, _) => Column(
+        children: [
+          for (final d in view.plan)
+            MegArkRow(
+              key: Key('middag-dag-${d.weekday}'),
+              title: d.name,
+              sub: d.label ?? (d.rhythm ? A4MegCopy.a4_meg_middag_linje : null),
+              value: d.price ?? (d.choiceType == 'skip' ? A4MegCopy.a4_meg_middag_hopp : null),
+              selected: d.planned,
+              onTap: () async {
+                final plan = await _middagRett(ctx, api: api, view: view, weekday: d.weekday);
+                if (plan != null && ctx.mounted) Navigator.of(ctx).pop(plan);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// The dishes the customer has had delivered: one for this weekday.
+  static Future<List<DinnerDay>?> _middagRett(BuildContext context, {required AegilAppApi api, required WeeklyView view, required int weekday}) {
+    final day = view.plan.where((d) => d.weekday == weekday).firstOrNull;
+    return showMegArk<List<DinnerDay>>(
+      context,
+      key: const Key('meg-middag-rett-sheet'),
+      title: A4MegCopy.a4_meg_middag(day?.name.toLowerCase() ?? ''),
+      subtitle: view.candidates.isEmpty ? A4MegCopy.a4_meg_middag_tom : A4MegCopy.a4_meg_middag_linje,
+      body: view.candidates.isEmpty
+          ? null
+          : (ctx, _) => Column(
+                children: [
+                  for (final c in view.candidates)
+                    MegArkRow(
+                      key: Key('middag-rett-${c.storeProductId}'),
+                      title: c.name,
+                      sub: c.store,
+                      value: c.price,
+                      selected: day?.storeProductId == c.storeProductId,
+                      onTap: () async {
+                        final plan = await api.setDinnerPlan(view.week, weekday, choiceType: 'restaurant', storeProductId: c.storeProductId);
+                        if (ctx.mounted) Navigator.of(ctx).pop(plan);
+                      },
+                    ),
+                ],
+              ),
+      secondary: MegArkButton(
+        key: const Key('middag-ingen'),
+        label: A4MegCopy.a4_meg_middag_fjern,
+        onTap: () async {
+          final nav = Navigator.of(context);
+          final plan = await api.setDinnerPlan(view.week, weekday);
+          nav.pop(plan);
+        },
+      ),
+    );
+  }
+
+  static Future<void> _ukeKurv(BuildContext context, {required AegilAppApi api, required WeeklyView view, required int level, VoidCallback? onKurv, String? auto}) {
+    var w = view.weekly;
+    var travelt = false;
+    var autoKjort = auto == null;
+    StateSetter? oppdater;
+    String linje() {
+      if (w == null) return A4MegCopy.a4_meg_uke_tom;
+      if (!w!.open) return A4MegCopy.a4_meg_uke_bestilt;
+      if (level >= 4) return A4MegCopy.a4_meg_uke_linje4;
+      return level >= 3 ? A4MegCopy.a4_meg_uke_linje3 : A4MegCopy.a4_meg_uke_linje2;
+    }
+
+    return showMegArk<void>(
+      context,
+      key: const Key('meg-ukeskurv-sheet'),
+      title: A4MegCopy.a4_meg_ukens_kurv(view.weekly?.total ?? '0 kr'),
+      titleBuilder: () => w == null ? A4MegCopy.a4_meg_ukeshandel : A4MegCopy.a4_meg_ukens_kurv(w!.total),
+      subtitleBuilder: linje,
+      body: (ctx, setState) {
+        oppdater = setState;
+        final o = w;
+        if (o == null) return const SizedBox.shrink();
+        Future<void> linjeDo(WeeklyLine l, String action) async {
+          final ny = await api.weeklyLine(o.id, l.lineId, action);
+          if (ny != null && ctx.mounted) {
+            setState(() => w = ny);
+            if (action == 'remove') showBergenToast(ctx, A4MegCopy.a4_meg_uke_fjernet);
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (o.lines.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: const Color.fromRGBO(35, 32, 29, .08)),
+                ),
+                child: Column(
+                  children: [
+                    for (final (i, l) in o.lines.indexed)
+                      Container(
+                        key: Key('uke-linje-${l.lineId}'),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(35, 32, 29, i == 0 ? 0 : .06)))),
+                        child: Row(
+                          children: [
+                            Expanded(child: Text('${l.qty > 1 ? '${l.qty} × ' : ''}${l.name}', style: BergenTokens.text(13.5, weight: FontWeight.w700, color: MegArkInk.ink))),
+                            if (l.saving != null) ...[
+                              Text('−${l.saving!.replaceAll(' kr', '')}', style: BergenTokens.text(13.5, weight: FontWeight.w800, color: const Color(0xFF2E7E4F))),
+                              const SizedBox(width: 10),
+                            ],
+                            Text(l.price, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: MegArkInk.ink)),
+                            if (o.open) ...[
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                key: Key('uke-fjern-${l.lineId}'),
+                                behavior: HitTestBehavior.opaque,
+                                onTap: travelt ? null : () => linjeDo(l, 'remove'),
+                                child: Padding(padding: const EdgeInsets.all(2), child: Icon(Icons.close_rounded, size: 15, color: MegArkInk.faint)),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            for (final l in o.lines.where((l) => l.substitution != null && l.accepted != false)) ...[
+              const SizedBox(height: 10),
+              Container(
+                key: Key('uke-bytte-${l.lineId}'),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                decoration: BoxDecoration(color: const Color.fromRGBO(30, 79, 92, .08), borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(A4MegCopy.a4_meg_bytte(l.name, l.substitution!), style: BergenTokens.text(12.5, weight: FontWeight.w700, color: MegArkInk.teal, height: 1.3))),
+                    if (l.pendingAccept && o.open) ...[
+                      const SizedBox(width: 8),
+                      _UkeChip(key: Key('uke-bytte-ja-${l.lineId}'), text: A4MegCopy.a4_meg_bytte_ja, done: true, onTap: () => linjeDo(l, 'accept')),
+                      const SizedBox(width: 6),
+                      _UkeChip(key: Key('uke-bytte-nei-${l.lineId}'), text: A4MegCopy.a4_meg_bytte_nei, done: false, onTap: () => linjeDo(l, 'reject')),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+            if (o.savingsOre > 0) ...[
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(A4MegCopy.a4_meg_sparing(o.savings), key: const Key('uke-sparing'), style: BergenTokens.text(13, weight: FontWeight.w800, color: const Color(0xFF2E7E4F))),
+              ),
+            ],
+            if (o.overCap) ...[
+              const SizedBox(height: 8),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Text(A4MegCopy.a4_meg_uke_tak, key: const Key('uke-tak'), style: BergenTokens.text(12.5, weight: FontWeight.w700, color: MegArkInk.muted, height: 1.35))),
+            ],
+            for (final d in o.dropped) ...[
+              const SizedBox(height: 6),
+              Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: Text('${d.name} · ${d.text}', style: BergenTokens.text(12, weight: FontWeight.w600, color: MegArkInk.muted, height: 1.35))),
+            ],
+          ],
+        );
+      },
+      secondary: view.weekly == null || !view.weekly!.open
+          ? null
+          : MegArkButton(
+              key: const Key('uke-ikke-denne-uken'),
+              label: A4MegCopy.a4_meg_ikke_denne_uken,
+              onTap: () async {
+                final o = w;
+                final nav = Navigator.of(context);
+                if (o != null) await api.weeklySkip(o.id);
+                nav.pop();
+                if (context.mounted) showBergenToast(context, A4MegCopy.a4_meg_uke_hoppet);
+              },
+            ),
+      primaryBuilder: (ctx) {
+        final o = w;
+        if (o == null) {
+          return MegArkButton(
+            key: const Key('uke-bygg'),
+            label: A4MegCopy.a4_meg_uke_bygg,
+            onTap: () async {
+              final r = await api.buildWeekly();
+              if (!ctx.mounted) return;
+              if (r.weekly == null) {
+                showBergenToast(ctx, r.feil ?? A4MegCopy.a4_meg_uke_tom);
+                return;
+              }
+              // The body's setState is out of reach here: close and reopen on the built basket.
+              Navigator.of(ctx).pop();
+              if (context.mounted) _ukeKurv(context, api: api, view: view.copyWith(weekly: r.weekly), level: level, onKurv: onKurv);
+            },
+          );
+        }
+        if (!o.open) return MegArkButton(label: A4MegCopy.a4_meg_lukk, av: true, onTap: () => Navigator.of(ctx).pop());
+        Future<void> videre() async {
+            final o = w;
+            if (travelt || o == null) return;
+            if (o.pendingAccept > 0 || o.overCap) {
+              showBergenToast(ctx, o.overCap ? A4MegCopy.a4_meg_uke_tak : A4MegCopy.a4_meg_bytte_svar);
+              return;
+            }
+            travelt = true;
+            if (level >= 3) {
+              final r = await api.weeklyCheckout(o.id);
+              travelt = false;
+              if (!ctx.mounted) return;
+              if (r.conf == null) {
+                showBergenToast(ctx, r.feil ?? BergenRoutes.provIgjen);
+                return;
+              }
+              Navigator.of(ctx).pop();
+              if (context.mounted) await _ukeKasse(context, api: api, id: o.id, conf: r.conf!, auto: auto == 'betal');
+            } else {
+              final r = await api.weeklyBasket(o.id);
+              travelt = false;
+              if (!ctx.mounted) return;
+              if (!r.ok) {
+                showBergenToast(ctx, r.feil ?? BergenRoutes.provIgjen);
+                return;
+              }
+              Navigator.of(ctx).pop();
+              if (context.mounted) showBergenToast(context, A4MegCopy.a4_meg_uke_i_kurven, icon: Icons.shopping_basket_rounded);
+              onKurv?.call();
+            }
+        }
+
+        if (!autoKjort && kDebugMode) {
+          autoKjort = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await Future<void>.delayed(const Duration(milliseconds: 1500));
+            for (final l in o.lines.where((l) => l.pendingAccept)) {
+              await api.weeklyLine(o.id, l.lineId, 'accept');
+            }
+            final ny = await api.weekly();
+            if (ny?.weekly != null && ctx.mounted) oppdater?.call(() => w = ny!.weekly);
+            await Future<void>.delayed(const Duration(milliseconds: 300));
+            if (ctx.mounted) await videre();
+          });
+        }
+        return MegArkButton(
+          key: const Key('uke-cta'),
+          label: level >= 3 ? A4MegCopy.a4_meg_til_kassen : A4MegCopy.a4_meg_legg_i_kurven,
+          av: travelt || o.pendingAccept > 0 || o.overCap,
+          onTap: videre,
+        );
+      },
+    );
+  }
+
+  /// Level 3: one store at a time — «Butikk 1 av 2 · Torgboden», the total,
+  /// «Betal med Vipps» confirms the order and opens Vipps; then the next
+  /// store, or «Ukens kurv er bestilt».
+  static Future<void> _ukeKasse(BuildContext context, {required AegilAppApi api, required int id, required WeeklyConfirmation conf, bool auto = false}) {
+    var travelt = false;
+    Future<void> betal() async {
+          if (travelt) return;
+          travelt = true;
+          final r = await api.weeklyConfirm(id, conf.confirmToken);
+          travelt = false;
+          if (!context.mounted) return;
+          if (r.res == null) {
+            showBergenToast(context, r.feil ?? BergenRoutes.provIgjen);
+            return;
+          }
+          Navigator.of(context).pop();
+          final url = r.res!.orderId > 0 ? await A3Services.vippsUrl(r.res!.orderId) : null;
+          final uri = url == null ? null : Uri.tryParse(url);
+          var aapnet = false;
+          try {
+            aapnet = uri != null && await canLaunchUrl(uri) && await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } catch (_) {
+            aapnet = false;
+          }
+          if (!aapnet && context.mounted) showBergenToast(context, A4MegCopy.a4_meg_uke_vipps_feil);
+          if (!context.mounted) return;
+          if (r.res!.next != null) {
+            await _ukeKasse(context, api: api, id: id, conf: r.res!.next!, auto: auto);
+          } else {
+            showBergenToast(context, A4MegCopy.a4_meg_uke_bestilt, icon: Icons.shopping_basket_rounded);
+          }
+    }
+
+    if (auto && kDebugMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 2500));
+        if (context.mounted) await betal();
+      });
+    }
+    return showMegArk<void>(
+      context,
+      key: const Key('meg-ukeskasse-sheet'),
+      title: A4MegCopy.a4_meg_uke_butikk(conf.storesDone + 1, conf.storesTotal, conf.store),
+      subtitle: conf.total,
+      secondary: MegArkButton(label: A4MegCopy.a4_meg_avbryt, onTap: () => Navigator.of(context).pop()),
+      primary: MegArkButton(key: const Key('uke-betal'), label: A4MegCopy.a4_meg_uke_betal, onTap: betal),
     );
   }
 
@@ -468,7 +845,7 @@ abstract final class MegSheets {
   /// `varslinger` (dark): the newest notices («Nytt» when they arrived
   /// after the last visit; order notices open Ordrehistorikk), then what is
   /// notified.
-  static Future<void> varsler(BuildContext context, {required List<MassNotificationItem> items, DateTime? seenAt, VoidCallback? onOrdre}) {
+  static Future<void> varsler(BuildContext context, {required List<MassNotificationItem> items, DateTime? seenAt, VoidCallback? onOrdre, CusApi? cus}) {
     bool ny(MassNotificationItem n) {
       final t = DateTime.tryParse(n.datetime);
       return seenAt == null || (t != null && t.isAfter(seenAt));
@@ -481,6 +858,26 @@ abstract final class MegSheets {
 
     final nye = items.where(ny).length;
     const innstIk = [MorkIk.gave, MorkIk.stjerne, MorkIk.pokal];
+    // Customer Step 3: Premier / Nivå / Ligaen are the inbox mutes `premier`,
+    // `nivaa`, `liga` (null while the inbox is off or loading: a plain «På»).
+    const innstNokler = ['premier', 'nivaa', 'liga'];
+    final api = cus ?? CusApi();
+    final mutes = ValueNotifier<Set<String>?>(null);
+    unawaited(api.varsler(limit: 1).then((i) => mutes.value = i?.mutes.toSet()).catchError((_) => null));
+    Future<void> bytt(BuildContext ctx, String key, String navn) async {
+      final for_ = mutes.value;
+      if (for_ == null) return;
+      final av = !for_.contains(key);
+      mutes.value = av ? {...for_, key} : ({...for_}..remove(key));
+      final svar = await api.varselDemp(key, av: av);
+      if (svar == null) {
+        mutes.value = for_;
+        if (ctx.mounted) showBergenToast(ctx, BergenRoutes.ikkeSendt);
+        return;
+      }
+      mutes.value = svar.toSet();
+      if (ctx.mounted) showBergenToast(ctx, A4MegCopy.a4_meg_varsel_lagret(navn, !av));
+    }
     var k = 0;
     return showMegArk<void>(
       context,
@@ -510,12 +907,24 @@ abstract final class MegSheets {
                   : () {},
             ),
           ],
-          // UI-TEMP: Placeholder data because reference UI currently has no backend/API support.
-          // (No per-kind notification settings exist; these pushes are always sent, so «På» holds.
-          // The design's switches are shown as a plain «På» until they can be turned off.)
           for (final (i, r) in A4MegCopy.a4_meg_varsel_innst.indexed) ...[
             if (k > 0) const SizedBox(height: 8),
-            MorkRad(delayMs: k++ * 40.0, ikon: innstIk[i % innstIk.length], navn: r[0], under: r[1], verdi: A4MegCopy.a4_meg_paa, stil: MorkStil.valgt, onTap: () {}),
+            ValueListenableBuilder<Set<String>?>(
+              valueListenable: mutes,
+              builder: (ctx, m, _) {
+                final av = m?.contains(innstNokler[i]) ?? false;
+                return MorkRad(
+                  key: Key('meg-varsel-${innstNokler[i]}'),
+                  delayMs: (k + i) * 40.0,
+                  ikon: innstIk[i % innstIk.length],
+                  navn: r[0],
+                  under: r[1],
+                  verdi: av ? A4MegCopy.a4_meg_av : A4MegCopy.a4_meg_paa,
+                  stil: av ? MorkStil.vanlig : MorkStil.valgt,
+                  onTap: () => bytt(ctx, innstNokler[i], r[0]),
+                );
+              },
+            ),
           ],
         ],
       ),
@@ -860,4 +1269,30 @@ class MegAdresse {
   /// «Hjem», «Jobb», «Annen».
   final String type;
   final bool valgt;
+}
+
+/// A list chip (design `kChips`): white glass until ticked off, then ink.
+class _UkeChip extends StatelessWidget {
+  const _UkeChip({super.key, required this.text, required this.done, required this.onTap, this.onLongPress});
+
+  final String text;
+  final bool done;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: onTap,
+    onLongPress: onLongPress,
+    child: Container(
+      padding: const EdgeInsets.fromLTRB(13, 9, 13, 9),
+      decoration: BoxDecoration(
+        color: done ? MegArkInk.ink : const Color.fromRGBO(255, 255, 255, .7),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+      ),
+      child: Text(text, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: done ? Colors.white : MegArkInk.ink)),
+    ),
+  );
 }

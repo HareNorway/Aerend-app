@@ -8,6 +8,7 @@ import '../kit/bergen_kit.dart';
 import '../poeng/poeng_copy.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
+import '../poeng/poeng_feil.dart';
 import 'mork_rad.dart';
 
 /// The league's dark sheets (new Bergen `kArk ligaBli` / `ligaNavn` /
@@ -105,8 +106,13 @@ abstract final class LigaArk {
             }
             final nav = Navigator.of(context);
             if (bli) await api.leagueOptIn(true);
-            final updated = await api.setLeagueName(name: anonym ? null : v, visibility: anonym ? 'skjult' : syn);
-            nav.pop(updated);
+            final r = await api.setLeagueName(name: anonym ? null : v, visibility: anonym ? 'skjult' : syn);
+            if (r.league == null) {
+              // Customer Step 12: LEAGUE_NAME_INVALID / LEAGUE_MONTH_CLOSED / LEAGUE_NOT_OPTED_IN in words; the sheet stays open.
+              if (context.mounted) showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.a4_meg_lagret_feil), icon: Icons.error_outline_rounded);
+              return;
+            }
+            nav.pop(r.league);
           },
         );
       },

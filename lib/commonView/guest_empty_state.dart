@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aerend_customer/main.dart';
 import 'package:aerend_customer/screens/common/login/login.dart';
 import 'package:aerend_customer/screens/common/signUp/sign_up.dart';
-import 'package:aerend_customer/screens/snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 
 /// Empty state with sign-in / create-account CTAs for guest users.
@@ -61,7 +61,7 @@ class GuestEmptyState extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       settings: RouteSettings(
-                        name: snurreLauncherRouteNameFor(const Login()),
+                        name: routeNameFor(const Login()),
                       ),
                       builder: (_) => const Login(),
                     ),
@@ -93,7 +93,7 @@ class GuestEmptyState extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       settings: RouteSettings(
-                        name: snurreLauncherRouteNameFor(const SignUp()),
+                        name: routeNameFor(const SignUp()),
                       ),
                       builder: (_) => const SignUp(),
                     ),

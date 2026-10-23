@@ -8,9 +8,13 @@ import 'package:path_provider/path_provider.dart';
 import '../kit/bergen_perf.dart';
 import 'hjem_hero.dart';
 
-/// Debug builds only: `Documents/hjem_state.json` pins Hjem's weather, uses
-/// the prototype's sample floats and sets the unread count, so the screen
-/// can be compared with the prototype's default state. Ignored in release.
+/// Debug builds only: `Documents/kunde_state.json` (Customer plan Step 0;
+/// `hjem_state.json` when it is absent) pins Hjem's weather, uses the
+/// prototype's sample floats, opens screens and sheets, so each state can be
+/// compared with the prototype. Ignored in release. `kunde_state.json` also
+/// takes neutral names: `route` / `routeArg` / `tab` for `rute` / `ruteArg` /
+/// `fane`, and `sheet` for the open screen's sheet key (`sporingArk` with
+/// `sporing`, else `megArk` on the Meg tab). Keys: `ui-tools/kunde_states.md`.
 abstract final class HjemHarness {
   /// Pin the motion tier (`"full"`, `"lite"`, `"still"`; parity plan §3.1).
   static String? perf;
@@ -164,6 +168,14 @@ abstract final class HjemHarness {
   static String? sporingArk, sporingHjelp, levertArk;
   static bool sporingSkifte = false, sporingFersk = false;
 
+  /// Customer Step 2: the Leveringskode card's view for this order (`pin` /
+  /// `qr`), and Sporing held offline (the PIN-only card).
+  static String? sporingKode;
+  static bool sporingOffline = false;
+
+  /// Customer Step 5: the order sheet scrolled this far (design px), for its lower rows.
+  static double? sporingRull;
+
   /// Taps the Live pill once Hjem has settled (`liveApne`: Sporing grows out
   /// of it and its pieces fly in).
   static bool liveApne = false;
@@ -176,15 +188,36 @@ abstract final class HjemHarness {
   /// `varsler`, `anledninger`, `ukeshandel`).
   static String? megArk;
 
+  /// Customer Step 8, with `megArk: ukeshandel`: the step to open (`liste`,
+  /// the default, or `kurv`).
+  static String? ukeSteg;
+
+  /// With `ukeSteg: kurv`: run the step's key once the sheet is up —
+  /// `kasse` says yes to a waiting swap and opens the first store's
+  /// confirmation, `betal` also confirms it (the local order, then Vipps).
+  static String? ukeAuto;
+
   /// Premiehylla as if nothing had been claimed (`hyllaTom`, Bergen Step 8).
   static bool hyllaTom = false;
 
   /// Meg's «Logge ut?» question open (`loggUt`, gap audit).
   static bool loggUt = false;
 
+  /// Customer Step 6, with `megArk: bio`: the consent ticked (`bioSamtykke`),
+  /// «Slett bioen»'s «Er du sikker?» open (`bioSlett`).
+  static bool bioSamtykke = false, bioSlett = false;
+
+  /// Customer Step 7: Hjem's push invitation card shown (`hjemInvitasjon`).
+  static bool hjemInvitasjon = false;
+  static double? bioScroll;
+
   /// Open the Varsler panel on this filter (`varsler`: "Alle", "Bestillinger",
   /// …; Gap Step 1).
   static String? varsler;
+
+  /// Customer Step 3: the Varsler card at this index swiped open
+  /// (`varslerSveip`), or removed with the «Angre» toast showing (`varslerFjern`).
+  static int? varslerSveip, varslerFjern;
 
   /// Gap Step 3: Premiehylla opens «Vilkår for premier» (`hyllaArk: "vilkaar"`);
   /// Hjem opens «Ægil de siste 30 dagene» (`logg`).
@@ -258,6 +291,61 @@ abstract final class HjemHarness {
   static int ohNoeGaltSteg = 1;
   static List<String>? aegSi;
   static bool aegTenk = false, aegFokus = false, aegOb = false, aegButArk = false;
+
+  /// Customer Step 5: after `aegSi`, tap the last proposal (`aegBruk`), then
+  /// «Angre» (`aegAngre`) — the receipt and the undone card.
+  static bool aegBruk = false, aegAngre = false;
+
+  /// Customer Step 6: tap «Vis likevel» on the products card (`aegVisLikevel`).
+  static bool aegVisLikevel = false;
+
+  /// Customer Step 9, with `aegil: chat`: `aegGave` runs the gift flow to
+  /// `brief` (the chips), `funn` (three cards), `kort` (the card text) or
+  /// `tom` (nothing arrives in time); `aegBilde` the photo flow to `prompt`
+  /// or `skann` (a scan of `aegBildeData`, a data URL, else a 1 × 1 JPEG);
+  /// `adrDor` (the existing key) types the line into the address sheet's
+  /// door field; `adrDorAuto` presses Lagre once the chips are up and
+  /// `adrDorSamtykke` switches the code consent on first.
+  static String? aegGave, aegBilde, aegBildeData;
+  static bool adrDorAuto = false, adrDorSamtykke = false;
+
+  /// Customer Step 10: with `ohOrdre`, `ohSak` opens the C2 «Noe galt» sheet
+  /// on that order (`ohSakSteg: tenker` holds Ægil's thinking state;
+  /// `ohSakJson` renders a given issue as the outcome without the server);
+  /// with `sporing`, `sporingSak` opens it from the delivered panel;
+  /// `hjelpSamtale` continues that support conversation in the Hjelp chat.
+  static bool ohSak = false, sporingSak = false;
+  static String? ohSakSteg;
+  static Map<String, dynamic>? ohSakJson;
+  static int? hjelpSamtale;
+
+  /// Customer Step 12: Meg's Ukens oppdrag row in a given state (`ny`,
+  /// `tatt`, `ferdig`, `nei`) without the server; `megArk: oppdrag` /
+  /// `oppsummering` open the two sheets.
+  static String? megOppdrag;
+
+  /// Customer Step 12, on Premiehylla: the claim's sheet open (`hyllaClaim`,
+  /// the claim id) and, with `hyllaAngre`, its «Angre premien» pressed.
+  static int? hyllaClaim;
+  static bool hyllaAngre = false;
+
+  /// Customer Step 14: the AI-assistant states (design §4d, `aiFlyt`).
+  /// `ai` names the state (`inngang`, `velg`, `qr`, `qrAnnen`, `qrKopiert`,
+  /// `samtykke`, `samtykkeGjest`, `koblet`, `koblede`, `detalj`, `kobleFra`,
+  /// `kobleFraAlle`, `feilIkkeKoblet`, `feilBekreft`, `feilGenerisk`,
+  /// `bekreft`, `bekreftOver`, `bekreftFeilet`, `bekreftUtlopt`,
+  /// `bekreftTrukket`, `faceid`, `vipps`, `push`, `bytt`, `byttKurv`,
+  /// `kurv`, `kurvLaster`, `kurvGjest`, `kurvDekning`, `kurvUtsolgt`,
+  /// `kurvUtlopt`, `kurvVente`, `varsler`); `aiNavn` the assistant (Claude …);
+  /// `aiStart` `koblet` | `ingen` fakes the linked list; `aiReq` a real
+  /// request id (else the design's sample request renders).
+  static String? ai, aiNavn, aiStart, aiReq;
+
+  /// `aiBetal: true` releases the request screen's slider once the real request has loaded (Vipps).
+  static bool aiBetal = false;
+
+  /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
+  static bool brett = false;
   static double? aegScroll;
   static int? guideIdx;
 
@@ -265,7 +353,8 @@ abstract final class HjemHarness {
     if (!kDebugMode) return;
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final f = File('${dir.path}/hjem_state.json');
+      final kunde = File('${dir.path}/kunde_state.json');
+      final f = await kunde.exists() ? kunde : File('${dir.path}/hjem_state.json');
       if (!await f.exists()) {
         if (perf != null) BergenPerf.force(null);
         perf = null;
@@ -322,11 +411,19 @@ abstract final class HjemHarness {
         sporing = levert = null;
         sporingArk = sporingHjelp = levertArk = null;
         sporingSkifte = sporingFersk = liveApne = sporingKvittering = false;
+        sporingKode = null;
+        sporingOffline = false;
         megScroll = null;
         megArk = null;
+        ukeSteg = null;
+        ukeAuto = null;
         hyllaTom = false;
         loggUt = false;
+        bioSamtykke = bioSlett = false;
+        hjemInvitasjon = false;
+        bioScroll = null;
         varsler = null;
+        varslerSveip = varslerFjern = null;
         hyllaArk = null;
         logg = false;
         utfSeg = feedFane = feedKat = feedSpill = autoAct = null;
@@ -341,16 +438,39 @@ abstract final class HjemHarness {
         ohNoeGalt = false;
         ohNoeGaltSteg = 1;
         aegSi = null;
+        aegGave = aegBilde = aegBildeData = null;
+        ohSak = sporingSak = false;
+        ohSakSteg = null;
+        ohSakJson = null;
+        megOppdrag = null;
+        hyllaClaim = null;
+        hyllaAngre = false;
+        ai = aiNavn = aiStart = aiReq = null;
+        aiBetal = false;
+        hjelpSamtale = null;
+        adrDorAuto = adrDorSamtykke = false;
         aegTenk = aegFokus = aegOb = aegButArk = false;
+        aegBruk = aegAngre = false;
+        aegVisLikevel = false;
+        sporingRull = null;
         aegScroll = null;
         guideIdx = null;
+        brett = false;
         utfScroll = null;
         feedDrift = automat = false;
         autoValg = null;
         autoHentet = null;
         return;
       }
-      final m = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+      final m = {...jsonDecode(await f.readAsString()) as Map<String, dynamic>};
+      void alias(String navn, String nokkel) {
+        if (m.containsKey(navn) && !m.containsKey(nokkel)) m[nokkel] = m[navn];
+      }
+
+      alias('route', 'rute');
+      alias('routeArg', 'ruteArg');
+      alias('tab', 'fane');
+      alias('sheet', m['sporing'] != null ? 'sporingArk' : 'megArk');
       perf = m['perf'] as String?;
       nyButikk = m['nyButikk'] == true;
       betaltKurv = (m['betaltKurv'] as num?)?.toInt();
@@ -419,12 +539,22 @@ abstract final class HjemHarness {
       levertArk = m['levertArk'] as String?;
       sporingSkifte = m['sporingSkifte'] == true;
       sporingFersk = m['sporingFersk'] == true;
+      sporingKode = m['sporingKode'] as String?;
+      sporingOffline = m['sporingOffline'] == true;
       liveApne = m['liveApne'] == true;
       megScroll = (m['megScroll'] as num?)?.toDouble();
       megArk = m['megArk'] as String?;
+      ukeSteg = m['ukeSteg'] as String?;
+      ukeAuto = m['ukeAuto'] as String?;
       hyllaTom = m['hyllaTom'] == true;
       loggUt = m['loggUt'] == true;
+      bioSamtykke = m['bioSamtykke'] == true;
+      hjemInvitasjon = m['hjemInvitasjon'] == true;
+      bioSlett = m['bioSlett'] == true;
+      bioScroll = (m['bioScroll'] as num?)?.toDouble();
       varsler = m['varsler'] as String?;
+      varslerSveip = m['varslerSveip'] as int?;
+      varslerFjern = m['varslerFjern'] as int?;
       hyllaArk = m['hyllaArk'] as String?;
       logg = m['logg'] == true;
       sporingKvittering = m['sporingKvittering'] == true;
@@ -457,12 +587,35 @@ abstract final class HjemHarness {
       aegTekst = m['aegTekst'] as String?;
       aegSi = (m['aegSi'] as List?)?.cast<String>();
       aegTenk = m['aegTenk'] == true;
+      aegBruk = m['aegBruk'] == true;
+      aegVisLikevel = m['aegVisLikevel'] == true;
+      aegGave = m['aegGave'] as String?;
+      aegBilde = m['aegBilde'] as String?;
+      aegBildeData = m['aegBildeData'] as String?;
+      adrDorAuto = m['adrDorAuto'] == true;
+      adrDorSamtykke = m['adrDorSamtykke'] == true;
+      ohSak = m['ohSak'] == true;
+      sporingSak = m['sporingSak'] == true;
+      ohSakSteg = m['ohSakSteg'] as String?;
+      ohSakJson = m['ohSakJson'] is Map ? Map<String, dynamic>.from(m['ohSakJson'] as Map) : null;
+      hjelpSamtale = (m['hjelpSamtale'] as num?)?.toInt();
+      megOppdrag = m['megOppdrag'] as String?;
+      hyllaClaim = (m['hyllaClaim'] as num?)?.toInt();
+      hyllaAngre = m['hyllaAngre'] == true;
+      ai = m['ai'] as String?;
+      aiNavn = m['aiNavn'] as String?;
+      aiStart = m['aiStart'] as String?;
+      aiReq = m['aiReq'] as String?;
+      aiBetal = m['aiBetal'] == true;
+      sporingRull = (m['sporingRull'] as num?)?.toDouble();
+      aegAngre = m['aegAngre'] == true;
       aegFokus = m['aegFokus'] == true;
       aegOb = m['aegOb'] == true;
       aegButArk = m['aegButArk'] == true;
       aegScroll = (m['aegScroll'] as num?)?.toDouble();
       guide = m['guide'] as String?;
       guideIdx = m['guideIdx'] as int?;
+      brett = m['brett'] == true;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

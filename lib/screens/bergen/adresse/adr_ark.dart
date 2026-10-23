@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../data/aegil/aegil_app_models.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../../common/manageAddress/manage_address_dl.dart';
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
+import '../meg/a3_services.dart';
 import 'adr_scene.dart';
 import 'adr_tegning.dart';
 import '../kit/bergen_perf.dart';
@@ -83,6 +85,12 @@ abstract class AdrKilde {
 
   /// Remembers the door note for [a].
   Future<bool> lagreDor(AddressListItem a, String tekst);
+
+  // Customer Step 9 (C4): Ægil structures the line (`agent/me/addresses/{id}/door/parse`);
+  // null when the agent is off. The confirmation writes the door profile couriers read.
+  Future<DoorResult?> dorTolk(AddressListItem a, String tekst) => A3Services.aegil().doorParse(a.addressId, tekst);
+  Future<DoorResult?> dorBekreft(int id, {int? etasje, bool samtykke = false}) => A3Services.aegil().doorConfirm(id, fields: {if (etasje != null) 'floor': etasje}, codeConsent: samtykke);
+  Future<DoorResult?> dorAngre(int id) => A3Services.aegil().doorUndo(id);
   Future<List<AdrForslag>> forslag(String q);
 
   /// Adds the place and selects it; returns the new id, or null.
@@ -176,7 +184,6 @@ const _kSoppel =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFAD8F" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><path d="M6.5 7l.9 11.6A1.6 1.6 0 0 0 9 20h6a1.6 1.6 0 0 0 1.6-1.4L17.5 7"/><path d="M10.2 11v5M13.8 11v5"/></svg>';
 const _kHake = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1F8A66" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 const _kPil = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5l6.5 6.5-6.5 6.5"/></svg>';
-const _kMik = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5CE0B8" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>';
 const _kNaal = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#7FF0CB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
 
 Color _husFarge(String merke) => merke == 'Annet' ? const Color(0xFFC98F3E) : const Color(0xFF3E8FA3);
@@ -185,6 +192,10 @@ Color _husFarge(String merke) => merke == 'Annet' ? const Color(0xFFC98F3E) : co
 /// when the sheet opens.
 abstract final class AdrArkProve {
   static String? sok, dor;
+
+  /// Customer Step 9: press Lagre once Ægil's chips are up (`adrDorAuto`),
+  /// with the code consent on (`adrDorSamtykke`).
+  static bool dorAuto = false, dorSamtykke = false;
 
   /// Pick the first suggestion once they load.
   static bool velg = false;
@@ -195,7 +206,7 @@ Future<void> visAdresseArk(BuildContext context, AdrKilde kilde, {bool ny = fals
   final reduce = MediaQuery.disableAnimationsOf(context);
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
-      settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}adresse'),
+      settings: const RouteSettings(name: '${appRoutePrefix}adresse'),
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
@@ -305,6 +316,15 @@ class _AdrArkState extends State<_AdrArk> {
   bool _husk = true;
   bool _posisjon = false;
 
+  // Customer Step 9 (C4): Ægil's structured line, the floor the customer adds,
+  // the consent for the code, and the receipt after «Lagre».
+  DoorResult? _dorSvar;
+  String _dorTolketFor = '';
+  Timer? _dorTimer;
+  int? _dorEtasje;
+  bool _dorSamtykke = false;
+  DoorResult? _dorKvittering;
+
   @override
   void initState() {
     super.initState();
@@ -319,6 +339,7 @@ class _AdrArkState extends State<_AdrArk> {
     // A pending delete goes through when the sheet closes.
     final a = _angre;
     if (a != null) k.slett(a.id);
+    _dorTimer?.cancel();
     _dor.dispose();
     _dorFokus.dispose();
     super.dispose();
@@ -672,9 +693,91 @@ class _AdrArkState extends State<_AdrArk> {
     );
   }
 
+  /// Customer Step 9 (C4): the line goes to Ægil once typing pauses; the chips
+  /// then come from the server's fields (the local parser carries them until then).
+  void _planTolk(AddressListItem v, String tekst) {
+    _dorTolketFor = tekst;
+    _dorTimer?.cancel();
+    _dorTimer = Timer(const Duration(milliseconds: 700), () async {
+      final r = await k.dorTolk(v, tekst);
+      if (!mounted || r == null || _dor.text.trim() != tekst) return;
+      setState(() {
+        _dorSvar = r;
+        _dorEtasje = null;
+        if (!r.hasCode) _dorSamtykke = false;
+      });
+      if (kDebugMode && AdrArkProve.dorAuto) {
+        AdrArkProve.dorAuto = false;
+        _dorSamtykke = AdrArkProve.dorSamtykke;
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+        if (mounted) await _lagreDor(v, tekst);
+      }
+    });
+  }
+
+  static List<(String, String, String)> _chipsFra(DoorFields f, int? etasje) => [
+    if ((etasje ?? f.floor) != null) ('Etasje', '${etasje ?? f.floor}', 'M4 20h16M6 20V9l6-5 6 5v11M10 20v-5h4v5'),
+    if (f.bell != null && f.bell!.isNotEmpty) ('Ring på', f.bell!, 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4'),
+    if (f.entrance != null && f.entrance!.isNotEmpty) ('Inngang', f.entrance!, 'M5 21V4h10l4 4v13M12 12h.01'),
+    if (f.code != null && f.code!.isNotEmpty) ('Kode', f.code!, 'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z'),
+  ];
+
+  Widget _bryter(bool on) => AnimatedContainer(
+    duration: const Duration(milliseconds: 250),
+    width: 34,
+    height: 20,
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(999),
+      gradient: on ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF5CE0B8), Color(0xFF2FB893)]) : null,
+      color: on ? null : const Color.fromRGBO(255, 255, 255, .16),
+    ),
+    child: AnimatedAlign(
+      duration: const Duration(milliseconds: 300),
+      curve: const Cubic(.3, 1.4, .5, 1),
+      alignment: on ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        width: 16,
+        height: 16,
+        margin: const EdgeInsets.all(2),
+        decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white, boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, .35), offset: Offset(0, 2), blurRadius: 3)]),
+      ),
+    ),
+  );
+
+  /// «Lagre»: Ægil's line becomes the door profile couriers read (the code only with
+  /// consent — else for this order only), then the note is kept as before.
+  Future<void> _lagreDor(AddressListItem v, String tekst) async {
+    FocusScope.of(context).unfocus();
+    final svar = _dorSvar != null && _dorSvar!.text == tekst ? _dorSvar : null;
+    DoorResult? c;
+    if (svar != null) {
+      c = await k.dorBekreft(svar.id, etasje: _dorEtasje, samtykke: _dorSamtykke);
+      if (!mounted) return;
+    }
+    if (_husk) {
+      final ok = await k.lagreDor(v, tekst);
+      if (!ok) return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _dorLagret = tekst;
+      _dor.text = tekst;
+      _dorKvittering = c != null && c.saved && c.codeConsent ? c : null;
+    });
+    if (c != null && c.saved) {
+      k.toast(c.codeConsent
+          ? 'Koden er lagret for ${c.address ?? v.address.split(',').first} · budet ser: ${c.line ?? ''}'
+          : (c.codeOnce != null ? 'Budet ser: ${c.line ?? ''} · koden brukes bare denne gangen' : 'Budet ser: ${c.line ?? ''}'));
+      return;
+    }
+    k.toast(_husk ? 'Dørbeskjeden er lagret · budet ser den neste gang også' : 'Dørbeskjeden gjelder denne bestillingen');
+  }
+
   Widget _dorbeskjed(AddressListItem v) {
     final tx = _dor.text, har = tx.trim().isNotEmpty, fok = _dorFokus.hasFocus;
-    final chips = dorTolk(tx);
+    final svar = _dorSvar != null && _dorSvar!.text == tx.trim() ? _dorSvar : null;
+    if (har && tx.trim() != _dorTolketFor) _planTolk(v, tx.trim());
+    final chips = svar != null ? _chipsFra(svar.fields, _dorEtasje) : dorTolk(tx);
     final endret = tx.trim() != _dorLagret.trim();
     return Padding(
       padding: const EdgeInsets.only(top: 14),
@@ -746,22 +849,25 @@ class _AdrArkState extends State<_AdrArk> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => har ? _dor.clear() : k.toast('Kommer snart'),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, har ? .1 : .12)),
-                    alignment: Alignment.center,
-                    child: har
-                        ? SvgPicture.string(
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
-                            width: 10,
-                            height: 10,
-                          )
-                        : SvgPicture.string(_kMik, width: 13, height: 13),
+                // No mic: voice is the keyboard's dictation key (D-K2); the
+                // slot keeps its width so the hint wraps as in the design.
+                if (!har)
+                  const SizedBox(width: 32, height: 32)
+                else
+                  GestureDetector(
+                    onTap: _dor.clear,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                      alignment: Alignment.center,
+                      child: SvgPicture.string(
+                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+                        width: 10,
+                        height: 10,
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -803,6 +909,106 @@ class _AdrArkState extends State<_AdrArk> {
                   ),
               ],
             ),
+            if (svar != null) ...[
+              const SizedBox(height: 8),
+              Text('Dette er det budet ser.', style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55))),
+              if (svar.needsFloor && _dorEtasje == null) ...[
+                const SizedBox(height: 8),
+                _Inn(
+                  key: const Key('dor-etasje-spor'),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(255, 255, 255, .12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Jeg fikk ikke tak i etasjen. Skriv den?', style: inter(12, weight: FontWeight.w800, color: Colors.white)),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            for (final e in const [1, 2, 3, 4, 5]) ...[
+                              GestureDetector(
+                                key: Key('dor-etasje-$e'),
+                                onTap: () => setState(() => _dorEtasje = e),
+                                child: Container(
+                                  width: 36,
+                                  height: 32,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: const Color.fromRGBO(255, 255, 255, .16)),
+                                  child: Text(e == 5 ? '5+' : '$e', style: jakarta(12.5)),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (svar.hasCode) ...[
+                const SizedBox(height: 8),
+                _Inn(
+                  key: const Key('dor-samtykke'),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _dorSamtykke = !_dorSamtykke),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(255, 255, 255, .1)),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Lagre koden så budet finner fram neste gang også', style: inter(12, weight: FontWeight.w800, color: Colors.white, height: 1.3)),
+                                const SizedBox(height: 2),
+                                Text('Slettes når du vil under Adresser', style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55))),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          _bryter(_dorSamtykke),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+              if (_dorKvittering case final kv? when kv.codeConsent) ...[
+                const SizedBox(height: 8),
+                _Inn(
+                  key: const Key('dor-kvittering'),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(92, 224, 184, .16)),
+                    child: Row(
+                      children: [
+                        SvgPicture.string(_kHake.replaceAll('#1F8A66', '#9FF0D4'), width: 12, height: 12),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('Koden er lagret for ${kv.address ?? v.address.split(',').first} · slettes når du vil', style: inter(11.5, weight: FontWeight.w700, color: Colors.white, height: 1.3))),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          key: const Key('dor-angre'),
+                          onTap: () async {
+                            final r = await k.dorAngre(kv.id);
+                            if (!mounted) return;
+                            setState(() {
+                              _dorKvittering = null;
+                              _dorSamtykke = false;
+                            });
+                            k.toast(r == null ? 'Kunne ikke angre' : 'Koden er fjernet · budet ser: ${r.line ?? ''}');
+                          },
+                          child: Text('Angre', style: inter(12, weight: FontWeight.w800, color: const Color(0xFF9FF0D4))),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
             const SizedBox(height: 8),
             Row(
               children: [
@@ -846,19 +1052,7 @@ class _AdrArkState extends State<_AdrArk> {
                   _Inn(
                     child: LfPress(
                       dy: 2,
-                      onTap: () async {
-                        final tekst = tx.trim();
-                        FocusScope.of(context).unfocus();
-                        if (_husk) {
-                          final ok = await k.lagreDor(v, tekst);
-                          if (!ok) return;
-                        }
-                        setState(() {
-                          _dorLagret = tekst;
-                          _dor.text = tekst;
-                        });
-                        k.toast(_husk ? 'Dørbeskjeden er lagret · budet ser den neste gang også' : 'Dørbeskjeden gjelder denne bestillingen');
-                      },
+                      onTap: () => _lagreDor(v, tx.trim()),
                       child: CssBox(
                         height: 34,
                         radius: BorderRadius.circular(12),
@@ -1744,17 +1938,6 @@ class _NyAdresseState extends State<_NyAdresse> {
                     hintText: 'Etasje, ring på, inngang, kode …',
                     hintStyle: jakarta(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .45)),
                   ),
-                ),
-              ),
-              const SizedBox(width: 9),
-              GestureDetector(
-                onTap: () => widget.kilde.toast('Kommer snart'),
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)),
-                  alignment: Alignment.center,
-                  child: SvgPicture.string(_kMik, width: 13, height: 13),
                 ),
               ),
             ],

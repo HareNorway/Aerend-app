@@ -37,7 +37,7 @@ import '../screens/common/homeMainV1/home_main_v1.dart';
 import '../screens/common/login/login_dl.dart';
 import '../screens/common/otpVerify/otp_verify.dart';
 import '../screens/common/splash/splash.dart';
-import '../screens/snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../screens/deliveryService/home/ds_home.dart';
 import '../screens/deliveryService/storeDetail/store_detail_dl.dart';
 import '../screens/rideService/rideDetail/ride_detail.dart';
@@ -212,7 +212,7 @@ PageRoute<T> buildAppPageRoute<T extends Object?>(
   bool fullscreenDialog = false,
 }) {
   return CupertinoPageRoute<T>(
-    settings: RouteSettings(name: name ?? snurreLauncherRouteNameFor(screen)),
+    settings: RouteSettings(name: name ?? routeNameFor(screen)),
     builder: (_) => screen,
     fullscreenDialog: fullscreenDialog,
   );
@@ -242,7 +242,7 @@ void openScreenWithClearPrevious(BuildContext context, Widget screen) {
 /// and flash a blank frame between two identical gradients.
 PageRoute<T> buildNavyHandoffRoute<T extends Object?>(Widget screen) {
   return PageRouteBuilder<T>(
-    settings: RouteSettings(name: snurreLauncherRouteNameFor(screen)),
+    settings: RouteSettings(name: routeNameFor(screen)),
     pageBuilder: (context, animation, secondaryAnimation) => screen,
     transitionDuration: Duration.zero,
     reverseTransitionDuration: Duration.zero,

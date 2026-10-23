@@ -1,9 +1,13 @@
+// ignore_for_file: non_constant_identifier_names
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
 import '../../../data/aegil/aegil_models.dart';
 import '../../../data/aegil/aegil_repo.dart';
+import '../../../networking/ops/cus_api.dart';
+import '../../../utils/shared_pref_utill.dart' show prefGetString, prefSetString;
+import '../../../utils/utils.dart' show resolveSelectedLanguage;
 
 // ── Min Bio (Bergen Step 6, design L19975–20219) ────────────────────────────
 // What the customer tells Ægil about food: kosthold, allergier, what they like
@@ -15,12 +19,36 @@ import '../../../data/aegil/aegil_repo.dart';
 // One rule from the backend is kept on top of the design: allergies and diets
 // come from chips, never from prose (`ChatToolAllowlist`). What the reader
 // finds in the text is a suggestion (the design's ★) until the customer taps
-// it; likes, dislikes and «unngår» are soft and count at once.
+// it; likes and dislikes are soft and count at once.
+//
+// Customer Step 6 (Customer spec §4.2, Addendum §15): with `cus.bio` on the
+// server keeps the bio (`CusBio`, `customer/me/bio`) — the chips as codes,
+// only with the customer's consent, plus which diets are strict (a hard
+// filter). An «unngår» the text names is a suggestion too now (it is health
+// data); what Ærend AI reads (`bio/parse`) and the onboarding's picks are
+// suggestions the same way.
 
-const List<String> bioKostListe = ['Spiser alt', 'Vegetar', 'Veganer', 'Pescetar', 'Halal', 'Kosher', 'Glutenfri', 'Laktosefri', 'Lavkarbo'];
+// «Uten svin» and «Uten alkohol» are the spec's launch list (not in the design: needs sign-off).
+const List<String> bioKostListe = ['Spiser alt', 'Vegetar', 'Veganer', 'Pescetar', 'Halal', 'Kosher', 'Glutenfri', 'Laktosefri', 'Lavkarbo', 'Uten svin', 'Uten alkohol'];
 const List<String> bioAllListe = ['Gluten', 'Skalldyr', 'Egg', 'Fisk', 'Peanøtter', 'Nøtter', 'Melk', 'Soya', 'Selleri', 'Sennep', 'Sesam', 'Sulfitt', 'Lupin', 'Bløtdyr'];
 const List<String> bioLikListe = ['Fisk', 'Thai', 'Pizza', 'Sushi', 'Burger', 'Indisk', 'Taco', 'Wok', 'Sterkt', 'Bakst', 'Salat', 'Pasta', 'Kylling', 'Kebab'];
 const List<String> bioIkkeListe = ['Koriander', 'Sopp', 'Oliven', 'Løk', 'Sterkt', 'Innmat', 'Ost', 'Rosiner'];
+
+/// The server's codes for the diet and allergen chips (`BioVocab`).
+const Map<String, String> bioKostKode = {
+  'Spiser alt': 'omnivore', 'Vegetar': 'vegetarian', 'Veganer': 'vegan', 'Pescetar': 'pescetarian', 'Halal': 'halal', 'Kosher': 'kosher',
+  'Glutenfri': 'gluten_free', 'Laktosefri': 'lactose_free', 'Lavkarbo': 'low_carb', 'Uten svin': 'no_pork', 'Uten alkohol': 'no_alcohol',
+};
+const Map<String, String> bioAllKode = {
+  'Gluten': 'gluten', 'Skalldyr': 'crustaceans', 'Egg': 'eggs', 'Fisk': 'fish', 'Peanøtter': 'peanuts', 'Nøtter': 'nuts', 'Melk': 'milk',
+  'Soya': 'soy', 'Selleri': 'celery', 'Sennep': 'mustard', 'Sesam': 'sesame', 'Sulfitt': 'sulphites', 'Lupin': 'lupin', 'Bløtdyr': 'molluscs',
+};
+
+/// Diets the customer can make strict (a hard filter: Ægil shows only what fits).
+const Set<String> bioStrengbar = {'Vegetar', 'Veganer', 'Halal', 'Kosher', 'Glutenfri', 'Laktosefri', 'Uten svin', 'Uten alkohol'};
+
+/// … of which strict means «only what the store has marked».
+const Set<String> bioBareMerket = {'Halal', 'Kosher'};
 
 /// The four chip lists (`BIO_KOST`, `BIO_ALL`, `BIO_LIK`, `BIO_IKKE`).
 enum BioListe { kost, all, liker, ikke }
@@ -45,6 +73,10 @@ class MinBio {
     this.ign = const [],
     this.ingen = false,
     this.egne = const {},
+    this.streng = const {},
+    this.kilde,
+    this.ai,
+    this.ventende = const [],
   });
 
   final List<String> kost;
@@ -58,6 +90,20 @@ class MinBio {
   /// The customer's own chips («Legg til»), per list.
   final Map<BioListe, List<String>> egne;
 
+  /// The diets marked strict.
+  final Set<String> streng;
+
+  /// The server's bio (Customer Step 6), or null on the Bergen Step 6 path.
+  final CusBio? kilde;
+
+  /// What Ærend AI read in the text (`bio/parse`, the model only).
+  final BioFunn? ai;
+
+  /// Ægil's onboarding picks waiting for a tap (`kost:Halal`, `all:Nøtter`).
+  final List<String> ventende;
+
+  bool get server => kilde != null;
+
   List<String> egneI(BioListe l) => egne[l] ?? const [];
 
   MinBio copyWith({
@@ -69,6 +115,9 @@ class MinBio {
     List<String>? ign,
     bool? ingen,
     Map<BioListe, List<String>>? egne,
+    Set<String>? streng,
+    BioFunn? ai,
+    List<String>? ventende,
   }) =>
       MinBio(
         kost: kost ?? this.kost,
@@ -79,6 +128,10 @@ class MinBio {
         ign: ign ?? this.ign,
         ingen: ingen ?? this.ingen,
         egne: egne ?? this.egne,
+        streng: streng ?? this.streng,
+        kilde: kilde,
+        ai: ai ?? this.ai,
+        ventende: ventende ?? this.ventende,
       );
 }
 
@@ -129,6 +182,8 @@ final List<(RegExp, String)> _kostRe = [
   (RegExp('glutenfri|cøliaki'), 'Glutenfri'),
   (RegExp('laktosefri|laktoseintoler'), 'Laktosefri'),
   (RegExp('lavkarbo|keto'), 'Lavkarbo'),
+  (RegExp('ikke svin|uten svin|ingen svin'), 'Uten svin'),
+  (RegExp('alkoholfri|uten alkohol|ingen alkohol|drikker ikke'), 'Uten alkohol'),
 ];
 
 final List<(RegExp, String)> _allRe = [
@@ -173,7 +228,8 @@ final List<(RegExp, String)> _likRe = [
 ];
 
 final RegExp _hardRe = RegExp('allergi|allergisk|tåler ikke|tåle|cøliaki|anafylak|epipen|livsfarlig');
-final RegExp _negRe = RegExp('ikke|uten|hater|unngå|aldri|nei takk|dropper|kutter');
+// At a word's start: «uten» is not the end of «gluten» (fixed with the server's reader).
+final RegExp _negRe = RegExp('(?<![a-zæøå])(ikke|uten|hater|unngå|aldri|nei takk|dropper|kutter)');
 final RegExp _ikkeKostRe = RegExp('ikke (vegan|vegetar|halal|kosher)');
 
 /// `bioTolk`: reads the bio text, clause by clause.
@@ -226,9 +282,21 @@ const Map<String, List<String>> _allk = {
   'Bløtdyr': ['Sushi'],
 };
 
+/// Two readings as one (the text's and Ærend AI's).
+BioFunn _flett(BioFunn a, BioFunn? b) {
+  if (b == null) return a;
+  return BioFunn(
+    kost: [...a.kost, ...b.kost.where((x) => !a.kost.contains(x))],
+    all: {...b.all, ...a.all},
+    liker: [...a.liker, ...b.liker.where((x) => !a.liker.contains(x))],
+    ikke: [...a.ikke, ...b.ikke.where((x) => !a.ikke.contains(x))],
+  );
+}
+
 /// `bioEff`: the customer's taps over the text's reading.
 BioEff bioEff(MinBio b) {
-  final p = bioTolk(b.tekst);
+  final p0 = bioTolk(b.tekst);
+  final p = _flett(p0, b.ai);
   final ign = b.ign;
   List<String> u(String pre, List<List<String>> ls) {
     final o = <String>[];
@@ -241,11 +309,11 @@ BioEff bioEff(MinBio b) {
   }
 
   final forslag = <String>[];
-  // The text's allergies are suggestions; its «unngår» counts.
+  // The text's allergies and «unngår» are suggestions (health data: a tap decides).
   final allM = <String, String>{};
   p.all.forEach((k, v) {
-    if (v == BioAll.allergi && !b.all.containsKey(k)) {
-      forslag.add('all:$k');
+    if (!b.all.containsKey(k)) {
+      if (v == BioAll.allergi || v == BioAll.unnga) forslag.add('all:$k');
     } else {
       allM[k] = v;
     }
@@ -261,6 +329,12 @@ BioEff bioEff(MinBio b) {
   }
   var kost = u('kost:', [b.kost]);
   if (kost.length > 1) kost = kost.where((x) => x != 'Spiser alt').toList();
+  // Ægil's onboarding picks, until tapped or taken off.
+  for (final t in b.ventende) {
+    final (l, n) = _del(t);
+    final venter = l == 'kost' ? !b.kost.contains(n) && !ign.contains(t) : (l == 'all' && !b.all.containsKey(n));
+    if (venter && !forslag.contains(t)) forslag.add(t);
+  }
 
   final fjernet = <(String, String)>[];
   final ikke = u('ikke:', [b.ikke, p.ikke]);
@@ -278,7 +352,7 @@ BioEff bioEff(MinBio b) {
     }
     return true;
   }).toList();
-  return BioEff(kost: kost, all: all, liker: liker, ikke: ikke, p: p, fjernet: fjernet, forslag: forslag);
+  return BioEff(kost: kost, all: all, liker: liker, ikke: ikke, p: p0, fjernet: fjernet, forslag: forslag);
 }
 
 /// `bioScore`: one point each for a diet, the allergies answered, two likes,
@@ -308,6 +382,8 @@ String bioAdj(String k) =>
       'Lavkarbo': 'lavkarbo',
       'Halal': 'halal',
       'Kosher': 'kosher',
+      'Uten svin': 'uten svin',
+      'Uten alkohol': 'uten alkohol',
     }[k] ??
     k.toLowerCase();
 
@@ -397,6 +473,9 @@ abstract final class BioCopy {
     'Glutenfri': 'Glutenfritt. Jeg sier fra om alt med gluten.',
     'Laktosefri': 'Laktosefritt. Jeg sjekker melken for deg.',
     'Lavkarbo': 'Lavkarbo! Mindre brød og pasta, mer av det andre.',
+    // Not in the design (needs sign-off): the spec's two launch diets.
+    'Uten svin': 'Uten svin, notert. Jeg sjekker navnet og det butikken skriver.',
+    'Uten alkohol': 'Uten alkohol, notert. Ingen øl, vin eller sprit fra meg.',
   };
 
   // «Det Ægil vet om deg» (`agMinne`).
@@ -457,6 +536,9 @@ class MinBioKontroll extends ChangeNotifier {
   /// True while the customer types and for 900 ms after (`bioSkriver`).
   bool skriver = false;
 
+  /// Ærend AI's line under the finds (`bioAiTx`), after a model reading.
+  String? aiTx;
+
   Timer? _skT, _vennT;
 
   BioEff get eff => bioEff(_bio);
@@ -500,15 +582,17 @@ class MinBioKontroll extends ChangeNotifier {
     }
   }
 
-  /// `bioKost`.
+  /// `bioKost`. A diet that can be strict starts strict (Customer Step 6).
   void kost(String k) {
     final b = _bio;
     final on = eff.kost.contains(k);
     var kost = [...b.kost];
     var ign = [...b.ign];
+    var streng = {...b.streng};
     if (on) {
       kost.remove(k);
       ign.add('kost:$k');
+      streng.remove(k);
     } else {
       ign.remove('kost:$k');
       if (k == 'Spiser alt') {
@@ -516,12 +600,40 @@ class MinBioKontroll extends ChangeNotifier {
           if (x != k) ign.add('kost:$x');
         }
         kost = [k];
+        streng = {};
       } else {
         kost = [...kost.where((x) => x != 'Spiser alt'), k];
+        if (bioStrengbar.contains(k)) streng.add(k);
       }
     }
-    _sett(b.copyWith(kost: kost, ign: ign.toSet().toList()), 'kost:$k',
+    _sett(b.copyWith(kost: kost, ign: ign.toSet().toList(), streng: streng), 'kost:$k',
         on ? 'Ok, jeg glemmer «$k».' : (BioCopy.si[k] ?? '«$k», notert. Det tar jeg hensyn til i alt jeg foreslår.'));
+  }
+
+  /// Strict or not (Customer Step 6, not in the design: needs sign-off).
+  void strengTrykk(String k) {
+    final b = _bio;
+    final na = !b.streng.contains(k);
+    _sett(b.copyWith(streng: na ? {...b.streng, k} : ({...b.streng}..remove(k))), 'streng:$k', na ? CusBioCopy.cus_bio_streng_paa(k) : CusBioCopy.cus_bio_streng_av(k));
+  }
+
+  /// What Ærend AI read (`bio/parse` with the model). Its finds are
+  /// suggestions like the text's; Ægil names the new ones.
+  void settAi(BioFunn ai) {
+    final for0 = bioEff(_bio).forslag.toSet()..addAll(bioEff(_bio).tagger);
+    final etter = _bio.copyWith(ai: ai);
+    final E = bioEff(etter);
+    final nyeT = [...E.forslag, ...E.tagger].where((x) => !for0.contains(x)).toSet().toList();
+    _bio = etter;
+    final ord = nyeT.map((x) => bioEtikett(x, _flett(E.p, ai))).join(', ');
+    aiTx = nyeT.isEmpty ? CusBioCopy.cus_bio_ai_stemmer : CusBioCopy.cus_bio_ai_fant(ord);
+    if (nyeT.isNotEmpty) {
+      nye = nyeT;
+      n++;
+      sist = null;
+      aeg = CusBioCopy.cus_bio_ai_aeg(ord);
+    }
+    notifyListeners();
   }
 
   /// `bioAllTrykk`: none → allergy → avoid → none.
@@ -746,3 +858,194 @@ Future<int?> minBioLagre(AegilRepo repo, MinBio bio, List<MemoryEntry> minne) as
   if (s.settings == null) return null;
   return E.tagger.length;
 }
+
+// ── Customer Step 6: the server's bio (`customer/me/bio`) ───────────────────
+
+String? _navnFra(Map<String, String> kart, String kode) => kart.entries.where((e) => e.value == kode).firstOrNull?.key;
+
+/// The sheet's bio from the server's: codes to chips, the customer's own
+/// words to own chips, likes by their stored value first («koriander» →
+/// «Koriander»). [ventende]: the onboarding's picks still waiting for a tap.
+MinBio minBioFraCus(CusBio c, {List<String> ventende = const []}) {
+  final kost = <String>[], liker = <String>[], ikke = <String>[];
+  final all = <String, String>{};
+  final egne = <BioListe, List<String>>{};
+  void legg(BioListe l, List<String> base, List<String> inn, String navn) {
+    final k = _kanon(base, navn) ?? _kanon(egne[l] ?? const [], navn);
+    if (k == null) (egne[l] ??= []).add(bioStor(navn));
+    final v = k ?? bioStor(navn);
+    if (!inn.contains(v)) inn.add(v);
+  }
+
+  for (final kode in c.kost) {
+    final n = _navnFra(bioKostKode, kode);
+    if (n != null && !kost.contains(n)) kost.add(n);
+  }
+  for (final w in c.annetKost) {
+    legg(BioListe.kost, bioKostListe, kost, w);
+  }
+  for (final kode in c.allergener) {
+    final n = _navnFra(bioAllKode, kode);
+    if (n != null) all[n] = BioAll.allergi;
+  }
+  for (final kode in c.unngaar) {
+    final n = _navnFra(bioAllKode, kode);
+    if (n != null) all[n] ??= BioAll.unnga;
+  }
+  for (final w in c.annet) {
+    final k = _kanon(bioAllListe, w) ?? _kanon(egne[BioListe.all] ?? const [], w);
+    if (k == null) (egne[BioListe.all] ??= []).add(bioStor(w));
+    all[k ?? bioStor(w)] = BioAll.allergi;
+  }
+  String tastNavn(({String value, String label}) t, List<String> base) => _kanon(base, t.value) ?? t.label;
+  for (final t in c.liker) {
+    legg(BioListe.liker, bioLikListe, liker, tastNavn(t, bioLikListe));
+  }
+  for (final t in c.ikke) {
+    legg(BioListe.ikke, bioIkkeListe, ikke, tastNavn(t, bioIkkeListe));
+  }
+  final p = bioTolk(c.tekst);
+  final ign = <String>[
+    for (final x in p.kost)
+      if (!kost.contains(x)) 'kost:$x',
+    for (final x in p.liker)
+      if (!liker.contains(x)) 'lik:$x',
+    for (final x in p.ikke)
+      if (!ikke.contains(x)) 'ikke:$x',
+  ];
+  return MinBio(
+    kost: kost,
+    all: all,
+    liker: liker,
+    ikke: ikke,
+    tekst: c.tekst,
+    ign: ign,
+    ingen: c.ingenAllergier,
+    egne: egne,
+    streng: {for (final kode in c.streng) if (_navnFra(bioKostKode, kode) case final n?) n},
+    kilde: c,
+    ventende: ventende,
+  );
+}
+
+/// What `PUT customer/me/bio` gets: the effective chips as codes. Own
+/// allergen words go as «annet», own diet words as `other_preferences`; an
+/// own word to avoid goes with the dislikes (it hides nothing).
+Map<String, dynamic> minBioKropp(MinBio bio) {
+  final E = bioEff(bio);
+  final allergener = <String>[], unngaar = <String>[], annet = <String>[];
+  final ikke = [...E.ikke];
+  E.all.forEach((k, v) {
+    final kode = bioAllKode[k];
+    if (v == BioAll.allergi) {
+      kode != null ? allergener.add(kode) : annet.add(k);
+    } else if (v == BioAll.unnga) {
+      if (kode != null) {
+        unngaar.add(kode);
+      } else if (!ikke.contains(k)) {
+        ikke.add(k);
+      }
+    }
+  });
+  final kost = <String>[], annetKost = <String>[];
+  for (final x in E.kost) {
+    final kode = bioKostKode[x];
+    kode != null ? kost.add(kode) : annetKost.add(x);
+  }
+  return {
+    'allergens': allergener,
+    'avoids': unngaar,
+    'other': annet,
+    'preferences': kost,
+    'other_preferences': annetKost,
+    'strict': [for (final x in E.kost) if (bio.streng.contains(x) && bioStrengbar.contains(x)) bioKostKode[x]!],
+    'likes': E.liker,
+    'dislikes': ikke,
+    'text': bio.tekst.trim(),
+    'no_allergies': bio.ingen && E.all.isEmpty,
+  };
+}
+
+/// The bio holds special-category data (GDPR Art. 9): it needs the consent tick.
+bool minBioSensitiv(MinBio bio) {
+  final k = minBioKropp(bio);
+  return [k['allergens'], k['avoids'], k['other'], k['preferences'], k['other_preferences']].any((l) => (l as List).isNotEmpty) ||
+      (k['text'] as String).isNotEmpty ||
+      k['no_allergies'] == true;
+}
+
+/// Saves the bio on the server. [samtykke]: the box ticked now. Returns how
+/// many things Ægil knows and the saved bio, or the refusal's code. The
+/// onboarding's waiting picks are settled by the save (tapped or left).
+Future<({int? n, CusBio? bio, String? feil})> minBioLagreCus(CusApi api, MinBio bio, {required bool samtykke}) async {
+  final r = await api.bioLagre(minBioKropp(bio), samtykke: samtykke, versjon: bio.kilde?.samtykkeVersjon ?? 'v1');
+  if (r.bio == null) return (n: null, bio: null, feil: r.feil);
+  await BioVentende.tom();
+  return (n: bioEff(minBioFraCus(r.bio!)).tagger.length, bio: r.bio, feil: null);
+}
+
+/// The bio to open: the server's when it answers (`cus.bio` on), else from
+/// Ægil's memory (the Bergen Step 6 path).
+MinBio minBioVelg(CusBio? c, List<MemoryEntry> minne, AegilSettings? s) => c != null ? minBioFraCus(c, ventende: BioVentende.les()) : minBioFra(minne, s);
+
+/// Ægil's onboarding picks for allergies and diets while Min bio is on: they
+/// wait in Min bio as suggestions (consent first), on this phone.
+abstract final class BioVentende {
+  static const String _nokkel = 'cus_bio_ventende';
+
+  static List<String> les() => prefGetString(_nokkel).split('|').where((s) => s.isNotEmpty).toList();
+
+  static Future<void> legg(List<String> tagger) => prefSetString(_nokkel, {...les(), ...tagger}.join('|'));
+
+  static Future<void> tom() => prefSetString(_nokkel, '');
+}
+
+/// Customer Step 6 copy (not in the design: needs sign-off, except the
+/// design's «Ærend AI» lines). `cus_*` facade names as the plan's other copy.
+abstract final class CusBioCopy {
+  static bool get _en => resolveSelectedLanguage() == 'en';
+  static bool get en => _en;
+  static String _t(String no, String en) => _en ? en : no;
+
+  static String get cus_bio_samtykke_hode => _t('6 · Samtykke', '6 · Consent');
+  static String cus_bio_streng(String k) => _t('Strengt: $k', 'Strict: $k');
+  static String cus_bio_streng_sub(String k, bool paa) => paa
+      ? (bioBareMerket.contains(k) ? _t('Ægil viser bare det butikken har merket', 'Ægil only shows what the store has marked') : _t('Ægil viser bare det som passer', 'Ægil only shows what fits'))
+      : _t('Ægil foretrekker det, men viser også resten', 'Ægil prefers it, but shows the rest too');
+  static String cus_bio_streng_paa(String k) => _t('Strengt, notert. Det som ikke passer med ${bioAdj(k)}, viser jeg ikke.', 'Strict, noted. What is not ${bioAdj(k)}, I will not show.');
+  static String cus_bio_streng_av(String k) => _t('Ok. Jeg foretrekker ${bioAdj(k)}, men viser deg resten også.', 'Ok. I prefer ${bioAdj(k)}, but show you the rest too.');
+  static String get cus_bio_ansvar => _t(
+    'Allergenene kommer fra butikkene og varekatalogen. Ærend kan ikke garantere at de stemmer. Har du en alvorlig allergi, sjekk med butikken før du bestiller.',
+    'Allergens come from the stores and the product catalogue. Ærend cannot guarantee they are right. If you have a severe allergy, check with the store before you order.',
+  );
+  static String get cus_bio_samtykke => _t(
+    'Ja, Ærend kan lagre allergiene, kostholdet og teksten min i Min bio. Ægil bruker dem bare til å velge og sortere matforslag til meg. Butikkene ser dem ikke. Jeg kan trekke samtykket når som helst ved å slette bioen.',
+    'Yes, Ærend may store my allergies, my diet and my text in My bio. Ægil uses them only to pick and sort food suggestions for me. Stores do not see them. I can withdraw my consent at any time by deleting the bio.',
+  );
+  static String get cus_bio_samtykke_mangler => _t('Kryss av for samtykket nederst før du lagrer allergier, kosthold eller tekst.', 'Tick the consent at the bottom before you save allergies, diet or text.');
+  static String get cus_bio_samtykke_ny => _t('Samtykketeksten er endret. Les den og kryss av igjen.', 'The consent text has changed. Read it and tick again.');
+  static String cus_bio_samtykket(String dato) => _t('Du samtykket $dato. Slett bioen for å trekke samtykket.', 'You consented on $dato. Delete the bio to withdraw it.');
+  static String cus_bio_kjenner(String dato) => _t('Ægil kjenner bioen din · sist oppdatert $dato', 'Ægil knows your bio · last updated $dato');
+  static String get cus_bio_slett => _t('Slett bioen', 'Delete the bio');
+  static String get cus_bio_slett_sporsmal => _t('Er du sikker?', 'Are you sure?');
+  static String get cus_bio_slett_linje => _t('Allergiene, kostholdet, teksten og det du liker forsvinner fra Ægils minne med en gang.', 'Your allergies, diet, text and likes leave Ægil\'s memory at once.');
+  static String get cus_bio_slett_ja => _t('Slett', 'Delete');
+  static String get cus_bio_slett_nei => _t('Avbryt', 'Cancel');
+  static String get cus_bio_slettet => _t('Bioen er slettet. Ægil har glemt den.', 'The bio is deleted. Ægil has forgotten it.');
+  static String get cus_bio_ikke_slettet => _t('Fikk ikke slettet bioen. Prøv igjen.', 'Could not delete the bio. Try again.');
+  // The design's Ærend AI lines (`bioAiLes`).
+  static String get cus_bio_ai_leser => _t('Ærend AI leser', 'Ærend AI is reading');
+  static String cus_bio_ai_fant(String ord) => _t('Ærend AI fant også: $ord.', 'Ærend AI also found: $ord.');
+  static String get cus_bio_ai_stemmer => _t('Ærend AI har lest teksten. Alt stemmer med det Ægil fant.', 'Ærend AI has read the text. Everything matches what Ægil found.');
+  static String cus_bio_ai_aeg(String ord) => _t('Ærend AI leste mellom linjene: $ord. ${BioCopy.trykkForAaHuske}', 'Ærend AI read between the lines: $ord. ${BioCopy.trykkForAaHuske}');
+  // Ægil's chat cards.
+  static String get cus_bio_skjult => _t('Skjult av bioen din', 'Hidden by your bio');
+  static String cus_bio_skjult_sub(int n, String grunn) => [_t(n == 1 ? '1 vare' : '$n varer', n == 1 ? '1 item' : '$n items'), if (grunn.isNotEmpty) grunn].join(' · ');
+  static String get cus_bio_vis_likevel => _t('Vis likevel', 'Show anyway');
+  static String get cus_bio_ukjent => _t('Allergener ikke oppgitt', 'Allergens not stated');
+  static String get cus_bio_gave => _t('Bioen din gjelder deg, ikke gaven', 'Your bio is about you, not the gift');
+
+  static const List<String> _mnd = ['jan.', 'feb.', 'mars', 'apr.', 'mai', 'juni', 'juli', 'aug.', 'sep.', 'okt.', 'nov.', 'des.'];
+  static String dato(DateTime d) => '${d.day}. ${_mnd[d.month - 1]} ${d.year}';
+}
+

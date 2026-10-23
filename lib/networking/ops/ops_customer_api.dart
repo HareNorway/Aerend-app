@@ -153,6 +153,11 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> supportCases({String? guestToken}) =>
       _support('GET', 'api/support/cases', guestToken: guestToken);
 
+  /// `GET /api/support/conversations` — the customer's conversations (Customer
+  /// Step 10: one Hjelp thread per customer continues the open one).
+  Future<Map<String, dynamic>?> supportConversations({String? guestToken}) =>
+      _support('GET', 'api/support/conversations', guestToken: guestToken);
+
   /// `POST /api/support/conversations/{id}/rating` (backend plan Step 14) —
   /// the 1-tap «Hvordan var hjelpen?» on a closed conversation, [score] 1–5.
   /// `conversation` is the updated payload (`can_rate: false`, `csat_score`)

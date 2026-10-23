@@ -19,6 +19,9 @@ class FeedPost {
   /// Ærend posts carry a headline above the caption; null for most.
   final String? headline;
 
+  /// Customer Step 11: an agent-written post (`origin = agent`).
+  final bool disclosure;
+
   /// A store profile's post (Bergen UI Step 4, `GET /v1/stores/:id/posts`):
   /// its type (`tilbud`, `ny_i_hyllene` …), price and the product it sells.
   final String? postType;
@@ -40,6 +43,7 @@ class FeedPost {
     this.postType,
     this.priceOre,
     this.storeProductId,
+    this.disclosure = false,
   });
 
   /// The post has a picture or video (a text-only post has none).
@@ -69,6 +73,7 @@ class FeedPost {
           ? '${publisher['type'] ?? 'store'}'
           : (storeJson is Map<String, dynamic> && '${storeJson['id'] ?? ''}'.isNotEmpty ? 'store' : 'aerend'),
       headline: json['headline'] as String?,
+      disclosure: json['disclosure'] == true || json['origin'] == 'agent',
       postType: json['post_type'] as String?,
       priceOre: (json['price_ore'] as num?)?.toInt(),
       storeProductId: json['store_product_id'] == null ? null : '${json['store_product_id']}',

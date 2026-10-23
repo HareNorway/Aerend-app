@@ -15,7 +15,6 @@ import '../../common/auth/onboarding_kit.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../common/home/bergen/bergen_nav.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
 import '../hjem/hjem_harness.dart';
 import '../butikk/produkt_sheet.dart';
@@ -310,13 +309,7 @@ class SokScreenState extends State<SokScreen> {
   void _askAegil([String? draft]) {
     HapticFeedback.selectionClick();
     final q = draft ?? _q;
-    BergenRoutes.pushOr(
-      context,
-      kAegilRoute,
-      arguments: {'q': q},
-      orElse: () =>
-          openScreen(context, SnurreChatScreen(draftFromHomeSearch: q)),
-    );
+    BergenRoutes.push<void>(context, kAegilRoute, arguments: {'q': q});
   }
 
   void _openStore(int id, String name) => BergenRoutes.pushOr(

@@ -96,7 +96,8 @@ void main() {
     expect(api.opened.single, {'topic': 'support', 'order_id': 65});
     expect(find.byKey(const Key('a1_hjelp_chat_felt')), findsOneWidget);
     expect(find.text(SupportCopy.aiUnder), findsOneWidget);
-    expect(find.textContaining('· AI'), findsNothing);
+    // Customer Step 10 (support spec §4.3): the chrome says «AI» — layer 2 answers in the same thread.
+    expect(find.textContaining('· AI'), findsWidgets);
 
     // Staff close it in the panel; the next poll brings it.
     api.state = 'closed';

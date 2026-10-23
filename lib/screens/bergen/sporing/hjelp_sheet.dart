@@ -12,7 +12,7 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
-import '../../snurre/snurre_launcher_policy.dart';
+import 'package:aerend_customer/utils/route_names.dart';
 import '../hjelp/support.dart';
 import '../hjem/hjem_harness.dart';
 import '../aegil/aegil_bits.dart' show AeIkon;
@@ -59,7 +59,7 @@ class HjelpScreen extends StatefulWidget {
     return Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
-        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}bergen/kundeservice'),
+        settings: const RouteSettings(name: '${appRoutePrefix}bergen/kundeservice'),
         transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
         reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
         pageBuilder: (_, __, ___) => HjelpScreen(orderId: orderId, initial: initial),
@@ -152,6 +152,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
       _state = _standalone ? HjelpState.kundeservice : HjelpState.main;
       WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _startChat(tema) : null);
     }
+    // «Ring {navn}» from the bud chat: straight into the call.
+    if (start == HjelpState.ring) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _ring() : null);
     _msg.addListener(() => setState(() {}));
     // The hub reads the config (hours, phone, e-mail) and the cases as they land.
     SupportStore.instance.endret.addListener(_storeEndret);
@@ -372,6 +374,11 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   Future<void> _startChatUten(SupportTema tema) async {
     final fra = _state == HjelpState.chat ? _fraChat : (_state == HjelpState.mangler || _state == HjelpState.feil || _state == HjelpState.komAldri ? HjelpState.main : _state);
+    // Customer Step 10 harness: continue a given support conversation.
+    if (kDebugMode && HjemHarness.hjelpSamtale != null) {
+      SupportStore.instance.fortsettSamtale = HjemHarness.hjelpSamtale;
+      HjemHarness.hjelpSamtale = null;
+    }
     if (OpsCustomerApi.authParams() == null || (kDebugMode && HjemHarness.hjelpGjest)) {
       HjemHarness.hjelpGjest = false;
       setState(() {

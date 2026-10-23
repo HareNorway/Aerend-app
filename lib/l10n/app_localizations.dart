@@ -5453,7 +5453,7 @@ abstract class AppLocalizations {
   /// No description provided for @cartSubstitutionDetail.
   ///
   /// In en, this message translates to:
-  /// **'Snurre matched {requested} to {matched}. Review before paying.'**
+  /// **'We matched {requested} to {matched}. Review before paying.'**
   String cartSubstitutionDetail(String requested, String matched);
 
   /// No description provided for @homeFeedbackTitle.
@@ -5521,24 +5521,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Every order supports the team'**
   String get splashTagline;
-
-  /// No description provided for @snurreSuggestion1.
-  ///
-  /// In en, this message translates to:
-  /// **'Where can I buy the cheapest sunglasses?'**
-  String get snurreSuggestion1;
-
-  /// No description provided for @snurreSuggestion2.
-  ///
-  /// In en, this message translates to:
-  /// **'How long are restaurants in Bergen open?'**
-  String get snurreSuggestion2;
-
-  /// No description provided for @snurreWriteMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Write a message'**
-  String get snurreWriteMessage;
 
   /// No description provided for @checkoutTitle.
   ///
@@ -6037,66 +6019,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Order fee'**
   String get checkoutOrderFee;
-
-  /// No description provided for @snurreLoginRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Please log in to use AI chat.'**
-  String get snurreLoginRequired;
-
-  /// No description provided for @snurreProductUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Product is unavailable.'**
-  String get snurreProductUnavailable;
-
-  /// No description provided for @snurreCouldNotAddToCart.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not add to cart.'**
-  String get snurreCouldNotAddToCart;
-
-  /// No description provided for @snurreAddedToCart.
-  ///
-  /// In en, this message translates to:
-  /// **'Added to cart'**
-  String get snurreAddedToCart;
-
-  /// No description provided for @snurreClose.
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get snurreClose;
-
-  /// No description provided for @snurreStoreUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Store is unavailable.'**
-  String get snurreStoreUnavailable;
-
-  /// No description provided for @snurreBuy.
-  ///
-  /// In en, this message translates to:
-  /// **'Buy'**
-  String get snurreBuy;
-
-  /// No description provided for @snurreBuyNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Buy Now'**
-  String get snurreBuyNow;
-
-  /// No description provided for @snurreVisitStore.
-  ///
-  /// In en, this message translates to:
-  /// **'Visit Store'**
-  String get snurreVisitStore;
-
-  /// No description provided for @snurreStoreSelectionUnavailable.
-  ///
-  /// In en, this message translates to:
-  /// **'Store selection is unavailable.'**
-  String get snurreStoreSelectionUnavailable;
 
   /// No description provided for @chatTypeMessage.
   ///

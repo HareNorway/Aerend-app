@@ -25,6 +25,9 @@ class OpsTracking {
     this.unseenByStore = false,
     this.policyVersion = 0,
     this.eventsSince = 0,
+    this.notice,
+    this.effects = const [],
+    this.via,
     this.raw = const {},
   });
 
@@ -55,6 +58,16 @@ class OpsTracking {
   final bool unseenByStore;
   final int policyVersion;
   final int eventsSince;
+
+  /// Customer Step 10: the proactive notice with its options (agent.comms,
+  /// until the customer answered it), and the «Utført av Ærend AI» lines on
+  /// the order's timeline.
+  final OpsNotice? notice;
+  final List<OpsEffect> effects;
+
+  /// Customer Step 14: «Via {AI}» — the assistant whose request the customer
+  /// confirmed (name, vendor), null for the app's own orders.
+  final OpsVia? via;
   final Map<String, dynamic> raw;
 
   bool get isPickup => mode == modePickup;
@@ -106,6 +119,9 @@ class OpsTracking {
       unseenByStore: j['unseen_by_store'] == true,
       policyVersion: (j['policy_version'] as num?)?.toInt() ?? 0,
       eventsSince: (j['events_since'] as num?)?.toInt() ?? 0,
+      notice: j['notice'] is Map ? OpsNotice.fromJson(Map<String, dynamic>.from(j['notice'] as Map)) : null,
+      effects: [for (final e in (j['effects'] as List? ?? const []).whereType<Map>()) OpsEffect.fromJson(Map<String, dynamic>.from(e))],
+      via: j['via'] is Map ? OpsVia.fromJson(Map<String, dynamic>.from(j['via'] as Map)) : null,
       raw: j,
     );
   }
@@ -193,6 +209,7 @@ class OpsDeliveryCode {
     this.reason,
     required this.reasonCopyKey,
     this.qrPayload,
+    this.qrUrl,
     this.locked = false,
     this.verifiedAt,
   });
@@ -201,6 +218,11 @@ class OpsDeliveryCode {
   final String? reason;
   final String reasonCopyKey;
   final String? qrPayload;
+
+  /// The QR the courier scans (Customer Step 2, D-K17):
+  /// `https://aerend.no/k/<ops_code>-<pin>` while `cus.delivery_qr` is on;
+  /// null shows the PIN only.
+  final String? qrUrl;
   final bool locked;
   final DateTime? verifiedAt;
 
@@ -210,6 +232,7 @@ class OpsDeliveryCode {
     reasonCopyKey:
         '${j['reason_copy_key'] ?? 'a1_sporing_kode_reason_default'}',
     qrPayload: j['qr_payload']?.toString(),
+    qrUrl: j['qr_url']?.toString(),
     locked: j['locked'] == true,
     verifiedAt: OpsTracking._t(j['verified_at']),
   );
@@ -234,4 +257,82 @@ class OpsPosition {
     accuracyMetres: (j['accuracy_metres'] as num?)?.toInt(),
     recordedAt: OpsTracking._t(j['recorded_at']),
   );
+}
+
+/// One option on a proactive notice (`wait` with the new window, `cancel` with its policy).
+class OpsNoticeOption {
+  const OpsNoticeOption({required this.key, required this.label, this.windowStart, this.windowEnd, this.policy});
+
+  final String key;
+  final String label;
+  final DateTime? windowStart;
+  final DateTime? windowEnd;
+
+  /// `full_refund` on a cancel before pickup.
+  final String? policy;
+
+  factory OpsNoticeOption.fromJson(Map<String, dynamic> j) => OpsNoticeOption(
+    key: '${j['key'] ?? ''}',
+    label: '${j['label'] ?? ''}',
+    windowStart: j['window_start'] == null ? null : DateTime.tryParse('${j['window_start']}')?.toLocal(),
+    windowEnd: j['window_end'] == null ? null : DateTime.tryParse('${j['window_end']}')?.toLocal(),
+    policy: j['policy'] as String?,
+  );
+
+  /// «13:07–13:31» for a wait option with a window.
+  String get window => windowStart == null || windowEnd == null ? '' : '${OpsTracking.hhmm(windowStart!)}–${OpsTracking.hhmm(windowEnd!)}';
+}
+
+/// A proactive notice on the order (Customer Step 10; `delay_notice` / `issue_notice`).
+class OpsNotice {
+  const OpsNotice({required this.key, required this.kind, required this.title, required this.body, this.reason, this.options = const [], this.at});
+
+  /// The Varsler key (`n:<id>`): answering dismisses it.
+  final String key;
+  final String kind;
+  final String title;
+  final String body;
+  final String? reason;
+  final List<OpsNoticeOption> options;
+  final DateTime? at;
+
+  OpsNoticeOption? get wait => options.where((o) => o.key == 'wait').firstOrNull;
+  OpsNoticeOption? get cancel => options.where((o) => o.key == 'cancel').firstOrNull;
+
+  factory OpsNotice.fromJson(Map<String, dynamic> j) => OpsNotice(
+    key: '${j['key'] ?? ''}',
+    kind: '${j['kind'] ?? ''}',
+    title: '${j['title'] ?? ''}',
+    body: '${j['body'] ?? ''}',
+    reason: j['reason'] as String?,
+    options: [for (final o in (j['options'] as List? ?? const []).whereType<Map>()) OpsNoticeOption.fromJson(Map<String, dynamic>.from(o))],
+    at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal(),
+  );
+}
+
+/// «Utført av Ærend AI: …» on the order's timeline (`agent.action_applied`, `done_by_ai`).
+class OpsEffect {
+  const OpsEffect({required this.textKey, required this.text, required this.textEn, this.actionType, this.at});
+
+  final String textKey;
+  final String text;
+  final String textEn;
+  final String? actionType;
+  final DateTime? at;
+
+  factory OpsEffect.fromJson(Map<String, dynamic> j) => OpsEffect(
+    textKey: '${j['text_key'] ?? ''}',
+    text: '${j['text'] ?? ''}',
+    textEn: '${j['text_en'] ?? j['text'] ?? ''}',
+    actionType: j['action_type'] as String?,
+    at: DateTime.tryParse('${j['at'] ?? ''}')?.toLocal(),
+  );
+}
+
+/// «Via {AI}» (Customer Step 14).
+class OpsVia {
+  const OpsVia({required this.name, required this.vendor});
+  final String name;
+  final String vendor;
+  factory OpsVia.fromJson(Map<String, dynamic> j) => OpsVia(name: '${j['name'] ?? ''}', vendor: '${j['vendor'] ?? 'other'}');
 }

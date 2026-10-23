@@ -10,6 +10,7 @@ import '../hurtig/hurtig_data.dart' show HbButikk;
 import '../kit/svg_sti.dart';
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
+import 'aegil_verktoy.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Ægil-chat (`vcAktiv`, L4574–4632) ───────────────────────────────────────
@@ -43,6 +44,7 @@ class AeMelding {
       app = const [],
       knapper = const [],
       forslag = const [],
+      verktoy = const [],
       humor = 'glad';
 
   AeMelding.aeg({
@@ -56,6 +58,7 @@ class AeMelding {
     this.app = const [],
     this.knapper = const [],
     this.forslag = const [],
+    this.verktoy = const [],
     this.humor = 'glad',
   }) : meg = false;
 
@@ -75,6 +78,9 @@ class AeMelding {
 
   /// The chips offered after this reply (`forslag`).
   final List<String> forslag;
+
+  /// Customer Step 5: the typed cards from the chat's tools (`tool_cards`).
+  final List<AeVerktoy> verktoy;
 
   /// `glad` / `spent` / `tenker` / `lei` — Ægil's pose for the reply.
   final String humor;
@@ -102,6 +108,30 @@ abstract interface class AeHandling {
   String ikon(int? storeId);
   int? poeng();
   bool get handler;
+
+  // Customer Step 5: the tool cards.
+  /// The card as it is now (a proposal applied or undone since the reply).
+  AeVerktoy verktoy(AeVerktoy v);
+  bool venter(String id);
+  Future<void> brukForslag(AeVerktoy v);
+  Future<void> avslaa(AeVerktoy v);
+  Future<void> angre(AeVerktoy v);
+  void sporing(int orderId);
+  void menneske();
+  void minBio();
+
+  // Customer Step 9: the customer agents' cards (gift, reorder by photo).
+  Future<void> giftBrief(Map<String, dynamic> fields, String text) async {}
+  Future<void> giftConfirm(GiftResult r) async {}
+  void giftEdit(GiftResult r) {}
+  Future<void> giftMore(GiftResult r) async {}
+  Future<void> giftCard(GiftResult r, String action, String? text) async {}
+  Future<void> giftChoose(GiftResult r, GiftCard c) async {}
+  void giftSave(AeVerktoy v, GiftCard c) {}
+  Future<void> giftRetry(GiftResult r, String day) async {}
+  Future<void> reorderShoot() async {}
+  Future<void> reorderChoose(AeVerktoy v, ReorderResult r, ReorderCandidate? c) async {}
+  void reorderSearch(String text) {}
 }
 
 /// The user's line (`m.meg`): white, right, `vcMeg .38s`.
@@ -175,6 +205,7 @@ class AeSvar extends StatelessWidget {
       // not found, a find) shows that card alone.
       if (egne.isEmpty) ...m.kort,
       ...m.app,
+      ...m.verktoy,
     ];
   }
 
@@ -231,16 +262,24 @@ class AeSvar extends StatelessWidget {
     );
   }
 
+  /// Customer Step 5 (T21): the tray's first against-interest line, above
+  /// the card built from the tray (the basket, a find).
+  Widget _motInteresse(Widget kort) {
+    final l = m.kort.expand((s) => s.againstInterest).firstOrNull;
+    return l == null ? kort : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [AeMotInteresse(line: l), kort]);
+  }
+
   Widget _kort(Object k) => switch (k) {
     'ingen' => AeIkkeFunnet(tekst: m.tekst),
     'alder' => const AeAlder(),
-    'funn' => AeFunn(s: m.kort.first),
+    'funn' => _motInteresse(AeFunn(s: m.kort.first)),
     'dor' => AeDor(note: m.dor!, h: h),
     'bytt' => AeBytt(onske: m.bytt!, alt: m.kort.firstOrNull, h: h),
-    'kurv' => AeForslagKort(kurv: m.kurv!, h: h),
+    'kurv' => _motInteresse(AeForslagKort(kurv: m.kurv!, h: h)),
     'sammen' => AeSammen(c: m.sammen!, h: h),
     final Suggestion s => AeVareKort(s: s, kurv: m.kurv, h: h),
     final AeApp a => AeAppKort(a: a, h: h),
+    final AeVerktoy v => AeVerktoyKort(v: h.verktoy(v), h: h),
     _ => const SizedBox.shrink(),
   };
 }
@@ -304,6 +343,10 @@ class _Knapp extends StatelessWidget {
 }
 
 // ── Cards (`vcKort`) ────────────────────────────────────────────────────────
+
+/// Customer Step 5: the card row and tile for the tool cards (`aegil_verktoy.dart`).
+typedef AeKortRad = _KortRad;
+typedef AeTile = _Tile;
 
 /// The card row: tile, title, line, and the orange price key or «I kurven».
 class _KortRad extends StatelessWidget {
@@ -449,7 +492,7 @@ class AeVareKort extends StatelessWidget {
     final tittel = (linje?.name ?? s.headline ?? s.reason).trim();
     final sub = [if (navn != null && navn.isNotEmpty) navn, if (b != null) '${b.min}–${b.min + 10} min' else s.reason].join(' · ');
     final lagt = h.erLagt(s.id);
-    return _KortRad(
+    final kort = _KortRad(
       tile: _Tile(farge: storeId == null ? null : (b?.bg ?? HbButikk.farge(storeId)), ini: navn == null ? null : HbButikk.initialer(navn), d: navn == null ? 'M5 8h14l-1.5 11h-11zM9 8a3 3 0 0 1 6 0' : null),
       tittel: tittel,
       sub: sub,
@@ -467,6 +510,9 @@ class AeVareKort extends StatelessWidget {
         }
       },
     );
+    // Customer Step 5 (T21): what Ægil found against the sale, above the item.
+    if (s.againstInterest.isEmpty) return kort;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [AeMotInteresse(line: s.againstInterest.first), kort]);
   }
 }
 
@@ -521,8 +567,6 @@ class AeForslagKort extends StatelessWidget {
     final navn = kurv.storeName ?? h.butikkNavn(storeId) ?? '';
     final ant = linjer.fold<int>(0, (n, l) => n + l.qty);
     final sum = linjer.fold<int>(0, (n, l) => n + l.priceOre * l.qty);
-    final vist = linjer.take(linjer.length > 4 ? 3 : 4).toList();
-    final rest = linjer.skip(vist.length).toList();
     final lagt = h.alleLagt(kurv);
     return CssBox(
       radius: BorderRadius.circular(24),
@@ -586,7 +630,13 @@ class AeForslagKort extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: Row(
+            // Customer Step 5: as many 64 px tiles as the reply's width holds (three in the chat
+            // column), the last one «+N» when there are more — four overflowed by 13 px.
+            child: LayoutBuilder(builder: (context, c) {
+              final plass = c.maxWidth.isFinite ? ((c.maxWidth + 8) / 72).floor().clamp(1, 4) : 4;
+              final vist = linjer.take(linjer.length > plass ? plass - 1 : plass).toList();
+              final rest = linjer.skip(vist.length).toList();
+              return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (final (i, l) in vist.indexed) ...[
@@ -602,7 +652,8 @@ class AeForslagKort extends StatelessWidget {
                   ),
                 ],
               ],
-            ),
+            );
+            }),
           ),
           Container(margin: const EdgeInsets.fromLTRB(16, 14, 16, 0), height: 1, color: const Color.fromRGBO(255, 255, 255, .14)),
           Padding(

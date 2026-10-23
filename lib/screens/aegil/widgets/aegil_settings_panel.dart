@@ -34,6 +34,10 @@ class AegilSettingsPanel extends StatelessWidget {
   /// e.g. LEVEL_REQUIRES_RECURRING, when the backend refused a change.
   final String? levelError;
 
+  /// `cus.read_aloud` (off; D-K2): the «Les opp» switch is hidden until the
+  /// app reads its flags (Customer Step 16).
+  static bool readAloud = false;
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -88,13 +92,14 @@ class AegilSettingsPanel extends StatelessWidget {
           value: settings.againstInterestEnabled,
           field: 'against_interest_enabled',
         ),
-        _switch(
-          key: const Key('aegil-read-aloud-toggle'),
-          label: 'Les opp',
-          body: 'Ægil leser svarene sine høyt.',
-          value: settings.readAloud,
-          field: 'read_aloud',
-        ),
+        if (readAloud)
+          _switch(
+            key: const Key('aegil-read-aloud-toggle'),
+            label: 'Les opp',
+            body: 'Ægil leser svarene sine høyt.',
+            value: settings.readAloud,
+            field: 'read_aloud',
+          ),
 
         const SizedBox(height: 18),
         Text(

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:math' as math;
 
+import '../../../data/aegil/aegil_app_repo.dart';
 import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +23,6 @@ import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../deliveryService/checkout/checkout_dl.dart';
-import '../../snurre/snurre_chat_screen.dart';
 import '../aegil/aegil_entry.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_css.dart';
@@ -38,10 +39,13 @@ import 'kjop_sekvens.dart' show KjopBekreftetScreen;
 import '../../common/swipeAerend/swipe_aerend_repo.dart';
 import '../../common/swipeAerend/swipe_aerend_dl.dart' show SwipeCardModel, HareSwipeListPojo;
 import 'kurv_betal.dart';
+import '../aegil/aegil_agenter.dart' show GiftPending;
+import '../meg/a3_services.dart';
 import 'kurv_kvittering.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
-import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoutePrefix;
+import 'package:aerend_customer/utils/route_names.dart';
+import '../../../services/customer/beacons.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -218,6 +222,9 @@ import '../../snurre/snurre_launcher_policy.dart' show snurreLauncherHiddenRoute
 /// (`visNav`: not on `kurv` with lines) and the slider takes its place.
 final ValueNotifier<bool> kurvSkjulerNav = ValueNotifier(false);
 
+/// Customer Step 7: Ægil's routes for the basket's agent lines (tests swap it).
+AegilAppApi Function() kurvAegilApi = AegilAppRepo.new;
+
 class KurvScreen extends StatefulWidget {
   const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi, this.butikkApi});
 
@@ -274,7 +281,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         if (!mounted) return;
         Navigator.of(context).push(
           PageRouteBuilder<void>(
-            settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+            settings: const RouteSettings(name: '${appRoutePrefix}betalt'),
             opaque: false,
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
@@ -343,7 +350,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<void> reload() => _load();
 
   Future<void> _load() async {
-    final cart = await _api.cart();
+    var cart = await _api.cart();
+    if (!cart.isEmpty && OpsCustomerApi.networkEnabled) {
+      // Customer Step 7: the lines Ægil merged at level 3 (`agent/me/cart/agent-lines`).
+      final agent = await kurvAegilApi().agentLines();
+      if (agent.isNotEmpty) cart = cart.medAegilLinjer({for (final l in agent) l.lineId});
+    }
     if (!mounted) return;
     setState(() => _cart = cart);
     if (widget.embedded) kurvSkjulerNav.value = !cart.isEmpty;
@@ -448,7 +460,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   Future<void> _undoAegil() async {
     final lines = _cart?.aegilLines ?? const [];
     for (final l in lines) {
-      await _api.remove(l.cartId);
+      // Customer Step 7: through Ægil's own undo (the receipt closes too); the plain remove as before otherwise.
+      if (!OpsCustomerApi.networkEnabled || !await kurvAegilApi().undoLine(l.cartId)) await _api.remove(l.cartId);
     }
     if (!mounted) return;
     setState(() => _undone = lines);
@@ -526,12 +539,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _tilButikk();
   }
 
-  void _tolk() => BergenRoutes.pushOr(
-    context,
-    kAegilRoute,
-    arguments: {'intent': 'door', 'q': _door.text.trim()},
-    orElse: () => openScreen(context, SnurreChatScreen(draftFromHomeSearch: _door.text.trim())),
-  );
+  void _tolk() => BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': 'door', 'q': _door.text.trim()});
 
   String get _fullNote {
     final parts = <String>[
@@ -621,6 +629,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (_codeAtDoor && orderId > 0) {
       await _customer.requestCode(orderId);
     }
+    // Customer Step 9 (C1): the gift line onto the order (tracking shows «gave»).
+    if (GiftPending.current case final g? when g.storeId == cart.storeId && orderId > 0) {
+      unawaited(A3Services.aegil().giftAttach(g.requestId, orderId));
+      GiftPending.current = null;
+    }
     if (apiPaymentType != 3) {
       return _payWithStripe(response, orderId, apiPaymentType, cart);
     }
@@ -665,10 +678,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         );
       } on StripeException catch (_) {
         reset();
+        CusBeacons.melde('payment_failed', code: 'stripe_cancelled', screen: 'kasse');
         if (mounted) showBergenToast(context, KasseCopy.a1_kasse_betaling_avbrutt);
         return false;
       } catch (e) {
         reset();
+        CusBeacons.melde('payment_failed', code: 'stripe_sheet', screen: 'kasse');
         if (mounted) showBergenToast(context, '$e');
         return false;
       }
@@ -697,7 +712,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final fra = _betalRect;
     Navigator.of(context).push(
       PageRouteBuilder<void>(
-        settings: const RouteSettings(name: '${snurreLauncherHiddenRoutePrefix}betalt'),
+        settings: const RouteSettings(name: '${appRoutePrefix}betalt'),
         opaque: false,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
@@ -1036,6 +1051,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                   action: KasseCopy.a1_kasse_endre,
                   onTap: _editNote,
                 ),
+              // Customer Step 9 (C1): the gift picked with Ægil rides with this store's order.
+              if (GiftPending.current case final g? when g.storeId == cart.storeId)
+                KvGave(navn: g.name, til: g.toLabel, kort: g.cardText),
               KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more)),
             ],
           ),
@@ -1117,7 +1135,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 },
                 kode: _codeAtDoor,
                 onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
-                kodeLinje: total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under,
+                // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.
+                kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
               ),
           ],
         ),
