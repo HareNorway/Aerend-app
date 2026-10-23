@@ -17,6 +17,7 @@ import '../../../networking/ops/ops_customer_api.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../../../data/ops/favourite_stores.dart';
 import '../kit/bergen_kit.dart';
+import '../../../ui/kit/ae_haptic.dart';
 import '../meg/a3_services.dart';
 import '../poeng/napp_entry.dart';
 import 'fiske_cards.dart';
@@ -314,7 +315,8 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
         _phase = FiskePhase.napp;
         _bubbleSeq += 1;
       });
-      HapticFeedback.heavyImpact();
+      // The bite: pull now.
+      aeConfirm();
       _fk2 = Timer(const Duration(milliseconds: 1700), () {
         if (!mounted || _phase != FiskePhase.napp) return;
         setState(() {
@@ -335,7 +337,8 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
   Future<void> _dra() async {
     if (_phase != FiskePhase.napp) return;
     _fk2?.cancel();
-    HapticFeedback.mediumImpact();
+    // The catch, at the pull (not after the points call returns).
+    aeSuccess();
     final s = _current;
     final earn = await a3Try(
       () => _points.earn(catchNumber: _kastNr, suggestionId: s?.id),

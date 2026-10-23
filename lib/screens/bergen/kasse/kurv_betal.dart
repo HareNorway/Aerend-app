@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../../ui/kit/ae_haptic.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
@@ -68,7 +68,7 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
     if (!_drag) return;
     setState(() => _drag = false);
     if (_x >= _max * .62) {
-      HapticFeedback.mediumImpact();
+      aeConfirm();
       _animateTo(_max);
       final ok = await widget.onPay();
       if (!mounted) return;
@@ -98,7 +98,7 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                 ? null
                 : (_) {
                     _snap.stop();
-                    HapticFeedback.selectionClick();
+                    aeTick();
                     setState(() {
                       _drag = true;
                       _x = 0;

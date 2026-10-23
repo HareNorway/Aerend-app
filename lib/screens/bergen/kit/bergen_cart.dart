@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../ui/kit/ae_haptic.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
@@ -28,6 +29,8 @@ abstract final class BergenCart {
     List<int> optionIds = const [],
     /// No toast when it goes through (the caller shows its own).
     bool stille = false,
+    /// The firm «in the basket» tap; off when the caller plays its own.
+    bool haptic = true,
   }) async {
     if (storeId == 0 || productId == 0) {
       showBergenToast(context, 'Kommer snart');
@@ -52,6 +55,7 @@ abstract final class BergenCart {
       );
       if (!context.mounted) return false;
       if (response.messageCode == 1) {
+        if (haptic) aeConfirm();
         prefSetInt(prefCartCount, response.countOrder);
         syncBadge(context, response.countOrder);
         if (!stille) showBergenToast(context, toast ?? response.message);

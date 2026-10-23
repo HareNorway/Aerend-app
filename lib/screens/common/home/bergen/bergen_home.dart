@@ -143,6 +143,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// `kaien` — Under kaien revealed.
   bool _kaien = false;
 
+  /// Whether the hero and Under kaien animate. Each pauses (its tickers
+  /// muted) only while it is completely hidden — the hero well past its
+  /// fade-out, Under kaien while the sheet covers it — and wakes again
+  /// while still hidden, so a loop picking up where its clock now is never
+  /// shows as a jump.
+  bool _heroLiv = true, _kaienLiv = true;
+
   /// `dragY` / `drar` — pull handle state.
   double _dragY = 0;
   bool _dragging = false;
@@ -246,6 +253,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _adrKilde = BergenAdrKilde(_bloc);
     _adrSub = _bloc.deliveryAddress.listen(_hentHodeEta);
     _scroll.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _onScroll();
+    });
     WidgetsBinding.instance.addObserver(this);
     BergenFaneBytte.aktiv.addListener(_faneVist);
     _sistLastet = DateTime.now();
@@ -666,15 +676,28 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   void _onScroll() {
     if (!_scroll.hasClients) return;
     final pos = _scroll.position;
-    final k = pos.pixels.clamp(0.0, _kSheetSlide * context.bs);
+    final s = context.bs;
+    final k = pos.pixels.clamp(0.0, _kSheetSlide * s);
     final remaining = pos.maxScrollExtent - pos.pixels;
     bool kaien = _kaien;
-    if (remaining < 210 * context.bs && !kaien) kaien = true;
-    if (remaining > 260 * context.bs && kaien) kaien = false;
-    if (k != _k || kaien != _kaien) {
+    if (remaining < 210 * s && !kaien) kaien = true;
+    if (remaining > 260 * s && kaien) kaien = false;
+    // The hero is gone at 212 (heroOpacity 0): asleep past 620, awake again
+    // below 520 — a fling back to the top has ~300 hidden px to wake in.
+    var heroLiv = _heroLiv;
+    if (pos.pixels > 620 * s) heroLiv = false;
+    if (pos.pixels < 520 * s) heroLiv = true;
+    // Under kaien (300 tall) shows in the sheet's last stretch: awake from
+    // 900 before the end, asleep again past 1000.
+    var kaienLiv = _kaienLiv;
+    if (remaining < 900 * s) kaienLiv = true;
+    if (remaining > 1000 * s) kaienLiv = false;
+    if (k != _k || kaien != _kaien || heroLiv != _heroLiv || kaienLiv != _kaienLiv) {
       setState(() {
         _k = k;
         _kaien = kaien;
+        _heroLiv = heroLiv;
+        _kaienLiv = kaienLiv;
       });
     }
   }
@@ -1570,6 +1593,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                     child: Opacity(
                                       opacity: heroOpacity,
                                       child: LfFrame(
+                                        child: TickerMode(
+                                        enabled: _heroLiv,
                                         child: HjemHero(
                                           vaer: _hjemVaer(look),
                                           floats: floats,
@@ -1581,6 +1606,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                           playIntro: _playIntro,
                                           extraHeight: _dragY > 0 ? _dragY : 0,
                                           vindu: _vindu,
+                                        ),
                                         ),
                                       ),
                                     ),
@@ -1607,6 +1633,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               index: 5,
                               etterArk: true,
                               child: LfFrame(
+                              child: TickerMode(
+                              enabled: _kaienLiv,
                               child: HjemUnderKaien(
                                 vist: _kaien,
                                 reker: _underKaien == null
@@ -1622,6 +1650,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                 pose: _kaienPose(),
                                 frakt: _kaienFrakt(),
                                 onLinje: aegilFindCount() > 0 ? _openBrett : null,
+                              ),
                               ),
                             ),
                             ),

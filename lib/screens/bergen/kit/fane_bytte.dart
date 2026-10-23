@@ -33,7 +33,7 @@ class BergenFaneBytte extends StatefulWidget {
   State<BergenFaneBytte> createState() => _BergenFaneBytteState();
 }
 
-class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProviderStateMixin {
+class _BergenFaneBytteState extends State<BergenFaneBytte> with TickerProviderStateMixin {
   /// One snapshot boundary per kept tab.
   final Map<int, GlobalKey> _flater = {};
   GlobalKey _flate(int i) => _flater.putIfAbsent(i, GlobalKey.new);
@@ -47,6 +47,12 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
   int _dir = 1;
 
   int _seq = 0;
+
+  /// Reduced motion (the user's calm setting, or `still` from heat or power
+  /// saving): no bands, a short cross-fade instead of a hard cut, which reads
+  /// as a blink. [_forrige] is the tab fading out underneath.
+  late final AnimationController _f = AnimationController(vsync: this, duration: const Duration(milliseconds: 180), value: 1);
+  int? _forrige;
 
   @override
   void initState() {
@@ -68,10 +74,25 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     if (widget.index == _aktiv || widget.index == _mot) return;
     final til = widget.index;
     if (MediaQuery.disableAnimationsOf(context)) {
-      setState(() => _vis(til));
+      _tone(til);
       return;
     }
     _bytt(til);
+  }
+
+  void _tone(int til) {
+    ++_seq;
+    _mot = null;
+    _c.stop();
+    _rydd();
+    setState(() {
+      _dekk = false;
+      _forrige = _aktiv;
+      _vis(til);
+    });
+    _f.forward(from: 0).whenCompleteOrCancel(() {
+      if (mounted && _f.isCompleted) setState(() => _forrige = null);
+    });
   }
 
   /// The tab we're switching to while the old one is being snapshotted.
@@ -81,6 +102,8 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     final seq = ++_seq;
     _mot = til;
     _c.stop();
+    _f.value = 1;
+    _forrige = null;
     _rydd();
     // The old screen stays up until its picture is ready (one frame).
     final gml = await _bilde();
@@ -89,6 +112,10 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
       return;
     }
     _dir = til > _aktiv ? 1 : -1;
+    // Back to the start before the cover shows: left at the end of the last
+    // switch, the cover's first frames drew the old bands already fallen
+    // away and the new ones not yet there — the bare background, a blink.
+    _c.value = 0;
     setState(() {
       _gml = gml;
       _vis(til);
@@ -114,7 +141,9 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     final ro = _flate(_aktiv).currentContext?.findRenderObject();
     if (ro is! RenderRepaintBoundary || !ro.hasSize) return null;
     try {
-      final gpu = await ro.toImage(pixelRatio: math.min(2.0, MediaQuery.devicePixelRatioOf(context)));
+      // At the screen's own density: a lower one is softer than the live
+      // screen, which then visibly sharpens when the bands hand back.
+      final gpu = await ro.toImage(pixelRatio: MediaQuery.devicePixelRatioOf(context));
       // Re-upload as a plain RGBA image: the layer snapshot's own texture
       // drops out when it is clipped or faded.
       final data = await gpu.toByteData(format: ui.ImageByteFormat.rawRgba);
@@ -138,6 +167,7 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
   @override
   void dispose() {
     _c.dispose();
+    _f.dispose();
     _rydd();
     super.dispose();
   }
@@ -147,14 +177,20 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with SingleTickerProv
     return Stack(
       fit: StackFit.expand,
       children: [
-        for (final i in (_bygd.toList()..sort()))
+        // The active tab last (on top of the one fading out); keyed, so the
+        // reorder keeps every tab's state.
+        for (final i in (_bygd.toList()..sort((a, b) => a == _aktiv ? 1 : (b == _aktiv ? -1 : a.compareTo(b)))))
           Offstage(
-            offstage: i != _aktiv,
+            key: ValueKey('fane-$i'),
+            offstage: i != _aktiv && i != _forrige,
             child: TickerMode(
               enabled: i == _aktiv,
-              child: RepaintBoundary(
-                key: _flate(i),
-                child: KeyedSubtree(key: ValueKey(i), child: widget.builder(context, i)),
+              child: FadeTransition(
+                opacity: i == _aktiv && _forrige != null ? _f : kAlwaysCompleteAnimation,
+                child: RepaintBoundary(
+                  key: _flate(i),
+                  child: KeyedSubtree(key: ValueKey(i), child: widget.builder(context, i)),
+                ),
               ),
             ),
           ),

@@ -57,7 +57,6 @@ import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
 import '../hjem/hjem_varsler.dart' show varslerLoader;
 import 'meg_paaminnelser.dart';
-import 'mork_rad.dart';
 import '../../../services/customer/client_flags.dart';
 import '../ai/ai_bits.dart';
 import '../ai/ai_copy.dart';
@@ -70,6 +69,11 @@ import 'tillit_ark.dart';
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
 const int kA4CodeThresholdKr = 300;
+
+/// «Flere innstillinger» (Anledninger, Påminnelser, Ukeshandel, Krev kode,
+/// Husk døra, Betaling) under Meg's rows. Not in the design; hidden since
+/// 2026-10-23 until each row has its design home (SAVED-FOR-LATER.md).
+const bool kMegFlereInnstillinger = false;
 
 /// Meg (design `meg` ≈L5912–6124, agil-4): the hero with Ægil's goal bubble,
 /// the header (name · bydel, Premie: gratis levering, Gullbilletten), the Poeng
@@ -362,8 +366,6 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     'ferdig' => const Mission(id: 0, title: 'Prøv Nordnes Fisk', body: 'Én bestilling teller.', points: 50, state: 'completed', progress: 1, accepted: true),
     _ => null,
   };
-
-  bool get _harOppdrag => _oppdrag != null && _oppdrag!.state != 'declined' && _oppdrag!.state != 'expired';
 
   Future<void> _visOppdrag() async {
     final m = _oppdrag;
@@ -870,23 +872,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                             onKnapp: () => _go('/bergen/liga'),
                                             onTap: () => _go('/bergen/liga'),
                                           ),
-                                          // Customer Step 12: Ukens oppdrag — «Godta» on a new mission («Ikke dette»
-                                          // in its sheet), «0 av 1» once taken, «+50 poeng» when done; no row without one.
-                                          if (_harOppdrag)
-                                            _Rad(
-                                              key: const Key('cus-meg-rad-oppdrag'),
-                                              sterk: true,
-                                              tile: const _GlassTile(rot: -4, d: MorkIk.flagg),
-                                              navn: A4MegCopy.cus_meg_oppdrag_rad,
-                                              under: A4MegCopy.cus_meg_oppdrag_under(_oppdrag!.title, _oppdrag!.points),
-                                              merke: OppdragArk.ny(_oppdrag!)
-                                                  ? null
-                                                  : (_oppdrag!.state == 'completed' ? A4MegCopy.a4_meg_pluss(_oppdrag!.points) : A4MegCopy.a4_meg_oppdrag_status(_oppdrag!.progress, _oppdrag!.target)),
-                                              knapp: OppdragArk.ny(_oppdrag!) ? A4MegCopy.a4_meg_godta : null,
-                                              knappKey: const Key('cus-meg-oppdrag-godta-rad'),
-                                              onKnapp: _godtaOppdrag,
-                                              onTap: _visOppdrag,
-                                            ),
+                                          // Ukens oppdrag and the month's summary are not rows here (the design
+                                          // has Nivå, Liga and Gullbilletten only; Saved-for-later plan, 2026-10-23).
                                           _Rad(
                                             key: const Key('meg-rad-gullbillett'),
                                             sterk: true,
@@ -897,16 +884,6 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                             onKnapp: _openBillett,
                                             onTap: _openBillett,
                                           ),
-                                          // Customer Step 12: the month's summary (Points spec §8) — hidden without data.
-                                          if (_oppsummering != null && !_oppsummering!.tom)
-                                            _Rad(
-                                              key: const Key('cus-meg-rad-oppsummering'),
-                                              sterk: true,
-                                              tile: const _GlassTile(rot: 3, d: MorkIk.hist),
-                                              navn: OppsummeringArk.tittel(_oppsummering!),
-                                              under: A4MegCopy.cus_meg_oppsummering_under(_oppsummering!.earned, _oppsummering!.spent, _oppsummering!.savedKr),
-                                              onTap: _visOppsummering,
-                                            ),
                                         ],
                                       ),
                                     ],
@@ -925,36 +902,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     under: _ordrer.isEmpty ? A4MegCopy.a4_meg_ordrer_tom : A4MegCopy.a4_meg_ordrer_sub(_ordrer.length, OhCopy.dag(DateTime.tryParse('${_ordrer.first['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now())),
                                     onTap: () => _go('/bergen/meg/bestillinger'),
                                   ),
-                                  // Customer Step 14: «Bestill via AI-assistent» and «Koblede assistenter» (design 20324–20325).
-                                  if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
-                                    _Rad(
-                                      key: const Key('cus-meg-rad-ai'),
-                                      tile: const _GlassTile(rot: -3, d: AiIk.kobling),
-                                      navn: AiCopy.cus_ai_meg_rad,
-                                      under: AiCopy.cus_ai_meg_rad_sub,
-                                      onTap: () => AiArk.flyt(context, 'inngang'),
-                                    ),
-                                  if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
-                                    ListenableBuilder(
-                                      listenable: AiStore.instance,
-                                      builder: (_, __) => _Rad(
-                                        key: const Key('cus-meg-rad-ai-koblede'),
-                                        tile: const _GlassTile(rot: 3, d: AiIk.person),
-                                        navn: AiCopy.cus_ai_meg_koblede,
-                                        under: AiCopy.cus_ai_meg_koblede_sub(AiStore.instance.aktive.length),
-                                        merke: AiStore.instance.aktive.isEmpty ? null : '${AiStore.instance.aktive.length}',
-                                        merkePille: true,
-                                        onTap: () => AiArk.flyt(context, 'koblede'),
-                                      ),
-                                    ),
-                                  // Customer Step 5: «Ægil sparte deg N kr» → Tillitsregnskap (kMegRader[0]).
-                                  _Rad(
-                                    key: const Key('cus-meg-rad-tillit'),
-                                    tile: const _GlassTile(rot: -4, d: 'M4 19V10M10 19V5M16 19v-7M21 19H3'),
-                                    navn: A4MegCopy.a4_meg_sparte(_tillit?.savedKr ?? 0),
-                                    under: A4MegCopy.a4_meg_tillit_sub(_tillit?.againstInterestShown ?? 0),
-                                    onTap: () => TillitArk.vis(context, _tillit ?? const TrustLedger(month: '')),
-                                  ),
+                                  // «Ægil sparte deg» is not a row here: the design's live Meg list
+                                  // (poengVals) has none; Tillitsregnskap opens from Ægil.
                                   _Rad(
                                     key: const Key('meg-rad-aegil'),
                                     tile: const _GlassTile(rot: -3, d: 'M4 6h9M17 6h3M15 4v4M4 12h3M11 12h9M9 10v4M4 18h11M19 18h1M17 16v4'),
@@ -979,6 +928,29 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     merke: (_prefs?.notificationsUnseen ?? 0) > 0 ? '${_prefs!.notificationsUnseen}' : null,
                                     onTap: _varsler,
                                   ),
+                                  // Customer Step 14: «Bestill via AI-assistent» and «Koblede assistenter»,
+                                  // after Varsler as in the design's list (behind the AI-linking flag).
+                                  if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
+                                    _Rad(
+                                      key: const Key('cus-meg-rad-ai'),
+                                      tile: const _GlassTile(rot: -3, d: AiIk.kobling),
+                                      navn: AiCopy.cus_ai_meg_rad,
+                                      under: AiCopy.cus_ai_meg_rad_sub,
+                                      onTap: () => AiArk.flyt(context, 'inngang'),
+                                    ),
+                                  if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
+                                    ListenableBuilder(
+                                      listenable: AiStore.instance,
+                                      builder: (_, __) => _Rad(
+                                        key: const Key('cus-meg-rad-ai-koblede'),
+                                        tile: const _GlassTile(rot: 3, d: AiIk.person),
+                                        navn: AiCopy.cus_ai_meg_koblede,
+                                        under: AiCopy.cus_ai_meg_koblede_sub(AiStore.instance.aktive.length),
+                                        merke: AiStore.instance.aktive.isEmpty ? null : '${AiStore.instance.aktive.length}',
+                                        merkePille: true,
+                                        onTap: () => AiArk.flyt(context, 'koblede'),
+                                      ),
+                                    ),
                                   _Rad(
                                     key: const Key('meg-rad-navn-liga'),
                                     tile: const _GlassTile(rot: 2, d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5c1.3-4 4-6 7.5-6s6.2 2 7.5 6'),
@@ -1020,11 +992,22 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     navn: A4MegCopy.a4_meg_hjelp,
                                     onTap: _hjelp,
                                   ),
+                                  // Not in the design, kept (2026-10-23): the only way in-app to
+                                  // the account and its deletion, which the stores require.
+                                  _Rad(
+                                    key: const Key('meg-rad-konto'),
+                                    tile: const _FargeTile(rot: -2, farger: [Color(0xFFCFE6E0), Color(0xFF4E8C82)], d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'),
+                                    navn: A4MegCopy.a4_meg_konto,
+                                    under: A4MegCopy.a4_meg_konto_sub,
+                                    onTap: () => _go('/bergen/meg/konto'),
+                                  ),
                                 ],
                               ),
-                              // --- Not in the design: needs sign-off (D2) ----------------
-                              // The rows new Bergen took out of Meg, kept in one group so
-                              // they can go in one change once the manager approves.
+                              // --- Not in the design: hidden (D2, 2026-10-23) --------------
+                              // «Flere innstillinger»: the rows the design moved out of Meg.
+                              // Hidden until each gets its design home — the list is in
+                              // Hare-AdminPanel docs/four-plans/SAVED-FOR-LATER.md.
+                              if (kMegFlereInnstillinger) ...[
                               const MegGruppeHode(MegB8Copy.flere),
                               _Gruppe(
                                 key: const Key('meg-d2-rader'),
@@ -1076,15 +1059,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     under: _paymentLine ?? A4MegCopy.a4_meg_betaling_vipps,
                                     onTap: _openBetaling,
                                   ),
-                                  _Rad(
-                                    key: const Key('meg-rad-konto'),
-                                    tile: const _FargeTile(rot: -2, farger: [Color(0xFFCFE6E0), Color(0xFF4E8C82)], d: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0'),
-                                    navn: A4MegCopy.a4_meg_konto,
-                                    under: A4MegCopy.a4_meg_konto_sub,
-                                    onTap: () => _go('/bergen/meg/konto'),
-                                  ),
                                 ],
                               ),
+                              ],
                               // --- Logg ut (L7630–7648) -----------------------------------
                               MegLoggUt(konto: MegB8Copy.loggetInn(_firstName, _kontakt), onLoggUt: _loggUt),
                             ],
@@ -1266,7 +1243,6 @@ class _Rad extends StatelessWidget {
     this.merkeDempet = false,
     this.merkePille = false,
     this.knapp,
-    this.knappKey,
     this.del = false,
     this.onKnapp,
     this.sterk = false,
@@ -1282,7 +1258,6 @@ class _Rad extends StatelessWidget {
   /// The mint count pill (`feedUlest`, L7620): «Nytt fra butikkene».
   final bool merkePille;
   final String? knapp;
-  final Key? knappKey;
   final bool del;
   final VoidCallback? onKnapp;
   final bool sterk;
@@ -1330,7 +1305,7 @@ class _Rad extends StatelessWidget {
             if (knapp != null) ...[
               const SizedBox(width: 11),
               AePress(
-                key: knappKey ?? const Key('meg-bli-med'),
+                key: const Key('meg-bli-med'),
                 onTap: onKnapp,
                 dy: 1.5,
                 child: CssBox(

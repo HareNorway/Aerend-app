@@ -81,7 +81,8 @@ void main() {
     expect(A4MegCopy.cus_meg_oppsummering_under(4833, 500, 12), '+4 833 opptjent · 500 brukt · Ægil sparte deg 12 kr');
   });
 
-  testWidgets('Meg: a new mission shows Godta / Ikke dette; Godta accepts and the row turns «0 av 1»', (tester) async {
+  testWidgets('Meg: a new mission shows Godta / Ikke dette; Godta accepts and the row turns «0 av 1»', skip: true, // the row left Meg on 2026-10-23 (design); SAVED-FOR-LATER.md
+      (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
@@ -102,7 +103,8 @@ void main() {
     expect(find.text('0 av 1'), findsOneWidget);
   });
 
-  testWidgets('Meg: the sheet\'s Ikke dette declines (no replacement → the row goes, «Greit · nytt oppdrag neste uke»); a second decline says MISSION_DECLINE_LIMIT in words', (tester) async {
+  testWidgets('Meg: the sheet\'s Ikke dette declines (no replacement → the row goes, «Greit · nytt oppdrag neste uke»); a second decline says MISSION_DECLINE_LIMIT in words', skip: true, // the row left Meg on 2026-10-23 (design); SAVED-FOR-LATER.md
+      (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
@@ -142,7 +144,8 @@ void main() {
     expect(find.byKey(const Key('cus-meg-rad-oppdrag')), findsOneWidget);
   });
 
-  testWidgets('Meg: no mission → no row; a completed one shows «+50 poeng»', (tester) async {
+  testWidgets('Meg: no mission → no row; a completed one shows «+50 poeng»', skip: true, // the row left Meg on 2026-10-23 (design); SAVED-FOR-LATER.md
+      (tester) async {
     tall(tester);
     await tester.pumpWidget(app(api(m: null)));
     await settle(tester);
@@ -158,7 +161,8 @@ void main() {
     expect(find.text('+50 poeng'), findsWidgets);
   });
 
-  testWidgets('Meg: the month summary row is hidden without data, and opens the sheet with the rows that have data', (tester) async {
+  testWidgets('Meg: the month summary row is hidden without data, and opens the sheet with the rows that have data', skip: true, // the row left Meg on 2026-10-23 (design); SAVED-FOR-LATER.md
+      (tester) async {
     tall(tester);
     await tester.pumpWidget(app(api(), a: FakeAegilApi()..summaryValue = const MonthlySummary(month: '2026-10')));
     await settle(tester);

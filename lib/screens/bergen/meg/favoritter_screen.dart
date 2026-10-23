@@ -19,6 +19,8 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../aegil/aegil_bits.dart';
 import '../butikk/kategori_kort.dart' show KatHolo, KatKortStag, KatMyntPille, KatRundKnapp;
+import '../../../ui/kit/ae_haptic.dart';
+import '../kit/bergen_faner.dart';
 import '../kit/bergen_fav_heart.dart' show FavCopy;
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_perf.dart';
@@ -206,7 +208,9 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
       if (!mounted) return false;
       prefSetInt(prefCartCount, cart.lines.length);
       BergenCart.syncBadge(context, cart.lines.length);
-      return cart.lines.any((l) => l.productId == productId);
+      final lagt = cart.lines.any((l) => l.productId == productId);
+      if (lagt) aeConfirm();
+      return lagt;
     } catch (_) {
       return false;
     }
@@ -347,56 +351,34 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
   );
 
   Widget _faner(int nButikker, int nProdukter) {
-    Widget fane(String key, String navn, String ikon, int n) {
-      final on = _fane == key;
-      return Expanded(
-        child: AePress(
+    BergenFane fane(String key, String navn, String ikon, int n) => BergenFane(
           key: Key('fav-fane-$key'),
-          onTap: () => setState(() => _fane = key),
-          dy: 0,
-          scale: .97,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              gradient: on ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], stops: [0, .56, 1]) : null,
-              boxShadow: on ? const [BoxShadow(color: Color.fromRGBO(242, 109, 61, .9), offset: Offset(0, 4), blurRadius: 10 / 2 / .57735, spreadRadius: -4)] : null,
-            ),
-            foregroundDecoration: on ? const BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(999)), border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .4), width: 1.5))) : null,
-            child: Row(
+          bygg: (context, t) {
+            final fg = BergenFaner.farge(t, av: .7);
+            return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AeIkon(ikon, size: 14, stroke: 2.3, color: on ? Colors.white : const Color.fromRGBO(255, 255, 255, .7)),
+                AeIkon(ikon, size: 14, stroke: 2.3, color: fg),
                 const SizedBox(width: 7),
-                Text(navn, style: inter(12.5, weight: FontWeight.w800, color: on ? Colors.white : const Color.fromRGBO(255, 255, 255, .7))),
+                Text(navn, style: inter(12.5, weight: FontWeight.w800, color: fg)),
                 const SizedBox(width: 7),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: on ? const Color.fromRGBO(255, 255, 255, .28) : const Color.fromRGBO(255, 255, 255, .1)),
-                  child: Text('$n', style: aeTab(inter(10.5, weight: FontWeight.w800, color: on ? Colors.white : const Color.fromRGBO(255, 255, 255, .7)))),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: Color.fromRGBO(255, 255, 255, .1 + .18 * t)),
+                  child: Text('$n', style: aeTab(inter(10.5, weight: FontWeight.w800, color: fg))),
                 ),
               ],
-            ),
-          ),
-        ),
-      );
-    }
+            );
+          },
+        );
 
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: const Color.fromRGBO(0, 0, 0, .28),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
-      ),
-      child: Row(
-        children: [
-          fane('butikker', FavTekst.butikker, 'M4 10l1.2-5h13.6L20 10M4 10h16v10H4zM10 20v-5h4v5', nButikker),
-          const SizedBox(width: 3),
-          fane('produkter', FavTekst.produkter, 'M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2', nProdukter),
-        ],
-      ),
+    return BergenFaner(
+      valgt: _fane == 'produkter' ? 1 : 0,
+      onValg: (i) => setState(() => _fane = i == 1 ? 'produkter' : 'butikker'),
+      faner: [
+        fane('butikker', FavTekst.butikker, 'M4 10l1.2-5h13.6L20 10M4 10h16v10H4zM10 20v-5h4v5', nButikker),
+        fane('produkter', FavTekst.produkter, 'M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2', nProdukter),
+      ],
     );
   }
 

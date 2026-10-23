@@ -14,6 +14,7 @@ import '../../common/home/bergen/bergen_rails.dart' show BergenHolo, BergenKenBu
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../hjem/hjem_harness.dart';
 import '../kasse/kurv_parts.dart' show KurvLinje;
+import '../../../ui/kit/ae_haptic.dart';
 import '../kit/bergen_cart.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/bergen_routes.dart';
@@ -25,13 +26,19 @@ import 'utforsk_copy.dart';
 /// Secures one bag: a real cart line through the normal cart API (no
 /// payment). The server's own message shows when it says no (another
 /// store's basket, sold out …).
-Future<bool> sikrePose(BuildContext context, UtfPose p, {bool toast = true}) => BergenCart.add(
-  context,
-  storeId: p.storeId,
-  productId: p.id,
-  toast: toast ? UtforskCopy.a1_pose_sikret_toast(p.hent ?? '') : null,
-  stille: !toast,
-);
+Future<bool> sikrePose(BuildContext context, UtfPose p, {bool toast = true}) async {
+  final ok = await BergenCart.add(
+    context,
+    storeId: p.storeId,
+    productId: p.id,
+    toast: toast ? UtforskCopy.a1_pose_sikret_toast(p.hent ?? '') : null,
+    stille: !toast,
+    haptic: false,
+  );
+  // A secured bag is a win, not just a basket line: the double tap.
+  if (ok) aeSuccess();
+  return ok;
+}
 
 /// The bag's sheet (new Bergen `utfPose`, L9764–9801 and L20320): the dark
 /// Ark with the photo (the slots left, «−60 %», «Overraskelse fra dagens

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../../../networking/ops/ops_kasse_api.dart';
+import '../../../ui/kit/ae_haptic.dart';
 import '../../../utils/utils.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../deliveryService/storeDetail/store_detail_repo.dart';
@@ -48,6 +49,7 @@ Future<bool> bestillIgjen(
     return false;
   }
   final n = linjer.length;
+  aeConfirm();
   showBergenToast(context, '$n ${n == 1 ? 'linje' : 'linjer'} fra $butikk lagt i kurven');
   final shell = HomeMainV1State.current;
   Navigator.of(context).popUntil((r) => r.isFirst);

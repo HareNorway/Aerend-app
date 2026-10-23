@@ -29,6 +29,7 @@ import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../hurtig/hurtig_data.dart';
+import '../../../ui/kit/ae_haptic.dart';
 import '../kit/bergen_cart.dart';
 import '../../../networking/ops/cus_api.dart';
 import '../meg/min_bio.dart';
@@ -650,7 +651,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     prefSetInt(prefCartCount, _kurv.lines.length);
     BergenCart.syncBadge(context, _kurv.lines.length);
     if (ok > 0) {
-      HapticFeedback.mediumImpact();
+      aeConfirm();
       setState(() => _alleLagt.add(_kurvNokkel(kurv)));
       LfToast.show(context, '${AeCopy.varer(ok)} ${AeCopy.iKurven}');
     }
@@ -993,6 +994,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       LfToast.show(context, BergenRoutes.ikkeIKurven);
       return;
     }
+    aeConfirm();
     LfToast.show(context, '${AeCopy.sammeSomSist} ${AeCopy.iKurven}');
     _tilFane(2);
   }
