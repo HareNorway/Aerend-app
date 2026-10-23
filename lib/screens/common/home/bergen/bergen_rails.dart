@@ -245,7 +245,12 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
             child: AnimatedBuilder(
               animation: _ring,
               builder: (context, _) {
-                final step = 2 * math.pi / math.max(n, 3);
+                // One step = one card: 2π / n, so after a full lap every card is
+                // back where it started. Two cards sit at 0° and 180° (the other
+                // straight behind). The old 2π / 3 for two cards left both of
+                // them behind after the second turn — the front card looked
+                // see-through because nothing was in front.
+                final step = n <= 2 ? math.pi : 2 * math.pi / n;
                 final angle = [for (var i = 0; i < n; i++) (i - _ring.value) * step];
                 // Back to front: the card nearest you is painted last.
                 final order = List<int>.generate(n, (i) => i)
