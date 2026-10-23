@@ -145,25 +145,20 @@ void main() {
     expect(find.text('Bli med'), findsOneWidget);
     expect(find.byKey(const Key('meg-rad-gullbillett')), findsOneWidget);
     expect(find.textContaining('KARI200'), findsWidgets);
-    // Customer Step 12: the Ukens oppdrag row (the Bergen design's `oppdragNy` state) with Godta / Ikke dette.
-    expect(find.byKey(const Key('cus-meg-rad-oppdrag')), findsOneWidget);
-    expect(find.text('Prøv Nordnes Fisk · +50 poeng'), findsOneWidget);
+    // The design's Poeng panel has Nivå, Liga and Gullbilletten only: no Ukens oppdrag row (2026-10-23).
+    expect(find.byKey(const Key('cus-meg-rad-oppdrag')), findsNothing);
   });
 
-  testWidgets('settings rows: occasions, Ægil level, code toggle, address, payment, counts, name, language', (tester) async {
+  testWidgets('settings rows as in the design: Ægil level, address, counts, name, language; Konto kept; Flere innstillinger hidden', (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
     await settle(tester);
 
-    expect(find.textContaining('Mamma · 14. mars · én påminnelse sju dager før'), findsOneWidget);
-    expect(find.text('Handleliste · Middag denne uken · Ukens kurv'), findsOneWidget);
     expect(find.text('Nivå 2 · Varsle og foreslå'), findsOneWidget);
     // New Bergen: «Innstillinger for Ægil · Nivå 2 · Varsle og foreslå · Endre».
     expect(find.text('Innstillinger for Ægil'), findsOneWidget);
-    expect(find.text('Av · kreves over 300 kr'), findsOneWidget);
     expect(find.text('Nygårdsgaten 5 · bare for deg'), findsOneWidget);
-    expect(find.text('Visa •• 4471'), findsOneWidget);
     expect(find.text('Oppdrag, premier og verving'), findsOneWidget);
     expect(find.text('Ikke med i Bergen-ligaen'), findsOneWidget);
     expect(find.text('Velg navn'), findsOneWidget);
@@ -172,21 +167,17 @@ void main() {
     expect(find.text('Hjelp og kontakt'), findsOneWidget);
     // Varsler · 2 and Favoritter · 2 from prefs counts.
     expect(find.text('2'), findsNWidgets(2));
+    // Konto stays (account deletion); «Ægil sparte deg» is gone (the design's live list has no such row).
+    expect(find.byKey(const Key('meg-rad-konto')), findsOneWidget);
+    expect(find.byKey(const Key('cus-meg-rad-tillit')), findsNothing);
 
-    // Krev alltid kode: Ark → Slå på → prefs.
-    await tester.ensureVisible(find.byKey(const Key('meg-rad-kode')));
-    await tester.tap(find.byKey(const Key('meg-rad-kode')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.tap(find.text('Slå på'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(p.calls, contains('prefs:true:false'));
-    expect(find.text('På · budet leverer bare til deg'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 4));
+    // «Flere innstillinger» is hidden (kMegFlereInnstillinger, SAVED-FOR-LATER.md).
+    for (final k in ['meg-d2-rader', 'meg-rad-anledninger', 'cus-meg-rad-paaminnelser', 'meg-rad-ukeshandel', 'meg-rad-kode', 'meg-rad-dora', 'meg-rad-betaling']) {
+      expect(find.byKey(Key(k)), findsNothing, reason: k);
+    }
   });
 
-  testWidgets('Husk døra mi: off until the customer says yes, saved on the server (UI-TEMP #25 gone)', (tester) async {
+  testWidgets('Husk døra mi: off until the customer says yes, saved on the server (UI-TEMP #25 gone)', skip: !kMegFlereInnstillinger, (tester) async {
     tall(tester);
     final p = api();
     await tester.pumpWidget(app(p));
@@ -256,7 +247,7 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('Anledninger: the sheet lists and removes', (tester) async {
+  testWidgets('Anledninger: the sheet lists and removes', skip: !kMegFlereInnstillinger, (tester) async {
     tall(tester);
     final p = api();
     final a = FakeAegilApi();
@@ -426,13 +417,13 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Logge ut?'), findsNothing);
     expect(find.byKey(const Key('meg-logg-ut')), findsOneWidget);
-    // The D2 group is there, below the design's rows.
-    expect(find.text('FLERE INNSTILLINGER'), findsOneWidget);
-    expect(find.byKey(const Key('meg-d2-rader')), findsOneWidget);
+    // The D2 group is hidden (SAVED-FOR-LATER.md).
+    expect(find.text('FLERE INNSTILLINGER'), findsNothing);
+    expect(find.byKey(const Key('meg-d2-rader')), findsNothing);
     await tester.pump(const Duration(seconds: 9));
   });
 
-  testWidgets('Adresser, Betaling and Språk open as sheets', (tester) async {
+  testWidgets('Adresser and Språk open as sheets (Betaling with Flere innstillinger)', (tester) async {
     tall(tester);
     A3Services.addresses = () async => ['Nygårdsgaten 5', 'Strandkaien 2'];
     A3Services.addressList = () async => [
@@ -462,10 +453,12 @@ void main() {
     expect(find.byKey(const Key('adresser-legg')), findsOneWidget);
     await close();
 
-    await open('meg-rad-betaling');
-    expect(find.byKey(const Key('meg-betaling-sheet')), findsOneWidget);
-    expect(find.text('Reserve'), findsOneWidget);
-    await close();
+    if (kMegFlereInnstillinger) {
+      await open('meg-rad-betaling');
+      expect(find.byKey(const Key('meg-betaling-sheet')), findsOneWidget);
+      expect(find.text('Reserve'), findsOneWidget);
+      await close();
+    }
 
     await open('meg-rad-spraak');
     expect(find.byKey(const Key('meg-spraak-sheet')), findsOneWidget);
