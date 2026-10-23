@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import '../../../ui/kit/ae_haptic.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -54,6 +56,9 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
   @override
   void initState() {
     super.initState();
+    // Bekreftet is the one place every paid order lands (card and Google / Apple
+    // Pay from Kassen, the Vipps return, the order handoff): the success haptic.
+    aeSuccess();
     _sum = widget.sum;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

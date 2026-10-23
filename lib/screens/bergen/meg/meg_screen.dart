@@ -5,6 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../ui/kit/ae_haptic.dart';
+
 import '../../../networking/feed/feed_repo.dart';
 import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
 import '../kit/fane_bytte.dart';
@@ -507,6 +509,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   }
 
   Future<void> _share() async {
+    aeConfirm();
     final code = _code;
     final text = A4MegCopy.a4_meg_del_tekst(_referral?.pointsForThem ?? 200, code, _referral?.link);
     try {

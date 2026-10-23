@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../../../ui/kit/ae_haptic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -1146,6 +1148,7 @@ class _PostViserState extends State<_PostViser> {
 
   Future<void> _lik(FeedPost p) async {
     final paa = !p.isLiked;
+    if (paa) aeTick(); // a like, not an unlike
     final ny = FeedPost(
       id: p.id,
       store: p.store,

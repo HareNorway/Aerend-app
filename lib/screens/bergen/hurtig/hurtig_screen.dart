@@ -4,6 +4,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+import '../../../ui/kit/ae_haptic.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -631,6 +633,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
 
   /// The «Bestilt» card from the order summary (`hbFullfor`'s tail).
   void _bestiltFerdig(Map<String, dynamic> o) {
+    aeSuccess(); // the payment landed
     final store = o['store'] is Map ? o['store'] as Map : const {};
     final items = o['items'] is List ? (o['items'] as List).whereType<Map>() : const <Map>[];
     final navn = [

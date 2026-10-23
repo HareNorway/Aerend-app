@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
+
+import '../../../ui/kit/ae_haptic.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -270,6 +272,7 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
   Future<void> _toggleLike(FeedTabItem item) async {
     final was = _liked[item.id] ?? item.isLiked;
     final count = _likes[item.id] ?? item.likeCount;
+    if (!was) aeTick(); // a like, not an unlike
     setState(() {
       _liked[item.id] = !was;
       _likes[item.id] = was ? count - 1 : count + 1;

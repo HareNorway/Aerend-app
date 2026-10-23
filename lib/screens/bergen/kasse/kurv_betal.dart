@@ -163,8 +163,11 @@ class _KurvBetalState extends State<KurvBetal> with SingleTickerProviderStateMix
                               gradient: cssLinear(90, const [Color(0xFF2E7E8F), Color(0xFF46A3B4)]),
                             ),
                           ),
+                          // The stripes drift on (`vannRenn`) while the order is placed and
+                          // paid: a loading sign, so it runs in `lite` too (essential).
                           BergenLoop(
                             durationMs: 1100,
+                            essential: true,
                             builder: (context, p, _) => Opacity(
                               opacity: .45,
                               child: CustomPaint(painter: _StripesPainter(40 * s * (p ?? 0), s)),
