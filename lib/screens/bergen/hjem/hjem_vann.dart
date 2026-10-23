@@ -256,7 +256,15 @@ class _Klipp extends CustomClipper<Path> {
       final w1 = Path(), w2 = Path();
       _rad(w1, _t1, q.x1, y - 22 + q.bob, size.width, s, opp: false);
       _rad(w2, _t2, q.x2, y - 20 - q.bob, size.width, s, opp: false);
-      p = Path.combine(PathOperation.union, Path.combine(PathOperation.union, Path()..addRect(Rect.fromLTRB(0, y * s, size.width, size.height)), w1), w2);
+      // The two wave bands and the water under them, all wound the same way:
+      // the non-zero rule gives their union without Path.combine (two boolean
+      // operations per frame while the water moves — the costliest thing on
+      // the UI thread during a scroll).
+      p = Path()
+        ..fillType = PathFillType.nonZero
+        ..addRect(Rect.fromLTRB(0, y * s, size.width, size.height))
+        ..addPath(w1, Offset.zero)
+        ..addPath(w2, Offset.zero);
     }
     final e = v._slutt();
     if (e != null) {

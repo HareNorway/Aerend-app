@@ -170,7 +170,35 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   double _fra = 0, _til = 0;
 
   /// The focused dot fills over 11s.
-  late final AnimationController _prikk = AnimationController(vsync: this, duration: const Duration(seconds: 11));
+  /// Not an AnimationController: that ticks every frame for 11 s, and on
+  /// Impeller every frame redraws the whole screen — the row kept Hjem at
+  /// 25–40 fps while it sat still. Four steps a second on a 22-px dot are
+  /// the same picture.
+  final ValueNotifier<double> _prikk = ValueNotifier<double>(0);
+  Timer? _prikkT;
+  int? _prikkFra;
+
+  void _prikkStart({bool fraNull = false}) {
+    if (fraNull || _prikkFra == null) {
+      _prikkFra = DateTime.now().millisecondsSinceEpoch;
+      _prikk.value = 0;
+    } else {
+      // Resume where it stopped.
+      _prikkFra = DateTime.now().millisecondsSinceEpoch - (_prikk.value * 11000).round();
+    }
+    _prikkT ??= Timer.periodic(const Duration(milliseconds: 250), (_) {
+      if (!mounted || _prikkFra == null) return;
+      if (!TickerMode.of(context)) return; // another tab is up: no frames
+      final p = ((DateTime.now().millisecondsSinceEpoch - _prikkFra!) / 11000).clamp(0.0, 1.0);
+      _prikk.value = p;
+      if (p >= 1) _prikkStop();
+    });
+  }
+
+  void _prikkStop() {
+    _prikkT?.cancel();
+    _prikkT = null;
+  }
 
   /// The personal offer as last seen (revealed in place after «Avslør»).
   late HjemPersonlig? _p = widget.personlig;
@@ -190,7 +218,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   void initState() {
     super.initState();
     _myst = _p?.avslort ?? false;
-    _prikk.forward();
+    _prikkStart();
     _rot = Timer.periodic(const Duration(milliseconds: 400), (_) => _tikk());
   }
 
@@ -199,6 +227,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     _rot?.cancel();
     _snapT?.cancel();
     _glid.dispose();
+    _prikkStop();
     _prikk.dispose();
     super.dispose();
   }
@@ -222,7 +251,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     } else {
       _glid.forward(from: 0);
     }
-    _prikk.forward(from: 0);
+    _prikkStart(fraNull: true);
   }
 
   void _tikk() {
@@ -259,7 +288,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     _dx = 0;
     _drar = true;
     _hold = true;
-    _prikk.stop();
+    _prikkStop();
   }
 
   void _flytt(DragUpdateDetails d) {
@@ -291,7 +320,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     _kurve = Curves.easeOutCubic;
     _glid.duration = _swipe;
     _glid.forward(from: 0);
-    m != ia ? _prikk.forward(from: 0) : _prikk.forward();
+    _prikkStart(fraNull: m != ia);
     if (m == n) {
       _snapT = Timer(_swipe + const Duration(milliseconds: 30), () {
         if (mounted && !_hold) _gaaTil(0, snap: true);
@@ -386,11 +415,11 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
                     color: Color.fromRGBO(255, 255, 255, k == _i % n ? .28 : .34),
                   ),
                   child: k == _i % n
-                      ? AnimatedBuilder(
-                          animation: _prikk,
-                          builder: (context, _) => FractionallySizedBox(
+                      ? ValueListenableBuilder<double>(
+                          valueListenable: _prikk,
+                          builder: (context, p, _) => FractionallySizedBox(
                             alignment: Alignment.centerLeft,
-                            widthFactor: _prikk.value,
+                            widthFactor: p,
                             child: const ColoredBox(color: Colors.white),
                           ),
                         )

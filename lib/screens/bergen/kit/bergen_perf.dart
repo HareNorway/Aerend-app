@@ -269,16 +269,33 @@ abstract final class _Watchdog {
   static int _windowStart = 0;
   static int _badWindows = 0;
 
+  /// `--dart-define=AE_FRAME_LOG=true`: every 5 s window's frame times to the
+  /// log (`PERF_FRAMES`), for measuring scroll smoothness on a phone.
+  static const bool _log = bool.fromEnvironment('AE_FRAME_LOG');
+  static final List<int> _buildUs = [], _rasterUs = [];
+
   static void onTimings(List<ui.FrameTiming> timings) {
     if (!BergenPerf.foreground.value) return;
     for (final t in timings) {
       _us.add(t.totalSpan.inMicroseconds);
+      if (_log) {
+        _buildUs.add(t.buildDuration.inMicroseconds);
+        _rasterUs.add(t.rasterDuration.inMicroseconds);
+      }
     }
     final now = DateTime.now().microsecondsSinceEpoch;
     if (_windowStart == 0) _windowStart = now;
     if (now - _windowStart < 5000000 || _us.length < 30) return;
     _us.sort();
     final p90 = _us[(_us.length * .9).floor().clamp(0, _us.length - 1)];
+    if (_log) {
+      int pct(List<int> l, double p) => (l..sort())[(l.length * p).floor().clamp(0, l.length - 1)];
+      final over = _us.where((u) => u > 16700).length;
+      debugPrint('PERF_FRAMES n=${_us.length} over16ms=$over p50=${pct(_us, .5) ~/ 1000}ms p90=${p90 ~/ 1000}ms '
+          'p99=${pct(_us, .99) ~/ 1000}ms build_p90=${pct(_buildUs, .9) ~/ 1000}ms raster_p90=${pct(_rasterUs, .9) ~/ 1000}ms tier=${BergenPerf.tier.value.name}');
+      _buildUs.clear();
+      _rasterUs.clear();
+    }
     _us.clear();
     _windowStart = now;
     final views = ui.PlatformDispatcher.instance.views;

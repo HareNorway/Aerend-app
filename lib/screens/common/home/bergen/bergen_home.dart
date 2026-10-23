@@ -137,8 +137,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   Timer? _trackTimer;
   StreamSubscription<ApiResponse<HomeTrackOrderPojo>>? _trackSub;
 
-  /// `arkScroll` — clamped scroll offset that drives the parallax.
-  double _k = 0;
+  /// `arkScroll` — clamped scroll offset that drives the parallax. A
+  /// notifier, not state: only the hero and the sheet reposition on it, so a
+  /// scroll frame no longer rebuilds the whole screen.
+  final ValueNotifier<double> _kN = ValueNotifier<double>(0);
 
   /// `kaien` — Under kaien revealed.
   bool _kaien = false;
@@ -504,6 +506,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _kN.dispose();
     HjemNy.endret.removeListener(_nyEndret);
     HjemVarsler.uleste.removeListener(_ulesteEndret);
     BergenFaneBytte.aktiv.removeListener(_faneVist);
@@ -692,9 +695,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     var kaienLiv = _kaienLiv;
     if (remaining < 900 * s) kaienLiv = true;
     if (remaining > 1000 * s) kaienLiv = false;
-    if (k != _k || kaien != _kaien || heroLiv != _heroLiv || kaienLiv != _kaienLiv) {
+    _kN.value = k;
+    if (kaien != _kaien || heroLiv != _heroLiv || kaienLiv != _kaienLiv) {
       setState(() {
-        _k = k;
         _kaien = kaien;
         _heroLiv = heroLiv;
         _kaienLiv = kaienLiv;
@@ -760,7 +763,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       _soneBytt = true;
       _kaien = false;
       _dragY = 0;
-      _k = 0;
+      _kN.value = 0;
     });
     Future.delayed(const Duration(milliseconds: 360), () {
       if (mounted) setState(() => _soneBytt = false);
@@ -1501,14 +1504,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 final products = _products(swipe, focused);
                 final floats = _floats(swipe);
 
-                final heroOpacity = (1 - ((_k / s) - 120).clamp(0.0, 92.0) / 92)
-                    .clamp(0.0, 1.0);
+                double heroOpacityFor(double k) => (1 - ((k / s) - 120).clamp(0.0, 92.0) / 92).clamp(0.0, 1.0);
                 // Vindu's stripe keeps its distance from the bottom (640 of
                 // the 844 frame); the scene runs 34px under it.
                 final vinduTop = screenH - (844 - 640) * s;
-                final sheetTop = _vindu
+                double sheetTopFor(double k) => _vindu
                     ? vinduTop + _stripeDy * s
-                    : safeTop + (_kSheetTop + _dragY) * s - _k;
+                    : safeTop + (_kSheetTop + _dragY) * s - k;
+                // Vindu's own stripe (no parallax there: `_kN` is 0 in Vindu).
+                final sheetTop = sheetTopFor(0);
                 final heroH = _vindu
                     ? vinduTop + 34 * s - safeTop
                     : (kHjemHeroH + (_dragY > 0 ? _dragY : 0)) * s;
@@ -1579,19 +1583,26 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                AnimatedPositioned(
-                                  duration: Duration(
-                                    milliseconds: _soneBytt ? 340 : 0,
-                                  ),
-                                  curve: const Cubic(.2, .9, .3, 1),
-                                  left: 0,
-                                  right: 0,
-                                  top: _vindu ? 0 : _kHeroTop * s - _k,
-                                  height: heroH,
-                                  child: IgnorePointer(
-                                    ignoring: heroOpacity < .05,
-                                    child: Opacity(
-                                      opacity: heroOpacity,
+                                ValueListenableBuilder<double>(
+                                  valueListenable: _kN,
+                                  builder: (context, k, hero) {
+                                    final heroOpacity = heroOpacityFor(k);
+                                    return AnimatedPositioned(
+                                      duration: Duration(milliseconds: _soneBytt ? 340 : 0),
+                                      curve: const Cubic(.2, .9, .3, 1),
+                                      left: 0,
+                                      right: 0,
+                                      top: _vindu ? 0 : _kHeroTop * s - k,
+                                      height: heroH,
+                                      child: IgnorePointer(
+                                        ignoring: heroOpacity < .05,
+                                        child: Opacity(opacity: heroOpacity, child: hero),
+                                      ),
+                                    );
+                                  },
+                                  // Its own layer: the hero's shaders and loops repaint
+                                  // the hero, never the sheet beside it.
+                                  child: RepaintBoundary(
                                       child: LfFrame(
                                         child: TickerMode(
                                         enabled: _heroLiv,
@@ -1609,7 +1620,6 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         ),
                                         ),
                                       ),
-                                    ),
                                   ),
                                 ),
                               ],
@@ -1632,6 +1642,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               on: _inn,
                               index: 5,
                               etterArk: true,
+                              child: RepaintBoundary(
                               child: LfFrame(
                               child: TickerMode(
                               enabled: _kaienLiv,
@@ -1654,19 +1665,24 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               ),
                             ),
                             ),
+                            ),
                           ),
 
                         // ── Sheet (ark) ────────────────────────────────
-                        AnimatedPositioned(
-                          duration: Duration(milliseconds: _dragging ? 0 : 340),
-                          curve: const Cubic(.2, .9, .3, 1),
-                          left: 0,
-                          right: 0,
-                          top: sheetTop,
-                          height:
-                              screenH -
-                              (safeTop + _kSheetTop * s) +
-                              _kSheetSlide * s,
+                        ValueListenableBuilder<double>(
+                          valueListenable: _kN,
+                          builder: (context, k, sheet) => AnimatedPositioned(
+                            duration: Duration(milliseconds: _dragging ? 0 : 340),
+                            curve: const Cubic(.2, .9, .3, 1),
+                            left: 0,
+                            right: 0,
+                            top: sheetTopFor(k),
+                            height:
+                                screenH -
+                                (safeTop + _kSheetTop * s) +
+                                _kSheetSlide * s,
+                            child: sheet!,
+                          ),
                           child: _HjemInn(
                             on: _inn,
                             index: 5,
@@ -1916,7 +1932,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     final s = context.bs;
     final openCount = stores.where((e) => e.open).length;
 
-    return Column(
+    // One layer for the body, one per section inside: while the sheet scrolls,
+    // the sections' pictures move as cached layers instead of being redrawn
+    // (every CSS shadow and holo in view), and a section's own loop repaints
+    // only itself.
+    Widget lag(Widget w) => w is SizedBox ? w : RepaintBoundary(child: w);
+    return RepaintBoundary(
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
@@ -1970,6 +1992,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              for (final w in <Widget>[
               SizedBox(height: 10 * s),
               lfFlow(
                 358,
@@ -2059,6 +2082,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
               ),
+              ])
+                lag(w),
             ],
           ),
         ),
@@ -2068,6 +2093,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         // the bottom of the screen behind the sheet, shows through.
         SizedBox(height: (296 + 316) * s),
       ],
+    ),
     );
   }
 }
