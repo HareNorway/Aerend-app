@@ -154,13 +154,16 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
     }
   }
 
+  /// While a finger turns the ring, the front card follows it (and ticks).
+  /// A timer or tap turn names its front card at the start instead
+  /// ([_advance]), as the rail always did.
   void _onRing() {
     final n = widget.count;
-    if (n == 0) return;
+    if (n == 0 || !_byHand) return;
     final f = _ring.value.round() % n;
     if (f == _focus) return;
     setState(() => _focus = f);
-    if (_byHand) aeTick();
+    aeTick();
   }
 
   void _start() {
@@ -184,6 +187,8 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
 
   void _advance(int steps) {
     _byHand = false;
+    final n = widget.count;
+    setState(() => _focus = ((_target + steps).round() % n + n) % n);
     _turnTo(_target + steps, const Duration(milliseconds: 1250), const Cubic(.62, .02, .34, 1));
   }
 
