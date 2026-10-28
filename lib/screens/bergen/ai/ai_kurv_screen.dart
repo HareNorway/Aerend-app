@@ -11,9 +11,12 @@ import '../aegil/aegil_bits.dart';
 import '../hjem/hjem_harness.dart';
 import '../kasse/kurv_betal.dart';
 import '../kit/bergen_kit.dart';
+import '../meg/meg_ark.dart';
+import 'ai_bekreft.dart';
 import 'ai_betaling.dart';
 import 'ai_bits.dart';
 import 'ai_copy.dart';
+import 'ai_sheets.dart';
 import 'ai_store.dart';
 import 'ai_tilbud.dart';
 import '../../../services/customer/beacons.dart';
@@ -38,7 +41,7 @@ class AiKurvScreen extends StatefulWidget {
   State<AiKurvScreen> createState() => _AiKurvScreenState();
 }
 
-class _AiKurvScreenState extends State<AiKurvScreen> {
+class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver {
   CusApi get _api => widget.api ?? AiStore.instance.api;
   CusAiRequest? _r;
   bool _laster = true;
@@ -49,6 +52,9 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
   CusMoney? _gammelTotal;
   String _bet = 'vipps';
   Timer? _laserT;
+  // Customer v2 Step 3: the payment's answer is asked once on arrival (the Vipps return link) and on every resume.
+  bool _sjekker = false;
+  bool _sjekketVedStart = false;
 
   String get _id => widget.id ?? BergenRoutes.argsOf(context)['id'] ?? '';
 
@@ -59,7 +65,14 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
     if (_tilstand != null && _tilstand!.isEmpty) _tilstand = 'normal';
     if (kDebugMode && HjemHarness.ai != null && HjemHarness.ai!.startsWith('kurv')) HjemHarness.ai = null;
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    WidgetsBinding.instance.addObserver(this);
     _vakt.start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Back from Vipps: the provider decides whether the order is placed.
+    if (state == AppLifecycleState.resumed && _r?.state == 'betaler') unawaited(_sjekk());
   }
 
   /// Customer Step 16: a loader longer than 20 s is a `stuck_screen` beacon.
@@ -69,6 +82,7 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
   void dispose() {
     _vakt.stop();
     _laserT?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -111,6 +125,10 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
     }
     setState(() { _r = r; _laster = false; _bet = (r?.paymentPref ?? 'vipps') == 'card' ? 'card' : 'vipps'; });
     _vakt.stop();
+    if (r != null && r.state == 'betaler' && !_sjekketVedStart) {
+      _sjekketVedStart = true;
+      unawaited(_sjekk());
+    }
     // Harness: `aiBetal` releases the slider on the real request (acceptance runs; never the sample).
     if (kDebugMode && HjemHarness.aiBetal && r != null && r.state == 'normal' && _id.isNotEmpty && _id != 'demo') {
       HjemHarness.aiBetal = false;
@@ -163,9 +181,61 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
     }
   }
 
-  void _endre() {
+  /// «Endre handlekurven» (Customer v2 Step 3): the basket, then back here with a fresh quote on what it holds now.
+  Future<void> _endre() async {
+    final r = _r;
     showBergenToast(context, AiCopy.cus_ai_endre_under);
-    BergenRoutes.push<void>(context, '/bergen/kurv');
+    await BergenRoutes.push<void>(context, '/bergen/kurv');
+    if (!mounted || r == null || (_tilstand != null && (widget.id == null || widget.id == 'demo'))) return;
+    final ny = await _api.aiRequestRequote(r.id);
+    if (!mounted || ny == null) return;
+    setState(() { _r = ny; _gammelTotal = ny.total.ore != r.total.ore ? r.total : null; });
+  }
+
+  /// «Bytt» (Customer v2 Step 3): up to three products of the same store in the sold-out line's place.
+  Future<void> _bytt(CusAiLinje l) async {
+    final r = _r;
+    if (r == null) return;
+    final lineId = l.lineId;
+    if (lineId == null) return;
+    final valg = await _api.aiRequestAlternatives(r.id, lineId);
+    if (!mounted) return;
+    final valgt = await showMegArk<CusAiAlternativ>(
+      context,
+      key: const Key('cus-ai-bytt-ark'),
+      mork: true,
+      title: AiCopy.cus_ai_bytt_tittel(l.name),
+      subtitle: AiCopy.cus_ai_bytt_linje,
+      body: (ctx, _) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        if (valg.isEmpty) Padding(padding: const EdgeInsets.all(8), child: Text(AiCopy.cus_ai_bytt_ingen, style: inter(13, color: const Color.fromRGBO(255, 255, 255, .75)))),
+        for (final a in valg)
+          AePress(onTap: () => Navigator.of(ctx).pop(a), dy: 1.5, child: AiKort(key: Key('cus-ai-bytt-${a.productId}'), padding: const EdgeInsets.all(12), child: Row(children: [
+            const AeIkon(AiIk.pose, size: 15, stroke: 2.2), const SizedBox(width: 10),
+            Expanded(child: Text(a.name, style: inter(13.5, weight: FontWeight.w800))),
+            Text(a.price.display, style: aeTab(inter(13.5, weight: FontWeight.w800))),
+          ]))),
+      ]),
+      secondary: MegArkButton(label: AiCopy.cus_ai_avbryt, onTap: () => Navigator.of(context).pop()),
+    );
+    if (valgt == null || !mounted) return;
+    final ny = await _api.aiRequestRequote(r.id, removeLineId: lineId, addProductId: valgt.productId);
+    if (!mounted) return;
+    if (ny == null) {
+      showBergenToast(context, AiCopy.cus_ai_feil_generisk, icon: Icons.error_outline_rounded);
+      return;
+    }
+    setState(() { _r = ny; _gammelTotal = r.total; });
+  }
+
+  /// Back from Vipps (or the card sheet): the server asks the provider; paid → Sporing, otherwise the request again.
+  Future<void> _sjekk() async {
+    final r = _r;
+    if (r == null || _sjekker) return;
+    _sjekker = true;
+    final res = await AiBetaling.sjekk(context, r, forsok: 1);
+    _sjekker = false;
+    if (!mounted || res.ok) return;
+    await _load();
   }
 
   Future<void> _venteliste() async {
@@ -180,6 +250,12 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
   Future<bool> _betal() async {
     final r = _r;
     if (r == null || _betaler) return false;
+    // Customer v2 Step 3 (D2-4): over the customer's cap the confirmation sheet asks explicitly («Bekreft likevel»).
+    if (r.state == 'over') {
+      await AiBekreft.vis(context, r);
+      if (mounted) await _load();
+      return false;
+    }
     setState(() => _betaler = true);
     final res = await AiBetaling.betal(context, r, payment: _bet, harness: _tilstand != null && (widget.id == null || widget.id == 'demo'));
     if (!mounted) return false;
@@ -188,12 +264,23 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
       await _load();
       return false;
     }
-    if (!res.ok && res.feil == 'over_limit') {
-      showBergenToast(context, AiCopy.cus_ai_over(r.capPerOrder?.kr ?? 0), icon: Icons.error_outline_rounded);
+    // Customer v2 Step 3: waiting for Vipps, a closed sheet or a failed payment — the request shows where it stands.
+    if (!res.ok && (res.feil == 'venter' || res.feil == 'payment' || res.feil == 'failed')) {
+      await _load();
+      return false;
+    }
+    // The live refusals open their sheets (spec §4.10 H), not a toast.
+    if (!res.ok && res.feil == 'confirmation_required') {
+      await AiBekreft.vis(context, r);
+      if (mounted) await _load();
+      return false;
+    }
+    if (!res.ok && res.feil == 'scope_missing') {
+      await AiArk.flyt(context, 'feil:ikkeKoblet', navn: r.assistant);
       return false;
     }
     if (!res.ok && res.feil != null && res.feil != 'device') {
-      showBergenToast(context, AiCopy.cus_ai_bestilling_feilet, icon: Icons.error_outline_rounded);
+      await AiArk.flyt(context, 'feil:generisk', navn: r.assistant);
       return false;
     }
     return res.ok;
@@ -211,7 +298,7 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
     final r = _r;
     final s = _state;
     final navn = r?.assistant ?? (HjemHarness.aiNavn ?? 'Claude');
-    final ok = s == 'normal' || s == 'utsolgt' || s == 'utlopt';
+    final ok = s == 'normal' || s == 'utsolgt' || s == 'utlopt' || s == 'over' || s == 'feilet';
     final visKnapper = ok && r != null && !r.harUtsolgt;
     final top = MediaQuery.paddingOf(context).top;
     final bunn = MediaQuery.paddingOf(context).bottom;
@@ -299,13 +386,24 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
                       key: Key('cus-ai-kurv-$s'),
                       r: r,
                       venter: false,
-                      banner: s == 'utlopt' || _gammelTotal != null ? AiBanner(tone: 'gul', tittel: AiCopy.cus_ai_tilbud_utlopt, tekst: AiCopy.cus_ai_tilbud_utlopt_tx, ikon: AiIk.oppdater) : null,
+                      // Customer v2 Step 3: over the cap, the payment running or failed, withdrawn.
+                      banner: switch (s) {
+                        'over' => AiBanner(tone: 'gul', tittel: AiCopy.cus_ai_over_banner(r.capPerOrder?.kr ?? 0), tekst: AiCopy.cus_ai_over_banner_tx, ikon: AiIk.skjold),
+                        'betaler' => AiBanner(key: const Key('cus-ai-kurv-venter-betaling'), tone: 'gul', tittel: AiCopy.cus_ai_venter_betaling, tekst: AiCopy.cus_ai_venter_betaling_tx, ikon: AiIk.kort),
+                        'feilet' => AiBanner(tone: 'rod', tittel: AiCopy.cus_ai_bet_feilet, tekst: AiCopy.cus_ai_bet_feilet_tx, ikon: AiIk.kort),
+                        'trukket' => AiBanner(tone: 'graa', tittel: AiCopy.cus_ai_trukket(r.assistant), tekst: AiCopy.cus_ai_trukket_tx, ikon: AiIk.kryss),
+                        _ => s == 'utlopt' || _gammelTotal != null ? AiBanner(tone: 'gul', tittel: AiCopy.cus_ai_tilbud_utlopt, tekst: AiCopy.cus_ai_tilbud_utlopt_tx, ikon: AiIk.oppdater) : null,
+                      },
                       visFrist: true,
                       visGauge: false,
                       onFjern: _fjern,
+                      onBytt: _bytt,
                       gammelTotal: _gammelTotal,
                     ),
                     const SizedBox(height: 10),
+                    if (s == 'betaler')
+                      AePress(onTap: _sjekk, dy: 1.5, child: Container(key: const Key('cus-ai-sjekk'), height: 46, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(AiCopy.cus_ai_sjekk_betaling, style: inter(14, weight: FontWeight.w800))))
+                    else if (s != 'trukket')
                     Row(children: [
                       Expanded(child: AePress(onTap: _endre, dy: 1.5, child: AiKort(key: const Key('cus-ai-endre'), padding: const EdgeInsets.all(12), child: Row(children: [const AeIkon(AiIk.oppdater, size: 16, stroke: 2.3, color: Color(0xFF7FF0CB)), const SizedBox(width: 8), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_endre_kurv, style: inter(13, weight: FontWeight.w800)), Text(AiCopy.cus_ai_endre_under, style: inter(11, color: const Color.fromRGBO(255, 255, 255, .65)))]))])))),
                       const SizedBox(width: 8),
@@ -322,7 +420,8 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   _linjeRad(AiIk.sykkel, r.windowDisplay, r.address, onEndre: null),
                   const SizedBox(height: 8),
-                  _linjeRad(AiIk.kort, _bet == 'vipps' ? AiCopy.cus_ai_vipps : AiCopy.cus_ai_kort_ved_bet, _bet == 'vipps' ? AiCopy.cus_ai_godkjenner_vipps : AiCopy.cus_ai_bekreftes_faceid, onEndre: () => setState(() => _bet = _bet == 'vipps' ? 'card' : 'vipps')),
+                  // Customer v2 Step 3 (D2-7): «Betal med Vipps» / «Betal med kort» as the switch above the slider.
+                  _metode(r),
                   const SizedBox(height: 12),
                   KurvBetal(key: const Key('cus-ai-betal'), total: r.total.ore / 100, onPay: _betal, busy: _betaler),
                   const SizedBox(height: 8),
@@ -333,6 +432,24 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
         ),
       ),
     );
+  }
+
+  /// D2-7: the two methods as one switch; the slider pays with the chosen one.
+  Widget _metode(CusAiRequest r) {
+    final kr = r.total.ore ~/ 100;
+    Widget valg(String id, String tx) {
+      final pa = _bet == id;
+      return Expanded(child: AePress(onTap: () => setState(() => _bet = id), dy: 1, child: Container(
+        key: Key('cus-ai-bet-$id'),
+        height: 40,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: pa ? const Color.fromRGBO(92, 224, 184, .18) : const Color.fromRGBO(255, 255, 255, .07), border: Border.all(color: pa ? const Color.fromRGBO(127, 240, 203, .8) : const Color.fromRGBO(255, 255, 255, .18))),
+        child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: pa ? const Color(0xFF7FF0CB) : Colors.white)),
+      )));
+    }
+
+    return Semantics(label: AiCopy.cus_ai_betalingsmate, child: Row(children: [valg('vipps', AiCopy.cus_ai_betal_med_vipps(kr)), const SizedBox(width: 8), valg('card', AiCopy.cus_ai_betal_med_kort(kr))]));
   }
 
   Widget _linjeRad(String ik, String navn, String under, {VoidCallback? onEndre}) => Row(children: [

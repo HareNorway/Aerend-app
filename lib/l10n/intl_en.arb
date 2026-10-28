@@ -5027,5 +5027,28 @@
         "type": "String"
       }
     }
-  }
+  },
+  "pay_with_card": "Pay by card · {kr} kr",
+  "@pay_with_card": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_venter_betaling": "Waiting for the payment",
+  "cus_ai_venter_betaling_tx": "The order is sent when the payment has gone through. Nothing is ordered yet.",
+  "cus_ai_sjekk_betaling": "Check the payment",
+  "cus_ai_bytt": "Swap",
+  "cus_ai_bytt_tittel": "Swap {navn}",
+  "@cus_ai_bytt_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bytt_linje": "Products from the same store. The price is worked out again.",
+  "cus_ai_bytt_ingen": "No similar products in this store.",
+  "cus_ai_betalingsmate": "Payment method"
 }

@@ -351,4 +351,15 @@ abstract final class AiCopy {
   static String get cus_ai_kopier_kobling => languages.cus_ai_kopier_kobling;
   static String cus_ai_samtykke_versjon(String versjon) => languages.cus_ai_samtykke_versjon(versjon);
   static String cus_ai_bio_delt_siden(String dato) => languages.cus_ai_bio_delt_siden(dato);
+
+  // Customer v2 Step 3 (spec §4.10 C, D; D2-5, D2-7): the method switch, waiting for the payment, «Bytt».
+  static String cus_ai_betal_med_kort(int kr) => languages.pay_with_card(nf(kr));
+  static String get cus_ai_betalingsmate => languages.cus_ai_betalingsmate;
+  static String get cus_ai_venter_betaling => languages.cus_ai_venter_betaling;
+  static String get cus_ai_venter_betaling_tx => languages.cus_ai_venter_betaling_tx;
+  static String get cus_ai_sjekk_betaling => languages.cus_ai_sjekk_betaling;
+  static String get cus_ai_bytt => languages.cus_ai_bytt;
+  static String cus_ai_bytt_tittel(String navn) => languages.cus_ai_bytt_tittel(navn);
+  static String get cus_ai_bytt_linje => languages.cus_ai_bytt_linje;
+  static String get cus_ai_bytt_ingen => languages.cus_ai_bytt_ingen;
 }

@@ -360,6 +360,20 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
             // `aerendapp://payment/vipps?orderId=N`: the full link on a cold
             // start, or `/vipps?orderId=N` when the running app receives it
             // (Flutter keeps only path + query of a pushed deep link).
+            // Customer v2 Step 3 (D2-5, D2-6): back from Vipps for an assistant's request
+            // (`…/payment/vipps?aiRequest=<id>`), or its https link (`/app/foresporsel/<id>`) —
+            // both open the request, which asks for the payment's answer.
+            final aiRequestId = uri?.queryParameters['aiRequest'] ??
+                (uri != null && uri.path.startsWith('/app/foresporsel/')
+                    ? uri.path.substring('/app/foresporsel/'.length)
+                    : null);
+            if (aiRequestId != null && aiRequestId.isNotEmpty) {
+              final r = BergenRoutes.generate(
+                RouteSettings(name: '/bergen/ai/foresporsel/$aiRequestId'),
+              );
+              if (r != null) return r;
+            }
+
             final isVippsPayment =
                 name.contains('payment/vipps') ||
                 (uri?.host == 'payment' &&

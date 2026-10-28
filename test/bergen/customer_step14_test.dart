@@ -48,15 +48,21 @@ class _Cus extends CusApi {
   @override
   Future<int?> aiLinksRevokeAll() async { calls.add('revokeAll'); links = [for (final l in links) AiStore.harnessLink(l.name, active: false)]; return links.length; }
   @override
-  Future<({CusAiOrder? order, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps'}) async {
-    calls.add('confirm:$id:$payment');
-    if (!confirmOk) return (order: null, feil: confirmFeil, request: request);
-    return (order: const CusAiOrder(id: 777, number: 'Æ-77X', paymentStatus: 'pending'), feil: null, request: request);
+  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false}) async {
+    calls.add('confirm:$id:$payment${overLimitOk ? ':over' : ''}');
+    if (!confirmOk) return (betaling: null, feil: confirmFeil, request: request);
+    // Customer v2 Step 3: the confirmation starts the payment; the order comes from `pay`.
+    return (betaling: CusAiBetaling(method: payment), feil: null, request: request);
+  }
+  @override
+  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id) async {
+    calls.add('pay:$id');
+    return (resultat: 'confirmed', order: const CusAiOrder(id: 777, number: 'Æ-77X', paymentStatus: 'paid'), request: request);
   }
   @override
   Future<CusAiRequest?> aiRequestDecline(String id) async { calls.add('decline:$id'); return request; }
   @override
-  Future<CusAiRequest?> aiRequestRequote(String id, {int? removeLineId}) async { calls.add('requote:$id:${removeLineId ?? '-'}'); return aiSampleRequest(); }
+  Future<CusAiRequest?> aiRequestRequote(String id, {int? removeLineId, int? addProductId}) async { calls.add('requote:$id:${removeLineId ?? '-'}'); return aiSampleRequest(); }
   @override
   Future<String?> aiRequestWaitlist(String id) async { calls.add('waitlist:$id'); return 'wl_1'; }
   @override
@@ -283,12 +289,18 @@ void main() {
     expect(cus.calls, contains('request:q_sample'));
     expect(find.byKey(const Key('cus-ai-kurv-normal')), findsOneWidget);
     final state = tester.state(find.byType(AiKurvScreen)) as dynamic;
-    final fut = state.betalNaa(payment: 'card') as Future<bool>;
+    // Customer v2 Step 3 (D2-5): the slider starts the Vipps payment (no order yet); back from Vipps the
+    // request is `betaler` and the screen asks `pay` — the server says confirmed and Sporing opens.
+    cus.request = aiSampleRequest(state: 'betaler');
+    final fut = state.betalNaa(payment: 'vipps') as Future<bool>;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     final ok = await fut;
-    expect(ok, isTrue);
-    expect(cus.calls, contains('confirm:q_sample:card'));
+    expect(ok, isFalse, reason: 'nothing is ordered while Vipps runs');
+    expect(cus.calls, contains('confirm:q_sample:vipps'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(cus.calls, contains('pay:q_sample'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text(AiCopy.cus_ai_bestilt_via('Claude', 'Æ-77X')), findsOneWidget);

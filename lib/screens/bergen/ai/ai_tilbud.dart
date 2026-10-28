@@ -18,7 +18,7 @@ import 'ai_copy.dart';
 /// fees, the window, the address, the total (with the old one when a new
 /// quote replaced an expired one), and the gauge against the customer's cap.
 class AiTilbud extends StatelessWidget {
-  const AiTilbud({super.key, required this.r, required this.venter, this.laster = false, this.banner, this.visFrist = true, this.visGauge = false, this.onFjern, this.sekunder, this.gammelTotal, this.stoppTx});
+  const AiTilbud({super.key, required this.r, required this.venter, this.laster = false, this.banner, this.visFrist = true, this.visGauge = false, this.onFjern, this.onBytt, this.sekunder, this.gammelTotal, this.stoppTx});
 
   final CusAiRequest r;
 
@@ -29,6 +29,9 @@ class AiTilbud extends StatelessWidget {
   final bool visFrist;
   final bool visGauge;
   final void Function(CusAiLinje)? onFjern;
+
+  /// Customer v2 Step 3: «Bytt» — another product of the same store for the sold-out line.
+  final void Function(CusAiLinje)? onBytt;
   final int? sekunder;
   final CusMoney? gammelTotal;
 
@@ -110,6 +113,10 @@ class AiTilbud extends StatelessWidget {
                 const AeIkon(AiIk.advarsel, size: 16, stroke: 2.2, color: Color(0xFFFFE08A)),
                 const SizedBox(width: 8),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_fjern_tx(s.name), style: inter(12.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_fjern_under, style: inter(11, color: const Color.fromRGBO(255, 255, 255, .7)))])),
+                if (onBytt != null) ...[
+                  AePress(onTap: () => onBytt!(s), dy: 1.5, child: Container(key: const Key('cus-ai-bytt'), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .12), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .25))), child: Text(AiCopy.cus_ai_bytt, style: inter(12, weight: FontWeight.w800)))),
+                  const SizedBox(width: 6),
+                ],
                 AePress(onTap: () => onFjern!(s), dy: 1.5, child: Container(key: const Key('cus-ai-fjern'), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(AiCopy.cus_ai_fjern, style: inter(12, weight: FontWeight.w800)))),
               ]),
             );

@@ -50,7 +50,7 @@ abstract final class AiOverlays {
   static Timer? _pushT;
 
   /// The push «{AI} vil bestille» as an in-app banner (auto-hides after 8 s): «Se bestillingen» → the request; «Avvis».
-  static void push(BuildContext context, CusAiRequest r, {Duration hide = const Duration(seconds: 8), VoidCallback? onAvvis}) {
+  static void push(BuildContext context, CusAiRequest r, {Duration hide = const Duration(seconds: 8), VoidCallback? onAvvis, void Function(BuildContext)? onApne}) {
     final overlay = Overlay.of(context, rootOverlay: true);
     lukkPush();
     _push = OverlayEntry(
@@ -62,7 +62,8 @@ abstract final class AiOverlays {
           r: r,
           onApne: () {
             lukkPush();
-            BergenRoutes.push<void>(ctx, '/bergen/ai/foresporsel/${r.id}');
+            // Customer v2 Step 3: the confirmation sheet when the caller gives it; the request screen otherwise.
+            onApne != null ? onApne(ctx) : BergenRoutes.push<void>(ctx, '/bergen/ai/foresporsel/${r.id}');
           },
           onAvvis: () {
             lukkPush();

@@ -7916,4 +7916,37 @@ class AppLocalizationsNo extends AppLocalizations {
   String cus_ai_bio_delt_siden(String dato) {
     return 'Delt siden $dato';
   }
+
+  @override
+  String pay_with_card(String kr) {
+    return 'Betal med kort · $kr kr';
+  }
+
+  @override
+  String get cus_ai_venter_betaling => 'Venter på betalingen';
+
+  @override
+  String get cus_ai_venter_betaling_tx =>
+      'Bestillingen sendes når betalingen er gjennomført. Ingenting er bestilt ennå.';
+
+  @override
+  String get cus_ai_sjekk_betaling => 'Sjekk betalingen';
+
+  @override
+  String get cus_ai_bytt => 'Bytt';
+
+  @override
+  String cus_ai_bytt_tittel(String navn) {
+    return 'Bytt ut $navn';
+  }
+
+  @override
+  String get cus_ai_bytt_linje =>
+      'Varer fra samme butikk. Prisen regnes ut på nytt.';
+
+  @override
+  String get cus_ai_bytt_ingen => 'Fant ingen lignende varer i butikken.';
+
+  @override
+  String get cus_ai_betalingsmate => 'Betalingsmåte';
 }

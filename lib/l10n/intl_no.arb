@@ -2568,5 +2568,14 @@
   "cus_ai_annen_enhet_linje": "Skann koden med den enheten, eller lim inn koblingen i {navn} der.",
   "cus_ai_kopier_kobling": "Kopier kobling",
   "cus_ai_samtykke_versjon": "Samtykketekst {versjon}",
-  "cus_ai_bio_delt_siden": "Delt siden {dato}"
+  "cus_ai_bio_delt_siden": "Delt siden {dato}",
+  "pay_with_card": "Betal med kort · {kr} kr",
+  "cus_ai_venter_betaling": "Venter på betalingen",
+  "cus_ai_venter_betaling_tx": "Bestillingen sendes når betalingen er gjennomført. Ingenting er bestilt ennå.",
+  "cus_ai_sjekk_betaling": "Sjekk betalingen",
+  "cus_ai_bytt": "Bytt",
+  "cus_ai_bytt_tittel": "Bytt ut {navn}",
+  "cus_ai_bytt_linje": "Varer fra samme butikk. Prisen regnes ut på nytt.",
+  "cus_ai_bytt_ingen": "Fant ingen lignende varer i butikken.",
+  "cus_ai_betalingsmate": "Betalingsmåte"
 }

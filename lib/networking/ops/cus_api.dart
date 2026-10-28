@@ -659,19 +659,37 @@ class CusApi {
 
   /// «Bekreft og betal»: the order and how to pay it; the backend's code on a refusal
   /// (`quote_expired`, `token_used`, `over_limit` …).
-  Future<({CusAiOrder? order, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps'}) async {
+  /// «Bekreft og betal» (Customer v2 Step 3, D2-5): starts the payment — no order yet. Vipps: [CusAiBetaling.redirectUrl];
+  /// card: [CusAiBetaling.sheet] for the Stripe sheet. [overLimitOk] is the explicit second confirmation over a cap (D2-4).
+  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false}) async {
     final auth = OpsCustomerApi.authParams();
-    if (auth == null || !OpsCustomerApi.networkEnabled) return (order: null, feil: null, request: null);
+    if (auth == null || !OpsCustomerApi.networkEnabled) return (betaling: null, feil: null, request: null);
     try {
-      final res = await _helper.postAllowClientError('${_base}ai/requests/${Uri.encodeComponent(id)}/confirm', body: {...auth, 'payment': payment});
+      final res = await _helper.postAllowClientError('${_base}ai/requests/${Uri.encodeComponent(id)}/confirm', body: {...auth, 'payment': payment, if (overLimitOk) 'over_limit_ok': 1});
       final j = res.data;
-      if (j is! Map<String, dynamic>) return (order: null, feil: null, request: null);
+      if (j is! Map<String, dynamic>) return (betaling: null, feil: null, request: null);
       final req = j['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j['request'] as Map)) : null;
-      if (res.statusCode >= 300 || j['order'] is! Map) return (order: null, feil: '${j['error'] ?? 'feil'}', request: req);
-      return (order: CusAiOrder.fromJson(Map<String, dynamic>.from(j['order'] as Map), Map<String, dynamic>.from((j['payment'] as Map?) ?? const {})), feil: null, request: req);
+      if (res.statusCode >= 300 || j['payment'] is! Map) return (betaling: null, feil: '${j['error'] ?? 'feil'}', request: req);
+      return (betaling: CusAiBetaling.fromJson(Map<String, dynamic>.from(j['payment'] as Map)), feil: null, request: req);
     } catch (_) {
-      return (order: null, feil: null, request: null);
+      return (betaling: null, feil: null, request: null);
     }
+  }
+
+  /// Back from Vipps or the card sheet (`POST customer/ai/requests/{id}/pay`): the provider decides —
+  /// [resultat] `confirmed` (with the order), `paying`, `failed`.
+  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id) async {
+    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/pay', const {});
+    if (j == null) return (resultat: 'paying', order: null, request: null);
+    final req = j['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j['request'] as Map)) : null;
+    final order = j['order'] is Map ? CusAiOrder.fromJson(Map<String, dynamic>.from(j['order'] as Map), Map<String, dynamic>.from((j['payment'] as Map?) ?? const {})) : null;
+    return (resultat: '${j['result'] ?? 'paying'}', order: order, request: req);
+  }
+
+  /// «Bytt» (`GET customer/ai/requests/{id}/alternatives`): up to three products of the same store for a sold-out line.
+  Future<List<CusAiAlternativ>> aiRequestAlternatives(String id, int lineId) async {
+    final j = await _get('ai/requests/${Uri.encodeComponent(id)}/alternatives?line_id=$lineId');
+    return [for (final m in (j?['products'] as List? ?? const []).whereType<Map>()) CusAiAlternativ.fromJson(m.cast<String, dynamic>())];
   }
 
   /// «Avvis» — nothing is ordered; the assistant's token dies.
@@ -680,9 +698,9 @@ class CusApi {
     return j?['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j!['request'] as Map)) : null;
   }
 
-  /// A fresh quote on the same cart (`removeLineId` drops a sold-out line); the old request is replaced.
-  Future<CusAiRequest?> aiRequestRequote(String id, {int? removeLineId}) async {
-    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/requote', {if (removeLineId != null) 'remove_line_id': removeLineId});
+  /// A fresh quote on the same cart (`removeLineId` drops a sold-out line, `addProductId` swaps it — «Bytt»); the old request is replaced.
+  Future<CusAiRequest?> aiRequestRequote(String id, {int? removeLineId, int? addProductId}) async {
+    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/requote', {if (removeLineId != null) 'remove_line_id': removeLineId, if (addProductId != null) 'add_product_id': addProductId});
     return j?['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j!['request'] as Map)) : null;
   }
 
@@ -853,6 +871,28 @@ class CusAiVia {
 }
 
 /// The order «Bekreft og betal» created, and how it is paid.
+/// Customer v2 Step 3 (D2-5): the payment a confirmation started — Vipps' redirect or the Stripe sheet.
+class CusAiBetaling {
+  const CusAiBetaling({required this.method, this.status = 'paying', this.redirectUrl, this.sheet});
+  final String method;
+  final String status;
+  final String? redirectUrl;
+  final Map<String, dynamic>? sheet;
+  factory CusAiBetaling.fromJson(Map<String, dynamic> j) => CusAiBetaling(
+    method: '${j['method'] ?? 'vipps'}', status: '${j['status'] ?? 'paying'}', redirectUrl: j['redirect_url'] as String?,
+    sheet: j['sheet'] is Map ? Map<String, dynamic>.from(j['sheet'] as Map) : null,
+  );
+}
+
+/// «Bytt»: a product of the same store in place of a sold-out line.
+class CusAiAlternativ {
+  const CusAiAlternativ({required this.productId, required this.name, this.price = const CusMoney()});
+  final int productId;
+  final String name;
+  final CusMoney price;
+  factory CusAiAlternativ.fromJson(Map<String, dynamic> j) => CusAiAlternativ(productId: (j['id'] as num?)?.toInt() ?? 0, name: '${j['name'] ?? ''}', price: CusMoney.of(j['price']));
+}
+
 class CusAiOrder {
   const CusAiOrder({required this.id, required this.number, this.total = const CusMoney(), this.paymentMethod = 'vipps', this.paymentStatus = 'pending', this.paymentIntent, this.trackingToken});
   final int id;
@@ -873,11 +913,15 @@ class CusAiRequest {
   const CusAiRequest({
     required this.id, required this.state, required this.assistant, required this.vendor, required this.store, this.storeLine = '', this.log = const [], this.lines = const [],
     this.subtotal = const CusMoney(), this.deliveryFee = const CusMoney(), this.serviceFee = const CusMoney(), this.total = const CusMoney(), this.windowDisplay = '', this.address = '', this.deliveryBreakdown,
-    this.deliveryMethod = 'delivery', this.expiresAt, this.secondsLeft = 0, this.capPerOrder, this.overCap = false, this.covered = true, this.waitlistId, this.paymentPref = 'vipps', this.linkId, this.orderId, this.orderCode, this.orderPaid = false, this.createdAt,
+    this.deliveryMethod = 'delivery', this.limitExceeded, this.expiresAt, this.secondsLeft = 0, this.capPerOrder, this.overCap = false, this.covered = true, this.waitlistId, this.paymentPref = 'vipps', this.linkId, this.orderId, this.orderCode, this.orderPaid = false, this.createdAt,
   });
   final String id;
-  /// `normal` | `utsolgt` | `utlopt` | `dekning` | `confirmed` | `declined` | `replaced`
+  /// `normal` | `utsolgt` | `utlopt` | `dekning` | `confirmed` | `declined` | `replaced`; Customer v2 Step 3:
+  /// `over` (the explicit second confirmation), `betaler` (the payment runs), `feilet`, `trukket`.
   final String state;
+
+  /// Customer v2 Step 3: `per_order` | `per_day` when the request is over the customer's cap.
+  final String? limitExceeded;
   final String assistant;
   final String vendor;
   final String store;
@@ -920,6 +964,7 @@ class CusAiRequest {
       lines: [for (final m in (j['lines'] as List? ?? const []).whereType<Map>()) CusAiLinje.fromJson(m.cast<String, dynamic>())],
       subtotal: CusMoney.of(q['subtotal']), deliveryFee: CusMoney.of(q['delivery_fee']), serviceFee: CusMoney.of(q['service_fee']), total: CusMoney.of(q['total']),
       windowDisplay: '${w['display'] ?? ''}', address: '${adr['text'] ?? ''}', deliveryBreakdown: FeeQuoteView.fromBreakdown(q['delivery_breakdown']), deliveryMethod: '${(q['delivery_method'] is Map ? (q['delivery_method'] as Map)['key'] : q['delivery_method']) ?? 'delivery'}',
+      limitExceeded: j['limit_exceeded'] as String?,
       expiresAt: DateTime.tryParse('${j['expires_at'] ?? ''}')?.toLocal(), secondsLeft: (j['seconds_left'] as num?)?.toInt() ?? 0,
       capPerOrder: CusMoney.maybe(j['cap_per_order']), overCap: j['over_cap'] == true, covered: j['covered'] != false, waitlistId: j['waitlist_id'] as String?,
       paymentPref: '${j['payment_pref'] ?? 'vipps'}', linkId: (j['link_id'] as num?)?.toInt(),

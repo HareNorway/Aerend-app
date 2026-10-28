@@ -14083,6 +14083,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared since {dato}'**
   String cus_ai_bio_delt_siden(String dato);
+
+  /// No description provided for @pay_with_card.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by card · {kr} kr'**
+  String pay_with_card(String kr);
+
+  /// No description provided for @cus_ai_venter_betaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the payment'**
+  String get cus_ai_venter_betaling;
+
+  /// No description provided for @cus_ai_venter_betaling_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'The order is sent when the payment has gone through. Nothing is ordered yet.'**
+  String get cus_ai_venter_betaling_tx;
+
+  /// No description provided for @cus_ai_sjekk_betaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the payment'**
+  String get cus_ai_sjekk_betaling;
+
+  /// No description provided for @cus_ai_bytt.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get cus_ai_bytt;
+
+  /// No description provided for @cus_ai_bytt_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap {navn}'**
+  String cus_ai_bytt_tittel(String navn);
+
+  /// No description provided for @cus_ai_bytt_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Products from the same store. The price is worked out again.'**
+  String get cus_ai_bytt_linje;
+
+  /// No description provided for @cus_ai_bytt_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'No similar products in this store.'**
+  String get cus_ai_bytt_ingen;
+
+  /// No description provided for @cus_ai_betalingsmate.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment method'**
+  String get cus_ai_betalingsmate;
 }
 
 class _AppLocalizationsDelegate

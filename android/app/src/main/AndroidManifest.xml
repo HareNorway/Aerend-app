@@ -123,6 +123,17 @@
                     android:host="commercial.ailogistics.no"
                     android:pathPrefix="/vipps/login/callback"/>
             </intent-filter>
+            <!-- Customer v2 Step 3 (D2-6): an assistant's request, https://commercial.ailogistics.no/app/foresporsel/{id}
+                 (the same assetlinks.json verifies it). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="commercial.ailogistics.no"
+                    android:pathPrefix="/app/foresporsel"/>
+            </intent-filter>
             <!-- Returns into the app on Ærend's own scheme (appUrlScheme in constant.dart; not
                  `aerend`, which Reen Dugnad registers): the Stripe redirect and the Vipps Login
                  callback. One scheme per filter: every <data> in a filter combines with the others. -->

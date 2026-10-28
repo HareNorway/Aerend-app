@@ -17,13 +17,23 @@ import 'ai_tilbud.dart';
 /// «Denne bestillingen trenger din bekreftelse» error — normal («Bekreft og
 /// betal»), over the cap («Bekreft likevel»), payment failed («Prøv igjen» /
 /// «Bytt betalingsmåte»), expired and withdrawn («Lukk»). «Avvis» declines.
+///
+/// Customer v2 Step 3 (live): the states come from the server (`over`, `betaler`, `feilet`, `trukket`); «Bekreft
+/// likevel» is the explicit second confirmation over a cap (D2-4); while Vipps runs the sheet hands over to
+/// «Handlekurv fra assistent», which asks for the payment's answer on the way back (D2-5).
 abstract final class AiBekreft {
   /// [tilstand] forces a state for the harness: `normal` | `over` | `feilet` | `utlopt` | `trukket` | `faceid` | `vipps`.
   static Future<void> vis(BuildContext context, CusAiRequest request, {String? tilstand, bool harness = false}) async {
     var r = request;
     var feilet = tilstand == 'feilet';
     var bet = r.paymentPref == 'card' ? 'card' : 'vipps';
-    String ts() => feilet ? 'feilet' : (tilstand == 'trukket' || r.state == 'replaced' ? 'trukket' : (tilstand == 'utlopt' || r.state == 'utlopt' || r.secondsLeft <= 0 ? 'utlopt' : (tilstand == 'over' || r.overCap ? 'over' : 'normal')));
+    String ts() => feilet || r.state == 'feilet'
+        ? 'feilet'
+        : (tilstand == 'trukket' || r.state == 'trukket' || r.state == 'replaced'
+            ? 'trukket'
+            : (r.state == 'betaler'
+                ? 'betaler'
+                : (tilstand == 'utlopt' || r.state == 'utlopt' || r.secondsLeft <= 0 ? 'utlopt' : (tilstand == 'over' || r.state == 'over' || r.overCap ? 'over' : 'normal'))));
     Future<void> avvis(BuildContext ctx) async {
       if (!harness) await AiStore.instance.api.aiRequestDecline(r.id);
       if (!ctx.mounted) return;
@@ -31,10 +41,16 @@ abstract final class AiBekreft {
       showBergenToast(ctx, AiCopy.cus_ai_avvist);
     }
     Future<void> betal(BuildContext ctx, void Function(void Function()) setState) async {
-      final res = await AiBetaling.betal(ctx, r, payment: bet, harness: harness);
+      final res = await AiBetaling.betal(ctx, r, payment: bet, harness: harness, overOk: ts() == 'over');
       if (!ctx.mounted) return;
       if (res.ok) {
         Navigator.of(ctx).pop();
+        return;
+      }
+      // Vipps is open: the request screen waits for the way back and asks for the answer.
+      if (res.feil == 'venter') {
+        Navigator.of(ctx).pop();
+        BergenRoutes.push<void>(ctx, '/bergen/ai/foresporsel/${r.id}');
         return;
       }
       if (res.feil == 'payment' || res.feil == 'failed') setState(() => feilet = true);
@@ -57,6 +73,7 @@ abstract final class AiBekreft {
           'trukket' => AiBanner(tone: 'graa', tittel: AiCopy.cus_ai_trukket(r.assistant), tekst: AiCopy.cus_ai_trukket_tx, ikon: AiIk.kryss),
           'feilet' => AiBanner(tone: 'rod', tittel: AiCopy.cus_ai_bet_feilet, tekst: AiCopy.cus_ai_bet_feilet_tx, ikon: AiIk.kort),
           'over' => AiBanner(tone: 'gul', tittel: AiCopy.cus_ai_over_banner(r.capPerOrder?.kr ?? 0), tekst: AiCopy.cus_ai_over_banner_tx, ikon: AiIk.skjold),
+          'betaler' => AiBanner(tone: 'gul', tittel: AiCopy.cus_ai_venter_betaling, tekst: AiCopy.cus_ai_venter_betaling_tx, ikon: AiIk.kort),
           _ => null,
         };
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -77,7 +94,14 @@ abstract final class AiBekreft {
         final t = ts();
         return switch (t) {
           'utlopt' || 'trukket' => MegArkButton(key: const Key('cus-ai-bekreft-lukk'), label: AiCopy.cus_ai_lukk, onTap: () => Navigator.of(ctx).pop()),
-          'feilet' => MegArkButton(key: const Key('cus-ai-bekreft-igjen'), label: AiCopy.cus_ai_prov_igjen, onTap: () => (ctx as Element).markNeedsBuild()),
+          'feilet' => MegArkButton(key: const Key('cus-ai-bekreft-igjen'), label: AiCopy.cus_ai_prov_igjen, onTap: () {
+            feilet = false;
+            betal(ctx, (f) { f(); (ctx as Element).markNeedsBuild(); });
+          }),
+          'betaler' => MegArkButton(key: const Key('cus-ai-bekreft-sjekk'), label: AiCopy.cus_ai_sjekk_betaling, onTap: () async {
+            final res = await AiBetaling.sjekk(ctx, r, forsok: 1);
+            if (res.ok && ctx.mounted) Navigator.of(ctx).pop();
+          }),
           'over' => MegArkButton(key: const Key('cus-ai-bekreft-likevel'), label: AiCopy.cus_ai_bekreft_likevel, onTap: () => betal(ctx, (f) { f(); (ctx as Element).markNeedsBuild(); })),
           _ => MegArkButton(key: const Key('cus-ai-bekreft-cta'), label: AiCopy.cus_ai_bekreft_betal, onTap: () => betal(ctx, (f) { f(); (ctx as Element).markNeedsBuild(); })),
         };

@@ -7909,4 +7909,37 @@ class AppLocalizationsDa extends AppLocalizations {
   String cus_ai_bio_delt_siden(String dato) {
     return 'Shared since $dato';
   }
+
+  @override
+  String pay_with_card(String kr) {
+    return 'Pay by card · $kr kr';
+  }
+
+  @override
+  String get cus_ai_venter_betaling => 'Waiting for the payment';
+
+  @override
+  String get cus_ai_venter_betaling_tx =>
+      'The order is sent when the payment has gone through. Nothing is ordered yet.';
+
+  @override
+  String get cus_ai_sjekk_betaling => 'Check the payment';
+
+  @override
+  String get cus_ai_bytt => 'Swap';
+
+  @override
+  String cus_ai_bytt_tittel(String navn) {
+    return 'Swap $navn';
+  }
+
+  @override
+  String get cus_ai_bytt_linje =>
+      'Products from the same store. The price is worked out again.';
+
+  @override
+  String get cus_ai_bytt_ingen => 'No similar products in this store.';
+
+  @override
+  String get cus_ai_betalingsmate => 'Payment method';
 }
