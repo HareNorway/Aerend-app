@@ -263,6 +263,9 @@ Future<KasseSlot?> showLeveringSheet(
                 slot: slots[i],
                 tittel: i == 0
                     ? slots[i].label
+                    // Customer v2 Step 1: «Innen 2 timer» (pricing.flex_window).
+                    : slots[i].id == 'flex'
+                    ? languages.flex_window_title
                     : (i == 1 ? KasseCopy.a1_kasse_lev_middag : KasseCopy.a1_kasse_lev_kveld),
                 skip: i == 0,
                 valgt: chosen?.id == slots[i].id,

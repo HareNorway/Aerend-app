@@ -9,7 +9,9 @@ import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../data/ops/fee_quote.dart';
 import '../../../data/ops/kasse_models.dart';
+import '../../../services/customer/client_flags.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
 import '../../../utils/guest_auth_helper.dart';
@@ -32,6 +34,7 @@ import '../../common/home/home_bloc.dart';
 import '../adresse/adr_ark.dart' show adrMerke, visAdresseArk;
 import '../hjem/hjem_harness.dart';
 import 'hent_kart_sheet.dart';
+import 'fee_breakdown_sheet.dart';
 import 'kasse_copy.dart';
 import 'kasse_sheets.dart';
 import 'kasse_stripe.dart';
@@ -240,6 +243,13 @@ class KurvScreen extends StatefulWidget {
 class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   KurvState? _cart;
   OrderPreviewPojo? _preview;
+  // Customer v2 Step 1 (pricing spec §2.4): «Innen 2 timer» chosen, its quote (for the line in the sheet),
+  // an address the engine does not cover, and one retry after a re-quote at payment.
+  bool _flex = false;
+  FeeQuoteView? _flexQuote;
+  bool _outOfCoverage = false;
+  int _quoteRetry = 0;
+  Timer? _quoteTimer;
   AddressListItem? _address;
   bool _pickup = false;
   KasseSlot? _slot;
@@ -327,6 +337,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       WidgetsBinding.instance.addPostFrameCallback((_) => kurvSkjulerNav.value = false);
     }
     _rull.dispose();
+    _quoteTimer?.cancel();
     BergenFaneBytte.aktiv.removeListener(_faneVist);
     WidgetsBinding.instance.removeObserver(this);
     _note.dispose();
@@ -366,14 +377,16 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       if (_tilbud.isEmpty) _loadTilbud();
       return;
     }
-    final results = await Future.wait([_api.preview(), _api.addresses()]);
+    final results = await Future.wait([_api.preview(flex: _flex), _api.addresses()]);
     if (!mounted) return;
     final addresses = results[1] as List<AddressListItem>;
     final savedId = prefGetInt(prefNewDeliveryAddressId);
     setState(() {
       _preview = results[0] as OrderPreviewPojo?;
+      _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
       _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
+    _afterQuote();
     if (_store?.id != cart.storeId) {
       final store = await (widget.butikkApi ?? OpsButikkApi()).store(cart.storeId);
       if (mounted && store != null) setState(() => _store = store);
@@ -435,6 +448,16 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       ),
       KasseSlot(id: 'slot1', label: hhmm(first), line: KasseCopy.a1_kasse_lev_middag_line, at: first),
       KasseSlot(id: 'slot2', label: hhmm(second), line: KasseCopy.a1_kasse_lev_kveld_line, at: second),
+      // Customer v2 Step 1 (D2-3): «Innen 2 timer» — default off, the discount from the engine's flex quote.
+      if (_flexOn && !_stengt)
+        KasseSlot(
+          id: 'flex',
+          label: languages.flex_window_short,
+          line: languages.flex_window_line(
+            feeAmount((_flex ? _preview?.feeQuote : _flexQuote)?.lines.where((l) => l.key == 'flex').firstOrNull?.amountOre ?? 0),
+            hhmm(now.add(const Duration(hours: 2))),
+          ),
+        ),
     ];
   }
 
@@ -488,9 +511,40 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     setState(() {
       _address = addresses.where((a) => a.addressId == id).firstOrNull ?? _address;
     });
-    final preview = await _api.preview();
-    if (mounted) setState(() => _preview = preview);
+    await _requote();
   }
+
+  /// Customer v2 Step 1: the fee again for the address and the window (pricing spec §11 — «Address changed
+  /// after quote: re-quote; if the fee rises the customer confirms»; Kassen shows the new fee before paying).
+  Future<void> _requote() async {
+    final preview = await _api.preview(flex: _flex);
+    if (!mounted) return;
+    setState(() {
+      _preview = preview ?? _preview;
+      _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
+    });
+    _afterQuote();
+  }
+
+  /// The flex line for the Levering sheet (its own quote, so the discount is the engine's) and a silent refresh
+  /// when the quote's time runs out while Kassen is open.
+  void _afterQuote() {
+    _quoteTimer?.cancel();
+    final exp = _preview?.feeQuote?.expiresAt;
+    if (exp != null) {
+      final wait = exp.difference(DateTime.now()) + const Duration(seconds: 1);
+      _quoteTimer = Timer(wait.isNegative ? Duration.zero : wait, () {
+        if (mounted && !_placing) _requote();
+      });
+    }
+    if (_flexOn && !_flex && _preview?.feeQuote != null) {
+      _api.preview(flex: true).then((p) {
+        if (mounted) setState(() => _flexQuote = p?.feeQuote);
+      });
+    }
+  }
+
+  bool get _flexOn => ClientFlags.on('pricing.flex_window') && !_pickup;
 
   Future<void> _openLevering() async {
     final chosen = await showLeveringSheet(
@@ -500,7 +554,52 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       pickup: _pickup,
       onModeChanged: (m) => setState(() => _pickup = m),
     );
-    if (chosen != null && mounted) setState(() => _slot = chosen);
+    if (chosen != null && mounted) {
+      final flex = chosen.id == 'flex';
+      setState(() => _slot = chosen);
+      if (flex != _flex) {
+        setState(() => _flex = flex);
+        await _requote();
+      }
+    }
+  }
+
+  /// «Ny total {kr}» (pricing spec §11): the fee rose after the quote ran out; nothing is charged before this.
+  Future<bool> _bekreftNyTotal(int beforeOre, FeeQuoteView fresh, KurvState cart) async {
+    final total = KasseCopy.kr(_total(cart));
+    final ok = await showBergenArk<bool>(
+      context,
+      title: languages.fee_requote_title(total),
+      subtitle: languages.fee_requote_line(KasseCopy.kr(beforeOre / 100), KasseCopy.kr(fresh.totalKr)),
+      primary: BergenArkAction(label: languages.fee_requote_confirm(total), onTap: () => Navigator.of(context).pop(true)),
+      secondary: BergenArkAction(label: languages.cancel, onTap: () => Navigator.of(context).pop(false)),
+    );
+    return ok == true;
+  }
+
+  /// The engine has no zone for the address (422 `OUT_OF_COVERAGE`): pickup, or the waitlist.
+  Future<void> _utenforDekning() async {
+    final a = _address;
+    await showBergenArk<void>(
+      context,
+      title: languages.fee_out_of_coverage_title,
+      subtitle: languages.fee_out_of_coverage_line,
+      primary: BergenArkAction(label: KasseCopy.a1_kasse_velg_henting, onTap: () {
+        Navigator.of(context).pop();
+        setState(() => _pickup = true);
+      }),
+      secondary: a == null
+          ? null
+          : BergenArkAction(
+              label: languages.fee_out_of_coverage_waitlist,
+              onTap: () async {
+                Navigator.of(context).pop();
+                final lat = double.tryParse(a.lat), lng = double.tryParse(a.long);
+                if (lat != null && lng != null) await _customer.waitlist(lat, lng, address: a.address);
+                if (mounted) showBergenToast(context, languages.fee_out_of_coverage_on_list);
+              },
+            ),
+    );
   }
 
   Future<void> _openBetaling() async {
@@ -575,6 +674,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       showBergenToast(context, KasseCopy.a1_kasse_velg_adresse_forst);
       return false;
     }
+    // Customer v2 Step 1: the engine has no zone for this address — pickup or the waitlist, before anything is placed.
+    if (!_pickup && _outOfCoverage) {
+      await _utenforDekning();
+      return false;
+    }
     final min = _preview?.minOrderAmount ?? 0;
     if (!_pickup && min > 0 && cart.subtotal < min) {
       showBergenToast(context, KasseCopy.a1_kasse_min_ordre(KasseCopy.kr(min)));
@@ -598,6 +702,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       note: _fullNote,
       scheduleDateTime: _slot?.scheduleDateTime,
       tip: _tip.toDouble(),
+      quoteId: _pickup ? null : _preview?.feeQuote?.quoteId,
+      flex: !_pickup && _flex,
     );
     if (!mounted) return false;
     if (response == null || response['status'] != 1) {
@@ -606,6 +712,30 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         _departing = false;
       });
       final code = '${response?['error'] ?? response?['code'] ?? ''}';
+      // Customer v2 Step 1 (pricing spec §11): the quote ran out — a new fee that is not higher is used at once;
+      // a higher one is shown first («Ny total»). One retry.
+      if (code == 'QUOTE_EXPIRED' && _quoteRetry == 0) {
+        final raw = response?['quote'];
+        final fresh = FeeQuoteView.fromApi(raw is Map ? Map<String, dynamic>.from(raw) : null);
+        if (fresh != null && _preview != null) {
+          final before = (response?['previous_total_ore'] as num?)?.toInt() ?? _preview!.feeQuote?.totalOre ?? fresh.totalOre;
+          setState(() {
+            _preview!.feeQuote = fresh;
+            _preview!.deliveryCost = fresh.totalKr;
+          });
+          if (fresh.totalOre > before && !await _bekreftNyTotal(before, fresh, cart)) return false;
+          _quoteRetry = 1;
+          try {
+            return await _pay();
+          } finally {
+            _quoteRetry = 0;
+          }
+        }
+      }
+      if (code == 'OUT_OF_COVERAGE') {
+        await _utenforDekning();
+        return false;
+      }
       if (code == 'PD_OUTSIDE_RADIUS') {
         // Spec §8.2: the store does not deliver here — offer pickup.
         await showBergenArk<void>(
@@ -1070,6 +1200,15 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
           tilbake: tilbake,
           rader: [
             KvRad(label: KasseCopy.a1_kasse_varer, value: KasseCopy.kr(cart.subtotal)),
+            if (!_pickup && _preview?.feeQuote != null)
+              // Customer v2 Step 1 (D2-2): «Levering {fee} ›» opens the engine's lines.
+              GestureDetector(
+                key: const Key('a1_kasse_frakt'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => visLeveringsprisArk(context, _preview!.feeQuote!),
+                child: KvRad(label: languages.fee_breakdown_row, value: KasseCopy.kr(delivery)),
+              )
+            else
             KvRad(
               key: _pickup ? null : const Key('a1_kasse_frakt'),
               label: _pickup ? KasseCopy.a1_kasse_henting : KasseCopy.a1_kasse_frakt,

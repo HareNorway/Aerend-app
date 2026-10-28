@@ -3915,5 +3915,77 @@
   "ops_butikk_allergen_sesam": "Sesame",
   "ops_butikk_allergen_sulfitt": "Sulphites",
   "ops_butikk_allergen_lupin": "Lupin",
-  "ops_butikk_allergen_blotdyr": "Molluscs"
+  "ops_butikk_allergen_blotdyr": "Molluscs",
+  "fee_breakdown_title": "Delivery {fee}",
+  "@fee_breakdown_title": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "fee_breakdown_subtitle": "What delivery costs, line by line",
+  "fee_breakdown_total": "Delivery in total",
+  "fee_breakdown_no_hidden": "No hidden fees: nothing is added at payment.",
+  "fee_breakdown_held_until": "This price is held until {time}.",
+  "@fee_breakdown_held_until": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "fee_breakdown_self_delivery": "Delivered by {store}",
+  "@fee_breakdown_self_delivery": {
+    "placeholders": {
+      "store": {
+        "type": "String"
+      }
+    }
+  },
+  "fee_breakdown_row": "Delivery ›",
+  "flex_window_title": "Within 2 hours",
+  "flex_window_line": "{discount} · delivered by {time}",
+  "@flex_window_line": {
+    "placeholders": {
+      "discount": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "flex_window_short": "2 h",
+  "fee_requote_title": "New total {total}",
+  "@fee_requote_title": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "fee_requote_line": "Delivery went from {old} to {now} while you were at checkout. Nothing is charged until you confirm.",
+  "@fee_requote_line": {
+    "placeholders": {
+      "old": {
+        "type": "String"
+      },
+      "now": {
+        "type": "String"
+      }
+    }
+  },
+  "fee_requote_confirm": "Pay {total}",
+  "@fee_requote_confirm": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "fee_out_of_coverage_title": "We don't deliver here yet",
+  "fee_out_of_coverage_line": "Pick it up at the store, or join the waitlist and we'll tell you when we come to your area.",
+  "fee_out_of_coverage_waitlist": "Put me on the waitlist",
+  "fee_out_of_coverage_on_list": "You're on the waitlist"
 }

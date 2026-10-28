@@ -23,7 +23,7 @@ class _Kasse extends OpsKasseApi {
   @override
   Future<KurvState> cart() async => state;
   @override
-  Future<OrderPreviewPojo?> preview() async => OrderPreviewPojo(status: 1, storeId: 7, storeName: 'Burger King', storeAddress: 'Bryggen 7, Bergen', deliveryCost: 0, minOrderAmount: 0);
+  Future<OrderPreviewPojo?> preview({bool flex = false}) async => OrderPreviewPojo(status: 1, storeId: 7, storeName: 'Burger King', storeAddress: 'Bryggen 7, Bergen', deliveryCost: 0, minOrderAmount: 0);
   @override
   Future<List<AddressListItem>> addresses() async => [
     AddressListItem.fromJson({'address_id': 5, 'type': 'Hjem', 'address': 'Nygårdsgaten 5, Bergen', 'lat': '60.39', 'long': '5.32', 'flat_no': '3. etasje', 'landmark': '«Ring på hos Didrik»'}),

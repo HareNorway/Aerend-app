@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/ops/butikk_models.dart';
+import 'package:aerend_customer/data/ops/fee_quote.dart';
 import 'package:aerend_customer/data/ops/kasse_models.dart';
 import 'package:aerend_customer/networking/ops/ops_butikk_api.dart';
 import 'package:aerend_customer/networking/ops/ops_customer_api.dart';
@@ -15,6 +16,7 @@ import 'package:aerend_customer/screens/bergen/kasse/kjop_sekvens.dart';
 import 'package:aerend_customer/screens/bergen/kasse/kurv_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
 import 'package:aerend_customer/screens/deliveryService/checkout/checkout_dl.dart';
+import 'package:aerend_customer/services/customer/client_flags.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -22,19 +24,27 @@ import '../layout/reduced_motion_harness.dart';
 /// math, the Ægil-added line and Angre, coverage skipped on 404, the 422
 /// `PD_OUTSIDE_RADIUS` handling, and Bestillingsdetaljer.
 class _FakeKasse extends OpsKasseApi {
-  _FakeKasse({this.state = const KurvState(), this.previewPojo, this.addressList = const [], this.placeResponse});
+  _FakeKasse({this.state = const KurvState(), this.previewPojo, this.addressList = const [], this.placeResponse, this.placeResponses, this.flexPojo});
 
   KurvState state;
   final OrderPreviewPojo? previewPojo;
   final List<AddressListItem> addressList;
   final Map<String, dynamic>? placeResponse;
+  // Customer v2 Step 1: answers in turn (a re-quote retries), the flex preview, and what was sent.
+  final List<Map<String, dynamic>?>? placeResponses;
+  final OrderPreviewPojo? flexPojo;
+  final List<Map<String, dynamic>> places = [];
+  final List<bool> previews = [];
   final List<int> removed = [];
   Map<String, dynamic>? lastPlace;
 
   @override
   Future<KurvState> cart() async => state;
   @override
-  Future<OrderPreviewPojo?> preview() async => previewPojo;
+  Future<OrderPreviewPojo?> preview({bool flex = false}) async {
+    previews.add(flex);
+    return flex ? (flexPojo ?? previewPojo) : previewPojo;
+  }
   @override
   Future<List<AddressListItem>> addresses() async => addressList;
   @override
@@ -60,8 +70,12 @@ class _FakeKasse extends OpsKasseApi {
     String note = '',
     String? scheduleDateTime,
     double tip = 0,
+    String? quoteId,
+    bool flex = false,
   }) async {
     lastPlace = {
+      'quoteId': quoteId,
+      'flex': flex,
       'storeId': storeId,
       'paymentType': paymentType,
       'addressId': addressId,
@@ -70,6 +84,9 @@ class _FakeKasse extends OpsKasseApi {
       'tip': tip,
       'cartIds': cartIds,
     };
+    places.add(lastPlace!);
+    final queue = placeResponses;
+    if (queue != null && queue.isNotEmpty) return queue.removeAt(0);
     return placeResponse;
   }
 
@@ -122,6 +139,27 @@ KurvLine _line(int id, String name, double price, {int qty = 1, bool aegil = fal
 
 OrderPreviewPojo _preview({double delivery = 39, double min = 150}) =>
     OrderPreviewPojo(status: 1, storeId: 7, storeName: 'Burger King', deliveryCost: delivery, minOrderAmount: min);
+
+/// Customer v2 Step 1: a preview priced by the engine (`fq_…` quote with its lines).
+OrderPreviewPojo _quoted(String id, int ore, {bool flex = false}) => _preview(delivery: ore / 100)
+  ..feeQuote = FeeQuoteView(
+    quoteId: id,
+    totalOre: ore,
+    flex: flex,
+    expiresAt: DateTime.now().add(const Duration(minutes: 10)),
+    lines: [
+      const FeeLine(key: 'base', label: 'Grunnpris', amountOre: 3500, detail: 'inkl. 2,0 km'),
+      FeeLine(key: 'distance', label: 'Avstand', amountOre: ore - 3500 + (flex ? 1000 : 0), detail: '2,8 km'),
+      if (flex) const FeeLine(key: 'flex', label: 'Innen 2 timer', amountOre: -1000, detail: 'fleksibelt leveringsvindu'),
+    ],
+  );
+
+Map<String, dynamic> _expired(String id, int ore, int before) => {
+  'status': 0,
+  'error': 'QUOTE_EXPIRED',
+  'previous_total_ore': before,
+  'quote': {'quote_id': id, 'total_ore': ore, 'components': [{'key': 'base', 'label': 'Grunnpris', 'amount_ore': ore, 'detail': ''}], 'expires_at': DateTime.now().add(const Duration(minutes: 10)).toIso8601String()},
+};
 
 AddressListItem _address(int id) => AddressListItem.fromJson({
   'address_id': id,
@@ -640,5 +678,131 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(valgt?.id, 'slot1');
     expect(henting, isTrue);
+  });
+
+  // ── Customer v2 Step 1: the fee quote ─────────────────────────────────
+
+  testWidgets('the fee row opens the engine\'s lines, and the order carries the quote', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
+      previewPojo: _quoted('fq_a', 4100),
+      addressList: [_address(5)],
+      placeResponse: {'status': 0, 'message': 'stop here'},
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await tester.dragUntilVisible(find.byKey(const Key('a1_kasse_frakt')), find.byType(ListView).first, const Offset(0, -200));
+    // Above the pay slider, which covers the bottom of the list.
+    await tester.drag(find.byType(ListView).first, const Offset(0, -300));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('a1_kasse_frakt')));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('fee_breakdown_sheet')), findsOneWidget);
+    expect(find.text('Grunnpris'), findsOneWidget);
+    expect(find.text('Avstand'), findsOneWidget);
+    expect(find.text('6 kr'), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pump(const Duration(milliseconds: 600));
+
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(api.lastPlace?['quoteId'], 'fq_a');
+    expect(api.lastPlace?['flex'], isFalse);
+  });
+
+  testWidgets('a quote that ran out at a lower or equal fee is used at once', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
+      previewPojo: _quoted('fq_old', 4100),
+      addressList: [_address(5)],
+      placeResponses: [_expired('fq_new', 4100, 4100), {'status': 0, 'message': 'stop here'}],
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(api.places.map((p) => p['quoteId']).toList(), ['fq_old', 'fq_new']);
+    expect(find.textContaining('Ny total'), findsNothing);
+  });
+
+  testWidgets('a higher fee after the quote ran out is confirmed first («Ny total»)', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
+      previewPojo: _quoted('fq_old', 4100),
+      addressList: [_address(5)],
+      placeResponses: [_expired('fq_new', 4900, 4100), {'status': 0, 'message': 'stop here'}],
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.textContaining('Ny total'), findsOneWidget);
+    expect(api.places, hasLength(1), reason: 'nothing more is sent before the customer confirms');
+    await tester.tap(find.textContaining('Betal 249'));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(api.places.map((p) => p['quoteId']).toList(), ['fq_old', 'fq_new']);
+  });
+
+  testWidgets('an address the engine does not cover offers pickup and the waitlist', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
+      previewPojo: _quoted('fq_a', 4100),
+      addressList: [_address(5)],
+      placeResponse: {'status': 0, 'error': 'OUT_OF_COVERAGE', 'message': 'Utenfor'},
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Vi leverer ikke hit ennå'), findsOneWidget);
+    expect(find.text('Sett meg på ventelisten'), findsOneWidget);
+    await tester.tap(find.text(KasseCopy.a1_kasse_velg_henting));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text(KasseCopy.a1_kasse_hent_selv), findsOneWidget);
+  });
+
+  testWidgets('«Innen 2 timer» with the flex flag: the engine\'s discount, and the order asks for the flex quote', (tester) async {
+    _frame(tester);
+    ClientFlags.flags = {'pricing.flex_window': true};
+    addTearDown(() => ClientFlags.flags = {});
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Burger', 200)], storeId: 7),
+      previewPojo: _quoted('fq_a', 4100),
+      flexPojo: _quoted('fq_flex', 3100, flex: true),
+      addressList: [_address(5)],
+      placeResponse: {'status': 0, 'message': 'stop here'},
+    );
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+    expect(api.previews, contains(true), reason: 'the flex price is fetched for the sheet');
+    await tester.drag(find.byType(ListView).first, const Offset(0, -150));
+    await tester.pump();
+    await tester.tap(find.descendant(of: find.byKey(const Key('a1_kasse_rad_tid')), matching: find.text(KasseCopy.a1_kasse_endre)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Innen 2 timer'), findsOneWidget);
+    expect(find.textContaining('−10 kr'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('a1_kasse_slot_flex')));
+    await tester.tap(find.byKey(const Key('a1_kasse_bruk_dette')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump();
+    await _dragToPay(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(api.lastPlace?['quoteId'], 'fq_flex');
+    expect(api.lastPlace?['flex'], isTrue);
   });
 }

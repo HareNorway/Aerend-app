@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../data/ops/fee_quote.dart';
 import '../../../data/ops/tracking_models.dart';
+import '../../../main.dart' show languages;
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
@@ -19,6 +21,8 @@ import '../aegil/aegil_bits.dart' show AeGevir;
 import '../hjem/hjem_harness.dart' show HjemHarness;
 import '../aegil/aegil_verktoy.dart' show AeVerktoyCopy;
 import '../kit/bergen_perf.dart';
+import '../kasse/fee_breakdown_sheet.dart';
+import '../kasse/kasse_copy.dart' show KasseCopy;
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
 // Prototype L7098–7277 (panel) and L7007–7097 (sheet).
@@ -1410,6 +1414,35 @@ class SpDetaljerArk extends StatelessWidget {
                           ],
                         ),
                       ),
+                    // Customer v2 Step 1: «Levering ›» — the fee the order was charged, in the engine's lines
+                    // (`fee_breakdown`; absent when the engine was off), the same sheet as Kassen. NEW UI.
+                    if (FeeQuoteView.fromBreakdown(t.raw['fee_breakdown']) case final fb?)
+                      Builder(builder: (context) => GestureDetector(
+                        key: const Key('a1_sporing_levering'),
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => visLeveringsprisArk(context, fb),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 9),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(languages.fee_breakdown_row, style: inter(13.5, weight: FontWeight.w800, height: spLinje(13.5))),
+                                    if (fb.flex)
+                                      Text(languages.flex_window_title, style: inter(11, weight: FontWeight.w600, color: rgba(255, 255, 255, .5), height: spLinje(11))),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                KasseCopy.kr(fb.totalKr),
+                                style: inter(13.5, weight: FontWeight.w800, height: spLinje(13.5)).copyWith(fontFeatures: _kTab),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       // `inset 0 0 0 1px`: the ring sits inside the 10 / 12 padding.

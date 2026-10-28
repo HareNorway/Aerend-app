@@ -12073,6 +12073,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Molluscs'**
   String get ops_butikk_allergen_blotdyr;
+
+  /// No description provided for @fee_breakdown_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery {fee}'**
+  String fee_breakdown_title(String fee);
+
+  /// No description provided for @fee_breakdown_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What delivery costs, line by line'**
+  String get fee_breakdown_subtitle;
+
+  /// No description provided for @fee_breakdown_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery in total'**
+  String get fee_breakdown_total;
+
+  /// No description provided for @fee_breakdown_no_hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'No hidden fees: nothing is added at payment.'**
+  String get fee_breakdown_no_hidden;
+
+  /// No description provided for @fee_breakdown_held_until.
+  ///
+  /// In en, this message translates to:
+  /// **'This price is held until {time}.'**
+  String fee_breakdown_held_until(String time);
+
+  /// No description provided for @fee_breakdown_self_delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered by {store}'**
+  String fee_breakdown_self_delivery(String store);
+
+  /// No description provided for @fee_breakdown_row.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery ›'**
+  String get fee_breakdown_row;
+
+  /// No description provided for @flex_window_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Within 2 hours'**
+  String get flex_window_title;
+
+  /// No description provided for @flex_window_line.
+  ///
+  /// In en, this message translates to:
+  /// **'{discount} · delivered by {time}'**
+  String flex_window_line(String discount, String time);
+
+  /// No description provided for @flex_window_short.
+  ///
+  /// In en, this message translates to:
+  /// **'2 h'**
+  String get flex_window_short;
+
+  /// No description provided for @fee_requote_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New total {total}'**
+  String fee_requote_title(String total);
+
+  /// No description provided for @fee_requote_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery went from {old} to {now} while you were at checkout. Nothing is charged until you confirm.'**
+  String fee_requote_line(String old, String now);
+
+  /// No description provided for @fee_requote_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay {total}'**
+  String fee_requote_confirm(String total);
+
+  /// No description provided for @fee_out_of_coverage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'We don\'t deliver here yet'**
+  String get fee_out_of_coverage_title;
+
+  /// No description provided for @fee_out_of_coverage_line.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick it up at the store, or join the waitlist and we\'ll tell you when we come to your area.'**
+  String get fee_out_of_coverage_line;
+
+  /// No description provided for @fee_out_of_coverage_waitlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Put me on the waitlist'**
+  String get fee_out_of_coverage_waitlist;
+
+  /// No description provided for @fee_out_of_coverage_on_list.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on the waitlist'**
+  String get fee_out_of_coverage_on_list;
 }
 
 class _AppLocalizationsDelegate

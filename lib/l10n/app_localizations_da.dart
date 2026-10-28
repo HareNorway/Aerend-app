@@ -6670,4 +6670,71 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get ops_butikk_allergen_blotdyr => 'Molluscs';
+
+  @override
+  String fee_breakdown_title(String fee) {
+    return 'Delivery $fee';
+  }
+
+  @override
+  String get fee_breakdown_subtitle => 'What delivery costs, line by line';
+
+  @override
+  String get fee_breakdown_total => 'Delivery in total';
+
+  @override
+  String get fee_breakdown_no_hidden =>
+      'No hidden fees: nothing is added at payment.';
+
+  @override
+  String fee_breakdown_held_until(String time) {
+    return 'This price is held until $time.';
+  }
+
+  @override
+  String fee_breakdown_self_delivery(String store) {
+    return 'Delivered by $store';
+  }
+
+  @override
+  String get fee_breakdown_row => 'Delivery ›';
+
+  @override
+  String get flex_window_title => 'Within 2 hours';
+
+  @override
+  String flex_window_line(String discount, String time) {
+    return '$discount · delivered by $time';
+  }
+
+  @override
+  String get flex_window_short => '2 h';
+
+  @override
+  String fee_requote_title(String total) {
+    return 'New total $total';
+  }
+
+  @override
+  String fee_requote_line(String old, String now) {
+    return 'Delivery went from $old to $now while you were at checkout. Nothing is charged until you confirm.';
+  }
+
+  @override
+  String fee_requote_confirm(String total) {
+    return 'Pay $total';
+  }
+
+  @override
+  String get fee_out_of_coverage_title => 'We don\'t deliver here yet';
+
+  @override
+  String get fee_out_of_coverage_line =>
+      'Pick it up at the store, or join the waitlist and we\'ll tell you when we come to your area.';
+
+  @override
+  String get fee_out_of_coverage_waitlist => 'Put me on the waitlist';
+
+  @override
+  String get fee_out_of_coverage_on_list => 'You\'re on the waitlist';
 }

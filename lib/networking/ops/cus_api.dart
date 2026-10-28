@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart' show MultipartFile;
 
+import '../../data/ops/fee_quote.dart';
 import '../api_base_helper.dart';
 import 'ops_customer_api.dart';
 
@@ -854,7 +855,7 @@ class CusAiOrder {
 class CusAiRequest {
   const CusAiRequest({
     required this.id, required this.state, required this.assistant, required this.vendor, required this.store, this.storeLine = '', this.log = const [], this.lines = const [],
-    this.subtotal = const CusMoney(), this.deliveryFee = const CusMoney(), this.serviceFee = const CusMoney(), this.total = const CusMoney(), this.windowDisplay = '', this.address = '',
+    this.subtotal = const CusMoney(), this.deliveryFee = const CusMoney(), this.serviceFee = const CusMoney(), this.total = const CusMoney(), this.windowDisplay = '', this.address = '', this.deliveryBreakdown,
     this.deliveryMethod = 'delivery', this.expiresAt, this.secondsLeft = 0, this.capPerOrder, this.overCap = false, this.covered = true, this.waitlistId, this.paymentPref = 'vipps', this.linkId, this.orderId, this.orderCode, this.orderPaid = false, this.createdAt,
   });
   final String id;
@@ -872,6 +873,9 @@ class CusAiRequest {
   final CusMoney total;
   final String windowDisplay;
   final String address;
+
+  /// Customer v2 Step 1: the engine's lines for the delivery fee (`quote.delivery_breakdown`; null when the engine is off).
+  final FeeQuoteView? deliveryBreakdown;
   final String deliveryMethod;
   final DateTime? expiresAt;
   final int secondsLeft;
@@ -898,7 +902,7 @@ class CusAiRequest {
       log: [for (final m in (j['log'] as List? ?? const []).whereType<Map>()) CusAiLogg.fromJson(m.cast<String, dynamic>())],
       lines: [for (final m in (j['lines'] as List? ?? const []).whereType<Map>()) CusAiLinje.fromJson(m.cast<String, dynamic>())],
       subtotal: CusMoney.of(q['subtotal']), deliveryFee: CusMoney.of(q['delivery_fee']), serviceFee: CusMoney.of(q['service_fee']), total: CusMoney.of(q['total']),
-      windowDisplay: '${w['display'] ?? ''}', address: '${adr['text'] ?? ''}', deliveryMethod: '${(q['delivery_method'] is Map ? (q['delivery_method'] as Map)['key'] : q['delivery_method']) ?? 'delivery'}',
+      windowDisplay: '${w['display'] ?? ''}', address: '${adr['text'] ?? ''}', deliveryBreakdown: FeeQuoteView.fromBreakdown(q['delivery_breakdown']), deliveryMethod: '${(q['delivery_method'] is Map ? (q['delivery_method'] as Map)['key'] : q['delivery_method']) ?? 'delivery'}',
       expiresAt: DateTime.tryParse('${j['expires_at'] ?? ''}')?.toLocal(), secondsLeft: (j['seconds_left'] as num?)?.toInt() ?? 0,
       capPerOrder: CusMoney.maybe(j['cap_per_order']), overCap: j['over_cap'] == true, covered: j['covered'] != false, waitlistId: j['waitlist_id'] as String?,
       paymentPref: '${j['payment_pref'] ?? 'vipps'}', linkId: (j['link_id'] as num?)?.toInt(),

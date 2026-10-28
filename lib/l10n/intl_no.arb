@@ -2233,5 +2233,22 @@
   "ops_butikk_allergen_sesam": "Sesam",
   "ops_butikk_allergen_sulfitt": "Sulfitt",
   "ops_butikk_allergen_lupin": "Lupin",
-  "ops_butikk_allergen_blotdyr": "Bløtdyr"
+  "ops_butikk_allergen_blotdyr": "Bløtdyr",
+  "fee_breakdown_title": "Levering {fee}",
+  "fee_breakdown_subtitle": "Hva leveringen koster, linje for linje",
+  "fee_breakdown_total": "Levering totalt",
+  "fee_breakdown_no_hidden": "Ingen skjulte gebyrer: ingenting legges til ved betaling.",
+  "fee_breakdown_held_until": "Prisen holdes til kl. {time}.",
+  "fee_breakdown_self_delivery": "Leveres av {store}",
+  "fee_breakdown_row": "Levering ›",
+  "flex_window_title": "Innen 2 timer",
+  "flex_window_line": "{discount} · levert innen kl. {time}",
+  "flex_window_short": "2 t",
+  "fee_requote_title": "Ny total {total}",
+  "fee_requote_line": "Leveringen gikk fra {old} til {now} mens du var i kassen. Ingenting trekkes før du bekrefter.",
+  "fee_requote_confirm": "Betal {total}",
+  "fee_out_of_coverage_title": "Vi leverer ikke hit ennå",
+  "fee_out_of_coverage_line": "Hent i butikken, eller sett deg på ventelisten, så sier vi fra når vi kommer dit du bor.",
+  "fee_out_of_coverage_waitlist": "Sett meg på ventelisten",
+  "fee_out_of_coverage_on_list": "Du står på ventelisten"
 }

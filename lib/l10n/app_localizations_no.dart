@@ -6674,4 +6674,71 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_butikk_allergen_blotdyr => 'Bløtdyr';
+
+  @override
+  String fee_breakdown_title(String fee) {
+    return 'Levering $fee';
+  }
+
+  @override
+  String get fee_breakdown_subtitle => 'Hva leveringen koster, linje for linje';
+
+  @override
+  String get fee_breakdown_total => 'Levering totalt';
+
+  @override
+  String get fee_breakdown_no_hidden =>
+      'Ingen skjulte gebyrer: ingenting legges til ved betaling.';
+
+  @override
+  String fee_breakdown_held_until(String time) {
+    return 'Prisen holdes til kl. $time.';
+  }
+
+  @override
+  String fee_breakdown_self_delivery(String store) {
+    return 'Leveres av $store';
+  }
+
+  @override
+  String get fee_breakdown_row => 'Levering ›';
+
+  @override
+  String get flex_window_title => 'Innen 2 timer';
+
+  @override
+  String flex_window_line(String discount, String time) {
+    return '$discount · levert innen kl. $time';
+  }
+
+  @override
+  String get flex_window_short => '2 t';
+
+  @override
+  String fee_requote_title(String total) {
+    return 'Ny total $total';
+  }
+
+  @override
+  String fee_requote_line(String old, String now) {
+    return 'Leveringen gikk fra $old til $now mens du var i kassen. Ingenting trekkes før du bekrefter.';
+  }
+
+  @override
+  String fee_requote_confirm(String total) {
+    return 'Betal $total';
+  }
+
+  @override
+  String get fee_out_of_coverage_title => 'Vi leverer ikke hit ennå';
+
+  @override
+  String get fee_out_of_coverage_line =>
+      'Hent i butikken, eller sett deg på ventelisten, så sier vi fra når vi kommer dit du bor.';
+
+  @override
+  String get fee_out_of_coverage_waitlist => 'Sett meg på ventelisten';
+
+  @override
+  String get fee_out_of_coverage_on_list => 'Du står på ventelisten';
 }

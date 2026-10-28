@@ -9,15 +9,23 @@ import '../../common/orderCart/order_cart_repo.dart';
 class CheckoutRepo {
   final ApiBaseHelper _apiBaseHelper = ApiBaseHelper();
 
-  callOrderPreviewApi() async {
+  /// Customer v2 Step 1: [flex] asks for the «Innen 2 timer» price (pricing.flex_window); with [clientErrors]
+  /// a 4xx body (e.g. 422 `OUT_OF_COVERAGE` from the pricing engine) comes back instead of throwing.
+  callOrderPreviewApi({bool flex = false, bool clientErrors = false}) async {
     final ownerId = OrderCartRepo().resolveCartOwnerId();
-    final response = await _apiBaseHelper.post(
-      ApiConst.endPointOrderPreview,
-      body: {
+    final body = {
         ApiParam.paramUserId:
             ownerId.isNotEmpty ? ownerId : prefGetInt(prefUserId),
         ApiParam.paramAddressId: prefGetInt(prefNewDeliveryAddressId),
-      },
+        if (flex) 'flex': 1,
+      };
+    if (clientErrors) {
+      final r = await _apiBaseHelper.postAllowClientError(ApiConst.endPointOrderPreview, body: body);
+      return r.data;
+    }
+    final response = await _apiBaseHelper.post(
+      ApiConst.endPointOrderPreview,
+      body: body,
     );
     return response;
   }
@@ -65,9 +73,16 @@ class CheckoutRepo {
     String promoCode,
     String? scheduleDateTime,
     double? tip,
-    MultipartFile? multipartFile,
-  ) async {
-    final response = await _apiBaseHelper.postFormData(
+    MultipartFile? multipartFile, {
+    String? quoteId,
+    bool flex = false,
+    bool clientErrors = false,
+  }) async {
+    // Customer v2 Step 1: with [clientErrors] a 422 (`QUOTE_EXPIRED`, `OUT_OF_COVERAGE`) comes back as its body.
+    final post = clientErrors
+        ? ((String url, {required Map<String, dynamic> body}) async => (await _apiBaseHelper.postFormDataAllowClientError(url, body: body)).data)
+        : ((String url, {required Map<String, dynamic> body}) => _apiBaseHelper.postFormData(url, body: body));
+    final response = await post(
       ApiConst.endPointDsPlaceOrder,
       body: {
         ApiParam.paramUserId: prefGetInt(prefUserId),
@@ -89,6 +104,9 @@ class CheckoutRepo {
         ApiParam.paramTip: tip,
         // The feed post this basket came from (backend plan Step 9).
         if (FeedAttribution.forStore(storeId) case final post?) 'source_post_id': post,
+        // Customer v2 Step 1 (pricing spec §2.4): the quote the customer saw is the fee.
+        if (quoteId != null) 'quote_id': quoteId,
+        if (flex) 'flex': 1,
         // ApiParam.paramPrescription: multipartFile
       },
     );

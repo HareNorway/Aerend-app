@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../networking/ops/cus_api.dart';
 import '../../common/auth/launch/lf_css.dart';
+import '../kasse/fee_breakdown_sheet.dart';
 import '../aegil/aegil_bits.dart';
 import 'ai_bits.dart';
 import 'ai_copy.dart';
@@ -125,6 +126,15 @@ class AiTilbud extends StatelessWidget {
         ]),
         const SizedBox(height: 10),
         _rad(AiIk.pose, AiCopy.cus_ai_varer, null, r.subtotal.display),
+        // Customer v2 Step 1: «Levering ›» opens the engine's lines — the same sheet as Kassen.
+        if (r.deliveryBreakdown != null)
+          GestureDetector(
+            key: const Key('cus-ai-levering'),
+            behavior: HitTestBehavior.opaque,
+            onTap: () => visLeveringsprisArk(context, r.deliveryBreakdown!),
+            child: _rad(AiIk.sykkel, '${AiCopy.cus_ai_levering} ›', r.deliveryFee.ore == 0 && r.serviceFee.ore == 0 ? null : [if (r.deliveryFee.ore > 0) r.deliveryFee.display, if (r.serviceFee.ore > 0) '+${r.serviceFee.display}'].join(' · '), CusMoney(ore: r.deliveryFee.ore + r.serviceFee.ore, display: AiCopy.kr((r.deliveryFee.ore + r.serviceFee.ore) ~/ 100)).display),
+          )
+        else
         _rad(AiIk.sykkel, AiCopy.cus_ai_levering, r.deliveryFee.ore == 0 && r.serviceFee.ore == 0 ? null : [if (r.deliveryFee.ore > 0) r.deliveryFee.display, if (r.serviceFee.ore > 0) '+${r.serviceFee.display}'].join(' · '), CusMoney(ore: r.deliveryFee.ore + r.serviceFee.ore, display: AiCopy.kr((r.deliveryFee.ore + r.serviceFee.ore) ~/ 100)).display),
         _rad(AiIk.klokke, AiCopy.cus_ai_leveringsvindu, null, r.windowDisplay),
         _rad(AiIk.pin, AiCopy.cus_ai_leveres_til, null, r.address),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../data/ops/fee_quote.dart';
 import '../../data/ops/kasse_models.dart';
 import '../../screens/common/manageAddress/manage_address_dl.dart';
 import '../../screens/common/manageAddress/manage_address_repo.dart';
@@ -30,12 +31,21 @@ class OpsKasseApi {
     }
   }
 
-  /// The order preview for the selected address: totals and the store.
-  Future<OrderPreviewPojo?> preview() async {
+  /// The order preview for the selected address: totals and the store. With `pricing.engine` on, the
+  /// fee is the engine's quote (`feeQuote`); [flex] prices the «Innen 2 timer» window (Customer v2 Step 1).
+  /// The refusal of the last [preview]: `OUT_OF_COVERAGE` when the engine has no zone for the address.
+  String? lastPreviewError;
+
+  Future<OrderPreviewPojo?> preview({bool flex = false}) async {
+    lastPreviewError = null;
     if (_off) return null;
     try {
-      final json = await CheckoutRepo().callOrderPreviewApi();
-      if (json is! Map<String, dynamic> || json['status'] != 1) return null;
+      final json = await CheckoutRepo().callOrderPreviewApi(flex: flex, clientErrors: true);
+      if (json is! Map<String, dynamic>) return null;
+      if (json['status'] != 1) {
+        lastPreviewError = json['error'] is String ? json['error'] as String : null;
+        return null;
+      }
       return previewFromJson(json);
     } catch (_) {
       return null;
@@ -52,6 +62,7 @@ class OpsKasseApi {
     if (!json.containsKey('delivery_cost')) pojo.deliveryCost = d('delivery_fee') ?? 0;
     if (!json.containsKey('tax_cost')) pojo.taxCost = d('order_fee') ?? 0;
     if (!json.containsKey('total_item_cost')) pojo.totalItemCost = d('sub_total') ?? 0;
+    pojo.feeQuote = FeeQuoteView.fromPreview(json);
     return pojo;
   }
 
@@ -105,6 +116,8 @@ class OpsKasseApi {
     String note = '',
     String? scheduleDateTime,
     double tip = 0,
+    String? quoteId,
+    bool flex = false,
   }) async {
     if (_off) return null;
     try {
@@ -126,6 +139,9 @@ class OpsKasseApi {
         scheduleDateTime,
         tip,
         null,
+        quoteId: quoteId,
+        flex: flex,
+        clientErrors: true,
       );
       return json is Map<String, dynamic> ? json : null;
     } catch (e) {

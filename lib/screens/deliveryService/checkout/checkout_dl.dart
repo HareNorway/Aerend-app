@@ -1,3 +1,4 @@
+import '../../../data/ops/fee_quote.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'checkout_dl.g.dart';
@@ -43,6 +44,9 @@ class OrderPreviewPojo {
   double applyPromocodeAmount = 0;
   double packagingCost = 0;
   double deliveryCost = 0;
+
+  /// Customer v2 Step 1: the pricing engine's quote behind [deliveryCost] (null without `pricing.engine`).
+  FeeQuoteView? feeQuote;
   double taxCost = 0;
   double totalPay = 0;
   double promocodeDiscount = 0;

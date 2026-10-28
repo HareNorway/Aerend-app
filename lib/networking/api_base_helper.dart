@@ -159,6 +159,23 @@ class ApiBaseHelper {
     return responseJson;
   }
 
+  /// [postFormData] that returns 4xx bodies instead of throwing (Customer v2 Step 1:
+  /// `store-place-order` answers 422 `QUOTE_EXPIRED` with the new quote, `OUT_OF_COVERAGE`).
+  Future<ApiClientResult> postFormDataAllowClientError(String url, {required Map<String, dynamic> body}) async {
+    _syncBaseUrl();
+    print('[API] POST-FORM(ace) ${_dio.options.baseUrl}$url');
+    try {
+      final response = await _dio.post(
+        url,
+        data: FormData.fromMap(body),
+        options: Options(validateStatus: (s) => s != null && s >= 200 && s < 500),
+      );
+      return ApiClientResult(response.statusCode ?? 0, _normalizeResponseData(response.data));
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// [delete] that returns 4xx bodies instead of throwing (Customer Step 12:
   /// `DELETE points/claims/{id}` answers 422 with the reason code).
   Future<ApiClientResult> deleteAllowClientError(String url) async {
