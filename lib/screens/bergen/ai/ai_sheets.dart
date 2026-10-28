@@ -76,7 +76,8 @@ abstract final class AiArk {
           await AiOverlays.bytt(context, n, kurv: true);
           svar = null;
         case 'logg':
-          svar = null;
+          // Customer v2 Step 2: log in, then straight back to the consent the customer was on.
+          svar = await aiLoggInn(context) ? 'samtykke:$n' : null;
         default:
           svar = null;
       }
@@ -126,6 +127,8 @@ abstract final class AiArk {
   static Future<String?> inngang(BuildContext context, {String navn = 'Claude'}) async {
     var valgt = navn;
     var stegN = 0;
+    // Customer v2 Step 2: the code behind «Kopier kobling» / the inline QR, made on the first tap (per assistant).
+    ({String navn, CusAiKode? kode, bool qr})? innKode;
     final snarveier = <String>{};
     return showMegArk<String>(
       context,
@@ -143,6 +146,13 @@ abstract final class AiArk {
             const SizedBox(width: 10),
             Expanded(child: Text(AiCopy.cus_ai_inngang_aegil, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .85)))),
           ])),
+          // Customer v2 Step 2 (spec §4.10 A): the privacy line on the entry, above the «Hva {AI} ser» section.
+          if (!siri)
+            Padding(
+              key: const Key('cus-ai-personvern'),
+              padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const AeIkon(AiIk.laas, size: 13, stroke: 2.3, color: Color(0xFF7FF0CB)), const SizedBox(width: 7), Expanded(child: Text(AiCopy.assistants_privacy_line(valgt), style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .78))))]),
+            ),
           AiSeksjon(AiCopy.cus_ai_stottede),
           Row(children: [
             for (final n in _store.navn) ...[
@@ -221,6 +231,7 @@ abstract final class AiArk {
                 ]),
               ),
             ),
+          if (!siri) _annenEnhet(ctx, setState, valgt, () => innKode, (k) => innKode = k),
           AiSeksjon(AiCopy.cus_ai_hva_ser(valgt)),
           AiKort(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -270,6 +281,61 @@ abstract final class AiArk {
         },
       ),
       secondary: MegArkButton(key: const Key('cus-ai-inngang-qr'), label: AiCopy.cus_ai_vis_qr, onTap: () => Navigator.of(context).pop('qrAnnen:$valgt')),
+    );
+  }
+
+  /// Customer v2 Step 2 (spec §4.10 A): «Kopier kobling» and the QR on the entry itself — for linking an assistant
+  /// on another device. The code is made on the first tap; the QR sheet's waiting flow stays behind «Vis QR-kode».
+  static Widget _annenEnhet(BuildContext ctx, void Function(void Function()) setState, String navn, ({String navn, CusAiKode? kode, bool qr})? Function() hent, void Function(({String navn, CusAiKode? kode, bool qr})?) sett) {
+    final naa = hent();
+    final k = naa?.navn == navn ? naa?.kode : null;
+    final visQr = naa?.navn == navn && naa!.qr;
+    Future<CusAiKode?> kode() async {
+      if (k != null) return k;
+      CusAiKode? ny;
+      if (_store.harness) {
+        ny = CusAiKode(code: 'ÆR-7K2Q', raw: '7K2Q', status: 'pending', expiresAt: DateTime.now().add(const Duration(minutes: 10)), linkUrl: 'https://aerend.no/koble/7k2q');
+      } else {
+        try {
+          ny = await _api.aiLinkCode(clientId: AiNavn.clientId(navn));
+        } catch (_) {
+          ny = null;
+        }
+      }
+      return ny;
+    }
+
+    Widget knapp(Key key, String ik, String tx, VoidCallback onTap) => Expanded(child: AePress(onTap: onTap, dy: 1.5, child: Container(key: key, height: 40, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 13, stroke: 2.4), const SizedBox(width: 6), Flexible(child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800)))]))));
+
+    return Padding(
+      key: const Key('cus-ai-annen-enhet'),
+      padding: const EdgeInsets.only(top: 10),
+      child: AiKort(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(AiCopy.cus_ai_annen_enhet_tittel, style: inter(13, weight: FontWeight.w800)),
+        const SizedBox(height: 2),
+        Text(AiCopy.cus_ai_annen_enhet_linje(navn), style: inter(11.5, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .72))),
+        const SizedBox(height: 10),
+        Row(children: [
+          knapp(const Key('cus-ai-inngang-kopier'), AiIk.kobling, AiCopy.cus_ai_kopier_kobling, () async {
+            final ny = await kode();
+            if (ny?.linkUrl == null) return;
+            setState(() => sett((navn: navn, kode: ny, qr: visQr)));
+            try {
+              await Clipboard.setData(ClipboardData(text: ny!.linkUrl!));
+            } catch (_) {}
+            if (ctx.mounted) showBergenToast(ctx, AiCopy.cus_ai_lenke_kopiert(navn));
+          }),
+          const SizedBox(width: 8),
+          knapp(const Key('cus-ai-inngang-qr-vis'), AiIk.qr, AiCopy.cus_ai_vis_qr, () async {
+            final ny = await kode();
+            setState(() => sett((navn: navn, kode: ny, qr: !visQr)));
+          }),
+        ]),
+        if (visQr && k?.linkUrl != null) ...[
+          const SizedBox(height: 10),
+          Center(child: Container(key: const Key('cus-ai-inngang-qr-kode'), padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)), child: QrImageView(data: k!.linkUrl!, size: 160, backgroundColor: Colors.white, eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF0B1014)), dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF0B1014))))),
+        ],
+      ])),
     );
   }
 
@@ -542,6 +608,9 @@ abstract final class AiArk {
         rettigheter(ctx, navn, p, (ny) => setState(() => p = ny), adresse: adresse),
         const SizedBox(height: 10),
         Row(children: [const AeIkon(AiIk.skjold, size: 14, stroke: 2.2, color: Color(0xFF7FF0CB)), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_sam_samtykke(navn), style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))))]),
+        // Customer v2 Step 2 (spec §4.10 B): the consent text's version (policy `cus.ai.consent_version`).
+        if ((_api.lastConsentVersion ?? '').isNotEmpty)
+          Padding(padding: const EdgeInsets.fromLTRB(22, 4, 4, 0), child: Text(AiCopy.cus_ai_samtykke_versjon(_api.lastConsentVersion!), key: const Key('cus-ai-samtykke-versjon'), style: inter(10.5, em: .04, color: const Color.fromRGBO(255, 255, 255, .5)))),
       ]),
       primary: MegArkButton(key: const Key('cus-ai-samtykke-cta'), label: AiCopy.cus_ai_koble_til(navn), onTap: () => Navigator.of(context).pop(p)),
       secondary: MegArkButton(key: const Key('cus-ai-samtykke-avbryt'), label: AiCopy.cus_ai_avbryt, onTap: () => Navigator.of(context).pop()),
@@ -743,8 +812,11 @@ abstract final class AiArk {
             akt = [CusAiAktivitet(tool: 'search_products', outcome: 'ok', at: DateTime.now().subtract(const Duration(minutes: 22))), CusAiAktivitet(tool: 'create_cart', outcome: 'ok', at: DateTime.now().subtract(const Duration(minutes: 20))), CusAiAktivitet(tool: 'confirm_order', outcome: 'ok', at: DateTime(2026, 10, 3, 18, 2))];
           } else {
             _api.aiLink(l.id).then((r) {
-              if (r != null && ctx.mounted) setState(() { l = r.link; akt = r.aktivitet; });
+              if (r != null && ctx.mounted) setState(() => l = r.link);
             });
+            _api.aiLinkActivity(l.id).then((a) {
+              if (a != null && ctx.mounted) setState(() => akt = a);
+            }, onError: (Object _) {});
           }
         }
         void oppdater(CusAiPrefs ny) {
@@ -782,6 +854,11 @@ abstract final class AiArk {
             ],
           ]),
           if (l.active) rettigheter(ctx, n, p, oppdater),
+          // Customer v2 Step 2: «Del Min bio» is its own consent — when it was given, and the text's version.
+          if (l.active && p.shareBio && l.shareBioConsentedAt != null)
+            Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_bio_delt_siden(aiDato(l.shareBioConsentedAt)), key: const Key('cus-ai-bio-siden'), style: inter(11, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)))),
+          if (l.consentVersion.isNotEmpty)
+            Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_samtykke_versjon(l.consentVersion), style: inter(10.5, em: .04, color: const Color.fromRGBO(255, 255, 255, .5)))),
           AiSeksjon(AiCopy.cus_ai_aktivitet),
           if (A.isEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 8), child: Text(AiCopy.cus_ai_ingen_aktivitet, style: inter(12.5, color: const Color.fromRGBO(255, 255, 255, .6)))),
           for (final (i, a) in A.indexed)

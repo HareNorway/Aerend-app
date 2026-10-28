@@ -577,6 +577,8 @@ class CusApi {
   /// The assistants a customer can link (`GET customer/ai/clients`).
   Future<List<CusAiClient>> aiClients() async {
     final j = await _get('ai/clients');
+    // Customer v2 Step 2: the consent text's version rides along (policy `cus.ai.consent_version`).
+    if (j?['consent_version'] is String) lastConsentVersion = j!['consent_version'] as String;
     return [for (final m in (j?['clients'] as List? ?? const []).whereType<Map>()) CusAiClient.fromJson(m.cast<String, dynamic>())];
   }
 
@@ -601,6 +603,16 @@ class CusApi {
     final j = await _get('ai/links');
     if (j == null) return null;
     return [for (final m in (j['links'] as List? ?? const []).whereType<Map>()) CusAiLink.fromJson(m.cast<String, dynamic>())];
+  }
+
+  /// The consent text's version the server last named (`GET customer/ai/clients`).
+  String? lastConsentVersion;
+
+  /// Customer v2 Step 2: «Aktivitet» on its own route (`GET customer/ai/links/{id}/activity`); null when offline.
+  Future<List<CusAiAktivitet>?> aiLinkActivity(int id, {int limit = 30}) async {
+    final j = await _get('ai/links/$id/activity?limit=$limit');
+    if (j == null) return null;
+    return [for (final m in (j['activity'] as List? ?? const []).whereType<Map>()) CusAiAktivitet.fromJson(m.cast<String, dynamic>())];
   }
 
   /// One link with its activity (`GET customer/ai/links/{id}`).
@@ -761,7 +773,7 @@ class CusAiLink {
   const CusAiLink({
     required this.id, required this.clientId, required this.name, required this.vendor, required this.active, this.scopes = const [], this.permissions = const [],
     this.capPerOrder, this.capPerDay, this.usedToday = const CusMoney(), this.orders = 0, this.paymentPref = 'vipps', this.addressPref = 'home', this.addressId, this.shareBio = false,
-    this.grantedAt, this.revokedAt, this.lastUsedAt,
+    this.grantedAt, this.revokedAt, this.lastUsedAt, this.shareBioConsentedAt, this.consentVersion = '',
   });
   final int id;
   final String clientId;
@@ -778,6 +790,10 @@ class CusAiLink {
   final String addressPref;
   final int? addressId;
   final bool shareBio;
+
+  /// Customer v2 Step 2: «Del Min bio» is its own consent (when it was given), and the consent text's version.
+  final DateTime? shareBioConsentedAt;
+  final String consentVersion;
   final DateTime? grantedAt;
   final DateTime? revokedAt;
   final DateTime? lastUsedAt;
@@ -788,6 +804,7 @@ class CusAiLink {
     capPerOrder: CusMoney.maybe(j['cap_per_order']), capPerDay: CusMoney.maybe(j['cap_per_day']), usedToday: CusMoney.of(j['used_today']), orders: (j['orders'] as num?)?.toInt() ?? 0,
     paymentPref: '${j['payment_pref'] ?? 'vipps'}', addressPref: '${j['address_pref'] ?? 'home'}', addressId: (j['address_id'] as num?)?.toInt(), shareBio: j['share_bio'] == true,
     grantedAt: DateTime.tryParse('${j['granted_at'] ?? ''}')?.toLocal(), revokedAt: DateTime.tryParse('${j['revoked_at'] ?? ''}')?.toLocal(), lastUsedAt: DateTime.tryParse('${j['last_used_at'] ?? ''}')?.toLocal(),
+    shareBioConsentedAt: DateTime.tryParse('${j['share_bio_consented_at'] ?? ''}')?.toLocal(), consentVersion: '${j['consent_version'] ?? ''}',
   );
   bool has(String scope) => scopes.contains(scope);
 }

@@ -260,7 +260,13 @@ class _AiKurvScreenState extends State<AiKurvScreen> {
                       const SizedBox(height: 4),
                       Text(AiCopy.cus_ai_kurv_venter(navn), textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
                       const SizedBox(height: 12),
-                      AePress(onTap: () => Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false), dy: 2, child: Container(key: const Key('cus-ai-kurv-logg-inn'), height: 46, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(const bool.fromEnvironment('SHOW_VIPPS_LOGIN', defaultValue: false) ? AiCopy.cus_ai_logg_vipps : AiCopy.cus_ai_logg_inn, style: inter(14, weight: FontWeight.w800)))),
+                      AePress(onTap: () async {
+                        // Customer v2 Step 2: log in and come back to this request (was: the login replaced the app).
+                        if (await aiLoggInn(context) && mounted) {
+                          setState(() { _gjest = false; _laster = true; });
+                          await _load();
+                        }
+                      }, dy: 2, child: Container(key: const Key('cus-ai-kurv-logg-inn'), height: 46, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(const bool.fromEnvironment('SHOW_VIPPS_LOGIN', defaultValue: false) ? AiCopy.cus_ai_logg_vipps : AiCopy.cus_ai_logg_inn, style: inter(14, weight: FontWeight.w800)))),
                     ])),
                   ] else if (s == 'dekning' || s == 'vente') ...[
                     AiKort(key: Key('cus-ai-kurv-$s'), padding: const EdgeInsets.all(18), child: Column(children: [

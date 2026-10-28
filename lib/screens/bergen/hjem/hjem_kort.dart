@@ -258,6 +258,7 @@ class HjemHurtigInngang extends StatelessWidget {
 
 /// The AI marks pill on the Hurtigbestilling card (design L2937): a 22 px
 /// dark pill with the Claude and ChatGPT marks overlapping and a chevron.
+/// Customer v2 Step 2 (D2-9): text marks («Cl», «Ch»), no logos.
 class HjemAiMerker extends StatelessWidget {
   const HjemAiMerker({super.key, required this.onTap});
 
@@ -265,7 +266,7 @@ class HjemAiMerker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget merke(String n, List<Color> bg) => Container(
+    Widget merke(String n, List<Color> bg, Color ink) => Container(
       width: 17,
       height: 17,
       alignment: Alignment.center,
@@ -274,7 +275,7 @@ class HjemAiMerker extends StatelessWidget {
         gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: bg, stops: const [0, .62, 1]),
         boxShadow: const [BoxShadow(color: Color(0xFF24596A), spreadRadius: 1.5)],
       ),
-      child: Image.asset('assets/images/ai/$n.png', width: 12.5, height: 12.5, fit: BoxFit.contain),
+      child: Text(n, style: jakarta(7.5, weight: FontWeight.w800, color: ink, height: 1)),
     );
     return Semantics(
       button: true,
@@ -299,8 +300,8 @@ class HjemAiMerker extends StatelessWidget {
                 width: 29,
                 height: 17,
                 child: Stack(clipBehavior: Clip.none, children: [
-                  Positioned(left: 12, top: 0, child: merke('chatgpt', const [Color(0xFFFFFFFF), Color(0xFFF2F4F4), Color(0xFFDDE3E4)])),
-                  Positioned(left: 0, top: 0, child: merke('claude', const [Color(0xFFFFFFFF), Color(0xFFF7F1E6), Color(0xFFEADFCB)])),
+                  Positioned(left: 12, top: 0, child: merke('Ch', const [Color(0xFFFFFFFF), Color(0xFFF2F4F4), Color(0xFFDDE3E4)], const Color(0xFF0D0D0D))),
+                  Positioned(left: 0, top: 0, child: merke('Cl', const [Color(0xFFFFFFFF), Color(0xFFF7F1E6), Color(0xFFEADFCB)], const Color(0xFFC2603F))),
                 ]),
               ),
               const SizedBox(width: 4),

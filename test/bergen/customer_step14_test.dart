@@ -40,6 +40,8 @@ class _Cus extends CusApi {
   @override
   Future<({CusAiLink link, List<CusAiAktivitet> aktivitet})?> aiLink(int id) async => (link: links.firstWhere((l) => l.id == id), aktivitet: [CusAiAktivitet(tool: 'create_cart', outcome: 'ok', at: DateTime.now()), CusAiAktivitet(tool: 'confirm_order', outcome: 'ok', at: DateTime(2026, 10, 3, 18, 2))]);
   @override
+  Future<List<CusAiAktivitet>?> aiLinkActivity(int id, {int limit = 30}) async => [CusAiAktivitet(tool: 'create_cart', outcome: 'ok', at: DateTime.now()), CusAiAktivitet(tool: 'confirm_order', outcome: 'ok', at: DateTime(2026, 10, 3, 18, 2))];
+  @override
   Future<CusAiLink?> aiLinkUpdate(int id, {List<String>? scopes, int? capPerOrderKr, int? capPerDayKr, String? paymentPref, String? addressPref, bool? shareBio}) async { calls.add('update:$id:${capPerOrderKr ?? '-'}:${scopes?.join('+') ?? '-'}'); return links.firstWhere((l) => l.id == id); }
   @override
   Future<bool> aiLinkRevoke(int id) async { calls.add('revoke:$id'); links = [for (final l in links) if (l.id == id) AiStore.harnessLink(l.name, active: false) else l]; return true; }

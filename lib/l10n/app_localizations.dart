@@ -12175,6 +12175,1914 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You\'re on the waitlist'**
   String get fee_out_of_coverage_on_list;
+
+  /// No description provided for @cus_ai_hurtig_logo.
+  ///
+  /// In en, this message translates to:
+  /// **'Order with Claude or ChatGPT'**
+  String get cus_ai_hurtig_logo;
+
+  /// No description provided for @cus_ai_hurtig_rad.
+  ///
+  /// In en, this message translates to:
+  /// **'Order with another AI'**
+  String get cus_ai_hurtig_rad;
+
+  /// No description provided for @cus_ai_hurtig_sub_koblet.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is linked · you confirm here'**
+  String cus_ai_hurtig_sub_koblet(String navn);
+
+  /// No description provided for @cus_ai_hurtig_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude, ChatGPT or Gemini · you confirm here'**
+  String get cus_ai_hurtig_sub;
+
+  /// No description provided for @assistants_entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Order through an AI assistant'**
+  String get assistants_entry;
+
+  /// No description provided for @cus_ai_meg_rad_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Claude, ChatGPT, Gemini and Siri · always with your confirmation'**
+  String get cus_ai_meg_rad_sub;
+
+  /// No description provided for @cus_ai_meg_koblede.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked assistants'**
+  String get cus_ai_meg_koblede;
+
+  /// No description provided for @cus_ai_meg_koblede_sub_0.
+  ///
+  /// In en, this message translates to:
+  /// **'None linked yet'**
+  String get cus_ai_meg_koblede_sub_0;
+
+  /// No description provided for @cus_ai_meg_koblede_sub_1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 active'**
+  String get cus_ai_meg_koblede_sub_1;
+
+  /// No description provided for @cus_ai_meg_koblede_sub_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} active'**
+  String cus_ai_meg_koblede_sub_n(int n);
+
+  /// No description provided for @cus_ai_inngang_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order where you already are'**
+  String get cus_ai_inngang_tittel;
+
+  /// No description provided for @cus_ai_inngang_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the assistant you use. You always confirm here in Ærend.'**
+  String get cus_ai_inngang_linje;
+
+  /// No description provided for @cus_ai_inngang_aegil.
+  ///
+  /// In en, this message translates to:
+  /// **'I help you here in the app. Claude, ChatGPT and Gemini can order through Ærend – always with your confirmation.'**
+  String get cus_ai_inngang_aegil;
+
+  /// No description provided for @cus_ai_stottede.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported assistants'**
+  String get cus_ai_stottede;
+
+  /// No description provided for @cus_ai_koblet.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked'**
+  String get cus_ai_koblet;
+
+  /// No description provided for @cus_ai_ikke_koblet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get cus_ai_ikke_koblet;
+
+  /// No description provided for @cus_ai_snarveier.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts'**
+  String get cus_ai_snarveier;
+
+  /// No description provided for @cus_ai_snarvei.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcut'**
+  String get cus_ai_snarvei;
+
+  /// No description provided for @cus_ai_allerede_koblet.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is already linked'**
+  String cus_ai_allerede_koblet(String navn);
+
+  /// No description provided for @cus_ai_se_rettigheter.
+  ///
+  /// In en, this message translates to:
+  /// **'See permissions'**
+  String get cus_ai_se_rettigheter;
+
+  /// No description provided for @cus_ai_slik_fungerer.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get cus_ai_slik_fungerer;
+
+  /// No description provided for @cus_ai_fl1.
+  ///
+  /// In en, this message translates to:
+  /// **'You ask {navn}'**
+  String cus_ai_fl1(String navn);
+
+  /// No description provided for @cus_ai_fl2.
+  ///
+  /// In en, this message translates to:
+  /// **'Ærend makes an offer'**
+  String get cus_ai_fl2;
+
+  /// No description provided for @cus_ai_fl3.
+  ///
+  /// In en, this message translates to:
+  /// **'You confirm here'**
+  String get cus_ai_fl3;
+
+  /// No description provided for @cus_ai_steg_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'How to link {navn}'**
+  String cus_ai_steg_tittel(String navn);
+
+  /// No description provided for @cus_ai_steg_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {navn} and add Ærend as a connector.'**
+  String cus_ai_steg_1(String navn);
+
+  /// No description provided for @cus_ai_steg_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your Ærend account and choose what {navn} may do.'**
+  String cus_ai_steg_2(String navn);
+
+  /// No description provided for @cus_ai_steg_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask {navn} to order. You always confirm in Ærend before anything is sent.'**
+  String cus_ai_steg_3(String navn);
+
+  /// No description provided for @cus_ai_steg_siri_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Say «Order the usual with Ærend».'**
+  String get cus_ai_steg_siri_1;
+
+  /// No description provided for @cus_ai_steg_siri_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Siri opens Ærend with the cart ready.'**
+  String get cus_ai_steg_siri_2;
+
+  /// No description provided for @cus_ai_steg_siri_3.
+  ///
+  /// In en, this message translates to:
+  /// **'You confirm in the app before anything is sent.'**
+  String get cus_ai_steg_siri_3;
+
+  /// No description provided for @cus_ai_steg_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap when the step is done'**
+  String get cus_ai_steg_hint;
+
+  /// No description provided for @cus_ai_steg_hint_sist.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap when you are ready'**
+  String get cus_ai_steg_hint_sist;
+
+  /// No description provided for @cus_ai_klart.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready · you always confirm in Ærend'**
+  String get cus_ai_klart;
+
+  /// No description provided for @cus_ai_hva_ser.
+  ///
+  /// In en, this message translates to:
+  /// **'What {navn} sees'**
+  String cus_ai_hva_ser(String navn);
+
+  /// No description provided for @cus_ai_kan_se.
+  ///
+  /// In en, this message translates to:
+  /// **'Can see'**
+  String get cus_ai_kan_se;
+
+  /// No description provided for @cus_ai_ser_aldri.
+  ///
+  /// In en, this message translates to:
+  /// **'Never sees'**
+  String get cus_ai_ser_aldri;
+
+  /// No description provided for @cus_ai_kan_se_liste_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Menus and prices'**
+  String get cus_ai_kan_se_liste_1;
+
+  /// No description provided for @cus_ai_kan_se_liste_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your orders'**
+  String get cus_ai_kan_se_liste_2;
+
+  /// No description provided for @cus_ai_kan_se_liste_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Your addresses'**
+  String get cus_ai_kan_se_liste_3;
+
+  /// No description provided for @cus_ai_ser_aldri_liste_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment card'**
+  String get cus_ai_ser_aldri_liste_1;
+
+  /// No description provided for @cus_ai_ser_aldri_liste_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Other people\'s details'**
+  String get cus_ai_ser_aldri_liste_2;
+
+  /// No description provided for @cus_ai_les_mer.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more about privacy'**
+  String get cus_ai_les_mer;
+
+  /// No description provided for @cus_ai_bruk_siri.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Siri'**
+  String get cus_ai_bruk_siri;
+
+  /// No description provided for @cus_ai_siri_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Say «Order the usual with Ærend», then confirm in the app.'**
+  String get cus_ai_siri_linje;
+
+  /// No description provided for @cus_ai_siri_snarveier_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Order the usual'**
+  String get cus_ai_siri_snarveier_1;
+
+  /// No description provided for @cus_ai_siri_snarveier_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Track the order'**
+  String get cus_ai_siri_snarveier_2;
+
+  /// No description provided for @cus_ai_siri_snarveier_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the cart'**
+  String get cus_ai_siri_snarveier_3;
+
+  /// No description provided for @cus_ai_siri_antall_0.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add'**
+  String get cus_ai_siri_antall_0;
+
+  /// No description provided for @cus_ai_siri_antall_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} of 3 added'**
+  String cus_ai_siri_antall_n(int n);
+
+  /// No description provided for @cus_ai_siri_alle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add all shortcuts'**
+  String get cus_ai_siri_alle;
+
+  /// No description provided for @cus_ai_siri_lagt.
+  ///
+  /// In en, this message translates to:
+  /// **'Three shortcuts added to Siri'**
+  String get cus_ai_siri_lagt;
+
+  /// No description provided for @cus_ai_snarvei_lagt.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcut added · «{s}»'**
+  String cus_ai_snarvei_lagt(String s);
+
+  /// No description provided for @cus_ai_snarvei_fjernet.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcut removed'**
+  String get cus_ai_snarvei_fjernet;
+
+  /// No description provided for @cus_ai_koble_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Link {navn}'**
+  String cus_ai_koble_til(String navn);
+
+  /// No description provided for @cus_ai_vis_qr.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR code'**
+  String get cus_ai_vis_qr;
+
+  /// No description provided for @cus_ai_bekrefter_alltid.
+  ///
+  /// In en, this message translates to:
+  /// **'You always confirm in Ærend'**
+  String get cus_ai_bekrefter_alltid;
+
+  /// No description provided for @cus_ai_menyer_synlige.
+  ///
+  /// In en, this message translates to:
+  /// **'Menus and prices are always visible'**
+  String get cus_ai_menyer_synlige;
+
+  /// No description provided for @cus_ai_velg_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order with another AI'**
+  String get cus_ai_velg_tittel;
+
+  /// No description provided for @cus_ai_velg_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant builds the cart. You always confirm the price here in Ærend.'**
+  String get cus_ai_velg_linje;
+
+  /// No description provided for @cus_ai_velg_koblet_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {kr} kr per order · {bet}'**
+  String cus_ai_velg_koblet_under(String kr, String bet);
+
+  /// No description provided for @cus_ai_velg_ukoblet_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Link in half a minute'**
+  String get cus_ai_velg_ukoblet_under;
+
+  /// No description provided for @cus_ai_velg_siri_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Say «Order the usual with Ærend»'**
+  String get cus_ai_velg_siri_under;
+
+  /// No description provided for @cus_ai_bestill.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get cus_ai_bestill;
+
+  /// No description provided for @cus_ai_legg_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get cus_ai_legg_til;
+
+  /// No description provided for @cus_ai_ingen_bestilling.
+  ///
+  /// In en, this message translates to:
+  /// **'No order to follow yet.'**
+  String get cus_ai_ingen_bestilling;
+
+  /// No description provided for @cus_ai_koble.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get cus_ai_koble;
+
+  /// No description provided for @cus_ai_velg_steg_1.
+  ///
+  /// In en, this message translates to:
+  /// **'You ask the assistant'**
+  String get cus_ai_velg_steg_1;
+
+  /// No description provided for @cus_ai_velg_steg_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Ærend makes the offer'**
+  String get cus_ai_velg_steg_2;
+
+  /// No description provided for @cus_ai_velg_steg_3.
+  ///
+  /// In en, this message translates to:
+  /// **'You confirm here'**
+  String get cus_ai_velg_steg_3;
+
+  /// No description provided for @cus_ai_bestill_med.
+  ///
+  /// In en, this message translates to:
+  /// **'Order with {navn}'**
+  String cus_ai_bestill_med(String navn);
+
+  /// No description provided for @cus_ai_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get cus_ai_lukk;
+
+  /// No description provided for @cus_ai_qr_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Link {navn}'**
+  String cus_ai_qr_tittel(String navn);
+
+  /// No description provided for @cus_ai_qr_linje_mobil.
+  ///
+  /// In en, this message translates to:
+  /// **'Have {navn} on this phone? We hop there and back. No code to scan.'**
+  String cus_ai_qr_linje_mobil(String navn);
+
+  /// No description provided for @cus_ai_qr_linje_qr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the code with the phone or tablet where you use {navn}.'**
+  String cus_ai_qr_linje_qr(String navn);
+
+  /// No description provided for @cus_ai_paa_mobilen.
+  ///
+  /// In en, this message translates to:
+  /// **'On this phone'**
+  String get cus_ai_paa_mobilen;
+
+  /// No description provided for @cus_ai_annen_enhet.
+  ///
+  /// In en, this message translates to:
+  /// **'Another device'**
+  String get cus_ai_annen_enhet;
+
+  /// No description provided for @cus_ai_begge_appene.
+  ///
+  /// In en, this message translates to:
+  /// **'Both apps on this phone · no scanning'**
+  String get cus_ai_begge_appene;
+
+  /// No description provided for @cus_ai_eller_kode.
+  ///
+  /// In en, this message translates to:
+  /// **'Or use a code'**
+  String get cus_ai_eller_kode;
+
+  /// No description provided for @cus_ai_gyldig_min.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid for {m} min'**
+  String cus_ai_gyldig_min(int m);
+
+  /// No description provided for @cus_ai_lim_inn.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the code into {navn} when it asks. Also works if {navn} does not open by itself.'**
+  String cus_ai_lim_inn(String navn);
+
+  /// No description provided for @cus_ai_kopier_kode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get cus_ai_kopier_kode;
+
+  /// No description provided for @cus_ai_kopiert.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get cus_ai_kopiert;
+
+  /// No description provided for @cus_ai_kode_kopiert.
+  ///
+  /// In en, this message translates to:
+  /// **'Code {kode} copied · paste it into {navn}'**
+  String cus_ai_kode_kopiert(String kode, String navn);
+
+  /// No description provided for @cus_ai_lenke_kopiert.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied · open it in {navn}'**
+  String cus_ai_lenke_kopiert(String navn);
+
+  /// No description provided for @cus_ai_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {navn} to use the code …'**
+  String cus_ai_venter(String navn);
+
+  /// No description provided for @cus_ai_brukte_koden.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} used the code'**
+  String cus_ai_brukte_koden(String navn);
+
+  /// No description provided for @cus_ai_kode_for.
+  ///
+  /// In en, this message translates to:
+  /// **'Code for {navn} · valid for {m} minutes'**
+  String cus_ai_kode_for(String navn, int m);
+
+  /// No description provided for @cus_ai_qr_steg_mobil_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap «Open {navn}»'**
+  String cus_ai_qr_steg_mobil_1(String navn);
+
+  /// No description provided for @cus_ai_qr_steg_mobil_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve in {navn}'**
+  String cus_ai_qr_steg_mobil_2(String navn);
+
+  /// No description provided for @cus_ai_qr_steg_mobil_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose permissions here'**
+  String get cus_ai_qr_steg_mobil_3;
+
+  /// No description provided for @cus_ai_qr_steg_qr_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {navn} on the other device'**
+  String cus_ai_qr_steg_qr_1(String navn);
+
+  /// No description provided for @cus_ai_qr_steg_qr_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the code'**
+  String get cus_ai_qr_steg_qr_2;
+
+  /// No description provided for @cus_ai_qr_steg_qr_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose permissions here'**
+  String get cus_ai_qr_steg_qr_3;
+
+  /// No description provided for @cus_ai_apne.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {navn}'**
+  String cus_ai_apne(String navn);
+
+  /// No description provided for @cus_ai_jeg_har_skannet.
+  ///
+  /// In en, this message translates to:
+  /// **'I have scanned'**
+  String get cus_ai_jeg_har_skannet;
+
+  /// No description provided for @cus_ai_tilbake.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get cus_ai_tilbake;
+
+  /// No description provided for @cus_ai_kode_feil.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not make a code. Try again.'**
+  String get cus_ai_kode_feil;
+
+  /// No description provided for @cus_ai_kode_utlopt.
+  ///
+  /// In en, this message translates to:
+  /// **'The code expired · make a new one'**
+  String get cus_ai_kode_utlopt;
+
+  /// No description provided for @consent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} asks for access to your Ærend account'**
+  String consent_title(String navn);
+
+  /// No description provided for @cus_ai_sam_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'You decide what {navn} may do. You can change or unlink at any time.'**
+  String cus_ai_sam_linje(String navn);
+
+  /// No description provided for @consent_line.
+  ///
+  /// In en, this message translates to:
+  /// **'By linking you agree that Ærend shares the details above with {navn} on your behalf.'**
+  String consent_line(String navn);
+
+  /// No description provided for @cus_ai_venter_svar.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for your answer'**
+  String get cus_ai_venter_svar;
+
+  /// No description provided for @cus_ai_logg_inn_forst.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in first'**
+  String get cus_ai_logg_inn_forst;
+
+  /// No description provided for @cus_ai_logg_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue'**
+  String get cus_ai_logg_tittel;
+
+  /// No description provided for @cus_ai_logg_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'You come back here after signing in.'**
+  String get cus_ai_logg_linje;
+
+  /// No description provided for @cus_ai_logg_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} asks for access to your Ærend account'**
+  String cus_ai_logg_tx(String navn);
+
+  /// No description provided for @cus_ai_logg_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Vipps or your Ærend account. Nothing is shared before you choose permissions.'**
+  String get cus_ai_logg_under;
+
+  /// No description provided for @cus_ai_logg_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Vipps'**
+  String get cus_ai_logg_vipps;
+
+  /// No description provided for @cus_ai_logg_inn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get cus_ai_logg_inn;
+
+  /// No description provided for @cus_ai_avbryt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cus_ai_avbryt;
+
+  /// No description provided for @cus_ai_rett_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'This is what {navn} can do'**
+  String cus_ai_rett_tittel(String navn);
+
+  /// No description provided for @cus_ai_rett_antall.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} of 6 on'**
+  String cus_ai_rett_antall(int n);
+
+  /// No description provided for @cus_ai_alltid_paa.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on'**
+  String get cus_ai_alltid_paa;
+
+  /// No description provided for @cus_ai_paakrevd.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get cus_ai_paakrevd;
+
+  /// No description provided for @consent_rights_catalog_read.
+  ///
+  /// In en, this message translates to:
+  /// **'See menus and prices'**
+  String get consent_rights_catalog_read;
+
+  /// No description provided for @consent_rights_catalog_read_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'The same as everyone sees in the app'**
+  String get consent_rights_catalog_read_sub;
+
+  /// No description provided for @consent_rights_cart_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a cart for you'**
+  String get consent_rights_cart_write;
+
+  /// No description provided for @consent_rights_cart_write_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'You always see the cart before anything is sent'**
+  String get consent_rights_cart_write_sub;
+
+  /// No description provided for @consent_rights_orders_read.
+  ///
+  /// In en, this message translates to:
+  /// **'See your orders'**
+  String get consent_rights_orders_read;
+
+  /// No description provided for @consent_rights_orders_read_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Status and earlier orders'**
+  String get consent_rights_orders_read_sub;
+
+  /// No description provided for @consent_rights_orders_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Order for you – always with your confirmation'**
+  String get consent_rights_orders_write;
+
+  /// No description provided for @consent_rights_orders_write_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be switched off'**
+  String get consent_rights_orders_write_sub;
+
+  /// No description provided for @consent_rights_profile_read.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your addresses and favourites'**
+  String get consent_rights_profile_read;
+
+  /// No description provided for @consent_rights_profile_read_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Home, Work and favourite stores'**
+  String get consent_rights_profile_read_sub;
+
+  /// No description provided for @consent_rights_support_write.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a support case for you'**
+  String get consent_rights_support_write;
+
+  /// No description provided for @consent_rights_support_write_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'When something is missing or wrong'**
+  String get consent_rights_support_write_sub;
+
+  /// No description provided for @cus_ai_dine_grenser.
+  ///
+  /// In en, this message translates to:
+  /// **'Your limits'**
+  String get cus_ai_dine_grenser;
+
+  /// No description provided for @cus_ai_grense_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} never goes above these'**
+  String cus_ai_grense_tittel(String navn);
+
+  /// No description provided for @consent_limit_per_order.
+  ///
+  /// In en, this message translates to:
+  /// **'Max per order'**
+  String get consent_limit_per_order;
+
+  /// No description provided for @consent_limit_per_day.
+  ///
+  /// In en, this message translates to:
+  /// **'Max per day'**
+  String get consent_limit_per_day;
+
+  /// No description provided for @cus_ai_forslag.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested: {kr} kr'**
+  String cus_ai_forslag(String kr);
+
+  /// No description provided for @consent_payment_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get consent_payment_mode;
+
+  /// No description provided for @cus_ai_betaling_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Used when the assistant asks to order'**
+  String get cus_ai_betaling_under;
+
+  /// No description provided for @cus_ai_lagret_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved card'**
+  String get cus_ai_lagret_kort;
+
+  /// No description provided for @cus_ai_spor_hver_gang.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask every time'**
+  String get cus_ai_spor_hver_gang;
+
+  /// No description provided for @consent_address_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery address'**
+  String get consent_address_mode;
+
+  /// No description provided for @cus_ai_hjemme_er.
+  ///
+  /// In en, this message translates to:
+  /// **'Home is {adr}'**
+  String cus_ai_hjemme_er(String adr);
+
+  /// No description provided for @cus_ai_hjemme.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get cus_ai_hjemme;
+
+  /// No description provided for @consent_share_bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my food preferences from Min bio'**
+  String get consent_share_bio;
+
+  /// No description provided for @cus_ai_bio_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'Then {navn} can take allergens and preferences into account when suggesting food. The details are shared only with {navn}, and you can switch it off whenever you like.'**
+  String cus_ai_bio_tx(String navn);
+
+  /// No description provided for @cus_ai_grense_sum.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {per} kr · {dag} kr per day'**
+  String cus_ai_grense_sum(String per, String dag);
+
+  /// No description provided for @cus_ai_per_best.
+  ///
+  /// In en, this message translates to:
+  /// **'Per order'**
+  String get cus_ai_per_best;
+
+  /// No description provided for @cus_ai_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery'**
+  String get cus_ai_levering;
+
+  /// No description provided for @linked_success_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is linked to Ærend'**
+  String linked_success_title(String navn);
+
+  /// No description provided for @cus_ai_koblet_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} can now build a cart and suggest orders. Nothing is sent before you confirm in Ærend.'**
+  String cus_ai_koblet_linje(String navn);
+
+  /// No description provided for @cus_ai_koblet_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked now'**
+  String get cus_ai_koblet_naa;
+
+  /// No description provided for @cus_ai_prov_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Try now'**
+  String get cus_ai_prov_naa;
+
+  /// No description provided for @cus_ai_prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Order the usual from Torgboden for tomorrow morning.'**
+  String get cus_ai_prompt;
+
+  /// No description provided for @cus_ai_kopier_forslag.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy suggestion'**
+  String get cus_ai_kopier_forslag;
+
+  /// No description provided for @cus_ai_kopiert_lim.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied · paste it into {navn}'**
+  String cus_ai_kopiert_lim(String navn);
+
+  /// No description provided for @cus_ai_bestill_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'Order with {navn} now'**
+  String cus_ai_bestill_naa(String navn);
+
+  /// No description provided for @cus_ai_ferdig.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get cus_ai_ferdig;
+
+  /// No description provided for @cus_ai_endre_grenser.
+  ///
+  /// In en, this message translates to:
+  /// **'Change limits'**
+  String get cus_ai_endre_grenser;
+
+  /// No description provided for @linked_assistants_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked assistants'**
+  String get linked_assistants_title;
+
+  /// No description provided for @linked_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No assistants are linked'**
+  String get linked_empty_title;
+
+  /// No description provided for @cus_ai_koblede_linje_1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 active · tap for permissions, limits and activity'**
+  String get cus_ai_koblede_linje_1;
+
+  /// No description provided for @cus_ai_koblede_linje_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} active · tap for permissions, limits and activity'**
+  String cus_ai_koblede_linje_n(int n);
+
+  /// No description provided for @cus_ai_ingen_aktive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active links'**
+  String get cus_ai_ingen_aktive;
+
+  /// No description provided for @cus_ai_tom_tekst.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Claude, ChatGPT or Gemini to order from there.'**
+  String get cus_ai_tom_tekst;
+
+  /// No description provided for @cus_ai_aktiv.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get cus_ai_aktiv;
+
+  /// No description provided for @cus_ai_frakoblet.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get cus_ai_frakoblet;
+
+  /// No description provided for @cus_ai_sist_brukt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used {naar} · max {kr} kr per order'**
+  String cus_ai_sist_brukt(String naar, String kr);
+
+  /// No description provided for @cus_ai_frakoblet_dato.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked {naar}'**
+  String cus_ai_frakoblet_dato(String naar);
+
+  /// No description provided for @cus_ai_brukt_i_dag.
+  ///
+  /// In en, this message translates to:
+  /// **'Used today'**
+  String get cus_ai_brukt_i_dag;
+
+  /// No description provided for @cus_ai_av.
+  ///
+  /// In en, this message translates to:
+  /// **'{a} of {b}'**
+  String cus_ai_av(String a, String b);
+
+  /// No description provided for @revoke_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink all'**
+  String get revoke_all;
+
+  /// No description provided for @assistants_how_to_link.
+  ///
+  /// In en, this message translates to:
+  /// **'How to link'**
+  String get assistants_how_to_link;
+
+  /// No description provided for @cus_ai_koble_ny.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a new one'**
+  String get cus_ai_koble_ny;
+
+  /// No description provided for @cus_ai_rett_kort_cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart'**
+  String get cus_ai_rett_kort_cart;
+
+  /// No description provided for @cus_ai_rett_kort_orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get cus_ai_rett_kort_orders;
+
+  /// No description provided for @cus_ai_rett_kort_addresses.
+  ///
+  /// In en, this message translates to:
+  /// **'Addresses'**
+  String get cus_ai_rett_kort_addresses;
+
+  /// No description provided for @cus_ai_detalj_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions, limits and everything {navn} has done'**
+  String cus_ai_detalj_linje(String navn);
+
+  /// No description provided for @cus_ai_detalj_ikke.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} no longer has access'**
+  String cus_ai_detalj_ikke(String navn);
+
+  /// No description provided for @cus_ai_koblet_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked {naar} · last used {sist}'**
+  String cus_ai_koblet_til(String naar, String sist);
+
+  /// No description provided for @cus_ai_bestilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get cus_ai_bestilling;
+
+  /// No description provided for @cus_ai_bestillinger.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get cus_ai_bestillinger;
+
+  /// No description provided for @cus_ai_sist_brukt_lbl.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get cus_ai_sist_brukt_lbl;
+
+  /// No description provided for @activity_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activity_title;
+
+  /// No description provided for @cus_ai_ingen_aktivitet.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity yet'**
+  String get cus_ai_ingen_aktivitet;
+
+  /// No description provided for @revoke_assistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink {navn}'**
+  String revoke_assistant(String navn);
+
+  /// No description provided for @cus_ai_koble_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'Link {navn} again'**
+  String cus_ai_koble_igjen(String navn);
+
+  /// No description provided for @cus_ai_ikke_koblet_hs.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get cus_ai_ikke_koblet_hs;
+
+  /// No description provided for @cus_ai_ikke_koblet_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is not linked to your Ærend account.'**
+  String cus_ai_ikke_koblet_linje(String navn);
+
+  /// No description provided for @cus_ai_lagret.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get cus_ai_lagret;
+
+  /// No description provided for @cus_ai_lagret_feil.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save. Try again.'**
+  String get cus_ai_lagret_feil;
+
+  /// No description provided for @cus_ai_akt_search_stores.
+  ///
+  /// In en, this message translates to:
+  /// **'Found stores'**
+  String get cus_ai_akt_search_stores;
+
+  /// No description provided for @cus_ai_akt_search_products.
+  ///
+  /// In en, this message translates to:
+  /// **'Searched menus'**
+  String get cus_ai_akt_search_products;
+
+  /// No description provided for @cus_ai_akt_get_store.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the menu'**
+  String get cus_ai_akt_get_store;
+
+  /// No description provided for @cus_ai_akt_get_product.
+  ///
+  /// In en, this message translates to:
+  /// **'Read a product'**
+  String get cus_ai_akt_get_product;
+
+  /// No description provided for @cus_ai_akt_create_cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Built a cart'**
+  String get cus_ai_akt_create_cart;
+
+  /// No description provided for @cus_ai_akt_update_cart.
+  ///
+  /// In en, this message translates to:
+  /// **'Changed the cart'**
+  String get cus_ai_akt_update_cart;
+
+  /// No description provided for @cus_ai_akt_quote.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetched a quote'**
+  String get cus_ai_akt_quote;
+
+  /// No description provided for @cus_ai_akt_start_checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Asked to order'**
+  String get cus_ai_akt_start_checkout;
+
+  /// No description provided for @cus_ai_akt_confirm_order.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered'**
+  String get cus_ai_akt_confirm_order;
+
+  /// No description provided for @cus_ai_akt_orders.
+  ///
+  /// In en, this message translates to:
+  /// **'Looked at orders'**
+  String get cus_ai_akt_orders;
+
+  /// No description provided for @cus_ai_akt_track_order.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked an order'**
+  String get cus_ai_akt_track_order;
+
+  /// No description provided for @cus_ai_akt_reorder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reordered'**
+  String get cus_ai_akt_reorder;
+
+  /// No description provided for @cus_ai_akt_profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the profile'**
+  String get cus_ai_akt_profile;
+
+  /// No description provided for @cus_ai_akt_open_support.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened a support case'**
+  String get cus_ai_akt_open_support;
+
+  /// No description provided for @cus_ai_fra_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink {navn}?'**
+  String cus_ai_fra_tittel(String navn);
+
+  /// No description provided for @cus_ai_fra_alle_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink all assistants?'**
+  String get cus_ai_fra_alle_tittel;
+
+  /// No description provided for @cus_ai_fra_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} loses access at once. Orders already sent are not affected.'**
+  String cus_ai_fra_linje(String navn);
+
+  /// No description provided for @cus_ai_fra_alle_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'All assistants lose access at once. Orders already sent are not affected.'**
+  String get cus_ai_fra_alle_linje;
+
+  /// No description provided for @cus_ai_mister.
+  ///
+  /// In en, this message translates to:
+  /// **'Loses access at once'**
+  String get cus_ai_mister;
+
+  /// No description provided for @cus_ai_alle_mister.
+  ///
+  /// In en, this message translates to:
+  /// **'All lose access'**
+  String get cus_ai_alle_mister;
+
+  /// No description provided for @cus_ai_fra_info_1.
+  ///
+  /// In en, this message translates to:
+  /// **'Access stops at once'**
+  String get cus_ai_fra_info_1;
+
+  /// No description provided for @cus_ai_fra_info_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders already sent are not affected'**
+  String get cus_ai_fra_info_2;
+
+  /// No description provided for @cus_ai_fra_info_3.
+  ///
+  /// In en, this message translates to:
+  /// **'You can link again at any time'**
+  String get cus_ai_fra_info_3;
+
+  /// No description provided for @cus_ai_koble_fra_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get cus_ai_koble_fra_cta;
+
+  /// No description provided for @cus_ai_er_koblet_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} is unlinked'**
+  String cus_ai_er_koblet_fra(String navn);
+
+  /// No description provided for @cus_ai_alle_koblet_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'All assistants are unlinked'**
+  String get cus_ai_alle_koblet_fra;
+
+  /// No description provided for @cus_ai_assistenter_1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 assistant'**
+  String get cus_ai_assistenter_1;
+
+  /// No description provided for @cus_ai_assistenter_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} assistants'**
+  String cus_ai_assistenter_n(int n);
+
+  /// No description provided for @cus_ai_feil_ikke_koblet.
+  ///
+  /// In en, this message translates to:
+  /// **'Link {navn} to order'**
+  String cus_ai_feil_ikke_koblet(String navn);
+
+  /// No description provided for @cus_ai_feil_ikke_koblet_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} can see menus, but must be linked to your account to order.'**
+  String cus_ai_feil_ikke_koblet_linje(String navn);
+
+  /// No description provided for @cus_ai_ikke_koblet_enna.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked yet'**
+  String get cus_ai_ikke_koblet_enna;
+
+  /// No description provided for @cus_ai_feil_bekreft.
+  ///
+  /// In en, this message translates to:
+  /// **'This order needs your confirmation'**
+  String get cus_ai_feil_bekreft;
+
+  /// No description provided for @cus_ai_feil_bekreft_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'The amount is above your limit of {kr} kr.'**
+  String cus_ai_feil_bekreft_linje(String kr);
+
+  /// No description provided for @cus_ai_se_bestillingen.
+  ///
+  /// In en, this message translates to:
+  /// **'See the order'**
+  String get cus_ai_se_bestillingen;
+
+  /// No description provided for @cus_ai_feil_generisk.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get cus_ai_feil_generisk;
+
+  /// No description provided for @cus_ai_feil_generisk_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is ordered. Try again shortly.'**
+  String get cus_ai_feil_generisk_linje;
+
+  /// No description provided for @cus_ai_prov_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get cus_ai_prov_igjen;
+
+  /// No description provided for @nothing_ordered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is ordered'**
+  String get nothing_ordered;
+
+  /// No description provided for @cus_ai_grensen_din.
+  ///
+  /// In en, this message translates to:
+  /// **'Your limit is {kr} kr'**
+  String cus_ai_grensen_din(String kr);
+
+  /// No description provided for @confirm_request_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm order from {navn}'**
+  String confirm_request_title(String navn);
+
+  /// No description provided for @cus_ai_bekreft_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'{butikk} · paid with {bet}'**
+  String cus_ai_bekreft_linje(String butikk, String bet);
+
+  /// No description provided for @cus_ai_med_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Vipps'**
+  String get cus_ai_med_vipps;
+
+  /// No description provided for @cus_ai_med_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'saved card'**
+  String get cus_ai_med_kort;
+
+  /// No description provided for @handoff_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart from {navn}'**
+  String handoff_title(String navn);
+
+  /// No description provided for @cus_ai_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'From {navn}'**
+  String cus_ai_fra(String navn);
+
+  /// No description provided for @cus_ai_ingenting_sendes.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is sent before you confirm here'**
+  String get cus_ai_ingenting_sendes;
+
+  /// No description provided for @cus_ai_bygde.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} built the cart'**
+  String cus_ai_bygde(String navn);
+
+  /// No description provided for @cus_ai_ber_om.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} asks to order'**
+  String cus_ai_ber_om(String navn);
+
+  /// No description provided for @cus_ai_apnet_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'Opened from {navn} · now'**
+  String cus_ai_apnet_fra(String navn);
+
+  /// No description provided for @cus_ai_foresporsel.
+  ///
+  /// In en, this message translates to:
+  /// **'Request · {butikk}'**
+  String cus_ai_foresporsel(String butikk);
+
+  /// No description provided for @cus_ai_henter_tilbud.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching the offer from Ærend …'**
+  String get cus_ai_henter_tilbud;
+
+  /// No description provided for @cus_ai_varer.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get cus_ai_varer;
+
+  /// No description provided for @cus_ai_antall_varer_1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 item'**
+  String get cus_ai_antall_varer_1;
+
+  /// No description provided for @cus_ai_antall_varer_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} items'**
+  String cus_ai_antall_varer_n(int n);
+
+  /// No description provided for @item_sold_out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold out right now'**
+  String get item_sold_out;
+
+  /// No description provided for @cus_ai_fjern_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {navn}?'**
+  String cus_ai_fjern_tx(String navn);
+
+  /// No description provided for @cus_ai_fjern_under.
+  ///
+  /// In en, this message translates to:
+  /// **'The rest of the cart gets a new offer'**
+  String get cus_ai_fjern_under;
+
+  /// No description provided for @cus_ai_fjern.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get cus_ai_fjern;
+
+  /// No description provided for @cus_ai_tilbudet_ditt.
+  ///
+  /// In en, this message translates to:
+  /// **'Your offer'**
+  String get cus_ai_tilbudet_ditt;
+
+  /// No description provided for @quote_valid_for.
+  ///
+  /// In en, this message translates to:
+  /// **'The offer is valid for'**
+  String get quote_valid_for;
+
+  /// No description provided for @cus_ai_bekreft_innen.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm within'**
+  String get cus_ai_bekreft_innen;
+
+  /// No description provided for @cus_ai_leveringsvindu.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery window'**
+  String get cus_ai_leveringsvindu;
+
+  /// No description provided for @cus_ai_leveres_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered to'**
+  String get cus_ai_leveres_til;
+
+  /// No description provided for @cus_ai_totalt.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get cus_ai_totalt;
+
+  /// No description provided for @quote_new_total.
+  ///
+  /// In en, this message translates to:
+  /// **'New total'**
+  String get quote_new_total;
+
+  /// No description provided for @cus_ai_ny.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get cus_ai_ny;
+
+  /// No description provided for @within_limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Within your limit of {kr} kr'**
+  String within_limit(String kr);
+
+  /// No description provided for @cus_ai_over.
+  ///
+  /// In en, this message translates to:
+  /// **'Above your limit of {kr} kr'**
+  String cus_ai_over(String kr);
+
+  /// No description provided for @cus_ai_grense.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit {kr} kr'**
+  String cus_ai_grense(String kr);
+
+  /// No description provided for @cus_ai_endre_kurv.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the cart'**
+  String get cus_ai_endre_kurv;
+
+  /// No description provided for @cus_ai_endre_under.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes give a new offer.'**
+  String get cus_ai_endre_under;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get reject;
+
+  /// No description provided for @cus_ai_avvist.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined · nothing is ordered'**
+  String get cus_ai_avvist;
+
+  /// No description provided for @quote_expired_title.
+  ///
+  /// In en, this message translates to:
+  /// **'The offer has expired'**
+  String get quote_expired_title;
+
+  /// No description provided for @cus_ai_tilbud_utlopt_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'The price may have changed. We fetched a new offer.'**
+  String get cus_ai_tilbud_utlopt_tx;
+
+  /// No description provided for @cus_ai_for_utlopt.
+  ///
+  /// In en, this message translates to:
+  /// **'The request has expired'**
+  String get cus_ai_for_utlopt;
+
+  /// No description provided for @cus_ai_for_utlopt_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is ordered. Ask {navn} to try again.'**
+  String cus_ai_for_utlopt_tx(String navn);
+
+  /// No description provided for @cus_ai_for_utlopt_steg.
+  ///
+  /// In en, this message translates to:
+  /// **'The request expired · nothing ordered'**
+  String get cus_ai_for_utlopt_steg;
+
+  /// No description provided for @cus_ai_trukket.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} withdrew the request'**
+  String cus_ai_trukket(String navn);
+
+  /// No description provided for @cus_ai_trukket_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is ordered.'**
+  String get cus_ai_trukket_tx;
+
+  /// No description provided for @cus_ai_bet_feilet.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment did not go through'**
+  String get cus_ai_bet_feilet;
+
+  /// No description provided for @cus_ai_bet_feilet_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is ordered. Try again or choose another payment method.'**
+  String get cus_ai_bet_feilet_tx;
+
+  /// No description provided for @cus_ai_bytt_bet.
+  ///
+  /// In en, this message translates to:
+  /// **'Change payment method'**
+  String get cus_ai_bytt_bet;
+
+  /// No description provided for @cus_ai_betaler_med.
+  ///
+  /// In en, this message translates to:
+  /// **'Paying with {b}'**
+  String cus_ai_betaler_med(String b);
+
+  /// No description provided for @over_limit_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Above your limit of {kr} kr'**
+  String over_limit_title(String kr);
+
+  /// No description provided for @cus_ai_over_banner_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'You can confirm anyway. The limit still applies to the next order.'**
+  String get cus_ai_over_banner_tx;
+
+  /// No description provided for @cus_ai_bekreft_likevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm anyway'**
+  String get cus_ai_bekreft_likevel;
+
+  /// No description provided for @cus_ai_bekreft_betal.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and pay'**
+  String get cus_ai_bekreft_betal;
+
+  /// No description provided for @cus_ai_logg_inn_fortsett.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to continue'**
+  String get cus_ai_logg_inn_fortsett;
+
+  /// No description provided for @cus_ai_kurv_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'You come back here after signing in. The cart from {navn} is waiting.'**
+  String cus_ai_kurv_venter(String navn);
+
+  /// No description provided for @out_of_coverage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'We do not deliver here yet'**
+  String get out_of_coverage_title;
+
+  /// No description provided for @cus_ai_si_fra.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us, and we let you know when we arrive.'**
+  String get cus_ai_si_fra;
+
+  /// No description provided for @cus_ai_venteliste.
+  ///
+  /// In en, this message translates to:
+  /// **'Put me on the waitlist'**
+  String get cus_ai_venteliste;
+
+  /// No description provided for @cus_ai_paa_venteliste.
+  ///
+  /// In en, this message translates to:
+  /// **'You are on the waitlist'**
+  String get cus_ai_paa_venteliste;
+
+  /// No description provided for @cus_ai_paa_venteliste_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'We tell you as soon as we deliver to {sted}. Nothing is ordered.'**
+  String cus_ai_paa_venteliste_tx(String sted);
+
+  /// No description provided for @cus_ai_til_hjem.
+  ///
+  /// In en, this message translates to:
+  /// **'To Home'**
+  String get cus_ai_til_hjem;
+
+  /// No description provided for @cus_ai_endre.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get cus_ai_endre;
+
+  /// No description provided for @cus_ai_godkjenner_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'You approve in Vipps'**
+  String get cus_ai_godkjenner_vipps;
+
+  /// No description provided for @cus_ai_bekreftes_faceid.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed with Face ID'**
+  String get cus_ai_bekreftes_faceid;
+
+  /// No description provided for @cus_ai_kort_ved_bet.
+  ///
+  /// In en, this message translates to:
+  /// **'Card, Apple Pay or Google Pay'**
+  String get cus_ai_kort_ved_bet;
+
+  /// No description provided for @cus_ai_ingen_betdata.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment data is shared with {navn}'**
+  String cus_ai_ingen_betdata(String navn);
+
+  /// No description provided for @pay_with_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay with Vipps · {kr} kr'**
+  String pay_with_vipps(String kr);
+
+  /// No description provided for @cus_ai_apner_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Vipps …'**
+  String get cus_ai_apner_vipps;
+
+  /// No description provided for @cus_ai_bekrefter.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming …'**
+  String get cus_ai_bekrefter;
+
+  /// No description provided for @cus_ai_tilbake_etterpaa.
+  ///
+  /// In en, this message translates to:
+  /// **'You come back here afterwards'**
+  String get cus_ai_tilbake_etterpaa;
+
+  /// No description provided for @cus_ai_betaling_med.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment with {b}'**
+  String cus_ai_betaling_med(String b);
+
+  /// No description provided for @cus_ai_bestilt_via.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered via {navn} · {kode}'**
+  String cus_ai_bestilt_via(String navn, String kode);
+
+  /// No description provided for @cus_ai_bestilling_feilet.
+  ///
+  /// In en, this message translates to:
+  /// **'The order could not be created.'**
+  String get cus_ai_bestilling_feilet;
+
+  /// No description provided for @cus_ai_enhet_avvist.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed on the device · try again'**
+  String get cus_ai_enhet_avvist;
+
+  /// No description provided for @cus_ai_bytt_apner.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening {navn} …'**
+  String cus_ai_bytt_apner(String navn);
+
+  /// No description provided for @cus_ai_bytt_fortsetter.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuing in {navn} …'**
+  String cus_ai_bytt_fortsetter(String navn);
+
+  /// No description provided for @cus_ai_bytt_godkjenn.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve Ærend in {navn}. You come straight back here.'**
+  String cus_ai_bytt_godkjenn(String navn);
+
+  /// No description provided for @cus_ai_bytt_si.
+  ///
+  /// In en, this message translates to:
+  /// **'Say what you want. {navn} builds the cart, and you confirm in Ærend.'**
+  String cus_ai_bytt_si(String navn);
+
+  /// No description provided for @cus_ai_bygger_kurv.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the cart at Ærend …'**
+  String get cus_ai_bygger_kurv;
+
+  /// No description provided for @cus_ai_tilbake_i.
+  ///
+  /// In en, this message translates to:
+  /// **'Back in Ærend'**
+  String get cus_ai_tilbake_i;
+
+  /// No description provided for @cus_ai_bytt_inn_kurv.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} has built the cart. Now you confirm the price.'**
+  String cus_ai_bytt_inn_kurv(String navn);
+
+  /// No description provided for @cus_ai_bytt_inn_sam.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} approved. Now you choose what {navn} may do.'**
+  String cus_ai_bytt_inn_sam(String navn);
+
+  /// No description provided for @cus_ai_push_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'NOW'**
+  String get cus_ai_push_naa;
+
+  /// No description provided for @cus_ai_push_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} wants to order'**
+  String cus_ai_push_tittel(String navn);
+
+  /// No description provided for @cus_ai_push_tx.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} wants to order for {sum} from {butikk}. Confirm in Ærend.'**
+  String cus_ai_push_tx(String navn, String sum, String butikk);
+
+  /// No description provided for @via_assistant_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Via {navn}'**
+  String via_assistant_chip(String navn);
+
+  /// No description provided for @cus_ai_bestilt_via_dato.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered via {navn} · {dato}'**
+  String cus_ai_bestilt_via_dato(String navn, String dato);
+
+  /// No description provided for @cus_ai_sporing_via.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking · via assistant'**
+  String get cus_ai_sporing_via;
+
+  /// No description provided for @cus_ai_i_dag.
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get cus_ai_i_dag;
+
+  /// No description provided for @cus_ai_naa.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get cus_ai_naa;
+
+  /// No description provided for @cus_ai_aldri.
+  ///
+  /// In en, this message translates to:
+  /// **'never'**
+  String get cus_ai_aldri;
+
+  /// No description provided for @assistants_privacy_line.
+  ///
+  /// In en, this message translates to:
+  /// **'{navn} only sees what you allow. Card and Vipps details never leave Ærend.'**
+  String assistants_privacy_line(String navn);
+
+  /// No description provided for @cus_ai_annen_enhet_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Linking on another device?'**
+  String get cus_ai_annen_enhet_tittel;
+
+  /// No description provided for @cus_ai_annen_enhet_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the code with that device, or paste the link into {navn} there.'**
+  String cus_ai_annen_enhet_linje(String navn);
+
+  /// No description provided for @cus_ai_kopier_kobling.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get cus_ai_kopier_kobling;
+
+  /// No description provided for @cus_ai_samtykke_versjon.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent text {versjon}'**
+  String cus_ai_samtykke_versjon(String versjon);
+
+  /// No description provided for @cus_ai_bio_delt_siden.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared since {dato}'**
+  String cus_ai_bio_delt_siden(String dato);
 }
 
 class _AppLocalizationsDelegate

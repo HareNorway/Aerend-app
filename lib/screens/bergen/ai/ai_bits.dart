@@ -1,7 +1,9 @@
 // ignore_for_file: non_constant_identifier_names
 import 'package:flutter/material.dart';
 
+import '../../../utils/utils.dart' show isLoggedIn;
 import '../../common/auth/launch/lf_css.dart';
+import '../../common/login/login.dart';
 import '../aegil/aegil_bits.dart';
 import 'ai_copy.dart';
 
@@ -60,8 +62,9 @@ abstract final class AiIk {
   static const String minus = 'M5 12h14';
 }
 
-/// The assistant mark (design `aiM`): a logo for Claude and ChatGPT, a
-/// drawn mark for Gemini (gold) and Siri (violet), initials for the rest.
+/// The assistant mark (design `aiM`): a text mark on the assistant's tint —
+/// «Cl», «Ch», «Ge», «Si», initials for the rest. Customer v2 Step 2 (D2-9,
+/// spec «no third-party logos»): the Claude and ChatGPT logo images are gone.
 class AiMerke extends StatelessWidget {
   const AiMerke(this.navn, {super.key, this.size = 36, this.radius});
 
@@ -79,7 +82,6 @@ class AiMerke extends StatelessWidget {
       'Siri' => (const [Color(0xFFEEE7FB), Color(0xFFC7B8E8), Color(0xFFA996D9)], const Color(0xFF3A2E5C), 'Si', 4.0),
       _ => (const [Color(0xFFFFFFFF), Color(0xFFDCE9EC), Color(0xFFDCE9EC)], const Color(0xFF1E4F5C), '', 0.0),
     };
-    final logo = switch (navn) { 'Claude' => 'assets/images/ai/claude.png', 'ChatGPT' => 'assets/images/ai/chatgpt.png', _ => null };
     return Transform.rotate(
       angle: rot * 3.14159 / 180,
       child: Container(
@@ -92,9 +94,7 @@ class AiMerke extends StatelessWidget {
           boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .55), offset: Offset(0, 1)), BoxShadow(color: Color.fromRGBO(4, 18, 26, .55), offset: Offset(0, 8), blurRadius: 14 / 2 / .57735, spreadRadius: -7)],
         ),
         alignment: Alignment.center,
-        child: logo != null
-            ? Padding(padding: EdgeInsets.all(size * .18), child: Image.asset(logo, fit: BoxFit.contain))
-            : Text(tx.isEmpty ? (navn.isEmpty ? 'Æ' : navn.substring(0, navn.length < 2 ? 1 : 2)) : tx, style: jakarta(size * .4, weight: FontWeight.w800, color: ink)),
+        child: Text(tx.isEmpty ? (navn.isEmpty ? 'Æ' : navn.substring(0, navn.length < 2 ? 1 : 2)) : tx, style: jakarta(size * .4, weight: FontWeight.w800, color: ink)),
       ),
     );
   }
@@ -375,4 +375,11 @@ String aiDato(DateTime? t) {
   if (t == null) return '';
   const m = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
   return '${t.day}. ${m[t.month - 1]}';
+}
+
+/// Customer v2 Step 2 (spec §4.10 B, C «returnTo»): log in over the current screen and come back to it —
+/// the consent or the assistant's request — instead of landing on Hjem. True when logged in afterwards.
+Future<bool> aiLoggInn(BuildContext context) async {
+  await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => const Login(returnOnSuccess: true, openEmailForm: true)));
+  return isLoggedIn();
 }

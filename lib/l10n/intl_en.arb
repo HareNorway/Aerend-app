@@ -3987,5 +3987,1045 @@
   "fee_out_of_coverage_title": "We don't deliver here yet",
   "fee_out_of_coverage_line": "Pick it up at the store, or join the waitlist and we'll tell you when we come to your area.",
   "fee_out_of_coverage_waitlist": "Put me on the waitlist",
-  "fee_out_of_coverage_on_list": "You're on the waitlist"
+  "fee_out_of_coverage_on_list": "You're on the waitlist",
+  "cus_ai_hurtig_logo": "Order with Claude or ChatGPT",
+  "cus_ai_hurtig_rad": "Order with another AI",
+  "cus_ai_hurtig_sub_koblet": "{navn} is linked · you confirm here",
+  "@cus_ai_hurtig_sub_koblet": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_hurtig_sub": "Claude, ChatGPT or Gemini · you confirm here",
+  "assistants_entry": "Order through an AI assistant",
+  "cus_ai_meg_rad_sub": "Claude, ChatGPT, Gemini and Siri · always with your confirmation",
+  "cus_ai_meg_koblede": "Linked assistants",
+  "cus_ai_meg_koblede_sub_0": "None linked yet",
+  "cus_ai_meg_koblede_sub_1": "1 active",
+  "cus_ai_meg_koblede_sub_n": "{n} active",
+  "@cus_ai_meg_koblede_sub_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_inngang_tittel": "Order where you already are",
+  "cus_ai_inngang_linje": "Ask the assistant you use. You always confirm here in Ærend.",
+  "cus_ai_inngang_aegil": "I help you here in the app. Claude, ChatGPT and Gemini can order through Ærend – always with your confirmation.",
+  "cus_ai_stottede": "Supported assistants",
+  "cus_ai_koblet": "Linked",
+  "cus_ai_ikke_koblet": "Not linked",
+  "cus_ai_snarveier": "Shortcuts",
+  "cus_ai_snarvei": "Shortcut",
+  "cus_ai_allerede_koblet": "{navn} is already linked",
+  "@cus_ai_allerede_koblet": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_se_rettigheter": "See permissions",
+  "cus_ai_slik_fungerer": "How it works",
+  "cus_ai_fl1": "You ask {navn}",
+  "@cus_ai_fl1": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_fl2": "Ærend makes an offer",
+  "cus_ai_fl3": "You confirm here",
+  "cus_ai_steg_tittel": "How to link {navn}",
+  "@cus_ai_steg_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_steg_1": "Open {navn} and add Ærend as a connector.",
+  "@cus_ai_steg_1": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_steg_2": "Sign in with your Ærend account and choose what {navn} may do.",
+  "@cus_ai_steg_2": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_steg_3": "Ask {navn} to order. You always confirm in Ærend before anything is sent.",
+  "@cus_ai_steg_3": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_steg_siri_1": "Say «Order the usual with Ærend».",
+  "cus_ai_steg_siri_2": "Siri opens Ærend with the cart ready.",
+  "cus_ai_steg_siri_3": "You confirm in the app before anything is sent.",
+  "cus_ai_steg_hint": "Tap when the step is done",
+  "cus_ai_steg_hint_sist": "Tap when you are ready",
+  "cus_ai_klart": "Ready · you always confirm in Ærend",
+  "cus_ai_hva_ser": "What {navn} sees",
+  "@cus_ai_hva_ser": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_kan_se": "Can see",
+  "cus_ai_ser_aldri": "Never sees",
+  "cus_ai_kan_se_liste_1": "Menus and prices",
+  "cus_ai_kan_se_liste_2": "Your orders",
+  "cus_ai_kan_se_liste_3": "Your addresses",
+  "cus_ai_ser_aldri_liste_1": "Your payment card",
+  "cus_ai_ser_aldri_liste_2": "Other people's details",
+  "cus_ai_les_mer": "Read more about privacy",
+  "cus_ai_bruk_siri": "Use Siri",
+  "cus_ai_siri_linje": "Say «Order the usual with Ærend», then confirm in the app.",
+  "cus_ai_siri_snarveier_1": "Order the usual",
+  "cus_ai_siri_snarveier_2": "Track the order",
+  "cus_ai_siri_snarveier_3": "Open the cart",
+  "cus_ai_siri_antall_0": "Tap to add",
+  "cus_ai_siri_antall_n": "{n} of 3 added",
+  "@cus_ai_siri_antall_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_siri_alle": "Add all shortcuts",
+  "cus_ai_siri_lagt": "Three shortcuts added to Siri",
+  "cus_ai_snarvei_lagt": "Shortcut added · «{s}»",
+  "@cus_ai_snarvei_lagt": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_snarvei_fjernet": "Shortcut removed",
+  "cus_ai_koble_til": "Link {navn}",
+  "@cus_ai_koble_til": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_vis_qr": "Show QR code",
+  "cus_ai_bekrefter_alltid": "You always confirm in Ærend",
+  "cus_ai_menyer_synlige": "Menus and prices are always visible",
+  "cus_ai_velg_tittel": "Order with another AI",
+  "cus_ai_velg_linje": "The assistant builds the cart. You always confirm the price here in Ærend.",
+  "cus_ai_velg_koblet_under": "Max {kr} kr per order · {bet}",
+  "@cus_ai_velg_koblet_under": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      },
+      "bet": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_velg_ukoblet_under": "Link in half a minute",
+  "cus_ai_velg_siri_under": "Say «Order the usual with Ærend»",
+  "cus_ai_bestill": "Order",
+  "cus_ai_legg_til": "Add",
+  "cus_ai_ingen_bestilling": "No order to follow yet.",
+  "cus_ai_koble": "Link",
+  "cus_ai_velg_steg_1": "You ask the assistant",
+  "cus_ai_velg_steg_2": "Ærend makes the offer",
+  "cus_ai_velg_steg_3": "You confirm here",
+  "cus_ai_bestill_med": "Order with {navn}",
+  "@cus_ai_bestill_med": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_lukk": "Close",
+  "cus_ai_qr_tittel": "Link {navn}",
+  "@cus_ai_qr_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_qr_linje_mobil": "Have {navn} on this phone? We hop there and back. No code to scan.",
+  "@cus_ai_qr_linje_mobil": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_qr_linje_qr": "Scan the code with the phone or tablet where you use {navn}.",
+  "@cus_ai_qr_linje_qr": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_paa_mobilen": "On this phone",
+  "cus_ai_annen_enhet": "Another device",
+  "cus_ai_begge_appene": "Both apps on this phone · no scanning",
+  "cus_ai_eller_kode": "Or use a code",
+  "cus_ai_gyldig_min": "Valid for {m} min",
+  "@cus_ai_gyldig_min": {
+    "placeholders": {
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_lim_inn": "Paste the code into {navn} when it asks. Also works if {navn} does not open by itself.",
+  "@cus_ai_lim_inn": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_kopier_kode": "Copy code",
+  "cus_ai_kopiert": "Copied",
+  "cus_ai_kode_kopiert": "Code {kode} copied · paste it into {navn}",
+  "@cus_ai_kode_kopiert": {
+    "placeholders": {
+      "kode": {
+        "type": "String"
+      },
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_lenke_kopiert": "Link copied · open it in {navn}",
+  "@cus_ai_lenke_kopiert": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_venter": "Waiting for {navn} to use the code …",
+  "@cus_ai_venter": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_brukte_koden": "{navn} used the code",
+  "@cus_ai_brukte_koden": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_kode_for": "Code for {navn} · valid for {m} minutes",
+  "@cus_ai_kode_for": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      },
+      "m": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_qr_steg_mobil_1": "Tap «Open {navn}»",
+  "@cus_ai_qr_steg_mobil_1": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_qr_steg_mobil_2": "Approve in {navn}",
+  "@cus_ai_qr_steg_mobil_2": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_qr_steg_mobil_3": "Choose permissions here",
+  "cus_ai_qr_steg_qr_1": "Open {navn} on the other device",
+  "@cus_ai_qr_steg_qr_1": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_qr_steg_qr_2": "Scan the code",
+  "cus_ai_qr_steg_qr_3": "Choose permissions here",
+  "cus_ai_apne": "Open {navn}",
+  "@cus_ai_apne": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_jeg_har_skannet": "I have scanned",
+  "cus_ai_tilbake": "Back",
+  "cus_ai_kode_feil": "Could not make a code. Try again.",
+  "cus_ai_kode_utlopt": "The code expired · make a new one",
+  "consent_title": "{navn} asks for access to your Ærend account",
+  "@consent_title": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_sam_linje": "You decide what {navn} may do. You can change or unlink at any time.",
+  "@cus_ai_sam_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "consent_line": "By linking you agree that Ærend shares the details above with {navn} on your behalf.",
+  "@consent_line": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_venter_svar": "Waiting for your answer",
+  "cus_ai_logg_inn_forst": "Sign in first",
+  "cus_ai_logg_tittel": "Sign in to continue",
+  "cus_ai_logg_linje": "You come back here after signing in.",
+  "cus_ai_logg_tx": "{navn} asks for access to your Ærend account",
+  "@cus_ai_logg_tx": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_logg_under": "Sign in with Vipps or your Ærend account. Nothing is shared before you choose permissions.",
+  "cus_ai_logg_vipps": "Sign in with Vipps",
+  "cus_ai_logg_inn": "Sign in",
+  "cus_ai_avbryt": "Cancel",
+  "cus_ai_rett_tittel": "This is what {navn} can do",
+  "@cus_ai_rett_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_rett_antall": "{n} of 6 on",
+  "@cus_ai_rett_antall": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_alltid_paa": "Always on",
+  "cus_ai_paakrevd": "Required",
+  "consent_rights_catalog_read": "See menus and prices",
+  "consent_rights_catalog_read_sub": "The same as everyone sees in the app",
+  "consent_rights_cart_write": "Build a cart for you",
+  "consent_rights_cart_write_sub": "You always see the cart before anything is sent",
+  "consent_rights_orders_read": "See your orders",
+  "consent_rights_orders_read_sub": "Status and earlier orders",
+  "consent_rights_orders_write": "Order for you – always with your confirmation",
+  "consent_rights_orders_write_sub": "Cannot be switched off",
+  "consent_rights_profile_read": "Use your addresses and favourites",
+  "consent_rights_profile_read_sub": "Home, Work and favourite stores",
+  "consent_rights_support_write": "Open a support case for you",
+  "consent_rights_support_write_sub": "When something is missing or wrong",
+  "cus_ai_dine_grenser": "Your limits",
+  "cus_ai_grense_tittel": "{navn} never goes above these",
+  "@cus_ai_grense_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "consent_limit_per_order": "Max per order",
+  "consent_limit_per_day": "Max per day",
+  "cus_ai_forslag": "Suggested: {kr} kr",
+  "@cus_ai_forslag": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "consent_payment_mode": "Payment",
+  "cus_ai_betaling_under": "Used when the assistant asks to order",
+  "cus_ai_lagret_kort": "Saved card",
+  "cus_ai_spor_hver_gang": "Ask every time",
+  "consent_address_mode": "Delivery address",
+  "cus_ai_hjemme_er": "Home is {adr}",
+  "@cus_ai_hjemme_er": {
+    "placeholders": {
+      "adr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_hjemme": "Home",
+  "consent_share_bio": "Share my food preferences from Min bio",
+  "cus_ai_bio_tx": "Then {navn} can take allergens and preferences into account when suggesting food. The details are shared only with {navn}, and you can switch it off whenever you like.",
+  "@cus_ai_bio_tx": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_grense_sum": "Max {per} kr · {dag} kr per day",
+  "@cus_ai_grense_sum": {
+    "placeholders": {
+      "per": {
+        "type": "String"
+      },
+      "dag": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_per_best": "Per order",
+  "cus_ai_levering": "Delivery",
+  "linked_success_title": "{navn} is linked to Ærend",
+  "@linked_success_title": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_koblet_linje": "{navn} can now build a cart and suggest orders. Nothing is sent before you confirm in Ærend.",
+  "@cus_ai_koblet_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_koblet_naa": "Linked now",
+  "cus_ai_prov_naa": "Try now",
+  "cus_ai_prompt": "Order the usual from Torgboden for tomorrow morning.",
+  "cus_ai_kopier_forslag": "Copy suggestion",
+  "cus_ai_kopiert_lim": "Copied · paste it into {navn}",
+  "@cus_ai_kopiert_lim": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bestill_naa": "Order with {navn} now",
+  "@cus_ai_bestill_naa": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_ferdig": "Done",
+  "cus_ai_endre_grenser": "Change limits",
+  "linked_assistants_title": "Linked assistants",
+  "linked_empty_title": "No assistants are linked",
+  "cus_ai_koblede_linje_1": "1 active · tap for permissions, limits and activity",
+  "cus_ai_koblede_linje_n": "{n} active · tap for permissions, limits and activity",
+  "@cus_ai_koblede_linje_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_ingen_aktive": "No active links",
+  "cus_ai_tom_tekst": "Link Claude, ChatGPT or Gemini to order from there.",
+  "cus_ai_aktiv": "Active",
+  "cus_ai_frakoblet": "Unlinked",
+  "cus_ai_sist_brukt": "Last used {naar} · max {kr} kr per order",
+  "@cus_ai_sist_brukt": {
+    "placeholders": {
+      "naar": {
+        "type": "String"
+      },
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_frakoblet_dato": "Unlinked {naar}",
+  "@cus_ai_frakoblet_dato": {
+    "placeholders": {
+      "naar": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_brukt_i_dag": "Used today",
+  "cus_ai_av": "{a} of {b}",
+  "@cus_ai_av": {
+    "placeholders": {
+      "a": {
+        "type": "String"
+      },
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "revoke_all": "Unlink all",
+  "assistants_how_to_link": "How to link",
+  "cus_ai_koble_ny": "Link a new one",
+  "cus_ai_rett_kort_cart": "Cart",
+  "cus_ai_rett_kort_orders": "Orders",
+  "cus_ai_rett_kort_addresses": "Addresses",
+  "cus_ai_detalj_linje": "Permissions, limits and everything {navn} has done",
+  "@cus_ai_detalj_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_detalj_ikke": "{navn} no longer has access",
+  "@cus_ai_detalj_ikke": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_koblet_til": "Linked {naar} · last used {sist}",
+  "@cus_ai_koblet_til": {
+    "placeholders": {
+      "naar": {
+        "type": "String"
+      },
+      "sist": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bestilling": "Order",
+  "cus_ai_bestillinger": "Orders",
+  "cus_ai_sist_brukt_lbl": "Last used",
+  "activity_title": "Activity",
+  "cus_ai_ingen_aktivitet": "No activity yet",
+  "revoke_assistant": "Unlink {navn}",
+  "@revoke_assistant": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_koble_igjen": "Link {navn} again",
+  "@cus_ai_koble_igjen": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_ikke_koblet_hs": "Not linked",
+  "cus_ai_ikke_koblet_linje": "{navn} is not linked to your Ærend account.",
+  "@cus_ai_ikke_koblet_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_lagret": "Saved",
+  "cus_ai_lagret_feil": "Could not save. Try again.",
+  "cus_ai_akt_search_stores": "Found stores",
+  "cus_ai_akt_search_products": "Searched menus",
+  "cus_ai_akt_get_store": "Read the menu",
+  "cus_ai_akt_get_product": "Read a product",
+  "cus_ai_akt_create_cart": "Built a cart",
+  "cus_ai_akt_update_cart": "Changed the cart",
+  "cus_ai_akt_quote": "Fetched a quote",
+  "cus_ai_akt_start_checkout": "Asked to order",
+  "cus_ai_akt_confirm_order": "Ordered",
+  "cus_ai_akt_orders": "Looked at orders",
+  "cus_ai_akt_track_order": "Tracked an order",
+  "cus_ai_akt_reorder": "Reordered",
+  "cus_ai_akt_profile": "Read the profile",
+  "cus_ai_akt_open_support": "Opened a support case",
+  "cus_ai_fra_tittel": "Unlink {navn}?",
+  "@cus_ai_fra_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_fra_alle_tittel": "Unlink all assistants?",
+  "cus_ai_fra_linje": "{navn} loses access at once. Orders already sent are not affected.",
+  "@cus_ai_fra_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_fra_alle_linje": "All assistants lose access at once. Orders already sent are not affected.",
+  "cus_ai_mister": "Loses access at once",
+  "cus_ai_alle_mister": "All lose access",
+  "cus_ai_fra_info_1": "Access stops at once",
+  "cus_ai_fra_info_2": "Orders already sent are not affected",
+  "cus_ai_fra_info_3": "You can link again at any time",
+  "cus_ai_koble_fra_cta": "Unlink",
+  "cus_ai_er_koblet_fra": "{navn} is unlinked",
+  "@cus_ai_er_koblet_fra": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_alle_koblet_fra": "All assistants are unlinked",
+  "cus_ai_assistenter_1": "1 assistant",
+  "cus_ai_assistenter_n": "{n} assistants",
+  "@cus_ai_assistenter_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_ai_feil_ikke_koblet": "Link {navn} to order",
+  "@cus_ai_feil_ikke_koblet": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_feil_ikke_koblet_linje": "{navn} can see menus, but must be linked to your account to order.",
+  "@cus_ai_feil_ikke_koblet_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_ikke_koblet_enna": "Not linked yet",
+  "cus_ai_feil_bekreft": "This order needs your confirmation",
+  "cus_ai_feil_bekreft_linje": "The amount is above your limit of {kr} kr.",
+  "@cus_ai_feil_bekreft_linje": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_se_bestillingen": "See the order",
+  "cus_ai_feil_generisk": "Something went wrong",
+  "cus_ai_feil_generisk_linje": "Nothing is ordered. Try again shortly.",
+  "cus_ai_prov_igjen": "Try again",
+  "nothing_ordered": "Nothing is ordered",
+  "cus_ai_grensen_din": "Your limit is {kr} kr",
+  "@cus_ai_grensen_din": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "confirm_request_title": "Confirm order from {navn}",
+  "@confirm_request_title": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bekreft_linje": "{butikk} · paid with {bet}",
+  "@cus_ai_bekreft_linje": {
+    "placeholders": {
+      "butikk": {
+        "type": "String"
+      },
+      "bet": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_med_vipps": "Vipps",
+  "cus_ai_med_kort": "saved card",
+  "handoff_title": "Cart from {navn}",
+  "@handoff_title": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_fra": "From {navn}",
+  "@cus_ai_fra": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_ingenting_sendes": "Nothing is sent before you confirm here",
+  "cus_ai_bygde": "{navn} built the cart",
+  "@cus_ai_bygde": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_ber_om": "{navn} asks to order",
+  "@cus_ai_ber_om": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_apnet_fra": "Opened from {navn} · now",
+  "@cus_ai_apnet_fra": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_foresporsel": "Request · {butikk}",
+  "@cus_ai_foresporsel": {
+    "placeholders": {
+      "butikk": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_henter_tilbud": "Fetching the offer from Ærend …",
+  "cus_ai_varer": "Items",
+  "cus_ai_antall_varer_1": "1 item",
+  "cus_ai_antall_varer_n": "{n} items",
+  "@cus_ai_antall_varer_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "item_sold_out": "Sold out right now",
+  "cus_ai_fjern_tx": "Remove {navn}?",
+  "@cus_ai_fjern_tx": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_fjern_under": "The rest of the cart gets a new offer",
+  "cus_ai_fjern": "Remove",
+  "cus_ai_tilbudet_ditt": "Your offer",
+  "quote_valid_for": "The offer is valid for",
+  "cus_ai_bekreft_innen": "Confirm within",
+  "cus_ai_leveringsvindu": "Delivery window",
+  "cus_ai_leveres_til": "Delivered to",
+  "cus_ai_totalt": "Total",
+  "quote_new_total": "New total",
+  "cus_ai_ny": "New",
+  "within_limit": "Within your limit of {kr} kr",
+  "@within_limit": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_over": "Above your limit of {kr} kr",
+  "@cus_ai_over": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_grense": "Limit {kr} kr",
+  "@cus_ai_grense": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_endre_kurv": "Change the cart",
+  "cus_ai_endre_under": "Changes give a new offer.",
+  "reject": "Decline",
+  "cus_ai_avvist": "Declined · nothing is ordered",
+  "quote_expired_title": "The offer has expired",
+  "cus_ai_tilbud_utlopt_tx": "The price may have changed. We fetched a new offer.",
+  "cus_ai_for_utlopt": "The request has expired",
+  "cus_ai_for_utlopt_tx": "Nothing is ordered. Ask {navn} to try again.",
+  "@cus_ai_for_utlopt_tx": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_for_utlopt_steg": "The request expired · nothing ordered",
+  "cus_ai_trukket": "{navn} withdrew the request",
+  "@cus_ai_trukket": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_trukket_tx": "Nothing is ordered.",
+  "cus_ai_bet_feilet": "The payment did not go through",
+  "cus_ai_bet_feilet_tx": "Nothing is ordered. Try again or choose another payment method.",
+  "cus_ai_bytt_bet": "Change payment method",
+  "cus_ai_betaler_med": "Paying with {b}",
+  "@cus_ai_betaler_med": {
+    "placeholders": {
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "over_limit_title": "Above your limit of {kr} kr",
+  "@over_limit_title": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_over_banner_tx": "You can confirm anyway. The limit still applies to the next order.",
+  "cus_ai_bekreft_likevel": "Confirm anyway",
+  "cus_ai_bekreft_betal": "Confirm and pay",
+  "cus_ai_logg_inn_fortsett": "Sign in to continue",
+  "cus_ai_kurv_venter": "You come back here after signing in. The cart from {navn} is waiting.",
+  "@cus_ai_kurv_venter": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "out_of_coverage_title": "We do not deliver here yet",
+  "cus_ai_si_fra": "Tell us, and we let you know when we arrive.",
+  "cus_ai_venteliste": "Put me on the waitlist",
+  "cus_ai_paa_venteliste": "You are on the waitlist",
+  "cus_ai_paa_venteliste_tx": "We tell you as soon as we deliver to {sted}. Nothing is ordered.",
+  "@cus_ai_paa_venteliste_tx": {
+    "placeholders": {
+      "sted": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_til_hjem": "To Home",
+  "cus_ai_endre": "Change",
+  "cus_ai_godkjenner_vipps": "You approve in Vipps",
+  "cus_ai_bekreftes_faceid": "Confirmed with Face ID",
+  "cus_ai_kort_ved_bet": "Card, Apple Pay or Google Pay",
+  "cus_ai_ingen_betdata": "No payment data is shared with {navn}",
+  "@cus_ai_ingen_betdata": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "pay_with_vipps": "Pay with Vipps · {kr} kr",
+  "@pay_with_vipps": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_apner_vipps": "Opening Vipps …",
+  "cus_ai_bekrefter": "Confirming …",
+  "cus_ai_tilbake_etterpaa": "You come back here afterwards",
+  "cus_ai_betaling_med": "Payment with {b}",
+  "@cus_ai_betaling_med": {
+    "placeholders": {
+      "b": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bestilt_via": "Ordered via {navn} · {kode}",
+  "@cus_ai_bestilt_via": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      },
+      "kode": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bestilling_feilet": "The order could not be created.",
+  "cus_ai_enhet_avvist": "Not confirmed on the device · try again",
+  "cus_ai_bytt_apner": "Opening {navn} …",
+  "@cus_ai_bytt_apner": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bytt_fortsetter": "Continuing in {navn} …",
+  "@cus_ai_bytt_fortsetter": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bytt_godkjenn": "Approve Ærend in {navn}. You come straight back here.",
+  "@cus_ai_bytt_godkjenn": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bytt_si": "Say what you want. {navn} builds the cart, and you confirm in Ærend.",
+  "@cus_ai_bytt_si": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bygger_kurv": "Building the cart at Ærend …",
+  "cus_ai_tilbake_i": "Back in Ærend",
+  "cus_ai_bytt_inn_kurv": "{navn} has built the cart. Now you confirm the price.",
+  "@cus_ai_bytt_inn_kurv": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bytt_inn_sam": "{navn} approved. Now you choose what {navn} may do.",
+  "@cus_ai_bytt_inn_sam": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_push_naa": "NOW",
+  "cus_ai_push_tittel": "{navn} wants to order",
+  "@cus_ai_push_tittel": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_push_tx": "{navn} wants to order for {sum} from {butikk}. Confirm in Ærend.",
+  "@cus_ai_push_tx": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      },
+      "sum": {
+        "type": "String"
+      },
+      "butikk": {
+        "type": "String"
+      }
+    }
+  },
+  "via_assistant_chip": "Via {navn}",
+  "@via_assistant_chip": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bestilt_via_dato": "Ordered via {navn} · {dato}",
+  "@cus_ai_bestilt_via_dato": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      },
+      "dato": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_sporing_via": "Tracking · via assistant",
+  "cus_ai_i_dag": "today",
+  "cus_ai_naa": "now",
+  "cus_ai_aldri": "never",
+  "assistants_privacy_line": "{navn} only sees what you allow. Card and Vipps details never leave Ærend.",
+  "@assistants_privacy_line": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_annen_enhet_tittel": "Linking on another device?",
+  "cus_ai_annen_enhet_linje": "Scan the code with that device, or paste the link into {navn} there.",
+  "@cus_ai_annen_enhet_linje": {
+    "placeholders": {
+      "navn": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_kopier_kobling": "Copy link",
+  "cus_ai_samtykke_versjon": "Consent text {versjon}",
+  "@cus_ai_samtykke_versjon": {
+    "placeholders": {
+      "versjon": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_bio_delt_siden": "Shared since {dato}",
+  "@cus_ai_bio_delt_siden": {
+    "placeholders": {
+      "dato": {
+        "type": "String"
+      }
+    }
+  }
 }

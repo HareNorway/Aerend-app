@@ -6741,4 +6741,1179 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get fee_out_of_coverage_on_list => 'Du står på ventelisten';
+
+  @override
+  String get cus_ai_hurtig_logo => 'Bestill med Claude eller ChatGPT';
+
+  @override
+  String get cus_ai_hurtig_rad => 'Bestill med en annen AI';
+
+  @override
+  String cus_ai_hurtig_sub_koblet(String navn) {
+    return '$navn er koblet · du bekrefter her';
+  }
+
+  @override
+  String get cus_ai_hurtig_sub =>
+      'Claude, ChatGPT eller Gemini · du bekrefter her';
+
+  @override
+  String get assistants_entry => 'Bestill via AI-assistent';
+
+  @override
+  String get cus_ai_meg_rad_sub =>
+      'Claude, ChatGPT, Gemini og Siri · alltid med din bekreftelse';
+
+  @override
+  String get cus_ai_meg_koblede => 'Koblede assistenter';
+
+  @override
+  String get cus_ai_meg_koblede_sub_0 => 'Ingen koblet ennå';
+
+  @override
+  String get cus_ai_meg_koblede_sub_1 => '1 aktiv';
+
+  @override
+  String cus_ai_meg_koblede_sub_n(int n) {
+    return '$n aktive';
+  }
+
+  @override
+  String get cus_ai_inngang_tittel => 'Bestill der du allerede er';
+
+  @override
+  String get cus_ai_inngang_linje =>
+      'Spør assistenten du bruker. Du bekrefter alltid her i Ærend.';
+
+  @override
+  String get cus_ai_inngang_aegil =>
+      'Jeg hjelper deg her i appen. Claude, ChatGPT og Gemini kan bestille gjennom Ærend – alltid med din bekreftelse.';
+
+  @override
+  String get cus_ai_stottede => 'Støttede assistenter';
+
+  @override
+  String get cus_ai_koblet => 'Koblet';
+
+  @override
+  String get cus_ai_ikke_koblet => 'Ikke koblet';
+
+  @override
+  String get cus_ai_snarveier => 'Snarveier';
+
+  @override
+  String get cus_ai_snarvei => 'Snarvei';
+
+  @override
+  String cus_ai_allerede_koblet(String navn) {
+    return '$navn er allerede koblet til';
+  }
+
+  @override
+  String get cus_ai_se_rettigheter => 'Se rettigheter';
+
+  @override
+  String get cus_ai_slik_fungerer => 'Slik fungerer det';
+
+  @override
+  String cus_ai_fl1(String navn) {
+    return 'Du spør $navn';
+  }
+
+  @override
+  String get cus_ai_fl2 => 'Ærend lager et tilbud';
+
+  @override
+  String get cus_ai_fl3 => 'Du bekrefter her';
+
+  @override
+  String cus_ai_steg_tittel(String navn) {
+    return 'Slik kobler du til $navn';
+  }
+
+  @override
+  String cus_ai_steg_1(String navn) {
+    return 'Åpne $navn og legg til Ærend som kobling.';
+  }
+
+  @override
+  String cus_ai_steg_2(String navn) {
+    return 'Logg inn med Ærend-kontoen din og velg hva $navn får lov til.';
+  }
+
+  @override
+  String cus_ai_steg_3(String navn) {
+    return 'Be $navn om å bestille. Du bekrefter alltid i Ærend før noe sendes.';
+  }
+
+  @override
+  String get cus_ai_steg_siri_1 => 'Si «Bestill det vanlige med Ærend».';
+
+  @override
+  String get cus_ai_steg_siri_2 => 'Siri åpner Ærend med handlekurven klar.';
+
+  @override
+  String get cus_ai_steg_siri_3 => 'Du bekrefter i appen før noe sendes.';
+
+  @override
+  String get cus_ai_steg_hint => 'Trykk når steget er gjort';
+
+  @override
+  String get cus_ai_steg_hint_sist => 'Trykk når du er klar';
+
+  @override
+  String get cus_ai_klart => 'Klart · du bekrefter alltid i Ærend';
+
+  @override
+  String cus_ai_hva_ser(String navn) {
+    return 'Hva $navn ser';
+  }
+
+  @override
+  String get cus_ai_kan_se => 'Kan se';
+
+  @override
+  String get cus_ai_ser_aldri => 'Ser aldri';
+
+  @override
+  String get cus_ai_kan_se_liste_1 => 'Menyer og priser';
+
+  @override
+  String get cus_ai_kan_se_liste_2 => 'Dine bestillinger';
+
+  @override
+  String get cus_ai_kan_se_liste_3 => 'Dine adresser';
+
+  @override
+  String get cus_ai_ser_aldri_liste_1 => 'Betalingskortet ditt';
+
+  @override
+  String get cus_ai_ser_aldri_liste_2 => 'Andre personers opplysninger';
+
+  @override
+  String get cus_ai_les_mer => 'Les mer om personvern';
+
+  @override
+  String get cus_ai_bruk_siri => 'Bruk Siri';
+
+  @override
+  String get cus_ai_siri_linje =>
+      'Si «Bestill det vanlige med Ærend», så bekrefter du i appen.';
+
+  @override
+  String get cus_ai_siri_snarveier_1 => 'Bestill det vanlige';
+
+  @override
+  String get cus_ai_siri_snarveier_2 => 'Følg bestillingen';
+
+  @override
+  String get cus_ai_siri_snarveier_3 => 'Åpne handlekurven';
+
+  @override
+  String get cus_ai_siri_antall_0 => 'Trykk for å legge til';
+
+  @override
+  String cus_ai_siri_antall_n(int n) {
+    return '$n av 3 lagt til';
+  }
+
+  @override
+  String get cus_ai_siri_alle => 'Legg til alle snarveier';
+
+  @override
+  String get cus_ai_siri_lagt => 'Tre snarveier lagt til i Siri';
+
+  @override
+  String cus_ai_snarvei_lagt(String s) {
+    return 'Snarvei lagt til · «$s»';
+  }
+
+  @override
+  String get cus_ai_snarvei_fjernet => 'Fjernet snarvei';
+
+  @override
+  String cus_ai_koble_til(String navn) {
+    return 'Koble til $navn';
+  }
+
+  @override
+  String get cus_ai_vis_qr => 'Vis QR-kode';
+
+  @override
+  String get cus_ai_bekrefter_alltid => 'Du bekrefter alltid i Ærend';
+
+  @override
+  String get cus_ai_menyer_synlige => 'Menyer og priser er alltid synlige';
+
+  @override
+  String get cus_ai_velg_tittel => 'Bestill med en annen AI';
+
+  @override
+  String get cus_ai_velg_linje =>
+      'Assistenten bygger handlekurven. Du bekrefter alltid prisen her i Ærend.';
+
+  @override
+  String cus_ai_velg_koblet_under(String kr, String bet) {
+    return 'Maks $kr kr per bestilling · $bet';
+  }
+
+  @override
+  String get cus_ai_velg_ukoblet_under => 'Koble til på et halvt minutt';
+
+  @override
+  String get cus_ai_velg_siri_under => 'Si «Bestill det vanlige med Ærend»';
+
+  @override
+  String get cus_ai_bestill => 'Bestill';
+
+  @override
+  String get cus_ai_legg_til => 'Legg til';
+
+  @override
+  String get cus_ai_ingen_bestilling => 'Ingen bestilling å følge ennå.';
+
+  @override
+  String get cus_ai_koble => 'Koble til';
+
+  @override
+  String get cus_ai_velg_steg_1 => 'Du spør assistenten';
+
+  @override
+  String get cus_ai_velg_steg_2 => 'Ærend lager tilbudet';
+
+  @override
+  String get cus_ai_velg_steg_3 => 'Du bekrefter her';
+
+  @override
+  String cus_ai_bestill_med(String navn) {
+    return 'Bestill med $navn';
+  }
+
+  @override
+  String get cus_ai_lukk => 'Lukk';
+
+  @override
+  String cus_ai_qr_tittel(String navn) {
+    return 'Koble til $navn';
+  }
+
+  @override
+  String cus_ai_qr_linje_mobil(String navn) {
+    return 'Har du $navn på denne mobilen? Vi hopper dit og tilbake. Ingen kode å skanne.';
+  }
+
+  @override
+  String cus_ai_qr_linje_qr(String navn) {
+    return 'Skann koden med mobilen eller nettbrettet der du bruker $navn.';
+  }
+
+  @override
+  String get cus_ai_paa_mobilen => 'På denne mobilen';
+
+  @override
+  String get cus_ai_annen_enhet => 'Annen enhet';
+
+  @override
+  String get cus_ai_begge_appene =>
+      'Begge appene på denne mobilen · ingen skanning';
+
+  @override
+  String get cus_ai_eller_kode => 'Eller bruk en kode';
+
+  @override
+  String cus_ai_gyldig_min(int m) {
+    return 'Gyldig i $m min';
+  }
+
+  @override
+  String cus_ai_lim_inn(String navn) {
+    return 'Lim inn koden i $navn når den ber om det. Fungerer også hvis $navn ikke åpner seg av seg selv.';
+  }
+
+  @override
+  String get cus_ai_kopier_kode => 'Kopier kode';
+
+  @override
+  String get cus_ai_kopiert => 'Kopiert';
+
+  @override
+  String cus_ai_kode_kopiert(String kode, String navn) {
+    return 'Koden $kode er kopiert · lim den inn i $navn';
+  }
+
+  @override
+  String cus_ai_lenke_kopiert(String navn) {
+    return 'Lenken er kopiert · åpne den i $navn';
+  }
+
+  @override
+  String cus_ai_venter(String navn) {
+    return 'Venter på at $navn bruker koden …';
+  }
+
+  @override
+  String cus_ai_brukte_koden(String navn) {
+    return '$navn brukte koden';
+  }
+
+  @override
+  String cus_ai_kode_for(String navn, int m) {
+    return 'Kode for $navn · gyldig i $m minutter';
+  }
+
+  @override
+  String cus_ai_qr_steg_mobil_1(String navn) {
+    return 'Trykk «Åpne $navn»';
+  }
+
+  @override
+  String cus_ai_qr_steg_mobil_2(String navn) {
+    return 'Godkjenn i $navn';
+  }
+
+  @override
+  String get cus_ai_qr_steg_mobil_3 => 'Velg rettigheter her';
+
+  @override
+  String cus_ai_qr_steg_qr_1(String navn) {
+    return 'Åpne $navn på den andre enheten';
+  }
+
+  @override
+  String get cus_ai_qr_steg_qr_2 => 'Skann koden';
+
+  @override
+  String get cus_ai_qr_steg_qr_3 => 'Velg rettigheter her';
+
+  @override
+  String cus_ai_apne(String navn) {
+    return 'Åpne $navn';
+  }
+
+  @override
+  String get cus_ai_jeg_har_skannet => 'Jeg har skannet';
+
+  @override
+  String get cus_ai_tilbake => 'Tilbake';
+
+  @override
+  String get cus_ai_kode_feil => 'Fikk ikke laget en kode. Prøv igjen.';
+
+  @override
+  String get cus_ai_kode_utlopt => 'Koden utløp · lag en ny';
+
+  @override
+  String consent_title(String navn) {
+    return '$navn ber om tilgang til Ærend-kontoen din';
+  }
+
+  @override
+  String cus_ai_sam_linje(String navn) {
+    return 'Du bestemmer hva $navn får gjøre. Du kan endre eller koble fra når som helst.';
+  }
+
+  @override
+  String consent_line(String navn) {
+    return 'Ved å koble til godtar du at Ærend deler opplysningene over med $navn på dine vegne.';
+  }
+
+  @override
+  String get cus_ai_venter_svar => 'Venter på svaret ditt';
+
+  @override
+  String get cus_ai_logg_inn_forst => 'Logg inn først';
+
+  @override
+  String get cus_ai_logg_tittel => 'Logg inn for å fortsette';
+
+  @override
+  String get cus_ai_logg_linje => 'Du kommer tilbake hit etter innlogging.';
+
+  @override
+  String cus_ai_logg_tx(String navn) {
+    return '$navn ber om tilgang til Ærend-kontoen din';
+  }
+
+  @override
+  String get cus_ai_logg_under =>
+      'Logg inn med Vipps eller Ærend-kontoen din. Ingenting deles før du har valgt rettigheter.';
+
+  @override
+  String get cus_ai_logg_vipps => 'Logg inn med Vipps';
+
+  @override
+  String get cus_ai_logg_inn => 'Logg inn';
+
+  @override
+  String get cus_ai_avbryt => 'Avbryt';
+
+  @override
+  String cus_ai_rett_tittel(String navn) {
+    return 'Dette kan $navn gjøre';
+  }
+
+  @override
+  String cus_ai_rett_antall(int n) {
+    return '$n av 6 på';
+  }
+
+  @override
+  String get cus_ai_alltid_paa => 'Alltid på';
+
+  @override
+  String get cus_ai_paakrevd => 'Påkrevd';
+
+  @override
+  String get consent_rights_catalog_read => 'Se menyer og priser';
+
+  @override
+  String get consent_rights_catalog_read_sub =>
+      'Det samme som alle ser i appen';
+
+  @override
+  String get consent_rights_cart_write => 'Bygge handlekurv for deg';
+
+  @override
+  String get consent_rights_cart_write_sub =>
+      'Du ser alltid kurven før noe sendes';
+
+  @override
+  String get consent_rights_orders_read => 'Se bestillingene dine';
+
+  @override
+  String get consent_rights_orders_read_sub => 'Status og tidligere ordrer';
+
+  @override
+  String get consent_rights_orders_write =>
+      'Bestille for deg – alltid med din bekreftelse';
+
+  @override
+  String get consent_rights_orders_write_sub => 'Kan ikke slås av';
+
+  @override
+  String get consent_rights_profile_read =>
+      'Bruke adressene og favorittene dine';
+
+  @override
+  String get consent_rights_profile_read_sub =>
+      'Hjemme, Jobb og favorittbutikker';
+
+  @override
+  String get consent_rights_support_write => 'Åpne en supportsak for deg';
+
+  @override
+  String get consent_rights_support_write_sub =>
+      'Når noe mangler eller er feil';
+
+  @override
+  String get cus_ai_dine_grenser => 'Dine grenser';
+
+  @override
+  String cus_ai_grense_tittel(String navn) {
+    return '$navn går aldri over disse';
+  }
+
+  @override
+  String get consent_limit_per_order => 'Maks per bestilling';
+
+  @override
+  String get consent_limit_per_day => 'Maks per dag';
+
+  @override
+  String cus_ai_forslag(String kr) {
+    return 'Forslag: $kr kr';
+  }
+
+  @override
+  String get consent_payment_mode => 'Betaling';
+
+  @override
+  String get cus_ai_betaling_under =>
+      'Brukes når assistenten ber om å bestille';
+
+  @override
+  String get cus_ai_lagret_kort => 'Lagret kort';
+
+  @override
+  String get cus_ai_spor_hver_gang => 'Spør hver gang';
+
+  @override
+  String get consent_address_mode => 'Leveringsadresse';
+
+  @override
+  String cus_ai_hjemme_er(String adr) {
+    return 'Hjemme er $adr';
+  }
+
+  @override
+  String get cus_ai_hjemme => 'Hjemme';
+
+  @override
+  String get consent_share_bio => 'Del matpreferansene mine fra Min bio';
+
+  @override
+  String cus_ai_bio_tx(String navn) {
+    return 'Da kan $navn ta hensyn til allergener og preferanser når den foreslår mat. Opplysningene deles bare med $navn, og du kan slå det av når du vil.';
+  }
+
+  @override
+  String cus_ai_grense_sum(String per, String dag) {
+    return 'Maks $per kr · $dag kr per dag';
+  }
+
+  @override
+  String get cus_ai_per_best => 'Per bestilling';
+
+  @override
+  String get cus_ai_levering => 'Levering';
+
+  @override
+  String linked_success_title(String navn) {
+    return '$navn er koblet til Ærend';
+  }
+
+  @override
+  String cus_ai_koblet_linje(String navn) {
+    return '$navn kan nå bygge handlekurv og foreslå bestillinger. Ingenting sendes før du har bekreftet i Ærend.';
+  }
+
+  @override
+  String get cus_ai_koblet_naa => 'Koblet nå';
+
+  @override
+  String get cus_ai_prov_naa => 'Prøv nå';
+
+  @override
+  String get cus_ai_prompt =>
+      'Bestill det vanlige fra Torgboden til i morgen tidlig.';
+
+  @override
+  String get cus_ai_kopier_forslag => 'Kopier forslag';
+
+  @override
+  String cus_ai_kopiert_lim(String navn) {
+    return 'Kopiert · lim inn hos $navn';
+  }
+
+  @override
+  String cus_ai_bestill_naa(String navn) {
+    return 'Bestill med $navn nå';
+  }
+
+  @override
+  String get cus_ai_ferdig => 'Ferdig';
+
+  @override
+  String get cus_ai_endre_grenser => 'Endre grenser';
+
+  @override
+  String get linked_assistants_title => 'Koblede assistenter';
+
+  @override
+  String get linked_empty_title => 'Ingen assistenter er koblet til';
+
+  @override
+  String get cus_ai_koblede_linje_1 =>
+      '1 aktiv · trykk for rettigheter, grenser og aktivitet';
+
+  @override
+  String cus_ai_koblede_linje_n(int n) {
+    return '$n aktive · trykk for rettigheter, grenser og aktivitet';
+  }
+
+  @override
+  String get cus_ai_ingen_aktive => 'Ingen aktive koblinger';
+
+  @override
+  String get cus_ai_tom_tekst =>
+      'Koble til Claude, ChatGPT eller Gemini for å bestille derfra.';
+
+  @override
+  String get cus_ai_aktiv => 'Aktiv';
+
+  @override
+  String get cus_ai_frakoblet => 'Frakoblet';
+
+  @override
+  String cus_ai_sist_brukt(String naar, String kr) {
+    return 'Sist brukt $naar · maks $kr kr per bestilling';
+  }
+
+  @override
+  String cus_ai_frakoblet_dato(String naar) {
+    return 'Frakoblet $naar';
+  }
+
+  @override
+  String get cus_ai_brukt_i_dag => 'Brukt i dag';
+
+  @override
+  String cus_ai_av(String a, String b) {
+    return '$a av $b';
+  }
+
+  @override
+  String get revoke_all => 'Koble fra alle';
+
+  @override
+  String get assistants_how_to_link => 'Slik kobler du til';
+
+  @override
+  String get cus_ai_koble_ny => 'Koble til en ny';
+
+  @override
+  String get cus_ai_rett_kort_cart => 'Handlekurv';
+
+  @override
+  String get cus_ai_rett_kort_orders => 'Bestillinger';
+
+  @override
+  String get cus_ai_rett_kort_addresses => 'Adresser';
+
+  @override
+  String cus_ai_detalj_linje(String navn) {
+    return 'Rettigheter, grenser og alt $navn har gjort';
+  }
+
+  @override
+  String cus_ai_detalj_ikke(String navn) {
+    return '$navn har ikke lenger tilgang';
+  }
+
+  @override
+  String cus_ai_koblet_til(String naar, String sist) {
+    return 'Koblet til $naar · sist brukt $sist';
+  }
+
+  @override
+  String get cus_ai_bestilling => 'Bestilling';
+
+  @override
+  String get cus_ai_bestillinger => 'Bestillinger';
+
+  @override
+  String get cus_ai_sist_brukt_lbl => 'Sist brukt';
+
+  @override
+  String get activity_title => 'Aktivitet';
+
+  @override
+  String get cus_ai_ingen_aktivitet => 'Ingen aktivitet ennå';
+
+  @override
+  String revoke_assistant(String navn) {
+    return 'Koble fra $navn';
+  }
+
+  @override
+  String cus_ai_koble_igjen(String navn) {
+    return 'Koble til $navn igjen';
+  }
+
+  @override
+  String get cus_ai_ikke_koblet_hs => 'Ikke koblet';
+
+  @override
+  String cus_ai_ikke_koblet_linje(String navn) {
+    return '$navn er ikke koblet til Ærend-kontoen din.';
+  }
+
+  @override
+  String get cus_ai_lagret => 'Lagret';
+
+  @override
+  String get cus_ai_lagret_feil => 'Fikk ikke lagret. Prøv igjen.';
+
+  @override
+  String get cus_ai_akt_search_stores => 'Fant butikker';
+
+  @override
+  String get cus_ai_akt_search_products => 'Søkte i menyer';
+
+  @override
+  String get cus_ai_akt_get_store => 'Leste menyen';
+
+  @override
+  String get cus_ai_akt_get_product => 'Leste en vare';
+
+  @override
+  String get cus_ai_akt_create_cart => 'Bygde handlekurv';
+
+  @override
+  String get cus_ai_akt_update_cart => 'Endret handlekurven';
+
+  @override
+  String get cus_ai_akt_quote => 'Hentet tilbud';
+
+  @override
+  String get cus_ai_akt_start_checkout => 'Ba om å bestille';
+
+  @override
+  String get cus_ai_akt_confirm_order => 'Bestilte';
+
+  @override
+  String get cus_ai_akt_orders => 'Så på bestillingene';
+
+  @override
+  String get cus_ai_akt_track_order => 'Fulgte en bestilling';
+
+  @override
+  String get cus_ai_akt_reorder => 'Bestilte igjen';
+
+  @override
+  String get cus_ai_akt_profile => 'Leste profilen';
+
+  @override
+  String get cus_ai_akt_open_support => 'Åpnet en supportsak';
+
+  @override
+  String cus_ai_fra_tittel(String navn) {
+    return 'Koble fra $navn?';
+  }
+
+  @override
+  String get cus_ai_fra_alle_tittel => 'Koble fra alle assistenter?';
+
+  @override
+  String cus_ai_fra_linje(String navn) {
+    return '$navn mister tilgangen med en gang. Bestillinger som allerede er sendt, påvirkes ikke.';
+  }
+
+  @override
+  String get cus_ai_fra_alle_linje =>
+      'Alle assistenter mister tilgangen med en gang. Bestillinger som allerede er sendt, påvirkes ikke.';
+
+  @override
+  String get cus_ai_mister => 'Mister tilgang med en gang';
+
+  @override
+  String get cus_ai_alle_mister => 'Alle mister tilgang';
+
+  @override
+  String get cus_ai_fra_info_1 => 'Tilgangen stopper med en gang';
+
+  @override
+  String get cus_ai_fra_info_2 => 'Bestillinger som er sendt, påvirkes ikke';
+
+  @override
+  String get cus_ai_fra_info_3 => 'Du kan koble til igjen når som helst';
+
+  @override
+  String get cus_ai_koble_fra_cta => 'Koble fra';
+
+  @override
+  String cus_ai_er_koblet_fra(String navn) {
+    return '$navn er koblet fra';
+  }
+
+  @override
+  String get cus_ai_alle_koblet_fra => 'Alle assistenter er koblet fra';
+
+  @override
+  String get cus_ai_assistenter_1 => '1 assistent';
+
+  @override
+  String cus_ai_assistenter_n(int n) {
+    return '$n assistenter';
+  }
+
+  @override
+  String cus_ai_feil_ikke_koblet(String navn) {
+    return 'Koble til $navn for å bestille';
+  }
+
+  @override
+  String cus_ai_feil_ikke_koblet_linje(String navn) {
+    return '$navn kan se menyer, men må kobles til kontoen din for å bestille.';
+  }
+
+  @override
+  String get cus_ai_ikke_koblet_enna => 'Ikke koblet ennå';
+
+  @override
+  String get cus_ai_feil_bekreft =>
+      'Denne bestillingen trenger din bekreftelse';
+
+  @override
+  String cus_ai_feil_bekreft_linje(String kr) {
+    return 'Beløpet er over grensen din på $kr kr.';
+  }
+
+  @override
+  String get cus_ai_se_bestillingen => 'Se bestillingen';
+
+  @override
+  String get cus_ai_feil_generisk => 'Noe gikk galt';
+
+  @override
+  String get cus_ai_feil_generisk_linje =>
+      'Ingenting er bestilt. Prøv igjen om litt.';
+
+  @override
+  String get cus_ai_prov_igjen => 'Prøv igjen';
+
+  @override
+  String get nothing_ordered => 'Ingenting er bestilt';
+
+  @override
+  String cus_ai_grensen_din(String kr) {
+    return 'Grensen din er $kr kr';
+  }
+
+  @override
+  String confirm_request_title(String navn) {
+    return 'Bekreft bestilling fra $navn';
+  }
+
+  @override
+  String cus_ai_bekreft_linje(String butikk, String bet) {
+    return '$butikk · betales med $bet';
+  }
+
+  @override
+  String get cus_ai_med_vipps => 'Vipps';
+
+  @override
+  String get cus_ai_med_kort => 'lagret kort';
+
+  @override
+  String handoff_title(String navn) {
+    return 'Handlekurv fra $navn';
+  }
+
+  @override
+  String cus_ai_fra(String navn) {
+    return 'Fra $navn';
+  }
+
+  @override
+  String get cus_ai_ingenting_sendes => 'Ingenting sendes før du bekrefter her';
+
+  @override
+  String cus_ai_bygde(String navn) {
+    return '$navn bygde handlekurven';
+  }
+
+  @override
+  String cus_ai_ber_om(String navn) {
+    return '$navn ber om å bestille';
+  }
+
+  @override
+  String cus_ai_apnet_fra(String navn) {
+    return 'Åpnet fra $navn · nå';
+  }
+
+  @override
+  String cus_ai_foresporsel(String butikk) {
+    return 'Forespørsel · $butikk';
+  }
+
+  @override
+  String get cus_ai_henter_tilbud => 'Henter tilbud fra Ærend …';
+
+  @override
+  String get cus_ai_varer => 'Varer';
+
+  @override
+  String get cus_ai_antall_varer_1 => '1 vare';
+
+  @override
+  String cus_ai_antall_varer_n(int n) {
+    return '$n varer';
+  }
+
+  @override
+  String get item_sold_out => 'Utsolgt akkurat nå';
+
+  @override
+  String cus_ai_fjern_tx(String navn) {
+    return 'Fjern $navn?';
+  }
+
+  @override
+  String get cus_ai_fjern_under => 'Resten av kurven får et nytt tilbud';
+
+  @override
+  String get cus_ai_fjern => 'Fjern';
+
+  @override
+  String get cus_ai_tilbudet_ditt => 'Tilbudet ditt';
+
+  @override
+  String get quote_valid_for => 'Tilbudet gjelder i';
+
+  @override
+  String get cus_ai_bekreft_innen => 'Bekreft innen';
+
+  @override
+  String get cus_ai_leveringsvindu => 'Leveringsvindu';
+
+  @override
+  String get cus_ai_leveres_til => 'Leveres til';
+
+  @override
+  String get cus_ai_totalt => 'Totalt';
+
+  @override
+  String get quote_new_total => 'Ny totalsum';
+
+  @override
+  String get cus_ai_ny => 'Ny';
+
+  @override
+  String within_limit(String kr) {
+    return 'Innenfor grensen din på $kr kr';
+  }
+
+  @override
+  String cus_ai_over(String kr) {
+    return 'Over grensen din på $kr kr';
+  }
+
+  @override
+  String cus_ai_grense(String kr) {
+    return 'Grense $kr kr';
+  }
+
+  @override
+  String get cus_ai_endre_kurv => 'Endre handlekurven';
+
+  @override
+  String get cus_ai_endre_under => 'Endringer gir et nytt tilbud.';
+
+  @override
+  String get reject => 'Avvis';
+
+  @override
+  String get cus_ai_avvist => 'Avvist · ingenting er bestilt';
+
+  @override
+  String get quote_expired_title => 'Tilbudet har utløpt';
+
+  @override
+  String get cus_ai_tilbud_utlopt_tx =>
+      'Prisen kan ha endret seg. Vi har hentet et nytt tilbud.';
+
+  @override
+  String get cus_ai_for_utlopt => 'Forespørselen har utløpt';
+
+  @override
+  String cus_ai_for_utlopt_tx(String navn) {
+    return 'Ingenting er bestilt. Be $navn om å prøve igjen.';
+  }
+
+  @override
+  String get cus_ai_for_utlopt_steg =>
+      'Forespørselen utløp · ingenting bestilt';
+
+  @override
+  String cus_ai_trukket(String navn) {
+    return '$navn trakk forespørselen';
+  }
+
+  @override
+  String get cus_ai_trukket_tx => 'Ingenting er bestilt.';
+
+  @override
+  String get cus_ai_bet_feilet => 'Betalingen gikk ikke gjennom';
+
+  @override
+  String get cus_ai_bet_feilet_tx =>
+      'Ingenting er bestilt. Prøv igjen eller velg en annen betalingsmåte.';
+
+  @override
+  String get cus_ai_bytt_bet => 'Bytt betalingsmåte';
+
+  @override
+  String cus_ai_betaler_med(String b) {
+    return 'Betaler med $b';
+  }
+
+  @override
+  String over_limit_title(String kr) {
+    return 'Over grensen din på $kr kr';
+  }
+
+  @override
+  String get cus_ai_over_banner_tx =>
+      'Du kan bekrefte likevel. Grensen gjelder fortsatt for neste bestilling.';
+
+  @override
+  String get cus_ai_bekreft_likevel => 'Bekreft likevel';
+
+  @override
+  String get cus_ai_bekreft_betal => 'Bekreft og betal';
+
+  @override
+  String get cus_ai_logg_inn_fortsett => 'Logg inn for å fortsette';
+
+  @override
+  String cus_ai_kurv_venter(String navn) {
+    return 'Du kommer tilbake hit etter innlogging. Handlekurven fra $navn venter.';
+  }
+
+  @override
+  String get out_of_coverage_title => 'Vi leverer ikke hit ennå';
+
+  @override
+  String get cus_ai_si_fra => 'Si fra, så gir vi beskjed når vi kommer.';
+
+  @override
+  String get cus_ai_venteliste => 'Sett meg på ventelisten';
+
+  @override
+  String get cus_ai_paa_venteliste => 'Du står på ventelisten';
+
+  @override
+  String cus_ai_paa_venteliste_tx(String sted) {
+    return 'Vi sier fra med en gang vi leverer til $sted. Ingenting er bestilt.';
+  }
+
+  @override
+  String get cus_ai_til_hjem => 'Til Hjem';
+
+  @override
+  String get cus_ai_endre => 'Endre';
+
+  @override
+  String get cus_ai_godkjenner_vipps => 'Du godkjenner i Vipps';
+
+  @override
+  String get cus_ai_bekreftes_faceid => 'Bekreftes med Face ID';
+
+  @override
+  String get cus_ai_kort_ved_bet => 'Kort, Apple Pay eller Google Pay';
+
+  @override
+  String cus_ai_ingen_betdata(String navn) {
+    return 'Ingen betalingsdata deles med $navn';
+  }
+
+  @override
+  String pay_with_vipps(String kr) {
+    return 'Betal med Vipps · $kr kr';
+  }
+
+  @override
+  String get cus_ai_apner_vipps => 'Åpner Vipps …';
+
+  @override
+  String get cus_ai_bekrefter => 'Bekrefter …';
+
+  @override
+  String get cus_ai_tilbake_etterpaa => 'Du kommer tilbake hit etterpå';
+
+  @override
+  String cus_ai_betaling_med(String b) {
+    return 'Betaling med $b';
+  }
+
+  @override
+  String cus_ai_bestilt_via(String navn, String kode) {
+    return 'Bestilt via $navn · $kode';
+  }
+
+  @override
+  String get cus_ai_bestilling_feilet => 'Bestillingen kunne ikke opprettes.';
+
+  @override
+  String get cus_ai_enhet_avvist => 'Ikke bekreftet på enheten · prøv igjen';
+
+  @override
+  String cus_ai_bytt_apner(String navn) {
+    return 'Åpner $navn …';
+  }
+
+  @override
+  String cus_ai_bytt_fortsetter(String navn) {
+    return 'Fortsetter i $navn …';
+  }
+
+  @override
+  String cus_ai_bytt_godkjenn(String navn) {
+    return 'Godkjenn Ærend i $navn. Du kommer rett tilbake hit.';
+  }
+
+  @override
+  String cus_ai_bytt_si(String navn) {
+    return 'Si hva du vil ha. $navn bygger kurven, og du bekrefter i Ærend.';
+  }
+
+  @override
+  String get cus_ai_bygger_kurv => 'Bygger handlekurv hos Ærend …';
+
+  @override
+  String get cus_ai_tilbake_i => 'Tilbake i Ærend';
+
+  @override
+  String cus_ai_bytt_inn_kurv(String navn) {
+    return '$navn har bygget handlekurven. Nå bekrefter du prisen.';
+  }
+
+  @override
+  String cus_ai_bytt_inn_sam(String navn) {
+    return '$navn godkjente. Nå velger du hva $navn får lov til.';
+  }
+
+  @override
+  String get cus_ai_push_naa => 'NÅ';
+
+  @override
+  String cus_ai_push_tittel(String navn) {
+    return '$navn vil bestille';
+  }
+
+  @override
+  String cus_ai_push_tx(String navn, String sum, String butikk) {
+    return '$navn vil bestille for $sum fra $butikk. Bekreft i Ærend.';
+  }
+
+  @override
+  String via_assistant_chip(String navn) {
+    return 'Via $navn';
+  }
+
+  @override
+  String cus_ai_bestilt_via_dato(String navn, String dato) {
+    return 'Bestilt via $navn · $dato';
+  }
+
+  @override
+  String get cus_ai_sporing_via => 'Sporing · via assistent';
+
+  @override
+  String get cus_ai_i_dag => 'i dag';
+
+  @override
+  String get cus_ai_naa => 'nå';
+
+  @override
+  String get cus_ai_aldri => 'aldri';
+
+  @override
+  String assistants_privacy_line(String navn) {
+    return '$navn ser bare det du gir den lov til. Kort- og Vipps-opplysninger forlater aldri Ærend.';
+  }
+
+  @override
+  String get cus_ai_annen_enhet_tittel => 'Kobler du til på en annen enhet?';
+
+  @override
+  String cus_ai_annen_enhet_linje(String navn) {
+    return 'Skann koden med den enheten, eller lim inn koblingen i $navn der.';
+  }
+
+  @override
+  String get cus_ai_kopier_kobling => 'Kopier kobling';
+
+  @override
+  String cus_ai_samtykke_versjon(String versjon) {
+    return 'Samtykketekst $versjon';
+  }
+
+  @override
+  String cus_ai_bio_delt_siden(String dato) {
+    return 'Delt siden $dato';
+  }
 }

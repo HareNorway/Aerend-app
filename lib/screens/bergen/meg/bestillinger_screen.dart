@@ -206,7 +206,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
         children: [
           // Customer Step 14: «Bestilt via {AI} · {dato}» (design Kvittering 10054).
           if (_via[o.id] case final via?) ...[
-            Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, OhCopy.dag(o.naar)), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
+            Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, '${OhCopy.dag(o.naar)} · ${o.naar.hour.toString().padLeft(2, '0')}:${o.naar.minute.toString().padLeft(2, '0')}'), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
             const SizedBox(height: 10),
           ],
           _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt),
