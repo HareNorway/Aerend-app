@@ -291,7 +291,9 @@ class _BergenDraLasterState extends State<BergenDraLaster> with TickerProviderSt
         _ay = ay;
         _ring = (ms / 720 * 360) % 360;
       });
-      if (ms >= 1600 && _refreshFerdig) _ferdig(n);
+      // A hanging reload never holds the puck past 15s (the demo's «hold»
+      // does, on purpose).
+      if (ms >= 1600 && (_refreshFerdig || (ms >= 15000 && !_demoHold))) _ferdig(n);
       return;
     }
     if (_fase == _Fase.ferdig) {
