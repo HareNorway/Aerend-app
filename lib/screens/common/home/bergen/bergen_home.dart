@@ -71,6 +71,8 @@ import 'bergen_rails.dart';
 import 'bergen_store_repo.dart';
 import '../../../bergen/kit/bergen_motion.dart';
 import '../../../bergen/hjem/hjem_ny.dart';
+import '../../../bergen/kit/bergen_fav_heart.dart';
+import '../../../bergen/kit/laster_dra.dart';
 
 // Hjem — the `erHjem` screen of "Ærend Kunde Bergen" (ROM style).
 //
@@ -141,6 +143,26 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   /// notifier, not state: only the hero and the sheet reposition on it, so a
   /// scroll frame no longer rebuilds the whole screen.
   final ValueNotifier<double> _kN = ValueNotifier<double>(0);
+
+  /// Bergen 29 Oct (`scrollLaster`): the pull's displacement — the sheet
+  /// moves down with it and the hero grows by it (`D.hero.style.height`).
+  final ValueNotifier<double> _pullN = ValueNotifier<double>(0);
+  bool _puller = false;
+
+  void _onPull(double y) {
+    _pullN.value = y;
+    final p = y > 0;
+    if (p != _puller && mounted) setState(() => _puller = p);
+  }
+
+  /// The pull's reload: everything the tab refreshes when shown again.
+  Future<void> _oppdaterAlt() async {
+    _sistLastet = DateTime.now();
+    _bloc.callHomeTrackOrderApi();
+    _syncCartBadge();
+    Future<void> safe(Future<void> f) => f.catchError((Object _) {});
+    await Future.wait<void>([safe(_refreshSeams()), safe(_lastFolgerNye()), safe(_lastPose()), safe(_lastKatalog()), safe(_lastPersonlig()), safe(_lastIgjen())]);
+  }
 
   /// `kaien` — Under kaien revealed.
   bool _kaien = false;
@@ -392,7 +414,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             } else {
               BergenRoutes.push<dynamic>(context, r, arguments: arg);
             }
+            if (HjemHarness.ruteTilbake case final ms?) {
+              final nav = Navigator.of(context);
+              Future.delayed(Duration(milliseconds: ms), () => nav.maybePop());
+            }
+            if (HjemHarness.favPop case final id?) {
+              Future.delayed(const Duration(milliseconds: 2500), () => BergenFavHeart.demoBurst.value = id);
+            }
           }
+          if (HjemHarness.draLaster case final d?) BergenDraLaster.demo.value = d;
           if (HjemHarness.sporing case final id?) {
             BergenRoutes.push<dynamic>(context, '/bergen/sporing/$id', arguments: {if (HjemHarness.sporingFersk) 'fersk': '1'});
           }
@@ -507,6 +537,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   @override
   void dispose() {
     _kN.dispose();
+    _pullN.dispose();
     HjemNy.endret.removeListener(_nyEndret);
     HjemVarsler.uleste.removeListener(_ulesteEndret);
     BergenFaneBytte.aktiv.removeListener(_faneVist);
@@ -1546,7 +1577,15 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                       ),
                     );
                   },
-                  child: DecoratedBox(
+                  // Bergen 29 Oct: the 3D-logo pull (`scrollLaster`); the
+                  // sheet and the hero follow it through `_pullN`.
+                  child: BergenDraLaster(
+                    aktiv: !_vindu,
+                    flyttInnhold: false,
+                    topp: safeTop,
+                    onY: _onPull,
+                    onRefresh: _oppdaterAlt,
+                    child: DecoratedBox(
                     decoration: const BoxDecoration(
                       gradient: kBergenScreenGradient,
                     ),
@@ -1583,9 +1622,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                ValueListenableBuilder<double>(
-                                  valueListenable: _kN,
-                                  builder: (context, k, hero) {
+                                AnimatedBuilder(
+                                  animation: Listenable.merge([_kN, _pullN]),
+                                  builder: (context, hero) {
+                                    final k = _kN.value, py = _vindu ? 0.0 : _pullN.value;
                                     final heroOpacity = heroOpacityFor(k);
                                     return AnimatedPositioned(
                                       duration: Duration(milliseconds: _soneBytt ? 340 : 0),
@@ -1593,7 +1633,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                       left: 0,
                                       right: 0,
                                       top: _vindu ? 0 : _kHeroTop * s - k,
-                                      height: heroH,
+                                      height: heroH + py,
                                       child: IgnorePointer(
                                         ignoring: heroOpacity < .05,
                                         child: Opacity(opacity: heroOpacity, child: hero),
@@ -1616,6 +1656,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                           onFjordfiske: _openFjordfiske,
                                           playIntro: _playIntro,
                                           extraHeight: _dragY > 0 ? _dragY : 0,
+                                          ekstra: _pullN,
                                           vindu: _vindu,
                                         ),
                                         ),
@@ -1669,14 +1710,14 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                           ),
 
                         // ── Sheet (ark) ────────────────────────────────
-                        ValueListenableBuilder<double>(
-                          valueListenable: _kN,
-                          builder: (context, k, sheet) => AnimatedPositioned(
-                            duration: Duration(milliseconds: _dragging ? 0 : 340),
+                        AnimatedBuilder(
+                          animation: Listenable.merge([_kN, _pullN]),
+                          builder: (context, sheet) => AnimatedPositioned(
+                            duration: Duration(milliseconds: _dragging || _puller ? 0 : 340),
                             curve: const Cubic(.2, .9, .3, 1),
                             left: 0,
                             right: 0,
-                            top: sheetTopFor(k),
+                            top: sheetTopFor(_kN.value) + (_vindu ? 0 : _pullN.value),
                             height:
                                 screenH -
                                 (safeTop + _kSheetTop * s) +
@@ -1908,6 +1949,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         ],
                       ],
                     ),
+                  ),
                   ),
                 );
               },
@@ -2221,9 +2263,8 @@ class _Sheet extends StatelessWidget {
               ),
               SingleChildScrollView(
                 controller: controller,
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                // Bergen 29 Oct: the top belongs to the pull (`scrollLaster`).
+                physics: BergenDraLaster.physics,
                 child: child,
               ),
             ],

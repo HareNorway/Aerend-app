@@ -32,6 +32,7 @@ import 'lf_scene.dart';
 import 'lf_widgets.dart';
 import 'lf_wow.dart';
 import '../../../bergen/kit/bergen_perf.dart';
+import '../../../bergen/kit/vann_overganger.dart';
 
 part 'lf_step_landing.dart';
 part 'lf_step_vilkaar.dart';
@@ -585,9 +586,14 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
                     const Positioned.fill(child: LfSurface()),
                     Positioned.fill(
                       bottom: kb,
-                      child: KeyedSubtree(
-                        key: ValueKey('steg-$_steg-$_gen'),
-                        child: _skipIntro(_buildSteg(context, inset)),
+                      // Bergen 29 Oct: the steps change with the flat Menisk
+                      // (`ovForLag` 'onb'), back when the step is earlier.
+                      child: MeniskBytte(
+                        steg: _steg.index,
+                        child: KeyedSubtree(
+                          key: ValueKey('steg-$_steg-$_gen'),
+                          child: _skipIntro(_buildSteg(context, inset)),
+                        ),
                       ),
                     ),
                     if (_visStige && idx != null)
@@ -633,21 +639,24 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
     );
   }
 
+  /// `onbInn` runs only when the Menisk does not carry the step in.
+  bool get _stegInn => BergenOverganger.skjerm != SkjermOvergang.menisk || MediaQuery.disableAnimationsOf(context);
+
   Widget _buildSteg(BuildContext context, double inset) {
     switch (_steg) {
       case LfSteg.landing:
         return _landing(context, inset);
       case LfSteg.vilkaar:
-        return LfStepIn(child: _vilkaar(context, inset));
+        return LfStepIn(paa: _stegInn, child: _vilkaar(context, inset));
       case LfSteg.vilkaarTekst:
       case LfSteg.personvern:
-        return LfStepIn(dur: 300, child: _tekst(context, inset));
+        return LfStepIn(dur: 300, paa: _stegInn, child: _tekst(context, inset));
       case LfSteg.konto:
-        return LfStepIn(child: _konto(context, inset));
+        return LfStepIn(paa: _stegInn, child: _konto(context, inset));
       case LfSteg.telefon:
-        return LfStepIn(child: _telefon(context, inset));
+        return LfStepIn(paa: _stegInn, child: _telefon(context, inset));
       case LfSteg.kode:
-        return LfStepIn(child: _kodeSteg(context, inset));
+        return LfStepIn(paa: _stegInn, child: _kodeSteg(context, inset));
       case LfSteg.ferdig:
         return LfOnce(
           ms: 300,

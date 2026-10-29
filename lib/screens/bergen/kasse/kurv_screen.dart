@@ -49,6 +49,7 @@ import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../../../services/customer/beacons.dart';
+import '../kit/laster_dra.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -960,6 +961,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               bottom: 0,
               child: _Panel(
                 controller: _rull,
+                onRefresh: _load,
                 bottomReserve: hasCart ? 290 * s : bottom + 16 * s,
                 child: cart == null
                     ? Padding(
@@ -1463,11 +1465,14 @@ extension on String {
 /// The scrolling panel (design L5047): `r28 28 0 0`, `180deg #22586A →
 /// #1B4854 140px`, the inset highlight and the two upward shadows.
 class _Panel extends StatelessWidget {
-  const _Panel({required this.bottomReserve, required this.child, this.controller});
+  const _Panel({required this.bottomReserve, required this.child, this.controller, this.onRefresh});
 
   final double bottomReserve;
   final ScrollController? controller;
   final Widget child;
+
+  /// Bergen 29 Oct: the 3D-logo pull reloads the cart.
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -1503,12 +1508,15 @@ class _Panel extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              ListView(
+              BergenDraLaster(
+                onRefresh: onRefresh,
+                child: ListView(
+        physics: BergenDraLaster.physics,
                 controller: controller,
                 padding: EdgeInsets.fromLTRB(16 * s, 10 * s, 16 * s, bottomReserve),
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [child],
-              ),
+              )),
               bergenInsetTop(radius: 28 * s, height: 1.5 * s, alpha: .28),
             ],
           ),

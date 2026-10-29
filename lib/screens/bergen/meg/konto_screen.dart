@@ -98,7 +98,7 @@ class _KontoScreenState extends State<KontoScreen> {
   }
 
   Future<void> _push(Widget w) async {
-    await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => w));
+    await Navigator.of(context).push(BergenRoutes.rute<void>((_) => w));
     if (!mounted) return;
     try {
       _valgt = prefGetInt(prefNewDeliveryAddressId);

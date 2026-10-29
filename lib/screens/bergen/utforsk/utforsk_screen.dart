@@ -17,6 +17,7 @@ import 'feed_icons.dart';
 import 'feed_tab.dart';
 import 'pose_segment.dart';
 import 'utforsk_copy.dart';
+import '../kit/laster_dra.dart';
 
 /// `utforsk` (L5456–5713 in `Ærend Kunde Launch.dc.html`, design px) — tab 1
 /// of the shell, and `/bergen/utforsk` (`?tab=fiske|pose`, `&fane=folger`).
@@ -271,16 +272,15 @@ class _UtforskScreenState extends State<UtforskScreen> {
                     top: top + 56,
                     bottom: 0,
                     // Pull down to refresh: the feed (in place), the drift note and the unread dots.
-                    child: RefreshIndicator(
+                    // Bergen 29 Oct: the 3D-logo pull (`scrollLaster`).
+                    child: BergenDraLaster(
                       key: const Key('a1_utforsk_refresh'),
-                      color: const Color(0xFF5CE0B8),
-                      backgroundColor: const Color(0xFF173E48),
                       onRefresh: _refresh,
                       child: CustomScrollView(
                       key: const Key('a1_utforsk_scroll'),
                       controller: _scroll,
                       // Pullable also when the posts do not fill the screen.
-                      physics: const AlwaysScrollableScrollPhysics(),
+                      physics: BergenDraLaster.physics,
                       slivers: [
                         SliverPadding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -267,6 +267,15 @@ abstract final class HjemHarness {
   static String? rute;
   static Object? ruteArg;
 
+  /// 29 Oct loaders and transitions: `ruteTilbake` pops the pushed route
+  /// after N ms (the Menisk back); `draLaster` runs the pull-to-refresh on
+  /// Hjem (`"demo"` = the design's `ldrDemo`, `"hold"` = stays at
+  /// «Oppdaterer …»); `favPop` bursts the heart of that store id (0 = the
+  /// first heart) 2.5s after the route opens; `arkLukk` closes Meg's
+  /// `megArk` sheet after N ms (the Bølge sink).
+  static int? ruteTilbake, favPop, arkLukk;
+  static String? draLaster;
+
   /// Bergen Step 9: heart these products first (`favProdukter`), through
   /// [FavouriteProducts] as the product sheet's heart does.
   static List<int>? favProdukter;
@@ -373,6 +382,8 @@ abstract final class HjemHarness {
         vindu = false;
         borte = false;
         fane = null;
+        ruteTilbake = favPop = arkLukk = null;
+        draLaster = null;
         hjul = null;
         adresse = null;
         dekning = null;
@@ -574,6 +585,10 @@ abstract final class HjemHarness {
       fiskeAgn = m['fiskeAgn'] as String?;
       aegil = m['aegil'] as String?;
       rute = m['rute'] as String?;
+      ruteTilbake = m['ruteTilbake'] as int?;
+      favPop = m['favPop'] as int?;
+      arkLukk = m['arkLukk'] as int?;
+      draLaster = m['draLaster'] as String?;
       favProdukter = (m['favProdukter'] as List?)?.cast<int>();
       ruteArg = m['ruteArg'] is Map ? Map<String, String>.from((m['ruteArg'] as Map).map((k, v) => MapEntry('$k', '$v'))) : m['ruteArg']?.toString();
       hjelpSi = (m['hjelpSi'] as List?)?.cast<String>();

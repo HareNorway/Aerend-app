@@ -26,6 +26,8 @@ import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import 'utforsk_copy.dart';
 import 'package:aerend_customer/utils/route_names.dart';
+import '../kit/laster_skjerm.dart';
+import '../kit/laster_dra.dart';
 
 /// Butikkprofil (new Bergen L10189–10290, `bpVals` L16721): the store's
 /// page in Ærend Feed — the header (back, name, the «bergensk» dot), the
@@ -162,7 +164,9 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _profil == null && !_feil, navn: 'Butikken', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     final p = _profil;
     return Scaffold(
       backgroundColor: const Color(0xFF12333D),
@@ -191,7 +195,10 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                                 ? Text(BergenRoutes.provIgjen, style: inter(13, color: const Color.fromRGBO(255, 255, 255, .7)))
                                 : const CircularProgressIndicator(color: Color(0xFF5CE0B8)),
                           )
-                        : CustomScrollView(
+                        : BergenDraLaster(
+                            onRefresh: _last,
+                            child: CustomScrollView(
+        physics: BergenDraLaster.physics,
                             key: const Key('a1_bp_scroll'),
                             slivers: [
                               SliverToBoxAdapter(child: _topp(p)),
@@ -200,7 +207,7 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                               _rutenett(),
                               const SliverToBoxAdapter(child: SizedBox(height: 120)),
                             ],
-                          ),
+                          )),
                   ),
                 ],
               ),

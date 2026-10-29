@@ -16,6 +16,7 @@ import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/vann_overganger.dart';
 import '../adresse/adr_ark.dart' show adrMerke;
 
 /// The four Kasse sheets (≈L6913–7142 in `Ærend Kunde Bergen.dc.html`) via
@@ -96,8 +97,9 @@ Future<T?> visKasseArk<T>(
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
-      transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
-      reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
+      // Bergen 29 Oct: Bølge up 520ms, down 380ms (`arkOvergang`).
+      transitionDuration: reduce ? Duration.zero : kBolgeInn,
+      reverseTransitionDuration: reduce ? Duration.zero : kBolgeUt,
       pageBuilder: (context, a, _) => _KasseArkRute(anim: a, lys: lys, builder: builder),
     ),
   );
@@ -141,20 +143,11 @@ class _KasseArkRute extends StatelessWidget {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: AnimatedBuilder(
-                    animation: anim,
-                    builder: (context, child) {
-                      final e = const Cubic(.2, .9, .3, 1).transform(anim.value);
-                      final ut = anim.status == AnimationStatus.reverse;
-                      return Opacity(
-                        opacity: ut ? anim.value : .6 + .4 * e,
-                        child: Transform.translate(
-                          offset: Offset(0, ut ? (1 - anim.value) * 400 : 26 * (1 - e)),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Container(
+                  child: bolgeArkRute(
+                    anim,
+                    mork: !lys,
+                    radius: 28 * s,
+                    Container(
                       padding: EdgeInsets.fromLTRB(16 * s, 0, 16 * s, 22 * s + mq.padding.bottom * .5),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),

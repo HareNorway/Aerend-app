@@ -20,6 +20,8 @@ import '../ai/ai_copy.dart';
 import 'bestill_igjen.dart';
 import 'meg_ark.dart';
 import 'meg_nav.dart';
+import '../kit/laster_skjerm.dart';
+import '../kit/laster_dra.dart';
 
 /// Ordrehistorikk (new Bergen `erOrdrer`, L8036–8089, + `ohVals` L15336):
 /// the orders the customer has placed (`ops.customer.orders`), «Bestill igjen
@@ -273,7 +275,9 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _loading, navn: 'Bestillinger', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     final O = _ordrer;
     final kr = _kroner.values.fold<int>(0, (a, b) => a + b);
     // Dine faste: the stores ordered from most (four at most).
@@ -312,7 +316,10 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                         ? const Center(child: CircularProgressIndicator(color: BergenTokens.mint))
                         : ListenableBuilder(
                             listenable: SupportStore.instance.endret,
-                            builder: (context, _) => ListView(
+                            builder: (context, _) => BergenDraLaster(
+                              onRefresh: _load,
+                              child: ListView(
+        physics: BergenDraLaster.physics,
                               key: const Key('oh-list'),
                               padding: EdgeInsets.fromLTRB(16, top, 16, 130),
                               children: [
@@ -421,7 +428,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                   ],
                                 ],
                               ],
-                            ),
+                            )),
                           ),
                   ),
                   const Positioned(left: 0, right: 0, bottom: 0, child: MegNav()),

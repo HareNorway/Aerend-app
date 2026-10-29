@@ -67,6 +67,7 @@ import '../ai/ai_store.dart';
 import 'oppdrag_ark.dart';
 import 'oppsummering_ark.dart';
 import 'tillit_ark.dart';
+import '../kit/laster_dra.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -321,6 +322,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       HjemHarness.megArk = null;
       await Future<void>.delayed(const Duration(milliseconds: 600));
       if (!mounted) return;
+      if (HjemHarness.arkLukk case final ms?) {
+        HjemHarness.arkLukk = null;
+        final nav = Navigator.of(context);
+        Future.delayed(Duration(milliseconds: 600 + ms), () => nav.maybePop());
+      }
       final b = _balance;
       switch (ark) {
         case 'billett': _openBillett();
@@ -434,7 +440,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   void _go(String route, {Object? arguments}) => Navigator.of(context).pushNamed(route, arguments: arguments);
 
-  void _push(Widget w) => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => w));
+  void _push(Widget w) => Navigator.of(context).push(BergenRoutes.rute<void>((_) => w));
 
   String get _firstName => a3Pref(prefUserName).trim().split(' ').firstOrNull ?? '';
 
@@ -708,7 +714,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
         label: AeInnstCopy.hvaVet,
         onTap: () {
           Navigator.of(context).pop();
-          Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AegilScreen(steg: 'minne')));
+          Navigator.of(context).push(BergenRoutes.rute<void>((_) => const AegilScreen(steg: 'minne')));
         },
       ),
       primary: MegArkButton(
@@ -795,7 +801,10 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                     ],
                     child: _loading
                         ? const Center(child: CircularProgressIndicator(color: BergenTokens.mint))
-                        : ListView(
+                        : BergenDraLaster(
+                            onRefresh: _load,
+                            child: ListView(
+        physics: BergenDraLaster.physics,
                             controller: _rull,
                             key: const Key('meg-list'),
                             padding: const EdgeInsets.fromLTRB(16, 10, 16, 130),
@@ -1068,7 +1077,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               // --- Logg ut (L7630–7648) -----------------------------------
                               MegLoggUt(konto: MegB8Copy.loggetInn(_firstName, _kontakt), onLoggUt: _loggUt),
                             ],
-                          ),
+                          )),
                   ),
                 ),
               ],

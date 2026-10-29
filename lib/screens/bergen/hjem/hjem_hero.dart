@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -68,6 +69,7 @@ class HjemHero extends StatefulWidget {
     required this.onFjordfiske,
     this.nappAvailable = true,
     this.playIntro = false,
+    this.ekstra,
     this.extraHeight = 0,
     this.vindu = false,
   });
@@ -87,6 +89,9 @@ class HjemHero extends StatefulWidget {
   /// `napp` — today's +5 is still on the first float.
   final bool nappAvailable;
   final bool playIntro;
+
+  /// Bergen 29 Oct: the pull's extra height, per frame (`scrollLaster`).
+  final ValueListenable<double>? ekstra;
 
   /// `dY` while the sheet is dragged down.
   final double extraHeight;
@@ -132,16 +137,32 @@ class _HjemHeroState extends State<HjemHero> {
   @override
   void initState() {
     super.initState();
+    widget.ekstra?.addListener(_ekstraEndret);
     if (widget.playIntro) {
       _intro = true;
-      _introT = Timer(const Duration(milliseconds: 4450), () {
+      // 29 Oct: the walk-in is 6s; the real Ægil takes over at 5950.
+      _introT = Timer(const Duration(milliseconds: 5950), () {
         if (mounted) setState(() => _intro = false);
       });
     }
   }
 
   @override
+  void didUpdateWidget(HjemHero old) {
+    super.didUpdateWidget(old);
+    if (old.ekstra != widget.ekstra) {
+      old.ekstra?.removeListener(_ekstraEndret);
+      widget.ekstra?.addListener(_ekstraEndret);
+    }
+  }
+
+  void _ekstraEndret() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    widget.ekstra?.removeListener(_ekstraEndret);
     _kortT?.cancel();
     _introT?.cancel();
     _ripples.dispose();
@@ -212,12 +233,15 @@ class _HjemHeroState extends State<HjemHero> {
     final rearOp = _intro ? 0.0 : 1.0;
     final vi = widget.vindu;
     // Ægil and the rod box (`aegRight`/`aegTop`, rod at right-24, top-26).
+    // 29 Oct: on the home scene he is 1.38× (`aegSkala`, from his feet), so
+    // the 58px rear becomes the 80px he walks in at (297, 124).
+    const sk = 1.38;
     final aegL = vi ? 390 - 300 - 32.0 : 390 - 24 - 58.0, aegT = vi ? 522.0 + dy : 146.0, aegW = vi ? 32.0 : 58.0;
     final stangL = 390 - (vi ? 300 : 24) + 24 - 160.0, stangT = aegT - 26;
 
     return SizedBox(
       width: 390,
-      height: vi ? null : kHjemHeroH + widget.extraHeight,
+      height: vi ? null : kHjemHeroH + widget.extraHeight + (widget.ekstra?.value ?? 0),
       child: Stack(
         clipBehavior: Clip.hardEdge,
         children: [
@@ -270,13 +294,7 @@ class _HjemHeroState extends State<HjemHero> {
             ),
           ),
           if (regn) ..._regnPaaGlass(),
-          // Ægil's rain hat (`erRegn`).
-          if (regn)
-            Positioned(
-              right: vi ? 304 : 38,
-              top: vi ? 520 + dy : 170,
-              child: AnimatedOpacity(opacity: rearOp, duration: const Duration(milliseconds: 450), child: SvgPicture.string(_kHatt, width: 24, height: 12)),
-            ),
+          // (29 Oct: the rain hat is gone from the design.)
           // Quay under Ægil (`aegKaiTop` 196; 999 in vindu).
           if (!vi) ..._kai(),
           // Ægil's shadow, Ægil (rear) and the rod.
@@ -287,13 +305,16 @@ class _HjemHeroState extends State<HjemHero> {
               width: 58,
               height: 9,
               child: IgnorePointer(
-                child: AnimatedOpacity(
+                child: Opacity(
                   opacity: rearOp,
-                  duration: const Duration(milliseconds: 450),
-                  child: const CssBox(
+                  child: Transform.scale(
+                    scale: sk,
+                    alignment: const FractionalOffset(27 / 58, 6 / 9),
+                    child: const CssBox(
                     bg: [
                       CssRadial([Color.fromRGBO(20, 40, 50, .35), Color.fromRGBO(20, 40, 50, .2), Color.fromRGBO(20, 40, 50, 0)], stops: [0, .55, 1]),
                     ],
+                  ),
                   ),
                 ),
               ),
@@ -304,10 +325,13 @@ class _HjemHeroState extends State<HjemHero> {
             width: 160,
             height: 120,
             child: IgnorePointer(
-              child: AnimatedOpacity(
+              child: Opacity(
                 opacity: rearOp,
-                duration: const Duration(milliseconds: 450),
-                child: HjemFiskestang(hook: hook, selectedAt: _valgtAt, onWater: (x, y, a) => _ripples.add(x + stangL, y + stangT - _kWater, a)),
+                child: Transform.scale(
+                  scale: vi ? 1 : sk,
+                  alignment: const FractionalOffset(107 / 160, 84 / 120),
+                  child: HjemFiskestang(hook: hook, selectedAt: _valgtAt, onWater: (x, y, a) => _ripples.add(x + stangL, y + stangT - _kWater, a)),
+                ),
               ),
             ),
           ),
@@ -317,25 +341,28 @@ class _HjemHeroState extends State<HjemHero> {
             width: aegW,
             height: aegW,
             child: IgnorePointer(
-              child: AnimatedOpacity(
+              child: Opacity(
                 opacity: rearOp,
-                duration: const Duration(milliseconds: 450),
                 child: vi
                     ? LfLoop(
                         // aegBob 3.4s
                         builder: (context, t, child) => Transform.translate(offset: Offset(0, kf((t / 3400) % 1.0, const [0, .5, 1], const [0, -2.5, 0], cssEaseInOut)), child: child),
                         child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
                       )
-                    : Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
+                    : Transform.scale(
+                        scale: sk,
+                        alignment: Alignment.bottomCenter,
+                        child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
+                      ),
               ),
             ),
           ),
-          // Tap target over Ægil (margin -6 -2 0 0).
+          // Tap target over Ægil (margin -6 -2 0 0), scaled with him.
           Positioned(
-            left: aegL,
-            top: aegT - 6,
-            width: aegW + 2,
-            height: aegW + 4,
+            left: vi ? aegL : aegL - (aegW + 2) * (sk - 1) / 2,
+            top: vi ? aegT - 6 : aegT + aegW - (aegW + 4) * sk + 4,
+            width: vi ? aegW + 2 : (aegW + 2) * sk,
+            height: vi ? aegW + 4 : (aegW + 4) * sk,
             child: IgnorePointer(
               ignoring: _intro,
               child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: widget.onFjordfiske),
@@ -348,13 +375,11 @@ class _HjemHeroState extends State<HjemHero> {
               top: 196 - 11,
               width: 158,
               height: 40,
+              // 29 Oct: the pill stays up through the intro, trampled as
+              // Ægil hops over it (`aegPillTramp`).
               child: IgnorePointer(
                 ignoring: _intro,
-                child: AnimatedOpacity(
-                  opacity: rearOp,
-                  duration: const Duration(milliseconds: 450),
-                  child: _FjordfiskeKnapp(onTap: widget.onFjordfiske),
-                ),
+                child: _intro ? _tramp(_FjordfiskeKnapp(onTap: widget.onFjordfiske)) : _FjordfiskeKnapp(onTap: widget.onFjordfiske),
               ),
             ),
           // Forundringspose · vannet.
@@ -530,62 +555,119 @@ class _HjemHeroState extends State<HjemHero> {
       ),
   ];
 
-  /// `aegIntro`: Ægil walks in, says it, turns and walks to the quay (4.6s).
+  /// `aegIntro` (29 Oct, 6s): Ægil walks in from the left along the water
+  /// line in side view with three steps (`aegIntroX`/`aegIntroSteg`), turns
+  /// to the front and talks (1.4–3.6s, `bobleTilBruker`), then hops along the
+  /// quay in three jumps (`aegIntroY`/`aegIntroHopp`, the shadow shrinking
+  /// under him, `aegIntroSkygge`), turning his back on the last one (rear
+  /// view) to land where he fishes (297, 124 — the 1.38× rear).
   List<Widget> _intro0() {
-    const c = Cubic(.3, .9, .4, 1);
-    Matrix4 walk(double p, {bool flip = true}) {
-      final x = kf(p, const [0, .3, .38, .62, .68, .72, .96, 1], const [150, 24, 0, 0, 0, 6, 112, 112], c);
-      final y = kf(p, const [0, .3, .38, .62, .68, .72, .96, 1], const [26, 6, 0, 0, 0, 2, 24, 24], c);
-      final s = kf(p, const [0, .3, .38, .62, .68, .72, .96, 1], const [.62, .92, 1, 1, 1, .99, .78, .78], c);
-      final ry = flip ? kf(p, const [0, .62, .68, .72, 1], const [0, 0, 90, 180, 180], c) : 0.0;
-      return Matrix4.identity()
-        ..translateByDouble(x, y, 0, 1)
-        ..scaleByDouble(s, s, 1, 1)
-        ..rotateY(rad(ry));
-    }
+    const d = 6000.0;
+    const c1 = Cubic(.3, .2, .4, 1), c2 = Cubic(.2, .6, .4, 1), c3 = Cubic(.6, 0, .8, .4);
+    const lin = Curves.linear;
+    double x(double p) => _seg(p, const [0, .2167, .65, .725, .7567, .8233, .8517, .9267, 1], const [-90, 22, 22, 110, 110, 192, 192, 297, 297], const [c1, lin, lin, lin, lin, lin, lin, lin]);
+    double y(double p) => _seg(
+      p,
+      const [0, .65, .6875, .725, .7567, .79, .8233, .8517, .889, .9267, 1],
+      const [146, 146, 100, 108, 108, 80, 108, 108, 74, 124, 124],
+      const [c2, c2, c3, c2, c2, c3, c2, c2, c3, lin],
+    );
+    const hs = <double>[0, .6333, .65, .665, .70, .725, .733, .745, .752, .765, .79, .8233, .83, .84, .847, .86, .89, .9267, .935, .9467, 1.0];
+    double hx(double p) => kf(p, hs, const [1, 1, 1.08, .94, 1, 1, 1.1, 1, 1.06, .95, 1, 1, 1.1, 1, 1.07, .94, 1, 1, 1.12, 1, 1]);
+    double hy(double p) => kf(p, hs, const [1, 1, .88, 1.08, 1, 1, .86, 1, .9, 1.06, 1, 1, .86, 1, .9, 1.08, 1, 1, .84, 1, 1]);
+    const ss = <double>[0, .6333, .65, .687, .688, .725, .7567, .79, .8233, .8517, .904, .905, .9267, 1.0];
+    double sy(double p) => kf(p, ss, const [221, 221, 221, 221, 183, 183, 183, 183, 183, 183, 183, 199, 199, 199]);
+    double sk(double p) => kf(p, ss, const [1, 1, 1.06, .5, .5, 1, 1, .6, 1, 1, .55, .6, 1, 1]);
+    double so(double p) => kf(p, ss, const [.9, .9, .9, .35, .35, .9, .9, .45, .9, .9, .3, .3, .9, .9]);
+    // Which view shows (`aegIntroSideV` / `FrontV` / `RearV`): opacity and
+    // the x-scale (the side view is mirrored, −1).
+    double sideO(double p) => kf(p, const [0, .2167, .2333, .2383, .6117, .6167, .6333, .9467, .9633, .9683, 1], const [1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0]);
+    double sideX(double p) => kf(p, const [0, .2167, .2333, .2383, .6117, .6167, .6333, .9467, .9633, .9683, 1], const [-1, -1, -.72, -.72, -.72, -.72, -1, -1, -.72, -.72, -.72]);
+    double frontO(double p) => kf(p, const [0, .2283, .2333, .25, .60, .6167, .6217, 1], const [0, 0, 1, 1, 1, 1, 0, 0]);
+    double frontX(double p) => kf(p, const [0, .2283, .2333, .25, .60, .6167, .6217, 1], const [.72, .72, .72, 1, 1, .72, .72, .72]);
+    double rearO(double p) => kf(p, const [0, .9583, .9633, .98, 1], const [0, 0, 1, 1, 1]);
+    double rearX(double p) => kf(p, const [0, .9583, .9633, .98, 1], const [.72, .72, .72, 1, 1]);
+
+    Widget bilde(String navn, double o, double sx) => Opacity(
+      opacity: o.clamp(0.0, 1.0),
+      child: Transform(
+        alignment: Alignment.bottomCenter,
+        transform: Matrix4.diagonal3Values(sx == 0 ? .0001 : sx, 1, 1),
+        child: Image.asset('assets/images/dashboard/$navn.png', width: 80, height: 80, filterQuality: FilterQuality.medium),
+      ),
+    );
 
     return [
       Positioned(
-        left: 195 - 30,
-        top: 196,
-        width: 60,
-        height: 11,
+        left: 0,
+        top: 0,
+        width: 80,
+        height: 80,
         child: IgnorePointer(
           child: LfOnce(
-            ms: 4600,
-            builder: (context, t, child) {
-              final p = t / 4600;
-              final o = kf(p, const [0, .14, 1], const [0, .9, .9], c);
-              return Opacity(
-                opacity: o,
-                child: Transform(alignment: Alignment.center, transform: walk(p, flip: false), child: child),
+            ms: d,
+            builder: (context, t, _) {
+              final p = (t / d).clamp(0.0, 1.0);
+              // `aegIntroSteg .43s ease-in-out 0s 3`: the walk's bob and sway.
+              final stegP = t < 1290 ? ((t % 430) / 430) : 0.0;
+              final stegY = t < 1290 ? kf(stegP, const [0, .25, .5, .75, 1], const [0, -3, 0, -3, 0], cssEaseInOut) : 0.0;
+              final stegR = t < 1290 ? kf(stegP, const [0, .25, .5, .75, 1], const [0, -2, 0, 2, 0], cssEaseInOut) : 0.0;
+              return Transform.translate(
+                offset: Offset(x(p), 0),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // The shadow (left 14, 52×10): its own y, scale and fade.
+                    Positioned(
+                      left: 14,
+                      top: 0,
+                      width: 52,
+                      height: 10,
+                      child: Opacity(
+                        opacity: so(p),
+                        child: Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.identity()
+                            ..translateByDouble(0, sy(p), 0, 1)
+                            ..scaleByDouble(sk(p), sk(p), 1, 1),
+                          child: const CssBox(
+                            bg: [
+                              CssRadial.closestSide([Color.fromRGBO(10, 28, 36, .5), Color.fromRGBO(10, 28, 36, 0)]),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      width: 80,
+                      height: 80,
+                      child: Transform.translate(
+                        offset: Offset(0, y(p)),
+                        child: Transform(
+                          alignment: Alignment.bottomCenter,
+                          transform: Matrix4.diagonal3Values(hx(p), hy(p), 1),
+                          child: Transform(
+                            alignment: Alignment.bottomCenter,
+                            transform: Matrix4.identity()
+                              ..translateByDouble(0, stegY, 0, 1)
+                              ..rotateZ(rad(stegR)),
+                            child: Stack(
+                              children: [
+                                Positioned.fill(child: bilde('side', sideO(p), sideX(p))),
+                                Positioned.fill(child: bilde('front', frontO(p), frontX(p))),
+                                Positioned.fill(child: bilde('rear', rearO(p), rearX(p))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
-            child: const CssBox(
-              bg: [
-                CssRadial([Color.fromRGBO(20, 40, 50, .4), Color.fromRGBO(20, 40, 50, .2), Color.fromRGBO(20, 40, 50, 0)], stops: [0, .55, 1]),
-              ],
-            ),
-          ),
-        ),
-      ),
-      Positioned(
-        left: 195 - 38,
-        top: 140,
-        width: 76,
-        height: 76,
-        child: IgnorePointer(
-          child: LfOnce(
-            ms: 4600,
-            builder: (context, t, child) {
-              final p = t / 4600;
-              final o = kf(p, const [0, .14, 1], const [0, 1, 1], c);
-              return Opacity(
-                opacity: o,
-                child: Transform(alignment: Alignment.bottomCenter, transform: walk(p), child: child),
-              );
-            },
-            child: Image.asset('assets/images/dashboard/front.png', filterQuality: FilterQuality.medium),
           ),
         ),
       ),
@@ -597,9 +679,9 @@ class _HjemHeroState extends State<HjemHero> {
           child: Align(
             alignment: Alignment.topLeft,
             child: LfOnce(
-              ms: 4600,
+              ms: d,
               builder: (context, t, child) {
-                final p = t / 4600;
+                final p = t / d;
                 final s = kf(p, const [0, .16, .2, .58, .66, 1], const [.7, 1.03, 1, 1, .94, .94], cssEaseInOut);
                 final y = kf(p, const [0, .16, .2, .58, .66, 1], const [8, 0, 0, 0, 4, 4], cssEaseInOut);
                 final o = kf(p, const [0, .16, .58, .66, 1], const [0, 1, 1, 0, 0], cssEaseInOut);
@@ -607,14 +689,15 @@ class _HjemHeroState extends State<HjemHero> {
                   opacity: o.clamp(0.0, 1.0),
                   child: Transform.translate(
                     offset: Offset(0, y),
-                    child: Transform.scale(scale: s, alignment: Alignment.bottomRight, child: child),
+                    child: Transform.scale(scale: s, alignment: Alignment.bottomLeft, child: child),
                   ),
                 );
               },
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 238),
                 child: CssBox(
-                  radius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16), bottomRight: Radius.circular(5), bottomLeft: Radius.circular(16)),
+                  // 29 Oct: the tail is at the bottom left now (16 16 16 5).
+                  radius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16), bottomRight: Radius.circular(16), bottomLeft: Radius.circular(5)),
                   bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .95))],
                   shadows: const [CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .9)), CssShadow(0, 14, 24, -12, Color.fromRGBO(15, 31, 43, .5))],
                   padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
@@ -630,6 +713,39 @@ class _HjemHeroState extends State<HjemHero> {
       ),
     ];
   }
+
+  /// `aegPillTramp 6s`: the Fjordfiske pill pressed down as Ægil lands on it.
+  Widget _tramp(Widget child) => LfOnce(
+    ms: 6000,
+    child: child,
+    builder: (context, t, child) {
+      final p = t / 6000;
+      const st = <double>[0, .723, .732, .746, .822, .831, .848, .853, 1.0];
+      final ty = kf(p, st, const [0, 0, 2.5, 0, 0, 2.5, 1.5, 0, 0]);
+      final sx = kf(p, st, const [1, 1, 1.015, 1, 1, 1.015, 1.01, 1, 1]);
+      final sy = kf(p, st, const [1, 1, .96, 1, 1, .96, .98, 1, 1]);
+      return Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translateByDouble(0, ty, 0, 1)
+          ..scaleByDouble(sx, sy, 1, 1),
+        child: child,
+      );
+    },
+  );
+
+  /// A keyframe track with its own easing per segment (CSS puts the
+  /// `animation-timing-function` on the keyframe that starts the segment).
+  static double _seg(double p, List<double> stops, List<double> values, List<Curve> curves) {
+    if (p <= stops.first) return values.first;
+    for (var i = 0; i < stops.length - 1; i++) {
+      if (p <= stops[i + 1]) {
+        final u = ((p - stops[i]) / (stops[i + 1] - stops[i])).clamp(0.0, 1.0);
+        return values[i] + (values[i + 1] - values[i]) * curves[i].transform(u);
+      }
+    }
+    return values.last;
+  }
 }
 
 abstract final class HjemHeroCopy {
@@ -642,11 +758,6 @@ abstract final class HjemHeroCopy {
   static const ikkeNaa = 'Ikke nå';
   static const aldri = 'Aldri dette';
 }
-
-const String _kHatt =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 22">'
-    '<path d="M2 20 C6 6 38 6 42 20 C34 15 10 15 2 20 Z" fill="#F2C14E"/>'
-    '<path d="M12 8 C16 2 28 2 32 8" stroke="#D9A254" stroke-width="2" fill="none"/></svg>';
 
 /// `repeating-linear-gradient(90deg, transparent 0 18px, rgba(0,0,0,.22)
 /// 18px 19px)` over `#6A5A44 → #4A3C2A 40% → #2C2114`, radius 7 0 0 3.

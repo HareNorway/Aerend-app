@@ -15,6 +15,7 @@ import '../meg/a3_services.dart';
 import 'adr_scene.dart';
 import 'adr_tegning.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/vann_overganger.dart';
 
 // ── Adresse sheets (`sheet:'adresse'` L8382, `sheet:'nyAdresse'` L8493) ─────
 // "Hvor skal ærendet?": the street scene with the chosen place, its door
@@ -210,8 +211,9 @@ Future<void> visAdresseArk(BuildContext context, AdrKilde kilde, {bool ny = fals
       opaque: false,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
-      transitionDuration: Duration(milliseconds: reduce ? 0 : 380),
-      reverseTransitionDuration: Duration(milliseconds: reduce ? 0 : 260),
+      // Bergen 29 Oct: Bølge up 520ms, down 380ms (`arkOvergang`).
+      transitionDuration: reduce ? Duration.zero : kBolgeInn,
+      reverseTransitionDuration: reduce ? Duration.zero : kBolgeUt,
       pageBuilder: (context, a, _) => _AdrRute(anim: a, kilde: kilde, ny: ny),
     ),
   );
@@ -252,20 +254,11 @@ class _AdrRute extends StatelessWidget {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: AnimatedBuilder(
-                    animation: anim,
-                    builder: (context, child) {
-                      // arkOpp .38s cubic(.2,.9,.3,1)
-                      final e = const Cubic(.2, .9, .3, 1).transform(anim.value);
-                      return Opacity(
-                        opacity: anim.status == AnimationStatus.reverse ? anim.value : .6 + .4 * e,
-                        child: Transform.translate(
-                          offset: Offset(0, anim.status == AnimationStatus.reverse ? (1 - anim.value) * 400 : 26 * (1 - e)),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: ConstrainedBox(
+                  // Bergen 29 Oct: the Bølge rise instead of `arkOpp`.
+                  child: bolgeArkRute(
+                    anim,
+                    radius: 28,
+                    ConstrainedBox(
                       constraints: BoxConstraints(maxHeight: mq.size.height - mq.padding.top - 6),
                       child: Padding(
                         padding: EdgeInsets.only(bottom: mq.viewInsets.bottom),

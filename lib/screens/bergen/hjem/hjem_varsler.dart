@@ -18,6 +18,7 @@ import '../../common/auth/launch/lf_widgets.dart';
 import '../../common/notifications/notifications_dl.dart';
 import '../aegil/cus_level3.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/vann_overganger.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import '../kit/live_aerend.dart';
@@ -344,8 +345,9 @@ abstract final class HjemVarsler {
         opaque: false,
         barrierDismissible: false,
         settings: const RouteSettings(name: '${appRoutePrefix}bergen/varsler'),
-        transitionDuration: Duration(milliseconds: rolig ? 0 : 440),
-        reverseTransitionDuration: Duration(milliseconds: rolig ? 0 : 220),
+        // Bergen 29 Oct: the Bølge rise and sink (`arkOvergang`).
+        transitionDuration: rolig ? Duration.zero : kBolgeInn,
+        reverseTransitionDuration: rolig ? Duration.zero : kBolgeUt,
         pageBuilder: (_, a, __) => VarslerPanel(filter: filter, inn: a),
       ),
     );
@@ -659,8 +661,7 @@ class _VarslerPanelState extends State<VarslerPanel> {
                 animation: a,
                 builder: (context, _) {
                   // Backdrop: skjermInn .26s ease-out of the .44s route.
-                  final tb = Curves.easeOut.transform((a.value * 440 / 260).clamp(0.0, 1.0));
-                  final tp = const Cubic(.2, .9, .3, 1).transform(a.value);
+                  final tb = Curves.easeOut.transform((a.value * 520 / 260).clamp(0.0, 1.0));
                   return Stack(
                     children: [
                       Positioned.fill(
@@ -681,10 +682,9 @@ class _VarslerPanelState extends State<VarslerPanel> {
                         right: 0,
                         top: topp,
                         bottom: 0,
-                        child: Opacity(
-                          opacity: .6 + .4 * tp,
-                          child: Transform.translate(offset: Offset(0, 26 * (1 - tp)), child: _panel(context, synlig, n, visOrdre, bunn, naa)),
-                        ),
+                        child: widget.inn == null
+                            ? _panel(context, synlig, n, visOrdre, bunn, naa)
+                            : bolgeArkRute(a, _panel(context, synlig, n, visOrdre, bunn, naa), mork: true, radius: 30),
                       ),
                     ],
                   );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import 'vann_overganger.dart';
 
 /// What the drag handle says (design `.ark-handle` states).
 enum BergenSheetHandle {
@@ -199,19 +200,24 @@ Future<T?> showBergenSheet<T>(
     constraints: BoxConstraints(
       maxHeight: MediaQuery.sizeOf(context).height * maxHeightFraction,
     ),
+    // Bergen 29 Oct: the Bølge rise and sink (`arkOvergang`).
     sheetAnimationStyle: AnimationStyle(
-      curve: BergenTokens.motionCurve,
-      duration: BergenTokens.motion(context, BergenTokens.motionSheet),
-      reverseCurve: Curves.easeIn,
-      reverseDuration: BergenTokens.motion(context, BergenTokens.motionBase),
+      curve: OvE.bolge,
+      duration: BergenTokens.motion(context, kBolgeInn),
+      reverseCurve: OvE.synk,
+      reverseDuration: BergenTokens.motion(context, kBolgeUt),
     ),
     builder: (ctx) => SafeArea(
       top: false,
-      child: BergenSheet(
-        handle: handle,
-        onDark: onDark,
-        onHandleTap: () => Navigator.of(ctx).maybePop(),
-        child: builder(ctx),
+      child: BolgeArk(
+        radius: BergenTokens.radiusSheet,
+        mork: onDark,
+        child: BergenSheet(
+          handle: handle,
+          onDark: onDark,
+          onHandleTap: () => Navigator.of(ctx).maybePop(),
+          child: builder(ctx),
+        ),
       ),
     ),
   );

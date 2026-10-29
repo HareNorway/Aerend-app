@@ -13,6 +13,7 @@ import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
 import '../../../services/customer/client_flags.dart';
 import 'utforsk_copy.dart';
+import '../kit/bergen_motion.dart' show BergenOnce;
 import '../kit/bergen_perf.dart';
 
 /// One feed post, as the Launch prototype draws it (`{{ poster }}` L5498–5560
@@ -301,9 +302,12 @@ class _FeedPostCardState extends State<FeedPostCard>
   }
 
   static const _glassBg = [
-    CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)]),
+    CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
   ];
 
+  // Bergen 29 Oct (L5669–5723): the card is a 28px glass block with a 5px
+  // bottom edge, the media an inset 21px tile with its own edge and inner
+  // ring, and the card rises 12px as it appears (`spOpp .5s`).
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
@@ -311,22 +315,55 @@ class _FeedPostCardState extends State<FeedPostCard>
 
     return Padding(
       key: Key('a1_feed_post_${item.id}'),
-      padding: const EdgeInsets.only(top: 14),
-      child: CssBox(
-        radius: BorderRadius.circular(26),
-        bg: _glassBg,
-        border: Border.all(color: rgba(255, 255, 255, .2)),
-        shadows: [
-          CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
-          CssShadow(0, 2, 0, 0, rgba(4, 18, 26, .25)),
-          CssShadow(0, 28, 44, -22, rgba(4, 18, 26, .85)),
-        ],
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
+      padding: const EdgeInsets.only(top: 16),
+      child: BergenOnce(
+        durationMs: 500,
+        builder: (context, p, child) {
+          final e = cssEaseOut.transform(p);
+          return Opacity(opacity: e, child: Transform.translate(offset: Offset(0, 12 * (1 - e)), child: child));
+        },
+        child: CssBox(
+          radius: BorderRadius.circular(28),
+          bg: _glassBg,
+          shadows: [
+            CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
+            CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .1)),
+            CssShadow(0, 5, 0, 0, rgba(8, 28, 36, .45)),
+            CssShadow(0, 26, 30, -18, rgba(3, 14, 20, .85)),
+          ],
+          padding: const EdgeInsets.fromLTRB(7, 7, 7, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: h, child: _media(context, h)),
+              CssBox(
+                radius: BorderRadius.circular(21),
+                shadows: [
+                  CssShadow(0, 3, 0, 0, rgba(4, 18, 26, .5)),
+                  CssShadow(0, 12, 18, -12, rgba(3, 14, 20, .9)),
+                ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(21),
+                  child: SizedBox(
+                    height: h,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _media(context, h),
+                        // The tile's inner ring.
+                        IgnorePointer(
+                          child: CssBox(
+                            radius: BorderRadius.circular(21),
+                            shadows: [
+                              CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .34)),
+                              CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               _body(context),
             ],
           ),
@@ -665,7 +702,12 @@ class _FeedPostCardState extends State<FeedPostCard>
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(13),
-            boxShadow: [BoxShadow(color: rgba(0, 10, 16, .7), offset: const Offset(0, 6), blurRadius: 12, spreadRadius: -6)],
+            // 29 Oct: a white ring, a 3px edge and the drop.
+            boxShadow: [
+              BoxShadow(color: rgba(255, 255, 255, .85), spreadRadius: 1.5),
+              BoxShadow(color: rgba(4, 18, 26, .5), offset: const Offset(0, 3)),
+              BoxShadow(color: rgba(0, 10, 16, .8), offset: const Offset(0, 10), blurRadius: 14 / 2, spreadRadius: -8),
+            ],
           ),
           child: tile,
         ),
@@ -710,7 +752,8 @@ class _FeedPostCardState extends State<FeedPostCard>
       label: on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
       child: LfPress(
         onTap: widget.onFollow,
-        scale: .94,
+        scale: .96,
+        dy: 2,
         child: AnimatedContainer(
           key: Key('a1_feed_follow_${widget.item.id}'),
           duration: const Duration(milliseconds: 200),
@@ -721,6 +764,11 @@ class _FeedPostCardState extends State<FeedPostCard>
             color: on ? null : rgba(255, 255, 255, .2),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(color: on ? rgba(255, 255, 255, .35) : rgba(255, 255, 255, .55)),
+            // 29 Oct: a 2.5px edge and a drop under the pill.
+            boxShadow: [
+              BoxShadow(color: rgba(4, 18, 26, .45), offset: const Offset(0, 2.5)),
+              BoxShadow(color: rgba(0, 10, 16, .8), offset: const Offset(0, 8), blurRadius: 12 / 2, spreadRadius: -8),
+            ],
           ),
           child: Text(
             on ? UtforskCopy.a1_feed_following : UtforskCopy.a1_feed_follow,
@@ -769,7 +817,7 @@ class _FeedPostCardState extends State<FeedPostCard>
     final body = item.headline != null && item.caption.trim().isNotEmpty ? item.caption : null;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(15, 11, 15, 15),
+      padding: const EdgeInsets.fromLTRB(9, 12, 9, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -822,14 +870,30 @@ class _FeedPostCardState extends State<FeedPostCard>
               ],
               const SizedBox(width: 8),
               // Shrinks rather than overflow beside the three round buttons.
-              Expanded(
-                child: Text(
-                  merke.toUpperCase(),
-                  key: Key('a1_feed_merke_${item.id}'),
-                  textAlign: TextAlign.right,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF5CE0B8)),
+              // 29 Oct: a mint glass pill (24 high) instead of bare text.
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: CssBox(
+                    height: 24,
+                    radius: BorderRadius.circular(999),
+                    bg: [CssLinear(180, [rgba(92, 224, 184, .22), rgba(92, 224, 184, .08)])],
+                    shadows: [
+                      CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .24)),
+                      CssShadow.inset(0, 0, 0, 1, rgba(92, 224, 184, .32)),
+                      CssShadow(0, 2.5, 0, 0, rgba(4, 18, 26, .42)),
+                    ],
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Center(
+                      child: Text(
+                        merke.toUpperCase(),
+                        key: Key('a1_feed_merke_${item.id}'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: inter(10, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB)),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -878,12 +942,19 @@ class _FeedPostCardState extends State<FeedPostCard>
             ),
           ],
           if (!widget.detalj || item.store != null) ...[
-          Container(
-            height: 1,
-            margin: const EdgeInsets.fromLTRB(0, 13, 0, 12),
-            color: rgba(255, 255, 255, .1),
-          ),
-          Row(
+          // 29 Oct: the price and the CTA sit in a sunken dark panel (20px,
+          // 13 below the text) instead of under a rule.
+          const SizedBox(height: 13),
+          CssBox(
+            radius: BorderRadius.circular(20),
+            bg: [CssLinear(180, [rgba(4, 18, 26, .24), rgba(4, 18, 26, .1)])],
+            shadows: [
+              CssShadow.inset(0, 2, 5, 0, rgba(0, 0, 0, .2)),
+              CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .06)),
+              CssShadow(0, 1, 0, 0, rgba(255, 255, 255, .1)),
+            ],
+            padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+            child: Row(
             children: [
               Expanded(
                 child: Column(
@@ -924,6 +995,7 @@ class _FeedPostCardState extends State<FeedPostCard>
               const SizedBox(width: 12),
               _cta(label: ctaLabel, primary: toCart),
             ],
+            ),
           ),
           ],
         ],

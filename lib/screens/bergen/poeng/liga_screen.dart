@@ -20,6 +20,7 @@ import '../meg/meg_nav.dart';
 import '../meg/meg_sheets.dart';
 import '../meg/mork_rad.dart';
 import 'poeng_copy.dart';
+import '../kit/laster_skjerm.dart';
 
 /// Bergen-ligaen (new Bergen `erLigaSide`, L7949–8030, + `ligaVals` L19669–
 /// 19732, design px): the night over Ulriken — aurora, stars, the lit peak
@@ -122,7 +123,9 @@ class _LigaScreenState extends State<LigaScreen> {
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _loading, navn: 'Ærend', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     final l = _league;
     final med = l?.optedIn == true;
     final own = med ? l?.own : null;

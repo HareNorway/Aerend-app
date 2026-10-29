@@ -163,14 +163,17 @@ class LfRise extends StatelessWidget {
 
 /// `onbInn` — a step's content slides in 26px from the right.
 class LfStepIn extends StatelessWidget {
-  const LfStepIn({super.key, required this.child, this.dur = 320, this.curve = const Cubic(.2, .9, .3, 1)});
+  const LfStepIn({super.key, required this.child, this.dur = 320, this.curve = const Cubic(.2, .9, .3, 1), this.paa = true});
 
   final Widget child;
   final double dur;
   final Curve curve;
 
+  /// Off when the Menisk carries the step in instead (Bergen 29 Oct).
+  final bool paa;
+
   @override
-  Widget build(BuildContext context) => LfOnce(
+  Widget build(BuildContext context) => !paa ? child : LfOnce(
     ms: dur,
     child: child,
     builder: (context, t, child) {

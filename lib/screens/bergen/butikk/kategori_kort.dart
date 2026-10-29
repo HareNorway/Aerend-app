@@ -892,7 +892,8 @@ class KatButikkKort extends StatelessWidget {
                     ),
                   const Spacer(),
                   if (b.id > 0)
-                    BergenFavHeart(storeId: b.id, size: 40 * s, iconSize: 17 * s),
+                    // 29 Oct: the heart bursts (`favPop`) in the card's colour.
+                    BergenFavHeart(storeId: b.id, size: 40 * s, iconSize: 17 * s, burst: true, burstFarge: kKatFarge[b.nr % kKatFarge.length], navn: b.navn),
                 ],
               ),
             ),

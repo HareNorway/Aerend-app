@@ -19,6 +19,7 @@ import '../hjem/hjem_vann.dart';
 import 'butikk_copy.dart';
 import 'produkt_launch.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/vann_overganger.dart';
 
 /// The product sheet (`visProdukt` ≈L7214–7297 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -50,8 +51,9 @@ Future<void> showProduktSheet(
       barrierDismissible: true,
       barrierLabel: ButikkCopy.a1_butikk_prod_lukk,
       barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 460),
-      reverseTransitionDuration: const Duration(milliseconds: 260),
+      // Bergen 29 Oct: Bølge up 520ms, down 380ms (`arkOvergang`).
+      transitionDuration: kBolgeInn,
+      reverseTransitionDuration: kBolgeUt,
       pageBuilder: (context, animation, _) => _ProduktRoute(
         animation: animation,
         child: ProduktSheet(
@@ -84,10 +86,6 @@ class _ProduktRoute extends StatelessWidget {
       child: child,
       builder: (context, child) {
         final t = reduced ? 1.0 : animation.value;
-        final forward = animation.status != AnimationStatus.reverse;
-        final e = forward
-            ? kSkjermInn.transform(t)
-            : Curves.easeIn.transform(t);
         return Stack(
           children: [
             Positioned.fill(
@@ -103,13 +101,7 @@ class _ProduktRoute extends StatelessWidget {
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: Opacity(
-                opacity: forward ? .6 + .4 * e : e,
-                child: Transform.translate(
-                  offset: Offset(0, forward ? 26 * (1 - e) : 80 * (1 - e)),
-                  child: child,
-                ),
-              ),
+              child: reduced ? child : bolgeArkRute(animation, child!, radius: 28),
             ),
           ],
         );

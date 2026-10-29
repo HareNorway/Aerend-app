@@ -28,6 +28,8 @@ import 'a3_services.dart';
 import 'bestill_igjen.dart';
 import 'bestillinger_screen.dart' show OhCopy;
 import 'meg_copy.dart';
+import '../kit/laster_skjerm.dart';
+import '../kit/laster_dra.dart';
 
 /// Favoritter (new Bergen `erFavoritter`, L8369–8457 + `favVals` L16766):
 /// a plain title bar, the Butikker (N) / Produkter (N) tabs, and
@@ -233,7 +235,9 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _loading, navn: 'Ærend', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
     return Scaffold(
       backgroundColor: const Color(0xFF12333D),
@@ -268,7 +272,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
                 builder: (context, _) {
                   final butikker = _favs.stores.where((s) => _favs.ids.value.contains(s.storeId)).toList();
                   final produkter = _prod.products.where((p) => _prod.ids.value.contains(p.productId)).toList();
-                  return CustomScrollView(
+                  return BergenDraLaster(
+                    onRefresh: _last,
+                    child: CustomScrollView(
+        physics: BergenDraLaster.physics,
                     key: const Key('fav-liste'),
                     slivers: [
                       SliverToBoxAdapter(child: SizedBox(height: top)),
@@ -309,7 +316,7 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
                       // «Bestill igjen» is newest-first, not favourites first.
                       const SliverToBoxAdapter(child: SizedBox(height: 120)),
                     ],
-                  );
+                  ));
                 },
               ),
             ),

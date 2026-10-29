@@ -26,6 +26,8 @@ import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
 import 'kategori_utstilling.dart';
+import '../kit/laster_skjerm.dart';
+import '../kit/laster_dra.dart';
 
 /// Copy for the Kategori screen (L5910–6135), NO and EN.
 abstract final class KatCopy {
@@ -506,7 +508,9 @@ class _KategoriScreenState extends State<KategoriScreen> {
   // ── Build ───────────────────────────────────────────────────────────────
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _stores == null, navn: 'Kategori', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     final s = context.bs;
     final dy = MediaQuery.paddingOf(context).top;
     final k = _slot;
@@ -956,7 +960,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
           ((r.height - 8 * s) / r.height).clamp(0.0, 1.0),
         ],
       ).createShader(r),
-      child: ListView(
+      child: BergenDraLaster(
+        onRefresh: _load,
+        child: ListView(
+        physics: BergenDraLaster.physics,
         key: const Key('a1_kat_liste'),
         controller: _liste,
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -978,7 +985,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
             if (_produkter) _produktGrid(context) else ..._butikkKort(context),
           ],
         ],
-      ),
+      )),
     );
     return ValueListenableBuilder<double>(
       valueListenable: _kollaps,

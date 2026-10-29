@@ -14,6 +14,7 @@ import 'mote_butikk_screen.dart';
 import 'produkt_sheet.dart';
 import 'restaurant_body.dart';
 import '../hjem/hjem_ny.dart';
+import '../kit/laster_skjerm.dart';
 
 export 'restaurant_body.dart'
     show RestaurantButikkBody, RestaurantButikkBodyState;
@@ -126,7 +127,9 @@ class _ButikkScreenState extends State<ButikkScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _store == null && !_missing, navn: 'Butikken', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     final store = _store;
     if (_missing) {
       return Scaffold(

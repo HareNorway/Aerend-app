@@ -10,11 +10,12 @@ import '../../../bergen/kit/bergen_perf.dart';
 // ── Laster ──────────────────────────────────────────────────────────────────
 // `data-screen-label="Laster"` (prototype L1819), tone "Mørk glass": the Æ
 // sticker flipping in 3D with speed streaks, a mint glow, a squashing
-// shadow and three bouncing dots under "Henter ærendet". Used while an auth
+// shadow and three bouncing dots under "Laster ærendet" (29 Oct; it said
+// «Henter ærendet»). Used while an auth
 // call is in flight.
 
 class LfLaster extends StatelessWidget {
-  const LfLaster({super.key, this.text = 'Henter ærendet'});
+  const LfLaster({super.key, this.text = 'Laster ærendet'});
 
   final String text;
 

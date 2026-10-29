@@ -6,6 +6,7 @@ import '../bergen_routes_agil1.dart';
 import '../bergen_routes_agil3.dart';
 import 'bergen_toast.dart';
 import 'drape_route.dart';
+import 'vann_overganger.dart';
 
 /// Named-route plumbing for the `/bergen/...` routes of both branches
 /// (AGIL-CONTRACT §3.4).
@@ -91,14 +92,21 @@ abstract final class BergenRoutes {
       name: '$appRoutePrefix$name',
       arguments: arguments(name, settings.arguments),
     );
-    // Into and out of a store through the "Dråpe" portal.
-    if (key == '/bergen/butikk') {
+    // Bergen 29 Oct (`skjermOvergang`): forward and back between screens is
+    // the Menisk, the store included; the "Dråpe" portal into a store and
+    // Butikkprofil's `bpInn` stay as the alternatives.
+    final menisk = BergenOverganger.skjerm == SkjermOvergang.menisk;
+    if (key == '/bergen/butikk' && BergenOverganger.skjerm == SkjermOvergang.draape) {
       return DrapeRoute<dynamic>(settings: ruteSettings, builder: builder);
     }
-    // Butikkprofil comes in from the side (`bpInn`).
-    if (key == '/bergen/butikkprofil') return butikkProfilRute(ruteSettings, builder);
+    if (key == '/bergen/butikkprofil' && !menisk) return butikkProfilRute(ruteSettings, builder);
+    if (menisk) return MeniskRoute<dynamic>(settings: ruteSettings, builder: builder);
     return MaterialPageRoute<dynamic>(settings: ruteSettings, builder: builder);
   }
+
+  /// A route for a Bergen screen pushed by widget (no name): the Menisk.
+  static Route<T> rute<T>(WidgetBuilder builder, {RouteSettings? settings}) =>
+      BergenOverganger.skjerm == SkjermOvergang.menisk ? MeniskRoute<T>(settings: settings, builder: builder) : MaterialPageRoute<T>(settings: settings, builder: builder);
 
   /// Push [name]; a toast when the screen is not on this tree yet.
   static Future<T?> push<T>(BuildContext context, String name, {Object? arguments}) {

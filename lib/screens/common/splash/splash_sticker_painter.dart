@@ -487,3 +487,81 @@ class SplashRadialPainter extends CustomPainter {
   @override
   bool shouldRepaint(SplashRadialPainter oldDelegate) => false;
 }
+
+// ── `merke-kant` / `merke-flate` (29 Oct Bergen, the 3D loaders) ────────────
+// The loaders stack the Æ as an extruded block: `merke-kant` is the plain
+// outline in one colour (one per depth step), `merke-flate` the face — the
+// sticker's strokes without the peel, plus the gloss masked by the outline.
+
+/// `<symbol id="merke-kant">`: the letter and speed strokes in [color].
+class MerkeKantPainter extends CustomPainter {
+  const MerkeKantPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    _enterMarkSpace(canvas, size);
+    canvas.drawPath(_letterPath(), _stroke(color, 25));
+    canvas.drawPath(_speedPath(), _stroke(color, 16));
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(MerkeKantPainter old) => old.color != color;
+}
+
+/// `<symbol id="merke-flate">`: the face of the block.
+class MerkeFlatePainter extends CustomPainter {
+  const MerkeFlatePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    _enterMarkSpace(canvas, size);
+    final letter = _letterPath();
+    final speed = _speedPath();
+    canvas.drawPath(letter, _stroke(_white, 25));
+    canvas.drawPath(speed, _stroke(_white, 16));
+    canvas.drawPath(letter, _stroke(const Color(0xFFDFE5E8), 22.4));
+    canvas.drawPath(speed, _stroke(const Color(0xFFDFE5E8), 13.6));
+    canvas.drawPath(letter, _stroke(_white, 21));
+    canvas.drawPath(speed, _stroke(_white, 12.4));
+    canvas.drawPath(letter, _stroke(const Color(0xFF3A7D8C), 15));
+    canvas.drawPath(speed, _stroke(const Color(0xFFF26D3D), 6.5));
+    canvas.save();
+    canvas.translate(-1.6, -2.2);
+    canvas.drawPath(letter, _stroke(const Color(0xFF8FC2CF).withValues(alpha: .75), 3));
+    canvas.restore();
+    // Gloss (`#b-gloss`, masked by `#b-mask`).
+    canvas.saveLayer(_maskRect, Paint());
+    _drawMarkMask(canvas);
+    canvas.saveLayer(_maskRect, Paint()..blendMode = BlendMode.srcIn);
+    canvas.drawRect(
+      _maskRect,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          Offset.zero,
+          const Offset(1, 1),
+          [
+            _white.withValues(alpha: 0),
+            _white.withValues(alpha: 0),
+            _white.withValues(alpha: .26),
+            _white.withValues(alpha: .1),
+            _white.withValues(alpha: 0),
+            _white.withValues(alpha: 0),
+          ],
+          const [0, .22, .3, .35, .4, 1],
+          TileMode.clamp,
+          _bboxMatrix(_maskRect),
+        ),
+    );
+    canvas.restore();
+    canvas.restore();
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(MerkeFlatePainter old) => false;
+}

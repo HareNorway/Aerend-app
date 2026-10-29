@@ -30,6 +30,7 @@ import 'feed_icons.dart';
 import 'feed_post_card.dart';
 import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
+import '../kit/bergen_motion.dart' show BergenOnce;
 
 /// The Feed segment of Utforsk (`utfFeed`, L5466–5590 in `Ærend Kunde
 /// Launch.dc.html`, design px): the category orbs, the active-filter chip,
@@ -727,16 +728,24 @@ class FeedDriftNotice extends StatelessWidget {
     final until = '${note['pinned_until'] ?? ''}';
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: CssBox(
+      // 29 Oct: the same glass block as the post cards (5px edge, `spOpp`).
+      child: BergenOnce(
+        durationMs: 500,
+        builder: (context, p, child) {
+          final e = cssEaseOut.transform(p);
+          return Opacity(opacity: e, child: Transform.translate(offset: Offset(0, 12 * (1 - e)), child: child));
+        },
+        child: CssBox(
         key: const Key('a1_utforsk_drift'),
         radius: BorderRadius.circular(22),
-        bg: const [
-          CssLinear(160, [Color(0xFF25606F), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .6, 1]),
+        bg: [
+          CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .05)]),
         ],
-        border: Border.all(color: rgba(255, 255, 255, .18)),
         shadows: [
-          CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .26)),
-          CssShadow(0, 20, 34, -18, rgba(15, 31, 43, .7)),
+          CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
+          CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .1)),
+          CssShadow(0, 4, 0, 0, rgba(8, 28, 36, .45)),
+          CssShadow(0, 18, 24, -16, rgba(3, 14, 20, .8)),
         ],
         clip: true,
         child: Stack(
@@ -762,9 +771,16 @@ class FeedDriftNotice extends StatelessWidget {
                     width: 40,
                     height: 40,
                     radius: BorderRadius.circular(14),
-                    bg: [CssSolid(rgba(255, 255, 255, .14))],
-                    border: Border.all(color: rgba(255, 255, 255, .28)),
-                    shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .3))],
+                    // 29 Oct: a teal 3D tile.
+                    bg: const [
+                      CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1]),
+                    ],
+                    shadows: [
+                      CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .32)),
+                      CssShadow.inset(0, -3, 5, 0, rgba(4, 20, 28, .42)),
+                      CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .07)),
+                      CssShadow(0, 8, 10, -6, rgba(3, 16, 24, .8)),
+                    ],
                     child: Center(
                       child: SvgPicture.asset(
                         'assets/svgs/dashboard/ae_mark.svg',
@@ -814,6 +830,7 @@ class FeedDriftNotice extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

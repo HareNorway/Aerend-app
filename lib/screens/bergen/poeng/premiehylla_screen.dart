@@ -25,6 +25,7 @@ import 'poeng_feil.dart';
 import 'premie_ark.dart';
 import 'prize_art.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/laster_skjerm.dart';
 
 /// Premiehylla (`erPremier`, L7556–7707 in `Ærend Kunde Launch.dc.html`,
 /// design px): the floating back key and the points pill (the coin turning,
@@ -132,7 +133,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     if (claimed == true && mounted) _load();
   }
 
-  void _openVelger() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AegilVelgerScreen(api: _api))).then((_) => _load());
+  void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => AegilVelgerScreen(api: _api))).then((_) => _load());
 
   /// A claim's ticket, opened: how it is used, the code, how long it lasts.
   void _visClaim(PrizeClaim c, Prize? p) {
@@ -182,7 +183,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   static int _dagerIgjen(PrizeClaim c) => c.expiresAt == null ? 60 : math.max(0, c.expiresAt!.difference(DateTime.now()).inHours ~/ 24);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => BergenSkjermLaster(aktiv: _loading, navn: 'Ærend', child: _bygg(context));
+
+  Widget _bygg(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),
       body: LfFrame(

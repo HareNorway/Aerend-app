@@ -9,6 +9,7 @@ import '../kit/bergen_kit.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../kit/bergen_perf.dart';
+import '../kit/vann_overganger.dart';
 
 /// The design's Ark (`kVisArk` ≈L7333): the cream frosted sheet the Meg rows
 /// open — `rgba(245,243,239,.94)` + blur, 28px top corners, the title (19px),
@@ -107,16 +108,22 @@ Future<T?> showMegArk<T>(
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     barrierColor: const Color.fromRGBO(15, 25, 30, .5),
+    // Bergen 29 Oct (`arkOvergang` Bølge): up 520ms behind a wave edge, down
+    // 380ms (`ovBolgeInn` / `ovBolgeUt`); the wave itself is [BolgeArk].
     sheetAnimationStyle: AnimationStyle(
-      curve: const Cubic(.2, .9, .3, 1),
-      duration: BergenTokens.motion(context, const Duration(milliseconds: 300)),
-      reverseDuration: BergenTokens.motion(context, BergenTokens.motionBase),
+      curve: OvE.bolge,
+      duration: BergenTokens.motion(context, kBolgeInn),
+      reverseCurve: OvE.synk,
+      reverseDuration: BergenTokens.motion(context, kBolgeUt),
     ),
     builder: (ctx) {
       final ark = MegArkSkala(
-        child: StatefulBuilder(
-          builder: (ctx, setState) =>
-              MegArk(key: key, title: titleBuilder?.call() ?? title, subtitle: subtitleBuilder != null ? subtitleBuilder() : subtitle, body: body == null ? null : body(ctx, setState), fot: fot?.call(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
+        child: BolgeArk(
+          mork: mork,
+          child: StatefulBuilder(
+            builder: (ctx, setState) =>
+                MegArk(key: key, title: titleBuilder?.call() ?? title, subtitle: subtitleBuilder != null ? subtitleBuilder() : subtitle, body: body == null ? null : body(ctx, setState), fot: fot?.call(ctx, setState), primary: primaryBuilder?.call(ctx) ?? primary, secondary: secondary, mork: mork),
+          ),
         ),
       );
       return tastatur
@@ -134,7 +141,8 @@ Future<T?> showMegArk<T>(
 /// the backdrop fading in over 420 ms; closing lifts 10 px and drops below
 /// the edge (440 ms). Min Bio is the one sheet that does this. A modal bottom
 /// sheet cannot take the curve, so it is a route of its own; the keyboard
-/// pushes the sheet up.
+/// pushes the sheet up. Bergen 29 Oct: with `arkOvergang` Bølge (the
+/// default) the glide gives way to the wave (`ovBolgeInn`), as in the design.
 Future<T?> showMegArkGlid<T>(
   BuildContext context, {
   required String title,
@@ -148,8 +156,11 @@ Future<T?> showMegArkGlid<T>(
     _GlidRute<T>(
       still: still,
       builder: (ctx) => MegArkSkala(
-        child: StatefulBuilder(
-          builder: (ctx, setState) => MegArk(key: key, title: title, subtitle: subtitle, body: body(ctx, setState), primary: primaryBuilder(ctx), mork: true),
+        child: BolgeArk(
+          mork: true,
+          child: StatefulBuilder(
+            builder: (ctx, setState) => MegArk(key: key, title: title, subtitle: subtitle, body: body(ctx, setState), primary: primaryBuilder(ctx), mork: true),
+          ),
         ),
       ),
     ),
@@ -174,11 +185,13 @@ class _GlidRute<T> extends PopupRoute<T> {
   @override
   String? get barrierLabel => 'Lukk';
 
-  @override
-  Duration get transitionDuration => still ? Duration.zero : const Duration(milliseconds: 640);
+  bool get _bolge => BergenOverganger.ark == ArkOvergang.bolge;
 
   @override
-  Duration get reverseTransitionDuration => still ? Duration.zero : const Duration(milliseconds: 440);
+  Duration get transitionDuration => still ? Duration.zero : (_bolge ? kBolgeInn : const Duration(milliseconds: 640));
+
+  @override
+  Duration get reverseTransitionDuration => still ? Duration.zero : (_bolge ? kBolgeUt : const Duration(milliseconds: 440));
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) =>
@@ -194,7 +207,11 @@ class _GlidRute<T> extends PopupRoute<T> {
       builder: (context, child) {
         final v = animation.value;
         double frac, px, bak;
-        if (animation.status == AnimationStatus.reverse) {
+        if (_bolge) {
+          frac = bolgeArkSlide(animation);
+          px = 0;
+          bak = animation.status == AnimationStatus.reverse ? v : cssEaseOut.transform((v * 520 / 420).clamp(0.0, 1.0));
+        } else if (animation.status == AnimationStatus.reverse) {
           final e = _ut.transform(1 - v);
           frac = e < .18 ? 0 : 1.04 * (e - .18) / .82;
           px = e < .18 ? -10 * e / .18 : -10 * (1 - (e - .18) / .82);
