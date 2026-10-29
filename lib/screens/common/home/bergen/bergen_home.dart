@@ -405,6 +405,16 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }
           if (HjemHarness.rute case final r?) {
             final arg = HjemHarness.ruteArg;
+            if (HjemHarness.ruteVent case final ms?) {
+              HjemHarness.ruteVent = null;
+              Future.delayed(Duration(milliseconds: ms), () {
+                if (mounted) BergenRoutes.push<dynamic>(context, r, arguments: arg);
+              });
+              Future.delayed(Duration(milliseconds: ms + 3500), () {
+                if (HjemHarness.favPop case final id?) BergenFavHeart.demoBurst.value = id;
+              });
+              return;
+            }
             if (r == '/bergen/kundeservice' && arg is Map && arg['vis'] != null) {
               // The Hjelp sheet sits over Hjem, as Meg opens it.
               HjelpScreen.apne(context, initial: arg['vis'] == 'chat' ? HjelpState.chat : HjelpState.hub);

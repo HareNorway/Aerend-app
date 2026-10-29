@@ -274,6 +274,9 @@ abstract final class HjemHarness {
   /// first heart) 2.5s after the route opens; `arkLukk` closes Meg's
   /// `megArk` sheet after N ms (the Bølge sink).
   static int? ruteTilbake, favPop, arkLukk;
+
+  /// Wait this long (ms) before the `rute` push (the address is loaded by then).
+  static int? ruteVent;
   static String? draLaster;
 
   /// Bergen Step 9: heart these products first (`favProdukter`), through
@@ -382,7 +385,7 @@ abstract final class HjemHarness {
         vindu = false;
         borte = false;
         fane = null;
-        ruteTilbake = favPop = arkLukk = null;
+        ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
         adresse = null;
@@ -586,6 +589,7 @@ abstract final class HjemHarness {
       aegil = m['aegil'] as String?;
       rute = m['rute'] as String?;
       ruteTilbake = m['ruteTilbake'] as int?;
+      ruteVent = m['ruteVent'] as int?;
       favPop = m['favPop'] as int?;
       arkLukk = m['arkLukk'] as int?;
       draLaster = m['draLaster'] as String?;
