@@ -1592,7 +1592,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   child: BergenDraLaster(
                     aktiv: !_vindu,
                     flyttInnhold: false,
-                    topp: safeTop,
+                    // The puck comes down over the water, under the header
+                    // (the prototype measures from its scroller's top).
+                    topp: safeTop + _kHeroTop * s,
                     onY: _onPull,
                     onRefresh: _oppdaterAlt,
                     child: DecoratedBox(

@@ -289,10 +289,11 @@ class _VeilState extends State<_Veil> with SingleTickerProviderStateMixin {
     final fp = _e(const Cubic(.4, 0, .2, 1), p);
     final fyll = kf(fp, const [0, .28, .74, 1], const [0, 0, 1, 1]);
 
-    // Taps go through (the screen underneath is still loading, so there is
-    // nothing to hit yet); the design blocks them, which would also block
-    // the widget tests' taps.
+    // Taps are blocked while the screen is still loading (as the design
+    // does); once the data is in and the veil only leaves, they go through.
+    // (The ticker rebuilds every frame, so the release is seen at once.)
     return IgnorePointer(
+      ignoring: !widget.holder.value,
       child: Opacity(
         opacity: op.clamp(0, 1),
         child: Stack(
