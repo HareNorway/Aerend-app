@@ -52,7 +52,7 @@ class BergenDraLaster extends StatefulWidget {
   /// Where the scrollable's top edge is, from this widget's top (`top0`).
   final double topp;
 
-  /// Bouncing physics that stops at the top (the pull is drawn by us).
+  /// The platform's physics, stopped at the top (the pull is drawn by us).
   static const ScrollPhysics physics = _DraPhysics(parent: AlwaysScrollableScrollPhysics());
 
   /// Debug: `"demo"` plays the design's `ldrDemo` (a 620ms pull to 175 and
@@ -64,7 +64,9 @@ class BergenDraLaster extends StatefulWidget {
   State<BergenDraLaster> createState() => _BergenDraLasterState();
 }
 
-class _DraPhysics extends BouncingScrollPhysics {
+/// The platform's own physics (the iOS bounce, Android's clamp) with the top
+/// edge blocked, so the pull is drawn by us and the bottom stays as it was.
+class _DraPhysics extends ScrollPhysics {
   const _DraPhysics({super.parent});
 
   @override
@@ -74,7 +76,7 @@ class _DraPhysics extends BouncingScrollPhysics {
   double applyBoundaryConditions(ScrollMetrics position, double value) {
     if (value < position.pixels && position.pixels <= position.minScrollExtent) return value - position.pixels;
     if (value < position.minScrollExtent && position.minScrollExtent < position.pixels) return value - position.minScrollExtent;
-    return 0;
+    return super.applyBoundaryConditions(position, value);
   }
 }
 
