@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../onboarding/onb_maal.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
@@ -379,7 +380,11 @@ class _HjemHeroState extends State<HjemHero> {
               // Ægil hops over it (`aegPillTramp`).
               child: IgnorePointer(
                 ignoring: _intro,
-                child: _intro ? _tramp(_FjordfiskeKnapp(onTap: widget.onFjordfiske)) : _FjordfiskeKnapp(onTap: widget.onFjordfiske),
+                child: OnbMaal(
+                  id: 'fjordfiske',
+                  radius: 22,
+                  child: _intro ? _tramp(_FjordfiskeKnapp(onTap: widget.onFjordfiske)) : _FjordfiskeKnapp(onTap: widget.onFjordfiske),
+                ),
               ),
             ),
           // Forundringspose · vannet.

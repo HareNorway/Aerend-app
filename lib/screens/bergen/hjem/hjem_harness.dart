@@ -59,6 +59,11 @@ abstract final class HjemHarness {
   /// Switch to this tab a moment after loading.
   static int? fane;
 
+  /// Onboarding Step 1: start Ægil-runden at this step (0 = the intro), and
+  /// run it in reduced motion (`onbRolig`, the design's tweak).
+  static int? onbRunde;
+  static bool onbRolig = false;
+
   /// Focus this wheel slot.
   static int? hjul;
 
@@ -385,6 +390,8 @@ abstract final class HjemHarness {
         vindu = false;
         borte = false;
         fane = null;
+        onbRunde = null;
+        onbRolig = false;
         ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
@@ -503,6 +510,8 @@ abstract final class HjemHarness {
       vindu = m['vindu'] == true;
       borte = m['borte'] == true;
       fane = m['fane'] as int?;
+      onbRunde = (m['onbRunde'] as num?)?.toInt();
+      onbRolig = m['onbRolig'] == true;
       hjul = m['hjul'] as int?;
       adresse = m['adresse'] as String?;
       dekning = m['dekning'] as String?;

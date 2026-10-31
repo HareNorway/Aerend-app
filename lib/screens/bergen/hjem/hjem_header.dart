@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
+import '../onboarding/onb_maal.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Hjem · header (`visKromOver`, L2217) ────────────────────────────────────
@@ -76,7 +77,10 @@ class HjemHeader extends StatelessWidget {
             child: Semantics(
               button: true,
               label: 'Endre leveringsadresse',
-              child: LfPress(
+              child: OnbMaal(
+                id: 'adresse',
+                radius: 17,
+                child: LfPress(
                 dy: 2,
                 onTap: onAddress,
                 child: CssBox(
@@ -125,6 +129,7 @@ class HjemHeader extends StatelessWidget {
                     ],
                   ),
                 ),
+                )
               ),
             ),
           ),

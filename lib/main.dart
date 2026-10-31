@@ -26,6 +26,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'firebase_options.dart';
 import 'redux/store.dart';
 import 'screens/common/auth/launch/launch_onboarding.dart' show lfSetInviterName;
+import 'screens/bergen/onboarding/onb_lag.dart';
 import 'screens/common/login/login.dart';
 import 'screens/common/splash/splash.dart';
 import 'screens/common/vipps/vipps_login_link_handler.dart';
@@ -337,7 +338,14 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       child: child!,
                     )
                   : child!,
-              child: BergenPerfScope(child: appChild),
+              // Onboarding Step 1: Ægil-runden's layer over the whole app
+              // (tabs and pushed screens alike), the prototype's `data-rt-lag`.
+              child: BergenPerfScope(
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Stack(children: [appChild, const OnbLag()]),
+                ),
+              ),
             );
 
             return calmChild;

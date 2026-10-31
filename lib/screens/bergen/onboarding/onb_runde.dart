@@ -1,0 +1,602 @@
+import 'dart:async';
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:location/location.dart';
+
+import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
+import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
+import '../kit/bergen_toast.dart';
+import 'onb_maal.dart';
+import 'onb_steg.dart';
+
+/// Where the tour is in a step (`rt.fase`).
+enum OnbFase {
+  /// Moving to the next target (nothing marked yet).
+  flytter,
+
+  /// The card's content fades out before the step changes.
+  skifte,
+
+  /// Standing at the target, talking.
+  her,
+
+  /// The mission was done: sparks, Ægil hops, then the next step.
+  jubel,
+
+  /// A section stamp slams in and flies to the HUD.
+  stempel,
+
+  /// The done card.
+  ferdig,
+
+  /// The layer fades out.
+  ut,
+}
+
+/// Ægil-runden: the in-app tour (Onboarding plan §3 #1–#7, prototype
+/// `rt*` L16568–16963). One instance; the overlay [OnbLag] listens to it.
+///
+/// The engine owns the step table, the phase, the measured target and the
+/// timers. It finds the targets through [OnbMaalRegistry], switches tabs
+/// through the shell ([HomeMainV1State]) and scrolls targets into view. The
+/// 220 ms tracker (`rtSporTikk`) finishes missions, follows a target that
+/// moves, and repairs the run when the user wanders off.
+class OnbRunde extends ChangeNotifier {
+  OnbRunde._();
+
+  static final OnbRunde instance = OnbRunde._();
+
+  /// Onboarding Step 1 builds the layer and the Hjem section (steps 0–5);
+  /// the run ends softly after the «Trykk på Utforsk» mission until Step 2
+  /// adds the Utforsk → Meg sections, the stamp and the done card.
+  static int maksSteg = 6;
+
+  /// The design's `onbMinBio`: the Min Bio step exists (Step 3 reads the flag).
+  static bool bioPaa = true;
+
+  // ── State ──────────────────────────────────────────────────────────────
+  bool _aktiv = false;
+  int i = 0;
+  OnbFase fase = OnbFase.flytter;
+
+  /// The target as last measured (global px), null before it is found.
+  OnbMaalRekt? m;
+
+  /// Which anchor [m] belongs to (the `legg` step switches between two).
+  String? malId;
+
+  /// Step counter for the alternating A/B keyframes (`rt.n`).
+  int n = 0;
+  List<String> ferdigeSek = const [];
+  String? stempel;
+  bool stFly = false;
+  String? nySek;
+
+  /// The step before this one ended a section (longer text delay).
+  bool etterSt = false;
+
+  /// The run is in reduced motion (`onbRolig` / the still tier).
+  bool rolig = false;
+
+  /// The phone answered the position question (`pos`): `tillatt`, `avslatt`.
+  String? pos;
+
+  /// `_rtSesjon`: the run started once this session (Step 3 gates on it).
+  bool sesjon = false;
+
+  List<OnbSteg> _steg = const [];
+  Timer? _t, _spor, _typ, _bolge;
+  bool _bytter = false;
+  int _gjN = 0, _avvik = 0;
+  int _herT = 0, _navT = 0, _rullT = 0;
+  OnbMaalRekt? _malK, _stab, _rullM;
+  String? _malKId;
+  int _stabN = 0;
+
+  /// What the overlay should animate right now; bumps on every change.
+  int get rev => _rev;
+  int _rev = 0;
+
+  bool get aktiv => _aktiv;
+  List<OnbSteg> get steg => _steg;
+  OnbSteg? get naa => _aktiv && i < _steg.length ? _steg[i] : null;
+  int get antall => _steg.length;
+
+  /// The anchor the current step points at right now (`rt.mal`).
+  String? get malNaa => malId;
+
+  void _oppd() {
+    _rev++;
+    notifyListeners();
+  }
+
+  // ── Starting and stopping ──────────────────────────────────────────────
+
+  /// `rtStart`: closes nothing yet (sheets are Step 3), goes Hjem, then the
+  /// intro. [fra] = the step to start on (debug harness `onbRunde`).
+  void start({int fra = 0, bool? rolig}) {
+    _rydd();
+    sesjon = true;
+    if (rolig != null) this.rolig = rolig;
+    _steg = onbStegListe(bio: bioPaa, posisjonGitt: pos != null);
+    _aktiv = true;
+    i = 0;
+    fase = OnbFase.flytter;
+    m = null;
+    malId = null;
+    n = 0;
+    ferdigeSek = const [];
+    stempel = null;
+    stFly = false;
+    nySek = null;
+    etterSt = false;
+    _gjN = 0;
+    _avvik = 0;
+    _oppd();
+    final start = fra.clamp(0, math.min(_steg.length, maksSteg) - 1);
+    // The run opens on the start step's screen (Hjem for the intro).
+    final skjerm = _steg[start].skjerm;
+    if (skjermNaa() != skjerm) {
+      _navT = _naa();
+      Future<void>.delayed(Duration.zero, () => gaaSkjerm(skjerm));
+    }
+    _t = Timer(const Duration(milliseconds: 200), () {
+      if (start == 0) {
+        _finn(0, 0);
+      } else {
+        // The harness jumps straight to a step: the sections before it count as done.
+        final sek = _steg[start].sek;
+        final k = kOnbSeksjoner.indexWhere((x) => x.id == sek);
+        ferdigeSek = [for (var j = 0; j < k; j++) kOnbSeksjoner[j].id];
+        i = start;
+        _oppd();
+        _finn(start, 0);
+      }
+    });
+    debugPrint('ONB_RUNDE start $start');
+  }
+
+  void _rydd() {
+    _t?.cancel();
+    _spor?.cancel();
+    _typ?.cancel();
+    _bolge?.cancel();
+    _bytter = false;
+  }
+
+  /// `rtStopp`: gone at once (no fade).
+  void stopp() {
+    _rydd();
+    if (_aktiv) {
+      _aktiv = false;
+      m = null;
+      _oppd();
+    }
+  }
+
+  /// `rtLukk`: the whole layer fades out, then [etter].
+  void lukk([VoidCallback? etter]) {
+    if (!_aktiv) {
+      etter?.call();
+      return;
+    }
+    _rydd();
+    fase = OnbFase.ut;
+    _oppd();
+    _t = Timer(Duration(milliseconds: rolig ? 40 : 440), () {
+      stopp();
+      etter?.call();
+    });
+  }
+
+  // ── Steps ──────────────────────────────────────────────────────────────
+
+  /// `rtGaa`: content out, a stamp when the section changes, the screen
+  /// switch, then [_finn].
+  void gaa(int til) {
+    if (!_aktiv || til < 0 || _bytter) return;
+    if (til >= _steg.length || til >= maksSteg) return _ferdig();
+    _rydd();
+    _bytter = true;
+    _gjN = 0;
+    _avvik = 0;
+    final s = _steg[til], fra = _steg[i];
+    final frem = til > i && !fra.intro && fra.sek != s.sek;
+    fase = OnbFase.skifte;
+    _oppd();
+    _t = Timer(Duration(milliseconds: rolig ? 1 : 170), () {
+      _bytter = false;
+      void videre() {
+        if (!_aktiv) return;
+        final bytter = skjermNaa() != s.skjerm;
+        i = til;
+        fase = OnbFase.flytter;
+        if (bytter) m = null;
+        malId = null;
+        stempel = null;
+        stFly = false;
+        etterSt = frem;
+        _oppd();
+        if (bytter) {
+          _navT = _naa();
+          gaaSkjerm(s.skjerm);
+        }
+        _t = Timer(Duration(milliseconds: bytter ? 160 : 30), () => _finn(til, 0));
+      }
+
+      if (frem) {
+        _stempel(fra.sek, videre);
+      } else {
+        videre();
+      }
+    });
+  }
+
+  /// `rtStempel`: slams in (900 ms), flies to the HUD (520), the station pops (380).
+  void _stempel(String sek, VoidCallback etter) {
+    fase = OnbFase.stempel;
+    stempel = sek;
+    stFly = false;
+    _oppd();
+    _t = Timer(Duration(milliseconds: rolig ? 200 : 900), () {
+      if (!_aktiv) return;
+      stFly = true;
+      _oppd();
+      _t = Timer(Duration(milliseconds: rolig ? 40 : 520), () {
+        if (!_aktiv) return;
+        nySek = sek;
+        ferdigeSek = [...ferdigeSek.where((x) => x != sek), sek];
+        _oppd();
+        _t = Timer(Duration(milliseconds: rolig ? 40 : 380), etter);
+      });
+    });
+  }
+
+  /// `rtFinn`: wait for the screen and the target (up to 3 s), scroll it into
+  /// the band, mark the step seen, then talk.
+  void _finn(int steg, int forsok) {
+    if (!_aktiv || i != steg) return;
+    final s = _steg[steg];
+    final klar = skjermNaa() == s.skjerm && (s.mal == null || OnbMaalRegistry.har(s.mal!));
+    final ventNav = _naa() - _navT < 650;
+    if ((!klar || ventNav) && forsok < 30) {
+      _t = Timer(const Duration(milliseconds: 100), () => _finn(steg, forsok + 1));
+      return;
+    }
+    final id = _malIdFor(s);
+    var maal = id == null ? null : OnbMaalRegistry.maal(id);
+    if (id != null && OnbMaalRegistry.har(id)) {
+      final d = _rull(id);
+      if (d != 0 && _rullM != null) maal = _rullM;
+    }
+    if (maal != null && (maal.y + maal.h < 0 || maal.w < 2)) maal = null;
+    _herT = _naa();
+    _malK = null;
+    m = maal;
+    malId = id;
+    fase = OnbFase.her;
+    n++;
+    sett.add(s.id);
+    _oppd();
+    _sporStart(steg);
+    debugPrint('ONB_RUNDE ${s.id} her${maal == null ? ' (uten mål)' : ''}');
+  }
+
+  /// Seen steps (`sett`), for the state sync in Step 3.
+  final Set<String> sett = {};
+
+  String? _malIdFor(OnbSteg s) {
+    if (s.malAlt != null && OnbMaalRegistry.har(s.malAlt!)) return s.malAlt;
+    return s.mal;
+  }
+
+  /// The band a target is scrolled into, in global px: the prototype's
+  /// 90 … 640 of the 844 frame, shifted for the real status bar.
+  double Function()? bandLo, bandHi;
+
+  double _rull(String id) {
+    final lo = bandLo?.call() ?? 90, hi = bandHi?.call() ?? 640;
+    final d = OnbMaalRegistry.rull(id, lo: lo, hi: hi, rolig: rolig);
+    if (d == 0) {
+      _rullM = null;
+      return 0;
+    }
+    final r = OnbMaalRegistry.maal(id);
+    _rullM = r == null ? null : OnbMaalRekt(r.rect.shift(Offset(0, -d)), r.radius);
+    return d;
+  }
+
+  void _sporStart(int steg) {
+    _spor?.cancel();
+    _stab = null;
+    _stabN = 0;
+    _spor = Timer.periodic(const Duration(milliseconds: 220), (_) => _sporTikk(steg));
+  }
+
+  /// `rtSporTikk`.
+  void _sporTikk(int steg) {
+    if (!_aktiv || i != steg || fase != OnbFase.her) return;
+    final s = _steg[steg];
+    if (s.harOppdrag && oppdragFerdig(s)) return suksess(steg);
+    // The target changed within the step (the product sheet opened): wait
+    // until it stands still, then move the mark and say the other text.
+    final idNaa = _malIdFor(s);
+    if (idNaa != null && malId != null && idNaa != malId) {
+      final r = OnbMaalRegistry.maal(idNaa);
+      if (r == null || r.w < 2) {
+        _malK = null;
+        return;
+      }
+      if (_malK != null && _malKId == idNaa && _avstand(_malK!, r) < 6) {
+        _malK = null;
+        _herT = _naa();
+        _avvik = 0;
+        m = r;
+        malId = idNaa;
+        n++;
+        _oppd();
+        return;
+      }
+      _malK = r;
+      _malKId = idNaa;
+      return;
+    }
+    final siden = _naa() - _herT;
+    // Self-repair: the screen changed under the run, or the target is gone.
+    if (siden > 820) {
+      final feilSkjerm = skjermNaa() != s.skjerm, borte = s.mal != null && OnbMaalRegistry.maal(_malIdFor(s)!) == null;
+      _avvik = (feilSkjerm || borte) ? _avvik + 1 : 0;
+      if (_avvik >= (feilSkjerm ? 2 : 4) && _gjN < 3) {
+        _avvik = 0;
+        _gjN++;
+        return _gjenopprett(steg);
+      }
+    }
+    // Follow the target once it stands still; scroll it back in when it left the band.
+    if (s.mal != null && siden > 820) {
+      final id = _malIdFor(s)!;
+      final r = OnbMaalRegistry.maal(id);
+      final r0 = r ?? (OnbMaalRegistry.har(id) ? const OnbMaalRekt(Rect.fromLTWH(0, -9999, 0, 0), 22) : null);
+      if (r0 == null) {
+        _stab = null;
+        return;
+      }
+      final k = _stab;
+      _stab = r0;
+      if (k == null || _avstand(k, r0) >= 6) {
+        _stabN = 0;
+        return;
+      }
+      _stabN++;
+      if (_stabN >= 2 && _naa() - _rullT > 1200) {
+        final d = _rull(id);
+        if (d != 0 && _rullM != null) {
+          _rullT = _naa();
+          _stab = null;
+          _avvik = 0;
+          m = _rullM;
+          _oppd();
+          return;
+        }
+      }
+      if (r == null || r.w <= 1) return;
+      if (m == null || _avstand(m!, r) > 4) {
+        m = r;
+        _oppd();
+      }
+    }
+  }
+
+  double _avstand(OnbMaalRekt a, OnbMaalRekt b) =>
+      (a.x - b.x).abs() + (a.y - b.y).abs() + (a.w - b.w).abs() + (a.h - b.h).abs();
+
+  /// `rtGjenopprett`: softly back to the right screen and find the target again.
+  void _gjenopprett(int steg) {
+    if (!_aktiv || i != steg || _bytter) return;
+    final s = _steg[steg];
+    _spor?.cancel();
+    _bytter = true;
+    fase = OnbFase.skifte;
+    _oppd();
+    _t = Timer(Duration(milliseconds: rolig ? 1 : 170), () {
+      _bytter = false;
+      if (!_aktiv) return;
+      final bytter = skjermNaa() != s.skjerm;
+      fase = OnbFase.flytter;
+      m = null;
+      etterSt = false;
+      _oppd();
+      if (bytter) {
+        _navT = _naa();
+        gaaSkjerm(s.skjerm);
+      }
+      _t = Timer(Duration(milliseconds: bytter ? 160 : 30), () => _finn(steg, 0));
+    });
+  }
+
+  /// `rtSuksess`: the mission is done.
+  void suksess(int steg) {
+    _spor?.cancel();
+    if (!_aktiv) return;
+    fase = OnbFase.jubel;
+    _oppd();
+    debugPrint('ONB_RUNDE ${_steg[steg].id} fullført');
+    _t = Timer(Duration(milliseconds: rolig ? 300 : 1150), () => gaa(steg + 1));
+  }
+
+  /// «Neste» / a tap on the hole or the dim (never on a mission).
+  void neste() {
+    if (!_aktiv || fase != OnbFase.her) return;
+    final s = naa;
+    if (s == null || s.harOppdrag) return;
+    gaa(i + 1);
+  }
+
+  /// A tap on the dim: like «Neste», but not on the intro.
+  void bak() {
+    final s = naa;
+    if (s == null || s.intro) return;
+    neste();
+  }
+
+  /// «Tilbake»: skips the mission steps.
+  void tilbake() {
+    if (!_aktiv || fase != OnbFase.her) return;
+    final j = tilbakeTil(_steg, i);
+    if (j >= 1) gaa(j);
+  }
+
+  /// The step «Tilbake» lands on from [i]: the previous one that is not a
+  /// mission, never the intro (−1 when there is none).
+  static int tilbakeTil(List<OnbSteg> steg, int i) {
+    var j = i - 1;
+    while (j > 1 && steg[j].harOppdrag) {
+      j--;
+    }
+    return j >= 1 ? j : -1;
+  }
+
+  /// «Vis meg»: a navigation mission completes at once; another runs its
+  /// action ([autoHandler], set by the screen that owns the mission).
+  void visMeg() {
+    if (!_aktiv || fase != OnbFase.her) return;
+    final s = naa;
+    if (s == null || !s.harOppdrag) return;
+    if (s.navAuto) {
+      suksess(i);
+      return;
+    }
+    autoHandler?.call(s);
+  }
+
+  /// The action of a mission's «Vis meg» that is not a navigation (`legg`,
+  /// Step 2 sets it from the store screen).
+  void Function(OnbSteg s)? autoHandler;
+
+  /// «Hopp over» / the HUD's ×: `rtAvslutt`.
+  void avslutt() {
+    hoppet = !ferdig;
+    debugPrint('ONB_RUNDE hoppet over ved ${naa?.id}');
+    lukk();
+  }
+
+  bool hoppet = false, ferdig = false;
+
+  /// After the last step (or, in Step 1, after the Hjem section): `rtFerdig`
+  /// is the done card in Step 2; until then the run closes softly.
+  void _ferdig() {
+    if (maksSteg < _steg.length) {
+      debugPrint('ONB_RUNDE slutt (Onboarding Step 1 scope: Hjem section)');
+      ferdig = false;
+      lukk();
+      return;
+    }
+    ferdig = true;
+    _rydd();
+    _bytter = true;
+    final sist = _steg.last.sek;
+    fase = OnbFase.skifte;
+    _oppd();
+    _t = Timer(Duration(milliseconds: rolig ? 1 : 170), () {
+      _bytter = false;
+      _stempel(sist, () {
+        if (!_aktiv) return;
+        fase = OnbFase.ferdig;
+        stempel = null;
+        stFly = false;
+        ferdigeSek = [for (final x in kOnbSeksjoner) x.id];
+        _oppd();
+      });
+    });
+  }
+
+  // ── The action chip (step 1: the position) ─────────────────────────────
+
+  /// «Bruk posisjonen min»: the real OS prompt, the answer kept as `pos`
+  /// (decision D3). The toasts are the design's.
+  Future<void> handling(BuildContext context) async {
+    final s = naa;
+    if (s == null || s.handling == null) return;
+    try {
+      final loc = Location();
+      var p = await loc.hasPermission();
+      if (p == PermissionStatus.denied) p = await loc.requestPermission();
+      pos = (p == PermissionStatus.granted || p == PermissionStatus.grantedLimited) ? 'tillatt' : 'avslatt';
+    } catch (_) {
+      pos = 'avslatt';
+    }
+    _oppd();
+    final c = HomeMainV1State.current?.context ?? context;
+    if (c.mounted) showBergenToast(c, pos == 'tillatt' ? OnbCopy.posTillatt : OnbCopy.posAvslatt);
+  }
+
+  // ── Screens ────────────────────────────────────────────────────────────
+
+  /// Which design screen is up: `hjem` / `utforsk` / `kurv` / `meg` for the
+  /// shell's tabs, `butikk` for a pushed store, else `annet`.
+  String skjermNaa() {
+    final shell = HomeMainV1State.current;
+    if (shell == null || !shell.mounted) return 'annet';
+    final route = ModalRoute.of(shell.context);
+    if (route != null && !route.isCurrent) {
+      final top = _toppRute?.call();
+      if (top != null && top.startsWith('/bergen/butikk')) return 'butikk';
+      return 'annet';
+    }
+    return switch (shell.selectedPos) {
+      0 => 'hjem',
+      1 => 'utforsk',
+      2 => 'kurv',
+      3 => 'meg',
+      _ => 'annet',
+    };
+  }
+
+  /// The name of the route on top of the shell (set by the app's route
+  /// observer; null when unknown).
+  String? Function()? _toppRute;
+  set toppRute(String? Function() f) => _toppRute = f;
+
+  /// `gaa(s)`: back to the shell, then the tab. The store (Step 2) pushes.
+  void gaaSkjerm(String s) {
+    final shell = HomeMainV1State.current;
+    if (shell == null || !shell.mounted) return;
+    final nav = Navigator.of(shell.context);
+    final route = ModalRoute.of(shell.context);
+    if (route != null && !route.isCurrent) nav.popUntil((r) => r == route || r.isFirst);
+    final tab = switch (s) {
+      'hjem' => BergenTab.home.index,
+      'utforsk' => BergenTab.explore.index,
+      'kurv' => BergenTab.cart.index,
+      'meg' => BergenTab.me.index,
+      _ => -2,
+    };
+    if (tab >= 0) shell.switchToTab(tab);
+  }
+
+  /// `s.ferdig(st)`: the mission's condition. Navigation missions check the
+  /// screen; `legg` (Step 2) asks [kurvSum].
+  bool oppdragFerdig(OnbSteg s) => switch (s.id) {
+    'utforsk' => skjermNaa() == 'utforsk',
+    'tilkurv' => skjermNaa() == 'kurv',
+    'legg' => (kurvSum?.call() ?? 0) > _sum0,
+    _ => false,
+  };
+
+  /// The cart's sum, for the `legg` mission (Step 2 sets it).
+  double Function()? kurvSum;
+  final double _sum0 = 0;
+
+  int _naa() => DateTime.now().millisecondsSinceEpoch;
+
+  @visibleForTesting
+  void reset() {
+    stopp();
+    sesjon = false;
+    pos = null;
+    hoppet = ferdig = false;
+    sett.clear();
+    rolig = false;
+  }
+}

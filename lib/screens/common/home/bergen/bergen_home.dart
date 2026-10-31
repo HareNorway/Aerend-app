@@ -56,6 +56,8 @@ import '../home_dl.dart';
 import '../home_post_order_feedback.dart';
 import '../../../../networking/feed/feed_repo.dart';
 import '../../../bergen/adresse/adr_ark.dart' show AdrArkProve, visAdresseArk;
+import '../../../bergen/onboarding/onb_maal.dart';
+import '../../../bergen/onboarding/onb_runde.dart';
 import 'bergen_adr_kilde.dart';
 import 'bergen_cards.dart';
 import 'bergen_category_rad.dart';
@@ -341,6 +343,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }
           if (HjemHarness.hjul case final h?) setState(() => _hjulI = h);
           if (HjemHarness.vindu) _settVindu(true);
+          if (HjemHarness.onbRunde case final n?) {
+            OnbRunde.instance.start(fra: n, rolig: HjemHarness.onbRolig);
+          }
           final fane = HjemHarness.fane;
           if (fane != null) {
             debugPrint('HJEM_FANE');
@@ -2017,7 +2022,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           padding: EdgeInsets.only(top: 4 * s),
           child: lfFlow(
             390,
-            HjemKategoriHjul(
+            OnbMaal(
+              id: 'kategorirad',
+              child: HjemKategoriHjul(
               kategorier: [
                 for (var k = 0; k < 5; k++)
                   HjemHjulKat(
@@ -2038,6 +2045,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 if (c != null) _openCategory(c);
               },
               onSnart: _openSnart,
+              ),
             ),
           ),
         ),
@@ -2054,7 +2062,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 // delivered orders (the same data the screen reads).
                 ValueListenableBuilder<HurtigData?>(
                   valueListenable: HurtigKilde.cache,
-                  builder: (context, d, _) => HjemHurtigInngang(
+                  builder: (context, d, _) => OnbMaal(
+                    id: 'hurtig',
+                    radius: 26,
+                    child: HjemHurtigInngang(
                     linje: hurtigHjemLinje(d),
                     // Customer Step 14: the AI marks pill (design L2937) → «Bestill med en annen AI».
                     onAi: ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness ? () => AiArk.flyt(context, 'velg', fraHurtig: true) : null,
@@ -2064,6 +2075,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         _shell?.switchToTab(BergenTab.cart.index);
                       }
                     },
+                  ),
                   ),
                 ),
               ),
