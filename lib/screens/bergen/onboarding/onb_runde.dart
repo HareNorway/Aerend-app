@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
+
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 
+import '../../../utils/shared_pref_utill.dart' show prefGetInt, prefCartCount;
 import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
 import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
+import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import 'onb_maal.dart';
 import 'onb_steg.dart';
@@ -30,6 +34,10 @@ enum OnbFase {
   /// The done card.
   ferdig,
 
+  /// «Start å handle»: Ægil jumps out of the card onto the quay (the layer
+  /// runs the flight, then stops the run).
+  kai,
+
   /// The layer fades out.
   ut,
 }
@@ -47,10 +55,8 @@ class OnbRunde extends ChangeNotifier {
 
   static final OnbRunde instance = OnbRunde._();
 
-  /// Onboarding Step 1 builds the layer and the Hjem section (steps 0–5);
-  /// the run ends softly after the «Trykk på Utforsk» mission until Step 2
-  /// adds the Utforsk → Meg sections, the stamp and the done card.
-  static int maksSteg = 6;
+  /// A debug cap on the steps (tests); the whole run otherwise.
+  static int maksSteg = 1 << 20;
 
   /// The design's `onbMinBio`: the Min Bio step exists (Step 3 reads the flag).
   static bool bioPaa = true;
@@ -115,8 +121,10 @@ class OnbRunde extends ChangeNotifier {
 
   /// `rtStart`: closes nothing yet (sheets are Step 3), goes Hjem, then the
   /// intro. [fra] = the step to start on (debug harness `onbRunde`).
-  void start({int fra = 0, bool? rolig}) {
+  void start({int fra = 0, bool? rolig, String? auto}) {
     _rydd();
+    this.auto = auto;
+    _autoBrukt = false;
     sesjon = true;
     if (rolig != null) this.rolig = rolig;
     _steg = onbStegListe(bio: bioPaa, posisjonGitt: pos != null);
@@ -134,6 +142,7 @@ class OnbRunde extends ChangeNotifier {
     _gjN = 0;
     _avvik = 0;
     _oppd();
+    _antall0 = kurvAntall();
     final start = fra.clamp(0, math.min(_steg.length, maksSteg) - 1);
     // The run opens on the start step's screen (Hjem for the intro).
     final skjerm = _steg[start].skjerm;
@@ -218,10 +227,12 @@ class OnbRunde extends ChangeNotifier {
         stFly = false;
         etterSt = frem;
         _oppd();
+        _antall0 = kurvAntall();
         if (bytter) {
           _navT = _naa();
           gaaSkjerm(s.skjerm);
         }
+        _forbered(s.id);
         _t = Timer(Duration(milliseconds: bytter ? 160 : 30), () => _finn(til, 0));
       }
 
@@ -239,15 +250,19 @@ class OnbRunde extends ChangeNotifier {
     stempel = sek;
     stFly = false;
     _oppd();
+    final t0 = _naa();
+    debugPrint('ONB_RUNDE stempel $sek slam (rolig $rolig)');
     _t = Timer(Duration(milliseconds: rolig ? 200 : 900), () {
       if (!_aktiv) return;
       stFly = true;
       _oppd();
+      debugPrint('ONB_RUNDE stempel $sek fly +${_naa() - t0}');
       _t = Timer(Duration(milliseconds: rolig ? 40 : 520), () {
         if (!_aktiv) return;
         nySek = sek;
         ferdigeSek = [...ferdigeSek.where((x) => x != sek), sek];
         _oppd();
+        debugPrint('ONB_RUNDE stempel $sek ok +${_naa() - t0}');
         _t = Timer(Duration(milliseconds: rolig ? 40 : 380), etter);
       });
     });
@@ -260,6 +275,7 @@ class OnbRunde extends ChangeNotifier {
     final s = _steg[steg];
     final klar = skjermNaa() == s.skjerm && (s.mal == null || OnbMaalRegistry.har(s.mal!));
     final ventNav = _naa() - _navT < 650;
+    if (forsok == 4 && !klar) _forbered(s.id);
     if ((!klar || ventNav) && forsok < 30) {
       _t = Timer(const Duration(milliseconds: 100), () => _finn(steg, forsok + 1));
       return;
@@ -280,11 +296,51 @@ class OnbRunde extends ChangeNotifier {
     sett.add(s.id);
     _oppd();
     _sporStart(steg);
+    // Debug harness `onbAuto`: press the card's button by itself once.
+    // (`start` presses «Neste» / «Fullfør» here first; the done card then presses itself.)
+    if (kDebugMode && auto != null && !_autoBrukt && (auto == 'neste' || auto == 'vismeg' || auto == 'start')) {
+      _autoBrukt = true;
+      final a = auto;
+      Timer(const Duration(milliseconds: 1500), () {
+        if (!_aktiv || fase != OnbFase.her) return;
+        if (a == 'neste' || a == 'start') neste();
+        if (a == 'vismeg') visMeg();
+      });
+    }
     debugPrint('ONB_RUNDE ${s.id} her${maal == null ? ' (uten mål)' : ''}');
   }
 
+  /// Debug harness: `neste` | `vismeg` | `start` pressed by itself (see
+  /// `HjemHarness.onbAuto`); `start` is the done card's button, the layer
+  /// presses it.
+  String? auto;
+  bool _autoBrukt = false;
+
   /// Seen steps (`sett`), for the state sync in Step 3.
   final Set<String> sett = {};
+
+  /// What a screen does before its step is measured (`s.forbered`): Utforsk
+  /// switches to the feed / bag segment, Meg collapses the points card. The
+  /// screens register by step id while they are mounted.
+  final Map<String, VoidCallback> forbered = {};
+
+  /// Stores on screen (pushed `/bergen/butikk/…` routes), for [skjermNaa].
+  static int butikkerOppe = 0;
+
+  /// The store the Butikk section opens: the first open restaurant Hjem
+  /// shows (the design always rows to Burger King). Set by Hjem.
+  int? butikkId;
+
+  /// The quay Ægil is hidden while the kai-hopp flies (`skjul` / `vis`).
+  final ValueNotifier<bool> kaiSkjult = ValueNotifier<bool>(false);
+
+  void _forbered(String id) {
+    final f = forbered[id];
+    if (f == null) return;
+    try {
+      f();
+    } catch (_) {}
+  }
 
   String? _malIdFor(OnbSteg s) {
     if (s.malAlt != null && OnbMaalRegistry.har(s.malAlt!)) return s.malAlt;
@@ -411,6 +467,7 @@ class OnbRunde extends ChangeNotifier {
         _navT = _naa();
         gaaSkjerm(s.skjerm);
       }
+      _forbered(s.id);
       _t = Timer(Duration(milliseconds: bytter ? 160 : 30), () => _finn(steg, 0));
     });
   }
@@ -483,16 +540,16 @@ class OnbRunde extends ChangeNotifier {
 
   bool hoppet = false, ferdig = false;
 
-  /// After the last step (or, in Step 1, after the Hjem section): `rtFerdig`
-  /// is the done card in Step 2; until then the run closes softly.
+  /// After the last step: `rtFerdig` — the last section's stamp, then the
+  /// done card. (A debug cap below the table's length closes softly.)
   void _ferdig() {
     if (maksSteg < _steg.length) {
-      debugPrint('ONB_RUNDE slutt (Onboarding Step 1 scope: Hjem section)');
-      ferdig = false;
+      debugPrint('ONB_RUNDE slutt (maksSteg $maksSteg)');
       lukk();
       return;
     }
     ferdig = true;
+    debugPrint('ONB_RUNDE ferdig');
     _rydd();
     _bytter = true;
     final sist = _steg.last.sek;
@@ -509,6 +566,34 @@ class OnbRunde extends ChangeNotifier {
         _oppd();
       });
     });
+  }
+
+  /// «Start å handle» (`rtSlutt`): the run is done. With motion, the layer
+  /// plays the kai-hopp (fase `kai`) and stops the run when Ægil has landed;
+  /// otherwise the layer fades and Hjem comes back.
+  void slutt() {
+    if (!_aktiv || fase != OnbFase.ferdig) return;
+    ferdig = true;
+    hoppet = false;
+    debugPrint('ONB_RUNDE slutt');
+    if (rolig || !kaiHoppKan) {
+      lukk(() => gaaSkjerm('hjem'));
+      return;
+    }
+    _rydd();
+    fase = OnbFase.kai;
+    _oppd();
+    // The flight's 230 ms: Hjem comes back under Ægil.
+    _t = Timer(const Duration(milliseconds: 230), () => gaaSkjerm('hjem'));
+  }
+
+  /// The layer says whether it can fly (it needs the done card's Ægil).
+  bool kaiHoppKan = true;
+
+  /// The layer calls this when the kai-hopp has landed or gave up.
+  void kaiFerdig() {
+    kaiSkjult.value = false;
+    stopp();
   }
 
   // ── The action chip (step 1: the position) ─────────────────────────────
@@ -539,11 +624,7 @@ class OnbRunde extends ChangeNotifier {
     final shell = HomeMainV1State.current;
     if (shell == null || !shell.mounted) return 'annet';
     final route = ModalRoute.of(shell.context);
-    if (route != null && !route.isCurrent) {
-      final top = _toppRute?.call();
-      if (top != null && top.startsWith('/bergen/butikk')) return 'butikk';
-      return 'annet';
-    }
+    if (route != null && !route.isCurrent) return butikkerOppe > 0 ? 'butikk' : 'annet';
     return switch (shell.selectedPos) {
       0 => 'hjem',
       1 => 'utforsk',
@@ -553,17 +634,21 @@ class OnbRunde extends ChangeNotifier {
     };
   }
 
-  /// The name of the route on top of the shell (set by the app's route
-  /// observer; null when unknown).
-  String? Function()? _toppRute;
-  set toppRute(String? Function() f) => _toppRute = f;
-
-  /// `gaa(s)`: back to the shell, then the tab. The store (Step 2) pushes.
+  /// `gaa(s)`: back to the shell, then the tab; `butikk` pushes the store
+  /// (Menisk) over the shell when it is not already up.
   void gaaSkjerm(String s) {
     final shell = HomeMainV1State.current;
     if (shell == null || !shell.mounted) return;
     final nav = Navigator.of(shell.context);
     final route = ModalRoute.of(shell.context);
+    if (s == 'butikk') {
+      if (butikkerOppe > 0) return;
+      final id = butikkId;
+      if (id == null) return;
+      if (route != null && !route.isCurrent) nav.popUntil((r) => r == route || r.isFirst);
+      BergenRoutes.push<dynamic>(shell.context, '/bergen/butikk/$id');
+      return;
+    }
     if (route != null && !route.isCurrent) nav.popUntil((r) => r == route || r.isFirst);
     final tab = switch (s) {
       'hjem' => BergenTab.home.index,
@@ -580,13 +665,20 @@ class OnbRunde extends ChangeNotifier {
   bool oppdragFerdig(OnbSteg s) => switch (s.id) {
     'utforsk' => skjermNaa() == 'utforsk',
     'tilkurv' => skjermNaa() == 'kurv',
-    'legg' => (kurvSum?.call() ?? 0) > _sum0,
+    'legg' => kurvAntall() > _antall0,
     _ => false,
   };
 
-  /// The cart's sum, for the `legg` mission (Step 2 sets it).
-  double Function()? kurvSum;
-  final double _sum0 = 0;
+  /// The cart's line count, for the `legg` mission (the design compares the
+  /// sum; the count is what the app keeps at hand). Tests replace it.
+  int Function() kurvAntall = () {
+    try {
+      return prefGetInt(prefCartCount);
+    } catch (_) {
+      return 0;
+    }
+  };
+  int _antall0 = 0;
 
   int _naa() => DateTime.now().millisecondsSinceEpoch;
 
@@ -598,5 +690,8 @@ class OnbRunde extends ChangeNotifier {
     hoppet = ferdig = false;
     sett.clear();
     rolig = false;
+    kaiSkjult.value = false;
+    autoHandler = null;
+    butikkId = null;
   }
 }

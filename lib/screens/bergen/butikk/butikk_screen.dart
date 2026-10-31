@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../aegil/aegil_guide.dart';
 import 'package:flutter/services.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
@@ -62,6 +63,19 @@ class _ButikkScreenState extends State<ButikkScreen> {
   BergenStoreInfo? _store;
   bool _missing = false;
   final GlobalKey<RestaurantButikkBodyState> _bodyKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Onboarding Step 2: the tour knows a store is up (`skjerm === 'butikk'`).
+    OnbRunde.butikkerOppe++;
+  }
+
+  @override
+  void dispose() {
+    OnbRunde.butikkerOppe--;
+    super.dispose();
+  }
 
   OpsButikkApi get _api => widget.api ?? OpsButikkApi();
   OpsCustomerApi get _customer => widget.customerApi ?? OpsCustomerApi();

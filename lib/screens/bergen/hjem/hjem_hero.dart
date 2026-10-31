@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
@@ -342,8 +343,11 @@ class _HjemHeroState extends State<HjemHero> {
             width: aegW,
             height: aegW,
             child: IgnorePointer(
-              child: Opacity(
-                opacity: rearOp,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: OnbRunde.instance.kaiSkjult,
+                builder: (context, skjult, child) => Opacity(opacity: skjult ? 0 : rearOp, child: child),
+                child: OnbMaal(
+                id: 'kaiaeg',
                 child: vi
                     ? LfLoop(
                         // aegBob 3.4s
@@ -355,6 +359,7 @@ class _HjemHeroState extends State<HjemHero> {
                         alignment: Alignment.bottomCenter,
                         child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
                       ),
+                ),
               ),
             ),
           ),

@@ -64,6 +64,11 @@ abstract final class HjemHarness {
   static int? onbRunde;
   static bool onbRolig = false;
 
+  /// Step 2: after the start step is reached, press «Neste» / «Vis meg» /
+  /// «Start å handle» by itself 1.5 s later (`onbAuto`: neste | vismeg | start),
+  /// so the stamp, the done card and the kai-hopp can be shot without taps.
+  static String? onbAuto;
+
   /// Focus this wheel slot.
   static int? hjul;
 
@@ -392,6 +397,7 @@ abstract final class HjemHarness {
         fane = null;
         onbRunde = null;
         onbRolig = false;
+        onbAuto = null;
         ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
@@ -512,6 +518,7 @@ abstract final class HjemHarness {
       fane = m['fane'] as int?;
       onbRunde = (m['onbRunde'] as num?)?.toInt();
       onbRolig = m['onbRolig'] == true;
+      onbAuto = m['onbAuto'] as String?;
       hjul = m['hjul'] as int?;
       adresse = m['adresse'] as String?;
       dekning = m['dekning'] as String?;

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart' show Ticker;
 
 import '../../common/auth/launch/lf_css.dart' show kf, rad, cssEaseInOut, cssEaseOut;
 import '../../common/auth/launch/lf_motion.dart' show LfLoop, aegStaa;
@@ -45,6 +47,10 @@ class _OnbLagState extends State<OnbLag> {
   _Aeg? _a;
   int _gRev = -1, _aRev = -1;
 
+  /// The done card's Ægil, where the kai-hopp starts from.
+  final GlobalKey _ferdigAeg = GlobalKey();
+  Rect? _kaiFra;
+
   @override
   void initState() {
     super.initState();
@@ -75,7 +81,7 @@ class _OnbLagState extends State<OnbLag> {
     final steg = _r.naa!;
     final fase = _r.fase;
     final her = fase == OnbFase.her, jubel = fase == OnbFase.jubel, ferdig = fase == OnbFase.ferdig;
-    final stempel = fase == OnbFase.stempel, ut = fase == OnbFase.ut;
+    final stempel = fase == OnbFase.stempel, kai = fase == OnbFase.kai, ut = fase == OnbFase.ut || kai;
     final intro = steg.intro;
     final m = (ferdig || stempel || ut || intro) ? null : _r.m;
     final hull = onbHull(m, W, H, s);
@@ -108,6 +114,7 @@ class _OnbLagState extends State<OnbLag> {
     }
     final a = _a!;
     final kVis = !(ferdig || ut);
+    if (ferdig || ut) _g ??= _beregn(hull, false, steg, W, H, s, top, stor);
     final ab = _r.n.isOdd;
     final markOp = (her || jubel) && m != null;
     final hudSkjul = g.hudSkjul;
@@ -126,7 +133,9 @@ class _OnbLagState extends State<OnbLag> {
     return Positioned.fill(
       child: Material(
         type: MaterialType.transparency,
-        child: IgnorePointer(
+        child: Stack(
+          children: [
+        IgnorePointer(
         ignoring: ut,
         child: AnimatedOpacity(
           key: const Key('onb-lag'),
@@ -340,11 +349,42 @@ class _OnbLagState extends State<OnbLag> {
                     ),
                   ),
                 ),
-                // Step 2: the stamp and the done card go here.
+                // The section stamp: slams in, flies to its HUD station.
+                if (stempel && _r.stempel != null)
+                  _Stempel(
+                    key: ValueKey('st-${_r.stempel}'),
+                    s: s,
+                    W: W,
+                    H: H,
+                    top: top,
+                    sek: kOnbSeksjoner.firstWhere((x) => x.id == _r.stempel),
+                    k: kOnbSeksjoner.indexWhere((x) => x.id == _r.stempel),
+                    fly: _r.stFly,
+                    rolig: rolig,
+                  ),
+                // The done card.
+                if (ferdig)
+                  _FerdigKort(
+                    s: s,
+                    W: W,
+                    H: H,
+                    rolig: rolig,
+                    aegKey: _ferdigAeg,
+                    onStart: () {
+                      final rb = _ferdigAeg.currentContext?.findRenderObject();
+                      _kaiFra = rb is RenderBox && rb.attached && rb.hasSize ? (rb.localToGlobal(Offset.zero) & rb.size) : null;
+                      _r.kaiHoppKan = _kaiFra != null;
+                      _r.slutt();
+                    },
+                  ),
               ],
             ),
           ),
         ),
+        ),
+            // «Start å handle»: Ægil jumps out of the card onto the quay.
+            if (kai && _kaiFra != null) _KaiHopp(key: const ValueKey('kai'), fra: _kaiFra!, s: s, W: W, H: H, r: _r),
+          ],
         ),
       ),
     );
@@ -1316,9 +1356,10 @@ class _Kort extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(width: 7 * s),
-                              Text('ÆGIL · ${sekNavn.toUpperCase()}', style: onbDisplay(9.5 * s, letterSpacingEm: .1, color: _mintLys), maxLines: 1),
+                              // Flexible: the test font is wide, and 120 % text must not overflow the row.
+                              Flexible(child: Text('ÆGIL · ${sekNavn.toUpperCase()}', style: onbDisplay(9.5 * s, letterSpacingEm: .1, color: _mintLys), maxLines: 1, overflow: TextOverflow.ellipsis)),
                               const Spacer(),
-                              Text(teller, style: onbDisplay(10.5 * s, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .56))),
+                              Flexible(child: Text(teller, style: onbDisplay(10.5 * s, weight: FontWeight.w700, color: Colors.white.withValues(alpha: .56)), maxLines: 1, overflow: TextOverflow.ellipsis)),
                               if (visHopp)
                                 Padding(
                                   padding: EdgeInsets.only(left: 4 * s),
@@ -1878,4 +1919,871 @@ class _Draper extends StatelessWidget {
       ],
     ),
   );
+}
+
+
+// ── The section stamp ───────────────────────────────────────────────────────
+
+/// Slams in at the centre (`rtSlam .72s`, two ink rings, 12 sparks), then
+/// flies into its HUD station at scale .18 (`rtStTr`, .56 s) while the
+/// station pops (`rtStPop`, in the HUD).
+class _Stempel extends StatelessWidget {
+  const _Stempel({super.key, required this.s, required this.W, required this.H, required this.top, required this.sek, required this.k, required this.fly, required this.rolig});
+  final double s, W, H, top;
+  final OnbSek sek;
+  final int k;
+  final bool fly, rolig;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = 156 * s;
+    final cx = W / 2, cy = 400 * H / 844;
+    // The station's centre: HUD left 48 + pad 10 + k·52 + 14, top + 12 + 22.
+    final sx = (72 + 52 * k) * s, sy = top + 34 * s;
+    return Positioned(
+      left: cx - size / 2,
+      top: cy - size / 2,
+      width: size,
+      height: size,
+      child: IgnorePointer(
+        child: AnimatedOpacity(
+          opacity: fly ? 0 : 1,
+          duration: Duration(milliseconds: rolig ? 1 : 180),
+          curve: const Interval(.78, 1),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: fly ? 1 : 0),
+            duration: Duration(milliseconds: rolig ? 1 : 560),
+            curve: const Cubic(.55, -0.3, .7, 1),
+            builder: (context, f, child) => Transform.translate(
+              offset: Offset((sx - cx) * f, (sy - cy) * f),
+              child: Transform.scale(scale: 1 - .82 * f, child: child),
+            ),
+            child: OnbTimeline(
+              durationMs: rolig ? 1 : 1400,
+              builder: (context, t, _) {
+                final p = const Cubic(.2, 1.1, .4, 1).transform(onbP(t, 0, rolig ? 1 : 720));
+                final op = kf(p, const [0, .4, 1], const [0, 1, 1]);
+                final sk = kf(p, const [0, .4, .56, .72, 1], const [2.4, .92, 1.05, 1, 1]);
+                final rot = kf(p, const [0, .4, .56, .72, 1], const [-28, 5, -2, 0, 0]);
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    for (final (d, dur, c, w) in [(260.0, 800.0, _mint.withValues(alpha: .75), 3.0), (400.0, 900.0, Colors.white.withValues(alpha: .6), 2.0)])
+                      Builder(
+                        builder: (context) {
+                          final q = cssEaseOut.transform(onbP(t, rolig ? 0 : d, rolig ? 1 : dur));
+                          if (q <= 0 || q >= 1) return const SizedBox.shrink();
+                          return Positioned.fill(
+                            child: Transform.scale(
+                              scale: kf(q, const [0, 1], const [.7, 1.7]),
+                              child: Opacity(opacity: .8 * (1 - q), child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: c, width: w * s)))),
+                            ),
+                          );
+                        },
+                      ),
+                    if (!rolig)
+                      for (var j = 0; j < 12; j++)
+                        Positioned(
+                          left: size / 2,
+                          top: size / 2,
+                          child: Transform.rotate(
+                            angle: rad(j * 30.0),
+                            child: Builder(
+                              builder: (context) {
+                                final q = onbP(t, (j % 3) * 40, 800);
+                                final c = const Cubic(.2, .8, .3, 1).transform(q);
+                                return Transform.translate(
+                                  offset: Offset(-5 * s, -5 * s + kf(c, const [0, 1], const [-18, -100]) * s),
+                                  child: Opacity(
+                                    opacity: kf(q, const [0, .25, 1], const [0, 1, 0]),
+                                    child: Transform.scale(
+                                      scale: kf(c, const [0, 1], const [.4, 1]),
+                                      child: Container(width: 10 * s, height: 10 * s, decoration: BoxDecoration(shape: BoxShape.circle, color: const [_mint, Color(0xFFF26D3D), Color(0xFFF2C14E)][j % 3])),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: op,
+                        child: Transform.rotate(
+                          angle: rad(rot),
+                          child: Transform.scale(
+                            scale: sk,
+                            child: Transform.rotate(
+                              angle: rad(-8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const RadialGradient(center: Alignment(-.3, -.44), colors: [Color(0xFF3F8798), _teal, Color(0xFF143A45)], stops: [0, .58, 1]),
+                                  boxShadow: [
+                                    BoxShadow(color: Colors.black.withValues(alpha: .7), blurRadius: 36 * s, spreadRadius: -14 * s, offset: Offset(0, 22 * s)),
+                                    BoxShadow(color: _mint.withValues(alpha: .35), blurRadius: 40 * s),
+                                  ],
+                                ),
+                                foregroundDecoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: _mint, width: 4 * s),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(4 * s),
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: _teal, width: 5 * s)),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(5 * s),
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: _mint.withValues(alpha: .55), width: 1.5 * s)),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            _Ikon(sek.ikon, size: 38 * s, color: _mint, strokeWidth: 1.9),
+                                            SizedBox(height: 5 * s),
+                                            Text(sek.navn, style: onbDisplay(17 * s, letterSpacingEm: -.02)),
+                                            SizedBox(height: 5 * s),
+                                            Text(OnbCopy.stempelTatt.toUpperCase(), style: onbDisplay(9.5 * s, letterSpacingEm: .14, color: _mint)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── The done card ───────────────────────────────────────────────────────────
+
+class _FerdigKort extends StatefulWidget {
+  const _FerdigKort({required this.s, required this.W, required this.H, required this.rolig, required this.aegKey, required this.onStart});
+  final double s, W, H;
+  final bool rolig;
+  final GlobalKey aegKey;
+  final VoidCallback onStart;
+
+  @override
+  State<_FerdigKort> createState() => _FerdigKortState();
+}
+
+class _FerdigKortState extends State<_FerdigKort> {
+  Timer? _auto;
+
+  @override
+  void initState() {
+    super.initState();
+    // Debug harness `onbAuto: start`: «Start å handle» pressed by itself.
+    if (OnbRunde.instance.auto == 'start') _auto = Timer(const Duration(milliseconds: 2600), () => mounted ? widget.onStart() : null);
+  }
+
+  @override
+  void dispose() {
+    _auto?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.s, W = widget.W, H = widget.H, rolig = widget.rolig, aegKey = widget.aegKey, onStart = widget.onStart;
+    final konf = List.generate(26, (k) => (x: (k * 37 + 5) % 100 / 100, rot: ((k * 53) % 40) - 20.0, d: ((k * 7) % 10) / 12, dur: 2.2 + ((k * 13) % 10) / 8, c: const [Color(0xFFF26D3D), _mint, Color(0xFFF2C14E), Colors.white, Color(0xFF3F8798)][k % 5], w: 6.0 + (k % 3) * 2, h: 10.0 + (k % 4) * 2));
+    const rots = <double>[-8, 5, -4, 7, -6];
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // Confetti falling through the whole screen.
+          if (!rolig)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: ClipRect(
+                  child: OnbTimeline(
+                    durationMs: 5000,
+                    builder: (context, t, _) => Stack(
+                      children: [
+                        for (final k in konf)
+                          Builder(
+                            builder: (context) {
+                              final p = const Cubic(.3, .6, .5, 1).transform(onbP(t, k.d * 1000, k.dur * 1000));
+                              if (p <= 0) return const SizedBox.shrink();
+                              return Positioned(
+                                left: k.x * W,
+                                top: kf(p, const [0, 1], const [-60, 930]) * s,
+                                child: Transform.rotate(
+                                  angle: rad(k.rot + 720 * p),
+                                  child: Opacity(
+                                    opacity: 1 - .1 * p,
+                                    child: Container(width: k.w * s, height: k.h * s, decoration: BoxDecoration(borderRadius: BorderRadius.circular(2 * s), color: k.c)),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 22 * s),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 346 * s),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Rays behind the card.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: -176 * s,
+                      child: IgnorePointer(
+                        child: Center(
+                          child: SizedBox(
+                            width: 380 * s,
+                            height: 380 * s,
+                            child: LfLoop(
+                              builder: (context, ms, _) => Opacity(
+                                opacity: rolig ? 1 : onbP(ms, 200, 600),
+                                child: Transform.rotate(
+                                  angle: rolig ? 0 : rad(360 * ((ms / 16000) % 1.0)),
+                                  child: CustomPaint(painter: _StraaleMaler()),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    _KortInn(
+                      intro: !rolig,
+                      rolig: rolig,
+                      under: true,
+                      child: Container(
+                        key: const Key('onb-ferdig'),
+                        padding: EdgeInsets.fromLTRB(20 * s, 84 * s, 20 * s, 20 * s),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28 * s),
+                          gradient: const LinearGradient(
+                            begin: Alignment(-.6, -1),
+                            end: Alignment(.6, 1),
+                            colors: [Color.fromRGBO(48, 108, 124, .97), Color.fromRGBO(30, 79, 92, .98), Color.fromRGBO(21, 60, 72, .99)],
+                            stops: [0, .46, 1],
+                          ),
+                          border: Border.all(color: Colors.white.withValues(alpha: .16)),
+                          boxShadow: [
+                            BoxShadow(color: const Color.fromRGBO(6, 26, 34, .6), offset: Offset(0, 2 * s)),
+                            BoxShadow(color: Colors.black.withValues(alpha: .85), blurRadius: 46 * s, spreadRadius: -18 * s, offset: Offset(0, 30 * s)),
+                          ],
+                        ),
+                        foregroundDecoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28 * s),
+                          border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .28), width: 1.5 * s)),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(OnbCopy.ferdigTittel, textAlign: TextAlign.center, style: onbDisplay(25 * s, letterSpacingEm: -.025, height: 1.15)),
+                            SizedBox(height: 8 * s),
+                            Text(OnbCopy.ferdigTekst, textAlign: TextAlign.center, style: onbDisplay(14 * s, weight: FontWeight.w600, height: 1.45, color: Colors.white.withValues(alpha: .74))),
+                            SizedBox(height: 18 * s),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                for (var k = 0; k < kOnbSeksjoner.length; k++)
+                                  Flexible(
+                                    child: Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 4 * s),
+                                    child: OnbTimeline(
+                                      durationMs: rolig ? 1 : 1500,
+                                      builder: (context, t, child) {
+                                        final p = const Cubic(.2, 1.2, .4, 1).transform(onbP(t, rolig ? 0 : 550 + k * 120, rolig ? 1 : 450));
+                                        return Opacity(
+                                          opacity: kf(p, const [0, .7, 1], const [0, 1, 1]),
+                                          child: Transform.rotate(
+                                            angle: rad(kf(p, const [0, .7, 1], const [-20, 3, 0])),
+                                            child: Transform.scale(scale: kf(p, const [0, .7, 1], const [1.9, .94, 1]), child: child),
+                                          ),
+                                        );
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Transform.rotate(
+                                            angle: rad(rots[k]),
+                                            child: Container(
+                                              width: 46 * s,
+                                              height: 46 * s,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: const RadialGradient(center: Alignment(-.3, -.44), colors: [Color(0xFF3F8798), _teal], stops: [0, .6]),
+                                                border: Border.all(color: _mint, width: 2 * s),
+                                                boxShadow: [BoxShadow(color: _mint.withValues(alpha: .35), blurRadius: 14 * s), BoxShadow(color: Colors.black.withValues(alpha: .6), blurRadius: 14 * s, spreadRadius: -8 * s, offset: Offset(0, 8 * s))],
+                                              ),
+                                              child: Center(child: _Ikon(kOnbSeksjoner[k].ikon, size: 20 * s, color: _mint, strokeWidth: 2)),
+                                            ),
+                                          ),
+                                          SizedBox(height: 5 * s),
+                                          Text(kOnbSeksjoner[k].navn, style: onbDisplay(10 * s, color: _mintTekst), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                        ],
+                                      ),
+                                    ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 20 * s),
+                            _Trykk(
+                              key: const Key('onb-start'),
+                              onTap: onStart,
+                              dy: 2,
+                              child: Container(
+                                height: 52 * s,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], stops: [0, .56, 1]),
+                                  boxShadow: [
+                                    BoxShadow(color: const Color(0xFFB9441A), offset: Offset(0, 3 * s)),
+                                    BoxShadow(color: const Color.fromRGBO(185, 68, 26, .85), blurRadius: 14 * s, spreadRadius: -6 * s, offset: Offset(0, 9 * s)),
+                                  ],
+                                ),
+                                foregroundDecoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .4), width: 1.5 * s))),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(OnbCopy.startHandle, style: onbDisplay(15 * s)),
+                                    SizedBox(width: 8 * s),
+                                    _Ikon(_ikPil, size: 15 * s, color: Colors.white, strokeWidth: 2.8),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Ægil cheering over the card.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: -82 * s,
+                      child: IgnorePointer(
+                        child: Center(
+                          child: SizedBox(
+                            width: 146 * s,
+                            height: 146 * s,
+                            child: OnbTimeline(
+                              durationMs: rolig ? 1 : 3000,
+                              child: Image.asset('assets/images/aegil/voucher.png', key: aegKey, fit: BoxFit.contain),
+                              builder: (context, t, child) {
+                                if (rolig) return child!;
+                                final p = _e2.transform(onbP(t, 250, 850));
+                                var ty = kf(p, const [0, .62, 1], const [.9, -.05, 0]) * 146 * s;
+                                var sx = kf(p, const [0, .62, 1], const [.94, 1.02, 1]), sy = kf(p, const [0, .62, 1], const [1.03, .98, 1]);
+                                if (t >= 1150 && t < 2550) {
+                                  final q = _hopp.transform(((t - 1150) / 700) % 1.0);
+                                  sx *= kf(q, const [0, .2, .5, .8, 1], const [1, 1.08, .95, 1.04, 1]);
+                                  sy *= kf(q, const [0, .2, .5, .8, 1], const [1, .9, 1.06, .96, 1]);
+                                  ty += kf(q, const [0, .2, .5, .8, 1], const [0, 0, -22, 0, 0]) * s;
+                                }
+                                return Transform(
+                                  alignment: Alignment.bottomCenter,
+                                  transform: Matrix4.identity()..translateByDouble(0, ty, 0, 1)..scaleByDouble(sx, sy, 1, 1),
+                                  child: child,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// `repeating-conic-gradient` of mint rays, masked to a soft disc.
+class _StraaleMaler extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero), r = size.width / 2;
+    final sh = ui.Gradient.radial(c, r, [_mintLys.withValues(alpha: .3), _mintLys.withValues(alpha: .3), _mintLys.withValues(alpha: 0)], [0, .18, 1]);
+    final p = Paint()..shader = sh;
+    for (var a = 0.0; a < 360; a += 20) {
+      final path = Path()
+        ..moveTo(c.dx, c.dy)
+        ..arcTo(Rect.fromCircle(center: c, radius: r), rad(a - 90), rad(7), false)
+        ..close();
+      canvas.drawPath(path, p);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_StraaleMaler o) => false;
+}
+
+// ── The kai-hopp ────────────────────────────────────────────────────────────
+
+/// `rtKaiHopp`: Ægil crouches, jumps out of the done card with a pirouette
+/// (A, 580 ms), hovers while Hjem comes back under him (`vent`), double-jumps
+/// over the city to the quay Ægil's spot (B, 780 ms, turning to the water:
+/// the back face shows), lands with dust, a shock ring and sparks (L, 340 ms)
+/// and a pill «Klar til å handle!» — then he *is* the quay Ægil.
+class _KaiHopp extends StatefulWidget {
+  const _KaiHopp({super.key, required this.fra, required this.s, required this.W, required this.H, required this.r});
+  final Rect fra;
+  final double s, W, H;
+  final OnbRunde r;
+
+  @override
+  State<_KaiHopp> createState() => _KaiHoppState();
+}
+
+class _Gnist {
+  _Gnist(this.x, this.y, this.t0, this.c, this.z, this.jx, this.jy);
+  final double x, y, t0, z, jx, jy;
+  final Color c;
+}
+
+class _Sprut {
+  _Sprut(this.x, this.y, this.ex, this.ey, this.t0, this.c, this.z, this.rund);
+  final double x, y, ex, ey, t0, z;
+  final Color c;
+  final bool rund;
+}
+
+class _Ring {
+  _Ring(this.x, this.y, this.w, this.h, this.k0, this.c, this.dur, this.bw, this.t0);
+  final double x, y, w, h, k0, dur, bw, t0;
+  final Color c;
+}
+
+class _KaiHoppState extends State<_KaiHopp> with SingleTickerProviderStateMixin {
+  late final Ticker _tk;
+  double _t = 0;
+  String _fase = 'A';
+  double _tB = 0, _tL = 0, _e = .55, _mh = 0, _sistG = -1;
+  Offset? _M, _C;
+  OnbMaalRekt? _forr;
+  int _stabil = 0;
+  bool _slutt = false, _pill = false, _stov = false;
+  double _pillT = 0;
+  final List<_Gnist> _gn = [];
+  final List<_Sprut> _sp = [];
+  final List<_Ring> _ri = [];
+  final List<_Ring> _dust = [];
+  late final Offset _A, _K;
+  late final double _S;
+  static const _F = [Color(0xFF7FF0CB), Color(0xFFF2C14E), Color(0xFFF26D3D), Colors.white, _mint];
+  int _gi = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final s = widget.s;
+    _S = widget.fra.width;
+    _A = Offset(widget.fra.center.dx, widget.fra.bottom);
+    _K = Offset((_A.dx + 34 * s).clamp(120 * s, 270 * s).toDouble(), (_A.dy - 150 * s).clamp(160 * s, 236 * s).toDouble());
+    widget.r.kaiSkjult.value = true;
+    _tk = createTicker((d) {
+      _t = d.inMilliseconds.toDouble();
+      _tikk();
+      if (mounted) setState(() {});
+    })..start();
+  }
+
+  @override
+  void dispose() {
+    _tk.dispose();
+    super.dispose();
+  }
+
+  double _lerp(double a, double b, double f) => a + (b - a) * f;
+  double _cl(double v) => v.clamp(0.0, 1.0);
+  double _ut(double p) => 1 - math.pow(1 - p, 3).toDouble();
+  double _io(double p) => p * p * (3 - 2 * p);
+
+  void _gnist(double x, double y) {
+    final i = _gi++;
+    _gn.add(_Gnist(x, y, _t, _F[i % 5], (4 + (i % 3) * 1.7) * widget.s, ((i * 37) % 13) - 6.0, ((i * 53) % 11) - 5.0));
+  }
+
+  void _sprut(double x, double y, int n, double d0, double d1, double fra, double til) {
+    for (var j = 0; j < n; j++) {
+      final v = (fra + (til - fra) * (j + .5) / n) * math.pi / 180, d = d0 + ((j * 29) % 7) / 6 * (d1 - d0);
+      _sp.add(_Sprut(x, y, x + math.cos(v) * d, y + math.sin(v) * d, _t, _F[j % 5], (4 + (j % 3) * 1.6) * widget.s, j.isOdd));
+    }
+  }
+
+  void _ring(double x, double y, double w, double h, double k0, Color c, double dur, double bw) => _ri.add(_Ring(x, y, w, h, k0, c, dur, bw, _t));
+
+  // Where Ægil is drawn this frame.
+  double _x = 0, _y = 0, _sc = 1, _sx = 1, _sy = 1, _rz = 0, _ry = 0, _go = 0;
+  bool _spor = false;
+
+  void _tikk() {
+    if (_slutt) return;
+    final s = widget.s, t = _t;
+    const DA = 580.0, DB = 780.0, DL = 340.0;
+    var x = _A.dx, y = _A.dy, sc = 1.0, sx = 1.0, sy = 1.0, rz = 0.0, ry = 0.0, go = 0.0, spor = false;
+    if (_fase == 'A' && t >= DA) _fase = 'vent';
+    if (_fase == 'A') {
+      if (t < 150) {
+        final q = _ut(t / 150);
+        sx = 1 + .14 * q;
+        sy = 1 - .2 * q;
+      } else {
+        final q = _cl((t - 150) / (DA - 150)), u = _ut(q);
+        x = _lerp(_A.dx, _K.dx, _io(q));
+        y = _lerp(_A.dy, _K.dy, u);
+        sc = 1 - .18 * u;
+        if (q < .25) {
+          final f = _io(q / .25);
+          sx = _lerp(1.14, .9, f);
+          sy = _lerp(.8, 1.14, f);
+        } else {
+          final f = _io(_cl((q - .25) / .45));
+          sx = _lerp(.9, 1, f);
+          sy = _lerp(1.14, 1, f);
+        }
+        rz = 7 * math.sin(math.pi * q);
+        ry = 360 * _ut(q);
+        go = .6 * _cl(q * 2.2);
+        spor = q < .9;
+        if (q < .06 && !_stov) {
+          _stov = true;
+          _ring(_A.dx, _A.dy - 3 * s, 90 * s, 22 * s, .2, Colors.white.withValues(alpha: .7), 460, 1.5);
+        }
+      }
+    }
+    if (_fase == 'vent') {
+      x = _K.dx;
+      y = _K.dy + math.sin((t - DA) / 240) * 3.2 * s;
+      sc = .82;
+      ry = 360;
+      go = .6;
+      final r = widget.r.skjermNaa() == 'hjem' ? OnbMaalRegistry.maal('kaiaeg') : null;
+      if (r != null && r.w > 4) {
+        _stabil = _forr != null && (_forr!.x - r.x).abs() + (_forr!.y - r.y).abs() + (_forr!.w - r.w).abs() < .6 ? _stabil + 1 : 0;
+        _forr = r;
+      }
+      if (r != null && r.w > 4 && _stabil >= 3) {
+        if (r.y + r.h < 40 * s || r.y > widget.H - 24 * s) return _bort();
+        _M = Offset(r.x + r.w / 2, r.y + r.h);
+        _mh = r.h;
+        _e = r.w / _S;
+        _C = Offset((_K.dx + _M!.dx) / 2, math.max(70 * s, math.min(_K.dy, _M!.dy) - 120 * s));
+        _fase = 'B';
+        _tB = t;
+        _ring(_K.dx, _K.dy - 2 * s, 86 * s, 24 * s, .15, _mintLys.withValues(alpha: .9), 460, 2);
+        _sprut(_K.dx, _K.dy - 4 * s, 6, 14 * s, 26 * s, 40, 140);
+      } else if (t > DA + 1700) {
+        return _bort();
+      }
+    }
+    if (_fase == 'B') {
+      final p = _cl((t - _tB) / DB), f = p * p * (2.2 - 1.2 * p), a1 = 1 - f;
+      final M = _M!, C = _C!;
+      x = a1 * a1 * _K.dx + 2 * a1 * f * C.dx + f * f * M.dx;
+      y = a1 * a1 * _K.dy + 2 * a1 * f * C.dy + f * f * M.dy;
+      sc = _lerp(.82, _e, _io(p));
+      ry = 360 + 180 * _io(_cl((p - .08) / .64));
+      rz = 12 * math.sin(math.pi * p) * (M.dx >= _K.dx ? 1 : -1);
+      go = _lerp(.6, .18, p);
+      spor = p < .94;
+      if (p < .2) {
+        final k = math.sin(math.pi * p / .2);
+        sy = 1 + .12 * k;
+        sx = 1 - .07 * k;
+      } else if (p > .78) {
+        final k = (p - .78) / .22;
+        sy = 1 + .1 * k;
+        sx = 1 - .06 * k;
+      }
+      if (p >= 1) {
+        _fase = 'L';
+        _tL = t;
+        _lande();
+      }
+    }
+    if (_fase == 'L') {
+      final q = _cl((t - _tL) / DL);
+      x = _M!.dx;
+      y = _M!.dy;
+      sc = _e;
+      ry = 540;
+      go = .18 * (1 - q);
+      if (q < .28) {
+        final f = _ut(q / .28);
+        sx = _lerp(.94, 1.22, f);
+        sy = _lerp(1.1, .76, f);
+      } else if (q < .64) {
+        final f = _io((q - .28) / .36);
+        sx = _lerp(1.22, .96, f);
+        sy = _lerp(.76, 1.05, f);
+      } else {
+        final f = _io((q - .64) / .36);
+        sx = _lerp(.96, 1, f);
+        sy = _lerp(1.05, 1, f);
+      }
+      if (q >= 1) {
+        _x = x;
+        _y = y;
+        _sc = sc;
+        _sx = _sy = 1;
+        _rz = 0;
+        _ry = 540;
+        _go = 0;
+        return _avslutt();
+      }
+    }
+    _x = x;
+    _y = y;
+    _sc = sc;
+    _sx = sx;
+    _sy = sy;
+    _rz = rz;
+    _ry = ry;
+    _go = go;
+    _spor = spor;
+    if (spor && t - _sistG > 34) {
+      _sistG = t;
+      _gnist(x, y - _S * sc * .42);
+    }
+  }
+
+  void _lande() {
+    final s = widget.s, M = _M!, fy = M.dy - 3 * s;
+    _ring(M.dx, fy, 120 * s, 28 * s, .15, _mintLys.withValues(alpha: .95), 620, 2.5);
+    _ring(M.dx, fy, 76 * s, 18 * s, .2, Colors.white.withValues(alpha: .75), 480, 1.5);
+    _sprut(M.dx, fy - 8 * s, 12, 26 * s, 50 * s, -172, -8);
+    for (var j = 0; j < 6; j++) {
+      final sgn = j.isOdd ? 1 : -1, dx = sgn * (10 + j * 4.5) * s, z = (10 + (j % 3) * 3) * s;
+      _dust.add(_Ring(M.dx, fy, z, z, .3, const Color.fromRGBO(240, 230, 212, .9), 560, dx, _t - ((j % 3) * 3) * s));
+    }
+    _pill = true;
+    _pillT = _t;
+  }
+
+  void _avslutt() {
+    _slutt = true;
+    // The pill lingers (460 + 1500 + 380 ms) after the landing; the layer is
+    // already gone for the user, so hand over at once.
+    Future<void>.delayed(const Duration(milliseconds: 2400), () {
+      if (mounted) widget.r.kaiFerdig();
+    });
+    widget.r.kaiSkjult.value = false;
+  }
+
+  void _bort() {
+    _slutt = true;
+    _sprut(_x, _y - _S * .4, 10, 18 * widget.s, 40 * widget.s, 0, 360);
+    _fase = 'bort';
+    _tL = _t;
+    Future<void>.delayed(const Duration(milliseconds: 760), () {
+      if (mounted) widget.r.kaiFerdig();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.s, S = _S;
+    final foran = math.cos(_ry * math.pi / 180) >= 0;
+    final bortOp = _fase == 'bort' ? (1 - _cl((_t - _tL) / 320)) : 1.0;
+    final goOp = _go.clamp(0.0, 1.0);
+    final visAeg = !(_slutt && _fase != 'bort');
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned.fill(child: CustomPaint(painter: _KaiFxMaler(_gn, _sp, _ri, _dust, _t, s))),
+            if (visAeg)
+              // A box 2S × 1.3S with Ægil's feet at its bottom centre: the
+              // transforms pivot there, the glow sits behind his body.
+              Positioned(
+                left: _x - S,
+                top: _y - S * 1.3,
+                width: 2 * S,
+                height: S * 1.3,
+                child: Opacity(
+                  opacity: bortOp,
+                  child: Transform(
+                    alignment: Alignment.bottomCenter,
+                    transform: Matrix4.identity()
+                      ..rotateZ(rad(_rz))
+                      ..scaleByDouble(_sc * _sx * (_fase == 'bort' ? 1 - .6 * (1 - bortOp) : 1), _sc * _sy * (_fase == 'bort' ? 1 - .6 * (1 - bortOp) : 1), 1, 1),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Positioned(
+                          left: S * .38,
+                          top: S * .22,
+                          width: S * 1.24,
+                          height: S * 1.24,
+                          child: Opacity(
+                            opacity: goOp,
+                            child: const DecoratedBox(
+                              decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [Color.fromRGBO(127, 240, 203, .6), Color.fromRGBO(92, 224, 184, .2), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .55, 1])),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: S * .5,
+                          top: S * .3,
+                          width: S,
+                          height: S,
+                          child: Transform(
+                            alignment: Alignment.center,
+                            transform: Matrix4.identity()..setEntry(3, 2, 1 / (720 * s))..rotateY(rad(_ry)),
+                            child: foran
+                                ? Image.asset('assets/images/aegil/voucher.png', fit: BoxFit.contain)
+                                : Transform(alignment: Alignment.center, transform: Matrix4.diagonal3Values(-1, 1, 1), child: Image.asset('assets/images/dashboard/rear.png', fit: BoxFit.contain)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (_pill && _M != null)
+              Builder(
+                builder: (context) {
+                  final q = _t - _pillT;
+                  final inn = const Cubic(.3, 1.2, .5, 1).transform(_cl((q - 140) / 460));
+                  final utP = const Cubic(.42, 0, 1, 1).transform(_cl((q - 140 - 460 - 1500) / 380));
+                  if (q < 140 || utP >= 1) return const SizedBox.shrink();
+                  // The spring curve overshoots 1: the opacity is clamped, the scale keeps the bounce.
+                  final op = (inn * (1 - utP)).clamp(0.0, 1.0), sk = kf(inn, const [0, .6, 1], const [.55, 1.07, 1]), dy = kf(inn, const [0, .6, 1], const [10, -2, 0]) - 12 * utP;
+                  return Positioned(
+                    left: 12 * s,
+                    right: 12 * s,
+                    top: math.max(52 * s, _M!.dy - _mh - 32 * s - 12 * s) + dy * s,
+                    child: Align(
+                      alignment: Alignment((_M!.dx / widget.W) * 2 - 1, 0),
+                      child: Opacity(
+                        opacity: op,
+                        child: Transform.scale(
+                          scale: sk,
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            padding: EdgeInsets.fromLTRB(6 * s, 6 * s, 13 * s, 6 * s),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(999),
+                              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(40, 94, 108, .97), Color.fromRGBO(20, 56, 68, .98)]),
+                              border: Border.all(color: Colors.white.withValues(alpha: .18)),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .75), blurRadius: 20 * s, spreadRadius: -10 * s, offset: Offset(0, 12 * s))],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 20 * s,
+                                  height: 20 * s,
+                                  decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF8CF5D5), Color(0xFF3CC79F)]), boxShadow: [BoxShadow(color: _mint.withValues(alpha: .6), blurRadius: 10 * s)]),
+                                  child: Center(child: _Ikon(_ikHak, size: 11 * s, color: const Color(0xFF0F3B33), strokeWidth: 3.4)),
+                                ),
+                                SizedBox(width: 7 * s),
+                                Text(OnbCopy.klarTilAaHandle, style: onbDisplay(12.5 * s, letterSpacingEm: -.01)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _KaiFxMaler extends CustomPainter {
+  _KaiFxMaler(this.gn, this.sp, this.ri, this.dust, this.t, this.s);
+  final List<_Gnist> gn;
+  final List<_Sprut> sp;
+  final List<_Ring> ri, dust;
+  final double t, s;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint();
+    for (final g in gn) {
+      final q = ((t - g.t0) / 660).clamp(0.0, 1.0);
+      if (q >= 1) continue;
+      final c = const Cubic(.2, .7, .4, 1).transform(q);
+      final x = g.x + g.jx * s * (1 + .8 * c), y = g.y + g.jy * s + 18 * s * c;
+      final z = g.z * (1 - .85 * c);
+      canvas.save();
+      canvas.translate(x, y);
+      canvas.rotate(rad(45 + 115 * c));
+      p
+        ..color = g.c.withValues(alpha: 1 - q)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2 * s);
+      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: z, height: z), Radius.circular(1.5 * s)), p);
+      canvas.restore();
+    }
+    for (final k in sp) {
+      final q = ((t - k.t0) / 760).clamp(0.0, 1.0);
+      if (q >= 1) continue;
+      final c = const Cubic(.15, .8, .35, 1).transform(q);
+      final f = c < .55 ? c / .55 : 1.0;
+      final x = k.x + (k.ex - k.x) * f, y = k.y + (k.ey - k.y) * f + (c > .55 ? 14 * s * (c - .55) / .45 : 0);
+      final sk = c < .55 ? .4 + .6 * f : 1 - .7 * (c - .55) / .45, op = c < .55 ? 1.0 : 1 - (c - .55) / .45;
+      p
+        ..color = k.c.withValues(alpha: op.clamp(0, 1))
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2.5 * s);
+      final z = k.z * sk;
+      if (k.rund) {
+        canvas.drawCircle(Offset(x, y), z / 2, p);
+      } else {
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset(x, y), width: z, height: z), Radius.circular(1.5 * s)), p);
+      }
+    }
+    for (final r in ri) {
+      final q = ((t - r.t0) / r.dur).clamp(0.0, 1.0);
+      if (q >= 1) continue;
+      final c = const Cubic(.2, .8, .3, 1).transform(q);
+      final k = r.k0 + (1 - r.k0) * c;
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(r.x, r.y), width: r.w * k, height: r.h * k),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = r.bw * s
+          ..color = r.c.withValues(alpha: r.c.a * (.95 - .95 * c)),
+      );
+    }
+    for (final d in dust) {
+      final q = ((t - d.t0) / d.dur).clamp(0.0, 1.0);
+      if (q >= 1) continue;
+      final c = const Cubic(.2, .8, .3, 1).transform(q);
+      final x = d.x + d.bw * c, y = d.y - 7 * s * c, z = d.w * (.3 + 1.2 * c);
+      canvas.drawCircle(Offset(x, y), z / 2, Paint()..shader = ui.Gradient.radial(Offset(x, y), z / 2, [d.c.withValues(alpha: .95 * (1 - c)), d.c.withValues(alpha: 0)]));
+    }
+  }
+
+  @override
+  bool shouldRepaint(_KaiFxMaler o) => true;
 }

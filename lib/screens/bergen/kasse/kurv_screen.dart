@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../onboarding/onb_maal.dart';
 
 import '../../../data/ops/fee_quote.dart';
 import '../../../data/ops/kasse_models.dart';
@@ -991,7 +992,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 left: 16 * s,
                 right: 16 * s,
                 bottom: bottom,
-                child: KurvBetal(key: _betalKey, total: _total(cart), busy: _placing, onPay: _pay),
+                child: OnbMaal(id: 'betspor', radius: 30, child: KurvBetal(key: _betalKey, total: _total(cart), busy: _placing, onPay: _pay)),
               ),
             // The Ægil-guide (L9495): what is missing to free delivery.
             if (cart != null)
@@ -1106,7 +1107,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(height: 10 * s),
-        KurvModus(pickup: _pickup, onMode: (m) => setState(() => _pickup = m)),
+        OnbMaal(id: 'levhent', radius: 30, child: KurvModus(pickup: _pickup, onMode: (m) => setState(() => _pickup = m))),
         SizedBox(height: 12 * s),
         KurvGlass(
           key: const Key('a1_kasse_linjer'),
@@ -1186,7 +1187,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               // Customer Step 9 (C1): the gift picked with Ægil rides with this store's order.
               if (GiftPending.current case final g? when g.storeId == cart.storeId)
                 KvGave(navn: g.name, til: g.toLabel, kort: g.cardText),
-              KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more)),
+              OnbMaal(id: 'flere', radius: 22, child: KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more))),
             ],
           ),
         ),

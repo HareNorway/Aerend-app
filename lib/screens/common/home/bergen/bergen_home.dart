@@ -344,7 +344,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (HjemHarness.hjul case final h?) setState(() => _hjulI = h);
           if (HjemHarness.vindu) _settVindu(true);
           if (HjemHarness.onbRunde case final n?) {
-            OnbRunde.instance.start(fra: n, rolig: HjemHarness.onbRolig);
+            OnbRunde.instance.start(fra: n, rolig: HjemHarness.onbRolig, auto: HjemHarness.onbAuto);
           }
           final fane = HjemHarness.fane;
           if (fane != null) {
@@ -1547,6 +1547,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 }
                 final explore = _lastExplore;
                 final stores = _storesFor(focused, explore);
+                // Onboarding Step 2: the tour's Butikk section rows to the first open restaurant.
+                if (_hjulI == 0 && stores.isNotEmpty) OnbRunde.instance.butikkId = stores.first.id;
                 final products = _products(swipe, focused);
                 final floats = _floats(swipe);
 

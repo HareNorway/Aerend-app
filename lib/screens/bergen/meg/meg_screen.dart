@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 
@@ -138,6 +140,15 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 2: the tour's `poeng` step wants the points card collapsed first (`forbered`).
+    OnbRunde.instance.forbered['poeng'] = () {
+      if (mounted && _poengApen) setState(() => _poengApen = false);
+    };
+    // Meg's list is lazy: the AI row near the bottom exists only once scrolled to, so
+    // the `ai` step first jumps the list down (the tour then scrolls it into its band).
+    OnbRunde.instance.forbered['ai'] = () {
+      if (mounted && _rull.hasClients) _rull.jumpTo(_rull.position.maxScrollExtent);
+    };
     // Meg opens with what it showed last (same user) and refreshes quietly;
     // the spinner is only for the very first load.
     final c = _brukerCache ? _MegCache.forUser(prefGetInt(prefUserId)) : null;
@@ -157,6 +168,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   @override
   void dispose() {
+    OnbRunde.instance.forbered.remove('poeng');
+    OnbRunde.instance.forbered.remove('ai');
     BergenFaneBytte.aktiv.removeListener(_faneVist);
     _rull.dispose();
     super.dispose();
@@ -836,12 +849,15 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               MegGullBillett(kode: code, linje: A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
                               // --- Min Bio (L7458) --------------------------------------
                               const SizedBox(height: 14),
-                              MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio),
+                              OnbMaal(id: 'bio', radius: 24, child: MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio)),
                               if (borte != null) ...[const SizedBox(height: 12), borte],
                               // --- Poeng, nivå og konkurranser (L7480) -------------------
                               if (b != null) ...[
                                 const SizedBox(height: 14),
-                                MegPoengKort(
+                                OnbMaal(
+                                  id: 'poeng',
+                                  radius: 24,
+                                  child: MegPoengKort(
                                   key: ValueKey('poeng-$_poengApen'),
                                   apen: _poengApen,
                                   poeng: b.available,
@@ -900,7 +916,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                )),
                               ],
                               // --- kMegRader (L7604–7627) --------------------------------
                               const SizedBox(height: 12),
@@ -943,13 +959,16 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   // Customer Step 14: «Bestill via AI-assistent» and «Koblede assistenter»,
                                   // after Varsler as in the design's list (behind the AI-linking flag).
                                   if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
-                                    _Rad(
+                                    OnbMaal(
+                                      id: 'ai',
+                                      radius: 18,
+                                      child: _Rad(
                                       key: const Key('cus-meg-rad-ai'),
                                       tile: const _GlassTile(rot: -3, d: AiIk.kobling),
                                       navn: AiCopy.cus_ai_meg_rad,
                                       under: AiCopy.cus_ai_meg_rad_sub,
                                       onTap: () => AiArk.flyt(context, 'inngang'),
-                                    ),
+                                    )),
                                   if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
                                     ListenableBuilder(
                                       listenable: AiStore.instance,

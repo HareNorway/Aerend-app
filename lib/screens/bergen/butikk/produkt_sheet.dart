@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../onboarding/onb_maal.dart';
 
 import '../../../data/ops/favourite_products.dart';
 import '../../../data/ops/butikk_models.dart';
@@ -948,7 +949,10 @@ class _BottomBar extends StatelessWidget {
                   ),
                   SizedBox(width: 10 * s),
                   Expanded(
-                    child: OnbPressable(
+                    child: OnbMaal(
+                      id: 'legg-ark',
+                      radius: 26,
+                      child: OnbPressable(
                       key: const Key('a1_butikk_produkt_legg'),
                       onTap: onAdd,
                       pressDy: 2,
@@ -1027,7 +1031,7 @@ class _BottomBar extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
+                    )),
                   ),
                 ],
               ),

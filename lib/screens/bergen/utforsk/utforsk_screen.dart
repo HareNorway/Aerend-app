@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../../data/feed/feed_tab_item.dart';
 import '../../../networking/feed/feed_repo.dart';
@@ -89,6 +90,9 @@ class _UtforskScreenState extends State<UtforskScreen> {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 2: the tour's `feed` / `poser` steps switch the segment first (`forbered`).
+    OnbRunde.instance.forbered['feed'] = () => _select(UtforskScreen.tabFeed);
+    OnbRunde.instance.forbered['poser'] = () => _select(UtforskScreen.tabPose);
     _tab = widget.initialTab ?? UtforskScreen.apneSegment ?? UtforskScreen.tabFeed;
     UtforskScreen.apneSegment = null;
     _loadDrift();
@@ -119,6 +123,8 @@ class _UtforskScreenState extends State<UtforskScreen> {
 
   @override
   void dispose() {
+    OnbRunde.instance.forbered.remove('feed');
+    OnbRunde.instance.forbered.remove('poser');
     // Leaving Utforsk counts as having seen the feed.
     if (_posts.isNotEmpty) _feed.markSeen().catchError((_) {});
     _scroll.dispose();

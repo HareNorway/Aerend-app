@@ -59,6 +59,57 @@ void main() {
     });
   });
 
+  group('missions', () {
+    test('«legg» is done when the cart grows, «utforsk» / «tilkurv» when the screen is right', () {
+      final r = OnbRunde.instance;
+      addTearDown(r.reset);
+      final s = onbStegListe(bio: true, posisjonGitt: false);
+      var antall = 2;
+      r.kurvAntall = () => antall;
+      final legg = s.firstWhere((x) => x.id == 'legg');
+      // No shell in the test: the screen is «annet», so the navigation missions stay open.
+      expect(r.oppdragFerdig(s.firstWhere((x) => x.id == 'utforsk')), isFalse);
+      expect(r.oppdragFerdig(legg), isTrue); // 2 > the 0 noted at the step's start
+      r.kurvAntall = () => 0;
+      expect(r.oppdragFerdig(legg), isFalse);
+    });
+  });
+
+  testWidgets('after the last step, «Fullfør» stamps the section and shows the done card; «Start å handle» ends the run (reduced motion)', (tester) async {
+    tester.view.physicalSize = const Size(1290, 2796);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    addTearDown(OnbRunde.instance.reset);
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body: Stack(children: [OnbLag()]))));
+    final r = OnbRunde.instance;
+    r.start(fra: 99, rolig: true); // clamps to the last step («ai»)
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(r.naa?.id, 'ai');
+    expect(find.text('Fullfør'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('onb-neste')));
+    // Reduced motion: the stamp is 200 + 40 + 40 ms, then the done card.
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(r.fase, OnbFase.ferdig);
+    expect(r.ferdigeSek.length, 5);
+    expect(find.byKey(const Key('onb-ferdig')), findsOneWidget);
+    expect(find.text('Runden er fullført!'), findsOneWidget);
+    expect(find.text('Hjem'), findsOneWidget); // the five small stamps carry the section names
+    expect(find.text('Meg'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('onb-start')));
+    await tester.pump(const Duration(milliseconds: 50));
+    // Reduced motion: no kai-hopp, the layer fades out.
+    expect(r.fase, OnbFase.ut);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(r.aktiv, isFalse);
+    expect(r.ferdig, isTrue);
+    expect(r.hoppet, isFalse);
+    await tester.pump(const Duration(seconds: 6));
+  });
+
   testWidgets('the layer is empty until the run starts, then shows the intro card with «Bli med»', (tester) async {
     tester.view.physicalSize = const Size(1290, 2796);
     tester.view.devicePixelRatio = 3;
