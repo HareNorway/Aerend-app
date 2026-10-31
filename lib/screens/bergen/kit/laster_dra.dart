@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import 'bergen_perf.dart';
@@ -115,7 +116,7 @@ class _BergenDraLasterState extends State<BergenDraLaster> with TickerProviderSt
 
   bool _refreshFerdig = true;
   // Onboarding Step 2: no pull while Ægil-runden is up (the design's `ldrDraKan`).
-  bool get _kan => widget.aktiv && !OnbRunde.instance.aktiv && !MediaQuery.disableAnimationsOf(context) && !BergenPerf.calmOf(context);
+  bool get _kan => widget.aktiv && !OnbRunde.instance.aktiv && OnbTips.instance.naa == null && !MediaQuery.disableAnimationsOf(context) && !BergenPerf.calmOf(context);
 
   @override
   void initState() {

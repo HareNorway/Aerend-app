@@ -76,6 +76,10 @@ abstract final class HjemHarness {
   /// Step 3: as if a delivery had been seen (the Hjem card's condition).
   static bool onbLevert = false;
 
+  /// Step 4: force this Ægil-tips coach mark (the design's `cmTving`): goes to
+  /// its screen and shows it; `kode` / `abo` need `sporing` / `levert` too.
+  static String? onbTips;
+
   /// Focus this wheel slot.
   static int? hjul;
 
@@ -407,6 +411,7 @@ abstract final class HjemHarness {
         onbAuto = null;
         onbNull = false;
         onbLevert = false;
+        onbTips = null;
         ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
@@ -530,6 +535,7 @@ abstract final class HjemHarness {
       onbAuto = m['onbAuto'] as String?;
       onbNull = m['onbNull'] == true;
       onbLevert = m['onbLevert'] == true;
+      onbTips = m['onbTips'] as String?;
       hjul = m['hjul'] as int?;
       adresse = m['adresse'] as String?;
       dekning = m['dekning'] as String?;

@@ -9,6 +9,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../../data/ops/fee_quote.dart';
 import '../../../data/ops/kasse_models.dart';
@@ -281,6 +282,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 4: the `gebyr` / `fleks` / `adresse` marks (the fee sheet
+    // is their action; the harness opens «Flere valg» with a door note).
+    _door.addListener(_dorEndret);
+    OnbTips.instance.handlinger['gebyr'] = _openLevering;
+    OnbTips.instance.handlinger['kurvFlere'] = _kurvFlere;
+    if (!widget.embedded) OnbTips.instance.sett('kurvRute', true);
     // Debug harness `betaltKurv` (order id): Betalt out of this slider, as
     // after a card / Google Pay payment — nothing is paid or ordered.
     if (kDebugMode && HjemHarness.betaltKurv != null) {
@@ -334,6 +341,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _door.removeListener(_dorEndret);
+    OnbTips.instance.handlinger.remove('gebyr');
+    OnbTips.instance.handlinger.remove('kurvFlere');
+    OnbTips.instance.sett('kurvRute', null);
+    OnbTips.instance.sett('dor', null);
     // Not during unmount: listeners may not rebuild while the tree is locked.
     if (widget.embedded) {
       WidgetsBinding.instance.addPostFrameCallback((_) => kurvSkjulerNav.value = false);
@@ -547,6 +559,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   }
 
   bool get _flexOn => ClientFlags.on('pricing.flex_window') && !_pickup;
+
+  void _dorEndret() => OnbTips.instance.sett('dor', _door.text);
+
+  /// The harness's `onbTips: adresse`: «Flere valg» open with a door note.
+  void _kurvFlere() {
+    if (!mounted) return;
+    setState(() {
+      _more = true;
+      if (_door.text.isEmpty) _door.text = 'Ring på hos Eide, 3. etasje';
+    });
+  }
 
   Future<void> _openLevering() async {
     final chosen = await showLeveringSheet(
@@ -1156,14 +1179,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       }
                     : _openAddress,
               ),
-              KurvEndreRad(
+              OnbMaal(
+                id: 'lev',
+                radius: 22,
+                child: KurvEndreRad(
                 keyName: 'a1_kasse_rad_tid',
                 icon: KurvIcons.clock,
                 title: _pickup ? '${KasseCopy.a1_kasse_henting} · ${kasseTidNavn(slot)}' : kasseTidNavn(slot),
                 line: slot.line,
                 action: KasseCopy.a1_kasse_endre,
                 onTap: _openLevering,
-              ),
+              )),
               KurvEndreRad(
                 keyName: 'a1_kasse_rad_betaling',
                 icon: KurvIcons.card,
@@ -1264,7 +1290,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 },
               ),
             if (doorVisible)
-              KvDor(
+              OnbMaal(
+                id: 'dor',
+                radius: 18,
+                child: KvDor(
                 controller: _door,
                 onTolk: _tolk,
                 delt: _doorShared,
@@ -1279,7 +1308,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
                 // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.
                 kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
-              ),
+              )),
           ],
         ),
         if (_undone.isNotEmpty) ...[

@@ -23,6 +23,7 @@ import 'feed_tab.dart' show utfPoseHentes;
 import 'pose_ark.dart';
 import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
+import '../onboarding/onb_tips.dart';
 
 /// A bag as the Forundringspose segment, its card and its sheet show it
 /// (new Bergen `utfPoserVals`, L19899): the store's bag from `GET
@@ -210,7 +211,18 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 4: the `pose` mark's «Vis poser nær meg» opens the first bag.
+    OnbTips.instance.handlinger['pose'] = () {
+      final p = _poser.firstOrNull;
+      if (p != null) _apne(p);
+    };
     _load();
+  }
+
+  @override
+  void dispose() {
+    OnbTips.instance.handlinger.remove('pose');
+    super.dispose();
   }
 
   Future<void> _load() async {

@@ -7959,4 +7959,98 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cus_ai_betalingsmate => 'Payment method';
+
+  @override
+  String get onb_tips_label => 'Ægil tip';
+
+  @override
+  String get onb_tips_lukk => 'Close';
+
+  @override
+  String get onb_tips_dot => 'Show the Ægil tip again';
+
+  @override
+  String get onb_cm_feed =>
+      'This is where the shops post news and offers — and now and then I write about them myself.';
+
+  @override
+  String get onb_cm_pose =>
+      'Surplus food at a low price — pick it up before the shop closes.';
+
+  @override
+  String get onb_cm_pose_act => 'Show bags near me';
+
+  @override
+  String get onb_cm_gaver =>
+      'Tell me who and what — I\'ll find three gifts that arrive in time.';
+
+  @override
+  String get onb_cm_gaver_act => 'Let Ægil find a gift';
+
+  @override
+  String get onb_cm_kamera =>
+      'Take a photo of the pack and I\'ll find the item again.';
+
+  @override
+  String get onb_cm_fleks =>
+      'Not in a hurry? Then delivery gets cheaper — and the courier can make two trips in one.';
+
+  @override
+  String get onb_cm_gebyr =>
+      'The price follows the distance. Tap to see how it is worked out.';
+
+  @override
+  String get onb_cm_gebyr_act => 'See the breakdown';
+
+  @override
+  String get onb_cm_adresse =>
+      'I turn your note into clear door instructions — a code is saved only if you want.';
+
+  @override
+  String get onb_cm_kode =>
+      'The code is yours and the courier\'s. Show it at the door.';
+
+  @override
+  String get onb_cm_varsler => 'You choose which messages you get from me.';
+
+  @override
+  String get onb_cm_varsler_act => 'Settings';
+
+  @override
+  String get onb_cm_hjelp =>
+      'Ask me anything — and a person is always one tap away.';
+
+  @override
+  String get onb_cm_ai =>
+      'Do you use Claude or ChatGPT? They can order through Ærend — you always confirm here.';
+
+  @override
+  String get onb_cm_ai_act => 'How to connect';
+
+  @override
+  String get onb_cm_abo =>
+      'Want me to set up this shop every week? You see the basket before each charge.';
+
+  @override
+  String get onb_cm_abo_act => 'Set up';
+
+  @override
+  String get onb_cm_bio => 'Tell me what you eat and I\'ll filter for you.';
+
+  @override
+  String get onb_cm_bio_act => 'Fill in your bio';
+
+  @override
+  String get onb_cm_nytt =>
+      'New since last time: the Ægil tour shows you the whole app. Want to take it?';
+
+  @override
+  String get onb_cm_nytt_act => 'Take the tour';
+
+  @override
+  String get onb_cm_peek => 'I\'m here if you need me.';
+
+  @override
+  String get onb_cm_handoff =>
+      'Hi! I\'m Ægil. I\'ll show you around whenever you like — Profile → Get to know Ærend.';
 }

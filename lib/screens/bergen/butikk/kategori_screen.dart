@@ -28,6 +28,7 @@ import 'kategori_kort.dart';
 import 'kategori_utstilling.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
+import '../onboarding/onb_tips.dart';
 
 /// Copy for the Kategori screen (L5910–6135), NO and EN.
 abstract final class KatCopy {
@@ -191,6 +192,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
   void initState() {
     super.initState();
     _liste.addListener(_onScroll);
+    // Onboarding Step 4: the `gaver` mark's «La Ægil finne en gave».
+    OnbTips.instance.handlinger['gaver'] = () => _askAegil('gift');
     _sokTekst.addListener(() => setState(() {}));
   }
 
@@ -221,6 +224,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
 
   @override
   void dispose() {
+    OnbTips.instance.handlinger.remove('gaver');
+    OnbTips.instance.sett('kategori', null);
     _liste.dispose();
     _kollaps.dispose();
     _sokTekst.dispose();
@@ -515,6 +520,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
     final dy = MediaQuery.paddingOf(context).top;
     final k = _slot;
     final navn = kHjemKatNavn[k];
+    OnbTips.instance.sett('kategori', k);
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),
       resizeToAvoidBottomInset: false,

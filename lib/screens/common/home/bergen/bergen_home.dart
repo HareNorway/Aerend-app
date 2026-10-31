@@ -60,6 +60,7 @@ import '../../../bergen/onboarding/onb_maal.dart';
 import '../../../bergen/onboarding/onb_hjem_kort.dart';
 import '../../../bergen/onboarding/onb_runde.dart';
 import '../../../bergen/onboarding/onb_status.dart';
+import '../../../bergen/onboarding/onb_tips.dart';
 import 'bergen_adr_kilde.dart';
 import 'bergen_cards.dart';
 import 'bergen_category_rad.dart';
@@ -342,7 +343,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         if (!mounted) return;
         if (kDebugMode && HjemHarness.onbNull) OnbStatus.instance.nullstill();
         if (kDebugMode && HjemHarness.onbLevert) OnbStatus.instance.merkLevert();
-        OnbRunde.kanskjeStart(harness: kDebugMode && HjemHarness.onbRunde != null);
+        OnbRunde.kanskjeStart(harness: kDebugMode && (HjemHarness.onbRunde != null || HjemHarness.onbTips != null));
       });
     });
     if (kDebugMode) {
@@ -359,6 +360,11 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (HjemHarness.onbRunde case final n?) {
             if (HjemHarness.onbNull) OnbStatus.instance.nullstill();
             OnbRunde.instance.start(fra: n, rolig: HjemHarness.onbRolig, auto: HjemHarness.onbAuto);
+          }
+          // Onboarding Step 4: a forced coach mark (`cmTving`).
+          if (HjemHarness.onbTips case final id?) {
+            if (HjemHarness.onbNull) OnbStatus.instance.nullstill();
+            OnbTips.instance.tving(id);
           }
           final fane = HjemHarness.fane;
           if (fane != null) {

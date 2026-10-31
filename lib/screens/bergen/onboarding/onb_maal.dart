@@ -65,13 +65,31 @@ class OnbMaalRekt {
 abstract final class OnbMaalRegistry {
   static final Map<String, List<_OnbMaalState>> _alle = {};
 
-  static void _add(String id, _OnbMaalState s) => (_alle[id] ??= []).add(s);
+  /// Bumps once per frame when a target mounts or goes (Step 4: the coach
+  /// marks plan a check on it). Never during a build.
+  static final ValueNotifier<int> endring = ValueNotifier<int>(0);
+  static bool _bump = false;
+
+  static void _varsle() {
+    if (_bump) return;
+    _bump = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _bump = false;
+      endring.value++;
+    });
+  }
+
+  static void _add(String id, _OnbMaalState s) {
+    (_alle[id] ??= []).add(s);
+    _varsle();
+  }
 
   static void _remove(String id, _OnbMaalState s) {
     final l = _alle[id];
     if (l == null) return;
     l.remove(s);
     if (l.isEmpty) _alle.remove(id);
+    _varsle();
   }
 
   /// The newest mounted target with this id (`cmFinn`), or null.

@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import '../onboarding/onb_maal.dart';
 import '../onboarding/onb_runde.dart';
 import '../onboarding/onb_status.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 
@@ -150,6 +151,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     OnbRunde.instance.forbered['ai'] = () {
       if (mounted && _rull.hasClients) _rull.jumpTo(_rull.position.maxScrollExtent);
     };
+    // Onboarding Step 4: the actions of the `varsler`, `abo`, `bio` and `ai` marks.
+    OnbTips.instance.handlinger['aegilInnst'] = _aegilInnstillinger;
+    OnbTips.instance.handlinger['ukeshandel'] = () => _ukeshandel();
+    OnbTips.instance.handlinger['megBio'] = () => _openBio();
+    OnbTips.instance.handlinger['megAi'] = () => AiArk.flyt(context, 'inngang');
     // Meg opens with what it showed last (same user) and refreshes quietly;
     // the spinner is only for the very first load.
     final c = _brukerCache ? _MegCache.forUser(prefGetInt(prefUserId)) : null;
@@ -169,6 +175,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   @override
   void dispose() {
+    for (final h in ['aegilInnst', 'ukeshandel', 'megBio', 'megAi']) {
+      OnbTips.instance.handlinger.remove(h);
+    }
     OnbRunde.instance.forbered.remove('poeng');
     OnbRunde.instance.forbered.remove('ai');
     BergenFaneBytte.aktiv.removeListener(_faneVist);

@@ -48,6 +48,7 @@ import 'aegil_launch_copy.dart';
 import 'aegil_scene.dart';
 import 'aegil_verktoy.dart';
 import 'cus_level3.dart';
+import '../onboarding/onb_tips.dart';
 
 /// Ægil (`erAgent`, L4500–5120 in `Ærend Kunde Launch.dc.html`, design px).
 ///
@@ -165,6 +166,9 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 4: the `bio` / `kamera` marks know the chat is up.
+    OnbTips.instance.sett('agent', true);
+    OnbTips.instance.handlinger['bio'] = minBio;
     _steg = widget.steg ?? (prefGetBool(AegilScreen.prefTillatelse) ? 'start' : 'tillatelse');
     _avslaattDato = DateTime.tryParse(prefGetString(AegilScreen.prefAvslaattDato));
     if (_avslaattDato == null && prefGetBool(AegilScreen.prefAvslaatt)) {
@@ -191,6 +195,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
 
   @override
   void dispose() {
+    OnbTips.instance.sett('agent', null);
+    OnbTips.instance.handlinger.remove('bio');
     _tekst.dispose();
     _fokus.dispose();
     _scroll.dispose();

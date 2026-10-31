@@ -20,6 +20,7 @@ import '../kit/bergen_kit.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import '../kit/bergen_perf.dart';
+import '../onboarding/onb_tips.dart';
 
 part 'hjelp_chat.dart';
 
@@ -165,6 +166,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   @override
   void dispose() {
+    OnbTips.instance.sett('hjelp', null);
     SupportStore.instance.endret.removeListener(_storeEndret);
     _callTimer?.cancel();
     _msg.dispose();
@@ -414,6 +416,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    OnbTips.instance.sett('hjelp', true); // Onboarding Step 4: the `hjelp` mark
     return Scaffold(
       backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: false,

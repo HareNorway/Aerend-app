@@ -27,6 +27,7 @@ import 'firebase_options.dart';
 import 'redux/store.dart';
 import 'screens/common/auth/launch/launch_onboarding.dart' show lfSetInviterName;
 import 'screens/bergen/onboarding/onb_lag.dart';
+import 'screens/bergen/onboarding/onb_tips_lag.dart';
 import 'screens/common/login/login.dart';
 import 'screens/common/splash/splash.dart';
 import 'screens/common/vipps/vipps_login_link_handler.dart';
@@ -343,7 +344,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: BergenPerfScope(
                 child: Directionality(
                   textDirection: TextDirection.ltr,
-                  child: Stack(children: [appChild, const OnbLag()]),
+                  child: Stack(children: [appChild, const OnbLag(), const OnbTipsLag()]),
                 ),
               ),
             );

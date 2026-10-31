@@ -15,6 +15,7 @@ import '../../../services/customer/client_flags.dart';
 import 'onb_maal.dart';
 import 'onb_status.dart';
 import 'onb_steg.dart';
+import 'onb_tips.dart';
 
 /// Where the tour is in a step (`rt.fase`).
 enum OnbFase {
@@ -195,6 +196,7 @@ class OnbRunde extends ChangeNotifier {
       _aktiv = false;
       m = null;
       _oppd();
+      OnbTips.instance.plan();
     }
   }
 
@@ -553,6 +555,8 @@ class OnbRunde extends ChangeNotifier {
     debugPrint('ONB_RUNDE hoppet over ved ${naa?.id}');
     OnbStatus.instance.merkHoppet(i, naa?.id ?? '');
     _sporPos = pos == null;
+    // Step 4: the peek «Jeg er her om du trenger meg» on Hjem afterwards (`_vkPeek`).
+    OnbTips.instance.peekVentes = true;
     lukk(() {
       if (_sporPos) _posEtterHopp();
     });

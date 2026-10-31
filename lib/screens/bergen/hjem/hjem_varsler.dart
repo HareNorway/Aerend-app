@@ -28,6 +28,7 @@ import 'hjem_harness.dart';
 import '../meg/a3_services.dart';
 import '../../common/notifications/notifications_repo.dart';
 import 'package:aerend_customer/utils/route_names.dart';
+import '../onboarding/onb_tips.dart';
 
 // ── Varsler panel (Gap Step 1) ──────────────────────────────────────────────
 // New Bergen `vsAapent` (L8524–8627, logic `apneVarsler` / `varslerVals`
@@ -396,11 +397,13 @@ class _VarslerPanelState extends State<VarslerPanel> {
   @override
   void initState() {
     super.initState();
+    OnbTips.instance.sett('varsler', true); // Onboarding Step 4: the `varsler` mark
     _last();
   }
 
   @override
   void dispose() {
+    OnbTips.instance.sett('varsler', null);
     _lesT?.cancel();
     _bekreftT?.cancel();
     super.dispose();

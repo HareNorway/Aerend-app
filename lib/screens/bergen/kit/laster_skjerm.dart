@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import 'bergen_perf.dart';
@@ -77,7 +78,7 @@ class _BergenSkjermLasterState extends State<BergenSkjermLaster> {
 
   void _sync() {
     // Onboarding Step 2: never under Ægil-runden (the design's `ldrSkjermKan` is false while `rt` is up).
-    if (widget.aktiv && _hold == null && !OnbRunde.instance.aktiv) {
+    if (widget.aktiv && _hold == null && !OnbRunde.instance.aktiv && OnbTips.instance.naa == null) {
       if (MediaQuery.disableAnimationsOf(context) || BergenPerf.of(context) == BergenTier.still) return;
       final overlay = Overlay.maybeOf(context, rootOverlay: true);
       if (overlay == null) return;

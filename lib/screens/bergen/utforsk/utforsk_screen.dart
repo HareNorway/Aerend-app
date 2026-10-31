@@ -19,6 +19,7 @@ import 'feed_tab.dart';
 import 'pose_segment.dart';
 import 'utforsk_copy.dart';
 import '../kit/laster_dra.dart';
+import '../onboarding/onb_tips.dart';
 
 /// `utforsk` (L5456–5713 in `Ærend Kunde Launch.dc.html`, design px) — tab 1
 /// of the shell, and `/bergen/utforsk` (`?tab=fiske|pose`, `&fane=folger`).
@@ -123,6 +124,7 @@ class _UtforskScreenState extends State<UtforskScreen> {
 
   @override
   void dispose() {
+    OnbTips.instance.sett('utforskFane', null);
     OnbRunde.instance.forbered.remove('feed');
     OnbRunde.instance.forbered.remove('poser');
     // Leaving Utforsk counts as having seen the feed.
@@ -228,6 +230,8 @@ class _UtforskScreenState extends State<UtforskScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Onboarding Step 4: the `feed` mark shows on the feed segment only.
+    OnbTips.instance.sett('utforskFane', _tab);
     final isPose = _tab == UtforskScreen.tabPose;
 
     return Scaffold(
