@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="bg-cola" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="#6E3A20"></stop><stop offset="1" stop-color="#341508"></stop></linearGradient></defs><g >
+      <ellipse cx="26" cy="56" rx="17" ry="3.4" fill="rgba(40,16,4,.26)"></ellipse>
+      <path d="M12 10 H40 L36 54 H16 Z" fill="url(#bg-cola)"></path>
+      <path d="M12 10 H18 L15 54 H16 Z" fill="rgba(255,255,255,.28)"></path>
+      <ellipse cx="26" cy="10" rx="14" ry="4" fill="#8A4A28"></ellipse>
+      <ellipse cx="26" cy="9" rx="14" ry="4" fill="#C98F45" opacity="0.7"></ellipse>
+      <path d="M34 20 C35 30 34 40 32 48" stroke="rgba(255,255,255,.35)" stroke-width="2" stroke-linecap="round" fill="none"></path>
+      <path d="M30 8 L44 -6" stroke="#E4E9EC" stroke-width="4" stroke-linecap="round"></path>
+    </g></svg>

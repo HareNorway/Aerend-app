@@ -25,6 +25,8 @@ import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
+import 'kategori_modul.dart';
+import '../kit/bergen_cart.dart';
 import 'kategori_utstilling.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
@@ -170,6 +172,13 @@ class _KategoriScreenState extends State<KategoriScreen> {
   final FocusNode _sokFokus = FocusNode();
   List<StoreListItem>? _stores;
   List<Map<String, dynamic>>? _products;
+
+  /// Onboarding Step 5 (D7): each store's rail (`products?kind=butikk`),
+  /// loaded for the first eight modules, kept for the app run.
+  static final Map<int, ({List<Map<String, dynamic>> varer, int antall})> _varerCache = {};
+
+  /// Stores the customer has ordered from («PRØVD»), from `ops/customer/orders`.
+  Set<int> _provd = const {};
   Map<String, dynamic>? _pulse;
 
   /// `katKollaps`: how far the hero has folded (0–1, before easing).
@@ -264,6 +273,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
       final stores = await _api.storesInCategory(id);
       if (!mounted) return;
       setState(() => _stores = stores);
+      unawaited(_lastVarer(stores));
+      unawaited(_lastProvd());
       // «N nå» and each shop's typical order in one call (backend plan Step 8).
       unawaited(_customer.storesPresence([for (final s in stores) if (s.storeId != null) s.storeId!]).then((m) {
         if (mounted && m.isNotEmpty) setState(() => _presence = m);
@@ -406,6 +417,57 @@ class _KategoriScreenState extends State<KategoriScreen> {
       poeng: _butikkPoeng(s.storeId),
       tag: s.storeId != null && s.storeId == populaerId ? KatCopy.populaer : null,
     );
+  }
+
+  Future<void> _lastVarer(List<StoreListItem> stores) async {
+    final ids = [for (final s in stores.take(8)) if (s.storeId != null && !_varerCache.containsKey(s.storeId)) s.storeId!];
+    if (ids.isEmpty) return;
+    await Future.wait([
+      for (final id in ids)
+        _customer.butikkProdukter(id).then((r) {
+          if (r != null) _varerCache[id] = r;
+        }),
+    ]);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _lastProvd() async {
+    if (OpsCustomerApi.authParams() == null) return;
+    final o = await _customer.orders(limit: 50);
+    final ids = <int>{for (final x in o) if (x['store'] is Map) int.tryParse('${(x['store'] as Map)['id']}') ?? 0}..remove(0);
+    if (mounted && ids.isNotEmpty) setState(() => _provd = ids);
+  }
+
+  List<KatModulVare> _varerFor(int storeId) {
+    final r = _varerCache[storeId];
+    if (r == null) return const [];
+    return [for (var i = 0; i < r.varer.length; i++) _vare(r.varer[i], storeId, i)];
+  }
+
+  KatModulVare _vare(Map<String, dynamic> p, int storeId, int i) {
+    final ore = (p['price_ore'] as num?)?.toInt() ?? 0;
+    final was = (p['was_price_ore'] as num?)?.toInt() ?? 0;
+    final navn = '${p['name'] ?? ''}';
+    final bilde = '${p['image'] ?? ''}';
+    final ikon = katVareIkon(navn, _slot);
+    return KatModulVare(
+      id: int.tryParse('${p['id']}') ?? 0,
+      storeId: storeId,
+      navn: navn,
+      prisTx: _kr(ore),
+      forTx: was > ore ? _kr(was) : null,
+      bildeUrl: bilde.isEmpty ? null : bilde,
+      ikon: ikon,
+      tint: katVareTint(ikon, i),
+    );
+  }
+
+  /// The rail's «+»: a real cart line (the design's `leggTil`).
+  Future<bool> _leggModul(KatModulVare v) => BergenCart.add(context, storeId: v.storeId, productId: v.id);
+
+  static String? _ratingKort(dynamic r) {
+    final v = double.tryParse('${r ?? ''}') ?? 0;
+    return v > 0 ? v.toStringAsFixed(1).replaceAll('.', ',') : null;
   }
 
   KatProduktVis _produktVis(Map<String, dynamic> p, int n) {
@@ -1018,13 +1080,21 @@ class _KategoriScreenState extends State<KategoriScreen> {
       for (var n = 0; n < list.length; n++)
         Padding(
           key: ValueKey('kb-${list[n].storeId}'),
-          padding: EdgeInsets.only(bottom: 28 * s),
+          // Onboarding Step 5: the store module (`margin-bottom: 26px`).
+          padding: EdgeInsets.only(bottom: 26 * s),
           child: KatKortStag(
             durationMs: 550,
             delayMs: (0.05 + math.min(n, 6) * 0.07) * 1000,
-            child: KatButikkKort(
+            child: KatButikkModul(
               b: _butikkVis(list[n], n, pop),
+              varer: _varerFor(list[n].storeId ?? 0),
+              antall: _varerCache[list[n].storeId ?? 0]?.antall,
+              enhet: _slot == 0 ? KatModulCopy.enhetRetter : KatModulCopy.enhetVarer,
+              provd: _provd.contains(list[n].storeId ?? 0),
+              ratingKort: _ratingKort(list[n].averageRatings),
+              seHeleMenyen: _slot == 0 ? KatModulCopy.seHeleMenyen : KatModulCopy.seAlleVarer,
               onTap: () => _openStore(list[n].storeId ?? 0, list[n].storeName ?? ''),
+              onLegg: _leggModul,
             ),
           ),
         ),
