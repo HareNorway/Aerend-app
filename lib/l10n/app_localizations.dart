@@ -14299,6 +14299,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hi! I\'m Ægil. I\'ll show you around whenever you like — Profile → Get to know Ærend.'**
   String get onb_cm_handoff;
+
+  /// No description provided for @ops_butikk_kurv_annen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your basket holds items from another shop'**
+  String get ops_butikk_kurv_annen;
+
+  /// No description provided for @ops_butikk_kurv_annen_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty the basket and add this instead? You can shop from one shop at a time.'**
+  String get ops_butikk_kurv_annen_linje;
+
+  /// No description provided for @ops_butikk_kurv_annen_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty and add'**
+  String get ops_butikk_kurv_annen_tom;
+
+  /// No description provided for @ops_butikk_kurv_annen_behold.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the basket'**
+  String get ops_butikk_kurv_annen_behold;
 }
 
 class _AppLocalizationsDelegate

@@ -2604,5 +2604,9 @@
   "onb_cm_nytt": "Nytt siden sist: Ægil-runden viser deg hele appen. Vil du ta den?",
   "onb_cm_nytt_act": "Ta runden",
   "onb_cm_peek": "Jeg er her om du trenger meg.",
-  "onb_cm_handoff": "Hei! Jeg er Ægil. Jeg viser deg rundt når du vil — Profil → Bli kjent med Ærend."
+  "onb_cm_handoff": "Hei! Jeg er Ægil. Jeg viser deg rundt når du vil — Profil → Bli kjent med Ærend.",
+  "ops_butikk_kurv_annen": "Kurven har varer fra en annen butikk",
+  "ops_butikk_kurv_annen_linje": "Tøm kurven og legg til denne i stedet? Du kan bare handle fra én butikk om gangen.",
+  "ops_butikk_kurv_annen_tom": "Tøm og legg til",
+  "ops_butikk_kurv_annen_behold": "Behold kurven"
 }

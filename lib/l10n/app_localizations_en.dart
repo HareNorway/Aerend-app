@@ -8031,4 +8031,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get onb_cm_handoff =>
       'Hi! I\'m Ægil. I\'ll show you around whenever you like — Profile → Get to know Ærend.';
+
+  @override
+  String get ops_butikk_kurv_annen =>
+      'Your basket holds items from another shop';
+
+  @override
+  String get ops_butikk_kurv_annen_linje =>
+      'Empty the basket and add this instead? You can shop from one shop at a time.';
+
+  @override
+  String get ops_butikk_kurv_annen_tom => 'Empty and add';
+
+  @override
+  String get ops_butikk_kurv_annen_behold => 'Keep the basket';
 }

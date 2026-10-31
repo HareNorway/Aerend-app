@@ -5077,5 +5077,9 @@
   "onb_cm_nytt": "New since last time: the Ægil tour shows you the whole app. Want to take it?",
   "onb_cm_nytt_act": "Take the tour",
   "onb_cm_peek": "I'm here if you need me.",
-  "onb_cm_handoff": "Hi! I'm Ægil. I'll show you around whenever you like — Profile → Get to know Ærend."
+  "onb_cm_handoff": "Hi! I'm Ægil. I'll show you around whenever you like — Profile → Get to know Ærend.",
+  "ops_butikk_kurv_annen": "Your basket holds items from another shop",
+  "ops_butikk_kurv_annen_linje": "Empty the basket and add this instead? You can shop from one shop at a time.",
+  "ops_butikk_kurv_annen_tom": "Empty and add",
+  "ops_butikk_kurv_annen_behold": "Keep the basket"
 }

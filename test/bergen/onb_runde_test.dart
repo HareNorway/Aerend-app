@@ -72,6 +72,10 @@ void main() {
       expect(r.oppdragFerdig(legg), isTrue); // 2 > the 0 noted at the step's start
       r.kurvAntall = () => 0;
       expect(r.oppdragFerdig(legg), isFalse);
+      // A successful add counts too — the line count falls when the add
+      // replaced another store's cart (Step 4 follow-up, user review).
+      r.kurvLagt++;
+      expect(r.oppdragFerdig(legg), isTrue);
     });
   });
 

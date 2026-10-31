@@ -8043,4 +8043,17 @@ class AppLocalizationsNo extends AppLocalizations {
   @override
   String get onb_cm_handoff =>
       'Hei! Jeg er Ægil. Jeg viser deg rundt når du vil — Profil → Bli kjent med Ærend.';
+
+  @override
+  String get ops_butikk_kurv_annen => 'Kurven har varer fra en annen butikk';
+
+  @override
+  String get ops_butikk_kurv_annen_linje =>
+      'Tøm kurven og legg til denne i stedet? Du kan bare handle fra én butikk om gangen.';
+
+  @override
+  String get ops_butikk_kurv_annen_tom => 'Tøm og legg til';
+
+  @override
+  String get ops_butikk_kurv_annen_behold => 'Behold kurven';
 }

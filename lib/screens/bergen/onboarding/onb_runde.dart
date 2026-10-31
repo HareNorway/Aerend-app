@@ -158,6 +158,7 @@ class OnbRunde extends ChangeNotifier {
     _avvik = 0;
     _oppd();
     _antall0 = kurvAntall();
+    _lagt0 = kurvLagt;
     final start = fra.clamp(0, math.min(_steg.length, maksSteg) - 1);
     // The run opens on the start step's screen (Hjem for the intro).
     final skjerm = _steg[start].skjerm;
@@ -244,6 +245,7 @@ class OnbRunde extends ChangeNotifier {
         etterSt = frem;
         _oppd();
         _antall0 = kurvAntall();
+        _lagt0 = kurvLagt;
         if (bytter) {
           _navT = _naa();
           gaaSkjerm(s.skjerm);
@@ -772,7 +774,7 @@ class OnbRunde extends ChangeNotifier {
   bool oppdragFerdig(OnbSteg s) => switch (s.id) {
     'utforsk' => skjermNaa() == 'utforsk',
     'tilkurv' => skjermNaa() == 'kurv',
-    'legg' => kurvAntall() > _antall0,
+    'legg' => kurvLagt > _lagt0 || kurvAntall() > _antall0,
     _ => false,
   };
 
@@ -786,6 +788,12 @@ class OnbRunde extends ChangeNotifier {
     }
   };
   int _antall0 = 0;
+
+  /// Successful cart adds this app run (`BergenCart.add`): the `legg`
+  /// mission is done when one lands while the step is up — the line count
+  /// alone misses an add that replaced another store's cart.
+  int kurvLagt = 0;
+  int _lagt0 = 0;
 
   int _naa() => DateTime.now().millisecondsSinceEpoch;
 

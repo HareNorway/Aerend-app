@@ -400,11 +400,15 @@ class _OnbLagState extends State<OnbLag> {
       height: math.max(0, hh),
       child: GestureDetector(behavior: HitTestBehavior.opaque, onTap: fn),
     );
+    // On a mission the screen stays usable outside the hole too (the product
+    // sheet's choices, the other-store cart sheet); the tracker follows.
     return [
-      flate(0, 0, W, h.y, r.bak),
-      flate(0, h.y + h.h, W, H - (h.y + h.h), r.bak),
-      flate(0, h.y, h.x, h.h, r.bak),
-      flate(h.x + h.w, h.y, W - (h.x + h.w), h.h, r.bak),
+      if (!oppdrag) ...[
+        flate(0, 0, W, h.y, r.bak),
+        flate(0, h.y + h.h, W, H - (h.y + h.h), r.bak),
+        flate(0, h.y, h.x, h.h, r.bak),
+        flate(h.x + h.w, h.y, W - (h.x + h.w), h.h, r.bak),
+      ],
       if (her && harM && !oppdrag) flate(h.x, h.y, h.w, h.h, r.neste),
     ];
   }
