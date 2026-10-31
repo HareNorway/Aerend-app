@@ -1,5 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 import 'dart:async';
+import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_status.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +63,8 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 3: a hand-off from an assistant before the tour ran this session skips the tour (docx §2).
+    if (!OnbRunde.instance.sesjon) OnbStatus.instance.ankomst ??= 'handoff';
     _tilstand = widget.tilstand ?? (kDebugMode ? HjemHarness.ai?.replaceFirst('kurv', '').toLowerCase() : null);
     if (_tilstand != null && _tilstand!.isEmpty) _tilstand = 'normal';
     if (kDebugMode && HjemHarness.ai != null && HjemHarness.ai!.startsWith('kurv')) HjemHarness.ai = null;
@@ -80,6 +84,7 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
 
   @override
   void dispose() {
+    if (OnbStatus.instance.ankomst == 'handoff') OnbStatus.instance.handoffKlar = true;
     _vakt.stop();
     _laserT?.cancel();
     WidgetsBinding.instance.removeObserver(this);

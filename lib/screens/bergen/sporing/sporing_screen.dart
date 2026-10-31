@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../onboarding/onb_status.dart';
 
 import '../../../data/ops/tracking_models.dart';
 import '../../../data/points/points_rules.dart';
@@ -224,6 +225,8 @@ class _SporingScreenState extends State<SporingScreen> {
 
   /// Delivered: remember when, and fetch the order's points for SPART TID.
   void _etterLevert(OpsTracking t) {
+    // Onboarding Step 3: the Hjem card «Vil du se hva mer Ærend kan?» waits for a delivery.
+    OnbStatus.instance.merkLevert();
     _levertKl ??= DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ?? t.deliveryCode?.verifiedAt ?? DateTime.now();
     _api.pointsForOrder(_id).then((p) {
       final n = spPoengForOrdre(p, _id);

@@ -45,6 +45,9 @@ abstract final class ClientFlags {
   /// A per-version override from `agents/flags` wins over the surface flag.
   static bool on(String key) => _overrides[key] ?? _flags[key] ?? false;
 
+  /// The server has said something about [key] (on or off).
+  static bool known(String key) => _overrides.containsKey(key) || _flags.containsKey(key);
+
   // Customer Step 16: the per-version answer (overrides, banner, min_version).
   static Map<String, bool> _overrides = const <String, bool>{};
 

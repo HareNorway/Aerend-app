@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../onboarding/onb_maal.dart';
 import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_status.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 
@@ -940,6 +941,19 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     merke: AeInnstCopy.endreMerke,
                                     onTap: _aegilInnstillinger,
                                   ),
+                                  // Onboarding Step 3: «Bli kjent med Ærend» (design L22472, after Innstillinger for Ægil).
+                                  if (OnbStatus.paa)
+                                    ListenableBuilder(
+                                      listenable: OnbStatus.instance,
+                                      builder: (context, _) => _Rad(
+                                        key: const Key('meg-rad-onb'),
+                                        tile: const _GlassTile(rot: 2, d: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v.01M11 11.5h1v5h1'),
+                                        navn: 'Bli kjent med Ærend',
+                                        under: 'Ægil-runden · fem stopp i appen',
+                                        merke: OnbStatus.instance.nyVersjon ? 'Nytt' : null,
+                                        onTap: () => OnbRunde.instance.spillAv(),
+                                      ),
+                                    ),
                                   _Rad(
                                     key: const Key('meg-rad-adresser'),
                                     tile: const _GlassTile(rot: -2, d: 'M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4'),

@@ -57,7 +57,9 @@ import '../home_post_order_feedback.dart';
 import '../../../../networking/feed/feed_repo.dart';
 import '../../../bergen/adresse/adr_ark.dart' show AdrArkProve, visAdresseArk;
 import '../../../bergen/onboarding/onb_maal.dart';
+import '../../../bergen/onboarding/onb_hjem_kort.dart';
 import '../../../bergen/onboarding/onb_runde.dart';
+import '../../../bergen/onboarding/onb_status.dart';
 import 'bergen_adr_kilde.dart';
 import 'bergen_cards.dart';
 import 'bergen_category_rad.dart';
@@ -332,8 +334,19 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _refreshSeams();
     // Hurtigbestilling's entry line: the habit of the day, loaded once.
     HurtigKilde.load();
+    // Onboarding Step 3: Ægil-runden starts by itself once (`vkKanskjeStart`), 900 ms after Hjem.
+    final harness = kDebugMode ? HjemHarness.load() : Future<void>.value();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 900), () async {
+        await harness;
+        if (!mounted) return;
+        if (kDebugMode && HjemHarness.onbNull) OnbStatus.instance.nullstill();
+        if (kDebugMode && HjemHarness.onbLevert) OnbStatus.instance.merkLevert();
+        OnbRunde.kanskjeStart(harness: kDebugMode && HjemHarness.onbRunde != null);
+      });
+    });
     if (kDebugMode) {
-      HjemHarness.load().then((_) {
+      harness.then((_) {
         if (mounted) setState(() {});
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (!mounted) return;
@@ -344,6 +357,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (HjemHarness.hjul case final h?) setState(() => _hjulI = h);
           if (HjemHarness.vindu) _settVindu(true);
           if (HjemHarness.onbRunde case final n?) {
+            if (HjemHarness.onbNull) OnbStatus.instance.nullstill();
             OnbRunde.instance.start(fra: n, rolig: HjemHarness.onbRolig, auto: HjemHarness.onbAuto);
           }
           final fane = HjemHarness.fane;
@@ -2057,6 +2071,22 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final w in <Widget>[
+              // Onboarding Step 3: «Vil du se hva mer Ærend kan?» (design L3509, between the wheel and Hurtig).
+              ListenableBuilder(
+                listenable: Listenable.merge([OnbStatus.instance, OnbRunde.instance]),
+                builder: (context, _) => OnbStatus.instance.visHjemKort && !OnbRunde.instance.aktiv
+                    ? lfFlow(
+                        358,
+                        OnbHjemKort(
+                          onSpill: () {
+                            OnbStatus.instance.merkHjemKort();
+                            OnbRunde.instance.spillAv();
+                          },
+                          onLukk: OnbStatus.instance.merkHjemKort,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               SizedBox(height: 10 * s),
               lfFlow(
                 358,

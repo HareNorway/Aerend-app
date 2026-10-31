@@ -11,7 +11,9 @@ import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
 import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
+import '../../../services/customer/client_flags.dart';
 import 'onb_maal.dart';
+import 'onb_status.dart';
 import 'onb_steg.dart';
 
 /// Where the tour is in a step (`rt.fase`).
@@ -85,8 +87,19 @@ class OnbRunde extends ChangeNotifier {
   /// The run is in reduced motion (`onbRolig` / the still tier).
   bool rolig = false;
 
-  /// The phone answered the position question (`pos`): `tillatt`, `avslatt`.
-  String? pos;
+  /// The phone answered the position question (`pos`): `tillatt`, `avslatt`
+  /// (kept in [OnbStatus]).
+  String? get pos => OnbStatus.instance.pos;
+  set pos(String? v) {
+    if (v != null) OnbStatus.instance.merkPos(v);
+  }
+
+  /// When the run started (`ms_total` in `onboarding_completed`).
+  int _startT = 0;
+
+  /// After a skip without a position answer, the OS prompt comes once on Hjem
+  /// (`_vkSporPos`).
+  bool _sporPos = false;
 
   /// `_rtSesjon`: the run started once this session (Step 3 gates on it).
   bool sesjon = false;
@@ -126,6 +139,7 @@ class OnbRunde extends ChangeNotifier {
     this.auto = auto;
     _autoBrukt = false;
     sesjon = true;
+    _startT = _naa();
     if (rolig != null) this.rolig = rolig;
     _steg = onbStegListe(bio: bioPaa, posisjonGitt: pos != null);
     _aktiv = true;
@@ -294,17 +308,19 @@ class OnbRunde extends ChangeNotifier {
     fase = OnbFase.her;
     n++;
     sett.add(s.id);
+    OnbStatus.instance.merkSett(s.id);
     _oppd();
     _sporStart(steg);
     // Debug harness `onbAuto`: press the card's button by itself once.
     // (`start` presses «Neste» / «Fullfør» here first; the done card then presses itself.)
-    if (kDebugMode && auto != null && !_autoBrukt && (auto == 'neste' || auto == 'vismeg' || auto == 'start')) {
+    if (kDebugMode && auto != null && !_autoBrukt && (auto == 'neste' || auto == 'vismeg' || auto == 'start' || auto == 'hopp')) {
       _autoBrukt = true;
       final a = auto;
       Timer(const Duration(milliseconds: 1500), () {
         if (!_aktiv || fase != OnbFase.her) return;
         if (a == 'neste' || a == 'start') neste();
         if (a == 'vismeg') visMeg();
+        if (a == 'hopp') avslutt();
       });
     }
     debugPrint('ONB_RUNDE ${s.id} her${maal == null ? ' (uten mål)' : ''}');
@@ -535,7 +551,23 @@ class OnbRunde extends ChangeNotifier {
   void avslutt() {
     hoppet = !ferdig;
     debugPrint('ONB_RUNDE hoppet over ved ${naa?.id}');
-    lukk();
+    OnbStatus.instance.merkHoppet(i, naa?.id ?? '');
+    _sporPos = pos == null;
+    lukk(() {
+      if (_sporPos) _posEtterHopp();
+    });
+  }
+
+  /// The position prompt once on Hjem after a skip (`_vkSporPos` → `vkDialog`),
+  /// 900 ms after the layer is gone: the real OS prompt (D3).
+  void _posEtterHopp() {
+    _sporPos = false;
+    Timer(const Duration(milliseconds: 900), () async {
+      if (_aktiv || pos != null || skjermNaa() != 'hjem') return;
+      final c = HomeMainV1State.current?.context;
+      if (c == null || !c.mounted) return;
+      await _sporrPos(c, spor: true);
+    });
   }
 
   bool hoppet = false, ferdig = false;
@@ -576,6 +608,7 @@ class OnbRunde extends ChangeNotifier {
     ferdig = true;
     hoppet = false;
     debugPrint('ONB_RUNDE slutt');
+    OnbStatus.instance.merkFerdig(msTotal: _naa() - _startT);
     if (rolig || !kaiHoppKan) {
       lukk(() => gaaSkjerm('hjem'));
       return;
@@ -603,17 +636,87 @@ class OnbRunde extends ChangeNotifier {
   Future<void> handling(BuildContext context) async {
     final s = naa;
     if (s == null || s.handling == null) return;
+    await _sporrPos(context);
+    _oppd();
+  }
+
+  /// Asks the OS once (when it still can) and keeps the answer; the design's
+  /// two toasts. [spor]: the prompt after a skip, silent when the phone
+  /// already answered before.
+  Future<void> _sporrPos(BuildContext context, {bool spor = false}) async {
+    var svar = 'avslatt';
+    var spurt = false;
     try {
       final loc = Location();
       var p = await loc.hasPermission();
-      if (p == PermissionStatus.denied) p = await loc.requestPermission();
-      pos = (p == PermissionStatus.granted || p == PermissionStatus.grantedLimited) ? 'tillatt' : 'avslatt';
-    } catch (_) {
-      pos = 'avslatt';
-    }
-    _oppd();
+      if (p == PermissionStatus.denied) {
+        spurt = true;
+        p = await loc.requestPermission();
+      }
+      svar = (p == PermissionStatus.granted || p == PermissionStatus.grantedLimited) ? 'tillatt' : 'avslatt';
+    } catch (_) {}
+    pos = svar;
+    if (spor && !spurt) return;
     final c = HomeMainV1State.current?.context ?? context;
-    if (c.mounted) showBergenToast(c, pos == 'tillatt' ? OnbCopy.posTillatt : OnbCopy.posAvslatt);
+    if (c.mounted) showBergenToast(c, svar == 'tillatt' ? OnbCopy.posTillatt : OnbCopy.posAvslatt);
+  }
+
+  /// Reads the position permission without asking: an earlier «yes» hides
+  /// step 1's chip (`onbPosisjonGitt`).
+  Future<void> lesPos() async {
+    if (pos != null) return;
+    try {
+      final p = await Location().hasPermission();
+      if (p == PermissionStatus.granted || p == PermissionStatus.grantedLimited) pos = 'tillatt';
+    } catch (_) {}
+  }
+
+  // ── The trigger (`vkKanskjeStart`) ──────────────────────────────────────
+
+  /// Starts the run once per session for a customer who has neither finished
+  /// nor skipped it (decision D2: existing accounts too), never on an
+  /// arrival from an assistant or a push, never over a sheet, dialog or
+  /// pushed screen (retries every 800 ms), only with the `cus.onboarding`
+  /// flag. [harness]: the debug harness starts the run itself.
+  static Future<void> kanskjeStart({bool harness = false, int forsok = 0}) async {
+    final r = instance, st = OnbStatus.instance;
+    if (r._aktiv || r.sesjon || harness) return;
+    await st.last();
+    if (!ClientFlags.known(OnbStatus.flagg)) await ClientFlags.refresh();
+    final hvorfor = hindring(st);
+    if (hvorfor != null) return debugPrint('ONB_RUNDE ikke start ($hvorfor)');
+    if (!r._shellFri()) {
+      if (forsok < 40) Timer(const Duration(milliseconds: 800), () => kanskjeStart(forsok: forsok + 1));
+      return;
+    }
+    await r.lesPos();
+    if (r._aktiv || r.sesjon || st.ankomst != null) return;
+    debugPrint('ONB_RUNDE auto-start');
+    r.start();
+  }
+
+  /// Why the run must not start by itself, or null: the flag is off, it was
+  /// finished or skipped before, or the session arrived on a task.
+  static String? hindring(OnbStatus st) {
+    if (!OnbStatus.paa) return 'flagget er av';
+    if (st.ferdig) return 'fullført før';
+    if (st.hoppet) return 'hoppet over før';
+    if (st.ankomst != null) return 'ankomst ${st.ankomst}';
+    return null;
+  }
+
+  /// A replay from Meg or the Hjem card: reads the position first.
+  Future<void> spillAv() async {
+    OnbStatus.instance.merkReplay();
+    await lesPos();
+    start();
+  }
+
+  /// The shell is up and nothing (a sheet, a dialog, a pushed screen) is over it.
+  bool _shellFri() {
+    final shell = HomeMainV1State.current;
+    if (shell == null || !shell.mounted) return false;
+    return ModalRoute.of(shell.context)?.isCurrent ?? true;
   }
 
   // ── Screens ────────────────────────────────────────────────────────────
@@ -686,7 +789,7 @@ class OnbRunde extends ChangeNotifier {
   void reset() {
     stopp();
     sesjon = false;
-    pos = null;
+    _sporPos = false;
     hoppet = ferdig = false;
     sett.clear();
     rolig = false;

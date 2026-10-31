@@ -69,6 +69,13 @@ abstract final class HjemHarness {
   /// so the stamp, the done card and the kai-hopp can be shot without taps.
   static String? onbAuto;
 
+  /// Step 3: forget the onboarding state (local, and the server's answer for
+  /// this session) before the trigger runs: the tour starts as for a new customer.
+  static bool onbNull = false;
+
+  /// Step 3: as if a delivery had been seen (the Hjem card's condition).
+  static bool onbLevert = false;
+
   /// Focus this wheel slot.
   static int? hjul;
 
@@ -398,6 +405,8 @@ abstract final class HjemHarness {
         onbRunde = null;
         onbRolig = false;
         onbAuto = null;
+        onbNull = false;
+        onbLevert = false;
         ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
@@ -519,6 +528,8 @@ abstract final class HjemHarness {
       onbRunde = (m['onbRunde'] as num?)?.toInt();
       onbRolig = m['onbRolig'] == true;
       onbAuto = m['onbAuto'] as String?;
+      onbNull = m['onbNull'] == true;
+      onbLevert = m['onbLevert'] == true;
       hjul = m['hjul'] as int?;
       adresse = m['adresse'] as String?;
       dekning = m['dekning'] as String?;
