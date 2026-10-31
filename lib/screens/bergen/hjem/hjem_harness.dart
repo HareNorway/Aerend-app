@@ -80,6 +80,10 @@ abstract final class HjemHarness {
   /// its screen and shows it; `kode` / `abo` need `sporing` / `levert` too.
   static String? onbTips;
 
+  /// Onboarding Step 6: on Kategori › Produkter, press the hero's «+» once
+  /// after the products load (a real cart line) so the stepper can be shot.
+  static bool katLegg = false;
+
   /// Focus this wheel slot.
   static int? hjul;
 
@@ -412,6 +416,7 @@ abstract final class HjemHarness {
         onbNull = false;
         onbLevert = false;
         onbTips = null;
+        katLegg = false;
         ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
@@ -536,6 +541,7 @@ abstract final class HjemHarness {
       onbNull = m['onbNull'] == true;
       onbLevert = m['onbLevert'] == true;
       onbTips = m['onbTips'] as String?;
+      katLegg = m['katLegg'] == true;
       hjul = m['hjul'] as int?;
       adresse = m['adresse'] as String?;
       dekning = m['dekning'] as String?;

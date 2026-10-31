@@ -21,6 +21,7 @@ import 'butikk_copy.dart';
 import 'produkt_launch.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
+import 'kategori_modul.dart' show katVareIkon;
 
 /// The product sheet (`visProdukt` ≈L7214–7297 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -476,6 +477,7 @@ class _ProduktSheetState extends State<ProduktSheet> {
                 ProduktHero(
                   fold: _fold,
                   imageUrl: item.imageUrl ?? d?.imageUrl,
+                  ikon: katVareIkon(item.name, 0),
                   name: item.name,
                   sum: ButikkCopy.kr(_sum),
                   onClose: _close,

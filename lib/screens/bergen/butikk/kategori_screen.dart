@@ -26,6 +26,9 @@ import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
 import 'kategori_modul.dart';
+import 'kategori_produkt.dart';
+import '../../../networking/ops/ops_kasse_api.dart';
+import '../../../data/ops/kasse_models.dart';
 import '../kit/bergen_cart.dart';
 import 'kategori_utstilling.dart';
 import '../kit/laster_skjerm.dart';
@@ -50,6 +53,7 @@ abstract final class KatCopy {
   static String get populaer => _t('POPULÆR NÅ', 'POPULAR NOW');
   static String get mestKjopt => _t('Mest kjøpt', 'Most bought');
   static String get tilbud => _t('Tilbud', 'Offer');
+  static String get ny => _t('Ny', 'New');
   static String get tomt => _t('Ingen butikker her ennå.', 'No stores here yet.');
   static String get tomtSok => _t('Ingen treff.', 'No matches.');
   static String get tomtProdukter =>
@@ -179,6 +183,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
 
   /// Stores the customer has ordered from («PRØVD»), from `ops/customer/orders`.
   Set<int> _provd = const {};
+
+  /// Onboarding Step 6: the cart's lines by product (the stepper's count).
+  Map<int, KurvLine> _kurv = const {};
+  final OpsKasseApi _kasse = OpsKasseApi();
   Map<String, dynamic>? _pulse;
 
   /// `katKollaps`: how far the hero has folded (0–1, before easing).
@@ -282,6 +290,12 @@ class _KategoriScreenState extends State<KategoriScreen> {
       final p = await products;
       if (!mounted) return;
       setState(() => _products = p);
+      unawaited(_lastKurv());
+      if (kDebugMode && HjemHarness.katLegg && p.isNotEmpty) {
+        Future<void>.delayed(const Duration(milliseconds: 1800), () {
+          if (mounted) _leggProdukt(_produktVis(p.first, 0));
+        });
+      }
     } else {
       setState(() {
         _stores = const [];
@@ -438,6 +452,33 @@ class _KategoriScreenState extends State<KategoriScreen> {
     if (mounted && ids.isNotEmpty) setState(() => _provd = ids);
   }
 
+  Future<void> _lastKurv() async {
+    try {
+      final c = await _kasse.cart();
+      if (mounted) setState(() => _kurv = {for (final l in c.lines) l.productId: l});
+    } catch (_) {}
+  }
+
+  /// The card's «+» (`leggTil`): a real line, then the count from the cart.
+  Future<void> _leggProdukt(KatProduktVis p) async {
+    if (p.storeId == 0 || p.id == 0) return;
+    final ok = await BergenCart.add(context, storeId: p.storeId, productId: p.id, stille: _kurv.containsKey(p.id));
+    if (ok) await _lastKurv();
+  }
+
+  /// The stepper's «−» (`linjeEndre −1`).
+  Future<void> _minusProdukt(KatProduktVis p) async {
+    final l = _kurv[p.id];
+    if (l == null) return;
+    final ok = l.quantity <= 1 ? await _kasse.remove(l.cartId) : await _kasse.changeQuantity(l.cartId, l.quantity - 1);
+    if (!ok) return;
+    if (l.quantity <= 1) {
+      prefSetInt(prefCartCount, (prefGetInt(prefCartCount) - 1).clamp(0, 999));
+      if (mounted) BergenCart.syncBadge(context);
+    }
+    await _lastKurv();
+  }
+
   List<KatModulVare> _varerFor(int storeId) {
     final r = _varerCache[storeId];
     if (r == null) return const [];
@@ -500,6 +541,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
       tag: n == 0 && solgt > 0
           ? KatCopy.mestKjopt
           : (was > ore ? KatCopy.tilbud : null),
+      besk: '${p['description'] ?? ''}'.trim().isEmpty ? null : '${p['description']}'.trim(),
+      ikon: katVareIkon('${p['name'] ?? ''}', _slot),
     );
   }
 
@@ -1109,39 +1152,37 @@ class _KategoriScreenState extends State<KategoriScreen> {
       return _Tomt(tekst: _sokTekst.text.trim().isEmpty ? KatCopy.tomtProdukter : KatCopy.tomtSok);
     }
     final vis = [for (var n = 0; n < list.length; n++) _produktVis(list[n], n)];
-    Widget kort(KatProduktVis p) => KatKortStag(
+    // Onboarding Step 6: the hero spans both columns, the rest go in pairs
+    // (`grid gap 14px 12px`, `padding-top: 14px`).
+    Widget kort(KatProduktVis p, {required bool hero}) => KatProduktKortNy(
       key: ValueKey('kp-${p.id}'),
-      durationMs: 500,
-      delayMs: math.min(p.nr, 8) * 60.0,
-      child: KatProduktKort(
-        p: p,
-        onTap: () => _openProduct(p),
-        onLeggTil: () => _openProduct(p),
-      ),
+      p: p,
+      hero: hero,
+      ant: _kurv[p.id]?.quantity ?? 0,
+      onTap: () => _openProduct(p),
+      onLegg: () => _leggProdukt(p),
+      onMinus: () => _minusProdukt(p),
+      tilbud: KatCopy.tilbud,
+      ny: KatCopy.ny,
     );
+    final rader = katProduktRader(vis.length);
     return Padding(
-      // `padding-top:52px` — room for the products floating out of the cards.
-      padding: EdgeInsets.only(top: 52 * s),
+      padding: EdgeInsets.only(top: 14 * s),
       child: Column(
         children: [
-          for (var i = 0; i < vis.length; i += 2)
+          for (var r = 0; r < rader.length; r++)
             Padding(
-              padding: EdgeInsets.only(bottom: 60 * s),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: kort(vis[i])),
-                  SizedBox(width: 12 * s),
-                  Expanded(
-                    child: i + 1 < vis.length
-                        ? Padding(
-                            padding: EdgeInsets.only(top: 56 * s),
-                            child: kort(vis[i + 1]),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
+              padding: EdgeInsets.only(bottom: 14 * s),
+              child: r == 0
+                  ? kort(vis[0], hero: true)
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: kort(vis[rader[r][0]], hero: false)),
+                        SizedBox(width: 12 * s),
+                        Expanded(child: rader[r].length > 1 ? kort(vis[rader[r][1]], hero: false) : const SizedBox.shrink()),
+                      ],
+                    ),
             ),
         ],
       ),

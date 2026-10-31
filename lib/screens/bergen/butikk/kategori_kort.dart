@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/auth/onboarding_kit.dart';
@@ -9,7 +8,6 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
-import '../kit/bergen_perf.dart';
 
 // ── Kategori cards (L6048–6120, `butikkListe` / `produktListe`) ─────────────
 // Cream cards that float in 3D (`bm3Svev`), follow the finger (`bmTiltMove`),
@@ -68,6 +66,8 @@ class KatProduktVis {
     this.eta,
     this.kroner,
     this.tag,
+    this.besk,
+    this.ikon,
   });
 
   final int id;
@@ -76,6 +76,11 @@ class KatProduktVis {
   final String butikk;
   final String pris;
   final int nr;
+
+  /// Onboarding Step 6: the description (hero, clamped to 3 lines) and the
+  /// 3D icon when there is no photo (`assets/images/kategori/<ikon>.svg`).
+  final String? besk;
+  final String? ikon;
 
   /// The store's place in the store list (the card's colour).
   final int fargeNr;
@@ -102,8 +107,6 @@ const List<Color> kKatDyp = [
   Color(0xFFB23A55),
 ];
 
-const Color _kInk = Color(0xFF23201D);
-const Color _kGra = Color(0xFF6E675D);
 const List<Color> _kKnapp = [
   Color(0xFFF9A273),
   Color(0xFFF26D3D),
@@ -357,87 +360,7 @@ const List<Color> kKatHoloSterk = [
 ];
 const List<double> kKatHoloSterkStopp = [.22, .36, .45, .54, .63, .76];
 
-/// `radial-gradient(circle at var(--mx) var(--my), rgba(255,255,255,a),
-/// transparent r)` with a blend mode.
-class _Lys extends StatelessWidget {
-  const _Lys({
-    required this.lys,
-    required this.alfa,
-    required this.radius,
-    required this.blend,
-  });
-
-  final Offset lys;
-  final double alfa;
-  final double radius;
-  final BlendMode blend;
-
-  @override
-  Widget build(BuildContext context) =>
-      CustomPaint(painter: _LysMaler(lys, alfa, radius, blend));
-}
-
-class _LysMaler extends CustomPainter {
-  _LysMaler(this.lys, this.alfa, this.radius, this.blend);
-
-  final Offset lys;
-  final double alfa;
-  final double radius;
-  final BlendMode blend;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(lys.dx * size.width, lys.dy * size.height);
-    // CSS `circle` farthest-corner: the radius reaches the far corner.
-    final r = [
-      Offset.zero,
-      Offset(size.width, 0),
-      Offset(0, size.height),
-      Offset(size.width, size.height),
-    ].map((k) => (k - c).distance).reduce(math.max);
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..blendMode = blend
-        ..shader = ui.Gradient.radial(c, r, [
-          Color.fromRGBO(255, 255, 255, alfa),
-          const Color.fromRGBO(255, 255, 255, 0),
-        ], [0, radius]),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_LysMaler old) => old.lys != lys;
-}
-
-/// `border-top: 1px dashed rgba(60,40,20,.16)`.
-class _Stiplet extends StatelessWidget {
-  const _Stiplet();
-
-  @override
-  Widget build(BuildContext context) =>
-      const SizedBox(height: 1, width: double.infinity, child: CustomPaint(painter: _StipletMaler()));
-}
-
-class _StipletMaler extends CustomPainter {
-  const _StipletMaler();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = const Color.fromRGBO(60, 40, 20, .16)
-      ..strokeWidth = 1;
-    for (var x = 0.0; x < size.width; x += 6) {
-      canvas.drawLine(Offset(x, .5), Offset(math.min(x + 3, size.width), .5), p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_StipletMaler old) => false;
-}
-
-/// The coin pill (`+30`): `bm3Mynt 3.4s cubic-bezier(.5,0,.3,1)` — a full
-/// turn in 55% of the cycle, then rest.
+/// The Ærend-kroner pill with the spinning coin (`bmMynt`).
 class KatMyntPille extends StatelessWidget {
   const KatMyntPille({
     super.key,
@@ -659,16 +582,6 @@ class _TrykkState extends State<_Trykk> {
 }
 
 
-Widget _bilde(String? url, BoxFit fit, {Alignment align = Alignment.center}) {
-  if (url == null || url.isEmpty) return const SizedBox.shrink();
-  return CachedNetworkImage(memCacheWidth: BergenPerf.decodeWidth, 
-    imageUrl: url,
-    fit: fit,
-    alignment: align,
-    fadeInDuration: const Duration(milliseconds: 200),
-    errorWidget: (_, _, _) => const SizedBox.shrink(),
-  );
-}
 
 /// `kortStag <dur> <delay> cubic-bezier(.2,.9,.3,1) both`.
 class KatKortStag extends StatelessWidget {
@@ -705,466 +618,4 @@ class KatKortStag extends StatelessWidget {
 
 // ── Store card: Onboarding Step 5 moved it to `kategori_modul.dart` (the module). ──
 
-// ── Product card ────────────────────────────────────────────────────────────
-
-class KatProduktKort extends StatelessWidget {
-  const KatProduktKort({
-    super.key,
-    required this.p,
-    required this.onTap,
-    required this.onLeggTil,
-  });
-
-  final KatProduktVis p;
-  final VoidCallback onTap;
-  final VoidCallback onLeggTil;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final farge = kKatFarge[p.fargeNr % 4];
-    final dyp = kKatDyp[p.fargeNr % 4];
-    final fase = p.nr * 2300.0;
-    return KatSvevKort(
-      key: ValueKey('kat-p-${p.id}'),
-      perspektiv: 800,
-      svevMs: 9000,
-      faseMs: fase,
-      tiltK: 16,
-      trykk: .97,
-      onTap: onTap,
-      builder: (context, lys) => Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            left: -14 * s,
-            right: -14 * s,
-            top: 40 * s,
-            bottom: -26 * s,
-            child: katZ(
-              -40 * s,
-              IgnorePointer(
-                child: Opacity(
-                  opacity: .45,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [farge, farge.withValues(alpha: 0)],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26 * s),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFFFFBF5), Color(0xFFF7EEE2)],
-              ),
-              boxShadow: [
-                BoxShadow(color: rgba(255, 255, 255, .55), spreadRadius: 1),
-                BoxShadow(color: rgba(4, 18, 26, .25), offset: Offset(0, 3 * s)),
-                BoxShadow(
-                  color: rgba(4, 18, 26, .85),
-                  offset: Offset(0, 26 * s),
-                  blurRadius: onbBlur(34 * s),
-                  spreadRadius: -20 * s,
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(26 * s),
-              child: Stack(
-                children: [
-                  const Positioned.fill(
-                    child: IgnorePointer(
-                      child: KatHolo(farger: kKatHoloLys, stopp: kKatHoloLysStopp),
-                    ),
-                  ),
-                  bergenInsetTop(radius: 26 * s, height: 1.5 * s, alpha: 1),
-                  Positioned(
-                    left: 7 * s,
-                    right: 7 * s,
-                    top: 7 * s,
-                    height: 104 * s,
-                    child: _Bronn(farge: farge, dyp: dyp, lys: lys, faseMs: fase),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(11 * s, 120 * s, 11 * s, 11 * s),
-                    child: _ProduktInfo(p: p, onLeggTil: onLeggTil),
-                  ),
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: _Lys(
-                        lys: lys,
-                        alfa: .4,
-                        radius: .42,
-                        blend: BlendMode.softLight,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // The product floats out of the card (`translateZ(60px)`, `bm3Flyt`).
-          if ((p.bildeUrl ?? '').isNotEmpty)
-            Positioned(
-              left: 0,
-              right: 0,
-              top: -34 * s,
-              height: 110 * s,
-              child: katZ(
-                60 * s,
-                Center(
-                  child: KatLoop(
-                    durationMs: 4000,
-                    phaseMs: fase,
-                    child: _FlytBilde(url: p.bildeUrl!),
-                    builder: (context, t, child) {
-                      final y = kf(t, const [0, .5, 1], const [0, -12, 0], Curves.easeInOut);
-                      final r = kf(t, const [0, .5, 1], const [-2, 1.5, -2], Curves.easeInOut);
-                      return Transform.translate(
-                        offset: Offset(0, y * s),
-                        child: Transform.rotate(
-                          angle: r * math.pi / 180,
-                          child: child,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          if (p.tag != null)
-            Positioned(
-              left: -6 * s,
-              top: -12 * s,
-              child: katZ(
-                80 * s,
-                Transform.rotate(
-                  angle: -5 * math.pi / 180,
-                  child: _ProduktTag(tag: p.tag!),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A real product photo as a rounded print lifting out of the card (the
-/// design's cut-out PNGs have no backdrop; shop photos do).
-class _FlytBilde extends StatelessWidget {
-  const _FlytBilde({required this.url});
-
-  final String url;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return Container(
-      width: 136 * s,
-      height: 96 * s,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18 * s),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: rgba(30, 8, 0, .45),
-            offset: Offset(0, 14 * s),
-            blurRadius: onbBlur(18 * s),
-            spreadRadius: -8 * s,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(3 * s),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15 * s),
-        child: _bilde(url, BoxFit.cover),
-      ),
-    );
-  }
-}
-
-class _ProduktTag extends StatelessWidget {
-  const _ProduktTag({required this.tag});
-
-  final String tag;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final tilbud = tag == 'Tilbud', ny = tag == 'Ny';
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 5 * s),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8 * s),
-        color: tilbud ? null : (ny ? Colors.white : const Color(0xFFF2C14E)),
-        gradient: tilbud
-            ? cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)])
-            : null,
-        boxShadow: [
-          BoxShadow(color: Colors.white, spreadRadius: 2 * s),
-          BoxShadow(
-            color: rgba(0, 0, 0, .5),
-            offset: Offset(0, 8 * s),
-            blurRadius: onbBlur(14 * s),
-            spreadRadius: -4 * s,
-          ),
-        ],
-      ),
-      child: Text(
-        tag,
-        style: bText(
-          context,
-          10.5,
-          weight: FontWeight.w800,
-          letterSpacingEm: .02,
-          color: tilbud ? Colors.white : (ny ? const Color(0xFFB8380F) : _kInk),
-        ),
-      ),
-    );
-  }
-}
-
-/// The product's well: `radial-gradient(90% 100% at 50% 100%, farge, dyp
-/// 80%)`, the strong holo, the light and the plate shadow (`bm3Skygge`).
-class _Bronn extends StatelessWidget {
-  const _Bronn({
-    required this.farge,
-    required this.dyp,
-    required this.lys,
-    required this.faseMs,
-  });
-
-  final Color farge;
-  final Color dyp;
-  final Offset lys;
-  final double faseMs;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    final r = BorderRadius.circular(20 * s);
-    return ClipRRect(
-      borderRadius: r,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          LayoutBuilder(
-            builder: (context, c) => DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.bottomCenter,
-                  radius: 1,
-                  colors: [farge, dyp],
-                  stops: const [0, .8],
-                  transform: const _Ellipse(.9, 1),
-                ),
-              ),
-            ),
-          ),
-          const IgnorePointer(
-            child: KatHolo(farger: kKatHoloSterk, stopp: kKatHoloSterkStopp, dodge: .38),
-          ),
-          IgnorePointer(
-            child: _Lys(lys: lys, alfa: .5, radius: .5, blend: BlendMode.overlay),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 84 * s,
-            height: 16 * s,
-            child: Center(
-              child: KatLoop(
-                durationMs: 4000,
-                phaseMs: faseMs,
-                child: Container(
-                  width: 110 * s,
-                  height: 16 * s,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.elliptical(55 * s, 8 * s)),
-                    gradient: RadialGradient(
-                      colors: [rgba(30, 8, 0, .55), rgba(0, 0, 0, 0)],
-                    ),
-                  ),
-                ),
-                builder: (context, t, child) {
-                  final sc = kf(t, const [0, .5, 1], const [1, .8, 1], Curves.easeInOut);
-                  final o = kf(t, const [0, .5, 1], const [1, .65, 1], Curves.easeInOut);
-                  return Opacity(
-                    opacity: o,
-                    child: Transform.scale(scale: sc, child: child),
-                  );
-                },
-              ),
-            ),
-          ),
-          // `inset 0 0 0 1px rgba(0,0,0,.08), inset 0 -10px 18px -10px
-          // rgba(0,0,0,.35)`.
-          IgnorePointer(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: r,
-                border: Border.all(color: rgba(0, 0, 0, .08)),
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)],
-                  stops: const [0, .12],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// CSS `radial-gradient(<rx>% <ry>% at …)` on a box.
-class _Ellipse extends GradientTransform {
-  const _Ellipse(this.rx, this.ry);
-
-  final double rx;
-  final double ry;
-
-  @override
-  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
-    final short = math.min(bounds.width, bounds.height) / 2;
-    final c = bounds.bottomCenter;
-    return Matrix4.identity()
-      ..translateByDouble(c.dx, c.dy, 0, 1)
-      ..scaleByDouble(rx * bounds.width / short, ry * bounds.height / short, 1, 1)
-      ..translateByDouble(-c.dx, -c.dy, 0, 1);
-  }
-}
-
-class _ProduktInfo extends StatelessWidget {
-  const _ProduktInfo({required this.p, required this.onLeggTil});
-
-  final KatProduktVis p;
-  final VoidCallback onLeggTil;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(minHeight: 37 * s),
-          child: Text(
-            p.navn,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: bDisplay(
-              context,
-              15.5,
-              letterSpacingEm: -.02,
-              height: 1.2,
-              color: _kInk,
-            ),
-          ),
-        ),
-        SizedBox(height: 6 * s),
-        Row(
-          children: [
-            Container(
-              width: 20 * s,
-              height: 20 * s,
-              padding: EdgeInsets.all(2.5 * s),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(color: rgba(60, 40, 20, .12), spreadRadius: 1.5),
-                  BoxShadow(
-                    color: rgba(0, 0, 0, .45),
-                    offset: Offset(0, 3 * s),
-                    blurRadius: onbBlur(6 * s),
-                    spreadRadius: -2 * s,
-                  ),
-                ],
-              ),
-              child: ClipOval(child: _bilde(p.logoUrl, BoxFit.contain)),
-            ),
-            SizedBox(width: 6 * s),
-            Expanded(
-              child: Text(
-                p.butikk,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: bText(
-                  context,
-                  11.5,
-                  weight: FontWeight.w700,
-                  color: const Color(0xFF57534B),
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8 * s),
-        Row(
-          children: [
-            if (p.eta != null) ...[
-              SokIkon(
-                '${SokIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2',
-                size: 12 * s,
-                color: _kGra,
-                stroke: 2.4,
-              ),
-              SizedBox(width: 4 * s),
-              Flexible(
-                child: Text(
-                  p.eta!,
-                  maxLines: 1,
-                  style: bText(context, 11.5, weight: FontWeight.w700, color: _kGra),
-                ),
-              ),
-            ],
-            const Spacer(),
-            if (p.kroner != null)
-              KatMyntPille(
-                tekst: '+${p.kroner}',
-                hoyde: 24,
-                mynt: 14,
-                fontPx: 11.5,
-                faseMs: p.nr * 2300,
-              ),
-          ],
-        ),
-        SizedBox(height: 10 * s),
-        const _Stiplet(),
-        SizedBox(height: 10 * s),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                p.pris,
-                maxLines: 1,
-                style: bDisplay(context, 19, letterSpacingEm: -.03, color: _kInk)
-                    .copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
-              ),
-            ),
-            KatRundKnapp(
-              size: 42,
-              ikon: 'M12 5v14M5 12h14',
-              ikonPx: 18,
-              strek: 3,
-              onTap: onLeggTil,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
+// ── Product card: Onboarding Step 6 moved it to `kategori_produkt.dart` (hero + small cards). ──

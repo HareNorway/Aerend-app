@@ -119,8 +119,19 @@ class _ButikkScreenState extends State<ButikkScreen> {
     final item = store.allItems.where((i) => i.id == pid).firstOrNull;
     if (item == null) return;
     _productId = null;
-    // After the first frame, so the page is under the sheet.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // After the first frame, so the page is under the sheet — and after the
+    // push transition has landed (Onboarding Step 6, `aapneProduktIButikk`:
+    // wait for the screen change, 2.6 s at most, then 140 ms).
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final anim = ModalRoute.of(context)?.animation;
+      if (anim != null && anim.status != AnimationStatus.completed) {
+        final t0 = DateTime.now();
+        while (mounted && anim.status != AnimationStatus.completed && DateTime.now().difference(t0).inMilliseconds < 2600) {
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 140));
+      }
       if (!mounted) return;
       final body = _bodyKey.currentState;
       if (body != null) {
