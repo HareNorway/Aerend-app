@@ -187,7 +187,7 @@ class _Hero extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Flexible(child: Text(p.pris, maxLines: 1, style: bDisplay(context, 21, letterSpacingEm: -.02, color: _kInk).copyWith(fontFeatures: const [FontFeature.tabularFigures()]))),
+                            Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(p.pris, maxLines: 1, style: bDisplay(context, 21, letterSpacingEm: -.02, color: _kInk).copyWith(fontFeatures: const [FontFeature.tabularFigures()])))),
                             SizedBox(width: 8 * s),
                             _Stepper(ant: ant, stor: true, onLegg: onLegg, onMinus: onMinus, navn: p.navn),
                           ],
