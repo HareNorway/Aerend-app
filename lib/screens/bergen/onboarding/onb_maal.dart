@@ -95,7 +95,7 @@ abstract final class OnbMaalRegistry {
     if (ctx == null) return null;
     final rb = ctx.findRenderObject();
     if (rb is! RenderBox || !rb.attached || !rb.hasSize) return null;
-    var r = rb.localToGlobal(Offset.zero) & rb.size;
+    var r = globalRect(rb);
     // Clip against every scroll viewport above the target.
     var c = ctx;
     while (true) {
@@ -103,7 +103,7 @@ abstract final class OnbMaalRegistry {
       if (sc == null) break;
       final vb = sc.context.findRenderObject();
       if (vb is RenderBox && vb.attached && vb.hasSize) {
-        r = r.intersect(vb.localToGlobal(Offset.zero) & vb.size);
+        r = r.intersect(globalRect(vb));
       }
       c = sc.context;
       final parent = c.findAncestorStateOfType<ScrollableState>();
@@ -123,6 +123,11 @@ abstract final class OnbMaalRegistry {
     return OnbMaalRekt(r, w is OnbMaal ? w.radius : 14);
   }
 
+  /// The box's rect on screen with every ancestor transform applied. Hjem's
+  /// rows sit in scaled frames (`lfFlow` = a FittedBox), so the origin alone
+  /// plus the unscaled size came out too narrow on wide phones.
+  static Rect globalRect(RenderBox rb) => MatrixUtils.transformRect(rb.getTransformTo(null), Offset.zero & rb.size);
+
   /// Scrolls the target so it sits inside the band [lo, hi] (global y) of
   /// its nearest scrollable, the prototype's `rtRull`: a tall target goes to
   /// the top of the band, a short one at most 40 px under it. Returns how far
@@ -137,7 +142,8 @@ abstract final class OnbMaalRegistry {
     if (sc == null || !sc.position.hasPixels) return 0;
     final pos = sc.position;
     if (pos.axis != Axis.vertical) return 0;
-    final ty = rb.localToGlobal(Offset.zero).dy, th = rb.size.height;
+    final gr = globalRect(rb);
+    final ty = gr.top, th = gr.height;
     if (ty >= lo && ty + th <= hi) return 0;
     final maal = th > hi - lo ? lo : math.max(lo, math.min(hi - th, lo + fortrinn));
     final d = ty - maal;
