@@ -37,14 +37,14 @@ class _Cus extends CusApi {
   }
 
   @override
-  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false}) async {
+  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false, String? paymentMethod}) async {
     calls.add('confirm:$id:$payment${overLimitOk ? ':over' : ''}');
     if (confirmFeil != null) return (betaling: null, feil: confirmFeil, request: request);
     return (betaling: CusAiBetaling(method: payment), feil: null, request: request);
   }
 
   @override
-  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id) async {
+  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id, {String? paymentResultRef}) async {
     calls.add('pay:$id');
     return (resultat: payResultat, order: payResultat == 'confirmed' ? const CusAiOrder(id: 777, number: 'Æ-77X', paymentStatus: 'paid') : null, request: request);
   }

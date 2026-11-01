@@ -48,14 +48,14 @@ class _Cus extends CusApi {
   @override
   Future<int?> aiLinksRevokeAll() async { calls.add('revokeAll'); links = [for (final l in links) AiStore.harnessLink(l.name, active: false)]; return links.length; }
   @override
-  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false}) async {
+  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false, String? paymentMethod}) async {
     calls.add('confirm:$id:$payment${overLimitOk ? ':over' : ''}');
     if (!confirmOk) return (betaling: null, feil: confirmFeil, request: request);
     // Customer v2 Step 3: the confirmation starts the payment; the order comes from `pay`.
     return (betaling: CusAiBetaling(method: payment), feil: null, request: request);
   }
   @override
-  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id) async {
+  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id, {String? paymentResultRef}) async {
     calls.add('pay:$id');
     return (resultat: 'confirmed', order: const CusAiOrder(id: 777, number: 'Æ-77X', paymentStatus: 'paid'), request: request);
   }

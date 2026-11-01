@@ -8095,4 +8095,63 @@ class AppLocalizationsDa extends AppLocalizations {
 
   @override
   String get ops_kasse_tom_beskjed => 'Clear the note';
+
+  @override
+  String get cus_bet_tittel => 'Payment';
+
+  @override
+  String get cus_bet_linje =>
+      'Vipps is the standard. A saved card pays an assistant\'s request when you chose «Saved card» — after you confirm, with Face ID or your code first.';
+
+  @override
+  String get cus_bet_lagrede => 'Saved cards';
+
+  @override
+  String get cus_bet_ingen => 'No saved cards yet.';
+
+  @override
+  String get cus_bet_legg_til => 'Add card';
+
+  @override
+  String get cus_bet_standard => 'Default';
+
+  @override
+  String get cus_bet_bruk_som_standard => 'Use as default';
+
+  @override
+  String get cus_bet_slett => 'Remove';
+
+  @override
+  String get cus_bet_avbryt => 'Cancel';
+
+  @override
+  String cus_bet_slett_sporsmal(String kort) {
+    return 'Remove $kort?';
+  }
+
+  @override
+  String cus_bet_utloper(String mm, String yy) {
+    return 'expires $mm/$yy';
+  }
+
+  @override
+  String get cus_bet_lagt_til => 'Card added.';
+
+  @override
+  String get cus_bet_avbrutt => 'Nothing added.';
+
+  @override
+  String get cus_bet_feil => 'Could not reach the card service. Try again.';
+
+  @override
+  String get cus_bet_stripe_info =>
+      'Stored by Stripe. Ærend never sees the card number.';
+
+  @override
+  String get cus_ai_lagret_kort_hint =>
+      'Charged on your default card under Meg → Payment after you confirm — Face ID or your code first.';
+
+  @override
+  String get cus_ai_lagret_kort_mangler =>
+      'No saved card yet — add one under Meg → Payment; until then the card sheet opens.';
 }

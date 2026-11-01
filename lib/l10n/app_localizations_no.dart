@@ -8102,4 +8102,63 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kasse_tom_beskjed => 'Tøm beskjed';
+
+  @override
+  String get cus_bet_tittel => 'Betaling';
+
+  @override
+  String get cus_bet_linje =>
+      'Vipps er standard. Et lagret kort betaler forespørsler fra assistenten når du har valgt «Lagret kort» – etter at du har bekreftet, med Face ID eller kode først.';
+
+  @override
+  String get cus_bet_lagrede => 'Lagrede kort';
+
+  @override
+  String get cus_bet_ingen => 'Ingen lagrede kort ennå.';
+
+  @override
+  String get cus_bet_legg_til => 'Legg til kort';
+
+  @override
+  String get cus_bet_standard => 'Standard';
+
+  @override
+  String get cus_bet_bruk_som_standard => 'Bruk som standard';
+
+  @override
+  String get cus_bet_slett => 'Fjern';
+
+  @override
+  String get cus_bet_avbryt => 'Avbryt';
+
+  @override
+  String cus_bet_slett_sporsmal(String kort) {
+    return 'Fjerne $kort?';
+  }
+
+  @override
+  String cus_bet_utloper(String mm, String yy) {
+    return 'utløper $mm/$yy';
+  }
+
+  @override
+  String get cus_bet_lagt_til => 'Kortet er lagt til.';
+
+  @override
+  String get cus_bet_avbrutt => 'Ingenting lagt til.';
+
+  @override
+  String get cus_bet_feil => 'Fikk ikke kontakt med kortløsningen. Prøv igjen.';
+
+  @override
+  String get cus_bet_stripe_info =>
+      'Lagret hos Stripe. Ærend ser aldri kortnummeret.';
+
+  @override
+  String get cus_ai_lagret_kort_hint =>
+      'Trekkes fra standardkortet ditt under Meg → Betaling etter at du har bekreftet – Face ID eller kode først.';
+
+  @override
+  String get cus_ai_lagret_kort_mangler =>
+      'Ingen lagret kort ennå – legg til under Meg → Betaling; til da åpner kortskjemaet.';
 }

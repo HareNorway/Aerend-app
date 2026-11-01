@@ -661,11 +661,13 @@ class CusApi {
   /// (`quote_expired`, `token_used`, `over_limit` …).
   /// «Bekreft og betal» (Customer v2 Step 3, D2-5): starts the payment — no order yet. Vipps: [CusAiBetaling.redirectUrl];
   /// card: [CusAiBetaling.sheet] for the Stripe sheet. [overLimitOk] is the explicit second confirmation over a cap (D2-4).
-  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false}) async {
+  /// Customer v2 Step 4: [payment] `saved_card` charges the default saved card (or [paymentMethod]) — the answer carries
+  /// [CusAiBetaling.clientSecret] and [CusAiBetaling.requiresAction] for 3-D Secure in the app.
+  Future<({CusAiBetaling? betaling, String? feil, CusAiRequest? request})> aiRequestConfirm(String id, {String payment = 'vipps', bool overLimitOk = false, String? paymentMethod}) async {
     final auth = OpsCustomerApi.authParams();
     if (auth == null || !OpsCustomerApi.networkEnabled) return (betaling: null, feil: null, request: null);
     try {
-      final res = await _helper.postAllowClientError('${_base}ai/requests/${Uri.encodeComponent(id)}/confirm', body: {...auth, 'payment': payment, if (overLimitOk) 'over_limit_ok': 1});
+      final res = await _helper.postAllowClientError('${_base}ai/requests/${Uri.encodeComponent(id)}/confirm', body: {...auth, 'payment': payment, if (overLimitOk) 'over_limit_ok': 1, if (paymentMethod != null) 'payment_method': paymentMethod});
       final j = res.data;
       if (j is! Map<String, dynamic>) return (betaling: null, feil: null, request: null);
       final req = j['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j['request'] as Map)) : null;
@@ -678,13 +680,40 @@ class CusApi {
 
   /// Back from Vipps or the card sheet (`POST customer/ai/requests/{id}/pay`): the provider decides —
   /// [resultat] `confirmed` (with the order), `paying`, `failed`.
-  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id) async {
-    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/pay', const {});
+  /// Customer v2 Step 4: [paymentResultRef] names the payment the app finished (the intent id); a stranger's is refused.
+  Future<({String resultat, CusAiOrder? order, CusAiRequest? request})> aiRequestPay(String id, {String? paymentResultRef}) async {
+    final j = await _post('ai/requests/${Uri.encodeComponent(id)}/pay', {if (paymentResultRef != null) 'payment_result_ref': paymentResultRef});
     if (j == null) return (resultat: 'paying', order: null, request: null);
     final req = j['request'] is Map ? CusAiRequest.fromJson(Map<String, dynamic>.from(j['request'] as Map)) : null;
     final order = j['order'] is Map ? CusAiOrder.fromJson(Map<String, dynamic>.from(j['order'] as Map), Map<String, dynamic>.from((j['payment'] as Map?) ?? const {})) : null;
     return (resultat: '${j['result'] ?? 'paying'}', order: order, request: req);
   }
+
+  // ---- Customer v2 Step 4: Meg → Betaling (`customer/ai/payment-methods`, behind cus.ai.linked_checkout) ----
+
+  /// The saved cards; null when off, offline or not logged in.
+  Future<List<CusSavedCard>?> savedCards() async {
+    final j = await _get('ai/payment-methods');
+    return j == null ? null : _kortListe(j);
+  }
+
+  /// A SetupIntent for Stripe's sheet in setup mode (`setup_intent`, `ephemeral_key`, `customer_id`, `publishable_key`).
+  Future<Map<String, dynamic>?> savedCardSetup() async {
+    final j = await _post('ai/payment-methods/setup', const {});
+    return j?['setup'] is Map ? Map<String, dynamic>.from(j!['setup'] as Map) : null;
+  }
+
+  Future<List<CusSavedCard>?> savedCardDefault(String pm) async {
+    final j = await _post('ai/payment-methods/${Uri.encodeComponent(pm)}/default', const {});
+    return j == null ? null : _kortListe(j);
+  }
+
+  Future<List<CusSavedCard>?> savedCardDelete(String pm) async {
+    final j = await _post('ai/payment-methods/${Uri.encodeComponent(pm)}', const {'_method': 'DELETE'});
+    return j == null ? null : _kortListe(j);
+  }
+
+  static List<CusSavedCard> _kortListe(Map<String, dynamic> j) => [for (final m in (j['cards'] as List? ?? const []).whereType<Map>()) CusSavedCard.fromJson(m.cast<String, dynamic>())];
 
   /// «Bytt» (`GET customer/ai/requests/{id}/alternatives`): up to three products of the same store for a sold-out line.
   Future<List<CusAiAlternativ>> aiRequestAlternatives(String id, int lineId) async {
@@ -873,14 +902,42 @@ class CusAiVia {
 /// The order «Bekreft og betal» created, and how it is paid.
 /// Customer v2 Step 3 (D2-5): the payment a confirmation started — Vipps' redirect or the Stripe sheet.
 class CusAiBetaling {
-  const CusAiBetaling({required this.method, this.status = 'paying', this.redirectUrl, this.sheet});
+  const CusAiBetaling({required this.method, this.status = 'paying', this.redirectUrl, this.sheet, this.clientSecret, this.requiresAction = false, this.paymentMethod});
   final String method;
   final String status;
   final String? redirectUrl;
   final Map<String, dynamic>? sheet;
+
+  /// Customer v2 Step 4 (`saved_card`): the confirmed intent's client secret, 3-D Secure pending, the card charged.
+  final String? clientSecret;
+  final bool requiresAction;
+  final String? paymentMethod;
+
+  /// The intent id — what `pay` is told as `payment_result_ref`.
+  String? get reference => clientSecret == null ? null : clientSecret!.split('_secret_').first;
+
   factory CusAiBetaling.fromJson(Map<String, dynamic> j) => CusAiBetaling(
     method: '${j['method'] ?? 'vipps'}', status: '${j['status'] ?? 'paying'}', redirectUrl: j['redirect_url'] as String?,
     sheet: j['sheet'] is Map ? Map<String, dynamic>.from(j['sheet'] as Map) : null,
+    clientSecret: j['client_secret'] as String?, requiresAction: j['requires_action'] == true, paymentMethod: j['payment_method'] as String?,
+  );
+}
+
+/// Customer v2 Step 4: a saved card (Stripe) under Meg → Betaling.
+class CusSavedCard {
+  const CusSavedCard({required this.id, required this.brand, required this.last4, this.expMonth = 0, this.expYear = 0, this.isDefault = false});
+  final String id;
+  final String brand;
+  final String last4;
+  final int expMonth;
+  final int expYear;
+  final bool isDefault;
+
+  /// «Visa •••• 4242».
+  String get navn => '${brand.isEmpty ? 'Kort' : brand[0].toUpperCase() + brand.substring(1)} •••• $last4';
+
+  factory CusSavedCard.fromJson(Map<String, dynamic> j) => CusSavedCard(
+    id: '${j['id'] ?? ''}', brand: '${j['brand'] ?? ''}', last4: '${j['last4'] ?? ''}', expMonth: (j['exp_month'] as num?)?.toInt() ?? 0, expYear: (j['exp_year'] as num?)?.toInt() ?? 0, isDefault: j['default'] == true,
   );
 }
 

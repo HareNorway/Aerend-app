@@ -152,6 +152,9 @@ abstract final class AiCopy {
   static String get cus_ai_betaling_under => languages.cus_ai_betaling_under;
   static String get cus_ai_vipps => 'Vipps';
   static String get cus_ai_lagret_kort => languages.cus_ai_lagret_kort;
+  // Customer v2 Step 4: the saved card is a real payment path.
+  static String get cus_ai_lagret_kort_hint => languages.cus_ai_lagret_kort_hint;
+  static String get cus_ai_lagret_kort_mangler => languages.cus_ai_lagret_kort_mangler;
   static String get cus_ai_spor_hver_gang => languages.cus_ai_spor_hver_gang;
   static String get cus_ai_leveringsadresse => languages.consent_address_mode;
   static String cus_ai_hjemme_er(String adr) => languages.cus_ai_hjemme_er(adr);

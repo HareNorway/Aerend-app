@@ -21,6 +21,8 @@ abstract final class ClientFlags {
   static const String aiLinking = 'cus.ai.linking';
   static const String aiDeviceAuth = 'cus.ai.device_auth';
   static const String aiIntents = 'cus.ai.intents';
+  // Customer v2 Step 4: saved cards in Meg → Betaling and «Lagret kort» as a real payment path.
+  static const String aiLinkedCheckout = 'cus.ai.linked_checkout';
 
   static Map<String, bool>? _cache;
 

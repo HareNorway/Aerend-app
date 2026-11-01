@@ -30,6 +30,7 @@ import '../../common/home/home_repo.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../common/manageAddress/manage_address.dart';
 import '../../common/manageCard/manage_card.dart';
+import 'betaling_screen.dart';
 import '../../common/manageAddress/add_new_address.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/notifications/notifications_dl.dart';
@@ -519,9 +520,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   }
 
   Future<void> _openBetaling() async {
-    final list = await a3Try(A3Services.cards) ?? const <String>[];
+    // Customer v2 Step 4: the saved cards (Stripe) and their own screen, behind cus.ai.linked_checkout; the legacy card screen otherwise.
+    final lagret = ClientFlags.on(ClientFlags.aiLinkedCheckout);
+    final list = lagret ? ((await CusApi().savedCards())?.map((c) => c.navn).toList() ?? const <String>[]) : (await a3Try(A3Services.cards) ?? const <String>[]);
     if (!mounted) return;
-    await MegSheets.betaling(context, cards: list, onManage: () => _push(const ManageCard()), vippsNr: a3Pref(prefContactNumber));
+    await MegSheets.betaling(context, cards: list, onManage: () => _push(lagret ? const BetalingScreen() : const ManageCard()), vippsNr: a3Pref(prefContactNumber));
   }
 
   Future<void> _openSpraak() async {

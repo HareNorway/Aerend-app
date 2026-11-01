@@ -14389,6 +14389,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear the note'**
   String get ops_kasse_tom_beskjed;
+
+  /// No description provided for @cus_bet_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get cus_bet_tittel;
+
+  /// No description provided for @cus_bet_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Vipps is the standard. A saved card pays an assistant\'s request when you chose «Saved card» — after you confirm, with Face ID or your code first.'**
+  String get cus_bet_linje;
+
+  /// No description provided for @cus_bet_lagrede.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved cards'**
+  String get cus_bet_lagrede;
+
+  /// No description provided for @cus_bet_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved cards yet.'**
+  String get cus_bet_ingen;
+
+  /// No description provided for @cus_bet_legg_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Add card'**
+  String get cus_bet_legg_til;
+
+  /// No description provided for @cus_bet_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get cus_bet_standard;
+
+  /// No description provided for @cus_bet_bruk_som_standard.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as default'**
+  String get cus_bet_bruk_som_standard;
+
+  /// No description provided for @cus_bet_slett.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get cus_bet_slett;
+
+  /// No description provided for @cus_bet_avbryt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cus_bet_avbryt;
+
+  /// No description provided for @cus_bet_slett_sporsmal.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {kort}?'**
+  String cus_bet_slett_sporsmal(String kort);
+
+  /// No description provided for @cus_bet_utloper.
+  ///
+  /// In en, this message translates to:
+  /// **'expires {mm}/{yy}'**
+  String cus_bet_utloper(String mm, String yy);
+
+  /// No description provided for @cus_bet_lagt_til.
+  ///
+  /// In en, this message translates to:
+  /// **'Card added.'**
+  String get cus_bet_lagt_til;
+
+  /// No description provided for @cus_bet_avbrutt.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing added.'**
+  String get cus_bet_avbrutt;
+
+  /// No description provided for @cus_bet_feil.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the card service. Try again.'**
+  String get cus_bet_feil;
+
+  /// No description provided for @cus_bet_stripe_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored by Stripe. Ærend never sees the card number.'**
+  String get cus_bet_stripe_info;
+
+  /// No description provided for @cus_ai_lagret_kort_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Charged on your default card under Meg → Payment after you confirm — Face ID or your code first.'**
+  String get cus_ai_lagret_kort_hint;
+
+  /// No description provided for @cus_ai_lagret_kort_mangler.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved card yet — add one under Meg → Payment; until then the card sheet opens.'**
+  String get cus_ai_lagret_kort_mangler;
 }
 
 class _AppLocalizationsDelegate
