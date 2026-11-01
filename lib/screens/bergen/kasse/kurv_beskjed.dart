@@ -124,7 +124,7 @@ class KurvBeskjedKort extends StatelessWidget {
             SizedBox(height: 10 * s),
             // The pill field: mint ring when filled, orange when «Allergi» waits.
             AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
+              duration: BergenTokens.motion(context, const Duration(milliseconds: 250)),
               constraints: BoxConstraints(minHeight: 46 * s),
               padding: EdgeInsets.fromLTRB(16 * s, 4 * s, 4 * s, 4 * s),
               decoration: BoxDecoration(
@@ -234,7 +234,7 @@ class _MorkChip extends StatelessWidget {
       onTap: onTap,
       pressDy: 1.5,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: BergenTokens.motion(context, const Duration(milliseconds: 200)),
         constraints: BoxConstraints(minHeight: 34 * s),
         padding: EdgeInsets.symmetric(horizontal: 12 * s),
         decoration: BoxDecoration(
@@ -298,7 +298,7 @@ class _Segment extends StatelessWidget {
                       onTap: () => onValg(k),
                       child: Center(
                         child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 300),
+                          duration: BergenTokens.motion(context, const Duration(milliseconds: 300)),
                           style: bText(context, 12.5, weight: FontWeight.w800, color: k == i ? const Color(0xFF1E4F5C) : rgba(255, 255, 255, .8)),
                           child: Text(valg[k]),
                         ),
@@ -325,7 +325,7 @@ class KurvTipsEget extends StatelessWidget {
     final s = context.bs;
     final paa = controller.text.isNotEmpty;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
+      duration: BergenTokens.motion(context, const Duration(milliseconds: 250)),
       height: 46 * s,
       margin: EdgeInsets.only(top: 8 * s),
       padding: EdgeInsets.symmetric(horizontal: 16 * s),

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../theme/bergen_tokens.dart';
 import '../../common/auth/onboarding_kit.dart' show onbBlur;
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
@@ -668,7 +669,7 @@ class _StegInn extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
     tween: Tween(begin: 0, end: 1),
-    duration: const Duration(milliseconds: 420),
+    duration: BergenTokens.motion(context, const Duration(milliseconds: 420)),
     curve: const Cubic(.3, 1.5, .5, 1),
     child: child,
     builder: (context, p, child) => Opacity(
@@ -693,7 +694,7 @@ class _Hopp extends StatelessWidget {
     final s = context.bs;
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 420),
+      duration: BergenTokens.motion(context, const Duration(milliseconds: 420)),
       curve: const Cubic(.3, 1.4, .5, 1),
       child: child,
       builder: (context, p, child) {

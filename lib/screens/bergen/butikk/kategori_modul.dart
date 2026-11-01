@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../theme/bergen_tokens.dart';
 import '../../../utils/shared_pref_utill.dart' show resolveSelectedLanguage;
 import '../../common/auth/launch/lf_css.dart' show CssBox, CssLinear, CssShadow;
 import '../../common/auth/onboarding_kit.dart' show onbBlur;
@@ -1006,7 +1007,7 @@ class _PlussState extends State<_Pluss> {
             child: widget.lagt
                 ? TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 400),
+                    duration: BergenTokens.motion(context, const Duration(milliseconds: 400)),
                     curve: _hak,
                     builder: (context, p, child) => Opacity(opacity: p.clamp(0.0, 1.0), child: Transform.scale(scale: .3 + .7 * p, child: child)),
                     child: CustomPaint(size: Size.square(14 * s), painter: _HakeMaler(_kGronn, 3.6 * s * 14 / 24)),

@@ -432,6 +432,7 @@ class _TipsAegil extends StatelessWidget {
     final img = Image.asset('assets/images/aegil/$bilde.png', fit: BoxFit.contain, gaplessPlayback: true);
     if (rolig) return img;
     return LfLoop(
+      essential: true, // Step 8: the small Ægil keeps its pose animation in `lite`
       child: img,
       builder: (context, ms, child) {
         var ty = 0.0, rot = 0.0, sx = 1.0, sy = 1.0;

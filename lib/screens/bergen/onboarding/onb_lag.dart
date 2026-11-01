@@ -733,6 +733,7 @@ class _Ramme extends StatelessWidget {
                   if (hand) ...[
                     Positioned.fill(
                       child: LfLoop(
+                        essential: true, // Step 8: the cue keeps moving in `lite`
                         builder: (context, ms, _) {
                           final p = (ms / 1400) % 1.0;
                           return Opacity(
@@ -1831,6 +1832,7 @@ class _AegilFigur extends StatelessWidget {
     if (rolig) return img;
     final ab = a.n.isOdd ? 1.0 : -1.0;
     return LfLoop(
+      essential: true, // Step 8: the cue keeps moving in `lite`
       child: img,
       builder: (context, ms, child) {
         var m = Matrix4.identity();
