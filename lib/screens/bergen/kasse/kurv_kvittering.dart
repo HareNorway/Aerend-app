@@ -490,12 +490,13 @@ class KvNotat extends StatelessWidget {
 }
 
 /// «Døren · for budet» (L6352): the white card with the note field and
-/// «Tolk», and the two switches (share with couriers, code at the door).
+/// the two switches (share with couriers, code at the door). The «Tolk»
+/// button is gone (Onboarding Step 7, D8): the door text is interpreted on
+/// save, silently.
 class KvDor extends StatelessWidget {
   const KvDor({
     super.key,
     required this.controller,
-    required this.onTolk,
     required this.delt,
     required this.onDelt,
     required this.kode,
@@ -504,7 +505,6 @@ class KvDor extends StatelessWidget {
   });
 
   final TextEditingController controller;
-  final VoidCallback onTolk;
   final bool delt;
   final VoidCallback onDelt;
   final bool kode;
@@ -569,28 +569,6 @@ class KvDor extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       hintText: KasseCopy.a1_kasse_dor_hint,
                       hintStyle: bText(context, 12.5, color: rgba(35, 32, 29, .4)),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 6 * s),
-                OnbPressable(
-                  key: const Key('a1_kasse_tolk'),
-                  onTap: onTolk,
-                  pressDy: 1.5,
-                  child: Container(
-                    height: 38 * s,
-                    padding: EdgeInsets.symmetric(horizontal: 15 * s),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      gradient: cssLinear(180, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomPaint(size: Size.square(13 * s), painter: _Gnist()),
-                        SizedBox(width: 6 * s),
-                        Text(KasseCopy.a1_kasse_tolk, style: bText(context, 12, weight: FontWeight.w800)),
-                      ],
                     ),
                   ),
                 ),
@@ -1123,20 +1101,7 @@ class _Hjorne extends CustomPainter {
   bool shouldRepaint(_Hjorne old) => old.s != s;
 }
 
-/// The mint sparkle on «Tolk».
-class _Gnist extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.scale(size.width / 24);
-    canvas.drawPath(
-      svgSti('M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z'),
-      Paint()..color = const Color(0xFF5CE0B8),
-    );
-  }
 
-  @override
-  bool shouldRepaint(_Gnist old) => false;
-}
 
 /// The Æ mark (`#merke`, viewBox −30 −14 172 138, turned −5° about 60,53),
 /// in the grey the receipt's `grayscale(1) contrast(1.4)` makes of it.

@@ -6344,7 +6344,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kasse_flere_under_lev =>
-      'Tips, dørbeskjed og kode ved levering';
+      'Beskjed til butikken, tips og dørbeskjed';
 
   @override
   String get ops_kasse_flere_under_hent => 'Beskjed til butikken og hentetid';
@@ -8056,4 +8056,50 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_butikk_kurv_annen_behold => 'Behold kurven';
+
+  @override
+  String ops_kasse_bk_under_lev(String butikk) {
+    return '$butikk ser dette før budet henter.';
+  }
+
+  @override
+  String ops_kasse_bk_under_hent(String butikk) {
+    return '$butikk ser dette når de pakker.';
+  }
+
+  @override
+  String get ops_kasse_lev_chip_saus => 'Ekstra saus';
+
+  @override
+  String get ops_kasse_lev_chip_drikke => 'Pakk drikke for seg';
+
+  @override
+  String get ops_kasse_lev_chip_allergi => 'Allergi';
+
+  @override
+  String get ops_kasse_bk_plass_allergi =>
+      'Hvilken allergi? F.eks. nøtter, melk';
+
+  @override
+  String ops_kasse_lev_kvitt_n(int n, String butikk) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n beskjeder',
+      one: '1 beskjed',
+    );
+    return '$_temp0 følger ordren til $butikk';
+  }
+
+  @override
+  String get ops_kasse_tips_eget => 'Eget beløp';
+
+  @override
+  String get ops_kasse_tips_eget_label => 'Eget tipsbeløp i kroner';
+
+  @override
+  String get ops_kasse_kr => 'kr';
+
+  @override
+  String get ops_kasse_tom_beskjed => 'Tøm beskjed';
 }

@@ -11585,7 +11585,7 @@ abstract class AppLocalizations {
   /// No description provided for @ops_kasse_flere_under_lev.
   ///
   /// In en, this message translates to:
-  /// **'Tips, a door note and a delivery code'**
+  /// **'A note to the shop, tips and a door note'**
   String get ops_kasse_flere_under_lev;
 
   /// No description provided for @ops_kasse_flere_under_hent.
@@ -14323,6 +14323,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep the basket'**
   String get ops_butikk_kurv_annen_behold;
+
+  /// No description provided for @ops_kasse_bk_under_lev.
+  ///
+  /// In en, this message translates to:
+  /// **'{butikk} sees this before the courier picks up.'**
+  String ops_kasse_bk_under_lev(String butikk);
+
+  /// No description provided for @ops_kasse_bk_under_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'{butikk} sees this when they pack.'**
+  String ops_kasse_bk_under_hent(String butikk);
+
+  /// No description provided for @ops_kasse_lev_chip_saus.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra sauce'**
+  String get ops_kasse_lev_chip_saus;
+
+  /// No description provided for @ops_kasse_lev_chip_drikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack drinks separately'**
+  String get ops_kasse_lev_chip_drikke;
+
+  /// No description provided for @ops_kasse_lev_chip_allergi.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergy'**
+  String get ops_kasse_lev_chip_allergi;
+
+  /// No description provided for @ops_kasse_bk_plass_allergi.
+  ///
+  /// In en, this message translates to:
+  /// **'Which allergy? E.g. nuts, milk'**
+  String get ops_kasse_bk_plass_allergi;
+
+  /// No description provided for @ops_kasse_lev_kvitt_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 note} other{{n} notes}} travel with the order to {butikk}'**
+  String ops_kasse_lev_kvitt_n(int n, String butikk);
+
+  /// No description provided for @ops_kasse_tips_eget.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own amount'**
+  String get ops_kasse_tips_eget;
+
+  /// No description provided for @ops_kasse_tips_eget_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own tip in kroner'**
+  String get ops_kasse_tips_eget_label;
+
+  /// No description provided for @ops_kasse_kr.
+  ///
+  /// In en, this message translates to:
+  /// **'kr'**
+  String get ops_kasse_kr;
+
+  /// No description provided for @ops_kasse_tom_beskjed.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the note'**
+  String get ops_kasse_tom_beskjed;
 }
 
 class _AppLocalizationsDelegate

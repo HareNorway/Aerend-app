@@ -194,6 +194,24 @@ abstract final class KasseCopy {
     languages.ops_kasse_hent_chip_poser,
   ];
   static String a1_kasse_hent_beskjed_hint(String butikk) => languages.ops_kasse_hent_beskjed_hint(butikk);
+
+  // Onboarding Step 7 (#18–#19): «Beskjed til butikken» for both modes, tips «Eget beløp».
+  static String a1_kasse_bk_under_lev(String butikk) => languages.ops_kasse_bk_under_lev(butikk);
+  static String a1_kasse_bk_under_hent(String butikk) => languages.ops_kasse_bk_under_hent(butikk);
+  static List<String> get a1_kasse_lev_chips => [
+    languages.ops_kasse_hent_chip_bestikk,
+    languages.ops_kasse_hent_chip_servietter,
+    languages.ops_kasse_lev_chip_saus,
+    languages.ops_kasse_lev_chip_drikke,
+    languages.ops_kasse_lev_chip_allergi,
+  ];
+  static String get a1_kasse_lev_chip_allergi => languages.ops_kasse_lev_chip_allergi;
+  static String get a1_kasse_bk_plass_allergi => languages.ops_kasse_bk_plass_allergi;
+  static String a1_kasse_lev_kvitt_n(int n, String butikk) => languages.ops_kasse_lev_kvitt_n(n, butikk);
+  static String get a1_kasse_tips_eget => languages.ops_kasse_tips_eget;
+  static String get a1_kasse_tips_eget_label => languages.ops_kasse_tips_eget_label;
+  static String get a1_kasse_kr => languages.ops_kasse_kr;
+  static String get a1_kasse_tom_beskjed => languages.ops_kasse_tom_beskjed;
   static String a1_kasse_hent_kvitt_klar(String tid, String navn) => languages.ops_kasse_hent_kvitt_klar(tid, navn);
   static String a1_kasse_hent_kvitt_n(int n, String tid) => languages.ops_kasse_hent_kvitt_n(n, tid);
   static String get a1_kasse_dor_del => languages.ops_kasse_dor_del;

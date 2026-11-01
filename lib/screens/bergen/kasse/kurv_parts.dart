@@ -12,6 +12,7 @@ import '../kit/bergen_motion.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import '../kit/bergen_perf.dart';
+import 'kurv_beskjed.dart' show KurvTipsEget;
 
 /// The pieces of the Kurv panel (design L5047–5228), each with the
 /// prototype's sizes, colours and shadows. Glass = `linear-gradient(180deg,
@@ -1405,10 +1406,15 @@ class KurvFlere extends StatelessWidget {
 /// and the dark track whose white thumb springs between 0 / 15 / 25 / 40 kr
 /// (`.45s cubic-bezier(.34,1.56,.64,1)`); it rises in on `stigOpp`.
 class KurvTips extends StatelessWidget {
-  const KurvTips({super.key, required this.tip, required this.onTip});
+  const KurvTips({super.key, required this.tip, required this.onTip, this.egetController, this.onEget});
 
   final int tip;
   final ValueChanged<int> onTip;
+
+  /// Onboarding Step 7 (#19): «Eget beløp» — the chip thumb fades while a
+  /// custom amount is set (`tipsTommelOp`).
+  final TextEditingController? egetController;
+  final ValueChanged<String>? onEget;
 
   static const verdier = [0, 15, 25, 40];
 
@@ -1420,6 +1426,7 @@ class KurvTips extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final i = math.max(0, verdier.indexOf(tip));
+    final egetPaa = (egetController?.text ?? '').isNotEmpty;
     return BergenOnce(
       durationMs: 300,
       builder: (context, p, child) {
@@ -1483,7 +1490,10 @@ class KurvTips extends StatelessWidget {
                           top: 0,
                           bottom: 0,
                           width: w,
-                          child: Container(
+                          child: AnimatedOpacity(
+                            opacity: egetPaa ? 0 : 1,
+                            duration: const Duration(milliseconds: 250),
+                            child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
                               gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFE9EEED)]),
@@ -1506,6 +1516,7 @@ class KurvTips extends StatelessWidget {
                               ),
                             ),
                           ),
+                          ),
                         ),
                         Row(
                           children: [
@@ -1522,7 +1533,7 @@ class KurvTips extends StatelessWidget {
                                         context,
                                         12.5,
                                         weight: FontWeight.w800,
-                                        color: tip == v ? const Color(0xFF1E4F5C) : rgba(255, 255, 255, .8),
+                                        color: !egetPaa && tip == v ? const Color(0xFF1E4F5C) : rgba(255, 255, 255, .8),
                                       ),
                                       child: Text('$v kr'),
                                     ),
@@ -1537,6 +1548,7 @@ class KurvTips extends StatelessWidget {
                 },
               ),
             ),
+            if (egetController != null && onEget != null) KurvTipsEget(controller: egetController!, onEndret: onEget!),
           ],
         ),
       ),

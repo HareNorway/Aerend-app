@@ -27,7 +27,6 @@ import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../deliveryService/checkout/checkout_dl.dart';
-import '../aegil/aegil_entry.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
@@ -47,6 +46,7 @@ import 'kurv_betal.dart';
 import '../aegil/aegil_agenter.dart' show GiftPending;
 import '../meg/a3_services.dart';
 import 'kurv_kvittering.dart';
+import 'kurv_beskjed.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
@@ -258,11 +258,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   KasseSlot? _slot;
   int _paymentType = 3;
   int _tip = 0;
+
+  /// Onboarding Step 7: tips «Eget beløp» (text as typed, '' = the chips rule).
+  final TextEditingController _tipEget = TextEditingController();
   bool _more = false;
   bool _codeAtDoor = false;
   bool _doorShared = false;
   bool _departing = false;
   final Set<String> _pickupChips = {};
+
+  /// Onboarding Step 7: «Beskjed til butikken» on delivery too — its own
+  /// chips and text, apart from the pickup ones (`levValg` / `levBeskjed`).
+  final Set<String> _levChips = {};
+  final TextEditingController _levNote = TextEditingController();
   final TextEditingController _pickupNote = TextEditingController();
   BergenStoreInfo? _store;
   bool _placing = false;
@@ -315,6 +323,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (kDebugMode) {
       if (HjemHarness.kurvFlere) _more = true;
       if (HjemHarness.kurvHenting) _pickup = true;
+      if (HjemHarness.kurvTipsEget case final t?) {
+        _tipEget.text = KasseValg.tipsEget(t);
+        _tip = int.tryParse(_tipEget.text) ?? 0;
+      }
       if (HjemHarness.kurvArk case final ark?) {
         Future.delayed(const Duration(milliseconds: 2200), () {
           if (!mounted) return;
@@ -357,6 +369,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _note.dispose();
     _door.dispose();
     _pickupNote.dispose();
+    _levNote.dispose();
+    _tipEget.dispose();
     super.dispose();
   }
 
@@ -663,14 +677,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _tilButikk();
   }
 
-  void _tolk() => BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': 'door', 'q': _door.text.trim()});
-
   String get _fullNote {
     final parts = <String>[
       if (_note.text.trim().isNotEmpty) _note.text.trim(),
       if (_door.text.trim().isNotEmpty) '${KasseCopy.a1_kasse_doren}: ${_door.text.trim()}',
       if (_pickup && _pickupChips.isNotEmpty) _pickupChips.join(' · '),
       if (_pickup && _pickupNote.text.trim().isNotEmpty) _pickupNote.text.trim(),
+      // Onboarding Step 7 (D8): the store note travels on delivery orders too.
+      if (!_pickup && KasseValg.notat(_levChips, _levNote.text).isNotEmpty) KasseValg.notat(_levChips, _levNote.text),
     ];
     return parts.join(' · ');
   }
@@ -1114,7 +1128,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final total = _total(cart);
     final aegil = cart.aegilLines;
     final storeName = _preview?.storeName ?? '';
-    final pickupCount = _pickupChips.length + (_pickupNote.text.trim().isEmpty ? 0 : 1);
     final flereUnder = _pickup ? KasseCopy.a1_kasse_flere_under_hent : KasseCopy.a1_kasse_flere_under_lev;
     final doorVisible = _more && !_pickup;
     final antall = cart.lines.fold<int>(0, (a, l) => a + l.quantity);
@@ -1217,10 +1230,20 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
-        if (_more && _pickup) ...[SizedBox(height: 10 * s), _hentKort(context, slot, storeName, pickupCount)],
+        // Onboarding Step 7: «Beskjed til butikken» for both modes (#18), tips
+        // with «Eget beløp» on delivery (#19).
+        if (_more) ...[SizedBox(height: 10 * s), _beskjedKort(context, slot, storeName)],
         if (_more && !_pickup) ...[
           SizedBox(height: 10 * s),
-          KurvTips(tip: _tip, onTip: (t) => setState(() => _tip = t)),
+          KurvTips(
+            tip: _tip,
+            onTip: (t) => setState(() {
+              _tip = t;
+              _tipEget.clear();
+            }),
+            egetController: _tipEget,
+            onEget: (v) => setState(() => _tip = int.tryParse(v) ?? 0),
+          ),
         ],
         KurvKvittering(
           antall: antall,
@@ -1295,7 +1318,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 radius: 18,
                 child: KvDor(
                 controller: _door,
-                onTolk: _tolk,
                 delt: _doorShared,
                 onDelt: () {
                   setState(() => _doorShared = !_doorShared);
@@ -1328,162 +1350,36 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// «Beskjed til butikken» and Hentetid (Flere valg, pickup).
-  Widget _hentKort(BuildContext context, KasseSlot slot, String storeName, int pickupCount) {
-    final s = context.bs;
-    return KurvFrost(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            KasseCopy.a1_kasse_beskjed_butikk,
-            style: bText(context, 13, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-          ),
-          SizedBox(height: 9 * s),
-          Wrap(
-            spacing: 6 * s,
-            runSpacing: 6 * s,
-            children: [
-              for (final c in KasseCopy.a1_kasse_hent_chips)
-                KurvChip(
-                  key: Key('a1_kasse_hent_chip_${KasseCopy.a1_kasse_hent_chips.indexOf(c)}'),
-                  label: c,
-                  on: _pickupChips.contains(c),
-                  onTap: () => setState(() {
-                    if (!_pickupChips.remove(c)) _pickupChips.add(c);
-                  }),
-                ),
-            ],
-          ),
-          SizedBox(height: 10 * s),
-          Container(
-            padding: EdgeInsets.fromLTRB(12 * s, 4 * s, 4 * s, 4 * s),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14 * s),
-              gradient: cssLinear(180, const [Color(0xFFF7F5F0), Color(0xFFFFFFFF)], const [0, .46]),
-              boxShadow: [BoxShadow(color: rgba(255, 255, 255, .95), offset: Offset(0, -1.5 * s))],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const Key('a1_kasse_hent_beskjed'),
-                    controller: _pickupNote,
-                    onChanged: (_) => setState(() {}),
-                    style: bDisplay(
-                      context,
-                      12.5,
-                      weight: FontWeight.w700,
-                      letterSpacingEm: 0,
-                      color: const Color(0xFF23201D),
-                    ),
-                    cursorColor: BergenTokens.orange,
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      filled: false,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 9 * s),
-                      hintText: KasseCopy.a1_kasse_hent_beskjed_hint(storeName),
-                      hintStyle: bDisplay(
-                        context,
-                        12.5,
-                        weight: FontWeight.w700,
-                        letterSpacingEm: 0,
-                        color: BergenTokens.inkFaint,
-                      ),
-                    ),
-                  ),
-                ),
-                if (_pickupNote.text.isNotEmpty)
-                  OnbPressable(
-                    onTap: () => setState(_pickupNote.clear),
-                    pressDy: 1.5,
-                    child: Container(
-                      width: 34 * s,
-                      height: 34 * s,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12 * s),
-                        gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
-                        boxShadow: [
-                          BoxShadow(color: rgba(255, 255, 255, .95), spreadRadius: 1),
-                          BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
-                          BoxShadow(
-                            color: rgba(35, 32, 29, .5),
-                            offset: Offset(0, 3 * s),
-                            blurRadius: onbBlur(5 * s),
-                            spreadRadius: -3 * s,
-                          ),
-                        ],
-                      ),
-                      child: KurvIcon(11 * s, KurvIcons.cross, color: const Color(0xFF57534B), width: 3),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 12 * s),
-            padding: EdgeInsets.only(top: 11 * s),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: rgba(35, 32, 29, .08))),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        KasseCopy.a1_kasse_hentetid,
-                        style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-                      ),
-                      Text(
-                        KasseCopy.a1_kasse_hentetid_line,
-                        style: bText(context, 10.5, color: const Color(0xFF57534B)),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 10 * s),
-                Wrap(
-                  spacing: 5 * s,
-                  children: [
-                    for (final sl in _slots)
-                      KurvChip(
-                        label: sl.label,
-                        padding: 10,
-                        on: slot.id == sl.id,
-                        onTap: () => setState(() => _slot = sl),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 11 * s),
-            padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 9 * s),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14 * s), color: rgba(63, 143, 95, .12)),
-            child: Row(
-              children: [
-                KurvIcon(14 * s, KurvIcons.check, color: const Color(0xFF2E6B47), width: 2.4),
-                SizedBox(width: 8 * s),
-                Expanded(
-                  child: Text(
-                    pickupCount == 0
-                        ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first)
-                        : KasseCopy.a1_kasse_hent_kvitt_n(pickupCount, slot.label),
-                    style: bText(context, 11, height: 1.4, color: const Color(0xFF2E6B47)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  /// «Beskjed til butikken» for both modes, Hentetid on pickup (Onboarding
+  /// Step 7, design L7087–7110): separate chips and text per mode.
+  Widget _beskjedKort(BuildContext context, KasseSlot slot, String storeName) {
+    final hent = _pickup;
+    final valgte = hent ? _pickupChips : _levChips;
+    final ctrl = hent ? _pickupNote : _levNote;
+    final chips = hent ? KasseCopy.a1_kasse_hent_chips : KasseCopy.a1_kasse_lev_chips;
+    final n = KasseValg.antall(valgte, ctrl.text);
+    final navn = storeName.isEmpty ? KasseCopy.a1_kasse_beskjed_butikk : storeName;
+    final String? kvitt;
+    if (hent) {
+      kvitt = n == 0 ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first) : KasseCopy.a1_kasse_hent_kvitt_n(n, slot.label);
+    } else {
+      kvitt = n == 0 ? null : KasseCopy.a1_kasse_lev_kvitt_n(n, navn);
+    }
+    return KurvBeskjedKort(
+      hent: hent,
+      butikk: navn,
+      chips: chips,
+      valgte: valgte,
+      onChip: (c) => setState(() {
+        if (!valgte.remove(c)) valgte.add(c);
+      }),
+      controller: ctrl,
+      onEndret: () => setState(() {}),
+      allergiPaa: !hent && valgte.contains(KasseCopy.a1_kasse_lev_chip_allergi),
+      kvittering: kvitt,
+      tider: [for (final sl in _slots.take(3)) KurvHentetid(sl.id, sl.label)],
+      tidId: slot.id,
+      onTid: (t) => setState(() => _slot = _slots.firstWhere((sl) => sl.id == t.id, orElse: () => slot)),
     );
   }
 }

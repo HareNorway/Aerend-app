@@ -6340,7 +6340,7 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get ops_kasse_flere_under_lev =>
-      'Tips, a door note and a delivery code';
+      'A note to the shop, tips and a door note';
 
   @override
   String get ops_kasse_flere_under_hent =>
@@ -8052,4 +8052,49 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get ops_butikk_kurv_annen_behold => 'Keep the basket';
+
+  @override
+  String ops_kasse_bk_under_lev(String butikk) {
+    return '$butikk sees this before the courier picks up.';
+  }
+
+  @override
+  String ops_kasse_bk_under_hent(String butikk) {
+    return '$butikk sees this when they pack.';
+  }
+
+  @override
+  String get ops_kasse_lev_chip_saus => 'Extra sauce';
+
+  @override
+  String get ops_kasse_lev_chip_drikke => 'Pack drinks separately';
+
+  @override
+  String get ops_kasse_lev_chip_allergi => 'Allergy';
+
+  @override
+  String get ops_kasse_bk_plass_allergi => 'Which allergy? E.g. nuts, milk';
+
+  @override
+  String ops_kasse_lev_kvitt_n(int n, String butikk) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n notes',
+      one: '1 note',
+    );
+    return '$_temp0 travel with the order to $butikk';
+  }
+
+  @override
+  String get ops_kasse_tips_eget => 'Your own amount';
+
+  @override
+  String get ops_kasse_tips_eget_label => 'Your own tip in kroner';
+
+  @override
+  String get ops_kasse_kr => 'kr';
+
+  @override
+  String get ops_kasse_tom_beskjed => 'Clear the note';
 }
