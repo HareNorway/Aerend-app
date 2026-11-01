@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:path_provider/path_provider.dart';
 
+import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_perf.dart';
 import 'hjem_hero.dart';
 
@@ -32,6 +33,16 @@ abstract final class HjemHarness {
 
   /// Scroll the sheet this far (device px) once loaded.
   static double? scroll;
+
+  /// Perf: 2.5 s after load, animate the sheet to `rull` device px over
+  /// `rullMs` (default 1800) and back, and log the frame times of that span
+  /// (`HJEM_RULL …` in the log: n, over 16 ms, build/raster p50 p90 max).
+  static double? rull;
+  static int? rullMs;
+
+  /// Perf: `vann: false` bypasses the sheet's water clip and foam (HjemVann);
+  /// `heroAv: true` leaves the hero out — to measure what each costs.
+  static bool vann = true, heroAv = false, skyggeAv = false, heroStille = false, arkStille = false;
 
   /// Open the Kommer snart sheet for this wheel slot.
   static int? snart;
@@ -404,6 +415,14 @@ abstract final class HjemHarness {
         demoFloats = false;
         unread = null;
         scroll = null;
+        rull = null;
+        rullMs = null;
+        vann = true;
+        heroAv = false;
+        skyggeAv = false;
+        CssBoxPainter.debugUtenBlur = false;
+        heroStille = false;
+        arkStille = false;
         snart = null;
         pose = false;
         poseArk = null;
@@ -529,6 +548,14 @@ abstract final class HjemHarness {
       demoFloats = m['demoFloats'] == true;
       unread = m['unread'] as int?;
       scroll = (m['scroll'] as num?)?.toDouble();
+      rull = (m['rull'] as num?)?.toDouble();
+      rullMs = m['rullMs'] as int?;
+      vann = m['vann'] != false;
+      heroAv = m['heroAv'] == true;
+      skyggeAv = m['skyggeAv'] == true;
+      CssBoxPainter.debugUtenBlur = skyggeAv;
+      heroStille = m['heroStille'] == true;
+      arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
       pose = m['pose'] == true;
       poseArk = m['poseArk'] as int?;

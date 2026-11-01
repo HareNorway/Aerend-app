@@ -97,6 +97,8 @@ class OnbTips extends ChangeNotifier {
   OnbTips._() {
     OnbMaalRegistry.endring.addListener(plan);
     BergenFaneBytte.aktiv.addListener(plan);
+    // The flags arrive after the first screen: a check once they do.
+    ClientFlags.agents.addListener(plan);
   }
 
   static final OnbTips instance = OnbTips._();
@@ -205,8 +207,11 @@ class OnbTips extends ChangeNotifier {
   }
 
   /// `cmPlan`: a check 900 ms from now (the docx's «screen visible ≥ 600 ms»).
+  /// Nothing is armed while no mark may show ([kan]): the tour's end, the
+  /// flags and the status each call again when that changes.
   void plan() {
     _planT?.cancel();
+    if (!kan) return;
     _planT = Timer(const Duration(milliseconds: 900), sjekk);
   }
 

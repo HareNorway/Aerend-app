@@ -7,6 +7,7 @@ import '../../../networking/ops/ops_customer_api.dart';
 import '../../../services/customer/beacons.dart';
 import '../../../services/customer/client_flags.dart';
 import '../../../utils/shared_pref_utill.dart';
+import 'onb_tips.dart';
 
 /// What the tour and the coach marks have shown (Onboarding plan Step 3,
 /// decision D4; the prototype's `vkLagret()` in `aerend.onb.v2`).
@@ -84,6 +85,7 @@ class OnbStatus extends ChangeNotifier {
     _lastet = true;
     notifyListeners();
     await _lesServer();
+    OnbTips.instance.plan();
   }
 
   void _lesLokal() {

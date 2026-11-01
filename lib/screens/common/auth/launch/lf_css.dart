@@ -250,19 +250,30 @@ class CssBoxPainter extends CustomPainter {
   /// under them, e.g. inputs inside a sunken well).
   final bool insetOnTop;
 
+  /// Debug (harness `skyggeAv`): skip every blurred shadow, to measure what
+  /// the blurs cost on the raster thread.
+  static bool debugUtenBlur = false;
+
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final rr = radius.toRRect(rect);
     if (!insetOnTop) {
       // Outer shadows, last listed first (CSS paints the first on top).
+      // Under an opaque background the box covers its own shadow, so the
+      // even-odd clip (a stencil pass per shadow on Impeller) is skipped.
+      final tett = _opaque;
       for (final s in shadows.reversed) {
-        if (s.inset) continue;
+        if (s.inset || (debugUtenBlur && s.blur > 0)) continue;
         final p = Paint()..color = s.color;
         if (s.blur > 0) {
           p.maskFilter = MaskFilter.blur(BlurStyle.normal, cssSigma(s.blur));
         }
         final shadowRR = rr.inflate(s.spread).shift(Offset(s.dx, s.dy));
+        if (tett) {
+          canvas.drawRRect(shadowRR, p);
+          continue;
+        }
         // A box-shadow never shows through its own box.
         canvas.save();
         final outside = Path()
@@ -295,23 +306,50 @@ class CssBoxPainter extends CustomPainter {
       }
     }
     if (skipInset) return;
-    final insets = shadows.where((s) => s.inset).toList();
+    final insets = shadows.where((s) => s.inset && !(debugUtenBlur && s.blur > 0)).toList();
     if (insets.isEmpty) return;
     canvas.save();
     canvas.clipRRect(rr, doAntiAlias: true);
     for (final s in insets.reversed) {
-      final p = Paint()..color = s.color;
-      if (s.blur > 0) {
-        p.maskFilter = MaskFilter.blur(BlurStyle.normal, cssSigma(s.blur));
-      }
       final hole = rr.deflate(s.spread).shift(Offset(s.dx, s.dy));
-      final path = Path()
-        ..fillType = PathFillType.evenOdd
-        ..addRect(rect.inflate(s.blur * 2 + s.spread.abs() + 40))
-        ..addRRect(hole);
-      canvas.drawPath(path, p);
+      if (s.blur <= 0) {
+        final path = Path()
+          ..fillType = PathFillType.evenOdd
+          ..addRect(rect.inflate(s.spread.abs() + 40))
+          ..addRRect(hole);
+        canvas.drawPath(path, Paint()..color = s.color);
+        continue;
+      }
+      // A blurred inset = the colour over the box, minus the blurred hole.
+      // Drawn as a fill and a `dstOut` rounded rect with a mask blur, which
+      // Impeller renders analytically — not as a Gaussian pass over a path
+      // (the costliest draw on Hjem's raster thread while the sheet scrolls).
+      canvas.saveLayer(rect, Paint());
+      canvas.drawRect(rect, Paint()..color = s.color);
+      canvas.drawRRect(
+        hole,
+        Paint()
+          ..color = const Color(0xFF000000)
+          ..blendMode = BlendMode.dstOut
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, cssSigma(s.blur)),
+      );
+      canvas.restore();
     }
     canvas.restore();
+  }
+
+  /// True when the backgrounds cover the box fully (any opaque colour or
+  /// gradient stop list without transparency).
+  bool get _opaque {
+    for (final b in bg) {
+      final colors = switch (b) {
+        CssSolid(:final color) => [color],
+        CssLinear(:final colors) => colors,
+        CssRadial(:final colors) => colors,
+      };
+      if (colors.isNotEmpty && colors.every((c) => c.a >= .999)) return true;
+    }
+    return false;
   }
 
   @override
