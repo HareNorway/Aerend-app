@@ -9,7 +9,9 @@ import 'package:location/location.dart';
 import '../../../utils/shared_pref_utill.dart' show prefGetInt, prefCartCount;
 import '../../common/home/bergen/bergen_nav.dart' show BergenTab;
 import '../../common/homeMainV1/home_main_v1.dart' show HomeMainV1State;
+import '../../../networking/ops/ops_butikk_api.dart';
 import '../kit/bergen_routes.dart';
+import '../kit/fane_bytte.dart' show BergenFaneBytte;
 import '../kit/bergen_toast.dart';
 import '../../../services/customer/client_flags.dart';
 import 'onb_maal.dart';
@@ -184,6 +186,7 @@ class OnbRunde extends ChangeNotifier {
 
   void _rydd() {
     _t?.cancel();
+    _t2?.cancel();
     _spor?.cancel();
     _typ?.cancel();
     _bolge?.cancel();
@@ -291,10 +294,15 @@ class OnbRunde extends ChangeNotifier {
   void _finn(int steg, int forsok) {
     if (!_aktiv || i != steg) return;
     final s = _steg[steg];
-    final klar = skjermNaa() == s.skjerm && (s.mal == null || OnbMaalRegistry.har(s.mal!));
+    final rettSkjerm = skjermNaa() == s.skjerm;
+    final klar = rettSkjerm && (s.mal == null || OnbMaalRegistry.har(s.mal!));
     final ventNav = _naa() - _navT < 650;
     if (forsok == 4 && !klar) _forbered(s.id);
-    if ((!klar || ventNav) && forsok < 30) {
+    // The screen can be right while its anchor never comes (the feed down,
+    // no cart bar yet): then 1.2 s is enough — the step talks without a
+    // target and adopts it if it shows up later (the tracker).
+    final taalmod = rettSkjerm ? 12 : 30;
+    if ((!klar || ventNav) && forsok < taalmod) {
       _t = Timer(const Duration(milliseconds: 100), () => _finn(steg, forsok + 1));
       return;
     }
@@ -302,7 +310,11 @@ class OnbRunde extends ChangeNotifier {
     var maal = id == null ? null : OnbMaalRegistry.maal(id);
     if (id != null && OnbMaalRegistry.har(id)) {
       final d = _rull(id);
-      if (d != 0 && _rullM != null) maal = _rullM;
+      if (d != 0 && _rullM != null) {
+        maal = _rullM;
+        _rullT = _naa();
+        _etterRull(steg, id);
+      }
     }
     if (maal != null && (maal.y + maal.h < 0 || maal.w < 2)) maal = null;
     _herT = _naa();
@@ -315,9 +327,10 @@ class OnbRunde extends ChangeNotifier {
     OnbStatus.instance.merkSett(s.id);
     _oppd();
     _sporStart(steg);
+    _forvarm(s);
     // Debug harness `onbAuto`: press the card's button by itself once.
     // (`start` presses «Neste» / «Fullfør» here first; the done card then presses itself.)
-    if (kDebugMode && auto != null && !_autoBrukt && (auto == 'neste' || auto == 'vismeg' || auto == 'start' || auto == 'hopp')) {
+    if (kDebugMode && auto != null && !_autoBrukt && (auto == 'neste' || auto == 'vismeg' || auto == 'start' || auto == 'hopp' || auto == 'tilbake')) {
       _autoBrukt = true;
       final a = auto;
       Timer(const Duration(milliseconds: 1500), () {
@@ -325,6 +338,7 @@ class OnbRunde extends ChangeNotifier {
         if (a == 'neste' || a == 'start') neste();
         if (a == 'vismeg') visMeg();
         if (a == 'hopp') avslutt();
+        if (a == 'tilbake') tilbake();
       });
     }
     debugPrint('ONB_RUNDE ${s.id} her${maal == null ? ' (uten mål)' : ''}');
@@ -353,6 +367,49 @@ class OnbRunde extends ChangeNotifier {
 
   /// The quay Ægil is hidden while the kai-hopp flies (`skjul` / `vis`).
   final ValueNotifier<bool> kaiSkjult = ValueNotifier<bool>(false);
+
+  /// The tab the next section lives on is built before the mission that
+  /// opens it, so the tap costs no first build (`BergenFaneBytte.forvarm`).
+  void _forvarm(OnbSteg s) {
+    final tab = switch (s.id) {
+      'utforsk' => BergenTab.explore.index,
+      'tilkurv' => BergenTab.cart.index,
+      'betal' => BergenTab.me.index,
+      _ => -1,
+    };
+    if (tab >= 0) BergenFaneBytte.forvarm?.call(tab);
+    // The store opens on the step after the bags: fetch it now.
+    if (s.id == 'poser' && butikkId != null) OpsButikkApi.forvarm(butikkId!);
+  }
+
+  /// After a scroll-into-view settles, measure the target again and move the
+  /// hole to where it really landed (the prediction can be off by a few px
+  /// when the screen re-lays out while scrolling); roll once more if it is
+  /// still outside the band.
+  void _etterRull(int steg, String id, {bool igjen = true}) {
+    _t2?.cancel();
+    _t2 = Timer(const Duration(milliseconds: 480), () {
+      if (!_aktiv || i != steg || fase != OnbFase.her) return;
+      final r = OnbMaalRegistry.maal(id);
+      if (r == null || r.w < 2) return;
+      final lo = bandLo?.call() ?? 90, hi = bandHi?.call() ?? 640;
+      if (igjen && (r.y < lo - 2 || r.y + r.h > hi + 2) && _naa() - _rullT > 400) {
+        final d = _rull(id);
+        if (d != 0 && _rullM != null) {
+          _rullT = _naa();
+          m = _rullM;
+          _oppd();
+          _etterRull(steg, id, igjen: false);
+          return;
+        }
+      }
+      if (m == null || _avstand(m!, r) > 2) {
+        m = r;
+        _oppd();
+      }
+    });
+  }
+  Timer? _t2;
 
   void _forbered(String id) {
     final f = forbered[id];
@@ -419,9 +476,26 @@ class OnbRunde extends ChangeNotifier {
       return;
     }
     final siden = _naa() - _herT;
-    // Self-repair: the screen changed under the run, or the target is gone.
+    // A target that was not there when the step began (the feed loading, the
+    // cart bar coming): adopt it once it shows, instead of repairing the run.
+    if (siden > 820 && m == null && s.mal != null) {
+      final id = _malIdFor(s)!;
+      final r = OnbMaalRegistry.maal(id);
+      if (r != null && r.w > 1 && r.y < 9000) {
+        final d = _rull(id);
+        m = d != 0 && _rullM != null ? _rullM : r;
+        malId = id;
+        _rullT = _naa();
+        _oppd();
+        if (d != 0) _etterRull(steg, id);
+        debugPrint('ONB_RUNDE ${s.id} fant målet sent');
+      }
+      return;
+    }
+    // Self-repair: the screen changed under the run, or a target that was
+    // there is gone (never for a target the step started without).
     if (siden > 820) {
-      final feilSkjerm = skjermNaa() != s.skjerm, borte = s.mal != null && OnbMaalRegistry.maal(_malIdFor(s)!) == null;
+      final feilSkjerm = skjermNaa() != s.skjerm, borte = s.mal != null && m != null && OnbMaalRegistry.maal(_malIdFor(s)!) == null;
       _avvik = (feilSkjerm || borte) ? _avvik + 1 : 0;
       if (_avvik >= (feilSkjerm ? 2 : 4) && _gjN < 3) {
         _avvik = 0;
@@ -453,6 +527,7 @@ class OnbRunde extends ChangeNotifier {
           _avvik = 0;
           m = _rullM;
           _oppd();
+          _etterRull(steg, id, igjen: false);
           return;
         }
       }

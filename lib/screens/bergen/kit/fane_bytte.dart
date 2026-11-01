@@ -36,6 +36,10 @@ class BergenFaneBytte extends StatefulWidget {
   /// The tab that is up (for kept tabs that refresh when shown again).
   static final ValueNotifier<int> aktiv = ValueNotifier<int>(0);
 
+  /// Builds a tab offstage before it is shown (the onboarding tour warms the
+  /// next section's tab while the customer reads the card).
+  static void Function(int index)? forvarm;
+
   @override
   State<BergenFaneBytte> createState() => _BergenFaneBytteState();
 }
@@ -68,6 +72,10 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with TickerProviderSt
     _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _bygd.add(_aktiv);
     BergenFaneBytte.aktiv.value = _aktiv;
+    BergenFaneBytte.forvarm = (i) {
+      if (!mounted || _bygd.contains(i)) return;
+      setState(() => _bygd.add(i));
+    };
   }
 
   void _vis(int til) {
@@ -212,6 +220,7 @@ class _BergenFaneBytteState extends State<BergenFaneBytte> with TickerProviderSt
 
   @override
   void dispose() {
+    if (BergenFaneBytte.forvarm != null) BergenFaneBytte.forvarm = null;
     _c.dispose();
     _f.dispose();
     _rydd();

@@ -146,11 +146,17 @@ abstract final class OnbMaalRegistry {
   /// plus the unscaled size came out too narrow on wide phones.
   static Rect globalRect(RenderBox rb) => MatrixUtils.transformRect(rb.getTransformTo(null), Offset.zero & rb.size);
 
+  /// Content that moves more than the scroll itself (Hjem's sheet slides up
+  /// by `min(212, offset)` while the list scrolls — the prototype's `kobl`):
+  /// a screen registers `pixels → extra offset` for its controller, and
+  /// [rull] solves for the scroll that lands the target in the band.
+  static final Map<ScrollController, double Function(double pixels)> kobling = {};
+
   /// Scrolls the target so it sits inside the band [lo, hi] (global y) of
   /// its nearest scrollable, the prototype's `rtRull`: a tall target goes to
-  /// the top of the band, a short one at most 40 px under it. Returns how far
-  /// the content moved (positive = the target moved up), 0 when nothing had
-  /// to move or there is no scrollable.
+  /// the top of the band, a short one at most [fortrinn] px under it. Returns
+  /// how far the target will move (positive = up), 0 when nothing had to
+  /// move or there is no scrollable.
   static double rull(String id, {required double lo, required double hi, required bool rolig, double fortrinn = 40}) {
     final ctx = finn(id);
     if (ctx == null) return 0;
@@ -164,10 +170,35 @@ abstract final class OnbMaalRegistry {
     final ty = gr.top, th = gr.height;
     if (ty >= lo && ty + th <= hi) return 0;
     final maal = th > hi - lo ? lo : math.max(lo, math.min(hi - th, lo + fortrinn));
-    final d = ty - maal;
-    final til = (pos.pixels + d).clamp(pos.minScrollExtent, pos.maxScrollExtent);
-    final flytt = til - pos.pixels;
-    if (flytt.abs() < 4) return 0;
+    final need = ty - maal; // how far the target must move up
+    final fra = pos.pixels;
+    final ctrl = sc.widget.controller;
+    final off = ctrl == null ? null : kobling[ctrl];
+    double mv(double t) => (t - fra) + (off == null ? 0 : off(t) - off(fra));
+    double til;
+    if (off == null) {
+      til = (fra + need).clamp(pos.minScrollExtent, pos.maxScrollExtent);
+    } else {
+      // Bisection: mv is monotonic in t.
+      var a = pos.minScrollExtent, b = pos.maxScrollExtent;
+      if (mv(a) >= need) {
+        til = a;
+      } else if (mv(b) <= need) {
+        til = b;
+      } else {
+        for (var j = 0; j < 32; j++) {
+          final c = (a + b) / 2;
+          if (mv(c) < need) {
+            a = c;
+          } else {
+            b = c;
+          }
+        }
+        til = (a + b) / 2;
+      }
+    }
+    final flytt = mv(til);
+    if ((til - fra).abs() < 4) return 0;
     if (rolig) {
       pos.jumpTo(til);
     } else {

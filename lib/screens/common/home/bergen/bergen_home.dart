@@ -282,6 +282,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _adrKilde = BergenAdrKilde(_bloc);
     _adrSub = _bloc.deliveryAddress.listen(_hentHodeEta);
     _scroll.addListener(_onScroll);
+    // Onboarding: the tour's scroll-into-view must count the sheet's slide
+    // (`min(212, offset)`) on top of the list's own movement.
+    OnbMaalRegistry.kobling[_scroll] = (t) => t.clamp(0.0, _kSheetSlide * context.bs);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _onScroll();
     });
@@ -571,6 +574,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    OnbMaalRegistry.kobling.remove(_scroll);
     _kN.dispose();
     _pullN.dispose();
     HjemNy.endret.removeListener(_nyEndret);

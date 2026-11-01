@@ -1332,8 +1332,10 @@ class _Kort extends StatelessWidget {
               if (her && !rolig) Positioned.fill(child: IgnorePointer(child: _Glans(key: ValueKey('glans-$n'), s: s))),
               // The content fades out before a step change and in with the text.
               AnimatedSize(
-                duration: Duration(milliseconds: rolig ? 1 : 580),
-                curve: _e,
+                // The design's `height .58s`; shortened after the user's
+                // review so the card settles with the words, not after them.
+                duration: Duration(milliseconds: rolig ? 1 : 340),
+                curve: _e2,
                 alignment: Alignment.topCenter,
                 child: AnimatedSlide(
                   offset: Offset(0, innhold ? 0 : -5 / 120),

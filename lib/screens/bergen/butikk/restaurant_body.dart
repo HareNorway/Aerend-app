@@ -438,7 +438,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                           );
                         },
                         child: OnbMaal(
-                          id: 'legg',
+                          id: 'legg-panel',
                           radius: 24,
                           child: _erTilbud
                             ? _KortInn(
@@ -3027,7 +3027,8 @@ class _Grid extends StatelessWidget {
 
   Widget _card(BergenMenuItem item, int n) => _KortInn(anim: inn, i: n, child: _card0(item, n));
 
-  Widget _card0(BergenMenuItem item, int n) => _MenuCard(
+  Widget _card0(BergenMenuItem item, int n) {
+    final kort = _MenuCard(
     key: Key('a1_butikk_menu_${item.id}'),
     item: item,
     mostOrdered: item.id == mostOrderedId,
@@ -3038,6 +3039,11 @@ class _Grid extends StatelessWidget {
     onPlus: () => onPlus(item),
     onMinus: () => onMinus(item),
   );
+    // Onboarding: the tour's «Trykk + på retten» marks this one dish (the
+    // most ordered, else the first), not the whole panel.
+    final legg = mostOrderedId != null ? item.id == mostOrderedId : n == 0;
+    return legg ? OnbMaal(id: 'legg', radius: 24, child: kort) : kort;
+  }
 }
 
 const _kInnMs = 600;
