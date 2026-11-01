@@ -5,6 +5,7 @@ import 'package:aerend_customer/screens/bergen/onboarding/onb_lag.dart';
 import 'package:aerend_customer/screens/bergen/onboarding/onb_maal.dart';
 import 'package:aerend_customer/screens/bergen/onboarding/onb_runde.dart';
 import 'package:aerend_customer/screens/bergen/onboarding/onb_steg.dart';
+import 'package:aerend_customer/screens/bergen/onboarding/onb_tips.dart';
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -112,6 +113,48 @@ void main() {
     expect(r.ferdig, isTrue);
     expect(r.hoppet, isFalse);
     await tester.pump(const Duration(seconds: 6));
+  });
+
+  testWidgets('a mission on a target at the bottom keeps its card tappable («Vis meg» completes it)', (tester) async {
+    // Review fix: the card over a low target used to be drawn translated out of
+    // its own box, so taps on «Vis meg» / «Tilbake» never arrived there.
+    tester.view.physicalSize = const Size(1290, 2796);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    addTearDown(OnbRunde.instance.reset);
+    addTearDown(OnbMaalRegistry.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              const Positioned(left: 80, bottom: 20, child: OnbMaal(id: 'nav-utforsk', radius: 18, child: SizedBox(width: 60, height: 52))),
+              const OnbLag(),
+            ],
+          ),
+        ),
+      ),
+    );
+    final r = OnbRunde.instance;
+    r.start(fra: 5, rolig: true);
+    // No shell in the test: the step waits 3 s for the «hjem» screen, then talks.
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(r.naa?.id, 'utforsk');
+    expect(r.fase, OnbFase.her);
+    final vis = find.byKey(const Key('onb-vismeg'));
+    expect(vis, findsOneWidget);
+    final kort = tester.getRect(find.byKey(const Key('onb-vismeg')));
+    expect(kort.bottom, lessThan(2796 / 3 - 72), reason: 'the card hangs above the tab');
+    await tester.tap(vis);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(r.fase, OnbFase.jubel, reason: 'the tap reached «Vis meg»');
+    r.stopp();
+    // The anchor's removal re-arms the tips planner: tear down, then reset.
+    await tester.pumpWidget(const SizedBox());
+    OnbTips.instance.reset();
+    await tester.pump();
   });
 
   testWidgets('the layer is empty until the run starts, then shows the intro card with «Bli med»', (tester) async {

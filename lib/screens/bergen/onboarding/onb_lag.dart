@@ -239,11 +239,20 @@ class _OnbLagState extends State<OnbLag> {
                   ),
                 ),
                 // The card with Ægil, placed by the geometry; slides with it.
+                // Over the target the card hangs from its bottom edge (`by`),
+                // anchored with `bottom:` so its box is where it is drawn — a
+                // box translated out of itself gets no taps (review fix).
                 TweenAnimationBuilder<Offset>(
                   tween: Tween(end: Offset(g.bx, g.by)),
                   duration: d(800),
                   curve: _e,
-                  builder: (context, p, child) => Positioned(left: p.dx, top: p.dy, width: g.bw, child: child!),
+                  builder: (context, p, child) => Positioned(
+                    left: p.dx,
+                    top: g.under ? p.dy : null,
+                    bottom: g.under ? null : H - p.dy,
+                    width: g.bw,
+                    child: child!,
+                  ),
                   child: AnimatedOpacity(
                     opacity: kVis ? 1 : 0,
                     duration: d(400),
@@ -301,9 +310,7 @@ class _OnbLagState extends State<OnbLag> {
                           ),
                         ),
                         // The card itself, under or over the target.
-                        FractionalTranslation(
-                          translation: Offset(0, g.under ? 0 : -1),
-                          child: IgnorePointer(
+                        IgnorePointer(
                             ignoring: !(her || jubel),
                             child: AnimatedScale(
                               scale: kVis ? 1 : .94,
@@ -344,7 +351,6 @@ class _OnbLagState extends State<OnbLag> {
                               ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
