@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
@@ -112,6 +114,8 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    OnbRunde.instance.addListener(_rundeEndret);
+    OnbTips.instance.addListener(_rundeEndret);
     _gang = AnimationController(vsync: this);
     final sk = widget.skjerm;
     if (kDebugMode && HjemHarness.guide == sk) {
@@ -130,8 +134,14 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
     });
   }
 
+  void _rundeEndret() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    OnbRunde.instance.removeListener(_rundeEndret);
+    OnbTips.instance.removeListener(_rundeEndret);
     for (final t in [_t1, _t2, _t3, _auto, _idleT]) {
       t?.cancel();
     }
@@ -152,6 +162,11 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
 
   void _inn(int i) {
     if (!mounted) return;
+    // Onboarding Step 1: never beside Ægil-runden (the design's `gKan` is false while `rt` is up).
+    if (OnbRunde.instance.aktiv || OnbTips.instance.naa != null) {
+      _planIdle();
+      return;
+    }
     setState(() {
       _fase = _Fase.inn;
       _i = i;
@@ -215,7 +230,7 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (_fase == _Fase.borte || widget.tips.isEmpty) return const SizedBox.shrink();
+    if (_fase == _Fase.borte || widget.tips.isEmpty || OnbRunde.instance.aktiv || OnbTips.instance.naa != null) return const SizedBox.shrink();
     final tip = widget.tips[_i % widget.tips.length];
     return Material(
       type: MaterialType.transparency,

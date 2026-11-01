@@ -318,6 +318,15 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> favouriteProducts() =>
       _guarded(() => _get('${_base}favourite-products'));
 
+  /// Onboarding plan Step 3: `ops.customer.onboarding` — the tour / coach-mark
+  /// state and the config. Null for a guest or on any failure.
+  Future<Map<String, dynamic>?> onboarding() => _guarded(() => _get('${_base}onboarding'));
+
+  /// `ops.customer.onboarding.update` — the server merges (set-once fields,
+  /// union of seen sets). Fire-and-forget; null when it did not land.
+  Future<Map<String, dynamic>?> setOnboarding(Map<String, Object?> body) =>
+      _guarded(() => _post('${_base}onboarding', body));
+
   /// `ops.customer.favourite_products.set` — heart or un-heart one product.
   /// Null when the write did not land.
   Future<Map<String, dynamic>?> setFavouriteProduct(int productId, bool favourite) =>
@@ -344,6 +353,23 @@ class OpsCustomerApi {
     return list is List
         ? list.whereType<Map<String, dynamic>>().toList()
         : const [];
+  }
+
+  /// The Kategori store module's rail (Onboarding plan Step 5, D7):
+  /// `GET /api/ops/products?kind=butikk&store_id=` — the store's own live
+  /// products, most ordered first, ten at most, and the live count. Null on
+  /// failure (the module then shows no rail).
+  Future<({List<Map<String, dynamic>> varer, int antall})?> butikkProdukter(int storeId) async {
+    final json = await _guarded(() async {
+      final j = await _helper.get('api/ops/products?kind=butikk&store_id=$storeId');
+      return j is Map<String, dynamic> ? j : null;
+    });
+    if (json == null) return null;
+    final list = json['products'];
+    return (
+      varer: list is List ? list.whereType<Map<String, dynamic>>().toList() : const <Map<String, dynamic>>[],
+      antall: (json['count'] as num?)?.toInt() ?? 0,
+    );
   }
 
   /// Forundringsposer: `GET /api/ops/products?kind=pose`. Empty on failure.

@@ -2,6 +2,7 @@ import 'dart:async';
 import '../../../../data/ops/tracking_models.dart';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,6 +16,7 @@ import '../../../../networking/ops/ops_customer_api.dart';
 import '../../../bergen/sporing/hjelp_sheet.dart';
 import '../../../bergen/utforsk/utforsk_screen.dart';
 import '../../../bergen/kasse/kjop_sekvens.dart' show KjopBekreftetScreen;
+import '../../../bergen/kit/bergen_perf.dart';
 import '../../../bergen/kit/drape_route.dart' show DrapePek;
 import '../../../bergen/aegil/aegil_entry.dart';
 import '../../../bergen/hjem/hjem_harness.dart';
@@ -56,6 +58,11 @@ import '../home_dl.dart';
 import '../home_post_order_feedback.dart';
 import '../../../../networking/feed/feed_repo.dart';
 import '../../../bergen/adresse/adr_ark.dart' show AdrArkProve, visAdresseArk;
+import '../../../bergen/onboarding/onb_maal.dart';
+import '../../../bergen/onboarding/onb_hjem_kort.dart';
+import '../../../bergen/onboarding/onb_runde.dart';
+import '../../../bergen/onboarding/onb_status.dart';
+import '../../../bergen/onboarding/onb_tips.dart';
 import 'bergen_adr_kilde.dart';
 import 'bergen_cards.dart';
 import 'bergen_category_rad.dart';
@@ -277,6 +284,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _adrKilde = BergenAdrKilde(_bloc);
     _adrSub = _bloc.deliveryAddress.listen(_hentHodeEta);
     _scroll.addListener(_onScroll);
+    // Onboarding: the tour's scroll-into-view must count the sheet's slide
+    // (`min(212, offset)`) on top of the list's own movement.
+    OnbMaalRegistry.kobling[_scroll] = (t) => t.clamp(0.0, _kSheetSlide * context.bs);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _onScroll();
     });
@@ -330,8 +340,19 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     _refreshSeams();
     // Hurtigbestilling's entry line: the habit of the day, loaded once.
     HurtigKilde.load();
+    // Onboarding Step 3: Ægil-runden starts by itself once (`vkKanskjeStart`), 900 ms after Hjem.
+    final harness = kDebugMode ? HjemHarness.load() : Future<void>.value();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future<void>.delayed(const Duration(milliseconds: 900), () async {
+        await harness;
+        if (!mounted) return;
+        if (kDebugMode && HjemHarness.onbNull) OnbStatus.instance.nullstill();
+        if (kDebugMode && HjemHarness.onbLevert) OnbStatus.instance.merkLevert();
+        OnbRunde.kanskjeStart(harness: kDebugMode && (HjemHarness.onbRunde != null || HjemHarness.onbTips != null));
+      });
+    });
     if (kDebugMode) {
-      HjemHarness.load().then((_) {
+      harness.then((_) {
         if (mounted) setState(() {});
         Future.delayed(const Duration(milliseconds: 1500), () {
           if (!mounted) return;
@@ -339,8 +360,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           if (y != null && _scroll.hasClients) {
             _scroll.jumpTo(y.clamp(0.0, _scroll.position.maxScrollExtent));
           }
+          if (HjemHarness.rull case final til?) _maalRull(til, HjemHarness.rullMs ?? 1800);
           if (HjemHarness.hjul case final h?) setState(() => _hjulI = h);
           if (HjemHarness.vindu) _settVindu(true);
+          if (HjemHarness.onbRunde case final n?) {
+            if (HjemHarness.onbNull) OnbStatus.instance.nullstill();
+            OnbRunde.instance.start(fra: n, rolig: HjemHarness.onbRolig, auto: HjemHarness.onbAuto);
+          }
+          // Onboarding Step 4: a forced coach mark (`cmTving`).
+          if (HjemHarness.onbTips case final id?) {
+            if (HjemHarness.onbNull) OnbStatus.instance.nullstill();
+            OnbTips.instance.tving(id);
+          }
           final fane = HjemHarness.fane;
           if (fane != null) {
             debugPrint('HJEM_FANE');
@@ -546,6 +577,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    OnbMaalRegistry.kobling.remove(_scroll);
     _kN.dispose();
     _pullN.dispose();
     HjemNy.endret.removeListener(_nyEndret);
@@ -715,6 +747,41 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   void _comingSoon() => openSimpleSnackbar(BergenCopy.comingSoon);
 
+  /// Harness `rull`: an animated scroll down and back with the frame times of
+  /// the span in the log, so a scroll's smoothness can be compared run to run.
+  Future<void> _maalRull(double til, int ms) async {
+    await Future<void>.delayed(const Duration(milliseconds: 2500));
+    if (!mounted || !_scroll.hasClients) return;
+    // A warm-up pass first (images decode, the first layers build), then the
+    // measured pass.
+    await _scroll.animateTo(til.clamp(0.0, _scroll.position.maxScrollExtent), duration: Duration(milliseconds: ms), curve: Curves.easeInOut);
+    await _scroll.animateTo(0, duration: Duration(milliseconds: ms), curve: Curves.easeInOut);
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (!mounted || !_scroll.hasClients) return;
+    final build = <int>[], raster = <int>[], total = <int>[];
+    void samle(List<FrameTiming> ts) {
+      for (final t in ts) {
+        build.add(t.buildDuration.inMicroseconds);
+        raster.add(t.rasterDuration.inMicroseconds);
+        total.add(t.totalSpan.inMicroseconds);
+      }
+    }
+    SchedulerBinding.instance.addTimingsCallback(samle);
+    final maks = _scroll.position.maxScrollExtent;
+    await _scroll.animateTo(til.clamp(0.0, maks), duration: Duration(milliseconds: ms), curve: Curves.easeInOut);
+    await _scroll.animateTo(0, duration: Duration(milliseconds: ms), curve: Curves.easeInOut);
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    SchedulerBinding.instance.removeTimingsCallback(samle);
+    String st(List<int> l) {
+      if (l.isEmpty) return '-';
+      final c = [...l]..sort();
+      int p(double q) => c[(c.length * q).floor().clamp(0, c.length - 1)] ~/ 100;
+      return 'p50=${p(.5) / 10} p90=${p(.9) / 10} max=${c.last ~/ 100 / 10}';
+    }
+    final over = total.where((u) => u > 16700).length;
+    debugPrint('HJEM_RULL cfg[perf=${HjemHarness.perf ?? 'full'} vann=${HjemHarness.vann} hero=${!HjemHarness.heroAv} blur=${!HjemHarness.skyggeAv}] n=${total.length} over16=$over build[${st(build)}] raster[${st(raster)}] total[${st(total)}] ms');
+  }
+
   // ── Sheet scroll / parallax ─────────────────────────────────────────────
 
   void _onScroll() {
@@ -726,11 +793,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     bool kaien = _kaien;
     if (remaining < 210 * s && !kaien) kaien = true;
     if (remaining > 260 * s && kaien) kaien = false;
-    // The hero is gone at 212 (heroOpacity 0): asleep past 620, awake again
-    // below 520 — a fling back to the top has ~300 hidden px to wake in.
+    // The hero is gone at 212 (heroOpacity 0): asleep past 330, awake again
+    // below 280 — its loops carry on from the same pose, so a fling back to
+    // the top only needs the one frame before 212 to wake in.
     var heroLiv = _heroLiv;
-    if (pos.pixels > 620 * s) heroLiv = false;
-    if (pos.pixels < 520 * s) heroLiv = true;
+    if (pos.pixels > 330 * s) heroLiv = false;
+    if (pos.pixels < 280 * s) heroLiv = true;
     // Under kaien (300 tall) shows in the sheet's last stretch: awake from
     // 900 before the end, asleep again past 1000.
     var kaienLiv = _kaienLiv;
@@ -1542,6 +1610,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 }
                 final explore = _lastExplore;
                 final stores = _storesFor(focused, explore);
+                // Onboarding Step 2: the tour's Butikk section rows to the first open restaurant.
+                if (_hjulI == 0 && stores.isNotEmpty) OnbRunde.instance.butikkId = stores.first.id;
                 final products = _products(swipe, focused);
                 final floats = _floats(swipe);
 
@@ -1622,6 +1692,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         // ── Hero ───────────────────────────────────────
                         // Clipped at the status bar: the design's frame
                         // starts at y=0, ours below the safe area.
+                        if (!(kDebugMode && HjemHarness.heroAv))
                         Positioned(
                           left: 0,
                           right: 0,
@@ -1653,11 +1724,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                     );
                                   },
                                   // Its own layer: the hero's shaders and loops repaint
-                                  // the hero, never the sheet beside it.
+                                  // the hero, never the sheet beside it. Its loops rest
+                                  // while the sheet scrolls (`BergenPerf.ruller`): measured on
+                                  // the simulator they were the largest raster cost of a
+                                  // scroll frame; they carry on from the same pose at the end.
                                   child: RepaintBoundary(
                                       child: LfFrame(
-                                        child: TickerMode(
-                                        enabled: _heroLiv,
+                                        child: ValueListenableBuilder<bool>(
+                                        valueListenable: BergenPerf.ruller,
+                                        builder: (context, ruller, hero) => TickerMode(
+                                          enabled: _heroLiv && !ruller && !(kDebugMode && HjemHarness.heroStille),
+                                          child: hero!,
+                                        ),
                                         child: HjemHero(
                                           vaer: _hjemVaer(look),
                                           floats: floats,
@@ -1742,6 +1820,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             ark: true,
                             child: _Sheet(
                             controller: _scroll,
+                            child: TickerMode(
+                            enabled: !(kDebugMode && HjemHarness.arkStille),
                             child: _sheetBody(
                               context,
                               categories: categories,
@@ -1754,7 +1834,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               ),
                               slots: slots,
                               tilbud: _tilbud(swipe),
-                            ),
+                            )),
                           ),
                           ),
                         ),
@@ -2017,7 +2097,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           padding: EdgeInsets.only(top: 4 * s),
           child: lfFlow(
             390,
-            HjemKategoriHjul(
+            OnbMaal(
+              id: 'kategorirad',
+              child: HjemKategoriHjul(
               kategorier: [
                 for (var k = 0; k < 5; k++)
                   HjemHjulKat(
@@ -2038,6 +2120,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 if (c != null) _openCategory(c);
               },
               onSnart: _openSnart,
+              ),
             ),
           ),
         ),
@@ -2047,6 +2130,22 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final w in <Widget>[
+              // Onboarding Step 3: «Vil du se hva mer Ærend kan?» (design L3509, between the wheel and Hurtig).
+              ListenableBuilder(
+                listenable: Listenable.merge([OnbStatus.instance, OnbRunde.instance]),
+                builder: (context, _) => OnbStatus.instance.visHjemKort && !OnbRunde.instance.aktiv
+                    ? lfFlow(
+                        358,
+                        OnbHjemKort(
+                          onSpill: () {
+                            OnbStatus.instance.merkHjemKort();
+                            OnbRunde.instance.spillAv();
+                          },
+                          onLukk: OnbStatus.instance.merkHjemKort,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               SizedBox(height: 10 * s),
               lfFlow(
                 358,
@@ -2054,7 +2153,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 // delivered orders (the same data the screen reads).
                 ValueListenableBuilder<HurtigData?>(
                   valueListenable: HurtigKilde.cache,
-                  builder: (context, d, _) => HjemHurtigInngang(
+                  builder: (context, d, _) => OnbMaal(
+                    id: 'hurtig',
+                    radius: 26,
+                    child: HjemHurtigInngang(
                     linje: hurtigHjemLinje(d),
                     // Customer Step 14: the AI marks pill (design L2937) → «Bestill med en annen AI».
                     onAi: ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness ? () => AiArk.flyt(context, 'velg', fraHurtig: true) : null,
@@ -2064,6 +2166,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         _shell?.switchToTab(BergenTab.cart.index);
                       }
                     },
+                  ),
                   ),
                 ),
               ),
@@ -2273,11 +2376,19 @@ class _Sheet extends StatelessWidget {
                   ),
                 ),
               ),
-              SingleChildScrollView(
-                controller: controller,
-                // Bergen 29 Oct: the top belongs to the pull (`scrollLaster`).
-                physics: BergenDraLaster.physics,
-                child: child,
+              NotificationListener<ScrollNotification>(
+                onNotification: (n) {
+                  if (n.depth != 0) return false;
+                  if (n is ScrollStartNotification) BergenPerf.ruller.value = true;
+                  if (n is ScrollEndNotification) BergenPerf.ruller.value = false;
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  controller: controller,
+                  // Bergen 29 Oct: the top belongs to the pull (`scrollLaster`).
+                  physics: BergenDraLaster.physics,
+                  child: child,
+                ),
               ),
             ],
           ),

@@ -1,7 +1,10 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
+import 'hjem_harness.dart';
 
 // ── The sheet as water (prototype `vannKant` / `vannBunn` / `vannBobler`) ──
 // Scrolled, the sheet's top becomes a moving water surface: two wave rows
@@ -190,6 +193,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode && !HjemHarness.vann) return widget.child;
     final s = widget.s;
     return LayoutBuilder(
       builder: (context, box) {

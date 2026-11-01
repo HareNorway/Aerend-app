@@ -220,7 +220,19 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
   }
 
   @override
+  void initState() {
+    super.initState();
+    BergenPerf.ruller.addListener(_rullet);
+  }
+
+  /// The back cards' blur pauses while the sheet scrolls (see [BergenPerf.ruller]).
+  void _rullet() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    BergenPerf.ruller.removeListener(_rullet);
     _auto?.cancel();
     _ring.dispose();
     super.dispose();
@@ -322,7 +334,7 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
     // The design blurs the back cards 1.6px (CSS `blur`, σ = px), growing as
     // a card swings back. Only in the `full` tier: two small layers, and the
     // cards are still in `lite` / `still` anyway.
-    if (back > .02 && BergenPerf.of(context) == BergenTier.full) {
+    if (back > .02 && BergenPerf.of(context) == BergenTier.full && !BergenPerf.ruller.value) {
       final sigma = 1.6 * back.clamp(0.0, 1.0) * s;
       out = ImageFiltered(
         imageFilter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma, tileMode: TileMode.decal),

@@ -180,6 +180,12 @@ abstract final class ButikkCopy {
   static String a1_butikk_scr_maks(int n) => languages.ops_butikk_scr_maks(n);
   static String a1_butikk_scr_mangler(String gruppe) => languages.ops_butikk_scr_mangler(gruppe);
   static String get a1_butikk_scr_feil => languages.ops_butikk_scr_feil;
+
+  // Onboarding Step 4 follow-up: the cart holds another store's lines (API 412).
+  static String get a1_butikk_kurv_annen => languages.ops_butikk_kurv_annen;
+  static String get a1_butikk_kurv_annen_linje => languages.ops_butikk_kurv_annen_linje;
+  static String get a1_butikk_kurv_annen_tom => languages.ops_butikk_kurv_annen_tom;
+  static String get a1_butikk_kurv_annen_behold => languages.ops_butikk_kurv_annen_behold;
   static String get a1_butikk_scr_prov_igjen => languages.ops_butikk_scr_prov_igjen;
 
   /// «Lager oppdatert for 2 t siden» — web stock may lag; [now] for tests.

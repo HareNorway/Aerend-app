@@ -5,6 +5,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../data/ops/kasse_models.dart';
@@ -114,6 +116,12 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 2: «Vis meg» on the `legg` mission adds the most-ordered dish for real.
+    OnbRunde.instance.autoHandler = (s) {
+      if (s.id != 'legg') return;
+      final item = store.allItems.firstOrNull;
+      if (item != null) _plus(item);
+    };
     _sok.addListener(() => setState(() {}));
     _loadCart();
     _loadSide();
@@ -156,6 +164,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
 
   @override
   void dispose() {
+    OnbRunde.instance.autoHandler = null;
     _byttT?.cancel();
     _byttUt.dispose();
     _byttInn.dispose();
@@ -428,7 +437,10 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                             child: Transform.translate(offset: Offset(0, 8 * s * u), child: child),
                           );
                         },
-                        child: _erTilbud
+                        child: OnbMaal(
+                          id: 'legg-panel',
+                          radius: 24,
+                          child: _erTilbud
                             ? _KortInn(
                                 anim: _byttInn,
                                 i: 0,
@@ -447,6 +459,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                                 onPlus: _plus,
                                 onMinus: _minus,
                               ),
+                        ),
                       ),
                     ),
                   ],
@@ -470,7 +483,10 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                   left: 16 * s,
                   right: 16 * s,
                   bottom: barBottom,
-                  child: ButikkKurvBar(
+                  child: OnbMaal(
+                    id: 'butikk-kurv',
+                    radius: 30,
+                    child: ButikkKurvBar(
                     lines: _lines,
                     count: _count,
                     total: _total,
@@ -478,6 +494,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                     mini: _mini,
                     onToggle: () => setState(() => _mini = !_mini),
                     onPay: _toKurv,
+                  ),
                   ),
                 ),
             ],
@@ -1240,7 +1257,7 @@ class _CreamCard extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.fromLTRB(16 * s, 14 * s, 16 * s, 0),
-            child: _Seilas(store: store, subtotal: subtotal, onAegil: onAegil),
+            child: OnbMaal(id: 'seilas', radius: 26, child: _Seilas(store: store, subtotal: subtotal, onAegil: onAegil)),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16 * s, 16 * s, 16 * s, 0),
@@ -3010,7 +3027,8 @@ class _Grid extends StatelessWidget {
 
   Widget _card(BergenMenuItem item, int n) => _KortInn(anim: inn, i: n, child: _card0(item, n));
 
-  Widget _card0(BergenMenuItem item, int n) => _MenuCard(
+  Widget _card0(BergenMenuItem item, int n) {
+    final kort = _MenuCard(
     key: Key('a1_butikk_menu_${item.id}'),
     item: item,
     mostOrdered: item.id == mostOrderedId,
@@ -3021,6 +3039,11 @@ class _Grid extends StatelessWidget {
     onPlus: () => onPlus(item),
     onMinus: () => onMinus(item),
   );
+    // Onboarding: the tour's «Trykk + på retten» marks this one dish (the
+    // most ordered, else the first), not the whole panel.
+    final legg = mostOrderedId != null ? item.id == mostOrderedId : n == 0;
+    return legg ? OnbMaal(id: 'legg', radius: 24, child: kort) : kort;
+  }
 }
 
 const _kInnMs = 600;

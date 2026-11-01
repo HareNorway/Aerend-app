@@ -38,6 +38,7 @@ class ProduktHero extends StatelessWidget {
     required this.sum,
     required this.onClose,
     this.hjerte,
+    this.ikon,
   });
 
   final ValueListenable<double> fold;
@@ -45,6 +46,10 @@ class ProduktHero extends StatelessWidget {
   final String name;
   final String sum;
   final VoidCallback onClose;
+
+  /// The product's 3D icon when there is no photo (`pAnnetIk`), an
+  /// `assets/images/kategori/<ikon>.svg` name.
+  final String? ikon;
 
   /// The favourite heart beside the close key (Bergen Step 9, D4).
   final Widget? hjerte;
@@ -57,6 +62,8 @@ class ProduktHero extends StatelessWidget {
       builder: (context, e, _) {
         final fx = (1 - e * 1.4).clamp(0.0, 1.0);
         final mini = math.max(0.0, (e - .55) / .45);
+        final harFoto = (imageUrl ?? '').isNotEmpty;
+        final rolig = BergenPerf.of(context) == BergenTier.still || MediaQuery.disableAnimationsOf(context);
         return SizedBox(
           height: (276 - 186 * e) * s,
           child: LayoutBuilder(
@@ -71,8 +78,30 @@ class ProduktHero extends StatelessWidget {
                       child: _Bakgrunn(fx: fx),
                     ),
                   ),
+                  // Onboarding Step 6 (`pHarFoto`): the real photo fills the
+                  // header with `pmKB 18s`; no dish, no steam over it.
+                  if (harFoto)
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(30 * s)),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            const ColoredBox(color: Color(0xFF1B4A57)),
+                            _KenBurns(rolig: rolig, child: Image.network(cacheWidth: BergenPerf.decodeWidth, imageUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => const SizedBox.shrink())),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: 60 * s,
+                              child: const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x001B4A57), Color(0xFF1E4F5C)]))),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   // Steam over the dish (`data-prodfx`).
-                  if (fx > 0)
+                  if (fx > 0 && !harFoto)
                     Positioned.fill(
                       child: IgnorePointer(
                         child: Opacity(
@@ -111,6 +140,7 @@ class ProduktHero extends StatelessWidget {
                     ),
                   // The dish: 240×252 at top −38, centred; folding, it moves
                   // to (58 − W/2, −38) and shrinks to a third.
+                  if (!harFoto)
                   Positioned(
                     left: w / 2 - 120 * s,
                     top: -38 * s,
@@ -121,7 +151,7 @@ class ProduktHero extends StatelessWidget {
                         alignment: Alignment.center,
                         transform: Matrix4.translationValues((58 * s - w / 2) * e, -38 * s * e, 0)
                           ..scaleByDouble(1 - .66 * e, 1 - .66 * e, 1, 1),
-                        child: _Rett(url: imageUrl, aktiv: e < .01),
+                        child: _Rett(url: imageUrl, ikon: ikon, aktiv: e < .01),
                       ),
                     ),
                   ),
@@ -460,9 +490,10 @@ class _Damp extends StatelessWidget {
 /// (`prodGlint 6.5s 1.4s`). A shop photo is shown as a rounded print (the
 /// design's dishes are cut-outs).
 class _Rett extends StatelessWidget {
-  const _Rett({required this.url, required this.aktiv});
+  const _Rett({required this.url, required this.aktiv, this.ikon});
 
   final String? url;
+  final String? ikon;
 
   /// The breathing stops while the hero folds (`animation: none`).
   final bool aktiv;
@@ -470,7 +501,26 @@ class _Rett extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    final bilde = Center(
+    // No photo: the product's own 3D icon, 210 px with the deep drop shadow
+    // (`pErAnnet` / `pAnnetIk`), instead of an empty plate.
+    final bilde = (url ?? '').isEmpty
+        ? Center(
+            child: SizedBox(
+              width: 210 * s,
+              height: 210 * s,
+              child: Stack(children: [
+                Positioned(
+                  left: 30 * s,
+                  right: 30 * s,
+                  bottom: 6 * s,
+                  height: 30 * s,
+                  child: const DecoratedBox(decoration: BoxDecoration(borderRadius: BorderRadius.all(Radius.elliptical(80, 15)), gradient: RadialGradient(colors: [Color(0x991E0A05), Color(0x001E0A05)]))),
+                ),
+                Positioned.fill(child: SvgPicture.asset('assets/images/kategori/${ikon ?? 'ico_mat'}.svg', fit: BoxFit.contain)),
+              ]),
+            ),
+          )
+        : Center(
       child: Container(
         width: 232 * s,
         height: 176 * s,
@@ -1135,6 +1185,35 @@ class ProduktHjerte extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// `pmKB 18s ease-in-out infinite alternate`: scale 1 → 1.07, drift −1.5 % / −1 %.
+class _KenBurns extends StatelessWidget {
+  const _KenBurns({required this.rolig, required this.child});
+  final bool rolig;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (rolig) return child;
+    return BergenLoop(
+      durationMs: 36000,
+      child: child,
+      builder: (context, q, child) {
+        final t = q ?? 0;
+        final e = Curves.easeInOut.transform(t < .5 ? t * 2 : 2 - t * 2);
+        return LayoutBuilder(
+          builder: (context, c) => Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..translateByDouble(-.015 * c.maxWidth * e, -.01 * c.maxHeight * e, 0, 1)
+              ..scaleByDouble(1 + .07 * e, 1 + .07 * e, 1, 1),
+            child: child,
           ),
         );
       },

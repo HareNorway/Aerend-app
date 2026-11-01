@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_status.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 
@@ -138,6 +142,20 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 2: the tour's `poeng` step wants the points card collapsed first (`forbered`).
+    OnbRunde.instance.forbered['poeng'] = () {
+      if (mounted && _poengApen) setState(() => _poengApen = false);
+    };
+    // Meg's list is lazy: the AI row near the bottom exists only once scrolled to, so
+    // the `ai` step first jumps the list down (the tour then scrolls it into its band).
+    OnbRunde.instance.forbered['ai'] = () {
+      if (mounted && _rull.hasClients) _rull.jumpTo(_rull.position.maxScrollExtent);
+    };
+    // Onboarding Step 4: the actions of the `varsler`, `abo`, `bio` and `ai` marks.
+    OnbTips.instance.handlinger['aegilInnst'] = _aegilInnstillinger;
+    OnbTips.instance.handlinger['ukeshandel'] = () => _ukeshandel();
+    OnbTips.instance.handlinger['megBio'] = () => _openBio();
+    OnbTips.instance.handlinger['megAi'] = () => AiArk.flyt(context, 'inngang');
     // Meg opens with what it showed last (same user) and refreshes quietly;
     // the spinner is only for the very first load.
     final c = _brukerCache ? _MegCache.forUser(prefGetInt(prefUserId)) : null;
@@ -157,6 +175,11 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   @override
   void dispose() {
+    for (final h in ['aegilInnst', 'ukeshandel', 'megBio', 'megAi']) {
+      OnbTips.instance.handlinger.remove(h);
+    }
+    OnbRunde.instance.forbered.remove('poeng');
+    OnbRunde.instance.forbered.remove('ai');
     BergenFaneBytte.aktiv.removeListener(_faneVist);
     _rull.dispose();
     super.dispose();
@@ -836,12 +859,15 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               MegGullBillett(kode: code, linje: A4MegCopy.a4_meg_gi_faa(give, get), onTap: _openBillett, onStubb: _share),
                               // --- Min Bio (L7458) --------------------------------------
                               const SizedBox(height: 14),
-                              MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio),
+                              OnbMaal(id: 'bio', radius: 24, child: MinBioKort(bio: _bio, puls: _bioPuls, onTap: _openBio)),
                               if (borte != null) ...[const SizedBox(height: 12), borte],
                               // --- Poeng, nivå og konkurranser (L7480) -------------------
                               if (b != null) ...[
                                 const SizedBox(height: 14),
-                                MegPoengKort(
+                                OnbMaal(
+                                  id: 'poeng',
+                                  radius: 24,
+                                  child: MegPoengKort(
                                   key: ValueKey('poeng-$_poengApen'),
                                   apen: _poengApen,
                                   poeng: b.available,
@@ -900,7 +926,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                       ),
                                     ],
                                   ),
-                                ),
+                                )),
                               ],
                               // --- kMegRader (L7604–7627) --------------------------------
                               const SizedBox(height: 12),
@@ -924,6 +950,19 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     merke: AeInnstCopy.endreMerke,
                                     onTap: _aegilInnstillinger,
                                   ),
+                                  // Onboarding Step 3: «Bli kjent med Ærend» (design L22472, after Innstillinger for Ægil).
+                                  if (OnbStatus.paa)
+                                    ListenableBuilder(
+                                      listenable: OnbStatus.instance,
+                                      builder: (context, _) => _Rad(
+                                        key: const Key('meg-rad-onb'),
+                                        tile: const _GlassTile(rot: 2, d: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v.01M11 11.5h1v5h1'),
+                                        navn: 'Bli kjent med Ærend',
+                                        under: 'Ægil-runden · fem stopp i appen',
+                                        merke: OnbStatus.instance.nyVersjon ? 'Nytt' : null,
+                                        onTap: () => OnbRunde.instance.spillAv(),
+                                      ),
+                                    ),
                                   _Rad(
                                     key: const Key('meg-rad-adresser'),
                                     tile: const _GlassTile(rot: -2, d: 'M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4'),
@@ -943,13 +982,16 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   // Customer Step 14: «Bestill via AI-assistent» and «Koblede assistenter»,
                                   // after Varsler as in the design's list (behind the AI-linking flag).
                                   if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
-                                    _Rad(
+                                    OnbMaal(
+                                      id: 'ai',
+                                      radius: 18,
+                                      child: _Rad(
                                       key: const Key('cus-meg-rad-ai'),
                                       tile: const _GlassTile(rot: -3, d: AiIk.kobling),
                                       navn: AiCopy.cus_ai_meg_rad,
                                       under: AiCopy.cus_ai_meg_rad_sub,
                                       onTap: () => AiArk.flyt(context, 'inngang'),
-                                    ),
+                                    )),
                                   if (ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness)
                                     ListenableBuilder(
                                       listenable: AiStore.instance,

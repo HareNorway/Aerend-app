@@ -29,6 +29,11 @@ abstract final class BergenPerf {
   /// non-ticker work pause on it (tickers stop by themselves without frames).
   static final ValueNotifier<bool> foreground = ValueNotifier<bool>(true);
 
+  /// True while a screen's main sheet is scrolling (Hjem sets it from its
+  /// scroll notifications): per-frame extras that cost a Gaussian pass (the
+  /// rails' back-card blur) pause until it stops.
+  static final ValueNotifier<bool> ruller = ValueNotifier<bool>(false);
+
   static String reason = 'start';
 
   static BergenTier _device = BergenTier.full;

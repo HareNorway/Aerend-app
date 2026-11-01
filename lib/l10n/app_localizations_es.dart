@@ -6355,7 +6355,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get ops_kasse_flere_under_lev =>
-      'Tips, a door note and a delivery code';
+      'A note to the shop, tips and a door note';
 
   @override
   String get ops_kasse_flere_under_hent =>
@@ -7959,4 +7959,157 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get cus_ai_betalingsmate => 'Payment method';
+
+  @override
+  String get onb_tips_label => 'Ægil tip';
+
+  @override
+  String get onb_tips_lukk => 'Close';
+
+  @override
+  String get onb_tips_dot => 'Show the Ægil tip again';
+
+  @override
+  String get onb_cm_feed =>
+      'This is where the shops post news and offers — and now and then I write about them myself.';
+
+  @override
+  String get onb_cm_pose =>
+      'Surplus food at a low price — pick it up before the shop closes.';
+
+  @override
+  String get onb_cm_pose_act => 'Show bags near me';
+
+  @override
+  String get onb_cm_gaver =>
+      'Tell me who and what — I\'ll find three gifts that arrive in time.';
+
+  @override
+  String get onb_cm_gaver_act => 'Let Ægil find a gift';
+
+  @override
+  String get onb_cm_kamera =>
+      'Take a photo of the pack and I\'ll find the item again.';
+
+  @override
+  String get onb_cm_fleks =>
+      'Not in a hurry? Then delivery gets cheaper — and the courier can make two trips in one.';
+
+  @override
+  String get onb_cm_gebyr =>
+      'The price follows the distance. Tap to see how it is worked out.';
+
+  @override
+  String get onb_cm_gebyr_act => 'See the breakdown';
+
+  @override
+  String get onb_cm_adresse =>
+      'I turn your note into clear door instructions — a code is saved only if you want.';
+
+  @override
+  String get onb_cm_kode =>
+      'The code is yours and the courier\'s. Show it at the door.';
+
+  @override
+  String get onb_cm_varsler => 'You choose which messages you get from me.';
+
+  @override
+  String get onb_cm_varsler_act => 'Settings';
+
+  @override
+  String get onb_cm_hjelp =>
+      'Ask me anything — and a person is always one tap away.';
+
+  @override
+  String get onb_cm_ai =>
+      'Do you use Claude or ChatGPT? They can order through Ærend — you always confirm here.';
+
+  @override
+  String get onb_cm_ai_act => 'How to connect';
+
+  @override
+  String get onb_cm_abo =>
+      'Want me to set up this shop every week? You see the basket before each charge.';
+
+  @override
+  String get onb_cm_abo_act => 'Set up';
+
+  @override
+  String get onb_cm_bio => 'Tell me what you eat and I\'ll filter for you.';
+
+  @override
+  String get onb_cm_bio_act => 'Fill in your bio';
+
+  @override
+  String get onb_cm_nytt =>
+      'New since last time: the Ægil tour shows you the whole app. Want to take it?';
+
+  @override
+  String get onb_cm_nytt_act => 'Take the tour';
+
+  @override
+  String get onb_cm_peek => 'I\'m here if you need me.';
+
+  @override
+  String get onb_cm_handoff =>
+      'Hi! I\'m Ægil. I\'ll show you around whenever you like — Profile → Get to know Ærend.';
+
+  @override
+  String get ops_butikk_kurv_annen =>
+      'Your basket holds items from another shop';
+
+  @override
+  String get ops_butikk_kurv_annen_linje =>
+      'Empty the basket and add this instead? You can shop from one shop at a time.';
+
+  @override
+  String get ops_butikk_kurv_annen_tom => 'Empty and add';
+
+  @override
+  String get ops_butikk_kurv_annen_behold => 'Keep the basket';
+
+  @override
+  String ops_kasse_bk_under_lev(String butikk) {
+    return '$butikk sees this before the courier picks up.';
+  }
+
+  @override
+  String ops_kasse_bk_under_hent(String butikk) {
+    return '$butikk sees this when they pack.';
+  }
+
+  @override
+  String get ops_kasse_lev_chip_saus => 'Extra sauce';
+
+  @override
+  String get ops_kasse_lev_chip_drikke => 'Pack drinks separately';
+
+  @override
+  String get ops_kasse_lev_chip_allergi => 'Allergy';
+
+  @override
+  String get ops_kasse_bk_plass_allergi => 'Which allergy? E.g. nuts, milk';
+
+  @override
+  String ops_kasse_lev_kvitt_n(int n, String butikk) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n notes',
+      one: '1 note',
+    );
+    return '$_temp0 travel with the order to $butikk';
+  }
+
+  @override
+  String get ops_kasse_tips_eget => 'Your own amount';
+
+  @override
+  String get ops_kasse_tips_eget_label => 'Your own tip in kroner';
+
+  @override
+  String get ops_kasse_kr => 'kr';
+
+  @override
+  String get ops_kasse_tom_beskjed => 'Clear the note';
 }

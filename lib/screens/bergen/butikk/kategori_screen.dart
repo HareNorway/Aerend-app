@@ -25,9 +25,15 @@ import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
+import 'kategori_modul.dart';
+import 'kategori_produkt.dart';
+import '../../../networking/ops/ops_kasse_api.dart';
+import '../../../data/ops/kasse_models.dart';
+import '../kit/bergen_cart.dart';
 import 'kategori_utstilling.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
+import '../onboarding/onb_tips.dart';
 
 /// Copy for the Kategori screen (L5910–6135), NO and EN.
 abstract final class KatCopy {
@@ -47,6 +53,7 @@ abstract final class KatCopy {
   static String get populaer => _t('POPULÆR NÅ', 'POPULAR NOW');
   static String get mestKjopt => _t('Mest kjøpt', 'Most bought');
   static String get tilbud => _t('Tilbud', 'Offer');
+  static String get ny => _t('Ny', 'New');
   static String get tomt => _t('Ingen butikker her ennå.', 'No stores here yet.');
   static String get tomtSok => _t('Ingen treff.', 'No matches.');
   static String get tomtProdukter =>
@@ -169,6 +176,17 @@ class _KategoriScreenState extends State<KategoriScreen> {
   final FocusNode _sokFokus = FocusNode();
   List<StoreListItem>? _stores;
   List<Map<String, dynamic>>? _products;
+
+  /// Onboarding Step 5 (D7): each store's rail (`products?kind=butikk`),
+  /// loaded for the first eight modules, kept for the app run.
+  static final Map<int, ({List<Map<String, dynamic>> varer, int antall})> _varerCache = {};
+
+  /// Stores the customer has ordered from («PRØVD»), from `ops/customer/orders`.
+  Set<int> _provd = const {};
+
+  /// Onboarding Step 6: the cart's lines by product (the stepper's count).
+  Map<int, KurvLine> _kurv = const {};
+  final OpsKasseApi _kasse = OpsKasseApi();
   Map<String, dynamic>? _pulse;
 
   /// `katKollaps`: how far the hero has folded (0–1, before easing).
@@ -191,6 +209,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
   void initState() {
     super.initState();
     _liste.addListener(_onScroll);
+    // Onboarding Step 4: the `gaver` mark's «La Ægil finne en gave».
+    OnbTips.instance.handlinger['gaver'] = () => _askAegil('gift');
     _sokTekst.addListener(() => setState(() {}));
   }
 
@@ -221,6 +241,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
 
   @override
   void dispose() {
+    OnbTips.instance.handlinger.remove('gaver');
+    OnbTips.instance.sett('kategori', null);
     _liste.dispose();
     _kollaps.dispose();
     _sokTekst.dispose();
@@ -259,6 +281,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
       final stores = await _api.storesInCategory(id);
       if (!mounted) return;
       setState(() => _stores = stores);
+      unawaited(_lastVarer(stores));
+      unawaited(_lastProvd());
       // «N nå» and each shop's typical order in one call (backend plan Step 8).
       unawaited(_customer.storesPresence([for (final s in stores) if (s.storeId != null) s.storeId!]).then((m) {
         if (mounted && m.isNotEmpty) setState(() => _presence = m);
@@ -266,6 +290,12 @@ class _KategoriScreenState extends State<KategoriScreen> {
       final p = await products;
       if (!mounted) return;
       setState(() => _products = p);
+      unawaited(_lastKurv());
+      if (kDebugMode && HjemHarness.katLegg && p.isNotEmpty) {
+        Future<void>.delayed(const Duration(milliseconds: 1800), () {
+          if (mounted) _leggProdukt(_produktVis(p.first, 0));
+        });
+      }
     } else {
       setState(() {
         _stores = const [];
@@ -403,6 +433,84 @@ class _KategoriScreenState extends State<KategoriScreen> {
     );
   }
 
+  Future<void> _lastVarer(List<StoreListItem> stores) async {
+    final ids = [for (final s in stores.take(8)) if (s.storeId != null && !_varerCache.containsKey(s.storeId)) s.storeId!];
+    if (ids.isEmpty) return;
+    await Future.wait([
+      for (final id in ids)
+        _customer.butikkProdukter(id).then((r) {
+          if (r != null) _varerCache[id] = r;
+        }),
+    ]);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _lastProvd() async {
+    if (OpsCustomerApi.authParams() == null) return;
+    final o = await _customer.orders(limit: 50);
+    final ids = <int>{for (final x in o) if (x['store'] is Map) int.tryParse('${(x['store'] as Map)['id']}') ?? 0}..remove(0);
+    if (mounted && ids.isNotEmpty) setState(() => _provd = ids);
+  }
+
+  Future<void> _lastKurv() async {
+    try {
+      final c = await _kasse.cart();
+      if (mounted) setState(() => _kurv = {for (final l in c.lines) l.productId: l});
+    } catch (_) {}
+  }
+
+  /// The card's «+» (`leggTil`): a real line, then the count from the cart.
+  Future<void> _leggProdukt(KatProduktVis p) async {
+    if (p.storeId == 0 || p.id == 0) return;
+    final ok = await BergenCart.add(context, storeId: p.storeId, productId: p.id, stille: _kurv.containsKey(p.id));
+    if (ok) await _lastKurv();
+  }
+
+  /// The stepper's «−» (`linjeEndre −1`).
+  Future<void> _minusProdukt(KatProduktVis p) async {
+    final l = _kurv[p.id];
+    if (l == null) return;
+    final ok = l.quantity <= 1 ? await _kasse.remove(l.cartId) : await _kasse.changeQuantity(l.cartId, l.quantity - 1);
+    if (!ok) return;
+    if (l.quantity <= 1) {
+      prefSetInt(prefCartCount, (prefGetInt(prefCartCount) - 1).clamp(0, 999));
+      if (mounted) BergenCart.syncBadge(context);
+    }
+    await _lastKurv();
+  }
+
+  List<KatModulVare> _varerFor(int storeId) {
+    final r = _varerCache[storeId];
+    if (r == null) return const [];
+    return [for (var i = 0; i < r.varer.length; i++) _vare(r.varer[i], storeId, i)];
+  }
+
+  KatModulVare _vare(Map<String, dynamic> p, int storeId, int i) {
+    final ore = (p['price_ore'] as num?)?.toInt() ?? 0;
+    final was = (p['was_price_ore'] as num?)?.toInt() ?? 0;
+    final navn = '${p['name'] ?? ''}';
+    final bilde = '${p['image'] ?? ''}';
+    final ikon = katVareIkon(navn, _slot);
+    return KatModulVare(
+      id: int.tryParse('${p['id']}') ?? 0,
+      storeId: storeId,
+      navn: navn,
+      prisTx: _kr(ore),
+      forTx: was > ore ? _kr(was) : null,
+      bildeUrl: bilde.isEmpty ? null : bilde,
+      ikon: ikon,
+      tint: katVareTint(ikon, i),
+    );
+  }
+
+  /// The rail's «+»: a real cart line (the design's `leggTil`).
+  Future<bool> _leggModul(KatModulVare v) => BergenCart.add(context, storeId: v.storeId, productId: v.id);
+
+  static String? _ratingKort(dynamic r) {
+    final v = double.tryParse('${r ?? ''}') ?? 0;
+    return v > 0 ? v.toStringAsFixed(1).replaceAll('.', ',') : null;
+  }
+
   KatProduktVis _produktVis(Map<String, dynamic> p, int n) {
     final storeId = int.tryParse('${p['store_id']}') ?? 0;
     final stores = _stores ?? const <StoreListItem>[];
@@ -433,6 +541,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
       tag: n == 0 && solgt > 0
           ? KatCopy.mestKjopt
           : (was > ore ? KatCopy.tilbud : null),
+      besk: '${p['description'] ?? ''}'.trim().isEmpty ? null : '${p['description']}'.trim(),
+      ikon: katVareIkon('${p['name'] ?? ''}', _slot),
     );
   }
 
@@ -515,6 +625,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
     final dy = MediaQuery.paddingOf(context).top;
     final k = _slot;
     final navn = kHjemKatNavn[k];
+    OnbTips.instance.sett('kategori', k);
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),
       resizeToAvoidBottomInset: false,
@@ -1012,13 +1123,21 @@ class _KategoriScreenState extends State<KategoriScreen> {
       for (var n = 0; n < list.length; n++)
         Padding(
           key: ValueKey('kb-${list[n].storeId}'),
-          padding: EdgeInsets.only(bottom: 28 * s),
+          // Onboarding Step 5: the store module (`margin-bottom: 26px`).
+          padding: EdgeInsets.only(bottom: 26 * s),
           child: KatKortStag(
             durationMs: 550,
             delayMs: (0.05 + math.min(n, 6) * 0.07) * 1000,
-            child: KatButikkKort(
+            child: KatButikkModul(
               b: _butikkVis(list[n], n, pop),
+              varer: _varerFor(list[n].storeId ?? 0),
+              antall: _varerCache[list[n].storeId ?? 0]?.antall,
+              enhet: _slot == 0 ? KatModulCopy.enhetRetter : KatModulCopy.enhetVarer,
+              provd: _provd.contains(list[n].storeId ?? 0),
+              ratingKort: _ratingKort(list[n].averageRatings),
+              seHeleMenyen: _slot == 0 ? KatModulCopy.seHeleMenyen : KatModulCopy.seAlleVarer,
               onTap: () => _openStore(list[n].storeId ?? 0, list[n].storeName ?? ''),
+              onLegg: _leggModul,
             ),
           ),
         ),
@@ -1033,39 +1152,37 @@ class _KategoriScreenState extends State<KategoriScreen> {
       return _Tomt(tekst: _sokTekst.text.trim().isEmpty ? KatCopy.tomtProdukter : KatCopy.tomtSok);
     }
     final vis = [for (var n = 0; n < list.length; n++) _produktVis(list[n], n)];
-    Widget kort(KatProduktVis p) => KatKortStag(
+    // Onboarding Step 6: the hero spans both columns, the rest go in pairs
+    // (`grid gap 14px 12px`, `padding-top: 14px`).
+    Widget kort(KatProduktVis p, {required bool hero}) => KatProduktKortNy(
       key: ValueKey('kp-${p.id}'),
-      durationMs: 500,
-      delayMs: math.min(p.nr, 8) * 60.0,
-      child: KatProduktKort(
-        p: p,
-        onTap: () => _openProduct(p),
-        onLeggTil: () => _openProduct(p),
-      ),
+      p: p,
+      hero: hero,
+      ant: _kurv[p.id]?.quantity ?? 0,
+      onTap: () => _openProduct(p),
+      onLegg: () => _leggProdukt(p),
+      onMinus: () => _minusProdukt(p),
+      tilbud: KatCopy.tilbud,
+      ny: KatCopy.ny,
     );
+    final rader = katProduktRader(vis.length);
     return Padding(
-      // `padding-top:52px` — room for the products floating out of the cards.
-      padding: EdgeInsets.only(top: 52 * s),
+      padding: EdgeInsets.only(top: 14 * s),
       child: Column(
         children: [
-          for (var i = 0; i < vis.length; i += 2)
+          for (var r = 0; r < rader.length; r++)
             Padding(
-              padding: EdgeInsets.only(bottom: 60 * s),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: kort(vis[i])),
-                  SizedBox(width: 12 * s),
-                  Expanded(
-                    child: i + 1 < vis.length
-                        ? Padding(
-                            padding: EdgeInsets.only(top: 56 * s),
-                            child: kort(vis[i + 1]),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
-              ),
+              padding: EdgeInsets.only(bottom: 14 * s),
+              child: r == 0
+                  ? kort(vis[0], hero: true)
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: kort(vis[rader[r][0]], hero: false)),
+                        SizedBox(width: 12 * s),
+                        Expanded(child: rader[r].length > 1 ? kort(vis[rader[r][1]], hero: false) : const SizedBox.shrink()),
+                      ],
+                    ),
             ),
         ],
       ),

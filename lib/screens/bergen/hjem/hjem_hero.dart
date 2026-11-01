@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
@@ -341,8 +343,11 @@ class _HjemHeroState extends State<HjemHero> {
             width: aegW,
             height: aegW,
             child: IgnorePointer(
-              child: Opacity(
-                opacity: rearOp,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: OnbRunde.instance.kaiSkjult,
+                builder: (context, skjult, child) => Opacity(opacity: skjult ? 0 : rearOp, child: child),
+                child: OnbMaal(
+                id: 'kaiaeg',
                 child: vi
                     ? LfLoop(
                         // aegBob 3.4s
@@ -354,6 +359,7 @@ class _HjemHeroState extends State<HjemHero> {
                         alignment: Alignment.bottomCenter,
                         child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
                       ),
+                ),
               ),
             ),
           ),
@@ -379,7 +385,11 @@ class _HjemHeroState extends State<HjemHero> {
               // Ægil hops over it (`aegPillTramp`).
               child: IgnorePointer(
                 ignoring: _intro,
-                child: _intro ? _tramp(_FjordfiskeKnapp(onTap: widget.onFjordfiske)) : _FjordfiskeKnapp(onTap: widget.onFjordfiske),
+                child: OnbMaal(
+                  id: 'fjordfiske',
+                  radius: 22,
+                  child: _intro ? _tramp(_FjordfiskeKnapp(onTap: widget.onFjordfiske)) : _FjordfiskeKnapp(onTap: widget.onFjordfiske),
+                ),
               ),
             ),
           // Forundringspose · vannet.
@@ -796,32 +806,32 @@ class _PlankerPainter extends CustomPainter {
 // ── Keyframe helpers shared by the floats ───────────────────────────────────
 
 /// `duppSkvulp`: scale .55 → 1.6, opacity 0 → .5 (18%) → 0, ease-out.
-Widget _skvulp({required double durMs, double delayMs = 0, required Widget child}) => LfLoop(
+/// The fade goes into the ring's colour: an `Opacity` here would be a
+/// saveLayer per float per frame on the raster thread.
+Widget _oval(Color farge, double bredde, double o) => DecoratedBox(
+  decoration: ShapeDecoration(
+    shape: OvalBorder(side: BorderSide(color: farge.withValues(alpha: farge.a * o.clamp(0.0, 1.0)), width: bredde)),
+  ),
+);
+
+Widget _skvulp({required double durMs, double delayMs = 0, required Color farge, required double bredde}) => LfLoop(
   builder: (context, t, c) {
     final p = kfLoop(t, delayMs, durMs);
     if (p == null) return const SizedBox.shrink();
     final s = .55 + (1.6 - .55) * cssEaseOut.transform(p);
     final o = p < .18 ? kf(p, const [0, .18], const [0, .5], cssEaseOut) : kf(p, const [.18, 1], const [.5, 0], cssEaseOut);
-    return Opacity(
-      opacity: o.clamp(0.0, 1.0),
-      child: Transform.scale(scale: s, child: c),
-    );
+    return Transform.scale(scale: s, child: _oval(farge, bredde, o));
   },
-  child: child,
 );
 
 /// `duppRing`: scale .4 → 1.8, opacity .8 → 0, ease-out.
-Widget _ringUt({required double durMs, double delayMs = 0, required Widget child}) => LfLoop(
+Widget _ringUt({required double durMs, double delayMs = 0, required Color farge, required double bredde}) => LfLoop(
   builder: (context, t, c) {
     final p = kfLoop(t, delayMs, durMs);
     if (p == null) return const SizedBox.shrink();
     final e = cssEaseOut.transform(p);
-    return Opacity(
-      opacity: (.8 * (1 - e)).clamp(0.0, 1.0),
-      child: Transform.scale(scale: .4 + 1.4 * e, child: c),
-    );
+    return Transform.scale(scale: .4 + 1.4 * e, child: _oval(farge, bredde, .8 * (1 - e)));
   },
-  child: child,
 );
 
 /// `duppDrift`: bob, tilt and squash.
@@ -852,16 +862,16 @@ Widget _glans() => LfLoop(
     final p = (t / 3800) % 1.0;
     final o = kf(p, const [0, .5, 1], const [.5, .85, .5], cssEaseInOut);
     final x = kf(p, const [0, .5, 1], const [0, 1.5, 0], cssEaseInOut);
-    return Opacity(
-      opacity: o,
-      child: Transform.translate(offset: Offset(x, 0), child: c),
+    final hvit = Color.fromRGBO(255, 255, 255, .7 * o);
+    return Transform.translate(
+      offset: Offset(x, 0),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [const Color(0x00FFFFFF), hvit, hvit, const Color(0x00FFFFFF)], stops: const [0, .3, .7, 1]),
+        ),
+      ),
     );
   },
-  child: const DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: LinearGradient(colors: [Color(0x00FFFFFF), Color(0xB3FFFFFF), Color(0xB3FFFFFF), Color(0x00FFFFFF)], stops: [0, .3, .7, 1]),
-    ),
-  ),
 );
 
 // ── A float (`dupper`, L2390) ───────────────────────────────────────────────
@@ -935,11 +945,8 @@ class _Dupp extends StatelessWidget {
                 height: 15,
                 child: _skvulp(
                   durMs: 5000,
-                  child: const DecoratedBox(
-                    decoration: ShapeDecoration(
-                      shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, .5), width: 1.2)),
-                    ),
-                  ),
+                  farge: const Color.fromRGBO(214, 242, 250, .5),
+                  bredde: 1.2,
                 ),
               ),
               if (item.ring)
@@ -951,11 +958,8 @@ class _Dupp extends StatelessWidget {
                   child: _ringUt(
                     durMs: 4000,
                     delayMs: 1200,
-                    child: const DecoratedBox(
-                      decoration: ShapeDecoration(
-                        shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(255, 255, 255, .85), width: 1.5)),
-                      ),
-                    ),
+                    farge: const Color.fromRGBO(255, 255, 255, .85),
+                    bredde: 1.5,
                   ),
                 ),
               Positioned.fill(
@@ -1185,15 +1189,11 @@ class _PoseFlate extends StatelessWidget {
           final sc = kf(p, const [0, .5, 1], const [.2, 1, .2], cssEaseInOut);
           final r = kf(p, const [0, .5, 1], const [0, 45, 0], cssEaseInOut);
           final o = kf(p, const [0, .5, 1], const [0, 1, 0], cssEaseInOut);
-          return Opacity(
-            opacity: o,
-            child: Transform.rotate(
-              angle: rad(r),
-              child: Transform.scale(scale: sc, child: child),
-            ),
+          return Transform.rotate(
+            angle: rad(r),
+            child: Transform.scale(scale: sc, child: CustomPaint(painter: _StjernePainter(c.withValues(alpha: c.a * o.clamp(0.0, 1.0))))),
           );
         },
-        child: CustomPaint(painter: _StjernePainter(c)),
       ),
     );
 
@@ -1229,13 +1229,13 @@ class _PoseFlate extends StatelessWidget {
                 child: LfLoop(
                   builder: (context, t, child) {
                     final p = (t / 3200) % 1.0;
-                    return Opacity(opacity: kf(p, const [0, .5, 1], const [.55, 1, .55], cssEaseInOut), child: child);
+                    final o = kf(p, const [0, .5, 1], const [.55, 1, .55], cssEaseInOut);
+                    return CssBox(
+                      bg: [
+                        CssRadial.closestSide([Color.fromRGBO(255, 206, 120, .4 * o), const Color.fromRGBO(255, 206, 120, 0)]),
+                      ],
+                    );
                   },
-                  child: const CssBox(
-                    bg: [
-                      CssRadial.closestSide([Color.fromRGBO(255, 206, 120, .4), Color.fromRGBO(255, 206, 120, 0)]),
-                    ],
-                  ),
                 ),
               ),
               Positioned(
@@ -1246,11 +1246,8 @@ class _PoseFlate extends StatelessWidget {
                 child: _skvulp(
                   durMs: 5000,
                   delayMs: 600,
-                  child: const DecoratedBox(
-                    decoration: ShapeDecoration(
-                      shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(214, 242, 250, .5), width: 1)),
-                    ),
-                  ),
+                  farge: const Color.fromRGBO(214, 242, 250, .5),
+                  bredde: 1,
                 ),
               ),
               Positioned(
@@ -1261,11 +1258,8 @@ class _PoseFlate extends StatelessWidget {
                 child: _ringUt(
                   durMs: 4000,
                   delayMs: 1200,
-                  child: const DecoratedBox(
-                    decoration: ShapeDecoration(
-                      shape: OvalBorder(side: BorderSide(color: Color.fromRGBO(255, 255, 255, .85), width: 1)),
-                    ),
-                  ),
+                  farge: const Color.fromRGBO(255, 255, 255, .85),
+                  bredde: 1,
                 ),
               ),
             ]),
@@ -1317,13 +1311,13 @@ class _PoseFlate extends StatelessWidget {
                         child: LfLoop(
                           builder: (context, t, child) {
                             final p = (t / 2600) % 1.0;
-                            return Opacity(opacity: kf(p, const [0, .5, 1], const [.55, 1, .55], cssEaseInOut), child: child);
+                            final o = kf(p, const [0, .5, 1], const [.55, 1, .55], cssEaseInOut);
+                            return CssBox(
+                              bg: [
+                                CssRadial.closestSide([Color.fromRGBO(255, 220, 150, .75 * o), const Color.fromRGBO(255, 220, 150, 0)]),
+                              ],
+                            );
                           },
-                          child: const CssBox(
-                            bg: [
-                              CssRadial.closestSide([Color.fromRGBO(255, 220, 150, .75), Color.fromRGBO(255, 220, 150, 0)]),
-                            ],
-                          ),
                         ),
                       ),
                       Positioned(left: 0, top: 0, width: 56, height: 62, child: SvgPicture.asset('assets/svgs/hjem/hjem_pose.svg', width: 56, height: 62)),
@@ -1435,13 +1429,8 @@ class _FjordfiskeKnapp extends StatelessWidget {
                 child: _skvulp(
                   durMs: 4000,
                   delayMs: d,
-                  child: DecoratedBox(
-                    decoration: ShapeDecoration(
-                      shape: OvalBorder(
-                        side: BorderSide(color: Color.fromRGBO(214, 242, 250, a), width: w),
-                      ),
-                    ),
-                  ),
+                  farge: Color.fromRGBO(214, 242, 250, a),
+                  bredde: w,
                 ),
               ),
             Positioned.fill(

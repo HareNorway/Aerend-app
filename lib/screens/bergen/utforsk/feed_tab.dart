@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import '../onboarding/onb_maal.dart';
 
 import 'package:flutter/material.dart';
 
@@ -456,7 +457,10 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
         from: const Offset(0, 22),
         scaleFrom: .97,
         curve: const Cubic(.2, .9, .3, 1),
-        child: FeedPostCard(
+        child: OnbMaal(
+          id: i == 0 ? 'fpost' : 'fpost-$i',
+          radius: 24,
+          child: FeedPostCard(
           key: ValueKey('card-${item.id}'),
           item: item,
           store: _stores[storeId],
@@ -476,6 +480,7 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
           onStop: () => setState(() => _playing = null),
           showLikeCount: _config.likeCounts,
           showShare: _config.sharing,
+        ),
         ),
       ),
     );

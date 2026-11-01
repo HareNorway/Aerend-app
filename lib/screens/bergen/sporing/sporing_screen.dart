@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../onboarding/onb_status.dart';
 
 import '../../../data/ops/tracking_models.dart';
 import '../../../data/points/points_rules.dart';
@@ -40,6 +41,7 @@ import 'takk_ark.dart';
 import '../aegil/aegil_entry.dart' show kAegilRoute;
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import '../onboarding/onb_tips.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
 ///
@@ -156,6 +158,7 @@ class _SporingScreenState extends State<SporingScreen> {
 
   @override
   void dispose() {
+    OnbTips.instance.sett('sporing', null);
     _timer?.cancel();
     _conn?.cancel();
     super.dispose();
@@ -224,6 +227,8 @@ class _SporingScreenState extends State<SporingScreen> {
 
   /// Delivered: remember when, and fetch the order's points for SPART TID.
   void _etterLevert(OpsTracking t) {
+    // Onboarding Step 3: the Hjem card «Vil du se hva mer Ærend kan?» waits for a delivery.
+    OnbStatus.instance.merkLevert();
     _levertKl ??= DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ?? t.deliveryCode?.verifiedAt ?? DateTime.now();
     _api.pointsForOrder(_id).then((p) {
       final n = spPoengForOrdre(p, _id);
@@ -627,6 +632,8 @@ class _SporingScreenState extends State<SporingScreen> {
   @override
   Widget build(BuildContext context) {
     final t = _t;
+    // Onboarding Step 4: the `kode` (stage ≥ 2) and `abo` (delivered) marks.
+    OnbTips.instance.sett('sporing', t?.stage);
     if (_missing && t == null) {
       return Scaffold(
         backgroundColor: BergenTokens.tealDeep,

@@ -22,6 +22,7 @@ import '../hjem/hjem_harness.dart' show HjemHarness;
 import '../aegil/aegil_verktoy.dart' show AeVerktoyCopy;
 import '../kit/bergen_perf.dart';
 import '../kasse/fee_breakdown_sheet.dart';
+import '../onboarding/onb_maal.dart';
 import '../kasse/kasse_copy.dart' show KasseCopy;
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
@@ -205,7 +206,7 @@ class SpPanel extends StatelessWidget {
                 _Vervebillett(kode: vervKode, onLukk: onLukkVerv, onDel: onDelBillett, onKopier: onKopierBillett),
                 const SizedBox(height: 14),
               ] else if (slotKode && kode != null) ...[
-                LeveringskodeCard(code: kode, offline: offline, tracking: t),
+                OnbMaal(id: 'leveringskode', radius: 22, child: LeveringskodeCard(code: kode, offline: offline, tracking: t)),
                 const SizedBox(height: 14),
               ] else ...[
                 _Veileder(tracking: t, linje: linje, navn: navn, poeng: poengNeste),

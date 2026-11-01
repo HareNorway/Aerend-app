@@ -9,6 +9,10 @@ import '../../../utils/utils.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../deliveryService/storeDetail/store_detail_dl.dart';
 import '../../deliveryService/storeDetail/store_detail_repo.dart';
+import '../../common/orderCart/order_cart_repo.dart';
+import '../butikk/butikk_copy.dart';
+import '../onboarding/onb_runde.dart';
+import 'bergen_ark.dart';
 import 'bergen_toast.dart';
 
 /// One add-to-cart for every Bergen product surface (AGIL-1 v2 Phase 2–4).
@@ -31,6 +35,8 @@ abstract final class BergenCart {
     bool stille = false,
     /// The firm «in the basket» tap; off when the caller plays its own.
     bool haptic = true,
+    /// The retry after the customer emptied the other store's cart (once).
+    bool etterTom = false,
   }) async {
     if (storeId == 0 || productId == 0) {
       showBergenToast(context, 'Kommer snart');
@@ -58,8 +64,39 @@ abstract final class BergenCart {
         if (haptic) aeConfirm();
         prefSetInt(prefCartCount, response.countOrder);
         syncBadge(context, response.countOrder);
+        // Onboarding: the tour's «Legg til» mission counts successful adds.
+        OnbRunde.instance.kurvLagt++;
         if (!stille) showBergenToast(context, toast ?? response.message);
         return true;
+      }
+      // 412: the cart holds another store's lines. Ask, empty, add again
+      // (the legacy sheets did this with a dialog; Bergen asks in an Ark).
+      if (response.messageCode == 412 && !etterTom) {
+        final tom = await showBergenArk<bool>(
+          context,
+          title: ButikkCopy.a1_butikk_kurv_annen,
+          subtitle: ButikkCopy.a1_butikk_kurv_annen_linje,
+          primary: BergenArkAction(label: ButikkCopy.a1_butikk_kurv_annen_tom, onTap: () => Navigator.of(context).pop(true)),
+          secondary: BergenArkAction(label: ButikkCopy.a1_butikk_kurv_annen_behold, onTap: () => Navigator.of(context).pop(false)),
+        );
+        if (tom != true || !context.mounted) return false;
+        await OrderCartRepo().clearAllCartItems();
+        if (!context.mounted) return false;
+        prefSetInt(prefCartCount, 0);
+        syncBadge(context, 0);
+        return add(
+          context,
+          storeId: storeId,
+          productId: productId,
+          quantity: quantity,
+          toast: toast,
+          sizeId: sizeId,
+          colourId: colourId,
+          optionIds: optionIds,
+          stille: stille,
+          haptic: haptic,
+          etterTom: true,
+        );
       }
       showBergenToast(context, response.message);
       return false;

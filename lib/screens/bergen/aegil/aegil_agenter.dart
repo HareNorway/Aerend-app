@@ -9,6 +9,7 @@ import '../../../utils/utils.dart' show resolveSelectedLanguage;
 import '../../common/auth/launch/lf_css.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
+import '../onboarding/onb_maal.dart';
 
 // ── Customer Step 9: the customer agents' cards in the chat ─────────────────
 //
@@ -625,7 +626,8 @@ class AeBildePrompt extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        AeNokkel(key: const Key('bilde-ta'), label: AeAgentCopy.cus_bilde_ta_knapp, onTap: h.reorderShoot),
+        // Onboarding Step 4: the `kamera` mark waits for this button.
+        OnbMaal(id: 'kamera', radius: 14, child: AeNokkel(key: const Key('bilde-ta'), label: AeAgentCopy.cus_bilde_ta_knapp, onTap: h.reorderShoot)),
         const SizedBox(height: 6),
         Center(child: Text((v.data['note'] as String?) ?? AeAgentCopy.cus_bilde_slettes, style: inter(11, weight: FontWeight.w700, color: _kMuted))),
       ],

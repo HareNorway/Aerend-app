@@ -11585,7 +11585,7 @@ abstract class AppLocalizations {
   /// No description provided for @ops_kasse_flere_under_lev.
   ///
   /// In en, this message translates to:
-  /// **'Tips, a door note and a delivery code'**
+  /// **'A note to the shop, tips and a door note'**
   String get ops_kasse_flere_under_lev;
 
   /// No description provided for @ops_kasse_flere_under_hent.
@@ -14137,6 +14137,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment method'**
   String get cus_ai_betalingsmate;
+
+  /// No description provided for @onb_tips_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil tip'**
+  String get onb_tips_label;
+
+  /// No description provided for @onb_tips_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get onb_tips_lukk;
+
+  /// No description provided for @onb_tips_dot.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the Ægil tip again'**
+  String get onb_tips_dot;
+
+  /// No description provided for @onb_cm_feed.
+  ///
+  /// In en, this message translates to:
+  /// **'This is where the shops post news and offers — and now and then I write about them myself.'**
+  String get onb_cm_feed;
+
+  /// No description provided for @onb_cm_pose.
+  ///
+  /// In en, this message translates to:
+  /// **'Surplus food at a low price — pick it up before the shop closes.'**
+  String get onb_cm_pose;
+
+  /// No description provided for @onb_cm_pose_act.
+  ///
+  /// In en, this message translates to:
+  /// **'Show bags near me'**
+  String get onb_cm_pose_act;
+
+  /// No description provided for @onb_cm_gaver.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me who and what — I\'ll find three gifts that arrive in time.'**
+  String get onb_cm_gaver;
+
+  /// No description provided for @onb_cm_gaver_act.
+  ///
+  /// In en, this message translates to:
+  /// **'Let Ægil find a gift'**
+  String get onb_cm_gaver_act;
+
+  /// No description provided for @onb_cm_kamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo of the pack and I\'ll find the item again.'**
+  String get onb_cm_kamera;
+
+  /// No description provided for @onb_cm_fleks.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in a hurry? Then delivery gets cheaper — and the courier can make two trips in one.'**
+  String get onb_cm_fleks;
+
+  /// No description provided for @onb_cm_gebyr.
+  ///
+  /// In en, this message translates to:
+  /// **'The price follows the distance. Tap to see how it is worked out.'**
+  String get onb_cm_gebyr;
+
+  /// No description provided for @onb_cm_gebyr_act.
+  ///
+  /// In en, this message translates to:
+  /// **'See the breakdown'**
+  String get onb_cm_gebyr_act;
+
+  /// No description provided for @onb_cm_adresse.
+  ///
+  /// In en, this message translates to:
+  /// **'I turn your note into clear door instructions — a code is saved only if you want.'**
+  String get onb_cm_adresse;
+
+  /// No description provided for @onb_cm_kode.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is yours and the courier\'s. Show it at the door.'**
+  String get onb_cm_kode;
+
+  /// No description provided for @onb_cm_varsler.
+  ///
+  /// In en, this message translates to:
+  /// **'You choose which messages you get from me.'**
+  String get onb_cm_varsler;
+
+  /// No description provided for @onb_cm_varsler_act.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get onb_cm_varsler_act;
+
+  /// No description provided for @onb_cm_hjelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me anything — and a person is always one tap away.'**
+  String get onb_cm_hjelp;
+
+  /// No description provided for @onb_cm_ai.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you use Claude or ChatGPT? They can order through Ærend — you always confirm here.'**
+  String get onb_cm_ai;
+
+  /// No description provided for @onb_cm_ai_act.
+  ///
+  /// In en, this message translates to:
+  /// **'How to connect'**
+  String get onb_cm_ai_act;
+
+  /// No description provided for @onb_cm_abo.
+  ///
+  /// In en, this message translates to:
+  /// **'Want me to set up this shop every week? You see the basket before each charge.'**
+  String get onb_cm_abo;
+
+  /// No description provided for @onb_cm_abo_act.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get onb_cm_abo_act;
+
+  /// No description provided for @onb_cm_bio.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me what you eat and I\'ll filter for you.'**
+  String get onb_cm_bio;
+
+  /// No description provided for @onb_cm_bio_act.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in your bio'**
+  String get onb_cm_bio_act;
+
+  /// No description provided for @onb_cm_nytt.
+  ///
+  /// In en, this message translates to:
+  /// **'New since last time: the Ægil tour shows you the whole app. Want to take it?'**
+  String get onb_cm_nytt;
+
+  /// No description provided for @onb_cm_nytt_act.
+  ///
+  /// In en, this message translates to:
+  /// **'Take the tour'**
+  String get onb_cm_nytt_act;
+
+  /// No description provided for @onb_cm_peek.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m here if you need me.'**
+  String get onb_cm_peek;
+
+  /// No description provided for @onb_cm_handoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! I\'m Ægil. I\'ll show you around whenever you like — Profile → Get to know Ærend.'**
+  String get onb_cm_handoff;
+
+  /// No description provided for @ops_butikk_kurv_annen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your basket holds items from another shop'**
+  String get ops_butikk_kurv_annen;
+
+  /// No description provided for @ops_butikk_kurv_annen_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty the basket and add this instead? You can shop from one shop at a time.'**
+  String get ops_butikk_kurv_annen_linje;
+
+  /// No description provided for @ops_butikk_kurv_annen_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty and add'**
+  String get ops_butikk_kurv_annen_tom;
+
+  /// No description provided for @ops_butikk_kurv_annen_behold.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the basket'**
+  String get ops_butikk_kurv_annen_behold;
+
+  /// No description provided for @ops_kasse_bk_under_lev.
+  ///
+  /// In en, this message translates to:
+  /// **'{butikk} sees this before the courier picks up.'**
+  String ops_kasse_bk_under_lev(String butikk);
+
+  /// No description provided for @ops_kasse_bk_under_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'{butikk} sees this when they pack.'**
+  String ops_kasse_bk_under_hent(String butikk);
+
+  /// No description provided for @ops_kasse_lev_chip_saus.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra sauce'**
+  String get ops_kasse_lev_chip_saus;
+
+  /// No description provided for @ops_kasse_lev_chip_drikke.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack drinks separately'**
+  String get ops_kasse_lev_chip_drikke;
+
+  /// No description provided for @ops_kasse_lev_chip_allergi.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergy'**
+  String get ops_kasse_lev_chip_allergi;
+
+  /// No description provided for @ops_kasse_bk_plass_allergi.
+  ///
+  /// In en, this message translates to:
+  /// **'Which allergy? E.g. nuts, milk'**
+  String get ops_kasse_bk_plass_allergi;
+
+  /// No description provided for @ops_kasse_lev_kvitt_n.
+  ///
+  /// In en, this message translates to:
+  /// **'{n, plural, =1{1 note} other{{n} notes}} travel with the order to {butikk}'**
+  String ops_kasse_lev_kvitt_n(int n, String butikk);
+
+  /// No description provided for @ops_kasse_tips_eget.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own amount'**
+  String get ops_kasse_tips_eget;
+
+  /// No description provided for @ops_kasse_tips_eget_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own tip in kroner'**
+  String get ops_kasse_tips_eget_label;
+
+  /// No description provided for @ops_kasse_kr.
+  ///
+  /// In en, this message translates to:
+  /// **'kr'**
+  String get ops_kasse_kr;
+
+  /// No description provided for @ops_kasse_tom_beskjed.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the note'**
+  String get ops_kasse_tom_beskjed;
 }
 
 class _AppLocalizationsDelegate

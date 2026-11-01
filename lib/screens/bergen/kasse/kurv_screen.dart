@@ -8,6 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
+import '../onboarding/onb_tips.dart';
 
 import '../../../data/ops/fee_quote.dart';
 import '../../../data/ops/kasse_models.dart';
@@ -25,7 +28,6 @@ import '../kit/fane_bytte.dart';
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../deliveryService/checkout/checkout_dl.dart';
-import '../aegil/aegil_entry.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_motion.dart';
@@ -45,6 +47,7 @@ import 'kurv_betal.dart';
 import '../aegil/aegil_agenter.dart' show GiftPending;
 import '../meg/a3_services.dart';
 import 'kurv_kvittering.dart';
+import 'kurv_beskjed.dart';
 import 'kurv_parts.dart';
 import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
@@ -256,11 +259,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   KasseSlot? _slot;
   int _paymentType = 3;
   int _tip = 0;
+
+  /// Onboarding Step 7: tips «Eget beløp» (text as typed, '' = the chips rule).
+  final TextEditingController _tipEget = TextEditingController();
   bool _more = false;
   bool _codeAtDoor = false;
   bool _doorShared = false;
   bool _departing = false;
   final Set<String> _pickupChips = {};
+
+  /// Onboarding Step 7: «Beskjed til butikken» on delivery too — its own
+  /// chips and text, apart from the pickup ones (`levValg` / `levBeskjed`).
+  final Set<String> _levChips = {};
+  final TextEditingController _levNote = TextEditingController();
   final TextEditingController _pickupNote = TextEditingController();
   BergenStoreInfo? _store;
   bool _placing = false;
@@ -280,6 +291,15 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 4: the `gebyr` / `fleks` / `adresse` marks (the fee sheet
+    // is their action; the harness opens «Flere valg» with a door note).
+    _door.addListener(_dorEndret);
+    OnbTips.instance.handlinger['gebyr'] = _openLevering;
+    OnbTips.instance.handlinger['kurvFlere'] = _kurvFlere;
+    if (!widget.embedded) {
+      OnbTips.instance.sett('kurvRute', true);
+      OnbRunde.kurvRuterOppe++;
+    }
     // Debug harness `betaltKurv` (order id): Betalt out of this slider, as
     // after a card / Google Pay payment — nothing is paid or ordered.
     if (kDebugMode && HjemHarness.betaltKurv != null) {
@@ -307,6 +327,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (kDebugMode) {
       if (HjemHarness.kurvFlere) _more = true;
       if (HjemHarness.kurvHenting) _pickup = true;
+      if (HjemHarness.kurvTipsEget case final t?) {
+        _tipEget.text = KasseValg.tipsEget(t);
+        _tip = int.tryParse(_tipEget.text) ?? 0;
+      }
       if (HjemHarness.kurvArk case final ark?) {
         Future.delayed(const Duration(milliseconds: 2200), () {
           if (!mounted) return;
@@ -333,6 +357,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _door.removeListener(_dorEndret);
+    OnbTips.instance.handlinger.remove('gebyr');
+    OnbTips.instance.handlinger.remove('kurvFlere');
+    OnbTips.instance.sett('kurvRute', null);
+    if (!widget.embedded) OnbRunde.kurvRuterOppe--;
+    OnbTips.instance.sett('dor', null);
     // Not during unmount: listeners may not rebuild while the tree is locked.
     if (widget.embedded) {
       WidgetsBinding.instance.addPostFrameCallback((_) => kurvSkjulerNav.value = false);
@@ -344,6 +374,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _note.dispose();
     _door.dispose();
     _pickupNote.dispose();
+    _levNote.dispose();
+    _tipEget.dispose();
     super.dispose();
   }
 
@@ -547,6 +579,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   bool get _flexOn => ClientFlags.on('pricing.flex_window') && !_pickup;
 
+  void _dorEndret() => OnbTips.instance.sett('dor', _door.text);
+
+  /// The harness's `onbTips: adresse`: «Flere valg» open with a door note.
+  void _kurvFlere() {
+    if (!mounted) return;
+    setState(() {
+      _more = true;
+      if (_door.text.isEmpty) _door.text = 'Ring på hos Eide, 3. etasje';
+    });
+  }
+
   Future<void> _openLevering() async {
     final chosen = await showLeveringSheet(
       context,
@@ -639,14 +682,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _tilButikk();
   }
 
-  void _tolk() => BergenRoutes.push<void>(context, kAegilRoute, arguments: {'intent': 'door', 'q': _door.text.trim()});
-
   String get _fullNote {
     final parts = <String>[
       if (_note.text.trim().isNotEmpty) _note.text.trim(),
       if (_door.text.trim().isNotEmpty) '${KasseCopy.a1_kasse_doren}: ${_door.text.trim()}',
       if (_pickup && _pickupChips.isNotEmpty) _pickupChips.join(' · '),
       if (_pickup && _pickupNote.text.trim().isNotEmpty) _pickupNote.text.trim(),
+      // Onboarding Step 7 (D8): the store note travels on delivery orders too.
+      if (!_pickup && KasseValg.notat(_levChips, _levNote.text).isNotEmpty) KasseValg.notat(_levChips, _levNote.text),
     ];
     return parts.join(' · ');
   }
@@ -991,7 +1034,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 left: 16 * s,
                 right: 16 * s,
                 bottom: bottom,
-                child: KurvBetal(key: _betalKey, total: _total(cart), busy: _placing, onPay: _pay),
+                child: OnbMaal(id: 'betspor', radius: 30, child: KurvBetal(key: _betalKey, total: _total(cart), busy: _placing, onPay: _pay)),
               ),
             // The Ægil-guide (L9495): what is missing to free delivery.
             if (cart != null)
@@ -1090,7 +1133,6 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final total = _total(cart);
     final aegil = cart.aegilLines;
     final storeName = _preview?.storeName ?? '';
-    final pickupCount = _pickupChips.length + (_pickupNote.text.trim().isEmpty ? 0 : 1);
     final flereUnder = _pickup ? KasseCopy.a1_kasse_flere_under_hent : KasseCopy.a1_kasse_flere_under_lev;
     final doorVisible = _more && !_pickup;
     final antall = cart.lines.fold<int>(0, (a, l) => a + l.quantity);
@@ -1106,7 +1148,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(height: 10 * s),
-        KurvModus(pickup: _pickup, onMode: (m) => setState(() => _pickup = m)),
+        OnbMaal(id: 'levhent', radius: 30, child: KurvModus(pickup: _pickup, onMode: (m) => setState(() => _pickup = m))),
         SizedBox(height: 12 * s),
         KurvGlass(
           key: const Key('a1_kasse_linjer'),
@@ -1155,14 +1197,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       }
                     : _openAddress,
               ),
-              KurvEndreRad(
+              OnbMaal(
+                id: 'lev',
+                radius: 22,
+                child: KurvEndreRad(
                 keyName: 'a1_kasse_rad_tid',
                 icon: KurvIcons.clock,
                 title: _pickup ? '${KasseCopy.a1_kasse_henting} · ${kasseTidNavn(slot)}' : kasseTidNavn(slot),
                 line: slot.line,
                 action: KasseCopy.a1_kasse_endre,
                 onTap: _openLevering,
-              ),
+              )),
               KurvEndreRad(
                 keyName: 'a1_kasse_rad_betaling',
                 icon: KurvIcons.card,
@@ -1186,14 +1231,24 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               // Customer Step 9 (C1): the gift picked with Ægil rides with this store's order.
               if (GiftPending.current case final g? when g.storeId == cart.storeId)
                 KvGave(navn: g.name, til: g.toLabel, kort: g.cardText),
-              KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more)),
+              OnbMaal(id: 'flere', radius: 22, child: KurvFlere(open: _more, line: flereUnder, onTap: () => setState(() => _more = !_more))),
             ],
           ),
         ),
-        if (_more && _pickup) ...[SizedBox(height: 10 * s), _hentKort(context, slot, storeName, pickupCount)],
+        // Onboarding Step 7: «Beskjed til butikken» for both modes (#18), tips
+        // with «Eget beløp» on delivery (#19).
+        if (_more) ...[SizedBox(height: 10 * s), _beskjedKort(context, slot, storeName)],
         if (_more && !_pickup) ...[
           SizedBox(height: 10 * s),
-          KurvTips(tip: _tip, onTip: (t) => setState(() => _tip = t)),
+          KurvTips(
+            tip: _tip,
+            onTip: (t) => setState(() {
+              _tip = t;
+              _tipEget.clear();
+            }),
+            egetController: _tipEget,
+            onEget: (v) => setState(() => _tip = int.tryParse(v) ?? 0),
+          ),
         ],
         KurvKvittering(
           antall: antall,
@@ -1263,9 +1318,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 },
               ),
             if (doorVisible)
-              KvDor(
+              OnbMaal(
+                id: 'dor',
+                radius: 18,
+                child: KvDor(
                 controller: _door,
-                onTolk: _tolk,
                 delt: _doorShared,
                 onDelt: () {
                   setState(() => _doorShared = !_doorShared);
@@ -1278,7 +1335,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
                 // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.
                 kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
-              ),
+              )),
           ],
         ),
         if (_undone.isNotEmpty) ...[
@@ -1298,162 +1355,36 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// «Beskjed til butikken» and Hentetid (Flere valg, pickup).
-  Widget _hentKort(BuildContext context, KasseSlot slot, String storeName, int pickupCount) {
-    final s = context.bs;
-    return KurvFrost(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            KasseCopy.a1_kasse_beskjed_butikk,
-            style: bText(context, 13, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-          ),
-          SizedBox(height: 9 * s),
-          Wrap(
-            spacing: 6 * s,
-            runSpacing: 6 * s,
-            children: [
-              for (final c in KasseCopy.a1_kasse_hent_chips)
-                KurvChip(
-                  key: Key('a1_kasse_hent_chip_${KasseCopy.a1_kasse_hent_chips.indexOf(c)}'),
-                  label: c,
-                  on: _pickupChips.contains(c),
-                  onTap: () => setState(() {
-                    if (!_pickupChips.remove(c)) _pickupChips.add(c);
-                  }),
-                ),
-            ],
-          ),
-          SizedBox(height: 10 * s),
-          Container(
-            padding: EdgeInsets.fromLTRB(12 * s, 4 * s, 4 * s, 4 * s),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14 * s),
-              gradient: cssLinear(180, const [Color(0xFFF7F5F0), Color(0xFFFFFFFF)], const [0, .46]),
-              boxShadow: [BoxShadow(color: rgba(255, 255, 255, .95), offset: Offset(0, -1.5 * s))],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const Key('a1_kasse_hent_beskjed'),
-                    controller: _pickupNote,
-                    onChanged: (_) => setState(() {}),
-                    style: bDisplay(
-                      context,
-                      12.5,
-                      weight: FontWeight.w700,
-                      letterSpacingEm: 0,
-                      color: const Color(0xFF23201D),
-                    ),
-                    cursorColor: BergenTokens.orange,
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      filled: false,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 9 * s),
-                      hintText: KasseCopy.a1_kasse_hent_beskjed_hint(storeName),
-                      hintStyle: bDisplay(
-                        context,
-                        12.5,
-                        weight: FontWeight.w700,
-                        letterSpacingEm: 0,
-                        color: BergenTokens.inkFaint,
-                      ),
-                    ),
-                  ),
-                ),
-                if (_pickupNote.text.isNotEmpty)
-                  OnbPressable(
-                    onTap: () => setState(_pickupNote.clear),
-                    pressDy: 1.5,
-                    child: Container(
-                      width: 34 * s,
-                      height: 34 * s,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12 * s),
-                        gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
-                        boxShadow: [
-                          BoxShadow(color: rgba(255, 255, 255, .95), spreadRadius: 1),
-                          BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
-                          BoxShadow(
-                            color: rgba(35, 32, 29, .5),
-                            offset: Offset(0, 3 * s),
-                            blurRadius: onbBlur(5 * s),
-                            spreadRadius: -3 * s,
-                          ),
-                        ],
-                      ),
-                      child: KurvIcon(11 * s, KurvIcons.cross, color: const Color(0xFF57534B), width: 3),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 12 * s),
-            padding: EdgeInsets.only(top: 11 * s),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: rgba(35, 32, 29, .08))),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        KasseCopy.a1_kasse_hentetid,
-                        style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-                      ),
-                      Text(
-                        KasseCopy.a1_kasse_hentetid_line,
-                        style: bText(context, 10.5, color: const Color(0xFF57534B)),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 10 * s),
-                Wrap(
-                  spacing: 5 * s,
-                  children: [
-                    for (final sl in _slots)
-                      KurvChip(
-                        label: sl.label,
-                        padding: 10,
-                        on: slot.id == sl.id,
-                        onTap: () => setState(() => _slot = sl),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 11 * s),
-            padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 9 * s),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(14 * s), color: rgba(63, 143, 95, .12)),
-            child: Row(
-              children: [
-                KurvIcon(14 * s, KurvIcons.check, color: const Color(0xFF2E6B47), width: 2.4),
-                SizedBox(width: 8 * s),
-                Expanded(
-                  child: Text(
-                    pickupCount == 0
-                        ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first)
-                        : KasseCopy.a1_kasse_hent_kvitt_n(pickupCount, slot.label),
-                    style: bText(context, 11, height: 1.4, color: const Color(0xFF2E6B47)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  /// «Beskjed til butikken» for both modes, Hentetid on pickup (Onboarding
+  /// Step 7, design L7087–7110): separate chips and text per mode.
+  Widget _beskjedKort(BuildContext context, KasseSlot slot, String storeName) {
+    final hent = _pickup;
+    final valgte = hent ? _pickupChips : _levChips;
+    final ctrl = hent ? _pickupNote : _levNote;
+    final chips = hent ? KasseCopy.a1_kasse_hent_chips : KasseCopy.a1_kasse_lev_chips;
+    final n = KasseValg.antall(valgte, ctrl.text);
+    final navn = storeName.isEmpty ? KasseCopy.a1_kasse_beskjed_butikk : storeName;
+    final String? kvitt;
+    if (hent) {
+      kvitt = n == 0 ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first) : KasseCopy.a1_kasse_hent_kvitt_n(n, slot.label);
+    } else {
+      kvitt = n == 0 ? null : KasseCopy.a1_kasse_lev_kvitt_n(n, navn);
+    }
+    return KurvBeskjedKort(
+      hent: hent,
+      butikk: navn,
+      chips: chips,
+      valgte: valgte,
+      onChip: (c) => setState(() {
+        if (!valgte.remove(c)) valgte.add(c);
+      }),
+      controller: ctrl,
+      onEndret: () => setState(() {}),
+      allergiPaa: !hent && valgte.contains(KasseCopy.a1_kasse_lev_chip_allergi),
+      kvittering: kvitt,
+      tider: [for (final sl in _slots.take(3)) KurvHentetid(sl.id, sl.label)],
+      tidId: slot.id,
+      onTid: (t) => setState(() => _slot = _slots.firstWhere((sl) => sl.id == t.id, orElse: () => slot)),
     );
   }
 }

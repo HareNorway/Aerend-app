@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../../data/feed/feed_tab_item.dart';
 import '../../../networking/feed/feed_repo.dart';
@@ -18,6 +19,7 @@ import 'feed_tab.dart';
 import 'pose_segment.dart';
 import 'utforsk_copy.dart';
 import '../kit/laster_dra.dart';
+import '../onboarding/onb_tips.dart';
 
 /// `utforsk` (L5456–5713 in `Ærend Kunde Launch.dc.html`, design px) — tab 1
 /// of the shell, and `/bergen/utforsk` (`?tab=fiske|pose`, `&fane=folger`).
@@ -89,6 +91,9 @@ class _UtforskScreenState extends State<UtforskScreen> {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 2: the tour's `feed` / `poser` steps switch the segment first (`forbered`).
+    OnbRunde.instance.forbered['feed'] = () => _select(UtforskScreen.tabFeed);
+    OnbRunde.instance.forbered['poser'] = () => _select(UtforskScreen.tabPose);
     _tab = widget.initialTab ?? UtforskScreen.apneSegment ?? UtforskScreen.tabFeed;
     UtforskScreen.apneSegment = null;
     _loadDrift();
@@ -119,6 +124,9 @@ class _UtforskScreenState extends State<UtforskScreen> {
 
   @override
   void dispose() {
+    OnbTips.instance.sett('utforskFane', null);
+    OnbRunde.instance.forbered.remove('feed');
+    OnbRunde.instance.forbered.remove('poser');
     // Leaving Utforsk counts as having seen the feed.
     if (_posts.isNotEmpty) _feed.markSeen().catchError((_) {});
     _scroll.dispose();
@@ -222,6 +230,8 @@ class _UtforskScreenState extends State<UtforskScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Onboarding Step 4: the `feed` mark shows on the feed segment only.
+    OnbTips.instance.sett('utforskFane', _tab);
     final isPose = _tab == UtforskScreen.tabPose;
 
     return Scaffold(

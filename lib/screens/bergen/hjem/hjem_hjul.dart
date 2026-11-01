@@ -535,19 +535,19 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
               builder: (context, t, child) {
                 final p = (t / 3200) % 1.0;
                 final e = cssEaseOut.transform(p);
-                return Opacity(
-                  opacity: (.8 * (1 - e)).clamp(0.0, 1.0),
-                  child: Transform.scale(scale: .55 + .95 * e, child: child),
+                // The fade in the ring's colour (no Opacity layer per frame).
+                return Transform.scale(
+                  scale: .55 + .95 * e,
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Color.fromRGBO(255, 255, 255, .12 * .8 * (1 - e))),
+                    ),
+                  ),
                 );
               },
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
-                ),
-              ),
             ),
           ),
         ),

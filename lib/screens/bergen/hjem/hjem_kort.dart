@@ -257,8 +257,8 @@ class HjemHurtigInngang extends StatelessWidget {
 }
 
 /// The AI marks pill on the Hurtigbestilling card (design L2937): a 22 px
-/// dark pill with the Claude and ChatGPT marks overlapping and a chevron.
-/// Customer v2 Step 2 (D2-9): text marks («Cl», «Ch»), no logos.
+/// dark pill with the Claude and ChatGPT logos overlapping (72 % / 74 % of a
+/// 17 px tile, the onboarding design's bundle marks) and a chevron.
 class HjemAiMerker extends StatelessWidget {
   const HjemAiMerker({super.key, required this.onTap});
 
@@ -266,7 +266,7 @@ class HjemAiMerker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget merke(String n, List<Color> bg, Color ink) => Container(
+    Widget merke(String logo, double andel, List<Color> bg) => Container(
       width: 17,
       height: 17,
       alignment: Alignment.center,
@@ -275,7 +275,7 @@ class HjemAiMerker extends StatelessWidget {
         gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: bg, stops: const [0, .62, 1]),
         boxShadow: const [BoxShadow(color: Color(0xFF24596A), spreadRadius: 1.5)],
       ),
-      child: Text(n, style: jakarta(7.5, weight: FontWeight.w800, color: ink, height: 1)),
+      child: Image.asset(logo, width: 17 * andel, height: 17 * andel, fit: BoxFit.contain, filterQuality: FilterQuality.medium),
     );
     return Semantics(
       button: true,
@@ -300,8 +300,8 @@ class HjemAiMerker extends StatelessWidget {
                 width: 29,
                 height: 17,
                 child: Stack(clipBehavior: Clip.none, children: [
-                  Positioned(left: 12, top: 0, child: merke('Ch', const [Color(0xFFFFFFFF), Color(0xFFF2F4F4), Color(0xFFDDE3E4)], const Color(0xFF0D0D0D))),
-                  Positioned(left: 0, top: 0, child: merke('Cl', const [Color(0xFFFFFFFF), Color(0xFFF7F1E6), Color(0xFFEADFCB)], const Color(0xFFC2603F))),
+                  Positioned(left: 12, top: 0, child: merke('assets/images/ai/chatgpt.png', .74, const [Color(0xFFFFFFFF), Color(0xFFF2F4F4), Color(0xFFDDE3E4)])),
+                  Positioned(left: 0, top: 0, child: merke('assets/images/ai/claude.png', .72, const [Color(0xFFFFFFFF), Color(0xFFF7F1E6), Color(0xFFEADFCB)])),
                 ]),
               ),
               const SizedBox(width: 4),
@@ -492,14 +492,17 @@ class HjemPoseKort extends StatelessWidget {
                 final e = t - 800;
                 if (e < 0) return const SizedBox.shrink();
                 final p = cssEaseOut.transform((e / 5500) % 1.0);
-                return Opacity(opacity: (.7 * (1 - p)).clamp(0.0, 1.0), child: Transform.scale(scale: .7 + .65 * p, child: child));
+                // The fade in the ring's colour (no Opacity layer per frame).
+                return Transform.scale(
+                  scale: .7 + .65 * p,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.all(Radius.elliptical(999, 999)),
+                      border: Border.all(color: Color.fromRGBO(255, 255, 255, .16 * .7 * (1 - p)), width: 1.5),
+                    ),
+                  ),
+                );
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.elliptical(999, 999)),
-                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16), width: 1.5),
-                ),
-              ),
             ),
           ),
           // sjoSkygge 6.5s — the blurred shadow drawn as a soft radial.
@@ -513,11 +516,14 @@ class HjemPoseKort extends StatelessWidget {
                 final p = ((t - 500) / 6500) % 1.0;
                 final sx = kf(p, const [0, .5, 1], const [1, .92, 1], cssEaseInOut);
                 final o = kf(p, const [0, .5, 1], const [.55, .4, .55], cssEaseInOut);
-                return Opacity(opacity: o, child: Transform(alignment: Alignment.center, transform: Matrix4.diagonal3Values(sx, 1, 1), child: child));
+                return Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.diagonal3Values(sx, 1, 1),
+                  child: CssBox(
+                    bg: [CssRadial.closestSide([Color.fromRGBO(3, 14, 20, .55 * o), Color.fromRGBO(3, 14, 20, .3 * o), const Color.fromRGBO(3, 14, 20, 0)], stops: const [0, .5, 1])],
+                  ),
+                );
               },
-              child: const CssBox(
-                bg: [CssRadial.closestSide([Color.fromRGBO(3, 14, 20, .55), Color.fromRGBO(3, 14, 20, .3), Color.fromRGBO(3, 14, 20, 0)], stops: [0, .5, 1])],
-              ),
             ),
           ),
           HjemKnappKort(

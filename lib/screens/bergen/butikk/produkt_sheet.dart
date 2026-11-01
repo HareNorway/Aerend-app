@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../onboarding/onb_maal.dart';
 
 import '../../../data/ops/favourite_products.dart';
 import '../../../data/ops/butikk_models.dart';
@@ -20,6 +21,7 @@ import 'butikk_copy.dart';
 import 'produkt_launch.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
+import 'kategori_modul.dart' show katVareIkon;
 
 /// The product sheet (`visProdukt` ≈L7214–7297 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -475,6 +477,7 @@ class _ProduktSheetState extends State<ProduktSheet> {
                 ProduktHero(
                   fold: _fold,
                   imageUrl: item.imageUrl ?? d?.imageUrl,
+                  ikon: katVareIkon(item.name, 0),
                   name: item.name,
                   sum: ButikkCopy.kr(_sum),
                   onClose: _close,
@@ -948,7 +951,10 @@ class _BottomBar extends StatelessWidget {
                   ),
                   SizedBox(width: 10 * s),
                   Expanded(
-                    child: OnbPressable(
+                    child: OnbMaal(
+                      id: 'legg-ark',
+                      radius: 26,
+                      child: OnbPressable(
                       key: const Key('a1_butikk_produkt_legg'),
                       onTap: onAdd,
                       pressDy: 2,
@@ -1027,7 +1033,7 @@ class _BottomBar extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
+                    )),
                   ),
                 ],
               ),

@@ -9,6 +9,7 @@ import '../../../bergen/kit/svg_sti.dart';
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
+import '../../../bergen/onboarding/onb_maal.dart';
 
 // ── Bottom nav (`visNav`) ───────────────────────────────────────────────────
 // A pill with Hjem · Utforsk · Kurv · Meg and, to its right, the search orb.
@@ -303,7 +304,10 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
         ? (widget.merkMeg ? KeyedSubtree(key: BergenBottomNav.megTabKey, child: _MegBump(child: w)) : _MegBump(child: w))
         : w;
     return Expanded(
-      child: wrapMeg(OnbPressable(
+      child: OnbMaal(
+        id: 'nav-${const ['hjem', 'utforsk', 'kurv', 'meg'][i.clamp(0, 3)]}',
+        radius: 18,
+        child: wrapMeg(OnbPressable(
         onTap: () => widget.onTab(i),
         pressScale: .94,
         child: Stack(
@@ -416,7 +420,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               ),
           ],
         ),
-      )),
+      ))),
     );
   }
 
@@ -511,7 +515,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
           ),
         ),
         SizedBox(width: gap * s),
-        _sokKnapp(context, fok, har),
+        OnbMaal(id: 'orb', radius: 22, child: _sokKnapp(context, fok, har)),
       ],
     );
   }

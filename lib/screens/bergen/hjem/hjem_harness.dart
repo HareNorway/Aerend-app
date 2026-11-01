@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:path_provider/path_provider.dart';
 
+import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_perf.dart';
 import 'hjem_hero.dart';
 
@@ -33,6 +34,16 @@ abstract final class HjemHarness {
   /// Scroll the sheet this far (device px) once loaded.
   static double? scroll;
 
+  /// Perf: 2.5 s after load, animate the sheet to `rull` device px over
+  /// `rullMs` (default 1800) and back, and log the frame times of that span
+  /// (`HJEM_RULL …` in the log: n, over 16 ms, build/raster p50 p90 max).
+  static double? rull;
+  static int? rullMs;
+
+  /// Perf: `vann: false` bypasses the sheet's water clip and foam (HjemVann);
+  /// `heroAv: true` leaves the hero out — to measure what each costs.
+  static bool vann = true, heroAv = false, skyggeAv = false, heroStille = false, arkStille = false;
+
   /// Open the Kommer snart sheet for this wheel slot.
   static int? snart;
 
@@ -58,6 +69,31 @@ abstract final class HjemHarness {
 
   /// Switch to this tab a moment after loading.
   static int? fane;
+
+  /// Onboarding Step 1: start Ægil-runden at this step (0 = the intro), and
+  /// run it in reduced motion (`onbRolig`, the design's tweak).
+  static int? onbRunde;
+  static bool onbRolig = false;
+
+  /// Step 2: after the start step is reached, press «Neste» / «Vis meg» /
+  /// «Start å handle» by itself 1.5 s later (`onbAuto`: neste | vismeg | start),
+  /// so the stamp, the done card and the kai-hopp can be shot without taps.
+  static String? onbAuto;
+
+  /// Step 3: forget the onboarding state (local, and the server's answer for
+  /// this session) before the trigger runs: the tour starts as for a new customer.
+  static bool onbNull = false;
+
+  /// Step 3: as if a delivery had been seen (the Hjem card's condition).
+  static bool onbLevert = false;
+
+  /// Step 4: force this Ægil-tips coach mark (the design's `cmTving`): goes to
+  /// its screen and shows it; `kode` / `abo` need `sporing` / `levert` too.
+  static String? onbTips;
+
+  /// Onboarding Step 6: on Kategori › Produkter, press the hero's «+» once
+  /// after the products load (a real cart line) so the stepper can be shot.
+  static bool katLegg = false;
 
   /// Focus this wheel slot.
   static int? hjul;
@@ -124,6 +160,9 @@ abstract final class HjemHarness {
   static double? kurvScroll;
   static bool kurvFlere = false;
   static bool kurvHenting = false;
+
+  /// Onboarding Step 7: tips «Eget beløp» preset (digits, e.g. "35").
+  static String? kurvTipsEget;
 
   /// With `kurvHenting`: open «Se fullt kart» once the shop has loaded (parity Step 13).
   static bool kurvKart = false;
@@ -376,6 +415,14 @@ abstract final class HjemHarness {
         demoFloats = false;
         unread = null;
         scroll = null;
+        rull = null;
+        rullMs = null;
+        vann = true;
+        heroAv = false;
+        skyggeAv = false;
+        CssBoxPainter.debugUtenBlur = false;
+        heroStille = false;
+        arkStille = false;
         snart = null;
         pose = false;
         poseArk = null;
@@ -385,6 +432,13 @@ abstract final class HjemHarness {
         vindu = false;
         borte = false;
         fane = null;
+        onbRunde = null;
+        onbRolig = false;
+        onbAuto = null;
+        onbNull = false;
+        onbLevert = false;
+        onbTips = null;
+        katLegg = false;
         ruteTilbake = favPop = arkLukk = ruteVent = null;
         draLaster = null;
         hjul = null;
@@ -412,6 +466,7 @@ abstract final class HjemHarness {
         kurvTom = false;
         kurvScroll = null;
         kurvFlere = false;
+        kurvTipsEget = null;
         kurvHenting = false;
         kurvKart = false;
         kurvArk = null;
@@ -493,6 +548,14 @@ abstract final class HjemHarness {
       demoFloats = m['demoFloats'] == true;
       unread = m['unread'] as int?;
       scroll = (m['scroll'] as num?)?.toDouble();
+      rull = (m['rull'] as num?)?.toDouble();
+      rullMs = m['rullMs'] as int?;
+      vann = m['vann'] != false;
+      heroAv = m['heroAv'] == true;
+      skyggeAv = m['skyggeAv'] == true;
+      CssBoxPainter.debugUtenBlur = skyggeAv;
+      heroStille = m['heroStille'] == true;
+      arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
       pose = m['pose'] == true;
       poseArk = m['poseArk'] as int?;
@@ -503,6 +566,13 @@ abstract final class HjemHarness {
       vindu = m['vindu'] == true;
       borte = m['borte'] == true;
       fane = m['fane'] as int?;
+      onbRunde = (m['onbRunde'] as num?)?.toInt();
+      onbRolig = m['onbRolig'] == true;
+      onbAuto = m['onbAuto'] as String?;
+      onbNull = m['onbNull'] == true;
+      onbLevert = m['onbLevert'] == true;
+      onbTips = m['onbTips'] as String?;
+      katLegg = m['katLegg'] == true;
       hjul = m['hjul'] as int?;
       adresse = m['adresse'] as String?;
       dekning = m['dekning'] as String?;
@@ -529,6 +599,7 @@ abstract final class HjemHarness {
       kurvScroll = (m['kurvScroll'] as num?)?.toDouble();
       kurvFlere = m['kurvFlere'] == true;
       kurvHenting = m['kurvHenting'] == true;
+      kurvTipsEget = m['kurvTipsEget']?.toString();
       kurvKart = m['kurvKart'] == true;
       kurvArk = m['kurvArk'] as String?;
       kurvTilbake = m['kurvTilbake'] == true;

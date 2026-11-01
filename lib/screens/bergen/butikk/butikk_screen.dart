@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../aegil/aegil_guide.dart';
 import 'package:flutter/services.dart';
+import '../onboarding/onb_runde.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
@@ -63,6 +64,19 @@ class _ButikkScreenState extends State<ButikkScreen> {
   bool _missing = false;
   final GlobalKey<RestaurantButikkBodyState> _bodyKey = GlobalKey();
 
+  @override
+  void initState() {
+    super.initState();
+    // Onboarding Step 2: the tour knows a store is up (`skjerm === 'butikk'`).
+    OnbRunde.butikkerOppe++;
+  }
+
+  @override
+  void dispose() {
+    OnbRunde.butikkerOppe--;
+    super.dispose();
+  }
+
   OpsButikkApi get _api => widget.api ?? OpsButikkApi();
   OpsCustomerApi get _customer => widget.customerApi ?? OpsCustomerApi();
 
@@ -105,8 +119,19 @@ class _ButikkScreenState extends State<ButikkScreen> {
     final item = store.allItems.where((i) => i.id == pid).firstOrNull;
     if (item == null) return;
     _productId = null;
-    // After the first frame, so the page is under the sheet.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // After the first frame, so the page is under the sheet — and after the
+    // push transition has landed (Onboarding Step 6, `aapneProduktIButikk`:
+    // wait for the screen change, 2.6 s at most, then 140 ms).
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final anim = ModalRoute.of(context)?.animation;
+      if (anim != null && anim.status != AnimationStatus.completed) {
+        final t0 = DateTime.now();
+        while (mounted && anim.status != AnimationStatus.completed && DateTime.now().difference(t0).inMilliseconds < 2600) {
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 140));
+      }
       if (!mounted) return;
       final body = _bodyKey.currentState;
       if (body != null) {

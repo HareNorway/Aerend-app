@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../onboarding/onb_maal.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../data/points/points_rules.dart';
@@ -22,6 +23,7 @@ import 'feed_tab.dart' show utfPoseHentes;
 import 'pose_ark.dart';
 import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
+import '../onboarding/onb_tips.dart';
 
 /// A bag as the Forundringspose segment, its card and its sheet show it
 /// (new Bergen `utfPoserVals`, L19899): the store's bag from `GET
@@ -209,7 +211,18 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
   @override
   void initState() {
     super.initState();
+    // Onboarding Step 4: the `pose` mark's «Vis poser nær meg» opens the first bag.
+    OnbTips.instance.handlinger['pose'] = () {
+      final p = _poser.firstOrNull;
+      if (p != null) _apne(p);
+    };
     _load();
+  }
+
+  @override
+  void dispose() {
+    OnbTips.instance.handlinger.remove('pose');
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -280,7 +293,7 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
           style: inter(11.5, weight: FontWeight.w600, height: 1.45, color: const Color(0xFFBFD6DD)),
         ),
       ),
-      _karusell(poser),
+      OnbMaal(id: 'karusell-u', radius: 26, child: _karusell(poser)),
       Padding(
         padding: const EdgeInsets.only(top: 6),
         child: _AutomatModul(priceKr: poser.isEmpty ? 99 : poser.first.prisKr, onTap: widget.onAutomat),

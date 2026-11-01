@@ -71,8 +71,24 @@ class OpsButikkApi {
   }
 
   /// One store with its menu.
+  /// Stores fetched in the last 90 s (the onboarding tour prefetches the
+  /// store it is about to open while the customer reads the step before).
+  static final Map<int, (BergenStoreInfo, int)> _nylig = {};
+
+  /// Fetches [storeId] into the memo (fire-and-forget).
+  static void forvarm(int storeId) {
+    final n = _nylig[storeId];
+    if (n != null && DateTime.now().millisecondsSinceEpoch - n.$2 < 60000) return;
+    OpsButikkApi().store(storeId);
+  }
+
   Future<BergenStoreInfo?> store(int storeId, {String? categoryHint}) async {
     if (_off) return null;
+    final n = _nylig[storeId];
+    if (n != null && DateTime.now().millisecondsSinceEpoch - n.$2 < 90000) {
+      _nylig.remove(storeId);
+      return n.$1;
+    }
     try {
       final pos = prefGetLatLng();
       final pojo = StoreDetailsPojo.fromJson(
@@ -84,7 +100,9 @@ class OpsButikkApi {
         ),
       );
       if (pojo.status != 1) return null;
-      return BergenStoreInfo.fromPojo(pojo, categoryHint: categoryHint);
+      final info = BergenStoreInfo.fromPojo(pojo, categoryHint: categoryHint);
+      _nylig[storeId] = (info, DateTime.now().millisecondsSinceEpoch);
+      return info;
     } catch (_) {
       return null;
     }

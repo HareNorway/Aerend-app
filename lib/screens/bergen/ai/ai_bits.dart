@@ -9,7 +9,7 @@ import 'ai_copy.dart';
 
 /// Customer plan Step 14 — the small parts every AI sheet shares (design
 /// `AI_M`, `AI_IK`, the handshake header `aiHs`): the assistant marks
-/// (Claude and ChatGPT as logos, Gemini and Siri drawn), the icon paths, the
+/// (Claude and ChatGPT with their logos, Gemini and Siri as letters), the icon paths, the
 /// handshake header in its four modes, and the dark-sheet helpers.
 abstract final class AiNavn {
   static const List<String> alle = ['Claude', 'ChatGPT', 'Gemini', 'Siri'];
@@ -19,6 +19,13 @@ abstract final class AiNavn {
   static String fraVendor(String vendor) => switch (vendor) { 'claude' => 'Claude', 'chatgpt' => 'ChatGPT', 'gemini' => 'Gemini', 'siri' => 'Siri', _ => vendor };
 
   static String clientId(String navn) => vendor(navn);
+
+  /// The assistant's logo (the design bundle's 256 px marks), where it has one.
+  static String? logo(String navn) => switch (navn) {
+    'Claude' => 'assets/images/ai/claude.png',
+    'ChatGPT' => 'assets/images/ai/chatgpt.png',
+    _ => null,
+  };
 
   /// The assistant's own app or site (the «Bytter app» overlay opens it where known).
   static Uri? app(String navn) => switch (navn) {
@@ -82,6 +89,7 @@ class AiMerke extends StatelessWidget {
       'Siri' => (const [Color(0xFFEEE7FB), Color(0xFFC7B8E8), Color(0xFFA996D9)], const Color(0xFF3A2E5C), 'Si', 4.0),
       _ => (const [Color(0xFFFFFFFF), Color(0xFFDCE9EC), Color(0xFFDCE9EC)], const Color(0xFF1E4F5C), '', 0.0),
     };
+    final logo = AiNavn.logo(navn);
     return Transform.rotate(
       angle: rot * 3.14159 / 180,
       child: Container(
@@ -94,7 +102,11 @@ class AiMerke extends StatelessWidget {
           boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .55), offset: Offset(0, 1)), BoxShadow(color: Color.fromRGBO(4, 18, 26, .55), offset: Offset(0, 8), blurRadius: 14 / 2 / .57735, spreadRadius: -7)],
         ),
         alignment: Alignment.center,
-        child: Text(tx.isEmpty ? (navn.isEmpty ? 'Æ' : navn.substring(0, navn.length < 2 ? 1 : 2)) : tx, style: jakarta(size * .4, weight: FontWeight.w800, color: ink)),
+        // The design's `aiM`: Claude and ChatGPT carry their logos (70 % of
+        // the tile), Gemini and Siri their two letters.
+        child: logo != null
+            ? Image.asset(logo, width: size * .7, height: size * .7, fit: BoxFit.contain, filterQuality: FilterQuality.medium)
+            : Text(tx.isEmpty ? (navn.isEmpty ? 'Æ' : navn.substring(0, navn.length < 2 ? 1 : 2)) : tx, style: jakarta(size * .4, weight: FontWeight.w800, color: ink)),
       ),
     );
   }
