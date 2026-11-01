@@ -361,6 +361,11 @@ class OnbRunde extends ChangeNotifier {
   /// Stores on screen (pushed `/bergen/butikk/…` routes), for [skjermNaa].
   static int butikkerOppe = 0;
 
+  /// Kurv screens pushed as routes (`/bergen/kurv`, the store's cart bar):
+  /// the same screen as the shell's tab for the tour (the prototype has one
+  /// `kurv` screen), so the «Åpne kurven» mission completes there too.
+  static int kurvRuterOppe = 0;
+
   /// The store the Butikk section opens: the first open restaurant Hjem
   /// shows (the design always rows to Burger King). Set by Hjem.
   int? butikkId;
@@ -808,7 +813,10 @@ class OnbRunde extends ChangeNotifier {
     final shell = HomeMainV1State.current;
     if (shell == null || !shell.mounted) return 'annet';
     final route = ModalRoute.of(shell.context);
-    if (route != null && !route.isCurrent) return butikkerOppe > 0 ? 'butikk' : 'annet';
+    if (route != null && !route.isCurrent) {
+      if (kurvRuterOppe > 0) return 'kurv';
+      return butikkerOppe > 0 ? 'butikk' : 'annet';
+    }
     return switch (shell.selectedPos) {
       0 => 'hjem',
       1 => 'utforsk',
@@ -833,6 +841,8 @@ class OnbRunde extends ChangeNotifier {
       BergenRoutes.push<dynamic>(shell.context, '/bergen/butikk/$id');
       return;
     }
+    // Already on a pushed Kurv: stay (the steps' anchors are on it).
+    if (s == 'kurv' && kurvRuterOppe > 0) return;
     if (route != null && !route.isCurrent) nav.popUntil((r) => r == route || r.isFirst);
     final tab = switch (s) {
       'hjem' => BergenTab.home.index,

@@ -9,6 +9,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../onboarding/onb_maal.dart';
+import '../onboarding/onb_runde.dart';
 import '../onboarding/onb_tips.dart';
 
 import '../../../data/ops/fee_quote.dart';
@@ -295,7 +296,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     _door.addListener(_dorEndret);
     OnbTips.instance.handlinger['gebyr'] = _openLevering;
     OnbTips.instance.handlinger['kurvFlere'] = _kurvFlere;
-    if (!widget.embedded) OnbTips.instance.sett('kurvRute', true);
+    if (!widget.embedded) {
+      OnbTips.instance.sett('kurvRute', true);
+      OnbRunde.kurvRuterOppe++;
+    }
     // Debug harness `betaltKurv` (order id): Betalt out of this slider, as
     // after a card / Google Pay payment — nothing is paid or ordered.
     if (kDebugMode && HjemHarness.betaltKurv != null) {
@@ -357,6 +361,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     OnbTips.instance.handlinger.remove('gebyr');
     OnbTips.instance.handlinger.remove('kurvFlere');
     OnbTips.instance.sett('kurvRute', null);
+    if (!widget.embedded) OnbRunde.kurvRuterOppe--;
     OnbTips.instance.sett('dor', null);
     // Not during unmount: listeners may not rebuild while the tree is locked.
     if (widget.embedded) {
