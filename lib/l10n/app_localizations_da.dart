@@ -8154,4 +8154,151 @@ class AppLocalizationsDa extends AppLocalizations {
   @override
   String get cus_ai_lagret_kort_mangler =>
       'No saved card yet — add one under Meg → Payment; until then the card sheet opens.';
+
+  @override
+  String get standing_order_title => 'Standing weekly shop';
+
+  @override
+  String get standing_order_notice =>
+      'Ægil builds the week\'s basket. You get a notice with the items and the total before anything is charged, and can change it until Wednesday 20:00. Pause or end any time.';
+
+  @override
+  String get standing_order_pause => 'Pause';
+
+  @override
+  String get standing_order_cancel => 'End';
+
+  @override
+  String get cus_fast_fortsett => 'Continue';
+
+  @override
+  String get cus_fast_sett_opp => 'Set up';
+
+  @override
+  String get cus_fast_start => 'Start the weekly shop';
+
+  @override
+  String get cus_fast_dag => 'Delivery day';
+
+  @override
+  String get cus_fast_vindu => 'Time window';
+
+  @override
+  String get cus_fast_tak => 'Cap per week';
+
+  @override
+  String get cus_fast_betaling => 'Payment';
+
+  @override
+  String get cus_fast_vipps => 'Vipps agreement';
+
+  @override
+  String get cus_fast_kort => 'Saved card';
+
+  @override
+  String get cus_fast_samtykke =>
+      'I want a standing weekly shop: Ærend charges the week\'s basket after the notice, until I pause or end it. No hidden renewal.';
+
+  @override
+  String get cus_fast_samtykke_kreves => 'Tick the consent first.';
+
+  @override
+  String get cus_fast_venter_tittel => 'Confirm the agreement in Vipps';
+
+  @override
+  String get cus_fast_venter_linje =>
+      'The agreement starts once you have confirmed in Vipps. Come back here afterwards.';
+
+  @override
+  String get cus_fast_aapne_vipps => 'Open Vipps';
+
+  @override
+  String get cus_fast_sjekk => 'I have confirmed';
+
+  @override
+  String get cus_fast_ikke_aktiv_enna =>
+      'Not confirmed yet – open Vipps and try again.';
+
+  @override
+  String get cus_fast_neste => 'Next weekly shop';
+
+  @override
+  String get cus_fast_neste_ingen =>
+      'Ægil builds the basket on Monday; the notice comes Tuesday evening.';
+
+  @override
+  String get cus_fast_endre => 'Edit';
+
+  @override
+  String cus_fast_run_noticed(String total, String cutoff) {
+    return '$total – change until $cutoff';
+  }
+
+  @override
+  String get cus_fast_run_locked => 'Locked – ordered on the delivery day';
+
+  @override
+  String get cus_fast_run_placed => 'Ordered · payment follows';
+
+  @override
+  String get cus_fast_run_paid => 'Ordered and paid';
+
+  @override
+  String get cus_fast_run_failed => 'The payment did not go through';
+
+  @override
+  String get cus_fast_run_skipped => 'Skipped this week';
+
+  @override
+  String get cus_fast_pauset => 'Paused – nothing is ordered or charged.';
+
+  @override
+  String get cus_fast_betaling_feilet =>
+      'The payment did not go through. Check Vipps or your card, then tap Continue.';
+
+  @override
+  String get cus_fast_avslutt_sporsmal => 'End the standing weekly shop?';
+
+  @override
+  String get cus_fast_avslutt_linje =>
+      'The Vipps agreement is stopped and nothing more is charged. You can set up a new one later.';
+
+  @override
+  String get cus_fast_avsluttet => 'The standing weekly shop has ended.';
+
+  @override
+  String get cus_fast_pauset_toast => 'Paused.';
+
+  @override
+  String get cus_fast_fortsatt_toast => 'The weekly shop continues.';
+
+  @override
+  String get cus_fast_startet => 'The standing weekly shop is on.';
+
+  @override
+  String get cus_fast_feil => 'Could not set up the weekly shop. Try again.';
+
+  @override
+  String get cus_fast_avbryt => 'Cancel';
+
+  @override
+  String get cus_fast_ingen_kort => 'Add a card under Me → Payment first.';
+
+  @override
+  String get cus_fast_avbryt_oppsett => 'Cancel the setup';
+
+  @override
+  String get cus_fast_paa => 'On';
+
+  @override
+  String get cus_fast_pause_merke => 'Paused';
+
+  @override
+  String cus_fast_kr(int kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String get cus_fast_dager =>
+      'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
 }

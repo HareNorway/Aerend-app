@@ -29,6 +29,7 @@ import 'meg_billett.dart';
 import 'meg_nivaa_card.dart' show medalFor, MegMedal;
 import 'mork_rad.dart';
 import 'meg_shine.dart';
+import 'fast_ukeshandel.dart' show FastCopy;
 
 /// Every Ark the Meg tab opens (design `kArkVals`), on the design's own sheet
 /// shell ([MegArk]): Gullbilletten, Vilkår, Nivå, Slik får du poeng, Navn i
@@ -350,11 +351,13 @@ abstract final class MegSheets {
     /// Harness only (`ukeAuto`): `kasse` answers a waiting swap and goes to
     /// the first store's confirmation, `betal` also confirms it.
     String? auto,
+    /// Customer v2 Step 6: «Fast ukeshandel» (behind cus.aegil.level4; null hides the row).
+    VoidCallback? onFast,
   }) {
-    return steg == 'kurv' ? _ukeKurv(context, api: api, view: view, level: level, onKurv: onKurv, auto: auto) : _ukeListe(context, api: api, view: view, level: level, onKurv: onKurv);
+    return steg == 'kurv' ? _ukeKurv(context, api: api, view: view, level: level, onKurv: onKurv, auto: auto) : _ukeListe(context, api: api, view: view, level: level, onKurv: onKurv, onFast: onFast);
   }
 
-  static Future<void> _ukeListe(BuildContext context, {required AegilAppApi api, required WeeklyView view, required int level, VoidCallback? onKurv}) {
+  static Future<void> _ukeListe(BuildContext context, {required AegilAppApi api, required WeeklyView view, required int level, VoidCallback? onKurv, VoidCallback? onFast}) {
     var v = view;
     return showMegArk<void>(
       context,
@@ -366,6 +369,17 @@ abstract final class MegSheets {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (onFast != null)
+              MegArkRow(
+                key: const Key('uke-fast'),
+                title: FastCopy.standing_order_title,
+                sub: level >= 4 ? A4MegCopy.a4_meg_uke_linje4 : FastCopy.standing_order_notice,
+                value: level >= 4 ? FastCopy.cus_fast_paa : FastCopy.cus_fast_sett_opp,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onFast();
+                },
+              ),
             if (v.items.isNotEmpty) ...[
               Wrap(
                 spacing: 7,

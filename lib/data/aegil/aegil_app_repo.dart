@@ -84,6 +84,15 @@ abstract class AegilAppApi {
   Future<List<ShoppingListItem>?> toggleListItem(int id) async => null;
   Future<List<ShoppingListItem>?> removeListItem(int id) async => null;
 
+  // Customer v2 Step 6: «Fast ukeshandel» (`agent/me/standing`). null: none yet, or the flag is off.
+  Future<StandingView?> standing() async => null;
+  Future<({StandingView? standing, String? confirmationUrl, String? feil})> standingCreate({required int scheduleDow, required String window, required int capKr, required String paymentMethod, String? paymentMethodId, required String consentVersion}) async => (standing: null, confirmationUrl: null, feil: null);
+  Future<StandingView?> standingUpdate({int? scheduleDow, String? window, int? capKr}) async => null;
+  Future<StandingView?> standingSync() async => null;
+  Future<({StandingView? standing, String? feil})> standingPause() async => (standing: null, feil: null);
+  Future<({StandingView? standing, String? feil})> standingResume() async => (standing: null, feil: null);
+  Future<({StandingView? standing, String? feil})> standingEnd() async => (standing: null, feil: null);
+
   // Customer Step 9: the customer agents. `feil` carries the server's words when refused.
   Future<({GiftResult? gift, String? feil})> giftBrief({String text = '', Map<String, dynamic> fields = const {}}) async => (gift: null, feil: null);
   Future<GiftResult?> giftMore(int id) async => null;
@@ -465,6 +474,69 @@ class AegilAppRepo implements AegilAppApi {
       return (res: null, feil: null);
     }
   }
+
+  // Customer v2 Step 6.
+
+  StandingView? _standing(Map<String, dynamic>? json) => json?['standing'] is Map ? StandingView.fromJson((json!['standing'] as Map).cast<String, dynamic>()) : null;
+
+  /// The error code of a refused call (`error`), else null.
+  String? _kode(dynamic response) => response is Map && response['status'] != 1 ? (response['error'] as String? ?? response['message'] as String?) : null;
+
+  @override
+  Future<StandingView?> standing() async {
+    try {
+      return _standing(_ok(await _api.get('me/standing?${_query(_auth())}')));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<({StandingView? standing, String? confirmationUrl, String? feil})> standingCreate({required int scheduleDow, required String window, required int capKr, required String paymentMethod, String? paymentMethodId, required String consentVersion}) async {
+    try {
+      final r = await _api.post('me/standing', body: {..._auth(), 'schedule_dow': scheduleDow, 'window': window, 'cap_kr': capKr, 'payment_method': paymentMethod, if (paymentMethodId != null) 'payment_method_id': paymentMethodId, 'consent_version': consentVersion});
+      final json = _ok(r);
+      return (standing: _standing(json), confirmationUrl: json?['confirmation_url'] as String?, feil: _kode(r));
+    } catch (_) {
+      return (standing: null, confirmationUrl: null, feil: null);
+    }
+  }
+
+  @override
+  Future<StandingView?> standingUpdate({int? scheduleDow, String? window, int? capKr}) async {
+    try {
+      return _standing(_ok(await _api.post('me/standing', body: {..._auth(), '_method': 'PUT', if (scheduleDow != null) 'schedule_dow': scheduleDow, if (window != null) 'window': window, if (capKr != null) 'cap_kr': capKr})));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<StandingView?> standingSync() async {
+    try {
+      return _standing(_ok(await _api.post('me/standing/sync', body: _auth())));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<({StandingView? standing, String? feil})> _standingDo(String path) async {
+    try {
+      final r = await _api.post('me/standing/$path', body: _auth());
+      return (standing: _standing(_ok(r)), feil: _kode(r));
+    } catch (_) {
+      return (standing: null, feil: null);
+    }
+  }
+
+  @override
+  Future<({StandingView? standing, String? feil})> standingPause() => _standingDo('pause');
+
+  @override
+  Future<({StandingView? standing, String? feil})> standingResume() => _standingDo('resume');
+
+  @override
+  Future<({StandingView? standing, String? feil})> standingEnd() => _standingDo('end');
 
   @override
   Future<List<DinnerDay>?> setDinnerPlan(String week, int weekday, {String? choiceType, int? storeProductId}) async {

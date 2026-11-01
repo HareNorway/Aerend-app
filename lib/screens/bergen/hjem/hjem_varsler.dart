@@ -26,6 +26,7 @@ import '../hjelp/support.dart';
 import '../sporing/hjelp_sheet.dart' show HjelpScreen, HjelpState;
 import 'hjem_harness.dart';
 import '../meg/a3_services.dart';
+import '../meg/meg_screen.dart' show MegApne;
 import '../../common/notifications/notifications_repo.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../onboarding/onb_tips.dart';
@@ -576,18 +577,28 @@ class _VarslerPanelState extends State<VarslerPanel> {
         return;
       }
     }
+    if (v.type == 'ukeshandel') MegApne.ukeshandel = 'liste';
     final rute = switch (v.type) {
       'ordre' || 'valg' || 'ai' => v.orderId == null ? null : '/bergen/sporing/${v.orderId}',
       'tilbud' => '/bergen/aegil',
       'nybyen' => v.storeId == null ? null : '/bergen/butikk/${v.storeId}',
       'belonning' || 'verving' || 'liga' => '/bergen/meg',
-      'ukeshandel' || 'agil' => '/bergen/kurv',
+      // Customer v2 Step 6: the weekly cards open Ukeshandel in Meg.
+      'ukeshandel' => '/bergen/meg',
+      'agil' => '/bergen/kurv',
       _ => null,
     };
     if (rute != null) BergenRoutes.pushOr(context, rute, orElse: () {});
   }
 
   void _handling(Varsel v) {
+    // Customer v2 Step 6: «Endre» on the standing order's notice — the basket, editable until the cut-off.
+    if (v.type == 'ukeshandel' && v.handling == 'Endre') {
+      _lukk();
+      MegApne.ukeshandel = 'kurv';
+      BergenRoutes.pushOr(context, '/bergen/meg', orElse: () {});
+      return;
+    }
     // Customer Step 7: «Angre» on a level-3 merge's receipt.
     if (v.handling == CusLevel3Copy.cus_angre && v.actionId != null) {
       unawaited(_angre(v));

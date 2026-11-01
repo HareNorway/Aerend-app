@@ -23,6 +23,8 @@ abstract final class ClientFlags {
   static const String aiIntents = 'cus.ai.intents';
   // Customer v2 Step 4: saved cards in Meg → Betaling and «Lagret kort» as a real payment path.
   static const String aiLinkedCheckout = 'cus.ai.linked_checkout';
+  // Customer v2 Step 6: «Fast ukeshandel» (level 4) in Meg and the settings.
+  static const String aegilLevel4 = 'cus.aegil.level4';
 
   static Map<String, bool>? _cache;
 

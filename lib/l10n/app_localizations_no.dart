@@ -8161,4 +8161,152 @@ class AppLocalizationsNo extends AppLocalizations {
   @override
   String get cus_ai_lagret_kort_mangler =>
       'Ingen lagret kort ennå – legg til under Meg → Betaling; til da åpner kortskjemaet.';
+
+  @override
+  String get standing_order_title => 'Fast ukeshandel';
+
+  @override
+  String get standing_order_notice =>
+      'Ægil bygger ukens kurv. Du får beskjed med varene og summen før noe trekkes, og kan endre til onsdag 20:00. Pause eller avslutt når som helst.';
+
+  @override
+  String get standing_order_pause => 'Pause';
+
+  @override
+  String get standing_order_cancel => 'Avslutt';
+
+  @override
+  String get cus_fast_fortsett => 'Fortsett';
+
+  @override
+  String get cus_fast_sett_opp => 'Sett opp';
+
+  @override
+  String get cus_fast_start => 'Start fast ukeshandel';
+
+  @override
+  String get cus_fast_dag => 'Leveringsdag';
+
+  @override
+  String get cus_fast_vindu => 'Tidsrom';
+
+  @override
+  String get cus_fast_tak => 'Tak per uke';
+
+  @override
+  String get cus_fast_betaling => 'Betaling';
+
+  @override
+  String get cus_fast_vipps => 'Vipps-avtale';
+
+  @override
+  String get cus_fast_kort => 'Lagret kort';
+
+  @override
+  String get cus_fast_samtykke =>
+      'Jeg vil ha fast ukeshandel: Ærend trekker ukens kurv etter varsel, til jeg setter den på pause eller avslutter. Ingen skjult fornyelse.';
+
+  @override
+  String get cus_fast_samtykke_kreves => 'Huk av samtykket først.';
+
+  @override
+  String get cus_fast_venter_tittel => 'Bekreft avtalen i Vipps';
+
+  @override
+  String get cus_fast_venter_linje =>
+      'Avtalen gjelder fra du har bekreftet i Vipps. Kom tilbake hit etterpå.';
+
+  @override
+  String get cus_fast_aapne_vipps => 'Åpne Vipps';
+
+  @override
+  String get cus_fast_sjekk => 'Jeg har bekreftet';
+
+  @override
+  String get cus_fast_ikke_aktiv_enna =>
+      'Ikke bekreftet ennå – åpne Vipps og prøv igjen.';
+
+  @override
+  String get cus_fast_neste => 'Neste ukeshandel';
+
+  @override
+  String get cus_fast_neste_ingen =>
+      'Ægil bygger kurven mandag; du får varsel tirsdag kveld.';
+
+  @override
+  String get cus_fast_endre => 'Endre';
+
+  @override
+  String cus_fast_run_noticed(String total, String cutoff) {
+    return '$total – endre innen $cutoff';
+  }
+
+  @override
+  String get cus_fast_run_locked => 'Låst – bestilles på leveringsdagen';
+
+  @override
+  String get cus_fast_run_placed => 'Bestilt · betaling følger';
+
+  @override
+  String get cus_fast_run_paid => 'Bestilt og betalt';
+
+  @override
+  String get cus_fast_run_failed => 'Betalingen gikk ikke gjennom';
+
+  @override
+  String get cus_fast_run_skipped => 'Hoppet over denne uken';
+
+  @override
+  String get cus_fast_pauset => 'På pause – ingenting bestilles eller trekkes.';
+
+  @override
+  String get cus_fast_betaling_feilet =>
+      'Betalingen gikk ikke gjennom. Sjekk Vipps eller kortet, og trykk Fortsett.';
+
+  @override
+  String get cus_fast_avslutt_sporsmal => 'Avslutte fast ukeshandel?';
+
+  @override
+  String get cus_fast_avslutt_linje =>
+      'Vipps-avtalen stoppes og ingenting mer trekkes. Du kan sette opp en ny senere.';
+
+  @override
+  String get cus_fast_avsluttet => 'Fast ukeshandel er avsluttet.';
+
+  @override
+  String get cus_fast_pauset_toast => 'Satt på pause.';
+
+  @override
+  String get cus_fast_fortsatt_toast => 'Fast ukeshandel fortsetter.';
+
+  @override
+  String get cus_fast_startet => 'Fast ukeshandel er i gang.';
+
+  @override
+  String get cus_fast_feil => 'Fikk ikke satt opp fast ukeshandel. Prøv igjen.';
+
+  @override
+  String get cus_fast_avbryt => 'Avbryt';
+
+  @override
+  String get cus_fast_ingen_kort =>
+      'Legg til et kort under Meg → Betaling først.';
+
+  @override
+  String get cus_fast_avbryt_oppsett => 'Avbryt oppsettet';
+
+  @override
+  String get cus_fast_paa => 'På';
+
+  @override
+  String get cus_fast_pause_merke => 'Pause';
+
+  @override
+  String cus_fast_kr(int kr) {
+    return '$kr kr';
+  }
+
+  @override
+  String get cus_fast_dager =>
+      'mandag,tirsdag,onsdag,torsdag,fredag,lørdag,søndag';
 }

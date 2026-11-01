@@ -62,6 +62,7 @@ import 'min_bio.dart';
 import 'min_bio_ark.dart';
 import 'min_bio_kort.dart';
 import 'meg_sheets.dart';
+import 'fast_ukeshandel.dart';
 import '../hjem/hjem_varsler.dart' show varslerLoader;
 import 'meg_paaminnelser.dart';
 import '../../../services/customer/client_flags.dart';
@@ -322,6 +323,13 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       if (MegApne.poeng) {
         MegApne.poeng = false;
         _poengApen = true;
+      }
+      // Customer v2 Step 6: a Varsler card («Endre» on the notice, the deep link) opens Ukeshandel on arrival.
+      if (MegApne.ukeshandel case final steg?) {
+        MegApne.ukeshandel = null;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) unawaited(_ukeshandel(steg: steg));
+        });
       }
       // Customer Step 12 harness: the mission row in a given state.
       if (kDebugMode && HjemHarness.megOppdrag != null) _oppdrag = harnessOppdrag(HjemHarness.megOppdrag!);
@@ -670,6 +678,20 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       auto: auto,
       onOpenAegilSettings: _aegilInnstillinger,
       onKurv: () => _go('/bergen/kurv'),
+      onFast: ClientFlags.on(ClientFlags.aegilLevel4) ? _fastUkeshandel : null,
+    );
+  }
+
+  /// Customer v2 Step 6: «Fast ukeshandel» — the opt-in or the overview; the settings (level 4) are read again after.
+  Future<void> _fastUkeshandel() async {
+    await FastUkeshandel.vis(
+      context,
+      api: _aegil,
+      onKurv: () => _ukeshandel(steg: 'kurv'),
+      onEndret: () async {
+        final r = await a3Try(_aegilRepo.fetchSettings);
+        if (mounted && r?.settings != null) setState(() => _settings = r!.settings);
+      },
     );
   }
 
@@ -723,6 +745,13 @@ class _MegScreenBodyState extends State<MegScreenBody> {
           settings: naa,
           levels: _levels,
           onEndre: endre,
+          // Customer v2 Step 6: level 4 is real behind cus.aegil.level4 — the row opens «Fast ukeshandel».
+          onFast: ClientFlags.on(ClientFlags.aegilLevel4)
+              ? () {
+                  Navigator.of(ctx).pop();
+                  _fastUkeshandel();
+                }
+              : null,
           onButikker: () async {
             if (naa.allowedStoreMode == 'allowlist') return endre({'allowed_store_mode': 'all', 'allowed_store_ids': <int>[]});
             final fav = await a3Try(() => OpsCustomerApi().favourites());
@@ -1502,6 +1531,9 @@ class _FargeTile extends StatelessWidget {
 /// old `/bergen/poeng` route lands here, Gap Step 4).
 abstract final class MegApne {
   static bool poeng = false;
+
+  /// Customer v2 Step 6: open Ukeshandel on this step (`liste` | `kurv`) when Meg arrives.
+  static String? ukeshandel;
 }
 
 /// The feed calls behind «Nytt fra butikkene»; tests swap them.
