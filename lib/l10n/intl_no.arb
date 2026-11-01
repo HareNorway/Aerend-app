@@ -2619,5 +2619,22 @@
   "ops_kasse_tips_eget": "Eget beløp",
   "ops_kasse_tips_eget_label": "Eget tipsbeløp i kroner",
   "ops_kasse_kr": "kr",
-  "ops_kasse_tom_beskjed": "Tøm beskjed"
+  "ops_kasse_tom_beskjed": "Tøm beskjed",
+  "cus_bet_tittel": "Betaling",
+  "cus_bet_linje": "Vipps er standard. Et lagret kort betaler forespørsler fra assistenten når du har valgt «Lagret kort» – etter at du har bekreftet, med Face ID eller kode først.",
+  "cus_bet_lagrede": "Lagrede kort",
+  "cus_bet_ingen": "Ingen lagrede kort ennå.",
+  "cus_bet_legg_til": "Legg til kort",
+  "cus_bet_standard": "Standard",
+  "cus_bet_bruk_som_standard": "Bruk som standard",
+  "cus_bet_slett": "Fjern",
+  "cus_bet_avbryt": "Avbryt",
+  "cus_bet_slett_sporsmal": "Fjerne {kort}?",
+  "cus_bet_utloper": "utløper {mm}/{yy}",
+  "cus_bet_lagt_til": "Kortet er lagt til.",
+  "cus_bet_avbrutt": "Ingenting lagt til.",
+  "cus_bet_feil": "Fikk ikke kontakt med kortløsningen. Prøv igjen.",
+  "cus_bet_stripe_info": "Lagret hos Stripe. Ærend ser aldri kortnummeret.",
+  "cus_ai_lagret_kort_hint": "Trekkes fra standardkortet ditt under Meg → Betaling etter at du har bekreftet – Face ID eller kode først.",
+  "cus_ai_lagret_kort_mangler": "Ingen lagret kort ennå – legg til under Meg → Betaling; til da åpner kortskjemaet."
 }

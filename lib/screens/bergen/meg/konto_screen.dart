@@ -12,6 +12,9 @@ import '../../common/editProfile/edit_profile.dart';
 import '../../common/manageAddress/add_new_address.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/manageCard/manage_card.dart';
+import '../../../networking/ops/cus_api.dart';
+import '../../../services/customer/client_flags.dart';
+import 'betaling_screen.dart';
 import '../aegil/aegil_bits.dart';
 import 'a3_services.dart';
 import '../kit/bergen_kit.dart';
@@ -31,16 +34,21 @@ const String kPrefA3Rolig = 'a3_konto_rolig';
 /// personvern), then «Logg ut». The existing address, card and profile
 /// screens do the editing; nothing here touches how an order is paid.
 class KontoScreen extends StatefulWidget {
-  const KontoScreen({super.key, this.feedRepo});
+  const KontoScreen({super.key, this.feedRepo, this.cusApi});
 
   /// Injected in tests: the feed service behind «Nytt fra Ærend».
   final FeedRepo? feedRepo;
+
+  /// Customer v2 Step 4, injected in tests: the saved cards behind cus.ai.linked_checkout.
+  final CusApi? cusApi;
 
   @override
   State<KontoScreen> createState() => _KontoScreenState();
 }
 
 class _KontoScreenState extends State<KontoScreen> {
+  /// Customer v2 Step 4: Meg → Betaling on the saved cards.
+  bool get _lagret => ClientFlags.on(ClientFlags.aiLinkedCheckout);
   bool _krysning = true;
 
   /// «Nytt fra Ærend» (backend plan Step 9): a push when Ærend itself
@@ -89,7 +97,8 @@ class _KontoScreenState extends State<KontoScreen> {
 
   Future<void> _hent() async {
     final a = await a3Try(() => A3Services.addressList());
-    final k = await a3Try(() => A3Services.cards());
+    // Customer v2 Step 4: the saved cards (Stripe) behind cus.ai.linked_checkout; the legacy list otherwise.
+    final k = _lagret ? (await (widget.cusApi ?? CusApi()).savedCards())?.map((c) => c.navn).toList() : await a3Try(() => A3Services.cards());
     if (!mounted) return;
     setState(() {
       _adresser = a ?? const [];
@@ -186,9 +195,9 @@ class _KontoScreenState extends State<KontoScreen> {
                 children: [
                   _Rad(tittel: vipps, under: A3MegCopy.a3_meg_konto_vipps_std, radio: true),
                   for (final k in _kort)
-                    _Rad(tittel: k, under: KontoTekst.kortUnder, radio: false, onTap: () => _push(const ManageCard())),
+                    _Rad(tittel: k, under: KontoTekst.kortUnder, radio: false, onTap: () => _push(_lagret ? BetalingScreen(api: widget.cusApi) : const ManageCard())),
                   if (_kort.isEmpty)
-                    _Rad(key: const Key('konto-kort'), tittel: KontoTekst.leggKort, pluss: true, onTap: () => _push(const ManageCard())),
+                    _Rad(key: const Key('konto-kort'), tittel: KontoTekst.leggKort, pluss: true, onTap: () => _push(_lagret ? BetalingScreen(api: widget.cusApi) : const ManageCard())),
                   const _Rad(tittel: KontoTekst.applePay, under: KontoTekst.applePaySub, radio: false, siste: true),
                 ],
               ),

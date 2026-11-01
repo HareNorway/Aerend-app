@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../networking/ops/cus_api.dart';
+import '../../../services/customer/client_flags.dart';
 import '../../../utils/utils.dart' show isLoggedIn;
 import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart';
@@ -676,6 +677,9 @@ abstract final class AiArk {
       Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.kort, size: 16, stroke: 2.2)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_betaling, style: inter(13.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_betaling_under, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))]))]),
       const SizedBox(height: 8),
       seg([('vipps', AiCopy.cus_ai_vipps), ('card', AiCopy.cus_ai_lagret_kort), ('ask', AiCopy.cus_ai_spor_hver_gang)], p.paymentPref, (v) => sett(p.copyWith(paymentPref: v))),
+      // Customer v2 Step 4: «Lagret kort» charges the default card under Meg → Betaling (behind cus.ai.linked_checkout).
+      if (p.paymentPref == 'card' && ClientFlags.on(ClientFlags.aiLinkedCheckout))
+        Padding(key: const Key('cus-ai-lagret-kort-hint'), padding: const EdgeInsets.fromLTRB(4, 6, 4, 0), child: Text(AiCopy.cus_ai_lagret_kort_hint, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65), height: 1.35))),
       const SizedBox(height: 12),
       Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.hus, size: 16, stroke: 2.2)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_leveringsadresse, style: inter(13.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_hjemme_er(adresse ?? AiCopy.cus_ai_hjemme), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))]))]),
       const SizedBox(height: 8),

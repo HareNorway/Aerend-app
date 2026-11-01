@@ -75,3 +75,29 @@ Future<void> kasseStripePay({
   );
   await Stripe.instance.presentPaymentSheet();
 }
+
+/// Customer v2 Step 4: Stripe's sheet in setup mode — adds a card to the customer (Meg → Betaling); the number never
+/// touches our server. Throws a [StripeException] when the customer closes the sheet.
+Future<void> kasseStripeSetupCard(Map<String, dynamic> setup) async {
+  final secret = '${setup['setup_intent'] ?? ''}';
+  if (secret.isEmpty) throw StateError('Missing setup intent');
+  await useServerStripeKey({'publishableKey': setup['publishable_key']});
+  await Stripe.instance.initPaymentSheet(
+    paymentSheetParameters: SetupPaymentSheetParameters(
+      customFlow: false,
+      returnURL: '$appUrlScheme://stripe-redirect',
+      merchantDisplayName: 'Ærend',
+      setupIntentClientSecret: secret,
+      customerEphemeralKeySecret: setup['ephemeral_key']?.toString(),
+      customerId: setup['customer_id']?.toString(),
+      style: ThemeMode.light,
+    ),
+  );
+  await Stripe.instance.presentPaymentSheet();
+}
+
+/// Customer v2 Step 4: the bank wants 3-D Secure on a saved-card charge the server confirmed — Stripe's own step, then
+/// the server is asked (`pay`). Throws when the customer abandons it.
+Future<void> kasseStripeNextAction(String clientSecret) async {
+  await Stripe.instance.handleNextAction(clientSecret);
+}

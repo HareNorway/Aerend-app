@@ -5095,5 +5095,39 @@
   "ops_kasse_tips_eget": "Your own amount",
   "ops_kasse_tips_eget_label": "Your own tip in kroner",
   "ops_kasse_kr": "kr",
-  "ops_kasse_tom_beskjed": "Clear the note"
+  "ops_kasse_tom_beskjed": "Clear the note",
+  "cus_bet_tittel": "Payment",
+  "cus_bet_linje": "Vipps is the standard. A saved card pays an assistant's request when you chose «Saved card» — after you confirm, with Face ID or your code first.",
+  "cus_bet_lagrede": "Saved cards",
+  "cus_bet_ingen": "No saved cards yet.",
+  "cus_bet_legg_til": "Add card",
+  "cus_bet_standard": "Default",
+  "cus_bet_bruk_som_standard": "Use as default",
+  "cus_bet_slett": "Remove",
+  "cus_bet_avbryt": "Cancel",
+  "cus_bet_slett_sporsmal": "Remove {kort}?",
+  "@cus_bet_slett_sporsmal": {
+    "placeholders": {
+      "kort": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_bet_utloper": "expires {mm}/{yy}",
+  "@cus_bet_utloper": {
+    "placeholders": {
+      "mm": {
+        "type": "String"
+      },
+      "yy": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_bet_lagt_til": "Card added.",
+  "cus_bet_avbrutt": "Nothing added.",
+  "cus_bet_feil": "Could not reach the card service. Try again.",
+  "cus_bet_stripe_info": "Stored by Stripe. Ærend never sees the card number.",
+  "cus_ai_lagret_kort_hint": "Charged on your default card under Meg → Payment after you confirm — Face ID or your code first.",
+  "cus_ai_lagret_kort_mangler": "No saved card yet — add one under Meg → Payment; until then the card sheet opens."
 }
