@@ -487,6 +487,66 @@ class FakeAegilApi implements AegilAppApi {
   @override
   Future<WeeklyView?> weekly() async => weeklyValue;
 
+  // Customer v2 Step 6: «Fast ukeshandel».
+  StandingView? standingValue;
+  String? standingUrl;
+  String? standingFeil;
+  /// What `sync` answers (null: the current value).
+  StandingView? syncedValue;
+
+  StandingView _standingMed(String state, {String? reason}) {
+    final s = standingValue!;
+    return StandingView(id: s.id, state: state, scheduleDow: s.scheduleDow, scheduleDay: s.scheduleDay, window: s.window, cap: s.cap, capKr: s.capKr, paymentMethod: s.paymentMethod, pauseReason: reason, consentVersion: s.consentVersion, agreementState: s.agreementState, confirmationUrl: s.confirmationUrl, nextCutoffLine: s.nextCutoffLine, run: s.run, line: s.line);
+  }
+
+  @override
+  Future<StandingView?> standing() async {
+    calls.add('standing');
+    return standingValue;
+  }
+
+  @override
+  Future<({StandingView? standing, String? confirmationUrl, String? feil})> standingCreate({required int scheduleDow, required String window, required int capKr, required String paymentMethod, String? paymentMethodId, required String consentVersion}) async {
+    calls.add('standing-create:$scheduleDow:$window:$capKr:$paymentMethod:$consentVersion');
+    if (standingFeil != null) return (standing: null, confirmationUrl: null, feil: standingFeil);
+    standingValue = StandingView(id: 1, state: paymentMethod == 'card' ? 'active' : 'pending', scheduleDow: scheduleDow, scheduleDay: 'torsdag', window: window, cap: '$capKr kr', capKr: capKr, paymentMethod: paymentMethod, consentVersion: consentVersion, agreementState: paymentMethod == 'card' ? null : 'pending', confirmationUrl: standingUrl, nextCutoffLine: 'onsdag 20:00', line: 'torsdag kl. 17–20 · inntil $capKr kr');
+    return (standing: standingValue, confirmationUrl: standingUrl, feil: null);
+  }
+
+  @override
+  Future<StandingView?> standingUpdate({int? scheduleDow, String? window, int? capKr}) async {
+    calls.add('standing-update:${scheduleDow ?? '-'}:${window ?? '-'}:${capKr ?? '-'}');
+    return standingValue;
+  }
+
+  @override
+  Future<StandingView?> standingSync() async {
+    calls.add('standing-sync');
+    if (syncedValue != null) standingValue = syncedValue;
+    return standingValue;
+  }
+
+  @override
+  Future<({StandingView? standing, String? feil})> standingPause() async {
+    calls.add('standing-pause');
+    standingValue = _standingMed('paused', reason: 'customer');
+    return (standing: standingValue, feil: null);
+  }
+
+  @override
+  Future<({StandingView? standing, String? feil})> standingResume() async {
+    calls.add('standing-resume');
+    standingValue = _standingMed('active');
+    return (standing: standingValue, feil: null);
+  }
+
+  @override
+  Future<({StandingView? standing, String? feil})> standingEnd() async {
+    calls.add('standing-end');
+    standingValue = null;
+    return (standing: null, feil: null);
+  }
+
   @override
   Future<({WeeklyOrder? weekly, String? feil})> buildWeekly({bool force = false}) async {
     calls.add('weekly-build${force ? ':force' : ''}');

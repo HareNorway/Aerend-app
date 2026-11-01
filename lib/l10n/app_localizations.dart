@@ -14491,6 +14491,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No saved card yet — add one under Meg → Payment; until then the card sheet opens.'**
   String get cus_ai_lagret_kort_mangler;
+
+  /// No description provided for @standing_order_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Standing weekly shop'**
+  String get standing_order_title;
+
+  /// No description provided for @standing_order_notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil builds the week\'s basket. You get a notice with the items and the total before anything is charged, and can change it until Wednesday 20:00. Pause or end any time.'**
+  String get standing_order_notice;
+
+  /// No description provided for @standing_order_pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get standing_order_pause;
+
+  /// No description provided for @standing_order_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get standing_order_cancel;
+
+  /// No description provided for @cus_fast_fortsett.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get cus_fast_fortsett;
+
+  /// No description provided for @cus_fast_sett_opp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get cus_fast_sett_opp;
+
+  /// No description provided for @cus_fast_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the weekly shop'**
+  String get cus_fast_start;
+
+  /// No description provided for @cus_fast_dag.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery day'**
+  String get cus_fast_dag;
+
+  /// No description provided for @cus_fast_vindu.
+  ///
+  /// In en, this message translates to:
+  /// **'Time window'**
+  String get cus_fast_vindu;
+
+  /// No description provided for @cus_fast_tak.
+  ///
+  /// In en, this message translates to:
+  /// **'Cap per week'**
+  String get cus_fast_tak;
+
+  /// No description provided for @cus_fast_betaling.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get cus_fast_betaling;
+
+  /// No description provided for @cus_fast_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Vipps agreement'**
+  String get cus_fast_vipps;
+
+  /// No description provided for @cus_fast_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved card'**
+  String get cus_fast_kort;
+
+  /// No description provided for @cus_fast_samtykke.
+  ///
+  /// In en, this message translates to:
+  /// **'I want a standing weekly shop: Ærend charges the week\'s basket after the notice, until I pause or end it. No hidden renewal.'**
+  String get cus_fast_samtykke;
+
+  /// No description provided for @cus_fast_samtykke_kreves.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the consent first.'**
+  String get cus_fast_samtykke_kreves;
+
+  /// No description provided for @cus_fast_venter_tittel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the agreement in Vipps'**
+  String get cus_fast_venter_tittel;
+
+  /// No description provided for @cus_fast_venter_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'The agreement starts once you have confirmed in Vipps. Come back here afterwards.'**
+  String get cus_fast_venter_linje;
+
+  /// No description provided for @cus_fast_aapne_vipps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Vipps'**
+  String get cus_fast_aapne_vipps;
+
+  /// No description provided for @cus_fast_sjekk.
+  ///
+  /// In en, this message translates to:
+  /// **'I have confirmed'**
+  String get cus_fast_sjekk;
+
+  /// No description provided for @cus_fast_ikke_aktiv_enna.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed yet – open Vipps and try again.'**
+  String get cus_fast_ikke_aktiv_enna;
+
+  /// No description provided for @cus_fast_neste.
+  ///
+  /// In en, this message translates to:
+  /// **'Next weekly shop'**
+  String get cus_fast_neste;
+
+  /// No description provided for @cus_fast_neste_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil builds the basket on Monday; the notice comes Tuesday evening.'**
+  String get cus_fast_neste_ingen;
+
+  /// No description provided for @cus_fast_endre.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get cus_fast_endre;
+
+  /// No description provided for @cus_fast_run_noticed.
+  ///
+  /// In en, this message translates to:
+  /// **'{total} – change until {cutoff}'**
+  String cus_fast_run_noticed(String total, String cutoff);
+
+  /// No description provided for @cus_fast_run_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked – ordered on the delivery day'**
+  String get cus_fast_run_locked;
+
+  /// No description provided for @cus_fast_run_placed.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered · payment follows'**
+  String get cus_fast_run_placed;
+
+  /// No description provided for @cus_fast_run_paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered and paid'**
+  String get cus_fast_run_paid;
+
+  /// No description provided for @cus_fast_run_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment did not go through'**
+  String get cus_fast_run_failed;
+
+  /// No description provided for @cus_fast_run_skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped this week'**
+  String get cus_fast_run_skipped;
+
+  /// No description provided for @cus_fast_pauset.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused – nothing is ordered or charged.'**
+  String get cus_fast_pauset;
+
+  /// No description provided for @cus_fast_betaling_feilet.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment did not go through. Check Vipps or your card, then tap Continue.'**
+  String get cus_fast_betaling_feilet;
+
+  /// No description provided for @cus_fast_avslutt_sporsmal.
+  ///
+  /// In en, this message translates to:
+  /// **'End the standing weekly shop?'**
+  String get cus_fast_avslutt_sporsmal;
+
+  /// No description provided for @cus_fast_avslutt_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'The Vipps agreement is stopped and nothing more is charged. You can set up a new one later.'**
+  String get cus_fast_avslutt_linje;
+
+  /// No description provided for @cus_fast_avsluttet.
+  ///
+  /// In en, this message translates to:
+  /// **'The standing weekly shop has ended.'**
+  String get cus_fast_avsluttet;
+
+  /// No description provided for @cus_fast_pauset_toast.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused.'**
+  String get cus_fast_pauset_toast;
+
+  /// No description provided for @cus_fast_fortsatt_toast.
+  ///
+  /// In en, this message translates to:
+  /// **'The weekly shop continues.'**
+  String get cus_fast_fortsatt_toast;
+
+  /// No description provided for @cus_fast_startet.
+  ///
+  /// In en, this message translates to:
+  /// **'The standing weekly shop is on.'**
+  String get cus_fast_startet;
+
+  /// No description provided for @cus_fast_feil.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not set up the weekly shop. Try again.'**
+  String get cus_fast_feil;
+
+  /// No description provided for @cus_fast_avbryt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cus_fast_avbryt;
+
+  /// No description provided for @cus_fast_ingen_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a card under Me → Payment first.'**
+  String get cus_fast_ingen_kort;
+
+  /// No description provided for @cus_fast_avbryt_oppsett.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel the setup'**
+  String get cus_fast_avbryt_oppsett;
+
+  /// No description provided for @cus_fast_paa.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get cus_fast_paa;
+
+  /// No description provided for @cus_fast_pause_merke.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get cus_fast_pause_merke;
+
+  /// No description provided for @cus_fast_kr.
+  ///
+  /// In en, this message translates to:
+  /// **'{kr} kr'**
+  String cus_fast_kr(int kr);
+
+  /// No description provided for @cus_fast_dager.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'**
+  String get cus_fast_dager;
 }
 
 class _AppLocalizationsDelegate

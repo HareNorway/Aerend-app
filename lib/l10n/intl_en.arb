@@ -5129,5 +5129,67 @@
   "cus_bet_feil": "Could not reach the card service. Try again.",
   "cus_bet_stripe_info": "Stored by Stripe. Ærend never sees the card number.",
   "cus_ai_lagret_kort_hint": "Charged on your default card under Meg → Payment after you confirm — Face ID or your code first.",
-  "cus_ai_lagret_kort_mangler": "No saved card yet — add one under Meg → Payment; until then the card sheet opens."
+  "cus_ai_lagret_kort_mangler": "No saved card yet — add one under Meg → Payment; until then the card sheet opens.",
+  "standing_order_title": "Standing weekly shop",
+  "standing_order_notice": "Ægil builds the week's basket. You get a notice with the items and the total before anything is charged, and can change it until Wednesday 20:00. Pause or end any time.",
+  "standing_order_pause": "Pause",
+  "standing_order_cancel": "End",
+  "cus_fast_fortsett": "Continue",
+  "cus_fast_sett_opp": "Set up",
+  "cus_fast_start": "Start the weekly shop",
+  "cus_fast_dag": "Delivery day",
+  "cus_fast_vindu": "Time window",
+  "cus_fast_tak": "Cap per week",
+  "cus_fast_betaling": "Payment",
+  "cus_fast_vipps": "Vipps agreement",
+  "cus_fast_kort": "Saved card",
+  "cus_fast_samtykke": "I want a standing weekly shop: Ærend charges the week's basket after the notice, until I pause or end it. No hidden renewal.",
+  "cus_fast_samtykke_kreves": "Tick the consent first.",
+  "cus_fast_venter_tittel": "Confirm the agreement in Vipps",
+  "cus_fast_venter_linje": "The agreement starts once you have confirmed in Vipps. Come back here afterwards.",
+  "cus_fast_aapne_vipps": "Open Vipps",
+  "cus_fast_sjekk": "I have confirmed",
+  "cus_fast_ikke_aktiv_enna": "Not confirmed yet – open Vipps and try again.",
+  "cus_fast_neste": "Next weekly shop",
+  "cus_fast_neste_ingen": "Ægil builds the basket on Monday; the notice comes Tuesday evening.",
+  "cus_fast_endre": "Edit",
+  "cus_fast_run_noticed": "{total} – change until {cutoff}",
+  "@cus_fast_run_noticed": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "cutoff": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_fast_run_locked": "Locked – ordered on the delivery day",
+  "cus_fast_run_placed": "Ordered · payment follows",
+  "cus_fast_run_paid": "Ordered and paid",
+  "cus_fast_run_failed": "The payment did not go through",
+  "cus_fast_run_skipped": "Skipped this week",
+  "cus_fast_pauset": "Paused – nothing is ordered or charged.",
+  "cus_fast_betaling_feilet": "The payment did not go through. Check Vipps or your card, then tap Continue.",
+  "cus_fast_avslutt_sporsmal": "End the standing weekly shop?",
+  "cus_fast_avslutt_linje": "The Vipps agreement is stopped and nothing more is charged. You can set up a new one later.",
+  "cus_fast_avsluttet": "The standing weekly shop has ended.",
+  "cus_fast_pauset_toast": "Paused.",
+  "cus_fast_fortsatt_toast": "The weekly shop continues.",
+  "cus_fast_startet": "The standing weekly shop is on.",
+  "cus_fast_feil": "Could not set up the weekly shop. Try again.",
+  "cus_fast_avbryt": "Cancel",
+  "cus_fast_ingen_kort": "Add a card under Me → Payment first.",
+  "cus_fast_avbryt_oppsett": "Cancel the setup",
+  "cus_fast_paa": "On",
+  "cus_fast_pause_merke": "Paused",
+  "cus_fast_kr": "{kr} kr",
+  "@cus_fast_kr": {
+    "placeholders": {
+      "kr": {
+        "type": "int"
+      }
+    }
+  },
+  "cus_fast_dager": "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"
 }

@@ -718,6 +718,100 @@ class WeeklyConfirmResult {
   }
 }
 
+// Customer v2 Step 6: «Fast ukeshandel» (`agent/me/standing`, Customer v2 Step 5).
+
+/// One week of the standing order: the notice, the lock, the orders, paid / failed / skipped.
+class StandingRunView {
+  const StandingRunView({required this.id, this.week = '', this.state = '', this.reason, this.total = '', this.lineCount = 0, this.deliveryAt, this.cutoffAt, this.orderIds = const []});
+
+  final int id;
+  final String week;
+  final String state;
+  final String? reason;
+  final String total;
+  final int lineCount;
+  final String? deliveryAt;
+  final String? cutoffAt;
+  final List<int> orderIds;
+
+  factory StandingRunView.fromJson(Map<String, dynamic> j) => StandingRunView(
+    id: (j['id'] as num?)?.toInt() ?? 0, week: '${j['week'] ?? ''}', state: '${j['state'] ?? ''}', reason: j['reason'] as String?,
+    total: _display(j['total']), lineCount: (j['line_count'] as num?)?.toInt() ?? 0, deliveryAt: j['delivery_at'] as String?, cutoffAt: j['cutoff_at'] as String?,
+    orderIds: ((j['order_ids'] as List?) ?? const []).map((e) => (e as num).toInt()).toList(),
+  );
+}
+
+/// `GET agent/me/standing`: the standing order, its agreement, the coming cut-off and the week's run.
+class StandingView {
+  const StandingView({
+    required this.id,
+    this.state = 'pending',
+    this.scheduleDow = 4,
+    this.scheduleDay = '',
+    this.window = '17-20',
+    this.cap = '',
+    this.capKr = 0,
+    this.paymentMethod = 'vipps_recurring',
+    this.pauseReason,
+    this.consentVersion = '',
+    this.agreementState,
+    this.confirmationUrl,
+    this.nextCutoffLine = '',
+    this.nextDeliveryAt,
+    this.nextNoticeAt,
+    this.run,
+    this.line = '',
+  });
+
+  final int id;
+  final String state;
+  final int scheduleDow;
+  final String scheduleDay;
+  final String window;
+  final String cap;
+  final int capKr;
+  final String paymentMethod;
+  final String? pauseReason;
+  final String consentVersion;
+  final String? agreementState;
+  final String? confirmationUrl;
+  final String nextCutoffLine;
+  final String? nextDeliveryAt;
+  final String? nextNoticeAt;
+  final StandingRunView? run;
+  final String line;
+
+  bool get pending => state == 'pending';
+  bool get active => state == 'active';
+  bool get paused => state == 'paused';
+  bool get paymentFailed => paused && pauseReason == 'payment_failed';
+
+  factory StandingView.fromJson(Map<String, dynamic> j) {
+    final next = (j['next'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final agreement = (j['agreement'] as Map?)?.cast<String, dynamic>();
+    final cap = (j['cap'] as Map?)?.cast<String, dynamic>();
+    return StandingView(
+      id: (j['id'] as num?)?.toInt() ?? 0,
+      state: '${j['state'] ?? 'pending'}',
+      scheduleDow: (j['schedule_dow'] as num?)?.toInt() ?? 4,
+      scheduleDay: '${j['schedule_day'] ?? ''}',
+      window: '${j['window'] ?? ''}',
+      cap: _display(j['cap']),
+      capKr: ((cap?['amount_ore'] as num?)?.toInt() ?? 0) ~/ 100,
+      paymentMethod: '${j['payment_method'] ?? 'vipps_recurring'}',
+      pauseReason: j['pause_reason'] as String?,
+      consentVersion: '${j['consent_version'] ?? ''}',
+      agreementState: agreement?['state'] as String?,
+      confirmationUrl: agreement?['confirmation_url'] as String?,
+      nextCutoffLine: '${next['cutoff_line'] ?? ''}',
+      nextDeliveryAt: next['delivery_at'] as String?,
+      nextNoticeAt: next['notice_at'] as String?,
+      run: j['run'] is Map ? StandingRunView.fromJson((j['run'] as Map).cast<String, dynamic>()) : null,
+      line: '${j['line'] ?? ''}',
+    );
+  }
+}
+
 // Customer Step 9: the customer agents C1 (gift), C3 (reorder by photo),
 // C4 (door interpretation) — `agent/me/gifts/*`, `me/reorder/*`, `me/door/*`.
 

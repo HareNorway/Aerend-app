@@ -53,6 +53,7 @@ abstract final class AeInnstCopy {
         ];
   static String get endreMerke => _t('Endre', 'Edit');
   static String get kommerSnart => _t('Kommer snart', 'Coming soon');
+  static String get settOpp => _t('Sett opp', 'Set up');
   static String get snartToast => _t('Fast bestilling kommer snart · vi sier fra når det er klart', 'Standing orders are coming soon · we will let you know');
   // D-K20: a level above the rollout cap (`LEVEL_ABOVE_MAX`), and the level
   // Ægil acts at when the cap is below the one chosen.
@@ -110,11 +111,13 @@ typedef AeInnstEndre = Future<void> Function(Map<String, dynamic> endring, {Stri
 /// The rows of «Innstillinger for Ægil»: «1 · Hvor mye kan Ægil gjøre» with
 /// the levels, «2 · Rammer» and «3 · Hva Ægil kan bruke».
 class AegilInnstListe extends StatefulWidget {
-  const AegilInnstListe({super.key, required this.settings, required this.levels, required this.onEndre, required this.onButikker});
+  const AegilInnstListe({super.key, required this.settings, required this.levels, required this.onEndre, required this.onButikker, this.onFast});
 
   final AegilSettings settings;
   final List<AegilLevel> levels;
   final AeInnstEndre onEndre;
+  /// Customer v2 Step 6: opens «Fast ukeshandel» from the level-4 row (null: «Kommer snart»).
+  final VoidCallback? onFast;
 
   /// «Butikker Ægil kan bruke» (needs the favourites).
   final VoidCallback onButikker;
@@ -209,10 +212,11 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
               tileTx: '4',
               navn: AeInnstCopy.navn[4],
               under: AeInnstCopy.hva[4],
-              snart: s.level < 4,
+              // Customer v2 Step 6: with «Fast ukeshandel» live (cus.aegil.level4) the row opens its own screen.
+              snart: widget.onFast == null && s.level < 4,
               valgt: s.level >= 4 && !s.paused,
-              verdi: s.level < 4 ? AeInnstCopy.kommerSnart : null,
-              onTap: () => LfToast.show(context, AeInnstCopy.snartToast),
+              verdi: s.level < 4 ? (widget.onFast == null ? AeInnstCopy.kommerSnart : AeInnstCopy.settOpp) : null,
+              onTap: widget.onFast ?? () => LfToast.show(context, AeInnstCopy.snartToast),
             ),
           )
         else if (i >= 2 && !s.tillatt(i) && i != vis)

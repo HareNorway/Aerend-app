@@ -44,4 +44,9 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
       '/bergen/meg/konto': (_) => const KontoScreen(),
       '/bergen/meg/bestillinger': (_) => const BestillingerScreen(),
       '/bergen/meg/varsler': (_) => BergenVidere((nav) => HjemVarsler.apne(nav.context)),
+      // Customer v2 Step 6: the standing order's Varsler deep link → Meg with Ukeshandel open.
+      '/bergen/meg/ukeshandel': (_) => BergenVidere((nav) {
+            MegApne.ukeshandel = 'kurv';
+            BergenVidere.tilMeg(nav);
+          }),
     };
