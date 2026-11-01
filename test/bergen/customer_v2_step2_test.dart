@@ -80,11 +80,13 @@ void main() {
     HjemHarness.aiStart = null;
   });
 
-  testWidgets('the marks are text, never a logo image (D2-9)', (tester) async {
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Row(children: [const AiMerke('Claude'), const AiMerke('ChatGPT'), HjemAiMerker(onTap: () {})]))));
-    expect(find.byType(Image), findsNothing);
-    expect(find.text('Cl'), findsNWidgets(2));
-    expect(find.text('Ch'), findsNWidgets(2));
+  testWidgets('Claude and ChatGPT carry their logos, Gemini and Siri their letters (the onboarding design, 2026-11-01)', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Row(children: [const AiMerke('Claude'), const AiMerke('ChatGPT'), const AiMerke('Gemini'), const AiMerke('Siri'), HjemAiMerker(onTap: () {})]))));
+    final logos = tester.widgetList<Image>(find.byType(Image)).map((i) => (i.image as AssetImage).assetName).toList()..sort();
+    expect(logos, ['assets/images/ai/chatgpt.png', 'assets/images/ai/chatgpt.png', 'assets/images/ai/claude.png', 'assets/images/ai/claude.png']);
+    expect(find.text('Cl'), findsNothing);
+    expect(find.text('Ge'), findsOneWidget);
+    expect(find.text('Si'), findsOneWidget);
   });
 
   testWidgets('the entry: the privacy line, «Kopier kobling» makes the code once, the QR opens inline', (tester) async {
