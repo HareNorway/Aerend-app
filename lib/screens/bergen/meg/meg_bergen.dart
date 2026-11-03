@@ -956,8 +956,9 @@ class _MegLoggUtState extends State<MegLoggUt> {
   void _start() {
     setState(() => _sporr = true);
     _tilbake?.cancel();
-    // `lgStart`: the question falls back after 8 s.
-    _tilbake = Timer(const Duration(seconds: 8), () {
+    // `lgStart`: the question falls back after a while (8 s in the design; 15 s since the 03 test pass, CUS-D13 c —
+    // 8 s was too short to scroll the card up and answer).
+    _tilbake = Timer(const Duration(seconds: 15), () {
       if (mounted && !_jobber) setState(() => _sporr = false);
     });
   }

@@ -18,6 +18,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:aerend_customer/commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import 'package:aerend_customer/commonView/logout_curtain.dart';
 import 'package:aerend_customer/screens/bergen/kit/live_aerend.dart' show hjemLiveOrdre, liveApner;
+import 'package:aerend_customer/screens/bergen/hjem/hjem_varsler.dart' show HjemVarsler;
+import 'package:aerend_customer/screens/bergen/hurtig/hurtig_data.dart' show HurtigKilde;
+import 'package:aerend_customer/screens/bergen/ai/ai_store.dart' show AiStore;
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -752,6 +755,10 @@ logout(BuildContext context) async {
     // not inherit it (its Sporing would answer «Fant ikke bestillingen»).
     hjemLiveOrdre.value = null;
     liveApner.value = false;
+    // 03 test pass (CUS-B10 b): the bell's count and Hurtigbestilling's line are this user's too.
+    HjemVarsler.uleste.value = 0;
+    HurtigKilde.nullstill();
+    AiStore.instance.reset();
     // Zero-duration opaque swap onto the same navy surface the curtain paints —
     // a Cupertino slide would drag the purple repaint across the screen instead.
     openScreenWithClearPreviousHandoff(context, const Splash());

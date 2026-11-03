@@ -251,7 +251,8 @@ void main() {
                 mode == 'pickup'
                     ? 'a1_sporing_kort_hentklar'
                     : 'a1_sporing_kort_paavei',
-              _ => 'a1_sporing_kort_levert',
+              // 03 test pass (CUS-A22): a pickup order ends at the counter.
+              _ => mode == 'pickup' ? 'a1_sporing_kort_hentet' : 'a1_sporing_kort_levert',
             };
             expect(
               find.byKey(Key(cardKey)),

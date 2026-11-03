@@ -34,7 +34,7 @@ import 'betaling_screen.dart';
 import '../../common/manageAddress/add_new_address.dart';
 import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/notifications/notifications_dl.dart';
-import '../../../utils/utils.dart' show setChangedLanguage, logout;
+import '../../../utils/utils.dart' show setChangedLanguage, logout, isLoggedIn;
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeatherLook;
 import '../aegil/aegil_bits.dart';
@@ -1149,7 +1149,12 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                               ),
                               ],
                               // --- Logg ut (L7630–7648) -----------------------------------
-                              MegLoggUt(konto: MegB8Copy.loggetInn(_firstName, _kontakt), onLoggUt: _loggUt),
+                              // 03 test pass: only for a logged-in customer (CUS-B10 b), and with room under it so the
+                              // confirm card can be scrolled clear of the floating nav bar's touch area (CUS-D13 c).
+                              if (isLoggedIn()) ...[
+                                MegLoggUt(konto: MegB8Copy.loggetInn(_firstName, _kontakt), onLoggUt: _loggUt),
+                                const SizedBox(height: 120),
+                              ],
                             ],
                           )),
                   ),

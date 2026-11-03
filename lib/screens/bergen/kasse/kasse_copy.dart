@@ -117,6 +117,7 @@ abstract final class KasseCopy {
   static String a1_kasse_betal(String kr) => languages.ops_kasse_betal(kr);
   static String get a1_kasse_betal_vipps => languages.ops_kasse_betal_vipps;
   static String a1_kasse_min_ordre(String kr) => languages.ops_kasse_min_ordre(kr);
+  static String a1_kasse_min_mangler(String kr) => _t('Mangler $kr', '$kr short');
   static String get a1_kasse_velg_adresse_forst => languages.ops_kasse_velg_adresse_forst;
   static String get a1_kasse_utenfor => languages.ops_kasse_utenfor;
   static String get a1_kasse_utenfor_line => languages.ops_kasse_utenfor_line;

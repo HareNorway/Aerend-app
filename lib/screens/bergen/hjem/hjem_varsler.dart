@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../exceptions/feed/feed_api_exception.dart';
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/ops/tracking_models.dart';
 import '../../../networking/feed/feed_repo.dart';
@@ -71,6 +72,7 @@ abstract final class VarslerCopy {
   static const ikkeSlike = 'Ikke slike varsler';
   static const fjern = 'Fjern';
   static const angre = 'Angre';
+  static const ikkeIUtforsk = 'Butikken er ikke i Utforsk ennå';
   static const dempet = 'Skrudde av slike varsler';
   static const folg = 'Følg', folger = 'Følger', seMeny = 'Se meny';
   static String fjernet(String tittel) => 'Fjernet: $tittel';
@@ -539,6 +541,9 @@ class _VarslerPanelState extends State<VarslerPanel> {
     });
   }
 
+  /// 03 test pass (CUS-B05): stores the feed answered «store_not_found» for — «Følg» is hidden on their cards.
+  final Set<int> _utenFeed = {};
+
   Future<void> _folg(Varsel v) async {
     final id = v.storeId;
     if (id == null) return;
@@ -550,10 +555,14 @@ class _VarslerPanelState extends State<VarslerPanel> {
       } else {
         await FeedRepo().followStore('$id');
       }
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      setState(() => pa ? _folger.add(id) : _folger.remove(id));
-      showBergenToast(context, BergenRoutes.ikkeSendt);
+      final ukjent = e is FeedApiException && (e.code == 'store_not_found' || e.statusCode == 404);
+      setState(() {
+        pa ? _folger.add(id) : _folger.remove(id);
+        if (ukjent) _utenFeed.add(id);
+      });
+      showBergenToast(context, ukjent ? VarslerCopy.ikkeIUtforsk : BergenRoutes.ikkeSendt);
     }
   }
 
@@ -825,7 +834,7 @@ class _VarslerPanelState extends State<VarslerPanel> {
                           onTap: () => _apneKort(v),
                           onHandling: () => _handling(v),
                           folger: v.storeId != null && _folger.contains(v.storeId),
-                          onFolg: () => _folg(v),
+                          onFolg: v.storeId != null && _utenFeed.contains(v.storeId) ? null : () => _folg(v),
                           onSeMeny: () => _seMeny(v),
                         ),
                       ),
@@ -1272,10 +1281,13 @@ class _Kort extends StatelessWidget {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Expanded(
-                    child: _RikKnapp(key: const Key('varsel-folg'), tekst: folger ? VarslerCopy.folger : VarslerCopy.folg, oransje: folger, onTap: onFolg ?? () {}),
-                  ),
-                  const SizedBox(width: 8),
+                  // 03 test pass (CUS-B05): no «Følg» for a store the feed does not know yet (onFolg null).
+                  if (onFolg != null) ...[
+                    Expanded(
+                      child: _RikKnapp(key: const Key('varsel-folg'), tekst: folger ? VarslerCopy.folger : VarslerCopy.folg, oransje: folger, onTap: onFolg!),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   Expanded(
                     child: _RikKnapp(key: const Key('varsel-se-meny'), tekst: VarslerCopy.seMeny, onTap: onSeMeny ?? onTap),
                   ),

@@ -336,7 +336,9 @@ class KvRad extends StatelessWidget {
         builder: (context, box) => Row(
           children: [
             ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: box.maxWidth * .6),
+              // 60 % + 40 % left no room for the two 8 px gaps: a long label next to a stamp overflowed
+              // (03 test pass, the minimum-order row).
+              constraints: BoxConstraints(maxWidth: (box.maxWidth * .6 - 16 * s).clamp(0.0, double.infinity)),
               child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: kvMono(context, 12.5)),
             ),
             SizedBox(width: 8 * s),

@@ -111,7 +111,9 @@ abstract final class BergenCart {
 
   /// Push the count into the shell's nav pill when the shell is an ancestor.
   static void syncBadge(BuildContext context, [int? count]) {
-    final shell = context.findAncestorStateOfType<HomeMainV1State>();
+    // 03 test pass (CUS-A18): a screen pushed over the shell (Kassen from a store, Sporing) has no shell above it —
+    // the shell itself is the fallback, or the badge kept the paid basket's «3 varer».
+    final shell = context.findAncestorStateOfType<HomeMainV1State>() ?? HomeMainV1State.current;
     if (shell != null) {
       shell.badgeCountNotifier.value = count ?? prefGetInt(prefCartCount);
     }

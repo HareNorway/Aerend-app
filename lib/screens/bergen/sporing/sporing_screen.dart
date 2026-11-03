@@ -252,6 +252,17 @@ class _SporingScreenState extends State<SporingScreen> {
     });
   }
 
+  /// 03 test pass (CUS-A38 b): back — a Sporing opened on its own (a shortcut, a cold-started link) has nothing under
+  /// it, so back goes to Hjem instead of doing nothing (and Android back no longer closes the app).
+  void _tilbake() {
+    final nav = Navigator.of(context);
+    if (nav.canPop()) {
+      nav.pop();
+      return;
+    }
+    nav.pushAndRemoveUntil(MaterialPageRoute<void>(builder: (_) => const HomeMainV1(homeIndex: 0)), (_) => false);
+  }
+
   /// «Avslutt bestillingen»: back to Hjem (the separate «Levert» page is gone).
   void _avslutt() {
     final nav = Navigator.of(context);
@@ -319,6 +330,8 @@ class _SporingScreenState extends State<SporingScreen> {
     if (!mounted) return;
     final v = n.wait?.window ?? '';
     showBergenToast(context, res == null ? BergenRoutes.ikkeSendt : (v.isEmpty ? SporingCopy.a1_sporing_venter : SporingCopy.cus_varsel_venter(v)));
+    // 03 test pass (CUS-A31): the server has moved the promise to the accepted window — show it now.
+    if (res != null && res['recorded'] == true) await _refresh();
   }
 
   /// The notice's «Avbestill» (policy `full_refund` before pickup): the existing cancel.
@@ -663,7 +676,13 @@ class _SporingScreenState extends State<SporingScreen> {
         ),
       );
     }
-    return Scaffold(
+    return PopScope(
+      // 03 test pass (CUS-A38 b): Android back on a lone Sporing goes to Hjem instead of closing the app.
+      canPop: Navigator.of(context).canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _tilbake();
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFF173E48),
       resizeToAvoidBottomInset: false,
       body: LfFrame(
@@ -679,6 +698,7 @@ class _SporingScreenState extends State<SporingScreen> {
           child: _skjerm(context, t),
         ),
       ),
+    ),
     );
   }
 
@@ -716,7 +736,14 @@ class _SporingScreenState extends State<SporingScreen> {
       vindu: t.hasWindow ? t.windowText : null,
       klokke: _levertKl == null ? null : spKlokke(_levertKl!),
     );
-    final linje = t.isCancelled ? SporingCopy.a1_sporing_avbestilt : lines[s];
+    // 03 test pass: a cancelled order says why and that the refund has started (CUS-A24); a delivery order the store
+    // has made ready no longer reads as cooking (C1).
+    final avbrudd = t.raw['cancellation'] is Map ? Map<String, dynamic>.from(t.raw['cancellation'] as Map) : null;
+    final linje = t.isCancelled
+        ? SporingCopy.avbestiltLinje(avbrudd?['reason'] as String?, avbrudd?['refund_text'] as String?)
+        : (!hent && t.state == 'ready')
+        ? SporingCopy.klarLinje(t.isPartner, t.store?.name)
+        : lines[s];
     final minutes = t.minutesLeft(DateTime.now());
     final gift = '${t.raw['gift_to'] ?? ''}';
     final budTop =
@@ -729,7 +756,7 @@ class _SporingScreenState extends State<SporingScreen> {
         // On the map the courier's pill keeps its place under «om N min».
         (kart ? topp : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
-    final slotVerv = _fersk && !_vervLukket && _vervKode != null;
+    final slotVerv = _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     // The design's stage 3, and (Customer Step 2) while the courier carries
     // the order with the code not yet used — when the courier scans it.
     final kodeUnderveis = !hent && s == 2 && (t.state == 'picked_up' || t.state == 'arrived_customer') && t.deliveryCode?.verifiedAt == null;
@@ -769,9 +796,10 @@ class _SporingScreenState extends State<SporingScreen> {
                   key: const Key('a1_sporing_kort_tilberedes'),
                   child: SpSceneKjokken(info: info),
                 ),
-                2 when hent => KeyedSubtree(
-                  key: const Key('a1_sporing_kort_hentklar'),
-                  child: SpSceneDisk(info: info),
+                // 03 test pass (CUS-A22): a pickup order ends at the counter too — not at the house with SPART TID.
+                >= 2 when hent => KeyedSubtree(
+                  key: Key(s == 2 ? 'a1_sporing_kort_hentklar' : 'a1_sporing_kort_hentet'),
+                  child: SpSceneDisk(info: info, hentet: s >= 3),
                 ),
                 2 => KeyedSubtree(
                   key: const Key('a1_sporing_kort_paavei'),
@@ -796,10 +824,10 @@ class _SporingScreenState extends State<SporingScreen> {
               SpGlassKey(
                 key: const Key('a1_sporing_tilbake'),
                 semantics: SporingCopy.a1_sporing_tilbake_knapp,
-                onTap: () => Navigator.of(context).maybePop(),
+                onTap: _tilbake,
                 child: spIkon(kSpIkonTilbake, size: 16, width: 2.8),
               ),
-              _LivePill(navn: stadieNavn),
+              _LivePill(navn: stadieNavn, live: !t.isCancelled),
               SpGlassKey(
                 key: const Key('a1_sporing_hjelp_knapp'),
                 semantics: SporingCopy.a1_sporing_hjelp_knapp,
@@ -1036,9 +1064,12 @@ class _SporingScreenState extends State<SporingScreen> {
 /// The LIVE pill in the header: the flat Æ disc, «LIVE» with its pulse,
 /// the stage name.
 class _LivePill extends StatelessWidget {
-  const _LivePill({required this.navn});
+  const _LivePill({required this.navn, this.live = true});
 
   final String navn;
+
+  /// 03 test pass (CUS-A24 b): no «LIVE» pulse on a cancelled order.
+  final bool live;
 
   @override
   Widget build(BuildContext context) => CssBox(
@@ -1095,7 +1126,7 @@ class _LivePill extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                if (live) Row(
                   children: [
                     const SpPuls(
                       size: 7,

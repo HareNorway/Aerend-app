@@ -223,6 +223,12 @@ abstract final class HurtigKilde {
   static final ValueNotifier<HurtigData?> cache = ValueNotifier<HurtigData?>(null);
   static Future<HurtigData>? _inflight;
 
+  /// 03 test pass (CUS-B10 b): logout — the next user (or the guest) must not see this user's habits.
+  static void nullstill() {
+    cache.value = null;
+    _inflight = null;
+  }
+
   /// The data sources (tests swap them).
   static OpsCustomerApi Function() customer = () => OpsCustomerApi();
   static OpsKasseApi Function() kasse = () => OpsKasseApi();

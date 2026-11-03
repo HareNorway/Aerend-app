@@ -89,7 +89,14 @@ class BudChatTraad extends ChangeNotifier {
     _sendt.add(m);
     if (tekst.text.trim() == t) tekst.clear();
     notifyListeners();
-    final res = await api.contact(orderId, kind: 'message', message: t);
+    // 03 test pass (CUS-A28): offline, `contact` throws (it is not a guarded call) — that used to leave the line in
+    // the list as sent, cleared from the field and never sent. A throw is a failed send like a null answer.
+    Map<String, dynamic>? res;
+    try {
+      res = await api.contact(orderId, kind: 'message', message: t);
+    } catch (_) {
+      res = null;
+    }
     if (_lukket) return res != null;
     if (res == null) {
       _sendt.remove(m);
@@ -101,10 +108,15 @@ class BudChatTraad extends ChangeNotifier {
     return true;
   }
 
-  @override
-  void dispose() {
+  /// Stops the polling at once (the sheet is closing); [dispose] follows after the exit animation.
+  void stopp() {
     _lukket = true;
     _poll?.cancel();
+  }
+
+  @override
+  void dispose() {
+    stopp();
     tekst.dispose();
     super.dispose();
   }
@@ -145,7 +157,10 @@ Future<void> visBudChat(BuildContext context, {required int orderId, required Op
       ),
     );
   } finally {
-    traad.dispose();
+    // 03 test pass (CUS-A28 c): stop now, dispose after the sheet's exit animation — the closing sheet still
+    // listens to the thread and its field (the red `_dependents.isEmpty` screen on the way back from Sporing).
+    traad.stopp();
+    Future<void>.delayed(kArkLukkeTid, traad.dispose);
   }
 }
 

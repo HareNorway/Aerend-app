@@ -16,6 +16,7 @@ import '../../../data/ops/fee_quote.dart';
 import '../../../data/ops/kasse_models.dart';
 import '../../../services/customer/client_flags.dart';
 import '../../../networking/ops/ops_customer_api.dart';
+import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
 import '../../../utils/guest_auth_helper.dart';
 import '../../../utils/utils.dart';
@@ -254,10 +255,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   bool _outOfCoverage = false;
   int _quoteRetry = 0;
   Timer? _quoteTimer;
+
+  /// 03 test pass (CUS-A12, decided 2026-11-03): the delivery fee (øre) the customer last saw — on the first load and
+  /// after their own changes. A silent refresh (the quote ran out, the app came back) does not move it, so a higher fee
+  /// at payment shows «Ny total» first.
+  int? _feeSettOre;
+  int _linjerSett = -1;
+  int get _feeNaaOre => ((_preview?.deliveryCost ?? 0) * 100).round();
   AddressListItem? _address;
   bool _pickup = false;
   KasseSlot? _slot;
-  int _paymentType = 3;
+  /// 03 test pass (A12 retest): the customer's last choice is kept between Kassen visits (it went back to Vipps).
+  int _paymentType = prefGetInt(_prefBetaling) > 0 ? prefGetInt(_prefBetaling) : 3;
+  static const String _prefBetaling = 'kasse_betaling';
   int _tip = 0;
 
   /// Onboarding Step 7: tips «Eget beløp» (text as typed, '' = the chips rule).
@@ -420,6 +430,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
       _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
+    if (_feeSettOre == null || cart.lines.length != _linjerSett) {
+      _feeSettOre = _feeNaaOre;
+      _linjerSett = cart.lines.length;
+    }
     _afterQuote();
     if (_store?.id != cart.storeId) {
       final store = await (widget.butikkApi ?? OpsButikkApi()).store(cart.storeId);
@@ -547,18 +561,20 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     setState(() {
       _address = addresses.where((a) => a.addressId == id).firstOrNull ?? _address;
     });
-    await _requote();
+    await _requote(sett: true);
   }
 
   /// Customer v2 Step 1: the fee again for the address and the window (pricing spec §11 — «Address changed
   /// after quote: re-quote; if the fee rises the customer confirms»; Kassen shows the new fee before paying).
-  Future<void> _requote() async {
+  Future<void> _requote({bool sett = false}) async {
     final preview = await _api.preview(flex: _flex);
     if (!mounted) return;
     setState(() {
       _preview = preview ?? _preview;
       _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
     });
+    // [sett]: the customer changed the address or the window and sees the new fee now.
+    if (sett) _feeSettOre = _feeNaaOre;
     _afterQuote();
   }
 
@@ -578,6 +594,23 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         if (mounted) setState(() => _flexQuote = p?.feeQuote);
       });
     }
+  }
+
+  /// 03 test pass (CUS-B11): «Del dørnotatet med budene dine» saves the door profile on the server
+  /// (`me/door-profile`: the consent and this address's door line); off removes it. The toast only says it once the
+  /// server has it; a failure puts the switch back.
+  Future<void> _delDorProfil() async {
+    final paa = !_doorShared;
+    setState(() => _doorShared = paa);
+    final linje = _door.text.trim();
+    final ok = await CusApi().dorProfil(samtykke: paa, adresseId: _address?.addressId, dorLinje: paa && linje.isNotEmpty ? linje : null);
+    if (!mounted) return;
+    if (!ok) {
+      setState(() => _doorShared = !paa);
+      showBergenToast(context, BergenRoutes.ikkeSendt);
+      return;
+    }
+    showBergenToast(context, paa ? KasseCopy.a1_kasse_dor_delt : KasseCopy.a1_kasse_dor_ikke_delt);
   }
 
   bool get _flexOn => ClientFlags.on('pricing.flex_window') && !_pickup;
@@ -607,7 +640,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       setState(() => _slot = chosen);
       if (flex != _flex) {
         setState(() => _flex = flex);
-        await _requote();
+        await _requote(sett: true);
       }
     }
   }
@@ -652,7 +685,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   Future<void> _openBetaling() async {
     final chosen = await showBetalingSheet(context, selected: _paymentType);
-    if (chosen != null && mounted) setState(() => _paymentType = chosen);
+    if (chosen != null && mounted) {
+      setState(() => _paymentType = chosen);
+      prefSetInt(_prefBetaling, chosen);
+    }
   }
 
   /// `tilButikk`: back to the basket's store; an empty basket goes to Hjem.
@@ -727,6 +763,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       await _utenforDekning();
       return false;
     }
+    // 03 test pass (CUS-A12): the fee went up in a silent refresh since the customer last looked — «Ny total» first.
+    final sett = _feeSettOre;
+    final fq = _preview?.feeQuote;
+    if (!_pickup && sett != null && fq != null && _feeNaaOre > sett && _quoteRetry == 0) {
+      if (!await _bekreftNyTotal(sett, fq, cart)) return false;
+      if (!mounted) return false;
+      _feeSettOre = _feeNaaOre;
+    }
     final min = _preview?.minOrderAmount ?? 0;
     if (!_pickup && min > 0 && cart.subtotal < min) {
       showBergenToast(context, KasseCopy.a1_kasse_min_ordre(KasseCopy.kr(min)));
@@ -740,7 +784,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       _departing = true;
     });
     HapticFeedback.mediumImpact();
-    prefSetString(prefTip, '$_tip');
+    prefSetString(prefTip, '$_tipNaa');
     final response = await _api.placeOrder(
       storeId: cart.storeId,
       addressId: _pickup ? 0 : (_address?.addressId ?? 0),
@@ -749,7 +793,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       cartIds: [for (final l in cart.lines) l.cartId],
       note: _fullNote,
       scheduleDateTime: _slot?.scheduleDateTime,
-      tip: _tip.toDouble(),
+      tip: _tipNaa.toDouble(),
       quoteId: _pickup ? null : _preview?.feeQuote?.quoteId,
       flex: !_pickup && _flex,
     );
@@ -828,7 +872,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     } else if (mounted) {
       showBergenToast(context, KasseCopy.a1_kasse_vipps);
     }
-    return true;
+    // 03 test pass (CUS-A37 c / A18): Vipps finishes the order through its own return (the Vipps return screen), so
+    // the slider goes back here — a payment left in Vipps used to leave it stuck on «Slipp for å betale».
+    return false;
   }
 
   /// Card / Google Pay: Stripe's sheet here, then the API's re-check marks
@@ -882,7 +928,17 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       showBergenToast(context, KasseCopy.a1_kasse_betaling_venter);
       return false;
     }
-    setState(() => _placing = false);
+    // 03 test pass (CUS-A18): the basket is now an order — Kassen empties itself here, so coming back from Sporing
+    // shows the empty basket, not the paid lines with a stale «Gratis over» stamp and a slider stuck on «Slipp».
+    setState(() {
+      _placing = false;
+      _departing = false;
+      _cart = const KurvState();
+      _preview = null;
+      _feeSettOre = null;
+      _linjerSett = -1;
+    });
+    if (widget.embedded) kurvSkjulerNav.value = false;
     prefSetInt(prefCartCount, 0);
     BergenCart.syncBadge(context, 0);
     // Over Kassen, growing out of the slider (`betOvergang`); Kassen leaves
@@ -945,12 +1001,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   // ── build ──────────────────────────────────────────────────────────────
 
   double _delivery() => _pickup ? 0.0 : (_preview?.deliveryCost ?? 0);
+
+  /// 03 test pass (CUS-A14): a courier tip has no one to go to on a pickup order — it is neither shown nor charged.
+  int get _tipNaa => _pickup ? 0 : _tip;
+
+  /// 03 test pass (CUS-A13): the store's own «Gratis levering over» level from the preview (the one the price engine
+  /// applies), in kroner; 0 = none. Not `offerMinAmountKr`, which is the old «N kr off over Y» offer.
+  double get _gratisOver => _api.lastFreeDeliveryOverKr;
   double _fees() => (_preview?.taxCost ?? 0) + (_preview?.packagingCost ?? 0);
   double _discount() =>
       (_preview?.discountCost ?? 0) + (_preview?.promocodeDiscount ?? 0) + (_preview?.referDiscount ?? 0);
 
   double _total(KurvState cart) =>
-      (cart.subtotal + _delivery() + _fees() - _discount() + _tip).clamp(0, double.infinity);
+      (cart.subtotal + _delivery() + _fees() - _discount() + _tipNaa).clamp(0, double.infinity);
 
   @override
   Widget build(BuildContext context) {
@@ -1045,7 +1108,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               Positioned.fill(
                 child: AegilGuide(
                   skjerm: 'kurv',
-                  tips: aegilGuideTips('kurv', sum: cart.subtotal, gratisOver: _store?.offerMinAmountKr),
+                  tips: aegilGuideTips('kurv', sum: cart.subtotal, gratisOver: _gratisOver > 0 ? _gratisOver : null),
                   nav: widget.embedded && !hasCart,
                 ),
               ),
@@ -1109,7 +1172,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   /// cheapest item that closes the gap.
   ({String tekst, String cta, BergenMenuItem vare})? _motInteresse(KurvState cart) {
     final store = _store;
-    final terskel = store?.offerMinAmountKr ?? 0;
+    final terskel = _gratisOver;
     final fee = _delivery();
     if (store == null || _pickup || terskel <= 0 || fee <= 0) return null;
     final mangler = (terskel - cart.subtotal).ceil();
@@ -1141,11 +1204,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final doorVisible = _more && !_pickup;
     final antall = cart.lines.fold<int>(0, (a, l) => a + l.quantity);
     final mot = _motInteresse(cart);
-    final terskel = _store?.offerMinAmountKr ?? 0;
+    final terskel = _gratisOver;
     final vanligFrakt = _store?.deliveryChargeKr ?? 0;
     // KjopRule (`points.kjop_per_10kr`, 1 by default): whole 10 kr of the
-    // total; there is no rules read in the API, so the default rate is used.
-    final tilbake = (total / 10).floor();
+    // total; there is no rules read in the API, so the default rate is used. 03 test pass (CUS-A14 b): never on the
+    // courier tip — it is the courier's money.
+    final tilbake = ((total - _tipNaa) / 10).floor();
     final kode = 'Æ-${(cart.lines.first.cartId % 46656).toRadixString(36).toUpperCase().padLeft(3, '0')}';
 
     return Column(
@@ -1288,13 +1352,20 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       foer: vanligFrakt > 0 ? KasseCopy.kr(vanligFrakt) : null,
                     ),
             ),
+            // 03 test pass (CUS-A13 b): the store's minimum order, said before the slider instead of by the server.
+            if (!_pickup && (_preview?.minOrderAmount ?? 0) > cart.subtotal)
+              KvRad(
+                key: const Key('a1_kasse_min_ordre'),
+                label: KasseCopy.a1_kasse_min_ordre(KasseCopy.kr(_preview!.minOrderAmount)),
+                trailing: KvStempel(tekst: KasseCopy.a1_kasse_min_mangler(KasseCopy.kr(_preview!.minOrderAmount - cart.subtotal))),
+              ),
             if (fees > 0) KvRad(label: KasseCopy.a1_kasse_avgifter, value: KasseCopy.kr(fees)),
             if (discount > 0) KvRad(label: KasseCopy.a1_kasse_rabatt, value: '−${KasseCopy.kr(discount)}'),
-            if (_tip > 0)
+            if (_tipNaa > 0)
               KvRad(
                 key: const Key('a1_kasse_tips_rad'),
                 label: KasseCopy.a1_kasse_tips_rad,
-                value: KasseCopy.kr(_tip.toDouble()),
+                value: KasseCopy.kr(_tipNaa.toDouble()),
               ),
           ],
           notater: [
@@ -1338,13 +1409,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 child: KvDor(
                 controller: _door,
                 delt: _doorShared,
-                onDelt: () {
-                  setState(() => _doorShared = !_doorShared);
-                  showBergenToast(
-                    context,
-                    _doorShared ? KasseCopy.a1_kasse_dor_delt : KasseCopy.a1_kasse_dor_ikke_delt,
-                  );
-                },
+                onDelt: _delDorProfil,
                 kode: _codeAtDoor,
                 onKode: () => setState(() => _codeAtDoor = !_codeAtDoor),
                 // v3 §11.4.6 (Customer Step 11): a code order is never left at the door — without a receiver it goes back to the store.

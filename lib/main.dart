@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:app_links/app_links.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -241,6 +242,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       VippsLoginLinkHandler.bootstrap();
+      unawaited(_BergenLenker.start());
     });
   }
 
@@ -295,6 +297,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         store: widget.store,
         child: MaterialApp(
           navigatorKey: navigatorKey,
+          // 03 test pass (CUS-B15): the error beacons name the screen they came from.
+          navigatorObservers: [CusSkjermObserver()],
           scaffoldMessengerKey: rootScaffoldMessengerKey,
           theme: ScSaasTheme.light(),
           // darkTheme: ScSaasTheme.dark(),
@@ -465,5 +469,28 @@ class MyBehavior extends ScrollBehavior {
     ScrollableDetails details,
   ) {
     return child;
+  }
+}
+
+/// 03 test pass (CUS-A38 a): `aerendapp://bergen/...` (the shortcuts, the assistant hand-off) while the app is already
+/// running. A cold start goes through `onGenerateRoute`; a warm one used to be ignored, so a shortcut tapped with
+/// the app in the background did nothing. The stream also repeats the cold-start link once — that one is skipped.
+abstract final class _BergenLenker {
+  static StreamSubscription<Uri>? _sub;
+
+  static Future<void> start() async {
+    if (_sub != null) return;
+    final links = AppLinks();
+    Uri? forste;
+    try {
+      forste = await links.getInitialLink();
+    } catch (_) {}
+    final t0 = DateTime.now();
+    _sub = links.uriLinkStream.listen((uri) {
+      if (!((uri.scheme == appUrlScheme || uri.scheme == 'aerend') && uri.host == 'bergen')) return;
+      if (forste != null && uri == forste && DateTime.now().difference(t0) < const Duration(seconds: 5)) return;
+      final r = BergenRoutes.generate(RouteSettings(name: '/bergen${uri.path}${uri.hasQuery ? '?${uri.query}' : ''}'));
+      if (r != null) navigatorKey.currentState?.push(r);
+    }, onError: (_) {});
   }
 }

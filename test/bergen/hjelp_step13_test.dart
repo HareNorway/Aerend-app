@@ -205,8 +205,10 @@ void main() {
     SupportAssistent.taOver(s, 'Kari N.', 'Kari');
     await settle(tester);
     expect(find.text(SupportCopy.tokOver('Kari')), findsOneWidget);
-    expect(find.text(SupportCopy.iSamtalen('Kari')), findsOneWidget);
-    expect(find.text(SupportCopy.menneskeUnder('Kari')), findsOneWidget);
+    // 03 test pass (CUS-B09): the server sends the name to show (the person's display name or «Ærend Support Team»),
+    // so the chat shows it whole instead of cutting it to the first word.
+    expect(find.text(SupportCopy.iSamtalen('Kari N.')), findsOneWidget);
+    expect(find.text(SupportCopy.menneskeUnder('Kari N.')), findsOneWidget);
   });
 
   testWidgets('Guest: order number, then the code; wrong ones show the 422 line', (tester) async {

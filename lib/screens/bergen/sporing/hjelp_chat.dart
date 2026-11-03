@@ -149,7 +149,8 @@ class _SupportChatState extends State<_SupportChat> {
         : lukket
         ? SupportCopy.avsluttetUnder
         : human
-        ? SupportCopy.menneskeUnder(s.menneske!.split(' ').first)
+        // 03 test pass (CUS-B09): the name the server gives (a display name or «Ærend Support Team»), whole.
+        ? SupportCopy.menneskeUnder(s.menneske!)
         : s.iKo
         ? SupportCopy.koUnder(s.koPlass, SupportConfig.svarMin)
         : (aapen ? SupportCopy.aiUnder : SupportCopy.stengtUnder(SupportConfig.aapnerKl));
@@ -208,7 +209,7 @@ class _SupportChatState extends State<_SupportChat> {
   List<Widget> _traad(SupportSamtale s) {
     final chips = s.chips;
     final human = s.erMenneske;
-    final navn = human ? s.menneske!.split(' ').first : '';
+    final navn = human ? s.menneske! : ''; // 03 test pass (CUS-B09): the whole name
     return [
       const SizedBox(height: 12),
       ConstrainedBox(

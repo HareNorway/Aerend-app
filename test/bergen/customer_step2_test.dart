@@ -33,10 +33,12 @@ class _FakeCus extends CusApi {
 class _FakeOps extends OpsCustomerApi {
   final List<Map<String, String?>> contacts = [];
   Map<String, dynamic>? svar = {'status': 1};
+  bool kast = false;
 
   @override
   Future<Map<String, dynamic>?> contact(int orderId, {required String kind, String? message}) async {
     contacts.add({'kind': kind, 'message': message});
+    if (kast) throw Exception('No Internet connection');
     return svar;
   }
 }
@@ -181,6 +183,16 @@ void main() {
     expect(await traad.send('Ring på'), isFalse);
     expect(traad.meldinger, isEmpty);
     expect(traad.tekst.text, 'Ring på');
+    traad.dispose();
+  });
+
+  test('03 test pass (CUS-A28): offline, a send that throws is taken back too — never shown as sent', () async {
+    final ops = _FakeOps()..kast = true;
+    final traad = BudChatTraad(orderId: 4471, api: ops, cus: _FakeCus(const []));
+    traad.tekst.text = 'Test uten nett';
+    expect(await traad.send('Test uten nett'), isFalse);
+    expect(traad.meldinger, isEmpty);
+    expect(traad.tekst.text, 'Test uten nett');
     traad.dispose();
   });
 

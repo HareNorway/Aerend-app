@@ -76,6 +76,11 @@ class MegArkButton {
 
 typedef MegArkBody = Widget Function(BuildContext context, StateSetter setState);
 
+/// How long to wait after a [showMegArk] future completes before disposing what its body used (controllers,
+/// notifiers): the future completes as the sheet starts to close, and the body is built until the exit animation
+/// (at most 440 ms) ends. 03 test pass, CUS-A28 / A32.
+const Duration kArkLukkeTid = Duration(milliseconds: 900);
+
 Future<T?> showMegArk<T>(
   BuildContext context, {
   required String title,

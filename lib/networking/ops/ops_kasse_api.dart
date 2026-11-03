@@ -39,6 +39,10 @@ class OpsKasseApi {
   /// The refusal of the last [preview]: `OUT_OF_COVERAGE` when the engine has no zone for the address.
   String? lastPreviewError;
 
+  /// The store's «Gratis levering over» level from the last [preview], in kroner (0 = none). 03 test pass
+  /// (CUS-A13): the level the price engine applies — Kassen's «Du mangler N kr» and «Gratis over» read this.
+  double lastFreeDeliveryOverKr = 0;
+
   Future<OrderPreviewPojo?> preview({bool flex = false}) async {
     lastPreviewError = null;
     if (_off) return null;
@@ -49,6 +53,7 @@ class OpsKasseApi {
         lastPreviewError = json['error'] is String ? json['error'] as String : null;
         return null;
       }
+      lastFreeDeliveryOverKr = json['free_delivery_over'] is num ? (json['free_delivery_over'] as num).toDouble() : 0;
       return previewFromJson(json);
     } catch (_) {
       return null;
@@ -65,6 +70,8 @@ class OpsKasseApi {
     if (!json.containsKey('delivery_cost')) pojo.deliveryCost = d('delivery_fee') ?? 0;
     if (!json.containsKey('tax_cost')) pojo.taxCost = d('order_fee') ?? 0;
     if (!json.containsKey('total_item_cost')) pojo.totalItemCost = d('sub_total') ?? 0;
+    // 03 test pass (CUS-A13 b): the store's minimum order, so Kassen can say it before the server refuses.
+    if (json.containsKey('order_min_amount')) pojo.minOrderAmount = d('order_min_amount') ?? 0;
     pojo.feeQuote = FeeQuoteView.fromPreview(json);
     return pojo;
   }

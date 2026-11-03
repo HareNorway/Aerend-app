@@ -119,7 +119,9 @@ class BergenStoreInfo {
       deliveryMinutes: p.deliveryTime > 0 ? p.deliveryTime : null,
       deliveryChargeKr: _d(p.deliveryCharges),
       minOrderKr: _d(p.orderMinAmount),
-      offerMinAmountKr: _d(p.offerMinAmount),
+      // 03 test pass (CUS-A13): the free-delivery level the price engine applies (`free_delivery_over`), not the
+      // old «N kr off over Y» `offer_min_amount`, which the quote never honoured.
+      offerMinAmountKr: _d(p.freeDeliveryOver),
       offerPercentage: _d(p.offerPercentage),
       offer: p.offer.isEmpty ? null : p.offer,
       address: p.address.isEmpty ? null : p.address,

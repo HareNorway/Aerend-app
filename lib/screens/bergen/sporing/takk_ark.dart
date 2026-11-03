@@ -77,7 +77,10 @@ Future<bool> visTakkArk(BuildContext context, {required int orderId, required St
     }
     return ok == true;
   } finally {
-    felt.dispose();
+    // 03 test pass (CUS-A32): the sheet's future completes when it starts to close, while its TextField still uses
+    // the controller through the exit animation; disposing it here turned the app into the red
+    // `_dependents.isEmpty` screen. Dispose once the sheet is gone.
+    Future<void>.delayed(kArkLukkeTid, felt.dispose);
   }
 }
 

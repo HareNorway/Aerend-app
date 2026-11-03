@@ -12,6 +12,7 @@ import 'package:aerend_customer/screens/bergen/meg/meg_host.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_nivaa_card.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_screen.dart';
 
+import 'package:aerend_customer/utils/shared_pref_utill.dart';
 import '../a3/a3_fakes.dart';
 
 /// agil-4 — the Meg tab to the 21des design: hero bubble, header, Gullbilletten,
@@ -404,6 +405,8 @@ void main() {
   });
 
   testWidgets('Logg ut asks first; Avbryt keeps you in (Bergen Step 8)', (tester) async {
+    // 03 test pass (CUS-B10 b): «Logg ut» shows only for a logged-in customer.
+    await a3Bootstrap(prefs: {prefUserId: 656, prefAccessToken: 'tok', prefUserName: 'Kari Nordmann', prefUserVerified: 1});
     tall(tester);
     await tester.pumpWidget(app(api()));
     await settle(tester);
@@ -420,7 +423,7 @@ void main() {
     // The D2 group is hidden (SAVED-FOR-LATER.md).
     expect(find.text('FLERE INNSTILLINGER'), findsNothing);
     expect(find.byKey(const Key('meg-d2-rader')), findsNothing);
-    await tester.pump(const Duration(seconds: 9));
+    await tester.pump(const Duration(seconds: 16));
   });
 
   testWidgets('Adresser and Språk open as sheets (Betaling with Flere innstillinger)', (tester) async {

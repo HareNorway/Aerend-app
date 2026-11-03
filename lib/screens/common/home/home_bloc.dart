@@ -101,6 +101,9 @@ class HomeBloc extends Bloc {
 
   Future<void> _initialize() async {
     _emitCachedHomeCategoriesIfAvailable();
+    // 03 test pass (CUS-D01 c): right after a login there is no cached address (logout clears it), and the header
+    // said «Velg adresse» until all four home calls had answered. The address list is fetched alongside them now.
+    final adresser = getAddressList();
     await Future.wait<void>([
       callHomeCateApi(),
       getHareSwipeList(),
@@ -110,7 +113,7 @@ class HomeBloc extends Bloc {
     firebaseAuth().then((value) {
       setFCMToken();
     });
-    getAddressList();
+    await adresser;
   }
 
   addOrderCart(int storeId, int productId, int quantity) async {

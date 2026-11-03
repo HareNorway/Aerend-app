@@ -68,6 +68,8 @@ class StoreDetailsPojo {
   dynamic _orderMinAmount;
   String? _offer;
   dynamic _offerMinAmount;
+  /// 03 test pass (CUS-A13): the store's «Gratis levering over» level the price engine applies (kr).
+  dynamic _freeDeliveryOver;
   dynamic _offerPercentage;
   String? _address;
   String? _latitude;
@@ -140,6 +142,7 @@ class StoreDetailsPojo {
   dynamic get orderMinAmount => _orderMinAmount;
 
   dynamic get offerMinAmount => _offerMinAmount;
+  dynamic get freeDeliveryOver => _freeDeliveryOver;
 
   dynamic get offerPercentage => _offerPercentage;
 
@@ -275,6 +278,7 @@ class StoreDetailsPojo {
     _orderMinAmount = json["order_min_amount"];
     _offer = json["offer"];
     _offerMinAmount = json["offer_min_amount"];
+    _freeDeliveryOver = json["free_delivery_over"];
     _offerPercentage = json["offer_percentage"];
     _address = json["address"];
     _latitude = json["latitude"];
@@ -325,6 +329,7 @@ class StoreDetailsPojo {
     map["order_min_amount"] = _orderMinAmount;
     map["offer"] = _offer;
     map["offer_min_amount"] = _offerMinAmount;
+    map["free_delivery_over"] = _freeDeliveryOver;
     map["offer_percentage"] = _offerPercentage;
     map["address"] = _address;
     map["latitude"] = _latitude;

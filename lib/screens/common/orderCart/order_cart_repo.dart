@@ -55,6 +55,9 @@ class OrderCartRepo {
       ApiConst.endPointAddOrderCart,
       body: {
         ApiParam.paramDeviceToken: prefGetString(prefDeviceToken),
+        // 03 test pass (CUS-A37): logged in, the basket is the account's.
+        if (prefGetInt(prefUserId) > 0) ApiParam.paramUserId: prefGetInt(prefUserId),
+        if (prefGetInt(prefUserId) > 0) ApiParam.paramAccessToken: prefGetString(prefAccessToken),
         ApiParam.paramStoreId: storeId,
         ApiParam.paramServiceCatId: serviceCategoryId,
         ApiParam.paramProductId: productId,

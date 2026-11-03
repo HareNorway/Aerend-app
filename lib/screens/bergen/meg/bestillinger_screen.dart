@@ -66,6 +66,9 @@ class _Ordre {
   bool get betalt => raw['paid'] == true;
   bool get levert => state == 'delivered' || state == 'completed';
   bool get avbestilt => state == 'cancelled';
+
+  /// 03 test pass (CUS-A22 c): a «Henting» order ends «Hentet» at the counter, with no «På vei».
+  bool get hent => raw['mode'] == 'pickup';
   bool get aktiv => betalt && !levert && !avbestilt;
 
   /// How many of Bestilt · Bekreftet · Tilberedes · På vei · Levert are done,
@@ -74,7 +77,8 @@ class _Ordre {
   /// not show it as delivered either.
   int get ferdigeSteg => switch (state) {
         'delivered' || 'completed' => 5,
-        'picked_up' || 'arrived_customer' => 4,
+        'picked_up' || 'arrived_customer' => hent ? 5 : 4,
+        'ready' when hent => 4,
         'seen' || 'ready' => 3,
         'accepted' => 2,
         _ => 1,
@@ -217,7 +221,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
             Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, '${OhCopy.dag(o.naar)} · ${o.naar.hour.toString().padLeft(2, '0')}:${o.naar.minute.toString().padLeft(2, '0')}'), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
             const SizedBox(height: 10),
           ],
-          _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt),
+          _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt, steg: OhCopy.tidFor(o.hent)),
           const SizedBox(height: 10),
           _Tall(
             fliser: [
@@ -275,7 +279,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
   _Status _status(_Ordre o, {bool medSak = true}) {
     final sak = medSak ? SupportStore.instance.sakFor(o.id) : null;
     if (sak != null && sak.loest) return const _Status(OhCopy.sakLoest, gull: true, ikon: _ikSkjold);
-    if (o.levert) return const _Status(OhCopy.levert);
+    if (o.levert || (o.hent && o.state == 'picked_up')) return _Status(o.hent ? OhCopy.hentet : OhCopy.levert);
     if (o.avbestilt) return const _Status(OhCopy.avbestilt, oransje: true, ikon: _ikKryss);
     return _Status(o.stageLabel.isEmpty ? OhCopy.paaVei : o.stageLabel);
   }
@@ -862,7 +866,8 @@ Widget _arkKort({required Widget child, EdgeInsets padding = const EdgeInsets.fr
 /// «Ordre · status» (L9862): the mint glow, the status chip and the day, and
 /// the five steps on the rail (`ordFyll .9s .15s`, steps `bpFlisInn`).
 class _StatusKort extends StatelessWidget {
-  const _StatusKort({required this.status, required this.dato, required this.ferdig, required this.avbestilt});
+  const _StatusKort({required this.status, required this.dato, required this.ferdig, required this.avbestilt, this.steg = OhCopy.tid});
+  final List<String> steg;
   final String status;
   final String dato;
   final int ferdig;
@@ -967,7 +972,7 @@ class _StatusKort extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          for (final (i, s) in OhCopy.tid.indexed)
+                          for (final (i, s) in steg.indexed)
                             HbFlisInn(
                               ms: 450,
                               delayMs: 80 + i * 70.0,
@@ -1285,6 +1290,9 @@ abstract final class OhCopy {
   static const String levering = 'Levering';
   static const String totalt = 'Totalt';
   static const List<String> tid = ['Bestilt', 'Bekreftet', 'Tilberedes', 'På vei', 'Levert'];
+  static const List<String> tidHent = ['Bestilt', 'Bekreftet', 'Tilberedes', 'Klar', 'Hentet'];
+  static List<String> tidFor(bool hent) => hent ? tidHent : tid;
+  static const String hentet = 'Hentet';
   static String lagtIKurven(int n, String butikk) => '$n ${n == 1 ? 'linje' : 'linjer'} fra $butikk lagt i kurven';
 
   static const List<String> _mnd = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'];

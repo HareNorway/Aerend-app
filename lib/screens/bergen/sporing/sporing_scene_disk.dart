@@ -17,9 +17,12 @@ import 'sporing_scene_kai.dart';
 /// bubble (`bobleFraAegil`). 390 × 450; the box is left 14 → right 14, top
 /// 10, 330 tall, radius 28.
 class SpSceneDisk extends StatelessWidget {
-  const SpSceneDisk({super.key, required this.info});
+  const SpSceneDisk({super.key, required this.info, this.hentet = false});
 
   final SpSceneInfo info;
+
+  /// 03 test pass (CUS-A22): the order has been collected — the counter scene stays, with a thank-you line.
+  final bool hentet;
 
   /// Ægil's sprite as the prototype samples it (160 design px at the canvas's
   /// 300 000-pixel size ≈ 254 px), the small copy its soft reads use (mip
@@ -93,7 +96,11 @@ class SpSceneDisk extends StatelessWidget {
                   ],
                 ),
                 child: Text(
-                  info.harKode ? SporingCopy.a1_sporing_i_disken_kode : SporingCopy.a1_sporing_i_disken_si(info.kunde),
+                  hentet
+                      ? SporingCopy.a1_sporing_hentet_boble
+                      : info.harKode
+                      ? SporingCopy.a1_sporing_i_disken_kode
+                      : SporingCopy.a1_sporing_i_disken_si(info.kunde),
                   style: inter(11.5, weight: FontWeight.w700, height: 1.35, color: kSpInk),
                 ),
               ),

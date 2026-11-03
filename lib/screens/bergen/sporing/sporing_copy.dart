@@ -29,6 +29,24 @@ abstract final class SporingCopy {
   static String get a1_sporing_levert_for_tiden => languages.ops_sporing_levert_for_tiden;
   static String a1_sporing_levert_min_for(int m) => _t('Levert · ${minutterOrd(m)} før tiden', 'Delivered · ${minutterOrd(m)} early');
   static String get a1_sporing_avbestilt => languages.ops_sporing_avbestilt;
+
+  /// 03 test pass (CUS-A24): «Avbestilt» with the reason as written and, for a paid order, «Refusjon er startet».
+  static String avbestiltLinje(String? grunn, String? refusjon) {
+    String setning(String t) => RegExp(r'[.!?…]$').hasMatch(t) ? t : '$t.';
+    final deler = [
+      if (grunn != null && grunn.trim().isNotEmpty) setning(grunn.trim()) else a1_sporing_avbestilt,
+      if (refusjon != null && refusjon.trim().isNotEmpty) refusjon.trim(),
+    ];
+    return deler.join(' ');
+  }
+
+  /// 03 test pass (C1): the store has said «Klar» on a delivery order.
+  static String klarLinje(bool partner, String? store) {
+    final s = store ?? _t('butikken', 'the shop');
+    return partner
+        ? _t('Maten er klar. $s kjører den ut om litt.', 'The food is ready. $s drives it out shortly.')
+        : _t('Maten er klar hos $s — budet henter den nå.', 'The food is ready at $s — the courier is collecting it now.');
+  }
   static String a1_sporing_gave_venter(String navn) => languages.ops_sporing_gave_venter(navn);
 
   // ── stages ──────────────────────────────────────────────────────────────
@@ -237,6 +255,7 @@ abstract final class SporingCopy {
   static String get a1_sporing_tilberedes_stempel => 'TILBEREDES';
   static String a1_sporing_kl_stempel(String t) => _t('kl. $t', 'at $t');
   static String get a1_sporing_koker => _t('Det koker greit her på kjøkkenet, men jeg er i rute!', 'It is busy in the kitchen, but I am on schedule!');
+  static String get a1_sporing_hentet_boble => _t('Hentet! Takk for at du kom innom. Håper det smaker.', 'Collected! Thanks for coming by. Enjoy.');
   static String get a1_sporing_i_disken_kode => _t('Den står i disken. Vis koden din, så får du den.', 'It is at the counter. Show your code and it is yours.');
   static String a1_sporing_i_disken_si(String navn) => _t('Den står i disken. Si «$navn» så får du den.', 'It is at the counter. Say «$navn» and it is yours.');
   static String get a1_sporing_ankommer => _t('Ankommer om', 'Arriving in');

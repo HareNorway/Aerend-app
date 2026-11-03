@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import '../../networking/api_constant.dart';
 import '../../utils/shared_pref_utill.dart';
@@ -198,8 +198,26 @@ class CusBeacons {
   /// An uncaught error: the error's type and a hash of the first stack
   /// frames — never the message (it could carry a name or an address).
   static void uncaught(Object error, StackTrace? stack) {
-    final frames = (stack?.toString() ?? '').split('\n').take(6).join('\n');
-    melde('uncaught_error', code: error.runtimeType.toString().replaceAll(RegExp(r'[^A-Za-z0-9_.:-]'), ''), data: {'stack': CusBeacon.hash(frames)});
+    final lines = (stack?.toString() ?? '').split('\n');
+    final frames = lines.take(6).join('\n');
+    final frame = forsteAppRamme(lines);
+    melde(
+      'uncaught_error',
+      code: error.runtimeType.toString().replaceAll(RegExp(r'[^A-Za-z0-9_.:-]'), ''),
+      // 03 test pass (CUS-B15): the screen and the first frame in the app's own code (a file and a line — code, not
+      // data), so the errors can be told apart and traced.
+      screen: CusSkjermObserver.naa,
+      data: {'stack': CusBeacon.hash(frames), if (frame != null) 'frame': frame},
+    );
+  }
+
+  /// `screens/bergen/sporing/takk_ark.dart:79` — the first stack frame inside the app's own package, or null.
+  static String? forsteAppRamme(List<String> lines) {
+    for (final l in lines) {
+      final m = RegExp(r'package:aerend_customer/([A-Za-z0-9_/]+\.dart):(\d+)').firstMatch(l);
+      if (m != null) return '${m.group(1)}:${m.group(2)}';
+    }
+    return null;
   }
 
   final CusBeaconTransport transport;
@@ -327,4 +345,27 @@ class CusStuckWatch {
     _t?.cancel();
     _t = null;
   }
+}
+
+/// The name of the route on top (03 test pass, CUS-B15): a [NavigatorObserver] in `MaterialApp.navigatorObservers`
+/// keeps it, so an error beacon can say which screen it came from. Route names only (`/bergen/sporing/591` becomes
+/// `/bergen/sporing`), never arguments.
+class CusSkjermObserver extends NavigatorObserver {
+  static String? naa;
+
+  static String? _navn(Route<dynamic>? r) {
+    if (r == null) return null;
+    final n = r.settings.name;
+    if (n == null || n.isEmpty) return r.runtimeType.toString().split('<').first;
+    return n.replaceAll(RegExp(r'/\d+'), '').replaceAll(RegExp(r'[?#].*'), '');
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => naa = _navn(route) ?? naa;
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => naa = _navn(previousRoute) ?? naa;
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) => naa = _navn(newRoute) ?? naa;
 }

@@ -549,7 +549,9 @@ abstract final class SupportAssistent {
       final list = (j?['conversations'] as List? ?? const []).whereType<Map>().toList();
       final open = list.where((c) => '${c['state']}' != 'closed').toList();
       if (open.isEmpty) return null;
-      id = (open.last['id'] as num?)?.toInt();
+      // 03 test pass (CUS-B08): the list is newest first — continue the newest open conversation, not the oldest.
+      open.sort((a, b) => ((b['id'] as num?) ?? 0).compareTo((a['id'] as num?) ?? 0));
+      id = (open.first['id'] as num?)?.toInt();
     }
     if (id == null) return null;
     final j = await store.api.supportPoll(id, 0, guestToken: store.gjestToken);
@@ -852,7 +854,9 @@ abstract final class SupportCopy {
   static const String eskalert = 'Eskalert til menneske · Ba om menneske';
   static String get iKo => 'Selvfølgelig. Du står i kø for et menneske, forventet svar innen ${SupportConfig.svarMin} min. Hele samtalen følger med.';
   static String iKoStengt(String kl) => 'Selvfølgelig. Du står i kø for et menneske, vi svarer fra $kl. Hele samtalen følger med.';
-  static String tokOver(String navn) => '$navn fra Ærend tok over';
+  /// 03 test pass (CUS-B09): «Ærend Support Team» (no personal name set) already says Ærend — no «fra Ærend» after it.
+  static bool _team(String navn) => navn.contains('Ærend');
+  static String tokOver(String navn) => _team(navn) ? '$navn tok over' : '$navn fra Ærend tok over';
   static String menneskeHei(String kunde, String navn) => 'Hei${kunde.isEmpty ? '' : ' $kunde'}, $navn her. Jeg har lest tråden. Hva kan jeg hjelpe med?';
   static const String allerede = 'Du står allerede i kø for et menneske';
   static String erISamtalen(String navn) => '$navn er allerede i samtalen';
@@ -877,7 +881,7 @@ abstract final class SupportCopy {
   static const String aiUnder = 'Ærend-assistent · AI · svarer på sekunder';
   static String koUnder(int? plass, int min) => plass == null ? 'I kø for et menneske · svar innen $min min' : 'Nummer $plass i køen · svar innen $min min';
   static String stengtUnder(String kl) => 'Stengt · vi svarer fra $kl';
-  static String menneskeUnder(String navn) => '$navn fra Ærend · menneske';
+  static String menneskeUnder(String navn) => _team(navn) ? '$navn · menneske' : '$navn fra Ærend · menneske';
   static const String avsluttetUnder = 'Samtalen er avsluttet';
   static const String nySamtale = 'Start en ny samtale';
 
@@ -888,10 +892,10 @@ abstract final class SupportCopy {
   static String vurderStjerne(int n) => '$n av 5 stjerner';
   static String merkeDu(String kl) => 'DU · $kl';
   static String merkeAi(String kl, {String? navn}) => navn == 'Ærend AI' ? 'ÆREND AI · $kl' : 'ÆREND-ASSISTENT · $kl';
-  static String merkeMenneske(String navn, String kl) => '${navn.toUpperCase()} FRA ÆREND · $kl';
+  static String merkeMenneske(String navn, String kl) => _team(navn) ? '${navn.toUpperCase()} · $kl' : '${navn.toUpperCase()} FRA ÆREND · $kl';
   static const String skrivAi = 'Skriv med vanlige ord …';
   static String skrivTil(String navn) => 'Skriv til $navn …';
-  static String iSamtalen(String navn) => '$navn fra Ærend er i samtalen';
+  static String iSamtalen(String navn) => _team(navn) ? '$navn er i samtalen' : '$navn fra Ærend er i samtalen';
   static const Map<SupportKortType, String> kortLabel = {
     SupportKortType.ordre: 'ORDRE',
     SupportKortType.sak: 'SAK',

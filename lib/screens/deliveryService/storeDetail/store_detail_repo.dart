@@ -27,6 +27,9 @@ class StoreDetailRepo {
       ApiConst.endPointAddOrderCart,
       body: {
         ApiParam.paramDeviceToken: prefGetString(prefDeviceToken),
+        // 03 test pass (CUS-A37): logged in, the basket is the account's (the server moves this phone's lines over).
+        if (prefGetInt(prefUserId) > 0) ApiParam.paramUserId: prefGetInt(prefUserId),
+        if (prefGetInt(prefUserId) > 0) ApiParam.paramAccessToken: prefGetString(prefAccessToken),
         ApiParam.paramStoreId: storeId,
         ApiParam.paramProductId: productId,
         ApiParam.paramQuantity: quantity,

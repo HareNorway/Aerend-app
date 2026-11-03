@@ -85,7 +85,9 @@ class SpSceneKart extends StatelessWidget {
                           ),
                         ),
                         over!,
-                        Positioned.fill(child: IgnorePointer(child: _Bud(info: info, p: p, t: t))),
+                        // 03 test pass (CUS-A23 a): no courier figure on a store-delivered order — there is no courier and
+                        // no position; the store's own window card tells the time (self-delivery spec §5).
+                        if (!info.partner) Positioned.fill(child: IgnorePointer(child: _Bud(info: info, p: p, t: t))),
                         // The rim: inset 0 0 0 1px rgba(255,255,255,.28), inset 0 0 34px rgba(10,24,30,.35).
                         Positioned.fill(
                           child: IgnorePointer(
