@@ -13,6 +13,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_fav_heart.dart';
 import '../kit/bergen_motion.dart';
+import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 import 'kategori_kort.dart';
 
@@ -808,7 +809,7 @@ class _Flis extends StatelessWidget {
     final r = BorderRadius.circular(20 * s);
     final ikS = (stor ? 116 : 60) * s;
     final foto = v.foto;
-    return SizedBox(
+    final flis = SizedBox(
       width: w,
       height: h,
       child: Stack(
@@ -889,6 +890,13 @@ class _Flis extends StatelessWidget {
         ],
       ),
     );
+    // Perf plan: a photo tile is static at rest, but its price pill blurs
+    // the photo behind it (a backdrop pass) on every frame. BergenBakt draws
+    // the tile — photo, pill blur and all — from one raster; composited over
+    // the page it gives the same pixels. Icon tiles float (`bmFlyt`) under
+    // the pill, so they stay live. The margin covers the tile's shadows.
+    if (!foto) return flis;
+    return BergenBakt(margin: EdgeInsets.fromLTRB(16 * s, 16 * s, 16 * s, 40 * s), child: flis);
   }
 }
 

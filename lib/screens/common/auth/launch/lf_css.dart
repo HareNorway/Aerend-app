@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -43,6 +44,15 @@ class CssShadow {
   final double spread;
   final Color color;
   final bool inset;
+
+  // Perf plan: value equality, so a CssBox rebuilt with an equal (but new)
+  // shadow list does not repaint (and its raster stays valid).
+  @override
+  bool operator ==(Object other) =>
+      other is CssShadow && other.dx == dx && other.dy == dy && other.blur == blur && other.spread == spread && other.color == color && other.inset == inset;
+
+  @override
+  int get hashCode => Object.hash(dx, dy, blur, spread, color, inset);
 }
 
 /// CSS box-shadow interpolation between two lists at [t]: pairs them by
@@ -73,6 +83,12 @@ sealed class CssBg {
 class CssSolid extends CssBg {
   const CssSolid(this.color);
   final Color color;
+
+  @override
+  bool operator ==(Object other) => other is CssSolid && other.color == color;
+
+  @override
+  int get hashCode => color.hashCode;
   @override
   Shader? shader(Rect r) => null;
   @override
@@ -86,6 +102,12 @@ class CssLinear extends CssBg {
   final double deg;
   final List<Color> colors;
   final List<double>? stops;
+
+  @override
+  bool operator ==(Object other) => other is CssLinear && other.deg == deg && listEquals(other.colors, colors) && listEquals(other.stops, stops);
+
+  @override
+  int get hashCode => Object.hash(deg, Object.hashAll(colors), stops == null ? null : Object.hashAll(stops!));
 
   @override
   Shader shader(Rect r) {
@@ -130,6 +152,17 @@ class CssRadial extends CssBg {
   final bool px;
   final bool circle;
   final bool farthestCorner;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CssRadial &&
+      listEquals(other.colors, colors) &&
+      listEquals(other.stops, stops) &&
+      other.rx == rx && other.ry == ry && other.cx == cx && other.cy == cy &&
+      other.px == px && other.circle == circle && other.farthestCorner == farthestCorner;
+
+  @override
+  int get hashCode => Object.hash(Object.hashAll(colors), stops == null ? null : Object.hashAll(stops!), rx, ry, cx, cy, px, circle, farthestCorner);
 
   @override
   Shader shader(Rect r) {
@@ -464,9 +497,11 @@ class CssBoxPainter extends CustomPainter {
   @override
   bool shouldRepaint(CssBoxPainter old) =>
       old.radius != radius ||
-      old.bg != bg ||
-      old.shadows != shadows ||
-      old.border != border;
+      !listEquals(old.bg, bg) ||
+      !listEquals(old.shadows, shadows) ||
+      old.border != border ||
+      old.insetOnTop != insetOnTop ||
+      old.skipInset != skipInset;
 }
 
 // ── CssBake: the CssBox raster cache (perf plan) ───────────────────────────
@@ -547,7 +582,8 @@ abstract final class CssBake {
 
   /// The box's device-pixel scale (all ancestor transforms × the view's
   /// pixel ratio), rounded to 1/16 (≤ 1.6 % off: no visible resampling, and a
-  /// small animated scale keeps one image); null under a perspective transform.
+  /// small animated scale keeps one image); under a perspective, the largest
+  /// scale over the projected box + 10 %.
   static double? _skalaFor(RenderObject ro) {
     final Matrix4 m;
     try {
@@ -556,11 +592,27 @@ abstract final class CssBake {
       return null;
     }
     final s = m.storage;
-    if (s[3].abs() > 1e-6 || s[7].abs() > 1e-6 || (s[15] - 1).abs() > 1e-6) return null;
-    final sx = math.sqrt(s[0] * s[0] + s[1] * s[1]), sy = math.sqrt(s[4] * s[4] + s[5] * s[5]);
     final dpr = ui.PlatformDispatcher.instance.implicitView?.devicePixelRatio ?? 2;
-    final r = math.max(sx, sy) * dpr;
-    if (!r.isFinite || r <= 0) return null;
+    double r;
+    if (s[3].abs() > 1e-6 || s[7].abs() > 1e-6 || (s[15] - 1).abs() > 1e-6) {
+      // Under a perspective (a card tilted in 3D): the largest on-screen
+      // scale over the box, from its projected corners (+10 % headroom so
+      // the near edge is never upsampled).
+      final box = (ro is RenderBox && ro.hasSize) ? Offset.zero & ro.size : Rect.zero;
+      if (box.isEmpty) return null;
+      final Rect p;
+      try {
+        p = MatrixUtils.transformRect(m, box);
+      } catch (_) {
+        return null;
+      }
+      if (!p.isFinite) return null;
+      r = math.max(p.width / box.width, p.height / box.height) * 1.1 * dpr;
+    } else {
+      final sx = math.sqrt(s[0] * s[0] + s[1] * s[1]), sy = math.sqrt(s[4] * s[4] + s[5] * s[5]);
+      r = math.max(sx, sy) * dpr;
+    }
+    if (!r.isFinite || r <= 0 || r > 8) return null;
     return (r * 16).round() / 16;
   }
 }

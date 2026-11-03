@@ -111,4 +111,14 @@ void main() {
     // few levels on anti-aliased edges.
     expect(ulike / live.length, lessThan(.01), reason: 'max channel difference $maks');
   });
+
+  test('an equal (but new) look does not repaint; a different one does', () {
+    CssBoxPainter p(Color c) => CssBoxPainter(
+      radius: BorderRadius.circular(12),
+      bg: [CssLinear(165, [c, const Color(0xFF2A1208)])],
+      shadows: [CssShadow(0, 12, 18, -12, c.withValues(alpha: .6)), CssShadow.inset(0, 1.5, 0, 0, const Color(0x80FFFFFF))],
+    );
+    expect(p(const Color(0xFF123456)).shouldRepaint(p(const Color(0xFF123456))), isFalse);
+    expect(p(const Color(0xFF123456)).shouldRepaint(p(const Color(0xFF654321))), isTrue);
+  });
 }

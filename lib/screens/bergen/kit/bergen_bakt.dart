@@ -151,11 +151,27 @@ class _RenderBakt extends RenderProxyBox {
       return null;
     }
     final s = m.storage;
-    if (s[3].abs() > 1e-6 || s[7].abs() > 1e-6 || (s[15] - 1).abs() > 1e-6) return null;
-    final sx = math.sqrt(s[0] * s[0] + s[1] * s[1]), sy = math.sqrt(s[4] * s[4] + s[5] * s[5]);
     final dpr = ui.PlatformDispatcher.instance.implicitView?.devicePixelRatio ?? 2;
-    final r = math.max(sx, sy) * dpr;
-    if (!r.isFinite || r <= 0) return null;
+    double r;
+    if (s[3].abs() > 1e-6 || s[7].abs() > 1e-6 || (s[15] - 1).abs() > 1e-6) {
+      // Under a perspective (a card tilted in 3D): the largest on-screen
+      // scale over the box, from its projected corners (+10 % headroom so
+      // the near edge is never upsampled).
+      final box = Offset.zero & size;
+      if (box.isEmpty) return null;
+      final Rect p;
+      try {
+        p = MatrixUtils.transformRect(m, box);
+      } catch (_) {
+        return null;
+      }
+      if (!p.isFinite) return null;
+      r = math.max(p.width / box.width, p.height / box.height) * 1.1 * dpr;
+    } else {
+      final sx = math.sqrt(s[0] * s[0] + s[1] * s[1]), sy = math.sqrt(s[4] * s[4] + s[5] * s[5]);
+      r = math.max(sx, sy) * dpr;
+    }
+    if (!r.isFinite || r <= 0 || r > 8) return null;
     return (r * 16).round() / 16;
   }
 
