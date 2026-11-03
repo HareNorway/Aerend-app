@@ -1788,6 +1788,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               etterArk: true,
                               child: RepaintBoundary(
                               child: LfFrame(
+                              // Perf plan: while the sheet's end is ≥ 900 px below
+                              // the screen the opaque sheet covers this scene
+                              // completely; Offstage keeps its state but stops
+                              // compositing its ~30 offscreen passes every frame.
+                              child: Offstage(
+                              offstage: !_kaienLiv && BergenPerf.dekketPaa,
                               child: TickerMode(
                               enabled: _kaienLiv,
                               child: HjemUnderKaien(
@@ -1805,6 +1811,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                 pose: _kaienPose(),
                                 frakt: _kaienFrakt(),
                                 onLinje: aegilFindCount() > 0 ? _openBrett : null,
+                              ),
                               ),
                               ),
                             ),
@@ -1833,6 +1840,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             ark: true,
                             child: _Sheet(
                             controller: _scroll,
+                            onMetrics: _onScroll,
                             child: TickerMode(
                             enabled: !(!kReleaseMode && HjemHarness.arkStille),
                             child: _sheetBody(
@@ -2329,10 +2337,14 @@ class _HjemInn extends StatelessWidget {
 // ── Sheet shell ───────────────────────────────────────────────────────────
 
 class _Sheet extends StatelessWidget {
-  const _Sheet({required this.controller, required this.child});
+  const _Sheet({required this.controller, required this.child, this.onMetrics});
 
   final ScrollController controller;
   final Widget child;
+
+  /// Perf plan: the content's size changed (stores loaded…); the owner
+  /// re-evaluates which scenes are awake / painted without a scroll.
+  final VoidCallback? onMetrics;
 
   @override
   Widget build(BuildContext context) {
@@ -2389,7 +2401,13 @@ class _Sheet extends StatelessWidget {
                   ),
                 ),
               ),
-              NotificationListener<ScrollNotification>(
+              NotificationListener<ScrollMetricsNotification>(
+                onNotification: (n) {
+                  // Harness `dekket: false` restores the old behaviour for A/B.
+                  if (n.depth == 0 && BergenPerf.dekketPaa) onMetrics?.call();
+                  return false;
+                },
+                child: NotificationListener<ScrollNotification>(
                 onNotification: (n) {
                   if (n.depth != 0) return false;
                   if (n is ScrollStartNotification) BergenPerf.ruller.value = true;
@@ -2402,6 +2420,7 @@ class _Sheet extends StatelessWidget {
                   physics: BergenDraLaster.physics,
                   child: child,
                 ),
+              ),
               ),
             ],
           ),
@@ -2480,29 +2499,25 @@ class _PullHandle extends StatelessWidget {
                   children: [
                     _MiniAegil(size: 16 * s),
                     SizedBox(width: 6 * s),
-                    Opacity(
-                      opacity: .72,
-                      child: Text(
-                        text,
-                        style: bText(
-                          context,
-                          10,
-                          weight: FontWeight.w800,
-                          letterSpacingEm: .02,
-                          color: color,
-                        ),
+                    // Perf plan: opacity on the colour (one text run, one
+                    // stroked path): the same pixels without an Opacity layer.
+                    Text(
+                      text,
+                      style: bText(
+                        context,
+                        10,
+                        weight: FontWeight.w800,
+                        letterSpacingEm: .02,
+                        color: color.withValues(alpha: color.a * .72),
                       ),
                     ),
                     SizedBox(width: 6 * s),
                     AnimatedRotation(
                       turns: up ? .5 : 0,
                       duration: const Duration(milliseconds: 220),
-                      child: Opacity(
-                        opacity: .6,
-                        child: CustomPaint(
-                          size: Size(9 * s, 9 * s),
-                          painter: _ChevronPainter(color: color),
-                        ),
+                      child: CustomPaint(
+                        size: Size(9 * s, 9 * s),
+                        painter: _ChevronPainter(color: color.withValues(alpha: color.a * .6)),
                       ),
                     ),
                   ],

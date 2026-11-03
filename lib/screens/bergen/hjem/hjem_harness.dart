@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:path_provider/path_provider.dart';
 
 import '../../common/auth/launch/lf_css.dart';
+import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 import 'hjem_hero.dart';
 
@@ -426,6 +427,8 @@ abstract final class HjemHarness {
         CssBoxPainter.debugUtenBlur = false;
         CssBake.paa = true;
         BergenPerf.hvilePaa = true;
+        BergenPerf.dekketPaa = true;
+        BergenBakt.paa = true;
         heroStille = false;
         arkStille = false;
         snart = null;
@@ -563,6 +566,10 @@ abstract final class HjemHarness {
       CssBake.paa = m['cssCache'] != false;
       // Perf plan: `hvile: false` keeps off-screen loops and scenes ticking (A/B).
       BergenPerf.hvilePaa = m['hvile'] != false;
+      // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
+      // every BergenBakt live (A/B on one build).
+      BergenPerf.dekketPaa = m['dekket'] != false;
+      BergenBakt.paa = m['bakt'] != false;
       heroStille = m['heroStille'] == true;
       arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;

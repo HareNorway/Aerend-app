@@ -17,6 +17,7 @@ import '../../common/home/bergen/bergen_kit.dart' show BergenWeather;
 import '../kit/sjo_water.dart';
 import 'hjem_bryggen.dart';
 import 'hjem_fiskestang.dart';
+import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
@@ -974,7 +975,11 @@ class _Dupp extends StatelessWidget {
                         top: -6,
                         width: 66,
                         height: 55,
-                        child: Opacity(
+                        // Perf plan: the reflection never changes; BergenBakt
+                        // draws it from one raster at .13 instead of an opacity
+                        // and a shader-mask pass on every frame (the float's
+                        // drift moves the raster as it moved the layers).
+                        child: BergenBakt(
                           opacity: .13,
                           child: Transform(
                             alignment: Alignment.bottomCenter,

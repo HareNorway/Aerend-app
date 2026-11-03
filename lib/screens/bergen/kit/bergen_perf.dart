@@ -102,10 +102,14 @@ abstract final class BergenPerf {
   static void lagTelling(String tag) {
     if (kReleaseMode) return;
     final lag = <String, int>{};
+    // Debug: who created each offscreen-pass layer (creator chain of the
+    // render object that pushed it), to find the widgets behind the passes.
+    final eiere = <String, int>{};
     void tell(Layer? l) {
       if (l == null) return;
       final k = l.runtimeType.toString();
       lag[k] = (lag[k] ?? 0) + 1;
+
       if (l is ContainerLayer) {
         for (Layer? c = l.firstChild; c != null; c = c.nextSibling) {
           tell(c);
@@ -117,16 +121,70 @@ abstract final class BergenPerf {
       tell(v.layer);
     }
     debugPrint('PERF_LAG $tag ${(lag.entries.toList()..sort((a, b) => b.value - a.value)).map((e) => '${e.key}=${e.value}').join(' ')}');
+    // Debug: the render objects that push an offscreen pass this frame
+    // (partial opacity, fades, shader masks, backdrop / image / colour
+    // filters), named by the widgets that created them.
+    if (kDebugMode) {
+      void besok(RenderObject ro) {
+        if (ro is RenderOffstage && ro.offstage) return;
+        String? art;
+        if (ro is RenderOpacity) {
+          if (ro.opacity <= 0) return;
+          if (ro.opacity < 1 && ro.child != null) art = 'Opacity';
+        } else if (ro is RenderAnimatedOpacity) {
+          final o = ro.opacity.value;
+          if (o <= 0) return;
+          if (o < 1 && ro.child != null) art = 'Fade';
+        } else if (ro is RenderShaderMask) {
+          art = 'ShaderMask';
+        } else if (ro is RenderBackdropFilter) {
+          if (ro.enabled) art = 'BackdropFilter';
+        } else {
+          final t = ro.runtimeType.toString();
+          if (t.contains('ImageFilter')) art = 'ImageFiltered';
+          if (t.contains('ColorFilter')) art = 'ColorFiltered';
+        }
+        if (art != null) {
+          String hvem = '?';
+          final c = ro.debugCreator;
+          if (c is DebugCreator) {
+            hvem = c.element.debugGetCreatorChain(24).split(' ← ').where((w) => !_rammeverk.contains(w.replaceAll(RegExp(r'[-<(].*'), ''))).take(6).join(' ← ');
+          }
+          final n = '$art: $hvem';
+          eiere[n] = (eiere[n] ?? 0) + 1;
+        }
+        // Only what paints: offstage overlay entries (covered routes) and
+        // hidden IndexedStack children are skipped like the semantics walk
+        // skips them; Offstage subtrees above.
+        final t = ro.runtimeType.toString();
+        if (t == '_RenderTheater' || ro is RenderIndexedStack) {
+          ro.visitChildrenForSemantics(besok);
+        } else {
+          ro.visitChildren(besok);
+        }
+      }
+      for (final v in RendererBinding.instance.renderViews) {
+        besok(v);
+      }
+    }
+    final alle = eiere.values.fold<int>(0, (a, b) => a + b);
+    if (kDebugMode) debugPrint('PERF_LAG   offscreen-pass render objects: $alle');
+    for (final e in (eiere.entries.toList()..sort((a, b) => b.value - a.value)).take(40)) {
+      debugPrint('PERF_LAG   ×${e.value}  ${e.key}');
+    }
   }
 
   static const Set<String> _rammeverk = {
     'LfLoop', 'OnbLoopClock', 'BergenLoop', 'Positioned', 'IgnorePointer', 'Transform', 'Opacity', 'Stack', 'SizedBox', 'Padding', 'Align',
     'Center', 'RepaintBoundary', 'ValueListenableBuilder', 'Builder', 'LayoutBuilder', 'KeyedSubtree', 'Semantics', 'GestureDetector',
     'DecoratedBox', 'Container', 'ClipRRect', 'ClipPath', 'ClipRect', 'FittedBox', 'OverflowBox', 'Expanded', 'Flexible', 'Row', 'Column',
-    'AnimatedBuilder', 'ListenableBuilder', 'CustomPaint', 'Positioned.fill', 'MouseRegion', 'Listener', 'Material', 'InkWell', 'Visibility',
-    'AnimatedOpacity', 'AnimatedPositioned', 'FadeTransition', 'SlideTransition', 'ScaleTransition', 'DefaultTextStyle', 'MediaQuery',
-    'Directionality', 'TickerMode', 'Offstage', 'ConstrainedBox', 'LimitedBox', 'AspectRatio', 'Wrap', 'Flex', 'SingleChildScrollView',
-    'ListView', 'Scrollable', 'NotificationListener', 'PageView', 'CssBox', 'LfFrame', 'OnbMaal', 'BergenEssential', 'Text', 'RichText',
+    'AnimatedBuilder', 'ListenableBuilder', 'CustomPaint', 'Positioned.fill', 'MouseRegion', 'Listener', 'Material', 'InkWell',
+    'Visibility', 'AnimatedOpacity', 'AnimatedPositioned', 'FadeTransition', 'SlideTransition', 'ScaleTransition', 'DefaultTextStyle',
+    'MediaQuery', 'Directionality', 'TickerMode', 'Offstage', 'ConstrainedBox', 'LimitedBox', 'AspectRatio', 'Wrap', 'Flex',
+    'SingleChildScrollView', 'ListView', 'Scrollable', 'NotificationListener', 'PageView', 'CssBox', 'LfFrame', 'OnbMaal',
+    'BergenEssential', 'Text', 'RichText', '_GestureSemantics', 'RawGestureDetector', '_CssPaint', '_EffectiveTickerMode', 'AnimatedScale',
+    'AnimatedRotation', 'RotationTransition', 'TweenAnimationBuilder', 'IndexedStack', 'Image', 'RawImage', 'SvgPicture', 'Icon',
+    'ShaderMask', 'ImageFiltered', 'Transform.scale',
   };
 
   /// Perf plan: the top route and the Bergen tab, for the heartbeat.
@@ -245,6 +303,10 @@ abstract final class BergenPerf {
 
   /// Perf plan: off-screen rest on/off (harness `hvile: false` for A/B).
   static bool hvilePaa = true;
+
+  /// Perf plan: scenes fully covered by an opaque sheet are not painted
+  /// (Offstage) — harness `dekket: false` paints them as before (A/B).
+  static bool dekketPaa = true;
 
   /// Perf plan: true when [context]'s render box lies wholly outside the
   /// screen (plus [margin] logical px on every side), false when it is not

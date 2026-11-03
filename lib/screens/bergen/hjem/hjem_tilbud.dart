@@ -571,10 +571,10 @@ class _KupongState extends State<_Kupong> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Opacity(
-            opacity: .82,
-            child: Text(eyebrow.toUpperCase(), maxLines: 1, style: inter(9, weight: FontWeight.w800, em: .11, color: stil.c)),
-          ),
+          // Perf plan: the opacity on the text colour, not an Opacity layer
+          // (one solid-colour text run without shadows: the same pixels,
+          // no offscreen pass per frame).
+          Text(eyebrow.toUpperCase(), maxLines: 1, style: inter(9, weight: FontWeight.w800, em: .11, color: stil.c.withValues(alpha: stil.c.a * .82))),
           if (t?.fotoUrl != null || t?.fotoAsset != null)
             SizedBox(
               width: 94,
@@ -594,7 +594,7 @@ class _KupongState extends State<_Kupong> {
             maxLines: 1,
             style: jakarta(verdiStr, em: -.04, height: 1, color: stil.verdiC, shadows: stil.skygge).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
           ),
-          Opacity(opacity: .8, child: Text(under, maxLines: 1, style: inter(10.5, weight: FontWeight.w700, color: stil.c))),
+          Text(under, maxLines: 1, style: inter(10.5, weight: FontWeight.w700, color: stil.c.withValues(alpha: stil.c.a * .8))),
         ],
       ),
     );
