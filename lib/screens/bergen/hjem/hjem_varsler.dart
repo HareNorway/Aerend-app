@@ -265,7 +265,8 @@ class HjemVarslerKilde {
   /// The per-user inbox (Customer Step 3); null → the older sources.
   final Future<CusInbox?> Function() inbox;
 
-  /// The bells' number from the inbox; null → the older count.
+  /// The bells' number from the inbox (unread since the panel was last
+  /// opened); null → the older count.
   final Future<int?> Function() antall;
   final Future<bool> Function(String key) les;
 
@@ -318,7 +319,9 @@ class HjemVarslerKilde {
 abstract final class HjemVarsler {
   static HjemVarslerKilde kilde = HjemVarslerKilde.standard();
 
-  /// The bell's count: broadcasts since last seen + Ægil's unseen actions.
+  /// The bell's count: what came since the panel was last opened (the
+  /// inbox's `unseen`, else broadcasts since last seen + Ægil's unseen
+  /// actions). Opening the panel clears it; the cards keep their unread dots.
   static final ValueNotifier<int> uleste = ValueNotifier<int>(0);
 
   @visibleForTesting
@@ -342,6 +345,7 @@ abstract final class HjemVarsler {
   /// Opens the panel over the current screen (`apneVarsler(filter)`).
   static Future<void> apne(BuildContext context, {String filter = 'Alle'}) async {
     final rolig = MediaQuery.maybeDisableAnimationsOf(context) == true;
+    uleste.value = 0;
     await Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
@@ -416,6 +420,9 @@ class _VarslerPanelState extends State<VarslerPanel> {
     final ordre = live == null ? Future<VarselOrdre?>.value() : k.ordre(live.orderId).catchError((_) => null);
     final inbox = await k.inbox().catchError((_) => null);
     if (inbox != null) {
+      // Opening Varsler clears the bell (also when it is closed before the
+      // cards are in); the cards keep their own read state.
+      unawaited(k.markerSett().catchError((_) {}));
       final o = await ordre;
       if (!mounted) return;
       setState(() {
@@ -424,10 +431,9 @@ class _VarslerPanelState extends State<VarslerPanel> {
         _inbox = true;
         _lastet = true;
       });
-      HjemVarsler.uleste.value = inbox.unread;
+      HjemVarsler.uleste.value = 0;
       _lesT = Timer.periodic(const Duration(milliseconds: 500), (_) => _lesSynlige());
       _harness();
-      unawaited(k.markerSett().catchError((_) {}));
       return;
     }
     final r = await Future.wait<Object?>([
@@ -487,7 +493,6 @@ class _VarslerPanelState extends State<VarslerPanel> {
     }
     if (nye.isEmpty) return;
     setState(() => _alle = [for (final v in _alle) nye.contains(v.key) ? v.lest() : v]);
-    HjemVarsler.uleste.value = _alle.where((v) => v.ulest).length;
     for (final key in nye) {
       unawaited(HjemVarsler.kilde.les(key).catchError((_) => false));
     }

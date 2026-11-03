@@ -17,6 +17,7 @@ void main() {
   final lest = <String>[];
   final fjernet = <(String, bool)>[];
   final dempet = <(String, bool)>[];
+  var sett = 0;
 
   CusVarsel v(String key, String type, String title, {String body = '', String sender = 'Ægil', int min = 10, bool read = false, String? action, int? orderId, bool rich = false, int? storeId}) => CusVarsel(
     key: key,
@@ -59,12 +60,13 @@ void main() {
     lest.clear();
     fjernet.clear();
     dempet.clear();
+    sett = 0;
     hjemLiveOrdre.value = null;
     HjemVarsler.kilde = HjemVarslerKilde(
       pushes: () async => const [],
       aegil: () async => const [],
       unseen: () async => (antall: 0, sett: null),
-      markerSett: () async {},
+      markerSett: () async => sett++,
       ordre: (_) async => null,
       inbox: () async => CusInbox(items: items, unread: 3, mutes: const []),
       antall: () async => 7,
@@ -84,11 +86,14 @@ void main() {
   });
   tearDown(HjemVarsler.reset);
 
-  testWidgets('cards from the inbox; read after a second on screen; the bell count is the inbox\'s', (tester) async {
+  testWidgets('cards from the inbox; read after a second on screen; opening clears the bell; the bell count is the inbox\'s', (tester) async {
     phone(tester);
+    HjemVarsler.uleste.value = 12;
     await tester.pumpWidget(host(VarslerPanel(naa: naa)));
     await tester.pump();
     await tester.pump();
+    expect(HjemVarsler.uleste.value, 0, reason: 'opening Varsler clears the bell');
+    expect(sett, 1, reason: 'and tells the server it was seen');
 
     expect(find.text('Tre ting siden sist.'), findsOneWidget);
     expect(find.text('Torgboden svarer ikke'), findsOneWidget);
@@ -103,6 +108,7 @@ void main() {
     expect(lest, containsAll(['n:1', 'n:2', 'n:3']));
     expect(find.byKey(const Key('varsel-ulest')), findsNothing);
     expect(find.text('Ingenting nytt siden sist.'), findsOneWidget);
+    expect(HjemVarsler.uleste.value, 0, reason: 'reading cards never puts the unread total back on the bell');
 
     await HjemVarsler.oppdater();
     expect(HjemVarsler.uleste.value, 7);

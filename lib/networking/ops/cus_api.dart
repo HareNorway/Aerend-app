@@ -436,8 +436,12 @@ class CusApi {
     );
   }
 
-  /// The bells' number; null when the inbox is off or offline.
-  Future<int?> varslerUleste() async => ((await _get('notifications/unread-count'))?['unread'] as num?)?.toInt();
+  /// The bells' number: unread since Varsler was last opened (`unseen`; an
+  /// older server only sends `unread`); null when the inbox is off or offline.
+  Future<int?> varslerUleste() async {
+    final j = await _get('notifications/unread-count');
+    return ((j?['unseen'] ?? j?['unread']) as num?)?.toInt();
+  }
 
   /// Read (after about a second on screen).
   Future<bool> varselLest(String key) async => (await _post('notifications/$key/read', const {}))?['status'] == 1;
