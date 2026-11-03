@@ -33,10 +33,15 @@ import 'bergen_perf.dart';
 /// A backdrop blur inside the subtree blurs what the subtree itself painted
 /// beneath it; use it only where that is all the blur sees on screen.
 class BergenBakt extends SingleChildRenderObjectWidget {
-  const BergenBakt({super.key, this.opacity = 1, this.margin = EdgeInsets.zero, super.child});
+  const BergenBakt({super.key, this.opacity = 1, this.margin = EdgeInsets.zero, this.skalaToleranse = 0, super.child});
 
   final double opacity;
   final EdgeInsets margin;
+
+  /// A raster made at a scale within this fraction of the current one is
+  /// reused (0 = exact). Only for soft content (radial glows, blurred
+  /// shadows) under an animated scale, where resampling cannot be seen.
+  final double skalaToleranse;
 
   /// Off: every BergenBakt paints live (harness `bakt: false`, A/B on one build).
   static bool paa = true;
@@ -51,22 +56,24 @@ class BergenBakt extends SingleChildRenderObjectWidget {
       _registrert = true;
       BergenPerf.pulsTillegg.add(() => 'bakt=${laget}r/${levende}l');
     }
-    return _RenderBakt(opacity, margin);
+    return _RenderBakt(opacity, margin, skalaToleranse);
   }
 
   @override
   void updateRenderObject(BuildContext context, covariant RenderObject renderObject) {
     (renderObject as _RenderBakt)
       ..opacity = opacity
-      ..margin = margin;
+      ..margin = margin
+      ..toleranse = skalaToleranse;
   }
 }
 
 class _RenderBakt extends RenderProxyBox {
-  _RenderBakt(this._opacity, this._margin);
+  _RenderBakt(this._opacity, this._margin, this.toleranse);
 
   double _opacity;
   EdgeInsets _margin;
+  double toleranse;
 
   ui.Image? _bilde;
   Size? _bildeStr;
@@ -219,7 +226,8 @@ class _RenderBakt extends RenderProxyBox {
       _live(context, offset);
       return;
     }
-    if (_bilde == null || _skitten || _bildeStr != size || _bildeSkala != r) {
+    final skalaUlik = _bildeSkala == null || (toleranse > 0 ? (r / _bildeSkala! - 1).abs() > toleranse : _bildeSkala != r);
+    if (_bilde == null || _skitten || _bildeStr != size || skalaUlik) {
       final naa = _klokke.elapsedMilliseconds;
       _serie = naa - _sistMs < 300 ? _serie + 1 : 1;
       _sistMs = naa;
@@ -249,10 +257,11 @@ class _RenderBakt extends RenderProxyBox {
     }
     _skitten = false;
     final img = _bilde!;
+    final rb = _bildeSkala!;
     context.canvas.drawImageRect(
       img,
       Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
-      Rect.fromLTWH(offset.dx + b.left, offset.dy + b.top, img.width / r, img.height / r),
+      Rect.fromLTWH(offset.dx + b.left, offset.dy + b.top, img.width / rb, img.height / rb),
       Paint()
         ..filterQuality = FilterQuality.low
         ..color = Color.fromRGBO(0, 0, 0, _opacity.clamp(0.0, 1.0)),
