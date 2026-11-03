@@ -12,6 +12,7 @@ import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../../common/orderCart/order_cart_repo.dart';
 import '../butikk/butikk_copy.dart';
 import '../onboarding/onb_runde.dart';
+import '../aegil/aegil_guide.dart' show aegilGuideFerdig, kAeTipButikkPluss;
 import 'bergen_ark.dart';
 import 'bergen_toast.dart';
 
@@ -66,6 +67,8 @@ abstract final class BergenCart {
         syncBadge(context, response.countOrder);
         // Onboarding: the tour's «Legg til» mission counts successful adds.
         OnbRunde.instance.kurvLagt++;
+        // The Ægil tip «Trykk + ved en rett …» has done its job.
+        aegilGuideFerdig(const [kAeTipButikkPluss]);
         if (!stille) showBergenToast(context, toast ?? response.message);
         return true;
       }

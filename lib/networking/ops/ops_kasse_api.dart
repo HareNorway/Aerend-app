@@ -18,6 +18,9 @@ class OpsKasseApi {
 
   static bool get _off => !OpsCustomerApi.networkEnabled;
 
+  /// The API `payment_type` an order was placed with (1 kort, 2 Apple / Google Pay, 3 Vipps).
+  static String paymentTypeKey(int orderId) => 'kasse_payment_type_$orderId';
+
   /// The cart lines.
   Future<KurvState> cart() async {
     if (_off) return const KurvState();
@@ -143,6 +146,11 @@ class OpsKasseApi {
         flex: flex,
         clientErrors: true,
       );
+      // The order rows the app reads back carry no payment type: remember it for Bestillingsdetaljer.
+      if (json is Map && json['status'] == 1) {
+        final orderId = int.tryParse('${json['order_id'] ?? ''}') ?? 0;
+        if (orderId > 0) await prefSetInt(paymentTypeKey(orderId), paymentType);
+      }
       return json is Map<String, dynamic> ? json : null;
     } catch (e) {
       return {'status': 0, 'message': e.toString()};

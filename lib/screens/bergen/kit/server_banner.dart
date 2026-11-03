@@ -79,22 +79,30 @@ abstract final class CusOppdaterArk {
 
   static String get storeUrl => Platform.isAndroid ? 'market://details?id=no.aerend.customer' : 'https://apps.apple.com/app/id6825240770';
 
-  /// Shows the prompt once per run when [f] requires an update for [version].
+  /// Shows the prompt when [f] requires an update for [version] and it is not already up. Closed, it comes
+  /// back with the next `agents/flags` answer (resume, restart) while the update is still required.
   static Future<void> visHvis(BuildContext context, CusClientFlags? f, String version) async {
     if (f == null || _vist || !f.needsUpdate(version)) return;
     _vist = true;
-    await vis(context, f.minVersion ?? '');
+    try {
+      await vis(context, f.minVersion ?? '');
+    } finally {
+      _vist = false;
+    }
   }
 
   @visibleForTesting
   static void reset() => _vist = false;
+
+  /// The store the update comes from on this phone (the prompt said «App Store» on Android too).
+  static String _butikk() => Platform.isAndroid ? 'Google Play' : 'App Store';
 
   static Future<void> vis(BuildContext context, String minVersion) => showMegArk<void>(
     context,
     key: const Key('cus-oppdater'),
     mork: true,
     title: _t('Oppdater Ærend', 'Update Ærend'),
-    subtitle: _t('Denne versjonen er for gammel til å bestille trygt. Hent den nye fra App Store, så er du i gang igjen.', 'This version is too old to order safely. Get the new one from the App Store and you are back on.'),
+    subtitle: _t('Denne versjonen er for gammel til å bestille trygt. Hent den nye fra ${_butikk()}, så er du i gang igjen.', 'This version is too old to order safely. Get the new one from ${_butikk()} and you are back on.'),
     body: (ctx, _) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Container(
         padding: const EdgeInsets.all(14),
@@ -108,7 +116,7 @@ abstract final class CusOppdaterArk {
     ]),
     primary: MegArkButton(
       key: const Key('cus-oppdater-cta'),
-      label: _t('Åpne App Store', 'Open the App Store'),
+      label: _t('Åpne ${_butikk()}', 'Open ${_butikk()}'),
       onTap: () => launchUrl(Uri.parse(storeUrl), mode: LaunchMode.externalApplication).catchError((_) => false),
     ),
   );

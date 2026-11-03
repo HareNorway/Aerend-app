@@ -591,6 +591,7 @@ class _SporingScreenState extends State<SporingScreen> {
       sykkel: t.courier?.onBike ?? true,
       partner: t.isPartner,
       henting: t.isPickup,
+      harKode: t.isPickup && t.deliveryCode != null,
       minIgjen: minLeft,
       pct: minLeft == null ? .62 : (1 - minLeft / 30).clamp(.1, .95),
       slutt: end,
@@ -705,6 +706,7 @@ class _SporingScreenState extends State<SporingScreen> {
     final info = _info(t);
     final lines = SporingCopy.lines(
       hent,
+      kode: hent && t.deliveryCode != null,
       partner: t.isPartner,
       bike: t.courier?.onBike ?? true,
       store: t.store?.name,
@@ -731,7 +733,8 @@ class _SporingScreenState extends State<SporingScreen> {
     // The design's stage 3, and (Customer Step 2) while the courier carries
     // the order with the code not yet used — when the courier scans it.
     final kodeUnderveis = !hent && s == 2 && (t.state == 'picked_up' || t.state == 'arrived_customer') && t.deliveryCode?.verifiedAt == null;
-    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && (hent ? s == 2 : s == 3 || kodeUnderveis);
+    // Not once the order is delivered or cancelled: the code has nothing left to open.
+    final slotKode = !slotVerv && _ark == null && t.deliveryCode != null && !t.isDelivered && !t.isCancelled && (hent ? s == 2 : s == 3 || kodeUnderveis);
     final stadieNavn = t.isCancelled
         ? SporingCopy.a1_sporing_avbestilt
         : t.findingCourier

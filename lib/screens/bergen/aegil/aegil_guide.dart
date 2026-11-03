@@ -9,14 +9,18 @@ import '../onboarding/onb_tips.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../hjem/hjem_harness.dart';
+import '../../../utils/shared_pref_utill.dart' show prefGetString, prefSetString;
 import 'aegil_bits.dart';
 import 'aegil_entry.dart';
 import 'aegil_launch_copy.dart';
 
 /// One tip (`gTips(sk).tips[i]`).
 class AeGTip {
-  const AeGTip(this.tx, {this.pose = 'front', this.handling, this.mal = false});
+  const AeGTip(this.tx, {this.pose = 'front', this.handling, this.mal = false, this.id});
   final String tx;
+
+  /// The tip's key in [aegilGuideFerdig]: once dismissed or done, it is not offered again.
+  final String? id;
 
   /// `popup` (Ægil from the side, facing the bubble), `voucher` (cheering,
   /// with a hop) or `front`.
@@ -33,26 +37,64 @@ class AeGTip {
 /// has them: the store's own free-delivery threshold and the basket sum.
 List<AeGTip> aegilGuideTips(String skjerm, {double sum = 0, double? gratisOver}) {
   final igjen = gratisOver == null || gratisOver <= 0 ? null : math.max(0, (gratisOver - sum).ceil());
-  return switch (skjerm) {
+  final tips = switch (skjerm) {
     'utforsk' => [
-      AeGTip(AeCopy.gUtforsk1, pose: 'popup', mal: true),
-      AeGTip(AeCopy.gUtforsk2),
-      AeGTip(AeCopy.gUtforsk3, pose: 'explore', handling: AeCopy.gSpor),
+      AeGTip(AeCopy.gUtforsk1, pose: 'popup', mal: true, id: 'utforsk1'),
+      AeGTip(AeCopy.gUtforsk2, id: 'utforsk2'),
+      AeGTip(AeCopy.gUtforsk3, pose: 'explore', handling: AeCopy.gSpor, id: 'utforsk3'),
     ],
-    'kategori' => [AeGTip(AeCopy.gKategori1, pose: 'popup'), AeGTip(AeCopy.gKategori2)],
+    'kategori' => [AeGTip(AeCopy.gKategori1, pose: 'popup', id: 'kategori1'), AeGTip(AeCopy.gKategori2, id: 'kategori2')],
     'butikk' => [
-      AeGTip(AeCopy.gButikk1, pose: 'popup'),
-      if (igjen != null) igjen > 0 ? AeGTip(AeCopy.gButikk2(gratisOver!.round())) : AeGTip(AeCopy.gButikkGratis, pose: 'voucher'),
+      AeGTip(AeCopy.gButikk1, pose: 'popup', id: kAeTipButikkPluss),
+      if (igjen != null)
+        igjen > 0
+            ? AeGTip(AeCopy.gButikk2(gratisOver!.round()), id: 'butikkIgjen')
+            : AeGTip(AeCopy.gButikkGratis, pose: 'voucher', id: 'butikkGratis'),
     ],
     'kurv' => sum <= 0
-        ? [AeGTip(AeCopy.gKurvTom, pose: 'explore', handling: AeCopy.gSpor)]
+        ? [AeGTip(AeCopy.gKurvTom, pose: 'explore', handling: AeCopy.gSpor, id: 'kurvTom')]
         : [
-            if (igjen != null) igjen > 0 ? AeGTip(AeCopy.gKurvIgjen(igjen), pose: 'popup') : AeGTip(AeCopy.gKurvGratis, pose: 'voucher'),
-            AeGTip(AeCopy.gKurv2),
+            if (igjen != null)
+              igjen > 0
+                  ? AeGTip(AeCopy.gKurvIgjen(igjen), pose: 'popup', id: 'kurvIgjen')
+                  : AeGTip(AeCopy.gKurvGratis, pose: 'voucher', id: 'kurvGratis'),
+            AeGTip(AeCopy.gKurv2, id: kAeTipKurvEndre),
           ],
-    'liga' => [AeGTip(AeCopy.gLiga1, pose: 'popup')],
-    _ => const [],
+    'liga' => [AeGTip(AeCopy.gLiga1, pose: 'popup', id: 'liga1')],
+    _ => const <AeGTip>[],
   };
+  final ferdig = _aeTipsFerdig();
+  return [
+    for (final t in tips)
+      if (t.id == null || !ferdig.contains(t.id)) t,
+  ];
+}
+
+/// «Trykk + ved en rett …» (store page) and «Du kan endre adresse …» (Kurven): done once the customer did it.
+const String kAeTipButikkPluss = 'butikkPluss';
+const String kAeTipKurvEndre = 'kurvEndre';
+
+/// The tips dismissed («Skjønner» / ✕) or acted on, kept across starts — the guide's own sets are per session.
+const String _kPrefTipsFerdig = 'aegil_guide_ferdig';
+
+Set<String> _aeTipsFerdig() {
+  try {
+    return prefGetString(_kPrefTipsFerdig).split(',').where((s) => s.isNotEmpty).toSet();
+  } catch (_) {
+    return <String>{};
+  }
+}
+
+/// Never offer these tips again.
+void aegilGuideFerdig(Iterable<String?> ids) {
+  final ferdig = _aeTipsFerdig();
+  final nye = ids.whereType<String>().where((id) => !ferdig.contains(id)).toList();
+  if (nye.isEmpty) return;
+  try {
+    unawaited(prefSetString(_kPrefTipsFerdig, {...ferdig, ...nye}.join(',')).catchError((_) {}));
+  } catch (_) {
+    // No prefs (tests): the session sets still hold.
+  }
 }
 
 String aegilGuideTittel(String skjerm) => switch (skjerm) {
@@ -90,6 +132,11 @@ class AegilGuide extends StatefulWidget {
   static void reset() {
     _sett.clear();
     _idle.clear();
+    try {
+      unawaited(prefSetString(_kPrefTipsFerdig, '').catchError((_) {}));
+    } catch (_) {
+      // No prefs.
+    }
   }
 
   @override
@@ -129,8 +176,10 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
     _t1 = Timer(const Duration(milliseconds: 1500), () {
       if (!mounted || widget.tips.isEmpty) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return _planIdle();
+      final i = _apen(0);
+      if (i == null) return;
       AegilGuide._sett.add(sk);
-      _inn(0);
+      _inn(i);
     });
   }
 
@@ -155,9 +204,22 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
     _idleT = Timer(const Duration(seconds: 16), () {
       if (!mounted || _fase != _Fase.borte || widget.tips.isEmpty) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      final i = _apen(math.min(1, widget.tips.length - 1));
+      if (i == null) return;
       AegilGuide._idle.add(widget.skjerm);
-      _inn(math.min(1, widget.tips.length - 1));
+      _inn(i);
     });
+  }
+
+  /// The first tip from [fra] not dismissed since the list was built (the screen may not have rebuilt).
+  int? _apen(int fra) {
+    final ferdig = _aeTipsFerdig();
+    for (var k = 0; k < widget.tips.length; k++) {
+      final i = (fra + k) % widget.tips.length;
+      final id = widget.tips[i].id;
+      if (id == null || !ferdig.contains(id)) return i;
+    }
+    return null;
   }
 
   void _inn(int i) {
@@ -195,9 +257,19 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
     _auto = Timer(const Duration(seconds: 13), () => _ut());
   }
 
+  /// The tips shown up to [i] are dismissed for good.
+  void _ferdigTil(int i) {
+    if (widget.tips.isEmpty) return;
+    aegilGuideFerdig([for (var k = 0; k <= math.min(i, widget.tips.length - 1); k++) widget.tips[k].id]);
+  }
+
   void _neste() {
     final i = _i + 1;
-    if (i >= widget.tips.length) return _ut();
+    if (i >= widget.tips.length) {
+      // «Skjønner».
+      _ferdigTil(_i);
+      return _ut();
+    }
     setState(() => _boble = false);
     _t3 = Timer(const Duration(milliseconds: 120), () => _vis(i, false));
   }
@@ -285,7 +357,10 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
                       neste: _i + 1 < widget.tips.length ? AeCopy.gNeste : AeCopy.gSkjonner,
                       teller: widget.tips.length > 1 ? '${_i + 1}/${widget.tips.length}' : '',
                       onNeste: _neste,
-                      onLukk: () => _ut(),
+                      onLukk: () {
+                        _ferdigTil(_i);
+                        _ut();
+                      },
                       onHandling: () {
                         _ut(fort: true);
                         Navigator.of(context).pushNamed(kAegilRoute);

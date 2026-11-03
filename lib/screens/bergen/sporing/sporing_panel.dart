@@ -1,5 +1,5 @@
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -24,6 +24,8 @@ import '../kit/bergen_perf.dart';
 import '../kasse/fee_breakdown_sheet.dart';
 import '../onboarding/onb_maal.dart';
 import '../kasse/kasse_copy.dart' show KasseCopy;
+import '../../../networking/ops/ops_kasse_api.dart' show OpsKasseApi;
+import '../../../utils/shared_pref_utill.dart' show prefGetInt;
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
 // Prototype L7098–7277 (panel) and L7007–7097 (sheet).
@@ -54,6 +56,10 @@ class SpOrdre {
     this.ordreNr = '',
     this.kode = '',
     this.dorNotat = '',
+    this.betaling = 0,
+    this.levering = 0,
+    this.tips = 0,
+    this.avgift,
   });
 
   final List<SpLinje> linjer;
@@ -67,6 +73,19 @@ class SpOrdre {
   final String ordreNr;
   final String kode;
   final String dorNotat;
+
+  /// The API's `payment_type` the order was paid with: 1 kort, 2 Apple / Google Pay, 3 Vipps; 0 unknown.
+  final int betaling;
+
+  /// `delivery_cost` and `tip` of the order row (kr).
+  final double levering;
+  final double tips;
+
+  /// `service_fee` («Avgifter» on the Kassen receipt) when the API sends it; null on older servers.
+  final double? avgift;
+
+  /// The lines' sum (kr).
+  double get varesum => linjer.fold(0.0, (a, l) => a + l.sum);
 
   int get antall => linjer.fold(0, (a, l) => a + l.antall);
 
@@ -100,8 +119,46 @@ class SpOrdre {
       logo: logo,
       ordreNr: '${j['order_no'] ?? j['order_id'] ?? ''}',
       kode: '${j['code'] ?? ''}',
+      betaling: _betaling(j),
+      levering: ((j['delivery_cost'] ?? 0) as num).toDouble(),
+      tips: ((j['tip'] ?? 0) as num).toDouble(),
+      avgift: (j['service_fee'] as num?)?.toDouble(),
     );
   }
+
+  /// Card orders are stored with `payment_type 1`, `payment_provider 'other'` and a Stripe `pi_` intent, so
+  /// the provider alone does not tell Vipps. Without payment fields on the row (today's `ops.customer.orders`
+  /// has none) the type Kassen remembered when it placed the order on this device.
+  static int _betaling(Map<String, dynamic> j) {
+    // The server's own answer first (`card` / `vipps` / `cash`): on the order row type 2 is a Stripe card and
+    // type 1 is card only with a Stripe intent (else the legacy cash), so the raw type alone misleads.
+    switch ('${j['payment_method'] ?? ''}') {
+      case 'card':
+        return 1;
+      case 'vipps':
+        return 3;
+      case 'cash':
+        return 0;
+    }
+    final type = int.tryParse('${j['payment_type'] ?? ''}') ?? 0;
+    final provider = '${j['payment_provider'] ?? ''}'.toLowerCase();
+    final intent = '${j['payment_intent'] ?? ''}';
+    if (provider == 'vipps' || type == 3) return 3;
+    if (provider == 'stripe' || type == 2 || intent.startsWith('pi_')) return 1;
+    final id = int.tryParse('${j['order_id'] ?? ''}') ?? 0;
+    return id > 0 ? prefGetInt(OpsKasseApi.paymentTypeKey(id)) : 0;
+  }
+
+  /// «Vipps», «Kort», «Apple Pay» / «Google Pay»; «Betaling» when unknown.
+  String get betalingNavn => switch (betaling) {
+    3 => 'Vipps',
+    2 => defaultTargetPlatform == TargetPlatform.iOS ? 'Apple Pay' : 'Google Pay',
+    1 => languages.ops_kasse_kort,
+    _ => SporingCopy.a1_sporing_betaling,
+  };
+
+  /// «Betalt med Vipps» / «Betalt med kort» / «Betalt».
+  String get betaltMed => betaling == 0 ? SporingCopy.a1_sporing_betalt_ord : SporingCopy.a1_sporing_betalt_med(betalingNavn);
 }
 
 /// The dark bottom panel: the slot (vervebillett / Leveringskode /
@@ -212,7 +269,8 @@ class SpPanel extends StatelessWidget {
                 _Veileder(tracking: t, linje: linje, navn: navn, poeng: poengNeste),
                 const SizedBox(height: 14),
               ],
-              _Stadier(key: const Key('a1_sporing_stepper'), steg: s, navn: navn, henting: hent),
+              // Cancelled (the API answers stage 0): no stage is under way.
+              _Stadier(key: const Key('a1_sporing_stepper'), steg: t.isCancelled ? -1 : s, navn: navn, henting: hent),
               const SizedBox(height: 18),
               Row(
                 children: [
@@ -420,35 +478,38 @@ class _Veileder extends StatelessWidget {
                     style: inter(12, weight: FontWeight.w700, height: 1.35, color: kSpSub),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.fromLTRB(6, 3, 9, 3),
-                  decoration: BoxDecoration(
-                    color: rgba(92, 224, 184, .14),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: rgba(92, 224, 184, .4)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: kSpMint,
-                          boxShadow: [BoxShadow(color: kSpMint, blurRadius: 6)],
+                // Cancelled: no «Neste: …» — nothing comes next.
+                if (!t.isCancelled) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(6, 3, 9, 3),
+                    decoration: BoxDecoration(
+                      color: rgba(92, 224, 184, .14),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: rgba(92, 224, 184, .4)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: kSpMint,
+                            boxShadow: [BoxShadow(color: kSpMint, blurRadius: 6)],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        hint,
-                        key: const Key('a1_sporing_neste_hint'),
-                        style: inter(10, weight: FontWeight.w800, color: kSpMintLight),
-                      ),
-                    ],
+                        const SizedBox(width: 5),
+                        Text(
+                          hint,
+                          key: const Key('a1_sporing_neste_hint'),
+                          style: inter(10, weight: FontWeight.w800, color: kSpMintLight),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -1171,8 +1232,8 @@ class SpDetaljerArk extends StatelessWidget {
       _Stag(
         delay: 150,
         child: _Kort(
-          tile: const _VippsTile(),
-          eyebrow: SporingCopy.a1_sporing_betalt_med_vipps,
+          tile: _betalingTile(o.betaling),
+          eyebrow: o.betaltMed,
           tittel: total,
           underWidget: Padding(padding: const EdgeInsets.only(top: 4), child: _BetaltPille(SporingCopy.a1_sporing_betalt_kl(klokke))),
           hale: _Chip(key: const Key('a1_sporing_ark_kvittering'), tekst: SporingCopy.a1_sporing_kvittering, ikon: _kIkonKvitteringKort, onTap: onKvittering),
@@ -1444,6 +1505,18 @@ class SpDetaljerArk extends StatelessWidget {
                           ),
                         ),
                       )),
+                    // The rest of the total (Kassen's receipt): delivery without the engine's lines, the service
+                    // fees («Avgifter» — the order row has no field of their own, so what the total has beyond
+                    // lines, delivery and tip) and the tip.
+                    ...() {
+                      final levering = FeeQuoteView.fromBreakdown(t.raw['fee_breakdown'])?.totalKr ?? o.levering;
+                      final avgifter = o.avgift ?? (o.total - o.varesum - levering - o.tips);
+                      return [
+                        if (t.raw['fee_breakdown'] == null && o.levering > 0) _SumRad(KasseCopy.a1_kasse_frakt, o.levering),
+                        if (o.linjer.isNotEmpty && avgifter >= 0.5) _SumRad(KasseCopy.a1_kasse_avgifter, avgifter),
+                        if (o.tips > 0) _SumRad(KasseCopy.a1_kasse_tips_rad, o.tips),
+                      ];
+                    }(),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 10),
                       // `inset 0 0 0 1px`: the ring sits inside the 10 / 12 padding.
@@ -1481,8 +1554,8 @@ class SpDetaljerArk extends StatelessWidget {
               _Seksjon(SporingCopy.a1_sporing_betaling),
               const SizedBox(height: 9),
               _Kort(
-                tile: const _VippsTile(),
-                tittel: 'Vipps',
+                tile: _betalingTile(o.betaling),
+                tittel: o.betalingNavn,
                 under: [dato, klokke].where((x) => x.isNotEmpty).join(' · '),
                 hale: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -1801,6 +1874,30 @@ class _Flis extends StatelessWidget {
       CssShadow(0, 8, 12, -6, rgba(0, 0, 0, .5)),
     ],
     child: Center(child: child),
+  );
+}
+
+/// The payment tile: Vipps's own, a card for the rest.
+Widget _betalingTile(int betaling) => betaling == 3 ? const _VippsTile() : _Flis(child: spIkon(_kIkonKort, size: 19));
+
+const String _kIkonKort = 'M3 6.5h18v11H3zM3 10h18M6.5 14.5h4';
+
+/// A sum line in Din bestilling (Levering / Avgifter / Tips), styled as the «Levering ›» row.
+class _SumRad extends StatelessWidget {
+  const _SumRad(this.label, this.kr);
+
+  final String label;
+  final double kr;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 9),
+    child: Row(
+      children: [
+        Expanded(child: Text(label, style: inter(13.5, weight: FontWeight.w800, height: spLinje(13.5)))),
+        Text(KasseCopy.kr(kr), style: inter(13.5, weight: FontWeight.w800, height: spLinje(13.5)).copyWith(fontFeatures: _kTab)),
+      ],
+    ),
   );
 }
 

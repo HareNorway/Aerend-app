@@ -87,6 +87,8 @@ void main() {
       butikkAdresse: 'Bryggen 7',
       ordreNr: 'ÆR-1234',
       kode: 'Æ-42K',
+      // Paid with Vipps (the order row's `payment_type 3`): the tile and «Betalt med Vipps».
+      betaling: 3,
     );
     var ring = 0, detaljer = 0;
     Widget ark(SpArk a) => MaterialApp(

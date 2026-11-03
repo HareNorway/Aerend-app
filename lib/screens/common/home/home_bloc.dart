@@ -56,7 +56,25 @@ class HomeBloc extends Bloc {
   State<StatefulWidget> state;
 
   HomeBloc(this.context, this.state, this.isHareExplore) {
+    _emitCachedDeliveryAddress();
     _initialize();
+  }
+
+  /// Cold start: the address chosen last time (kept by [updateDeliveryAddress]) shows at once — the address
+  /// list is only fetched after the home calls, and until it answers the header said «Velg adresse».
+  void _emitCachedDeliveryAddress() {
+    try {
+      final raw = prefGetString(prefNewDeliveryAddress).trim();
+      if (raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return;
+      final cached = AddressListItem.fromJson(decoded);
+      if (cached.addressId == 0 || cached.address.trim().isEmpty) return;
+      if (cached.addressId != prefGetInt(prefNewDeliveryAddressId)) return;
+      _deliveryAddressController.sink.add(cached);
+    } catch (_) {
+      // A malformed cache: the address list sets it.
+    }
   }
 
   void _emitCachedHomeCategoriesIfAvailable() {

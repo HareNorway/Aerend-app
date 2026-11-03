@@ -48,7 +48,7 @@ abstract final class SporingCopy {
   /// Ægil's lines per stage (Launch L19409–19427): first person, with the
   /// store, the street, the minutes left, the pickup name and the window
   /// when they are known.
-  static List<String> lines(bool pickup, {bool partner = false, bool bike = true, String? store, String? gate, int? minutter, String? navn, String? vindu, String? klokke}) {
+  static List<String> lines(bool pickup, {bool kode = false, bool partner = false, bool bike = true, String? store, String? gate, int? minutter, String? navn, String? vindu, String? klokke}) {
     final s = store ?? _t('butikken', 'the shop');
     final min = minutter == null ? '' : ' ${_minutter(minutter)} ${_t('til', 'to')} ${gate ?? _t('deg', 'you')}.';
     if (pickup) {
@@ -56,8 +56,8 @@ abstract final class SporingCopy {
         _t('Jeg rodde inn til Bryggen og leverte bestillingen. Kokken hos $s leser den nå.', 'I rowed in and delivered the order. The kitchen at $s is reading it now.'),
         _t('Du kan gå ut døren nå — maten er snart klar.', 'You can head out now — the food is nearly ready.'),
         _t(
-          'Maten er ferdig! Hent den i disken hos $s${gate == null ? '' : ', $gate'}${navn == null ? '' : ' — si «$navn»'}.',
-          'The food is ready! Pick it up at the counter at $s${gate == null ? '' : ', $gate'}${navn == null ? '' : ' — say «$navn»'}.',
+          'Maten er ferdig! Hent den i disken hos $s${gate == null ? '' : ', $gate'}${kode ? ' — vis koden din' : navn == null ? '' : ' — si «$navn»'}.',
+          'The food is ready! Pick it up at the counter at $s${gate == null ? '' : ', $gate'}${kode ? ' — show your code' : navn == null ? '' : ' — say «$navn»'}.',
         ),
         _t('Hentet${klokke == null ? '' : ' $klokke'}. Håper det smaker.', 'Picked up${klokke == null ? '' : ' $klokke'}. Enjoy.'),
       ];
@@ -128,6 +128,8 @@ abstract final class SporingCopy {
         return _t('Varene har aldersgrense, så budet må sjekke kode ved levering.', 'The goods are age restricted, so the courier checks a code at delivery.');
       case 'a1_sporing_kode_reason_customer_choice':
         return _t('Du har valgt kode ved levering.', 'You chose a code at delivery.');
+      case 'a1_sporing_kode_reason_pickup':
+        return _t('Vis koden i disken når du henter.', 'Show the code at the counter when you collect.');
       case 'a1_sporing_kode_reason_business':
         return _t('Levering til bedriftsadresse krever kode.', 'Delivery to a business address needs a code.');
       default:
@@ -235,6 +237,7 @@ abstract final class SporingCopy {
   static String get a1_sporing_tilberedes_stempel => 'TILBEREDES';
   static String a1_sporing_kl_stempel(String t) => _t('kl. $t', 'at $t');
   static String get a1_sporing_koker => _t('Det koker greit her på kjøkkenet, men jeg er i rute!', 'It is busy in the kitchen, but I am on schedule!');
+  static String get a1_sporing_i_disken_kode => _t('Den står i disken. Vis koden din, så får du den.', 'It is at the counter. Show your code and it is yours.');
   static String a1_sporing_i_disken_si(String navn) => _t('Den står i disken. Si «$navn» så får du den.', 'It is at the counter. Say «$navn» and it is yours.');
   static String get a1_sporing_ankommer => _t('Ankommer om', 'Arriving in');
   static String a1_sporing_km_igjen(String km) => _t('$km km igjen', '$km km left');
@@ -269,6 +272,7 @@ abstract final class SporingCopy {
   static String a1_sporing_varer(int n) => _t('$n ${n == 1 ? 'vare' : 'varer'}', '$n ${n == 1 ? 'item' : 'items'}');
   static String get a1_sporing_se_alt => _t('Se alt', 'See all');
   static String get a1_sporing_betalt_med_vipps => _t('Betalt med Vipps', 'Paid with Vipps');
+  static String a1_sporing_betalt_med(String hva) => _t('Betalt med ${hva == 'Vipps' || hva.contains('Pay') ? hva : hva.toLowerCase()}', 'Paid with $hva');
   static String a1_sporing_betalt_kl(String t) => _t('Betalt $t', 'Paid $t');
   static String get a1_sporing_kvittering => _t('Kvittering', 'Receipt');
   static String get a1_sporing_klar_knapp => _t('Klar', 'Done');

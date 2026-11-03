@@ -24,6 +24,7 @@ class SpSceneInfo {
     this.sykkel = true,
     this.partner = false,
     this.henting = false,
+    this.harKode = false,
     this.minIgjen,
     this.pct = .62,
     this.slutt,
@@ -49,6 +50,9 @@ class SpSceneInfo {
   final bool sykkel;
   final bool partner;
   final bool henting;
+
+  /// A pickup with a code (the counter checks the PIN): the scene says «vis koden», not the first name.
+  final bool harKode;
 
   /// Customer Step 11: the store's own window («22:23–22:28») for a partner-delivered order (self-delivery spec §5).
   final String? vindu;

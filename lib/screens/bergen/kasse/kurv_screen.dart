@@ -283,7 +283,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   final TextEditingController _note = TextEditingController();
   final TextEditingController _door = TextEditingController();
 
-  OpsKasseApi get _api => widget.api ?? OpsKasseApi();
+  // One instance for the screen: `lastPreviewError` (422 `OUT_OF_COVERAGE`) is read from the api that made the call.
+  late final OpsKasseApi _api = widget.api ?? OpsKasseApi();
   OpsCustomerApi get _customer => widget.customerApi ?? OpsCustomerApi();
 
   final ScrollController _rull = ScrollController();
@@ -538,6 +539,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       bloc.dispose();
     }
     if (!mounted) return;
+    // The Ægil tip «Du kan endre adresse og leveringstid …» has done its job.
+    aegilGuideFerdig(const [kAeTipKurvEndre]);
     final addresses = await _api.addresses();
     final id = prefGetInt(prefNewDeliveryAddressId);
     if (!mounted) return;
@@ -599,6 +602,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       onModeChanged: (m) => setState(() => _pickup = m),
     );
     if (chosen != null && mounted) {
+      aegilGuideFerdig(const [kAeTipKurvEndre]);
       final flex = chosen.id == 'flex';
       setState(() => _slot = chosen);
       if (flex != _flex) {
@@ -1269,9 +1273,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
             KvRad(
               key: _pickup ? null : const Key('a1_kasse_frakt'),
               label: _pickup ? KasseCopy.a1_kasse_henting : KasseCopy.a1_kasse_frakt,
-              value: !_pickup && delivery > 0 ? KasseCopy.kr(delivery) : null,
+              value: !_pickup && !_outOfCoverage && delivery > 0 ? KasseCopy.kr(delivery) : null,
               trailing: _pickup
                   ? KvStempel(tekst: KasseCopy.a1_kasse_frakt_chip_hent)
+                  // 422 `OUT_OF_COVERAGE`: no fee and no «gratis» — the address is outside the delivery area.
+                  : _outOfCoverage
+                  ? KvStempel(tekst: languages.fee_out_of_coverage_title)
                   : delivery > 0
                   ? null
                   : KvStempel(
@@ -1291,6 +1298,13 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               ),
           ],
           notater: [
+            if (!_pickup && _outOfCoverage)
+              KvNotat(
+                key: const Key('a1_kasse_utenfor_dekning'),
+                tekst: '${languages.fee_out_of_coverage_title}. ${languages.fee_out_of_coverage_line}',
+                cta: languages.fee_out_of_coverage_waitlist,
+                onTap: _utenforDekning,
+              ),
             if (aegil.isNotEmpty)
               KvNotat(
                 key: const Key('a1_kasse_aegil_linjer'),

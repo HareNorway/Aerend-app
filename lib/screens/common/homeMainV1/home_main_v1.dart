@@ -20,6 +20,7 @@ import '../auth/launch/lf_css.dart' show lfFlow;
 import '../../deliveryService/trackOrder/track_order.dart';
 import '../../bergen/kasse/kurv_screen.dart';
 import '../../bergen/kit/server_banner.dart';
+import '../../../services/customer/client_flags.dart';
 
 /// The Bergen shell: Hjem · Utforsk · Kurv · Meg behind the design's pill nav
 /// plus the round search orb (search field + Ægil pill, long-press → Ægil).
@@ -100,10 +101,20 @@ class HomeMainV1State extends State<HomeMainV1> {
         if (mounted) PushNotificationService.openPendingPushRoute();
       });
     }
+    // Customer Step 16: «Oppdater Ærend» when `agents/flags` says `update_required` / `min_version` — from the
+    // shell, past the splash (the banner of the same answer lives here too); again on each new answer (resume).
+    ClientFlags.agents.addListener(_oppdaterSjekk);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _oppdaterSjekk());
+  }
+
+  void _oppdaterSjekk() {
+    if (!mounted) return;
+    CusOppdaterArk.visHvis(context, ClientFlags.agents.value, cusAppVersion);
   }
 
   @override
   void dispose() {
+    ClientFlags.agents.removeListener(_oppdaterSjekk);
     controller.dispose();
     badgeCountNotifier.dispose();
     searchLaunchKeyword.dispose();

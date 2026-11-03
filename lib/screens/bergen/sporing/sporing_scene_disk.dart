@@ -93,7 +93,7 @@ class SpSceneDisk extends StatelessWidget {
                   ],
                 ),
                 child: Text(
-                  SporingCopy.a1_sporing_i_disken_si(info.kunde),
+                  info.harKode ? SporingCopy.a1_sporing_i_disken_kode : SporingCopy.a1_sporing_i_disken_si(info.kunde),
                   style: inter(11.5, weight: FontWeight.w700, height: 1.35, color: kSpInk),
                 ),
               ),

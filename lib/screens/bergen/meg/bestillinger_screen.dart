@@ -22,6 +22,7 @@ import 'meg_ark.dart';
 import 'meg_nav.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
+import '../kasse/kasse_copy.dart';
 
 /// Ordrehistorikk (new Bergen `erOrdrer`, L8036–8089, + `ohVals` L15336):
 /// the orders the customer has placed (`ops.customer.orders`), «Bestill igjen
@@ -55,6 +56,11 @@ class _Ordre {
   DateTime get naar => DateTime.tryParse('${raw['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now();
   num get sum => (raw['total_pay'] as num?) ?? 0;
   num get levering => (raw['delivery_cost'] as num?) ?? 0;
+  num get tips => (raw['tip'] as num?) ?? 0;
+
+  /// «Avgifter» (Kassen's service fee): the API's `service_fee`, else what the total has beyond lines, delivery
+  /// and tip — the receipt listed lines and delivery only, so its rows did not add up to Totalt.
+  num avgift(num linjesum) => (raw['service_fee'] as num?) ?? (sum - linjesum - levering - tips);
   String get state => '${raw['state'] ?? ''}';
   String get stageLabel => '${raw['stage_label'] ?? ''}';
   bool get betalt => raw['paid'] == true;
@@ -1089,6 +1095,18 @@ class _Kvittering extends StatelessWidget {
   const _Kvittering({required this.o});
   final _Ordre o;
 
+  /// A line under Levering (Avgifter, Tips): no chip, the label aligned with the lines' names.
+  Widget _ekstraRad(String label, num kr) => Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            const SizedBox(width: 40),
+            Expanded(child: Text(label, style: inter(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .75)))),
+            Text(OhCopy.kr(kr.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final varer = o.sum - o.levering;
@@ -1173,6 +1191,14 @@ class _Kvittering extends StatelessWidget {
                 ],
               ),
             ),
+          ...() {
+            final linjesum = o.linjer.fold<num>(0, (a, l) => a + ((l['unit_price'] ?? 0) as num) * ((l['quantity'] ?? 1) as num));
+            final avgift = o.avgift(linjesum);
+            return [
+              if (avgift >= 0.5) _ekstraRad(KasseCopy.a1_kasse_avgifter, avgift),
+              if (o.tips > 0) _ekstraRad(KasseCopy.a1_kasse_tips_rad, o.tips),
+            ];
+          }(),
           const SizedBox(height: 12),
           CustomPaint(painter: _Stiplet(), child: const SizedBox(height: 1)),
           const SizedBox(height: 12),

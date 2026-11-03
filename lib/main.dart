@@ -40,7 +40,6 @@ import 'screens/bergen/bergen_routes_agil3.dart';
 import 'screens/bergen/kit/bergen_routes.dart';
 import 'screens/bergen/meg/a3_services.dart';
 import 'screens/bergen/kit/bergen_perf.dart';
-import 'screens/bergen/kit/server_banner.dart';
 import 'services/customer/beacons.dart';
 
 //Created at 20/05/2021 11:30 AM
@@ -239,7 +238,6 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    ClientFlags.agents.addListener(_oppdaterSjekk);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       VippsLoginLinkHandler.bootstrap();
@@ -248,18 +246,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    ClientFlags.agents.removeListener(_oppdaterSjekk);
     WidgetsBinding.instance.removeObserver(this);
     unawaited(VippsLoginLinkHandler.dispose());
     super.dispose();
   }
 
-  /// Customer Step 16: the `min_version` prompt when `agents/flags` says so.
-  void _oppdaterSjekk() {
-    final ctx = navigatorKey.currentContext;
-    if (ctx == null) return;
-    unawaited(CusOppdaterArk.visHvis(ctx, ClientFlags.agents.value, cusAppVersion));
-  }
+  // Customer Step 16: the `min_version` prompt is the shell's (HomeMainV1State): shown from here, during the
+  // splash, the splash's pushAndRemoveUntil took the sheet away and «once per run» kept it from coming back.
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
