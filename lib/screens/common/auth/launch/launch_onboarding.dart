@@ -166,7 +166,8 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
     if (_steg == LfSteg.kode) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _sendFirstCode());
     }
-    if (kDebugMode) _applyHarness();
+    // Perf plan: also in profile builds (the phone measurements log in with it); never release.
+    if (!kReleaseMode) _applyHarness();
   }
 
   void _rebuild() {

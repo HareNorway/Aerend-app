@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kReleaseMode, visibleForTesting;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, visibleForTesting;
 import 'package:flutter_pretty_dio_logger/flutter_pretty_dio_logger.dart';
 
 import '../../exceptions/feed/feed_api_exception.dart';
@@ -23,7 +23,7 @@ class FeedApiHelper {
     );
     _dio.interceptors.add(FeedAuthInterceptor());
     _dio.interceptors.add(FeedLocaleInterceptor());
-    if (!kReleaseMode) {
+    if (kDebugMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,

@@ -161,6 +161,14 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
   Duration? _step = const Duration(microseconds: 16667);
   double _budget = 300000;
 
+  // Perf plan: no frames while the scene is off the screen; its clock
+  // carries on (see PerfHvile).
+  late final PerfHvile _hvile = PerfHvile(context, _ticker, onVaakn: (s) {
+    _t += s * (_calm ? .15 : 1);
+    _prev = Duration.zero;
+    _sist = Duration.zero;
+  });
+
   @override
   void initState() {
     super.initState();
@@ -198,13 +206,14 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
       _load();
     }
     // A held frame follows new data (weather, the store's logo).
-    if (!_ticker.isActive && !(widget.stillTier && _step == null)) SchedulerBinding.instance.addPostFrameCallback((_) => _render());
+    if (!_ticker.isActive && !_hvile.hviler && !(widget.stillTier && _step == null)) SchedulerBinding.instance.addPostFrameCallback((_) => _render());
   }
 
   void _sync() {
     if (_shader == null) return;
     final run = _step != null;
-    if (run && !_ticker.isActive) _ticker.start();
+    if (!run) _hvile.vaakn(start: false);
+    if (run && !_ticker.isActive && !_hvile.hviler) _ticker.start();
     if (!run && _ticker.isActive) _ticker.stop();
     if (!run && widget.stillTier && widget.still != null) {
       final old = _frame;
@@ -226,7 +235,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
         if (i >= _img.length) return;
         _img[i]?.dispose();
         _img[i] = info.image.clone();
-        if (!_ticker.isActive) _render();
+        if (!_ticker.isActive && !_hvile.hviler) _render();
       }, onError: (Object _, StackTrace? _) {});
       s.addListener(l);
       _streams.add(s);
@@ -246,6 +255,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
   }
 
   void _tick(Duration e) {
+    if (_hvile.tikk()) return;
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1);
     _age = (_age ?? _sw.elapsedMicroseconds / 1e6) + dt;
     _t += dt * (_calm ? .15 : 1);
@@ -291,6 +301,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    _hvile.dispose();
     _ticker.dispose();
     _unload();
     _frame?.dispose();

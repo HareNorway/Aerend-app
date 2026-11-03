@@ -304,6 +304,9 @@ abstract final class HjemHarness {
   /// Step 12: push this `/bergen/…` route from Hjem (`rute`), with `ruteArg` as
   /// its argument (a string, or a JSON object for a `Map`).
   static String? rute;
+
+  /// Perf plan: open the calibration page (blank + one spinner).
+  static bool perfKalib = false;
   static Object? ruteArg;
 
   /// 29 Oct loaders and transitions: `ruteTilbake` pops the pushed route
@@ -401,7 +404,7 @@ abstract final class HjemHarness {
   static int? guideIdx;
 
   static Future<void> load() async {
-    if (!kDebugMode) return;
+    if (kReleaseMode) return;
     try {
       final dir = await getApplicationDocumentsDirectory();
       final kunde = File('${dir.path}/kunde_state.json');
@@ -421,6 +424,8 @@ abstract final class HjemHarness {
         heroAv = false;
         skyggeAv = false;
         CssBoxPainter.debugUtenBlur = false;
+        CssBake.paa = true;
+        BergenPerf.hvilePaa = true;
         heroStille = false;
         arkStille = false;
         snart = null;
@@ -554,6 +559,10 @@ abstract final class HjemHarness {
       heroAv = m['heroAv'] == true;
       skyggeAv = m['skyggeAv'] == true;
       CssBoxPainter.debugUtenBlur = skyggeAv;
+      // Perf plan: `cssCache: false` paints every CssBox live (A/B on one build).
+      CssBake.paa = m['cssCache'] != false;
+      // Perf plan: `hvile: false` keeps off-screen loops and scenes ticking (A/B).
+      BergenPerf.hvilePaa = m['hvile'] != false;
       heroStille = m['heroStille'] == true;
       arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
@@ -659,6 +668,7 @@ abstract final class HjemHarness {
       fiskeAgn = m['fiskeAgn'] as String?;
       aegil = m['aegil'] as String?;
       rute = m['rute'] as String?;
+      perfKalib = m['perfKalib'] == true;
       ruteTilbake = m['ruteTilbake'] as int?;
       ruteVent = m['ruteVent'] as int?;
       favPop = m['favPop'] as int?;

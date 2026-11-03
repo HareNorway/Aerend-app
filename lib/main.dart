@@ -295,6 +295,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         store: widget.store,
         child: MaterialApp(
           navigatorKey: navigatorKey,
+          navigatorObservers: [BergenPerf.ruter],
           scaffoldMessengerKey: rootScaffoldMessengerKey,
           theme: ScSaasTheme.light(),
           // darkTheme: ScSaasTheme.dark(),

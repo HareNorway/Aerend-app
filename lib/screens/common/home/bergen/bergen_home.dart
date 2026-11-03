@@ -292,6 +292,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
     WidgetsBinding.instance.addObserver(this);
     BergenFaneBytte.aktiv.addListener(_faneVist);
+    BergenPerf.fane = BergenFaneBytte.aktiv;
     _sistLastet = DateTime.now();
     _lastSnart();
     _lastPose();
@@ -341,17 +342,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     // Hurtigbestilling's entry line: the habit of the day, loaded once.
     HurtigKilde.load();
     // Onboarding Step 3: Ægil-runden starts by itself once (`vkKanskjeStart`), 900 ms after Hjem.
-    final harness = kDebugMode ? HjemHarness.load() : Future<void>.value();
+    final harness = !kReleaseMode ? HjemHarness.load() : Future<void>.value();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future<void>.delayed(const Duration(milliseconds: 900), () async {
         await harness;
         if (!mounted) return;
         if (kDebugMode && HjemHarness.onbNull) OnbStatus.instance.nullstill();
         if (kDebugMode && HjemHarness.onbLevert) OnbStatus.instance.merkLevert();
-        OnbRunde.kanskjeStart(harness: kDebugMode && (HjemHarness.onbRunde != null || HjemHarness.onbTips != null));
+        OnbRunde.kanskjeStart(harness: !kReleaseMode && (HjemHarness.onbRunde != null || HjemHarness.onbTips != null));
       });
     });
-    if (kDebugMode) {
+    // Perf plan: the harness also drives profile builds (never release).
+    if (!kReleaseMode) {
       harness.then((_) {
         if (mounted) setState(() {});
         Future.delayed(const Duration(milliseconds: 1500), () {
@@ -433,6 +435,17 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             unawaited(refreshAegilFindCount().then((_) {
               if (mounted) _openBrett();
             }));
+          }
+          // Perf plan (debug/profile): a blank page with one small spinner —
+          // the GPU-busy floor of a trivial 60 fps frame on this phone.
+          if (HjemHarness.perfKalib) {
+            Navigator.of(context).push(PageRouteBuilder<void>(
+              settings: const RouteSettings(name: '/perf/kalib'),
+              pageBuilder: (_, __, ___) => const ColoredBox(
+                color: Color(0xFF0E2A33),
+                child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+              ),
+            ));
           }
           if (HjemHarness.rute case final r?) {
             final arg = HjemHarness.ruteArg;
@@ -1692,7 +1705,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         // ── Hero ───────────────────────────────────────
                         // Clipped at the status bar: the design's frame
                         // starts at y=0, ours below the safe area.
-                        if (!(kDebugMode && HjemHarness.heroAv))
+                        if (!(!kReleaseMode && HjemHarness.heroAv))
                         Positioned(
                           left: 0,
                           right: 0,
@@ -1733,7 +1746,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         child: ValueListenableBuilder<bool>(
                                         valueListenable: BergenPerf.ruller,
                                         builder: (context, ruller, hero) => TickerMode(
-                                          enabled: _heroLiv && !ruller && !(kDebugMode && HjemHarness.heroStille),
+                                          enabled: _heroLiv && !ruller && !(!kReleaseMode && HjemHarness.heroStille),
                                           child: hero!,
                                         ),
                                         child: HjemHero(
@@ -1821,7 +1834,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             child: _Sheet(
                             controller: _scroll,
                             child: TickerMode(
-                            enabled: !(kDebugMode && HjemHarness.arkStille),
+                            enabled: !(!kReleaseMode && HjemHarness.arkStille),
                             child: _sheetBody(
                               context,
                               categories: categories,

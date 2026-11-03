@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -85,14 +88,58 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _t = ValueNotifier<double>(0);
   Duration _base = Duration.zero;
   Duration _last = Duration.zero;
+  bool _reduce = false;
+
+  // Perf plan: a loop whose box is wholly off the screen (scrolled away,
+  // under the fold) stops ticking — no frame, no rebuild — while its clock
+  // keeps wall time ([_hvil]), so it comes back at exactly the pose the
+  // design's CSS animation would show at that moment. The nearest scroll
+  // position and a 120 ms timer wake it as soon as it is on the screen.
+  int _tikk = 0;
+  Stopwatch? _hvil;
+  Timer? _vekk;
+  ScrollPosition? _rull;
 
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker((e) {
-      _last = e;
-      _t.value = (_base + e).inMicroseconds / 1000.0;
-    });
+    BergenPerf.lfLoopsMounted++;
+    if (kDebugMode) BergenPerf.debugLoops[context] = () => _ticker.isActive && !_ticker.muted;
+    _ticker = createTicker(_onTick);
+  }
+
+  void _onTick(Duration e) {
+    _last = e;
+    _t.value = (_base + e).inMicroseconds / 1000.0;
+    if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
+  }
+
+  void _hvile() {
+    if (!_ticker.isActive) return;
+    _base += _last;
+    _last = Duration.zero;
+    _ticker.stop();
+    _hvil = Stopwatch()..start();
+    _vekk = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _rull = Scrollable.maybeOf(context)?.position;
+    _rull?.addListener(_sjekk);
+  }
+
+  void _sjekk() {
+    if (!mounted || _reduce || _ticker.muted) return;
+    if (BergenPerf.utenforSkjerm(context)) return;
+    _vaakn();
+  }
+
+  void _vaakn() {
+    _vekk?.cancel();
+    _vekk = null;
+    _rull?.removeListener(_sjekk);
+    _rull = null;
+    final h = _hvil;
+    _hvil = null;
+    if (h != null) _base += h.elapsed;
+    if (!_reduce && !_ticker.isActive) _ticker.start();
   }
 
   @override
@@ -100,21 +147,31 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
     super.didChangeDependencies();
     // Reduced motion, or a decorative loop in the `lite` tier, rests at
     // [frozenMs] (keyframe 0 unless the caller says otherwise).
-    final reduce = MediaQuery.disableAnimationsOf(context) ||
+    _reduce = MediaQuery.disableAnimationsOf(context) ||
         !BergenPerf.loopsRun(context, essential: widget.essential);
-    if (reduce) {
+    if (_reduce) {
       if (_ticker.isActive) {
         _base += _last;
+        _last = Duration.zero;
         _ticker.stop();
       }
+      _vekk?.cancel();
+      _vekk = null;
+      _rull?.removeListener(_sjekk);
+      _rull = null;
+      _hvil = null;
       _t.value = widget.frozenMs;
-    } else if (!_ticker.isActive) {
+    } else if (!_ticker.isActive && _hvil == null) {
       _ticker.start();
     }
   }
 
   @override
   void dispose() {
+    BergenPerf.lfLoopsMounted--;
+    if (kDebugMode) BergenPerf.debugLoops.remove(context);
+    _vekk?.cancel();
+    _rull?.removeListener(_sjekk);
     _ticker.dispose();
     _t.dispose();
     super.dispose();

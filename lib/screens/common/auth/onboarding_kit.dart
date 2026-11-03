@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter, lerpDouble;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -252,25 +254,72 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   double get _now =>
       (widget.shared ? OnbLoopClock._app : _local).elapsedMicroseconds / 1000.0;
 
+  // Perf plan: off the screen the loop stops ticking (no frame, no
+  // rebuild); its stopwatch clock keeps running, so it resumes at the pose
+  // the design would show at that moment.
+  int _tikk = 0;
+  bool _reduce = false, _hviler = false;
+  Timer? _vekk;
+  ScrollPosition? _rull;
+
   @override
   void initState() {
     super.initState();
+    BergenPerf.onbLoopsMounted++;
+    if (kDebugMode) BergenPerf.debugLoops[context] = () => _ticker.isActive && !_ticker.muted;
     _t.value = _now;
-    _ticker = createTicker((_) => _t.value = _now);
+    _ticker = createTicker(_onTick);
+  }
+
+  void _onTick(Duration _) {
+    _t.value = _now;
+    if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
+  }
+
+  void _hvile() {
+    if (!_ticker.isActive) return;
+    _ticker.stop();
+    _hviler = true;
+    _vekk = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _rull = Scrollable.maybeOf(context)?.position;
+    _rull?.addListener(_sjekk);
+  }
+
+  void _sjekk() {
+    if (!mounted || _reduce || _ticker.muted) return;
+    if (BergenPerf.utenforSkjerm(context)) return;
+    _vaakn();
+  }
+
+  void _vaakn() {
+    _vekk?.cancel();
+    _vekk = null;
+    _rull?.removeListener(_sjekk);
+    _rull = null;
+    _hviler = false;
+    if (!_reduce && !_ticker.isActive) _ticker.start();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Reduced motion, or a decorative loop in the `lite` tier, holds still.
-    final reduce = MediaQuery.disableAnimationsOf(context) ||
+    _reduce = MediaQuery.disableAnimationsOf(context) ||
         !BergenPerf.loopsRun(context, essential: widget.essential);
-    if (reduce && _ticker.isActive) _ticker.stop();
-    if (!reduce && !_ticker.isActive) _ticker.start();
+    if (_reduce) {
+      if (_ticker.isActive) _ticker.stop();
+      if (_hviler) _vaakn();
+    } else if (!_ticker.isActive && !_hviler) {
+      _ticker.start();
+    }
   }
 
   @override
   void dispose() {
+    BergenPerf.onbLoopsMounted--;
+    if (kDebugMode) BergenPerf.debugLoops.remove(context);
+    _vekk?.cancel();
+    _rull?.removeListener(_sjekk);
     _ticker.dispose();
     _t.dispose();
     super.dispose();

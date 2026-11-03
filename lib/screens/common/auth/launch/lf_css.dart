@@ -1,8 +1,12 @@
+import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../../../bergen/kit/bergen_perf.dart';
 
 // ── Launch onboarding · CSS primitives ──────────────────────────────────────
 // `Design-New/Ærend Kunde Launch.dc.html` styles everything inline. These
@@ -207,7 +211,7 @@ class CssBox extends StatelessWidget {
       inner = ClipRRect(borderRadius: radius, child: inner);
     }
     final hasInset = shadows.any((s) => s.inset);
-    return CustomPaint(
+    return _CssPaint(
       painter: CssBoxPainter(
         radius: radius,
         bg: bg,
@@ -256,6 +260,111 @@ class CssBoxPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Perf plan: inside a CssBox, a box with blurred or stencil-clipped
+    // shadows is drawn from CssBake's raster (painted once by [_tegn] at the
+    // box's on-screen resolution), not re-blurred every frame.
+    final r = CssBake._skala;
+    final ro = CssBake._aktiv;
+    if (r == null || ro == null || !CssBake.paa || debugUtenBlur || !_dyr) {
+      _tegn(canvas, size);
+      return;
+    }
+    if (ro._pause > 0) {
+      ro._pause--;
+      _tegn(canvas, size);
+      return;
+    }
+    final b = _grenser(size);
+    final key = _nokkel(size, r);
+    var img = CssBake._hent(key);
+    if (img == null) {
+      if (++ro._bom > 3) {
+        // Its look changes every frame (an animated colour or size): live.
+        ro._bom = 0;
+        ro._pause = 90;
+        CssBake._levende++;
+        _tegn(canvas, size);
+        return;
+      }
+      img = CssBake._lag(key, b, r, (c) => _tegn(c, size));
+      if (img == null) {
+        _tegn(canvas, size);
+        return;
+      }
+    } else {
+      ro._bom = 0;
+    }
+    canvas.drawImageRect(
+      img,
+      Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+      Rect.fromLTWH(b.left, b.top, img.width / r, img.height / r),
+      Paint()..filterQuality = FilterQuality.low,
+    );
+  }
+
+  /// Worth a raster: a blurred shadow (a Gaussian pass, an offscreen layer
+  /// for an inset one) or a translucent box's outer shadow (a stencil clip).
+  bool get _dyr {
+    for (final s in shadows) {
+      if (insetOnTop && !s.inset) continue;
+      if (skipInset && s.inset) continue;
+      if (s.blur > 0) return true;
+      if (!s.inset && !_opaque) return true;
+    }
+    return false;
+  }
+
+  /// What the paint covers: the box and its outer shadows' blur (3σ + 1).
+  Rect _grenser(Size size) {
+    final rect = Offset.zero & size;
+    var b = rect;
+    if (!insetOnTop) {
+      final rr = radius.toRRect(rect);
+      for (final s in shadows) {
+        if (s.inset) continue;
+        b = b.expandToInclude(rr.inflate(s.spread).shift(Offset(s.dx, s.dy)).outerRect.inflate(cssSigma(s.blur) * 3 + 1));
+      }
+    }
+    return b;
+  }
+
+  _CssNokkel _nokkel(Size size, double r) {
+    final v = <Object>[
+      (size.width * 1000).round(), (size.height * 1000).round(), r, insetOnTop, skipInset,
+      radius.topLeft.x, radius.topLeft.y, radius.topRight.x, radius.topRight.y,
+      radius.bottomLeft.x, radius.bottomLeft.y, radius.bottomRight.x, radius.bottomRight.y,
+    ];
+    for (final s in shadows) {
+      v..add(s.dx)..add(s.dy)..add(s.blur)..add(s.spread)..add(s.color.toARGB32())..add(s.inset);
+    }
+    v.add('|');
+    for (final g in bg) {
+      switch (g) {
+        case CssSolid(:final color):
+          v..add('s')..add(color.toARGB32());
+        case CssLinear(:final deg, :final colors, :final stops):
+          v..add('l')..add(deg)..add(colors.length);
+          for (final c in colors) {
+            v.add(c.toARGB32());
+          }
+          v.add(stops?.length ?? -1);
+          if (stops != null) v.addAll(stops);
+        case CssRadial r0:
+          v..add('r')..add(r0.rx)..add(r0.ry)..add(r0.cx)..add(r0.cy)..add(r0.px)..add(r0.circle)..add(r0.farthestCorner)..add(r0.colors.length);
+          for (final c in r0.colors) {
+            v.add(c.toARGB32());
+          }
+          v.add(r0.stops?.length ?? -1);
+          if (r0.stops != null) v.addAll(r0.stops!);
+      }
+    }
+    final side = border?.top;
+    if (side != null) v..add('b')..add(side.width)..add(side.color.toARGB32())..add(side.style.index);
+    return _CssNokkel(v);
+  }
+
+  /// The box as the CSS draws it (live, or into CssBake's raster).
+  void _tegn(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final rr = radius.toRRect(rect);
     if (!insetOnTop) {
@@ -358,6 +467,161 @@ class CssBoxPainter extends CustomPainter {
       old.bg != bg ||
       old.shadows != shadows ||
       old.border != border;
+}
+
+// ── CssBake: the CssBox raster cache (perf plan) ───────────────────────────
+
+/// Impeller draws every frame from scratch: a CssBox with a blurred shadow
+/// costs a Gaussian pass (and an offscreen layer for an inset one) on every
+/// frame anything on the screen moves — on Hjem dozens of them. CssBake
+/// paints such a box once, at its on-screen pixel scale, into an image and
+/// draws that image afterwards: the same paint commands, so the same
+/// pixels, for one texture draw a frame. Identical boxes share one image.
+/// A box whose look changes every frame is drawn live (see `_bom`).
+abstract final class CssBake {
+  /// Off: every CssBox paints live, as before (harness `cssCache: false`).
+  static bool paa = true;
+
+  static double? _skala;
+  static _RenderCssPaint? _aktiv;
+
+  static final LinkedHashMap<_CssNokkel, ui.Image> _lager = LinkedHashMap<_CssNokkel, ui.Image>();
+  static int _bytes = 0;
+
+  /// At most this much texture memory (oldest images go first).
+  static const int maksBytes = 40 << 20;
+
+  /// Bigger boxes paint live (a full-screen raster is not worth its memory).
+  static const int maksPiksler = 1600000;
+
+  static int treff = 0, bom = 0, _levende = 0;
+  static bool _lytter = false;
+
+  /// For the perf heartbeat: hits, misses, live fallbacks, images, MB.
+  static String get status => 'css=${treff}h/${bom}m/${_levende}l/${_lager.length}i/${(_bytes / (1 << 20)).toStringAsFixed(1)}MB';
+
+  static ui.Image? _hent(_CssNokkel k) {
+    final img = _lager.remove(k);
+    if (img == null) return null;
+    _lager[k] = img;
+    treff++;
+    return img;
+  }
+
+  static ui.Image? _lag(_CssNokkel k, Rect b, double r, void Function(Canvas) tegn) {
+    final w = (b.width * r).ceil(), h = (b.height * r).ceil();
+    if (w <= 0 || h <= 0 || w * h > maksPiksler) return null;
+    if (!_lytter) {
+      _lytter = true;
+      WidgetsBinding.instance.addObserver(_CssMinne());
+      BergenPerf.pulsTillegg.add(() => status);
+    }
+    final rec = ui.PictureRecorder();
+    final c = Canvas(rec);
+    c.scale(r);
+    c.translate(-b.left, -b.top);
+    tegn(c);
+    final pic = rec.endRecording();
+    final img = pic.toImageSync(w, h);
+    pic.dispose();
+    bom++;
+    _lager[k] = img;
+    _bytes += w * h * 4;
+    while (_bytes > maksBytes && _lager.length > 1) {
+      final eldst = _lager.keys.first;
+      final ut = _lager.remove(eldst)!;
+      _bytes -= ut.width * ut.height * 4;
+      ut.dispose();
+    }
+    return img;
+  }
+
+  /// Drops every raster (memory pressure, tests).
+  static void tom() {
+    for (final img in _lager.values) {
+      img.dispose();
+    }
+    _lager.clear();
+    _bytes = 0;
+  }
+
+  /// The box's device-pixel scale (all ancestor transforms × the view's
+  /// pixel ratio), rounded to 1/16 (≤ 1.6 % off: no visible resampling, and a
+  /// small animated scale keeps one image); null under a perspective transform.
+  static double? _skalaFor(RenderObject ro) {
+    final Matrix4 m;
+    try {
+      m = ro.getTransformTo(null);
+    } catch (_) {
+      return null;
+    }
+    final s = m.storage;
+    if (s[3].abs() > 1e-6 || s[7].abs() > 1e-6 || (s[15] - 1).abs() > 1e-6) return null;
+    final sx = math.sqrt(s[0] * s[0] + s[1] * s[1]), sy = math.sqrt(s[4] * s[4] + s[5] * s[5]);
+    final dpr = ui.PlatformDispatcher.instance.implicitView?.devicePixelRatio ?? 2;
+    final r = math.max(sx, sy) * dpr;
+    if (!r.isFinite || r <= 0) return null;
+    return (r * 16).round() / 16;
+  }
+}
+
+class _CssMinne with WidgetsBindingObserver {
+  @override
+  void didHaveMemoryPressure() => CssBake.tom();
+}
+
+class _CssNokkel {
+  _CssNokkel(this.v) : _hash = Object.hashAll(v);
+  final List<Object> v;
+  final int _hash;
+
+  @override
+  int get hashCode => _hash;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _CssNokkel || other._hash != _hash || other.v.length != v.length) return false;
+    for (var i = 0; i < v.length; i++) {
+      if (other.v[i] != v[i]) return false;
+    }
+    return true;
+  }
+}
+
+/// CustomPaint for CssBox: the same render object (layout, hit testing and
+/// semantics unchanged), which hands its painters the device-pixel scale.
+class _CssPaint extends CustomPaint {
+  const _CssPaint({super.painter, super.foregroundPainter, super.child});
+
+  @override
+  RenderCustomPaint createRenderObject(BuildContext context) => _RenderCssPaint(
+    painter: painter,
+    foregroundPainter: foregroundPainter,
+    preferredSize: size,
+    isComplex: isComplex,
+    willChange: willChange,
+  );
+}
+
+class _RenderCssPaint extends RenderCustomPaint {
+  _RenderCssPaint({super.painter, super.foregroundPainter, super.preferredSize, super.isComplex, super.willChange});
+
+  /// Misses in a row, and paints left to draw live after too many.
+  int _bom = 0, _pause = 0;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final forrigeSkala = CssBake._skala;
+    final forrigeAktiv = CssBake._aktiv;
+    CssBake._skala = CssBake.paa ? CssBake._skalaFor(this) : null;
+    CssBake._aktiv = this;
+    try {
+      super.paint(context, offset);
+    } finally {
+      CssBake._skala = forrigeSkala;
+      CssBake._aktiv = forrigeAktiv;
+    }
+  }
 }
 
 // ── Type ────────────────────────────────────────────────────────────────────

@@ -231,6 +231,14 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   Duration _step = const Duration(milliseconds: 50);
   double _budget = 160000;
 
+  // Perf plan: no frames while the stadium is off the screen (Meg scrolled
+  // down); its clock carries on (see PerfHvile).
+  late final PerfHvile _hvile = PerfHvile(context, _ticker, onVaakn: (s) {
+    _t += s * (_reduce ? .15 : 1);
+    _prev = Duration.zero;
+    _sist = Duration.zero;
+  });
+
   @override
   void initState() {
     super.initState();
@@ -257,8 +265,9 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _budget = BergenPerf.shaderBudget(context, 160000);
     // Heat / battery `still`: hold the frame; the user's calm keeps `rolig`.
     final hold = step == null && !calm;
+    if (hold) _hvile.vaakn(start: false);
     if (hold && _ticker.isActive) _ticker.stop();
-    if (!hold && !_ticker.isActive && _shader != null) _ticker.start();
+    if (!hold && !_ticker.isActive && _shader != null && !_hvile.hviler) _ticker.start();
   }
 
   @override
@@ -268,6 +277,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   }
 
   void _tick(Duration e) {
+    if (_hvile.tikk()) return;
     _t += ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1) * (_reduce ? .15 : 1);
     _prev = e;
     // The scene moves calmly; 20 frames a second is enough (`ulGlTegn`).
@@ -309,6 +319,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
 
   @override
   void dispose() {
+    _hvile.dispose();
     _ticker.dispose();
     _frame?.dispose();
     _shader?.dispose();
