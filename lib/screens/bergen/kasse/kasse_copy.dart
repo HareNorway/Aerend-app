@@ -142,7 +142,8 @@ abstract final class KasseCopy {
   static String get a1_kasse_bruk_dette => languages.ops_kasse_bruk_dette;
   static String get a1_kasse_bet_sheet_title => languages.ops_kasse_bet_sheet_title;
   static String get a1_kasse_bet_sheet_line => languages.ops_kasse_bet_sheet_line;
-  static String a1_kasse_bet_vipps(String tlf) => tlf.isEmpty ? 'Vipps' : 'Vipps · $tlf';
+  /// Just «Vipps» — the phone number after it read as a random number at checkout.
+  static String get a1_kasse_bet_vipps => 'Vipps';
   static String get a1_kasse_bet_kort => languages.ops_kasse_bet_kort;
 
   // ── purchase sequence ───────────────────────────────────────────────────

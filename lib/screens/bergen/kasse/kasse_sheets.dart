@@ -490,9 +490,8 @@ class _TidKort extends StatelessWidget {
 const kBetVipps = 3, kBetKort = 2, kBetApple = 4, kBetGoogle = 5;
 
 String kasseBetalingNavn(int type) {
-  final phone = prefGetString(prefContactNumber).trim();
   return switch (type) {
-    kBetVipps => KasseCopy.a1_kasse_bet_vipps(phone),
+    kBetVipps => KasseCopy.a1_kasse_bet_vipps,
     kBetApple => 'Apple Pay',
     kBetGoogle => 'Google Pay',
     _ => KasseCopy.a1_kasse_bet_kort,
