@@ -16,6 +16,7 @@ import 'package:aerend_customer/screens/bergen/meg/bestillinger_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/favoritter_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/konto_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_copy_a4.dart';
+import 'package:aerend_customer/screens/bergen/meg/meg_sheets.dart';
 import 'package:aerend_customer/screens/bergen/poeng/aegil_velger_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/liga_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/opprykk_screen.dart';
@@ -496,7 +497,9 @@ void main() {
     expect(find.text('Ring på hos Kari'), findsOneWidget);
     expect(find.text('Jobb · Solheimsgaten 7'), findsOneWidget);
     expect(find.text('N/A'), findsNothing);
-    expect(find.text('Vipps · 412 34 567'), findsOneWidget);
+    // The saved phone (41234567) is not printed after Vipps.
+    expect(find.text('Vipps'), findsOneWidget);
+    expect(find.textContaining('412 34 567'), findsNothing);
     expect(find.text('Visa •• 4412'), findsOneWidget);
     expect(find.text('Apple Pay'), findsOneWidget);
     expect(find.byKey(const Key('konto-logg-ut')), findsOneWidget);
@@ -536,5 +539,22 @@ void main() {
     await settle(tester);
     expect(failing.sets, [true]);
     expect(on(), isFalse, reason: 'put back when the feed says no');
+  });
+
+  testWidgets('Meg → Betaling: Vipps shows the standard line, not the saved phone', (tester) async {
+    await tester.pumpWidget(a3App(Builder(
+      builder: (context) => Scaffold(
+        body: TextButton(
+          onPressed: () => MegSheets.betaling(context, cards: const [], onManage: () {}),
+          child: const Text('åpne'),
+        ),
+      ),
+    )));
+    await tester.tap(find.text('åpne'));
+    await settle(tester);
+
+    expect(find.byKey(const Key('meg-betaling-sheet')), findsOneWidget);
+    expect(find.text(A4MegCopy.a4_meg_betaling_standard), findsOneWidget);
+    expect(find.textContaining('••'), findsNothing, reason: 'no digits of 41234567 under Vipps');
   });
 }

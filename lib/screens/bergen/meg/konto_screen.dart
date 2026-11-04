@@ -147,7 +147,7 @@ class _KontoScreenState extends State<KontoScreen> {
   @override
   Widget build(BuildContext context) {
     final navn = a3Pref(prefUserName).trim().split(RegExp(r'\s+')).first;
-    final vipps = KontoTekst.vipps(a3Pref(prefContactNumber));
+    const vipps = KontoTekst.vipps;
     // The delivery address in use; the first one when none is picked yet.
     final valgt = _adresser.any((a) => a.addressId == _valgt) ? _valgt : (_adresser.isEmpty ? 0 : _adresser.first.addressId);
 
@@ -193,7 +193,7 @@ class _KontoScreenState extends State<KontoScreen> {
               key: const Key('konto-betaling'),
               child: Column(
                 children: [
-                  _Rad(tittel: vipps, under: A3MegCopy.a3_meg_konto_vipps_std, radio: true),
+                  const _Rad(tittel: vipps, under: A3MegCopy.a3_meg_konto_vipps_std, radio: true),
                   for (final k in _kort)
                     _Rad(tittel: k, under: KontoTekst.kortUnder, radio: false, onTap: () => _push(_lagret ? BetalingScreen(api: widget.cusApi) : const ManageCard())),
                   if (_kort.isEmpty)
@@ -420,12 +420,8 @@ abstract final class KontoTekst {
   static const String aerendSub = 'Varsel når Ærend legger ut noe nytt';
   static const String aerendFeil = 'Fikk ikke lagret varselet. Prøv igjen.';
 
-  /// «Vipps · 412 34 567» from the number on the account.
-  static String vipps(String nr) {
-    final d = nr.replaceAll(RegExp(r'\D'), '');
-    if (d.length != 8) return 'Vipps';
-    return 'Vipps · ${d.substring(0, 3)} ${d.substring(3, 5)} ${d.substring(5)}';
-  }
+  /// Just «Vipps» — the phone number after it read as a random number (as at checkout).
+  static const String vipps = 'Vipps';
 
   /// «Hjem · Nygårdsgaten 5, 3. etasje».
   static String adresse(AddressListItem a) {

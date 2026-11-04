@@ -801,10 +801,9 @@ abstract final class MegSheets {
   }
 
   /// `betaling`: Vipps first, cards as the fallback, and the card screen.
-  static Future<void> betaling(BuildContext context, {required List<String> cards, required VoidCallback onManage, String vippsNr = ''}) {
-    // «•• 47 21»: the Vipps number's last four, as the design shows it.
-    final d = vippsNr.replaceAll(RegExp(r'\D'), '');
-    final vippsSub = d.length >= 4 ? '•• ${d.substring(d.length - 4, d.length - 2)} ${d.substring(d.length - 2)}' : A4MegCopy.a4_meg_betaling_standard;
+  static Future<void> betaling(BuildContext context, {required List<String> cards, required VoidCallback onManage}) {
+    // No phone digits under Vipps («•• 47 21» read as a random number) — the standard line instead.
+    const vippsSub = A4MegCopy.a4_meg_betaling_standard;
     return showMegArk<void>(
       context,
       key: const Key('meg-betaling-sheet'),
@@ -812,7 +811,7 @@ abstract final class MegSheets {
       subtitle: A4MegCopy.a4_meg_betaling_linje,
       body: (ctx, _) => Column(
         children: [
-          MegArkRow(title: A4MegCopy.a4_meg_betaling_vipps, sub: vippsSub, value: 'Standard', selected: true),
+          const MegArkRow(title: A4MegCopy.a4_meg_betaling_vipps, sub: vippsSub, value: 'Standard', selected: true),
           for (final c in cards) MegArkRow(title: c, value: A4MegCopy.a4_meg_reserve),
           MegArkRow(key: const Key('betaling-kort'), title: A4MegCopy.a4_meg_betaling_kort, onTap: () {
             Navigator.of(context).pop();

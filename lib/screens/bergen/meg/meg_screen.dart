@@ -532,7 +532,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     final lagret = ClientFlags.on(ClientFlags.aiLinkedCheckout);
     final list = lagret ? ((await CusApi().savedCards())?.map((c) => c.navn).toList() ?? const <String>[]) : (await a3Try(A3Services.cards) ?? const <String>[]);
     if (!mounted) return;
-    await MegSheets.betaling(context, cards: list, onManage: () => _push(lagret ? const BetalingScreen() : const ManageCard()), vippsNr: a3Pref(prefContactNumber));
+    await MegSheets.betaling(context, cards: list, onManage: () => _push(lagret ? const BetalingScreen() : const ManageCard()));
   }
 
   Future<void> _openSpraak() async {
