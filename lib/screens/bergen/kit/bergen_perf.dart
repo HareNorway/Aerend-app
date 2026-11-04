@@ -1,10 +1,14 @@
+import 'dart:async';
+import 'dart:io' show File, FileMode, IOSink, ProcessInfo;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// How much motion the phone can afford (parity plan §3.1).
 ///
@@ -36,6 +40,165 @@ abstract final class BergenPerf {
 
   static String reason = 'start';
 
+  /// The frame watchdog (see [start]); off unless built with `AE_WATCHDOG=true`.
+  static const bool vakthund = bool.fromEnvironment('AE_WATCHDOG');
+
+  /// Perf plan: mounted loop widgets (`LfLoop`, `OnbLoopClock`), for the
+  /// heartbeat. The *active* ticker count is the scheduler's transient
+  /// callback count, which needs no registry.
+  static int lfLoopsMounted = 0, onbLoopsMounted = 0;
+
+  /// Perf plan (debug only): mounted clock loops and whether each is
+  /// ticking, for [tickerCensus].
+  static final Map<BuildContext, bool Function()> debugLoops = {};
+
+  /// Perf plan (debug only): logs `PERF_CENSUS` lines — who owns each active
+  /// ticker. Loop widgets (`LfLoop`, `OnbLoopClock`) by their creator chain,
+  /// every other ticker by the first app frame of the stack that started it
+  /// (Flutter keeps that stack in debug builds).
+  static void tickerCensus(String tag) {
+    if (!kDebugMode) return;
+    final loops = <String, int>{};
+    for (final e in debugLoops.entries) {
+      if (!e.value()) continue;
+      final ctx = e.key;
+      if (!ctx.mounted) continue;
+      final chain = (ctx as Element).debugGetCreatorChain(18).split(' ← ').where((w) => !_rammeverk.contains(w.replaceAll(RegExp(r'[-<].*'), ''))).take(4).join(' ← ');
+      loops[chain] = (loops[chain] ?? 0) + 1;
+    }
+    final andre = <String, int>{};
+    final old = FlutterError.onError;
+    FlutterError.onError = (d) {
+      for (final n in d.informationCollector?.call() ?? const <DiagnosticsNode>[]) {
+        if (n is! DiagnosticsStackTrace) continue;
+        final lines = n.toStringDeep().split('\n').where((l) => l.contains('package:aerend_customer/')).toList();
+        if (lines.isEmpty) {
+          andre['(framework only)'] = (andre['(framework only)'] ?? 0) + 1;
+          continue;
+        }
+        final eier = lines.firstWhere((l) => !l.contains('lf_motion.dart') && !l.contains('onboarding_kit.dart') && !l.contains('bergen_motion.dart'), orElse: () => 'loop-widget');
+        if (eier == 'loop-widget') continue; // counted by creator chain above
+        final k = eier.replaceAll(RegExp(r'^.*?#\d+\s+'), '').replaceAll('package:aerend_customer/', '').trim();
+        andre[k] = (andre[k] ?? 0) + 1;
+      }
+    };
+    try {
+      SchedulerBinding.instance.debugAssertNoTransientCallbacks('perf census');
+    } finally {
+      FlutterError.onError = old;
+    }
+    final n = loops.values.fold<int>(0, (a, b) => a + b) + andre.values.fold<int>(0, (a, b) => a + b);
+    debugPrint('PERF_CENSUS $tag active=${SchedulerBinding.instance.transientCallbackCount} counted=$n');
+    for (final e in (loops.entries.toList()..sort((a, b) => b.value - a.value))) {
+      debugPrint('PERF_CENSUS   loop ×${e.value}  ${e.key}');
+    }
+    for (final e in (andre.entries.toList()..sort((a, b) => b.value - a.value))) {
+      debugPrint('PERF_CENSUS   tick ×${e.value}  ${e.key}');
+    }
+    lagTelling(tag);
+  }
+
+  /// Perf plan (debug/profile): `PERF_LAG` — the composited layers of the
+  /// last frame. Each Opacity (unless the engine folds it), ShaderMask,
+  /// BackdropFilter, ImageFilter and ColorFilter layer is an offscreen pass
+  /// on Impeller, every frame.
+  static void lagTelling(String tag) {
+    if (kReleaseMode) return;
+    final lag = <String, int>{};
+    // Debug: who created each offscreen-pass layer (creator chain of the
+    // render object that pushed it), to find the widgets behind the passes.
+    final eiere = <String, int>{};
+    void tell(Layer? l) {
+      if (l == null) return;
+      final k = l.runtimeType.toString();
+      lag[k] = (lag[k] ?? 0) + 1;
+
+      if (l is ContainerLayer) {
+        for (Layer? c = l.firstChild; c != null; c = c.nextSibling) {
+          tell(c);
+        }
+      }
+    }
+    for (final v in RendererBinding.instance.renderViews) {
+      // ignore: invalid_use_of_protected_member
+      tell(v.layer);
+    }
+    debugPrint('PERF_LAG $tag ${(lag.entries.toList()..sort((a, b) => b.value - a.value)).map((e) => '${e.key}=${e.value}').join(' ')}');
+    // Debug: the render objects that push an offscreen pass this frame
+    // (partial opacity, fades, shader masks, backdrop / image / colour
+    // filters), named by the widgets that created them.
+    if (kDebugMode) {
+      void besok(RenderObject ro) {
+        if (ro is RenderOffstage && ro.offstage) return;
+        String? art;
+        if (ro is RenderOpacity) {
+          if (ro.opacity <= 0) return;
+          if (ro.opacity < 1 && ro.child != null) art = 'Opacity';
+        } else if (ro is RenderAnimatedOpacity) {
+          final o = ro.opacity.value;
+          if (o <= 0) return;
+          if (o < 1 && ro.child != null) art = 'Fade';
+        } else if (ro is RenderShaderMask) {
+          art = 'ShaderMask';
+        } else if (ro is RenderBackdropFilter) {
+          if (ro.enabled) art = 'BackdropFilter';
+        } else {
+          final t = ro.runtimeType.toString();
+          if (t.contains('ImageFilter')) art = 'ImageFiltered';
+          if (t.contains('ColorFilter')) art = 'ColorFiltered';
+        }
+        if (art != null) {
+          String hvem = '?';
+          final c = ro.debugCreator;
+          if (c is DebugCreator) {
+            hvem = c.element.debugGetCreatorChain(24).split(' ← ').where((w) => !_rammeverk.contains(w.replaceAll(RegExp(r'[-<(].*'), ''))).take(6).join(' ← ');
+          }
+          final n = '$art: $hvem';
+          eiere[n] = (eiere[n] ?? 0) + 1;
+        }
+        // Only what paints: offstage overlay entries (covered routes) and
+        // hidden IndexedStack children are skipped like the semantics walk
+        // skips them; Offstage subtrees above.
+        final t = ro.runtimeType.toString();
+        if (t == '_RenderTheater' || ro is RenderIndexedStack) {
+          ro.visitChildrenForSemantics(besok);
+        } else {
+          ro.visitChildren(besok);
+        }
+      }
+      for (final v in RendererBinding.instance.renderViews) {
+        besok(v);
+      }
+    }
+    final alle = eiere.values.fold<int>(0, (a, b) => a + b);
+    if (kDebugMode) debugPrint('PERF_LAG   offscreen-pass render objects: $alle');
+    for (final e in (eiere.entries.toList()..sort((a, b) => b.value - a.value)).take(40)) {
+      debugPrint('PERF_LAG   ×${e.value}  ${e.key}');
+    }
+  }
+
+  static const Set<String> _rammeverk = {
+    'LfLoop', 'OnbLoopClock', 'BergenLoop', 'Positioned', 'IgnorePointer', 'Transform', 'Opacity', 'Stack', 'SizedBox', 'Padding', 'Align',
+    'Center', 'RepaintBoundary', 'ValueListenableBuilder', 'Builder', 'LayoutBuilder', 'KeyedSubtree', 'Semantics', 'GestureDetector',
+    'DecoratedBox', 'Container', 'ClipRRect', 'ClipPath', 'ClipRect', 'FittedBox', 'OverflowBox', 'Expanded', 'Flexible', 'Row', 'Column',
+    'AnimatedBuilder', 'ListenableBuilder', 'CustomPaint', 'Positioned.fill', 'MouseRegion', 'Listener', 'Material', 'InkWell',
+    'Visibility', 'AnimatedOpacity', 'AnimatedPositioned', 'FadeTransition', 'SlideTransition', 'ScaleTransition', 'DefaultTextStyle',
+    'MediaQuery', 'Directionality', 'TickerMode', 'Offstage', 'ConstrainedBox', 'LimitedBox', 'AspectRatio', 'Wrap', 'Flex',
+    'SingleChildScrollView', 'ListView', 'Scrollable', 'NotificationListener', 'PageView', 'CssBox', 'LfFrame', 'OnbMaal',
+    'BergenEssential', 'Text', 'RichText', '_GestureSemantics', 'RawGestureDetector', '_CssPaint', '_EffectiveTickerMode', 'AnimatedScale',
+    'AnimatedRotation', 'RotationTransition', 'TweenAnimationBuilder', 'IndexedStack', 'Image', 'RawImage', 'SvgPicture', 'Icon',
+    'ShaderMask', 'ImageFiltered', 'Transform.scale',
+  };
+
+  /// Perf plan: the top route and the Bergen tab, for the heartbeat.
+  static final PerfRuteObserver ruter = PerfRuteObserver();
+  static ValueListenable<int>? fane;
+
+  static double _battery = -1, _battTemp = -1, _headroom = -1;
+
+  /// Perf plan: extra fields for the heartbeat (e.g. CssBake's hit counts).
+  static final List<String Function()> pulsTillegg = [];
+
   static BergenTier _device = BergenTier.full;
   static String _deviceWhy = 'device';
   static bool _lowPower = false;
@@ -49,6 +212,7 @@ abstract final class BergenPerf {
   static Future<void> start() async {
     if (_started) return;
     _started = true;
+    if (!kReleaseMode) _PerfFil.start();
     WidgetsBinding.instance.addObserver(_Lifecycle());
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'changed') _readState(call.arguments);
@@ -62,9 +226,17 @@ abstract final class BergenPerf {
     } catch (_) {
       // No channel (tests): stay on the prototype's tier.
     }
-    if (kReleaseMode || kProfileMode) {
+    // The frame watchdog (parity plan §3) stepped the tier down on slow
+    // frames — in practice it judged every phone whose GPU cannot hold
+    // Hjem at 60 fps as "slow" within 20 s of launch and switched all
+    // animation off (`still`) for the rest of the session, with no way
+    // back. Off by default since 2026-11-04; the thermal, low-power and
+    // reduced-motion tiers are untouched. `--dart-define=AE_WATCHDOG=true`
+    // turns it back on for an experiment.
+    if ((kReleaseMode || kProfileMode) && vakthund) {
       SchedulerBinding.instance.addTimingsCallback(_Watchdog.onTimings);
     }
+    if (!kReleaseMode) _Puls.start();
     _update();
   }
 
@@ -88,13 +260,16 @@ abstract final class BergenPerf {
     if (args is! Map) return;
     if (args['lowPower'] is bool) _lowPower = args['lowPower'] as bool;
     if (args['thermal'] is num) _thermal = (args['thermal'] as num).toInt();
+    if (args['battery'] is num) _battery = (args['battery'] as num).toDouble();
+    if (args['batteryTemp'] is num) _battTemp = (args['batteryTemp'] as num).toDouble();
+    if (args['thermalHeadroom'] is num) _headroom = (args['thermalHeadroom'] as num).toDouble();
     if (_started) _update();
   }
 
   /// Debug harness only (`perf` in `hjem_state.json`): pin a tier, or null
   /// to go back to the automatic one.
   static void force(BergenTier? t) {
-    if (!kDebugMode) return;
+    if (kReleaseMode) return;
     _forced = t;
     _update();
   }
@@ -134,6 +309,34 @@ abstract final class BergenPerf {
       tier.value = t;
       debugPrint('PERF_TIER ${t.name} $why');
     }
+  }
+
+  /// Perf plan: off-screen rest on/off (harness `hvile: false` for A/B).
+  static bool hvilePaa = true;
+
+  /// Perf plan: scenes fully covered by an opaque sheet are not painted
+  /// (Offstage) — harness `dekket: false` paints them as before (A/B).
+  static bool dekketPaa = true;
+
+  /// Perf plan: true when [context]'s render box lies wholly outside the
+  /// screen (plus [margin] logical px on every side), false when it is not
+  /// laid out yet. A loop or a live scene that is off the screen stops
+  /// producing frames; its clock keeps wall time, so it comes back at the
+  /// pose the design would show. Cheap enough for a check every few frames.
+  static bool utenforSkjerm(BuildContext context, {double margin = 200}) {
+    if (!hvilePaa) return false;
+    final ro = context.findRenderObject();
+    if (ro is! RenderBox || !ro.attached || !ro.hasSize) return false;
+    final view = View.maybeOf(context) ?? ui.PlatformDispatcher.instance.implicitView;
+    if (view == null) return false;
+    final screen = view.physicalSize / view.devicePixelRatio;
+    final Rect r;
+    try {
+      r = MatrixUtils.transformRect(ro.getTransformTo(null), Offset.zero & ro.size);
+    } catch (_) {
+      return false;
+    }
+    return !r.overlaps((Offset.zero & screen).inflate(margin));
   }
 
   /// The tier for this subtree: `still` under reduced motion, else the app's.
@@ -313,6 +516,192 @@ abstract final class _Watchdog {
       }
     } else {
       _badWindows = 0;
+    }
+  }
+}
+
+/// Perf plan: rests a live scene's ticker while the scene's box is off the
+/// screen and wakes it the moment it is back (the nearest scroll position
+/// and a 120 ms timer). [onVaakn] gets the rest in seconds, so the host's
+/// clock carries on as if it had never stopped — the same pose the design
+/// would show, no frames rendered meanwhile.
+class PerfHvile {
+  PerfHvile(this.context, this.ticker, {required this.onVaakn});
+
+  final BuildContext context;
+  final Ticker ticker;
+  final void Function(double sekunder) onVaakn;
+
+  int _tikk = 0;
+  Stopwatch? _sw;
+  Timer? _t;
+  ScrollPosition? _rull;
+
+  bool get hviler => _sw != null;
+
+  /// From the ticker callback: true when the host has just gone to rest.
+  bool tikk() {
+    if (++_tikk % 12 != 0 || !BergenPerf.utenforSkjerm(context)) return false;
+    hvile();
+    return true;
+  }
+
+  void hvile() {
+    if (!ticker.isActive || _sw != null) return;
+    ticker.stop();
+    _sw = Stopwatch()..start();
+    _t = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _rull = Scrollable.maybeOf(context)?.position;
+    _rull?.addListener(_sjekk);
+  }
+
+  void _sjekk() {
+    if (!context.mounted || ticker.muted) return;
+    if (BergenPerf.utenforSkjerm(context)) return;
+    vaakn();
+  }
+
+  /// Back from the rest; [start] false leaves the ticker stopped (reduced
+  /// motion, a tier without this scene).
+  void vaakn({bool start = true}) {
+    _t?.cancel();
+    _t = null;
+    _rull?.removeListener(_sjekk);
+    _rull = null;
+    final sw = _sw;
+    _sw = null;
+    if (sw == null) return;
+    onVaakn(sw.elapsedMicroseconds / 1e6);
+    if (start && !ticker.isActive) ticker.start();
+  }
+
+  void dispose() {
+    _t?.cancel();
+    _rull?.removeListener(_sjekk);
+  }
+}
+
+/// Perf plan: the top route's name, for the heartbeat (`navigatorObservers`).
+class PerfRuteObserver extends NavigatorObserver {
+  String rute = '-';
+
+  void _sett(Route<dynamic>? r) {
+    rute = r?.settings.name ?? r?.runtimeType.toString() ?? '-';
+    if (!kReleaseMode) debugPrint('PERF_RUTE $rute tickers=${SchedulerBinding.instance.transientCallbackCount}');
+    if (kDebugMode) {
+      final navn = rute;
+      Future<void>.delayed(const Duration(seconds: 4), () => BergenPerf.tickerCensus('rute=$navn'));
+    }
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => _sett(route);
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => _sett(previousRoute);
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) => _sett(previousRoute);
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) => _sett(newRoute);
+}
+
+/// Perf plan (debug / profile only): mirrors the perf and harness lines
+/// (`PERF_*`, `HJEM_*`, `ONB_*`) into `<app documents>/perf_log.txt`, each
+/// with its wall-clock ms, so they can be read with `run-as` on phones whose
+/// vendor build drops app logs from logcat (Vivo: `persist.sys.log.ctrl=no`).
+/// Compiles out of release builds.
+abstract final class _PerfFil {
+  static IOSink? _ut;
+  static final List<String> _venter = [];
+
+  static void start() {
+    final orig = debugPrint;
+    debugPrint = (String? m, {int? wrapWidth}) {
+      orig(m, wrapWidth: wrapWidth);
+      if (m == null) return;
+      if (!(m.startsWith('PERF_') || m.startsWith('HJEM_') || m.startsWith('ONB_'))) return;
+      final l = '${DateTime.now().millisecondsSinceEpoch} $m';
+      final ut = _ut;
+      if (ut == null) {
+        _venter.add(l);
+      } else {
+        ut.writeln(l);
+      }
+    };
+    getApplicationDocumentsDirectory().then((dir) {
+      final ut = File('${dir.path}/perf_log.txt').openWrite(mode: FileMode.append);
+      ut.writeln('${DateTime.now().millisecondsSinceEpoch} PERF_START');
+      _venter.forEach(ut.writeln);
+      _venter.clear();
+      _ut = ut;
+    }).catchError((Object _) {});
+  }
+}
+
+/// Perf plan (debug / profile only): one `PERF_HEARTBEAT` line every 30 s with
+/// the thermal state, battery, tier, achieved refresh rate, frames drawn,
+/// frame-time percentiles, RSS, active tickers and mounted loops — the
+/// software baseline of the heat plan. Compiles out of release builds.
+abstract final class _Puls {
+  static const Duration every = Duration(seconds: 30);
+  static final Stopwatch _klokke = Stopwatch();
+  static final List<int> _total = [], _build = [], _raster = [], _vsync = [];
+  static int _sistVsync = 0;
+  static Timer? _timer;
+
+  static void start() {
+    if (_timer != null) return;
+    _klokke.start();
+    SchedulerBinding.instance.addTimingsCallback(_onTimings);
+    _timer = Timer.periodic(every, (_) => _slaa());
+  }
+
+  static void _onTimings(List<ui.FrameTiming> timings) {
+    for (final t in timings) {
+      _total.add(t.totalSpan.inMicroseconds);
+      _build.add(t.buildDuration.inMicroseconds);
+      _raster.add(t.rasterDuration.inMicroseconds);
+      final v = t.timestampInMicroseconds(ui.FramePhase.vsyncStart);
+      if (_sistVsync > 0 && v > _sistVsync) _vsync.add(v - _sistVsync);
+      _sistVsync = v;
+    }
+  }
+
+  static int _pct(List<int> l, double p) {
+    if (l.isEmpty) return 0;
+    final s = List<int>.of(l)..sort();
+    return s[(s.length * p).floor().clamp(0, s.length - 1)];
+  }
+
+  static Future<void> _slaa() async {
+    if (!BergenPerf.foreground.value) return;
+    try {
+      final info = await BergenPerf._channel.invokeMapMethod<String, Object?>('info');
+      if (info != null) BergenPerf._readState(info);
+    } catch (_) {}
+    final n = _total.length;
+    final over = _total.where((u) => u > 16700).length;
+    // The vsync cadence the frames actually came at (the panel's rate while
+    // anything moved), from the median vsync-to-vsync gap.
+    final gap = _pct(_vsync, .5);
+    final hz = gap > 0 ? (1e6 / gap).round() : 0;
+    final fps = (n / every.inSeconds).toStringAsFixed(1);
+    final rss = ProcessInfo.currentRss ~/ (1024 * 1024);
+    String na(double v, [int d = 0]) => v < 0 ? 'n/a' : v.toStringAsFixed(d);
+    debugPrint('PERF_HEARTBEAT t=${_klokke.elapsed.inSeconds} rute=${BergenPerf.ruter.rute} fane=${BergenPerf.fane?.value ?? '-'} '
+        'thermal=${BergenPerf._thermal} lowPower=${BergenPerf._lowPower} battery=${na(BergenPerf._battery)} battTemp=${na(BergenPerf._battTemp, 1)} '
+        'headroom=${na(BergenPerf._headroom, 2)} tier=${BergenPerf.tier.value.name} renderer=${ui.ImageFilter.isShaderFilterSupported ? 'impeller' : 'skia'} hz=$hz fps=$fps frames=$n over16=$over '
+        'build_p50=${_pct(_build, .5) ~/ 1000} build_p90=${_pct(_build, .9) ~/ 1000} raster_p50=${_pct(_raster, .5) ~/ 1000} raster_p90=${_pct(_raster, .9) ~/ 1000} '
+        'rss=$rss tickers=${SchedulerBinding.instance.transientCallbackCount} loops=${BergenPerf.lfLoopsMounted + BergenPerf.onbLoopsMounted}'
+        '${BergenPerf.pulsTillegg.map((f) => ' ${f()}').join()}');
+    _total.clear();
+    _build.clear();
+    _raster.clear();
+    _vsync.clear();
+    final hvor = 'puls rute=${BergenPerf.ruter.rute} fane=${BergenPerf.fane?.value ?? '-'}';
+    if (kDebugMode) {
+      BergenPerf.tickerCensus(hvor);
+    } else {
+      BergenPerf.lagTelling(hvor);
     }
   }
 }

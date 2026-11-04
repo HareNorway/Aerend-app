@@ -297,8 +297,8 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         store: widget.store,
         child: MaterialApp(
           navigatorKey: navigatorKey,
-          // 03 test pass (CUS-B15): the error beacons name the screen they came from.
-          navigatorObservers: [CusSkjermObserver()],
+          // 03 test pass (CUS-B15): the error beacons name the screen they came from; agil-1-perf: the route timer.
+          navigatorObservers: [CusSkjermObserver(), BergenPerf.ruter],
           scaffoldMessengerKey: rootScaffoldMessengerKey,
           theme: ScSaasTheme.light(),
           // darkTheme: ScSaasTheme.dark(),

@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../kit/bergen_bakt.dart';
 import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
 import 'utforsk_copy.dart';
@@ -333,18 +334,24 @@ class UtfOrb extends StatelessWidget {
   }
 
   /// `filter: drop-shadow(0 2px 3px rgba(15,31,43,.35))` on the icon.
-  static Widget _iconWithShadow(String svg, double size) => Stack(
-    clipBehavior: Clip.none,
-    children: [
-      Transform.translate(
-        offset: const Offset(0, 2),
-        child: ImageFiltered(
-          imageFilter: ui.ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
-          child: feedIcon(svg, size, color: rgba(15, 31, 43, .35)),
+  /// Perf plan: the icon and its blurred shadow never change; BergenBakt
+  /// draws them from one raster instead of a blur pass every frame (six
+  /// orbs on Utforsk). The margin covers the blur (3σ) and the 2 px offset.
+  static Widget _iconWithShadow(String svg, double size) => BergenBakt(
+    margin: const EdgeInsets.fromLTRB(6, 6, 6, 8),
+    child: Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Transform.translate(
+          offset: const Offset(0, 2),
+          child: ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(sigmaX: 1.5, sigmaY: 1.5),
+            child: feedIcon(svg, size, color: rgba(15, 31, 43, .35)),
+          ),
         ),
-      ),
-      feedIcon(svg, size),
-    ],
+        feedIcon(svg, size),
+      ],
+    ),
   );
 }
 

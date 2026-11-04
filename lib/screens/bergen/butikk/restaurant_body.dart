@@ -3403,7 +3403,29 @@ class _SvevKnapp extends StatelessWidget {
         child: KatLoop(
           durationMs: 3400,
           phaseMs: fase * 1000,
-          builder: (context, p, _) {
+          // Perf plan: the key itself never changes — built once and passed
+          // through; each frame only rebuilds the two transforms around it.
+          child: Container(
+            width: size * s,
+            height: size * s,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFF68450), Color(0xFFE65A28)],
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                sokInsetBunnRund(size * s),
+                bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4),
+                _Ico(ikonPx * s, Colors.white, 2.8, _plusPath),
+              ],
+            ),
+          ),
+          builder: (context, p, knapp) {
             final e = kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
             return SizedBox(
               width: size * s,
@@ -3416,18 +3438,18 @@ class _SvevKnapp extends StatelessWidget {
                     right: 4 * s,
                     top: size * s + 1 * s,
                     height: 12 * s,
-                    child: Opacity(
-                      opacity: 1 - .4 * e,
-                      child: Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.translationValues(0, 5 * s * e, 0)..scaleByDouble(1 - .18 * e, 1, 1, 1),
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.elliptical(size * s / 2, 6 * s)),
-                            gradient: RadialGradient(
-                              colors: [rgba(8, 26, 32, .5), rgba(0, 0, 0, 0)],
-                              stops: const [0, .72],
-                            ),
+                    // Perf plan: one gradient draw — scaling its stops' alpha is
+                    // the same pixels as an Opacity layer, without the pass
+                    // (one per menu card on the store's page).
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.translationValues(0, 5 * s * e, 0)..scaleByDouble(1 - .18 * e, 1, 1, 1),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.elliptical(size * s / 2, 6 * s)),
+                          gradient: RadialGradient(
+                            colors: [rgba(8, 26, 32, .5 * (1 - .4 * e)), rgba(0, 0, 0, 0)],
+                            stops: const [0, .72],
                           ),
                         ),
                       ),
@@ -3435,26 +3457,7 @@ class _SvevKnapp extends StatelessWidget {
                   ),
                   Transform.translate(
                     offset: Offset(0, -5 * s * e),
-                    child: Container(
-                      width: size * s,
-                      height: size * s,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFF68450), Color(0xFFE65A28)],
-                        ),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          sokInsetBunnRund(size * s),
-                          bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4),
-                          _Ico(ikonPx * s, Colors.white, 2.8, _plusPath),
-                        ],
-                      ),
-                    ),
+                    child: knapp,
                   ),
                 ],
               ),

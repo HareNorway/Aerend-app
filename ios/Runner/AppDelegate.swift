@@ -44,12 +44,16 @@ import UserNotifications
     case .critical: thermal = 3
     @unknown default: thermal = 0
     }
+    // Perf plan: the battery level (0–100, -1 when unknown) for the heartbeat.
+    UIDevice.current.isBatteryMonitoringEnabled = true
+    let level = UIDevice.current.batteryLevel
     return [
       "platform": "ios",
       "model": String(cString: machine),
       "ramMb": Double(ProcessInfo.processInfo.physicalMemory) / 1_048_576,
       "lowPower": ProcessInfo.processInfo.isLowPowerModeEnabled,
       "thermal": thermal,
+      "battery": level < 0 ? -1.0 : Double(level * 100),
     ]
   }
 

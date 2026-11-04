@@ -177,6 +177,14 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
   double _budgetK = 1;
   bool _lite = false;
 
+  // Perf plan: no frames while the water is off the screen; its clock
+  // carries on (see PerfHvile).
+  late final PerfHvile _hvile = PerfHvile(context, _ticker, onVaakn: (s) {
+    _t += s;
+    _prev = Duration.zero;
+    _sist = Duration.zero;
+  });
+
   String get _refKey => '${widget.reflection}|${widget.reflectionHeight}|${widget.fogColor.toARGB32()}';
 
   @override
@@ -194,7 +202,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final old = _liveRef;
     _liveRef = _flip(br, widget.liveReflectionHeight ?? widget.reflectionHeight, widget.fogColor);
     old?.dispose();
-    if (!_ticker.isActive) _render();
+    if (!_ticker.isActive && !_hvile.hviler) _render();
   }
 
   void _load() {
@@ -235,11 +243,13 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     _lite = tier == BergenTier.lite;
     _step = BergenPerf.shaderStep(context, fullMs: 1000 / 60, liteMs: 1000 / 30) ?? _step;
     _budgetK = BergenPerf.shaderBudget(context, 1);
+    if (_reduce) _hvile.vaakn(start: false);
     if (_reduce && _ticker.isActive) _ticker.stop();
-    if (!_reduce && !_ticker.isActive && _shader != null) _ticker.start();
+    if (!_reduce && !_ticker.isActive && _shader != null && !_hvile.hviler) _ticker.start();
   }
 
   void _tick(Duration e) {
+    if (_hvile.tikk()) return;
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .05);
     _prev = e;
     _t += dt;
@@ -352,6 +362,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
   void dispose() {
     widget.liveReflection?.removeListener(_live);
     _liveRef?.dispose();
+    _hvile.dispose();
     _ticker.dispose();
     _frame?.dispose();
     _shader?.dispose();

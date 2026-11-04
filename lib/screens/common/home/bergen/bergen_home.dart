@@ -292,6 +292,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     });
     WidgetsBinding.instance.addObserver(this);
     BergenFaneBytte.aktiv.addListener(_faneVist);
+    BergenPerf.fane = BergenFaneBytte.aktiv;
     _sistLastet = DateTime.now();
     _lastSnart();
     _lastPose();
@@ -341,17 +342,18 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     // Hurtigbestilling's entry line: the habit of the day, loaded once.
     HurtigKilde.load();
     // Onboarding Step 3: Ægil-runden starts by itself once (`vkKanskjeStart`), 900 ms after Hjem.
-    final harness = kDebugMode ? HjemHarness.load() : Future<void>.value();
+    final harness = !kReleaseMode ? HjemHarness.load() : Future<void>.value();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future<void>.delayed(const Duration(milliseconds: 900), () async {
         await harness;
         if (!mounted) return;
         if (kDebugMode && HjemHarness.onbNull) OnbStatus.instance.nullstill();
         if (kDebugMode && HjemHarness.onbLevert) OnbStatus.instance.merkLevert();
-        OnbRunde.kanskjeStart(harness: kDebugMode && (HjemHarness.onbRunde != null || HjemHarness.onbTips != null));
+        OnbRunde.kanskjeStart(harness: !kReleaseMode && (HjemHarness.onbRunde != null || HjemHarness.onbTips != null));
       });
     });
-    if (kDebugMode) {
+    // Perf plan: the harness also drives profile builds (never release).
+    if (!kReleaseMode) {
       harness.then((_) {
         if (mounted) setState(() {});
         Future.delayed(const Duration(milliseconds: 1500), () {
@@ -433,6 +435,17 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             unawaited(refreshAegilFindCount().then((_) {
               if (mounted) _openBrett();
             }));
+          }
+          // Perf plan (debug/profile): a blank page with one small spinner —
+          // the GPU-busy floor of a trivial 60 fps frame on this phone.
+          if (HjemHarness.perfKalib) {
+            Navigator.of(context).push(PageRouteBuilder<void>(
+              settings: const RouteSettings(name: '/perf/kalib'),
+              pageBuilder: (_, __, ___) => const ColoredBox(
+                color: Color(0xFF0E2A33),
+                child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+              ),
+            ));
           }
           if (HjemHarness.rute case final r?) {
             final arg = HjemHarness.ruteArg;
@@ -1692,7 +1705,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         // ── Hero ───────────────────────────────────────
                         // Clipped at the status bar: the design's frame
                         // starts at y=0, ours below the safe area.
-                        if (!(kDebugMode && HjemHarness.heroAv))
+                        if (!(!kReleaseMode && HjemHarness.heroAv))
                         Positioned(
                           left: 0,
                           right: 0,
@@ -1733,7 +1746,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                         child: ValueListenableBuilder<bool>(
                                         valueListenable: BergenPerf.ruller,
                                         builder: (context, ruller, hero) => TickerMode(
-                                          enabled: _heroLiv && !ruller && !(kDebugMode && HjemHarness.heroStille),
+                                          enabled: _heroLiv && !ruller && !(!kReleaseMode && HjemHarness.heroStille),
                                           child: hero!,
                                         ),
                                         child: HjemHero(
@@ -1775,6 +1788,12 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                               etterArk: true,
                               child: RepaintBoundary(
                               child: LfFrame(
+                              // Perf plan: while the sheet's end is ≥ 900 px below
+                              // the screen the opaque sheet covers this scene
+                              // completely; Offstage keeps its state but stops
+                              // compositing its ~30 offscreen passes every frame.
+                              child: Offstage(
+                              offstage: !_kaienLiv && BergenPerf.dekketPaa,
                               child: TickerMode(
                               enabled: _kaienLiv,
                               child: HjemUnderKaien(
@@ -1792,6 +1811,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                                 pose: _kaienPose(),
                                 frakt: _kaienFrakt(),
                                 onLinje: aegilFindCount() > 0 ? _openBrett : null,
+                              ),
                               ),
                               ),
                             ),
@@ -1820,8 +1840,9 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                             ark: true,
                             child: _Sheet(
                             controller: _scroll,
+                            onMetrics: _onScroll,
                             child: TickerMode(
-                            enabled: !(kDebugMode && HjemHarness.arkStille),
+                            enabled: !(!kReleaseMode && HjemHarness.arkStille),
                             child: _sheetBody(
                               context,
                               categories: categories,
@@ -2099,7 +2120,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             390,
             OnbMaal(
               id: 'kategorirad',
-              child: HjemKategoriHjul(
+              child: HjemHarness.probe('hjul', HjemKategoriHjul(
               kategorier: [
                 for (var k = 0; k < 5; k++)
                   HjemHjulKat(
@@ -2120,7 +2141,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 if (c != null) _openCategory(c);
               },
               onSnart: _openSnart,
-              ),
+              )),
             ),
           ),
         ),
@@ -2156,7 +2177,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   builder: (context, d, _) => OnbMaal(
                     id: 'hurtig',
                     radius: 26,
-                    child: HjemHurtigInngang(
+                    child: HjemHarness.probe('hurtig', HjemHurtigInngang(
                     linje: hurtigHjemLinje(d),
                     // Customer Step 14: the AI marks pill (design L2937) → «Bestill med en annen AI».
                     onAi: ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness ? () => AiArk.flyt(context, 'velg', fraHurtig: true) : null,
@@ -2166,7 +2187,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         _shell?.switchToTab(BergenTab.cart.index);
                       }
                     },
-                  ),
+                  )),
                   ),
                 ),
               ),
@@ -2183,7 +2204,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 360),
                 switchInCurve: const Cubic(.2, .9, .3, 1),
-                child: BergenStoreRail(
+                child: HjemHarness.probe('butikker', BergenStoreRail(
                   key: ValueKey(
                     'stores-${focused.id}-${stores.length}-$_hjulI',
                   ),
@@ -2193,17 +2214,17 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   // A wrapped card opens the Kommer snart sheet.
                   onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openStore,
                   snart: _erSnart(_hjulI),
-                ),
+                )),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 12 * s, bottom: 2 * s),
                 child: lfFlow(
                   358,
-                  HjemUtforskKort(
+                  HjemHarness.probe('utforsk', HjemUtforskKort(
                     tittel: BergenCopy.exploreTitle,
                     linje: _folgerNye > 0 ? BergenCopy.exploreNye(_folgerNye) : null,
                     onTap: _toExplore,
-                  ),
+                  )),
                 ),
               ),
               Padding(
@@ -2212,7 +2233,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   358,
                   tilbud.isEmpty && _personlig == null
                       ? const SizedBox.shrink()
-                      : HjemTilbudRad(tilbud: tilbud, personlig: _personlig, onAvslor: _avslorPersonlig, onMysterie: _tilPersonlig),
+                      : HjemHarness.probe('tilbud', HjemTilbudRad(tilbud: tilbud, personlig: _personlig, onAvslor: _avslorPersonlig, onMysterie: _tilPersonlig)),
                 ),
               ),
               // Only with real bags tonight.
@@ -2232,13 +2253,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 ),
               ),
               SizedBox(height: 10 * s),
-              BergenProductRail(
+              HjemHarness.probe('populaert', BergenProductRail(
                 snart: _erSnart(_hjulI),
                 products: products,
                 loading: focused.id == 0 || !_populaertByCat.containsKey(focused.id),
                 onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
-              ),
+              )),
               ])
                 lag(w),
             ],
@@ -2316,10 +2337,14 @@ class _HjemInn extends StatelessWidget {
 // ── Sheet shell ───────────────────────────────────────────────────────────
 
 class _Sheet extends StatelessWidget {
-  const _Sheet({required this.controller, required this.child});
+  const _Sheet({required this.controller, required this.child, this.onMetrics});
 
   final ScrollController controller;
   final Widget child;
+
+  /// Perf plan: the content's size changed (stores loaded…); the owner
+  /// re-evaluates which scenes are awake / painted without a scroll.
+  final VoidCallback? onMetrics;
 
   @override
   Widget build(BuildContext context) {
@@ -2376,7 +2401,13 @@ class _Sheet extends StatelessWidget {
                   ),
                 ),
               ),
-              NotificationListener<ScrollNotification>(
+              NotificationListener<ScrollMetricsNotification>(
+                onNotification: (n) {
+                  // Harness `dekket: false` restores the old behaviour for A/B.
+                  if (n.depth == 0 && BergenPerf.dekketPaa) onMetrics?.call();
+                  return false;
+                },
+                child: NotificationListener<ScrollNotification>(
                 onNotification: (n) {
                   if (n.depth != 0) return false;
                   if (n is ScrollStartNotification) BergenPerf.ruller.value = true;
@@ -2389,6 +2420,7 @@ class _Sheet extends StatelessWidget {
                   physics: BergenDraLaster.physics,
                   child: child,
                 ),
+              ),
               ),
             ],
           ),
@@ -2467,29 +2499,25 @@ class _PullHandle extends StatelessWidget {
                   children: [
                     _MiniAegil(size: 16 * s),
                     SizedBox(width: 6 * s),
-                    Opacity(
-                      opacity: .72,
-                      child: Text(
-                        text,
-                        style: bText(
-                          context,
-                          10,
-                          weight: FontWeight.w800,
-                          letterSpacingEm: .02,
-                          color: color,
-                        ),
+                    // Perf plan: opacity on the colour (one text run, one
+                    // stroked path): the same pixels without an Opacity layer.
+                    Text(
+                      text,
+                      style: bText(
+                        context,
+                        10,
+                        weight: FontWeight.w800,
+                        letterSpacingEm: .02,
+                        color: color.withValues(alpha: color.a * .72),
                       ),
                     ),
                     SizedBox(width: 6 * s),
                     AnimatedRotation(
                       turns: up ? .5 : 0,
                       duration: const Duration(milliseconds: 220),
-                      child: Opacity(
-                        opacity: .6,
-                        child: CustomPaint(
-                          size: Size(9 * s, 9 * s),
-                          painter: _ChevronPainter(color: color),
-                        ),
+                      child: CustomPaint(
+                        size: Size(9 * s, 9 * s),
+                        painter: _ChevronPainter(color: color.withValues(alpha: color.a * .6)),
                       ),
                     ),
                   ],

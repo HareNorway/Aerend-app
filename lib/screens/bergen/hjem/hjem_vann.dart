@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -193,7 +193,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    if (kDebugMode && !HjemHarness.vann) return widget.child;
+    if (!kReleaseMode && !HjemHarness.vann) return widget.child;
     final s = widget.s;
     return LayoutBuilder(
       builder: (context, box) {

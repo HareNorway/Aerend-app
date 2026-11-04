@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioAttributes
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
@@ -114,6 +115,17 @@ class MainActivity: FlutterFragmentActivity() {
                 else -> 3
             }
         } else 0
+        // Perf plan: battery level (%), battery temperature (°C from the sticky
+        // ACTION_BATTERY_CHANGED intent, tenths of a degree) and the thermal
+        // headroom forecast (API 30+, 0..1, 1 = throttling) for the heartbeat.
+        val bm = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val level = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        val sticky = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val tenths = sticky?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -10) ?: -10
+        val headroom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val h = pm.getThermalHeadroom(10)
+            if (h.isNaN()) -1.0 else h.toDouble()
+        } else -1.0
         return mapOf(
             "platform" to "android",
             "model" to Build.MODEL,
@@ -122,6 +134,9 @@ class MainActivity: FlutterFragmentActivity() {
             "sdk" to Build.VERSION.SDK_INT,
             "lowPower" to pm.isPowerSaveMode,
             "thermal" to thermal,
+            "battery" to (if (level < 0) -1.0 else level.toDouble()),
+            "batteryTemp" to (if (tenths < 0) -1.0 else tenths / 10.0),
+            "thermalHeadroom" to headroom,
         )
     }
 

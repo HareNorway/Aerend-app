@@ -56,6 +56,14 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   Duration? _step = const Duration(milliseconds: 33);
   double _budgetK = 1;
 
+  // Perf plan: no frames while Fløyen is off the screen; its clock carries
+  // on (see PerfHvile).
+  late final PerfHvile _hvile = PerfHvile(context, _ticker, onVaakn: (s) {
+    _t += s * (_calm ? .15 : 1);
+    _prev = Duration.zero;
+    _sist = Duration.zero;
+  });
+
   // The city being drawn (stripe by stripe) and the one in use.
   String? _sig;
   ui.Image? _acc;
@@ -98,7 +106,8 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   void _sync() {
     if (_by == null) return;
     final run = _step != null;
-    if (run && !_ticker.isActive) _ticker.start();
+    if (!run) _hvile.vaakn(start: false);
+    if (run && !_ticker.isActive && !_hvile.hviler) _ticker.start();
     if (!run && _ticker.isActive) _ticker.stop();
     if (!run) {
       // The heat / battery `still` tier: the baked frame.
@@ -111,6 +120,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   double get _d => _dpr * math.sqrt(_budgetK);
 
   void _tick(Duration e) {
+    if (_hvile.tikk()) return;
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1);
     _prev = e;
     _t += dt * (_calm ? .15 : 1);
@@ -298,6 +308,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
 
   @override
   void dispose() {
+    _hvile.dispose();
     _ticker.dispose();
     _acc?.dispose();
     _stat?.dispose();

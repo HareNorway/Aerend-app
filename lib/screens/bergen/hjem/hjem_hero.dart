@@ -17,6 +17,7 @@ import '../../common/home/bergen/bergen_kit.dart' show BergenWeather;
 import '../kit/sjo_water.dart';
 import 'hjem_bryggen.dart';
 import 'hjem_fiskestang.dart';
+import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
@@ -974,7 +975,11 @@ class _Dupp extends StatelessWidget {
                         top: -6,
                         width: 66,
                         height: 55,
-                        child: Opacity(
+                        // Perf plan: the reflection never changes; BergenBakt
+                        // draws it from one raster at .13 instead of an opacity
+                        // and a shader-mask pass on every frame (the float's
+                        // drift moves the raster as it moved the layers).
+                        child: BergenBakt(
                           opacity: .13,
                           child: Transform(
                             alignment: Alignment.bottomCenter,
@@ -1051,7 +1056,15 @@ class _Dupp extends StatelessWidget {
                             alignment: Alignment.bottomCenter,
                             child: LfLoop(
                             builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, flagMs, flagDelay), child: child),
-                            child: _Flagg(type: et.$1, bg: et.$2, pris: pris, forPris: forPris, tx: et.$3, sub: et.$4, kant: et.$5, napp: napp),
+                            // Perf plan: the flag never changes while it sways; drawn
+                            // from one raster, its price text is not re-rasterized into
+                            // the glyph atlas at a new 3D scale on every frame (measured:
+                            // ~140 atlas updates per 4 s on Hjem). The margin covers the
+                            // flag's shadow and the «+5» badge.
+                            child: BergenBakt(
+                              margin: const EdgeInsets.fromLTRB(16, 16, 22, 32),
+                              child: _Flagg(type: et.$1, bg: et.$2, pris: pris, forPris: forPris, tx: et.$3, sub: et.$4, kant: et.$5, napp: napp),
+                            ),
                           ),
                           ),
                         ),
@@ -1289,15 +1302,19 @@ class _PoseFlate extends StatelessWidget {
                       child: Center(
                         child: LfLoop(
                           builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, 5200, -600), child: child),
-                          child: const _Flagg(
-                            type: HjemHeroCopy.poseType,
-                            bg: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
-                            pris: HjemHeroCopy.posePris,
-                            forPris: '',
-                            tx: Color(0xFF5A3C10),
-                            sub: Color.fromRGBO(90, 60, 16, .82),
-                            kant: Color(0xFFA87418),
-                            big: true,
+                          // Perf plan: as the floats' flags — one raster sways.
+                          child: const BergenBakt(
+                            margin: EdgeInsets.fromLTRB(16, 16, 22, 32),
+                            child: _Flagg(
+                              type: HjemHeroCopy.poseType,
+                              bg: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)],
+                              pris: HjemHeroCopy.posePris,
+                              forPris: '',
+                              tx: Color(0xFF5A3C10),
+                              sub: Color.fromRGBO(90, 60, 16, .82),
+                              kant: Color(0xFFA87418),
+                              big: true,
+                            ),
                           ),
                         ),
                       ),
@@ -1581,6 +1598,11 @@ class _FjordfiskeKnapp extends StatelessWidget {
                     Positioned(
                       left: 35,
                       top: 6,
+                      // Perf plan: the label drifts with the button (scaleY
+                      // .982–1.016); from one raster its glyphs and the blurred
+                      // text shadow are not redrawn at a new scale every frame.
+                      child: BergenBakt(
+                      margin: const EdgeInsets.fromLTRB(6, 6, 6, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1600,6 +1622,7 @@ class _FjordfiskeKnapp extends StatelessWidget {
                             style: inter(8.5, weight: FontWeight.w700, height: 1.15, color: const Color(0xFF9FF0D4)),
                           ),
                         ],
+                      ),
                       ),
                     ),
                     Positioned(

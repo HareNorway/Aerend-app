@@ -10,6 +10,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../hjem/hjem_harness.dart';
+import 'bergen_bakt.dart';
 import 'bergen_perf.dart';
 
 // ── Live-ærend (prototype L9598, `liveVals`/`liveData`) ────────────────────
@@ -166,10 +167,13 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                       right: 18,
                       bottom: -17,
                       height: 14,
-                      child: Opacity(
-                        opacity: so,
-                        child: Transform.scale(
-                          scale: sk,
+                      // Perf plan: a static soft shadow faded per frame — one
+                      // raster, drawn with the opacity (no offscreen pass).
+                      child: Transform.scale(
+                        scale: sk,
+                        child: BergenBakt(
+                          opacity: so,
+                          skalaToleranse: .15,
                           child: const CssBox(
                             bg: [
                               CssRadial.closestSide([Color.fromRGBO(2, 10, 16, .6), Color.fromRGBO(2, 10, 16, 0)]),
@@ -196,7 +200,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                       top: -10,
                       bottom: -14,
                       child: LfLoop(
-                        builder: (context, t, child) => Opacity(opacity: kf((t / 2800) % 1.0, const [0, .5, 1], const [.35, .95, .35], cssEaseInOut), child: child),
+                        builder: (context, t, child) => BergenBakt(opacity: kf((t / 2800) % 1.0, const [0, .5, 1], const [.35, .95, .35], cssEaseInOut), child: child),
                         child: CssBox(
                           radius: BorderRadius.circular(34),
                           bg: [
@@ -221,9 +225,14 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                         child: LfLoop(
                           builder: (context, t, child) {
                             final p = (t / 1300) % 1.0;
-                            return Opacity(
-                              opacity: kf(p, const [0, .5, 1], const [.25, 1, .25], cssEaseInOut),
-                              child: Transform.scale(scale: kf(p, const [0, .5, 1], const [1, 1.025, 1], cssEaseInOut), child: child),
+                            return Transform.scale(
+                              scale: kf(p, const [0, .5, 1], const [1, 1.025, 1], cssEaseInOut),
+                              child: BergenBakt(
+                                opacity: kf(p, const [0, .5, 1], const [.25, 1, .25], cssEaseInOut),
+                                margin: const EdgeInsets.all(24),
+                                skalaToleranse: .05,
+                                child: child,
+                              ),
                             );
                           },
                           child: Container(
@@ -677,7 +686,7 @@ class _Segment extends StatelessWidget {
     if (!naa) return box;
     // liveSegPuls 1.4s
     return LfLoop(
-      builder: (context, t, child) => Opacity(opacity: kf((t / 1400) % 1.0, const [0, .5, 1], const [.7, 1, .7], cssEaseInOut), child: child),
+      builder: (context, t, child) => BergenBakt(opacity: kf((t / 1400) % 1.0, const [0, .5, 1], const [.7, 1, .7], cssEaseInOut), margin: const EdgeInsets.all(12), child: child),
       child: box,
     );
   }
@@ -710,14 +719,15 @@ class _Puls extends StatelessWidget {
             child: LfLoop(
               builder: (context, t, child) {
                 final p = cssEaseOut.transform((t / 1800) % 1.0);
-                return Opacity(
-                  opacity: .9 * (1 - p),
-                  child: Transform.scale(scale: .6 + 1.3 * p, child: child),
+                // Perf plan: one solid circle — the opacity on its colour
+                // is the same pixels as an Opacity layer, without the pass.
+                return Transform.scale(
+                  scale: .6 + 1.3 * p,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: farge.withValues(alpha: farge.a * .9 * (1 - p))),
+                  ),
                 );
               },
-              child: DecoratedBox(
-                decoration: BoxDecoration(shape: BoxShape.circle, color: farge),
-              ),
             ),
           ),
         ],

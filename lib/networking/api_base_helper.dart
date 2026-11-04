@@ -40,7 +40,7 @@ class ApiBaseHelper {
       CusBeacons.onDio(e);
       return handler.next(e);
     }));
-    if (!kReleaseMode) {
+    if (kDebugMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,
@@ -226,7 +226,7 @@ class ApiMapHelper {
     _dio.options.baseUrl = BaseUrl.mapBaseUrl;
     _dio.options.connectTimeout = const Duration(minutes: 3);
     _dio.options.receiveTimeout = const Duration(minutes: 3);
-    if (!kReleaseMode) {
+    if (kDebugMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,
@@ -270,7 +270,7 @@ class ApiFirebaseHelper {
       'Authorization': 'Bearer $auth2Token'
     };
     _dio.options.headers.addAll(requestHeaders);
-    if (!kReleaseMode) {
+    if (kDebugMode) {
       _dio.interceptors.add(
         PrettyDioLogger(
           requestHeader: true,

@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 
 // ── Ærend-tilbud (prototype L3011–3100, `tbVals`) ──────────────────────────
@@ -439,16 +440,22 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
     final a = off.abs().clamp(0.0, 1.0);
     final ry = off.sign * -14 * a;
     final s = 1 - .06 * a;
-    return Opacity(
+    final turned = Transform(
+      alignment: const Alignment(0, -.1),
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, -1 / 900)
+        ..rotateY(rad(ry))
+        ..scaleByDouble(s, s, 1, 1),
+      child: IgnorePointer(ignoring: !fokus || _drar, child: child),
+    );
+    // Perf plan: an off-focus coupon is static between slides; BergenBakt
+    // draws it (turned and faded) from one raster instead of a group-opacity
+    // pass every frame. The margin covers the near edge under perspective.
+    // One tree shape for every coupon (focused too), so none remounts.
+    return BergenBakt(
       opacity: 1 - .6 * a,
-      child: Transform(
-        alignment: const Alignment(0, -.1),
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, -1 / 900)
-          ..rotateY(rad(ry))
-          ..scaleByDouble(s, s, 1, 1),
-        child: IgnorePointer(ignoring: !fokus || _drar, child: child),
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      child: turned,
     );
   }
 
@@ -571,10 +578,10 @@ class _KupongState extends State<_Kupong> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Opacity(
-            opacity: .82,
-            child: Text(eyebrow.toUpperCase(), maxLines: 1, style: inter(9, weight: FontWeight.w800, em: .11, color: stil.c)),
-          ),
+          // Perf plan: the opacity on the text colour, not an Opacity layer
+          // (one solid-colour text run without shadows: the same pixels,
+          // no offscreen pass per frame).
+          Text(eyebrow.toUpperCase(), maxLines: 1, style: inter(9, weight: FontWeight.w800, em: .11, color: stil.c.withValues(alpha: stil.c.a * .82))),
           if (t?.fotoUrl != null || t?.fotoAsset != null)
             SizedBox(
               width: 94,
@@ -594,7 +601,7 @@ class _KupongState extends State<_Kupong> {
             maxLines: 1,
             style: jakarta(verdiStr, em: -.04, height: 1, color: stil.verdiC, shadows: stil.skygge).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
           ),
-          Opacity(opacity: .8, child: Text(under, maxLines: 1, style: inter(10.5, weight: FontWeight.w700, color: stil.c))),
+          Text(under, maxLines: 1, style: inter(10.5, weight: FontWeight.w700, color: stil.c.withValues(alpha: stil.c.a * .8))),
         ],
       ),
     );
