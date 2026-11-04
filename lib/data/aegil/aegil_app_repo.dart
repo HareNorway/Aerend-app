@@ -114,6 +114,11 @@ class AegilAppRepo implements AegilAppApi {
     ApiParam.paramAccessToken: prefGetString(prefAccessToken),
   };
 
+  Map<String, dynamic> _near() {
+    final p = prefGetLatLng();
+    return {'lat': p.latitude, 'lng': p.longitude};
+  }
+
   String _query(Map<String, dynamic> params) => Uri(
     queryParameters: params.map((k, v) => MapEntry(k, v?.toString() ?? '')),
   ).query;
@@ -136,6 +141,8 @@ class AegilAppRepo implements AegilAppApi {
         if (recipient != null) 'for': recipient,
         if (conversationId != null) 'conversation_id': conversationId,
         if (orderId != null) 'order_id': orderId,
+        // The delivery point Søk uses, so «billigst i nærheten» searches the stores that deliver here.
+        ..._near(),
       }));
       return json == null ? null : AegilTurn.fromJson(json);
     } catch (_) {
