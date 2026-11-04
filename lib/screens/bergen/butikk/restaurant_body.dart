@@ -3403,7 +3403,29 @@ class _SvevKnapp extends StatelessWidget {
         child: KatLoop(
           durationMs: 3400,
           phaseMs: fase * 1000,
-          builder: (context, p, _) {
+          // Perf plan: the key itself never changes — built once and passed
+          // through; each frame only rebuilds the two transforms around it.
+          child: Container(
+            width: size * s,
+            height: size * s,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFF68450), Color(0xFFE65A28)],
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                sokInsetBunnRund(size * s),
+                bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4),
+                _Ico(ikonPx * s, Colors.white, 2.8, _plusPath),
+              ],
+            ),
+          ),
+          builder: (context, p, knapp) {
             final e = kf(p, const [0, .5, 1], const [0, 1, 0], Curves.easeInOut);
             return SizedBox(
               width: size * s,
@@ -3435,26 +3457,7 @@ class _SvevKnapp extends StatelessWidget {
                   ),
                   Transform.translate(
                     offset: Offset(0, -5 * s * e),
-                    child: Container(
-                      width: size * s,
-                      height: size * s,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFF68450), Color(0xFFE65A28)],
-                        ),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          sokInsetBunnRund(size * s),
-                          bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4),
-                          _Ico(ikonPx * s, Colors.white, 2.8, _plusPath),
-                        ],
-                      ),
-                    ),
+                    child: knapp,
                   ),
                 ],
               ),
