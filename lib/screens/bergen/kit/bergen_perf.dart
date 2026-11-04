@@ -40,6 +40,9 @@ abstract final class BergenPerf {
 
   static String reason = 'start';
 
+  /// The frame watchdog (see [start]); off unless built with `AE_WATCHDOG=true`.
+  static const bool vakthund = bool.fromEnvironment('AE_WATCHDOG');
+
   /// Perf plan: mounted loop widgets (`LfLoop`, `OnbLoopClock`), for the
   /// heartbeat. The *active* ticker count is the scheduler's transient
   /// callback count, which needs no registry.
@@ -223,7 +226,14 @@ abstract final class BergenPerf {
     } catch (_) {
       // No channel (tests): stay on the prototype's tier.
     }
-    if (kReleaseMode || kProfileMode) {
+    // The frame watchdog (parity plan §3) stepped the tier down on slow
+    // frames — in practice it judged every phone whose GPU cannot hold
+    // Hjem at 60 fps as "slow" within 20 s of launch and switched all
+    // animation off (`still`) for the rest of the session, with no way
+    // back. Off by default since 2026-11-04; the thermal, low-power and
+    // reduced-motion tiers are untouched. `--dart-define=AE_WATCHDOG=true`
+    // turns it back on for an experiment.
+    if ((kReleaseMode || kProfileMode) && vakthund) {
       SchedulerBinding.instance.addTimingsCallback(_Watchdog.onTimings);
     }
     if (!kReleaseMode) _Puls.start();
