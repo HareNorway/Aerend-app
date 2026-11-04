@@ -108,14 +108,15 @@ class SpPuls extends StatelessWidget {
           child: LfLoop(
             builder: (context, t, child) {
               final p = cssEaseOut.transform((t / dur) % 1.0);
-              return Opacity(
-                opacity: .9 * (1 - p),
-                child: Transform.scale(scale: .6 + 1.3 * p, child: child),
+              // Perf plan: one solid circle — its opacity in the colour is
+              // the same pixels as an Opacity layer, without the pass.
+              return Transform.scale(
+                scale: .6 + 1.3 * p,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: color.a * .9 * (1 - p))),
+                ),
               );
             },
-            child: DecoratedBox(
-              decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-            ),
           ),
         ),
       ],

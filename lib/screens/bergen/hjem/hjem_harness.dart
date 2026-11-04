@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
+import 'package:flutter/widgets.dart' show Visibility, Widget;
 import 'package:path_provider/path_provider.dart';
 
 import '../../common/auth/launch/lf_css.dart';
@@ -308,6 +309,16 @@ abstract final class HjemHarness {
 
   /// Perf plan: open the calibration page (blank + one spinner).
   static bool perfKalib = false;
+
+  /// Perf plan (bisect probe, debug/profile): sections laid out but not
+  /// painted — `hjul`, `hurtig`, `butikker`, `utforsk`, `tilbud`, `populaert`,
+  /// `nav`, `live`, `topp` — to measure what each costs per frame.
+  static Set<String> skjul = const {};
+
+  /// Wraps a section for the [skjul] probe (identity outside it).
+  static Widget probe(String id, Widget w) => !kReleaseMode && skjul.contains(id)
+      ? Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: w)
+      : w;
   static Object? ruteArg;
 
   /// 29 Oct loaders and transitions: `ruteTilbake` pops the pushed route
@@ -676,6 +687,7 @@ abstract final class HjemHarness {
       aegil = m['aegil'] as String?;
       rute = m['rute'] as String?;
       perfKalib = m['perfKalib'] == true;
+      skjul = {...((m['skjul'] as List?) ?? const []).map((e) => '$e')};
       ruteTilbake = m['ruteTilbake'] as int?;
       ruteVent = m['ruteVent'] as int?;
       favPop = m['favPop'] as int?;

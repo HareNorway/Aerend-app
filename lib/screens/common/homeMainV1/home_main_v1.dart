@@ -17,6 +17,7 @@ import '../../bergen/kit/live_aerend.dart';
 import '../../bergen/aegil/aegil_entry.dart';
 import '../../bergen/kit/bergen_routes.dart';
 import '../auth/launch/lf_css.dart' show lfFlow;
+import '../../bergen/hjem/hjem_harness.dart';
 import '../../deliveryService/trackOrder/track_order.dart';
 import '../../bergen/kasse/kurv_screen.dart';
 import '../../bergen/kit/server_banner.dart';
@@ -218,7 +219,7 @@ class HomeMainV1State extends State<HomeMainV1> {
                     height: 64 * s,
                     child: lfFlow(
                       234,
-                      HjemLiveAerend(
+                      HjemHarness.probe('live', HjemLiveAerend(
                         data: ordre.data,
                         onTap: (deler) {
                           // `liveApne`: Sporing grows out of the pill, its pieces flying in.
@@ -243,7 +244,7 @@ class HomeMainV1State extends State<HomeMainV1> {
                           );
                           LiveFlukt.vis(context, deler);
                         },
-                      ),
+                      )),
                     ),
                   );
                 },
@@ -259,7 +260,7 @@ class HomeMainV1State extends State<HomeMainV1> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: BergenBottomNav(
+              child: HjemHarness.probe('nav', BergenBottomNav(
                 index: selectedPos,
                 onTab: (i) => switchToTab(i),
                 cartCount: badgeCountNotifier,
@@ -268,7 +269,7 @@ class HomeMainV1State extends State<HomeMainV1> {
                 showHint: selectedPos == BergenTab.home.index,
                 searchController: _sokField,
                 searchOpen: sokOpen,
-              ),
+              )),
             ),
           ),
         ],

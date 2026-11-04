@@ -495,12 +495,11 @@ class _QrBlokk extends StatelessWidget {
             final p = ((t - i * 300) % 2400) / 2400;
             final s = kf(p < 0 ? p + 1 : p, const [0, .5, 1], const [1, 1.06, 1], cssEaseInOut);
             final o = kf(p < 0 ? p + 1 : p, const [0, .5, 1], const [.85, 1, .85], cssEaseInOut);
+            // Perf plan: one stroked path — the opacity in its colour is the
+            // same pixels as an Opacity layer, without the pass.
             return Align(
               alignment: a,
-              child: Opacity(
-                opacity: o,
-                child: Transform.scale(scale: s, child: CustomPaint(size: const Size(14, 14), painter: _HjornePainter(i))),
-              ),
+              child: Transform.scale(scale: s, child: CustomPaint(size: const Size(14, 14), painter: _HjornePainter(i, o))),
             );
           }
 
@@ -554,10 +553,11 @@ class _QrBlokk extends StatelessWidget {
 
 /// One 14 px corner: 2.5 px mint, radius 8 on the outside corner.
 class _HjornePainter extends CustomPainter {
-  const _HjornePainter(this.hjorne);
+  const _HjornePainter(this.hjorne, [this.alfa = 1]);
 
   /// 0 top-left, 1 top-right, 2 bottom-left, 3 bottom-right.
   final int hjorne;
+  final double alfa;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -574,12 +574,12 @@ class _HjornePainter extends CustomPainter {
     canvas.drawPath(path, Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = w
-      ..color = const Color(0xFF5CE0B8));
+      ..color = const Color(0xFF5CE0B8).withValues(alpha: alfa.clamp(0.0, 1.0)));
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_HjornePainter old) => old.hjorne != hjorne;
+  bool shouldRepaint(_HjornePainter old) => old.hjorne != hjorne || old.alfa != alfa;
 }
 
 /// The QR modules in the design's viewBox (2 modules of quiet zone), crisp.

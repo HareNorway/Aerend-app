@@ -2120,7 +2120,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
             390,
             OnbMaal(
               id: 'kategorirad',
-              child: HjemKategoriHjul(
+              child: HjemHarness.probe('hjul', HjemKategoriHjul(
               kategorier: [
                 for (var k = 0; k < 5; k++)
                   HjemHjulKat(
@@ -2141,7 +2141,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 if (c != null) _openCategory(c);
               },
               onSnart: _openSnart,
-              ),
+              )),
             ),
           ),
         ),
@@ -2177,7 +2177,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   builder: (context, d, _) => OnbMaal(
                     id: 'hurtig',
                     radius: 26,
-                    child: HjemHurtigInngang(
+                    child: HjemHarness.probe('hurtig', HjemHurtigInngang(
                     linje: hurtigHjemLinje(d),
                     // Customer Step 14: the AI marks pill (design L2937) → «Bestill med en annen AI».
                     onAi: ClientFlags.on(ClientFlags.aiLinking) || AiStore.instance.harness ? () => AiArk.flyt(context, 'velg', fraHurtig: true) : null,
@@ -2187,7 +2187,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                         _shell?.switchToTab(BergenTab.cart.index);
                       }
                     },
-                  ),
+                  )),
                   ),
                 ),
               ),
@@ -2204,7 +2204,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 360),
                 switchInCurve: const Cubic(.2, .9, .3, 1),
-                child: BergenStoreRail(
+                child: HjemHarness.probe('butikker', BergenStoreRail(
                   key: ValueKey(
                     'stores-${focused.id}-${stores.length}-$_hjulI',
                   ),
@@ -2214,17 +2214,17 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   // A wrapped card opens the Kommer snart sheet.
                   onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openStore,
                   snart: _erSnart(_hjulI),
-                ),
+                )),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 12 * s, bottom: 2 * s),
                 child: lfFlow(
                   358,
-                  HjemUtforskKort(
+                  HjemHarness.probe('utforsk', HjemUtforskKort(
                     tittel: BergenCopy.exploreTitle,
                     linje: _folgerNye > 0 ? BergenCopy.exploreNye(_folgerNye) : null,
                     onTap: _toExplore,
-                  ),
+                  )),
                 ),
               ),
               Padding(
@@ -2233,7 +2233,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                   358,
                   tilbud.isEmpty && _personlig == null
                       ? const SizedBox.shrink()
-                      : HjemTilbudRad(tilbud: tilbud, personlig: _personlig, onAvslor: _avslorPersonlig, onMysterie: _tilPersonlig),
+                      : HjemHarness.probe('tilbud', HjemTilbudRad(tilbud: tilbud, personlig: _personlig, onAvslor: _avslorPersonlig, onMysterie: _tilPersonlig)),
                 ),
               ),
               // Only with real bags tonight.
@@ -2253,13 +2253,13 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
                 ),
               ),
               SizedBox(height: 10 * s),
-              BergenProductRail(
+              HjemHarness.probe('populaert', BergenProductRail(
                 snart: _erSnart(_hjulI),
                 products: products,
                 loading: focused.id == 0 || !_populaertByCat.containsKey(focused.id),
                 onOpen: _erSnart(_hjulI) ? (_) => _openSnart(_hjulI) : _openProduct,
                 onAdd: (p) => _addProduct(p.storeId, p.id, p.name),
-              ),
+              )),
               ])
                 lag(w),
             ],
