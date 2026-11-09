@@ -314,6 +314,14 @@ abstract final class BergenPerf {
   /// Perf plan: off-screen rest on/off (harness `hvile: false` for A/B).
   static bool hvilePaa = true;
 
+  /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
+  /// then keep showing the last one while their clock runs on — the upper
+  /// bound of what pre-rendered video could save. Debug/profile harness only.
+  static bool shaderFrys = false;
+
+  /// Heat test: freeze only one kind — 'vann' (SjoWater) or 'spgl' (SpGl scenes).
+  static String? shaderFrysKun;
+
   /// Perf plan: scenes fully covered by an opaque sheet are not painted
   /// (Offstage) — harness `dekket: false` paints them as before (A/B).
   static bool dekketPaa = true;

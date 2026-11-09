@@ -263,8 +263,11 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final step = _step;
     if (step == null || e - _sist < step) return;
     _sist = e;
+    if ((BergenPerf.shaderFrys || BergenPerf.shaderFrysKun == 'spgl') && _frys++ > 8) return;
     _render();
   }
+
+  int _frys = 0;
 
   static ui.Image _blank() {
     if (_clear != null) return _clear!;

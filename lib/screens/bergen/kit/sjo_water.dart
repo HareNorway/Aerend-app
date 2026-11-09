@@ -258,8 +258,11 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     // A little slack so a 60 Hz vsync isn't skipped by rounding.
     if (e - _sist < _step - const Duration(milliseconds: 2)) return;
     _sist = e;
+    if ((BergenPerf.shaderFrys || BergenPerf.shaderFrysKun == 'vann') && _frys++ > 8) return;
     _render();
   }
+
+  int _frys = 0;
 
   /// `sjoRefBr`: Bryggen flipped from its waterline up into 512×256, on the
   /// fog colour.

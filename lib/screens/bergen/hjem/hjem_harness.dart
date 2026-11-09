@@ -9,6 +9,8 @@ import 'package:path_provider/path_provider.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/perf_video_test.dart';
+import '../kit/lag_cache.dart';
 import 'hjem_hero.dart';
 
 /// Debug builds only: `Documents/kunde_state.json` (Customer plan Step 0;
@@ -440,6 +442,8 @@ abstract final class HjemHarness {
         BergenPerf.hvilePaa = true;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
+        BergenPerf.shaderFrys = false;
+        BergenPerf.shaderFrysKun = null;
         heroStille = false;
         arkStille = false;
         snart = null;
@@ -582,6 +586,8 @@ abstract final class HjemHarness {
       BergenPerf.dekketPaa = m['dekket'] != false;
       BergenBakt.paa = m['bakt'] != false;
       heroStille = m['heroStille'] == true;
+      BergenPerf.shaderFrys = m['shaderFrys'] == true;
+      BergenPerf.shaderFrysKun = m['shaderFrysKun'] as String?;
       arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
       pose = m['pose'] == true;
@@ -735,6 +741,8 @@ abstract final class HjemHarness {
       guide = m['guide'] as String?;
       guideIdx = m['guideIdx'] as int?;
       brett = m['brett'] == true;
+      if (m['lagCache'] == true) LagCache.start();
+      if (m['videoTest'] is String) PerfVideoTest.start(m['videoTest'] as String);
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }
