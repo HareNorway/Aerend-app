@@ -88,6 +88,9 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   bool _vert = false;
   // The split: its shaders, the key of the bake and its digit textures.
   ui.FragmentShader? _livDelt, _bake;
+
+  /// Heat check: the last frame came from the split shader (render counter name).
+  bool _sistDelt = false;
   String? _delNoekkel;
   final List<ui.Image> _delBilder = [];
 
@@ -269,6 +272,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     final stat = _stat!;
     final d = _d, pw = (_w * d).round(), ph = (_h * d).round();
     final delt = BergenPerf.malerVertPaa ? _delt(stat, pw, ph) : null;
+    _sistDelt = delt != null;
     final sh = delt ?? _liv!;
     final p = BrPal.of(widget.kind);
     final ln = p.night > .7 ? .24 : (p.rain > 0 ? .7 : (p.snow > 0 ? .8 : .95)), lys = .2 + .8 * p.night;
@@ -348,7 +352,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
       );
     }
     final img = rec.endRecording().toImageSync(pw, ph);
-    BergenPerf.telRender('Aegil');
+    BergenPerf.telRender(_sistDelt ? 'Aegil-delt' : 'Aegil');
     canvas.dispose();
     if (BergenPerf.malerVertPaa && _vert) {
       _ramme.sett(img);

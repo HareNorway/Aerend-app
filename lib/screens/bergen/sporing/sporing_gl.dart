@@ -234,7 +234,7 @@ class SpGlBake {
     _sw.stop();
     if (ferdig) {
       bakt++;
-      if (!kReleaseMode) debugPrint('SPGL_DELING bakt $lag lag ${pw}x$ph (${_sw.elapsedMilliseconds} ms CPU) ${nokkel.split('|').first}');
+      if (!kReleaseMode) debugPrint('PERF_DELING bakt $lag lag ${pw}x$ph (${_sw.elapsedMilliseconds} ms CPU) ${nokkel.split('|').first}');
     }
     return ferdig;
   }
@@ -542,13 +542,16 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final pw = (w * dpr).round(), ph = (h * dpr).round();
     final del = widget.del, liv = _liv, bake = _bake;
     final ui.Image img;
+    var vei = 'SpGl';
     if (BergenPerf.malerVertPaa && del != null && liv != null && bake != null) {
+      vei = 'SpGl-berg';
       img = _delt(del, liv, bake, sh, w, h, pw, ph);
     } else {
       // Heat plan Step 5 ([SpGl.deling], Bryggen): the same float uniforms go
       // to the live half once its bake is done; until then (and with the
       // switch off) the scene's own shader, as before.
       final dl = _deling(pw, ph);
+      if (dl != null) vei = 'SpGl-bdel';
       final s = dl ?? sh;
       var i = 0;
       void f(double v) => s.setFloat(i++, v);
@@ -573,7 +576,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     }
     // One count per frame produced — the unsplit shader, Bryggen's split or
     // the berg split, during a bake or after.
-    BergenPerf.telRender('SpGl');
+    BergenPerf.telRender(vei);
     if (BergenPerf.malerVertPaa && _vert) {
       _ramme.sett(img);
     } else {
