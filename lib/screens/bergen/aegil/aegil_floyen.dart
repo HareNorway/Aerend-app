@@ -286,6 +286,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
       );
     }
     final img = rec.endRecording().toImageSync(pw, ph);
+    BergenPerf.telRender('Aegil');
     canvas.dispose();
     final old = _frame;
     setState(() => _frame = img);

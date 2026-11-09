@@ -325,6 +325,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     final rec = ui.PictureRecorder();
     Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
     final img = rec.endRecording().toImageSync(pw, ph);
+    BergenPerf.telRender('Meg');
     final old = _frame;
     setState(() => _frame = img);
     old?.dispose();

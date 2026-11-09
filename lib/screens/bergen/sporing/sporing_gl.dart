@@ -311,6 +311,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final rec = ui.PictureRecorder();
     Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
     final img = rec.endRecording().toImageSync(pw, ph);
+    BergenPerf.telRender('SpGl');
     final old = _frame;
     setState(() => _frame = img);
     old?.dispose();

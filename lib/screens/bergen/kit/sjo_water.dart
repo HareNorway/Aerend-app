@@ -357,6 +357,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final rec = ui.PictureRecorder();
     Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
     final img = rec.endRecording().toImageSync(pw, ph);
+    BergenPerf.telRender('Sjo');
     final old = _frame;
     setState(() => _frame = img);
     old?.dispose();

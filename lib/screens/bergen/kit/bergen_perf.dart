@@ -199,6 +199,23 @@ abstract final class BergenPerf {
   /// Perf plan: extra fields for the heartbeat (e.g. CssBake's hit counts).
   static final List<String Function()> pulsTillegg = [];
 
+  /// Heat plan Step 4 check (debug/profile): shader renders per host since the
+  /// last heartbeat, printed as `render=SpGl:31,Sjo:60` — the render cadence must
+  /// be the same with `stegRammer` on and off.
+  static final Map<String, int> _renders = {};
+  static bool _rendersReg = false;
+  static void telRender(String navn) {
+    if (kReleaseMode) return;
+    _renders[navn] = (_renders[navn] ?? 0) + 1;
+    if (_rendersReg) return;
+    _rendersReg = true;
+    pulsTillegg.add(() {
+      final s = _renders.entries.map((e) => '${e.key}:${e.value}').join(',');
+      _renders.clear();
+      return 'render=${s.isEmpty ? '-' : s}';
+    });
+  }
+
   static BergenTier _device = BergenTier.full;
   static String _deviceWhy = 'device';
   static bool _lowPower = false;
