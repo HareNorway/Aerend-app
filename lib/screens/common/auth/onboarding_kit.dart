@@ -278,9 +278,16 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
   ScrollPosition? _rull;
   late final PerfSov _sov = PerfSov(_ticker, onVaakn: _sovVaakn);
 
+
+  /// Frozen test clock set or changed: show that pose even before the next tick.
+  void _frys() {
+    if (_ticker.isActive && !_ticker.muted) return;
+    if (BergenPerf.frysMs != null && !_reduce && mounted) _t.value = _now;
+  }
   @override
   void initState() {
     super.initState();
+    BergenPerf.frysVarsel.addListener(_frys);
     BergenPerf.onbLoopsMounted++;
     if (kDebugMode) BergenPerf.debugLoops[context] = () => _ticker.isActive && !_ticker.muted;
     _t.value = _now;
@@ -351,6 +358,7 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
   @override
   void dispose() {
     BergenPerf.onbLoopsMounted--;
+    BergenPerf.frysVarsel.removeListener(_frys);
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
     _sov.avbryt();
     _vekk.stopp();

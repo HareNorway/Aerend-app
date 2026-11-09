@@ -509,7 +509,16 @@ abstract final class BergenPerf {
   /// fixed time instead of its own, and wall-clock timers (rail turns, coupon
   /// rotation, showcase autoplay, random float ripples) hold still, so two
   /// builds can be compared pixel by pixel on an animated screen. Null = off.
-  static double? frysMs;
+  static double? get frysMs => _frysMs;
+  static double? _frysMs;
+  static set frysMs(double? v) {
+    _frysMs = v;
+    frysVarsel.value = v;
+  }
+
+  /// Fires when the frozen test clock is set or cleared, so a loop that has
+  /// not ticked yet (muted under a cover, resting) shows the frozen pose too.
+  static final ValueNotifier<double?> frysVarsel = ValueNotifier<double?>(null);
   static bool get frosset => frysMs != null;
 
   /// Heat test: freeze only one kind — 'vann' (SjoWater) or 'spgl' (SpGl scenes).

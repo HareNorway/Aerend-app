@@ -122,10 +122,22 @@ class _LfLoopState extends State<LfLoop> with LfTikkerVert {
   late final PerfSov _sov = PerfSov(_ticker, onVaakn: _sovVaakn);
   Duration? _sovFra;
 
+
+  /// Frozen test clock (harness `klokke`) set or changed: show that pose even
+  /// before the next tick (a muted or resting loop would keep its old one).
+  void _frys() {
+    final f = BergenPerf.frysMs;
+    // A ticking loop takes it on its next tick (as before); only one that is
+    // muted, resting, asleep or not started yet is moved here.
+    if (_ticker.isActive && !_ticker.muted) return;
+    if (f != null && !_reduce && mounted) _t.value = f;
+  }
   @override
   void initState() {
     super.initState();
     BergenPerf.lfLoopsMounted++;
+    if (BergenPerf.frysMs case final f?) _t.value = f;
+    BergenPerf.frysVarsel.addListener(_frys);
     if (kDebugMode) BergenPerf.debugLoops[context] = () => _ticker.isActive && !_ticker.muted;
     _ticker = createTicker(_onTick);
   }
@@ -229,6 +241,7 @@ class _LfLoopState extends State<LfLoop> with LfTikkerVert {
   @override
   void dispose() {
     BergenPerf.lfLoopsMounted--;
+    BergenPerf.frysVarsel.removeListener(_frys);
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
     _sov.avbryt();
     _vekk.stopp();
