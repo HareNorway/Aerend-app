@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
+import '../kit/bergen_lagring.dart' show BergenLagringLive;
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 
@@ -291,14 +292,18 @@ class KatHolo extends StatelessWidget {
   final double dodge;
 
   @override
-  Widget build(BuildContext context) => KatLoop(
-    durationMs: halvMs * 2,
-    builder: (context, p, _) {
-      final raw = p * 2;
-      final e = Curves.easeInOut.transform(raw <= 1 ? raw : 2 - raw);
-      return CustomPaint(painter: _HoloMaler(farger, stopp, e, dodge));
-    },
-  );
+  Widget build(BuildContext context) {
+    final loop = KatLoop(
+      durationMs: halvMs * 2,
+      builder: (context, p, _) {
+        final raw = p * 2;
+        final e = Curves.easeInOut.transform(raw <= 1 ? raw : 2 - raw);
+        return CustomPaint(painter: _HoloMaler(farger, stopp, e, dodge));
+      },
+    );
+    // Heat plan Step 8: the colour dodge blends with the screen beneath it.
+    return dodge > 0 ? BergenLagringLive(child: loop) : loop;
+  }
 }
 
 class _HoloMaler extends CustomPainter {

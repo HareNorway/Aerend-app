@@ -457,6 +457,9 @@ abstract final class HjemHarness {
         BergenPerf.pass2KlippPaa = true;
         BergenPerf.pass2CssPaa = false;
         BergenPerf.pass2BaktPaa = false;
+        BergenPerf.lagringPaa = false;
+        BergenPerf.lagringOvrePaa = false;
+        BergenPerf.loopGrensePaa = false;
         BergenPerf.bryggenDelingPaa = true;
         // Heat plan Step 11: back to each loop's own ticker, rebuilds per frame.
         BergenPerf.klokkePaa = BergenPerf.klokkeStandard;
@@ -630,6 +633,13 @@ abstract final class HjemHarness {
       BergenPerf.pass2KlippPaa = m['pass2Klipp'] != false;
       BergenPerf.pass2CssPaa = m['pass2Css'] == true;
       BergenPerf.pass2BaktPaa = m['pass2Bakt'] == true;
+      // Heat plan Steps 8–9 (off by default, A/B on one build): `lagring: true`
+      // draws each Bergen screen's unchanged bottom run from one cached image;
+      // `loopGrense: true` gives every loop's output its own repaint boundary.
+      BergenPerf.lagringPaa = m['lagring'] == true;
+      // `lagringOvre: true` also caches the runs above a live layer (≤ 1/255).
+      BergenPerf.lagringOvrePaa = m['lagringOvre'] == true;
+      BergenPerf.loopGrensePaa = m['loopGrense'] == true;
       // Heat plan Step 5: `bryggenDeling: false` draws Bryggen with the
       // original whole-city shader every step (A/B on one build; with
       // `klokke` both paths draw the same frame).

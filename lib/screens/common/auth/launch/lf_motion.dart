@@ -239,13 +239,20 @@ class _LfLoopState extends State<LfLoop> with LfTikkerVert {
   }
 
   @override
-  Widget build(BuildContext context) => widget.ramme
-      ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
-      : ValueListenableBuilder<double>(
-          valueListenable: _t,
-          child: widget.child,
-          builder: (context, t, child) => widget.builder(context, t, child),
-        );
+  Widget build(BuildContext context) {
+    final Widget ut = widget.ramme
+        ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
+        : ValueListenableBuilder<double>(
+            valueListenable: _t,
+            child: widget.child,
+            builder: (context, t, child) => widget.builder(context, t, child),
+          );
+    // Heat plan Step 9: the animated output in its own layer, so it does not
+    // repaint (and keep changing) the picture of what is around it. Outside
+    // the builder host, so Step 11's LfRammeBygger keeps its direct-update
+    // chain (it matches only its own builder output) unchanged.
+    return BergenPerf.loopGrensePaa ? RepaintBoundary(child: ut) : ut;
+  }
 }
 
 // ── Shared keyframes ────────────────────────────────────────────────────────

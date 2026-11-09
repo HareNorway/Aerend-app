@@ -13,6 +13,7 @@ import 'bergen_kit.dart';
 import '../../../bergen/hjem/hjem_kort.dart' show HjemGavepapir;
 import '../../auth/launch/lf_css.dart' show cssEaseInOut;
 import '../../auth/launch/lf_motion.dart' show LfLoop;
+import '../../../bergen/kit/bergen_lagring.dart' show BergenLagringLive;
 import '../../../bergen/kit/bergen_perf.dart';
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
@@ -1526,13 +1527,15 @@ class BergenHolo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LfLoop(
+    final loop = LfLoop(
       builder: (context, t, _) {
         final raw = (t / 5000) % 2.0;
         final p = cssEaseInOut.transform(raw <= 1 ? raw : 2 - raw);
         return CustomPaint(painter: _HoloPainter(colors, stops, p, dodge));
       },
     );
+    // Heat plan Step 8: the colour dodge blends with the screen beneath it.
+    return dodge ? BergenLagringLive(child: loop) : loop;
   }
 }
 

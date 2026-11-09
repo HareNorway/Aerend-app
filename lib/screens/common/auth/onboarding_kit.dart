@@ -361,13 +361,19 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
   }
 
   @override
-  Widget build(BuildContext context) => widget.ramme
-      ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
-      : ValueListenableBuilder<double>(
-          valueListenable: _t,
-          child: widget.child,
-          builder: (context, t, child) => widget.builder(context, t, child),
-        );
+  Widget build(BuildContext context) {
+    final Widget ut = widget.ramme
+        ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
+        : ValueListenableBuilder<double>(
+            valueListenable: _t,
+            child: widget.child,
+            builder: (context, t, child) => widget.builder(context, t, child),
+          );
+    // Heat plan Step 9 (BergenLoop and KatLoop run on this clock too): the
+    // animated output in its own layer. Outside the builder host, so Step
+    // 11's LfRammeBygger keeps its direct-update chain unchanged.
+    return BergenPerf.loopGrensePaa ? RepaintBoundary(child: ut) : ut;
+  }
 }
 
 // ── Entrance animations ─────────────────────────────────────────────────────

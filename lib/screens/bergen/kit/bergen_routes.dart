@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../bergen_routes_agil1.dart';
 import '../bergen_routes_agil3.dart';
+import 'bergen_lagring.dart';
+import 'bergen_perf.dart';
 import 'bergen_toast.dart';
 import 'drape_route.dart';
 import 'vann_overganger.dart';
@@ -86,7 +88,7 @@ abstract final class BergenRoutes {
     if (!name.startsWith('/bergen/')) return null;
     final key = resolve(name);
     if (key == null) return null;
-    final builder = (bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!;
+    final builder = _lagring((bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!);
     final ruteSettings = RouteSettings(
       // `argsOf` reads the arguments, not the name.
       name: '$appRoutePrefix$name',
@@ -105,8 +107,15 @@ abstract final class BergenRoutes {
   }
 
   /// A route for a Bergen screen pushed by widget (no name): the Menisk.
-  static Route<T> rute<T>(WidgetBuilder builder, {RouteSettings? settings}) =>
-      BergenOverganger.skjerm == SkjermOvergang.menisk ? MeniskRoute<T>(settings: settings, builder: builder) : MaterialPageRoute<T>(settings: settings, builder: builder);
+  static Route<T> rute<T>(WidgetBuilder builder, {RouteSettings? settings}) {
+    final b = _lagring(builder);
+    return BergenOverganger.skjerm == SkjermOvergang.menisk ? MeniskRoute<T>(settings: settings, builder: b) : MaterialPageRoute<T>(settings: settings, builder: b);
+  }
+
+  /// Heat plan Step 8: with [BergenPerf.lagringPaa], the screen inside a
+  /// [BergenLagring] (its unchanged bottom run from one cached image).
+  static WidgetBuilder _lagring(WidgetBuilder builder) =>
+      BergenPerf.lagringPaa ? (context) => BergenLagring(child: builder(context)) : builder;
 
   /// Push [name]; a toast when the screen is not on this tree yet.
   static Future<T?> push<T>(BuildContext context, String name, {Object? arguments}) {

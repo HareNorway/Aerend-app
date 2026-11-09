@@ -456,6 +456,26 @@ abstract final class BergenPerf {
   /// but sites under a moving transform lose their caching.
   static bool pass2BaktPaa = false;
 
+  /// Heat plan Step 8 (harness `lagring: true`; off until the device gates):
+  /// every Bergen route's screen sits in a [BergenLagring], which draws the
+  /// screen's unchanged bottom run of layers from one cached image. False =
+  /// no BergenLagring in the tree at all.
+  static bool lagringPaa = false;
+
+  /// Heat plan Step 8 (harness `lagringOvre: true`; off until the device
+  /// gates; only with [lagringPaa]): BergenLagring also caches the runs above
+  /// a live layer — drawn on transparent and blended, so a translucent pixel
+  /// may round by ≤ 1/255 (accepted 2026-11-09). Runs holding a backdrop
+  /// filter, and runs beneath a `BergenLagringLive` subtree (blends that read
+  /// the screen), stay live. False = only the exact bottom run.
+  static bool lagringOvrePaa = false;
+
+  /// Heat plan Step 9 (harness `loopGrense: true`; off until the device
+  /// gates): every LfLoop / OnbLoopClock (and so BergenLoop, KatLoop) puts
+  /// its animated output in its own repaint boundary, so a moving icon does
+  /// not repaint the static picture around it. False = no boundary.
+  static bool loopGrensePaa = false;
+
   /// Heat plan Step 5 (harness `bryggenDeling: false` for A/B): the Bryggen
   /// scene bakes its static city once per weather / form / size and draws
   /// only what moves on top (`shaders/hjem_bryggen_liv.frag`, see
