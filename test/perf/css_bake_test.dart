@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/screens/bergen/kit/bergen_perf.dart';
 import 'package:aerend_customer/screens/common/auth/launch/lf_css.dart';
 
 /// Perf plan: CssBake (the CssBox raster cache) must draw the same pixels as
@@ -19,6 +20,7 @@ void main() {
   });
   tearDown(() {
     CssBake.paa = true;
+    BergenPerf.pass2CssPaa = false;
     CssBake.tom();
   });
 
@@ -116,9 +118,85 @@ void main() {
     CssBoxPainter p(Color c) => CssBoxPainter(
       radius: BorderRadius.circular(12),
       bg: [CssLinear(165, [c, const Color(0xFF2A1208)])],
-      shadows: [CssShadow(0, 12, 18, -12, c.withValues(alpha: .6)), CssShadow.inset(0, 1.5, 0, 0, const Color(0x80FFFFFF))],
+      shadows: [CssShadow(0, 12, 18, -12, c.withValues(alpha: .6)), const CssShadow.inset(0, 1.5, 0, 0, Color(0x80FFFFFF))],
     );
     expect(p(const Color(0xFF123456)).shouldRepaint(p(const Color(0xFF123456))), isFalse);
     expect(p(const Color(0xFF123456)).shouldRepaint(p(const Color(0xFF654321))), isTrue);
+  });
+
+  // ── Heat Step 7 (BergenPerf.pass2CssPaa) ──
+
+  for (final pass2 in [true, false]) {
+    testWidgets('pass2 ${pass2 ? 'on' : 'off'}: after an animated entrance the box ${pass2 ? 'returns to' : 'stays off'} the raster once still', (tester) async {
+      BergenPerf.pass2CssPaa = pass2;
+      // The entrance: the look changes on every frame, so the box goes live.
+      for (var i = 0; i < 12; i++) {
+        await tester.pumpWidget(scene(boks(farge: Color.fromARGB(255, 10 * i, 80, 120))));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(CssBake.bom, lessThanOrEqualTo(4), reason: 'live after a few misses');
+      // It stops changing: nothing repaints it any more.
+      final bom = CssBake.bom, treff = CssBake.treff;
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      expect(CssBake.bom + CssBake.treff, bom + treff, reason: 'still for less than 600 ms: no repaint');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      if (pass2) {
+        expect(CssBake.bom, bom + 1, reason: 'one repaint, which rasters the final look');
+        // From now on a repaint draws the raster.
+        Widget ramme(int i) => scene(ColoredBox(color: Color.fromARGB(255, i, 0, 0), child: boks(farge: const Color.fromARGB(255, 110, 80, 120))));
+        await tester.pumpWidget(ramme(1));
+        await tester.pumpWidget(ramme(2));
+        expect(CssBake.treff, greaterThan(treff), reason: 'drawn from the raster');
+      } else {
+        expect(CssBake.bom + CssBake.treff, bom + treff, reason: 'switch off: stays live as before');
+      }
+    });
+  }
+
+  testWidgets('measured: the raster vs the live painter at a fractional device offset', (tester) async {
+    // What a box shows once it is back on the raster (CssBake draws its
+    // image at the 1/16-rounded scale, resampled at the box's position).
+    const dpr = 2.625;
+    tester.view.devicePixelRatio = dpr;
+    tester.view.physicalSize = const Size(1080, 1080);
+    addTearDown(tester.view.reset);
+    final rot = GlobalKey();
+    Widget skjerm(Offset at) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: RepaintBoundary(
+        key: rot,
+        child: ColoredBox(color: const Color(0xFF123B46), child: Align(alignment: Alignment.topLeft, child: Transform.translate(offset: at, child: boks()))),
+      ),
+    );
+    Future<Uint8List> skudd() async {
+      final ro = rot.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final img = ro.toImageSync(pixelRatio: dpr);
+      final data = await tester.runAsync(() => img.toByteData(format: ui.ImageByteFormat.rawRgba));
+      img.dispose();
+      return data!.buffer.asUint8List();
+    }
+
+    for (final at in const [Offset(40, 40), Offset(47.3, 51.77), Offset(80.123, 49.5)]) {
+      CssBake.paa = false;
+      await tester.pumpWidget(skjerm(at));
+      final live = await skudd();
+      CssBake.paa = true;
+      CssBake.tom();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(skjerm(at));
+      expect(CssBake.bom, greaterThanOrEqualTo(1));
+      final bakt = await skudd();
+      var maks = 0, over1 = 0;
+      for (var i = 0; i < live.length; i++) {
+        final d = (live[i] - bakt[i]).abs();
+        if (d > maks) maks = d;
+        if (d > 1) over1++;
+      }
+      // ignore: avoid_print
+      print('CSSBAKE_VS_LIVE at=$at max=$maks channels>1: $over1 of ${live.length}');
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 }

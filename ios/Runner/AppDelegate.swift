@@ -27,8 +27,9 @@ import UserNotifications
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Parity plan §3: the motion tier reads the device class, low power mode
-  // and the thermal state here (`BergenPerf` in Dart).
+  // Parity plan §3: the motion tier reads the device class and low power
+  // mode here (`BergenPerf` in Dart); the thermal state only feeds the perf
+  // heartbeat (Heat plan Step 12: heat never changes the motion).
   private var perfChannel: FlutterMethodChannel?
 
   private func perfState() -> [String: Any] {

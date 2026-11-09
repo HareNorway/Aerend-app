@@ -19,8 +19,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterFragmentActivity() {
-    // Parity plan §3: the motion tier reads the device class, battery saver
-    // and the thermal status here (`BergenPerf` in Dart).
+    // Parity plan §3: the motion tier reads the device class and battery
+    // saver here (`BergenPerf` in Dart); the thermal status only feeds the
+    // perf heartbeat (Heat plan Step 12: heat never changes the motion).
     private var perfChannel: MethodChannel? = null
     private var thermalListener: Any? = null
     private var powerReceiver: BroadcastReceiver? = null

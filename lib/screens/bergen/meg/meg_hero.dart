@@ -10,6 +10,7 @@ import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeat
 import '../aegil/aegil_bits.dart';
 import '../kit/br_pal.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/maler_vert.dart';
 
 /// The Meg header (`erMeg` L7341–7355, 390 × 196 design px): Brann stadion
 /// under Ulriken — the prototype's `data-ulgl="meg"` WebGL scene running live
@@ -217,7 +218,10 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   static const double _w = 390, _h = 196;
 
   ui.FragmentShader? _shader;
-  ui.Image? _frame;
+  // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
+  // one only repaints [MalerVert] (no setState per step).
+  final MalerRamme _ramme = MalerRamme();
+  bool _vert = false;
   late final Ticker _ticker;
   Duration _sist = Duration.zero;
   Duration _prev = Duration.zero;
@@ -326,9 +330,11 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
     final img = rec.endRecording().toImageSync(pw, ph);
     BergenPerf.telRender('Meg');
-    final old = _frame;
-    setState(() => _frame = img);
-    old?.dispose();
+    if (BergenPerf.malerVertPaa && _vert) {
+      _ramme.sett(img);
+    } else {
+      setState(() => _ramme.sett(img));
+    }
   }
 
   @override
@@ -336,17 +342,20 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _hvile.dispose();
     _rammer.dispose();
     _ticker.dispose();
-    _frame?.dispose();
+    _ramme.dispose();
     _shader?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final img = _frame;
+    final img = _ramme.bilde;
+    _vert = img != null && BergenPerf.malerVertPaa;
     if (img == null) return const SizedBox.expand();
     return RepaintBoundary(
-      child: RawImage(key: const Key('meg-stadion-live'), image: img, width: _w, height: _h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+      child: _vert
+          ? MalerVert(key: const Key('meg-stadion-live'), ramme: _ramme, width: _w, height: _h)
+          : RawImage(key: const Key('meg-stadion-live'), image: img, width: _w, height: _h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
     );
   }
 }

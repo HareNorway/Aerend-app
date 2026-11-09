@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -304,6 +305,10 @@ class CssBoxPainter extends CustomPainter {
     }
     if (ro._pause > 0) {
       ro._pause--;
+      // Heat Step 7: a box that stops changing never repaints, so it would
+      // stay live (re-blurring every frame) for good; once it has been still
+      // for 600 ms it repaints once and draws from the raster again.
+      if (BergenPerf.pass2CssPaa) ro._vekkSenere();
       _tegn(canvas, size);
       return;
     }
@@ -318,6 +323,7 @@ class CssBoxPainter extends CustomPainter {
         ro._bom = 0;
         ro._pause = 90;
         CssBake._levende++;
+        if (BergenPerf.pass2CssPaa) ro._vekkSenere();
         _tegn(canvas, size);
         return;
       }
@@ -418,11 +424,20 @@ class CssBoxPainter extends CustomPainter {
           canvas.drawRRect(shadowRR, p);
           continue;
         }
-        // A box-shadow never shows through its own box.
+        // A box-shadow never shows through its own box. Heat Step 7
+        // (`pass2Klipp`): the clip's outer edge only as far as this shadow
+        // reaches (its box + 4σ + 2 px; Impeller draws a blurred rounded rect
+        // at most 3.5σ out, a blurred path ≈ 1.73σ + 1), not 400 px around —
+        // Impeller writes the clip over its whole area every frame. Nothing is
+        // drawn where the edge moved, and the box's cut-out is the same path.
         canvas.save();
         final outside = Path()
           ..fillType = PathFillType.evenOdd
-          ..addRect(rect.inflate(400))
+          ..addRect(
+            BergenPerf.pass2KlippPaa
+                ? rect.expandToInclude(shadowRR.outerRect.inflate(cssSigma(s.blur) * 4 + 2)).intersect(rect.inflate(400))
+                : rect.inflate(400),
+          )
           ..addRRect(rr);
         canvas.clipPath(outside);
         canvas.drawRRect(shadowRR, p);
@@ -662,6 +677,35 @@ class _RenderCssPaint extends RenderCustomPaint {
 
   /// Misses in a row, and paints left to draw live after too many.
   int _bom = 0, _pause = 0;
+
+  /// Heat Step 7: ends the live spell once the box has been still for
+  /// 600 ms (restarted on every live paint), as BergenBakt's `_vekkSenere`.
+  Timer? _vekk;
+
+  void _vekkSenere() {
+    _vekk?.cancel();
+    _vekk = Timer(const Duration(milliseconds: 600), () {
+      _vekk = null;
+      if (!attached) return;
+      _pause = 0;
+      _bom = 0;
+      markNeedsPaint();
+    });
+  }
+
+  @override
+  void detach() {
+    _vekk?.cancel();
+    _vekk = null;
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _vekk?.cancel();
+    _vekk = null;
+    super.dispose();
+  }
 
   @override
   void paint(PaintingContext context, Offset offset) {

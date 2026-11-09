@@ -428,7 +428,12 @@ abstract final class HjemHarness {
       final kunde = File('${dir.path}/kunde_state.json');
       final f = await kunde.exists() ? kunde : File('${dir.path}/hjem_state.json');
       if (!await f.exists()) {
-        if (perf != null) BergenPerf.force(null);
+        // Heat plan Step 12: back to "heat never changes the motion".
+        final varme = BergenPerf.varmeTrinnGammel;
+        BergenPerf.varmeTrinnGammel = false;
+        // `termisk` absent: the real thermal readings again.
+        if (BergenPerf.termisk != null) BergenPerf.termiskTvang(null);
+        if (perf != null || varme) BergenPerf.force(null);
         perf = null;
         nyButikk = false;
         betaltKurv = null;
@@ -447,6 +452,10 @@ abstract final class HjemHarness {
         BergenPerf.usynligPaa = true;
         BergenPerf.pauseSovPaa = true;
         BergenPerf.stegRammerPaa = true;
+        BergenPerf.malerVertPaa = true;
+        BergenPerf.pass2KlippPaa = true;
+        BergenPerf.pass2CssPaa = false;
+        BergenPerf.pass2BaktPaa = false;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
@@ -575,6 +584,14 @@ abstract final class HjemHarness {
       perf = m['perf'] as String?;
       nyButikk = m['nyButikk'] == true;
       betaltKurv = (m['betaltKurv'] as num?)?.toInt();
+      // Heat plan Step 12: `varmeTrinn: true` brings back the old thermal
+      // step-down (fair → lite, serious → still) for A/B on one build; the
+      // force below applies it.
+      BergenPerf.varmeTrinnGammel = m['varmeTrinn'] == true;
+      // `termisk: 0..3` (debug / profile): the thermal state as if the
+      // platform reported it (fair / serious / critical for a device check);
+      // absent = the real readings.
+      BergenPerf.termiskTvang((m['termisk'] as num?)?.toInt());
       BergenPerf.force(perf == null ? null : BergenTier.values.byName(perf!));
       vaer = m['vaer'] == null ? null : HjemVaer.values.byName(m['vaer'] as String);
       demoFloats = m['demoFloats'] == true;
@@ -598,6 +615,15 @@ abstract final class HjemHarness {
       // Heat plan Step 4: `stegRammer: false` keeps the shader scenes asking
       // for a frame on every vsync, as before (A/B on one build).
       BergenPerf.stegRammerPaa = m['stegRammer'] != false;
+      // Heat plan Step 6: `malerVert: false` keeps the shader hosts on setState
+      // + RawImage per frame and the unsplit shaders (A/B on one build).
+      BergenPerf.malerVertPaa = m['malerVert'] != false;
+      // Heat plan Step 7 (A/B on one build): `pass2Klipp: false` keeps the big
+      // shadow clips; `pass2Css: true` returns still CssBoxes to the raster;
+      // `pass2Bakt: true` puts BergenBakt's raster on the device pixel grid.
+      BergenPerf.pass2KlippPaa = m['pass2Klipp'] != false;
+      BergenPerf.pass2CssPaa = m['pass2Css'] == true;
+      BergenPerf.pass2BaktPaa = m['pass2Bakt'] == true;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;

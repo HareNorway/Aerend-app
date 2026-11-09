@@ -10,6 +10,7 @@ import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeat
 import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../kit/bergen_perf.dart';
+import '../kit/maler_vert.dart';
 
 /// The weather the Sporing scenes are drawn in: the harness `vaer` in debug
 /// builds (so the scenes can be compared with the prototype's default rain),
@@ -82,6 +83,30 @@ class SpGlTex {
 /// texture i has loaded.
 typedef SpGlUniforms = void Function(void Function(double) f, double t, double age, bool Function(int i) ok);
 
+/// Heat plan Step 6 (with [BergenPerf.malerVertPaa]): a scene split into its
+/// static part, baked once per key into [malerNivaaer] textures (8-bit
+/// digits of the same floats, one bake pass per step), and a live pass
+/// ([liv]) that reads them back and adds what moves with the same math.
+/// Until the bake is done, and with the switch off, the frame comes from
+/// [SpGl.asset] as before.
+class SpGlDel {
+  const SpGlDel({required this.liv, required this.bake, required this.noekkel, required this.livU, required this.bakeU});
+
+  /// The live and the bake shader.
+  final String liv, bake;
+
+  /// What the bake depends on besides its size, its floats and the textures.
+  final String noekkel;
+
+  /// The live shader's floats after `uRes`, `uDpr`, `uT`, picked from [u]
+  /// (the scene's own floats, as [SpGl.uniforms] wrote them); the host adds
+  /// the bake textures' size (`uBSz`) after them.
+  final void Function(List<double> u, void Function(double) f) livU;
+
+  /// The bake shader's floats after `uRes`, `uDpr`; the host adds the digit.
+  final void Function(List<double> u, void Function(double) f) bakeU;
+}
+
 /// Hosts one of the prototype's Sporing WebGL scenes (`data-spgl`), ported as
 /// a fragment shader (`shaders/sp_*.frag`) and rendered offscreen as the
 /// prototype's canvas is (`spGlTegn`): at most 300 000 pixels and a device
@@ -107,6 +132,7 @@ class SpGl extends StatefulWidget {
     this.stillTier = false,
     this.onFrame,
     this.waitTex = false,
+    this.del,
   });
 
   final String asset;
@@ -134,6 +160,9 @@ class SpGl extends StatefulWidget {
   /// texture would otherwise flash empty over [still]).
   final bool waitTex;
 
+  /// Heat plan Step 6: the scene's static/live split, if it has one.
+  final SpGlDel? del;
+
   @override
   State<SpGl> createState() => _SpGlState();
 }
@@ -143,7 +172,16 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
   static ui.Image? _clear;
 
   ui.FragmentShader? _shader;
-  ui.Image? _frame;
+  // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
+  // one only repaints [MalerVert] (no setState per step).
+  final MalerRamme _ramme = MalerRamme();
+  bool _vert = false;
+  // The split ([SpGl.del]): its shaders, the key of the bake and its digits.
+  ui.FragmentShader? _liv, _bake;
+  String? _delNoekkel;
+  final List<ui.Image> _delBilder = [];
+  // Bumped whenever a texture changes (part of the bake key).
+  int _texGen = 0;
   late final Ticker _ticker;
   late List<ui.Image?> _img;
   final List<ImageStream> _streams = [];
@@ -185,6 +223,16 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
       if (!(widget.stillTier && _step == null)) _render();
       _sync();
     }).catchError((Object _) {});
+    final del = widget.del;
+    if (del != null) {
+      _programs[del.liv] ??= ui.FragmentProgram.fromAsset(del.liv);
+      _programs[del.bake] ??= ui.FragmentProgram.fromAsset(del.bake);
+      Future.wait([_programs[del.liv]!, _programs[del.bake]!]).then((p) {
+        if (!mounted) return;
+        _liv = p[0].fragmentShader();
+        _bake = p[1].fragmentShader();
+      }).catchError((Object _) {});
+    }
   }
 
   @override
@@ -223,9 +271,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
       _ticker.stop();
     }
     if (!run && widget.stillTier && widget.still != null) {
-      final old = _frame;
-      if (old != null) setState(() => _frame = null);
-      old?.dispose();
+      if (_ramme.bilde != null) setState(() => _ramme.sett(null));
       return;
     }
     if (!run) _render();
@@ -242,6 +288,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
         if (i >= _img.length) return;
         _img[i]?.dispose();
         _img[i] = info.image.clone();
+        _texGen++;
         if (!_ticker.isActive && !_hvile.hviler) _render();
       }, onError: (Object _, StackTrace? _) {});
       s.addListener(l);
@@ -259,6 +306,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     for (final im in _img) {
       im?.dispose();
     }
+    _texGen++;
   }
 
   void _tick(Duration e) {
@@ -298,24 +346,101 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final w = widget.w, h = widget.h;
     final dpr = math.max(.5, math.min(_dpr, math.sqrt(_budget / (w * h))));
     final pw = (w * dpr).round(), ph = (h * dpr).round();
+    final del = widget.del, liv = _liv, bake = _bake;
+    final ui.Image img;
+    if (BergenPerf.malerVertPaa && del != null && liv != null && bake != null) {
+      img = _delt(del, liv, bake, sh, w, h, pw, ph);
+    } else {
+      var i = 0;
+      void f(double v) => sh.setFloat(i++, v);
+      f(w);
+      f(h);
+      f(pw / w);
+      f(_t % 3600);
+      widget.uniforms(f, _t, _age ?? _sw.elapsedMicroseconds / 1e6, (k) => k < _img.length && _img[k] != null);
+      for (var k = 0; k < _img.length; k++) {
+        sh.setImageSampler(k, _img[k] ?? _blank());
+      }
+      final rec = ui.PictureRecorder();
+      Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
+      img = rec.endRecording().toImageSync(pw, ph);
+    }
+    // One count per frame produced, from the unsplit or the split shader.
+    BergenPerf.telRender('SpGl');
+    if (BergenPerf.malerVertPaa && _vert) {
+      _ramme.sett(img);
+    } else {
+      setState(() => _ramme.sett(img));
+    }
+    widget.onFrame?.call(img);
+  }
+
+  /// Heat plan Step 6: the frame through the split. The scene's floats are
+  /// written once into a list and handed to each pass in its own order; the
+  /// bake runs one digit per step (the frame then still comes from the
+  /// unsplit shader) whenever its key changes — never per frame.
+  ui.Image _delt(SpGlDel del, ui.FragmentShader liv, ui.FragmentShader bake, ui.FragmentShader sh, double w, double h, int pw, int ph) {
+    final u = <double>[];
+    widget.uniforms(u.add, _t, _age ?? _sw.elapsedMicroseconds / 1e6, (k) => k < _img.length && _img[k] != null);
+    final bu = <double>[];
+    del.bakeU(u, bu.add);
+    final noekkel = '${del.noekkel}|${pw}x$ph|$_texGen|${bu.join(',')}';
+    if (noekkel != _delNoekkel) {
+      _delNoekkel = noekkel;
+      for (final b in _delBilder) {
+        b.dispose();
+      }
+      _delBilder.clear();
+    }
+    final full = Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble());
+    void tex(ui.FragmentShader s) {
+      for (var k = 0; k < _img.length; k++) {
+        s.setImageSampler(k, _img[k] ?? _blank());
+      }
+    }
+
+    if (_delBilder.length < malerNivaaer) {
+      var i = 0;
+      void f(double v) => bake.setFloat(i++, v);
+      f(w);
+      f(h);
+      f(pw / w);
+      bu.forEach(f);
+      f(_delBilder.length.toDouble());
+      tex(bake);
+      final rec = ui.PictureRecorder();
+      Canvas(rec).drawRect(full, Paint()..shader = bake);
+      _delBilder.add(rec.endRecording().toImageSync(pw, ph));
+      // This step's frame: the unsplit shader, as with the switch off.
+      var j = 0;
+      void g(double v) => sh.setFloat(j++, v);
+      g(w);
+      g(h);
+      g(pw / w);
+      g(_t % 3600);
+      u.forEach(g);
+      tex(sh);
+      final rec2 = ui.PictureRecorder();
+      Canvas(rec2).drawRect(full, Paint()..shader = sh);
+      return rec2.endRecording().toImageSync(pw, ph);
+    }
     var i = 0;
-    void f(double v) => sh.setFloat(i++, v);
+    void f(double v) => liv.setFloat(i++, v);
     f(w);
     f(h);
     f(pw / w);
     f(_t % 3600);
-    widget.uniforms(f, _t, _age ?? _sw.elapsedMicroseconds / 1e6, (k) => k < _img.length && _img[k] != null);
-    for (var k = 0; k < _img.length; k++) {
-      sh.setImageSampler(k, _img[k] ?? _blank());
+    del.livU(u, f);
+    f(pw.toDouble());
+    f(ph.toDouble());
+    tex(liv);
+    for (var k = 0; k < _delBilder.length; k++) {
+      liv.setImageSampler(_img.length + k, _delBilder[k]);
     }
     final rec = ui.PictureRecorder();
-    Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
-    final img = rec.endRecording().toImageSync(pw, ph);
-    BergenPerf.telRender('SpGl');
-    final old = _frame;
-    setState(() => _frame = img);
-    old?.dispose();
-    widget.onFrame?.call(img);
+    Canvas(rec).drawRect(full, Paint()..shader = liv);
+    malerDeltRammer++;
+    return rec.endRecording().toImageSync(pw, ph);
   }
 
   @override
@@ -324,21 +449,29 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     _rammer.dispose();
     _ticker.dispose();
     _unload();
-    _frame?.dispose();
+    _ramme.dispose();
     _shader?.dispose();
+    _liv?.dispose();
+    _bake?.dispose();
+    for (final b in _delBilder) {
+      b.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final img = _frame;
+    final img = _ramme.bilde;
+    _vert = img != null && BergenPerf.malerVertPaa;
     return SizedBox(
       width: widget.w,
       height: widget.h,
       child: img == null
           ? widget.still
           : RepaintBoundary(
-              child: RawImage(image: img, width: widget.w, height: widget.h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+              child: _vert
+                  ? MalerVert(ramme: _ramme, width: widget.w, height: widget.h)
+                  : RawImage(image: img, width: widget.w, height: widget.h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
             ),
     );
   }

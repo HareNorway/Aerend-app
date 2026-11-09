@@ -18,11 +18,14 @@ import 'package:path_provider/path_provider.dart';
 /// softer. `still` is the reduced-motion app: no loops, no shaders, no blur.
 enum BergenTier { full, lite, still }
 
-/// The app-wide motion tier: chosen at start-up from the device class, low
-/// power mode and the thermal state, stepped down by a frame watchdog in
-/// profile / release builds. Konto's «Roligere bevegelse» and the OS reduce
-/// motion setting always mean `still` (they arrive as
-/// `MediaQuery.disableAnimations`).
+/// The app-wide motion tier: chosen at start-up from the device class and
+/// the user's own low power mode / battery saver, stepped down by a frame
+/// watchdog in profile / release builds (off unless `AE_WATCHDOG`). Konto's
+/// «Roligere bevegelse» and the OS reduce motion setting always mean `still`
+/// (they arrive as `MediaQuery.disableAnimations`). Heat plan Step 12: the
+/// thermal state never changes the tier (plan §0.2); it only reaches the
+/// heartbeat (`thermal=`), unless [varmeTrinnGammel] brings back the old
+/// step-down for an A/B run.
 abstract final class BergenPerf {
   static const MethodChannel _channel = MethodChannel('aerend/perf');
 
@@ -187,7 +190,7 @@ abstract final class BergenPerf {
     'SingleChildScrollView', 'ListView', 'Scrollable', 'NotificationListener', 'PageView', 'CssBox', 'LfFrame', 'OnbMaal',
     'BergenEssential', 'Text', 'RichText', '_GestureSemantics', 'RawGestureDetector', '_CssPaint', '_EffectiveTickerMode', 'AnimatedScale',
     'AnimatedRotation', 'RotationTransition', 'TweenAnimationBuilder', 'IndexedStack', 'Image', 'RawImage', 'SvgPicture', 'Icon',
-    'ShaderMask', 'ImageFiltered', 'Transform.scale',
+    'ShaderMask', 'ImageFiltered', 'Transform.scale', 'MalerVert',
   };
 
   /// Perf plan: the top route and the Bergen tab, for the heartbeat.
@@ -219,7 +222,9 @@ abstract final class BergenPerf {
   static BergenTier _device = BergenTier.full;
   static String _deviceWhy = 'device';
   static bool _lowPower = false;
-  static int _thermal = 0; // 0 nominal · 1 fair · 2 serious · 3 critical
+  // 0 nominal · 1 fair · 2 serious · 3 critical: for the heartbeat only
+  // (and [varmeTrinnGammel]), never the tier (Heat plan Step 12).
+  static int _thermal = 0;
   static int _watchdogSteps = 0;
   static BergenTier? _forced;
   static bool _started = false;
@@ -247,8 +252,8 @@ abstract final class BergenPerf {
     // frames — in practice it judged every phone whose GPU cannot hold
     // Hjem at 60 fps as "slow" within 20 s of launch and switched all
     // animation off (`still`) for the rest of the session, with no way
-    // back. Off by default since 2026-11-04; the thermal, low-power and
-    // reduced-motion tiers are untouched. `--dart-define=AE_WATCHDOG=true`
+    // back. Off by default since 2026-11-04; the low-power and reduced-motion
+    // tiers are untouched (heat: Step 12). `--dart-define=AE_WATCHDOG=true`
     // turns it back on for an experiment.
     if ((kReleaseMode || kProfileMode) && vakthund) {
       SchedulerBinding.instance.addTimingsCallback(_Watchdog.onTimings);
@@ -297,30 +302,88 @@ abstract final class BergenPerf {
     _update();
   }
 
-  static void _update() {
-    BergenTier t = _device;
-    var why = _deviceWhy;
+  /// Heat plan Step 12 (harness `varmeTrinn: true`, A/B measurement only):
+  /// the old thermal step-down — fair → `lite`, serious / critical → `still`.
+  /// False (always, outside the harness): heat never changes the motion.
+  static bool varmeTrinnGammel = false;
+
+  /// The tier and its reason for these inputs (what [_update] applies).
+  @visibleForTesting
+  static (BergenTier, String) velg({
+    BergenTier device = BergenTier.full,
+    String deviceWhy = 'device',
+    int watchdogSteps = 0,
+    int thermal = 0,
+    bool lowPower = false,
+    BergenTier? forced,
+    bool varmeTrinn = false,
+  }) {
+    BergenTier t = device;
+    var why = deviceWhy;
     BergenTier raise(BergenTier a, BergenTier b) => a.index >= b.index ? a : b;
-    if (_watchdogSteps > 0) {
-      final w = BergenTier.values[math.min(2, _watchdogSteps)];
-      if (w.index > t.index) why = 'slow frames ×$_watchdogSteps';
+    if (watchdogSteps > 0) {
+      final w = BergenTier.values[math.min(2, watchdogSteps)];
+      if (w.index > t.index) why = 'slow frames ×$watchdogSteps';
       t = raise(t, w);
     }
-    if (_thermal >= 2) {
-      t = BergenTier.still;
-      why = 'thermal $_thermal';
-    } else if (_thermal == 1 && t == BergenTier.full) {
-      t = BergenTier.lite;
-      why = 'thermal fair';
+    // Heat plan Step 12: heat alone never stops, slows or reduces the
+    // motion (plan §0.2) — the old step-down only for an A/B run.
+    if (varmeTrinn) {
+      if (thermal >= 2) {
+        t = BergenTier.still;
+        why = 'thermal $thermal';
+      } else if (thermal == 1 && t == BergenTier.full) {
+        t = BergenTier.lite;
+        why = 'thermal fair';
+      }
     }
-    if (_lowPower) {
+    // The user's own Low Power Mode (iOS) / battery saver (Android), plan D1.
+    if (lowPower) {
       t = BergenTier.still;
       why = 'low power mode';
     }
-    if (_forced != null) {
-      t = _forced!;
+    if (forced != null) {
+      t = forced;
       why = 'forced';
     }
+    return (t, why);
+  }
+
+  /// Test only: new thermal / low power readings, as the platform channel
+  /// would bring them, applied at once.
+  @visibleForTesting
+  static void debugTilstand({int? thermal, bool? lowPower}) {
+    if (thermal != null) _thermal = thermal;
+    if (lowPower != null) _lowPower = lowPower;
+    _update();
+  }
+
+  /// Heat plan Step 12 (harness `termisk: 0..3`, debug / profile only): a
+  /// thermal state injected as if the platform channel had reported it, so a
+  /// device check can force fair / serious / critical. The real readings
+  /// keep arriving underneath; null goes back to them at once.
+  static int? get termisk => _termisk;
+  static int? _termisk;
+
+  static void termiskTvang(int? thermal) {
+    if (kReleaseMode) return;
+    _termisk = thermal?.clamp(0, 3);
+    _update();
+  }
+
+  /// The thermal state in force: the injected one, else the platform's.
+  static int get _thermalNaa => _termisk ?? _thermal;
+
+  static void _update() {
+    final (t, why) = velg(
+      device: _device,
+      deviceWhy: _deviceWhy,
+      watchdogSteps: _watchdogSteps,
+      thermal: _thermalNaa,
+      lowPower: _lowPower,
+      forced: _forced,
+      varmeTrinn: varmeTrinnGammel,
+    );
     if (t != tier.value || why != reason) {
       reason = why;
       tier.value = t;
@@ -365,6 +428,33 @@ abstract final class BergenPerf {
   /// Heat plan Step 4 (harness `stegRammer: false` for A/B): shader scenes
   /// ask for frames only around their own steps (see [PerfStegRammer]).
   static bool stegRammerPaa = true;
+
+  /// Heat plan Step 6 (harness `malerVert: false` for A/B): shader hosts draw
+  /// each new frame through a repaint notifier instead of setState +
+  /// LayoutBuilder + RawImage, and the scenes with a static part (Ægil·Fløyen,
+  /// Søk's Flesland rock) bake it once and read it back (same pixels).
+  static bool malerVertPaa = true;
+
+  /// Heat plan Step 7, three switches so each is measured and decided on its
+  /// own (A/B on one build; harness `pass2Klipp`, `pass2Css`, `pass2Bakt`).
+  ///
+  /// `pass2Klipp` (on): the even-odd clips that keep a CSS shadow outside its
+  /// translucent box (BergenCssShadow, CssBox) reach only as far as the
+  /// shadows do instead of 400–600 px around the box — the same pixels, a
+  /// much smaller clip write per box per frame. False = the big clips.
+  static bool pass2KlippPaa = true;
+
+  /// `pass2Css` (off until decided): a CssBox that went live after an
+  /// animated entrance returns to CssBake's raster once it has been still for
+  /// 600 ms. Changes pixels against today's build wherever that box would
+  /// have stayed live (the raster is resampled: up to ~68/255 on edges).
+  static bool pass2CssPaa = false;
+
+  /// `pass2Bakt` (off until decided): BergenBakt draws its raster on the
+  /// device pixel grid exactly where live painting lands, and paints live
+  /// where it cannot (rotation, perspective, moving, clipped). Pixel-exact,
+  /// but sites under a moving transform lose their caching.
+  static bool pass2BaktPaa = false;
 
   /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
   /// then keep showing the last one while their clock runs on — the upper
@@ -416,7 +506,8 @@ abstract final class BergenPerf {
 
   /// True when the user (Konto's «Roligere bevegelse» or the OS setting)
   /// asked for less motion — the prototype's `rolig`. False when `still`
-  /// only comes from heat, battery or a slow phone.
+  /// only comes from low power mode / battery saver or a slow phone (or the
+  /// old heat step under [varmeTrinnGammel]).
   static bool calmOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_PerfScope>()?.calm ??
       (MediaQuery.maybeDisableAnimationsOf(context) == true);
@@ -483,7 +574,7 @@ abstract final class BergenPerf {
 }
 
 /// Puts [BergenPerf.tier] into the tree. Goes inside the reduced-motion
-/// `MediaQuery`, so it can tell a user's calm setting from heat.
+/// `MediaQuery`, so it can tell a user's calm setting from low power mode.
 class BergenPerfScope extends StatelessWidget {
   const BergenPerfScope({super.key, required this.child});
 
@@ -498,7 +589,8 @@ class BergenPerfScope extends StatelessWidget {
       builder: (context, t, child) {
         final eff = calm ? BergenTier.still : t;
         Widget c = child!;
-        // `still` from heat reuses every helper's reduced-motion path.
+        // `still` from low power mode (or the device class / watchdog) reuses
+        // every helper's reduced-motion path.
         if (eff == BergenTier.still && !calm) {
           c = MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: true), child: c);
         }
@@ -1121,7 +1213,7 @@ abstract final class _Puls {
     final rss = ProcessInfo.currentRss ~/ (1024 * 1024);
     String na(double v, [int d = 0]) => v < 0 ? 'n/a' : v.toStringAsFixed(d);
     debugPrint('PERF_HEARTBEAT t=${_klokke.elapsed.inSeconds} rute=${BergenPerf.ruter.rute} fane=${BergenPerf.fane?.value ?? '-'} '
-        'thermal=${BergenPerf._thermal} lowPower=${BergenPerf._lowPower} battery=${na(BergenPerf._battery)} battTemp=${na(BergenPerf._battTemp, 1)} '
+        'thermal=${BergenPerf._thermalNaa}${BergenPerf._termisk == null ? '' : ' thermalEkte=${BergenPerf._thermal}'} lowPower=${BergenPerf._lowPower} battery=${na(BergenPerf._battery)} battTemp=${na(BergenPerf._battTemp, 1)} '
         'headroom=${na(BergenPerf._headroom, 2)} tier=${BergenPerf.tier.value.name} renderer=${ui.ImageFilter.isShaderFilterSupported ? 'impeller' : 'skia'} hz=$hz fps=$fps frames=$n over16=$over '
         'build_p50=${_pct(_build, .5) ~/ 1000} build_p90=${_pct(_build, .9) ~/ 1000} raster_p50=${_pct(_raster, .5) ~/ 1000} raster_p90=${_pct(_raster, .9) ~/ 1000} '
         'rss=$rss tickers=${SchedulerBinding.instance.transientCallbackCount} loops=${BergenPerf.lfLoopsMounted + BergenPerf.onbLoopsMounted}'

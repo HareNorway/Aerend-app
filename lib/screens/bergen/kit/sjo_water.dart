@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'bergen_perf.dart';
+import 'maler_vert.dart';
 
 // ── Vågen water (shared) ────────────────────────────────────────────────────
 // The prototype's `canvas[data-sjogl]` (sjoGlInit / sjoGlTegn), ported to
@@ -161,7 +162,10 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
   ui.FragmentShader? _shader;
   ui.Image? _ref;
   ui.Image? _liveRef;
-  ui.Image? _frame;
+  // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
+  // one only repaints [MalerVert] (no setState / LayoutBuilder per step).
+  final MalerRamme _ramme = MalerRamme();
+  bool _vert = false;
   late final Ticker _ticker;
   Duration _prev = Duration.zero;
   double _t = 0;
@@ -358,9 +362,11 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
     final img = rec.endRecording().toImageSync(pw, ph);
     BergenPerf.telRender('Sjo');
-    final old = _frame;
-    setState(() => _frame = img);
-    old?.dispose();
+    if (BergenPerf.malerVertPaa && _vert) {
+      _ramme.sett(img);
+      return;
+    }
+    setState(() => _ramme.sett(img));
   }
 
   @override
@@ -369,7 +375,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     _liveRef?.dispose();
     _hvile.dispose();
     _ticker.dispose();
-    _frame?.dispose();
+    _ramme.dispose();
     _shader?.dispose();
     super.dispose();
   }
@@ -382,11 +388,16 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
         if (s != _size) {
           _size = s;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _frame == null) _render();
+            if (mounted && _ramme.bilde == null) _render();
           });
         }
-        final img = _frame;
+        final img = _ramme.bilde;
+        _vert = false;
         if (img == null) return const SizedBox.expand();
+        if (BergenPerf.malerVertPaa) {
+          _vert = true;
+          return MalerVert(ramme: _ramme, width: s.width, height: s.height);
+        }
         return RawImage(
           image: img,
           width: s.width,
