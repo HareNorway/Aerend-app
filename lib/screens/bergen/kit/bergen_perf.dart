@@ -345,6 +345,10 @@ abstract final class BergenPerf {
     }
   }
 
+  /// Heat plan Step 4 (harness `stegRammer: false` for A/B): shader scenes
+  /// ask for frames only around their own steps (see [PerfStegRammer]).
+  static bool stegRammerPaa = true;
+
   /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
   /// then keep showing the last one while their clock runs on — the upper
   /// bound of what pre-rendered video could save. Debug/profile harness only.
@@ -653,8 +657,12 @@ class PerfHvile {
   bool get hviler => _sw != null;
 
   /// From the ticker callback: true when the host has just gone to rest.
-  bool tikk() {
-    if (++_tikk % 12 != 0 || !BergenPerf.utenforSkjerm(context)) return false;
+  /// [n] is the number of vsyncs since the last tick (more than one after a
+  /// [PerfStegRammer] sleep), so the check still comes every 12 vsyncs.
+  bool tikk({int n = 1}) {
+    final f = _tikk;
+    _tikk += n;
+    if (_tikk ~/ 12 == f ~/ 12 || !BergenPerf.utenforSkjerm(context)) return false;
     hvile();
     return true;
   }
@@ -784,6 +792,208 @@ class PerfSov {
     _timer?.cancel();
     _timer = null;
     BergenPerf._sovende.remove(vaakn);
+  }
+}
+
+/// Heat plan Step 4: frames only when a shader host really has a new
+/// picture (harness `stegRammer: false` turns it off for A/B).
+///
+/// A host renders every `step` (31–50 ms) but its ticker asked for a frame
+/// on every vsync, so a screen where the scene was the only thing moving drew
+/// identical copies in between. After each tick the host calls [etter] with
+/// its last render and its step. When the earliest moment its own check
+/// (`e - sist < step`) can pass is more than a vsync away, the ticker is
+/// muted — its elapsed time runs on, exactly as under `TickerMode` — and a
+/// timer unmutes it [margin] before that moment. From then on it
+/// ticks every vsync again, so the host decides on the very same vsync, with
+/// the very same timestamp, as it did with a ticker that never slept.
+///
+/// [dt] gives the host the scene time across a sleep as the per-vsync sum it
+/// added before: the whole gap (the clamps only ever cut a real stall, a
+/// hidden route or the background, and those cuts are kept). [n] is the
+/// number of vsyncs the last tick stands for (for [PerfHvile.tikk]).
+///
+/// No sleep under `timeDilation` (the timer runs on wall time), outside the
+/// resumed lifecycle, or in the first 8 ticks after a (re)start, which give
+/// the vsync period and the lag between a vsync and its tick (the timer is
+/// set from the vsync, not from the moment the tick ran).
+class PerfStegRammer with WidgetsBindingObserver {
+  PerfStegRammer(this.ticker, {this.tickerModus, int Function()? naaUs, Timer Function(Duration, void Function())? timer, Duration? Function()? rammeTid})
+      : _naaUs = naaUs ?? _klokke(),
+        _timer = timer ?? Timer.new,
+        _rammeTid = rammeTid ?? _iRamme {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  final Ticker ticker;
+
+  /// The host's `TickerMode` (`() => TickerMode.getNotifier(context)`): a
+  /// muted host stays muted when its timer fires, and a scene hidden while it
+  /// sleeps keeps the moment it would have stopped ticking.
+  final ValueListenable<bool> Function()? tickerModus;
+
+  final int Function() _naaUs;
+  final Timer Function(Duration, void Function()) _timer;
+  final Duration? Function() _rammeTid;
+
+  static int Function() _klokke() {
+    final sw = Stopwatch()..start();
+    return () => sw.elapsedMicroseconds;
+  }
+
+  static Duration? _iRamme() {
+    final b = SchedulerBinding.instance;
+    return b.schedulerPhase == SchedulerPhase.idle ? null : b.currentFrameTimeStamp;
+  }
+
+  /// How long before the earliest possible render the ticker is awake
+  /// again: covers a late timer (whole-ms rounding, a busy isolate) and the
+  /// trip from `scheduleFrame` to the vsync source.
+  static const Duration margin = Duration(milliseconds: 10);
+
+  /// Vsyncs since the last tick (1 unless it followed a sleep).
+  int n = 1;
+
+  Timer? _vekker;
+  bool _fraSovn = false;
+  Duration _vakt = Duration.zero;
+  Duration? _kutt;
+  Duration? _start;
+  Duration? _sistE;
+  int? _off;
+  int _proever = 0;
+  final List<int> _gap = [];
+  int _gi = 0;
+  ValueListenable<bool>? _modus;
+
+  /// True while the ticker is muted by a sleep.
+  bool get sover => _vekker != null;
+
+  int get _p {
+    if (_gap.isEmpty) return 16667;
+    var p = _gap[0];
+    for (final g in _gap) {
+      if (g < p) p = g;
+    }
+    return p;
+  }
+
+  /// First thing in the host's tick.
+  void tikk(Duration e) {
+    n = 1;
+    _vekker?.cancel();
+    _vekker = null;
+    _slipp();
+    final rt = _rammeTid();
+    final st = rt == null ? null : rt - e, gml = _start;
+    if (st != null) _start = st;
+    final sist = _sistE;
+    _sistE = e;
+    if (sist == null || e <= sist || (st != null && gml != null && st != gml) || timeDilation != 1.0) {
+      // A (re)started ticker: its elapsed time begins again.
+      _off = null;
+      _proever = 0;
+      _gap.clear();
+      _gi = 0;
+      _fraSovn = false;
+      _kutt = null;
+    } else {
+      final g = (e - sist).inMicroseconds;
+      if (_fraSovn) {
+        n = math.max(1, (g / _p).round());
+      } else if (g >= 3000 && g <= 50000) {
+        if (_gap.length < 16) {
+          _gap.add(g);
+        } else {
+          _gap[_gi] = g;
+          _gi = (_gi + 1) % 16;
+        }
+      }
+    }
+    final o = _naaUs() - e.inMicroseconds;
+    if (_off == null || o < _off!) _off = o;
+    _proever++;
+  }
+
+  /// The host's `((e - prev).inMicroseconds / 1e6).clamp(0.0, maks)`.
+  double dt(Duration e, Duration prev, double maks) {
+    final g = (e - prev).inMicroseconds;
+    if (!_fraSovn) return (g / 1e6).clamp(0.0, maks);
+    _fraSovn = false;
+    final kutt = _kutt;
+    _kutt = null;
+    // Until [_vakt] (or the hiding frame) the old ticker ticked every vsync,
+    // each gap far below the clamp; only the rest can be one long gap.
+    final q = math.max(0, ((kutt ?? _vakt) - prev).inMicroseconds);
+    if (g - q <= maks * 1e6) return g < 0 ? 0.0 : g / 1e6;
+    return q / 1e6 + maks;
+  }
+
+  /// Last thing in the host's tick: [sist] its last render, [step] its step,
+  /// [slakk] the slack its check allows (`e - sist < step - slakk`).
+  void etter(Duration e, Duration sist, Duration? step, {Duration slakk = Duration.zero}) {
+    if (!BergenPerf.stegRammerPaa || step == null || !ticker.isActive || ticker.muted) return;
+    final off = _off;
+    if (off == null || _proever < 8 || timeDilation != 1.0) return;
+    final ls = SchedulerBinding.instance.lifecycleState;
+    if (ls != null && ls != AppLifecycleState.resumed) return;
+    final vakt = sist + step - slakk - margin;
+    final til = (vakt - e).inMicroseconds;
+    // The next vsync may be the one: stay awake (the ticker as it was).
+    if (til < _p) return;
+    // From the vsync, not from now: less the lag of this tick behind it.
+    final d = til - math.max<int>(0, _naaUs() - e.inMicroseconds - off);
+    if (d <= 0) return;
+    ticker.muted = true;
+    _fraSovn = true;
+    _vakt = vakt;
+    _kutt = null;
+    _modus = tickerModus?.call()?..addListener(_modusEndret);
+    _vekker = _timer(Duration(microseconds: d), _vaakn);
+  }
+
+  void _vaakn() {
+    _vekker = null;
+    if (ticker.isActive) ticker.muted = !(_modus?.value ?? true);
+  }
+
+  void _modusEndret() {
+    // Hidden while asleep: the old ticker's last tick was this frame.
+    if (_modus?.value != false || !_fraSovn || _kutt != null) return;
+    final rt = _rammeTid(), st = _start, s = _sistE, off = _off;
+    if (rt != null && st != null) {
+      _kutt = rt - st;
+    } else if (s != null && off != null) {
+      // Outside a frame (rare): the last vsync before now.
+      final k = math.max(0, ((_naaUs() - off - s.inMicroseconds) / _p).floor());
+      _kutt = s + Duration(microseconds: k * _p);
+    }
+  }
+
+  void _slipp() {
+    _modus?.removeListener(_modusEndret);
+    _modus = null;
+  }
+
+  /// Before the host stops or holds its ticker: no sleep, no timer.
+  void vekk() {
+    if (_vekker == null) return;
+    _vekker!.cancel();
+    _vaakn();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Leaving the foreground: tick every vsync again, so the last tick
+    // before frames stop is the one the old ticker had.
+    if (state != AppLifecycleState.resumed) vekk();
+  }
+
+  void dispose() {
+    _vekker?.cancel();
+    _vekker = null;
+    _slipp();
+    WidgetsBinding.instance.removeObserver(this);
   }
 }
 

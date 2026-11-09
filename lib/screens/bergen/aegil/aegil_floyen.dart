@@ -64,6 +64,9 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     _sist = Duration.zero;
   });
 
+  // Heat plan Step 4: no frames between the scene's own steps.
+  late final PerfStegRammer _rammer;
+
   // The city being drawn (stripe by stripe) and the one in use.
   String? _sig;
   ui.Image? _acc;
@@ -76,6 +79,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _ticker = createTicker(_tick);
+    _rammer = PerfStegRammer(_ticker, tickerModus: () => TickerMode.getNotifier(context));
     _programs ??= Future.wait([ui.FragmentProgram.fromAsset('shaders/aegil_floyen.frag'), ui.FragmentProgram.fromAsset('shaders/aegil_floyen_liv.frag')]);
     _programs!
         .then((p) {
@@ -108,7 +112,10 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     final run = _step != null;
     if (!run) _hvile.vaakn(start: false);
     if (run && !_ticker.isActive && !_hvile.hviler) _ticker.start();
-    if (!run && _ticker.isActive) _ticker.stop();
+    if (!run && _ticker.isActive) {
+      _rammer.vekk();
+      _ticker.stop();
+    }
     if (!run) {
       // The heat / battery `still` tier: the baked frame.
       final old = _frame;
@@ -120,14 +127,19 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   double get _d => _dpr * math.sqrt(_budgetK);
 
   void _tick(Duration e) {
-    if (_hvile.tikk()) return;
-    final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1);
+    _rammer.tikk(e);
+    if (_hvile.tikk(n: _rammer.n)) return;
+    final dt = _rammer.dt(e, _prev, .1);
     _prev = e;
     _t += dt * (_calm ? .15 : 1);
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     final step = _step;
-    if (step == null || e - _sist < step) return;
+    if (step == null || e - _sist < step) {
+      _rammer.etter(e, _sist, step);
+      return;
+    }
     _sist = e;
+    _rammer.etter(e, _sist, step);
     _city();
     if (_stat != null) _render();
   }
@@ -310,6 +322,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   @override
   void dispose() {
     _hvile.dispose();
+    _rammer.dispose();
     _ticker.dispose();
     _acc?.dispose();
     _stat?.dispose();

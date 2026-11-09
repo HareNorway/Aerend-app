@@ -239,10 +239,14 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _sist = Duration.zero;
   });
 
+  // Heat plan Step 4: no frames between the stadium's own steps.
+  late final PerfStegRammer _rammer;
+
   @override
   void initState() {
     super.initState();
     _ticker = createTicker(_tick);
+    _rammer = PerfStegRammer(_ticker, tickerModus: () => TickerMode.getNotifier(context));
     _program ??= ui.FragmentProgram.fromAsset('shaders/meg_stadion.frag');
     _program!.then((pr) {
       if (!mounted) return;
@@ -266,7 +270,10 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     // Heat / battery `still`: hold the frame; the user's calm keeps `rolig`.
     final hold = step == null && !calm;
     if (hold) _hvile.vaakn(start: false);
-    if (hold && _ticker.isActive) _ticker.stop();
+    if (hold && _ticker.isActive) {
+      _rammer.vekk();
+      _ticker.stop();
+    }
     if (!hold && !_ticker.isActive && _shader != null && !_hvile.hviler) _ticker.start();
   }
 
@@ -277,13 +284,18 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   }
 
   void _tick(Duration e) {
-    if (_hvile.tikk()) return;
-    _t += ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1) * (_reduce ? .15 : 1);
+    _rammer.tikk(e);
+    if (_hvile.tikk(n: _rammer.n)) return;
+    _t += _rammer.dt(e, _prev, .1) * (_reduce ? .15 : 1);
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     _prev = e;
     // The scene moves calmly; 20 frames a second is enough (`ulGlTegn`).
-    if (e - _sist < _step) return;
+    if (e - _sist < _step) {
+      _rammer.etter(e, _sist, _step);
+      return;
+    }
     _sist = e;
+    _rammer.etter(e, _sist, _step);
     _render();
   }
 
@@ -321,6 +333,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   @override
   void dispose() {
     _hvile.dispose();
+    _rammer.dispose();
     _ticker.dispose();
     _frame?.dispose();
     _shader?.dispose();

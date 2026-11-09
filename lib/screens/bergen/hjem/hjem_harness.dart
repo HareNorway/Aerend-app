@@ -446,6 +446,7 @@ abstract final class HjemHarness {
         BergenPerf.hvilePaa = true;
         BergenPerf.usynligPaa = true;
         BergenPerf.pauseSovPaa = true;
+        BergenPerf.stegRammerPaa = true;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
@@ -594,6 +595,9 @@ abstract final class HjemHarness {
       // Heat plan Step 3: `pauseSov: false` keeps loops ticking through their
       // keyframe holds (A/B).
       BergenPerf.pauseSovPaa = m['pauseSov'] != false;
+      // Heat plan Step 4: `stegRammer: false` keeps the shader scenes asking
+      // for a frame on every vsync, as before (A/B on one build).
+      BergenPerf.stegRammerPaa = m['stegRammer'] != false;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;
