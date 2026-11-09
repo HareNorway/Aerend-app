@@ -16,6 +16,7 @@ class BergenLoop extends StatelessWidget {
     this.delayMs = 0,
     this.child,
     this.essential = false,
+    this.stille,
   });
 
   final double durationMs;
@@ -26,13 +27,21 @@ class BergenLoop extends StatelessWidget {
   /// Keeps running in the `lite` tier (see `BergenEssential`).
   final bool essential;
 
+  /// Heat plan Step 3: where [builder]'s output holds still; its period and
+  /// delay are this loop's [durationMs] and [delayMs].
+  final LfStille? stille;
+
   @override
-  Widget build(BuildContext context) => OnbLoopClock(
-    essential: essential,
-    child: child,
-    builder: (context, t, child) =>
-        builder(context, onbLoop(t, delayMs, durationMs), child),
-  );
+  Widget build(BuildContext context) {
+    assert(stille == null || (stille!.periodeMs == durationMs && stille!.forsinkelseMs == delayMs));
+    return OnbLoopClock(
+      essential: essential,
+      stille: stille,
+      child: child,
+      builder: (context, t, child) =>
+          builder(context, onbLoop(t, delayMs, durationMs), child),
+    );
+  }
 }
 
 /// `animation: <name> <dur> <delay> <timing> both` — plays once; [builder]

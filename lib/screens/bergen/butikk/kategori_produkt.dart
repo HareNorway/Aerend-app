@@ -464,6 +464,8 @@ class _Glans extends StatelessWidget {
   Widget build(BuildContext context) => BergenLoop(
     durationMs: 7500,
     delayMs: -delayMs % 7500,
+    // Heat Step 3: nothing drawn before the delay and below 62 %.
+    stille: LfStille(periodeMs: 7500, forsinkelseMs: -delayMs % 7500, fra: 0, til: .62, foer: true),
     builder: (context, q, _) {
       final t = q ?? 0;
       if (t < .62) return const SizedBox.shrink();

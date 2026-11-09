@@ -15,6 +15,8 @@ import '../../bergen/kit/bergen_perf.dart';
 import '../splash/splash_sticker_painter.dart';
 import 'onboarding_copy.dart';
 
+export '../../bergen/kit/bergen_perf.dart' show LfStille;
+
 // ── Ærend Bergen onboarding kit ─────────────────────────────────────────────
 // Shared pieces of `data-screen-label="Onboarding"` in
 // `Design/Ærend Kunde Bergen (frittstående).html`: the persistent sea surface,
@@ -230,6 +232,7 @@ class OnbLoopClock extends StatefulWidget {
     this.shared = false,
     this.essential = false,
     this.child,
+    this.stille,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -238,6 +241,10 @@ class OnbLoopClock extends StatefulWidget {
   /// Keeps running in the `lite` tier (see [BergenEssential]).
   final bool essential;
   final Widget? child;
+
+  /// Heat plan Step 3: where [builder]'s output holds still (on its t) —
+  /// the loop sleeps there (see [PerfSov]). The stopwatch clock runs on.
+  final LfStille? stille;
 
   static final Stopwatch _app = Stopwatch()..start();
 
@@ -261,6 +268,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   bool _reduce = false, _hviler = false;
   late final PerfVekker _vekk = PerfVekker(_sjekk);
   ScrollPosition? _rull;
+  late final PerfSov _sov = PerfSov(_ticker, onVaakn: _sovVaakn);
 
   @override
   void initState() {
@@ -273,6 +281,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
 
   void _onTick(Duration _) {
     _t.value = _now;
+    if (_sov.tikk(widget.stille, _t.value)) return;
     if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
   }
 
@@ -299,6 +308,17 @@ class _OnbLoopClockState extends State<OnbLoopClock>
     if (!_reduce && !_ticker.isActive) _ticker.start();
   }
 
+  void _sovVaakn() {
+    if (mounted && !_reduce && !_hviler && !_ticker.isActive) _ticker.start();
+  }
+
+  @override
+  void didUpdateWidget(OnbLoopClock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new hold map: wake and let the next tick judge it.
+    if (widget.stille != oldWidget.stille) _sov.vaakn();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -308,7 +328,8 @@ class _OnbLoopClockState extends State<OnbLoopClock>
     if (_reduce) {
       if (_ticker.isActive) _ticker.stop();
       if (_hviler) _vaakn();
-    } else if (!_ticker.isActive && !_hviler) {
+      if (_sov.sover) _sov.avbryt();
+    } else if (!_ticker.isActive && !_hviler && !_sov.sover) {
       _ticker.start();
     }
   }
@@ -323,6 +344,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   void dispose() {
     BergenPerf.onbLoopsMounted--;
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
+    _sov.avbryt();
     _vekk.stopp();
     _rull?.removeListener(_sjekk);
     _ticker.dispose();

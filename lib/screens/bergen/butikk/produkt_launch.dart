@@ -594,6 +594,8 @@ class _Glint extends StatelessWidget {
   Widget build(BuildContext context) => BergenLoop(
     durationMs: 6500,
     delayMs: 1400,
+    // Heat Step 3: nothing drawn before the delay and below 62 %.
+    stille: const LfStille(periodeMs: 6500, forsinkelseMs: 1400, fra: 0, til: .62, foer: true),
     builder: (context, p, _) {
       if (p == null || p < .62) return const SizedBox.shrink();
       final e = const Cubic(.5, 0, .3, 1).transform((p - .62) / .38);

@@ -328,6 +328,23 @@ abstract final class BergenPerf {
     return s == null || s == AppLifecycleState.resumed || s == AppLifecycleState.inactive;
   }
 
+  /// Heat plan Step 3: a loop whose design keyframes hold still for part of
+  /// each cycle ([LfStille]) stops ticking inside that hold and wakes just
+  /// before it ends (harness `pauseSov: false` keeps it ticking, A/B).
+  static bool pauseSovPaa = true;
+
+  /// Heat plan Step 3: the wake calls of the loops asleep in a hold, so a
+  /// change of [frysMs] or [pauseSovPaa] reaches them at once.
+  static final Set<VoidCallback> _sovende = {};
+
+  /// Wakes every loop asleep in a hold (after the harness sets `klokke` or
+  /// `pauseSov`).
+  static void vekkSovende() {
+    for (final v in _sovende.toList()) {
+      v();
+    }
+  }
+
   /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
   /// then keep showing the last one while their clock runs on — the upper
   /// bound of what pre-rendered video could save. Debug/profile harness only.
@@ -673,6 +690,100 @@ class PerfHvile {
   void dispose() {
     _t.stopp();
     _rull?.removeListener(_sjekk);
+  }
+}
+
+/// Heat plan Step 3: where a loop's builder output does not change. [fra] –
+/// [til] (and each pair in [mer]) are open intervals of the cycle's phase
+/// `((t - forsinkelseMs) / periodeMs) % 1.0` — the phase `kfLoop` /
+/// `onbLoop` hand the builders — inside which the builder draws one pose.
+/// [foer]: the builder also draws one fixed picture before the delay
+/// (`t < forsinkelseMs`; not necessarily the hold's).
+@immutable
+class LfStille {
+  const LfStille({
+    required this.periodeMs,
+    required this.fra,
+    required this.til,
+    this.forsinkelseMs = 0,
+    this.foer = false,
+    this.mer = const [],
+  });
+
+  final double periodeMs, fra, til, forsinkelseMs;
+  final bool foer;
+
+  /// More still intervals, as `[fra, til, fra, til, …]`.
+  final List<double> mer;
+
+  /// Ms (on [t]'s clock) left of the still stretch [t] lies in, or null when
+  /// [t] is in motion.
+  double? igjen(double t) {
+    final e = t - forsinkelseMs;
+    if (e < 0) return foer ? -e : null;
+    final p = (e / periodeMs) % 1.0;
+    double? slutt;
+    if (p > fra && p < til) slutt = til;
+    for (var i = 0; slutt == null && i + 1 < mer.length; i += 2) {
+      if (p > mer[i] && p < mer[i + 1]) slutt = mer[i + 1];
+    }
+    return slutt == null ? null : (slutt - p) * periodeMs;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is LfStille && other.periodeMs == periodeMs && other.fra == fra && other.til == til && other.forsinkelseMs == forsinkelseMs && other.foer == foer && listEquals(other.mer, mer);
+
+  @override
+  int get hashCode => Object.hash(periodeMs, fra, til, forsinkelseMs, foer, Object.hashAll(mer));
+}
+
+/// Heat plan Step 3: puts a loop's ticker to sleep while its [LfStille] says
+/// the picture holds still. The tick that lands inside a hold is drawn (the
+/// host has set its value), then the ticker stops and a one-shot timer wakes
+/// the host [vekkFoerMs] before the hold ends, so the first moving frame is
+/// on time; the host carries its clock on in wall time. Holds shorter than
+/// [minMs] are not slept through (and so the ticks after a wake do not sleep
+/// again). Off with [BergenPerf.pauseSovPaa] false or under the frozen clock.
+class PerfSov {
+  PerfSov(this.ticker, {required this.onVaakn});
+
+  final Ticker ticker;
+
+  /// Restarts the host's ticker (unless reduced motion / resting says no).
+  final VoidCallback onVaakn;
+
+  static const double vekkFoerMs = 50, minMs = 100;
+
+  Timer? _timer;
+
+  bool get sover => _timer != null;
+
+  /// From the tick, after the frame's value is set: true when the ticker has
+  /// just been stopped for a hold. [tidsfaktor] turns [t]'s ms into wall ms
+  /// (`timeDilation` for ticker time).
+  bool tikk(LfStille? s, double t, {double tidsfaktor = 1}) {
+    if (s == null || !BergenPerf.pauseSovPaa || BergenPerf.frosset || !ticker.isActive || _timer != null) return false;
+    final ms = s.igjen(t);
+    if (ms == null || ms < minMs) return false;
+    ticker.stop();
+    _timer = Timer(Duration(microseconds: ((ms - vekkFoerMs) * tidsfaktor * 1000).round()), vaakn);
+    BergenPerf._sovende.add(vaakn);
+    return true;
+  }
+
+  /// Ends the sleep now and lets the host restart.
+  void vaakn() {
+    if (_timer == null) return;
+    avbryt();
+    onVaakn();
+  }
+
+  /// Ends the sleep without waking the host (reduced motion, dispose).
+  void avbryt() {
+    _timer?.cancel();
+    _timer = null;
+    BergenPerf._sovende.remove(vaakn);
   }
 }
 

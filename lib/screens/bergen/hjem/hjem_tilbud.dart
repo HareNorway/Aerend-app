@@ -957,6 +957,8 @@ class _Drypp extends StatelessWidget {
   Widget build(BuildContext context) {
     const c = Cubic(.5, 0, .8, .6);
     return LfLoop(
+      // Heat Step 3: nothing drawn before the delay and below 58 %.
+      stille: const LfStille(periodeMs: 16000, forsinkelseMs: 3000, fra: 0, til: .58, foer: true),
       builder: (context, t, _) {
         final e = t - 3000;
         if (e < 0) return const SizedBox.shrink();

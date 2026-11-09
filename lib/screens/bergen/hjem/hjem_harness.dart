@@ -445,6 +445,7 @@ abstract final class HjemHarness {
         CssBake.paa = true;
         BergenPerf.hvilePaa = true;
         BergenPerf.usynligPaa = true;
+        BergenPerf.pauseSovPaa = true;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
@@ -590,6 +591,9 @@ abstract final class HjemHarness {
       BergenPerf.hvilePaa = m['hvile'] != false;
       // Heat plan Step 2: `usynlig: false` keeps invisible work running (A/B).
       BergenPerf.usynligPaa = m['usynlig'] != false;
+      // Heat plan Step 3: `pauseSov: false` keeps loops ticking through their
+      // keyframe holds (A/B).
+      BergenPerf.pauseSovPaa = m['pauseSov'] != false;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;
@@ -598,6 +602,8 @@ abstract final class HjemHarness {
       BergenPerf.shaderFrys = m['shaderFrys'] == true;
       BergenPerf.shaderFrysKun = m['shaderFrysKun'] as String?;
       BergenPerf.frysMs = (m['klokke'] as num?)?.toDouble();
+      // A loop asleep in a hold wakes now for the frozen clock / `pauseSov`.
+      BergenPerf.vekkSovende();
       arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
       pose = m['pose'] == true;

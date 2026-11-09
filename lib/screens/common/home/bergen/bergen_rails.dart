@@ -1415,6 +1415,8 @@ class _Grain extends StatelessWidget {
   @override
   Widget build(BuildContext context) => IgnorePointer(
     child: OnbLoopClock(
+      // Heat Step 3: one shift per 200 ms step — sleeps between the steps.
+      stille: const LfStille(periodeMs: 200, fra: 0, til: 1),
       builder: (context, t, _) {
         final step = ((t / 200).floor() % 4);
         const shifts = [
@@ -1457,6 +1459,8 @@ class _Sweep extends StatelessWidget {
   Widget build(BuildContext context) => IgnorePointer(
     child: ClipRect(
       child: OnbLoopClock(
+        // Heat Step 3: the band holds at 1.2 (off the banner) from 55 %.
+        stille: const LfStille(periodeMs: 6500, fra: .55, til: 1),
         builder: (context, t, _) {
           final p = (onbLoop(t, 0, 6500) ?? 0);
           final x = p < .55 ? -1.2 + 2.4 * (p / .55) : 1.2;

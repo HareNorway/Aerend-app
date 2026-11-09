@@ -60,6 +60,8 @@ class MegSveip3 extends StatelessWidget {
       builder: (context, box) => RepaintBoundary(
         child: LfLoop(
           frozenMs: -1,
+          // Heat Step 3: nothing drawn before the delay and after 1/3.
+          stille: LfStille(periodeMs: ms, forsinkelseMs: delay, fra: 1 / 3, til: 1, foer: true),
           builder: (context, t, _) {
             if (t < 0) return const SizedBox.shrink();
             final p = kfLoop(t, delay, ms);
@@ -645,6 +647,8 @@ class _GullTall extends StatelessWidget {
   Widget build(BuildContext context) {
     final stil = aeTab(jakarta(25, em: -.035, height: 1.05));
     return LfLoop(
+      // Heat Step 3: pos holds at 1 before the delay and over 0–72 %.
+      stille: const LfStille(periodeMs: 6000, forsinkelseMs: 1400, fra: 0, til: .72, foer: true),
       builder: (context, t, _) {
         final p = kfLoop(t, 1400, 6000) ?? 0;
         // background-position 100 % → −60 % over 72 %–100 %, ease-in-out.

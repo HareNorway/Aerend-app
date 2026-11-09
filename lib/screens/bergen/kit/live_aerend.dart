@@ -304,6 +304,9 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                             Positioned.fill(
                               child: LayoutBuilder(
                                 builder: (context, box) => LfLoop(
+                                  // Heat Step 3: nothing before the delay, then x
+                                  // holds at −1.3 over 0–70 % of each cycle.
+                                  stille: const LfStille(periodeMs: 6500, forsinkelseMs: 1600, fra: 0, til: .7, foer: true),
                                   builder: (context, t, child) {
                                     final e = t - 1600;
                                     if (e < 0) return const SizedBox.shrink();

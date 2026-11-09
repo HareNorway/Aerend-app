@@ -5,6 +5,8 @@ import 'package:flutter/scheduler.dart';
 import '../../../bergen/kit/bergen_perf.dart';
 import 'lf_css.dart';
 
+export '../../../bergen/kit/bergen_perf.dart' show LfStille;
+
 // ── Launch onboarding · motion ──────────────────────────────────────────────
 // Clocks for the prototype's CSS animations. A one-shot clock starts when its
 // element mounts (like a CSS animation on a freshly inserted node); a loop
@@ -68,6 +70,7 @@ class LfLoop extends StatefulWidget {
     this.child,
     this.frozenMs = 0,
     this.essential = false,
+    this.stille,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -76,6 +79,10 @@ class LfLoop extends StatefulWidget {
 
   /// Keeps running in the `lite` tier (see [BergenEssential]).
   final bool essential;
+
+  /// Heat plan Step 3: where [builder]'s output holds still — the loop
+  /// sleeps there (see [PerfSov]).
+  final LfStille? stille;
 
   @override
   State<LfLoop> createState() => _LfLoopState();
@@ -98,6 +105,13 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   late final PerfVekker _vekk = PerfVekker(_sjekk);
   ScrollPosition? _rull;
 
+  // Heat plan Step 3: asleep in a keyframe hold ([LfLoop.stille]). [_sovFra]
+  // is the frame time of the last tick before the sleep; the first tick
+  // after it adds the frame time since, so t is what a ticker that never
+  // stopped would have handed the builder on that frame.
+  late final PerfSov _sov = PerfSov(_ticker, onVaakn: _sovVaakn);
+  Duration? _sovFra;
+
   @override
   void initState() {
     super.initState();
@@ -107,8 +121,21 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   }
 
   void _onTick(Duration e) {
+    final fra = _sovFra;
+    if (fra != null) {
+      _sovFra = null;
+      // Less [e]: a ticker restarted inside a frame (a new hold map in
+      // didUpdateWidget) starts its clock at that frame, not at this tick.
+      _base += SchedulerBinding.instance.currentFrameTimeStamp - fra - e;
+    }
     _last = e;
     _t.value = BergenPerf.frysMs ?? (_base + e).inMicroseconds / 1000.0;
+    if (_sov.tikk(widget.stille, _t.value, tidsfaktor: timeDilation)) {
+      _base += _last;
+      _last = Duration.zero;
+      _sovFra = SchedulerBinding.instance.currentFrameTimeStamp;
+      return;
+    }
     if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
   }
 
@@ -139,6 +166,19 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
     if (!_reduce && !_ticker.isActive) _ticker.start();
   }
 
+  void _sovVaakn() {
+    // Heat Step 2 + 3: a resting loop is woken by its own on-screen check
+    // ([_vaakn]), never by a hold's timer (the two are never both armed).
+    if (mounted && !_reduce && _hvil == null && !_ticker.isActive) _ticker.start();
+  }
+
+  @override
+  void didUpdateWidget(LfLoop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new hold map: wake and let the next tick judge it.
+    if (widget.stille != oldWidget.stille) _sov.vaakn();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -156,8 +196,16 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
       _rull?.removeListener(_sjekk);
       _rull = null;
       _hvil = null;
+      // Asleep in a hold: the clock stops here, as a ticking loop's would
+      // at its last frame.
+      if (_sov.sover) _sov.avbryt();
+      final fra = _sovFra;
+      if (fra != null) {
+        _sovFra = null;
+        _base += SchedulerBinding.instance.currentFrameTimeStamp - fra;
+      }
       _t.value = widget.frozenMs;
-    } else if (!_ticker.isActive && _hvil == null) {
+    } else if (!_ticker.isActive && _hvil == null && !_sov.sover) {
       _ticker.start();
     }
   }
@@ -172,6 +220,7 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   void dispose() {
     BergenPerf.lfLoopsMounted--;
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
+    _sov.avbryt();
     _vekk.stopp();
     _rull?.removeListener(_sjekk);
     _ticker.dispose();

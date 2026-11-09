@@ -1120,6 +1120,8 @@ class _SveipLys extends StatelessWidget {
   Widget build(BuildContext context) => BergenLoop(
     durationMs: 8000,
     delayMs: 1200,
+    // Heat Step 3: nothing drawn before the delay and after 45 %.
+    stille: const LfStille(periodeMs: 8000, forsinkelseMs: 1200, fra: .45, til: 1, foer: true),
     builder: (context, p, _) {
       if (p == null || p > .45) return const SizedBox.shrink();
       final x = kf(p, const [0, .45], const [-1.2, 1.2], Curves.easeInOut);
