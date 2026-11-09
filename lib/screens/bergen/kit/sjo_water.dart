@@ -253,6 +253,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .05);
     _prev = e;
     _t += dt;
+    if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     widget.ripples?.clock = _t;
     widget.onTick?.call(_t);
     // A little slack so a 60 Hz vsync isn't skipped by rounding.

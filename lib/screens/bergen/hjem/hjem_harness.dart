@@ -414,6 +414,10 @@ abstract final class HjemHarness {
 
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
+
+  /// Heat plan Step 0: the scripted 30-minute customer journey (see
+  /// `_BergenHomeState._reise`); the Mac side adds swipes (`heat_reise.sh`).
+  static bool reise = false;
   static double? aegScroll;
   static int? guideIdx;
 
@@ -444,6 +448,7 @@ abstract final class HjemHarness {
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
         BergenPerf.shaderFrysKun = null;
+        BergenPerf.frysMs = null;
         heroStille = false;
         arkStille = false;
         snart = null;
@@ -548,6 +553,7 @@ abstract final class HjemHarness {
         aegScroll = null;
         guideIdx = null;
         brett = false;
+        reise = false;
         utfScroll = null;
         feedDrift = automat = false;
         autoValg = null;
@@ -588,6 +594,7 @@ abstract final class HjemHarness {
       heroStille = m['heroStille'] == true;
       BergenPerf.shaderFrys = m['shaderFrys'] == true;
       BergenPerf.shaderFrysKun = m['shaderFrysKun'] as String?;
+      BergenPerf.frysMs = (m['klokke'] as num?)?.toDouble();
       arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
       pose = m['pose'] == true;
@@ -741,6 +748,7 @@ abstract final class HjemHarness {
       guide = m['guide'] as String?;
       guideIdx = m['guideIdx'] as int?;
       brett = m['brett'] == true;
+      reise = m['reise'] == true;
       if (m['lagCache'] == true) LagCache.start();
       if (m['videoTest'] is String) PerfVideoTest.start(m['videoTest'] as String);
       debugPrint('HJEM_HARNESS applied');

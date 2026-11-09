@@ -252,7 +252,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   final Stopwatch _local = Stopwatch()..start();
 
   double get _now =>
-      (widget.shared ? OnbLoopClock._app : _local).elapsedMicroseconds / 1000.0;
+      BergenPerf.frysMs ?? (widget.shared ? OnbLoopClock._app : _local).elapsedMicroseconds / 1000.0;
 
   // Perf plan: off the screen the loop stops ticking (no frame, no
   // rebuild); its stopwatch clock keeps running, so it resumes at the pose

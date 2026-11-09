@@ -80,7 +80,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
   void initState() {
     super.initState();
     _tikk = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && TickerMode.of(context)) setState(() {});
+      if (mounted && TickerMode.of(context) && !BergenPerf.frosset) setState(() {});
     });
     if (kDebugMode && HjemHarness.liveApne) {
       HjemHarness.liveApne = false;

@@ -15,7 +15,7 @@ import '../kit/bergen_perf.dart';
 /// builds (so the scenes can be compared with the prototype's default rain),
 /// else Bergen's look for the hour, like Meg and Ægil.
 BergenWeather spVaer() {
-  if (kDebugMode && HjemHarness.vaer != null) {
+  if (!kReleaseMode && HjemHarness.vaer != null) {
     return switch (HjemHarness.vaer!) {
       HjemVaer.regn => BergenWeather.regn,
       HjemVaer.sol => BergenWeather.sol,
@@ -259,6 +259,9 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1);
     _age = (_age ?? _sw.elapsedMicroseconds / 1e6) + dt;
     _t += dt * (_calm ? .15 : 1);
+    if (BergenPerf.frysMs != null) {
+      _t = _age = BergenPerf.frysMs! / 1000;
+    }
     _prev = e;
     final step = _step;
     if (step == null || e - _sist < step) return;

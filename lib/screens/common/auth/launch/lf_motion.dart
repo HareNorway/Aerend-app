@@ -110,7 +110,7 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
 
   void _onTick(Duration e) {
     _last = e;
-    _t.value = (_base + e).inMicroseconds / 1000.0;
+    _t.value = BergenPerf.frysMs ?? (_base + e).inMicroseconds / 1000.0;
     if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
   }
 

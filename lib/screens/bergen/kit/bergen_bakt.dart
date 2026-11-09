@@ -226,7 +226,10 @@ class _RenderBakt extends RenderProxyBox {
       _live(context, offset);
       return;
     }
-    final skalaUlik = _bildeSkala == null || (toleranse > 0 ? (r / _bildeSkala! - 1).abs() > toleranse : _bildeSkala != r);
+    // Under the frozen test clock (harness `klokke`) always the exact scale,
+    // so screenshots don't depend on when the raster was first made.
+    final tol = BergenPerf.frosset ? 0.0 : toleranse;
+    final skalaUlik = _bildeSkala == null || (tol > 0 ? (r / _bildeSkala! - 1).abs() > tol : _bildeSkala != r);
     if (_bilde == null || _skitten || _bildeStr != size || skalaUlik) {
       final naa = _klokke.elapsedMilliseconds;
       _serie = naa - _sistMs < 300 ? _serie + 1 : 1;

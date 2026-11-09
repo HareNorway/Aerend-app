@@ -170,7 +170,7 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
     _auto?.cancel();
     if (widget.count < 2 || _stille == true) return;
     _auto = Timer.periodic(Duration(milliseconds: widget.intervalMs), (_) {
-      if (!mounted) return;
+      if (!mounted || BergenPerf.frosset) return;
       _advance(1);
     });
   }

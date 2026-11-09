@@ -701,7 +701,7 @@ class _GaveUtstillingState extends State<_GaveUtstilling> {
     super.initState();
     _auto = Timer.periodic(const Duration(seconds: 7), (_) {
       final r = _rail;
-      if (_tatt || r == null || !r.hasClients) return;
+      if (_tatt || r == null || !r.hasClients || BergenPerf.frosset) return;
       final nx = (r.offset / _kortB).round() + 1;
       r.animateTo(
         (nx >= _plukk.length ? 0 : nx) * _kortB,
@@ -1300,7 +1300,7 @@ class _MoteSkiveState extends State<MoteSkive> {
   void initState() {
     super.initState();
     _auto = Timer.periodic(const Duration(seconds: 8), (_) {
-      if (_tatt || !mounted || !TickerMode.of(context)) return;
+      if (_tatt || !mounted || !TickerMode.of(context) || BergenPerf.frosset) return;
       if (ModalRoute.of(context)?.isCurrent == false) return;
       setState(() => _idx++);
     });

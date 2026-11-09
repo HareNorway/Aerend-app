@@ -319,6 +319,14 @@ abstract final class BergenPerf {
   /// bound of what pre-rendered video could save. Debug/profile harness only.
   static bool shaderFrys = false;
 
+  /// Heat plan Step 0 (harness `klokke: <ms>`): every continuous animation
+  /// clock — the loops, the shader scenes, the hero water and rod — reads this
+  /// fixed time instead of its own, and wall-clock timers (rail turns, coupon
+  /// rotation, showcase autoplay, random float ripples) hold still, so two
+  /// builds can be compared pixel by pixel on an animated screen. Null = off.
+  static double? frysMs;
+  static bool get frosset => frysMs != null;
+
   /// Heat test: freeze only one kind — 'vann' (SjoWater) or 'spgl' (SpGl scenes).
   static String? shaderFrysKun;
 

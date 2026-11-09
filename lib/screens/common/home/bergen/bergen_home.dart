@@ -364,6 +364,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
           }
           if (HjemHarness.rull case final til?) _maalRull(til, HjemHarness.rullMs ?? 1800);
           if (HjemHarness.hjul case final h?) setState(() => _hjulI = h);
+          if (HjemHarness.reise) _reise();
           if (HjemHarness.vindu) _settVindu(true);
           if (HjemHarness.onbRunde case final n?) {
             if (HjemHarness.onbNull) OnbStatus.instance.nullstill();
@@ -1586,6 +1587,42 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   }
 
   // ── Build ───────────────────────────────────────────────────────────────
+
+  /// Heat plan Step 0 (harness `reise`): the 30-minute customer journey,
+  /// the same timeline every run — Hjem 8 min → Kategori 3 min → Butikk
+  /// 3 min → Kurv 4 min → Sporing 8 min → Utforsk 4 min. Each change is
+  /// logged as `PERF_REISE <name>` so the samples can be split per screen.
+  void _reise() {
+    final nav = Navigator.of(context);
+    void hjem() => nav.popUntil((r) => r.isFirst);
+    void fane(int i) => context.findAncestorStateOfType<HomeMainV1State>()?.switchToTab(i);
+    final steg = <(int, String, void Function())>[
+      (0, 'hjem', () => fane(0)),
+      (480, 'kategori', () => BergenRoutes.push<dynamic>(context, '/bergen/kategori', arguments: {'id': '5', 'name': 'Restauranter'})),
+      (660, 'butikk', () => BergenRoutes.push<dynamic>(context, '/bergen/butikk/43')),
+      (840, 'kurv', () {
+        hjem();
+        fane(2);
+      }),
+      (1080, 'sporing', () {
+        hjem();
+        fane(0);
+        BergenRoutes.push<dynamic>(context, '/bergen/sporing/400');
+      }),
+      (1560, 'utforsk', () {
+        hjem();
+        fane(1);
+      }),
+      (1800, 'ende', () {}),
+    ];
+    for (final (sek, navn, gjor) in steg) {
+      Future.delayed(Duration(seconds: sek), () {
+        if (!mounted) return;
+        debugPrint('PERF_REISE $navn');
+        gjor();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../kit/bergen_perf.dart';
+
 // ── Ægil's rod on the quay (`svg[data-aefs]`, prototype `afStart`) ──────────
 // A 160×120 box. One 15 s cycle: the bobber floats with nibbles (0–10.9 s),
 // fights a tug (10.9–12.5), is reeled in (12.5–13.3), hangs from the tip
@@ -152,6 +154,12 @@ class _HjemFiskestangState extends State<HjemFiskestang> with SingleTickerProvid
   }
 
   void _tick(Duration e) {
+    if (BergenPerf.frosset) {
+      _ticker.stop();
+      _frame(3.0);
+      _repaint.value = _t;
+      return;
+    }
     _frame(e.inMicroseconds / 1e6);
     _repaint.value = _t;
   }

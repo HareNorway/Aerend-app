@@ -256,7 +256,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   }
 
   void _tikk() {
-    if (!mounted || _hold || !TickerMode.of(context)) return;
+    if (!mounted || _hold || !TickerMode.of(context) || BergenPerf.frosset) return;
     if (DateTime.now().difference(_sist).inMilliseconds < 11000) return;
     _sist = DateTime.now();
     final n = _n;

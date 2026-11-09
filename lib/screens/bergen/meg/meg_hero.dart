@@ -279,6 +279,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   void _tick(Duration e) {
     if (_hvile.tikk()) return;
     _t += ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1) * (_reduce ? .15 : 1);
+    if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     _prev = e;
     // The scene moves calmly; 20 frames a second is enough (`ulGlTegn`).
     if (e - _sist < _step) return;

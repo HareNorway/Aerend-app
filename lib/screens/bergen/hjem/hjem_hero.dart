@@ -205,7 +205,7 @@ class _HjemHeroState extends State<HjemHero> {
 
   /// `sjoRipple` for the hero: every 1.9–3.7 s a random float rings.
   void _onWaterTick(double t) {
-    if (t < _nextFloatRipple || _vis.isEmpty || widget.vindu) return;
+    if (t < _nextFloatRipple || _vis.isEmpty || widget.vindu || BergenPerf.frosset) return;
     _nextFloatRipple = t + 1.9 + _rnd.nextDouble() * 1.8;
     final n = _rnd.nextInt(_vis.length);
     final p = _floatPos(n);

@@ -124,6 +124,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1);
     _prev = e;
     _t += dt * (_calm ? .15 : 1);
+    if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     final step = _step;
     if (step == null || e - _sist < step) return;
     _sist = e;
