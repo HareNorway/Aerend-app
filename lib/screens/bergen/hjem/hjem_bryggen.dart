@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather;
+import '../kit/bergen_perf.dart';
 import '../kit/br_pal.dart';
 import '../sporing/sporing_gl.dart';
 
@@ -16,6 +17,13 @@ import '../sporing/sporing_gl.dart';
 /// 62 ms at 55 % of the pixels; `still` shows [still] (the baked frame,
 /// which is also there until the first frame and if the shader can't load).
 /// «Roligere bevegelse» keeps the slow `rolig` clock.
+///
+/// Heat plan Step 5 ([BergenPerf.bryggenDelingPaa]): the static city is baked
+/// once per weather / form / size (`shaders/hjem_bryggen_stat.frag`, 5 slots,
+/// 9 with sun) and each step draws only what moves on top
+/// (`shaders/hjem_bryggen_liv.frag`), on the same pixels at the same cadence;
+/// until the bake is done the original shader draws, so the frames (and the
+/// water's mirror, [onFrame]) are the same either way.
 class HjemBryggen extends StatelessWidget {
   const HjemBryggen({super.key, required this.kind, required this.still, this.onFrame, this.h = 127, this.hjem = true});
 
@@ -31,6 +39,8 @@ class HjemBryggen extends StatelessWidget {
   /// Each new frame (the water's mirror); owned by the scene.
   final void Function(ui.Image frame)? onFrame;
 
+  static bool _delingPaa() => BergenPerf.bryggenDelingPaa;
+
   @override
   Widget build(BuildContext context) {
     final p = BrPal.of(kind);
@@ -45,6 +55,13 @@ class HjemBryggen extends StatelessWidget {
       stillTier: true,
       still: still,
       onFrame: onFrame,
+      deling: SpGlDeling(
+        liv: 'shaders/hjem_bryggen_liv.frag',
+        stat: 'shaders/hjem_bryggen_stat.frag',
+        // Slots 5-8 (the colours at full cloud shadow) only with sun.
+        samplere: p.sun > 0 ? const [0, 1, 2, 3, 4, 5, 6, 7, 8] : const [0, 1, 2, 3, 4, 1, 2, 3, 4],
+        paa: _delingPaa,
+      ),
       uniforms: (f, t, age, ok) {
         f(127 - h); // uOff
         f(p.night);

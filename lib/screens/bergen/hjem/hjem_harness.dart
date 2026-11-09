@@ -456,6 +456,7 @@ abstract final class HjemHarness {
         BergenPerf.pass2KlippPaa = true;
         BergenPerf.pass2CssPaa = false;
         BergenPerf.pass2BaktPaa = false;
+        BergenPerf.bryggenDelingPaa = true;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
@@ -624,6 +625,10 @@ abstract final class HjemHarness {
       BergenPerf.pass2KlippPaa = m['pass2Klipp'] != false;
       BergenPerf.pass2CssPaa = m['pass2Css'] == true;
       BergenPerf.pass2BaktPaa = m['pass2Bakt'] == true;
+      // Heat plan Step 5: `bryggenDeling: false` draws Bryggen with the
+      // original whole-city shader every step (A/B on one build; with
+      // `klokke` both paths draw the same frame).
+      BergenPerf.bryggenDelingPaa = m['bryggenDeling'] != false;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;

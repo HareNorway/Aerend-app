@@ -144,6 +144,8 @@ flutter:
     - shaders/sp_kart.frag
     - shaders/sp_hus.frag
     - shaders/hjem_bryggen.frag
+    - shaders/hjem_bryggen_stat.frag
+    - shaders/hjem_bryggen_liv.frag
     - shaders/aegil_floyen.frag
     - shaders/aegil_floyen_liv.frag
     - shaders/scene_gl.frag

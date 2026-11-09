@@ -456,6 +456,12 @@ abstract final class BergenPerf {
   /// but sites under a moving transform lose their caching.
   static bool pass2BaktPaa = false;
 
+  /// Heat plan Step 5 (harness `bryggenDeling: false` for A/B): the Bryggen
+  /// scene bakes its static city once per weather / form / size and draws
+  /// only what moves on top (`shaders/hjem_bryggen_liv.frag`, see
+  /// `SpGlDeling`); false = the original `hjem_bryggen.frag` every step.
+  static bool bryggenDelingPaa = true;
+
   /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
   /// then keep showing the last one while their clock runs on — the upper
   /// bound of what pre-rendered video could save. Debug/profile harness only.

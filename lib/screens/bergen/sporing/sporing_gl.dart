@@ -107,6 +107,148 @@ class SpGlDel {
   final void Function(List<double> u, void Function(double) f) bakeU;
 }
 
+/// Heat plan Step 5: a scene split into a static half ([stat]), baked once
+/// per set of uniforms and size into textures on the live frame's own pixel
+/// grid ([SpGlBake]), and a live half ([liv]) that reads them and computes
+/// only what moves. Until the bake is done, and while [paa] says no, the
+/// scene's own shader draws every step exactly as without a split.
+class SpGlDeling {
+  const SpGlDeling({required this.liv, required this.stat, required this.samplere, required this.paa});
+
+  /// The live shader: the scene shader's float uniforms in the same order,
+  /// then one sampler per entry of [samplere].
+  final String liv;
+
+  /// The bake shader: the scene shader's float uniforms (with `uT` 0), then
+  /// the slot to write.
+  final String stat;
+
+  /// The baked slot each sampler of [liv] reads (slots 0 … max).
+  final List<int> samplere;
+
+  /// The runtime switch (read on every step).
+  final bool Function() paa;
+
+  /// How many slots are baked.
+  int get lag => samplere.reduce(math.max) + 1;
+}
+
+/// The baked slots of one [SpGlDeling] for one set of bake uniforms and one
+/// size ([nokkel]), drawn [striper] stripes per step (so the bake never costs
+/// a whole frame at once) into images of exactly the live frame's size.
+/// Finished bakes are kept in a small cache across scenes; every holder owns
+/// its own clones, so evicting or disposing one never pulls an image from
+/// under a shader that still reads it.
+class SpGlBake {
+  SpGlBake(this.nokkel, this.lag, this.pw, this.ph);
+
+  final String nokkel;
+  final int lag, pw, ph;
+
+  /// Stripes per slot (one per step).
+  static int striper = 4;
+
+  /// Finished bakes kept (Hjem and Fjordfiske / Automat).
+  static int cacheMaks = 2;
+  static final Map<String, SpGlBake> _cache = {};
+
+  /// Bakes finished so far (tests, harness logs).
+  static int bakt = 0;
+
+  final List<ui.Image> _ferdige = [];
+  ui.Image? _acc;
+  int _stripe = 0;
+  final Stopwatch _sw = Stopwatch();
+
+  bool get ferdig => _ferdige.length == lag;
+
+  /// The finished slots, in slot order.
+  List<ui.Image> get bilder => _ferdige;
+
+  /// The bake's identity: the bake shader, the image size and every bake
+  /// uniform (size, pixel ratio, palette, form) — any change bakes anew.
+  static String nokkelFor(String stat, int pw, int ph, List<double> floats) => '$stat|${pw}x$ph|${floats.join(',')}';
+
+  /// A finished bake for [nokkel] from the cache (own clones), or null.
+  static SpGlBake? hent(String nokkel) {
+    final c = _cache.remove(nokkel);
+    if (c == null) return null;
+    _cache[nokkel] = c; // most recently used last
+    return SpGlBake(c.nokkel, c.lag, c.pw, c.ph).._ferdige.addAll([for (final im in c._ferdige) im.clone()]);
+  }
+
+  /// Keeps a clone of finished [b]; the least recently used beyond
+  /// [cacheMaks] is disposed.
+  static void legg(SpGlBake b) {
+    assert(b.ferdig);
+    _cache.remove(b.nokkel)?.dispose();
+    _cache[b.nokkel] = SpGlBake(b.nokkel, b.lag, b.pw, b.ph).._ferdige.addAll([for (final im in b._ferdige) im.clone()]);
+    while (_cache.length > cacheMaks) {
+      final eldst = _cache.keys.first;
+      _cache.remove(eldst)!.dispose();
+    }
+  }
+
+  /// The keys in the cache, least recently used first (tests).
+  @visibleForTesting
+  static List<String> get cacheNokler => _cache.keys.toList();
+
+  /// Empties the cache (tests).
+  @visibleForTesting
+  static void tomCache() {
+    for (final b in _cache.values) {
+      b.dispose();
+    }
+    _cache.clear();
+  }
+
+  /// Draws the next stripe of the next slot with [stat]: [floats] are its
+  /// float uniforms before the slot. Returns true when the last slot is done.
+  bool steg(ui.FragmentShader stat, List<double> floats) {
+    if (ferdig) return true;
+    _sw.start();
+    final slot = _ferdige.length;
+    for (var k = 0; k < floats.length; k++) {
+      stat.setFloat(k, floats[k]);
+    }
+    stat.setFloat(floats.length, slot.toDouble());
+    final y0 = (ph * _stripe / striper).floorToDouble(), y1 = (ph * (_stripe + 1) / striper).floorToDouble();
+    final rec = ui.PictureRecorder();
+    final c = Canvas(rec);
+    // `src`, alpha 1: the bytes land exactly as the shader wrote them.
+    if (_acc != null) c.drawImage(_acc!, Offset.zero, Paint()..blendMode = BlendMode.src);
+    c.drawRect(
+      Rect.fromLTRB(0, y0, pw.toDouble(), y1),
+      Paint()
+        ..shader = stat
+        ..blendMode = BlendMode.src,
+    );
+    final img = rec.endRecording().toImageSync(pw, ph);
+    _acc?.dispose();
+    _acc = img;
+    if (++_stripe >= striper) {
+      _ferdige.add(img);
+      _acc = null;
+      _stripe = 0;
+    }
+    _sw.stop();
+    if (ferdig) {
+      bakt++;
+      if (!kReleaseMode) debugPrint('SPGL_DELING bakt $lag lag ${pw}x$ph (${_sw.elapsedMilliseconds} ms CPU) ${nokkel.split('|').first}');
+    }
+    return ferdig;
+  }
+
+  void dispose() {
+    for (final im in _ferdige) {
+      im.dispose();
+    }
+    _ferdige.clear();
+    _acc?.dispose();
+    _acc = null;
+  }
+}
+
 /// Hosts one of the prototype's Sporing WebGL scenes (`data-spgl`), ported as
 /// a fragment shader (`shaders/sp_*.frag`) and rendered offscreen as the
 /// prototype's canvas is (`spGlTegn`): at most 300 000 pixels and a device
@@ -133,6 +275,7 @@ class SpGl extends StatefulWidget {
     this.onFrame,
     this.waitTex = false,
     this.del,
+    this.deling,
   });
 
   final String asset;
@@ -162,6 +305,10 @@ class SpGl extends StatefulWidget {
 
   /// Heat plan Step 6: the scene's static/live split, if it has one.
   final SpGlDel? del;
+
+  /// Heat plan Step 5: the scene's static / dynamic split (no textures of
+  /// its own then); null = [asset] every step.
+  final SpGlDeling? deling;
 
   @override
   State<SpGl> createState() => _SpGlState();
@@ -210,9 +357,20 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
   // Heat plan Step 4: no frames between the scene's own steps.
   late final PerfStegRammer _rammer;
 
+  // Heat plan Step 5: the split's two shaders (loaded the first time the
+  // switch is on) and this scene's bake (in progress, or finished: own clones).
+  // (Named apart from Step 6's [SpGl.del] fields above: the two splits
+  // coexist, Bryggen on this one, SceneGl berg on that one.)
+  ui.FragmentShader? _dlLiv, _dlStat;
+  bool _dlLastes = false;
+  SpGlBake? _dlBake;
+  List<double>? _dlFloats;
+
   @override
   void initState() {
     super.initState();
+    assert(widget.deling == null || widget.tex.isEmpty, 'a split scene has no textures of its own');
+    assert(widget.deling == null || widget.del == null, 'one split per scene');
     _img = List<ui.Image?>.filled(widget.tex.length, null);
     _ticker = createTicker(_tick);
     _rammer = PerfStegRammer(_ticker, tickerModus: () => TickerMode.getNotifier(context));
@@ -339,6 +497,42 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     return _clear = rec.endRecording().toImageSync(1, 1);
   }
 
+  /// Heat plan Step 5: the live half when the split is on and its bake for
+  /// this exact size and these uniforms is done; else null (the scene's own
+  /// shader draws, as without a split) after one more bake stripe.
+  ui.FragmentShader? _deling(int pw, int ph) {
+    final d = widget.deling;
+    if (d == null || !d.paa()) return null;
+    if (_dlLiv == null || _dlStat == null) {
+      if (!_dlLastes) {
+        _dlLastes = true;
+        final pl = _programs[d.liv] ??= ui.FragmentProgram.fromAsset(d.liv);
+        final ps = _programs[d.stat] ??= ui.FragmentProgram.fromAsset(d.stat);
+        Future.wait([pl, ps]).then((p) {
+          if (!mounted) return;
+          _dlLiv = p[0].fragmentShader();
+          _dlStat = p[1].fragmentShader();
+        }).catchError((Object _) {});
+      }
+      return null;
+    }
+    // The bake's uniforms: the scene's own, at uT 0 (the slot follows).
+    final floats = <double>[widget.w, widget.h, pw / widget.w, 0];
+    widget.uniforms(floats.add, 0, 0, (_) => false);
+    var b = _dlBake;
+    if (b == null || b.pw != pw || b.ph != ph || !listEquals(floats, _dlFloats)) {
+      final key = SpGlBake.nokkelFor(d.stat, pw, ph, floats);
+      _dlFloats = floats;
+      if (b?.nokkel != key) {
+        b?.dispose();
+        b = _dlBake = SpGlBake.hent(key) ?? SpGlBake(key, d.lag, pw, ph);
+      }
+    }
+    final bk = b!;
+    if (!bk.ferdig && bk.steg(_dlStat!, floats)) SpGlBake.legg(bk);
+    return bk.ferdig ? _dlLiv : null;
+  }
+
   void _render() {
     final sh = _shader;
     if (sh == null || !mounted) return;
@@ -351,21 +545,34 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     if (BergenPerf.malerVertPaa && del != null && liv != null && bake != null) {
       img = _delt(del, liv, bake, sh, w, h, pw, ph);
     } else {
+      // Heat plan Step 5 ([SpGl.deling], Bryggen): the same float uniforms go
+      // to the live half once its bake is done; until then (and with the
+      // switch off) the scene's own shader, as before.
+      final dl = _deling(pw, ph);
+      final s = dl ?? sh;
       var i = 0;
-      void f(double v) => sh.setFloat(i++, v);
+      void f(double v) => s.setFloat(i++, v);
       f(w);
       f(h);
       f(pw / w);
       f(_t % 3600);
       widget.uniforms(f, _t, _age ?? _sw.elapsedMicroseconds / 1e6, (k) => k < _img.length && _img[k] != null);
-      for (var k = 0; k < _img.length; k++) {
-        sh.setImageSampler(k, _img[k] ?? _blank());
+      if (dl == null) {
+        for (var k = 0; k < _img.length; k++) {
+          sh.setImageSampler(k, _img[k] ?? _blank());
+        }
+      } else {
+        final b = _dlBake!.bilder, sm = widget.deling!.samplere;
+        for (var k = 0; k < sm.length; k++) {
+          dl.setImageSampler(k, b[sm[k]]);
+        }
       }
       final rec = ui.PictureRecorder();
-      Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
+      Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = s);
       img = rec.endRecording().toImageSync(pw, ph);
     }
-    // One count per frame produced, from the unsplit or the split shader.
+    // One count per frame produced — the unsplit shader, Bryggen's split or
+    // the berg split, during a bake or after.
     BergenPerf.telRender('SpGl');
     if (BergenPerf.malerVertPaa && _vert) {
       _ramme.sett(img);
@@ -456,6 +663,9 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     for (final b in _delBilder) {
       b.dispose();
     }
+    _dlBake?.dispose();
+    _dlLiv?.dispose();
+    _dlStat?.dispose();
     super.dispose();
   }
 
