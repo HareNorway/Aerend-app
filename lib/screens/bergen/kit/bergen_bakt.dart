@@ -234,7 +234,9 @@ class _RenderBakt extends RenderProxyBox {
       final naa = _klokke.elapsedMilliseconds;
       _serie = naa - _sistMs < 300 ? _serie + 1 : 1;
       _sistMs = naa;
-      if (_serie > 3) {
+      // Under the frozen test clock never fall back to live painting: the
+      // screenshot must not depend on start-up repaint timing.
+      if (_serie > 3 && !BergenPerf.frosset) {
         // It repaints on most frames: an animation inside. Live for a while.
         _serie = 0;
         _pause = 90;

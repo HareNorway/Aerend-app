@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart' show Ticker;
 
+import '../kit/bergen_perf.dart';
 import '../kit/sjo_water.dart';
 import 'fiske_frame.dart';
 import 'fiske_game.dart';
@@ -126,7 +127,7 @@ class _FiskeStangState extends State<FiskeStang> with SingleTickerProviderStateM
 
   void _tick(Duration e) {
     // The reduced-motion frame: the float hanging still from the tip.
-    _t = _reduce ? 0 : e.inMicroseconds / 1e6;
+    _t = _reduce ? 0 : (BergenPerf.frysMs != null ? BergenPerf.frysMs! / 1000 : e.inMicroseconds / 1e6);
     final t = _t, f = _f;
     if (f != _ph) {
       _fra = (ph: _ph, bx: _bx, by: _by, off: _off);

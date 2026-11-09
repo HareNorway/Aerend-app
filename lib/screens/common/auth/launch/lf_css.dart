@@ -311,7 +311,9 @@ class CssBoxPainter extends CustomPainter {
     final key = _nokkel(size, r);
     var img = CssBake._hent(key);
     if (img == null) {
-      if (++ro._bom > 3) {
+      // Under the frozen test clock (harness `klokke`) never fall back to live
+      // painting, so screenshots don't depend on start-up timing.
+      if (++ro._bom > 3 && !BergenPerf.frosset) {
         // Its look changes every frame (an animated colour or size): live.
         ro._bom = 0;
         ro._pause = 90;
