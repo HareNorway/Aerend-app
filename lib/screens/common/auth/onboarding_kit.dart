@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
+import '../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../bergen/kit/bergen_perf.dart';
 import '../../bergen/kit/lf_klokke.dart';
 import '../splash/splash_sticker_painter.dart';
@@ -380,7 +381,8 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
     // Heat plan Step 9 (BergenLoop and KatLoop run on this clock too): the
     // animated output in its own layer. Outside the builder host, so Step
     // 11's LfRammeBygger keeps its direct-update chain unchanged.
-    return BergenPerf.loopGrensePaa ? RepaintBoundary(child: ut) : ut;
+    // Not inside a BergenBakt (see BergenBakt.inni).
+    return BergenPerf.loopGrensePaa && !BergenBakt.inni(context) ? RepaintBoundary(child: ut) : ut;
   }
 }
 

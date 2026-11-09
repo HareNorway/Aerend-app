@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:aerend_customer/screens/bergen/kit/bergen_bakt.dart';
 import 'package:aerend_customer/screens/bergen/kit/bergen_lagring.dart';
 import 'package:aerend_customer/screens/bergen/kit/bergen_motion.dart';
 import 'package:aerend_customer/screens/bergen/kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/vann_overganger.dart';
 import 'package:aerend_customer/screens/common/auth/launch/lf_motion.dart';
 
 /// Heat plan Steps 8–9: BergenLagring draws the screen's unchanged bottom run
@@ -493,6 +495,92 @@ void main() {
   });
 
   // ── Step 9: loop repaint boundaries ──
+
+  // ── iOS simulator 2026-11-10 findings ──
+
+  testWidgets('a Menisk route at rest: the cache wraps the transition layers and makes its image (same pixels)', (tester) async {
+    skjerm(tester);
+    BergenLagring.debugUtenforRamme = false;
+    final nav = GlobalKey<NavigatorState>();
+    Widget appen() => Directionality(
+      textDirection: TextDirection.ltr,
+      child: RepaintBoundary(
+        key: rot,
+        child: MaterialApp(navigatorKey: nav, debugShowCheckedModeBanner: false, home: const ColoredBox(color: Color(0xFF000000))),
+      ),
+    );
+    Future<Uint8List> naar(bool lagring) async {
+      BergenPerf.lagringPaa = lagring;
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(appen());
+      nav.currentState!.push(MeniskRoute<void>(builder: (c) => statisk()));
+      await rammer(tester, 60); // the 440 ms Menisk, then frames at rest
+      return skudd(tester);
+    }
+
+    final live = await naar(false);
+    BergenLagring.laget = 0;
+    final bakt = await naar(true);
+    expect(BergenLagring.laget, greaterThanOrEqualTo(1), reason: 'the image is made on a Menisk route');
+    expect(maks(live, bakt), 0);
+  });
+
+  testWidgets('inside the Menisk layers (where the route used to put it): no image — the cause of lagring=0i', (tester) async {
+    skjerm(tester);
+    BergenLagring.debugUtenforRamme = false;
+    await tester.pumpWidget(Directionality(
+      textDirection: TextDirection.ltr,
+      child: RepaintBoundary(
+        key: rot,
+        child: meniskLag(size: const Size(320, 400), p: 1, tilbake: false, child: BergenLagring(child: statisk())),
+      ),
+    ));
+    await rammer(tester, 12);
+    expect(BergenLagring.laget, 0, reason: 'a path clip above it and the dim beneath it');
+  });
+
+  testWidgets('loopGrense adds no boundary inside a BergenBakt (it would paint live: other pixels)', (tester) async {
+    skjerm(tester);
+    BergenPerf.lagringPaa = false;
+    BergenPerf.frysMs = 1234;
+    Widget innhold() => Stack(children: [
+      const Positioned.fill(child: ColoredBox(color: Color(0xFF173E48))),
+      Positioned(
+        left: 30.4,
+        top: 40.7,
+        child: Transform.rotate(
+          angle: .05,
+          child: BergenBakt(
+            margin: const EdgeInsets.all(16),
+            child: Container(
+              width: 120,
+              height: 60,
+              decoration: BoxDecoration(color: const Color(0xFFF2C14E), borderRadius: BorderRadius.circular(14)),
+              child: Center(
+                child: LfLoop(
+                  builder: (context, t, child) => Transform.translate(offset: Offset(0, -2 * ((t % 900) / 900)), child: child),
+                  child: const Text('Tilbud', style: TextStyle(fontSize: 16, color: Color(0xFF173E48))),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ]);
+    BergenBakt.laget = 0;
+    await tester.pumpWidget(app(innhold(), lagring: false));
+    await tester.pump(const Duration(milliseconds: 16));
+    final av = await skudd(tester);
+    expect(BergenBakt.laget, greaterThanOrEqualTo(1), reason: 'the BergenBakt rasters');
+    BergenPerf.loopGrensePaa = true;
+    await tester.pumpWidget(const SizedBox());
+    BergenBakt.laget = 0;
+    await tester.pumpWidget(app(innhold(), lagring: false));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(BergenBakt.laget, greaterThanOrEqualTo(1), reason: 'still rasters: no boundary inside it');
+    expect(maks(av, await skudd(tester)), 0);
+    await tester.pumpWidget(const SizedBox());
+  });
 
   testWidgets('loopGrense: the same pixels with and without the loop boundaries', (tester) async {
     skjerm(tester);

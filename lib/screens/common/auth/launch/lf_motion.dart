@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../../bergen/kit/bergen_perf.dart';
 import '../../../bergen/kit/lf_klokke.dart';
 import 'lf_css.dart';
@@ -264,7 +265,9 @@ class _LfLoopState extends State<LfLoop> with LfTikkerVert {
     // repaint (and keep changing) the picture of what is around it. Outside
     // the builder host, so Step 11's LfRammeBygger keeps its direct-update
     // chain (it matches only its own builder output) unchanged.
-    return BergenPerf.loopGrensePaa ? RepaintBoundary(child: ut) : ut;
+    // Not inside a BergenBakt: a boundary there makes it paint live (iOS
+    // simulator 2026-11-10: up to 33/255 on its edges vs its raster).
+    return BergenPerf.loopGrensePaa && !BergenBakt.inni(context) ? RepaintBoundary(child: ut) : ut;
   }
 }
 

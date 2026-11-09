@@ -88,7 +88,8 @@ abstract final class BergenRoutes {
     if (!name.startsWith('/bergen/')) return null;
     final key = resolve(name);
     if (key == null) return null;
-    final builder = _lagring((bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!);
+    final skjerm = (bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!;
+    final builder = _lagring(skjerm);
     final ruteSettings = RouteSettings(
       // `argsOf` reads the arguments, not the name.
       name: '$appRoutePrefix$name',
@@ -102,18 +103,18 @@ abstract final class BergenRoutes {
       return DrapeRoute<dynamic>(settings: ruteSettings, builder: builder);
     }
     if (key == '/bergen/butikkprofil' && !menisk) return butikkProfilRute(ruteSettings, builder);
-    if (menisk) return MeniskRoute<dynamic>(settings: ruteSettings, builder: builder);
+    // The Menisk puts the BergenLagring around its own transition layers.
+    if (menisk) return MeniskRoute<dynamic>(settings: ruteSettings, builder: skjerm);
     return MaterialPageRoute<dynamic>(settings: ruteSettings, builder: builder);
   }
 
   /// A route for a Bergen screen pushed by widget (no name): the Menisk.
-  static Route<T> rute<T>(WidgetBuilder builder, {RouteSettings? settings}) {
-    final b = _lagring(builder);
-    return BergenOverganger.skjerm == SkjermOvergang.menisk ? MeniskRoute<T>(settings: settings, builder: b) : MaterialPageRoute<T>(settings: settings, builder: b);
-  }
+  static Route<T> rute<T>(WidgetBuilder builder, {RouteSettings? settings}) =>
+      BergenOverganger.skjerm == SkjermOvergang.menisk ? MeniskRoute<T>(settings: settings, builder: builder) : MaterialPageRoute<T>(settings: settings, builder: _lagring(builder));
 
   /// Heat plan Step 8: with [BergenPerf.lagringPaa], the screen inside a
-  /// [BergenLagring] (its unchanged bottom run from one cached image).
+  /// [BergenLagring] (its unchanged bottom run from one cached image). Not
+  /// for the Menisk: it wraps its own transition layers (see MeniskRoute).
   static WidgetBuilder _lagring(WidgetBuilder builder) =>
       BergenPerf.lagringPaa ? (context) => BergenLagring(child: builder(context)) : builder;
 

@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'bergen_lagring.dart';
 import 'bergen_perf.dart';
 
 // ── Vannoverganger (Bergen 29 Oct, `Vannoverganger.dc.html`, L20229–20510) ──
@@ -353,8 +354,14 @@ class MeniskRoute<T> extends PageRoute<T> {
 
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
-    if (MediaQuery.disableAnimationsOf(context)) return child;
-    return MeniskBunn(secondary: secondaryAnimation, child: MeniskTopp(animation: animation, child: child));
+    final Widget t = MediaQuery.disableAnimationsOf(context) ? child : MeniskBunn(secondary: secondaryAnimation, child: MeniskTopp(animation: animation, child: child));
+    // Heat plan Step 8: the cache root goes around the transition layers.
+    // Inside them it found, at rest, the box clip of [meniskLag] (a path
+    // clip, which it would draw inside again) above it and the dim painted
+    // beneath it, and so never made an image (iOS simulator, 2026-11-10).
+    // Here the dim and the clip are the bottom of its own run. One tree
+    // shape whether animations are off or not.
+    return BergenPerf.lagringPaa ? BergenLagring(child: t) : t;
   }
 }
 

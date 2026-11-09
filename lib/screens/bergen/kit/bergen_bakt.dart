@@ -48,6 +48,12 @@ class BergenBakt extends SingleChildRenderObjectWidget {
   /// Off: every BergenBakt paints live (harness `bakt: false`, A/B on one build).
   static bool paa = true;
 
+  /// Heat plan Step 9: [context] sits inside a BergenBakt. A repaint boundary
+  /// there would make the BergenBakt paint live (it cannot raster a subtree
+  /// that may repaint on its own), changing its pixels and its cost — so the
+  /// loops add none inside one.
+  static bool inni(BuildContext context) => context.findAncestorRenderObjectOfType<_RenderBakt>() != null;
+
   /// Heat Step 7 ([BergenPerf.pass2BaktPaa]): the raster is chosen when the
   /// scene is built (see [_BaktLag]), only in a real frame. Tests that read
   /// pixels back with `toImage` outside a frame set this to use it there too.
