@@ -444,6 +444,7 @@ abstract final class HjemHarness {
         CssBoxPainter.debugUtenBlur = false;
         CssBake.paa = true;
         BergenPerf.hvilePaa = true;
+        BergenPerf.usynligPaa = true;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
@@ -587,6 +588,8 @@ abstract final class HjemHarness {
       CssBake.paa = m['cssCache'] != false;
       // Perf plan: `hvile: false` keeps off-screen loops and scenes ticking (A/B).
       BergenPerf.hvilePaa = m['hvile'] != false;
+      // Heat plan Step 2: `usynlig: false` keeps invisible work running (A/B).
+      BergenPerf.usynligPaa = m['usynlig'] != false;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;

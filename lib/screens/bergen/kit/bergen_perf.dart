@@ -314,6 +314,20 @@ abstract final class BergenPerf {
   /// Perf plan: off-screen rest on/off (harness `hvile: false` for A/B).
   static bool hvilePaa = true;
 
+  /// Heat plan Step 2 (harness `usynlig: false` for A/B): invisible work
+  /// stops — the nav's hidden Ægil loop, resting loops' wake timers while
+  /// their ticker is muted, rail turns on a hidden tab, Sporing / Hjem order
+  /// polls in the background. False = everything runs as before.
+  static bool usynligPaa = true;
+
+  /// Heat plan Step 2: the app can be seen — resumed, or inactive (a system
+  /// sheet or the notification shade over it, still on the screen). Hidden,
+  /// paused or detached is the background; no state yet counts as visible.
+  static bool get appSynlig {
+    final s = WidgetsBinding.instance.lifecycleState;
+    return s == null || s == AppLifecycleState.resumed || s == AppLifecycleState.inactive;
+  }
+
   /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
   /// then keep showing the last one while their clock runs on — the upper
   /// bound of what pre-rendered video could save. Debug/profile harness only.
@@ -536,6 +550,72 @@ abstract final class _Watchdog {
   }
 }
 
+/// Heat plan Step 2: the 120 ms wake timer of a resting (off-screen) loop.
+/// It only runs while the loop's ticker could be heard: a muted ticker (a
+/// hidden tab) cannot wake anyway, so the timer is cancelled, and it starts
+/// again the moment the ticker is unmuted, with one check right after that
+/// frame — no later than the old always-on timer would have woken it.
+/// TickerMode reaches tickers through [TickerMode.getNotifier] (the ticker
+/// mixins listen to it; it does not call didChangeDependencies), so this
+/// listens to the same notifier while the loop rests. [BergenPerf.usynligPaa]
+/// false keeps the timer running as before.
+class PerfVekker {
+  PerfVekker(this.sjekk);
+
+  /// The host's on-screen check (it wakes the loop when it is visible).
+  final VoidCallback sjekk;
+
+  Timer? _t;
+  ValueListenable<bool>? _modus;
+  bool _hviler = false;
+
+  /// The loop has just gone to rest (from its ticker, so it is unmuted).
+  void start(BuildContext context) {
+    _hviler = true;
+    _tid();
+    folg(context);
+  }
+
+  /// Woken, reduced to still, or disposed: no more checks.
+  void stopp() {
+    _hviler = false;
+    _t?.cancel();
+    _t = null;
+    _modus?.removeListener(_endret);
+    _modus = null;
+  }
+
+  /// Follows the TickerMode at [context] (again after a move in the tree:
+  /// call it from the host's `activate`).
+  void folg(BuildContext context) {
+    if (!_hviler) return;
+    final n = TickerMode.getNotifier(context);
+    if (identical(n, _modus)) return;
+    _modus?.removeListener(_endret);
+    _modus = n..addListener(_endret);
+    _endret();
+  }
+
+  void _tid() {
+    _t ??= Timer.periodic(const Duration(milliseconds: 120), (_) => sjekk());
+  }
+
+  void _endret() {
+    final m = _modus;
+    if (!_hviler || m == null) return;
+    if (m.value) {
+      if (_t != null) return;
+      _tid();
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (_hviler) sjekk();
+      });
+    } else if (BergenPerf.usynligPaa) {
+      _t?.cancel();
+      _t = null;
+    }
+  }
+}
+
 /// Perf plan: rests a live scene's ticker while the scene's box is off the
 /// screen and wakes it the moment it is back (the nearest scroll position
 /// and a 120 ms timer). [onVaakn] gets the rest in seconds, so the host's
@@ -550,7 +630,7 @@ class PerfHvile {
 
   int _tikk = 0;
   Stopwatch? _sw;
-  Timer? _t;
+  late final PerfVekker _t = PerfVekker(_sjekk);
   ScrollPosition? _rull;
 
   bool get hviler => _sw != null;
@@ -566,7 +646,7 @@ class PerfHvile {
     if (!ticker.isActive || _sw != null) return;
     ticker.stop();
     _sw = Stopwatch()..start();
-    _t = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _t.start(context);
     _rull = Scrollable.maybeOf(context)?.position;
     _rull?.addListener(_sjekk);
   }
@@ -580,8 +660,7 @@ class PerfHvile {
   /// Back from the rest; [start] false leaves the ticker stopped (reduced
   /// motion, a tier without this scene).
   void vaakn({bool start = true}) {
-    _t?.cancel();
-    _t = null;
+    _t.stopp();
     _rull?.removeListener(_sjekk);
     _rull = null;
     final sw = _sw;
@@ -592,7 +671,7 @@ class PerfHvile {
   }
 
   void dispose() {
-    _t?.cancel();
+    _t.stopp();
     _rull?.removeListener(_sjekk);
   }
 }

@@ -259,7 +259,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   // the design would show at that moment.
   int _tikk = 0;
   bool _reduce = false, _hviler = false;
-  Timer? _vekk;
+  late final PerfVekker _vekk = PerfVekker(_sjekk);
   ScrollPosition? _rull;
 
   @override
@@ -280,7 +280,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
     if (!_ticker.isActive) return;
     _ticker.stop();
     _hviler = true;
-    _vekk = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _vekk.start(context);
     _rull = Scrollable.maybeOf(context)?.position;
     _rull?.addListener(_sjekk);
   }
@@ -292,8 +292,7 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   }
 
   void _vaakn() {
-    _vekk?.cancel();
-    _vekk = null;
+    _vekk.stopp();
     _rull?.removeListener(_sjekk);
     _rull = null;
     _hviler = false;
@@ -315,10 +314,16 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   }
 
   @override
+  void activate() {
+    super.activate();
+    _vekk.folg(context);
+  }
+
+  @override
   void dispose() {
     BergenPerf.onbLoopsMounted--;
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
-    _vekk?.cancel();
+    _vekk.stopp();
     _rull?.removeListener(_sjekk);
     _ticker.dispose();
     _t.dispose();

@@ -329,6 +329,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
       }).catchError((_) {});
     });
     _trackTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      // Heat plan Step 2: no request while the app is in the background; the
+      // resume ([didChangeAppLifecycleState]) fetches at once (`usynlig: false`
+      // polls as before).
+      if (BergenPerf.usynligPaa && !BergenPerf.appSynlig) return;
       _bloc.callHomeTrackOrderApi();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
