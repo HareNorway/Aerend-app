@@ -109,6 +109,7 @@ class HjemKnappKort extends StatelessWidget {
                       shadows: const [CssShadow(0, 0, 0, 2.5, Color(0xFF1E4F5C)), CssShadow(0, 2, 0, 2.5, Color(0xFF0F2F38))],
                       child: Center(
                         child: LfLoop(
+                          ramme: true,
                           // hbLyn 3.2s (origin 50% 55%), from its delay on.
                           builder: (context, t, child) {
                             final p = (math.max(0, t - merkeForsinkelse) / 3200) % 1.0;
@@ -215,6 +216,7 @@ Widget _aegilFlis(String bilde, {required double bredde, required double bunn}) 
       bottom: bunn,
       width: bredde,
       child: LfLoop(
+        ramme: true,
         builder: (context, t, child) => Transform(alignment: Alignment.bottomCenter, transform: aegStaa(t, 3800), child: child),
         child: Image.asset(bilde, width: bredde, cacheWidth: (bredde * 3).round(), filterQuality: FilterQuality.medium),
       ),
@@ -465,6 +467,7 @@ class HjemPoseKort extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LfLoop(
+      ramme: true,
       // sjoVugg2 6.5s (.5s delay), origin 50% 100%
       builder: (context, t, child) {
         final p = ((t - 500) / 6500) % 1.0;
@@ -538,6 +541,7 @@ class HjemPoseKort extends StatelessWidget {
                   width: 44,
                   height: 40,
                   child: LfLoop(
+                    ramme: true,
                     builder: (context, t, child) => Transform(alignment: Alignment.bottomCenter, transform: aegStaa(t, 3800), child: child),
                     child: SvgPicture.asset('assets/svgs/hjem/hjem_pose_kort.svg', width: 44, height: 40),
                   ),
@@ -606,6 +610,7 @@ class HjemGavepapir extends StatelessWidget {
               // gpGlans 5.5s (1s delay)
               Positioned.fill(
                 child: LfLoop(
+                  ramme: true,
                   builder: (context, t, child) {
                     final e = t - 1000;
                     if (e < 0) return const SizedBox.shrink();
@@ -633,6 +638,7 @@ class HjemGavepapir extends StatelessWidget {
                 width: 60 * kx,
                 height: 44 * kx,
                 child: LfLoop(
+                  ramme: true,
                   builder: (context, t, child) {
                     final p = (t / 3600) % 1.0;
                     final r = kf(p, const [0, .5, 1], const [0, -4, 0], cssEaseInOut);
@@ -652,6 +658,7 @@ class HjemGavepapir extends StatelessWidget {
                 left: 12 * kx,
                 top: 12 * kx,
                 child: LfLoop(
+                  ramme: true,
                   builder: (context, t, child) => Transform.rotate(
                     alignment: Alignment.centerLeft,
                     angle: rad(kf((t / 4400) % 1.0, const [0, .5, 1], const [-7, -3, -7], cssEaseInOut)),

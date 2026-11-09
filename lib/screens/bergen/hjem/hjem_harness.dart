@@ -11,6 +11,7 @@ import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/perf_video_test.dart';
 import '../kit/lag_cache.dart';
+import '../kit/lf_klokke.dart';
 import 'hjem_hero.dart';
 
 /// Debug builds only: `Documents/kunde_state.json` (Customer plan Step 0;
@@ -457,6 +458,10 @@ abstract final class HjemHarness {
         BergenPerf.pass2CssPaa = false;
         BergenPerf.pass2BaktPaa = false;
         BergenPerf.bryggenDelingPaa = true;
+        // Heat plan Step 11: back to each loop's own ticker, rebuilds per frame.
+        BergenPerf.klokkePaa = BergenPerf.klokkeStandard;
+        LfKlokke.instance.byttAlle();
+        BergenPerf.rammeLoopPaa = BergenPerf.rammeLoopStandard;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
@@ -629,6 +634,14 @@ abstract final class HjemHarness {
       // original whole-city shader every step (A/B on one build; with
       // `klokke` both paths draw the same frame).
       BergenPerf.bryggenDelingPaa = m['bryggenDeling'] != false;
+      // Heat plan Step 11 (off until device-verified, A/B on one build):
+      // `klokke1: true` drives every loop from the shared clock (running
+      // loops move over at once, same t); `rammeLoop: true` lets loops marked
+      // `ramme` update their Transform / Opacity without a rebuild. (`klokke`
+      // is the frozen test clock below.)
+      BergenPerf.klokkePaa = m['klokke1'] is bool ? m['klokke1'] == true : BergenPerf.klokkeStandard;
+      LfKlokke.instance.byttAlle();
+      BergenPerf.rammeLoopPaa = m['rammeLoop'] is bool ? m['rammeLoop'] == true : BergenPerf.rammeLoopStandard;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../../bergen/kit/bergen_perf.dart';
+import '../../../bergen/kit/lf_klokke.dart';
 import 'lf_css.dart';
 
 export '../../../bergen/kit/bergen_perf.dart' show LfStille;
@@ -71,6 +72,7 @@ class LfLoop extends StatefulWidget {
     this.frozenMs = 0,
     this.essential = false,
     this.stille,
+    this.ramme = false,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -84,11 +86,19 @@ class LfLoop extends StatefulWidget {
   /// sleeps there (see [PerfSov]).
   final LfStille? stille;
 
+  /// Heat plan Step 11 (`BergenPerf.rammeLoopPaa`): [builder] only wraps
+  /// [child] in single-child render-object widgets (Transform, Opacity, …)
+  /// computed from t and fixed values, so a tick updates those render objects
+  /// in place instead of rebuilding (see [LfRammeBygger]).
+  final bool ramme;
+
   @override
   State<LfLoop> createState() => _LfLoopState();
 }
 
-class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
+// Heat plan Step 11: an [LfTikker] (a Ticker that can run on the shared
+// clock, `BergenPerf.klokkePaa`) with the same TickerMode muting.
+class _LfLoopState extends State<LfLoop> with LfTikkerVert {
   late final Ticker _ticker;
   final ValueNotifier<double> _t = ValueNotifier<double>(0);
   Duration _base = Duration.zero;
@@ -229,11 +239,13 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<double>(
-    valueListenable: _t,
-    child: widget.child,
-    builder: (context, t, child) => widget.builder(context, t, child),
-  );
+  Widget build(BuildContext context) => widget.ramme
+      ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
+      : ValueListenableBuilder<double>(
+          valueListenable: _t,
+          child: widget.child,
+          builder: (context, t, child) => widget.builder(context, t, child),
+        );
 }
 
 // ── Shared keyframes ────────────────────────────────────────────────────────

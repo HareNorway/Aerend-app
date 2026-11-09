@@ -1385,6 +1385,7 @@ class BergenKenBurns extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => OnbLoopClock(
+    ramme: true,
     child: child,
     builder: (context, t, child) {
       var p = (onbLoop(t, 0, seconds * 1000.0) ?? 0);
@@ -1496,6 +1497,7 @@ class _Pulse extends StatelessWidget {
   final bool fast;
   @override
   Widget build(BuildContext context) => OnbLoopClock(
+    ramme: true,
     child: child,
     builder: (context, t, child) {
       final p = (onbLoop(t, 0, fast ? 1400 : 3000) ?? 0);

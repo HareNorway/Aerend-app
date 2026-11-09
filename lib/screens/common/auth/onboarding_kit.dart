@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
 import '../../bergen/kit/bergen_perf.dart';
+import '../../bergen/kit/lf_klokke.dart';
 import '../splash/splash_sticker_painter.dart';
 import 'onboarding_copy.dart';
 
@@ -233,6 +234,7 @@ class OnbLoopClock extends StatefulWidget {
     this.essential = false,
     this.child,
     this.stille,
+    this.ramme = false,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -246,14 +248,20 @@ class OnbLoopClock extends StatefulWidget {
   /// the loop sleeps there (see [PerfSov]). The stopwatch clock runs on.
   final LfStille? stille;
 
+  /// Heat plan Step 11 (`BergenPerf.rammeLoopPaa`): [builder] only wraps
+  /// [child] in single-child render-object widgets computed from t and fixed
+  /// values; a tick updates them in place (see [LfRammeBygger]).
+  final bool ramme;
+
   static final Stopwatch _app = Stopwatch()..start();
 
   @override
   State<OnbLoopClock> createState() => _OnbLoopClockState();
 }
 
-class _OnbLoopClockState extends State<OnbLoopClock>
-    with SingleTickerProviderStateMixin {
+// Heat plan Step 11: an [LfTikker] (shared clock under `klokkePaa`) with the
+// same TickerMode muting as SingleTickerProviderStateMixin.
+class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
   late final Ticker _ticker;
   final ValueNotifier<double> _t = ValueNotifier<double>(0);
   final Stopwatch _local = Stopwatch()..start();
@@ -353,11 +361,13 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   }
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<double>(
-    valueListenable: _t,
-    child: widget.child,
-    builder: (context, t, child) => widget.builder(context, t, child),
-  );
+  Widget build(BuildContext context) => widget.ramme
+      ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
+      : ValueListenableBuilder<double>(
+          valueListenable: _t,
+          child: widget.child,
+          builder: (context, t, child) => widget.builder(context, t, child),
+        );
 }
 
 // ── Entrance animations ─────────────────────────────────────────────────────
