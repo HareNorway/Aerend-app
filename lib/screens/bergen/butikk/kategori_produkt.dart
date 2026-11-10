@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import '../../../theme/bergen_tokens.dart';
 import '../../common/auth/onboarding_kit.dart' show onbBlur;
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
+import '../kit/bergen_lagring.dart' show BergenLagringLive;
 import '../kit/bergen_motion.dart';
 import '../kit/bergen_perf.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
@@ -330,11 +330,14 @@ class _Tallerken extends StatelessWidget {
                 bottom: -14 * s + py * 18 * s,
                 child: _KenBurns(rolig: rolig, delayMs: fase, durMs: 16000, child: _foto(p.bildeUrl!)),
               ),
+            // Heat plan Step 8: `soft-light` blends with the screen beneath.
             IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(center: Alignment(lys.dx * 2 - 1, lys.dy * 2 - 1), radius: .7, colors: [rgba(255, 255, 255, .4), rgba(255, 255, 255, 0)], stops: const [0, .7]),
-                  backgroundBlendMode: BlendMode.softLight,
+              child: BergenLagringLive(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(center: Alignment(lys.dx * 2 - 1, lys.dy * 2 - 1), radius: .7, colors: [rgba(255, 255, 255, .4), rgba(255, 255, 255, 0)], stops: const [0, .7]),
+                    backgroundBlendMode: BlendMode.softLight,
+                  ),
                 ),
               ),
             ),
@@ -464,6 +467,8 @@ class _Glans extends StatelessWidget {
   Widget build(BuildContext context) => BergenLoop(
     durationMs: 7500,
     delayMs: -delayMs % 7500,
+    // Heat Step 3: nothing drawn before the delay and below 62 %.
+    stille: LfStille(periodeMs: 7500, forsinkelseMs: -delayMs % 7500, fra: 0, til: .62, foer: true),
     builder: (context, q, _) {
       final t = q ?? 0;
       if (t < .62) return const SizedBox.shrink();

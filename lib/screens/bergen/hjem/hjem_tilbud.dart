@@ -155,7 +155,9 @@ class HjemTilbudRad extends StatefulWidget {
   State<HjemTilbudRad> createState() => _HjemTilbudRadState();
 }
 
-class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateMixin {
+// Heat ladder: the timed glide follows the 30 fps takt while it is on
+// (PerfTaktTikker; a glide after a touch keeps every vsync).
+class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateMixin, PerfTaktTikker {
   static const double _w = 358, _gap = 10;
   static const Cubic _ease = Cubic(.65, 0, .35, 1);
 
@@ -256,7 +258,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   }
 
   void _tikk() {
-    if (!mounted || _hold || !TickerMode.of(context)) return;
+    if (!mounted || _hold || !TickerMode.of(context) || BergenPerf.frosset) return;
     if (DateTime.now().difference(_sist).inMilliseconds < 11000) return;
     _sist = DateTime.now();
     final n = _n;
@@ -957,6 +959,8 @@ class _Drypp extends StatelessWidget {
   Widget build(BuildContext context) {
     const c = Cubic(.5, 0, .8, .6);
     return LfLoop(
+      // Heat Step 3: nothing drawn before the delay and below 58 %.
+      stille: const LfStille(periodeMs: 16000, forsinkelseMs: 3000, fra: 0, til: .58, foer: true),
       builder: (context, t, _) {
         final e = t - 3000;
         if (e < 0) return const SizedBox.shrink();

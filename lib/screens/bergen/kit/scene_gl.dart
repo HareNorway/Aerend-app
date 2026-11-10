@@ -56,6 +56,34 @@ class SceneGl extends StatelessWidget {
     SceneKind.skilt: _Prof(sheen: 1),
   };
 
+  /// Heat plan Step 6: Flesland's rock split (`shaders/scene_gl_bake.frag` +
+  /// `scene_gl_delt.frag`). What never moves — the stone relief (6 fbm), the
+  /// grain and plank texture and the 12-tap window glow (24 reads) — is baked
+  /// once per size and texture set; the live pass reads it back (4 reads)
+  /// and adds the drips, the flicker, the glow and the grain as before.
+  /// Floats after `uT` in [SceneGl]'s order: 0 uSky, 1 uHz, 2 uPlank,
+  /// 3 uRock, 4 uGlow, 5 uRegn, 6 uSol, 7 uVann, 8 uSheen, 9–11 uTake,
+  /// 12–14 uLit, 15–17 uShade, 18–20 uFogC, 21 uTW, 22 uTH.
+  static final SpGlDel _bergDel = SpGlDel(
+    liv: 'shaders/scene_gl_delt.frag',
+    bake: 'shaders/scene_gl_bake.frag',
+    noekkel: 'berg',
+    // Everything but uPlank (only the baked texture term reads it).
+    livU: (u, f) {
+      f(u[0]);
+      f(u[1]);
+      for (var k = 3; k < 23; k++) {
+        f(u[k]);
+      }
+    },
+    bakeU: (u, f) {
+      f(u[2]);
+      f(u[3]);
+      f(u[21]);
+      f(u[22]);
+    },
+  );
+
   static const _Pal _dag = _Pal([1, 1, 1], [.64, .71, .75], [.88, .92, .93], glow: .3, sol: .16, sky: 1);
   static const _Pal _kveld = _Pal([.91, .86, .82], [.44, .52, .57], [.74, .79, .81], glow: 1, sol: .06, sky: .9);
 
@@ -79,6 +107,7 @@ class SceneGl extends StatelessWidget {
       waitTex: true,
       egenRamme: true,
       still: still,
+      del: kind == SceneKind.berg ? _bergDel : null,
       tex: [
         SpGlTex.asset('$base.png', tw, th),
         SpGlTex.asset('${base}_1.png', tw ~/ 2, th ~/ 2),

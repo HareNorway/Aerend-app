@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather;
 import '../kit/br_pal.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/maler_vert.dart';
 
 /// Fløyen behind Ægil, live: the prototype's own WebGL scene
 /// (`data-flgl="agent"`, `flGlInit` / `flGlTegn`), 390 × 252 design px.
@@ -22,6 +23,13 @@ import '../kit/bergen_perf.dart';
 /// blurs at the top, the haze, the warm light (soft-light), the shade
 /// (multiply) and the vignette — are drawn into the same frame offscreen,
 /// so the screen gets no extra blur layer.
+///
+/// Heat plan Step 6 ([BergenPerf.malerVertPaa]): the second pass's static
+/// start — the city with its 4-tap soft blur and 8-tap glow — is baked once
+/// per city and size (`shaders/aegil_floyen_bake.frag`, four passes, one per
+/// step) and read back by `shaders/aegil_floyen_liv_delt.frag` (4 reads + the
+/// mask instead of 13); each frame is shown through [MalerVert] without a
+/// rebuild.
 ///
 /// Motion tiers (parity plan §3.1): `full` as the prototype; `lite` every
 /// 66 ms at 55 % of the pixels; `still` shows [still] (the baked frame,
@@ -41,6 +49,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   static const double _w = 390, _h = 252;
   static const int _stripes = 20;
   static Future<List<ui.FragmentProgram>>? _programs;
+  static Future<List<ui.FragmentProgram>>? _delProgs;
 
   /// The last finished city (one weather, one size), kept across visits.
   static String? _cacheSig;
@@ -64,18 +73,32 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     _sist = Duration.zero;
   });
 
+  // Heat plan Step 4: no frames between the scene's own steps.
+  late final PerfStegRammer _rammer;
+
   // The city being drawn (stripe by stripe) and the one in use.
   String? _sig;
   ui.Image? _acc;
   int _stripe = 0;
   String? _statSig;
   ui.Image? _stat;
-  ui.Image? _frame;
+  // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
+  // one only repaints [MalerVert] (no setState per step).
+  final MalerRamme _ramme = MalerRamme();
+  bool _vert = false;
+  // The split: its shaders, the key of the bake and its digit textures.
+  ui.FragmentShader? _livDelt, _bake;
+
+  /// Heat check: the last frame came from the split shader (render counter name).
+  bool _sistDelt = false;
+  String? _delNoekkel;
+  final List<ui.Image> _delBilder = [];
 
   @override
   void initState() {
     super.initState();
     _ticker = createTicker(_tick);
+    _rammer = PerfStegRammer(_ticker, tickerModus: () => TickerMode.getNotifier(context));
     _programs ??= Future.wait([ui.FragmentProgram.fromAsset('shaders/aegil_floyen.frag'), ui.FragmentProgram.fromAsset('shaders/aegil_floyen_liv.frag')]);
     _programs!
         .then((p) {
@@ -83,6 +106,14 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
           _by = p[0].fragmentShader();
           _liv = p[1].fragmentShader();
           _sync();
+        })
+        .catchError((Object _) {});
+    _delProgs ??= Future.wait([ui.FragmentProgram.fromAsset('shaders/aegil_floyen_liv_delt.frag'), ui.FragmentProgram.fromAsset('shaders/aegil_floyen_bake.frag')]);
+    _delProgs!
+        .then((p) {
+          if (!mounted) return;
+          _livDelt = p[0].fragmentShader();
+          _bake = p[1].fragmentShader();
         })
         .catchError((Object _) {});
   }
@@ -108,25 +139,34 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     final run = _step != null;
     if (!run) _hvile.vaakn(start: false);
     if (run && !_ticker.isActive && !_hvile.hviler) _ticker.start();
-    if (!run && _ticker.isActive) _ticker.stop();
+    if (!run && _ticker.isActive) {
+      _rammer.vekk();
+      _ticker.stop();
+    }
     if (!run) {
       // The heat / battery `still` tier: the baked frame.
-      final old = _frame;
-      if (old != null) setState(() => _frame = null);
-      old?.dispose();
+      if (_ramme.bilde != null) setState(() => _ramme.sett(null));
     }
   }
 
   double get _d => _dpr * math.sqrt(_budgetK);
 
   void _tick(Duration e) {
-    if (_hvile.tikk()) return;
-    final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .1);
+    _rammer.tikk(e);
+    if (_hvile.tikk(n: _rammer.n)) return;
+    final dt = _rammer.dt(e, _prev, .1);
     _prev = e;
     _t += dt * (_calm ? .15 : 1);
+    if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     final step = _step;
-    if (step == null || e - _sist < step) return;
-    _sist = e;
+    // Heat ladder / idle: on the takt's frames ([PerfTakt.steg]).
+    final sist = step == null ? null : (PerfTakt.paa ? PerfTakt.steg(e, _sist, step) : (e - _sist < step ? null : e));
+    if (sist == null) {
+      _rammer.etter(e, _sist, step);
+      return;
+    }
+    _sist = sist;
+    _rammer.etter(e, _sist, step);
     _city();
     if (_stat != null) _render();
   }
@@ -198,10 +238,44 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
 
   static double _vis(BrPal p) => p.rain > 0 ? 4800 : (p.snow > 0 ? 4200 : (p.sunset > 0 ? 9000 : (p.sun > .9 ? 16000 : (p.night > .7 ? 6000 : 7000))));
 
+  /// Heat plan Step 6: the split second pass for this city and size, or null
+  /// while its bake isn't done (one digit per step; the frame then comes from
+  /// the unsplit shader). Baked again only when the city or the size changes.
+  ui.FragmentShader? _delt(ui.Image stat, int pw, int ph) {
+    final liv = _livDelt, bake = _bake;
+    if (liv == null || bake == null) return null;
+    final noekkel = '$_statSig|${pw}x$ph';
+    if (noekkel != _delNoekkel) {
+      _delNoekkel = noekkel;
+      for (final b in _delBilder) {
+        b.dispose();
+      }
+      _delBilder.clear();
+    }
+    if (_delBilder.length == malerNivaaer) {
+      malerDeltRammer++;
+      return liv;
+    }
+    var i = 0;
+    void f(double v) => bake.setFloat(i++, v);
+    f(_w);
+    f(_h);
+    f(pw / _w);
+    f(_delBilder.length.toDouble());
+    bake.setImageSampler(0, stat);
+    final rec = ui.PictureRecorder();
+    Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = bake);
+    _delBilder.add(rec.endRecording().toImageSync(pw, ph));
+    return null;
+  }
+
   /// `flGlTegn`'s second pass, then the page's layers over the canvas.
   void _render() {
-    final sh = _liv!, stat = _stat!;
+    final stat = _stat!;
     final d = _d, pw = (_w * d).round(), ph = (_h * d).round();
+    final delt = BergenPerf.malerVertPaa ? _delt(stat, pw, ph) : null;
+    _sistDelt = delt != null;
+    final sh = delt ?? _liv!;
     final p = BrPal.of(widget.kind);
     final ln = p.night > .7 ? .24 : (p.rain > 0 ? .7 : (p.snow > 0 ? .8 : .95)), lys = .2 + .8 * p.night;
     final ss = p.sunset > 0;
@@ -222,6 +296,13 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     f(.74 * lys);
     f(.42 * lys);
     sh.setImageSampler(0, stat);
+    if (delt != null) {
+      f(pw.toDouble());
+      f(ph.toDouble());
+      for (var k = 0; k < _delBilder.length; k++) {
+        sh.setImageSampler(1 + k, _delBilder[k]);
+      }
+    }
     final full = Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble());
     // The canvas, with its CSS filter.
     var rec = ui.PictureRecorder();
@@ -273,10 +354,13 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
       );
     }
     final img = rec.endRecording().toImageSync(pw, ph);
+    BergenPerf.telRender(_sistDelt ? 'Aegil-delt' : 'Aegil');
     canvas.dispose();
-    final old = _frame;
-    setState(() => _frame = img);
-    old?.dispose();
+    if (BergenPerf.malerVertPaa && _vert) {
+      _ramme.sett(img);
+    } else {
+      setState(() => _ramme.sett(img));
+    }
   }
 
   static final List<(CssBg, BlendMode)> _lag = [
@@ -309,18 +393,26 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   @override
   void dispose() {
     _hvile.dispose();
+    _rammer.dispose();
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _acc?.dispose();
     _stat?.dispose();
-    _frame?.dispose();
+    _ramme.dispose();
     _by?.dispose();
     _liv?.dispose();
+    _livDelt?.dispose();
+    _bake?.dispose();
+    for (final b in _delBilder) {
+      b.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final img = _frame;
+    final img = _ramme.bilde;
+    _vert = img != null && BergenPerf.malerVertPaa;
     return SizedBox(
       width: _w,
       height: _h,
@@ -330,7 +422,9 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
           widget.still,
           if (img != null)
             RepaintBoundary(
-              child: RawImage(key: const Key('aegil-floyen-live'), image: img, width: _w, height: _h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
+              child: _vert
+                  ? MalerVert(key: const Key('aegil-floyen-live'), ramme: _ramme, width: _w, height: _h)
+                  : RawImage(key: const Key('aegil-floyen-live'), image: img, width: _w, height: _h, fit: BoxFit.fill, filterQuality: FilterQuality.medium),
             ),
         ],
       ),

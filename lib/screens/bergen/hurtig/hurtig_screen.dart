@@ -110,7 +110,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   HbTilstand get _st => HbTilstand(utkast: _utkast, fase: _fase, hus: _hus, skalldyr: _skalldyr, regn: _vaer == BergenWeather.regn);
 
   BergenWeather get _vaer {
-    if (kDebugMode && HjemHarness.vaer != null) {
+    if (!kReleaseMode && HjemHarness.vaer != null) {
       return switch (HjemHarness.vaer!) {
         HjemVaer.regn => BergenWeather.regn,
         HjemVaer.sol => BergenWeather.sol,

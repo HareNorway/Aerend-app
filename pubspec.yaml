@@ -144,9 +144,16 @@ flutter:
     - shaders/sp_kart.frag
     - shaders/sp_hus.frag
     - shaders/hjem_bryggen.frag
+    - shaders/hjem_bryggen_stat.frag
+    - shaders/hjem_bryggen_liv.frag
     - shaders/aegil_floyen.frag
     - shaders/aegil_floyen_liv.frag
     - shaders/scene_gl.frag
+    # Heat plan Step 6: the static/live splits (BergenPerf.malerVertPaa).
+    - shaders/aegil_floyen_bake.frag
+    - shaders/aegil_floyen_liv_delt.frag
+    - shaders/scene_gl_bake.frag
+    - shaders/scene_gl_delt.frag
 
   fonts:
     - family: CustomIcons

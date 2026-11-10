@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../bergen/kit/bergen_perf.dart';
 import '../../../bergen/kit/svg_sti.dart';
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
@@ -89,6 +90,13 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
   bool _held = false;
   int _lastCount = 0;
   int _pulse = 0;
+
+  /// Heat plan Step 2: true once the search row has faded all the way out
+  /// (closed and its 350 ms fade done). Ægil's loop in the search key then
+  /// stops ticking — opacity 0 paints nothing — and starts again in the same
+  /// build that opens search, before the fade-in's first visible frame; its
+  /// clock is a stopwatch, so it shows the pose it would have shown anyway.
+  late bool _sokSlukket = !_search;
 
   bool get _search => widget.searchOpen?.value ?? _ownSearch;
 
@@ -280,6 +288,9 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 350),
                 opacity: _search ? 1 : 0,
+                onEnd: () {
+                  if (mounted && !_search && !_sokSlukket) setState(() => _sokSlukket = true);
+                },
                 child: _searchRow(context, fok, har),
               ),
             ),
@@ -428,6 +439,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
   /// orange key that is Ægil + mic at rest and a go-lupe with text.
   Widget _searchRow(BuildContext context, bool fok, bool har) {
     final s = context.bs;
+    if (_search) _sokSlukket = false;
     const gap = 9.0;
     return Row(
       children: [
@@ -595,7 +607,12 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
                         scale: 1 - .5 * t,
                         child: Transform.rotate(
                           angle: -20 * t * math.pi / 180,
-                          child: const _SokAegil(),
+                          // Heat plan Step 2: no ticks while the row is
+                          // invisible (`usynlig: false` keeps them).
+                          child: TickerMode(
+                            enabled: !_sokSlukket || !BergenPerf.usynligPaa,
+                            child: const _SokAegil(),
+                          ),
                         ),
                       ),
                     ),

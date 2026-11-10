@@ -19,6 +19,7 @@ import '../../common/home/bergen/bergen_kit.dart';
 import '../aegil/aegil_entry.dart';
 import '../hjem/hjem_harness.dart';
 import '../kit/bergen_css.dart';
+import '../kit/bergen_lagring.dart' show BergenLagringLive;
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_motion.dart';
 import '../kit/ro_baat.dart';
@@ -838,7 +839,8 @@ class _HeroState extends State<_Hero> with SingleTickerProviderStateMixin {
                                   ),
                                 ),
                                 const IgnorePointer(child: _SveipLys()),
-                                IgnorePointer(child: CustomPaint(painter: _LysOverlay(_lys))),
+                                // Heat plan Step 8: `overlay` blends with the screen beneath.
+                                IgnorePointer(child: BergenLagringLive(child: CustomPaint(painter: _LysOverlay(_lys)))),
                                 // `radial-gradient(120% 78% at 52% 26%, transparent 34%,
                                 // rgba(14,6,3,.55))`.
                                 const IgnorePointer(
@@ -1120,6 +1122,8 @@ class _SveipLys extends StatelessWidget {
   Widget build(BuildContext context) => BergenLoop(
     durationMs: 8000,
     delayMs: 1200,
+    // Heat Step 3: nothing drawn before the delay and after 45 %.
+    stille: const LfStille(periodeMs: 8000, forsinkelseMs: 1200, fra: .45, til: 1, foer: true),
     builder: (context, p, _) {
       if (p == null || p > .45) return const SizedBox.shrink();
       final x = kf(p, const [0, .45], const [-1.2, 1.2], Curves.easeInOut);

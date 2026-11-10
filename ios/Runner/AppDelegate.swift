@@ -27,8 +27,10 @@ import UserNotifications
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Parity plan §3: the motion tier reads the device class, low power mode
-  // and the thermal state here (`BergenPerf` in Dart).
+  // Parity plan §3: the motion tier reads the device class and low power
+  // mode here (`BergenPerf` in Dart); the thermal state feeds the perf
+  // heartbeat and the gentle heat ladder (serious: decorative motion at
+  // 30 fps; critical: motion off).
   private var perfChannel: FlutterMethodChannel?
 
   private func perfState() -> [String: Any] {
@@ -53,6 +55,8 @@ import UserNotifications
       "ramMb": Double(ProcessInfo.processInfo.physicalMemory) / 1_048_576,
       "lowPower": ProcessInfo.processInfo.isLowPowerModeEnabled,
       "thermal": thermal,
+      // Heat ladder: the raw state (on iOS the same scale).
+      "thermalStatus": thermal,
       "battery": level < 0 ? -1.0 : Double(level * 100),
     ]
   }

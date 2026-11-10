@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
+import '../kit/perf_video_test.dart';
+import '../kit/lag_cache.dart';
 import 'hjem_hero.dart';
 
 /// Debug builds only: `Documents/kunde_state.json` (Customer plan Step 0;
@@ -412,6 +415,10 @@ abstract final class HjemHarness {
 
   /// Customer Step 0: open Ægil's Brett (all his finds) over Hjem.
   static bool brett = false;
+
+  /// Heat plan Step 0: the scripted 30-minute customer journey (see
+  /// `_BergenHomeState._reise`); the Mac side adds swipes (`heat_reise.sh`).
+  static bool reise = false;
   static double? aegScroll;
   static int? guideIdx;
 
@@ -422,7 +429,16 @@ abstract final class HjemHarness {
       final kunde = File('${dir.path}/kunde_state.json');
       final f = await kunde.exists() ? kunde : File('${dir.path}/hjem_state.json');
       if (!await f.exists()) {
-        if (perf != null) BergenPerf.force(null);
+        // Heat plan Step 12: back to "heat never changes the motion".
+        final varme = BergenPerf.varmeTrinnGammel;
+        BergenPerf.varmeTrinnGammel = false;
+        // `termisk` absent: the real thermal readings again.
+        if (BergenPerf.termisk != null || BergenPerf.termiskStatus != null) BergenPerf.termiskTvang(null);
+        // The heat ladder and idle slow-down as shipped.
+        BergenPerf.settStige(stige: true, nedSek: 60, ledigSek: 30, takt: false);
+        BergenPerf.rammeSek(false);
+        BergenPerf.taktViktigPaa = true;
+        if (perf != null || varme) BergenPerf.force(null);
         perf = null;
         nyButikk = false;
         betaltKurv = null;
@@ -438,8 +454,22 @@ abstract final class HjemHarness {
         CssBoxPainter.debugUtenBlur = false;
         CssBake.paa = true;
         BergenPerf.hvilePaa = true;
+        BergenPerf.usynligPaa = true;
+        BergenPerf.pauseSovPaa = true;
+        BergenPerf.stegRammerPaa = true;
+        BergenPerf.malerVertPaa = true;
+        BergenPerf.pass2KlippPaa = true;
+        BergenPerf.pass2CssPaa = false;
+        BergenPerf.pass2BaktPaa = false;
+        BergenPerf.lagringPaa = false;
+        BergenPerf.lagringOvrePaa = false;
+        BergenPerf.loopGrensePaa = false;
+        BergenPerf.bryggenDelingPaa = true;
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
+        BergenPerf.shaderFrys = false;
+        BergenPerf.shaderFrysKun = null;
+        BergenPerf.frysMs = null;
         heroStille = false;
         arkStille = false;
         snart = null;
@@ -544,6 +574,7 @@ abstract final class HjemHarness {
         aegScroll = null;
         guideIdx = null;
         brett = false;
+        reise = false;
         utfScroll = null;
         feedDrift = automat = false;
         autoValg = null;
@@ -562,6 +593,40 @@ abstract final class HjemHarness {
       perf = m['perf'] as String?;
       nyButikk = m['nyButikk'] == true;
       betaltKurv = (m['betaltKurv'] as num?)?.toInt();
+      // Heat plan Step 12: `varmeTrinn: true` brings back the old thermal
+      // step-down (fair → lite, serious → still) for A/B on one build; the
+      // force below applies it.
+      BergenPerf.varmeTrinnGammel = m['varmeTrinn'] == true;
+      // `termisk: 0..3` (debug / profile): the thermal state as if the
+      // platform reported it (fair / serious / critical for a device check);
+      // absent = the real readings.
+      // Heat ladder (2026-11-10): `termiskStatus` = a raw platform status
+      // (Android 2 moderate, 3 severe, 4 critical; iOS 2 serious, 3 critical);
+      // `varmeStige: false` = heat never changes the motion (A/B);
+      // `varmeNedSek` = the hysteresis hold (default 60); `ledigSek` = the
+      // idle slow-down after n s untouched (default 30, 0 = off);
+      // `takt: true` = the 30 fps cadence without heat or idle.
+      BergenPerf.settStige(
+        stige: m['varmeStige'] != false,
+        nedSek: (m['varmeNedSek'] as num?)?.toInt() ?? 60,
+        ledigSek: (m['ledigSek'] as num?)?.toInt() ?? 30,
+        takt: m['takt'] == true,
+      );
+      BergenPerf.termiskTvang((m['termisk'] as num?)?.toInt(), status: (m['termiskStatus'] as num?)?.toInt());
+      BergenPerf.rammeSek(m['rammeSek'] == true);
+      // Heat ladder: `taktViktig: false` keeps essential loops (the live-order
+      // pill, loaders, typing dots) at every vsync under the takt (A/B; on by
+      // default since the user's decision of 2026-11-10; games always full).
+      BergenPerf.taktViktigPaa = m['taktViktig'] != false;
+      // `termiskPlan: [[s, status], …]` (device check of the hysteresis): the
+      // injected raw status changes s seconds after the harness is applied.
+      for (final p in (m['termiskPlan'] as List?) ?? const []) {
+        final l = p as List;
+        Timer(Duration(milliseconds: ((l[0] as num) * 1000).round()), () {
+          BergenPerf.termiskTvang(null, status: (l[1] as num).toInt());
+          debugPrint('HJEM_TERMISK status=${l[1]}');
+        });
+      }
       BergenPerf.force(perf == null ? null : BergenTier.values.byName(perf!));
       vaer = m['vaer'] == null ? null : HjemVaer.values.byName(m['vaer'] as String);
       demoFloats = m['demoFloats'] == true;
@@ -577,11 +642,44 @@ abstract final class HjemHarness {
       CssBake.paa = m['cssCache'] != false;
       // Perf plan: `hvile: false` keeps off-screen loops and scenes ticking (A/B).
       BergenPerf.hvilePaa = m['hvile'] != false;
+      // Heat plan Step 2: `usynlig: false` keeps invisible work running (A/B).
+      BergenPerf.usynligPaa = m['usynlig'] != false;
+      // Heat plan Step 3: `pauseSov: false` keeps loops ticking through their
+      // keyframe holds (A/B).
+      BergenPerf.pauseSovPaa = m['pauseSov'] != false;
+      // Heat plan Step 4: `stegRammer: false` keeps the shader scenes asking
+      // for a frame on every vsync, as before (A/B on one build).
+      BergenPerf.stegRammerPaa = m['stegRammer'] != false;
+      // Heat plan Step 6: `malerVert: false` keeps the shader hosts on setState
+      // + RawImage per frame and the unsplit shaders (A/B on one build).
+      BergenPerf.malerVertPaa = m['malerVert'] != false;
+      // Heat plan Step 7 (A/B on one build): `pass2Klipp: false` keeps the big
+      // shadow clips; `pass2Css: true` returns still CssBoxes to the raster;
+      // `pass2Bakt: true` puts BergenBakt's raster on the device pixel grid.
+      BergenPerf.pass2KlippPaa = m['pass2Klipp'] != false;
+      BergenPerf.pass2CssPaa = m['pass2Css'] == true;
+      BergenPerf.pass2BaktPaa = m['pass2Bakt'] == true;
+      // Heat plan Steps 8–9 (off by default, A/B on one build): `lagring: true`
+      // draws each Bergen screen's unchanged bottom run from one cached image;
+      // `loopGrense: true` gives every loop's output its own repaint boundary.
+      BergenPerf.lagringPaa = m['lagring'] == true;
+      // `lagringOvre: true` also caches the runs above a live layer (≤ 1/255).
+      BergenPerf.lagringOvrePaa = m['lagringOvre'] == true;
+      BergenPerf.loopGrensePaa = m['loopGrense'] == true;
+      // Heat plan Step 5: `bryggenDeling: false` draws Bryggen with the
+      // original whole-city shader every step (A/B on one build; with
+      // `klokke` both paths draw the same frame).
+      BergenPerf.bryggenDelingPaa = m['bryggenDeling'] != false;
       // Perf plan: `dekket: false` paints covered scenes; `bakt: false` paints
       // every BergenBakt live (A/B on one build).
       BergenPerf.dekketPaa = m['dekket'] != false;
       BergenBakt.paa = m['bakt'] != false;
       heroStille = m['heroStille'] == true;
+      BergenPerf.shaderFrys = m['shaderFrys'] == true;
+      BergenPerf.shaderFrysKun = m['shaderFrysKun'] as String?;
+      BergenPerf.frysMs = (m['klokke'] as num?)?.toDouble();
+      // A loop asleep in a hold wakes now for the frozen clock / `pauseSov`.
+      BergenPerf.vekkSovende();
       arkStille = m['arkStille'] == true;
       snart = m['snart'] as int?;
       pose = m['pose'] == true;
@@ -735,6 +833,9 @@ abstract final class HjemHarness {
       guide = m['guide'] as String?;
       guideIdx = m['guideIdx'] as int?;
       brett = m['brett'] == true;
+      reise = m['reise'] == true;
+      if (m['lagCache'] == true) LagCache.start();
+      if (m['videoTest'] is String) PerfVideoTest.start(m['videoTest'] as String);
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

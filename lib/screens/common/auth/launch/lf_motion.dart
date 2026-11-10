@@ -1,11 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../../bergen/kit/bergen_perf.dart';
 import 'lf_css.dart';
+
+export '../../../bergen/kit/bergen_perf.dart' show LfStille;
 
 // ── Launch onboarding · motion ──────────────────────────────────────────────
 // Clocks for the prototype's CSS animations. A one-shot clock starts when its
@@ -70,6 +71,7 @@ class LfLoop extends StatefulWidget {
     this.child,
     this.frozenMs = 0,
     this.essential = false,
+    this.stille,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -78,6 +80,10 @@ class LfLoop extends StatefulWidget {
 
   /// Keeps running in the `lite` tier (see [BergenEssential]).
   final bool essential;
+
+  /// Heat plan Step 3: where [builder]'s output holds still — the loop
+  /// sleeps there (see [PerfSov]).
+  final LfStille? stille;
 
   @override
   State<LfLoop> createState() => _LfLoopState();
@@ -97,21 +103,67 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   // position and a 120 ms timer wake it as soon as it is on the screen.
   int _tikk = 0;
   Stopwatch? _hvil;
-  Timer? _vekk;
+  late final PerfVekker _vekk = PerfVekker(_sjekk);
   ScrollPosition? _rull;
 
+  // Heat plan Step 3: asleep in a keyframe hold ([LfLoop.stille]). [_sovFra]
+  // is the frame time of the last tick before the sleep; the first tick
+  // after it adds the frame time since, so t is what a ticker that never
+  // stopped would have handed the builder on that frame.
+  late final PerfSov _sov = PerfSov(_ticker, onVaakn: _sovVaakn);
+  Duration? _sovFra;
+
+
+  /// Frozen test clock (harness `klokke`) set or changed: show that pose even
+  /// before the next tick (a muted or resting loop would keep its old one).
+  void _frys() {
+    final f = BergenPerf.frysMs;
+    // A ticking loop takes it on its next tick (as before); only one that is
+    // muted, resting, asleep or not started yet is moved here.
+    if (_ticker.isActive && !_ticker.muted) return;
+    if (f != null && !_reduce && mounted) _t.value = f;
+  }
   @override
   void initState() {
     super.initState();
     BergenPerf.lfLoopsMounted++;
+    if (BergenPerf.frysMs case final f?) _t.value = f;
+    BergenPerf.frysVarsel.addListener(_frys);
     if (kDebugMode) BergenPerf.debugLoops[context] = () => _ticker.isActive && !_ticker.muted;
     _ticker = createTicker(_onTick);
   }
 
   void _onTick(Duration e) {
+    final fra = _sovFra;
+    if (fra != null) {
+      _sovFra = null;
+      // Less [e]: a ticker restarted inside a frame (a new hold map in
+      // didUpdateWidget) starts its clock at that frame, not at this tick.
+      _base += SchedulerBinding.instance.currentFrameTimeStamp - fra - e;
+    }
     _last = e;
-    _t.value = (_base + e).inMicroseconds / 1000.0;
+    _t.value = BergenPerf.frysMs ?? (_base + e).inMicroseconds / 1000.0;
+    if (_sov.tikk(widget.stille, _t.value, tidsfaktor: timeDilation)) {
+      _base += _last;
+      _last = Duration.zero;
+      _sovFra = SchedulerBinding.instance.currentFrameTimeStamp;
+      return;
+    }
     if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
+    // Heat ladder / idle: a decorative loop waits for the next takt frame.
+    if (PerfTakt.paa && _dekor) PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
+  }
+
+  // Not essential: on the takt while it is on.
+  bool get _dekor => BergenPerf.paaTakt(context, essential: widget.essential);
+
+  // A restart from a rest or a hold: onto the takt's next frame if it is on.
+  void _start() {
+    if (PerfTakt.paa && _dekor) {
+      PerfTakt.start(_ticker, TickerMode.getNotifier(context));
+    } else {
+      _ticker.start();
+    }
   }
 
   void _hvile() {
@@ -120,7 +172,7 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
     _last = Duration.zero;
     _ticker.stop();
     _hvil = Stopwatch()..start();
-    _vekk = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _vekk.start(context);
     _rull = Scrollable.maybeOf(context)?.position;
     _rull?.addListener(_sjekk);
   }
@@ -132,14 +184,26 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   }
 
   void _vaakn() {
-    _vekk?.cancel();
-    _vekk = null;
+    _vekk.stopp();
     _rull?.removeListener(_sjekk);
     _rull = null;
     final h = _hvil;
     _hvil = null;
     if (h != null) _base += h.elapsed;
-    if (!_reduce && !_ticker.isActive) _ticker.start();
+    if (!_reduce && !_ticker.isActive) _start();
+  }
+
+  void _sovVaakn() {
+    // Heat Step 2 + 3: a resting loop is woken by its own on-screen check
+    // ([_vaakn]), never by a hold's timer (the two are never both armed).
+    if (mounted && !_reduce && _hvil == null && !_ticker.isActive) _start();
+  }
+
+  @override
+  void didUpdateWidget(LfLoop oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new hold map: wake and let the next tick judge it.
+    if (widget.stille != oldWidget.stille) _sov.vaakn();
   }
 
   @override
@@ -155,34 +219,57 @@ class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
         _last = Duration.zero;
         _ticker.stop();
       }
-      _vekk?.cancel();
-      _vekk = null;
+      _vekk.stopp();
       _rull?.removeListener(_sjekk);
       _rull = null;
       _hvil = null;
+      // Asleep in a hold: the clock stops here, as a ticking loop's would
+      // at its last frame.
+      if (_sov.sover) _sov.avbryt();
+      final fra = _sovFra;
+      if (fra != null) {
+        _sovFra = null;
+        _base += SchedulerBinding.instance.currentFrameTimeStamp - fra;
+      }
       _t.value = widget.frozenMs;
-    } else if (!_ticker.isActive && _hvil == null) {
+    } else if (!_ticker.isActive && _hvil == null && !_sov.sover) {
       _ticker.start();
     }
   }
 
   @override
+  void activate() {
+    super.activate();
+    _vekk.folg(context);
+  }
+
+  @override
   void dispose() {
     BergenPerf.lfLoopsMounted--;
+    BergenPerf.frysVarsel.removeListener(_frys);
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
-    _vekk?.cancel();
+    _sov.avbryt();
+    _vekk.stopp();
     _rull?.removeListener(_sjekk);
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _t.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<double>(
-    valueListenable: _t,
-    child: widget.child,
-    builder: (context, t, child) => widget.builder(context, t, child),
-  );
+  Widget build(BuildContext context) {
+    final Widget ut = ValueListenableBuilder<double>(
+      valueListenable: _t,
+      child: widget.child,
+      builder: (context, t, child) => widget.builder(context, t, child),
+    );
+    // Heat plan Step 9: the animated output in its own layer, so it does not
+    // repaint (and keep changing) the picture of what is around it.
+    // Not inside a BergenBakt: a boundary there makes it paint live (iOS
+    // simulator 2026-11-10: up to 33/255 on its edges vs its raster).
+    return BergenPerf.loopGrensePaa && !BergenBakt.inni(context) ? RepaintBoundary(child: ut) : ut;
+  }
 }
 
 // ── Shared keyframes ────────────────────────────────────────────────────────

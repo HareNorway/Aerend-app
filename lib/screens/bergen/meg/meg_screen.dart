@@ -791,7 +791,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   int _aegN = 0;
 
   BergenWeatherLook get _look {
-    if (kDebugMode && HjemHarness.vaer != null) {
+    if (!kReleaseMode && HjemHarness.vaer != null) {
       return switch (HjemHarness.vaer!) {
         HjemVaer.regn => BergenWeatherLook.regn,
         HjemVaer.sol => BergenWeatherLook.sol,

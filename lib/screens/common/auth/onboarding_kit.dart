@@ -11,9 +11,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../commonView/customCountryCodePicker/custom_country_code_picker.dart';
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
+import '../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../bergen/kit/bergen_perf.dart';
 import '../splash/splash_sticker_painter.dart';
 import 'onboarding_copy.dart';
+
+export '../../bergen/kit/bergen_perf.dart' show LfStille;
 
 // ── Ærend Bergen onboarding kit ─────────────────────────────────────────────
 // Shared pieces of `data-screen-label="Onboarding"` in
@@ -230,6 +233,7 @@ class OnbLoopClock extends StatefulWidget {
     this.shared = false,
     this.essential = false,
     this.child,
+    this.stille,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -238,6 +242,10 @@ class OnbLoopClock extends StatefulWidget {
   /// Keeps running in the `lite` tier (see [BergenEssential]).
   final bool essential;
   final Widget? child;
+
+  /// Heat plan Step 3: where [builder]'s output holds still (on its t) —
+  /// the loop sleeps there (see [PerfSov]). The stopwatch clock runs on.
+  final LfStille? stille;
 
   static final Stopwatch _app = Stopwatch()..start();
 
@@ -252,19 +260,27 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   final Stopwatch _local = Stopwatch()..start();
 
   double get _now =>
-      (widget.shared ? OnbLoopClock._app : _local).elapsedMicroseconds / 1000.0;
+      BergenPerf.frysMs ?? (widget.shared ? OnbLoopClock._app : _local).elapsedMicroseconds / 1000.0;
 
   // Perf plan: off the screen the loop stops ticking (no frame, no
   // rebuild); its stopwatch clock keeps running, so it resumes at the pose
   // the design would show at that moment.
   int _tikk = 0;
   bool _reduce = false, _hviler = false;
-  Timer? _vekk;
+  late final PerfVekker _vekk = PerfVekker(_sjekk);
   ScrollPosition? _rull;
+  late final PerfSov _sov = PerfSov(_ticker, onVaakn: _sovVaakn);
 
+
+  /// Frozen test clock set or changed: show that pose even before the next tick.
+  void _frys() {
+    if (_ticker.isActive && !_ticker.muted) return;
+    if (BergenPerf.frysMs != null && !_reduce && mounted) _t.value = _now;
+  }
   @override
   void initState() {
     super.initState();
+    BergenPerf.frysVarsel.addListener(_frys);
     BergenPerf.onbLoopsMounted++;
     if (kDebugMode) BergenPerf.debugLoops[context] = () => _ticker.isActive && !_ticker.muted;
     _t.value = _now;
@@ -273,14 +289,29 @@ class _OnbLoopClockState extends State<OnbLoopClock>
 
   void _onTick(Duration _) {
     _t.value = _now;
+    if (_sov.tikk(widget.stille, _t.value)) return;
     if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
+    // Heat ladder / idle: a decorative loop waits for the next takt frame.
+    if (PerfTakt.paa && _dekor) PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
+  }
+
+  // Not essential: on the takt while it is on.
+  bool get _dekor => BergenPerf.paaTakt(context, essential: widget.essential);
+
+  // A restart from a rest or a hold: onto the takt's next frame if it is on.
+  void _start() {
+    if (PerfTakt.paa && _dekor) {
+      PerfTakt.start(_ticker, TickerMode.getNotifier(context));
+    } else {
+      _ticker.start();
+    }
   }
 
   void _hvile() {
     if (!_ticker.isActive) return;
     _ticker.stop();
     _hviler = true;
-    _vekk = Timer.periodic(const Duration(milliseconds: 120), (_) => _sjekk());
+    _vekk.start(context);
     _rull = Scrollable.maybeOf(context)?.position;
     _rull?.addListener(_sjekk);
   }
@@ -292,12 +323,22 @@ class _OnbLoopClockState extends State<OnbLoopClock>
   }
 
   void _vaakn() {
-    _vekk?.cancel();
-    _vekk = null;
+    _vekk.stopp();
     _rull?.removeListener(_sjekk);
     _rull = null;
     _hviler = false;
-    if (!_reduce && !_ticker.isActive) _ticker.start();
+    if (!_reduce && !_ticker.isActive) _start();
+  }
+
+  void _sovVaakn() {
+    if (mounted && !_reduce && !_hviler && !_ticker.isActive) _start();
+  }
+
+  @override
+  void didUpdateWidget(OnbLoopClock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new hold map: wake and let the next tick judge it.
+    if (widget.stille != oldWidget.stille) _sov.vaakn();
   }
 
   @override
@@ -309,28 +350,44 @@ class _OnbLoopClockState extends State<OnbLoopClock>
     if (_reduce) {
       if (_ticker.isActive) _ticker.stop();
       if (_hviler) _vaakn();
-    } else if (!_ticker.isActive && !_hviler) {
+      if (_sov.sover) _sov.avbryt();
+    } else if (!_ticker.isActive && !_hviler && !_sov.sover) {
       _ticker.start();
     }
   }
 
   @override
+  void activate() {
+    super.activate();
+    _vekk.folg(context);
+  }
+
+  @override
   void dispose() {
     BergenPerf.onbLoopsMounted--;
+    BergenPerf.frysVarsel.removeListener(_frys);
     if (kDebugMode) BergenPerf.debugLoops.remove(context);
-    _vekk?.cancel();
+    _sov.avbryt();
+    _vekk.stopp();
     _rull?.removeListener(_sjekk);
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _t.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder<double>(
-    valueListenable: _t,
-    child: widget.child,
-    builder: (context, t, child) => widget.builder(context, t, child),
-  );
+  Widget build(BuildContext context) {
+    final Widget ut = ValueListenableBuilder<double>(
+      valueListenable: _t,
+      child: widget.child,
+      builder: (context, t, child) => widget.builder(context, t, child),
+    );
+    // Heat plan Step 9 (BergenLoop and KatLoop run on this clock too): the
+    // animated output in its own layer.
+    // Not inside a BergenBakt (see BergenBakt.inni).
+    return BergenPerf.loopGrensePaa && !BergenBakt.inni(context) ? RepaintBoundary(child: ut) : ut;
+  }
 }
 
 // ── Entrance animations ─────────────────────────────────────────────────────

@@ -19,8 +19,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterFragmentActivity() {
-    // Parity plan §3: the motion tier reads the device class, battery saver
-    // and the thermal status here (`BergenPerf` in Dart).
+    // Parity plan §3: the motion tier reads the device class and battery
+    // saver here (`BergenPerf` in Dart); the thermal status feeds the perf
+    // heartbeat and the gentle heat ladder (moderate / severe: decorative
+    // motion at 30 fps; critical: motion off).
     private var perfChannel: MethodChannel? = null
     private var thermalListener: Any? = null
     private var powerReceiver: BroadcastReceiver? = null
@@ -107,8 +109,10 @@ class MainActivity: FlutterFragmentActivity() {
         am.getMemoryInfo(mi)
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
         // NONE 0 · LIGHT 1 · MODERATE 2 · SEVERE 3 · CRITICAL 4+ → 0 nominal · 1 fair · 2 serious · 3 critical
+        // Heat ladder: the raw status too (moderate 2 vs light 1, both fair).
+        val status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) pm.currentThermalStatus else 0
         val thermal = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            when (pm.currentThermalStatus) {
+            when (status) {
                 0 -> 0
                 1, 2 -> 1
                 3 -> 2
@@ -134,6 +138,7 @@ class MainActivity: FlutterFragmentActivity() {
             "sdk" to Build.VERSION.SDK_INT,
             "lowPower" to pm.isPowerSaveMode,
             "thermal" to thermal,
+            "thermalStatus" to status,
             "battery" to (if (level < 0) -1.0 else level.toDouble()),
             "batteryTemp" to (if (tenths < 0) -1.0 else tenths / 10.0),
             "thermalHeadroom" to headroom,

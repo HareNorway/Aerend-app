@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../kit/bergen_perf.dart';
 import 'hjem_harness.dart';
 
 // ── The sheet as water (prototype `vannKant` / `vannBunn` / `vannBobler`) ──
@@ -145,6 +146,7 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
   @override
   void dispose() {
     widget.controller.removeListener(_scroll);
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _t.dispose();
     super.dispose();
@@ -160,6 +162,8 @@ class _HjemVannState extends State<HjemVann> with SingleTickerProviderStateMixin
     _bobler.removeWhere((b) => ms - b.t0 > b.dur + 400);
     _t.value = ms;
     if (_bobler.isEmpty) _vurder();
+    // Heat ladder / idle: the surface waits for the next takt frame.
+    if (PerfTakt.paa) PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
   }
 
   double get _px => widget.controller.hasClients ? widget.controller.position.pixels : 0;

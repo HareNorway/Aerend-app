@@ -29,7 +29,7 @@ class BrPal {
   /// The weather for now: Bergen's look for the hour, or the debug harness's
   /// `vaer` (the same rule as Hjem, Ægil and Meg).
   static BergenWeather naa() {
-    if (kDebugMode && HjemHarness.vaer != null) return BergenWeather.values.byName(HjemHarness.vaer!.name);
+    if (!kReleaseMode && HjemHarness.vaer != null) return BergenWeather.values.byName(HjemHarness.vaer!.name);
     return BergenWeatherLook.forHour(DateTime.now().hour).kind;
   }
 }

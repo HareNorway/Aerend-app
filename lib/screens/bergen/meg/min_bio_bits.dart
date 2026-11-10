@@ -367,6 +367,8 @@ class BioSveip extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, box) => LfLoop(
             frozenMs: -1,
+            // Heat Step 3: nothing drawn before the delay and after 1/3.
+            stille: LfStille(periodeMs: ms, forsinkelseMs: delay, fra: 1 / 3, til: 1, foer: true),
             builder: (context, t, _) {
               final p = t < 0 ? null : kfLoop(t, delay, ms);
               if (p == null || p > 1 / 3) return const SizedBox.shrink();

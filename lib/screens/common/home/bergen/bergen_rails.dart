@@ -13,6 +13,7 @@ import 'bergen_kit.dart';
 import '../../../bergen/hjem/hjem_kort.dart' show HjemGavepapir;
 import '../../auth/launch/lf_css.dart' show cssEaseInOut;
 import '../../auth/launch/lf_motion.dart' show LfLoop;
+import '../../../bergen/kit/bergen_lagring.dart' show BergenLagringLive;
 import '../../../bergen/kit/bergen_perf.dart';
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
@@ -112,7 +113,9 @@ class BergenRail extends StatefulWidget {
   State<BergenRail> createState() => _RailState();
 }
 
-class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
+// Heat ladder: the timed turns follow the 30 fps takt while it is on
+// (PerfTaktTikker; a turn after a touch keeps every vsync).
+class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin, PerfTaktTikker {
   /// The ring's position in steps (card `i` faces you at `i`); a drag moves
   /// it with the finger, a turn or a release animates it to a whole step.
   late final AnimationController _ring = AnimationController.unbounded(vsync: this)..addListener(_onRing);
@@ -170,7 +173,7 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
     _auto?.cancel();
     if (widget.count < 2 || _stille == true) return;
     _auto = Timer.periodic(Duration(milliseconds: widget.intervalMs), (_) {
-      if (!mounted) return;
+      if (!mounted || BergenPerf.frosset) return;
       _advance(1);
     });
   }
@@ -1415,6 +1418,8 @@ class _Grain extends StatelessWidget {
   @override
   Widget build(BuildContext context) => IgnorePointer(
     child: OnbLoopClock(
+      // Heat Step 3: one shift per 200 ms step — sleeps between the steps.
+      stille: const LfStille(periodeMs: 200, fra: 0, til: 1),
       builder: (context, t, _) {
         final step = ((t / 200).floor() % 4);
         const shifts = [
@@ -1457,6 +1462,8 @@ class _Sweep extends StatelessWidget {
   Widget build(BuildContext context) => IgnorePointer(
     child: ClipRect(
       child: OnbLoopClock(
+        // Heat Step 3: the band holds at 1.2 (off the banner) from 55 %.
+        stille: const LfStille(periodeMs: 6500, fra: .55, til: 1),
         builder: (context, t, _) {
           final p = (onbLoop(t, 0, 6500) ?? 0);
           final x = p < .55 ? -1.2 + 2.4 * (p / .55) : 1.2;
@@ -1520,13 +1527,15 @@ class BergenHolo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LfLoop(
+    final loop = LfLoop(
       builder: (context, t, _) {
         final raw = (t / 5000) % 2.0;
         final p = cssEaseInOut.transform(raw <= 1 ? raw : 2 - raw);
         return CustomPaint(painter: _HoloPainter(colors, stops, p, dodge));
       },
     );
+    // Heat plan Step 8: the colour dodge blends with the screen beneath it.
+    return dodge ? BergenLagringLive(child: loop) : loop;
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'bergen_perf.dart';
+import 'maler_vert.dart';
 
 // ── Vågen water (shared) ────────────────────────────────────────────────────
 // The prototype's `canvas[data-sjogl]` (sjoGlInit / sjoGlTegn), ported to
@@ -161,7 +162,10 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
   ui.FragmentShader? _shader;
   ui.Image? _ref;
   ui.Image? _liveRef;
-  ui.Image? _frame;
+  // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
+  // one only repaints [MalerVert] (no setState / LayoutBuilder per step).
+  final MalerRamme _ramme = MalerRamme();
+  bool _vert = false;
   late final Ticker _ticker;
   Duration _prev = Duration.zero;
   double _t = 0;
@@ -253,13 +257,25 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final dt = ((e - _prev).inMicroseconds / 1e6).clamp(0.0, .05);
     _prev = e;
     _t += dt;
+    if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     widget.ripples?.clock = _t;
     widget.onTick?.call(_t);
-    // A little slack so a 60 Hz vsync isn't skipped by rounding.
-    if (e - _sist < _step - const Duration(milliseconds: 2)) return;
-    _sist = e;
+    if (PerfTakt.paa) {
+      // Heat ladder / idle: on the takt's frames, at most 30 renders a second.
+      PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
+      final s = PerfTakt.steg(e, _sist, _step);
+      if (s == null) return;
+      _sist = s;
+    } else {
+      // A little slack so a 60 Hz vsync isn't skipped by rounding.
+      if (e - _sist < _step - const Duration(milliseconds: 2)) return;
+      _sist = e;
+    }
+    if ((BergenPerf.shaderFrys || BergenPerf.shaderFrysKun == 'vann') && _frys++ > 8) return;
     _render();
   }
+
+  int _frys = 0;
 
   /// `sjoRefBr`: Bryggen flipped from its waterline up into 512×256, on the
   /// fog colour.
@@ -353,9 +369,12 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     final rec = ui.PictureRecorder();
     Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
     final img = rec.endRecording().toImageSync(pw, ph);
-    final old = _frame;
-    setState(() => _frame = img);
-    old?.dispose();
+    BergenPerf.telRender('Sjo');
+    if (BergenPerf.malerVertPaa && _vert) {
+      _ramme.sett(img);
+      return;
+    }
+    setState(() => _ramme.sett(img));
   }
 
   @override
@@ -363,8 +382,9 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     widget.liveReflection?.removeListener(_live);
     _liveRef?.dispose();
     _hvile.dispose();
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
-    _frame?.dispose();
+    _ramme.dispose();
     _shader?.dispose();
     super.dispose();
   }
@@ -377,11 +397,16 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
         if (s != _size) {
           _size = s;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && _frame == null) _render();
+            if (mounted && _ramme.bilde == null) _render();
           });
         }
-        final img = _frame;
+        final img = _ramme.bilde;
+        _vert = false;
         if (img == null) return const SizedBox.expand();
+        if (BergenPerf.malerVertPaa) {
+          _vert = true;
+          return MalerVert(ramme: _ramme, width: s.width, height: s.height);
+        }
         return RawImage(
           image: img,
           width: s.width,
