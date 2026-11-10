@@ -77,6 +77,7 @@ class SceneGl extends StatelessWidget {
       liteMs: 60,
       stillTier: true,
       waitTex: true,
+      egenRamme: true,
       still: still,
       tex: [
         SpGlTex.asset('$base.png', tw, th),

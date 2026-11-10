@@ -107,6 +107,7 @@ class SpGl extends StatefulWidget {
     this.stillTier = false,
     this.onFrame,
     this.waitTex = false,
+    this.egenRamme = false,
   });
 
   final String asset;
@@ -133,6 +134,14 @@ class SpGl extends StatefulWidget {
   /// Draw nothing until every texture has loaded (a scene that is all
   /// texture would otherwise flash empty over [still]).
   final bool waitTex;
+
+  /// Android only: never renders in the same frame as another [egenRamme]
+  /// scene. On Impeller/Vulkan two such scenes rendered in one frame corrupt
+  /// one of the two pictures (Søk: the sign went blank or the stone wall black,
+  /// alternating — the «BERGEN?» flicker). The later one renders on the next
+  /// vsync with the same scene time, so the same picture, one frame later; its
+  /// cadence (30 ms steps) is unchanged. iOS draws as before.
+  final bool egenRamme;
 
   @override
   State<SpGl> createState() => _SpGlState();
@@ -263,8 +272,29 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     final step = _step;
     if (step == null || e - _sist < step) return;
     _sist = e;
+    if (widget.egenRamme && defaultTargetPlatform == TargetPlatform.android) {
+      _egenRender();
+      return;
+    }
     _render();
   }
+
+  // [SpGl.egenRamme]: render now unless another such scene already rendered
+  // in this frame; then try again on the next vsync.
+  void _egenRender() {
+    if (!mounted) return;
+    final ramme = SchedulerBinding.instance.currentFrameTimeStamp;
+    if (_egenRamme == ramme) {
+      SchedulerBinding.instance.scheduleFrameCallback((_) => _egenRender());
+      SchedulerBinding.instance.scheduleFrame();
+      return;
+    }
+    _egenRamme = ramme;
+    _render();
+  }
+
+  // [SpGl.egenRamme]: the frame in which such a scene last rendered.
+  static Duration? _egenRamme;
 
   static ui.Image _blank() {
     if (_clear != null) return _clear!;
