@@ -438,7 +438,7 @@ abstract final class HjemHarness {
         // The heat ladder and idle slow-down as shipped.
         BergenPerf.settStige(stige: true, nedSek: 60, ledigSek: 30, takt: false);
         BergenPerf.rammeSek(false);
-        BergenPerf.taktViktigPaa = false;
+        BergenPerf.taktViktigPaa = true;
         if (perf != null || varme) BergenPerf.force(null);
         perf = null;
         nyButikk = false;
@@ -619,10 +619,10 @@ abstract final class HjemHarness {
       );
       BergenPerf.termiskTvang((m['termisk'] as num?)?.toInt(), status: (m['termiskStatus'] as num?)?.toInt());
       BergenPerf.rammeSek(m['rammeSek'] == true);
-      // Heat ladder: `taktViktig: true` puts essential loops (the live-order
-      // pill, loaders, typing dots) on the 30 fps takt too; games keep every
-      // vsync (decision pending — off = the approved scope).
-      BergenPerf.taktViktigPaa = m['taktViktig'] == true;
+      // Heat ladder: `taktViktig: false` keeps essential loops (the live-order
+      // pill, loaders, typing dots) at every vsync under the takt (A/B; on by
+      // default since the user's decision of 2026-11-10; games always full).
+      BergenPerf.taktViktigPaa = m['taktViktig'] != false;
       // `termiskPlan: [[s, status], …]` (device check of the hysteresis): the
       // injected raw status changes s seconds after the harness is applied.
       for (final p in (m['termiskPlan'] as List?) ?? const []) {

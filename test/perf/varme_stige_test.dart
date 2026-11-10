@@ -167,9 +167,10 @@ void main() {
     expect(await ticks(tester, teller, 60), inInclusiveRange(59, 61));
   });
 
-  testWidgets('takt: essential loops keep every vsync; two decorative loops share the frames', (tester) async {
+  testWidgets('taktViktig off: essential loops keep every vsync; two decorative loops share the frames', (tester) async {
     final a = [0], b = [0], v = [0];
     await tester.pumpWidget(host(Column(children: [loop(a), loop(b), loop(v, essential: true)])));
+    BergenPerf.taktViktigPaa = false; // the A/B setting: essential loops at every vsync
     BergenPerf.settStige(stige: true, nedSek: 60, ledigSek: 30, takt: true);
     await ticks(tester, a, 3);
     final a0 = a[0], b0 = b[0], v0 = v[0];
@@ -193,7 +194,7 @@ void main() {
       loop(v, essential: true),
       BergenEssential(spill: true, child: loop(s)),
     ])));
-    BergenPerf.taktViktigPaa = true;
+    expect(BergenPerf.taktViktigPaa, isTrue, reason: 'the default (user decision 2026-11-10)');
     BergenPerf.settStige(stige: true, nedSek: 60, ledigSek: 30, takt: true);
     await ticks(tester, v, 3);
     final v0 = v[0], s0 = s[0];

@@ -523,12 +523,13 @@ abstract final class BergenPerf {
     _takt();
   }
 
-  /// Heat ladder (harness `taktViktig`; decision pending, off = the approved
-  /// scope): essential loops — the live-order pill, loaders, typing dots, the
-  /// tour cue, the Sporing map — follow the 30 fps takt too; only games
-  /// ([BergenEssential.spill]) keep every vsync. Off: essential loops keep
-  /// every vsync (and with them the whole screen, while one is visible).
-  static bool taktViktigPaa = false;
+  /// Heat ladder (user decision 2026-11-10; harness `taktViktig: false` for
+  /// A/B): essential loops — the live-order pill, loaders, typing dots, the
+  /// tour cue, the Sporing map — follow the 30 fps takt too (still moving, same
+  /// speed); only games ([BergenEssential.spill]) keep every vsync. Off:
+  /// essential loops keep every vsync (and with them the whole screen while
+  /// one is visible — on the V40 a hot Hjem with the pill stayed at 56 fps).
+  static bool taktViktigPaa = true;
 
   /// Whether a loop at [context] follows the takt ([essential]: its own flag).
   static bool paaTakt(BuildContext context, {required bool essential}) =>
@@ -628,6 +629,7 @@ abstract final class BergenPerf {
     varmeNed = const Duration(seconds: 60);
     ledigEtter = const Duration(seconds: 30);
     taktTvang = false;
+    taktViktigPaa = true;
     _status = -1;
     _termiskStatus = null;
     _beroertUs = debugTidUs();
