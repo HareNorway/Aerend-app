@@ -105,6 +105,7 @@ class SceneGl extends StatelessWidget {
       liteMs: 60,
       stillTier: true,
       waitTex: true,
+      egenRamme: true,
       still: still,
       del: kind == SceneKind.berg ? _bergDel : null,
       tex: [
