@@ -112,7 +112,6 @@ class HjemUnderKaien extends StatelessWidget {
                 bottom: 0,
                 height: 56,
                 child: LfLoop(
-                  ramme: true,
                   builder: (context, t, child) {
                     final p = (t / 6000) % 1.0;
                     final x = kf(p, const [0, .5, 1], const [0, 18, 0], cssEaseInOut);
@@ -138,7 +137,6 @@ class HjemUnderKaien extends StatelessWidget {
                 width: 60,
                 height: 24,
                 child: LfLoop(
-                  ramme: true,
                   builder: (context, t, child) {
                     final p = (t / 18000) % 1.0;
                     final x = kf(p, const [0, .45, .5, 1], const [-60, 200, 220, -60]);
@@ -486,7 +484,6 @@ class _Funn extends StatelessWidget {
     Widget bildet;
     if (b.foto != null) {
       bildet = LfLoop(
-        ramme: true,
         // kenBurnsProd 9s alternate
         builder: (context, t, child) {
           final raw = (t / 9000) % 2.0;
@@ -499,7 +496,6 @@ class _Funn extends StatelessWidget {
       Widget ikon = SvgPicture.asset(b.svg!, width: b.w, height: b.h);
       if (b.boble) {
         ikon = LfLoop(
-          ramme: true,
           builder: (context, t, child) {
             final p = (t / 4000) % 1.0;
             return Transform.translate(
@@ -648,7 +644,6 @@ class _Funn extends StatelessWidget {
             child: _Opp(
               delayMs: inn,
               child: LfLoop(
-                ramme: true,
                 // funnSvev
                 builder: (context, t, child) {
                   final e = t - svevDelay;
@@ -833,7 +828,6 @@ class _Straale extends StatelessWidget {
       width: width,
       height: height,
       child: LfLoop(
-        ramme: true,
         builder: (context, t, child) {
           final e = t - delayMs;
           final p = e < 0 ? 0.0 : (e / durMs) % 1.0;
@@ -1023,7 +1017,6 @@ class _Tare extends StatelessWidget {
     return Opacity(
       opacity: opacity,
       child: LfLoop(
-        ramme: true,
         builder: (context, t, child) {
           final e = t - delayMs;
           var p = e < 0 ? 0.0 : (e / durMs) % 1.0;
@@ -1086,7 +1079,6 @@ class _Boble extends StatelessWidget {
       width: size,
       height: size,
       child: LfLoop(
-        ramme: true,
         builder: (context, t, child) {
           final e = t - delayMs;
           if (e < 0) return const SizedBox.shrink();
@@ -1115,7 +1107,6 @@ class _Bob extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LfLoop(
-    ramme: true,
     builder: (context, t, child) {
       final p = (((t - delayMs) / 4000) % 1.0 + 1) % 1.0;
       return Transform.translate(offset: Offset(0, kf(p, const [0, .5, 1], const [0, -4, 0], cssEaseInOut)), child: child);

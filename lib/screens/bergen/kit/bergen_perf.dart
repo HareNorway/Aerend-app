@@ -762,23 +762,6 @@ abstract final class BergenPerf {
   /// `SpGlDeling`); false = the original `hjem_bryggen.frag` every step.
   static bool bryggenDelingPaa = true;
 
-  /// Heat plan Step 11 (harness `klokke1: true`; off until device-verified):
-  /// every `LfLoop` / `OnbLoopClock` ticks from one shared frame callback
-  /// (`LfKlokke`) instead of a transient callback of its own — the same
-  /// frames, the same elapsed time per loop. The harness moves running loops
-  /// over at once (`LfKlokke.byttAlle`). `--dart-define=AE_KLOKKE1=true`
-  /// sets the default (a whole test run or build on the clock).
-  static const bool klokkeStandard = bool.fromEnvironment('AE_KLOKKE1');
-  static bool klokkePaa = klokkeStandard;
-
-  /// Heat plan Step 11 (harness `rammeLoop: true`; off until device-verified):
-  /// loops marked `ramme` apply their Transform / Opacity chain to the render
-  /// objects they have instead of rebuilding their builder every frame
-  /// (`LfRammeBygger`). Read on every tick. `--dart-define=AE_RAMMELOOP=true`
-  /// sets the default.
-  static const bool rammeLoopStandard = bool.fromEnvironment('AE_RAMMELOOP');
-  static bool rammeLoopPaa = rammeLoopStandard;
-
   /// Heat test (harness `shaderFrys`): shader scenes draw their first frames,
   /// then keep showing the last one while their clock runs on — the upper
   /// bound of what pre-rendered video could save. Debug/profile harness only.

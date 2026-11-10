@@ -13,7 +13,6 @@ import '../../../commonView/customCountryCodePicker/custom_country_code_picker.d
 import '../../../commonView/customCountryCodePicker/selection_dialog.dart';
 import '../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../bergen/kit/bergen_perf.dart';
-import '../../bergen/kit/lf_klokke.dart';
 import '../splash/splash_sticker_painter.dart';
 import 'onboarding_copy.dart';
 
@@ -235,7 +234,6 @@ class OnbLoopClock extends StatefulWidget {
     this.essential = false,
     this.child,
     this.stille,
-    this.ramme = false,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -249,20 +247,14 @@ class OnbLoopClock extends StatefulWidget {
   /// the loop sleeps there (see [PerfSov]). The stopwatch clock runs on.
   final LfStille? stille;
 
-  /// Heat plan Step 11 (`BergenPerf.rammeLoopPaa`): [builder] only wraps
-  /// [child] in single-child render-object widgets computed from t and fixed
-  /// values; a tick updates them in place (see [LfRammeBygger]).
-  final bool ramme;
-
   static final Stopwatch _app = Stopwatch()..start();
 
   @override
   State<OnbLoopClock> createState() => _OnbLoopClockState();
 }
 
-// Heat plan Step 11: an [LfTikker] (shared clock under `klokkePaa`) with the
-// same TickerMode muting as SingleTickerProviderStateMixin.
-class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
+class _OnbLoopClockState extends State<OnbLoopClock>
+    with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   final ValueNotifier<double> _t = ValueNotifier<double>(0);
   final Stopwatch _local = Stopwatch()..start();
@@ -386,16 +378,13 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
 
   @override
   Widget build(BuildContext context) {
-    final Widget ut = widget.ramme
-        ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
-        : ValueListenableBuilder<double>(
-            valueListenable: _t,
-            child: widget.child,
-            builder: (context, t, child) => widget.builder(context, t, child),
-          );
+    final Widget ut = ValueListenableBuilder<double>(
+      valueListenable: _t,
+      child: widget.child,
+      builder: (context, t, child) => widget.builder(context, t, child),
+    );
     // Heat plan Step 9 (BergenLoop and KatLoop run on this clock too): the
-    // animated output in its own layer. Outside the builder host, so Step
-    // 11's LfRammeBygger keeps its direct-update chain unchanged.
+    // animated output in its own layer.
     // Not inside a BergenBakt (see BergenBakt.inni).
     return BergenPerf.loopGrensePaa && !BergenBakt.inni(context) ? RepaintBoundary(child: ut) : ut;
   }

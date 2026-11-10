@@ -4,7 +4,6 @@ import 'package:flutter/scheduler.dart';
 
 import '../../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../../bergen/kit/bergen_perf.dart';
-import '../../../bergen/kit/lf_klokke.dart';
 import 'lf_css.dart';
 
 export '../../../bergen/kit/bergen_perf.dart' show LfStille;
@@ -73,7 +72,6 @@ class LfLoop extends StatefulWidget {
     this.frozenMs = 0,
     this.essential = false,
     this.stille,
-    this.ramme = false,
   });
 
   final Widget Function(BuildContext context, double t, Widget? child) builder;
@@ -87,19 +85,11 @@ class LfLoop extends StatefulWidget {
   /// sleeps there (see [PerfSov]).
   final LfStille? stille;
 
-  /// Heat plan Step 11 (`BergenPerf.rammeLoopPaa`): [builder] only wraps
-  /// [child] in single-child render-object widgets (Transform, Opacity, …)
-  /// computed from t and fixed values, so a tick updates those render objects
-  /// in place instead of rebuilding (see [LfRammeBygger]).
-  final bool ramme;
-
   @override
   State<LfLoop> createState() => _LfLoopState();
 }
 
-// Heat plan Step 11: an [LfTikker] (a Ticker that can run on the shared
-// clock, `BergenPerf.klokkePaa`) with the same TickerMode muting.
-class _LfLoopState extends State<LfLoop> with LfTikkerVert {
+class _LfLoopState extends State<LfLoop> with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   final ValueNotifier<double> _t = ValueNotifier<double>(0);
   Duration _base = Duration.zero;
@@ -269,17 +259,13 @@ class _LfLoopState extends State<LfLoop> with LfTikkerVert {
 
   @override
   Widget build(BuildContext context) {
-    final Widget ut = widget.ramme
-        ? LfRammeBygger(verdi: _t, builder: widget.builder, child: widget.child)
-        : ValueListenableBuilder<double>(
-            valueListenable: _t,
-            child: widget.child,
-            builder: (context, t, child) => widget.builder(context, t, child),
-          );
+    final Widget ut = ValueListenableBuilder<double>(
+      valueListenable: _t,
+      child: widget.child,
+      builder: (context, t, child) => widget.builder(context, t, child),
+    );
     // Heat plan Step 9: the animated output in its own layer, so it does not
-    // repaint (and keep changing) the picture of what is around it. Outside
-    // the builder host, so Step 11's LfRammeBygger keeps its direct-update
-    // chain (it matches only its own builder output) unchanged.
+    // repaint (and keep changing) the picture of what is around it.
     // Not inside a BergenBakt: a boundary there makes it paint live (iOS
     // simulator 2026-11-10: up to 33/255 on its edges vs its raster).
     return BergenPerf.loopGrensePaa && !BergenBakt.inni(context) ? RepaintBoundary(child: ut) : ut;

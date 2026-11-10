@@ -351,7 +351,6 @@ class _HjemHeroState extends State<HjemHero> {
                 id: 'kaiaeg',
                 child: vi
                     ? LfLoop(
-                        ramme: true,
                         // aegBob 3.4s
                         builder: (context, t, child) => Transform.translate(offset: Offset(0, kf((t / 3400) % 1.0, const [0, .5, 1], const [0, -2.5, 0], cssEaseInOut)), child: child),
                         child: Image.asset('assets/images/dashboard/rear.png', filterQuality: FilterQuality.medium),
@@ -491,7 +490,6 @@ class _HjemHeroState extends State<HjemHero> {
         height: 14,
         child: IgnorePointer(
           child: LfLoop(
-            ramme: true,
             builder: (context, t, child) {
               final p = kfLoop(t, 600, 9000) ?? -1;
               if (p < 0) return const SizedBox.shrink();
@@ -967,7 +965,6 @@ class _Dupp extends StatelessWidget {
                 ),
               Positioned.fill(
                 child: LfLoop(
-                  ramme: true,
                   builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, .85), transform: _drift(t, driftMs, driftDelay), child: child),
                   child: Stack(
                     clipBehavior: Clip.none,
@@ -1058,7 +1055,6 @@ class _Dupp extends StatelessWidget {
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.bottomCenter,
                             child: LfLoop(
-                            ramme: true,
                             builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, flagMs, flagDelay), child: child),
                             // Perf plan: the flag never changes while it sways; drawn
                             // from one raster, its price text is not re-rasterized into
@@ -1282,7 +1278,6 @@ class _PoseFlate extends StatelessWidget {
             ]),
             Positioned.fill(
               child: LfLoop(
-                ramme: true,
                 builder: (context, t, child) => Transform(alignment: const FractionalOffset(.4, .85), transform: _drift(t, 6000, 400), child: child),
                 child: Stack(
                   clipBehavior: Clip.none,
@@ -1306,7 +1301,6 @@ class _PoseFlate extends StatelessWidget {
                       width: 104,
                       child: Center(
                         child: LfLoop(
-                          ramme: true,
                           builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, 1.2), transform: _flagg(t, 5200, -600), child: child),
                           // Perf plan: as the floats' flags — one raster sways.
                           child: const BergenBakt(
@@ -1350,7 +1344,6 @@ class _PoseFlate extends StatelessWidget {
                         width: 14,
                         height: 14,
                         child: LfLoop(
-                          ramme: true,
                           builder: (context, t, child) {
                             final p = (t / 3400) % 1.0;
                             return Transform.rotate(alignment: Alignment.topCenter, angle: rad(kf(p, const [0, .5, 1], const [-10, 12, -10], cssEaseInOut)), child: child);
@@ -1459,7 +1452,6 @@ class _FjordfiskeKnapp extends StatelessWidget {
               ),
             Positioned.fill(
               child: LfLoop(
-                ramme: true,
                 builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, .8), transform: _drift(t, 6000, 0), child: child),
                 child: Stack(
                   clipBehavior: Clip.none,
@@ -1524,7 +1516,6 @@ class _FjordfiskeKnapp extends StatelessWidget {
                       width: 24,
                       height: 34,
                       child: LfLoop(
-                        ramme: true,
                         builder: (context, t, child) {
                           final p = (t / 5200) % 1.0;
                           const st = <double>[0, .2, .4, .62, .68, .74, .8, .88, 1];
@@ -1751,7 +1742,6 @@ class HjemNappKort extends StatelessWidget {
                                   width: 62,
                                   height: 52,
                                   child: LfLoop(
-                                    ramme: true,
                                     builder: (context, t, child) => Transform(alignment: const FractionalOffset(.5, .85), transform: _drift(t, 5000, 0), child: child),
                                     child: SvgPicture.asset('assets/svgs/hjem/${dupp._vare}.svg', width: 62, height: 52),
                                   ),
