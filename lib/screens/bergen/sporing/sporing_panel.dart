@@ -501,10 +501,16 @@ class _Veileder extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 5),
-                        Text(
-                          hint,
-                          key: const Key('a1_sporing_neste_hint'),
-                          style: inter(10, weight: FontWeight.w800, color: kSpMintLight),
+                        // «Jeg finner et bud til deg nå — …» is a sentence, not a step name: it wraps instead of
+                        // overflowing the pill (seen when a ready order has no courier yet).
+                        Flexible(
+                          child: Text(
+                            hint,
+                            key: const Key('a1_sporing_neste_hint'),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: inter(10, weight: FontWeight.w800, color: kSpMintLight),
+                          ),
                         ),
                       ],
                     ),

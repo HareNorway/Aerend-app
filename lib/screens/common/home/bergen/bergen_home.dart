@@ -325,7 +325,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
         final tr = OpsTracking.fromJson(json);
         final end = tr.promisedEnd;
         final rest = end == null ? min * 60 : end.difference(DateTime.now()).inSeconds;
-        hjemLiveOrdre.value = (orderId: id, data: HjemLiveData(stadie: tr.stage, restSek: rest < 0 ? 0 : rest, henting: tr.isPickup));
+        hjemLiveOrdre.value = (orderId: id, data: HjemLiveData(stadie: tr.stage, restSek: rest < 0 ? 0 : rest, henting: tr.isPickup, klar: !tr.isPickup && tr.state == 'ready'));
       }).catchError((_) {});
     });
     _trackTimer = Timer.periodic(const Duration(minutes: 1), (_) {

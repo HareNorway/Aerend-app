@@ -742,9 +742,10 @@ class _SporingScreenState extends State<SporingScreen> {
     final linje = t.isCancelled
         ? SporingCopy.avbestiltLinje(avbrudd?['reason'] as String?, avbrudd?['refund_text'] as String?)
         : (!hent && t.state == 'ready')
-        ? SporingCopy.klarLinje(t.isPartner, t.store?.name)
+        ? SporingCopy.klarLinje(t.isPartner, t.store?.name, budPaa: t.courier != null && !t.findingCourier)
         : lines[s];
     final minutes = t.minutesLeft(DateTime.now());
+    final klarLev = !hent && t.state == 'ready' && !t.isCancelled;
     final gift = '${t.raw['gift_to'] ?? ''}';
     final budTop =
         (s >= 3
@@ -786,11 +787,19 @@ class _SporingScreenState extends State<SporingScreen> {
                   : 110),
           child: RepaintBoundary(
             child: KeyedSubtree(
-              key: ValueKey('scene-$s-$hent'),
+              key: ValueKey('scene-$s-$hent-$klarLev'),
               child: switch (s) {
                 0 => KeyedSubtree(
                   key: const Key('a1_sporing_kort_bekreftet'),
                   child: SpSceneKai(info: info),
+                ),
+                // The store has said «Klar» on a delivery order: the bag waits in the counter, nothing is cooking any more.
+                1 when klarLev => KeyedSubtree(
+                  key: const Key('a1_sporing_kort_klar'),
+                  child: SpSceneDisk(
+                    info: info,
+                    boble: SporingCopy.klarBoble(partner: t.isPartner, budPaa: t.courier != null && !t.findingCourier, store: t.store?.name),
+                  ),
                 ),
                 1 => KeyedSubtree(
                   key: const Key('a1_sporing_kort_tilberedes'),

@@ -21,12 +21,15 @@ import 'bergen_perf.dart';
 // home-track-order API reports.
 
 class HjemLiveData {
-  const HjemLiveData({required this.stadie, required this.restSek, this.henting = false});
+  const HjemLiveData({required this.stadie, required this.restSek, this.henting = false, this.klar = false});
 
   /// `spStadie` 0–3: Bekreftet, Tilberedes, På vei / Klar for henting, Levert.
   final int stadie;
   final int restSek;
   final bool henting;
+
+  /// A delivery order the store has made ready: the stage stays 1, but the label reads «Klar», not «Tilberedes».
+  final bool klar;
 }
 
 /// The order under way, as Hjem last heard it from `home-track-order`
@@ -107,7 +110,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
     final gaatt = DateTime.now().difference(_t0).inSeconds;
     final rest = d.restSek <= 0 ? 0 : math.max(45, d.restSek - gaatt);
     final ferdig = s >= 3, klar = hent && s == 2, snart = !ferdig && !klar && rest <= 120;
-    final navn = (hent ? const ['Bekreftet', 'Tilberedes', 'Klar for henting', 'Hentet'] : const ['Bekreftet', 'Tilberedes', 'På vei', 'Levert'])[s];
+    final navn = !hent && d.klar && s == 1 ? 'Klar' : (hent ? const ['Bekreftet', 'Tilberedes', 'Klar for henting', 'Hentet'] : const ['Bekreftet', 'Tilberedes', 'På vei', 'Levert'])[s];
     String mmss(int v) => '${(v ~/ 60).toString().padLeft(2, '0')}:${(v % 60).toString().padLeft(2, '0')}';
     final ring = ferdig
         ? 1.0
@@ -341,7 +344,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                                             const SizedBox(width: 5),
                                             Flexible(
                                               child: _Flipp(
-                                                nokkel: s,
+                                                nokkel: d.klar ? 10 + s : s,
                                                 child: RepaintBoundary(key: _kNavn, child: Text(
                                                   navn.toUpperCase(),
                                                   maxLines: 1,

@@ -41,12 +41,20 @@ abstract final class SporingCopy {
   }
 
   /// 03 test pass (C1): the store has said «Klar» on a delivery order.
-  static String klarLinje(bool partner, String? store) {
+  /// [budPaa] false: no courier has taken the order yet (dispatch is still looking), so nobody is «collecting it now».
+  static String klarLinje(bool partner, String? store, {bool budPaa = true}) {
     final s = store ?? _t('butikken', 'the shop');
-    return partner
-        ? _t('Maten er klar. $s kjører den ut om litt.', 'The food is ready. $s drives it out shortly.')
-        : _t('Maten er klar hos $s — budet henter den nå.', 'The food is ready at $s — the courier is collecting it now.');
+    if (partner) return _t('Maten er klar. $s kjører den ut om litt.', 'The food is ready. $s drives it out shortly.');
+    return budPaa
+        ? _t('Maten er klar hos $s — budet henter den nå.', 'The food is ready at $s — the courier is collecting it now.')
+        : _t('Maten er klar hos $s — vi finner et bud som henter den.', 'The food is ready at $s — we are finding a courier to collect it.');
   }
+  /// The counter scene's bubble for a delivery order the store has made ready (the bag waits in the counter).
+  static String klarBoble({required bool partner, required bool budPaa, String? store}) => partner
+      ? _t('Posen står klar. ${store ?? 'Butikken'} kjører snart.', 'The bag is ready. ${store ?? 'The shop'} drives it out soon.')
+      : budPaa
+      ? _t('Posen står klar. Budet henter den.', 'The bag is ready. The courier is collecting it.')
+      : _t('Posen står klar. Vi finner et bud.', 'The bag is ready. We are finding a courier.');
   static String a1_sporing_gave_venter(String navn) => languages.ops_sporing_gave_venter(navn);
 
   // ── stages ──────────────────────────────────────────────────────────────

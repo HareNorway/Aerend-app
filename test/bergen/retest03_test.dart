@@ -30,5 +30,10 @@ void main() {
   test('a delivery order the store made ready no longer reads as cooking', () {
     expect(SporingCopy.klarLinje(false, 'Torgboden'), contains('budet henter'));
     expect(SporingCopy.klarLinje(true, 'Torgboden'), contains('Torgboden kjører den ut'));
+    expect(SporingCopy.klarLinje(false, 'Torgboden', budPaa: false), allOf(contains('vi finner et bud'), isNot(contains('budet henter'))));
+    // The counter scene's bubble for a ready delivery order: nothing is «koker» any more.
+    expect(SporingCopy.klarBoble(partner: false, budPaa: false), 'Posen står klar. Vi finner et bud.');
+    expect(SporingCopy.klarBoble(partner: false, budPaa: true), 'Posen står klar. Budet henter den.');
+    expect(SporingCopy.klarBoble(partner: true, budPaa: false, store: 'Torgboden'), 'Posen står klar. Torgboden kjører snart.');
   });
 }

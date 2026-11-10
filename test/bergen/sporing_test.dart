@@ -246,7 +246,8 @@ void main() {
             expect(top, entry.key == 'cancelled' ? SporingCopy.a1_sporing_avbestilt : label);
             final cardKey = switch (stage) {
               0 => 'a1_sporing_kort_bekreftet',
-              1 => 'a1_sporing_kort_tilberedes',
+              // A ready delivery order shows the counter with the bag, not the kitchen.
+              1 => entry.key == 'ready' && mode == 'delivery' ? 'a1_sporing_kort_klar' : 'a1_sporing_kort_tilberedes',
               2 =>
                 mode == 'pickup'
                     ? 'a1_sporing_kort_hentklar'
