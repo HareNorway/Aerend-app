@@ -225,6 +225,11 @@ abstract final class BergenPerf {
   // 0 nominal · 1 fair · 2 serious · 3 critical: for the heartbeat only
   // (and [varmeTrinnGammel]), never the tier (Heat plan Step 12).
   static int _thermal = 0;
+  // Heat ladder: the platform's own thermal status (Android PowerManager
+  // 0–6, iOS ProcessInfo 0–3; -1 until reported), which tells Android's
+  // light from moderate (both are `_thermal` 1).
+  static int _status = -1;
+  static bool _android = defaultTargetPlatform == TargetPlatform.android;
   static int _watchdogSteps = 0;
   static BergenTier? _forced;
   static bool _started = false;
@@ -260,6 +265,8 @@ abstract final class BergenPerf {
     }
     if (!kReleaseMode) _Puls.start();
     _update();
+    // Idle slow-down: the count starts with the app.
+    _planleggLedig();
   }
 
   static void _readDevice(Map<String, Object?> m) {
@@ -280,8 +287,10 @@ abstract final class BergenPerf {
 
   static void _readState(Object? args) {
     if (args is! Map) return;
+    if (args['platform'] is String) _android = args['platform'] == 'android';
     if (args['lowPower'] is bool) _lowPower = args['lowPower'] as bool;
     if (args['thermal'] is num) _thermal = (args['thermal'] as num).toInt();
+    if (args['thermalStatus'] is num) _status = (args['thermalStatus'] as num).toInt();
     if (args['battery'] is num) _battery = (args['battery'] as num).toDouble();
     if (args['batteryTemp'] is num) _battTemp = (args['batteryTemp'] as num).toDouble();
     if (args['thermalHeadroom'] is num) _headroom = (args['thermalHeadroom'] as num).toDouble();
@@ -317,6 +326,7 @@ abstract final class BergenPerf {
     bool lowPower = false,
     BergenTier? forced,
     bool varmeTrinn = false,
+    int varme = 0,
   }) {
     BergenTier t = device;
     var why = deviceWhy;
@@ -326,8 +336,13 @@ abstract final class BergenPerf {
       if (w.index > t.index) why = 'slow frames ×$watchdogSteps';
       t = raise(t, w);
     }
-    // Heat plan Step 12: heat alone never stops, slows or reduces the
-    // motion (plan §0.2) — the old step-down only for an A/B run.
+    // Heat ladder (2026-11-10): only at critical does heat stop the motion;
+    // hot (level 1) keeps the tier and lowers the decorative cadence instead
+    // (PerfTakt). The old step-down only for an A/B run.
+    if (!varmeTrinn && varme >= 2) {
+      t = BergenTier.still;
+      why = 'thermal critical';
+    }
     if (varmeTrinn) {
       if (thermal >= 2) {
         t = BergenTier.still;
@@ -365,16 +380,277 @@ abstract final class BergenPerf {
   static int? get termisk => _termisk;
   static int? _termisk;
 
-  static void termiskTvang(int? thermal) {
+  static void termiskTvang(int? thermal, {int? status}) {
     if (kReleaseMode) return;
     _termisk = thermal?.clamp(0, 3);
+    _termiskStatus = status?.clamp(0, 6);
     _update();
   }
+
+  /// Heat ladder (harness `termiskStatus`, debug / profile only): a raw
+  /// platform status injected (Android 2 = moderate, which `termisk` cannot
+  /// tell from light). Wins over [termisk].
+  static int? get termiskStatus => _termiskStatus;
+  static int? _termiskStatus;
 
   /// The thermal state in force: the injected one, else the platform's.
   static int get _thermalNaa => _termisk ?? _thermal;
 
+  // The raw status for a mapped state (0 nominal · 1 fair · 2 serious ·
+  // 3 critical): on Android fair stands for light, serious for severe.
+  static int _statusFor(int thermal) => _android ? const [0, 1, 3, 4][thermal.clamp(0, 3)] : thermal.clamp(0, 3);
+
+  /// The raw platform status in force: injected, else reported, else (an
+  /// older native side) from the mapped state.
+  static int get _statusNaa {
+    if (_termiskStatus case final s?) return s;
+    if (_termisk case final t?) return _statusFor(t);
+    return _status >= 0 ? _status : _statusFor(_thermal);
+  }
+
+  /// Heat ladder (approved 2026-11-10): the heat level for a raw platform
+  /// status. Android `PowerManager` (0 none · 1 light · 2 moderate · 3 severe
+  /// · 4 critical · 5 emergency · 6 shutdown): moderate / severe = 1,
+  /// critical and above = 2. iOS `ProcessInfo.ThermalState` (0 nominal ·
+  /// 1 fair · 2 serious · 3 critical): serious = 1, critical = 2. Android
+  /// light and iOS fair stay 0 (the Vivo reports light after minutes on its
+  /// charger).
+  static int varmeFor(int status, {required bool android}) =>
+      android ? (status >= 4 ? 2 : (status >= 2 ? 1 : 0)) : (status >= 3 ? 2 : (status == 2 ? 1 : 0));
+
+  /// The heat level in force: 0 normal, 1 hot (decorative motion at 30 fps,
+  /// [PerfTakt]), 2 critical (all motion off). It rises at once; it falls one
+  /// level at a time, each only after the cooler reading has held for
+  /// [varmeNed] (no flapping at a threshold).
+  static final ValueNotifier<int> varme = ValueNotifier<int>(0);
+
+  /// Harness `varmeStige: false` (A/B): heat never changes the motion, as
+  /// after Step 12. True (the default): the ladder.
+  static bool varmeStigePaa = true;
+
+  /// How long a cooler reading must hold before the level steps down
+  /// (harness `varmeNedSek`).
+  static Duration varmeNed = const Duration(seconds: 60);
+  static Timer? _nedTimer;
+
+  static int get _varmeMaal => varmeStigePaa && !varmeTrinnGammel ? varmeFor(_statusNaa, android: _android) : 0;
+
+  /// Applies a new reading to [varme] (called from [_update]; changes the
+  /// level only, the tier follows in [_update]).
+  static void _vurderVarme() {
+    final maal = _varmeMaal;
+    final naa = varme.value;
+    // Ladder off: back at once (A/B).
+    if (maal >= naa || !varmeStigePaa || varmeTrinnGammel) {
+      _nedTimer?.cancel();
+      _nedTimer = null;
+      if (maal != naa) _settVarme(maal);
+      return;
+    }
+    _nedTimer ??= Timer(varmeNed, () {
+      _nedTimer = null;
+      if (_varmeMaal < varme.value) _settVarme(varme.value - 1);
+      _update();
+    });
+  }
+
+  static void _settVarme(int n) {
+    varme.value = n;
+    if (!kReleaseMode) debugPrint('PERF_VARME $n status=$_statusNaa');
+  }
+
+  /// Test only: the hysteresis timer is pending.
+  @visibleForTesting
+  static bool get debugVarmeVenter => _nedTimer != null;
+
+  // ── Idle slow-down (approved 2026-11-10, point 6) ──
+
+  /// After this long without a touch the decorative motion runs at 30 fps
+  /// ([PerfTakt]); the next touch brings it back at once. Zero = off
+  /// (harness `ledigSek`).
+  static Duration ledigEtter = const Duration(seconds: 30);
+
+  /// True while nobody has touched the screen for [ledigEtter].
+  static final ValueNotifier<bool> ledig = ValueNotifier<bool>(false);
+  static final Stopwatch _sw = Stopwatch()..start();
+
+  /// The clock of the idle count, in µs (a test puts its fake clock here).
+  @visibleForTesting
+  static int Function() debugTidUs = () => _sw.elapsedMicroseconds;
+  static int _beroertUs = 0;
+  static Duration get _siden => Duration(microseconds: debugTidUs() - _beroertUs);
+  static Timer? _ledigTimer;
+
+  /// A touch, a route change or the app coming back: the idle slow-down
+  /// ends at once and the count starts again. Cheap (pointer moves call it).
+  static void beroering() {
+    _beroertUs = debugTidUs();
+    if (ledig.value) {
+      ledig.value = false;
+      if (!kReleaseMode) debugPrint('PERF_LEDIG off');
+      _takt();
+    }
+    _planleggLedig();
+  }
+
+  static void _planleggLedig() {
+    if (ledigEtter <= Duration.zero) {
+      _ledigTimer?.cancel();
+      _ledigTimer = null;
+      if (ledig.value) {
+        ledig.value = false;
+        _takt();
+      }
+      return;
+    }
+    if (ledig.value || _ledigTimer != null) return;
+    final rest = ledigEtter - _siden;
+    _ledigTimer = Timer(rest.isNegative ? Duration.zero : rest, _ledigSjekk);
+  }
+
+  static void _ledigSjekk() {
+    _ledigTimer = null;
+    if (ledigEtter <= Duration.zero || ledig.value) return;
+    // Typing (the keyboard is up) or in the background: not idle.
+    final tastatur = ui.PlatformDispatcher.instance.views.any((v) => v.viewInsets.bottom > 0);
+    if (tastatur || !foreground.value) _beroertUs = debugTidUs();
+    if (_siden < ledigEtter) {
+      _planleggLedig();
+      return;
+    }
+    ledig.value = true;
+    if (!kReleaseMode) debugPrint('PERF_LEDIG on');
+    _takt();
+  }
+
+  /// Heat ladder (harness `taktViktig`; decision pending, off = the approved
+  /// scope): essential loops — the live-order pill, loaders, typing dots, the
+  /// tour cue, the Sporing map — follow the 30 fps takt too; only games
+  /// ([BergenEssential.spill]) keep every vsync. Off: essential loops keep
+  /// every vsync (and with them the whole screen, while one is visible).
+  static bool taktViktigPaa = false;
+
+  /// Whether a loop at [context] follows the takt ([essential]: its own flag).
+  static bool paaTakt(BuildContext context, {required bool essential}) =>
+      taktViktigPaa ? !BergenEssential.spillInni(context) : !essential && !BergenEssential.inside(context);
+
+  /// How long after a touch automatic decoration on animation controllers
+  /// ([PerfTaktTikker]) stays at every vsync.
+  static const Duration roligEtter = Duration(seconds: 2);
+
+  /// Nobody has touched the screen for [roligEtter].
+  static bool get urort => _siden >= roligEtter;
+
+  /// Harness `takt: true` (debug / profile): the 30 fps cadence on without
+  /// heat or idle, for measuring it.
+  static bool taktTvang = false;
+
+  /// Puts [PerfTakt] on while hot (level 1 and up) or idle; off under the
+  /// frozen test clock.
+  static void _takt() {
+    final grunn = frosset
+        ? null
+        : taktTvang
+            ? 'tvang'
+            : varme.value >= 1
+                ? 'varme'
+                : ledig.value
+                    ? 'ledig'
+                    : null;
+    PerfTakt._sett(grunn);
+  }
+
+  /// Harness (debug / profile): the ladder's switches — [stige] the ladder
+  /// itself, [nedSek] its hold, [ledigSek] the idle slow-down (0 = off),
+  /// [takt] the cadence forced on.
+  static void settStige({required bool stige, required int nedSek, required int ledigSek, required bool takt}) {
+    if (kReleaseMode) return;
+    varmeStigePaa = stige;
+    varmeNed = Duration(seconds: math.max(0, nedSek));
+    taktTvang = takt;
+    final ny = Duration(seconds: math.max(0, ledigSek));
+    if (ny != ledigEtter) {
+      ledigEtter = ny;
+      _ledigTimer?.cancel();
+      _ledigTimer = null;
+      ledig.value = false;
+      _beroertUs = debugTidUs();
+      _planleggLedig();
+    }
+    _update();
+  }
+
+  /// Harness `rammeSek: true` (debug / profile): `PERF_RAMMER` every second —
+  /// frames drawn that second, takt frames, the takt's reason — so a device
+  /// check sees 30 while only decoration moves and 60 under a scroll or tap.
+  static void rammeSek(bool paa) {
+    if (kReleaseMode) return;
+    _rammeSekTimer?.cancel();
+    _rammeSekTimer = null;
+    if (_rammeSekCb != null) SchedulerBinding.instance.removeTimingsCallback(_rammeSekCb!);
+    _rammeSekCb = null;
+    if (!paa) return;
+    var n = 0, takt0 = PerfTakt.rammer;
+    _rammeSekCb = (ts) => n += ts.length;
+    SchedulerBinding.instance.addTimingsCallback(_rammeSekCb!);
+    // Frames the framework began (n counts what the engine reported).
+    if (!_rammeBegynt) {
+      _rammeBegynt = true;
+      SchedulerBinding.instance.addPersistentFrameCallback((_) => _begynt++);
+    }
+    var b0 = _begynt;
+    _rammeSekTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      // (The heartbeat zeroes PerfTakt.rammer every 30 s.)
+      final tk = PerfTakt.rammer >= takt0 ? PerfTakt.rammer - takt0 : PerfTakt.rammer;
+      takt0 = PerfTakt.rammer;
+      final b = _begynt - b0;
+      b0 = _begynt;
+      debugPrint('PERF_RAMMER n=$n b=$b takt=$tk grunn=${PerfTakt.grunn ?? 'av'} varme=${varme.value} ledig=${ledig.value}');
+      n = 0;
+    });
+  }
+
+  static Timer? _rammeSekTimer;
+  static bool _rammeBegynt = false;
+  static int _begynt = 0;
+  static TimingsCallback? _rammeSekCb;
+
+  /// Test only: back to the start state of the ladder and the idle count.
+  @visibleForTesting
+  static void debugNullstillStige() {
+    _nedTimer?.cancel();
+    _nedTimer = null;
+    _ledigTimer?.cancel();
+    _ledigTimer = null;
+    varme.value = 0;
+    ledig.value = false;
+    varmeStigePaa = true;
+    varmeNed = const Duration(seconds: 60);
+    ledigEtter = const Duration(seconds: 30);
+    taktTvang = false;
+    _status = -1;
+    _termiskStatus = null;
+    _beroertUs = debugTidUs();
+    _takt();
+  }
+
+  /// Test only: a raw platform status as the channel would bring it.
+  @visibleForTesting
+  static void debugStatus(int status, {bool? android}) {
+    if (android != null) _android = android;
+    _status = status;
+    _update();
+  }
+
+  /// Test only: re-arm the idle count (as [start] does).
+  @visibleForTesting
+  static void debugStartLedig() {
+    _beroertUs = debugTidUs();
+    _planleggLedig();
+  }
+
   static void _update() {
+    _vurderVarme();
     final (t, why) = velg(
       device: _device,
       deviceWhy: _deviceWhy,
@@ -383,12 +659,14 @@ abstract final class BergenPerf {
       lowPower: _lowPower,
       forced: _forced,
       varmeTrinn: varmeTrinnGammel,
+      varme: varme.value,
     );
     if (t != tier.value || why != reason) {
       reason = why;
       tier.value = t;
       debugPrint('PERF_TIER ${t.name} $why');
     }
+    _takt();
   }
 
   /// Perf plan: off-screen rest on/off (harness `hvile: false` for A/B).
@@ -514,6 +792,8 @@ abstract final class BergenPerf {
   static set frysMs(double? v) {
     _frysMs = v;
     frysVarsel.value = v;
+    // The frozen clock wants every loop on every frame (no takt).
+    _takt();
   }
 
   /// Fires when the frozen test clock is set or cleared, so a loop that has
@@ -665,10 +945,18 @@ class _PerfScope extends InheritedWidget {
 /// Loops inside this subtree carry meaning (the live pill, a game, a typing
 /// indicator) and keep running in `lite`.
 class BergenEssential extends InheritedWidget {
-  const BergenEssential({super.key, required super.child});
+  const BergenEssential({super.key, this.spill = false, required super.child});
+
+  /// A game: its motion answers taps, so it keeps every vsync under the heat
+  /// ladder's takt even with `taktViktig` on.
+  final bool spill;
 
   static bool inside(BuildContext context) =>
       context.getInheritedWidgetOfExactType<BergenEssential>() != null;
+
+  /// Inside a game ([spill]).
+  static bool spillInni(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<BergenEssential>()?.spill == true;
 
   @override
   bool updateShouldNotify(BergenEssential old) => false;
@@ -678,6 +966,8 @@ class _Lifecycle with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     BergenPerf.foreground.value = state == AppLifecycleState.resumed;
+    // Back in the foreground counts as a touch (idle slow-down).
+    if (state == AppLifecycleState.resumed) BergenPerf.beroering();
   }
 }
 
@@ -1093,6 +1383,11 @@ class PerfStegRammer with WidgetsBindingObserver {
   /// Last thing in the host's tick: [sist] its last render, [step] its step,
   /// [slakk] the slack its check allows (`e - sist < step - slakk`).
   void etter(Duration e, Duration sist, Duration? step, {Duration slakk = Duration.zero}) {
+    // Heat ladder / idle: the takt decides the next frame instead.
+    if (PerfTakt.paa) {
+      PerfTakt.etter(ticker, tickerModus?.call());
+      return;
+    }
     if (!BergenPerf.stegRammerPaa || step == null || !ticker.isActive || ticker.muted) return;
     final off = _off;
     if (off == null || _proever < 8 || timeDilation != 1.0) return;
@@ -1158,12 +1453,147 @@ class PerfStegRammer with WidgetsBindingObserver {
   }
 }
 
+/// Heat ladder + idle slow-down (approved 2026-11-10): the decorative
+/// cadence. While the phone is hot ([BergenPerf.varme] 1) or nobody has
+/// touched it for [BergenPerf.ledigEtter], the decorative tickers — loops
+/// that are not essential, the shader scenes, Hjem's water surface and rod —
+/// tick together at 30 fps: after its tick each one is muted (its elapsed
+/// time runs on, exactly as under `TickerMode`) and one shared timer unmutes
+/// all of them for the same vsync, [periode] after the frame they last
+/// ticked in. A screen where only decorative things move then draws 30
+/// frames a second instead of 60 (120 on ProMotion). Scrolling, taps, route
+/// transitions, entrances, loaders and essential loops run on their own
+/// tickers and keep every vsync; the motion keeps its speed on the wall
+/// clock and its resolution, it is only sampled less often.
+///
+/// Off (the default unless hot or idle): every host takes its old code path.
+abstract final class PerfTakt {
+  /// 30 fps.
+  static const Duration periode = Duration(microseconds: 33333);
+
+  /// How much earlier than its own step a scene may render on a takt frame
+  /// (half a 60 Hz vsync: vsync times jitter around 33.3 ms).
+  static const Duration toleranse = Duration(milliseconds: 8);
+
+  static String? _grunn;
+
+  /// Why the takt is on (`varme`, `ledig`, `tvang`), or null when off.
+  static String? get grunn => _grunn;
+  static bool get paa => _grunn != null;
+
+  static final Map<Ticker, ValueListenable<bool>?> _holdt = {};
+  static Timer? _timer;
+  static final Stopwatch _sw = Stopwatch()..start();
+  static int? _off;
+
+  /// Takt frames since the last heartbeat.
+  static int rammer = 0;
+
+  static void _sett(String? grunn) {
+    if (grunn == _grunn) return;
+    // A fresh lag estimate for each spell (see [etter]).
+    if (_grunn == null) _off = null;
+    _grunn = grunn;
+    if (!kReleaseMode) debugPrint('PERF_TAKT ${grunn ?? 'av'}');
+    // Off: everything waiting ticks on the next vsync again.
+    if (grunn == null) _slipp();
+  }
+
+  /// Last thing in a decorative host's tick (after it used the frame): the
+  /// ticker waits, muted, for the next takt frame. [modus] is the host's
+  /// `TickerMode` notifier, so a host hidden meanwhile stays muted.
+  static void etter(Ticker t, ValueListenable<bool>? modus) {
+    if (!paa || !t.isActive || t.muted) return;
+    t.muted = true;
+    _holdt[t] = modus;
+    if (_timer != null) return;
+    // The first decorative tick of a takt frame: the next one is [periode]
+    // after this frame's vsync. The timer aims at the middle of the vsync
+    // gap before that one (the engine draws on the first vsync after the
+    // request), less how late this tick runs behind its vsync.
+    rammer++;
+    final views = ui.PlatformDispatcher.instance.views;
+    final hz = views.isEmpty ? 60.0 : views.first.display.refreshRate.clamp(30.0, 120.0);
+    final vsyncUs = 1e6 / hz;
+    final b = SchedulerBinding.instance;
+    var sen = 0;
+    if (b.schedulerPhase != SchedulerPhase.idle) {
+      final o = _sw.elapsedMicroseconds - b.currentSystemFrameTimeStamp.inMicroseconds;
+      final off = _off = _off == null ? o : math.min(_off!, o);
+      // At most 40 % of a vsync: a long lag is a busy frame, not a reason
+      // to ask for the next takt frame early.
+      sen = math.min(o - off, (vsyncUs * .4).round());
+    }
+    final vent = periode.inMicroseconds - (vsyncUs / 2).round() - 1000 - sen;
+    _timer = Timer(Duration(microseconds: math.max(0, vent)), _slipp);
+  }
+
+  /// Starts a decorative ticker that rested (a keyframe hold, off the
+  /// screen): while a takt frame is pending it waits for it, so it does not
+  /// add a frame of its own.
+  static void start(Ticker t, ValueListenable<bool>? modus) {
+    if (paa && _timer != null && !t.muted) {
+      t.muted = true;
+      _holdt[t] = modus;
+    }
+    t.start();
+  }
+
+  /// A host going away: forget its ticker.
+  static void slipp(Ticker t) => _holdt.remove(t);
+
+  /// Under the takt: whether a scene that renders every [step] renders on
+  /// this frame — its new `sist`, or null for not yet. At most once per takt
+  /// frame (30 fps); a slower scene keeps its own pace on average (its renders
+  /// land on the takt frames nearest its own times, `sist` steps by [step]).
+  static Duration? steg(Duration e, Duration sist, Duration step) {
+    final s = step < periode ? periode : step;
+    if (e - sist < s - toleranse) return null;
+    final neste = sist + s;
+    return e - neste > s ? e : neste;
+  }
+
+  /// Test only: tickers waiting for the next takt frame.
+  @visibleForTesting
+  static int get debugVenter => _holdt.length;
+
+  static void _slipp() {
+    _timer?.cancel();
+    _timer = null;
+    if (_holdt.isEmpty) return;
+    final h = Map.of(_holdt);
+    _holdt.clear();
+    for (final e in h.entries) {
+      e.key.muted = !(e.value?.value ?? true);
+    }
+  }
+}
+
+/// Heat ladder: a State whose own AnimationControllers run automatic
+/// decoration (a rail's timed turn, an offer row's timed glide) puts their
+/// tickers on [PerfTakt] while it is on — but only when nobody has touched
+/// the screen for [BergenPerf.roligEtter], so a turn a finger started keeps
+/// every vsync. Mix in after the ticker provider mixin.
+mixin PerfTaktTikker<T extends StatefulWidget> on State<T>, TickerProvider {
+  @override
+  Ticker createTicker(TickerCallback onTick) {
+    late final Ticker t;
+    t = super.createTicker((e) {
+      onTick(e);
+      if (PerfTakt.paa && mounted && BergenPerf.urort) PerfTakt.etter(t, TickerMode.getNotifier(context));
+    });
+    return t;
+  }
+}
+
 /// Perf plan: the top route's name, for the heartbeat (`navigatorObservers`).
 class PerfRuteObserver extends NavigatorObserver {
   String rute = '-';
 
   void _sett(Route<dynamic>? r) {
     rute = r?.settings.name ?? r?.runtimeType.toString() ?? '-';
+    // A new screen counts as a touch (idle slow-down).
+    BergenPerf.beroering();
     if (!kReleaseMode) debugPrint('PERF_RUTE $rute tickers=${SchedulerBinding.instance.transientCallbackCount}');
     if (kDebugMode) {
       final navn = rute;
@@ -1266,10 +1696,12 @@ abstract final class _Puls {
     String na(double v, [int d = 0]) => v < 0 ? 'n/a' : v.toStringAsFixed(d);
     debugPrint('PERF_HEARTBEAT t=${_klokke.elapsed.inSeconds} rute=${BergenPerf.ruter.rute} fane=${BergenPerf.fane?.value ?? '-'} '
         'thermal=${BergenPerf._thermalNaa}${BergenPerf._termisk == null ? '' : ' thermalEkte=${BergenPerf._thermal}'} lowPower=${BergenPerf._lowPower} battery=${na(BergenPerf._battery)} battTemp=${na(BergenPerf._battTemp, 1)} '
-        'headroom=${na(BergenPerf._headroom, 2)} tier=${BergenPerf.tier.value.name} renderer=${ui.ImageFilter.isShaderFilterSupported ? 'impeller' : 'skia'} hz=$hz fps=$fps frames=$n over16=$over '
+        'headroom=${na(BergenPerf._headroom, 2)} tier=${BergenPerf.tier.value.name} varme=${BergenPerf.varme.value} status=${BergenPerf._statusNaa} '
+        'takt=${PerfTakt.grunn ?? 'av'} taktRammer=${PerfTakt.rammer} renderer=${ui.ImageFilter.isShaderFilterSupported ? 'impeller' : 'skia'} hz=$hz fps=$fps frames=$n over16=$over '
         'build_p50=${_pct(_build, .5) ~/ 1000} build_p90=${_pct(_build, .9) ~/ 1000} raster_p50=${_pct(_raster, .5) ~/ 1000} raster_p90=${_pct(_raster, .9) ~/ 1000} '
         'rss=$rss tickers=${SchedulerBinding.instance.transientCallbackCount} loops=${BergenPerf.lfLoopsMounted + BergenPerf.onbLoopsMounted}'
         '${BergenPerf.pulsTillegg.map((f) => ' ${f()}').join()}');
+    PerfTakt.rammer = 0;
     _total.clear();
     _build.clear();
     _raster.clear();

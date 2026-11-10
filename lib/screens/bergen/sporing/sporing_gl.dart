@@ -487,11 +487,14 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
     }
     _prev = e;
     final step = _step;
-    if (step == null || e - _sist < step) {
+    // Heat ladder / idle: on the takt's frames ([PerfTakt.steg]); else as
+    // before, a render once [step] has passed.
+    final sist = step == null ? null : (PerfTakt.paa ? PerfTakt.steg(e, _sist, step) : (e - _sist < step ? null : e));
+    if (sist == null) {
       _rammer.etter(e, _sist, step);
       return;
     }
-    _sist = e;
+    _sist = sist;
     _rammer.etter(e, _sist, step);
     if ((BergenPerf.shaderFrys || BergenPerf.shaderFrysKun == 'spgl') && _frys++ > 8) return;
     if (widget.egenRamme && defaultTargetPlatform == TargetPlatform.android) {
@@ -687,6 +690,7 @@ class _SpGlState extends State<SpGl> with SingleTickerProviderStateMixin {
   void dispose() {
     _hvile.dispose();
     _rammer.dispose();
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _unload();
     _ramme.dispose();

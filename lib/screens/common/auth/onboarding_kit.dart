@@ -299,6 +299,20 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
     _t.value = _now;
     if (_sov.tikk(widget.stille, _t.value)) return;
     if (BergenPerf.hvilePaa && ++_tikk % 12 == 0 && BergenPerf.utenforSkjerm(context)) _hvile();
+    // Heat ladder / idle: a decorative loop waits for the next takt frame.
+    if (PerfTakt.paa && _dekor) PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
+  }
+
+  // Not essential: on the takt while it is on.
+  bool get _dekor => BergenPerf.paaTakt(context, essential: widget.essential);
+
+  // A restart from a rest or a hold: onto the takt's next frame if it is on.
+  void _start() {
+    if (PerfTakt.paa && _dekor) {
+      PerfTakt.start(_ticker, TickerMode.getNotifier(context));
+    } else {
+      _ticker.start();
+    }
   }
 
   void _hvile() {
@@ -321,11 +335,11 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
     _rull?.removeListener(_sjekk);
     _rull = null;
     _hviler = false;
-    if (!_reduce && !_ticker.isActive) _ticker.start();
+    if (!_reduce && !_ticker.isActive) _start();
   }
 
   void _sovVaakn() {
-    if (mounted && !_reduce && !_hviler && !_ticker.isActive) _ticker.start();
+    if (mounted && !_reduce && !_hviler && !_ticker.isActive) _start();
   }
 
   @override
@@ -364,6 +378,7 @@ class _OnbLoopClockState extends State<OnbLoopClock> with LfTikkerVert {
     _sov.avbryt();
     _vekk.stopp();
     _rull?.removeListener(_sjekk);
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _t.dispose();
     super.dispose();

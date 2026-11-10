@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -433,7 +434,11 @@ abstract final class HjemHarness {
         final varme = BergenPerf.varmeTrinnGammel;
         BergenPerf.varmeTrinnGammel = false;
         // `termisk` absent: the real thermal readings again.
-        if (BergenPerf.termisk != null) BergenPerf.termiskTvang(null);
+        if (BergenPerf.termisk != null || BergenPerf.termiskStatus != null) BergenPerf.termiskTvang(null);
+        // The heat ladder and idle slow-down as shipped.
+        BergenPerf.settStige(stige: true, nedSek: 60, ledigSek: 30, takt: false);
+        BergenPerf.rammeSek(false);
+        BergenPerf.taktViktigPaa = false;
         if (perf != null || varme) BergenPerf.force(null);
         perf = null;
         nyButikk = false;
@@ -600,7 +605,33 @@ abstract final class HjemHarness {
       // `termisk: 0..3` (debug / profile): the thermal state as if the
       // platform reported it (fair / serious / critical for a device check);
       // absent = the real readings.
-      BergenPerf.termiskTvang((m['termisk'] as num?)?.toInt());
+      // Heat ladder (2026-11-10): `termiskStatus` = a raw platform status
+      // (Android 2 moderate, 3 severe, 4 critical; iOS 2 serious, 3 critical);
+      // `varmeStige: false` = heat never changes the motion (A/B);
+      // `varmeNedSek` = the hysteresis hold (default 60); `ledigSek` = the
+      // idle slow-down after n s untouched (default 30, 0 = off);
+      // `takt: true` = the 30 fps cadence without heat or idle.
+      BergenPerf.settStige(
+        stige: m['varmeStige'] != false,
+        nedSek: (m['varmeNedSek'] as num?)?.toInt() ?? 60,
+        ledigSek: (m['ledigSek'] as num?)?.toInt() ?? 30,
+        takt: m['takt'] == true,
+      );
+      BergenPerf.termiskTvang((m['termisk'] as num?)?.toInt(), status: (m['termiskStatus'] as num?)?.toInt());
+      BergenPerf.rammeSek(m['rammeSek'] == true);
+      // Heat ladder: `taktViktig: true` puts essential loops (the live-order
+      // pill, loaders, typing dots) on the 30 fps takt too; games keep every
+      // vsync (decision pending — off = the approved scope).
+      BergenPerf.taktViktigPaa = m['taktViktig'] == true;
+      // `termiskPlan: [[s, status], …]` (device check of the hysteresis): the
+      // injected raw status changes s seconds after the harness is applied.
+      for (final p in (m['termiskPlan'] as List?) ?? const []) {
+        final l = p as List;
+        Timer(Duration(milliseconds: ((l[0] as num) * 1000).round()), () {
+          BergenPerf.termiskTvang(null, status: (l[1] as num).toInt());
+          debugPrint('HJEM_TERMISK status=${l[1]}');
+        });
+      }
       BergenPerf.force(perf == null ? null : BergenTier.values.byName(perf!));
       vaer = m['vaer'] == null ? null : HjemVaer.values.byName(m['vaer'] as String);
       demoFloats = m['demoFloats'] == true;

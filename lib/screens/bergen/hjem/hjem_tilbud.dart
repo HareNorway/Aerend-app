@@ -155,7 +155,9 @@ class HjemTilbudRad extends StatefulWidget {
   State<HjemTilbudRad> createState() => _HjemTilbudRadState();
 }
 
-class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateMixin {
+// Heat ladder: the timed glide follows the 30 fps takt while it is on
+// (PerfTaktTikker; a glide after a touch keeps every vsync).
+class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateMixin, PerfTaktTikker {
   static const double _w = 358, _gap = 10;
   static const Cubic _ease = Cubic(.65, 0, .35, 1);
 

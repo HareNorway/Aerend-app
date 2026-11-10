@@ -243,7 +243,8 @@ class _AutomatScreenState extends State<AutomatScreen> {
   // ── Build ───────────────────────────────────────────────────────────────
 
   @override
-  Widget build(BuildContext context) => BergenEssential(child: _essentialBuild(context));
+  // A game (heat ladder: keeps every vsync under the takt).
+  Widget build(BuildContext context) => BergenEssential(spill: true, child: _essentialBuild(context));
 
   Widget _essentialBuild(BuildContext context) {
     final look = BergenWeatherLook.forHour(DateTime.now().hour);

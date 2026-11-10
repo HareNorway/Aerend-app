@@ -119,6 +119,7 @@ class _HjemFiskestangState extends State<HjemFiskestang> with SingleTickerProvid
 
   @override
   void dispose() {
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _repaint.dispose();
     super.dispose();
@@ -162,6 +163,8 @@ class _HjemFiskestangState extends State<HjemFiskestang> with SingleTickerProvid
     }
     _frame(e.inMicroseconds / 1e6);
     _repaint.value = _t;
+    // Heat ladder / idle: the rod waits for the next takt frame.
+    if (PerfTakt.paa) PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
   }
 
   void _frame(double now) {

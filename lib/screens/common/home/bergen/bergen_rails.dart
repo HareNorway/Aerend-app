@@ -113,7 +113,9 @@ class BergenRail extends StatefulWidget {
   State<BergenRail> createState() => _RailState();
 }
 
-class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin {
+// Heat ladder: the timed turns follow the 30 fps takt while it is on
+// (PerfTaktTikker; a turn after a touch keeps every vsync).
+class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin, PerfTaktTikker {
   /// The ring's position in steps (card `i` faces you at `i`); a drag moves
   /// it with the finger, a turn or a release animates it to a whole step.
   late final AnimationController _ring = AnimationController.unbounded(vsync: this)..addListener(_onRing);

@@ -260,9 +260,17 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     widget.ripples?.clock = _t;
     widget.onTick?.call(_t);
-    // A little slack so a 60 Hz vsync isn't skipped by rounding.
-    if (e - _sist < _step - const Duration(milliseconds: 2)) return;
-    _sist = e;
+    if (PerfTakt.paa) {
+      // Heat ladder / idle: on the takt's frames, at most 30 renders a second.
+      PerfTakt.etter(_ticker, TickerMode.getNotifier(context));
+      final s = PerfTakt.steg(e, _sist, _step);
+      if (s == null) return;
+      _sist = s;
+    } else {
+      // A little slack so a 60 Hz vsync isn't skipped by rounding.
+      if (e - _sist < _step - const Duration(milliseconds: 2)) return;
+      _sist = e;
+    }
     if ((BergenPerf.shaderFrys || BergenPerf.shaderFrysKun == 'vann') && _frys++ > 8) return;
     _render();
   }
@@ -374,6 +382,7 @@ class _SjoWaterState extends State<SjoWater> with SingleTickerProviderStateMixin
     widget.liveReflection?.removeListener(_live);
     _liveRef?.dispose();
     _hvile.dispose();
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _ramme.dispose();
     _shader?.dispose();

@@ -294,11 +294,13 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     _prev = e;
     // The scene moves calmly; 20 frames a second is enough (`ulGlTegn`).
-    if (e - _sist < _step) {
+    // Heat ladder / idle: on the takt's frames, at its own pace on average.
+    final sist = PerfTakt.paa ? PerfTakt.steg(e, _sist, _step) : (e - _sist < _step ? null : e);
+    if (sist == null) {
       _rammer.etter(e, _sist, _step);
       return;
     }
-    _sist = e;
+    _sist = sist;
     _rammer.etter(e, _sist, _step);
     _render();
   }
@@ -341,6 +343,7 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   void dispose() {
     _hvile.dispose();
     _rammer.dispose();
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _ramme.dispose();
     _shader?.dispose();

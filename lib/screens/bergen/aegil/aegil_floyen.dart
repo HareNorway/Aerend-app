@@ -159,11 +159,13 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     _t += dt * (_calm ? .15 : 1);
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     final step = _step;
-    if (step == null || e - _sist < step) {
+    // Heat ladder / idle: on the takt's frames ([PerfTakt.steg]).
+    final sist = step == null ? null : (PerfTakt.paa ? PerfTakt.steg(e, _sist, step) : (e - _sist < step ? null : e));
+    if (sist == null) {
       _rammer.etter(e, _sist, step);
       return;
     }
-    _sist = e;
+    _sist = sist;
     _rammer.etter(e, _sist, step);
     _city();
     if (_stat != null) _render();
@@ -392,6 +394,7 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   void dispose() {
     _hvile.dispose();
     _rammer.dispose();
+    PerfTakt.slipp(_ticker);
     _ticker.dispose();
     _acc?.dispose();
     _stat?.dispose();

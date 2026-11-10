@@ -10,6 +10,7 @@ void main() {
   tearDown(() {
     BergenPerf.varmeTrinnGammel = false;
     BergenPerf.termiskTvang(null);
+    BergenPerf.debugNullstillStige();
     BergenPerf.debugTilstand(thermal: 0, lowPower: false);
     BergenPerf.tier.value = BergenTier.full;
   });
@@ -54,13 +55,14 @@ void main() {
     expect(int.parse(shown(tester)), greaterThanOrEqualTo(4), reason: 'inside BergenEssential');
   });
 
-  testWidgets('heat never changes the motion: serious / critical stay full', (tester) async {
+  testWidgets('the heat ladder keeps the tier below critical: fair / serious stay full', (tester) async {
     late BuildContext ctx;
     await tester.pumpWidget(host(Builder(builder: (c) {
       ctx = c;
       return clock(frozenMs: 300);
     })));
-    for (final thermal in [1, 2, 3]) {
+    // (Serious only lowers the decorative cadence — varme_stige_test.)
+    for (final thermal in [1, 2]) {
       BergenPerf.debugTilstand(thermal: thermal);
       expect(BergenPerf.tier.value, BergenTier.full, reason: 'thermal $thermal');
       await tester.pump();
@@ -71,6 +73,8 @@ void main() {
       expect(BergenPerf.calmOf(ctx), isFalse);
       expect(MediaQuery.disableAnimationsOf(ctx), isFalse, reason: 'no reduced-motion path from heat');
     }
+    // Serious left the 30 fps takt on: off before the test ends (its timer).
+    BergenPerf.settStige(stige: false, nedSek: 60, ledigSek: 30, takt: false);
   });
 
   testWidgets('still from low power: even essential loops hold, and it is not «calm»', (tester) async {
@@ -160,10 +164,14 @@ void main() {
     expect(BergenPerf.tier.value, BergenTier.lite);
     BergenPerf.termiskTvang(9);
     expect(BergenPerf.termisk, 3, reason: 'clamped to critical');
-    // Step 12's policy: with the old step off, an injected critical keeps full.
+    // The heat ladder: with the old step off, an injected critical (and only
+    // critical) stops the motion.
     BergenPerf.varmeTrinnGammel = false;
-    BergenPerf.termiskTvang(3);
+    BergenPerf.termiskTvang(2);
     expect(BergenPerf.tier.value, BergenTier.full);
+    BergenPerf.termiskTvang(3);
+    expect(BergenPerf.tier.value, BergenTier.still);
+    expect(BergenPerf.reason, 'thermal critical');
     // Cleared: the real reading again.
     BergenPerf.varmeTrinnGammel = true;
     BergenPerf.debugTilstand(thermal: 1);

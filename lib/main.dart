@@ -341,7 +341,17 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: BergenPerfScope(
                 child: Directionality(
                   textDirection: TextDirection.ltr,
-                  child: Stack(children: [appChild, const OnbLag(), const OnbTipsLag()]),
+                  // Idle slow-down (approved 2026-11-10): any touch, also on
+                  // Ægil's layers, ends it at once. Translucent: it only
+                  // listens, hit testing is unchanged.
+                  child: Listener(
+                    behavior: HitTestBehavior.translucent,
+                    onPointerDown: (_) => BergenPerf.beroering(),
+                    onPointerMove: (_) => BergenPerf.beroering(),
+                    onPointerSignal: (_) => BergenPerf.beroering(),
+                    onPointerPanZoomStart: (_) => BergenPerf.beroering(),
+                    child: Stack(children: [appChild, const OnbLag(), const OnbTipsLag()]),
+                  ),
                 ),
               ),
             );
