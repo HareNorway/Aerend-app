@@ -15,6 +15,7 @@ import '../../../ui/kit/ae_theme.dart';
 import '../../../ui/kit/ae_rise_in.dart';
 import '../../../ui/kit/ae_subpage_shell.dart';
 import '../consent/reen_flip_mark.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // `.dg-auth` / Reen `.reen-pre` tokens — navy surface, coral action.
 const Color _authBackground = AerendBergenAuthTokens.navy;
@@ -763,7 +764,7 @@ class _AuthPressableState extends State<AuthPressable> {
       onTapDown: enabled ? (_) => _set(true) : null,
       onTapUp: enabled ? (_) => _set(false) : null,
       onTapCancel: enabled ? () => _set(false) : null,
-      onTap: widget.onTap,
+      onTap: aeTrykkTikk(widget.onTap),
       child: AnimatedContainer(
         duration: _pressMoveDuration,
         curve: Curves.ease,

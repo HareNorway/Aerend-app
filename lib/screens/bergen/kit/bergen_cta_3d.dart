@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// The orange 3D button (design `.cta3d`): a gradient face standing on a
 /// darker edge; pressing sinks the face onto the edge. Full-width by default.
@@ -77,7 +78,7 @@ class _BergenCta3dState extends State<BergenCta3d> {
         onTapDown: enabled ? (_) => setState(() => _down = true) : null,
         onTapUp: enabled ? (_) => setState(() => _down = false) : null,
         onTapCancel: enabled ? () => setState(() => _down = false) : null,
-        onTap: widget.onPressed,
+        onTap: aeTrykkTikk(widget.onPressed),
         child: Container(
           margin: const EdgeInsets.only(bottom: BergenCta3d.edge),
           decoration: BoxDecoration(

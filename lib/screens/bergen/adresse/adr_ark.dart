@@ -1778,7 +1778,12 @@ class _NyAdresseState extends State<_NyAdresse> {
     final id = await widget.kilde.leggTil(adresse: adresse, type: adrType(_merke), fra: _valgt, info: _info.text.trim());
     if (!mounted) return;
     setState(() => _lagrer = false);
-    if (id == null) return;
+    // Kunde Glatt D6: firm when the address is saved, a buzz when it was not.
+    if (id == null) {
+      AeHaptikk.feil();
+      return;
+    }
+    AeHaptikk.fast(ny: true);
     widget.kilde.toast('Lagret · leverer til ${_valgt?.gate ?? adresse}');
     widget.onLagret(id);
   }

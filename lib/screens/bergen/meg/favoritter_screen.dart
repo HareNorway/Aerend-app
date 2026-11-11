@@ -211,8 +211,11 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
       BergenCart.syncBadge(context, cart.lines.length);
       final lagt = cart.lines.any((l) => l.productId == productId);
       if (lagt) aeConfirm();
+      // Kunde Glatt D6: not in the basket after all — a short buzz.
+      if (!lagt) AeHaptikk.feil();
       return lagt;
     } catch (_) {
+      AeHaptikk.feil();
       return false;
     }
   }
@@ -221,7 +224,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
     if (OpsCustomerApi.authParams() == null) return showBergenToast(context, FavCopy.loggInn);
     final ok = await _favs.set(s.storeId, false);
     if (!mounted) return;
-    if (!ok) return showBergenToast(context, FavCopy.feil);
+    if (!ok) {
+      AeHaptikk.feil();
+      return showBergenToast(context, FavCopy.feil);
+    }
     showBergenToast(context, FavTekst.fjernet(s.name), angre: () => _favs.set(s.storeId, true));
   }
 
@@ -229,7 +235,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
     if (OpsCustomerApi.authParams() == null) return showBergenToast(context, FavCopy.loggInn);
     final ok = await _prod.set(p.productId, false);
     if (!mounted) return;
-    if (!ok) return showBergenToast(context, FavCopy.feil);
+    if (!ok) {
+      AeHaptikk.feil();
+      return showBergenToast(context, FavCopy.feil);
+    }
     showBergenToast(context, FavTekst.fjernet(p.name), angre: () => _prod.set(p.productId, true));
   }
 

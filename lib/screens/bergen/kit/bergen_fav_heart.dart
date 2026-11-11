@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../data/ops/favourite_stores.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import 'bergen_toast.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// Copy for the store hearts (design `toggleFavBK` / `si(...)`).
 class FavCopy {
@@ -131,6 +132,8 @@ class _BergenFavHeartState extends State<BergenFavHeart>
     }
     final favs = FavouriteStores.instance;
     final next = !favs.isFavourite(widget.storeId);
+    // Kunde Glatt D6: a tick on the tap (a toggle), the outcome after.
+    AeHaptikk.tikk(ny: true);
     final burst = widget.burst && !MediaQuery.disableAnimationsOf(context);
     if (next) {
       if (burst) {
@@ -145,6 +148,11 @@ class _BergenFavHeartState extends State<BergenFavHeart>
     final ok = await favs.set(widget.storeId, next);
     _busy = false;
     if (!mounted) return;
+    if (!ok) {
+      AeHaptikk.feil();
+    } else if (next) {
+      AeHaptikk.fast(ny: true);
+    }
     if (widget.burst && ok && !next) return;
     final navn = widget.navn;
     showBergenToast(

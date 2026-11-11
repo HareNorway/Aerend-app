@@ -218,7 +218,7 @@ class _AutomatScreenState extends State<AutomatScreen> {
       if (!mounted) return;
       if (!ok) {
         // The basket said no (another shop's basket, offline): the bag
-        // floats again.
+        // floats again. (BergenCart.add already buzzed — Kunde Glatt D6.)
         setState(() => _fisk = false);
         return;
       }

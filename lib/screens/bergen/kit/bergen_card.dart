@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// A paper card (design `.kort`): warm gradient, 20px radius, soft shadow and
 /// the 1px inner highlight on top. Tap-able when [onTap] is given.
@@ -67,7 +68,7 @@ class BergenCard extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(onTap: onTap, borderRadius: radius, child: body),
+      child: InkWell(onTap: aeTrykkTikk(onTap), borderRadius: radius, child: body),
     );
   }
 }

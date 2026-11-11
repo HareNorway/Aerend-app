@@ -8,6 +8,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/svg_sti.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Ægil · shared pieces (Launch prototype L4500–5120, design px) ───────────
 
@@ -503,7 +504,7 @@ class _AePressState extends State<_AePress> {
     onTapDown: (_) => setState(() => _ned = true),
     onTapCancel: () => setState(() => _ned = false),
     onTapUp: (_) => setState(() => _ned = false),
-    onTap: widget.onTap,
+    onTap: aeTrykkTikk(widget.onTap),
     child: AeTw(
       v: _ned ? 1 : 0,
       ms: 120,

@@ -170,6 +170,19 @@ abstract final class AeHaptikk {
   }
 }
 
+/// Kunde Glatt D6 / D7: a tap callback for the shared press widgets — one
+/// [AeHaptikk.tikk] per taken tap, played after the callback (a switch turned
+/// off is not felt, one turned on is; a firm tap the callback played wins by
+/// the throttle), with the callback's own ticks muted so a tap never ticks
+/// twice. Null stays null (a disabled press). A tick the plan added
+/// (`kglattVib: false` → the old behaviour: the callback's own calls only).
+VoidCallback? aeTrykkTikk(VoidCallback? onTap) => onTap == null
+    ? null
+    : () {
+        AeHaptikk.utenTikk(onTap);
+        AeHaptikk.tikk(ny: true);
+      };
+
 // The three helpers from before the plan, kept so their 22 call sites keep
 // their meaning: tick → [AeHaptikk.tikk], confirm → [AeHaptikk.fast],
 // success → [AeHaptikk.suksess]. With `kglattVib: false` they play exactly

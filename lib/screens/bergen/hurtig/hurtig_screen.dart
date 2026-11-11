@@ -554,6 +554,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         return _angre(true);
       }
       if (!await _fyllKurven(U)) {
+        if (mounted) AeHaptikk.feil();
         if (mounted) showBergenToast(context, BergenRoutes.ikkeIKurven);
         return _angre(true);
       }
@@ -576,6 +577,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       );
       if (!mounted) return;
       if (response == null || response['status'] != 1) {
+        AeHaptikk.feil();
         showBergenToast(context, '${response?['message'] ?? BergenRoutes.provIgjen}');
         return _angre(true);
       }
@@ -584,6 +586,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       final url = orderId > 0 ? await k.vippsRedirect(orderId) : null;
       if (!mounted) return;
       if (url == null) {
+        AeHaptikk.feil();
         showBergenToast(context, KasseCopy.a1_kasse_vipps);
         return _angre(true);
       }

@@ -1024,7 +1024,7 @@ class _LfCtaState extends State<LfCta> {
       onTapDown: (_) => setState(() => _down = true),
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
-      onTap: widget.onTap,
+      onTap: aeTrykkTikk(widget.onTap),
       child: AnimatedSlide(
         offset: Offset(0, _down ? 3 / 54 : 0),
         duration: const Duration(milliseconds: 140),
@@ -1381,7 +1381,7 @@ class _LfPressState extends State<LfPress> {
       onTapDown: (_) => setState(() => _down = true),
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
-      onTap: widget.onTap,
+      onTap: aeTrykkTikk(widget.onTap),
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: _down ? 1 : 0),
         duration: Duration(milliseconds: widget.ms),

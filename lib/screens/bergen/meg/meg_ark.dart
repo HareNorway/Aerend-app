@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// The design's Ark (`kVisArk` ≈L7333): the cream frosted sheet the Meg rows
 /// open — `rgba(245,243,239,.94)` + blur, 28px top corners, the title (19px),
@@ -450,7 +451,7 @@ class _CloseSquare extends StatelessWidget {
       // Dark: glass (`.22 → .08`), a .28 white ring, the white ✕.
       return GestureDetector(
         key: const Key('meg-ark-lukk'),
-        onTap: onTap,
+        onTap: aeTrykkTikk(onTap),
         child: const CssBox(
           width: 40,
           height: 40,
@@ -467,7 +468,7 @@ class _CloseSquare extends StatelessWidget {
     }
     return GestureDetector(
       key: const Key('meg-ark-lukk'),
-      onTap: onTap,
+      onTap: aeTrykkTikk(onTap),
       child: const CssBox(
         width: 40,
         height: 40,
@@ -495,7 +496,7 @@ class _ArkSecondary extends StatelessWidget {
       // Dark (L9957): glass `.2 → .07`, a .26 ring, the top light, white 14 px.
       return LfPress(
         key: button.key,
-        onTap: button.onTap,
+        onTap: aeTrykkTikk(button.onTap),
         dy: 2,
         ms: 140,
         child: CssBox(
@@ -519,7 +520,7 @@ class _ArkSecondary extends StatelessWidget {
     }
     return GestureDetector(
       key: button.key,
-      onTap: button.onTap,
+      onTap: aeTrykkTikk(button.onTap),
       // `height:52px; background:linear-gradient(180deg,#FFFFFF,#E9EEED);
       // box-shadow: inset 0 -3px 6px rgba(30,79,92,.14), 0 12px 18px -12px
       // rgba(8,24,32,.5)`.
@@ -558,7 +559,7 @@ class _ArkPrimary extends StatelessWidget {
       final rod = button.rod && !av;
       return LfPress(
         key: button.key,
-        onTap: button.onTap,
+        onTap: aeTrykkTikk(button.onTap),
         dy: 3,
         ms: 140,
         child: CssBox(
@@ -605,7 +606,7 @@ class _ArkPrimary extends StatelessWidget {
     final g = button.gradient ?? MegArkInk.gtCta;
     return GestureDetector(
       key: button.key,
-      onTap: button.onTap,
+      onTap: aeTrykkTikk(button.onTap),
       // `height:52px; border-radius:999px; background:{{ kArkCtaBg }};
       // box-shadow: inset 0 1.5px 0 rgba(255,255,255,.4), inset 0 -3px 6px
       // rgba(80,30,10,.28), 0 14px 20px -12px rgba(8,24,32,.55)`. The
@@ -682,7 +683,7 @@ class MegArkRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: aeTrykkTikk(onTap),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 54),
           child: CssBox(
