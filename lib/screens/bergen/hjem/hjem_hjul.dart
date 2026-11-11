@@ -188,7 +188,7 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
     final f = _frontNaa;
     if (f == _front) return;
     _front = f;
-    aeTick();
+    AeHaptikk.tikk(ny: true);
   }
 
   void _bytt(int d) {

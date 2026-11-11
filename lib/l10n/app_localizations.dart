@@ -8102,6 +8102,18 @@ abstract class AppLocalizations {
   /// **'Færre animasjoner i byen'**
   String get meg_konto_rolig_sub;
 
+  /// No description provided for @meg_konto_vibrasjon.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrasjon'**
+  String get meg_konto_vibrasjon;
+
+  /// No description provided for @meg_konto_vibrasjon_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Små vibrasjoner når du trykker'**
+  String get meg_konto_vibrasjon_sub;
+
   /// No description provided for @meg_konto_hjelp.
   ///
   /// In en, this message translates to:

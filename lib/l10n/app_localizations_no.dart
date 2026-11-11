@@ -4305,6 +4305,12 @@ class AppLocalizationsNo extends AppLocalizations {
   String get meg_konto_rolig_sub => 'Færre animasjoner i byen';
 
   @override
+  String get meg_konto_vibrasjon => 'Vibrasjon';
+
+  @override
+  String get meg_konto_vibrasjon_sub => 'Små vibrasjoner når du trykker';
+
+  @override
   String get meg_konto_hjelp => 'Hjelp og personvern';
 
   @override

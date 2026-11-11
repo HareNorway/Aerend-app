@@ -22,6 +22,7 @@ import 'package:aerend_customer/screens/bergen/poeng/liga_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/opprykk_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/premiehylla_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
+import 'package:aerend_customer/ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
 import '../a3/a3_fakes.dart';
@@ -539,6 +540,26 @@ void main() {
     await settle(tester);
     expect(failing.sets, [true]);
     expect(on(), isFalse, reason: 'put back when the feed says no');
+  });
+
+  testWidgets('Konto → «Vibrasjon» (Kunde Glatt D5): on by default, the switch saves ae_vibrasjon and silences the app', (tester) async {
+    A3Services.addressList = () async => [];
+    A3Services.cards = () async => [];
+    await tester.pumpWidget(a3App(KontoScreen(feedRepo: _FakeAerend())));
+    await settle(tester);
+    expect(find.text('Vibrasjon'), findsOneWidget);
+    expect(find.text('Små vibrasjoner når du trykker'), findsOneWidget);
+    bool on() => tester.widget<Semantics>(find.descendant(of: find.byKey(const Key('konto-vibrasjon-switch')), matching: find.byType(Semantics)).first).properties.toggled ?? false;
+    expect(on(), isTrue);
+    expect(AeHaptikk.vibrasjon, isTrue);
+    await tester.ensureVisible(find.byKey(const Key('konto-vibrasjon')));
+    await tester.tap(find.byKey(const Key('konto-vibrasjon')));
+    await settle(tester);
+    expect(on(), isFalse);
+    expect(AeHaptikk.vibrasjon, isFalse);
+    await tester.tap(find.byKey(const Key('konto-vibrasjon')));
+    await settle(tester);
+    expect(AeHaptikk.vibrasjon, isTrue);
   });
 
   testWidgets('Meg → Betaling: Vipps shows the standard line, not the saved phone', (tester) async {

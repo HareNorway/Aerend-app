@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:aerend_customer/screens/bergen/hjem/hjem_hjul.dart';
 import 'package:aerend_customer/screens/common/auth/launch/lf_css.dart';
 import 'package:aerend_customer/screens/common/auth/launch/lf_widgets.dart' show LfPress;
+import 'package:aerend_customer/ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/ui/kit/kglatt.dart';
 
 import '../layout/reduced_motion_harness.dart';
@@ -27,6 +28,7 @@ void main() {
 
   setUp(() {
     KGlatt.nullstill();
+    AeHaptikk.nullstill();
     kanal = [];
     system = [];
     final m = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
@@ -40,7 +42,10 @@ void main() {
     });
   });
 
-  tearDown(KGlatt.nullstill);
+  tearDown(() {
+    KGlatt.nullstill();
+    AeHaptikk.nullstill();
+  });
 
   late int index;
 
@@ -54,6 +59,8 @@ void main() {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
+    // The throttle on the test's clock (pumps move it, not the wall clock).
+    AeHaptikk.klokke = () => tester.binding.clock.now().millisecondsSinceEpoch;
     index = 0;
     await tester.pumpWidget(
       MaterialApp(
@@ -111,7 +118,7 @@ void main() {
     expect(index, 1, reason: 'the orb that was on the left is now in front');
     expect((x(tester, 1) - x0).abs(), lessThan(2), reason: 'and it settled at the front');
     // One detent tick (the orb passed the front), no extra tick at release.
-    expect(kanal, ['tick']);
+    expect(kanal, ['tikk']);
     expect(system, isEmpty);
   });
 
@@ -123,14 +130,14 @@ void main() {
     await g.up();
     await ro(tester);
     expect(index, 4);
-    expect(kanal, ['tick']);
+    expect(kanal, ['tikk']);
   });
 
   testWidgets('a long slow drag across two orbs: two detent ticks, lands two on', (tester) async {
     await pump(tester);
     await dra(tester, 160);
     expect(index, 2);
-    expect(kanal, ['tick', 'tick']);
+    expect(kanal, ['tikk', 'tikk']);
     expect(system, isEmpty);
   });
 
@@ -143,14 +150,14 @@ void main() {
     await g.up();
     await ro(tester);
     expect(index, 2);
-    expect(kanal, ['tick', 'tick']);
+    expect(kanal, ['tikk', 'tikk']);
   });
 
   testWidgets('a short drag (> 26 px) still moves one orb in the finger\'s direction', (tester) async {
     await pump(tester);
     await dra(tester, 30);
     expect(index, 1);
-    expect(kanal, ['tick'], reason: 'the detent ticks when the glide brings the orb past the front');
+    expect(kanal, ['tikk'], reason: 'the detent ticks when the glide brings the orb past the front');
   });
 
   testWidgets('arrows: ‹ brings the left orb, › the right orb; one tick each, no detent on top', (tester) async {
@@ -177,7 +184,7 @@ void main() {
     await dra(tester, 60);
     expect(index, 1);
     expect((x(tester, 1) - x0).abs(), lessThan(2));
-    expect(kanal, ['tick']);
+    expect(kanal, ['tikk']);
   });
 
   testWidgets('kglattHjul: false — the old wheel (against the finger, old arrows, tick on release, no detents)', (tester) async {

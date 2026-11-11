@@ -36,8 +36,7 @@ class MainActivity: FlutterFragmentActivity() {
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "aerend/haptic").setMethodCallHandler { call, result ->
             if (call.method == "play") {
-                haptic(call.arguments as? String ?: "tick")
-                result.success(null)
+                result.success(haptic(call.arguments as? String ?: "tick"))
             } else result.notImplemented()
         }
         val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -57,41 +56,56 @@ class MainActivity: FlutterFragmentActivity() {
         runOnUiThread { perfChannel?.invokeMethod("changed", perfState()) }
     }
 
-    // The vibration motor directly (`aeTick` / `aeConfirm` / `aeSuccess` in
-    // Dart): tick = a click, confirm = a heavy click, success = a double
-    // click. It is not performHapticFeedback, which the phone's
+    // The vibration motor directly (`AeHaptikk` in Dart, Kunde Glatt D3 = the
+    // Partner app's kinds). It is not performHapticFeedback, which the phone's
     // touch-vibration setting mutes, and it is tagged media: since Android 12
     // an untagged short effect is treated as touch feedback and muted by the
     // same setting. Silent and vibration-off modes still apply.
-    private fun haptic(kind: String) {
+    //   tikk    → EFFECT_TICK (EFFECT_CLICK where the phone says it has no tick)
+    //   fast    → EFFECT_HEAVY_CLICK
+    //   suksess → EFFECT_DOUBLE_CLICK
+    //   feil    → waveform 0/40/60/40 ms
+    //   tung    → EFFECT_HEAVY_CLICK (the games' single heavy pulse)
+    // The kinds from before the plan (tick = a click, confirm = a heavy click,
+    // success = a double click) still play as they did (harness
+    // `kglattVib: false`). Answers false without a vibrator (Dart then falls
+    // back to HapticFeedback). Before API 29 the clicks are short one-shots.
+    private fun haptic(kind: String): Boolean {
         val v = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
         } else {
             @Suppress("DEPRECATION")
             getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
-        if (!v.hasVibrator()) return
+        if (!v.hasVibrator()) return false
+        val feil = longArrayOf(0, 40, 60, 40)
+        val dobbel = kind == "success" || kind == "suksess"
+        val tung = kind == "confirm" || kind == "fast" || kind == "tung"
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             @Suppress("DEPRECATION")
-            when (kind) {
-                "success" -> v.vibrate(longArrayOf(0, 25, 90, 25), -1)
-                "confirm" -> v.vibrate(30)
+            when {
+                kind == "feil" -> v.vibrate(feil, -1)
+                dobbel -> v.vibrate(longArrayOf(0, 25, 90, 25), -1)
+                tung -> v.vibrate(30)
                 else -> v.vibrate(15)
             }
-            return
+            return true
         }
-        val effect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val effect = if (kind == "feil") {
+            VibrationEffect.createWaveform(feil, -1)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             VibrationEffect.createPredefined(
-                when (kind) {
-                    "success" -> VibrationEffect.EFFECT_DOUBLE_CLICK
-                    "confirm" -> VibrationEffect.EFFECT_HEAVY_CLICK
+                when {
+                    dobbel -> VibrationEffect.EFFECT_DOUBLE_CLICK
+                    tung -> VibrationEffect.EFFECT_HEAVY_CLICK
+                    kind == "tikk" && !harIkkeTikk(v) -> VibrationEffect.EFFECT_TICK
                     else -> VibrationEffect.EFFECT_CLICK
                 },
             )
         } else {
-            when (kind) {
-                "success" -> VibrationEffect.createWaveform(longArrayOf(0, 25, 90, 25), -1)
-                "confirm" -> VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE)
+            when {
+                dobbel -> VibrationEffect.createWaveform(longArrayOf(0, 25, 90, 25), -1)
+                tung -> VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE)
                 else -> VibrationEffect.createOneShot(15, VibrationEffect.DEFAULT_AMPLITUDE)
             }
         }
@@ -101,7 +115,15 @@ class MainActivity: FlutterFragmentActivity() {
             @Suppress("DEPRECATION")
             v.vibrate(effect, AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).build())
         }
+        return true
     }
+
+    // API 30+ can say whether the motor has a real tick; some phones (the Vivo
+    // V40) answer NO and would play the tick's weak fallback, so they get the
+    // click instead (the feel approved on the Partner app, 2026-11-11).
+    private fun harIkkeTikk(v: Vibrator): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            v.areEffectsSupported(VibrationEffect.EFFECT_TICK)[0] == Vibrator.VIBRATION_EFFECT_SUPPORT_NO
 
     private fun perfState(): Map<String, Any> {
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

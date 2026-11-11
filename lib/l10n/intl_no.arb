@@ -1572,6 +1572,8 @@
   "meg_konto_varsler_sub": "Live på låseskjermen",
   "meg_konto_rolig": "Roligere bevegelse",
   "meg_konto_rolig_sub": "Færre animasjoner i byen",
+  "meg_konto_vibrasjon": "Vibrasjon",
+  "meg_konto_vibrasjon_sub": "Små vibrasjoner når du trykker",
   "meg_konto_hjelp": "Hjelp og personvern",
   "meg_konto_data": "Dine data lagres i Norge",
   "meg_konto_logg_ut": "Logg ut",

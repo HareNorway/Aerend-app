@@ -118,6 +118,11 @@ bool prefGetBool(String key) {
   return _prefs.getBool(key) ?? false;
 }
 
+/// [prefGetBool] with a chosen default (a switch that is on until turned off).
+bool prefGetBoolOr(String key, bool fallback) {
+  return _prefs.getBool(key) ?? fallback;
+}
+
 String prefGetStringWithDefaultValue(String key, String defaultValue) {
   return _prefs.getString(key) ?? defaultValue;
 }
