@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../bergen/kit/bergen_perf.dart';
 import '../../../bergen/kit/svg_sti.dart';
@@ -11,6 +10,7 @@ import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import '../../../bergen/onboarding/onb_maal.dart';
+import '../../../../ui/kit/ae_haptic.dart';
 
 // ── Bottom nav (`visNav`) ───────────────────────────────────────────────────
 // A pill with Hjem · Utforsk · Kurv · Meg and, to its right, the search orb.
@@ -541,7 +541,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
         if (har) {
           _submit();
         } else {
-          HapticFeedback.selectionClick();
+          AeHaptikk.tikk();
           _toggleSearch();
           widget.onAegil('');
         }

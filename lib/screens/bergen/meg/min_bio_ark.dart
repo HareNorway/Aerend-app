@@ -20,6 +20,7 @@ import 'meg_ark.dart';
 import 'min_bio.dart';
 import 'min_bio_bits.dart';
 import 'min_bio_kort.dart' show bioNivC;
+import '../../../ui/kit/ae_haptic.dart';
 
 /// What the sheet's pop means when the customer deleted the bio.
 const int minBioSlettet = -1;
@@ -222,7 +223,7 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
   }
 
   void _samtykkeTrykk() {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() => _samtykke = !_samtykke);
     if (_samtykke) unawaited(_lesAi());
   }
@@ -1402,7 +1403,7 @@ class _StrengRad extends StatelessWidget {
         key: ValueKey('min-bio-streng-$k'),
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          HapticFeedback.selectionClick();
+          AeHaptikk.tikk();
           onTap();
         },
         child: Padding(

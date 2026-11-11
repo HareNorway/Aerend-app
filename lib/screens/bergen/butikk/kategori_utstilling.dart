@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../kit/bergen_kit.dart' show BergenCssShadow, showBergenToast;
 import '../../common/auth/onboarding_kit.dart';
@@ -12,6 +11,7 @@ import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Gaver-kategori (L5937) and Mote-utstilling (L6015) ──────────────────────
 // «Ukens utstilling» comes from the admin (Kategorier › Ukens utstilling,
@@ -1232,7 +1232,7 @@ class _KatMoteUtstillingState extends State<KatMoteUtstilling> {
       ],
       lagret: (_) => _lagret,
       onLagre: (_) {
-        HapticFeedback.selectionClick();
+        AeHaptikk.tikk();
         setState(() => _lagret = !_lagret);
         showBergenToast(context, _lagret ? 'Lagret · vi sier fra hvis prisen faller' : 'Fjernet fra lagret');
       },
@@ -1320,7 +1320,7 @@ class _MoteSkiveState extends State<MoteSkive> {
     if (d.abs() < 12) return;
     final fart = d.abs() / math.max(1, dt);
     final steg = fart > 1.2 ? 3 : (fart > .7 ? 2 : 1);
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() {
       _idx += d < 0 ? steg : -steg;
       _tatt = true;

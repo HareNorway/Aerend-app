@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
@@ -34,6 +33,7 @@ import 'kategori_utstilling.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import '../onboarding/onb_tips.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// Copy for the Kategori screen (L5910–6135), NO and EN.
 abstract final class KatCopy {
@@ -602,7 +602,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
   }
 
   void _toggleSok() {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() {
       _sok = !_sok;
       _sokTekst.clear();
@@ -979,7 +979,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
       scale: s,
       valgt: _produkter ? 1 : 0,
       onValg: (i) {
-        HapticFeedback.selectionClick();
+        AeHaptikk.tikk();
         setState(() => _produkter = i == 1);
         if (_liste.hasClients) _liste.jumpTo(0);
       },
@@ -1037,7 +1037,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
                     ikon: _kUnderIkon[k][n],
                     valgt: n == _under,
                     onTap: () {
-                      HapticFeedback.selectionClick();
+                      AeHaptikk.tikk();
                       setState(() => _under = n);
                     },
                   ),
@@ -1200,7 +1200,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
       return OnbPressable(
         key: Key('a1_kat_f_$id'),
         onTap: () {
-          HapticFeedback.selectionClick();
+          AeHaptikk.tikk();
           setState(() => _filter = id);
         },
         pressDy: 0,

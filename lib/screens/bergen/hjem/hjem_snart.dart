@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
@@ -10,6 +9,7 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import 'package:aerend_customer/utils/route_names.dart';
 import 'hjem_hjul.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Kommer snart · <kategori> (prototype L9548–9596, `snartVals`) ─────────
 // The sheet a coming-soon category opens: a spinning sunburst behind the
@@ -172,7 +172,7 @@ class _SnartArkState extends State<_SnartArk> {
   }
 
   void _varsle() {
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     final b = _varsleKey.currentContext?.findRenderObject() as RenderBox?;
     final ark = _arkKey.currentContext?.findRenderObject() as RenderBox?;
     if (b != null && ark != null && !MediaQuery.disableAnimationsOf(context)) {

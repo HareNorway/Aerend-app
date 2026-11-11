@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_widgets.dart' show LfToast;
 import '../meg/mork_rad.dart';
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Innstillinger for Ægil (new Bergen L5082–5092, L9954, L20363–20393) ─────
 // One list for both places: the Ægil screen's settings view and the dark
@@ -168,7 +169,7 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
   }
 
   void _velg(int vis) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final navn = AeInnstCopy.navn[vis];
     if (vis == 0) {
       if (s.paused) return;
@@ -185,7 +186,7 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
   }
 
   void _bryter(String felt, bool naa, String lab) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     widget.onEndre({felt: !naa}, toast: AeInnstCopy.bryterToast(lab, !naa));
   }
 

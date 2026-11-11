@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
@@ -193,7 +192,7 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
 
   void _bytt(int d) {
     _detentPaa = false;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     widget.onIndex(_mod(widget.index + d));
   }
 
@@ -250,7 +249,7 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
     if (steg != 0) {
       // With the detents the orbs already ticked (or tick as the glide
       // brings the target past the front): no extra tick at release.
-      if (!KGlatt.hjul) HapticFeedback.selectionClick();
+      if (!KGlatt.hjul) AeHaptikk.tikk();
       widget.onIndex(_mod(widget.index + steg));
     } else {
       _glid();
@@ -265,7 +264,7 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
     final kat = widget.kategorier[k];
     final akt = k == widget.index;
     void gjor() => akt ? (kat.snart ? widget.onSnart(k) : widget.onOpen(k)) : widget.onIndex(k);
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     if (MediaQuery.disableAnimationsOf(context)) {
       gjor();
       return;

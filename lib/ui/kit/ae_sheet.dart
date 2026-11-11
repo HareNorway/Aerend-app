@@ -4,15 +4,16 @@ import 'package:flutter/services.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import 'ae_theme.dart';
+import 'ae_haptic.dart';
 
 /// Light tap when a dugnad bottom sheet presents.
-void aeSheetOpenHaptic() => HapticFeedback.lightImpact();
+void aeSheetOpenHaptic() => AeHaptikk.tikk(gammel: HapticFeedback.lightImpact);
 
 /// Softer tick for dismiss / secondary sheet actions.
-void aeSheetCloseHaptic() => HapticFeedback.selectionClick();
+void aeSheetCloseHaptic() => AeHaptikk.tikk();
 
 /// Confirmation for primary save / commit in sheets.
-void aeSheetSaveHaptic() => HapticFeedback.mediumImpact();
+void aeSheetSaveHaptic() => AeHaptikk.fast();
 
 class _AeSheetHapticScope extends StatefulWidget {
   const _AeSheetHapticScope({required this.child});

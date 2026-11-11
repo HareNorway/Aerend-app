@@ -6,7 +6,6 @@ import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../onboarding/onb_maal.dart';
 import '../onboarding/onb_runde.dart';
@@ -54,6 +53,7 @@ import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../../../services/customer/beacons.dart';
 import '../kit/laster_dra.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -783,7 +783,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       _placing = true;
       _departing = true;
     });
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     prefSetString(prefTip, '$_tipNaa');
     final response = await _api.placeOrder(
       storeId: cart.storeId,

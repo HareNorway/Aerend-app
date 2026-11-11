@@ -166,16 +166,17 @@ void main() {
     await tester.tap(pil.first);
     await ro(tester);
     expect(index, 1, reason: '‹ brings Mat & fisk, which stood on the left');
-    expect(system, ['HapticFeedbackType.selectionClick']);
-    expect(kanal, isEmpty);
+    // Step 3: the tap's one tick goes through the service; no detent on top.
+    expect(kanal, ['tikk']);
+    expect(system, isEmpty);
     await tester.tap(pil.last);
     await ro(tester);
     expect(index, 0, reason: '› brings back Restaurant, which stood on the right');
     await tester.tap(pil.last);
     await ro(tester);
     expect(index, 4);
-    expect(system.length, 3);
-    expect(kanal, isEmpty);
+    expect(kanal, ['tikk', 'tikk', 'tikk']);
+    expect(system, isEmpty);
   });
 
   testWidgets('Reduce Motion: a drag still lands on the left orb and snaps to it', (tester) async {
@@ -196,8 +197,9 @@ void main() {
     await g.up();
     await ro(tester);
     expect(index, 4);
-    expect(kanal, isEmpty);
-    expect(system, ['HapticFeedbackType.selectionClick']);
+    // Old wheel: one tick at release (through the service since Step 3), no detents.
+    expect(kanal, ['tikk']);
+    expect(system, isEmpty);
     await tester.tap(find.byType(LfPress).first);
     await ro(tester);
     expect(index, 3, reason: 'old: ‹ = index − 1');

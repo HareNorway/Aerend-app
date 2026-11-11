@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../common/auth/launch/lf_css.dart';
@@ -464,7 +463,7 @@ class _HjemTilbudRadState extends State<HjemTilbudRad> with TickerProviderStateM
   /// «Avslør»: the flip plays at once; the value comes from the server
   /// (`POST /api/offers/{id}/reveal`). If that fails the coupon turns back.
   Future<void> _avslor() async {
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     _sist = DateTime.now().add(const Duration(seconds: 4));
     final p = _p;
     setState(() => _myst = true);

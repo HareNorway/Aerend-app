@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../data/ops/favourite_products.dart';
@@ -193,7 +192,7 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
   /// basket holds one store, so another store's lines make way, as «Bestill
   /// igjen» does it.
   Future<bool> _leggEn(int storeId, int productId) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final kasse = FavoritterScreen.kasse();
     try {
       var cart = await kasse.cart();

@@ -80,6 +80,7 @@ import '../../../bergen/kit/bergen_motion.dart';
 import '../../../bergen/hjem/hjem_ny.dart';
 import '../../../bergen/kit/bergen_fav_heart.dart';
 import '../../../bergen/kit/laster_dra.dart';
+import '../../../../ui/kit/ae_haptic.dart';
 
 // Hjem — the `erHjem` screen of "Ærend Kunde Bergen" (ROM style).
 //
@@ -631,7 +632,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   }
 
   void _openAegil() {
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     // AGIL-CONTRACT §2.2: the greeting pushes `kAegilRoute`.
     BergenRoutes.push<void>(context, kAegilRoute);
   }
@@ -723,7 +724,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
 
   /// Under kaien's line → all of Ægil's finds (the Brett, D-K20).
   Future<void> _openBrett() async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     await showAegilBrett(context);
     if (mounted) setState(() {});
   }
@@ -855,7 +856,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     final armed = snapped > 110;
     if (armed != _armed) {
       _armed = armed;
-      if (armed) HapticFeedback.lightImpact();
+      if (armed) AeHaptikk.tikk(gammel: HapticFeedback.lightImpact);
     }
     if (snapped != _dragY) setState(() => _dragY = snapped);
   }
@@ -1553,7 +1554,7 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     )) {
       return;
     }
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     await _bloc.addOrderCart(storeId, productId, 1);
     _syncCartBadge();
   }

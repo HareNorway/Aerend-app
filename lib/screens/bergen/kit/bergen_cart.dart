@@ -50,7 +50,7 @@ abstract final class BergenCart {
       return false;
     }
     if (!context.mounted) return false;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     // The legacy cart call reads the chosen variant from prefs (and clears
     // them after): set them the same way the old sheets do.
     prefSetInt('checkedSize', sizeId);

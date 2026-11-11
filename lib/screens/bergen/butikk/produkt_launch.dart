@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/ops/butikk_models.dart';
@@ -17,6 +16,7 @@ import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'butikk_copy.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── The product sheet's Launch pieces (`visProdukt`, L8901–8990) ────────────
 
@@ -798,7 +798,7 @@ class _Rad extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: v.inStock
           ? () {
-              HapticFeedback.selectionClick();
+              AeHaptikk.tikk();
               onTap();
             }
           : null,

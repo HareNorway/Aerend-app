@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../data/ops/sok_models.dart';
 import '../../common/auth/onboarding_kit.dart';
@@ -11,6 +10,7 @@ import '../kit/bergen_css_shadow.dart';
 import '../kit/bergen_motion.dart';
 import '../kit/svg_sti.dart';
 import 'sok_copy.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// One remembered search (`sokNylig`: `{ t, n }`).
 class SokNylig {
@@ -610,7 +610,7 @@ class _SporAegil extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(14 * s, 14 * s, 14 * s, 0),
               child: OnbPressable(
                 onTap: () {
-                  HapticFeedback.selectionClick();
+                  AeHaptikk.tikk();
                   onStart();
                 },
                 pressDy: 0,
