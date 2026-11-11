@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../utils/utils.dart';
@@ -334,7 +333,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final U = _utkast;
     if (v == null) return;
     final bt = _h.b(v.butikkId, v.butikk);
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     if (bt.stengt != null) {
       final alt = _h.altAapen(v.butikkId);
       if (alt == null) return _aegil(HurtigCopy.stengtIngenAlt(v.butikk, bt.stengt!), 'lei', const []);
@@ -361,7 +360,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final i = hh.indexOf(':');
     final k = i > -1 ? hh.substring(0, i) : hh;
     final v = i > -1 ? hh.substring(i + 1) : '';
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     if (k == 'si') return _send(v);
     if (k == 'leggtil') {
       final id = int.tryParse(v) ?? 0;
@@ -462,7 +461,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   void _ny() {
     _hbC?.cancel();
     _hbT?.cancel();
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final v = _h.velkomst(_st);
     _aegKeys.clear();
     setState(() {
@@ -486,7 +485,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final U = _utkast;
     if (U == null || U.linjer.isEmpty || _fase == 'teller' || _plasserer) return;
     _hbC?.cancel();
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     setState(() {
       _fase = 'teller';
       _teller = 5;
@@ -555,6 +554,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         return _angre(true);
       }
       if (!await _fyllKurven(U)) {
+        if (mounted) AeHaptikk.feil();
         if (mounted) showBergenToast(context, BergenRoutes.ikkeIKurven);
         return _angre(true);
       }
@@ -577,6 +577,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       );
       if (!mounted) return;
       if (response == null || response['status'] != 1) {
+        AeHaptikk.feil();
         showBergenToast(context, '${response?['message'] ?? BergenRoutes.provIgjen}');
         return _angre(true);
       }
@@ -585,6 +586,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       final url = orderId > 0 ? await k.vippsRedirect(orderId) : null;
       if (!mounted) return;
       if (url == null) {
+        AeHaptikk.feil();
         showBergenToast(context, KasseCopy.a1_kasse_vipps);
         return _angre(true);
       }
@@ -654,7 +656,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     }
     final kode = '${o['code'] ?? ''}'.isEmpty ? 'Æ-$id' : '${o['code']}';
     final ordre = _Ordre(id: id, kode: kode, butikkId: storeId, butikk: storeName, linje: navn, total: total, varer: math.max(0, total - lev), klar: klar);
-    HapticFeedback.heavyImpact();
+    AeHaptikk.tung();
     setState(() {
       _fase = 'bestilt';
       _teller = 0;
@@ -673,7 +675,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final U = _utkast;
     if (U == null || _plasserer) return;
     _hbC?.cancel();
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() => _plasserer = true);
     final ok = await _fyllKurven(U);
     if (!mounted) return;
@@ -694,7 +696,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     if (X == null) return;
     final T = _h.tider();
     final i = T.indexOf(X.tid);
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() => _utkast = X.kopi(tid: T[(i + 1) % T.length]));
   }
 
@@ -748,7 +750,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
 
   void _igjen(HbOrdreVis v) {
     final o = v.ordre;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     _settUtkast(o.butikkId, o.butikk, _h.linjer(o));
     _aegil(HurtigCopy.sammeSomLigger(_h.dato(o.naar)), 'glad', const [], vent: 450);
   }
@@ -756,7 +758,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   void _vaneFn() {
     final v = _h.vane(_st);
     if (v == null) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     _settUtkast(v.butikkId, v.butikk, v.linjer);
     _aegil('${HurtigCopy.sattOppVane}${HurtigCopy.liggerIUtkastet('${_h.stor(_h.tekst(v.linjer, HurtigCopy.og).toLowerCase())} fra ${v.butikk}')}', 'spent', const [], vent: 450);
   }
@@ -1139,7 +1141,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                 wok: RegExp('wok|thai', caseSensitive: false).hasMatch(p.butikk),
                 bilde: l0?.bilde,
                 onTap: () {
-                  HapticFeedback.selectionClick();
+                  AeHaptikk.tikk();
                   _settUtkast(p.butikkId, p.butikk, p.linjer);
                   _aegil(HurtigCopy.sattOppEtterPref, 'spent', const [], vent: 450);
                 },

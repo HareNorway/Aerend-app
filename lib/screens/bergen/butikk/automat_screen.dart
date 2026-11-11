@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/ops/butikk_models.dart';
@@ -25,6 +24,7 @@ import '../utforsk/feed_tab.dart' show utfPoseHentes;
 import '../utforsk/utforsk_bits.dart';
 import '../utforsk/utforsk_copy.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// `automat` — Poseautomaten (L5715–5906 in `Ærend Kunde Launch.dc.html`,
 /// design px) at `/bergen/automat`.
@@ -164,7 +164,7 @@ class _AutomatScreenState extends State<AutomatScreen> {
     for (var k = _valg + d; k >= 0 && k <= 3; k += d) {
       if (_fri.contains(k)) {
         setState(() => _valg = k);
-        HapticFeedback.selectionClick();
+        AeHaptikk.tikk();
         return;
       }
     }
@@ -178,7 +178,7 @@ class _AutomatScreenState extends State<AutomatScreen> {
       return;
     }
     if (!_fri.contains(_valg)) _valg = _fri.first;
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     setState(() {
       _trekker = true;
       _trekkSeq++;
@@ -186,7 +186,7 @@ class _AutomatScreenState extends State<AutomatScreen> {
     _tr?.cancel();
     _tr = Timer(_ms(1500), () {
       if (!mounted) return;
-      HapticFeedback.heavyImpact();
+      AeHaptikk.tung();
       setState(() {
         _trekker = false;
         _pose = true;
@@ -218,11 +218,11 @@ class _AutomatScreenState extends State<AutomatScreen> {
       if (!mounted) return;
       if (!ok) {
         // The basket said no (another shop's basket, offline): the bag
-        // floats again.
+        // floats again. (BergenCart.add already buzzed — Kunde Glatt D6.)
         setState(() => _fisk = false);
         return;
       }
-      HapticFeedback.mediumImpact();
+      AeHaptikk.fast();
       setState(() {
         _fisket = true;
         _hentet.add(_valg);
@@ -929,7 +929,7 @@ class _AutomatScreenState extends State<AutomatScreen> {
             onTap: () {
               if (!_laast && !tatt) {
                 setState(() => _valg = k);
-                HapticFeedback.selectionClick();
+                AeHaptikk.tikk();
               }
             },
             child: Opacity(

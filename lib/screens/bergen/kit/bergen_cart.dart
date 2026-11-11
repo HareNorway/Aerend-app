@@ -50,7 +50,7 @@ abstract final class BergenCart {
       return false;
     }
     if (!context.mounted) return false;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     // The legacy cart call reads the chosen variant from prefs (and clears
     // them after): set them the same way the old sheets do.
     prefSetInt('checkedSize', sizeId);
@@ -101,9 +101,12 @@ abstract final class BergenCart {
           etterTom: true,
         );
       }
+      // Kunde Glatt D6: the basket said no — a short buzz.
+      if (haptic) AeHaptikk.feil();
       showBergenToast(context, response.message);
       return false;
     } catch (e) {
+      if (haptic && context.mounted) AeHaptikk.feil();
       if (context.mounted) showBergenToast(context, e.toString());
       return false;
     }

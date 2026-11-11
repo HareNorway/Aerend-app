@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,6 +11,7 @@ import 'package:aerend_customer/screens/bergen/butikk/produkt_launch.dart' show 
 import 'package:aerend_customer/screens/bergen/kit/bergen_fav_heart.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/meg/favoritter_screen.dart';
+import 'package:aerend_customer/ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
 /// ops.customer.favourites as the app sees it: one list, every heart.
@@ -101,6 +103,37 @@ void main() {
   });
 
   group('BergenFavHeart', () {
+    testWidgets('Kunde Glatt D6: a tick on the tap, firm when saved, a buzz when the save failed', (tester) async {
+      await _login();
+      final kanal = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('aerend/haptic'), (c) async {
+        kanal.add('${c.arguments}');
+        return true;
+      });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(const MethodChannel('aerend/haptic'), null);
+        AeHaptikk.nullstill();
+      });
+      AeHaptikk.nullstill();
+      AeHaptikk.klokke = () => tester.binding.clock.now().millisecondsSinceEpoch;
+      FavouriteStores.instance.reset(api: _FakeFavs());
+      await tester.pumpWidget(_host(const BergenFavHeart(storeId: 41)));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('fav-heart-41')));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(kanal, ['tikk', 'fast']);
+      await tester.pump(const Duration(seconds: 4));
+
+      kanal.clear();
+      FavouriteStores.instance.reset(api: _FakeFavs(failWrites: true));
+      await tester.pumpWidget(_host(const BergenFavHeart(key: Key('feil'), storeId: 42)));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('fav-heart-42')));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(kanal, ['tikk', 'feil']);
+      await tester.pump(const Duration(seconds: 4));
+    });
+
     testWidgets('tapping hearts the store, fills it and says so', (tester) async {
       await _login();
       final api = _FakeFavs();

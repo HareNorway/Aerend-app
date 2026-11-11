@@ -113,6 +113,7 @@ class _SupportChatState extends State<_SupportChat> {
         final (feil, til) = await store.gjestOppslag(ordre);
         if (!mounted) return;
         if (feil != null) {
+          AeHaptikk.feil();
           setState(() => _feil = (feil, feil == 'OFFLINE' ? SupportCopy.ingenForbindelse : SupportCopy.fantIkke));
           return;
         }
@@ -126,9 +127,12 @@ class _SupportChatState extends State<_SupportChat> {
       final feil = await store.gjestBekreft(ordre, _gjestKode.text.trim());
       if (!mounted) return;
       if (feil != null) {
+        // Kunde Glatt D6: an invalid code — a short buzz; accepted — a double tap.
+        AeHaptikk.feil();
         setState(() => _feil = (feil, feil == 'OFFLINE' ? SupportCopy.ingenForbindelse : SupportCopy.feilKode));
         return;
       }
+      AeHaptikk.suksess(ny: true);
       showBergenToast(context, SupportCopy.bekreftet);
       widget.onGjestBekreftet();
     } finally {

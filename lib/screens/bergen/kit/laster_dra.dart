@@ -10,6 +10,7 @@ import '../onboarding/onb_tips.dart';
 import '../../common/auth/launch/lf_css.dart';
 import 'bergen_perf.dart';
 import 'merke_3d.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Dra for å oppdatere (Bergen 29 Oct, `scrollLaster`, L18987–19120) ───────
 // Pull down at the top of a screen: a dark glass puck with the 3D Æ block
@@ -227,7 +228,7 @@ class _BergenDraLasterState extends State<BergenDraLaster> with TickerProviderSt
       _klar = klar;
       if (klar) {
         _pop.forward(from: 0);
-        HapticFeedback.lightImpact();
+        AeHaptikk.tikk(gammel: HapticFeedback.lightImpact);
       }
     }
     setState(() {

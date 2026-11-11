@@ -6,7 +6,6 @@ import '../aegil/aegil_guide.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' show StripeException;
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../onboarding/onb_maal.dart';
 import '../onboarding/onb_runde.dart';
@@ -54,6 +53,7 @@ import 'kurv_seilas.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../../../services/customer/beacons.dart';
 import '../kit/laster_dra.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -783,7 +783,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       _placing = true;
       _departing = true;
     });
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     prefSetString(prefTip, '$_tipNaa');
     final response = await _api.placeOrder(
       storeId: cart.storeId,
@@ -824,6 +824,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
           }
         }
       }
+      // Kunde Glatt D6: the order was refused — a short buzz.
+      AeHaptikk.feil();
       if (code == 'OUT_OF_COVERAGE') {
         await _utenforDekning();
         return false;
@@ -863,6 +865,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (!mounted) return false;
     setState(() => _placing = false);
     if (url == null) {
+      AeHaptikk.feil();
       showBergenToast(context, KasseCopy.a1_kasse_vipps);
       return orderId > 0;
     }
@@ -870,6 +873,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
+      AeHaptikk.feil();
       showBergenToast(context, KasseCopy.a1_kasse_vipps);
     }
     // 03 test pass (CUS-A37 c / A18): Vipps finishes the order through its own return (the Vipps return screen), so
@@ -908,6 +912,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       } catch (e) {
         reset();
         CusBeacons.melde('payment_failed', code: 'stripe_sheet', screen: 'kasse');
+        if (mounted) AeHaptikk.feil();
         if (mounted) showBergenToast(context, '$e');
         return false;
       }

@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../data/ops/sok_models.dart';
@@ -26,6 +25,7 @@ import '../kit/bergen_motion.dart';
 import 'sok_copy.dart';
 import 'sok_oversikt.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// `sok` (L5122–5297 in `Ærend Kunde Launch.dc.html`).
 ///
@@ -307,7 +307,7 @@ class SokScreenState extends State<SokScreen> {
 
   /// `sokTilAegil` / `tilAgent`.
   void _askAegil([String? draft]) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final q = draft ?? _q;
     BergenRoutes.push<void>(context, kAegilRoute, arguments: {'q': q});
   }

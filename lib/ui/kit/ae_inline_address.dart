@@ -14,6 +14,7 @@ import 'ae_theme.dart';
 import '../../screens/common/address_order_chrome.dart';
 import '../../screens/common/manageAddress/add_new_address_repo.dart';
 import '../../screens/common/manageAddress/manage_address_dl.dart';
+import 'ae_haptic.dart';
 
 /// Street line shown on address cards — never `flat_no` (`N/A`).
 String addressDisplayTitle(AddressListItem address) {
@@ -185,7 +186,7 @@ class _AeInlineAddressFormState extends State<AeInlineAddressForm> {
         openSimpleSnackbar(addressApiMessage(context, response));
         return;
       }
-      HapticFeedback.lightImpact();
+      AeHaptikk.tikk(gammel: HapticFeedback.lightImpact);
       openSimpleSnackbar(languages.dugnadAddressSavedToast);
       await widget.onSaved(response);
     } catch (e) {

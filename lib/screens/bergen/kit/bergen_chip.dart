@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// A Bergen pill chip (design `.chip`): teal-glass on dark surfaces, paper on
 /// light ones; the selected state turns orange. Used for filters, tags and the
@@ -44,7 +45,7 @@ class BergenChip extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: aeTrykkTikk(onTap),
           borderRadius: BorderRadius.circular(BergenTokens.radiusChip),
           child: AnimatedContainer(
             duration: BergenTokens.motion(context, BergenTokens.motionFast),

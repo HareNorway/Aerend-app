@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
 import '../../../data/aegil/aegil_app_repo.dart';
@@ -286,7 +285,7 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
   Future<void> _kast() async {
     if (_phase != FiskePhase.klar && _phase != FiskePhase.mistet) return;
     if (_current == null) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     _cancelTimers();
     final kastNr = _kastNr + 1;
     AegilPick? pr = _premie;

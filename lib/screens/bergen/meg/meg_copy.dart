@@ -69,6 +69,9 @@ abstract final class A3MegCopy {
   static const String a3_meg_konto_varsler_sub = 'Live på låseskjermen';
   static const String a3_meg_konto_rolig = 'Roligere bevegelse';
   static const String a3_meg_konto_rolig_sub = 'Færre animasjoner i byen';
+  // Kunde Glatt D5: the «Vibrasjon» switch.
+  static String get a3_meg_konto_vibrasjon => languages.meg_konto_vibrasjon;
+  static String get a3_meg_konto_vibrasjon_sub => languages.meg_konto_vibrasjon_sub;
   static const String a3_meg_konto_hjelp = 'Hjelp og personvern';
   static const String a3_meg_konto_data = 'Dine data lagres i Norge';
   static const String a3_meg_konto_logg_ut = 'Logg ut';

@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../onboarding/onb_maal.dart';
 import '../onboarding/onb_runde.dart';
@@ -19,6 +18,7 @@ import 'hjem_bryggen.dart';
 import 'hjem_fiskestang.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
 // Prototype L2227–2520. Design px, 390 wide, `top:72px; height:258px`:
@@ -183,7 +183,7 @@ class _HjemHeroState extends State<HjemHero> {
   }
 
   void _velg(BergenFloatItem f) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() {
       _valgt = f.id;
       _valgtAt = DateTime.now();

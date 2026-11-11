@@ -2,9 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../ui/kit/ae_haptic.dart';
+import '../../../ui/kit/kglatt.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
@@ -14,8 +15,12 @@ import 'hjem_ny.dart';
 // The categories stand on a ring (r 116) tilted 68° back in a 760px
 // perspective; the focused one is at the front, scaled 1.4 with an orange
 // ring. Drag sideways to spin, tap an orb to bring it forward, tap the
-// focused one to open it. In launch mode every category but restaurants is
-// "Kommer snart": a dashed gold ring and a clock badge, and the name row
+// focused one to open it. Kunde Glatt Step 1 (`KGlatt.hjul`): the wheel
+// turns WITH the finger (the prototype's `vk + dx * 0.97` turns it against
+// the finger — a bug in the design the manager reported), the arrows bring
+// the orb on their side to the front, and each orb passing the front while
+// dragging or gliding gives one detent tick. In launch mode every category
+// but restaurants is "Kommer snart": a dashed gold ring and a clock badge, and the name row
 // shows the "Kommer snart · Varsle meg" chip.
 
 class HjemHjulKat {
@@ -97,6 +102,16 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
   Duration _kt = Duration.zero;
   final Stopwatch _klokke = Stopwatch()..start();
 
+  /// Kunde Glatt D2: the orb at the front the last detent ticked for, and
+  /// whether the detents listen (a drag and the glide after it; not a tap's
+  /// glide, which already ticked on the tap).
+  int _front = 0;
+  bool _detentPaa = false;
+
+  /// D1: the finger's sign on the ring (−1 = with the finger; +1 = the
+  /// prototype's, behind `kglattHjul: false`).
+  double get _retn => KGlatt.hjul ? -1 : 1;
+
   static const Cubic _ease = Cubic(.3, 1.15, .4, 1);
   static const Cubic _skEase = Cubic(.34, 1.56, .64, 1);
 
@@ -108,6 +123,11 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
     super.initState();
     _from = _to = -widget.index * _step;
     _spin.value = 1;
+    _front = widget.index;
+    _spin.addListener(_detent);
+    _spin.addStatusListener((s) {
+      if (s == AnimationStatus.completed && !_drar) _detentPaa = false;
+    });
   }
 
   @override
@@ -134,6 +154,9 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
     _to = fo + df;
     if (MediaQuery.disableAnimationsOf(context)) {
       _spin.value = 1;
+      // A snap does not notify a value that is already 1: check the detent here.
+      _detent();
+      if (!_drar) _detentPaa = false;
     } else {
       _spin.forward(from: 0);
     }
@@ -151,8 +174,25 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
 
   int _mod(int a) => ((a % _n) + _n) % _n;
 
+  /// The ring's angle as drawn (the finger's offset included).
+  double get _vkNaa => _vk + _retn * _dx * .97;
+
+  /// The orb nearest the front at the drawn angle.
+  int get _frontNaa => _mod((-_vkNaa / _step).round());
+
+  /// D2: one tick when another orb reaches the front during a drag or the
+  /// glide after it (the service throttles to one per 50 ms).
+  void _detent() {
+    if (!_detentPaa || !KGlatt.hjul) return;
+    final f = _frontNaa;
+    if (f == _front) return;
+    _front = f;
+    AeHaptikk.tikk(ny: true);
+  }
+
   void _bytt(int d) {
-    HapticFeedback.selectionClick();
+    _detentPaa = false;
+    AeHaptikk.tikk();
     widget.onIndex(_mod(widget.index + d));
   }
 
@@ -180,6 +220,8 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
       _from = _to = _vk;
       _spin.value = 1;
       _drar = true;
+      _front = _frontNaa;
+      _detentPaa = KGlatt.hjul;
     }
     final nt = _klokke.elapsed;
     final dt = math.max(1.0, (nt - _kt).inMicroseconds / 1000);
@@ -188,22 +230,26 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
     _kdx = dx;
     const lim = 160.0;
     setState(() => _dx = dx.abs() < lim ? dx : dx.sign * (lim + (dx.abs() - lim) * .3));
+    _detent();
   }
 
   void _slipp() {
     _aktiv = false;
     if (!_drar) return;
     final dx = _dx;
-    var steg = -((dx + _v * 120) / 74).round();
+    // D1: a drag to the right brings the orb on the left (index + 1).
+    var steg = -_retn.toInt() * ((dx + _v * 120) / 74).round();
     steg = steg.clamp(-2, 2);
-    if (steg == 0 && dx.abs() > 26) steg = dx < 0 ? 1 : -1;
+    if (steg == 0 && dx.abs() > 26) steg = (dx < 0 ? 1 : -1) * _retn.toInt();
     // The arc glides on from where the finger let go.
-    _from = _to = _vk + dx * .97;
+    _from = _to = _vk + _retn * dx * .97;
     _drar = false;
     _v = 0;
     setState(() => _dx = 0);
     if (steg != 0) {
-      HapticFeedback.selectionClick();
+      // With the detents the orbs already ticked (or tick as the glide
+      // brings the target past the front): no extra tick at release.
+      if (!KGlatt.hjul) AeHaptikk.tikk();
       widget.onIndex(_mod(widget.index + steg));
     } else {
       _glid();
@@ -214,10 +260,11 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
   /// `katTrykk`.
   void _trykk(int k, Matrix4 flat) {
     if (_flyttet || (_hopJump && _hop.isAnimating)) return;
+    _detentPaa = false;
     final kat = widget.kategorier[k];
     final akt = k == widget.index;
     void gjor() => akt ? (kat.snart ? widget.onSnart(k) : widget.onOpen(k)) : widget.onIndex(k);
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     if (MediaQuery.disableAnimationsOf(context)) {
       gjor();
       return;
@@ -423,7 +470,9 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
   }
 
   Widget _pil(bool forrige) => LfPress(
-    onTap: () => _bytt(forrige ? -1 : 1),
+    // D1: ‹ brings the orb on the left (index + 1) to the front, › the one
+    // on the right (the prototype had them the other way round).
+    onTap: () => _bytt((forrige ? -1 : 1) * _retn.toInt()),
     child: CssBox(
       width: 38,
       height: 38,
@@ -444,7 +493,7 @@ class _HjemKategoriHjulState extends State<HjemKategoriHjul> with TickerProvider
 
   /// The tilted ring and the orbs, sorted back to front.
   Widget _ring(List<HjemHjulKat> kat, int i) {
-    final vk = _vk + _dx * .97;
+    final vk = _vkNaa;
     // perspective-origin 50% 0% of the 390×178 box; the ring centre at (195, 92).
     Matrix4 base() => Matrix4.identity()
       ..translateByDouble(195, 0, 0, 1)

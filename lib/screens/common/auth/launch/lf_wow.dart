@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:aerend_customer/utils/route_names.dart';
 import '../../home/bergen/bergen_nav.dart';
+import '../../../../ui/kit/ae_haptic.dart';
 
 // ── onbWow / hjemInn / myntRegn ─────────────────────────────────────────────
 // Prototype L17389–17450: the onboarding opens like a ring in the water from
@@ -175,7 +175,7 @@ class _CoinHostState extends State<_CoinHost> with TickerProviderStateMixin {
       });
     Future.delayed(const Duration(milliseconds: 1500 - 900), () {
       if (!mounted) return;
-      HapticFeedback.selectionClick();
+      AeHaptikk.tikk();
       BergenBottomNav.megBump.value++;
     });
     setState(() {});

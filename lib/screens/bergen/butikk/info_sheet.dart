@@ -15,6 +15,7 @@ import 'butikk_copy.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../../../constant/constant.dart' show appUrlScheme;
+import '../../../ui/kit/ae_haptic.dart';
 
 /// The store's Info sheet (`sheetInfo`, L8584): the shared teal sheet with
 /// the store's name, the sliding Allergener / Åpningstider / Mer switch, and
@@ -262,7 +263,7 @@ class _InfoSheetState extends State<InfoSheet> {
                             key: Key('a1_butikk_info_${t.name}'),
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
-                              HapticFeedback.selectionClick();
+                              AeHaptikk.tikk();
                               setState(() => _tab = t);
                             },
                             child: Center(

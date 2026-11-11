@@ -339,7 +339,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   Future<void> _si(String t, {String? intent}) async {
     final tx = t.trim();
     if (tx.isEmpty || _tenker) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final seq = ++_sendSeq;
     setState(() {
       if (_steg != 'start') _steg = 'start';
@@ -503,7 +503,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   Future<void> brukForslag(AeVerktoy v) async {
     final id = v.id;
     if (id == null || _venterPaa.contains(id)) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() => _venterPaa.add(id));
     final r = await _api.applyAction(id);
     if (!mounted) return;
@@ -512,7 +512,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       _verktoyNaa[id] = r.kort != null ? v.med(r.kort!.data) : v.med({'status': 'failed', 'error_copy': r.feil});
     });
     if (r.kort != null) {
-      HapticFeedback.mediumImpact();
+      AeHaptikk.fast();
       await _kurvTall();
     }
   }
@@ -536,7 +536,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   Future<void> angre(AeVerktoy v) async {
     final id = v.id;
     if (id == null || _venterPaa.contains(id)) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() => _venterPaa.add(id));
     final r = await _api.undoAction(id);
     if (!mounted) return;
@@ -765,7 +765,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   @override
   Future<void> giftChoose(GiftResult g, GiftCard c) async {
     if (_tenker) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     _tenk();
     var lagt = false;
     try {
@@ -872,7 +872,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       if (r.hit == 'ask') await reorderShoot();
       return;
     }
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final res = await _api.reorderChoose(r.id, storeProductId: c.storeProductId, add: true);
     if (!mounted) return;
     if (res.scan == null) {
@@ -884,7 +884,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     if (!mounted) return;
     prefSetInt(prefCartCount, _kurv.lines.length);
     BergenCart.syncBadge(context, _kurv.lines.length);
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     LfToast.show(context, AeAgentCopy.cus_bilde_lagt);
   }
 
@@ -977,7 +977,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   Future<void> _bestillIgjen() async {
     final o = _h?.hist.firstOrNull;
     if (o == null) return;
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     var cart = await _kasse.cart();
     if (!cart.isEmpty && cart.storeId != o.butikkId) {
       for (final l in cart.lines) {
@@ -1028,7 +1028,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   /// `agBytt`: Foreslå ↔ Handle i kurven (level 3 lets Ægil put things in
   /// the basket; paying stays with the customer).
   void _byttNivaa() {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final level = _settings?.level ?? 2;
     if (level < 3 && !(_settings?.tillatt(3) ?? true)) {
       LfToast.show(context, AeInnstCopy.cus_aegil_nivaa_over_grense);
@@ -1106,7 +1106,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   }
 
   Future<void> _glemAlt() async {
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     final ok = await a3Try(_repo.forgetAll);
     // Customer Step 6: the bio on the server (its chips and consent) goes too.
     if (ok == true && _cusBio != null) await a3Try(CusApi().bioSlett);

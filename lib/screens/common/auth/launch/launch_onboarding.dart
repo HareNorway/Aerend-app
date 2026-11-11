@@ -33,6 +33,7 @@ import 'lf_widgets.dart';
 import 'lf_wow.dart';
 import '../../../bergen/kit/bergen_perf.dart';
 import '../../../bergen/kit/vann_overganger.dart';
+import '../../../../ui/kit/ae_haptic.dart';
 
 part 'lf_step_landing.dart';
 part 'lf_step_vilkaar.dart';
@@ -300,7 +301,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
         _feil = true;
         _rist++;
       });
-      HapticFeedback.mediumImpact();
+      AeHaptikk.fast();
       return;
     }
     await prefSetBool(prefTermsAccepted, true);
@@ -447,7 +448,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
         _rist++;
         _kode.clear();
       });
-      HapticFeedback.mediumImpact();
+      AeHaptikk.fast();
       return _si(res.message);
     }
     _fullfor();
@@ -488,7 +489,7 @@ class LaunchOnboardingState extends State<LaunchOnboarding> {
     _poengT?.cancel();
     final size = MediaQuery.sizeOf(context);
     final c = from?.center ?? Offset(size.width / 2, size.height * .8);
-    HapticFeedback.heavyImpact();
+    AeHaptikk.suksess();
     final nav = Navigator.of(context);
     // `hjemInn`: the Hjem under the ring rises in once.
     BergenHome.hjemInn = true;

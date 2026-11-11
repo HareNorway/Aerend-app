@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../theme/design_scale.dart';
 import '../../theme/ae_typography.dart';
 import 'ae_theme.dart';
+import 'ae_haptic.dart';
 
 /// Locks typography to design-system px (375px frame) — ignores OS text scaling.
 class AeFixedTypography extends StatelessWidget {
@@ -73,7 +74,7 @@ class _AeBackButtonState extends State<AeBackButton> {
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onPressed,
+      onTap: aeTrykkTikk(widget.onPressed),
       child: AnimatedScale(
         scale: _pressed ? 0.93 : 1,
         duration: const Duration(milliseconds: 120),

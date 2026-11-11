@@ -21,6 +21,7 @@ import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import '../kit/bergen_perf.dart';
 import '../onboarding/onb_tips.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 part 'hjelp_chat.dart';
 

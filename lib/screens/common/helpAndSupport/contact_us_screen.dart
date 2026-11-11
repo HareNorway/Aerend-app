@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
@@ -8,6 +7,7 @@ import '../../../ui/kit/ae_rise_in.dart';
 import '../../../ui/kit/ae_subpage_shell.dart';
 import '../account/account_widgets.dart';
 import '../account/settings_design_kit.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// Native «Kontakt oss» — replaces the old CMS HTML page (norwayhare@…).
 class ContactUsScreen extends StatelessWidget {
@@ -376,7 +376,7 @@ class _ContactRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          HapticFeedback.selectionClick();
+          AeHaptikk.tikk();
           onTap!();
         },
         borderRadius: BorderRadius.circular(10),

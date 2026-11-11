@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
@@ -16,6 +15,7 @@ import 'adr_scene.dart';
 import 'adr_tegning.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 // ── Adresse sheets (`sheet:'adresse'` L8382, `sheet:'nyAdresse'` L8493) ─────
 // "Hvor skal ærendet?": the street scene with the chosen place, its door
@@ -348,7 +348,7 @@ class _AdrArkState extends State<_AdrArk> {
   }
 
   void _velg(AddressListItem a, AddressListItem? valgt) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     _lukkT?.cancel();
     if (valgt?.addressId == a.addressId) {
       Navigator.of(context).pop();
@@ -378,7 +378,7 @@ class _AdrArkState extends State<_AdrArk> {
       k.toast('Du må ha minst ett sted å levere til');
       return;
     }
-    HapticFeedback.mediumImpact();
+    AeHaptikk.fast();
     _lukkT?.cancel();
     // A previous undo window ends: that delete goes through now.
     final forrigeAngre = _angre;
@@ -1754,7 +1754,7 @@ class _NyAdresseState extends State<_NyAdresse> {
   }
 
   void _velg(AdrForslag f) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     _sokT?.cancel();
     _sokN++;
     setState(() {
@@ -1778,7 +1778,12 @@ class _NyAdresseState extends State<_NyAdresse> {
     final id = await widget.kilde.leggTil(adresse: adresse, type: adrType(_merke), fra: _valgt, info: _info.text.trim());
     if (!mounted) return;
     setState(() => _lagrer = false);
-    if (id == null) return;
+    // Kunde Glatt D6: firm when the address is saved, a buzz when it was not.
+    if (id == null) {
+      AeHaptikk.feil();
+      return;
+    }
+    AeHaptikk.fast(ny: true);
     widget.kilde.toast('Lagret · leverer til ${_valgt?.gate ?? adresse}');
     widget.onLagret(id);
   }

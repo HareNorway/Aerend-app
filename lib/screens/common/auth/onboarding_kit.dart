@@ -15,6 +15,7 @@ import '../../bergen/kit/bergen_bakt.dart' show BergenBakt;
 import '../../bergen/kit/bergen_perf.dart';
 import '../splash/splash_sticker_painter.dart';
 import 'onboarding_copy.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 export '../../bergen/kit/bergen_perf.dart' show LfStille;
 
@@ -648,7 +649,7 @@ class _OnbPressableState extends State<OnbPressable> {
     }
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
+      onTap: aeTrykkTikk(widget.onTap),
       onTapDown: (_) => _set(true),
       onTapUp: (_) => _set(false),
       onTapCancel: () => _set(false),

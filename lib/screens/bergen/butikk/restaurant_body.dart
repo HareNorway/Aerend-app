@@ -40,6 +40,7 @@ import 'info_sheet.dart';
 import 'produkt_launch.dart' show produktOfteMed;
 import 'produkt_sheet.dart';
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -244,19 +245,19 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
   }
 
   Future<void> _minusLine(KurvLine l) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = l.quantity > 1 ? await _kasse.changeQuantity(l.cartId, l.quantity - 1) : await _kasse.remove(l.cartId);
     if (ok) await _loadCart();
   }
 
   Future<void> _plusLine(KurvLine l) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = await _kasse.changeQuantity(l.cartId, l.quantity + 1);
     if (ok) await _loadCart(pulse: true);
   }
 
   Future<void> _removeLine(KurvLine l) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = await _kasse.remove(l.cartId);
     if (!mounted) return;
     if (ok) showBergenToast(context, ButikkCopy.a1_butikk_ut_av_kurven(l.name));
@@ -410,7 +411,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                             _catDx = 0;
                             _catDrag = false;
                           });
-                          if (steps != 0) HapticFeedback.selectionClick();
+                          if (steps != 0) AeHaptikk.tikk();
                           _bytt(_cat);
                         },
                       ),

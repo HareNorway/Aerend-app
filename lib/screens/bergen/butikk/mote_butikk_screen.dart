@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../data/ops/kasse_models.dart';
@@ -23,6 +22,7 @@ import 'kategori_utstilling.dart' show MoteSkive, MoteSkiveVare;
 import 'klede_sheet.dart';
 import 'restaurant_body.dart' show ButikkKurvBar, ButikkMiniKurv;
 import '../kit/bergen_perf.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 const _kGlass = [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)];
 
@@ -281,7 +281,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
   }
 
   Future<void> _save(BergenMenuItem item) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = await widget.api.subscribeToPrice(item.id);
     if (!mounted) return;
     if (ok) {
@@ -335,7 +335,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
   );
 
   void _toggleSok() {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     setState(() => _sokApen = !_sokApen);
     if (_sokApen) {
       _sokFokus.requestFocus();
@@ -346,19 +346,19 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
   }
 
   Future<void> _minusLine(KurvLine l) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = l.quantity > 1 ? await _kasse.changeQuantity(l.cartId, l.quantity - 1) : await _kasse.remove(l.cartId);
     if (ok) await _loadCart();
   }
 
   Future<void> _plusLine(KurvLine l) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = await _kasse.changeQuantity(l.cartId, l.quantity + 1);
     if (ok) await _loadCart(pulse: true);
   }
 
   Future<void> _removeLine(KurvLine l) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final ok = await _kasse.remove(l.cartId);
     if (!mounted) return;
     if (ok) showBergenToast(context, ButikkCopy.a1_butikk_ut_av_kurven(l.name));
@@ -459,7 +459,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
                     seg: _segNavn,
                     valgt: _seg,
                     onPick: (i) {
-                      HapticFeedback.selectionClick();
+                      AeHaptikk.tikk();
                       setState(() => _seg = i);
                     },
                   ),
@@ -546,7 +546,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
                   sok: _sok,
                   sokFokus: _sokFokus,
                   onPick: (i) {
-                    HapticFeedback.selectionClick();
+                    AeHaptikk.tikk();
                     setState(() => _filter = i);
                   },
                 ),

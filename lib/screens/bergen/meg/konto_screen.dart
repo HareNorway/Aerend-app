@@ -14,6 +14,7 @@ import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/manageCard/manage_card.dart';
 import '../../../networking/ops/cus_api.dart';
 import '../../../services/customer/client_flags.dart';
+import '../../../ui/kit/ae_haptic.dart';
 import 'betaling_screen.dart';
 import '../aegil/aegil_bits.dart';
 import 'a3_services.dart';
@@ -55,6 +56,9 @@ class _KontoScreenState extends State<KontoScreen> {
   /// publishes. Opt-in, so off until the feed says otherwise.
   bool _aerend = false;
   bool _rolig = false;
+
+  /// Kunde Glatt D5: «Vibrasjon» (default on).
+  bool _vib = true;
   int _valgt = 0;
   List<AddressListItem> _adresser = const [];
   List<String> _kort = const [];
@@ -65,6 +69,7 @@ class _KontoScreenState extends State<KontoScreen> {
     try {
       _krysning = !prefGetBool(kPrefA3KrysningAv);
       _rolig = prefGetBool(kPrefA3Rolig);
+      _vib = AeHaptikk.vibrasjon;
       _valgt = prefGetInt(prefNewDeliveryAddressId);
     } catch (_) {}
     A3Services.reducedMotion.value = _rolig;
@@ -237,6 +242,17 @@ class _KontoScreenState extends State<KontoScreen> {
                     },
                   ),
                   _Rad(
+                    key: const Key('konto-vibrasjon'),
+                    tittel: A3MegCopy.a3_meg_konto_vibrasjon,
+                    under: A3MegCopy.a3_meg_konto_vibrasjon_sub,
+                    bryter: _vib,
+                    bryterKey: const Key('konto-vibrasjon-switch'),
+                    onTap: () {
+                      setState(() => _vib = !_vib);
+                      AeHaptikk.settVibrasjon(_vib);
+                    },
+                  ),
+                  _Rad(
                     key: const Key('konto-hjelp'),
                     tittel: A3MegCopy.a3_meg_konto_hjelp,
                     under: A3MegCopy.a3_meg_konto_data,
@@ -310,7 +326,7 @@ class _Rad extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap,
+      onTap: aeTrykkTikk(onTap),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../networking/ops/ops_customer_api.dart';
@@ -77,7 +76,7 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
         );
         return;
       }
-      HapticFeedback.heavyImpact();
+      AeHaptikk.tung();
       if (_sum == null) _hentSum();
       if (MediaQuery.disableAnimationsOf(context)) {
         _t.value = 1;

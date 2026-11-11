@@ -1,7 +1,6 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr/qr.dart';
 
@@ -12,6 +11,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
+import '../../../ui/kit/ae_haptic.dart';
 
 /// **Bud-identitet** (Launch L8995): the white glass pill with the
 /// courier's initial, «{navn} · el-sykkel» and «BankID-verifisert» — or the
@@ -171,7 +171,7 @@ class _LeveringskodeCardState extends State<LeveringskodeCard> {
   late bool _pin = prefGetString(LeveringskodeCard.prefVis(widget.tracking?.orderId ?? '')) == 'pin';
 
   void _vis(bool pin) {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final id = widget.tracking?.orderId ?? '';
     if (id.isNotEmpty) prefSetString(LeveringskodeCard.prefVis(id), pin ? 'pin' : 'qr');
     setState(() => _pin = pin);

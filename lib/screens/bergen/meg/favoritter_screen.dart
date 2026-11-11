@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../data/ops/butikk_models.dart';
 import '../../../data/ops/favourite_products.dart';
@@ -193,7 +192,7 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
   /// basket holds one store, so another store's lines make way, as «Bestill
   /// igjen» does it.
   Future<bool> _leggEn(int storeId, int productId) async {
-    HapticFeedback.selectionClick();
+    AeHaptikk.tikk();
     final kasse = FavoritterScreen.kasse();
     try {
       var cart = await kasse.cart();
@@ -212,8 +211,11 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
       BergenCart.syncBadge(context, cart.lines.length);
       final lagt = cart.lines.any((l) => l.productId == productId);
       if (lagt) aeConfirm();
+      // Kunde Glatt D6: not in the basket after all — a short buzz.
+      if (!lagt) AeHaptikk.feil();
       return lagt;
     } catch (_) {
+      AeHaptikk.feil();
       return false;
     }
   }
@@ -222,7 +224,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
     if (OpsCustomerApi.authParams() == null) return showBergenToast(context, FavCopy.loggInn);
     final ok = await _favs.set(s.storeId, false);
     if (!mounted) return;
-    if (!ok) return showBergenToast(context, FavCopy.feil);
+    if (!ok) {
+      AeHaptikk.feil();
+      return showBergenToast(context, FavCopy.feil);
+    }
     showBergenToast(context, FavTekst.fjernet(s.name), angre: () => _favs.set(s.storeId, true));
   }
 
@@ -230,7 +235,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
     if (OpsCustomerApi.authParams() == null) return showBergenToast(context, FavCopy.loggInn);
     final ok = await _prod.set(p.productId, false);
     if (!mounted) return;
-    if (!ok) return showBergenToast(context, FavCopy.feil);
+    if (!ok) {
+      AeHaptikk.feil();
+      return showBergenToast(context, FavCopy.feil);
+    }
     showBergenToast(context, FavTekst.fjernet(p.name), angre: () => _prod.set(p.productId, true));
   }
 

@@ -8,6 +8,7 @@ import 'lf_css.dart';
 import 'lf_icons.dart';
 import 'lf_motion.dart';
 import '../../../bergen/kit/bergen_perf.dart';
+import '../../../../ui/kit/ae_haptic.dart';
 
 // ── Launch onboarding · shared pieces ───────────────────────────────────────
 // Prototype L1887–2214 (`data-screen-label="Onboarding"`).
@@ -534,7 +535,7 @@ class _GiftState extends State<_Gift> with TickerProviderStateMixin {
 
   void celebrate(int i) {
     if (MediaQuery.disableAnimationsOf(context)) return;
-    HapticFeedback.lightImpact();
+    AeHaptikk.tikk(gammel: HapticFeedback.lightImpact);
     final r = math.Random();
     const f = [Color(0xFFF2C14E), Color(0xFF5CE0B8), Color(0xFFFFFFFF), Color(0xFFF9A273)];
     _dots = [
@@ -1023,7 +1024,7 @@ class _LfCtaState extends State<LfCta> {
       onTapDown: (_) => setState(() => _down = true),
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
-      onTap: widget.onTap,
+      onTap: aeTrykkTikk(widget.onTap),
       child: AnimatedSlide(
         offset: Offset(0, _down ? 3 / 54 : 0),
         duration: const Duration(milliseconds: 140),
@@ -1380,7 +1381,7 @@ class _LfPressState extends State<LfPress> {
       onTapDown: (_) => setState(() => _down = true),
       onTapCancel: () => setState(() => _down = false),
       onTapUp: (_) => setState(() => _down = false),
-      onTap: widget.onTap,
+      onTap: aeTrykkTikk(widget.onTap),
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: _down ? 1 : 0),
         duration: Duration(milliseconds: widget.ms),
