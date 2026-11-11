@@ -8,6 +8,7 @@ import 'package:aerend_customer/screens/bergen/hjem/hjem_snart.dart';
 import 'package:aerend_customer/screens/bergen/hjem/hjem_tilbud.dart';
 import 'package:aerend_customer/screens/bergen/kit/fane_bytte.dart';
 import 'package:aerend_customer/screens/common/auth/launch/lf_css.dart';
+import 'package:aerend_customer/screens/common/auth/launch/lf_widgets.dart' show LfPress;
 
 import '../layout/reduced_motion_harness.dart';
 
@@ -62,8 +63,9 @@ void main() {
     expect(find.text('24 åpne nå'), findsOneWidget);
     expect(find.text('Kommer snart · Varsle meg'), findsNothing);
 
-    // Next → Mat & fisk: coming soon, so the chip replaces the live line.
-    await tester.tap(find.byType(GestureDetector).last);
+    // ‹ → Mat & fisk (the orb on the left; Kunde Glatt D1): coming soon, so
+    // the chip replaces the live line.
+    await tester.tap(find.byType(LfPress).first);
     await tester.pump(const Duration(milliseconds: 900));
     expect(find.text('Mat & fisk'), findsOneWidget);
     expect(find.text('Kommer snart · Varsle meg'), findsOneWidget);
