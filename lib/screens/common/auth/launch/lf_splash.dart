@@ -28,8 +28,9 @@ class LfSplashScene extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // spmBg .7s ease-out
-    final bg = cssEaseOut.transform(kfP(t, 0, 700));
+    // spmBg (.7s fade-in from #0D232B) is skipped: the native launch window before this frame already shows the
+    // same teal gradient (Android launch_gradient.xml, iOS LaunchScreen), so fading in from dark would flash.
+    const double bg = 1;
     // spmGlod 2.4s .2s ease-out: opacity 0→1 (55%)→.75, scale .7→1
     final gp = kfP(t, 200, 2400);
     final glowO = kf(gp, const [0, .55, 1], const [0, 1, .75], cssEaseOut);

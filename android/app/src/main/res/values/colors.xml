@@ -2,8 +2,9 @@
 <resources>
     <color name="colorPrimary">#E86657</color>
     <color name="colorPrimaryDark">#C94F41</color>
-    <!-- Reen splash navy — matches Flutter splash panel so cold start does not
-         flash the old Ærend lavender / purple mark. -->
-    <color name="launch_background">#14273F</color>
+    <!-- Ærend splash teal (the splash gradient's edge) for the status and navigation bars at launch, and the
+         Android 12+ system splash (the gradient's middle). -->
+    <color name="launch_background">#143A45</color>
+    <color name="launch_splash">#1E4F5C</color>
 	<color name="ic_launcher_background">#173E48</color>
 </resources>
