@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/widgets.dart' show Visibility, Widget;
 import 'package:path_provider/path_provider.dart';
 
+import '../../../ui/kit/kglatt.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
@@ -468,6 +469,8 @@ abstract final class HjemHarness {
         BergenPerf.dekketPaa = true;
         BergenBakt.paa = true;
         BergenPerf.shaderFrys = false;
+        // Kunde Glatt: every plan change on, as shipped.
+        KGlatt.nullstill();
         BergenPerf.shaderFrysKun = null;
         BergenPerf.frysMs = null;
         heroStille = false;
@@ -834,6 +837,8 @@ abstract final class HjemHarness {
       guideIdx = m['guideIdx'] as int?;
       brett = m['brett'] == true;
       reise = m['reise'] == true;
+      // Kunde Glatt (debug / profile): `kglatt`, `kglattHjul`, `kglattVib`.
+      KGlatt.sett(m);
       if (m['lagCache'] == true) LagCache.start();
       if (m['videoTest'] is String) PerfVideoTest.start(m['videoTest'] as String);
       debugPrint('HJEM_HARNESS applied');

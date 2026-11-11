@@ -21,6 +21,9 @@ void aeSuccess() => _spill('success', () {
     });
 
 void _spill(String kind, VoidCallback ios) {
+  // Kunde Glatt Step 0 (debug / profile): one line per vibration, mirrored
+  // into perf_log.txt (`BergenPerf`'s PERF_ file mirror).
+  if (!kReleaseMode) debugPrint('PERF_HAPTIKK kind=$kind');
   if (defaultTargetPlatform == TargetPlatform.android) {
     _channel.invokeMethod<void>('play', kind).catchError((Object _) => HapticFeedback.lightImpact());
   } else {
