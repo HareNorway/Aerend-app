@@ -21,6 +21,10 @@ class AegilTurn {
     this.aiLabel,
     this.verktoy = const [],
     this.chips = const [],
+    this.sessionId,
+    this.turnId,
+    this.tier,
+    this.feedback = false,
   });
 
   final String state;
@@ -51,6 +55,13 @@ class AegilTurn {
   /// Follow-ups the reply offers (`chips`); empty means the screen's own.
   final List<String> chips;
 
+  /// Assistant cost plan Step 6 (`ast`): the session the app sends back, the
+  /// turn the thumbs are for, the tier that answered, whether thumbs are on.
+  final int? sessionId;
+  final int? turnId;
+  final int? tier;
+  final bool feedback;
+
   factory AegilTurn.fromJson(Map<String, dynamic> json) => AegilTurn(
     state: (json['state'] as String?) ?? 'agIkkeFunnet',
     reply: (json['reply'] as String?) ?? '',
@@ -79,6 +90,10 @@ class AegilTurn {
         .where((v) => v.type.isNotEmpty)
         .toList(),
     chips: ((json['chips'] as List?) ?? const []).whereType<String>().toList(),
+    sessionId: ((json['ast'] as Map?)?['session_id'] as num?)?.toInt(),
+    turnId: ((json['ast'] as Map?)?['turn_id'] as num?)?.toInt(),
+    tier: ((json['ast'] as Map?)?['tier'] as num?)?.toInt(),
+    feedback: (json['ast'] as Map?)?['feedback'] == true,
   );
 }
 

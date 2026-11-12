@@ -336,10 +336,14 @@ class FakeAegilApi implements AegilAppApi {
   /// The context each chat turn carried (D-K20).
   final List<Map<String, Object?>> chats = [];
 
+  /// Assistant cost plan Step 6: each turn's chip id, screen and session (kept apart so D-K20's maps stay exact).
+  final List<Map<String, Object?>> meta = [];
+
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId, String? chipId, String? screen, int? sessionId}) async {
     calls.add('chat:${text ?? intent}');
     chats.add({'text': text, 'intent': intent, 'store_id': storeId, 'category': category, 'for': recipient, if (conversationId != null) 'conversation_id': conversationId, if (orderId != null) 'order_id': orderId});
+    meta.add({'chip_id': chipId, 'screen': screen, 'session_id': sessionId});
     return turn ??
         const AegilTurn(
           state: 'agForslag',
@@ -754,6 +758,15 @@ class FakeAegilApi implements AegilAppApi {
   @override
   Future<bool> closeConversation(String id) async {
     calls.add('close:$id');
+    return true;
+  }
+
+  /// Assistant cost plan Step 6: the thumbs sent.
+  final List<String> thumbs = [];
+
+  @override
+  Future<bool> feedback(int turnId, {required bool up}) async {
+    thumbs.add('$turnId:${up ? 'up' : 'down'}');
     return true;
   }
 

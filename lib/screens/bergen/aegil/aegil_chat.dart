@@ -9,6 +9,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../hurtig/hurtig_data.dart' show HbButikk;
 import '../kit/svg_sti.dart';
 import 'aegil_bits.dart';
+import '../../../utils/utils.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_verktoy.dart';
 import '../kit/bergen_perf.dart';
@@ -45,7 +46,9 @@ class AeMelding {
       knapper = const [],
       forslag = const [],
       verktoy = const [],
-      humor = 'glad';
+      humor = 'glad',
+      turnId = null,
+      tommel = false;
 
   AeMelding.aeg({
     required this.tekst,
@@ -60,6 +63,8 @@ class AeMelding {
     this.forslag = const [],
     this.verktoy = const [],
     this.humor = 'glad',
+    this.turnId,
+    this.tommel = false,
   }) : meg = false;
 
   final bool meg;
@@ -84,6 +89,11 @@ class AeMelding {
 
   /// `glad` / `spent` / `tenker` / `lei` — Ægil's pose for the reply.
   final String humor;
+
+  /// Assistant cost plan Step 6: the server's turn behind this reply and
+  /// whether it takes a thumb (`ast.feedback`). Local lines have neither.
+  final int? turnId;
+  final bool tommel;
 
   final int id = _n++;
   static int _n = 0;
@@ -132,6 +142,73 @@ abstract interface class AeHandling {
   Future<void> reorderShoot() async {}
   Future<void> reorderChoose(AeVerktoy v, ReorderResult r, ReorderCandidate? c) async {}
   void reorderSearch(String text) {}
+
+  /// Assistant cost plan Step 6: a thumb on the reply of [turnId].
+  Future<bool> tommel(int turnId, bool opp) async => false;
+}
+
+/// Assistant cost plan Step 6 (spec Q5): a small, optional thumb under a
+/// server reply — one tap sends it, then «Takk». Not in the design: needs
+/// sign-off.
+class AeTommel extends StatefulWidget {
+  const AeTommel({super.key, required this.turnId, required this.h});
+
+  final int turnId;
+  final AeHandling h;
+
+  @override
+  State<AeTommel> createState() => _AeTommelState();
+}
+
+class _AeTommelState extends State<AeTommel> {
+  bool? _valgt;
+
+  Future<void> _send(bool opp) async {
+    if (_valgt != null) return;
+    setState(() => _valgt = opp);
+    await widget.h.tommel(widget.turnId, opp);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const farge = Color.fromRGBO(191, 214, 221, .7);
+    Widget knapp(bool opp) => Semantics(
+      button: true,
+      label: opp ? AeTommelCopy.bra : AeTommelCopy.ikkeBra,
+      child: GestureDetector(
+        key: Key(opp ? 'ae-tommel-opp' : 'ae-tommel-ned'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _send(opp),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            _valgt == opp ? (opp ? Icons.thumb_up_alt : Icons.thumb_down_alt) : (opp ? Icons.thumb_up_alt_outlined : Icons.thumb_down_alt_outlined),
+            size: 15,
+            color: farge,
+          ),
+        ),
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_valgt == null || _valgt == true) knapp(true),
+          if (_valgt == null || _valgt == false) knapp(false),
+          if (_valgt != null) Text(AeTommelCopy.takk, style: inter(10.5, weight: FontWeight.w700, color: farge)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Copy for the thumbs (Assistant Step 6).
+abstract final class AeTommelCopy {
+  static bool get _en => resolveSelectedLanguage() == 'en';
+  static String get bra => _en ? 'Good answer' : 'Godt svar';
+  static String get ikkeBra => _en ? 'Not helpful' : 'Ikke til hjelp';
+  static String get takk => _en ? 'Thanks' : 'Takk';
 }
 
 /// The user's line (`m.meg`): white, right, `vcMeg .38s`.
@@ -254,6 +331,7 @@ class AeSvar extends StatelessWidget {
                     ],
                   ),
                 ],
+                if (m.turnId != null && m.tommel) AeTommel(key: ValueKey('ae-tommel-${m.turnId}'), turnId: m.turnId!, h: h),
               ],
             ),
           ),
