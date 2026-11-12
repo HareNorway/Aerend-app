@@ -13,6 +13,7 @@ import 'package:showcaseview/showcaseview.dart';
 
 import '../networking/ops/ops_customer_api.dart';
 import 'ntf/ntf_hooks.dart';
+import 'ntf/ntf_live_card.dart';
 import 'ntf/ntf_push.dart';
 import '../screens/common/chatting/chatting.dart';
 import '../screens/common/homeMainV1/home_main_v1.dart';
@@ -69,6 +70,32 @@ class PushNotificationService {
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(c);
     }
+    // Notifications plan Step 10: the order's live card — one ongoing notification on Android, updated by silent
+    // pushes (the iOS Live Activity is the Mac step; nothing is shown for it here).
+    if (Platform.isAndroid) {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(NtfLiveCard.channel);
+      NtfLiveCard.show = (int id, String title, String body) => flutterLocalNotificationsPlugin.show(
+            id,
+            title,
+            body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(NtfLiveCard.channel.id, NtfLiveCard.channel.name,
+                  channelDescription: NtfLiveCard.channel.description,
+                  icon: 'ic_notification',
+                  color: colorPrimary,
+                  importance: Importance.low,
+                  priority: Priority.low,
+                  playSound: false,
+                  ongoing: true,
+                  onlyAlertOnce: true,
+                  autoCancel: false),
+            ),
+          );
+      NtfLiveCard.cancel = (int id) => flutterLocalNotificationsPlugin.cancel(id);
+    }
+    NtfHooks.onLiveCard = NtfLiveCard.fromPush;
 
     /// Update the iOS foreground notification presentation options to allow
     /// heads up notifications.

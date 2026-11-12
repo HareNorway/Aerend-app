@@ -577,6 +577,13 @@ class CusApi {
   Future<bool> varselTypeAv(String type, {bool av = true, DateTime? til}) async =>
       (await _post('notification-prefs/$type/mute', {if (!av) 'off': true, if (til != null) 'until': til.toUtc().toIso8601String()}))?['ok'] == true;
 
+  /// Notifications plan Step 10: the order's live card (`GET live-card/order:<id>`); `enabled` is `ntf.live_card`.
+  Future<({bool enabled, Map<String, dynamic> card})?> liveCard(int orderId) async {
+    final j = await _get('live-card/order:$orderId');
+    final c = j?['card'];
+    return c is Map ? (enabled: j!['enabled'] == true, card: Map<String, dynamic>.from(c)) : null;
+  }
+
   /// Marketing consent (D-10): yes / no, asked once after the first delivered order.
   Future<bool> markedsSamtykke(bool markedsforing) async => (await _send('PUT', 'notification-consents', {'marketing': markedsforing})) != null;
 
