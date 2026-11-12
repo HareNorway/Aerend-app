@@ -1,3 +1,4 @@
+import 'meg/varsler_innst.dart';
 import 'package:flutter/widgets.dart';
 
 import 'ai/ai_koblede_screen.dart';
@@ -53,6 +54,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil1() => <String, WidgetBuilder>{
   // Sporing for the order, which shows the delivered state.
   '/bergen/levert': (_) => const SporingScreen(),
   '/bergen/kundeservice': (_) => const KundeserviceScreen(),
+  // Notifications plan Step 7: «Varsler» settings (from the server's catalogue).
+  '/bergen/varsler/innstillinger': (_) => const VarslerInnstScreen(),
   // Phase 2: Utforsk on the segment in `?tab=` (feed / fiske / pose). The
   // old separate «Nytt fra butikkene» page is gone (Gap Step 4).
   '/bergen/utforsk': (ctx) => UtforskScreen(embedded: false, initialTab: BergenRoutes.argsOf(ctx)['tab']),

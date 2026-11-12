@@ -74,6 +74,12 @@ abstract final class VarslerCopy {
   static const angre = 'Angre';
   static const ikkeIUtforsk = 'Butikken er ikke i Utforsk ennå';
   static const dempet = 'Skrudde av slike varsler';
+  // Notifications plan Step 7: the AI label, «Færre slike», «Slå av denne typen».
+  static const ai = 'AI';
+  static const faerreSlike = 'Færre slike';
+  static const slaaAvType = 'Slå av denne typen';
+  static const faerreSlikeOk = 'Du får færre slike varsler';
+  static const typeAvOk = 'Skrudde av denne typen varsler';
   static const folg = 'Følg', folger = 'Følger', seMeny = 'Se meny';
   static String fjernet(String tittel) => 'Fjernet: $tittel';
   static const _ord = ['Ingenting', 'Én', 'To', 'Tre', 'Fire', 'Fem', 'Seks', 'Sju', 'Åtte', 'Ni'];
@@ -129,6 +135,11 @@ class Varsel {
     this.orderId,
     this.actionId,
     this.conversationId,
+    this.aiLabel = false,
+    this.lessOk = false,
+    this.ntfType,
+    this.notificationId,
+    this.handlinger = const [],
   });
 
   /// A card from the inbox (Customer Step 3).
@@ -150,6 +161,11 @@ class Varsel {
     storeId: c.storeId,
     orderId: c.orderId,
     actionId: c.actionId,
+    aiLabel: c.aiLabel,
+    lessOk: c.lessOk,
+    ntfType: c.ntfType,
+    notificationId: c.notificationId,
+    handlinger: c.actions,
   );
 
   final String id;
@@ -184,6 +200,14 @@ class Varsel {
   /// Customer Step 10: the Hjelp thread «Svar {navn}» continues.
   final int? conversationId;
 
+  /// Notifications plan Step 7: written by an agent (the «AI» label); «Færre slike» / «Slå av denne typen» offered
+  /// (an INSIGHT type the person may switch off); the Varselsentral type and row; the inline actions.
+  final bool aiLabel;
+  final bool lessOk;
+  final String? ntfType;
+  final int? notificationId;
+  final List<CusVarselHandling> handlinger;
+
   Varsel lest() => Varsel(
     id: id,
     type: type,
@@ -201,6 +225,11 @@ class Varsel {
     orderId: orderId,
     actionId: actionId,
     conversationId: conversationId,
+    aiLabel: aiLabel,
+    lessOk: lessOk,
+    ntfType: ntfType,
+    notificationId: notificationId,
+    handlinger: handlinger,
   );
 
   /// Customer Step 7: the card after «Angre» (no button).
@@ -221,6 +250,11 @@ class Varsel {
     orderId: orderId,
     actionId: actionId,
     conversationId: conversationId,
+    aiLabel: aiLabel,
+    lessOk: lessOk,
+    ntfType: ntfType,
+    notificationId: notificationId,
+    handlinger: handlinger,
   );
 }
 
@@ -256,7 +290,19 @@ class HjemVarslerKilde {
     this.les = _ingenSvar,
     this.fjern = _ingenFjern,
     this.demp = _ingenDemp,
+    this.utfall = _ingenUtfall,
+    this.typeAv = _ingenTypeAv,
   });
+
+  static Future<bool> _ingenUtfall(int _, String __) async => false;
+  static Future<bool> _ingenTypeAv(String _) async => false;
+
+  /// Notifications plan Step 7: what the customer did — acted | less (opened and dismissed go through [les] and
+  /// [fjern], which the server records too).
+  final Future<bool> Function(int notificationId, String utfall) utfall;
+
+  /// «Slå av denne typen» for a Varselsentral type.
+  final Future<bool> Function(String ntfType) typeAv;
 
   static Future<CusInbox?> _ingenInbox() async => null;
   static Future<int?> _ingenAntall() async => null;
@@ -302,6 +348,8 @@ class HjemVarslerKilde {
     les: (k) => CusApi().varselLest(k),
     fjern: (k, angre) => CusApi().varselFjern(k, angre: angre),
     demp: (k, av) async => CusApi().varselDemp(k, av: av),
+    utfall: (id, u) => CusApi().varselUtfall(id, u),
+    typeAv: (t) => CusApi().varselTypeAv(t),
   );
 
   static Future<VarselOrdre?> _ordreFraSporing(int orderId) async {
@@ -605,7 +653,39 @@ class _VarslerPanelState extends State<VarslerPanel> {
     if (rute != null) BergenRoutes.pushOr(context, rute, orElse: () {});
   }
 
+  /// Notifications plan Step 7: «Færre slike» / «Slå av denne typen» on an INSIGHT card (long press).
+  Future<void> _mindre(Varsel v) async {
+    final valg = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF0E2F3A),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(key: const Key('varsel-faerre'), title: Text(VarslerCopy.faerreSlike, style: inter(14, weight: FontWeight.w700)), onTap: () => Navigator.pop(ctx, 'less')),
+            if (v.ntfType != null)
+              ListTile(key: const Key('varsel-type-av'), title: Text(VarslerCopy.slaaAvType, style: inter(14, weight: FontWeight.w700)), onTap: () => Navigator.pop(ctx, 'off')),
+          ],
+        ),
+      ),
+    );
+    if (valg == null || !mounted) return;
+    final ok = valg == 'less' ? await HjemVarsler.kilde.utfall(v.notificationId!, 'less') : await HjemVarsler.kilde.typeAv(v.ntfType!);
+    if (!mounted) return;
+    showBergenToast(context, ok ? (valg == 'less' ? VarslerCopy.faerreSlikeOk : VarslerCopy.typeAvOk) : BergenRoutes.ikkeLagret);
+  }
+
+  /// An inline action from the server («Vent», «Avbestill», «Endre»): recorded as «acted», then its route.
+  void _inline(Varsel v, CusVarselHandling h) {
+    if (v.notificationId case final id?) unawaited(HjemVarsler.kilde.utfall(id, 'acted').catchError((_) => false));
+    final r = h.route;
+    _lukk();
+    if (r != null && r.startsWith('/bergen/')) BergenRoutes.pushOr(context, r, orElse: () {});
+  }
+
   void _handling(Varsel v) {
+    // Notifications plan Step 7: the card's button is the customer acting on it.
+    if (v.notificationId case final id?) unawaited(HjemVarsler.kilde.utfall(id, 'acted').catchError((_) => false));
     // Customer v2 Step 6: «Endre» on the standing order's notice — the basket, editable until the cut-off.
     if (v.type == 'ukeshandel' && v.handling == 'Endre') {
       _lukk();
@@ -657,7 +737,8 @@ class _VarslerPanelState extends State<VarslerPanel> {
 
   void _innstillinger() {
     _lukk();
-    BergenRoutes.push<void>(context, '/bergen/aegil/nivaa');
+    // Notifications plan Step 7: the per-type settings (Ægil's level stays under Meg › Ægil).
+    BergenRoutes.push<void>(context, '/bergen/varsler/innstillinger');
   }
 
   @override
@@ -838,6 +919,8 @@ class _VarslerPanelState extends State<VarslerPanel> {
                           naa: naa,
                           onTap: () => _apneKort(v),
                           onHandling: () => _handling(v),
+                          onLongPress: v.lessOk && v.notificationId != null ? () => _mindre(v) : null,
+                          onInline: (h) => _inline(v, h),
                           folger: v.storeId != null && _folger.contains(v.storeId),
                           onFolg: v.storeId != null && _utenFeed.contains(v.storeId) ? null : () => _folg(v),
                           onSeMeny: () => _seMeny(v),
@@ -1158,12 +1241,13 @@ const Map<String, Size> _kIkonStr = {
 };
 
 class _Kort extends StatelessWidget {
-  const _Kort({super.key, required this.v, required this.naa, required this.onTap, this.onHandling, this.folger = false, this.onFolg, this.onSeMeny});
+  const _Kort({super.key, required this.v, required this.naa, required this.onTap, this.onHandling, this.folger = false, this.onFolg, this.onSeMeny, this.onLongPress, this.onInline});
 
   final Varsel v;
   final DateTime naa;
   final VoidCallback onTap;
-  final VoidCallback? onHandling, onFolg, onSeMeny;
+  final VoidCallback? onHandling, onFolg, onSeMeny, onLongPress;
+  final void Function(CusVarselHandling h)? onInline;
   final bool folger;
 
   @override
@@ -1174,7 +1258,9 @@ class _Kort extends StatelessWidget {
     final str = _kIkonStr[ik]!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 9),
-      child: LfPress(
+      child: GestureDetector(
+        onLongPress: onLongPress,
+        child: LfPress(
         scale: .99,
         onTap: onTap,
         child: _glass(
@@ -1233,6 +1319,15 @@ class _Kort extends StatelessWidget {
                             v.avs,
                             style: inter(10, weight: FontWeight.w700, color: mFg),
                           ),
+                          if (v.aiLabel) ...[
+                            const SizedBox(width: 5),
+                            Container(
+                              key: const Key('varsel-ai'),
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), border: Border.all(color: mFg.withValues(alpha: .7))),
+                              child: Text(VarslerCopy.ai, style: inter(8.5, weight: FontWeight.w800, color: mFg)),
+                            ),
+                          ],
                           const SizedBox(width: 6),
                           Opacity(
                             opacity: .6,
@@ -1280,6 +1375,17 @@ class _Kort extends StatelessWidget {
                 ),
               ],
             ),
+            if (v.handlinger.isNotEmpty && onInline != null) ...[
+              const SizedBox(height: 9),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  for (final h in v.handlinger)
+                    _Handling(key: Key('varsel-inline-${h.label}'), tekst: h.label, oransje: false, onTap: () => onInline!(h)),
+                ],
+              ),
+            ],
             if (v.rik) ...[
               const SizedBox(height: 11),
               _Bilder(urls: v.bilder),
@@ -1303,6 +1409,7 @@ class _Kort extends StatelessWidget {
           ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -1535,7 +1642,7 @@ class _Bekreftelse extends StatelessWidget {
 
 /// The card's button («Velg»): 44 high, orange for `valg`.
 class _Handling extends StatelessWidget {
-  const _Handling({required this.tekst, required this.oransje, required this.onTap});
+  const _Handling({super.key, required this.tekst, required this.oransje, required this.onTap});
 
   final String tekst;
   final bool oransje;

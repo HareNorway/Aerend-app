@@ -1,3 +1,4 @@
+import '../meg/varsler_innst.dart' show NtfSamtykke;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -184,6 +185,8 @@ class _SporingScreenState extends State<SporingScreen> {
       });
       if (changed) _onStageChange(next);
       if (_lastStage == null && next.stage == 3) _etterLevert(next);
+      // Notifications plan Step 7 (D-10): the marketing question, once, after a delivered order.
+      if (next.isDelivered && mounted) unawaited(NtfSamtykke.kanskje(context));
       _lastStage = next.stage;
     } catch (_) {
       if (!mounted) return;
