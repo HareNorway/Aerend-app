@@ -268,6 +268,10 @@ abstract final class SporingCopy {
   static String a1_sporing_i_disken_si(String navn) => _t('Den står i disken. Si «$navn» så får du den.', 'It is at the counter. Say «$navn» and it is yours.');
   static String get a1_sporing_ankommer => _t('Ankommer om', 'Arriving in');
   static String a1_sporing_km_igjen(String km) => _t('$km km igjen', '$km km left');
+  // Battery plan Step 7 (courier battery spec §4.3): the courier's position is older than 30 s.
+  static String a1_sporing_sist_oppdatert(int sek) => sek < 60
+      ? _t('Sist oppdatert for $sek s siden', 'Last updated $sek s ago')
+      : _t('Sist oppdatert for ${sek ~/ 60} min siden', 'Last updated ${sek ~/ 60} min ago');
   static String get a1_sporing_hjem_etikett => _t('hjem', 'home');
   static String get a1_sporing_god_appetitt => _t('God appetitt!', 'Enjoy your meal!');
   static String get a1_sporing_haaper_smaker => _t('Håper det smaker.', 'Hope it tastes good.');
