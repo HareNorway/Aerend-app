@@ -19,7 +19,14 @@ abstract class AegilAppApi {
   ///
   /// Customer Step 5: [conversationId] continues a chat (`cv_…`); [orderId]
   /// is the order «Spør Ægil» was opened from on its tracking view.
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId});
+  ///
+  /// Assistant cost plan Step 6: [chipId] is a tapped chip's intent id (the
+  /// server answers it in code or composes without its router), [screen] is
+  /// where Ægil was opened, [sessionId] the assistant session to continue.
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId, String? chipId, String? screen, int? sessionId});
+
+  /// Assistant cost plan Step 6: a thumb on one answer (`POST assistant/feedback`).
+  Future<bool> feedback(int turnId, {required bool up}) async => false;
 
   /// Customer Step 5: the customer's chats, newest first, and one chat's
   /// lines — the screen resumes the last one after a relaunch.
@@ -130,12 +137,15 @@ class AegilAppRepo implements AegilAppApi {
   }
 
   @override
-  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId}) async {
+  Future<AegilTurn?> chat({String? text, String? intent, int? storeId, String? category, String? recipient, String? conversationId, int? orderId, String? chipId, String? screen, int? sessionId}) async {
     try {
       final json = _ok(await _api.post('chat', body: {
         ..._auth(),
         if (text != null) 'text': text,
         if (intent != null) 'intent': intent,
+        if (chipId != null) 'chip_id': chipId,
+        if (screen != null) 'screen': screen,
+        if (sessionId != null) 'session_id': sessionId,
         if (storeId != null) 'store_id': storeId,
         if (category != null) 'category': category,
         if (recipient != null) 'for': recipient,
@@ -147,6 +157,18 @@ class AegilAppRepo implements AegilAppApi {
       return json == null ? null : AegilTurn.fromJson(json);
     } catch (_) {
       return null;
+    }
+  }
+
+  @override
+  Future<bool> feedback(int turnId, {required bool up}) async {
+    try {
+      // /api/assistant/, next to /api/agent/ (the same domain and dev-env override).
+      final api = ApiBaseHelper(baseUrl: ApiConst.baseAgentUrl.replaceFirst(RegExp(r'agent/$'), 'assistant/'));
+      final json = await api.post('feedback', body: {..._auth(), 'turn_id': turnId, 'value': up ? 'up' : 'down'});
+      return json is Map && json['ok'] == true;
+    } catch (_) {
+      return false;
     }
   }
 

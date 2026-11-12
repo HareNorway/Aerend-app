@@ -99,6 +99,18 @@ class AegilScreen extends StatefulWidget {
   State<AegilScreen> createState() => _AegilScreenState();
 }
 
+/// Assistant cost plan Step 6: the app's own chips as intent ids — the server answers `what_can_you_do` in code, opens
+/// the gift flow, and composes the rest without its router. The model's own chips and typed words have none.
+String? aegilChipId(String tekst) {
+  final t = tekst.trim();
+  if (t == AeCopy.chipHjelp) return 'what_can_you_do';
+  if (t == AeCopy.chipGave) return 'gift';
+  if (t == AeCopy.chipBillig) return 'cheapest_near';
+  if (t == AeCopy.chipSulten) return 'hungry';
+  if (t == AeCopy.chipTaco) return 'taco_night';
+  return null;
+}
+
 class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   late final AegilAppApi _api = widget.api ?? A3Services.aegil();
   late final AegilRepo _repo = widget.repo ?? A3Services.aegilRepo();
@@ -122,6 +134,19 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   final List<AeMelding> _vc = [];
   bool _tenker = false;
   List<String> _forslag = const [];
+
+  /// Assistant cost plan Step 6: the assistant session the server gave the last turn.
+  int? _sesjon;
+
+  /// Where Ægil was opened (sent as `screen`): a tracking view, a store, a category, or Ægil itself.
+  String get _skjerm {
+    final k = _ktx;
+    if (k?.orderId != null) return 'sporing';
+    if (k?.storeId != null || k?.store != null) return 'butikk';
+    if (k?.category != null) return 'kategori';
+    return 'aegil';
+  }
+
   int _sendSeq = 0;
 
   // Customer Step 5: the conversation (`cv_…`) the chat continues and resumes
@@ -317,12 +342,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     AegilTurn? turn;
     try {
       final k = _ktx;
-      turn = await _api.chat(intent: intent, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId).timeout(const Duration(seconds: 12));
+      turn = await _api.chat(intent: intent, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId, screen: _skjerm, sessionId: _sesjon).timeout(const Duration(seconds: 12));
     } catch (_) {
       turn = null;
     }
     if (!mounted || seq != _sendSeq) return;
     if (turn?.conversationId != null) _samtaleId = turn!.conversationId;
+    if (turn?.sessionId != null) _sesjon = turn!.sessionId;
     setState(() {
       _tenker = false;
       if (turn != null) _vc.add(_svar('', turn));
@@ -357,7 +383,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       final k = _ktx;
       final i = intent ?? _ventIntent;
       _ventIntent = null;
-      turn = await _api.chat(text: tx, intent: i, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId, orderId: k?.orderId).timeout(const Duration(seconds: 20));
+      turn = await _api.chat(text: tx, intent: i, storeId: k?.storeId, category: k?.category, recipient: k?.recipient, conversationId: _samtaleId, orderId: k?.orderId,
+          chipId: i == null ? aegilChipId(tx) : null, screen: _skjerm, sessionId: _sesjon).timeout(const Duration(seconds: 20));
     } catch (_) {
       turn = null;
     }
@@ -365,6 +392,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     if (vent > 0) await Future.delayed(Duration(milliseconds: vent));
     if (!mounted || seq != _sendSeq) return;
     if (turn?.conversationId != null) _samtaleId = turn!.conversationId;
+    if (turn?.sessionId != null) _sesjon = turn!.sessionId;
     final svar = _svar(tx, turn);
     for (final s in svar.kort) {
       _hentButikk(s.storeId);
@@ -453,8 +481,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
       forslag: forslag,
       verktoy: turn.verktoy,
       humor: humor,
+      turnId: turn.turnId,
+      tommel: turn.feedback,
     );
   }
+
+  @override
+  Future<bool> tommel(int turnId, bool opp) async => (await a3Try(() => _api.feedback(turnId, up: opp))) ?? false;
 
   void _rullNed() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -475,6 +508,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     final id = _samtaleId;
     if (id != null) unawaited(a3Try(() => _api.closeConversation(id)));
     _samtaleId = null;
+    _sesjon = null;
     _verktoyNaa.clear();
     setState(() {
       _vc.clear();
