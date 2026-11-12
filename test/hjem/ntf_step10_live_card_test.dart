@@ -67,6 +67,14 @@ void main() {
     NtfLiveCard.api = () => _Cus((enabled: true, card: kort));
     expect(await NtfLiveCard.start(412), isTrue);
     expect(vist.single.$1, NtfLiveCard.idFor(412));
+
+    // Where the app cannot show a card (iOS until the Live Activity), the card is not read — so the server never
+    // marks it up and the customer keeps the stage pushes.
+    final ios = _Cus((enabled: true, card: kort));
+    NtfLiveCard.reset();
+    NtfLiveCard.api = () => ios;
+    expect(await NtfLiveCard.start(412), isFalse);
+    expect(ios.lest, 0);
   });
 
   test('a silent push updates the card; delivered ends it', () async {

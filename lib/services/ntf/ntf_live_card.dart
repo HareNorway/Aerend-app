@@ -51,6 +51,9 @@ abstract final class NtfLiveCard {
 
   /// Sporing follows [orderId]: read the card (which tells the server it is up) and show it while live.
   static Future<bool> start(int orderId) async {
+    // Only where the app can show the card (Android): reading it tells the server the card is up and turns the
+    // stage pushes into silent updates — on iOS (no Live Activity yet) the customer keeps the pushes.
+    if (show == null) return false;
     final r = await api().liveCard(orderId).catchError((_) => null);
     if (r == null || !r.enabled) return false;
     return apply(orderId, r.card);
