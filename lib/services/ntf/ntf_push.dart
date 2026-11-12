@@ -71,6 +71,12 @@ abstract final class NtfPayload {
     final c = '${d['class'] ?? ''}';
     return c.isEmpty ? null : c;
   }
+
+  /// Step 13: the «Færre slike» action id on an INSIGHT push.
+  static const lessAction = 'ntf_less';
+
+  /// Only an INSIGHT push from the Varselsentral (it has a row to record the outcome on) offers «Færre slike».
+  static bool offersLess(Map<String, dynamic> d) => cls(d) == 'insight' && notificationId(d) != null;
 }
 
 /// Routing by the server's `route` and `type` first (plan Step 7); null leaves it to today's fallbacks

@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import '../../networking/ops/cus_api.dart';
 import '../../screens/bergen/hjem/hjem_varsler.dart';
+import '../../utils/shared_pref_utill.dart' show prefGetString, prefSetString;
 import '../../utils/utils.dart' show navigatorKey;
 import 'ntf_push.dart';
 
@@ -54,6 +57,63 @@ abstract final class NtfHooks {
     try {
       unawaited(api().pushToken(token, platform: Platform.isIOS ? 'ios' : 'android').catchError((_) => false));
     } catch (_) {}
+    unawaited(reportPermission());
+  }
+
+  /// Step 13: is the OS notification permission on? null = not asked yet (nothing is reported). Tests swap it.
+  @visibleForTesting
+  static Future<bool?> Function() permissionEnabled = _osPermission;
+
+  /// This install's own id (kept in prefs; not the push token, which changes). Tests swap it.
+  @visibleForTesting
+  static Future<String> Function() installId = _installId;
+
+  static Future<bool?> _osPermission() async {
+    final s = await FirebaseMessaging.instance.getNotificationSettings();
+    return switch (s.authorizationStatus) {
+      AuthorizationStatus.authorized || AuthorizationStatus.provisional => true,
+      AuthorizationStatus.denied => false,
+      _ => null,
+    };
+  }
+
+  static Future<String> _installId() async {
+    var id = prefGetString(_installKey);
+    if (id.isEmpty) {
+      final r = Random.secure();
+      id = List.generate(16, (_) => r.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+      await prefSetString(_installKey, id);
+    }
+    return id;
+  }
+
+  static const _installKey = 'ntf_install_id';
+
+  /// Step 13 (spec §11): the permission state to the server, at start (with the token) — the opt-out metric. True when
+  /// a report went off.
+  static Future<bool> reportPermission() async {
+    try {
+      final on = await permissionEnabled();
+      if (on == null) return false;
+      return await api().varselTillatelse(on, await installId(), platform: Platform.isIOS ? 'ios' : 'android');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Step 13: «Færre slike» pressed on an INSIGHT push (Android action): the outcome, and a short confirmation.
+  static bool reportLess(Map<String, dynamic> d) {
+    final id = NtfPayload.notificationId(d);
+    if (id == null) return false;
+    try {
+      unawaited(api().varselUtfall(id, 'less').catchError((_) => false));
+    } catch (_) {}
+    try {
+      final ctx = navigatorKey.currentContext;
+      final m = ctx == null ? null : ScaffoldMessenger.maybeOf(ctx);
+      m?.showSnackBar(const SnackBar(content: Text(VarslerCopy.faerreSlikeOk), duration: Duration(seconds: 3)));
+    } catch (_) {}
+    return true;
   }
 
   /// «opened» for a tapped push that carries its notification id.

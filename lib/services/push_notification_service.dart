@@ -12,6 +12,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../networking/ops/ops_customer_api.dart';
+import '../screens/bergen/hjem/hjem_varsler.dart' show VarslerCopy;
 import 'ntf/ntf_hooks.dart';
 import 'ntf/ntf_live_card.dart';
 import 'ntf/ntf_push.dart';
@@ -228,6 +229,10 @@ class PushNotificationService {
         playSound: cls != 'insight',
         fullScreenIntent: NtfChannels.fullScreen(cls),
         number: badgeForTray > 0 ? badgeForTray : null,
+        // Step 13: «Færre slike» on an INSIGHT push (Android; iOS needs a registered category — Mac work).
+        actions: NtfPayload.offersLess(notificationData)
+            ? const [AndroidNotificationAction(NtfPayload.lessAction, VarslerCopy.faerreSlike, showsUserInterface: true, cancelNotification: true)]
+            : null,
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -304,6 +309,10 @@ class PushNotificationService {
       await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (details) {
+          if (details.actionId == NtfPayload.lessAction) {
+            _less(details.payload);
+            return;
+          }
           _selectNotification(details.payload);
         },
       );
@@ -319,6 +328,10 @@ class PushNotificationService {
       await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (details) {
+          if (details.actionId == NtfPayload.lessAction) {
+            _less(details.payload);
+            return;
+          }
           _selectNotification(details.payload);
         },
       );
@@ -339,6 +352,14 @@ class PushNotificationService {
           debugPrint("FCM token unavailable (likely iOS Simulator): $e");
         });
     _requestPermissions();
+  }
+
+  /// Step 13: «Færre slike» from the push's action — the outcome, not a navigation.
+  void _less(String? payload) {
+    try {
+      final dynamic decoded = jsonDecode(payload ?? "{}");
+      if (decoded is Map) NtfHooks.reportLess(Map<String, dynamic>.from(decoded));
+    } catch (_) {}
   }
 
   Future _selectNotification(String? payload) async {

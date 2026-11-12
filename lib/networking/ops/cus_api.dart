@@ -555,6 +555,10 @@ class CusApi {
   Future<bool> pushToken(String token, {String? platform}) async =>
       (await _post('push-token', {'token': token, if (platform != null) 'platform': platform}))?['stored'] == true;
 
+  /// Step 13: the OS notification permission for this install (the opt-out metric), at start.
+  Future<bool> varselTillatelse(bool enabled, String install, {String? platform}) async =>
+      (await _post('notification-permission', {'enabled': enabled, 'install': install, if (platform != null) 'platform': platform}))?['ok'] == true;
+
   /// What the customer did with a notification: opened | acted | dismissed | less.
   Future<bool> varselUtfall(int notificationId, String utfall, {String? skjerm}) async =>
       (await _send('PATCH', 'notifications/$notificationId', {'outcome': utfall, if (skjerm != null) 'screen': skjerm})) != null;
