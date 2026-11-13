@@ -97,6 +97,10 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
   double _catDx = 0;
   bool _catDrag = false;
 
+  /// Bug-9 (TestFlight feedback 2026-11-14, «Add vibrations in this feature»): the category orb at the rail's front
+  /// while a finger drags it — each one that reaches the front ticks once, as on Hjem's wheel (Kunde Glatt D2).
+  int _catFront = 0;
+
   bool _sokOpen = false;
   final TextEditingController _sok = TextEditingController();
   final FocusNode _sokFocus = FocusNode();
@@ -396,13 +400,25 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                         dx: _catDx,
                         dragging: _catDrag,
                         onPick: (i) {
+                          // Bug-9: a tap on another orb ticks, as Hjem's wheel does.
+                          if (i != _cat) AeHaptikk.tikk(ny: true);
                           setState(() => _cat = i);
                           _bytt(i);
                         },
-                        onDrag: (dx) => setState(() {
-                          _catDrag = true;
-                          _catDx = dx;
-                        }),
+                        onDrag: (dx) {
+                          final n = _orbNavn.length;
+                          if (!_catDrag) _catFront = _cat;
+                          final front = ((_cat - (dx / _CategoryRail.step).round()) % n + n) % n;
+                          // Bug-9: a detent — one tick each time another orb reaches the front (throttled to 50 ms).
+                          if (front != _catFront) {
+                            _catFront = front;
+                            AeHaptikk.tikk(ny: true);
+                          }
+                          setState(() {
+                            _catDrag = true;
+                            _catDx = dx;
+                          });
+                        },
                         onRelease: () {
                           final n = _orbNavn.length;
                           final steps = (_catDx / _CategoryRail.step).round();
@@ -411,7 +427,7 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                             _catDx = 0;
                             _catDrag = false;
                           });
-                          if (steps != 0) AeHaptikk.tikk();
+                          // The detents already ticked each orb on its way to the front: no extra tick at release.
                           _bytt(_cat);
                         },
                       ),
