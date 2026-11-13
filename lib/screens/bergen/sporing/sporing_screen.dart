@@ -749,19 +749,12 @@ class _SporingScreenState extends State<SporingScreen> {
     // This screen draws inside LfFrame (the 390 pt frame scaled to the device's width) while `mq` here is the device's:
     // the panel is measured in frame points, so the height is too.
     final rammeH = h / (mq.size.width / LfFrame.width);
-    // The arrival card ends at scene y ~370 (map top 10 + card 290…360); with the panel measured, the scene fits that
-    // above it (6 px clear), else
-    // the frame's own proportion (268 above the foot) is the guess for the first frame.
-    final kartSkala = !kart
-        ? 1.0
-        : (_panelH != null ? (rammeH - _panelH! - 6 - kartTopp) / 372 : (rammeH - 268 - math.max(bunn - 24, 0) - kartTopp) / 450).clamp(.8, 1.0);
-    if (kart) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final RenderObject? ro = _panelKey.currentContext?.findRenderObject();
-        final double? ph = ro is RenderBox && ro.hasSize ? ro.size.height : null;
-        if (mounted && ph != null && (ph - (_panelH ?? -100)).abs() > 1) setState(() => _panelH = ph);
-      });
-    }
+    // Bug-8 (2026-11-14): the panel is measured on every stage (it grows with «Verv en venn», the delivered extras).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final RenderObject? ro = _panelKey.currentContext?.findRenderObject();
+      final double? ph = ro is RenderBox && ro.hasSize ? ro.size.height : null;
+      if (mounted && ph != null && (ph - (_panelH ?? -100)).abs() > 1) setState(() => _panelH = ph);
+    });
     final s = t.stage.clamp(0, 3);
     final hent = t.isPickup;
     final navn = SporingCopy.stages(hent);
@@ -788,6 +781,32 @@ class _SporingScreenState extends State<SporingScreen> {
         : lines[s];
     final minutes = t.minutesLeft(DateTime.now());
     final klarLev = !hent && t.state == 'ready' && !t.isCancelled;
+    // Bug-7a / Bug-8 (TestFlight feedback 2026-11-13/14): the bottom panel used to cover the scene's point — the map's
+    // arrival card, the river and the boat at Bekreftet, the house at Levert. Each scene keeps a line (scene y) above the
+    // measured panel, 6 px clear: the map's arrival card 372, the boat and the river 365, the kitchen 400, the counter
+    // 360, the house's front and door 330. The scene scales down (from its top centre) as far as needed — 0.8 on the map
+    // (its labels), 0.7 elsewhere — and never up. Before the first measure the map uses the frame's proportion.
+    final sceneTop = kart
+        ? kartTopp
+        : sceneTopp +
+              (s == 0
+                  ? 118
+                  : s == 1
+                  ? 130
+                  : s == 2
+                  ? 126
+                  : 110);
+    final viktig = kart
+        ? 372.0
+        : switch (s) {
+            0 => 365.0,
+            1 => klarLev ? 360.0 : 400.0,
+            2 => 360.0,
+            _ => hent ? 360.0 : 330.0,
+          };
+    final sceneSkala = _panelH != null
+        ? ((rammeH - _panelH! - 6 - sceneTop) / viktig).clamp(kart ? .8 : .7, 1.0)
+        : (kart ? ((rammeH - 268 - math.max(bunn - 24, 0) - kartTopp) / 450).clamp(.8, 1.0) : 1.0);
     final gift = '${t.raw['gift_to'] ?? ''}';
     final budTop =
         (s >= 3
@@ -798,7 +817,7 @@ class _SporingScreenState extends State<SporingScreen> {
             : 150.0) +
         // On the map the courier's pill keeps its place on the map: its foot 4 px above «Fisketorget» (the map's top at
         // scene 10, the label at 84; the pill ~43 tall), at any scale — in the frame it sits flush on the label.
-        (kart ? topp - 176 + 126 + 94 * kartSkala - 47 : sceneTopp);
+        (kart ? topp - 176 + 126 + 94 * sceneSkala - 47 : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
     final slotVerv = _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     // The design's stage 3, and (Customer Step 2) while the courier carries
@@ -819,18 +838,9 @@ class _SporingScreenState extends State<SporingScreen> {
         // The scene.
         Positioned(
           left: 0,
-          top: kart
-              ? kartTopp
-              : sceneTopp +
-                    (s == 0
-                        ? 118
-                        : s == 1
-                        ? 130
-                        : s == 2
-                        ? 126
-                        : 110),
+          top: sceneTop,
           child: Transform.scale(
-            scale: kartSkala,
+            scale: sceneSkala,
             alignment: Alignment.topCenter,
             child: RepaintBoundary(
             child: KeyedSubtree(

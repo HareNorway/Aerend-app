@@ -668,4 +668,31 @@ void main() {
       expect(ankommer.center.dy, lessThan(panelTopp), reason: 'arrival card $ankommer under the panel at $panelTopp');
     });
   }
+
+  // Bug-8 (TestFlight feedback 2026-11-14): the panel covered the river and the boat at Bekreftet and the house at Levert.
+  for (final (String navn, Size size, double topp, double bunn) d in const <(String, Size, double, double)>[
+    ('iPhone 15/16 Pro', Size(393, 852), 59, 34),
+    ('iPhone 17e', Size(390, 844), 47, 34),
+    ('iPhone 17 Pro Max', Size(440, 956), 62, 34),
+  ]) {
+    for (final (String state, int stage, String label, String key, double hoyde, double viktig) st in const <(String, int, String, String, double, double)>[
+      ('placed', 0, 'Bekreftet', 'a1_sporing_kort_bekreftet', 472, 365),
+      ('delivered', 3, 'Levert', 'a1_sporing_kort_levert', 480, 330),
+    ]) {
+      testWidgets('${st.$3} on ${d.$1}: the scene\'s point stays above the panel', (tester) async {
+        tester.view.physicalSize = d.$2;
+        tester.view.devicePixelRatio = 1;
+        tester.view.padding = FakeViewPadding(top: d.$3, bottom: d.$4);
+        addTearDown(tester.view.reset);
+        final p = payload(state: st.$1, stage: st.$2, label: st.$3, deliveredAt: st.$2 == 3 ? DateTime.now().toIso8601String() : null);
+        await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 2));
+        final scene = tester.getRect(find.byKey(Key(st.$4)));
+        final linje = scene.top + scene.height * st.$6 / st.$5;
+        final panelTopp = tester.getRect(find.byType(SpPanel)).top;
+        expect(linje, lessThanOrEqualTo(panelTopp + 1), reason: 'scene $scene: its line at $linje, the panel at $panelTopp');
+      });
+    }
+  }
 }
