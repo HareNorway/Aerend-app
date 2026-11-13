@@ -54,6 +54,7 @@ import 'package:aerend_customer/utils/route_names.dart';
 import '../../../services/customer/beacons.dart';
 import '../kit/laster_dra.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'kurv_sync.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -295,6 +296,22 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   // One instance for the screen: `lastPreviewError` (422 `OUT_OF_COVERAGE`) is read from the api that made the call.
   late final OpsKasseApi _api = widget.api ?? OpsKasseApi();
+
+  /// Bug-10 (TestFlight feedback 2026-11-14, «lagging a lot»): − / + used to wait for the change and then the whole
+  /// Kassen (basket, Ægil's lines, the quote, the addresses, the store) before the number moved. Now the number moves at
+  /// once; this queue sends it (merged per line) and the quote is read once every change is in.
+  late final KurvSync _sync = KurvSync(
+    change: (id, q) => _api.changeQuantity(id, q),
+    remove: (id) => _api.remove(id),
+    onSettled: () {
+      if (mounted) _load();
+    },
+    onFailed: () {
+      if (!mounted) return;
+      showBergenToast(context, KasseCopy.a1_kasse_kurv_ikke_oppdatert);
+      _load();
+    },
+  );
   OpsCustomerApi get _customer => widget.customerApi ?? OpsCustomerApi();
 
   final ScrollController _rull = ScrollController();
@@ -406,6 +423,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   Future<void> _load() async {
     var cart = await _api.cart();
+    // Bug-10: a − / + still on its way — the screen's numbers win until the queue settles (it loads again then).
+    if (_sync.busy) return;
     if (!cart.isEmpty && OpsCustomerApi.networkEnabled) {
       // Customer Step 7: the lines Ægil merged at level 3 (`agent/me/cart/agent-lines`).
       final agent = await kurvAegilApi().agentLines();
@@ -512,12 +531,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   // ── actions ────────────────────────────────────────────────────────────
 
   Future<void> _changeQty(KurvLine l, int delta) async {
-    final q = l.quantity + delta;
-    if (q <= 0) {
+    final cart = _cart;
+    final q = (cart?.lines.where((x) => x.cartId == l.cartId).firstOrNull?.quantity ?? l.quantity) + delta;
+    if (q <= 0 || cart == null) {
       await _remove(l);
       return;
     }
-    if (await _api.changeQuantity(l.cartId, q)) await _load();
+    setState(() => _cart = KurvState(lines: KurvSync.apply(cart.lines, l.cartId, q), storeId: cart.storeId, serviceCategoryId: cart.serviceCategoryId, count: cart.count));
+    _sync.set(l.cartId, q);
   }
 
   Future<void> _remove(KurvLine l) async {
@@ -1310,20 +1331,47 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         ),
         // Onboarding Step 7: «Beskjed til butikken» for both modes (#18), tips
         // with «Eget beløp» on delivery (#19).
-        if (_more) ...[SizedBox(height: 10 * s), _beskjedKort(context, slot, storeName)],
-        if (_more && !_pickup) ...[
-          SizedBox(height: 10 * s),
-          KurvTips(
-            tip: _tip,
-            onTip: (t) => setState(() {
-              _tip = t;
-              _tipEget.clear();
-            }),
-            egetController: _tipEget,
-            onEget: (v) => setState(() => _tip = int.tryParse(v) ?? 0),
+        // Bug-10 (TestFlight feedback 2026-11-14, «has not smooth transitions»): «Flere valg» used to drop its cards in
+        // and out in one frame; now they fold open and shut (size + fade, 320 ms), and the receipt follows its new rows
+        // (a tip) the same way. Reduce Motion: at once.
+        AnimatedSize(
+          duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: AnimatedSwitcher(
+            duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 220),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
+            child: !_more
+                ? const SizedBox(key: ValueKey('flere-lukket'), width: double.infinity)
+                : Column(
+                    key: const ValueKey('flere-apen'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(height: 10 * s),
+                      _beskjedKort(context, slot, storeName),
+                      if (!_pickup) ...[
+                        SizedBox(height: 10 * s),
+                        KurvTips(
+                          tip: _tip,
+                          onTip: (t) => setState(() {
+                            _tip = t;
+                            _tipEget.clear();
+                          }),
+                          egetController: _tipEget,
+                          onEget: (v) => setState(() => _tip = int.tryParse(v) ?? 0),
+                        ),
+                      ],
+                    ],
+                  ),
           ),
-        ],
-        KurvKvittering(
+        ),
+        AnimatedSize(
+          duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: KurvKvittering(
           antall: antall,
           total: total,
           kode: kode,
@@ -1421,6 +1469,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 kodeLinje: _codeAtDoor ? KasseCopy.cus_kasse_kode_retur : (total >= 300 ? KasseCopy.a1_kasse_kode_over('300') : KasseCopy.a1_kasse_kode_under),
               )),
           ],
+        ),
         ),
         if (_undone.isNotEmpty) ...[
           SizedBox(height: 8 * s),

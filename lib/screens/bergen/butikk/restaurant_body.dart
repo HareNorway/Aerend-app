@@ -41,6 +41,8 @@ import 'produkt_launch.dart' show produktOfteMed;
 import 'produkt_sheet.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import '../kasse/kurv_sync.dart';
+import '../kasse/kasse_copy.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -118,6 +120,20 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
 
   BergenStoreInfo get store => widget.store;
   OpsKasseApi get _kasse => widget.kasseApi ?? OpsKasseApi();
+
+  /// Bug-10: − / + move the number at once; this queue sends them (merged per line) and reloads once settled.
+  late final KurvSync _sync = KurvSync(
+    change: (id, q) => _kasse.changeQuantity(id, q),
+    remove: (id) => _kasse.remove(id),
+    onSettled: () {
+      if (mounted) _loadCart();
+    },
+    onFailed: () {
+      if (!mounted) return;
+      showBergenToast(context, KasseCopy.a1_kasse_kurv_ikke_oppdatert);
+      _loadCart();
+    },
+  );
 
   @override
   void initState() {
@@ -200,7 +216,8 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
 
   Future<void> _loadCart({bool pulse = false}) async {
     final cart = await _kasse.cart();
-    if (!mounted) return;
+    // Bug-10: a − / + still on its way — the screen's own numbers win until the queue settles (it reloads then).
+    if (!mounted || _sync.busy) return;
     setState(() {
       _lines = [
         for (final l in cart.lines)
@@ -239,6 +256,9 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
   int _qtyOf(int productId) => _lines.where((l) => l.productId == productId).fold(0, (a, l) => a + l.quantity);
 
   Future<void> _plus(BergenMenuItem item) async {
+    // Bug-10: already in the basket — one more at once (the stepper's +), no round trip before the number moves.
+    final linje = _lines.where((l) => l.productId == item.id).lastOrNull;
+    if (linje != null) return _plusLine(linje);
     final ok = await BergenCart.add(
       context,
       storeId: item.storeId,
@@ -248,16 +268,27 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
     if (ok) await _loadCart(pulse: true);
   }
 
+  /// The line's quantity as the screen shows it now (a tap may come before the last one reached the server).
+  int _antall(KurvLine l) => _lines.where((x) => x.cartId == l.cartId).firstOrNull?.quantity ?? l.quantity;
+
   Future<void> _minusLine(KurvLine l) async {
     AeHaptikk.tikk();
-    final ok = l.quantity > 1 ? await _kasse.changeQuantity(l.cartId, l.quantity - 1) : await _kasse.remove(l.cartId);
-    if (ok) await _loadCart();
+    final q = _antall(l) - 1;
+    setState(() {
+      _lines = KurvSync.apply(_lines, l.cartId, q);
+      if (_lines.isEmpty) _mini = false;
+    });
+    _sync.set(l.cartId, q);
   }
 
   Future<void> _plusLine(KurvLine l) async {
     AeHaptikk.tikk();
-    final ok = await _kasse.changeQuantity(l.cartId, l.quantity + 1);
-    if (ok) await _loadCart(pulse: true);
+    final q = _antall(l) + 1;
+    setState(() {
+      _lines = KurvSync.apply(_lines, l.cartId, q);
+      _pulse++;
+    });
+    _sync.set(l.cartId, q);
   }
 
   Future<void> _removeLine(KurvLine l) async {
