@@ -14809,6 +14809,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get ops_kasse_bedrift_fjern;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts'**
+  String get ops_kv_tittel;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Every receipt and credit note for your orders, numbered and kept for five years.'**
+  String get ops_kv_linje;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'No receipts yet. You get one when an order is delivered.'**
+  String get ops_kv_ingen;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get ops_kv_kvittering;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Credit note'**
+  String get ops_kv_kreditnota;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the receipt. Try again.'**
+  String get ops_kv_feil;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts and credit notes'**
+  String get ops_kv_meg_under;
+
+  /// Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)
+  ///
+  /// In en, this message translates to:
+  /// **'Order confirmation'**
+  String get ops_kv_ordrebekreftelse;
 }
 
 class _AppLocalizationsDelegate

@@ -478,6 +478,31 @@ class OpsCustomerApi {
     }
   }
 
+  /// `GET /api/ops/customer/documents` (payments plan Step 5): the customer's
+  /// numbered kvitteringer and kreditnotaer, newest first. Empty when offline
+  /// or when documents are off.
+  Future<List<Map<String, dynamic>>> documents() async {
+    final json = await _guarded(() => _get('${_base}documents'));
+    final list = json?['documents'];
+    return list is List ? list.whereType<Map<String, dynamic>>().toList() : const [];
+  }
+
+  /// `GET /api/ops/customer/documents/{id}`: one stored document's PDF, or null.
+  Future<List<int>?> documentPdf(int documentId) async {
+    final auth = authParams();
+    if (auth == null || !networkEnabled) return null;
+    try {
+      final res = await Dio().get<List<int>>(
+        '${BaseUrl.domain}${_base}documents/$documentId?${_qs(auth)}',
+        options: Options(responseType: ResponseType.bytes, validateStatus: (s) => s == 200),
+      );
+      final ct = res.headers.value('content-type') ?? '';
+      return ct.contains('pdf') ? res.data : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// `GET /api/points/rules` (guarded) — the Ærend-kroner percentage. Public
   /// (backend plan Step 3), so it works before login too (onboarding).
   Future<Map<String, dynamic>?> pointsRules() => _guarded(() async {

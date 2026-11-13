@@ -8333,4 +8333,30 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kasse_bedrift_fjern => 'Fjern';
+
+  @override
+  String get ops_kv_tittel => 'Kvitteringer';
+
+  @override
+  String get ops_kv_linje =>
+      'Alle kvitteringer og kreditnotaer for bestillingene dine, nummerert og tatt vare på i fem år.';
+
+  @override
+  String get ops_kv_ingen =>
+      'Ingen kvitteringer ennå. Du får en når en bestilling er levert.';
+
+  @override
+  String get ops_kv_kvittering => 'Kvittering';
+
+  @override
+  String get ops_kv_kreditnota => 'Kreditnota';
+
+  @override
+  String get ops_kv_feil => 'Kunne ikke åpne kvitteringen. Prøv igjen.';
+
+  @override
+  String get ops_kv_meg_under => 'Kvitteringer og kreditnotaer';
+
+  @override
+  String get ops_kv_ordrebekreftelse => 'Ordrebekreftelse';
 }

@@ -5219,5 +5219,37 @@
   "ops_kasse_bedrift_fjern": "Remove",
   "@ops_kasse_bedrift_fjern": {
     "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  },
+  "ops_kv_tittel": "Receipts",
+  "@ops_kv_tittel": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_linje": "Every receipt and credit note for your orders, numbered and kept for five years.",
+  "@ops_kv_linje": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_ingen": "No receipts yet. You get one when an order is delivered.",
+  "@ops_kv_ingen": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_kvittering": "Receipt",
+  "@ops_kv_kvittering": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_kreditnota": "Credit note",
+  "@ops_kv_kreditnota": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_feil": "Could not open the receipt. Try again.",
+  "@ops_kv_feil": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_meg_under": "Receipts and credit notes",
+  "@ops_kv_meg_under": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
+  },
+  "ops_kv_ordrebekreftelse": "Order confirmation",
+  "@ops_kv_ordrebekreftelse": {
+    "description": "Payments plan Step 5: Meg > Kvitteringer (payments spec v1.3 §5)"
   }
 }

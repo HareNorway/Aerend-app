@@ -8327,4 +8327,30 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get ops_kasse_bedrift_fjern => 'Remove';
+
+  @override
+  String get ops_kv_tittel => 'Receipts';
+
+  @override
+  String get ops_kv_linje =>
+      'Every receipt and credit note for your orders, numbered and kept for five years.';
+
+  @override
+  String get ops_kv_ingen =>
+      'No receipts yet. You get one when an order is delivered.';
+
+  @override
+  String get ops_kv_kvittering => 'Receipt';
+
+  @override
+  String get ops_kv_kreditnota => 'Credit note';
+
+  @override
+  String get ops_kv_feil => 'Could not open the receipt. Try again.';
+
+  @override
+  String get ops_kv_meg_under => 'Receipts and credit notes';
+
+  @override
+  String get ops_kv_ordrebekreftelse => 'Order confirmation';
 }

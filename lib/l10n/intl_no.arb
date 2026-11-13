@@ -2689,5 +2689,13 @@
   "ops_kasse_bedrift_navn": "Firmanavn",
   "ops_kasse_bedrift_orgnr": "Org.nr (9 siffer)",
   "ops_kasse_bedrift_feil": "Org.nr må ha 9 siffer.",
-  "ops_kasse_bedrift_fjern": "Fjern"
+  "ops_kasse_bedrift_fjern": "Fjern",
+  "ops_kv_tittel": "Kvitteringer",
+  "ops_kv_linje": "Alle kvitteringer og kreditnotaer for bestillingene dine, nummerert og tatt vare på i fem år.",
+  "ops_kv_ingen": "Ingen kvitteringer ennå. Du får en når en bestilling er levert.",
+  "ops_kv_kvittering": "Kvittering",
+  "ops_kv_kreditnota": "Kreditnota",
+  "ops_kv_feil": "Kunne ikke åpne kvitteringen. Prøv igjen.",
+  "ops_kv_meg_under": "Kvitteringer og kreditnotaer",
+  "ops_kv_ordrebekreftelse": "Ordrebekreftelse"
 }
