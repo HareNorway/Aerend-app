@@ -15,6 +15,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
+import 'kurv_parts.dart' show KasseTommelKlipp;
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../adresse/adr_ark.dart' show adrMerke;
@@ -330,59 +331,75 @@ class _ModusSpor extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, box) {
           final w = box.maxWidth / 2;
-          return SizedBox(
-            height: 34 * s,
-            child: Stack(
-              children: [
-                AnimatedPositioned(
-                  duration: BergenTokens.motion(context, const Duration(milliseconds: 380)),
-                  curve: const Cubic(.34, 1.3, .5, 1),
-                  left: pickup ? w : 0,
-                  top: 0,
-                  bottom: 0,
-                  width: w,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(999),
-                      gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
-                      boxShadow: [
-                        BoxShadow(
-                          color: rgba(4, 18, 26, .8),
-                          offset: Offset(0, 8 * s),
-                          blurRadius: onbBlur(14 * s),
-                          spreadRadius: -8 * s,
-                        ),
-                        BoxShadow(color: const Color(0xFFCDB98E), offset: Offset(0, 3 * s)),
-                      ],
-                    ),
-                  ),
-                ),
-                Row(
+          // Bug-11: as KurvModus — the thumb's position is animated here and each label is drawn twice, the white
+          // track colour everywhere and the teal one clipped to the thumb, so neither vanishes mid-slide (the colour
+          // used to fade in .24 s while the thumb took .38 s).
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: pickup ? 1 : 0),
+            duration: BergenTokens.motion(context, const Duration(milliseconds: 380)),
+            curve: const Cubic(.34, 1.3, .5, 1),
+            builder: (context, t, _) {
+              final venstre = t * w;
+              return SizedBox(
+                height: 34 * s,
+                child: Stack(
                   children: [
-                    for (final (m, label) in [(false, KasseCopy.a1_kasse_levering), (true, KasseCopy.a1_kasse_henting)])
-                      Expanded(
-                        child: GestureDetector(
-                          key: Key(m ? 'a1_kasse_ark_henting' : 'a1_kasse_ark_levering'),
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => onMode(m),
-                          child: Center(
-                            child: AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 240),
-                              style: bText(
-                                context,
-                                12.5,
-                                weight: FontWeight.w800,
-                                color: pickup == m ? const Color(0xFF1E4F5C) : rgba(255, 255, 255, .75),
-                              ),
-                              child: Text(label),
+                    Positioned(
+                      left: venstre,
+                      top: 0,
+                      bottom: 0,
+                      width: w,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
+                          boxShadow: [
+                            BoxShadow(
+                              color: rgba(4, 18, 26, .8),
+                              offset: Offset(0, 8 * s),
+                              blurRadius: onbBlur(14 * s),
+                              spreadRadius: -8 * s,
                             ),
-                          ),
+                            BoxShadow(color: const Color(0xFFCDB98E), offset: Offset(0, 3 * s)),
+                          ],
                         ),
                       ),
+                    ),
+                    Row(
+                      children: [
+                        for (final (m, label) in [(false, KasseCopy.a1_kasse_levering), (true, KasseCopy.a1_kasse_henting)])
+                          Expanded(
+                            child: GestureDetector(
+                              key: Key(m ? 'a1_kasse_ark_henting' : 'a1_kasse_ark_levering'),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => onMode(m),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Center(child: Text(label, style: bText(context, 12.5, weight: FontWeight.w800, color: rgba(255, 255, 255, .75)))),
+                                  IgnorePointer(
+                                    child: ExcludeSemantics(
+                                      child: ClipRect(
+                                        clipper: KasseTommelKlipp(venstre - (m ? w : 0), w),
+                                        child: Center(
+                                          child: RichText(
+                                            textScaler: MediaQuery.textScalerOf(context),
+                                            text: TextSpan(text: label, style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF1E4F5C))),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
