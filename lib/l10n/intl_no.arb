@@ -2683,5 +2683,11 @@
   "cus_fast_paa": "På",
   "cus_fast_pause_merke": "Pause",
   "cus_fast_kr": "{kr} kr",
-  "cus_fast_dager": "mandag,tirsdag,onsdag,torsdag,fredag,lørdag,søndag"
+  "cus_fast_dager": "mandag,tirsdag,onsdag,torsdag,fredag,lørdag,søndag",
+  "ops_kasse_bedrift": "Bedriftskvittering",
+  "ops_kasse_bedrift_line": "Firmanavn og org.nr på kvitteringen",
+  "ops_kasse_bedrift_navn": "Firmanavn",
+  "ops_kasse_bedrift_orgnr": "Org.nr (9 siffer)",
+  "ops_kasse_bedrift_feil": "Org.nr må ha 9 siffer.",
+  "ops_kasse_bedrift_fjern": "Fjern"
 }

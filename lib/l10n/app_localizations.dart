@@ -14773,6 +14773,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday'**
   String get cus_fast_dager;
+
+  /// Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 §2.1)
+  ///
+  /// In en, this message translates to:
+  /// **'Company receipt'**
+  String get ops_kasse_bedrift;
+
+  /// Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 §2.1)
+  ///
+  /// In en, this message translates to:
+  /// **'Company name and org.nr on the receipt'**
+  String get ops_kasse_bedrift_line;
+
+  /// Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 §2.1)
+  ///
+  /// In en, this message translates to:
+  /// **'Company name'**
+  String get ops_kasse_bedrift_navn;
+
+  /// Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 §2.1)
+  ///
+  /// In en, this message translates to:
+  /// **'Org.nr (9 digits)'**
+  String get ops_kasse_bedrift_orgnr;
+
+  /// Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 §2.1)
+  ///
+  /// In en, this message translates to:
+  /// **'The org.nr needs 9 digits.'**
+  String get ops_kasse_bedrift_feil;
+
+  /// Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 §2.1)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get ops_kasse_bedrift_fjern;
 }
 
 class _AppLocalizationsDelegate

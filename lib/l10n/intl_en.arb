@@ -5195,5 +5195,29 @@
       }
     }
   },
-  "cus_fast_dager": "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"
+  "cus_fast_dager": "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday",
+  "ops_kasse_bedrift": "Company receipt",
+  "@ops_kasse_bedrift": {
+    "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  },
+  "ops_kasse_bedrift_line": "Company name and org.nr on the receipt",
+  "@ops_kasse_bedrift_line": {
+    "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  },
+  "ops_kasse_bedrift_navn": "Company name",
+  "@ops_kasse_bedrift_navn": {
+    "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  },
+  "ops_kasse_bedrift_orgnr": "Org.nr (9 digits)",
+  "@ops_kasse_bedrift_orgnr": {
+    "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  },
+  "ops_kasse_bedrift_feil": "The org.nr needs 9 digits.",
+  "@ops_kasse_bedrift_feil": {
+    "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  },
+  "ops_kasse_bedrift_fjern": "Remove",
+  "@ops_kasse_bedrift_fjern": {
+    "description": "Payments plan Step 3: Bedriftskvittering in Kasse (payments spec v1.3 \u00a72.1)"
+  }
 }

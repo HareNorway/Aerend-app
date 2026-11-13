@@ -8315,4 +8315,22 @@ class AppLocalizationsNo extends AppLocalizations {
   @override
   String get cus_fast_dager =>
       'mandag,tirsdag,onsdag,torsdag,fredag,lørdag,søndag';
+
+  @override
+  String get ops_kasse_bedrift => 'Bedriftskvittering';
+
+  @override
+  String get ops_kasse_bedrift_line => 'Firmanavn og org.nr på kvitteringen';
+
+  @override
+  String get ops_kasse_bedrift_navn => 'Firmanavn';
+
+  @override
+  String get ops_kasse_bedrift_orgnr => 'Org.nr (9 siffer)';
+
+  @override
+  String get ops_kasse_bedrift_feil => 'Org.nr må ha 9 siffer.';
+
+  @override
+  String get ops_kasse_bedrift_fjern => 'Fjern';
 }
