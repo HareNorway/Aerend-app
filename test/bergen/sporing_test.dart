@@ -277,6 +277,10 @@ void main() {
                 reason: 'no live map for partner',
               );
             }
+            // A delivered courier order marks the onboarding's «first delivery» (OnbStatus.merkLevert), whose server
+            // sync waits 600 ms to gather changes: let it run before the tree goes (it was the «Timer is still pending»
+            // failure on «aerend_courier · delivery · delivered»).
+            await tester.pump(const Duration(seconds: 1));
           });
         }
       }
@@ -664,22 +668,34 @@ void main() {
       }
       final panelTopp = r(find.byType(SpPanel)).top;
       final ankommer = r(find.byKey(const Key('a1_sporing_nedtelling')));
-      // The countdown reads above the panel (its middle: the test font draws the line taller than Inter does).
+      // Bug-8 follow-up: the map stays full width (it runs on under the panel; only the arrival card rises).
+      final kart = r(find.byKey(const Key('a1_sporing_kort_paavei')));
+      expect(kart.width, closeTo(d.$2.width, .5), reason: 'map $kart');
+      // The countdown reads above the panel (its middle: the test font draws the line taller than Inter does) — and,
+      // since the Vivo pass, the whole arrival card with its «N km igjen» line, which rises over a tall panel.
       expect(ankommer.center.dy, lessThan(panelTopp), reason: 'arrival card $ankommer under the panel at $panelTopp');
+      final kort = r(find.ancestor(of: find.byKey(const Key('a1_sporing_nedtelling')), matching: find.byWidgetPredicate((w) => w is KeyedSubtree && w.key is GlobalKey)));
+      expect(kort.bottom, lessThanOrEqualTo(panelTopp), reason: 'arrival card $kort under the panel at $panelTopp');
     });
   }
 
-  // Bug-8 (TestFlight feedback 2026-11-14): the panel covered the river and the boat at Bekreftet and the house at Levert.
+  // Bug-8 (TestFlight feedback 2026-11-14): the panel covered the river and the boat at Bekreftet and the house at Levert;
+  // a first fix scaled the scenes down, which on the Vivo left bare strips of sky at their sides. Every scene stays at
+  // full width, and its point stays clear: the boat's hull above the panel, the house's door above the courier's pill.
   for (final (String navn, Size size, double topp, double bunn) d in const <(String, Size, double, double)>[
     ('iPhone 15/16 Pro', Size(393, 852), 59, 34),
     ('iPhone 17e', Size(390, 844), 47, 34),
     ('iPhone 17 Pro Max', Size(440, 956), 62, 34),
+    ('Vivo V40 frame', Size(390, 867), 33, 16),
   ]) {
-    for (final (String state, int stage, String label, String key, double hoyde, double viktig) st in const <(String, int, String, String, double, double)>[
-      ('placed', 0, 'Bekreftet', 'a1_sporing_kort_bekreftet', 472, 365),
-      ('delivered', 3, 'Levert', 'a1_sporing_kort_levert', 480, 330),
+    for (final (String state, int stage, String label, String key, double hoyde, double linje) st in const <(String, int, String, String, double, double)>[
+      // The hull's foot (scene 326).
+      ('placed', 0, 'Bekreftet', 'a1_sporing_kort_bekreftet', 472, 326),
+      ('accepted', 1, 'Tilberedes', 'a1_sporing_kort_tilberedes', 0, 0),
+      // The door's foot with the step (scene 306).
+      ('delivered', 3, 'Levert', 'a1_sporing_kort_levert', 480, 306),
     ]) {
-      testWidgets('${st.$3} on ${d.$1}: the scene\'s point stays above the panel', (tester) async {
+      testWidgets('${st.$3} on ${d.$1}: the scene is full width and its point stays clear', (tester) async {
         tester.view.physicalSize = d.$2;
         tester.view.devicePixelRatio = 1;
         tester.view.padding = FakeViewPadding(top: d.$3, bottom: d.$4);
@@ -689,10 +705,34 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(seconds: 2));
         final scene = tester.getRect(find.byKey(Key(st.$4)));
-        final linje = scene.top + scene.height * st.$6 / st.$5;
-        final panelTopp = tester.getRect(find.byType(SpPanel)).top;
-        expect(linje, lessThanOrEqualTo(panelTopp + 1), reason: 'scene $scene: its line at $linje, the panel at $panelTopp');
+        // Full bleed: edge to edge, not a shrunk box with sky at its sides.
+        expect(scene.left, closeTo(0, .5), reason: 'scene $scene');
+        expect(scene.width, closeTo(d.$2.width, .5), reason: 'scene $scene');
+        if (st.$6 == 0) return;
+        final y = scene.top + scene.height * st.$6 / st.$5;
+        final pille = find.byType(BudIdentitetPill);
+        final dekke = st.$2 == 3 && pille.evaluate().isNotEmpty ? tester.getRect(pille.first).top : tester.getRect(find.byType(SpPanel)).top;
+        expect(y, lessThanOrEqualTo(dekke + 1), reason: 'scene $scene: its point at $y, covered from $dekke');
       });
     }
   }
+
+  testWidgets('Levert: the courier\'s pill sits on the panel\'s edge and «Takk» shares the row with «Avslutt»', (tester) async {
+    _frame(tester);
+    final p = payload(state: 'delivered', stage: 3, label: 'Levert', deliveredAt: DateTime.now().toIso8601String());
+    await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    final pille = tester.getRect(find.byType(BudIdentitetPill));
+    final panel = tester.getRect(find.byType(SpPanel));
+    expect(pille.top, lessThan(panel.top));
+    expect(pille.bottom, greaterThan(panel.top), reason: 'pill $pille rides on the panel edge at ${panel.top}');
+    final takk = tester.getRect(find.byKey(const Key('cus-sporing-takk')));
+    final avslutt = tester.getRect(find.byKey(const Key('a1_sporing_avslutt')));
+    expect(takk.center.dy, closeTo(avslutt.center.dy, 2), reason: 'takk $takk, avslutt $avslutt');
+    expect(takk.right, lessThan(avslutt.left));
+    // The header's stage pill stays its own size between the keys (it may give way for long names, never stretch).
+    final livePill = tester.getRect(find.byWidgetPredicate((w) => w.runtimeType.toString() == '_LivePill'));
+    expect(livePill.width, lessThan(200), reason: 'stage pill $livePill');
+  });
 }

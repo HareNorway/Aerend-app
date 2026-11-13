@@ -24,10 +24,19 @@ import 'sporing_sist_oppdatert.dart';
 /// (anchored 50 % 92 %), and the card's inner rim. Ægil's line sits under
 /// the card. 390 × 450; the card is left 14 → right 14, top 10, 420 tall.
 class SpSceneKart extends StatelessWidget {
-  const SpSceneKart({super.key, required this.info, required this.linje});
+  const SpSceneKart({super.key, required this.info, required this.linje, this.ankommerTopp = ankommerDesign, this.ankommerKey});
 
   final SpSceneInfo info;
   final String linje;
+
+  /// Bug-8 follow-up (seen on the Vivo V40, 2026-11-14): the map stays full width — scaled down it left bare strips of
+  /// sky at its sides — and, a map, runs on under the panel; only the «Ankommer om» card (72 tall) rises from the
+  /// design's top 290 (in the map) so it stays clear above a tall panel (the delivery code), never above
+  /// [ankommerHoyest] (the route's first bend and the labels stay clear of it). The screen measures the card through
+  /// [ankommerKey] (its lines vary: «N km igjen», «Sist oppdatert»; ~88 tall) — [ankommerHoyde] until it has.
+  final double ankommerTopp;
+  final Key? ankommerKey;
+  static const double ankommerDesign = 290, ankommerHoyest = 170, ankommerHoyde = 88;
 
   static final Path rute = svgSti('M300 70 C300 110 280 136 250 150 C215 166 195 186 180 204 C165 230 150 244 118 256 C88 268 74 300 68 340');
 
@@ -63,7 +72,7 @@ class SpSceneKart extends StatelessWidget {
                 child: LfLoop(
                   essential: true,
                   frozenMs: 7000,
-                  child: _Over(info: info),
+                  child: _Over(info: info, ankommerTopp: ankommerTopp, ankommerKey: ankommerKey),
                   builder: (context, t, over) {
                     final p = (t / 14000) % 1.0;
                     return Stack(
@@ -135,9 +144,11 @@ class SpSceneKart extends StatelessWidget {
 
 /// What sits on the map in the prototype's WebGL branch (L6779–6795).
 class _Over extends StatelessWidget {
-  const _Over({required this.info});
+  const _Over({required this.info, required this.ankommerTopp, this.ankommerKey});
 
   final SpSceneInfo info;
+  final double ankommerTopp;
+  final Key? ankommerKey;
 
   static Widget _etikett(double x, double y, String tekst, {Color bg = const Color(0xE0FFFFFF), Color fg = kSpInk, double skygge = .5}) => Positioned(
     left: x,
@@ -233,11 +244,11 @@ class _Over extends StatelessWidget {
           ],
         ),
       ),
-      // «Ankommer om» (left 238, top 290, 110 wide).
+      // «Ankommer om» (left 238, top 290, 110 wide) — higher over a tall panel (SpSceneKart.ankommerTopp).
       Positioned(
         left: 238,
-        top: 290,
-        child: SpBobleInn(delay: 300, child: _Ankommer(info: info)),
+        top: ankommerTopp,
+        child: SpBobleInn(delay: 300, child: KeyedSubtree(key: ankommerKey, child: _Ankommer(info: info))),
       ),
     ],
   );
@@ -385,7 +396,12 @@ class _AnkommerState extends State<_Ankommer> {
             ],
           ),
           const SizedBox(height: 4),
-          Text(spMmSs(rest), key: const Key('a1_sporing_nedtelling'), style: jakarta(26, em: -.03, height: 1)),
+          // Bug-7a (seen on the Vivo V40): «00:00» wrapped to two lines in the 110 pt card; one line, shrunk to fit.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(spMmSs(rest), key: const Key('a1_sporing_nedtelling'), maxLines: 1, softWrap: false, style: jakarta(26, em: -.03, height: 1)),
+          ),
           const SizedBox(height: 7),
           ClipRRect(
             borderRadius: BorderRadius.circular(99),

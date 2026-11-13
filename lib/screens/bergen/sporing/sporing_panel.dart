@@ -192,7 +192,12 @@ class SpPanel extends StatelessWidget {
     this.onNoeGalt,
     this.noeGaltUnder,
     this.onIkkeLost,
+    this.pilleOppe = false,
   });
+
+  /// Bug-8b (TestFlight feedback 2026-11-14): how far the courier's pill (42 high) sits into the panel when it rides on
+  /// its top edge at Levert — half of it.
+  static const double pilleSete = 21;
 
   final OpsTracking tracking;
   final String linje;
@@ -221,6 +226,10 @@ class SpPanel extends StatelessWidget {
   final VoidCallback? onNoeGalt;
   final String? noeGaltUnder;
   final VoidCallback? onIkkeLost;
+
+  /// The courier's pill sits on the panel's top edge ([pilleSete]): the grab bar under it is left out (its space stays,
+  /// so the pill clears the slot below).
+  final bool pilleOppe;
 
   static const Color _fyll1 = Color(0xFFE95C2C);
   static const Color _fyll2 = Color(0xFFF58A55);
@@ -251,13 +260,16 @@ class SpPanel extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  decoration: BoxDecoration(color: rgba(255, 255, 255, .3), borderRadius: BorderRadius.circular(3)),
+              if (pilleOppe)
+                const SizedBox(height: 5)
+              else
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 5,
+                    decoration: BoxDecoration(color: rgba(255, 255, 255, .3), borderRadius: BorderRadius.circular(3)),
+                  ),
                 ),
-              ),
               const SizedBox(height: 12),
               if (slotVerv) ...[
                 _Vervebillett(kode: vervKode, onLukk: onLukkVerv, onDel: onDelBillett, onKopier: onKopierBillett),
@@ -300,9 +312,20 @@ class SpPanel extends StatelessWidget {
               const SizedBox(height: 11),
               if (s == 3) ...[
                 if (issue case final i?) ...[IssueSakRad(issue: i, onIkkeLost: onIkkeLost), const SizedBox(height: 8)],
-                if (onNoeGalt != null) ...[NoeGaltRad(onTap: onNoeGalt!, under: noeGaltUnder), const SizedBox(height: 8)],
-                if (takkNavn case final n? when onTakk != null) ...[_TakkPille(navn: n, sendt: takkSendt, onTap: onTakk!), const SizedBox(height: 8)],
-                _Avslutt(onTap: onAvslutt),
+                // Bug-8b (TestFlight feedback 2026-11-14): the delivered panel grew past the design («Noe galt», «Takk»)
+                // and covered the house. «Noe galt» is one line here (its sheet says the rest), and «Takk» shares the
+                // row with «Avslutt bestillingen».
+                if (onNoeGalt != null) ...[NoeGaltRad(onTap: onNoeGalt!, under: noeGaltUnder, kompakt: true), const SizedBox(height: 10)],
+                if (takkNavn case final n? when onTakk != null)
+                  Row(
+                    children: [
+                      Expanded(flex: 5, child: _TakkPille(navn: n, sendt: takkSendt, onTap: onTakk!)),
+                      const SizedBox(width: 10),
+                      Expanded(flex: 7, child: _Avslutt(onTap: onAvslutt)),
+                    ],
+                  )
+                else
+                  _Avslutt(onTap: onAvslutt),
               ] else
                 Row(
                   children: [
@@ -759,19 +782,25 @@ class _TakkPille extends StatelessWidget {
   Widget build(BuildContext context) {
     final pille = Container(
       key: const Key('cus-sporing-takk'),
-      height: 46, // 44 + the CSS border
+      // Bug-8b: beside «Avslutt bestillingen» now — its height and pill shape.
+      height: 54,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: rgba(245, 243, 239, .16),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(999),
         border: Border.all(color: rgba(245, 243, 239, .3)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (sendt) ...[spIkon(kSpIkonHake, size: 14, color: const Color(0xFF7FF0CB), width: 2.8), const SizedBox(width: 7)],
-          Text(
-            sendt ? CusTakkCopy.cus_takk_sendt_kort(navn) : CusTakkCopy.cus_takk_til(navn),
-            style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF)),
+          Flexible(
+            child: Text(
+              sendt ? CusTakkCopy.cus_takk_sendt_kort(navn) : CusTakkCopy.cus_takk_til(navn),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFFF5F3EF)),
+            ),
           ),
         ],
       ),
@@ -819,7 +848,13 @@ class _Avslutt extends StatelessWidget {
               children: [
                 spIkon(kSpIkonHake, size: 18, width: 2.6),
                 const SizedBox(width: 10),
-                Text(SporingCopy.a1_sporing_avslutt_bestillingen, style: jakarta(15, em: -.01)),
+                // Beside «Takk» it has ~200 px: the label shrinks a little rather than break (Bug-8b).
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(SporingCopy.a1_sporing_avslutt_bestillingen, maxLines: 1, style: jakarta(15, em: -.01)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -843,7 +878,9 @@ class _Vervebillett extends StatelessWidget {
     child: CssBox(
       key: const Key('a1_sporing_verv'),
       radius: BorderRadius.circular(20),
-      padding: const EdgeInsets.all(12),
+      // Bug-8a (TestFlight feedback 2026-11-14, «the module goes too high»): 8 px slimmer than the first cut (padding
+      // 10, gap 10, keys 40) — at Bekreftet it stands where the design's Ægil card does, ~50 px taller.
+      padding: const EdgeInsets.all(10),
       border: Border.all(color: rgba(255, 255, 255, .2)),
       bg: [
         CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)]),
@@ -943,7 +980,7 @@ class _Vervebillett extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
@@ -951,7 +988,7 @@ class _Vervebillett extends StatelessWidget {
                   onTap: onDel,
                   dy: 2,
                   child: CssBox(
-                    height: 42,
+                    height: 40,
                     radius: BorderRadius.circular(999),
                     bg: const [
                       CssLinear(180, [Color(0xFFF58A55), Color(0xFFE95C2C)]),
@@ -973,7 +1010,7 @@ class _Vervebillett extends StatelessWidget {
                 onTap: onKopier,
                 scale: .95,
                 child: Container(
-                  height: 42,
+                  height: 40,
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: rgba(255, 255, 255, .12),

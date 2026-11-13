@@ -81,13 +81,17 @@ class BudIdentitetPill extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Column(
+            // A long store name («Leveres av …») or large text: the line ends in «…» inside the pill.
+            Flexible(
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   tittel,
                   key: const Key('a1_sporing_bud_navn'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: inter(12, weight: FontWeight.w800, color: kSpInk),
                 ),
                 if (kj.isNotEmpty) SizedBox(key: const Key('a1_sporing_bud_kjoretoy'), width: 0, height: 0),
@@ -105,6 +109,7 @@ class BudIdentitetPill extends StatelessWidget {
                     ],
                   ),
               ],
+            ),
             ),
           ],
         ),

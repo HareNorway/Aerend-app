@@ -89,9 +89,13 @@ class SakPaaOrdren extends StatelessWidget {
 /// «Noe galt med bestillingen? · Vi ser på det og svarer innen … min» — the
 /// white row under the receipt (`kNoeGalt`).
 class NoeGaltRad extends StatelessWidget {
-  const NoeGaltRad({super.key, required this.onTap, this.under});
+  const NoeGaltRad({super.key, required this.onTap, this.under, this.kompakt = false});
 
   final VoidCallback onTap;
+
+  /// Bug-8b (TestFlight feedback 2026-11-14): one line — the title and the arrow — for the delivered Sporing panel,
+  /// where every point of height hides the house above it. The sheet it opens says the rest.
+  final bool kompakt;
 
   /// Customer Step 10: «Ett bilde og én linje · svar innen N min» from the server's SLA.
   final String? under;
@@ -103,8 +107,8 @@ class NoeGaltRad extends StatelessWidget {
     dy: 0,
     scale: .985,
     child: CssBox(
-      radius: BorderRadius.circular(20),
-      padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
+      radius: BorderRadius.circular(kompakt ? 18 : 20),
+      padding: kompakt ? const EdgeInsets.fromLTRB(10, 8, 10, 8) : const EdgeInsets.fromLTRB(12, 11, 12, 11),
       // The dark Ark's glass (new Bergen L9890).
       bg: const [
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
@@ -115,13 +119,13 @@ class NoeGaltRad extends StatelessWidget {
         CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85)),
       ],
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 36),
+        constraints: BoxConstraints(minHeight: kompakt ? 30 : 36),
         child: Row(
           children: [
             CssBox(
-              width: 42,
-              height: 42,
-              radius: BorderRadius.circular(14),
+              width: kompakt ? 32 : 42,
+              height: kompakt ? 32 : 42,
+              radius: BorderRadius.circular(kompakt ? 11 : 14),
               clip: true,
               bg: const [
                 CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1]),
@@ -130,7 +134,9 @@ class NoeGaltRad extends StatelessWidget {
                 CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
                 CssShadow(0, 6, 10, -6, Color.fromRGBO(0, 10, 16, .7)),
               ],
-              child: Center(child: Image.asset('assets/images/dashboard/invitation.png', width: 38, height: 38, fit: BoxFit.contain)),
+              child: Center(
+                child: Image.asset('assets/images/dashboard/invitation.png', width: kompakt ? 29 : 38, height: kompakt ? 29 : 38, fit: BoxFit.contain),
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -141,16 +147,17 @@ class NoeGaltRad extends StatelessWidget {
                     SupportCopy.noeGalt,
                     style: inter(14, weight: FontWeight.w800, color: Colors.white),
                   ),
-                  Text(under ?? SupportCopy.noeGaltUnder, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66))),
+                  if (!kompakt)
+                    Text(under ?? SupportCopy.noeGaltUnder, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66))),
                 ],
               ),
             ),
             const SizedBox(width: 12),
             Container(
-              width: 32,
-              height: 32,
+              width: kompakt ? 28 : 32,
+              height: kompakt ? 28 : 32,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(11),
+                borderRadius: BorderRadius.circular(kompakt ? 10 : 11),
                 color: const Color.fromRGBO(255, 255, 255, .12),
                 border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
               ),
