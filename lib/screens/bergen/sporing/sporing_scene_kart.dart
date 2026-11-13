@@ -374,9 +374,13 @@ class _AnkommerState extends State<_Ankommer> {
             children: [
               SpPuls(size: 5, color: kSpOrange, glow: rgba(242, 109, 61, .9)),
               const SizedBox(width: 5),
-              Text(
-                SporingCopy.a1_sporing_ankommer.toUpperCase(),
-                style: inter(8.5, weight: FontWeight.w800, em: .08, color: kSpLabel),
+              Flexible(
+                child: Text(
+                  SporingCopy.a1_sporing_ankommer.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: inter(8.5, weight: FontWeight.w800, em: .08, color: kSpLabel),
+                ),
               ),
             ],
           ),

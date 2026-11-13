@@ -122,6 +122,11 @@ class _SporingScreenState extends State<SporingScreen> {
   bool _vervLukket = false;
   String? _vervKode;
   SpArk? _ark;
+
+  /// Bug-7a: the bottom panel's height as last laid out (it grows with «Verv en venn», the code slot, a case), so
+  /// the map can scale to keep its arrival card above it.
+  double? _panelH;
+  final GlobalKey _panelKey = GlobalKey();
   SpOrdre? _ordre;
   String? _logo;
   int? _poeng;
@@ -734,6 +739,29 @@ class _SporingScreenState extends State<SporingScreen> {
         : math.max(0.0, mq.padding.top - (s0 == 3 ? 12 : 32));
     final bunn = mq.padding.bottom;
     final h = mq.size.height;
+    // TestFlight feedback 2026-11-13 (Bug-7a, «some of the text and modules are crashing»): on the map the scene used
+    // to rise ~60 px under the ETA block so its arrival card cleared the panel — and the store's label, «Fisketorget»
+    // and «Torgallmenningen» slid under the clock, «om N min» and the courier's pill. Now the map keeps the frame's
+    // place under the ETA block (126 below it, as the header and pill move with the status bar) and its bottom keeps the
+    // frame's distance to the panel (268 above the frame's foot): where the device is shorter than the 844 pt frame the
+    // scene scales down (from its top centre) to fit between the two, instead of sliding under either.
+    final kartTopp = topp + 126;
+    // This screen draws inside LfFrame (the 390 pt frame scaled to the device's width) while `mq` here is the device's:
+    // the panel is measured in frame points, so the height is too.
+    final rammeH = h / (mq.size.width / LfFrame.width);
+    // The arrival card ends at scene y ~370 (map top 10 + card 290…360); with the panel measured, the scene fits that
+    // above it (6 px clear), else
+    // the frame's own proportion (268 above the foot) is the guess for the first frame.
+    final kartSkala = !kart
+        ? 1.0
+        : (_panelH != null ? (rammeH - _panelH! - 6 - kartTopp) / 372 : (rammeH - 268 - math.max(bunn - 24, 0) - kartTopp) / 450).clamp(.8, 1.0);
+    if (kart) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final RenderObject? ro = _panelKey.currentContext?.findRenderObject();
+        final double? ph = ro is RenderBox && ro.hasSize ? ro.size.height : null;
+        if (mounted && ph != null && (ph - (_panelH ?? -100)).abs() > 1) setState(() => _panelH = ph);
+      });
+    }
     final s = t.stage.clamp(0, 3);
     final hent = t.isPickup;
     final navn = SporingCopy.stages(hent);
@@ -768,8 +796,9 @@ class _SporingScreenState extends State<SporingScreen> {
             : s == 2
             ? 176.0
             : 150.0) +
-        // On the map the courier's pill keeps its place under «om N min».
-        (kart ? topp : sceneTopp);
+        // On the map the courier's pill keeps its place on the map: its foot 4 px above «Fisketorget» (the map's top at
+        // scene 10, the label at 84; the pill ~43 tall), at any scale — in the frame it sits flush on the label.
+        (kart ? topp - 176 + 126 + 94 * kartSkala - 47 : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
     final slotVerv = _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     // The design's stage 3, and (Customer Step 2) while the courier carries
@@ -790,16 +819,20 @@ class _SporingScreenState extends State<SporingScreen> {
         // The scene.
         Positioned(
           left: 0,
-          top:
-              sceneTopp +
-              (s == 0
-                  ? 118
-                  : s == 1
-                  ? 130
-                  : s == 2
-                  ? 126
-                  : 110),
-          child: RepaintBoundary(
+          top: kart
+              ? kartTopp
+              : sceneTopp +
+                    (s == 0
+                        ? 118
+                        : s == 1
+                        ? 130
+                        : s == 2
+                        ? 126
+                        : 110),
+          child: Transform.scale(
+            scale: kartSkala,
+            alignment: Alignment.topCenter,
+            child: RepaintBoundary(
             child: KeyedSubtree(
               key: ValueKey('scene-$s-$hent-$klarLev'),
               child: switch (s) {
@@ -834,6 +867,7 @@ class _SporingScreenState extends State<SporingScreen> {
                 ),
               },
             ),
+          ),
           ),
         ),
         // The header (top 12).
@@ -965,6 +999,7 @@ class _SporingScreenState extends State<SporingScreen> {
           right: 0,
           bottom: 0,
           child: Column(
+            key: _panelKey,
             mainAxisSize: MainAxisSize.min,
             children: [
               if (visBud && s >= 3) ...[IgnorePointer(child: BudIdentitetPill(tracking: t)), const SizedBox(height: 10)],

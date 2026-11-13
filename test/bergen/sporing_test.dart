@@ -9,6 +9,7 @@ import 'package:aerend_customer/screens/bergen/hjelp/support.dart';
 import 'package:aerend_customer/screens/bergen/sporing/hjelp_sheet.dart';
 import 'package:aerend_customer/screens/bergen/sporing/leveringskode_card.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_copy.dart';
+import 'package:aerend_customer/screens/bergen/sporing/sporing_panel.dart';
 import 'package:aerend_customer/screens/bergen/sporing/sporing_screen.dart';
 import 'package:aerend_customer/utils/shared_pref_utill.dart';
 
@@ -629,4 +630,42 @@ void main() {
     );
   });
 
+
+  // Bug-7a (TestFlight feedback 2026-11-13): «some of the text and modules are crashing» on På vei — the map's labels
+  // slid under the clock, «om N min» and the courier's pill, and the arrival card under the panel.
+  for (final (String navn, Size size, double topp, double bunn) d in const <(String, Size, double, double)>[
+    ('iPhone 15/16 Pro', Size(393, 852), 59, 34),
+    ('iPhone 17e', Size(390, 844), 47, 34),
+    ('iPhone 17 Pro Max', Size(440, 956), 62, 34),
+  ]) {
+    testWidgets('På vei on ${d.$1}: nothing on the map hides under the clock, the pill or the courier', (tester) async {
+      tester.view.physicalSize = d.$2;
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = FakeViewPadding(top: d.$3, bottom: d.$4);
+      addTearDown(tester.view.reset);
+      final p = payload(state: 'picked_up', stage: 2, label: 'På vei');
+      // As on the manager's phone: the window half an hour ahead (the countdown reads «30:00», not a stale date).
+      final naa = DateTime.now();
+      p['promised_start'] = naa.add(const Duration(minutes: 25)).toIso8601String();
+      p['promised_end'] = naa.add(const Duration(minutes: 30)).toIso8601String();
+      final slutt = OpsTracking.fromJson(p).promisedEnd!.toLocal();
+      final kl = '${slutt.hour.toString().padLeft(2, '0')}:${slutt.minute.toString().padLeft(2, '0')}';
+      await tester.pumpWidget(_app(SporingScreen(key: UniqueKey(), orderId: 4471, api: _FakeApi(payload: p), preloaded: OpsTracking.fromJson(p), poll: false, showMap: false)));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+      Rect r(Finder f) => tester.getRect(f.first);
+      final over = <String, Rect>{
+        'klokke': r(find.byKey(const Key('a1_sporing_om_min'))).expandToInclude(r(find.textContaining(kl))),
+        'bud': r(find.byType(BudIdentitetPill)),
+      };
+      for (final label in ['Fisketorget', 'Torgallmenningen', 'Lille Lungegårdsvann']) {
+        final l = r(find.text(label));
+        over.forEach((k, o) => expect(o.overlaps(l), isFalse, reason: '$k $o covers «$label» $l'));
+      }
+      final panelTopp = r(find.byType(SpPanel)).top;
+      final ankommer = r(find.byKey(const Key('a1_sporing_nedtelling')));
+      // The countdown reads above the panel (its middle: the test font draws the line taller than Inter does).
+      expect(ankommer.center.dy, lessThan(panelTopp), reason: 'arrival card $ankommer under the panel at $panelTopp');
+    });
+  }
 }
