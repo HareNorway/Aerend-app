@@ -10,6 +10,7 @@ import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import 'sporing_gl.dart';
 import 'sporing_scene_kai.dart';
+import 'sporing_sist_oppdatert.dart';
 
 /// **Sporing · På vei** (L6775, the WebGL branch `sjoGlPaa`): the 2.5D night
 /// map of the centre — the prototype's own shader (`spKartInit`, ported as
@@ -412,6 +413,8 @@ class _AnkommerState extends State<_Ankommer> {
               style: inter(8.5, weight: FontWeight.w700, color: kSpLabel),
             ),
           ],
+          // Battery plan Step 7: the position is older than 30 s (flag `cus.tracking.last_updated`); this card's tick.
+          SpSistOppdatert(at: info.posAt, style: inter(8.5, weight: FontWeight.w700, color: kSpLabel)),
         ],
       ),
     );

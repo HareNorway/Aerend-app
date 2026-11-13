@@ -33,6 +33,7 @@ class SpSceneInfo {
     this.spartSek,
     this.poeng,
     this.vindu,
+    this.posAt,
   });
 
   final String butikk;
@@ -70,6 +71,10 @@ class SpSceneInfo {
 
   /// Metres left to the door (`distance_metres`); null: no distance shown.
   final int? meterIgjen;
+
+  /// Battery plan Step 7: when the courier's live position was recorded (`live_position.recorded_at`); the map card
+  /// says «Sist oppdatert for 40 s siden» once it is older than 30 s.
+  final DateTime? posAt;
 
   /// Seconds delivered before the promised end (SPART TID), when positive.
   final int? spartSek;

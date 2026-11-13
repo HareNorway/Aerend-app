@@ -613,6 +613,7 @@ class _SporingScreenState extends State<SporingScreen> {
       spartSek: spart,
       poeng: _poeng,
       vindu: t.hasWindow ? t.windowText : null,
+      posAt: t.livePosition?.recordedAt,
     );
   }
 

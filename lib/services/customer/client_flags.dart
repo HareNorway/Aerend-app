@@ -25,6 +25,9 @@ abstract final class ClientFlags {
   static const String aiLinkedCheckout = 'cus.ai.linked_checkout';
   // Customer v2 Step 6: «Fast ukeshandel» (level 4) in Meg and the settings.
   static const String aegilLevel4 = 'cus.aegil.level4';
+  // Battery plan Step 7 (courier battery spec §4.3): «Sist oppdatert for 40 s siden» on Sporing when the courier's
+  // position is older than 30 s.
+  static const String trackingLastUpdated = 'cus.tracking.last_updated';
 
   static Map<String, bool>? _cache;
 
