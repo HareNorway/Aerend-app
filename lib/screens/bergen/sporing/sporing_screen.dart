@@ -1,3 +1,5 @@
+import '../../../services/ntf/ntf_live_card.dart';
+import '../meg/varsler_innst.dart' show NtfSamtykke;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -103,6 +105,8 @@ class _SporingScreenState extends State<SporingScreen> {
   Timer? _timer;
   StreamSubscription<List<ConnectivityResult>>? _conn;
   int? _lastStage;
+  // Notifications plan Step 10: the live card is read once per Sporing visit (it renews the server's «card is up»).
+  bool _kortStartet = false;
   bool _shift = false;
   int _shiftSteg = 0;
   bool _waited = false;
@@ -184,6 +188,15 @@ class _SporingScreenState extends State<SporingScreen> {
       });
       if (changed) _onStageChange(next);
       if (_lastStage == null && next.stage == 3) _etterLevert(next);
+      // Notifications plan Step 7 (D-10): the marketing question, once, after a delivered order.
+      if (next.isDelivered && mounted) unawaited(NtfSamtykke.kanskje(context));
+      // Notifications plan Step 10: the live card while the order is on its way; gone when it is done.
+      if (next.isDelivered || next.isCancelled) {
+        unawaited(NtfLiveCard.end(_id));
+      } else if (!_kortStartet) {
+        _kortStartet = true;
+        unawaited(NtfLiveCard.start(_id));
+      }
       _lastStage = next.stage;
     } catch (_) {
       if (!mounted) return;

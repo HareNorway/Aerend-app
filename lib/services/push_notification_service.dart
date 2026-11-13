@@ -12,6 +12,10 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import '../networking/ops/ops_customer_api.dart';
+import '../screens/bergen/hjem/hjem_varsler.dart' show VarslerCopy;
+import 'ntf/ntf_hooks.dart';
+import 'ntf/ntf_live_card.dart';
+import 'ntf/ntf_push.dart';
 import '../screens/common/chatting/chatting.dart';
 import '../screens/common/homeMainV1/home_main_v1.dart';
 import '../screens/common/splash/splash.dart';
@@ -61,6 +65,38 @@ class PushNotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.createNotificationChannel(channel);
+    // Notifications plan Step 7: one channel per class (the manifest default is `ntf_operational`).
+    for (final c in NtfChannels.all) {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(c);
+    }
+    // Notifications plan Step 10: the order's live card — one ongoing notification on Android, updated by silent
+    // pushes (the iOS Live Activity is the Mac step; nothing is shown for it here).
+    if (Platform.isAndroid) {
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(NtfLiveCard.channel);
+      NtfLiveCard.show = (int id, String title, String body) => flutterLocalNotificationsPlugin.show(
+            id,
+            title,
+            body,
+            NotificationDetails(
+              android: AndroidNotificationDetails(NtfLiveCard.channel.id, NtfLiveCard.channel.name,
+                  channelDescription: NtfLiveCard.channel.description,
+                  icon: 'ic_notification',
+                  color: colorPrimary,
+                  importance: Importance.low,
+                  priority: Priority.low,
+                  playSound: false,
+                  ongoing: true,
+                  onlyAlertOnce: true,
+                  autoCancel: false),
+            ),
+          );
+      NtfLiveCard.cancel = (int id) => flutterLocalNotificationsPlugin.cancel(id);
+    }
+    NtfHooks.onLiveCard = NtfLiveCard.fromPush;
 
     /// Update the iOS foreground notification presentation options to allow
     /// heads up notifications.
@@ -102,6 +138,9 @@ class PushNotificationService {
       remote.data,
     );
     logd(tag, notificationData.toString());
+
+    // Notifications plan Step 7: the Varselsentral's data pushes — the bell, a live card, an in-app toast.
+    if (await NtfHooks.handleData(notificationData)) return;
 
     // Customer Step 14: «{AI} vil bestille» while the app is open → the in-app banner, not a system notification.
     if ('${notificationData['kind'] ?? ''}' == 'ai_request') {
@@ -174,18 +213,26 @@ class PushNotificationService {
     }
     final int badgeForTray = prefGetInt(prefChatAppBadgeCount);
 
+    // Notifications plan Step 7: a Varselsentral push lands on its class's channel and only a CRITICAL push may
+    // take the screen; an older push without a class keeps today's heads-up channel.
+    final String? cls = NtfPayload.cls(notificationData);
+    final AndroidNotificationChannel ch = cls == null ? channel : NtfChannels.forClass(cls);
     final NotificationDetails details = NotificationDetails(
       android: AndroidNotificationDetails(
-        channel.id,
-        channel.name,
-        channelDescription: channel.description,
+        ch.id,
+        ch.name,
+        channelDescription: ch.description,
         icon: 'ic_notification',
         color: colorPrimary,
-        importance: Importance.max,
-        priority: Priority.max,
-        playSound: true,
-        fullScreenIntent: true,
+        importance: cls == null ? Importance.max : NtfChannels.importance(cls),
+        priority: cls == null ? Priority.max : NtfChannels.priority(cls),
+        playSound: cls != 'insight',
+        fullScreenIntent: NtfChannels.fullScreen(cls),
         number: badgeForTray > 0 ? badgeForTray : null,
+        // Step 13: «Færre slike» on an INSIGHT push (Android; iOS needs a registered category — Mac work).
+        actions: NtfPayload.offersLess(notificationData)
+            ? const [AndroidNotificationAction(NtfPayload.lessAction, VarslerCopy.faerreSlike, showsUserInterface: true, cancelNotification: true)]
+            : null,
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,
@@ -239,6 +286,7 @@ class PushNotificationService {
       await prefSetString(prefDeviceToken, newToken);
       if (prefGetInt(prefUserId) > 0) {
         setFCMToken();
+        NtfHooks.reportToken(newToken);
       }
     });
   }
@@ -261,6 +309,10 @@ class PushNotificationService {
       await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (details) {
+          if (details.actionId == NtfPayload.lessAction) {
+            _less(details.payload);
+            return;
+          }
           _selectNotification(details.payload);
         },
       );
@@ -276,6 +328,10 @@ class PushNotificationService {
       await flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
         onDidReceiveNotificationResponse: (details) {
+          if (details.actionId == NtfPayload.lessAction) {
+            _less(details.payload);
+            return;
+          }
           _selectNotification(details.payload);
         },
       );
@@ -288,6 +344,7 @@ class PushNotificationService {
             await prefSetString(prefDeviceToken, token);
             if (prefGetInt(prefUserId) > 0) {
               setFCMToken();
+              NtfHooks.reportToken(token);
             }
           }
         })
@@ -295,6 +352,14 @@ class PushNotificationService {
           debugPrint("FCM token unavailable (likely iOS Simulator): $e");
         });
     _requestPermissions();
+  }
+
+  /// Step 13: «Færre slike» from the push's action — the outcome, not a navigation.
+  void _less(String? payload) {
+    try {
+      final dynamic decoded = jsonDecode(payload ?? "{}");
+      if (decoded is Map) NtfHooks.reportLess(Map<String, dynamic>.from(decoded));
+    } catch (_) {}
   }
 
   Future _selectNotification(String? payload) async {
@@ -352,6 +417,12 @@ class PushNotificationService {
     // a `user_id` and no `notification_type` as a chat message.
     // Customer Step 14: a `/bergen/…` deep link (the assistant's request).
     if (AiPushHook.apne(nd)) return;
+    // Notifications plan Step 7: «opened» for the Varselsentral's row, then its own route before the fallbacks.
+    NtfHooks.reportOpened(nd);
+    if (NtfRouting.route(nd) case final r?) {
+      if (openPushRoute(PushRoute.bergen(r), isReplace: isReplace)) return;
+      if (navigatorKey.currentState == null || isReplace) return;
+    }
     if (PushDeepLink.handles(nd)) {
       final route = PushDeepLink.resolve(nd);
       if (route != null) {

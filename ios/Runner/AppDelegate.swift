@@ -85,24 +85,27 @@ import UserNotifications
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data)
   {
     Messaging.messaging().apnsToken = deviceToken
-   
+    // Notifications plan Step 7: hand the token on to the plugins too (FlutterAppDelegate forwards it).
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
-   func userNotificationCenter(_center: UNUserNotificationCenter,
-    willPresent notification: UNNotification, withCompletionHandler
-    completionHandler: @escaping (UNNotificationPresentationOptions) ->
-    Void){
-    print("Notification recevied while app is in Foreground")
+  // Notifications plan Step 7: the delegate selectors now match UNUserNotificationCenterDelegate (they were declared
+  // `_center:` and never called). Both hand over to FlutterAppDelegate, which forwards to firebase_messaging and
+  // flutter_local_notifications - the Dart side decides what a foreground push shows.
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    super.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler)
+  }
 
-      completionHandler([.alert, .badge, .sound])
-    }
-  func userNotificationCenter(_center: UNUserNotificationCenter,
-  didReceive response: UNNotificationResponse, withCompletionHandler
-  completionHandler: @escaping () ->
-  Void){
-    print("Notification recevied while app is in Background")
-
-    completionHandler()
+  override func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    super.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler)
   }
 }
  

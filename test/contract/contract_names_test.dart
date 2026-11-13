@@ -38,6 +38,8 @@ const List<String> kReservedAgil1 = [
   '/bergen/levert/{id}',
   '/bergen/utforsk',
   '/bergen/kundeservice',
+  // Notifications plan Step 7: «Varsler» settings from the server's catalogue.
+  '/bergen/varsler/innstillinger',
 ];
 
 const List<String> kReservedAgil3 = [

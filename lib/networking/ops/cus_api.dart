@@ -42,7 +42,23 @@ class CusVarsel {
     this.actionId,
     this.conversationId,
     this.issueId,
+    this.ntfType,
+    this.cls,
+    this.aiLabel = false,
+    this.lessOk = false,
+    this.actions = const [],
   });
+
+  /// Notifications plan Step 5: the Varselsentral type and class, the AI label on agent-written items, whether
+  /// «Færre slike» / «Slå av denne typen» are offered, and the inline actions (`{label, route}`).
+  final String? ntfType;
+  final String? cls;
+  final bool aiLabel;
+  final bool lessOk;
+  final List<CusVarselHandling> actions;
+
+  /// The `ops_notifications` id behind an `n:<id>` key (the outcome route takes it); null for a broadcast.
+  int? get notificationId => key.startsWith('n:') ? int.tryParse(key.substring(2)) : null;
 
   /// Customer Step 7: the Ægil receipt behind an «Angre» card.
   final int? actionId;
@@ -95,6 +111,66 @@ class CusVarsel {
     actionId: (j['action_id'] as num?)?.toInt(),
     conversationId: (j['conversation_id'] as num?)?.toInt(),
     issueId: (j['issue_id'] as num?)?.toInt(),
+    ntfType: j['ntf_type'] as String?,
+    cls: j['class'] as String?,
+    aiLabel: j['ai_label'] == true,
+    lessOk: j['less_ok'] == true,
+    actions: [
+      for (final a in (j['actions'] as List? ?? const []))
+        if (a is Map) CusVarselHandling(label: '${a['label'] ?? ''}', route: a['route'] as String?),
+    ],
+  );
+}
+
+/// An inline action on a Varsler card (`actions[]`: «Vent», «Avbestill», «Endre»).
+class CusVarselHandling {
+  const CusVarselHandling({required this.label, this.route});
+
+  final String label;
+  final String? route;
+}
+
+/// Notifications plan Step 5: one type in «Varsler-innstillinger» (`GET api/customer/notification-prefs`).
+class CusVarselType {
+  const CusVarselType({required this.type, required this.cls, required this.label, required this.alwaysOn, required this.push, required this.inApp, required this.sound, this.mutedUntil, this.less = false, this.promotional = false});
+
+  final String type;
+  final String cls;
+  final String label;
+
+  /// CRITICAL, or a type the person may not switch off: «Alltid på» — only the sound changes.
+  final bool alwaysOn;
+  final bool push;
+  final bool inApp;
+  final bool sound;
+  final DateTime? mutedUntil;
+  final bool less;
+  final bool promotional;
+
+  factory CusVarselType.fromJson(Map<String, dynamic> j) => CusVarselType(
+    type: '${j['type'] ?? ''}',
+    cls: '${j['class'] ?? 'operational'}',
+    label: '${j['label'] ?? j['type'] ?? ''}',
+    alwaysOn: j['always_on'] == true,
+    push: j['push'] != false,
+    inApp: j['in_app'] != false,
+    sound: j['sound'] != false,
+    mutedUntil: DateTime.tryParse('${j['muted_until'] ?? ''}')?.toLocal(),
+    less: j['less'] == true,
+    promotional: j['promotional'] == true,
+  );
+}
+
+/// The settings screen's data: the types and the marketing consent (null: never asked).
+class CusVarselPrefs {
+  const CusVarselPrefs({required this.types, this.marketing});
+
+  final List<CusVarselType> types;
+  final bool? marketing;
+
+  factory CusVarselPrefs.fromJson(Map<String, dynamic> j) => CusVarselPrefs(
+    types: [for (final t in (j['types'] as List? ?? const [])) if (t is Map) CusVarselType.fromJson(Map<String, dynamic>.from(t))],
+    marketing: (j['consent'] is Map) ? (j['consent']['marketing'] as bool?) : null,
   );
 }
 
@@ -460,6 +536,61 @@ class CusApi {
 
   /// «Takk til budet»: stores the note (once per delivered order). True when
   /// it is stored now or was already.
+  // ── Notifications plan Step 5/7: token, outcomes, prefs, consent ───────────
+
+  Future<Map<String, dynamic>?> _send(String method, String path, Map<String, dynamic> body) async {
+    final auth = OpsCustomerApi.authParams();
+    if (auth == null || !OpsCustomerApi.networkEnabled) return null;
+    try {
+      final json = method == 'PATCH'
+          ? await _helper.patch('$_base$path', body: {...auth, ...body})
+          : await _helper.put('$_base$path', {...auth, ...body});
+      return json is Map<String, dynamic> && (json['status'] == 1 || json['ok'] == true) ? json : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The FCM token for this install, at start and on every refresh (Step 2, D-12).
+  Future<bool> pushToken(String token, {String? platform}) async =>
+      (await _post('push-token', {'token': token, if (platform != null) 'platform': platform}))?['stored'] == true;
+
+  /// Step 13: the OS notification permission for this install (the opt-out metric), at start.
+  Future<bool> varselTillatelse(bool enabled, String install, {String? platform}) async =>
+      (await _post('notification-permission', {'enabled': enabled, 'install': install, if (platform != null) 'platform': platform}))?['ok'] == true;
+
+  /// What the customer did with a notification: opened | acted | dismissed | less.
+  Future<bool> varselUtfall(int notificationId, String utfall, {String? skjerm}) async =>
+      (await _send('PATCH', 'notifications/$notificationId', {'outcome': utfall, if (skjerm != null) 'screen': skjerm})) != null;
+
+  Future<CusVarselPrefs?> varselInnstillinger() async {
+    final j = await _get('notification-prefs');
+    return j == null ? null : CusVarselPrefs.fromJson(j);
+  }
+
+  Future<CusVarselPrefs?> varselInnstillingLagre(String type, {bool? push, bool? lyd}) async {
+    final j = await _send('PUT', 'notification-prefs', {
+      'prefs': [
+        {'type': type, if (push != null) 'push': push, if (lyd != null) 'sound': lyd},
+      ],
+    });
+    return j == null ? null : CusVarselPrefs.fromJson(j);
+  }
+
+  /// «Slå av denne typen» ([av] true, until [til]) / back on.
+  Future<bool> varselTypeAv(String type, {bool av = true, DateTime? til}) async =>
+      (await _post('notification-prefs/$type/mute', {if (!av) 'off': true, if (til != null) 'until': til.toUtc().toIso8601String()}))?['ok'] == true;
+
+  /// Notifications plan Step 10: the order's live card (`GET live-card/order:<id>`); `enabled` is `ntf.live_card`.
+  Future<({bool enabled, Map<String, dynamic> card})?> liveCard(int orderId) async {
+    final j = await _get('live-card/order:$orderId');
+    final c = j?['card'];
+    return c is Map ? (enabled: j!['enabled'] == true, card: Map<String, dynamic>.from(c)) : null;
+  }
+
+  /// Marketing consent (D-10): yes / no, asked once after the first delivered order.
+  Future<bool> markedsSamtykke(bool markedsforing) async => (await _send('PUT', 'notification-consents', {'marketing': markedsforing})) != null;
+
   Future<bool> takk(int orderId, String tekst) async => (await _post('orders/$orderId/thanks', {'text': tekst}))?['status'] == 1;
 
   /// The order's chat with the courier, oldest first; empty when none or offline.
