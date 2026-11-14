@@ -1,14 +1,115 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../data/aegil/aegil_app_models.dart';
+import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
 import '../kit/bergen_perf.dart';
 import 'meg_bergen.dart';
 import 'package:aerend_customer/utils/route_names.dart';
+
+// ── Sharing the gullbillett (new Bergen `gbDel`) ──────────────────────────
+
+/// What became of one share: sent to an app, the link copied from the share
+/// sheet, backed out of, or the sheet failed.
+enum GbUt { sendt, kopiert, avbrutt, feil }
+
+/// `gbDel()`: the customer shares from their own channels; once it went out,
+/// the ticket is remembered (the board's «Ny venn · Akkurat nå») and
+/// «Gullbillett delt» plays (80 ms after the sheet closed, as in the design).
+abstract final class GbDeling {
+  /// The share call (tests replace it). The anchor is required on iOS 26 and
+  /// iPad: without one the share sheet throws and nothing is shared.
+  static Future<ShareResult> Function(String text, {String? subject, Rect? origin}) share =
+      (text, {subject, origin}) => Share.share(text, subject: subject, sharePositionOrigin: origin);
+
+  /// When the clipboard's text was last set (Android, `aerend/clip`; null
+  /// elsewhere or unknown). Only the time is read, never the text.
+  static Future<DateTime?> Function() klippTid = () async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;
+    try {
+      final ms = await const MethodChannel('aerend/clip').invokeMethod<int>('stamp');
+      return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+    } catch (_) {
+      return null;
+    }
+  };
+
+  /// The share sheet's anchor: the widget the customer tapped (or the screen).
+  static Rect? anker(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    return box != null && box.hasSize ? box.localToGlobal(Offset.zero) & box.size : null;
+  }
+
+  /// Shares [tekst]. `success` is a share that went out; `unavailable` is a
+  /// platform that cannot tell (older Android, desktop), counted as sent;
+  /// `dismissed` is the customer backing out — unless the clipboard was set
+  /// while the sheet was open: Android reports the sheet's «Copy» as
+  /// dismissed (iOS reports it as success), so that is the link copied.
+  static Future<GbUt> del(String tekst, {String? subject, Rect? origin}) async {
+    final start = DateTime.now().subtract(const Duration(milliseconds: 500));
+    try {
+      final r = await share(tekst, subject: subject, origin: origin);
+      if (r.status == ShareResultStatus.dismissed) {
+        if (!await _kopiertSiden(start)) return GbUt.avbrutt;
+        await GbSendt.legg();
+        return GbUt.kopiert;
+      }
+      await GbSendt.legg();
+      return GbUt.sendt;
+    } catch (_) {
+      return GbUt.feil;
+    }
+  }
+
+  /// The clipboard is readable only once the app has focus again, which can
+  /// trail the share result a little: ask a few times.
+  static Future<bool> _kopiertSiden(DateTime start) async {
+    for (var i = 0; i < 6; i++) {
+      final t = await klippTid();
+      if (t != null && t.isAfter(start)) return true;
+      if (i < 5) await Future<void>.delayed(const Duration(milliseconds: 120));
+    }
+    return false;
+  }
+}
+
+/// The tickets sent from this phone (`kBillettDelt` in the design): the board
+/// shows them as «Ny venn» before the friends the server knows. Kept 30 days,
+/// ten at most; the newest reads «Akkurat nå» for ten minutes.
+abstract final class GbSendt {
+  static const String prefKey = 'meg_gb_sendt_v1';
+  static const int maks = 10;
+  static const Duration holdes = Duration(days: 30);
+  static const Duration akkuratNaa = Duration(minutes: 10);
+
+  /// Newest first.
+  static List<DateTime> les({DateTime? naa}) {
+    final n = naa ?? DateTime.now();
+    final ut = <DateTime>[];
+    for (final s in prefGetString(prefKey).split(',')) {
+      final ms = int.tryParse(s.trim());
+      if (ms == null) continue;
+      final t = DateTime.fromMillisecondsSinceEpoch(ms);
+      if (n.difference(t) <= holdes && !t.isAfter(n.add(const Duration(minutes: 1)))) ut.add(t);
+    }
+    ut.sort((a, b) => b.compareTo(a));
+    return ut.take(maks).toList();
+  }
+
+  static Future<void> legg({DateTime? naa}) {
+    final n = naa ?? DateTime.now();
+    return prefSetString(prefKey, [n, ...les(naa: n)].take(maks).map((t) => '${t.millisecondsSinceEpoch}').join(','));
+  }
+
+  static bool erNy(DateTime t, {DateTime? naa}) => (naa ?? DateTime.now()).difference(t) <= akkuratNaa;
+}
 
 // ── Gullbilletten (Bergen Step 8, new Bergen L9844–9859, L9963–10017) ──────
 
@@ -22,6 +123,9 @@ abstract final class GbCopy {
   static const String nesteVenn = 'Neste venn';
   static String pluss(int n) => '+$n poeng';
   static const String lastetNed = 'Lastet ned';
+  static const String nyVenn = 'Ny venn';
+  static const String akkuratNaa = 'Akkurat nå';
+  static const String billettSendt = 'Billett sendt';
 
   // The celebration.
   static const String gullbillett = 'GULLBILLETT';
@@ -29,6 +133,7 @@ abstract final class GbCopy {
   static const String poeng = 'POENG';
   static const String delt = 'DELT';
   static const String lenken = 'LENKEN ER SENDT';
+  static const String lenkenKopiert = 'LENKEN ER KOPIERT';
   static const String duHarDelt = 'Du har delt ';
   static const String gullbilletten = 'gullbilletten';
   static const String din = ' din!';
@@ -45,18 +150,25 @@ abstract final class GbCopy {
 /// there is no monthly cap, else «N av 5 denne måneden»), the count of
 /// friends who qualified and the points they brought in, then a row of
 /// tickets: «Neste venn» (shares) and one per friend, newest first —
-/// delivered ones in gold with «+200 poeng», the others «Lastet ned».
+/// delivered ones in gold with «+200 poeng», the others «Lastet ned». The
+/// tickets shared from this phone come first (`kBillettDelt`): «Ny venn» with
+/// «Akkurat nå» in mint for the newest (popping in, `gbNy`), «Billett sendt».
 class GbBillettene extends StatelessWidget {
-  const GbBillettene({super.key, required this.referral, required this.onNeste});
+  const GbBillettene({super.key, required this.referral, required this.onNeste, this.sendte, this.naa});
 
   final Referral referral;
   final VoidCallback onNeste;
+
+  /// The shared tickets, newest first; null reads [GbSendt].
+  final List<DateTime>? sendte;
+  final DateTime? naa;
 
   @override
   Widget build(BuildContext context) {
     final r = referral;
     final ant = r.qualifiedTotal;
     final venner = r.friends.reversed.toList();
+    final sendt = sendte ?? GbSendt.les(naa: naa);
     return LfRise(
       delay: 80,
       dur: 400,
@@ -150,10 +262,17 @@ class GbBillettene extends StatelessWidget {
                       dur: 350,
                       child: _Neste(pluss: r.pointsForMe, onTap: onNeste),
                     ),
+                    for (var i = 0; i < sendt.length; i++) ...[
+                      const SizedBox(width: 8),
+                      if (i == 0 && GbSendt.erNy(sendt[i], naa: naa))
+                        const _GbNy(key: Key('meg-billett-ny'), child: _Sendt(ny: true))
+                      else
+                        LfRise(delay: 120 + i * 50.0, dur: 350, child: _Sendt(key: Key('meg-billett-sendt-$i'), ny: false)),
+                    ],
                     for (var i = 0; i < venner.length; i++) ...[
                       const SizedBox(width: 8),
                       LfRise(
-                        delay: 120 + i * 50.0,
+                        delay: 120 + (sendt.length + i) * 50.0,
                         dur: 350,
                         child: _Venn(v: venner[i], pluss: r.pointsForMe),
                       ),
@@ -333,6 +452,114 @@ class _Venn extends StatelessWidget {
   }
 }
 
+/// A ticket shared from this phone (design `kBryggeM`, `erSendt`): glass with
+/// a white hairline, the paper plane, «Ny venn» and «Billett sendt»; the
+/// newest («Akkurat nå») in mint.
+class _Sendt extends StatelessWidget {
+  const _Sendt({super.key, required this.ny});
+  final bool ny;
+
+  static const Color _mint = Color(0xFF7FF0CB);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: const _VennKant(),
+      child: CssBox(
+        width: 96,
+        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
+        shadows: [ny ? const CssShadow.inset(0, 0, 0, 1.5, Color.fromRGBO(92, 224, 184, .85)) : const CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18))],
+        radius: BorderRadius.circular(14),
+        child: Stack(
+          children: [
+            const Positioned(
+              left: 9,
+              right: 9,
+              top: 47,
+              child: CustomPaint(size: Size(double.infinity, 1.5), painter: _Linje(Color.fromRGBO(255, 255, 255, .2))),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 11, 8, 10),
+              child: Column(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: ny ? const Color.fromRGBO(92, 224, 184, .22) : const Color.fromRGBO(255, 255, 255, .14)),
+                    child: AeIkon('M4 12l16-7-6.5 16-2.2-6.3z', size: 13, stroke: 2.4, color: ny ? _mint : Colors.white),
+                  ),
+                  const SizedBox(height: 17),
+                  Text(
+                    GbCopy.nyVenn,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                    textAlign: TextAlign.center,
+                    style: inter(12.5, weight: FontWeight.w800, color: Colors.white),
+                  ),
+                  const SizedBox(height: 5),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(7, 2.5, 7, 2.5),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ny ? const Color.fromRGBO(92, 224, 184, .18) : const Color.fromRGBO(255, 255, 255, .12)),
+                    child: Text(
+                      ny ? GbCopy.akkuratNaa : GbCopy.billettSendt,
+                      maxLines: 1,
+                      style: inter(9.5, weight: FontWeight.w800, color: ny ? _mint : const Color.fromRGBO(255, 255, 255, .82)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// `gbNy .7s .2s cubic-bezier(.3,1.5,.5,1)`: from 14 px up, small and tipped
+/// left, it lands with a little overshoot (65 %: 2 px down, 1.06, 2°).
+class _GbNy extends StatelessWidget {
+  const _GbNy({super.key, required this.child});
+  final Widget child;
+
+  static const Cubic _kurve = Cubic(.3, 1.5, .5, 1);
+
+  @override
+  Widget build(BuildContext context) {
+    if (BergenPerf.of(context) == BergenTier.still) return child;
+    return LfOnce(
+      ms: 900,
+      child: child,
+      builder: (context, t, child) {
+        final p = kfP(t, 200, 700);
+        double y, s, r, o;
+        if (p <= .65) {
+          final k = _kurve.transform(p / .65);
+          y = -14 + 16 * k;
+          s = .7 + .36 * k;
+          r = -8 + 10 * k;
+          o = k.clamp(0.0, 1.0);
+        } else {
+          final k = _kurve.transform((p - .65) / .35);
+          y = 2 - 2 * k;
+          s = 1.06 - .06 * k;
+          r = 2 - 2 * k;
+          o = 1;
+        }
+        return Opacity(
+          opacity: o,
+          child: Transform.translate(
+            offset: Offset(0, y),
+            child: Transform.rotate(angle: r * math.pi / 180, child: Transform.scale(scale: s, child: child)),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _VennKant extends CustomClipper<Path> {
   const _VennKant();
 
@@ -370,7 +597,7 @@ class _Linje extends CustomPainter {
 // ── «Gullbillett delt» ─────────────────────────────────────────────────────
 
 /// Shows the celebration over everything (after a share went out).
-Future<void> visGullbillettDelt(BuildContext context, {required String kode, required String initial, required int poeng, required VoidCallback onIgjen}) {
+Future<void> visGullbillettDelt(BuildContext context, {required String kode, required String initial, required int poeng, required VoidCallback onIgjen, bool kopiert = false}) {
   return Navigator.of(context, rootNavigator: true).push(
     PageRouteBuilder<void>(
       opaque: false,
@@ -383,6 +610,7 @@ Future<void> visGullbillettDelt(BuildContext context, {required String kode, req
           kode: kode,
           initial: initial,
           poeng: poeng,
+          kopiert: kopiert,
           onFerdig: () => Navigator.of(ctx).pop(),
           onIgjen: () {
             Navigator.of(ctx).pop();
@@ -400,8 +628,10 @@ Future<void> visGullbillettDelt(BuildContext context, {required String kode, req
 /// Du har delt gullbilletten din!», the line, «Du +200 · Vennen +200» and
 /// «Del med flere» / «Ferdig». In `still` it shows the end frame.
 class GbDelt extends StatefulWidget {
-  const GbDelt({super.key, required this.kode, required this.initial, required this.poeng, required this.onFerdig, required this.onIgjen});
+  const GbDelt({super.key, required this.kode, required this.initial, required this.poeng, required this.onFerdig, required this.onIgjen, this.kopiert = false});
 
+  /// The link was copied from the share sheet: «LENKEN ER KOPIERT».
+  final bool kopiert;
   final String kode;
   final String initial;
   final int poeng;
@@ -938,7 +1168,7 @@ class _GbDeltState extends State<GbDelt> with SingleTickerProviderStateMixin {
             const AeIkon('M4.5 12.5l5 5 10-11', size: 12, stroke: 3, color: Color(0xFF7FF0CB)),
             const SizedBox(width: 6),
             Text(
-              GbCopy.lenken,
+              widget.kopiert ? GbCopy.lenkenKopiert : GbCopy.lenken,
               style: inter(11, weight: FontWeight.w800, em: .08, color: const Color(0xFF7FF0CB)),
             ),
           ],

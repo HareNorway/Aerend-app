@@ -2,9 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../data/ops/butikk_models.dart';
+import '../../../data/ops/kart_models.dart';
+import '../../../networking/ops/ops_customer_api.dart';
+import '../kit/ae_kart.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
@@ -41,7 +45,7 @@ Future<void> visHentKart(BuildContext context, {required BergenStoreInfo store})
     body: (ctx, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Kart(butikk: navn, gaa: _gaa(store.distanceKm)),
+        _HentKart(store: store, butikk: navn),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -116,6 +120,125 @@ String? _gaa(double? km) {
   final min = math.max(1, (km * 1000 / 80).ceil());
   final avstand = m < 1000 ? '${math.max(50, m)} m' : '${km.toStringAsFixed(1).replaceAll('.', ',')} km';
   return HentKartCopy.gaa(min, avstand);
+}
+
+/// The real route's walk: «N min å gå · 650 m» from Google's metres and seconds.
+String? _gaaRute(int? metres, int? seconds) {
+  if (metres == null || seconds == null || metres <= 0) return null;
+  final m = (metres / 50).round() * 50;
+  final avstand = m < 1000 ? '${math.max(50, m)} m' : '${(metres / 1000).toStringAsFixed(1).replaceAll('.', ',')} km';
+  return HentKartCopy.gaa(math.max(1, (seconds / 60).ceil()), avstand);
+}
+
+/// 2026-11-14 (manager): the real map of the walk — the customer's position (asked for when the sheet opens), the
+/// store, and Google's walking route, in the drawn map's colours and marks. Without a position the store alone; when
+/// the store has no position (or in tests) the drawn map as before.
+class _HentKart extends StatefulWidget {
+  const _HentKart({required this.store, required this.butikk});
+
+  final BergenStoreInfo store;
+  final String butikk;
+
+  /// Tests replace the position and the API.
+  @visibleForTesting
+  static Future<AePunkt?> Function() posisjon = _posisjon;
+  @visibleForTesting
+  static OpsCustomerApi Function() api = OpsCustomerApi.new;
+
+  static Future<AePunkt?> _posisjon() async {
+    try {
+      final loc = Location();
+      var p = await loc.hasPermission();
+      if (p == PermissionStatus.denied) p = await loc.requestPermission();
+      if (p != PermissionStatus.granted && p != PermissionStatus.grantedLimited) return null;
+      final d = await loc.getLocation().timeout(const Duration(seconds: 6));
+      return d.latitude == null || d.longitude == null ? null : (d.latitude!, d.longitude!);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  State<_HentKart> createState() => _HentKartState();
+}
+
+class _HentKartState extends State<_HentKart> {
+  bool _venter = AeKart.aktiv;
+  AeKartData? _data;
+  AePunkt? _du;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_venter) _hent();
+  }
+
+  Future<void> _hent() async {
+    final du = await _HentKart.posisjon();
+    final data = await _HentKart.api().storeRoute(widget.store.id, fra: du).catchError((_) => null);
+    if (!mounted) return;
+    setState(() {
+      _venter = false;
+      _du = du;
+      _data = data?.store == null ? null : data;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = _data;
+    if (data == null && !_venter) return _Kart(butikk: widget.butikk, gaa: _gaa(widget.store.distanceKm));
+    final gaa = data == null ? null : (_gaaRute(data.metres, data.seconds) ?? _gaa(widget.store.distanceKm));
+    return CssBox(
+      key: const Key('hent-kart-ekte'),
+      radius: const BorderRadius.all(Radius.circular(22)),
+      bg: const [CssSolid(Color(0xFFEEEAE2))],
+      shadows: const [
+        CssShadow.inset(0, 2, 0, 0, Color.fromRGBO(255, 255, 255, .9)),
+        CssShadow(0, 20, 34, -20, Color.fromRGBO(15, 31, 43, .55)),
+      ],
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(22)),
+        child: AspectRatio(
+          aspectRatio: 362 / 360,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (data == null)
+                const Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Color(0xFF1E4F5C))))
+              else
+                AeKart(data: data, du: _du, duLabel: HentKartCopy.duErHer, maalLabel: widget.butikk, interaktiv: true, padding: 56),
+              if (gaa != null)
+                Positioned(
+                  left: 12,
+                  top: 14,
+                  child: IgnorePointer(
+                    child: CssBox(
+                      radius: const BorderRadius.all(Radius.circular(999)),
+                      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .92))],
+                      shadows: const [CssShadow(0, 6, 12, -7, Color.fromRGBO(15, 31, 43, .6))],
+                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AeIkon('M15 4.2a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM14.4 8.2 10.6 10 9 14.2l3.4 1.6 1.2 5.4M10.6 10 7 12.6M12.4 15.8 9 20.6', size: 12, stroke: 2, color: Color(0xFFB8501F)),
+                          const SizedBox(width: 6),
+                          Text(gaa, style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF23201D))),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              // The drawn map's inner rim.
+              const IgnorePointer(
+                child: CssBox(radius: BorderRadius.all(Radius.circular(22)), shadows: [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .6))]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// The phone's own maps, walking to the shop's address.

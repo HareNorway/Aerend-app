@@ -1,0 +1,28 @@
+group 'no.aerend.live_card'
+version '1.0'
+
+// The app's root build declares the Android and Kotlin Gradle plugins (settings.gradle); this library uses them.
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    namespace 'no.aerend.live_card'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 24
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}

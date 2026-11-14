@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- linear-gradient(180deg, rgba(20,58,68,.6), rgba(9,30,38,.72)) on the dark lock screen: drawn opaque here. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="270" android:startColor="#FF1C4652" android:endColor="#FF0B2129" />
+    <corners android:radius="22dp" />
+    <stroke android:width="1dp" android:color="#29FFFFFF" />
+</shape>

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../data/ops/fiske_models.dart';
+import '../../data/ops/kart_models.dart';
 import '../../data/points/points_rules.dart';
 import '../../data/ops/sok_models.dart';
 import '../../screens/deliveryService/home/ds_home_store_list_pojo.dart';
@@ -94,6 +95,19 @@ class OpsCustomerApi {
     final json = await _get('${_base}orders/$orderId/tracking');
     if (json == null) throw UnauthorisedException('Ikke innlogget');
     return json;
+  }
+
+  /// `ops.customer.order_map` (2026-11-14): the store, the door, the courier and the road between — Sporing's real
+  /// «På vei» map. Null when it cannot be read (the drawn scene stays).
+  Future<AeKartData?> orderMap(int orderId) async {
+    final j = await _guarded(() => _get('${_base}orders/$orderId/map'));
+    return j == null ? null : AeKartData.fromJson(j);
+  }
+
+  /// `ops.customer.store_route` (2026-11-14): the walk from [fra] to a pickup store — Kassen's «Se fullt kart».
+  Future<AeKartData?> storeRoute(int storeId, {(double, double)? fra}) async {
+    final j = await _guarded(() => _get('${_base}stores/$storeId/route', query: {if (fra != null) 'from': '${fra.$1},${fra.$2}'}));
+    return j == null ? null : AeKartData.fromJson(j);
   }
 
   /// `ops.customer.tracking.events` — the polling fallback.

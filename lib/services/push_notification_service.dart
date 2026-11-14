@@ -71,30 +71,14 @@ class PushNotificationService {
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(c);
     }
-    // Notifications plan Step 10: the order's live card — one ongoing notification on Android, updated by silent
-    // pushes (the iOS Live Activity is the Mac step; nothing is shown for it here).
+    // Notifications plan Step 10: the order's live card — on Android the «Ærend Kunde Bergen» lock-screen card
+    // (aerend_live_card), updated by silent pushes (the iOS Live Activity is the Mac step; nothing is shown for it here).
     if (Platform.isAndroid) {
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(NtfLiveCard.channel);
-      NtfLiveCard.show = (int id, String title, String body) => flutterLocalNotificationsPlugin.show(
-            id,
-            title,
-            body,
-            NotificationDetails(
-              android: AndroidNotificationDetails(NtfLiveCard.channel.id, NtfLiveCard.channel.name,
-                  channelDescription: NtfLiveCard.channel.description,
-                  icon: 'ic_notification',
-                  color: colorPrimary,
-                  importance: Importance.low,
-                  priority: Priority.low,
-                  playSound: false,
-                  ongoing: true,
-                  onlyAlertOnce: true,
-                  autoCancel: false),
-            ),
-          );
-      NtfLiveCard.cancel = (int id) => flutterLocalNotificationsPlugin.cancel(id);
+      final android = flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.createNotificationChannel(NtfLiveCard.channel);
+      // The first card's channel was low importance, which Android hides on the lock screen.
+      await android?.deleteNotificationChannel(NtfLiveCard.oldChannelId);
+      NtfLiveCard.installAndroid();
     }
     NtfHooks.onLiveCard = NtfLiveCard.fromPush;
 
@@ -139,6 +123,8 @@ class PushNotificationService {
     );
     logd(tag, notificationData.toString());
 
+    // The lock-screen card: delivered / cancelled end it, another stage push refreshes it.
+    unawaited(NtfLiveCard.fromOrderPush(notificationData));
     // Notifications plan Step 7: the Varselsentral's data pushes — the bell, a live card, an in-app toast.
     if (await NtfHooks.handleData(notificationData)) return;
 
