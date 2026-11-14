@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
+import '../../../data/ops/kart_models.dart';
+import '../kit/ae_kart.dart';
 import '../kit/svg_sti.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
@@ -24,10 +26,15 @@ import 'sporing_sist_oppdatert.dart';
 /// (anchored 50 % 92 %), and the card's inner rim. Ægil's line sits under
 /// the card. 390 × 450; the card is left 14 → right 14, top 10, 420 tall.
 class SpSceneKart extends StatelessWidget {
-  const SpSceneKart({super.key, required this.info, required this.linje, this.ankommerTopp = ankommerDesign, this.ankommerKey});
+  const SpSceneKart({super.key, required this.info, required this.linje, this.ankommerTopp = ankommerDesign, this.ankommerKey, this.kart});
 
   final SpSceneInfo info;
   final String linje;
+
+  /// 2026-11-14 (manager): the real map (`ops.customer.order_map`) — when it is there, the drawn night map gives way
+  /// to a Google map in the evening palette with the same marks: the orange road, the door's pin and rings, Ægil on
+  /// the bike (or the van) where the courier is. Null: the drawn map as before.
+  final AeKartData? kart;
 
   /// Bug-8 follow-up (seen on the Vivo V40, 2026-11-14): the map stays full width — scaled down it left bare strips of
   /// sky at its sides — and, a map, runs on under the panel; only the «Ankommer om» card (72 tall) rises from the
@@ -69,7 +76,9 @@ class SpSceneKart extends StatelessWidget {
                 shadows: [CssShadow(0, 26, 44, -22, rgba(15, 31, 43, .6))],
                 // The route ahead of Ægil and Ægil himself share the `kjor`
                 // clock: kept moving in `lite`, resting halfway in `still`.
-                child: LfLoop(
+                child: kart != null && AeKart.aktiv
+                    ? _EkteKart(kart: kart!, info: info, ankommerTopp: ankommerTopp, ankommerKey: ankommerKey)
+                    : LfLoop(
                   essential: true,
                   frozenMs: 7000,
                   child: _Over(info: info, ankommerTopp: ankommerTopp, ankommerKey: ankommerKey),
@@ -138,6 +147,53 @@ class SpSceneKart extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The real map under the card's own marks: the «Ankommer om» card and the rim stay as drawn.
+class _EkteKart extends StatelessWidget {
+  const _EkteKart({required this.kart, required this.info, required this.ankommerTopp, this.ankommerKey});
+
+  final AeKartData kart;
+  final SpSceneInfo info;
+  final double ankommerTopp;
+  final Key? ankommerKey;
+
+  @override
+  Widget build(BuildContext context) {
+    // Ægil where the courier is; before a position, an estimate along the road (the time that has passed).
+    final rider = info.partner ? null : (kart.fromCourier ? kart.courier : kart.along(info.pct));
+    final hjem = [if (info.gate.isNotEmpty) info.gate else ?kart.doorLabel, SporingCopy.a1_sporing_hjem_etikett].join(' · ');
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(
+          child: AeKart(
+            key: const Key('sp-kart-ekte'),
+            data: kart,
+            stil: AeKartStil.kveld,
+            maalLabel: hjem,
+            rider: rider,
+            riderVan: !info.sykkel || info.partner,
+            padding: 56,
+            bunn: .4,
+          ),
+        ),
+        Positioned(
+          left: 238,
+          top: ankommerTopp,
+          child: SpBobleInn(delay: 300, child: KeyedSubtree(key: ankommerKey, child: _Ankommer(info: info))),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: CssBox(
+              radius: BorderRadius.circular(28),
+              shadows: [CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .28)), CssShadow.inset(0, 0, 34, 0, rgba(10, 24, 30, .35))],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

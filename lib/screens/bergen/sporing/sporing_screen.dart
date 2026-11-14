@@ -37,6 +37,8 @@ import 'sporing_scene_disk.dart';
 import 'sporing_scene_hus.dart';
 import 'sporing_scene_kai.dart';
 import 'sporing_scene_kart.dart';
+import '../../../data/ops/kart_models.dart';
+import '../kit/ae_kart.dart';
 import 'sporing_scene_kjokken.dart';
 import 'sporing_skifte.dart';
 import 'takk_ark.dart';
@@ -139,6 +141,25 @@ class _SporingScreenState extends State<SporingScreen> {
 
   OpsCustomerApi get _api => widget.api ?? OpsCustomerApi();
 
+  /// 2026-11-14: the real «På vei» map (store, door, courier, road) — read while the order is on its way.
+  AeKartData? _kart;
+  DateTime? _kartLest;
+  String? _kartFor;
+
+  /// Read the map again when the courier has moved (the position changed) or every 30 s; once per stage otherwise.
+  Future<void> _hentKart(OpsTracking t) async {
+    if (!AeKart.aktiv || t.isPickup || t.stage != 2 || t.isCancelled) return;
+    final pos = t.livePosition;
+    final nokkel = pos == null ? 'butikk' : '${pos.lat.toStringAsFixed(4)},${pos.lng.toStringAsFixed(4)}';
+    final lest = _kartLest;
+    if (_kart != null && nokkel == _kartFor && lest != null && DateTime.now().difference(lest) < const Duration(seconds: 30)) return;
+    _kartFor = nokkel;
+    _kartLest = DateTime.now();
+    final k = await _api.orderMap(_id);
+    if (!mounted || k == null || (k.door == null && k.store == null)) return;
+    setState(() => _kart = k);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -196,13 +217,15 @@ class _SporingScreenState extends State<SporingScreen> {
         _issue = next.raw['issue'] is Map ? CusIssue.fromJson(Map<String, dynamic>.from(next.raw['issue'] as Map)) : null;
       });
       if (changed) _onStageChange(next);
+      unawaited(_hentKart(next));
       if (_lastStage == null && next.stage == 3) _etterLevert(next);
       // Notifications plan Step 7 (D-10): the marketing question, once, after a delivered order.
       if (next.isDelivered && mounted) unawaited(NtfSamtykke.kanskje(context));
       // Notifications plan Step 10: the live card while the order is on its way; gone when it is done.
       if (next.isDelivered || next.isCancelled) {
-        unawaited(NtfLiveCard.end(_id));
-      } else if (!_kortStartet) {
+        unawaited(NtfLiveCard.end(_id, delivered: next.isDelivered));
+      } else if (!_kortStartet || changed) {
+        // The card follows the stage the screen sees too (not only the pushes).
         _kortStartet = true;
         unawaited(NtfLiveCard.start(_id));
       }
@@ -871,7 +894,7 @@ class _SporingScreenState extends State<SporingScreen> {
                 ),
                 2 => KeyedSubtree(
                   key: const Key('a1_sporing_kort_paavei'),
-                  child: SpSceneKart(info: info, linje: linje, ankommerTopp: ankommerTopp, ankommerKey: _ankommerKey),
+                  child: SpSceneKart(info: info, linje: linje, ankommerTopp: ankommerTopp, ankommerKey: _ankommerKey, kart: _kart),
                 ),
                 _ => KeyedSubtree(
                   key: const Key('a1_sporing_kort_levert'),
