@@ -4,6 +4,7 @@ import 'aegil/aegil_screen.dart';
 import 'meg/bestillinger_screen.dart';
 import 'meg/favoritter_screen.dart';
 import 'meg/konto_screen.dart';
+import 'meg/kvitteringer_screen.dart';
 import 'meg/meg_screen.dart';
 import 'hjem/hjem_varsler.dart';
 import 'kit/bergen_routes.dart';
@@ -43,6 +44,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
       },
       '/bergen/meg/konto': (_) => const KontoScreen(),
       '/bergen/meg/bestillinger': (_) => const BestillingerScreen(),
+      // Payments plan Step 5: the numbered kvitteringer and kreditnotaer.
+      '/bergen/meg/kvitteringer': (_) => const KvitteringerScreen(),
       '/bergen/meg/varsler': (_) => BergenVidere((nav) => HjemVarsler.apne(nav.context)),
       // Customer v2 Step 6: the standing order's Varsler deep link → Meg with Ukeshandel open.
       '/bergen/meg/ukeshandel': (_) => BergenVidere((nav) {

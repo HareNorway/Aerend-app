@@ -8302,4 +8302,48 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cus_fast_dager =>
       'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
+
+  @override
+  String get ops_kasse_bedrift => 'Company receipt';
+
+  @override
+  String get ops_kasse_bedrift_line => 'Company name and org.nr on the receipt';
+
+  @override
+  String get ops_kasse_bedrift_navn => 'Company name';
+
+  @override
+  String get ops_kasse_bedrift_orgnr => 'Org.nr (9 digits)';
+
+  @override
+  String get ops_kasse_bedrift_feil => 'The org.nr needs 9 digits.';
+
+  @override
+  String get ops_kasse_bedrift_fjern => 'Remove';
+
+  @override
+  String get ops_kv_tittel => 'Receipts';
+
+  @override
+  String get ops_kv_linje =>
+      'Every receipt and credit note for your orders, numbered and kept for five years.';
+
+  @override
+  String get ops_kv_ingen =>
+      'No receipts yet. You get one when an order is delivered.';
+
+  @override
+  String get ops_kv_kvittering => 'Receipt';
+
+  @override
+  String get ops_kv_kreditnota => 'Credit note';
+
+  @override
+  String get ops_kv_feil => 'Could not open the receipt. Try again.';
+
+  @override
+  String get ops_kv_meg_under => 'Receipts and credit notes';
+
+  @override
+  String get ops_kv_ordrebekreftelse => 'Order confirmation';
 }

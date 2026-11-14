@@ -292,6 +292,12 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   /// `hare-swipe` feed (the same deals as Hjem's).
   List<SwipeCardModel> _tilbud = const [];
   final TextEditingController _note = TextEditingController();
+  // Payments plan Step 3 (payments spec v1.3 §2.1; NEW UI without a design): Bedriftskvittering — a company name and
+  // org.nr printed on the receipt. Remembered on the phone for the next order.
+  final TextEditingController _firmaNavn = TextEditingController(text: prefGetString('kasse_firma_navn'));
+  final TextEditingController _firmaOrg = TextEditingController(text: prefGetString('kasse_firma_org'));
+  String get _orgnr => _firmaOrg.text.replaceAll(RegExp(r'\D'), '');
+  bool get _harFirma => _orgnr.length == 9;
   final TextEditingController _door = TextEditingController();
 
   // One instance for the screen: `lastPreviewError` (422 `OUT_OF_COVERAGE`) is read from the api that made the call.
@@ -400,6 +406,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     BergenFaneBytte.aktiv.removeListener(_faneVist);
     WidgetsBinding.instance.removeObserver(this);
     _note.dispose();
+    _firmaNavn.dispose();
+    _firmaOrg.dispose();
     _door.dispose();
     _pickupNote.dispose();
     _levNote.dispose();
@@ -817,6 +825,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       tip: _tipNaa.toDouble(),
       quoteId: _pickup ? null : _preview?.feeQuote?.quoteId,
       flex: !_pickup && _flex,
+      companyName: _harFirma ? _firmaNavn.text.trim() : null,
+      companyOrgNr: _harFirma ? _orgnr : null,
     );
     if (!mounted) return false;
     if (response == null || response['status'] != 1) {
@@ -980,6 +990,72 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       ),
     );
     return true;
+  }
+
+  // ── Bedriftskvittering (payments spec v1.3 §2.1) ────────────────────────
+
+  Future<void> _editFirma() async {
+    String? feil;
+    InputDecoration felt(BuildContext ctx, String hint) => InputDecoration(
+          filled: true,
+          fillColor: rgba(255, 255, 255, .1),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14 * ctx.bs), borderSide: BorderSide(color: rgba(255, 255, 255, .2))),
+          hintText: hint,
+          hintStyle: bText(ctx, 13, weight: FontWeight.w600, color: rgba(255, 255, 255, .5)),
+        );
+    await showBergenSheet<void>(
+      context,
+      onDark: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(KasseCopy.a1_kasse_bedrift, style: bDisplay(ctx, 16, letterSpacingEm: -.02)),
+              SizedBox(height: 10 * ctx.bs),
+              TextField(key: const Key('a1_kasse_bedrift_navn'), controller: _firmaNavn, style: bText(ctx, 13, weight: FontWeight.w600), decoration: felt(ctx, KasseCopy.a1_kasse_bedrift_navn)),
+              SizedBox(height: 8 * ctx.bs),
+              TextField(
+                key: const Key('a1_kasse_bedrift_orgnr'),
+                controller: _firmaOrg,
+                keyboardType: TextInputType.number,
+                style: bText(ctx, 13, weight: FontWeight.w600),
+                decoration: felt(ctx, KasseCopy.a1_kasse_bedrift_orgnr),
+              ),
+              if (feil != null) Padding(padding: EdgeInsets.only(top: 6 * ctx.bs), child: Text(feil!, style: bText(ctx, 12, weight: FontWeight.w700, color: const Color(0xFFF26D3D)))),
+              SizedBox(height: 12 * ctx.bs),
+              BergenCta3d(
+                label: KasseCopy.a1_kasse_bruk_dette,
+                onPressed: () {
+                  if (_orgnr.isNotEmpty && !_harFirma) {
+                    set(() => feil = KasseCopy.a1_kasse_bedrift_feil);
+                    return;
+                  }
+                  prefSetString('kasse_firma_navn', _firmaNavn.text.trim());
+                  prefSetString('kasse_firma_org', _orgnr);
+                  Navigator.of(ctx).pop();
+                },
+              ),
+              if (_harFirma)
+                TextButton(
+                  key: const Key('a1_kasse_bedrift_fjern'),
+                  onPressed: () {
+                    _firmaNavn.clear();
+                    _firmaOrg.clear();
+                    prefSetString('kasse_firma_navn', '');
+                    prefSetString('kasse_firma_org', '');
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(KasseCopy.a1_kasse_bedrift_fjern, style: bText(ctx, 13, weight: FontWeight.w700, color: rgba(255, 255, 255, .7))),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (mounted) setState(() {});
   }
 
   // ── the note editor («Beskjed til budet» · Endre) ──────────────────────
@@ -1351,6 +1427,16 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                     children: [
                       SizedBox(height: 10 * s),
                       _beskjedKort(context, slot, storeName),
+                      // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering — company name and org.nr on the receipt.
+                      SizedBox(height: 10 * s),
+                      KurvEndreRad(
+                        keyName: 'a1_kasse_rad_bedrift',
+                        icon: KurvIcons.card,
+                        title: KasseCopy.a1_kasse_bedrift,
+                        line: _harFirma ? '${_firmaNavn.text.trim()} · $_orgnr'.replaceFirst(RegExp(r'^ · '), '') : KasseCopy.a1_kasse_bedrift_line,
+                        action: KasseCopy.a1_kasse_endre,
+                        onTap: _editFirma,
+                      ),
                       if (!_pickup) ...[
                         SizedBox(height: 10 * s),
                         KurvTips(

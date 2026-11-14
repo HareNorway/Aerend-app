@@ -68,6 +68,13 @@ abstract final class KasseCopy {
 
   // ── Endre rows ──────────────────────────────────────────────────────────
   static String get a1_kasse_endre => languages.ops_kasse_endre;
+  // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering.
+  static String get a1_kasse_bedrift => languages.ops_kasse_bedrift;
+  static String get a1_kasse_bedrift_line => languages.ops_kasse_bedrift_line;
+  static String get a1_kasse_bedrift_navn => languages.ops_kasse_bedrift_navn;
+  static String get a1_kasse_bedrift_orgnr => languages.ops_kasse_bedrift_orgnr;
+  static String get a1_kasse_bedrift_feil => languages.ops_kasse_bedrift_feil;
+  static String get a1_kasse_bedrift_fjern => languages.ops_kasse_bedrift_fjern;
   static String get a1_kasse_adr_tittel => languages.ops_kasse_adr_tittel;
   static String get a1_kasse_adr_velg => languages.ops_kasse_adr_velg;
   static String get a1_kasse_hent_tittel => languages.ops_kasse_hent_tittel;

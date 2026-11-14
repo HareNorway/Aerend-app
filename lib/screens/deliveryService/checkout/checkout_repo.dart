@@ -77,6 +77,8 @@ class CheckoutRepo {
     String? quoteId,
     bool flex = false,
     bool clientErrors = false,
+    String? companyName,
+    String? companyOrgNr,
   }) async {
     // Customer v2 Step 1: with [clientErrors] a 422 (`QUOTE_EXPIRED`, `OUT_OF_COVERAGE`) comes back as its body.
     final post = clientErrors
@@ -107,6 +109,9 @@ class CheckoutRepo {
         // Customer v2 Step 1 (pricing spec §2.4): the quote the customer saw is the fee.
         if (quoteId != null) 'quote_id': quoteId,
         if (flex) 'flex': 1,
+        // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering — the company on the receipt.
+        if (companyOrgNr != null && companyOrgNr.isNotEmpty) 'company_org_nr': companyOrgNr,
+        if (companyOrgNr != null && companyOrgNr.isNotEmpty && (companyName ?? '').isNotEmpty) 'company_name': companyName,
         // ApiParam.paramPrescription: multipartFile
       },
     );

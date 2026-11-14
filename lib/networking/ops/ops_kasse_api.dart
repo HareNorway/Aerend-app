@@ -128,6 +128,8 @@ class OpsKasseApi {
     double tip = 0,
     String? quoteId,
     bool flex = false,
+    String? companyName,
+    String? companyOrgNr,
   }) async {
     if (_off) return null;
     try {
@@ -152,6 +154,8 @@ class OpsKasseApi {
         quoteId: quoteId,
         flex: flex,
         clientErrors: true,
+        companyName: companyName,
+        companyOrgNr: companyOrgNr,
       );
       // The order rows the app reads back carry no payment type: remember it for Bestillingsdetaljer.
       if (json is Map && json['status'] == 1) {

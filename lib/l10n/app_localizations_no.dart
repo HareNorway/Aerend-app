@@ -8315,4 +8315,48 @@ class AppLocalizationsNo extends AppLocalizations {
   @override
   String get cus_fast_dager =>
       'mandag,tirsdag,onsdag,torsdag,fredag,lørdag,søndag';
+
+  @override
+  String get ops_kasse_bedrift => 'Bedriftskvittering';
+
+  @override
+  String get ops_kasse_bedrift_line => 'Firmanavn og org.nr på kvitteringen';
+
+  @override
+  String get ops_kasse_bedrift_navn => 'Firmanavn';
+
+  @override
+  String get ops_kasse_bedrift_orgnr => 'Org.nr (9 siffer)';
+
+  @override
+  String get ops_kasse_bedrift_feil => 'Org.nr må ha 9 siffer.';
+
+  @override
+  String get ops_kasse_bedrift_fjern => 'Fjern';
+
+  @override
+  String get ops_kv_tittel => 'Kvitteringer';
+
+  @override
+  String get ops_kv_linje =>
+      'Alle kvitteringer og kreditnotaer for bestillingene dine, nummerert og tatt vare på i fem år.';
+
+  @override
+  String get ops_kv_ingen =>
+      'Ingen kvitteringer ennå. Du får en når en bestilling er levert.';
+
+  @override
+  String get ops_kv_kvittering => 'Kvittering';
+
+  @override
+  String get ops_kv_kreditnota => 'Kreditnota';
+
+  @override
+  String get ops_kv_feil => 'Kunne ikke åpne kvitteringen. Prøv igjen.';
+
+  @override
+  String get ops_kv_meg_under => 'Kvitteringer og kreditnotaer';
+
+  @override
+  String get ops_kv_ordrebekreftelse => 'Ordrebekreftelse';
 }

@@ -72,8 +72,12 @@ class _FakeKasse extends OpsKasseApi {
     double tip = 0,
     String? quoteId,
     bool flex = false,
+    String? companyName,
+    String? companyOrgNr,
   }) async {
     lastPlace = {
+      'companyName': companyName,
+      'companyOrgNr': companyOrgNr,
       'quoteId': quoteId,
       'flex': flex,
       'storeId': storeId,
@@ -348,6 +352,9 @@ void main() {
       find.byType(ListView).first,
       const Offset(0, -200),
     );
+    // Clear of the pay bar over the list's bottom (the Bedriftskvittering row sits above the tips card).
+    await Scrollable.ensureVisible(tester.element(find.byKey(const Key('a1_kasse_tips_25'))), alignment: .5);
+    await tester.pump();
     await tester.tap(find.byKey(const Key('a1_kasse_tips_25')));
     await tester.pump();
     await tester.dragUntilVisible(
@@ -356,7 +363,7 @@ void main() {
       const Offset(0, -300),
     );
     await tester.pump();
-    expect(find.byKey(const Key('a1_kasse_tips_rad')), findsOneWidget);
+    expect(find.byKey(const Key('a1_kasse_tips_rad'), skipOffstage: false), findsOneWidget, reason: 'the receipt has the tip row (above the total; the Bedriftskvittering row moved it out of view)');
     expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '125');
   });
 

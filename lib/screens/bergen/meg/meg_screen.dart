@@ -49,6 +49,7 @@ import 'borte_entry.dart';
 import '../../../networking/ops/cus_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import 'bestillinger_screen.dart' show OhCopy;
+import 'kvitteringer_screen.dart' show KvitteringerCopy;
 import '../sporing/hjelp_sheet.dart';
 import 'meg_ark.dart';
 import 'meg_bergen.dart';
@@ -971,6 +972,14 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                     navn: A4MegCopy.a4_meg_ordrer,
                                     under: _ordrer.isEmpty ? A4MegCopy.a4_meg_ordrer_tom : A4MegCopy.a4_meg_ordrer_sub(_ordrer.length, OhCopy.dag(DateTime.tryParse('${_ordrer.first['ordered_at'] ?? ''}')?.toLocal() ?? DateTime.now())),
                                     onTap: () => _go('/bergen/meg/bestillinger'),
+                                  ),
+                                  // Payments plan Step 5: the numbered kvitteringer (spec v1.3 §5).
+                                  _Rad(
+                                    key: const Key('meg-rad-kvitteringer'),
+                                    tile: const _GlassTile(rot: -2, d: 'M7 3h10v18l-2.5-1.5L12 21l-2.5-1.5L7 21zM10 8h4M10 12h4'),
+                                    navn: KvitteringerCopy.tittel,
+                                    under: KvitteringerCopy.megUnder,
+                                    onTap: () => _go('/bergen/meg/kvitteringer'),
                                   ),
                                   // «Ægil sparte deg» is not a row here: the design's live Meg list
                                   // (poengVals) has none; Tillitsregnskap opens from Ægil.

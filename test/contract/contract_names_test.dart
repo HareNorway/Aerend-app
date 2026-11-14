@@ -59,6 +59,8 @@ const List<String> kReservedAgil3 = [
   '/bergen/meg/varsler',
   // Customer v2 Step 6: the standing order's Varsler deep link.
   '/bergen/meg/ukeshandel',
+  // Payments plan Step 5: the numbered kvitteringer and kreditnotaer.
+  '/bergen/meg/kvitteringer',
 ];
 
 /// `/bergen/butikk/{id}` registered as `/bergen/butikk` (parameters travel
