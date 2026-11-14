@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
 
 import 'package:aerend_customer/data/aegil/aegil_app_models.dart';
@@ -8,6 +10,7 @@ import 'package:aerend_customer/data/points/points_models.dart';
 import 'package:aerend_customer/screens/bergen/meg/a3_services.dart';
 import 'package:aerend_customer/screens/bergen/meg/borte_entry.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_copy_a4.dart';
+import 'package:aerend_customer/screens/bergen/meg/meg_billett.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_host.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_nivaa_card.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_screen.dart';
@@ -342,6 +345,176 @@ void main() {
     expect(find.byKey(const Key('meg-vilkaar-sheet')), findsOneWidget);
     expect(find.text('Vilkår for poeng'), findsOneWidget);
     await tester.pump(const Duration(seconds: 6));
+  });
+
+  group('sharing the gullbillett (new Bergen gbDel)', () {
+    final shares = <String>[];
+    Rect? anker;
+    setUp(() async {
+      shares.clear();
+      anker = null;
+      await prefSetString(GbSendt.prefKey, '');
+    });
+    DateTime? klipp;
+    setUp(() {
+      klipp = null;
+      GbDeling.klippTid = () async => klipp;
+    });
+    tearDown(() => GbDeling.share = (text, {subject, origin}) => Share.share(text, subject: subject, sharePositionOrigin: origin));
+
+    void svar(ShareResultStatus s) => GbDeling.share = (text, {subject, origin}) async {
+          shares.add(text);
+          anker = origin;
+          return ShareResult('x', s);
+        };
+
+    Future<void> delFraArket(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('meg-gullbillett')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.tap(find.byKey(const Key('meg-billett-del')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+
+    testWidgets('Del gullbilletten: the sheet closes, the share goes out anchored, «Gullbillett delt» plays; the board then has «Ny venn · Akkurat nå»', (tester) async {
+      tall(tester);
+      svar(ShareResultStatus.success);
+      final p = api()..referralValue = const Referral(code: 'DIDRIK-BGO', link: 'https://aerend.no/verv/DIDRIK-BGO', friends: [VervFriend(name: 'Kari', status: 'delivered')]);
+      await tester.pumpWidget(app(p));
+      await settle(tester);
+      await delFraArket(tester);
+
+      expect(shares.single, contains('DIDRIK-BGO'));
+      expect(anker, isNotNull, reason: 'iOS 26 refuses a share sheet without an anchor');
+      expect(find.byKey(const Key('meg-billett-sheet')), findsNothing);
+      expect(find.byType(GbDelt), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      expect(find.text('LENKEN ER SENDT'), findsOneWidget);
+      expect(GbSendt.les(), hasLength(1));
+
+      await tester.tap(find.text('Ferdig'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(GbDelt), findsNothing);
+
+      await tester.tap(find.byKey(const Key('meg-gullbillett')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1200));
+      expect(find.byKey(const Key('meg-billett-ny')), findsOneWidget);
+      expect(find.text('Ny venn'), findsOneWidget);
+      expect(find.text('Akkurat nå'), findsOneWidget);
+      expect(find.text('Kari'), findsWidgets);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('«Del med flere» shares again and plays again; the earlier ticket reads «Billett sendt»', (tester) async {
+      tall(tester);
+      svar(ShareResultStatus.success);
+      final p = api()..referralValue = const Referral(code: 'KARI200');
+      await tester.pumpWidget(app(p));
+      await settle(tester);
+      // The Meg ticket's stub shares straight away.
+      await tester.tap(find.byKey(const Key('meg-del')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(GbDelt), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.tap(find.text('Del med flere'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(shares, hasLength(2));
+      expect(find.byType(GbDelt), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      expect(GbSendt.les(), hasLength(2));
+    });
+
+    testWidgets('backing out of the share sheet shows nothing and keeps no ticket', (tester) async {
+      tall(tester);
+      svar(ShareResultStatus.dismissed);
+      await tester.pumpWidget(app(api()..referralValue = const Referral(code: 'KARI200')));
+      await settle(tester);
+      await delFraArket(tester);
+      expect(shares, hasLength(1));
+      expect(find.byType(GbDelt), findsNothing);
+      expect(GbSendt.les(), isEmpty);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('«Copy» in the share sheet (Android says dismissed, the clipboard was just set): «Gullbillett delt» with «LENKEN ER KOPIERT»', (tester) async {
+      tall(tester);
+      GbDeling.share = (text, {subject, origin}) async {
+        shares.add(text);
+        klipp = DateTime.now();
+        return const ShareResult('', ShareResultStatus.dismissed);
+      };
+      await tester.pumpWidget(app(api()..referralValue = const Referral(code: 'KARI200')));
+      await settle(tester);
+      await delFraArket(tester);
+      expect(find.byType(GbDelt), findsOneWidget);
+      await tester.pump(const Duration(seconds: 3));
+      expect(find.text('LENKEN ER KOPIERT'), findsOneWidget);
+      expect(find.text('LENKEN ER SENDT'), findsNothing);
+      expect(GbSendt.les(), hasLength(1));
+      await tester.pump(const Duration(seconds: 3));
+    });
+
+    testWidgets('backing out with an older clipboard (set before the sheet opened) still shows nothing', (tester) async {
+      tall(tester);
+      klipp = DateTime.now().subtract(const Duration(minutes: 5));
+      svar(ShareResultStatus.dismissed);
+      await tester.pumpWidget(app(api()..referralValue = const Referral(code: 'KARI200')));
+      await settle(tester);
+      await delFraArket(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(GbDelt), findsNothing);
+      expect(GbSendt.les(), isEmpty);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a platform that cannot tell (unavailable) counts as sent', (tester) async {
+      tall(tester);
+      svar(ShareResultStatus.unavailable);
+      await tester.pumpWidget(app(api()..referralValue = const Referral(code: 'KARI200')));
+      await settle(tester);
+      await delFraArket(tester);
+      expect(find.byType(GbDelt), findsOneWidget);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    testWidgets('a share sheet that fails copies the code instead', (tester) async {
+      tall(tester);
+      GbDeling.share = (text, {subject, origin}) async => throw PlatformException(code: 'no-anchor');
+      String? kopi;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') kopi = (call.arguments as Map)['text'] as String?;
+        return null;
+      });
+      addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+      await tester.pumpWidget(app(api()..referralValue = const Referral(code: 'KARI200', link: 'https://aerend.no/verv/KARI200')));
+      await settle(tester);
+      await delFraArket(tester);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(GbDelt), findsNothing);
+      expect(find.text(A4MegCopy.a4_meg_kopiert('KARI200')), findsOneWidget);
+      expect(kopi, 'https://aerend.no/verv/KARI200');
+      expect(GbSendt.les(), isEmpty);
+      await tester.pump(const Duration(seconds: 6));
+    });
+
+    test('GbSendt keeps 30 days and ten tickets, newest first; «Akkurat nå» is ten minutes', () async {
+      final naa = DateTime(2026, 11, 14, 12);
+      await prefSetString(GbSendt.prefKey, '${naa.subtract(const Duration(days: 31)).millisecondsSinceEpoch}');
+      expect(GbSendt.les(naa: naa), isEmpty);
+      for (var i = 12; i >= 0; i--) {
+        await GbSendt.legg(naa: naa.subtract(Duration(minutes: i * 5)));
+      }
+      final l = GbSendt.les(naa: naa);
+      expect(l, hasLength(10));
+      expect(l.first, naa);
+      expect(GbSendt.erNy(l.first, naa: naa), isTrue);
+      expect(GbSendt.erNy(naa.subtract(const Duration(minutes: 11)), naa: naa), isFalse);
+    });
   });
 
   testWidgets('Nivå sheet: medal ladder with thresholds and NÅ, the detail card and the prizes that open', (tester) async {

@@ -2,6 +2,7 @@ package no.aerend.customer
 
 import android.app.ActivityManager
 import android.content.BroadcastReceiver
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -34,6 +35,13 @@ class MainActivity: FlutterFragmentActivity() {
         channel.setMethodCallHandler { call, result ->
             if (call.method == "info") result.success(perfState()) else result.notImplemented()
         }
+        // The gullbillett share (`GbDeling` in Dart): Android's share sheet
+        // reports «Copy» as dismissed, so Dart asks when the clipboard was
+        // last set. Only the description's timestamp is read — never the
+        // text — which needs no permission and shows no «pasted» notice.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "aerend/clip").setMethodCallHandler { call, result ->
+            if (call.method == "stamp") result.success(clipStamp()) else result.notImplemented()
+        }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "aerend/haptic").setMethodCallHandler { call, result ->
             if (call.method == "play") {
                 result.success(haptic(call.arguments as? String ?: "tick"))
@@ -50,6 +58,16 @@ class MainActivity: FlutterFragmentActivity() {
         }
         registerReceiver(r, IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED))
         powerReceiver = r
+    }
+
+    /** When the clipboard's text was set (ms, currentTimeMillis), or null (no text clip, no focus yet, or before API 26). */
+    private fun clipStamp(): Long? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        val cm = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return null
+        val d = cm.primaryClipDescription ?: return null
+        if (!d.hasMimeType("text/*")) return null
+        val ts = d.timestamp
+        return if (ts > 0) ts else null
     }
 
     private fun pushPerf() {

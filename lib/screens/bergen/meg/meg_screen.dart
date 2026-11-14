@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
 import '../onboarding/onb_maal.dart';
 import '../onboarding/onb_runde.dart';
 import '../onboarding/onb_status.dart';
@@ -553,23 +552,30 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     aeConfirm();
     final code = _code;
     final text = A4MegCopy.a4_meg_del_tekst(_referral?.pointsForThem ?? 200, code, _referral?.link);
-    try {
-      final r = await Share.share(text, subject: A4MegCopy.a4_meg_gullbilletten);
-      // New Bergen: «Gullbillett delt» once the share went out.
-      if (r.status == ShareResultStatus.success && mounted) _feirDelt();
-      return;
-    } catch (_) {}
-    await Clipboard.setData(ClipboardData(text: _referral?.link ?? code));
-    if (mounted) showBergenToast(context, A4MegCopy.a4_meg_kopiert(code), icon: Icons.copy_rounded);
+    // New Bergen `gbDel`: share from the customer's own channels (anchored, or
+    // iOS 26 refuses the sheet); once it went out, the ticket joins the board
+    // and «Gullbillett delt» plays. Backing out of the sheet shows nothing.
+    final anker = GbDeling.anker(context);
+    switch (await GbDeling.del(text, subject: A4MegCopy.a4_meg_gullbilletten, origin: anker)) {
+      case final ut && (GbUt.sendt || GbUt.kopiert):
+        await Future<void>.delayed(const Duration(milliseconds: 80));
+        if (mounted) _feirDelt(kopiert: ut == GbUt.kopiert);
+      case GbUt.avbrutt:
+        break;
+      case GbUt.feil:
+        await Clipboard.setData(ClipboardData(text: _referral?.link ?? code));
+        if (mounted) showBergenToast(context, A4MegCopy.a4_meg_kopiert(code), icon: Icons.copy_rounded);
+    }
   }
 
   /// «Gullbillett delt» (L9963–10017); «Del med flere» shares again.
-  void _feirDelt() {
+  void _feirDelt({bool kopiert = false}) {
     visGullbillettDelt(
       context,
       kode: _code,
       initial: _firstName.isEmpty ? 'D' : _firstName.substring(0, 1).toUpperCase(),
       poeng: _referral?.pointsForMe ?? 200,
+      kopiert: kopiert,
       onIgjen: _share,
     );
   }
