@@ -360,92 +360,130 @@ class KurvModus extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, box) {
           final w = (box.maxWidth - 5 * s) / 2;
-          return Stack(
-            children: [
-              // inset 0 1.5px 3px rgba(35,32,29,.14) — the track's dip.
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        rgba(35, 32, 29, .14),
-                        rgba(35, 32, 29, 0),
-                        rgba(255, 255, 255, 0),
-                        rgba(255, 255, 255, .9),
-                      ],
-                      stops: const [0, .18, .9, 1],
-                    ),
-                  ),
-                ),
-              ),
-              AnimatedPositioned(
-                duration: BergenTokens.motion(context, const Duration(milliseconds: 500)),
-                curve: const Cubic(.3, 1.25, .4, 1),
-                left: pickup ? w + 5 * s : 0,
-                top: 0,
-                bottom: 0,
-                width: w,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    gradient: cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
-                    boxShadow: [
-                      BoxShadow(color: rgba(11, 38, 45, .85), offset: Offset(0, 2 * s)),
-                      BoxShadow(
-                        color: rgba(15, 45, 55, .7),
-                        offset: Offset(0, 7 * s),
-                        blurRadius: onbBlur(11 * s),
-                        spreadRadius: -5 * s,
-                      ),
+          final halv = box.maxWidth / 2;
+          // Bug-11 (TestFlight feedback 2026-11-14, «the toggle here has a bug»): the labels used to flip white/dark the
+          // moment you tapped while the thumb took .5 s to slide over — mid-way the leaving label went dark on the dark
+          // thumb and the arriving one white on the cream track, so both vanished. The thumb's position is animated here
+          // and each label is drawn twice: dark on the track, white clipped to where the thumb is on this frame.
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: pickup ? 1 : 0),
+            duration: BergenTokens.motion(context, const Duration(milliseconds: 500)),
+            curve: const Cubic(.3, 1.25, .4, 1),
+            builder: (context, t, _) {
+              final venstre = t * (w + 5 * s);
+              Widget etikett(bool m, String label, KurvDraw draw, {required bool lys}) {
+                final farge = lys ? Colors.white : const Color(0xFF55504A);
+                final stil = bText(context, 12.5, weight: FontWeight.w800, letterSpacingEm: -.01, color: farge);
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10 * s),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      KurvIcon(15 * s, draw, color: farge),
+                      SizedBox(width: 7 * s),
+                      // The white copy is a RichText: the screen reader and the finders see one label.
+                      if (lys) RichText(text: TextSpan(text: label, style: stil), textScaler: MediaQuery.textScalerOf(context)) else Text(label, style: stil),
                     ],
                   ),
-                  child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .28)]),
-                ),
-              ),
-              Row(
+                );
+              }
+
+              return Stack(
                 children: [
-                  for (final (m, label, draw) in [
-                    (false, KasseCopy.a1_kasse_levering, KurvIcons.truck),
-                    (true, KasseCopy.a1_kasse_henting, KurvIcons.bag),
-                  ])
-                    Expanded(
-                      child: OnbPressable(
-                        key: Key(m ? 'a1_kasse_henting' : 'a1_kasse_levering'),
-                        onTap: () => onMode(m),
-                        pressDy: 1.5,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10 * s),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              KurvIcon(15 * s, draw, color: pickup == m ? Colors.white : const Color(0xFF55504A)),
-                              SizedBox(width: 7 * s),
-                              Text(
-                                label,
-                                style: bText(
-                                  context,
-                                  12.5,
-                                  weight: FontWeight.w800,
-                                  letterSpacingEm: -.01,
-                                  color: pickup == m ? Colors.white : const Color(0xFF55504A),
-                                ),
-                              ),
-                            ],
-                          ),
+                  // inset 0 1.5px 3px rgba(35,32,29,.14) — the track's dip.
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            rgba(35, 32, 29, .14),
+                            rgba(35, 32, 29, 0),
+                            rgba(255, 255, 255, 0),
+                            rgba(255, 255, 255, .9),
+                          ],
+                          stops: const [0, .18, .9, 1],
                         ),
                       ),
                     ),
+                  ),
+                  Positioned(
+                    key: const Key('a1_kasse_modus_tommel'),
+                    left: venstre,
+                    top: 0,
+                    bottom: 0,
+                    width: w,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(999),
+                        gradient: cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
+                        boxShadow: [
+                          BoxShadow(color: rgba(11, 38, 45, .85), offset: Offset(0, 2 * s)),
+                          BoxShadow(
+                            color: rgba(15, 45, 55, .7),
+                            offset: Offset(0, 7 * s),
+                            blurRadius: onbBlur(11 * s),
+                            spreadRadius: -5 * s,
+                          ),
+                        ],
+                      ),
+                      child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .28)]),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      for (final (m, label, draw) in [
+                        (false, KasseCopy.a1_kasse_levering, KurvIcons.truck),
+                        (true, KasseCopy.a1_kasse_henting, KurvIcons.bag),
+                      ])
+                        Expanded(
+                          child: OnbPressable(
+                            key: Key(m ? 'a1_kasse_henting' : 'a1_kasse_levering'),
+                            onTap: () => onMode(m),
+                            pressDy: 1.5,
+                            child: Stack(
+                              children: [
+                                etikett(m, label, draw, lys: false),
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: ExcludeSemantics(
+                                      child: ClipRect(
+                                        clipper: KasseTommelKlipp(venstre - (m ? halv : 0), w),
+                                        child: etikett(m, label, draw, lys: true),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
-              ),
-            ],
+              );
+            },
           );
         },
       ),
     );
   }
+}
+
+/// Bug-11: the part of a Levering / Henting label that lies under the sliding thumb, in the label's own coordinates
+/// ([venstre] the thumb's left edge from the label's, [bredde] its width) — the white copy shows only there.
+class KasseTommelKlipp extends CustomClipper<Rect> {
+  const KasseTommelKlipp(this.venstre, this.bredde);
+
+  final double venstre, bredde;
+
+  @override
+  Rect getClip(Size size) => Rect.fromLTWH(venstre, -size.height, bredde, size.height * 3);
+
+  @override
+  bool shouldReclip(KasseTommelKlipp oldClipper) => oldClipper.venstre != venstre || oldClipper.bredde != bredde;
 }
 
 // ── lines ───────────────────────────────────────────────────────────────────

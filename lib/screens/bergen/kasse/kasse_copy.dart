@@ -23,6 +23,8 @@ abstract final class KasseCopy {
 
   // ── Launch: the receipt and the status ────────────────────────────────
   static String a1_kasse_lagt_i(String navn) => _t('$navn er lagt i kurven', '$navn is in your basket');
+  /// Bug-10: a − / + the server refused; the basket shows the server's numbers again.
+  static String get a1_kasse_kurv_ikke_oppdatert => _t('Kurven ble ikke oppdatert. Prøv igjen.', 'The basket was not updated. Try again.');
   static String a1_kasse_kl(String t) => _t('Kl. $t', 'At $t');
   static String get a1_kasse_stengt => _t('Stengt nå', 'Closed now');
   static String get a1_kasse_betaling_avbrutt =>

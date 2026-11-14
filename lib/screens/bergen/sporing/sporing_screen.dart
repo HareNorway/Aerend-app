@@ -122,6 +122,15 @@ class _SporingScreenState extends State<SporingScreen> {
   bool _vervLukket = false;
   String? _vervKode;
   SpArk? _ark;
+
+  /// Bug-7a: the bottom panel's height as last laid out (it grows with «Verv en venn», the code slot, a case), so
+  /// the map can scale to keep its arrival card above it.
+  double? _panelH;
+  final GlobalKey _panelKey = GlobalKey();
+
+  /// The map's «Ankommer om» card as last laid out (its lines vary), so it can rise clear of the panel.
+  double _ankommerH = SpSceneKart.ankommerHoyde;
+  final GlobalKey _ankommerKey = GlobalKey();
   SpOrdre? _ordre;
   String? _logo;
   int? _poeng;
@@ -734,6 +743,25 @@ class _SporingScreenState extends State<SporingScreen> {
         : math.max(0.0, mq.padding.top - (s0 == 3 ? 12 : 32));
     final bunn = mq.padding.bottom;
     final h = mq.size.height;
+    // TestFlight feedback 2026-11-13 (Bug-7a, «some of the text and modules are crashing»): on the map the scene used
+    // to rise ~60 px under the ETA block so its arrival card cleared the panel — and the store's label, «Fisketorget»
+    // and «Torgallmenningen» slid under the clock, «om N min» and the courier's pill. Now the map keeps the frame's
+    // place under the ETA block (126 below it, as the header and pill move with the status bar) and its bottom keeps the
+    // frame's distance to the panel (268 above the frame's foot): where the device is shorter than the 844 pt frame the
+    // scene scales down (from its top centre) to fit between the two, instead of sliding under either.
+    final kartTopp = topp + 126;
+    // This screen draws inside LfFrame (the 390 pt frame scaled to the device's width) while `mq` here is the device's:
+    // the panel is measured in frame points, so the height is too.
+    final rammeH = h / (mq.size.width / LfFrame.width);
+    // Bug-8 (2026-11-14): the panel is measured on every stage (it grows with «Verv en venn», the delivered extras).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final RenderObject? ro = _panelKey.currentContext?.findRenderObject();
+      final double? ph = ro is RenderBox && ro.hasSize ? ro.size.height : null;
+      if (mounted && ph != null && (ph - (_panelH ?? -100)).abs() > 1) setState(() => _panelH = ph);
+      final RenderObject? ak = _ankommerKey.currentContext?.findRenderObject();
+      final double? ah = ak is RenderBox && ak.hasSize ? ak.size.height : null;
+      if (mounted && ah != null && (ah - _ankommerH).abs() > 1) setState(() => _ankommerH = ah);
+    });
     final s = t.stage.clamp(0, 3);
     final hent = t.isPickup;
     final navn = SporingCopy.stages(hent);
@@ -760,6 +788,30 @@ class _SporingScreenState extends State<SporingScreen> {
         : lines[s];
     final minutes = t.minutesLeft(DateTime.now());
     final klarLev = !hent && t.state == 'ready' && !t.isCancelled;
+    // Bug-7a / Bug-8 (TestFlight feedback 2026-11-13/14): the bottom panel covered the map's arrival card, the river and
+    // the boat at Bekreftet, the house at Levert. A first fix scaled each scene down to fit above the measured panel —
+    // and on the Vivo that left bare strips of sky at both sides of the pictures. Every scene now stays at full width:
+    // the map runs on under the panel and only its «Ankommer om» card rises to stay 6 px clear above it
+    // (SpSceneKart.ankommerTopp); at Levert the panel makes the room (the courier's pill on its top edge, «Takk» beside
+    // «Avslutt bestillingen», a one-line «Noe galt»).
+    final sceneTop = kart
+        ? kartTopp
+        : sceneTopp +
+              (s == 0
+                  ? 118
+                  : s == 1
+                  ? 130
+                  : s == 2
+                  ? 126
+                  : 110);
+    // Bekreftet (Bug-8a, «the module goes too high here and covers the river and the boat»): where the panel would
+    // cover the boat (its hull's foot at scene 326, a strip of river under it: 340, 6 px clear), the harbour rises up
+    // to 20 px under the ETA block — the roof is under it already; the store's sign keeps ~10 px below «om N min».
+    final kaiLoft = s == 0 && !kart && _panelH != null ? (sceneTop + 340 + 6 - (rammeH - _panelH!)).clamp(0.0, 20.0) : 0.0;
+    // The map card starts 10 into the scene; the arrival card's foot keeps 6 px above the panel.
+    final ankommerTopp = _panelH == null
+        ? SpSceneKart.ankommerDesign
+        : (rammeH - _panelH! - 6 - sceneTop - 10 - _ankommerH).clamp(SpSceneKart.ankommerHoyest, SpSceneKart.ankommerDesign);
     final gift = '${t.raw['gift_to'] ?? ''}';
     final budTop =
         (s >= 3
@@ -768,8 +820,9 @@ class _SporingScreenState extends State<SporingScreen> {
             : s == 2
             ? 176.0
             : 150.0) +
-        // On the map the courier's pill keeps its place under «om N min».
-        (kart ? topp : sceneTopp);
+        // On the map the courier's pill keeps its place on the map: its foot 4 px above «Fisketorget» (the map's top at
+        // scene 10, the label at 84; the pill ~43 tall) — in the frame it sits flush on the label.
+        (kart ? kartTopp + 94 - 47 - 176 : sceneTopp);
     final visBud = !hent && s >= 2 && (t.courier != null || t.isPartner) && !t.isCancelled;
     final slotVerv = _fersk && !_vervLukket && _vervKode != null && !t.isCancelled;
     // The design's stage 3, and (Customer Step 2) while the courier carries
@@ -790,15 +843,7 @@ class _SporingScreenState extends State<SporingScreen> {
         // The scene.
         Positioned(
           left: 0,
-          top:
-              sceneTopp +
-              (s == 0
-                  ? 118
-                  : s == 1
-                  ? 130
-                  : s == 2
-                  ? 126
-                  : 110),
+          top: sceneTop - kaiLoft,
           child: RepaintBoundary(
             child: KeyedSubtree(
               key: ValueKey('scene-$s-$hent-$klarLev'),
@@ -826,7 +871,7 @@ class _SporingScreenState extends State<SporingScreen> {
                 ),
                 2 => KeyedSubtree(
                   key: const Key('a1_sporing_kort_paavei'),
-                  child: SpSceneKart(info: info, linje: linje),
+                  child: SpSceneKart(info: info, linje: linje, ankommerTopp: ankommerTopp, ankommerKey: _ankommerKey),
                 ),
                 _ => KeyedSubtree(
                   key: const Key('a1_sporing_kort_levert'),
@@ -850,7 +895,8 @@ class _SporingScreenState extends State<SporingScreen> {
                 onTap: _tilbake,
                 child: spIkon(kSpIkonTilbake, size: 16, width: 2.8),
               ),
-              _LivePill(navn: stadieNavn, live: !t.isCancelled),
+              // Long stage names / large text: the pill gives way between the keys, never past them.
+              Flexible(child: _LivePill(navn: stadieNavn, live: !t.isCancelled)),
               SpGlassKey(
                 key: const Key('a1_sporing_hjelp_knapp'),
                 semantics: SporingCopy.a1_sporing_hjelp_knapp,
@@ -964,11 +1010,17 @@ class _SporingScreenState extends State<SporingScreen> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          // Bug-8b: at Levert the courier's pill sits on the panel's top edge (in place of the grab bar) instead of
+          // 10 px above it, so it no longer covers the house's door.
+          child: Stack(
+            key: _panelKey,
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
             children: [
-              if (visBud && s >= 3) ...[IgnorePointer(child: BudIdentitetPill(tracking: t)), const SizedBox(height: 10)],
-              SpPanel(
+              Padding(
+                padding: EdgeInsets.only(top: visBud && s >= 3 ? SpPanel.pilleSete : 0),
+                child: SpPanel(
+                pilleOppe: visBud && s >= 3,
                 tracking: t,
                 linje: linje,
                 offline: _offline,
@@ -995,6 +1047,8 @@ class _SporingScreenState extends State<SporingScreen> {
                 noeGaltUnder: CusIssueCopy.cus_sak_rad_under(_issueSla),
                 onIkkeLost: _ikkeLost,
               ),
+              ),
+              if (visBud && s >= 3) IgnorePointer(child: BudIdentitetPill(tracking: t)),
             ],
           ),
         ),
@@ -1145,11 +1199,14 @@ class _LivePill extends StatelessWidget {
               child: Center(child: spMerkeFlat(w: 23, h: 18)),
             ),
             const SizedBox(width: 9),
-            Column(
+            Flexible(
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (live) Row(
+                  // min: inside the Flexible (long names) a full-width row would stretch the pill across the header.
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const SpPuls(
                       size: 7,
@@ -1169,6 +1226,7 @@ class _LivePill extends StatelessWidget {
                   key: const Key('a1_sporing_topline'),
                   maxLines: 1,
                   softWrap: false,
+                  overflow: TextOverflow.ellipsis,
                   style: jakarta(
                     13.5,
                     em: -.01,
@@ -1177,6 +1235,7 @@ class _LivePill extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
             ),
           ],
         ),
@@ -1215,10 +1274,14 @@ class _EtaBlokk extends StatelessWidget {
                 children: [
                   SpPuls(size: 6, color: kSpOrange, glow: rgba(242, 109, 61, .9)),
                   const SizedBox(width: 6),
-                  Text(
-                    label.toUpperCase(),
-                    key: const Key('a1_sporing_eta_label'),
-                    style: inter(10, weight: FontWeight.w800, em: .08, color: kSpLabel),
+                  Flexible(
+                    child: Text(
+                      label.toUpperCase(),
+                      key: const Key('a1_sporing_eta_label'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: inter(10, weight: FontWeight.w800, em: .08, color: kSpLabel),
+                    ),
                   ),
                 ],
               ),

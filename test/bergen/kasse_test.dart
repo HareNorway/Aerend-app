@@ -340,7 +340,9 @@ void main() {
       const Offset(0, -200),
     );
     await tester.tap(find.byKey(const Key('a1_kasse_flere')));
+    // Bug-10: «Flere valg» folds open (320 ms) before its cards take taps.
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.dragUntilVisible(
       find.byKey(const Key('a1_kasse_tips_25')),
       find.byType(ListView).first,
@@ -491,7 +493,9 @@ void main() {
       const Offset(0, -200),
     );
     await tester.tap(find.byKey(const Key('a1_kasse_flere')));
+    // Bug-10: «Flere valg» folds open (320 ms) before its cards take taps.
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.dragUntilVisible(
       find.byKey(const Key('a1_kasse_kode_switch')),
       find.byType(ListView).first,
