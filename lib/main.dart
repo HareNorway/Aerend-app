@@ -1,4 +1,6 @@
 import 'dart:async';
+
+import 'services/ntf/ntf_live_card.dart';
 import 'dart:io' show Platform;
 import 'dart:ui' show PlatformDispatcher;
 
@@ -67,6 +69,11 @@ Future<void> firebaseMessagingBackgroundHandler(
   } catch (_) {}
   Map<String, dynamic> notificationData = notification.data;
   debugPrint("handleBackNotification message==> $notificationData");
+  // The order's lock-screen card keeps up while the app is closed: card updates, delivered, cancelled.
+  try {
+    NtfLiveCard.installAndroid();
+    await NtfLiveCard.onPush(Map<String, dynamic>.from(notificationData));
+  } catch (_) {}
 }
 
 Future<void> main() async {

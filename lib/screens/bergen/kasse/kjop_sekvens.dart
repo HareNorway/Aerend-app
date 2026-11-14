@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:share_plus/share_plus.dart';
+
+import '../../../services/ntf/ntf_live_card.dart';
 
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../utils/utils.dart';
@@ -58,6 +61,8 @@ class _KjopBekreftetScreenState extends State<KjopBekreftetScreen> with SingleTi
     // Bekreftet is the one place every paid order lands (card and Google / Apple
     // Pay from Kassen, the Vipps return, the order handoff): the success haptic.
     aeSuccess();
+    // The order is placed: its live card goes up on the lock screen now (Sporing reads it again).
+    unawaited(NtfLiveCard.start(widget.orderId));
     _sum = widget.sum;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

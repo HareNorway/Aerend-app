@@ -1,0 +1,19 @@
+name: aerend_live_card
+description: The customer's order on the Android lock screen — the «Ærend Kunde Bergen» live card (native notification).
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: no.aerend.live_card
+        pluginClass: LiveCardPlugin

@@ -48,6 +48,9 @@ dependencies:
   firebase_core: ^3.6.0
   firebase_auth: ^5.3.1
   flutter_local_notifications: ^18.0.1
+  # 2026-11-14: the order's live card on the Android lock screen (native, every engine).
+  aerend_live_card:
+    path: packages/aerend_live_card
   connectivity_plus: ^6.1.0
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.1
