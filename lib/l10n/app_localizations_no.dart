@@ -4587,6 +4587,9 @@ class AppLocalizationsNo extends AppLocalizations {
   String get ops_butikk_mest_bestilt => 'Mest bestilt';
 
   @override
+  String get ops_butikk_utvalgt => 'Utvalgt';
+
+  @override
   String get ops_butikk_inkl_mva => 'Priser inkl. mva';
 
   @override

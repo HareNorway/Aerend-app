@@ -66,6 +66,12 @@ void main() {
     expect(_ids(s), [801, 802, 803, 804, 805]);
   });
 
+  test('hasFeatured is true only when a saved product is on the menu («Utvalgt» heading)', () {
+    expect(BergenStoreInfo.fromPojo(StoreDetailsPojo.fromJson(_store())).hasFeatured, isFalse);
+    expect(BergenStoreInfo.fromPojo(StoreDetailsPojo.fromJson(_store(featured: [999]))).hasFeatured, isFalse);
+    expect(BergenStoreInfo.fromPojo(StoreDetailsPojo.fromJson(_store(featured: [999, 802]))).hasFeatured, isTrue);
+  });
+
   test('toJson round-trips the featured list', () {
     final p = StoreDetailsPojo.fromJson(_store(featured: [802]));
     expect(StoreDetailsPojo.fromJson(p.toJson()).featuredProductIds, [802]);

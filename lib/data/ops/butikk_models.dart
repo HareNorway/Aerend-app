@@ -68,6 +68,13 @@ class BergenStoreInfo {
 
   List<BergenMenuItem> get allItems => [for (final c in menu) ...c.items];
 
+  /// True when at least one Forhåndsvisning product is on the menu (so it leads [featuredFirst]).
+  bool get hasFeatured {
+    if (featuredIds.isEmpty) return false;
+    final ids = featuredIds.toSet();
+    return allItems.any((i) => ids.contains(i.id));
+  }
+
   /// [allItems] with the store's Forhåndsvisning products first, in the saved
   /// order; ids no longer on the menu are skipped, the rest keep menu order.
   List<BergenMenuItem> get featuredFirst {

@@ -467,7 +467,12 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                     Transform.translate(
                       offset: Offset(0, -22 * s),
                       child: _MenuHead(
-                        title: _vist == 0 ? ButikkCopy.a1_butikk_mest_bestilt : _orbNavn[_vist],
+                        // Design 15 Nov Step 14: «Utvalgt» when the store's Forhåndsvisning products lead the grid.
+                        title: _vist == 0
+                            ? (store.hasFeatured && _sok.text.trim().isEmpty
+                                ? ButikkCopy.a1_butikk_utvalgt
+                                : ButikkCopy.a1_butikk_mest_bestilt)
+                            : _orbNavn[_vist],
                         open: _sokOpen,
                         controller: _sok,
                         focus: _sokFocus,

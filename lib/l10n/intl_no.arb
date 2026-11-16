@@ -1655,6 +1655,7 @@
   "ops_butikk_spar": "Spar {p_krtoInt} kr",
   "ops_butikk_kroner": "+{p_krtoInt} kr",
   "ops_butikk_mest_bestilt": "Mest bestilt",
+  "ops_butikk_utvalgt": "Utvalgt",
   "ops_butikk_inkl_mva": "Priser inkl. mva",
   "ops_butikk_ingen_allergener": "Ingen allergener",
   "ops_butikk_legg_til": "Legg til",

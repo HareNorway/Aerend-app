@@ -2335,6 +2335,8 @@
   },
   "ops_butikk_mest_bestilt": "Most ordered",
   "@ops_butikk_mest_bestilt": {},
+  "ops_butikk_utvalgt": "Featured",
+  "@ops_butikk_utvalgt": {"description": "Store page «Alt» heading when the store saved a Forhåndsvisning list in the Partner app (featured products come first)."},
   "ops_butikk_inkl_mva": "Prices incl. VAT",
   "@ops_butikk_inkl_mva": {},
   "ops_butikk_ingen_allergener": "No allergens",

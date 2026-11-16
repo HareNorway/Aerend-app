@@ -8600,6 +8600,12 @@ abstract class AppLocalizations {
   /// **'Most ordered'**
   String get ops_butikk_mest_bestilt;
 
+  /// Store page «Alt» heading when the store saved a Forhåndsvisning list in the Partner app (featured products come first).
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get ops_butikk_utvalgt;
+
   /// No description provided for @ops_butikk_inkl_mva.
   ///
   /// In en, this message translates to:

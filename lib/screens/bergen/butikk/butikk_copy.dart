@@ -107,6 +107,7 @@ abstract final class ButikkCopy {
   static String a1_butikk_spar(num kr) => languages.ops_butikk_spar('${kr.toInt()}');
   static String a1_butikk_kroner(num kr) => languages.ops_butikk_kroner('${kr.toInt()}');
   static String get a1_butikk_mest_bestilt => languages.ops_butikk_mest_bestilt;
+  static String get a1_butikk_utvalgt => languages.ops_butikk_utvalgt;
   static String get a1_butikk_inkl_mva => languages.ops_butikk_inkl_mva;
   static String get a1_butikk_ingen_allergener => languages.ops_butikk_ingen_allergener;
   static String get a1_butikk_legg_til => languages.ops_butikk_legg_til;

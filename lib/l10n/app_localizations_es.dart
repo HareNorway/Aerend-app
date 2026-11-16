@@ -4598,6 +4598,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ops_butikk_mest_bestilt => 'Most ordered';
 
   @override
+  String get ops_butikk_utvalgt => 'Featured';
+
+  @override
   String get ops_butikk_inkl_mva => 'Prices incl. VAT';
 
   @override
