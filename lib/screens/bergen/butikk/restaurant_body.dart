@@ -351,8 +351,9 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
 
   List<BergenMenuItem> get _visible {
     final q = _sok.text.trim().toLowerCase();
+    // Design 15 Nov Step 14: «Alt» shows the store's Forhåndsvisning products first.
     final base = _vist == 0 || _vist < _menyStart
-        ? store.allItems
+        ? store.featuredFirst
         : store.menu[(_vist - _menyStart).clamp(0, store.menu.length - 1)].items;
     if (q.isEmpty) return base;
     return [

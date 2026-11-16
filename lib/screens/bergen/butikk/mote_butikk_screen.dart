@@ -232,8 +232,9 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
     return q.split(RegExp(r'\s+')).every(hay.contains);
   }
 
+  // Design 15 Nov Step 14: the shelf starts with the store's Forhåndsvisning products.
   List<BergenMenuItem> get _hylle => [
-    for (final i in store.allItems)
+    for (final i in store.featuredFirst)
       if ((_merke.isEmpty || i.categoryName == _merke) && _iSeg(i, _seg) && (_sokApen ? _iSok(i) : _iFilter(i))) i,
   ];
 

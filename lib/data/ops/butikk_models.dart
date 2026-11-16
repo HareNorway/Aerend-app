@@ -32,6 +32,7 @@ class BergenStoreInfo {
     this.isFavourite = false,
     this.hours = const [],
     this.menu = const [],
+    this.featuredIds = const [],
   });
 
   final int id;
@@ -59,10 +60,29 @@ class BergenStoreInfo {
   final List<BergenStoreHours> hours;
   final List<BergenMenuCategory> menu;
 
+  /// The store's Forhåndsvisning order from the Partner app (`featured_product_ids`).
+  final List<int> featuredIds;
+
   bool get isFashionOrGift =>
       kind == BergenStoreKind.fashion || kind == BergenStoreKind.gift;
 
   List<BergenMenuItem> get allItems => [for (final c in menu) ...c.items];
+
+  /// [allItems] with the store's Forhåndsvisning products first, in the saved
+  /// order; ids no longer on the menu are skipped, the rest keep menu order.
+  List<BergenMenuItem> get featuredFirst {
+    final all = allItems;
+    if (featuredIds.isEmpty) return all;
+    final byId = {for (final i in all) i.id: i};
+    final first = <BergenMenuItem>[];
+    for (final id in featuredIds) {
+      final item = byId.remove(id);
+      if (item != null) first.add(item);
+    }
+    if (first.isEmpty) return all;
+    final shown = {for (final i in first) i.id};
+    return [...first, for (final i in all) if (!shown.contains(i.id)) i];
+  }
 
   /// The kitchen's specials: discounted items, best discount first.
   List<BergenMenuItem> get specials {
@@ -130,6 +150,7 @@ class BergenStoreInfo {
       contactNumber: p.storeContactNumber.isEmpty ? null : p.storeContactNumber,
       pickupPossible: p.takenAwayType == 2 || p.takenAwayType == 3,
       isFavourite: p.isFavourite == 1,
+      featuredIds: p.featuredProductIds,
       hours: [
         for (final h in p.storeOpenCloseTime)
           BergenStoreHours(

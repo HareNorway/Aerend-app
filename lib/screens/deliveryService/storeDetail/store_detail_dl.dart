@@ -82,6 +82,7 @@ class StoreDetailsPojo {
   String? _productCategory;
   int? _isFavourite;
   int? _takenAwayType;
+  List<int> _featuredProductIds = const [];
   List<CategoryWiseProductListItem>? _categoryWiseProductList;
   List<StoreOpenCloseTime>? _storeOpenCloseTime;
 
@@ -90,6 +91,10 @@ class StoreDetailsPojo {
   int get isFavourite => _isFavourite ?? 0;
 
   int get takenAwayType => _takenAwayType ?? 0;
+
+  /// Design 15 Nov Step 14: the products the store chose in the Partner app's
+  /// Forhåndsvisning, in its saved order (on-sale only; empty when none).
+  List<int> get featuredProductIds => _featuredProductIds;
 
   int get messageCode => _messageCode ?? 0;
 
@@ -291,6 +296,15 @@ class StoreDetailsPojo {
     _productCategory = json["product_category"];
     _isFavourite = json["is_fav_store"];
     _takenAwayType = json["taken_away_type"];
+    final featured = json["featured_product_ids"];
+    if (featured is List) {
+      final ids = <int>[];
+      for (final v in featured) {
+        final id = v is int ? v : int.tryParse('$v');
+        if (id != null) ids.add(id);
+      }
+      _featuredProductIds = ids;
+    }
     if (json["category_wise_product_list"] != null) {
       _categoryWiseProductList = [];
       json["category_wise_product_list"].forEach((v) {
@@ -341,6 +355,7 @@ class StoreDetailsPojo {
     map["product_category"] = _productCategory;
     map["is_fav_store"] = _isFavourite;
     map["taken_away_type"] = _takenAwayType;
+    map["featured_product_ids"] = _featuredProductIds;
     if (_categoryWiseProductList != null) {
       map["category_wise_product_list"] =
           _categoryWiseProductList?.map((v) => v.toJson()).toList();
