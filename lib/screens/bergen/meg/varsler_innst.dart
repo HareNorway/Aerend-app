@@ -8,6 +8,8 @@ import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_routes.dart';
 import '../kit/bergen_toast.dart';
 import 'a3_scaffold.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Notifications plan Step 7: «Varsler» under Meg — every notification type the customer can get, from the server
 /// (`GET api/customer/notification-prefs`), so a new type shows up without an app release. CRITICAL and the types
@@ -92,13 +94,16 @@ class _VarslerInnstScreenState extends State<VarslerInnstScreen> {
   @override
   Widget build(BuildContext context) {
     final p = _p;
+    // Lys (not in the design): the frame's paper look, `--lys-*` text on it.
+    final lys = context.lys;
     return A3Scaffold(
       title: VarslerInnstCopy.tittel,
       subtitle: VarslerInnstCopy.sub,
+      onDark: !lys,
       child: _laster
           ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
           : p == null
-          ? Padding(padding: const EdgeInsets.all(16), child: Text(VarslerInnstCopy.tomt, key: const Key('varsler-innst-tomt'), style: inter(13)))
+          ? Padding(padding: const EdgeInsets.all(16), child: Text(VarslerInnstCopy.tomt, key: const Key('varsler-innst-tomt'), style: inter(13, color: lys ? LysPalett.brod : Colors.white)))
           : Column(
               key: const Key('varsler-innst'),
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -107,7 +112,7 @@ class _VarslerInnstScreenState extends State<VarslerInnstScreen> {
                   if (p.types.where((t) => t.cls == cls).toList() case final del when del.isNotEmpty) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(4, 18, 4, 6),
-                      child: Text(VarslerInnstCopy.gruppe[cls]!.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .08, color: const Color(0xFF9FD3DE))),
+                      child: Text(VarslerInnstCopy.gruppe[cls]!.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .08, color: lys ? LysPalett.dempet : const Color(0xFF9FD3DE))),
                     ),
                     for (final t in del) _Rad(t: t, onPush: (v) => _sett(t, push: v), onLyd: (v) => _sett(t, lyd: v)),
                   ],
@@ -116,8 +121,8 @@ class _VarslerInnstScreenState extends State<VarslerInnstScreen> {
                   key: const Key('varsler-innst-markedsforing'),
                   value: p.marketing == true,
                   onChanged: _samtykke,
-                  title: Text(VarslerInnstCopy.markedsforing, style: inter(13.5, weight: FontWeight.w700)),
-                  subtitle: Text(VarslerInnstCopy.markedsforingSub, style: inter(11.5, color: const Color(0xFFDCE9EC))),
+                  title: Text(VarslerInnstCopy.markedsforing, style: inter(13.5, weight: FontWeight.w700, color: lys ? LysPalett.brod : Colors.white)),
+                  subtitle: Text(VarslerInnstCopy.markedsforingSub, style: inter(11.5, color: lys ? LysPalett.sekundar : const Color(0xFFDCE9EC))),
                 ),
               ],
             ),
@@ -132,24 +137,28 @@ class _Rad extends StatelessWidget {
   final ValueChanged<bool> onPush, onLyd;
 
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) {
+    final lys = context.lys;
+    final c = lys ? LysPalett.brod : Colors.white;
+    return Padding(
     key: Key('varsler-innst-${t.type}'),
     padding: const EdgeInsets.symmetric(vertical: 2),
     child: Row(
       children: [
-        Expanded(child: Text(t.label, style: inter(13.5, weight: FontWeight.w700))),
+        Expanded(child: Text(t.label, style: inter(13.5, weight: FontWeight.w700, color: c))),
         if (t.alwaysOn) ...[
-          Text(VarslerInnstCopy.alltidPaa, key: Key('alltid-${t.type}'), style: inter(11, weight: FontWeight.w700, color: const Color(0xFF9FE0C8))),
+          Text(VarslerInnstCopy.alltidPaa, key: Key('alltid-${t.type}'), style: inter(11, weight: FontWeight.w700, color: lys ? LysPalett.mintTekst : const Color(0xFF9FE0C8))),
           const SizedBox(width: 10),
-          Text(VarslerInnstCopy.lyd, style: inter(11)),
+          Text(VarslerInnstCopy.lyd, style: inter(11, color: c)),
           Switch(key: Key('lyd-${t.type}'), value: t.sound, onChanged: onLyd),
         ] else ...[
-          Text(VarslerInnstCopy.push, style: inter(11)),
+          Text(VarslerInnstCopy.push, style: inter(11, color: c)),
           Switch(key: Key('push-${t.type}'), value: t.push && t.mutedUntil == null, onChanged: onPush),
         ],
       ],
     ),
   );
+  }
 }
 
 /// Notifications plan Step 7 (D-10, Q-9): the marketing question, once — after the customer's first delivered order,
@@ -179,7 +188,8 @@ abstract final class NtfSamtykke {
     if (!context.mounted) return false;
     final svar = await showModalBottomSheet<bool>(
       context: context,
-      backgroundColor: const Color(0xFF0E2F3A),
+      // Lys (not in the design): the sheet `--lys-ark`, `--lys-tittel` / `--lys-sekundar` text.
+      backgroundColor: context.lys ? LysPalett.ark : const Color(0xFF0E2F3A),
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -188,9 +198,9 @@ abstract final class NtfSamtykke {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(tittel, style: inter(17, weight: FontWeight.w800)),
+              Text(tittel, style: inter(17, weight: FontWeight.w800, color: ctx.lys ? LysPalett.tittel : Colors.white)),
               const SizedBox(height: 8),
-              Text(tekst, style: inter(13, color: const Color(0xFFDCE9EC), height: 1.4)),
+              Text(tekst, style: inter(13, color: ctx.lys ? LysPalett.sekundar : const Color(0xFFDCE9EC), height: 1.4)),
               const SizedBox(height: 16),
               FilledButton(key: const Key('ntf-samtykke-ja'), onPressed: () => Navigator.pop(ctx, true), child: const Text(ja)),
               TextButton(key: const Key('ntf-samtykke-nei'), onPressed: () => Navigator.pop(ctx, false), child: const Text(nei)),

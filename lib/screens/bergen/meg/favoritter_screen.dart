@@ -30,6 +30,9 @@ import 'meg_copy.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/mk_stil.g.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Favoritter (new Bergen `erFavoritter`, L8369–8457 + `favVals` L16766):
 /// a plain title bar, the Butikker (N) / Produkter (N) tabs, and
@@ -248,8 +251,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
 
   Widget _bygg(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
+    // Lys (`.mka4`): the screen is `--lys-ull`; the cream cards keep their inline look.
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFF12333D),
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFF12333D),
       body: LfFrame(
         child: LfOnce(
           ms: 340,
@@ -266,16 +271,16 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
             );
           },
           child: DecoratedBox(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF22596A), Color(0xFF1A4652), Color(0xFF12333D)],
-                stops: [0, .38, 1],
+                colors: lys ? const [LysPalett.ull, LysPalett.ull, LysPalett.ull] : const [Color(0xFF22596A), Color(0xFF1A4652), Color(0xFF12333D)],
+                stops: const [0, .38, 1],
               ),
             ),
             child: CustomPaint(
-              painter: const _Glod(),
+              painter: lys ? null : const _Glod(),
               child: AnimatedBuilder(
                 animation: Listenable.merge([_favs.ids, _prod.ids]),
                 builder: (context, _) {
@@ -296,9 +301,9 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
                           sliver: SliverList.list(
                             children: [
                               if (butikker.isEmpty && _loading)
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 24),
-                                  child: Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 24),
+                                  child: Center(child: CircularProgressIndicator(color: context.aeM(Colors.white, LysPalett.fjord), strokeWidth: 2)),
                                 ),
                               if (butikker.isEmpty && !_loading)
                                 _Tom(
@@ -344,24 +349,26 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
           onTap: () => Navigator.of(context).maybePop(),
           dy: 0,
           scale: .94,
+          // `.mka5` (light: `--lys-hvit`, a 1px `--lys-kant-farge` ring) + `.mku` (the fjord chevron).
           child: CssBox(
             width: 40,
             height: 40,
             radius: BorderRadius.circular(14),
-            bg: const [
+            bg: context.aeM(const [
               CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)]),
-            ],
-            shadows: const [
+            ], mka5.light!.bg!),
+            shadows: context.aeM(const [
               CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
               CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
               CssShadow(0, 2.5, 0, 0, Color.fromRGBO(6, 22, 30, .5)),
               CssShadow(0, 8, 12, -8, Color.fromRGBO(3, 16, 24, .8)),
-            ],
-            child: const Center(child: AeIkon('M15 6l-6 6 6 6', size: 20, stroke: 2.6)),
+            ], mka5.light!.skygge!),
+            child: Center(child: AeIkon('M15 6l-6 6 6 6', size: 20, stroke: 2.6, color: context.aeM(Colors.white, const Color(0xFF1E4F5C)))),
           ),
         ),
         const SizedBox(width: 12),
-        Text(A3MegCopy.a3_meg_fav_title, style: jakarta(22, em: -.03)),
+        // `.mkb`.
+        Text(A3MegCopy.a3_meg_fav_title, style: jakarta(22, em: -.03, color: context.aeM(Colors.white, mkb.light!.farge!))),
       ],
     ),
   );
@@ -370,7 +377,9 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
     BergenFane fane(String key, String navn, String ikon, int n) => BergenFane(
           key: Key('fav-fane-$key'),
           bygg: (context, t) {
-            final fg = BergenFaner.farge(t, av: .7);
+            // favVals L20033: off `--lys-sekundar`, the count chip `rgba(30,79,92,.10)` off / white .28 on.
+            final lys = context.lys;
+            final fg = BergenFaner.farge(t, av: .7, lys: lys);
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -380,7 +389,10 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
                 const SizedBox(width: 7),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: Color.fromRGBO(255, 255, 255, .1 + .18 * t)),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: lys ? Color.lerp(const Color.fromRGBO(30, 79, 92, .10), const Color.fromRGBO(255, 255, 255, .28), t) : Color.fromRGBO(255, 255, 255, .1 + .18 * t),
+                  ),
                   child: Text('$n', style: aeTab(inter(10.5, weight: FontWeight.w800, color: fg))),
                 ),
               ],
@@ -614,9 +626,9 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
   Widget _produkter(List<FavouriteProduct> produkter) {
     if (produkter.isEmpty) {
       if (_loading) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 24),
-          child: Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator(color: context.aeM(Colors.white, LysPalett.fjord), strokeWidth: 2)),
         );
       }
       return const _Tom(key: Key('fav-produkter-tom'), tittel: FavTekst.ingenProdukter, linje: FavTekst.ingenProdukterLinje);
@@ -854,11 +866,16 @@ class _FanerDelegat extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    // `.mka6`: `rgba(247,251,253,.96 → .86)` in Lys.
     final innhold = Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(34, 89, 106, .96), Color.fromRGBO(34, 89, 106, .86)]),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: context.aeM(const [Color.fromRGBO(34, 89, 106, .96), Color.fromRGBO(34, 89, 106, .86)], const [Color.fromRGBO(247, 251, 253, .96), Color.fromRGBO(247, 251, 253, .86)]),
+        ),
       ),
       child: faner,
     );
@@ -933,7 +950,8 @@ class _Banner extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: apen ? const Color(0xFF5CE0B8) : const Color.fromRGBO(35, 32, 29, .3))),
+                    // favVals L20015: the closed dot is `rgba(30,79,92,.3)` in Lys.
+                    Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: apen ? const Color(0xFF5CE0B8) : context.aeM(const Color.fromRGBO(35, 32, 29, .3), const Color.fromRGBO(30, 79, 92, .3)))),
                     const SizedBox(width: 6),
                     Text(apen ? (min == null ? FavTekst.aapen : FavTekst.aapenMin(min!)) : FavTekst.stengt, style: aeTab(inter(10, weight: FontWeight.w800, em: .06, color: _ink))),
                   ],
@@ -969,12 +987,13 @@ class _LogoRund extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final indre = size - 2 * pad;
+    // `.mka8`: `--lys-dis` with the `--lys-tittel` initial in Lys.
     final ini = Container(
       width: indre,
       height: indre,
       alignment: Alignment.center,
-      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF1E4F5C)),
-      child: Text(navn.isEmpty ? '' : navn.characters.first.toUpperCase(), style: inter(indre * .46, weight: FontWeight.w800)),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color(0xFF1E4F5C), mka8.light!.bgFarge!)),
+      child: Text(navn.isEmpty ? '' : navn.characters.first.toUpperCase(), style: inter(indre * .46, weight: FontWeight.w800, color: context.aeM(Colors.white, mka8.light!.farge!))),
     );
     return Container(
       width: size,

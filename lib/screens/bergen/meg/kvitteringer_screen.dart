@@ -10,12 +10,19 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../kasse/kasse_copy.dart';
 import '../kit/bergen_kit.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Payments plan Step 5 (spec v1.3 §5): Meg → «Kvitteringer» — every numbered
 /// kvittering and kreditnota (and each order's ordrebekreftelse) the customer
 /// has been issued, newest first. A tap
 /// fetches the stored PDF (the same bytes that were e-mailed) and hands it to
 /// the share sheet. Empty while `money.documents` is off.
+/// Lys (app-only, no design): the cards' `--lys-kortskygge` as Flutter shadows (behind an opaque white card).
+final List<BoxShadow> _lysKortskygge = [
+  for (final s in LysPalett.kortskygge) BoxShadow(color: s.color, offset: Offset(s.dx, s.dy), blurRadius: s.blur / 2 / .57735, spreadRadius: s.spread),
+];
+
 abstract final class KvitteringerCopy {
   static String get tittel => languages.ops_kv_tittel;
   static String get linje => languages.ops_kv_linje;
@@ -126,15 +133,17 @@ class _KvitteringerScreenState extends State<KvitteringerScreen> {
   @override
   Widget build(BuildContext context) {
     final docs = _docs;
+    // Lys (not in the design): `--lys-ull` screen, `--lys-tittel` heading, `--lys-sekundar` text, like Ordrehistorikk.
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EF),
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFFF5F3EF),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F3EF),
-        foregroundColor: const Color(0xFF23201D),
+        backgroundColor: lys ? LysPalett.ull : const Color(0xFFF5F3EF),
+        foregroundColor: lys ? LysPalett.tittel : const Color(0xFF23201D),
         elevation: 0,
         title: Text(
           KvitteringerCopy.tittel,
-          style: inter(18, weight: FontWeight.w800, color: const Color(0xFF23201D)),
+          style: inter(18, weight: FontWeight.w800, color: lys ? LysPalett.tittel : const Color(0xFF23201D)),
         ),
       ),
       body: RefreshIndicator(
@@ -143,7 +152,7 @@ class _KvitteringerScreenState extends State<KvitteringerScreen> {
           key: const Key('ops-kvitteringer'),
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
-            Text(KvitteringerCopy.linje, style: inter(13.5, color: const Color(0xFF6B655C), height: 1.4)),
+            Text(KvitteringerCopy.linje, style: inter(13.5, color: lys ? LysPalett.sekundar : const Color(0xFF6B655C), height: 1.4)),
             const SizedBox(height: 16),
             if (docs == null)
               const Padding(
@@ -154,21 +163,24 @@ class _KvitteringerScreenState extends State<KvitteringerScreen> {
               Text(
                 KvitteringerCopy.ingen,
                 key: const Key('ops-kv-ingen'),
-                style: inter(14, color: const Color(0xFF6B655C)),
+                style: inter(14, color: lys ? LysPalett.sekundar : const Color(0xFF6B655C)),
               )
             else
-              for (final d in docs) _rad(d),
+              for (final d in docs) _rad(d, lys),
           ],
         ),
       ),
     );
   }
 
-  Widget _rad(KvDokument d) {
+  Widget _rad(KvDokument d, bool lys) {
     final under = [_dato(d.issuedAt), if ((d.storeName ?? '').isNotEmpty) d.storeName!, if (d.erKreditnota && d.refersTo != null) d.refersTo!].join(' · ');
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
+      // Lys: the white card gets `--lys-kortskygge` and a `--lys-kant-farge` border (none in the dark look).
+      child: DecoratedBox(
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), boxShadow: lys ? _lysKortskygge : null),
+        child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
@@ -179,7 +191,7 @@ class _KvitteringerScreenState extends State<KvitteringerScreen> {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE4E0D8)),
+              border: Border.all(color: lys ? LysPalett.kantFarge : const Color(0xFFE4E0D8)),
             ),
             child: Row(
               children: [
@@ -191,9 +203,9 @@ class _KvitteringerScreenState extends State<KvitteringerScreen> {
                     children: [
                       Text(
                         '${d.navn} ${d.number}',
-                        style: inter(14.5, weight: FontWeight.w800, color: const Color(0xFF23201D)),
+                        style: inter(14.5, weight: FontWeight.w800, color: lys ? LysPalett.brod : const Color(0xFF23201D)),
                       ),
-                      if (under.isNotEmpty) Text(under, style: inter(12, color: const Color(0xFF6B655C))),
+                      if (under.isNotEmpty) Text(under, style: inter(12, color: lys ? LysPalett.sekundar : const Color(0xFF6B655C))),
                     ],
                   ),
                 ),
@@ -202,12 +214,13 @@ class _KvitteringerScreenState extends State<KvitteringerScreen> {
                 else
                   Text(
                     KasseCopy.kr(d.totalOre / 100),
-                    style: inter(14.5, weight: FontWeight.w800, color: d.erKreditnota ? const Color(0xFF8A3B2E) : const Color(0xFF23201D)),
+                    style: inter(14.5, weight: FontWeight.w800, color: d.erKreditnota ? const Color(0xFF8A3B2E) : (lys ? LysPalett.brod : const Color(0xFF23201D))),
                   ),
               ],
             ),
           ),
         ),
+      ),
       ),
     );
   }

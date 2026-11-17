@@ -6,6 +6,8 @@ import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../kasse/kasse_stripe.dart';
 import '../kit/bergen_kit.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Customer v2 Step 4 (Commerce spec §6 stage 2): Meg → «Betaling» — the saved
 /// cards an assistant's request is charged on when the customer chose «Lagret
@@ -13,6 +15,11 @@ import '../kit/bergen_kit.dart';
 /// one is Stripe's own sheet in setup mode; the default is the card the request
 /// pays with. Behind `cus.ai.linked_checkout`; the legacy card screen stays
 /// for the ordinary checkout until then.
+/// Lys (app-only, no design): the cards' `--lys-kortskygge` as Flutter shadows (behind an opaque white card).
+final List<BoxShadow> _lysKortskygge = [
+  for (final s in LysPalett.kortskygge) BoxShadow(color: s.color, offset: Offset(s.dx, s.dy), blurRadius: s.blur / 2 / .57735, spreadRadius: s.spread),
+];
+
 abstract final class BetalingCopy {
   static String get cus_bet_tittel => languages.cus_bet_tittel;
   static String get cus_bet_linje => languages.cus_bet_linje;
@@ -105,28 +112,30 @@ class _BetalingScreenState extends State<BetalingScreen> {
   @override
   Widget build(BuildContext context) {
     final kort = _kort;
+    // Lys (not in the design): `--lys-ull` screen, `--lys-tittel` heading, `--lys-sekundar` / `--lys-dempet` text.
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F3EF),
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFFF5F3EF),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F3EF),
-        foregroundColor: const Color(0xFF23201D),
+        backgroundColor: lys ? LysPalett.ull : const Color(0xFFF5F3EF),
+        foregroundColor: lys ? LysPalett.tittel : const Color(0xFF23201D),
         elevation: 0,
-        title: Text(BetalingCopy.cus_bet_tittel, style: inter(18, weight: FontWeight.w800, color: const Color(0xFF23201D))),
+        title: Text(BetalingCopy.cus_bet_tittel, style: inter(18, weight: FontWeight.w800, color: lys ? LysPalett.tittel : const Color(0xFF23201D))),
       ),
       body: ListView(
         key: const Key('cus-betaling'),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
-          Text(BetalingCopy.cus_bet_linje, style: inter(13.5, color: const Color(0xFF6B655C), height: 1.4)),
+          Text(BetalingCopy.cus_bet_linje, style: inter(13.5, color: lys ? LysPalett.sekundar : const Color(0xFF6B655C), height: 1.4)),
           const SizedBox(height: 18),
-          Text(BetalingCopy.cus_bet_lagrede.toUpperCase(), style: inter(11, weight: FontWeight.w800, color: const Color(0xFF6B655C), em: .08)),
+          Text(BetalingCopy.cus_bet_lagrede.toUpperCase(), style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.dempet : const Color(0xFF6B655C), em: .08)),
           const SizedBox(height: 8),
           if (kort == null)
             const Padding(padding: EdgeInsets.symmetric(vertical: 24), child: Center(child: CircularProgressIndicator(strokeWidth: 2)))
           else if (kort.isEmpty)
-            Text(BetalingCopy.cus_bet_ingen, key: const Key('cus-bet-ingen'), style: inter(14, color: const Color(0xFF6B655C)))
+            Text(BetalingCopy.cus_bet_ingen, key: const Key('cus-bet-ingen'), style: inter(14, color: lys ? LysPalett.sekundar : const Color(0xFF6B655C)))
           else
-            for (final k in kort) _kortRad(k),
+            for (final k in kort) _kortRad(k, lys),
           const SizedBox(height: 14),
           FilledButton.icon(
             key: const Key('cus-bet-legg-til'),
@@ -136,32 +145,32 @@ class _BetalingScreenState extends State<BetalingScreen> {
             label: Text(BetalingCopy.cus_bet_legg_til, style: inter(15, weight: FontWeight.w800, color: Colors.white)),
           ),
           const SizedBox(height: 10),
-          Text(BetalingCopy.cus_bet_stripe_info, style: inter(12, color: const Color(0xFF8A847A), height: 1.4)),
+          Text(BetalingCopy.cus_bet_stripe_info, style: inter(12, color: lys ? LysPalett.dempet : const Color(0xFF8A847A), height: 1.4)),
         ],
       ),
     );
   }
 
-  Widget _kortRad(CusSavedCard k) => Container(
+  Widget _kortRad(CusSavedCard k, bool lys) => Container(
         key: Key('cus-bet-kort-${k.id}'),
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: k.isDefault ? const Color(0xFF1E4F5C) : const Color(0xFFE4E0D8), width: k.isDefault ? 1.5 : 1)),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: k.isDefault ? const Color(0xFF1E4F5C) : (lys ? LysPalett.kantFarge : const Color(0xFFE4E0D8)), width: k.isDefault ? 1.5 : 1), boxShadow: lys ? _lysKortskygge : null),
         child: Row(children: [
           const Icon(Icons.credit_card_rounded, color: Color(0xFF1E4F5C)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(k.navn, style: inter(15, weight: FontWeight.w800, color: const Color(0xFF23201D))),
+              Text(k.navn, style: inter(15, weight: FontWeight.w800, color: lys ? LysPalett.brod : const Color(0xFF23201D))),
               Text(
                 [BetalingCopy.cus_bet_utloper(k.expMonth.toString().padLeft(2, '0'), (k.expYear % 100).toString().padLeft(2, '0')), if (k.isDefault) BetalingCopy.cus_bet_standard].join(' · '),
-                style: inter(12, color: k.isDefault ? const Color(0xFF1E4F5C) : const Color(0xFF6B655C)),
+                style: inter(12, color: k.isDefault ? const Color(0xFF1E4F5C) : (lys ? LysPalett.sekundar : const Color(0xFF6B655C))),
               ),
             ]),
           ),
           if (!k.isDefault)
             TextButton(key: Key('cus-bet-standard-${k.id}'), onPressed: () => _standard(k), child: Text(BetalingCopy.cus_bet_bruk_som_standard, style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFF1E4F5C)))),
-          IconButton(key: Key('cus-bet-slett-${k.id}'), tooltip: BetalingCopy.cus_bet_slett, onPressed: () => _slett(k), icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFF8A847A))),
+          IconButton(key: Key('cus-bet-slett-${k.id}'), tooltip: BetalingCopy.cus_bet_slett, onPressed: () => _slett(k), icon: Icon(Icons.delete_outline_rounded, color: lys ? LysPalett.dempet : const Color(0xFF8A847A))),
         ]),
       );
 }

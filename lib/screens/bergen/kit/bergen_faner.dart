@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../theme/bergen_tokens.dart';
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── The orange segmented toggle (Butikker / Produkter) ─────────────────────
 // One thumb slides between the segments like Kurv's Levering / Henting
@@ -11,6 +13,10 @@ import '../../common/home/bergen/bergen_kit.dart';
 // pill (`180deg #F9A273 → #F26D3D 56% → #DD5A25`, `0 4px 10px -4px` glow,
 // `inset 0 1.5px 0 white .4`) on the dark track (`rgba(0,0,0,.28)`, border
 // white .12, padding 3).
+//
+// Lys plan (Favoritter, `.mka7` + favVals L20033): the track turns
+// `--lys-dis` with a `--lys-kant-farge` border and no inner shadow; the thumb
+// is `--lys-fjord-fyll` with `0 4px 8px -5px rgba(23,62,72,.5)`.
 
 /// One segment: [bygg] draws its label for the selection progress `t`
 /// (0 = off, 1 = on), so colours cross-fade while the thumb travels.
@@ -30,8 +36,9 @@ class BergenFaner extends StatelessWidget {
   /// The screen's design scale (`context.bs` where the screen uses it).
   final double scale;
 
-  /// The off → on label colour.
-  static Color farge(double t, {double av = .6}) => Color.lerp(Color.fromRGBO(255, 255, 255, av), Colors.white, t)!;
+  /// The off → on label colour ([lys]: favVals L20033, off = `--lys-sekundar`, on = white).
+  static Color farge(double t, {double av = .6, bool lys = false}) =>
+      Color.lerp(lys ? LysPalett.sekundar : Color.fromRGBO(255, 255, 255, av), Colors.white, t)!;
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +47,22 @@ class BergenFaner extends StatelessWidget {
     final gap = 3 * s;
     final glide = BergenTokens.motion(context, const Duration(milliseconds: 500));
     final fade = BergenTokens.motion(context, const Duration(milliseconds: 250));
+    final lys = context.lys;
     return Container(
       padding: EdgeInsets.all(3 * s),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: const Color.fromRGBO(0, 0, 0, .28),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+        color: lys ? LysPalett.dis : const Color.fromRGBO(0, 0, 0, .28),
+        border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .12)),
       ),
-      foregroundDecoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(999)),
+      // `.mka7` light: `box-shadow:none` — the inner shade goes transparent.
+      foregroundDecoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(999)),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(0, 0, 0, .18), Color.fromRGBO(0, 0, 0, 0)],
-          stops: [0, .14],
+          colors: lys ? const [Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(0, 0, 0, 0)] : const [Color.fromRGBO(0, 0, 0, .18), Color.fromRGBO(0, 0, 0, 0)],
+          stops: const [0, .14],
         ),
       ),
       child: LayoutBuilder(
@@ -71,22 +80,37 @@ class BergenFaner extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)],
-                      stops: [0, .56, 1],
-                    ),
+                    gradient: lys
+                        // `--lys-fjord-fyll`.
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF235E6D), Color(0xFF124A58)],
+                          )
+                        : const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)],
+                            stops: [0, .56, 1],
+                          ),
                     boxShadow: [
-                      BoxShadow(
-                        color: const Color.fromRGBO(242, 109, 61, .9),
-                        offset: Offset(0, 4 * s),
-                        blurRadius: onbBlur(10 * s),
-                        spreadRadius: -4 * s,
-                      ),
+                      lys
+                          ? BoxShadow(
+                              color: const Color.fromRGBO(23, 62, 72, .5),
+                              offset: Offset(0, 4 * s),
+                              blurRadius: onbBlur(8 * s),
+                              spreadRadius: -5 * s,
+                            )
+                          : BoxShadow(
+                              color: const Color.fromRGBO(242, 109, 61, .9),
+                              offset: Offset(0, 4 * s),
+                              blurRadius: onbBlur(10 * s),
+                              spreadRadius: -4 * s,
+                            ),
                     ],
                   ),
-                  child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4)]),
+                  // Lys: no inner top light (the light `sh` has none).
+                  child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? 0 : .4)]),
                 ),
               ),
               Row(
