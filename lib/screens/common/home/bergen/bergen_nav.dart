@@ -12,6 +12,7 @@ import 'bergen_kit.dart';
 import '../../../bergen/onboarding/onb_maal.dart';
 import '../../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import 'package:aerend_customer/theme/lys/hjem_modus_show.dart';
 
 // ── Bottom nav (`visNav`) ───────────────────────────────────────────────────
 // A pill with Hjem · Utforsk · Kurv · Meg and, to its right, the search orb.
@@ -43,6 +44,7 @@ class BergenBottomNav extends StatefulWidget {
     this.searchController,
     this.searchOpen,
     this.merkMeg = true,
+    this.modusAnkre = false,
   });
 
   final int index;
@@ -69,6 +71,9 @@ class BergenBottomNav extends StatefulWidget {
   /// False on a copy of the nav outside the shell (Levert), so the Meg
   /// tab's global key is not mounted twice.
   final bool merkMeg;
+
+  /// Lys plan Step 2: this is the shell's nav — the one the Hjem show sends its light to (owns [ModusAnkre.faner]).
+  final bool modusAnkre;
 
   /// The Meg tab, for effects that fly to it (onboarding `myntRegn`).
   static final GlobalKey megTabKey = GlobalKey(debugLabel: 'megTab');
@@ -341,12 +346,19 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 19 * s,
-                        height: 19 * s,
-                        child: IconTheme(
-                          data: IconThemeData(color: color, size: 19 * s),
-                          child: icon,
+                      // Lys plan Step 2: Utforsk, Kurv and Meg are where the Hjem show sends its light.
+                      KeyedSubtree(
+                        key: widget.modusAnkre && i >= 1 ? ModusAnkre.faner[(i - 1).clamp(0, 2)] : null,
+                        child: ModusFaneSprett(
+                          fane: i - 1,
+                          child: SizedBox(
+                            width: 19 * s,
+                            height: 19 * s,
+                            child: IconTheme(
+                              data: IconThemeData(color: color, size: 19 * s),
+                              child: icon,
+                            ),
+                          ),
                         ),
                       ),
                       SizedBox(height: 2 * s),

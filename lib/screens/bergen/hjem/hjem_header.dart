@@ -7,6 +7,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../onboarding/onb_maal.dart';
 import '../kit/bergen_perf.dart';
+import 'hjem_modus_knapp.dart';
 
 // ── Hjem · header (`visKromOver`, L2217) ────────────────────────────────────
 // `left:16px; right:16px; top:10px; height:56px`: the address chip
@@ -133,6 +134,9 @@ class HjemHeader extends StatelessWidget {
               ),
             ),
           ),
+          // Lys plan Step 2: the moon/sun button (`data-modusbryter="hjem"`), gap 10 like the bell.
+          const SizedBox(width: 10),
+          const HjemModusKnapp(),
           const SizedBox(width: 10),
           Semantics(
             button: true,
