@@ -16,6 +16,21 @@ import '../meg/meg_ark.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import 'support.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
+
+// ── Lys plan Step 14 ─────────────────────────────────────────────────────────
+// «Sak på ordren» (`.mkdn` card, `.mkb`, `.mk33`, `.mk86`, «Ikke løst» `.mkdo`) and the «Noe galt» row
+// (`.mkdp` / `.mkdq` / `.mkdr`, `.mkb`, `.mk1p`, stroke `.mku`). On the fjord Sporing panel `context.lys` is
+// false, so they stay dark there. The C2 sheet body is not in the design: built from the same classes.
+
+/// `.mkdn` light: the white card with the hairline and the card shadow (as Flutter shadows on an opaque box).
+final List<BoxShadow> _sakKortskygge = [
+  for (final s in LysPalett.kortskygge) BoxShadow(color: s.color, offset: Offset(s.dx, s.dy), blurRadius: s.blur / 2 / .57735, spreadRadius: s.spread),
+];
+
+/// `.mkb`: white → `--lys-tittel`.
+Color _sakT(BuildContext c) => c.aeM(Colors.white, LysPalett.tittel);
 
 /// «Sak på ordren» (Launch L9237, `sakVals`): the case filed on this order —
 /// the dot, «Vi ser på det · svar innen 30 min» and when. A case is shown
@@ -32,12 +47,13 @@ class SakPaaOrdren extends StatelessWidget {
     return Container(
       key: const Key('oh-sak'),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      // The dark Ark's glass (new Bergen L9883).
+      // The dark Ark's glass (new Bergen L9883). Lys: `.mkdn`.
       decoration: CssDecoration(
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+        color: context.lys ? LysPalett.hvit : null,
+        gradient: context.lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-        boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .85), offset: Offset(0, 12), blurRadius: 20 / 2 / .57735, spreadRadius: -14)],
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+        boxShadow: context.aeM(const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .85), offset: Offset(0, 12), blurRadius: 20 / 2 / .57735, spreadRadius: -14)], _sakKortskygge),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,12 +73,12 @@ class SakPaaOrdren extends StatelessWidget {
               Expanded(
                 child: Text(
                   SupportCopy.ack,
-                  style: inter(13.5, weight: FontWeight.w800, color: Colors.white),
+                  style: inter(13.5, weight: FontWeight.w800, color: _sakT(context)),
                 ),
               ),
               Text(
                 naar,
-                style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62)),
+                style: inter(11.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar)),
               ),
             ],
           ),
@@ -70,11 +86,11 @@ class SakPaaOrdren extends StatelessWidget {
             const SizedBox(height: 8),
             Text.rich(
               TextSpan(
-                style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .8)),
+                style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.sekundar)),
                 children: [
                   TextSpan(
                     text: 'Ærend: ',
-                    style: inter(12.5, weight: FontWeight.w800, height: 1.45, color: Colors.white),
+                    style: inter(12.5, weight: FontWeight.w800, height: 1.45, color: _sakT(context)),
                   ),
                   TextSpan(text: sak.customerSees),
                 ],
@@ -110,15 +126,15 @@ class NoeGaltRad extends StatelessWidget {
     child: CssBox(
       radius: BorderRadius.circular(kompakt ? 18 : 20),
       padding: kompakt ? const EdgeInsets.fromLTRB(10, 8, 10, 8) : const EdgeInsets.fromLTRB(12, 11, 12, 11),
-      // The dark Ark's glass (new Bergen L9890).
-      bg: const [
+      // The dark Ark's glass (new Bergen L9890). Lys: `.mkdp` (white, a `--lys-kant-farge` border, the card shadow).
+      bg: context.aeM(const [
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
-      ],
-      shadows: const [
+      ], const [CssSolid(LysPalett.hvit)]),
+      shadows: context.aeM(const [
         CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16)),
         CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85)),
-      ],
+      ], const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: kompakt ? 30 : 36),
         child: Row(
@@ -128,13 +144,14 @@ class NoeGaltRad extends StatelessWidget {
               height: kompakt ? 32 : 42,
               radius: BorderRadius.circular(kompakt ? 11 : 14),
               clip: true,
-              bg: const [
+              // Lys: `.mkdq` (`--lys-dis`, no shadow).
+              bg: context.aeM(const [
                 CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1]),
-              ],
-              shadows: const [
+              ], const [CssSolid(LysPalett.dis)]),
+              shadows: context.aeM(const [
                 CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
                 CssShadow(0, 6, 10, -6, Color.fromRGBO(0, 10, 16, .7)),
-              ],
+              ], const <CssShadow>[]),
               child: Center(
                 child: Image.asset('assets/images/dashboard/invitation.png', width: kompakt ? 29 : 38, height: kompakt ? 29 : 38, fit: BoxFit.contain),
               ),
@@ -146,10 +163,10 @@ class NoeGaltRad extends StatelessWidget {
                 children: [
                   Text(
                     SupportCopy.noeGalt,
-                    style: inter(14, weight: FontWeight.w800, color: Colors.white),
+                    style: inter(14, weight: FontWeight.w800, color: _sakT(context)),
                   ),
                   if (!kompakt)
-                    Text(under ?? SupportCopy.noeGaltUnder, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66))),
+                    Text(under ?? SupportCopy.noeGaltUnder, style: inter(12, weight: FontWeight.w600, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar))),
                 ],
               ),
             ),
@@ -157,12 +174,13 @@ class NoeGaltRad extends StatelessWidget {
             Container(
               width: kompakt ? 28 : 32,
               height: kompakt ? 28 : 32,
+              // Lys: `.mkdr` (`--lys-dis`, `--lys-kant-farge`), stroke `.mku`.
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(kompakt ? 10 : 11),
-                color: const Color.fromRGBO(255, 255, 255, .12),
-                border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+                color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis),
+                border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge)),
               ),
-              child: const Center(child: AeIkon('M9 6l6 6-6 6', size: 12, stroke: 3)),
+              child: Center(child: AeIkon('M9 6l6 6-6 6', size: 12, stroke: 3, color: context.aeM(Colors.white, LysPalett.fjord))),
             ),
           ],
         ),
@@ -538,9 +556,10 @@ class _SakSkriv extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(CusIssueCopy.cus_sak_hva_skjedde, style: jakarta(24, em: -.03, color: Colors.white)),
+      // Lys (app-only C2 body): `.mkb` / `.mk6`; chips like `.mkdo`; the photo key like `.mkdr`; the line like `.mkc3`.
+      Text(CusIssueCopy.cus_sak_hva_skjedde, style: jakarta(24, em: -.03, color: _sakT(context))),
       const SizedBox(height: 4),
-      Text(CusIssueCopy.cus_sak_linje, style: inter(12.5, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .7))),
+      Text(CusIssueCopy.cus_sak_linje, style: inter(12.5, weight: FontWeight.w600, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar))),
       const SizedBox(height: 14),
       Wrap(
         spacing: 8,
@@ -561,13 +580,13 @@ class _SakSkriv extends StatelessWidget {
                   radius: BorderRadius.circular(999),
                   bg: valgt == t.$1
                       ? const [CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1])]
-                      : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .07)])],
+                      : context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .07)])], const [CssSolid(LysPalett.dis)]),
                   shadows: valgt == t.$1
                       ? const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .45)), CssShadow(0, 3, 0, 0, Color.fromRGBO(160, 60, 20, .55)), CssShadow(0, 10, 18, -8, Color.fromRGBO(242, 109, 61, .8))]
-                      : const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 12, 20, -14, Color.fromRGBO(4, 18, 26, .8))],
-                  border: Border.all(color: Color.fromRGBO(255, 255, 255, valgt == t.$1 ? .4 : .24)),
+                      : context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 12, 20, -14, Color.fromRGBO(4, 18, 26, .8))], const <CssShadow>[]),
+                  border: Border.all(color: valgt == t.$1 ? const Color.fromRGBO(255, 255, 255, .4) : context.aeM(const Color.fromRGBO(255, 255, 255, .24), LysPalett.kantFarge)),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Text(t.$2, style: inter(12.5, weight: FontWeight.w800, color: Colors.white)),
+                  child: Text(t.$2, style: inter(12.5, weight: FontWeight.w800, color: valgt == t.$1 ? Colors.white : _sakT(context))),
                 ),
               ),
             ),
@@ -583,7 +602,7 @@ class _SakSkriv extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.file(File(b), key: const Key('cus-sak-bilde'), width: 58, height: 58, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(width: 58, height: 58, color: const Color.fromRGBO(255, 255, 255, .12))),
+                  child: Image.file(File(b), key: const Key('cus-sak-bilde'), width: 58, height: 58, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(width: 58, height: 58, color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis))),
                 ),
                 Positioned(
                   right: -6,
@@ -614,15 +633,15 @@ class _SakSkriv extends StatelessWidget {
                 height: 58,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: const Color.fromRGBO(255, 255, 255, .1),
-                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+                  color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis),
+                  border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const AeIkon('M4 8h3l2-3h6l2 3h3v11H4z M12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z', size: 16, stroke: 2.2),
+                    AeIkon('M4 8h3l2-3h6l2 3h3v11H4z M12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z', size: 16, stroke: 2.2, color: context.aeM(Colors.white, LysPalett.fjord)),
                     const SizedBox(height: 3),
-                    Text(CusIssueCopy.cus_sak_bilde, style: inter(11, weight: FontWeight.w800, color: Colors.white)),
+                    Text(CusIssueCopy.cus_sak_bilde, style: inter(11, weight: FontWeight.w800, color: _sakT(context))),
                   ],
                 ),
               ),
@@ -634,8 +653,8 @@ class _SakSkriv extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
-                color: const Color.fromRGBO(0, 0, 0, .22),
-                border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
+                color: context.aeM(const Color.fromRGBO(0, 0, 0, .22), LysPalett.dis),
+                border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge)),
               ),
               alignment: Alignment.centerLeft,
               child: TextField(
@@ -645,7 +664,7 @@ class _SakSkriv extends StatelessWidget {
                 maxLength: 600,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),
-                style: inter(13.5, weight: FontWeight.w600, color: Colors.white),
+                style: inter(13.5, weight: FontWeight.w600, color: _sakT(context)),
                 decoration: InputDecoration(
                   isDense: true,
                   filled: false,
@@ -655,7 +674,7 @@ class _SakSkriv extends StatelessWidget {
                   focusedBorder: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                   hintText: CusIssueCopy.cus_sak_skriv,
-                  hintStyle: inter(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .45)),
+                  hintStyle: inter(13.5, weight: FontWeight.w600, color: context.aeM(const Color.fromRGBO(255, 255, 255, .45), LysPalett.dempet)),
                 ),
               ),
             ),
@@ -677,7 +696,7 @@ class _SakTenker extends StatelessWidget {
       children: [
         const AeTenker(),
         const SizedBox(width: 12),
-        Expanded(child: Text(CusIssueCopy.cus_sak_ser_paa, style: inter(14, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .85)))),
+        Expanded(child: Text(CusIssueCopy.cus_sak_ser_paa, style: inter(14, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .85), LysPalett.brod)))),
       ],
     ),
   );
@@ -695,8 +714,9 @@ class _SakUtfall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final i = issue;
-    final white = Colors.white;
-    final dim = const Color.fromRGBO(255, 255, 255, .72);
+    // Lys (app-only outcome): `.mkb` / `.mk6`; the «Se saken» pill like `.mkdo`.
+    final white = _sakT(context);
+    final dim = context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar);
     if (i.already) {
       return Column(
         key: const Key('cus-sak-allerede'),
@@ -727,7 +747,7 @@ class _SakUtfall extends StatelessWidget {
             child: Container(
               height: 44,
               alignment: Alignment.center,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .24))),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .24), LysPalett.kantFarge))),
               child: Text(CusIssueCopy.cus_sak_se_saken, style: inter(13, weight: FontWeight.w800, color: white)),
             ),
           ),
@@ -793,10 +813,13 @@ class _Bevis extends StatelessWidget {
     return Container(
       key: const Key('cus-sak-bevis'),
       padding: const EdgeInsets.all(10),
+      // Lys (app-only card, like `.mkdn`): white, hairline, card shadow; `.mkb` / `.mk33`.
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+        color: context.lys ? LysPalett.hvit : null,
+        gradient: context.lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+        boxShadow: context.lys ? _sakKortskygge : null,
       ),
       child: Row(
         children: [
@@ -809,8 +832,8 @@ class _Bevis extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: url != null && url.isNotEmpty
-                      ? Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: const Color.fromRGBO(255, 255, 255, .08)))
-                      : Container(color: const Color.fromRGBO(255, 255, 255, .08), child: const Center(child: AeIkon('M4 8h3l2-3h6l2 3h3v11H4z M12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z', size: 18, stroke: 2))),
+                      ? Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis)))
+                      : Container(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis), child: Center(child: AeIkon('M4 8h3l2-3h6l2 3h3v11H4z M12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z', size: 18, stroke: 2, color: context.aeM(Colors.white, LysPalett.fjord)))),
                 ),
                 if (tid.isNotEmpty)
                   Positioned(
@@ -830,11 +853,11 @@ class _Bevis extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: inter(13.5, weight: FontWeight.w800, color: Colors.white)),
+                Text(label, style: inter(13.5, weight: FontWeight.w800, color: _sakT(context))),
                 const SizedBox(height: 2),
                 Text(
                   url != null && url.isNotEmpty ? CusIssueCopy.cus_sak_budets_bilde(tid, label) : CusIssueCopy.cus_sak_budets_bevis(tid, label),
-                  style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .62)),
+                  style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar)),
                 ),
               ],
             ),
@@ -855,17 +878,20 @@ class _Kort extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+    // Lys (app-only card, like `.mkdn`): white, hairline, card shadow; `.mkb` / `.mk33`.
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(16),
-      gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+      color: context.lys ? LysPalett.hvit : null,
+      gradient: context.lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+      boxShadow: context.lys ? _sakKortskygge : null,
     ),
     child: Row(
       children: [
         Container(width: 8, height: 8, decoration: CssDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 8 / 2 / .57735)])),
         const SizedBox(width: 8),
-        Expanded(child: Text(tittel, style: inter(13, weight: FontWeight.w800, color: Colors.white))),
-        Text(under, style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62))),
+        Expanded(child: Text(tittel, style: inter(13, weight: FontWeight.w800, color: _sakT(context)))),
+        Text(under, style: inter(11, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar))),
       ],
     ),
   );
@@ -893,11 +919,13 @@ class IssueSakRad extends StatelessWidget {
     return Container(
       key: const Key('oh-sak'),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      // Lys: `.mkdn` (white, `--lys-kant-farge`, `--lys-kortskygge`); `.mkb`, `.mk33`, `.mk86`, «Ikke løst» `.mkdo`.
       decoration: CssDecoration(
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+        color: context.lys ? LysPalett.hvit : null,
+        gradient: context.lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-        boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .85), offset: Offset(0, 12), blurRadius: 20 / 2 / .57735, spreadRadius: -14)],
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+        boxShadow: context.aeM(const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .85), offset: Offset(0, 12), blurRadius: 20 / 2 / .57735, spreadRadius: -14)], _sakKortskygge),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -906,20 +934,20 @@ class IssueSakRad extends StatelessWidget {
             children: [
               Container(width: 8, height: 8, decoration: CssDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 8 / 2 / .57735)])),
               const SizedBox(width: 8),
-              Expanded(child: Text(i.statusText, key: const Key('oh-sak-status'), style: inter(13.5, weight: FontWeight.w800, color: Colors.white))),
-              Text(naar, style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62))),
+              Expanded(child: Text(i.statusText, key: const Key('oh-sak-status'), style: inter(13.5, weight: FontWeight.w800, color: _sakT(context)))),
+              Text(naar, style: inter(11.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar))),
             ],
           ),
           const SizedBox(height: 4),
-          Text('${CusIssueCopy.cus_sak_rad.replaceAll('?', '')} · ${i.caseRef}', style: inter(11.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .55))),
+          Text('${CusIssueCopy.cus_sak_rad.replaceAll('?', '')} · ${i.caseRef}', style: inter(11.5, weight: FontWeight.w600, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet))),
           if (i.reply case final r?) ...[
             const SizedBox(height: 8),
             Text.rich(
               key: const Key('oh-sak-svar'),
               TextSpan(
-                style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .8)),
+                style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.sekundar)),
                 children: [
-                  TextSpan(text: '${CusIssueCopy.cus_sak_svar_fra(r.by)}: ', style: inter(12.5, weight: FontWeight.w800, height: 1.45, color: Colors.white)),
+                  TextSpan(text: '${CusIssueCopy.cus_sak_svar_fra(r.by)}: ', style: inter(12.5, weight: FontWeight.w800, height: 1.45, color: _sakT(context))),
                   TextSpan(text: r.text),
                 ],
               ),
@@ -937,10 +965,10 @@ class IssueSakRad extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
-                  color: const Color.fromRGBO(255, 255, 255, .1),
-                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .24)),
+                  color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis),
+                  border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .24), LysPalett.kantFarge)),
                 ),
-                child: Text(CusIssueCopy.cus_sak_ikke_lost, style: inter(12.5, weight: FontWeight.w800, color: Colors.white)),
+                child: Text(CusIssueCopy.cus_sak_ikke_lost, style: inter(12.5, weight: FontWeight.w800, color: _sakT(context))),
               ),
             ),
           ],

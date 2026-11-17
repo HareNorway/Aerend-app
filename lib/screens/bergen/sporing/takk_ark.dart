@@ -10,6 +10,8 @@ import '../kit/bergen_kit.dart';
 import '../meg/meg_ark.dart';
 import 'sporing_bits.dart' show rgba;
 import 'sporing_copy.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The thank-you note's strings (Customer Step 2, `cus_takk_*`).
 abstract final class CusTakkCopy {
@@ -113,13 +115,14 @@ class TakkKropp extends StatelessWidget {
                 height: 36,
                 padding: const EdgeInsets.symmetric(horizontal: 13),
                 radius: BorderRadius.circular(999),
-                bg: [
+                // Lys (app-only sheet, built like «Budchat · skriv»): the chip `.mkf9` (white, hairline ring, tittel).
+                bg: context.aeM([
                   CssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .06)]),
-                ],
-                shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .2))],
+                ], const [CssSolid(LysPalett.hvit)]),
+                shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .2))], const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)]),
                 child: Center(
                   widthFactor: 1,
-                  child: Text(f, style: inter(12.5, weight: FontWeight.w800)),
+                  child: Text(f, style: inter(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                 ),
               ),
             ),
@@ -129,10 +132,11 @@ class TakkKropp extends StatelessWidget {
       CssBox(
         padding: const EdgeInsets.fromLTRB(16, 13, 16, 10),
         radius: BorderRadius.circular(20),
-        bg: [
+        // Lys: the field `.mkfa` (`--lys-dis-ull`), the input `.mkfb`, the count `.mkd`.
+        bg: context.aeM([
           CssLinear(180, [rgba(6, 22, 30, .42), rgba(6, 22, 30, .42)]),
-        ],
-        shadows: [CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35)), CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14))],
+        ], const [CssSolid(LysPalett.disUll)]),
+        shadows: context.aeM([CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35)), CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14))], const <CssShadow>[]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -143,8 +147,8 @@ class TakkKropp extends StatelessWidget {
               maxLines: 4,
               inputFormatters: [LengthLimitingTextInputFormatter(kTakkMaks)],
               onChanged: (_) => onEndret(),
-              cursorColor: const Color(0xFF7FF0CB),
-              style: jakarta(14, weight: FontWeight.w700, height: 1.4),
+              cursorColor: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst),
+              style: jakarta(14, weight: FontWeight.w700, height: 1.4, color: context.aeM(Colors.white, LysPalett.tittel)),
               decoration: InputDecoration(
                 isCollapsed: true,
                 filled: false,
@@ -161,7 +165,7 @@ class TakkKropp extends StatelessWidget {
               child: Text(
                 '${felt.text.characters.length}/$kTakkMaks',
                 key: const Key('cus-takk-teller'),
-                style: inter(11, weight: FontWeight.w700, color: rgba(255, 255, 255, .55)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                style: inter(11, weight: FontWeight.w700, color: context.aeM(rgba(255, 255, 255, .55), LysPalett.dempet)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
               ),
             ),
           ],
