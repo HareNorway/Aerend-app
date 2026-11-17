@@ -998,6 +998,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
         );
 
     return BergenFaner(
+      kft: true,
       scale: s,
       valgt: _produkter ? 1 : 0,
       onValg: (i) {

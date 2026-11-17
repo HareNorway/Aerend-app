@@ -27,7 +27,7 @@ class BergenFane {
 }
 
 class BergenFaner extends StatelessWidget {
-  const BergenFaner({super.key, required this.faner, required this.valgt, required this.onValg, this.scale = 1});
+  const BergenFaner({super.key, required this.faner, required this.valgt, required this.onValg, this.scale = 1, this.kft = false});
 
   final List<BergenFane> faner;
   final int valgt;
@@ -35,6 +35,10 @@ class BergenFaner extends StatelessWidget {
 
   /// The screen's design scale (`context.bs` where the screen uses it).
   final double scale;
+
+  /// Lys: Kategori's tabs (`.mk5z` track, the thumb in `--x-kft`) instead of
+  /// Favoritter's (`.mka7`, `--lys-fjord-fyll`). Dark is the same either way.
+  final bool kft;
 
   /// The off → on label colour ([lys]: favVals L20033, off = `--lys-sekundar`, on = white).
   static Color farge(double t, {double av = .6, bool lys = false}) =>
@@ -52,8 +56,10 @@ class BergenFaner extends StatelessWidget {
       padding: EdgeInsets.all(3 * s),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: lys ? LysPalett.dis : const Color.fromRGBO(0, 0, 0, .28),
-        border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .12)),
+        color: lys ? (kft ? null : LysPalett.dis) : const Color.fromRGBO(0, 0, 0, .28),
+        // `.mk5z` light: linear-gradient(180deg,#E2F0F5,#EEF7FA), 1px rgba(31,82,95,.08).
+        gradient: lys && kft ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFE2F0F5), Color(0xFFEEF7FA)]) : null,
+        border: Border.all(color: lys ? (kft ? const Color.fromRGBO(31, 82, 95, .08) : LysPalett.kantFarge) : const Color.fromRGBO(255, 255, 255, .12)),
       ),
       // `.mka7` light: `box-shadow:none` — the inner shade goes transparent.
       foregroundDecoration: BoxDecoration(
@@ -61,7 +67,10 @@ class BergenFaner extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: lys ? const [Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(0, 0, 0, 0)] : const [Color.fromRGBO(0, 0, 0, .18), Color.fromRGBO(0, 0, 0, 0)],
+          // `.mk5z` light keeps a soft inner shade (`inset 0 2px 4px rgba(6,52,62,.10)`).
+          colors: lys
+              ? (kft ? const [Color.fromRGBO(6, 52, 62, .07), Color.fromRGBO(6, 52, 62, 0)] : const [Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(0, 0, 0, 0)])
+              : const [Color.fromRGBO(0, 0, 0, .18), Color.fromRGBO(0, 0, 0, 0)],
           stops: const [0, .14],
         ),
       ),
@@ -80,7 +89,15 @@ class BergenFaner extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
-                    gradient: lys
+                    gradient: lys && kft
+                        // `--x-kft` light: linear-gradient(180deg,#2B6A7A,#1E4F5C 58%,#174553).
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF2B6A7A), Color(0xFF1E4F5C), Color(0xFF174553)],
+                            stops: [0, .58, 1],
+                          )
+                        : lys
                         // `--lys-fjord-fyll`.
                         ? const LinearGradient(
                             begin: Alignment.topCenter,
@@ -94,7 +111,11 @@ class BergenFaner extends StatelessWidget {
                             stops: [0, .56, 1],
                           ),
                     boxShadow: [
-                      lys
+                      // `--x-kfts` light: 0 2px 0 #123B46, 0 9px 14px -6px rgba(6,40,52,.55).
+                      if (lys && kft) BoxShadow(color: const Color(0xFF123B46), offset: Offset(0, 2 * s)),
+                      lys && kft
+                          ? BoxShadow(color: const Color.fromRGBO(6, 40, 52, .55), offset: Offset(0, 9 * s), blurRadius: onbBlur(14 * s), spreadRadius: -6 * s)
+                          : lys
                           ? BoxShadow(
                               color: const Color.fromRGBO(23, 62, 72, .5),
                               offset: Offset(0, 4 * s),
@@ -110,7 +131,7 @@ class BergenFaner extends StatelessWidget {
                     ],
                   ),
                   // Lys: no inner top light (the light `sh` has none).
-                  child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? 0 : .4)]),
+                  child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? (kft ? .26 : 0) : .4)]),
                 ),
               ),
               Row(
