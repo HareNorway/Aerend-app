@@ -11,6 +11,7 @@ import '../kit/bergen_motion.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import 'kurv_parts.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// IBM Plex Mono with the paper's ink bleed (`text-shadow 0 0 .6px
 /// rgba(43,42,39,.45)`).
@@ -826,7 +827,7 @@ class _Draape extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
           center: const Alignment(.24, .44),

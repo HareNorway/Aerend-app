@@ -16,6 +16,7 @@ import '../../../ui/kit/ae_rise_in.dart';
 import '../../../ui/kit/ae_theme.dart';
 import '../../deliveryService/checkout/checkout.dart';
 import '../../deliveryService/checkout/co_styles.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class OrderCart extends StatefulWidget {
   final bool fromStore;
@@ -963,7 +964,7 @@ class OrderCartState extends State<OrderCart> {
                       onTap: () => Navigator.pop(context),
                       child: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           color: Colors.white.withOpacity(0.9),
                           shape: BoxShape.circle,
                           boxShadow: ScSaasThemeTokens.shadowCard,

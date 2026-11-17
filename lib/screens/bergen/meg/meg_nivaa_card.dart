@@ -7,6 +7,7 @@ import 'meg_copy_a4.dart';
 import 'meg_mark.dart';
 import 'meg_pill.dart';
 import 'meg_shine.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The Poeng card (design `Poeng` ≈L5978), built from the design's own
 /// values: the medal (spinning highlight ring, dark bezel, metal coin with the
@@ -519,7 +520,7 @@ class _Rung extends StatelessWidget {
           Container(
             width: size,
             height: size,
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               shape: BoxShape.circle,
               color: locked ? Colors.white.withValues(alpha: .14) : null,
               gradient: locked
@@ -601,7 +602,7 @@ class MegMedal extends StatelessWidget {
     final coin = Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
           center: const Alignment(-.32, -.48),

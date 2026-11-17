@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Under kaien (prototype L2663–2749) ────────────────────────────────────
 // Under the quay, at the bottom of the screen behind the sheet: the
@@ -1089,7 +1090,7 @@ class _Boble extends StatelessWidget {
           return Opacity(opacity: o, child: Transform.translate(offset: Offset(0, y), child: Transform.scale(scale: sk, child: child)));
         },
         child: DecoratedBox(
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             shape: BoxShape.circle,
             color: Color.fromRGBO(206, 240, 250, a),
             boxShadow: glans ? const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .9), offset: Offset(-1, -1), blurRadius: 1)] : null,

@@ -15,6 +15,7 @@ import '../../../services/customer/client_flags.dart';
 import 'utforsk_copy.dart';
 import '../kit/bergen_motion.dart' show BergenOnce;
 import '../kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// One feed post, as the Launch prototype draws it (`{{ poster }}` L5498–5560
 /// in `Ærend Kunde Launch.dc.html`, design px): a glass card with the media on
@@ -759,7 +760,7 @@ class _FeedPostCardState extends State<FeedPostCard>
           duration: const Duration(milliseconds: 200),
           curve: cssEase,
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             gradient: on ? _orange : null,
             color: on ? null : rgba(255, 255, 255, .2),
             borderRadius: BorderRadius.circular(999),

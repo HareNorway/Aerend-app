@@ -43,6 +43,7 @@ import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import '../kasse/kurv_sync.dart';
 import '../kasse/kasse_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -1248,7 +1249,7 @@ class _LysOverlay extends CustomPainter {
   bool shouldRepaint(_LysOverlay old) => old.lys != lys;
 }
 
-BoxDecoration _heroGlass(double s, {bool circle = false}) => BoxDecoration(
+BoxDecoration _heroGlass(double s, {bool circle = false}) => CssDecoration(
   color: rgba(255, 255, 255, .92),
   shape: circle ? BoxShape.circle : BoxShape.rectangle,
   borderRadius: circle ? null : BorderRadius.circular(999),
@@ -1441,7 +1442,7 @@ class _Tile extends StatelessWidget {
         pressScale: .95,
         child: Container(
           height: 58 * s,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(16 * s),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -1465,7 +1466,7 @@ class _Tile extends StatelessWidget {
                 width: 30 * s,
                 height: 30 * s,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   borderRadius: BorderRadius.circular(10 * s),
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -2563,7 +2564,7 @@ class _MenuHead extends StatelessWidget {
                   curve: spring,
                   width: open ? c.maxWidth : 38 * s,
                   clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     borderRadius: BorderRadius.circular(19 * s),
                     gradient: open
                         ? LinearGradient(
@@ -2967,7 +2968,7 @@ class _TilbudKort extends StatelessWidget {
               angle: 5 * math.pi / 180,
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 9 * s, vertical: 4 * s),
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   borderRadius: BorderRadius.circular(9 * s),
                   gradient: const LinearGradient(
                     begin: Alignment.topCenter,
@@ -3168,7 +3169,7 @@ class _MenuCard extends StatelessWidget {
     final r = BorderRadius.circular(24 * s);
     return Container(
       padding: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 12 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: r,
         gradient: cssLinear(
           165,
@@ -4092,7 +4093,7 @@ class ButikkKurvBar extends StatelessWidget {
                 Container(
                   key: const Key('a1_butikk_kurvbar_total'),
                   padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 9 * s),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     borderRadius: BorderRadius.circular(999),
                     gradient: cssLinear(180, _kOrange3, const [0, .56, 1]),
                     boxShadow: [

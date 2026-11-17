@@ -6,6 +6,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/login/login.dart';
 import '../aegil/aegil_bits.dart';
 import 'ai_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Customer plan Step 14 — the small parts every AI sheet shares (design
 /// `AI_M`, `AI_IK`, the handshake header `aiHs`): the assistant marks
@@ -96,7 +97,7 @@ class AiMerke extends StatelessWidget {
         width: size,
         height: size,
         clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: r,
           gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: bg, stops: const [0, .62, 1]),
           boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .55), offset: Offset(0, 1)), BoxShadow(color: Color.fromRGBO(4, 18, 26, .55), offset: Offset(0, 8), blurRadius: 14 / 2 / .57735, spreadRadius: -7)],
@@ -137,7 +138,7 @@ class AiHandshake extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
             border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
@@ -180,7 +181,7 @@ class AiHandshake extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: linjeC, boxShadow: [BoxShadow(color: linjeC.withValues(alpha: .8), blurRadius: 8 / 2 / .57735)])),
+          Container(width: 6, height: 6, decoration: CssDecoration(shape: BoxShape.circle, color: linjeC, boxShadow: [BoxShadow(color: linjeC.withValues(alpha: .8), blurRadius: 8 / 2 / .57735)])),
           const SizedBox(width: 7),
           Flexible(child: Text(linje, key: const Key('cus-ai-hs-linje'), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: linjeC))),
         ]),

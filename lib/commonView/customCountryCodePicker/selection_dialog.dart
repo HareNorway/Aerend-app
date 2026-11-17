@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aerend_customer/theme/sc_saas_theme.dart';
 
 import 'country_code.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// selection dialog used for selection of the country code
 class SelectionDialog extends StatefulWidget {
@@ -72,7 +73,7 @@ class _SelectionDialogState extends State<SelectionDialog> {
             widget.size?.height ?? MediaQuery.of(context).size.height * 0.85,
         decoration:
             widget.boxDecoration ??
-            BoxDecoration(
+            CssDecoration(
               color:
                   widget.backgroundColor ??
                   (isDark ? theme.colorScheme.surface : ScSaasThemeTokens.card),

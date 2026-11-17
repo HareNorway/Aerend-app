@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Hjem sheet cards, in design px (prototype L2841–3298) ──────────────────
 
@@ -270,7 +271,7 @@ class HjemAiMerker extends StatelessWidget {
       width: 17,
       height: 17,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(6),
         gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: bg, stops: const [0, .62, 1]),
         boxShadow: const [BoxShadow(color: Color(0xFF24596A), spreadRadius: 1.5)],
@@ -288,7 +289,7 @@ class HjemAiMerker extends StatelessWidget {
           key: const Key('cus-ai-hjem-merker'),
           height: 22,
           padding: const EdgeInsets.fromLTRB(3, 0, 7, 0),
-          decoration: const BoxDecoration(
+          decoration: const CssDecoration(
             borderRadius: BorderRadius.all(Radius.circular(999)),
             color: Color.fromRGBO(6, 22, 30, .32),
             boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .14), spreadRadius: 1)],
@@ -736,7 +737,7 @@ class _Baand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         gradient: LinearGradient(
           begin: loddrett ? Alignment.centerLeft : Alignment.topCenter,
           end: loddrett ? Alignment.centerRight : Alignment.bottomCenter,
@@ -757,7 +758,7 @@ class _Sloyfe extends StatelessWidget {
       child: Container(
         width: 28,
         height: 22,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: venstre
               ? const BorderRadius.horizontal(left: Radius.elliptical(17, 15), right: Radius.elliptical(8, 9))
               : const BorderRadius.horizontal(left: Radius.elliptical(8, 9), right: Radius.elliptical(17, 15)),

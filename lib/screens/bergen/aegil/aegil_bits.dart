@@ -9,6 +9,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/svg_sti.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Ægil · shared pieces (Launch prototype L4500–5120, design px) ───────────
 
@@ -424,7 +425,7 @@ class AePulsDot extends StatelessWidget {
             child: Container(
               width: size,
               height: size,
-              decoration: const BoxDecoration(
+              decoration: const CssDecoration(
                 shape: BoxShape.circle,
                 color: kAeMint,
                 boxShadow: [BoxShadow(color: kAeMint, blurRadius: 4)],
@@ -448,7 +449,7 @@ class AeAvatar extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: size,
     height: size,
-    decoration: BoxDecoration(
+    decoration: CssDecoration(
       shape: BoxShape.circle,
       gradient: const LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [Color(0xFF4A93A4), kAeTeal]),
       boxShadow: [

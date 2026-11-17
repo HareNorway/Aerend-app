@@ -23,6 +23,7 @@ import 'klede_sheet.dart';
 import 'restaurant_body.dart' show ButikkKurvBar, ButikkMiniKurv;
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 const _kGlass = [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)];
 
@@ -660,7 +661,7 @@ class _Hero extends StatelessWidget {
                         width: 34 * s,
                         height: 34 * s,
                         alignment: Alignment.center,
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           borderRadius: BorderRadius.circular(12 * s),
                           color: rgba(255, 255, 255, .7),
                           border: Border.all(color: rgba(255, 255, 255, .9)),
@@ -768,7 +769,7 @@ class _Hero extends StatelessWidget {
           padding: EdgeInsets.only(top: 148 * s + dy),
           child: Container(
             padding: EdgeInsets.fromLTRB(16 * s, 14 * s, 16 * s, 0),
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(24 * s)),
               gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
               boxShadow: [
@@ -859,7 +860,7 @@ class _Kikker extends StatelessWidget {
     return Container(
       key: const Key('a1_butikk_kikker'),
       padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 5 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
         boxShadow: [
@@ -1049,7 +1050,7 @@ class _Utstilling extends StatelessWidget {
                   pressScale: .98,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 10 * s),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       borderRadius: BorderRadius.circular(16 * s),
                       gradient: const LinearGradient(
                         begin: Alignment.topCenter,
@@ -1179,7 +1180,7 @@ class _Merke extends StatelessWidget {
               width: 40 * s,
               height: 40 * s,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 shape: BoxShape.circle,
                 color: bg,
                 border: Border.all(color: valgt ? const Color(0xFFF26D3D) : Colors.white, width: 2 * s),
@@ -1325,7 +1326,7 @@ class _SegPille extends StatelessWidget {
         curve: const Cubic(.3, 1, .4, 1),
         padding: padding,
         transform: Matrix4.translationValues(0, on ? -1 * s : 0, 0),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(999),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1651,7 +1652,7 @@ class _LeggKnapp extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           height: 38 * s,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -1760,7 +1761,7 @@ class _StorrelseHint extends StatelessWidget {
       pressScale: .98,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(20 * s),
           color: rgba(253, 252, 249, .96),
           border: Border.all(color: rgba(255, 255, 255, .95)),
@@ -1908,7 +1909,7 @@ class _FilterBar extends StatelessWidget {
                           scale: sokApen ? 1 : .96,
                           child: Container(
                             padding: EdgeInsets.fromLTRB(14 * s, 0, 6 * s, 0),
-                            decoration: BoxDecoration(
+                            decoration: CssDecoration(
                               borderRadius: BorderRadius.circular(999),
                               gradient: const LinearGradient(
                                 begin: Alignment.topCenter,
@@ -2019,7 +2020,7 @@ class _Chip extends StatelessWidget {
         curve: const Cubic(.3, 1.3, .5, 1),
         padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 8 * s),
         transform: Matrix4.translationValues(0, on ? -1 * s : 0, 0),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(999),
           gradient: on
               ? cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)])

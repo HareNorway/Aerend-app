@@ -6,6 +6,7 @@ import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import 'sporing_gl.dart';
 import 'sporing_scene_kai.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// **Henting · disken** (L6694, the WebGL branch `sjoGlPaa`): the store's
 /// pickup counter — the prototype's own shader (`spHkInit`, ported as
@@ -90,7 +91,7 @@ class SpSceneDisk extends StatelessWidget {
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 124),
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   color: rgba(255, 255, 255, .94),
                   borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), topRight: Radius.circular(14), bottomRight: Radius.circular(14), bottomLeft: Radius.circular(4)),
                   boxShadow: [

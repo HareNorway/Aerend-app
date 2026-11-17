@@ -10,6 +10,7 @@ import '../kit/bergen_bakt.dart';
 import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
 import 'utforsk_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Utforsk · shared pieces (Launch prototype, design px) ───────────────────
 
@@ -91,7 +92,7 @@ class UtfPulsDot extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           color: color,
           shape: BoxShape.circle,
           boxShadow: [BoxShadow(color: color, blurRadius: glow)],

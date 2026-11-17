@@ -8,6 +8,7 @@ import '../../../bergen/hjelp/demo_panel.dart';
 import 'bergen_floats.dart';
 import 'bergen_kit.dart';
 import 'bergen_painters.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── The hero (`data-hero="1"`, ROM style) ───────────────────────────────────
 // A 390×250 window under the header: weather sky, the Fløyen scene with the
@@ -362,7 +363,7 @@ class _BergenHeroState extends State<BergenHero> {
           height: h * s,
           child: IgnorePointer(
             child: DecoratedBox(
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: BorderRadius.circular(w),
                 gradient: const RadialGradient(
                   center: Alignment(-.3, -.4),
@@ -1068,7 +1069,7 @@ class _BergenHeroState extends State<BergenHero> {
                   horizontal: 13 * s,
                   vertical: 10 * s,
                 ),
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   color: Colors.white.withValues(alpha: .95),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16 * s),
@@ -1373,7 +1374,7 @@ class _FjordfiskeButton extends StatelessWidget {
       child: Container(
         height: 30 * s,
         padding: EdgeInsets.only(left: 7 * s, right: 11 * s),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           color: const Color.fromRGBO(15, 31, 43, .55),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: const Color(0x4DFFFFFF)),

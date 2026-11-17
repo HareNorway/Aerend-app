@@ -11,6 +11,7 @@ import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import '../../../bergen/onboarding/onb_maal.dart';
 import '../../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Bottom nav (`visNav`) ───────────────────────────────────────────────────
 // A pill with Hjem · Utforsk · Kurv · Meg and, to its right, the search orb.
@@ -212,7 +213,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
       duration: const Duration(milliseconds: 450),
       curve: Curves.ease,
       padding: EdgeInsets.symmetric(horizontal: 7 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         // `sbBg`, `sbKant`, `sbGlod`.
         gradient: LinearGradient(
@@ -709,7 +710,7 @@ class _BergenBottomNavState extends State<BergenBottomNav> {
                     horizontal: 12 * s,
                     vertical: 9 * s,
                   ),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(16 * s),
                       topRight: Radius.circular(16 * s),

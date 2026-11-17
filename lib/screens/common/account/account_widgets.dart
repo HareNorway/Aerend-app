@@ -9,6 +9,7 @@ import '../../../ui/kit/ae_theme.dart';
 import '../../../ui/kit/ae_sheet.dart';
 import '../../../ui/kit/ae_subpage_shell.dart';
 import '../auth/auth_style.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Shared Ærend design widgets for the "Min konto" screens
 /// (prototype: `dugnad/account.jsx` + `dugnad.css`).
@@ -128,7 +129,7 @@ class AccountSheetHead extends StatelessWidget {
             height: 40,
             decoration: iconBackground != null
                 ? BoxDecoration(color: iconBackground, shape: BoxShape.circle)
-                : BoxDecoration(
+                : CssDecoration(
                     gradient: theme.shinyGradient,
                     shape: BoxShape.circle,
                     boxShadow: theme.shadowButton,

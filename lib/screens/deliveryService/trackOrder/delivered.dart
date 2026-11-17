@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class Delivered extends StatefulWidget {
   final List? orderList;
@@ -82,7 +83,7 @@ class DeliveredState extends State<Delivered> {
             Container(
               padding: const EdgeInsets.all(16),
               height: 280,
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 color: colorWhite,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [

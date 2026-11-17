@@ -23,6 +23,7 @@ import 'meg_nav.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import '../kasse/kasse_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Ordrehistorikk (new Bergen `erOrdrer`, L8036–8089, + `ohVals` L15336):
 /// the orders the customer has placed (`ops.customer.orders`), «Bestill igjen
@@ -1067,7 +1068,7 @@ class _Tall extends StatelessWidget {
                       Container(
                         width: 28,
                         height: 28,
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           borderRadius: BorderRadius.circular(10),
                           gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _slag[k].$2),
                           boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 10, 16, .7), offset: Offset(0, 4), blurRadius: 8 / 2 / .57735, spreadRadius: -4)],

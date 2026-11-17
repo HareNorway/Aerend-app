@@ -11,6 +11,7 @@ import 'fiske_copy.dart';
 import 'fiske_frame.dart';
 import 'fiske_game.dart';
 import 'fiske_motion.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// One card of the deck as the screen shows it: the suggestion plus what the
 /// store read added (name, price) — the design's `fNavn / fButikk / fPris /
@@ -347,7 +348,7 @@ class FiskePremieCard extends StatelessWidget {
                             Container(
                               width: 16 * s,
                               height: 16 * s,
-                              decoration: BoxDecoration(
+                              decoration: CssDecoration(
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   center: const Alignment(-.32, -.48),
@@ -457,7 +458,7 @@ class FiskeFerdigCard extends StatelessWidget {
       child: Container(
         key: const Key('a1_fiske_ferdig'),
         padding: EdgeInsets.all(18 * s),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(28 * s),
           color: rgba(255, 255, 255, .88),
           border: Border.all(color: Colors.white),

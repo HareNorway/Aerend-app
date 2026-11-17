@@ -8,6 +8,7 @@ import 'package:aerend_customer/screens/common/manageAddress/add_new_address_rep
 
 import '../../../utils/utils.dart';
 import '../../../utils/dropdown_search.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class AddLocation extends StatefulWidget {
   final Widget locate;
@@ -118,7 +119,7 @@ class AddLocationState extends State<AddLocation> {
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(10.0),
                       boxShadow: [
@@ -197,7 +198,7 @@ class AddLocationState extends State<AddLocation> {
                   const SizedBox(height: 10),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       color: theme.colorScheme.surface,
                       borderRadius: BorderRadius.circular(10.0),
                       boxShadow: [

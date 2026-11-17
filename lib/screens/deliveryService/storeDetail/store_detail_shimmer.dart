@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class StoreDetailShimmer extends StatelessWidget {
   final bool enabled;
@@ -131,7 +132,7 @@ class StoreDetailShimmer extends StatelessWidget {
   Widget _searchBarSkeleton(Color cardColor) {
     return Container(
       height: 58,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [

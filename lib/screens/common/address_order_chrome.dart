@@ -6,6 +6,7 @@ import '../../theme/design_scale.dart';
 import '../../theme/sc_saas_theme.dart';
 import '../../ui/kit/ae_theme.dart';
 import '../../ui/kit/ae_subpage_shell.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Shared Ærend design chrome for the "Leveringsadresse / Ny adresse /
 /// Ordrehistorikk / Ordredetaljer" screens.
@@ -598,7 +599,7 @@ class AoMapPlate extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         child: Container(
           height: 150,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(
               begin: const Alignment(-0.35, -1),
@@ -696,7 +697,7 @@ class AoMapPin extends StatelessWidget {
           width: 36,
           height: 36,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             color: color,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(18),

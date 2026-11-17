@@ -8,6 +8,7 @@ import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import 'bergen_painters.dart';
 import '../../../bergen/kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Ægil's floats (`dupper`) and the card that rises from the water ─────────
 // Three crates bob on the water in front of the pier, each carrying a product
@@ -487,7 +488,7 @@ class BergenFloat extends StatelessWidget {
                         Positioned.fill(
                           child: Container(
                             alignment: Alignment.center,
-                            decoration: BoxDecoration(
+                            decoration: CssDecoration(
                               color: c,
                               shape: BoxShape.circle,
                               boxShadow: [
@@ -786,7 +787,7 @@ class BergenNappCard extends StatelessWidget {
                 filter: BergenPerf.blur(context, 22, 22),
                 child: Container(
                   padding: EdgeInsets.all(12 * s),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     color: Colors.white.withValues(alpha: .94),
                     borderRadius: BorderRadius.circular(22 * s),
                     border: Border.all(color: const Color(0xF2FFFFFF)),

@@ -16,6 +16,7 @@ import '../kit/bergen_motion.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 import 'kategori_kort.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Kategori › Butikker: the store module (Onboarding plan Step 5, §3 #15,
 /// prototype `data-screen-label="Butikkmodul"` L6745–6826): the cream card
@@ -944,7 +945,7 @@ class _Pille extends StatelessWidget {
     final inner = Container(
       height: 26 * s,
       padding: EdgeInsets.symmetric(horizontal: 10 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: rgba(14, 30, 36, .8),
         borderRadius: BorderRadius.circular(999),
         boxShadow: [BoxShadow(color: rgba(0, 0, 0, .6), offset: Offset(0, 6 * s), blurRadius: onbBlur(12 * s), spreadRadius: -6 * s)],

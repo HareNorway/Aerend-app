@@ -10,6 +10,7 @@ import '../hurtig/hurtig_data.dart' show HbButikk;
 import 'aegil_bits.dart';
 import 'aegil_innst.dart';
 import 'aegil_launch_copy.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Start (`agS0`, L4634–4690) ──────────────────────────────────────────────
 
@@ -1727,7 +1728,7 @@ class _AeButArkState extends State<AeButArk> {
                           scale: .95,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
-                            decoration: BoxDecoration(
+                            decoration: CssDecoration(
                               borderRadius: BorderRadius.circular(999),
                               color: kAeTeal,
                               boxShadow: const [BoxShadow(color: Color.fromRGBO(30, 79, 92, .7), offset: Offset(0, 8), blurRadius: 8, spreadRadius: -8)],
@@ -1751,7 +1752,7 @@ class _AeButArkState extends State<AeButArk> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
-                              decoration: BoxDecoration(
+                              decoration: CssDecoration(
                                 borderRadius: BorderRadius.circular(999),
                                 color: f == _filter ? kAeTeal : Colors.white,
                                 boxShadow: [

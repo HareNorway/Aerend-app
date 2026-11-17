@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import 'adr_tegning.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── The address sheets' street (prototype L8384–8432, L8498–8562) ──────────
 // One timeline per appearance: neighbours rise (`adrReis`), the chosen
@@ -275,7 +276,7 @@ List<Widget> _gnister(double t, double w, double topp) {
               child: Transform.scale(
                 scale: sc,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     shape: BoxShape.circle,
                     color: c,
                     boxShadow: [BoxShadow(color: c, blurRadius: 4)],

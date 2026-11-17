@@ -18,6 +18,7 @@ import 'onboarding_copy.dart';
 import '../../../ui/kit/ae_haptic.dart';
 
 export '../../bergen/kit/bergen_perf.dart' show LfStille;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Ærend Bergen onboarding kit ─────────────────────────────────────────────
 // Shared pieces of `data-screen-label="Onboarding"` in
@@ -766,7 +767,7 @@ class OnbCta extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       curve: Curves.ease,
       height: height,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(_r),
         gradient: ready ? kOnbCtaGradient : kOnbCtaIdleGradient,
         boxShadow: shadows,
@@ -1285,7 +1286,7 @@ class OnbStepLadder extends StatelessWidget {
             width: 22,
             height: 22,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               shape: BoxShape.circle,
               gradient: nodeGradient,
               color: nodeGradient == null ? const Color(0x1AFFFFFF) : null,
@@ -1396,7 +1397,7 @@ class AegilAvatar extends StatelessWidget {
     final image = Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(radius),
         color: const Color(0x24FFFFFF),
         boxShadow: [

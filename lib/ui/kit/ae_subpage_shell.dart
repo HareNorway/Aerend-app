@@ -6,6 +6,7 @@ import '../../theme/design_scale.dart';
 import '../../theme/ae_typography.dart';
 import 'ae_theme.dart';
 import 'ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Locks typography to design-system px (375px frame) — ignores OS text scaling.
 class AeFixedTypography extends StatelessWidget {
@@ -82,7 +83,7 @@ class _AeBackButtonState extends State<AeBackButton> {
         child: Container(
           width: size,
           height: size,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             gradient: widget.solidWhite
                 ? const LinearGradient(
                     begin: Alignment(-0.6, -0.8),

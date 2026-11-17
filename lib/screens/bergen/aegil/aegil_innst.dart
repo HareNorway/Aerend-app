@@ -11,6 +11,7 @@ import '../meg/mork_rad.dart';
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Innstillinger for Ægil (new Bergen L5082–5092, L9954, L20363–20393) ─────
 // One list for both places: the Ægil screen's settings view and the dark
@@ -332,7 +333,7 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
   Widget _felt() => AnimatedContainer(
     duration: const Duration(milliseconds: 200),
     padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
-    decoration: BoxDecoration(
+    decoration: CssDecoration(
       borderRadius: BorderRadius.circular(12),
       gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .08)]),
       border: Border.all(color: _skriver ? const Color.fromRGBO(127, 240, 203, .85) : const Color.fromRGBO(255, 255, 255, .22), width: 1.5),

@@ -20,6 +20,7 @@ import '../../../ui/kit/ae_sheet.dart';
 import '../deliveriesOrderDetail/deliveries_order_detail.dart';
 import 'track_order_bloc.dart';
 import 'track_order_dl.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class TrackOrder extends StatefulWidget {
   final int orderId;
@@ -159,7 +160,7 @@ class TrackOrderState extends State<TrackOrder> with WidgetsBindingObserver {
                       }
 
                       return Container(
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           color: pageBg,
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(24),
@@ -218,7 +219,7 @@ class TrackOrderState extends State<TrackOrder> with WidgetsBindingObserver {
                                         child: Container(
                                           height: 36,
                                           width: 36,
-                                          decoration: BoxDecoration(
+                                          decoration: CssDecoration(
                                             color: closeBtnBg,
                                             shape: BoxShape.circle,
                                             boxShadow: ScSaasThemeTokens.shadowCard,
@@ -1662,7 +1663,7 @@ class TrackOrderState extends State<TrackOrder> with WidgetsBindingObserver {
     );
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: pageBg,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
@@ -1973,7 +1974,7 @@ class _TrackOrderExpandedMapState extends State<_TrackOrderExpandedMap> {
 
                 return Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     color: overlayColor,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: [

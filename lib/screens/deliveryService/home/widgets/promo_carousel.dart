@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../theme/sc_saas_theme.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Ærend auto-rotating promo carousel with dot navigation.
 ///
@@ -51,7 +52,7 @@ class _PromoCarouselState extends State<PromoCarousel> {
               onTap: () => widget.onSlideTap?.call(index),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   borderRadius: BorderRadius.circular(18), // --ae-r-lg
                   gradient: _warmGradient(index),
                   boxShadow: ScSaasThemeTokens.shadowCard,

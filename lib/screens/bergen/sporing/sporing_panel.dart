@@ -26,6 +26,7 @@ import '../onboarding/onb_maal.dart';
 import '../kasse/kasse_copy.dart' show KasseCopy;
 import '../../../networking/ops/ops_kasse_api.dart' show OpsKasseApi;
 import '../../../utils/shared_pref_utill.dart' show prefGetInt;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Sporing · the bottom panel and the Bestillingsdetaljer sheet ────────────
 // Prototype L7098–7277 (panel) and L7007–7097 (sheet).
@@ -517,7 +518,7 @@ class _Veileder extends StatelessWidget {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
+                          decoration: const CssDecoration(
                             shape: BoxShape.circle,
                             color: kSpMint,
                             boxShadow: [BoxShadow(color: kSpMint, blurRadius: 6)],
@@ -1407,7 +1408,7 @@ class SpDetaljerArk extends StatelessWidget {
                                           .clamp(0.001, 1.0),
                                   heightFactor: 1,
                                   child: DecoratedBox(
-                                    decoration: BoxDecoration(
+                                    decoration: CssDecoration(
                                       borderRadius: BorderRadius.circular(999),
                                       gradient: const LinearGradient(colors: [_kMint, _kMintDyp]),
                                       boxShadow: [BoxShadow(color: rgba(92, 224, 184, .6), blurRadius: 10)],
@@ -1873,7 +1874,7 @@ class _Seksjon extends StatelessWidget {
         Container(
           width: 6,
           height: 6,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             shape: BoxShape.circle,
             color: _kMintDyp,
             boxShadow: [BoxShadow(color: rgba(92, 224, 184, .8), blurRadius: 8)],
@@ -2083,7 +2084,7 @@ class _PulsPrikk extends StatelessWidget {
             ),
             Positioned.fill(
               child: DecoratedBox(
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   shape: BoxShape.circle,
                   color: _kMintDyp,
                   boxShadow: [BoxShadow(color: rgba(92, 224, 184, .9), blurRadius: 8)],

@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../utils/utils.dart';
 import '../storeDetail/item_store_product_shimmer.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ProductListShimmer extends StatelessWidget {
   final bool enabled;
@@ -76,7 +77,7 @@ class GridTypePage extends StatelessWidget {
               width: deviceWidth * 0.25,
               height: deviceHeight * 0.03,
               margin: EdgeInsets.only(top: deviceWidth * 0.025),
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 color: colorWhite,
                 boxShadow: const [
                   BoxShadow(

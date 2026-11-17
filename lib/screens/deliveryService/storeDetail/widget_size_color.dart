@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:aerend_customer/utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class SizeColorWidget extends StatefulWidget {
   final int sizeOptional;
@@ -89,7 +90,7 @@ class SizeColorState extends State<SizeColorWidget> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 14),
                       margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
+                      decoration: CssDecoration(
                         color: checkedSize == item['id']
                             ? item['stock'] == 1
                                 ? colorGreen
@@ -151,7 +152,7 @@ class SizeColorState extends State<SizeColorWidget> {
                       padding: const EdgeInsets.symmetric(
                           vertical: 8, horizontal: 14),
                       margin: const EdgeInsets.only(right: 16),
-                      decoration: BoxDecoration(
+                      decoration: CssDecoration(
                         color: checkedColor == item['id']
                             ? item['stock'] == 1
                                 ? colorGreen

@@ -12,6 +12,7 @@ import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Gaver-kategori (L5937) and Mote-utstilling (L6015) ──────────────────────
 // «Ukens utstilling» comes from the admin (Kategorier › Ukens utstilling,
@@ -235,7 +236,7 @@ List<_Gave> _alleGaver(List<_Gavebutikk> butikker) => [
 /// The glass of the Gaver cards: `linear-gradient(180deg,rgba(255,255,255,
 /// .14),rgba(255,255,255,.06))`, `inset 0 1.5px 0 rgba(255,255,255,.28)`,
 /// `0 0 0 1px rgba(255,255,255,.18)` and a two-step drop.
-BoxDecoration _glass(double s, double r, {bool myk = true}) => BoxDecoration(
+BoxDecoration _glass(double s, double r, {bool myk = true}) => CssDecoration(
   borderRadius: BorderRadius.circular(r),
   gradient: LinearGradient(
     begin: Alignment.topCenter,
@@ -349,7 +350,7 @@ class _Form extends StatelessWidget {
         children: [
           Positioned.fill(
             child: DecoratedBox(
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: r,
                 gradient: g.tint,
                 boxShadow: [
@@ -883,7 +884,7 @@ class _UtstillingKort extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 208 * s,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(26 * s),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1416,7 +1417,7 @@ class _MoteSkiveState extends State<MoteSkive> {
                             width: 36 * s,
                             height: 36 * s,
                             alignment: Alignment.center,
-                            decoration: BoxDecoration(
+                            decoration: CssDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
@@ -1593,7 +1594,7 @@ class _MoteSkiveState extends State<MoteSkive> {
             top: 166 * s,
             height: 78 * s,
             child: DecoratedBox(
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: BorderRadius.all(Radius.elliptical(160 * s, 39 * s)),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -1617,7 +1618,7 @@ class _MoteSkiveState extends State<MoteSkive> {
             top: 156 * s,
             height: 78 * s,
             child: DecoratedBox(
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: BorderRadius.all(Radius.elliptical(160 * s, 39 * s)),
                 gradient: RadialGradient(
                   center: const Alignment(0, -.28),

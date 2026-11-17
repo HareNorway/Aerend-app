@@ -7,6 +7,7 @@ import '../../common/auth/launch/lf_icons.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart';
 import '../kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Sporing · shared bits (Launch prototype L6400–7340) ─────────────────────
 // Small widgets the tracking screens share: the glass keys, the live pulse
@@ -96,7 +97,7 @@ class SpPuls extends StatelessWidget {
       children: [
         Positioned.fill(
           child: DecoratedBox(
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               shape: BoxShape.circle,
               color: gradient == null ? color : null,
               gradient: gradient,

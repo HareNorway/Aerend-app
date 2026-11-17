@@ -17,6 +17,7 @@ import 'store_detail_dl.dart';
 import 'store_detail_shimmer.dart';
 import 'widget_size_color.dart';
 import 'widget_topping_option.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class StoreDetail extends StatefulWidget {
   final int storeId;
@@ -961,7 +962,7 @@ class StoreDetailState extends State<StoreDetail> {
                     onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
+                      decoration: CssDecoration(
                         color: Colors.white.withOpacity(0.9),
                         shape: BoxShape.circle,
                         boxShadow: ScSaasThemeTokens.shadowCard,

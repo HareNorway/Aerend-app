@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 const Duration _kDropdownMenuDuration = Duration(milliseconds: 300);
 const double _kMenuItemHeight = kMinInteractiveDimension;
@@ -30,7 +31,7 @@ class _DropdownMenuPainter extends CustomPainter {
     required this.getSelectedItemOffset,
     required this.itemHeight,
     this.border,
-  })  : _painter = BoxDecoration(
+  })  : _painter = CssDecoration(
           // If you add an image here, you must provide a real
           // configuration in the paint() function and you must provide some sort
           // of onChanged callback here.

@@ -81,6 +81,7 @@ import '../../../bergen/hjem/hjem_ny.dart';
 import '../../../bergen/kit/bergen_fav_heart.dart';
 import '../../../bergen/kit/laster_dra.dart';
 import '../../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // Hjem — the `erHjem` screen of "Ærend Kunde Bergen" (ROM style).
 //
@@ -2397,7 +2398,7 @@ class _Sheet extends StatelessWidget {
       s: s,
       bunnLuft: 314,
       child: Container(
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.only(topLeft: r, topRight: r),
           gradient: kBergenScreenGradient,
           boxShadow: const [
@@ -2521,7 +2522,7 @@ class _PullHandle extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               width: (wide ? 76 : 44) * s,
               height: 5 * s,
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 color: const Color(0x57FFFFFF),
                 borderRadius: BorderRadius.circular(3 * s),
                 boxShadow: const [

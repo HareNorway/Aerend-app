@@ -26,6 +26,7 @@ import 'premie_ark.dart';
 import 'prize_art.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/laster_skjerm.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Premiehylla (`erPremier`, L7556–7707 in `Ærend Kunde Launch.dc.html`,
 /// design px): the floating back key and the points pill (the coin turning,
@@ -1066,7 +1067,7 @@ class _LitenMedalje extends StatelessWidget {
     return Container(
       width: 24,
       height: 24,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: m.gradient, stops: m.stops),
         boxShadow: [
@@ -1306,7 +1307,7 @@ class _VelgerArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
+    decoration: const CssDecoration(
       shape: BoxShape.circle,
       gradient: LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: PrizeArt.velgerTint),
       boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .3), spreadRadius: 1.5)],
@@ -1902,7 +1903,7 @@ class _Laast extends StatelessWidget {
                       Container(
                         width: 20,
                         height: 20,
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           shape: BoxShape.circle,
                           gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: m.gradient, stops: m.stops),
                           boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .2), blurRadius: 4)],

@@ -31,6 +31,7 @@ import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
 import 'hurtig_kort.dart';
 import '../kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Hurtigbestilling (prototype `erHurtig`, L4245–4520) ────────────────────
 //
@@ -889,7 +890,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                     Container(
                       width: 6,
                       height: 6,
-                      decoration: const BoxDecoration(
+                      decoration: const CssDecoration(
                         shape: BoxShape.circle,
                         color: kHbMint,
                         boxShadow: [BoxShadow(color: kHbMint, blurRadius: 8 / 2 / .57735)],
@@ -1533,7 +1534,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
               Container(
                 width: 30,
                 height: 30,
-                decoration: const BoxDecoration(
+                decoration: const CssDecoration(
                   shape: BoxShape.circle,
                   color: Color.fromRGBO(255, 255, 255, .12),
                   boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .18), spreadRadius: 1)],

@@ -34,6 +34,7 @@ import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import '../onboarding/onb_tips.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Copy for the Kategori screen (L5910–6135), NO and EN.
 abstract final class KatCopy {
@@ -1209,7 +1210,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
           duration: const Duration(milliseconds: 200),
           curve: Curves.ease,
           padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 9 * s),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -1436,7 +1437,7 @@ class _GlassKnapp extends StatelessWidget {
       child: Container(
         width: 42 * s,
         height: 42 * s,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(15 * s),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1477,7 +1478,7 @@ class _LivePille extends StatelessWidget {
     return Container(
       key: const Key('a1_kat_apne'),
       padding: EdgeInsets.fromLTRB(8 * s, 6 * s, 11 * s, 6 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         gradient: LinearGradient(
           begin: Alignment.topCenter,

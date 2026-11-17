@@ -18,6 +18,7 @@ import 'ds_home_shimmer.dart';
 import 'widgets/purple_hero.dart';
 import 'widgets/promo_carousel.dart';
 import 'widgets/category_wheel.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class DSHome extends StatefulWidget {
   const DSHome({super.key});
@@ -284,7 +285,7 @@ class _DSHomeState extends State<DSHome> {
                                   width: 60,
                                   height: 60,
                                   padding: const EdgeInsets.all(15),
-                                  decoration: BoxDecoration(
+                                  decoration: CssDecoration(
                                     color: brandId ==
                                             brandCategoryList[index].brandId
                                         ? ScSaasThemeTokens.success

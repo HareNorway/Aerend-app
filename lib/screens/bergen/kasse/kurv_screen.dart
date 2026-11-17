@@ -55,6 +55,7 @@ import '../../../services/customer/beacons.dart';
 import '../kit/laster_dra.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'kurv_sync.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -1632,7 +1633,7 @@ class _Panel extends StatelessWidget {
         final stop = (140 * s / box.maxHeight).clamp(0.05, 1.0);
         return Container(
           clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),
             gradient: LinearGradient(
               begin: Alignment.topCenter,

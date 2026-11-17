@@ -9,6 +9,7 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_lagring.dart' show BergenLagringLive;
 import '../kit/bergen_motion.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Kategori cards (L6048–6120, `butikkListe` / `produktListe`) ─────────────
 // Cream cards that float in 3D (`bm3Svev`), follow the finger (`bmTiltMove`),
@@ -521,7 +522,7 @@ class KatRundKnapp extends StatelessWidget {
         width: size * s,
         height: size * s,
         transform: Matrix4.translationValues(0, ned ? 3 * s : 0, 0),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
             begin: Alignment.topCenter,

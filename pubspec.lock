@@ -17,6 +17,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.59"
+  aerend_live_card:
+    dependency: "direct main"
+    description:
+      path: "packages/aerend_live_card"
+      relative: true
+    source: path
+    version: "1.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -377,14 +384,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
-  facebook_auth_desktop:
-    dependency: transitive
-    description:
-      name: facebook_auth_desktop
-      sha256: e6cc4d6f50a1d67d99e7dac7d77a40fe27122496e224cb708ae168d7d9aac0ac
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.3"
   fake_async:
     dependency: transitive
     description:
@@ -587,30 +586,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_facebook_auth:
-    dependency: "direct main"
-    description:
-      name: flutter_facebook_auth
-      sha256: bc455122d3ea14fd0887b1a0f74d0ead845c04bfc2e68c64d9a701367d665724
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.2.0"
-  flutter_facebook_auth_platform_interface:
-    dependency: transitive
-    description:
-      name: flutter_facebook_auth_platform_interface
-      sha256: "86630c4dbba1c20fba26ea9e59ad0d48f5ff59e7373cacd36f916160186f9ce9"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.0.0"
-  flutter_facebook_auth_web:
-    dependency: transitive
-    description:
-      name: flutter_facebook_auth_web
-      sha256: "22dca8091409309ad85b9f430fbd8f57b686276979da5195e7e97587352567ce"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.0.0"
   flutter_html:
     dependency: "direct main"
     description:
@@ -1172,30 +1147,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  intercom_flutter:
-    dependency: "direct main"
-    description:
-      name: intercom_flutter
-      sha256: "433cfa1e9636c84f07aff00752f0cb439b234b1c6f1b64ef561744b11668420f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.4.11"
-  intercom_flutter_platform_interface:
-    dependency: transitive
-    description:
-      name: intercom_flutter_platform_interface
-      sha256: b9e7b98035e07a6cbb9f05fa0f85c7c1b7b54d552f59103fcf2a21276d061b93
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.5"
-  intercom_flutter_web:
-    dependency: transitive
-    description:
-      name: intercom_flutter_web
-      sha256: e44edc8a5f660c91ce2dcb5af2743622765f1742c72e790f44cf9b6752f2d90e
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.9"
   intl:
     dependency: "direct main"
     description:
@@ -1284,6 +1235,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  local_auth:
+    dependency: "direct main"
+    description:
+      name: local_auth
+      sha256: "434d854cf478f17f12ab29a76a02b3067f86a63a6d6c4eb8fbfdcfe4879c1b7b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
+  local_auth_android:
+    dependency: transitive
+    description:
+      name: local_auth_android
+      sha256: a0bdfcc0607050a26ef5b31d6b4b254581c3d3ce3c1816ab4d4f4a9173e84467
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.56"
+  local_auth_darwin:
+    dependency: transitive
+    description:
+      name: local_auth_darwin
+      sha256: "699873970067a40ef2f2c09b4c72eb1cfef64224ef041b3df9fdc5c4c1f91f49"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.1"
+  local_auth_platform_interface:
+    dependency: transitive
+    description:
+      name: local_auth_platform_interface
+      sha256: f98b8e388588583d3f781f6806e4f4c9f9e189d898d27f0c249b93a1973dd122
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  local_auth_windows:
+    dependency: transitive
+    description:
+      name: local_auth_windows
+      sha256: bc4e66a29b0fdf751aafbec923b5bed7ad6ed3614875d8151afe2578520b2ab5
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.11"
   location:
     dependency: "direct main"
     description:
@@ -1573,7 +1564,7 @@ packages:
     source: hosted
     version: "1.5.0"
   qr:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: qr
       sha256: "5a1d2586170e172b8a8c8470bbbffd5eb0cd38a66c0d77155ea138d3af3a4445"

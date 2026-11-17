@@ -12,6 +12,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../hjem/hjem_harness.dart';
 import 'bergen_bakt.dart';
 import 'bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Live-ærend (prototype L9598, `liveVals`/`liveData`) ────────────────────
 // The floating pill while an order is under way: Ægil in a progress ring,
@@ -391,7 +392,7 @@ class _HjemLiveAerendState extends State<HjemLiveAerend> {
                                         const SizedBox(height: 3),
                                         RepaintBoundary(key: _kSeg, child: Container(
                                           padding: const EdgeInsets.all(2),
-                                          decoration: BoxDecoration(
+                                          decoration: CssDecoration(
                                             color: const Color.fromRGBO(2, 12, 18, .4),
                                             borderRadius: BorderRadius.circular(5),
                                             boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .14), offset: Offset(0, 1))],
@@ -674,7 +675,7 @@ class _Segment extends StatelessWidget {
       duration: const Duration(milliseconds: 500),
       width: 14,
       height: 4,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(2),
         gradient: ferdig
             ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFA6F8DD), Color(0xFF3CC79F)])
@@ -714,7 +715,7 @@ class _Puls extends StatelessWidget {
         children: [
           Positioned.fill(
             child: DecoratedBox(
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(center: const Alignment(-.3, -.4), colors: [const Color(0xFFFFE0D0), farge, const Color(0xFFB9441A)], stops: const [0, .55, 1]),
                 boxShadow: const [BoxShadow(color: Color.fromRGBO(0, 0, 0, .4), offset: Offset(0, 1), blurRadius: 1)],

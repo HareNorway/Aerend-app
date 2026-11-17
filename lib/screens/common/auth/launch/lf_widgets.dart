@@ -9,6 +9,7 @@ import 'lf_icons.dart';
 import 'lf_motion.dart';
 import '../../../bergen/kit/bergen_perf.dart';
 import '../../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Launch onboarding · shared pieces ───────────────────────────────────────
 // Prototype L1887–2214 (`data-screen-label="Onboarding"`).
@@ -976,7 +977,7 @@ class LfPortrait extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(radius),
         color: const Color.fromRGBO(255, 255, 255, .14),
         boxShadow: [

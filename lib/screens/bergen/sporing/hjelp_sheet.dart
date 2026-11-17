@@ -22,6 +22,7 @@ import 'sporing_copy.dart';
 import '../kit/bergen_perf.dart';
 import '../onboarding/onb_tips.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 part 'hjelp_chat.dart';
 
@@ -551,7 +552,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: const BoxDecoration(
+                        decoration: const CssDecoration(
                           shape: BoxShape.circle,
                           color: kSpMint,
                           boxShadow: [BoxShadow(color: kSpMint, blurRadius: 8)],
@@ -823,7 +824,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
         child: Container(
           width: 56,
           height: 56,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             shape: BoxShape.circle,
             color: on ? Colors.white : rgba(255, 255, 255, .14),
             border: Border.all(color: rgba(255, 255, 255, .26)),
@@ -867,7 +868,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                       Container(
                         width: 5,
                         height: 5,
-                        decoration: const BoxDecoration(
+                        decoration: const CssDecoration(
                           shape: BoxShape.circle,
                           color: kSpMint,
                           boxShadow: [BoxShadow(color: kSpMint, blurRadius: 6)],
@@ -1189,7 +1190,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                     Container(
                       width: 5,
                       height: 5,
-                      decoration: const BoxDecoration(
+                      decoration: const CssDecoration(
                         shape: BoxShape.circle,
                         color: kSpMint,
                         boxShadow: [BoxShadow(color: kSpMint, blurRadius: 6)],
@@ -1389,7 +1390,7 @@ class _Lukk extends StatelessWidget {
     child: Container(
       width: 36,
       height: 36,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         color: rgba(15, 31, 43, .5),
         boxShadow: [BoxShadow(color: rgba(255, 255, 255, .28), spreadRadius: 1)],

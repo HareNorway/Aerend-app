@@ -9,6 +9,7 @@ import '../kit/bergen_motion.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import 'kurv_parts.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Kassen › Flere valg (Onboarding plan Step 7, §3 #18–#19, prototype
 /// L7087–7128 + L24313–24350): the dark «Beskjed til butikken» card for
@@ -127,7 +128,7 @@ class KurvBeskjedKort extends StatelessWidget {
               duration: BergenTokens.motion(context, const Duration(milliseconds: 250)),
               constraints: BoxConstraints(minHeight: 46 * s),
               padding: EdgeInsets.fromLTRB(16 * s, 4 * s, 4 * s, 4 * s),
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: BorderRadius.circular(999),
                 color: fylt ? rgba(92, 224, 184, .1) : rgba(0, 0, 0, .22),
                 border: fylt
@@ -237,7 +238,7 @@ class _MorkChip extends StatelessWidget {
         duration: BergenTokens.motion(context, const Duration(milliseconds: 200)),
         constraints: BoxConstraints(minHeight: 34 * s),
         padding: EdgeInsets.symmetric(horizontal: 12 * s),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(999),
           color: paa ? null : rgba(255, 255, 255, .08),
           gradient: paa ? cssLinear(180, [rgba(130, 242, 210, .3), rgba(92, 224, 184, .1)]) : null,
@@ -329,7 +330,7 @@ class KurvTipsEget extends StatelessWidget {
       height: 46 * s,
       margin: EdgeInsets.only(top: 8 * s),
       padding: EdgeInsets.symmetric(horizontal: 16 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         color: paa ? rgba(92, 224, 184, .12) : rgba(0, 0, 0, .22),
         border: paa ? Border.all(color: rgba(92, 224, 184, .7), width: 1.5 * s) : null,

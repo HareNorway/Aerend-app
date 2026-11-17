@@ -16,6 +16,7 @@ import 'adr_tegning.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Adresse sheets (`sheet:'adresse'` L8382, `sheet:'nyAdresse'` L8493) ─────
 // "Hvor skal ærendet?": the street scene with the chosen place, its door
@@ -799,7 +800,7 @@ class _AdrArkState extends State<_AdrArk> {
             duration: const Duration(milliseconds: 300),
             constraints: const BoxConstraints(minHeight: 46),
             padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -2030,7 +2031,7 @@ class _NyAdresseState extends State<_NyAdresse> {
       duration: const Duration(milliseconds: 300),
       height: 54,
       padding: const EdgeInsets.fromLTRB(7, 0, 12, 0),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(17),
         gradient: const LinearGradient(
           begin: Alignment.topCenter,

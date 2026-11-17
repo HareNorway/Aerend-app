@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The Bergen toast (design `.toast`): a dark pill near the bottom that fades
 /// in, holds for [BergenTokens.motionToast], and fades out. One at a time.
@@ -24,7 +25,7 @@ class BergenToast extends StatelessWidget {
         color: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             color: BergenTokens.tealNight.withValues(alpha: .94),
             borderRadius: BorderRadius.circular(BergenTokens.radiusButton),
             border: Border.all(color: BergenTokens.glassBorder),

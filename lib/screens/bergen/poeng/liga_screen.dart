@@ -21,6 +21,7 @@ import '../meg/meg_sheets.dart';
 import '../meg/mork_rad.dart';
 import 'poeng_copy.dart';
 import '../kit/laster_skjerm.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Bergen-ligaen (new Bergen `erLigaSide`, L7949–8030, + `ligaVals` L19669–
 /// 19732, design px): the night over Ulriken — aurora, stars, the lit peak
@@ -798,7 +799,7 @@ class _Klatrer extends StatelessWidget {
                   child: Container(
                     width: s,
                     height: s,
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: farger),
                       boxShadow: [
@@ -920,7 +921,7 @@ class _Deg extends StatelessWidget {
                       children: [
                         Positioned.fill(
                           child: Container(
-                            decoration: const BoxDecoration(
+                            decoration: const CssDecoration(
                               shape: BoxShape.circle,
                               color: Color.fromRGBO(242, 109, 61, .28),
                               boxShadow: [BoxShadow(color: Color.fromRGBO(242, 109, 61, .3), blurRadius: 10 / 2 / .57735)],

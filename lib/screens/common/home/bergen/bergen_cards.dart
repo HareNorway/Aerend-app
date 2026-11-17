@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../auth/onboarding_kit.dart';
 import 'bergen_copy.dart';
 import 'bergen_kit.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Sheet cards ─────────────────────────────────────────────────────────────
 // The Forundringspose row, the Utforsk row, section headers and the
@@ -189,7 +190,7 @@ class BergenSurpriseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22 * s),
         child: Container(
           padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 12 * s, 10 * s),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             color: const Color(0x14FFFFFF),
             borderRadius: BorderRadius.circular(22 * s),
             border: Border.all(color: const Color(0x2EFFFFFF)),
@@ -352,7 +353,7 @@ class BergenSurpriseCard extends StatelessWidget {
                       horizontal: 13 * s,
                       vertical: 9 * s,
                     ),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       gradient: kBergenOrangeGradient,
                       borderRadius: BorderRadius.circular(16 * s),
                       boxShadow: [
@@ -445,7 +446,7 @@ class BergenExploreCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22 * s),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 9 * s),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             color: const Color(0x14FFFFFF),
             borderRadius: BorderRadius.circular(22 * s),
             border: Border.all(color: const Color(0x2EFFFFFF)),
@@ -551,7 +552,7 @@ class BergenExploreCard extends StatelessWidget {
                       horizontal: 11 * s,
                       vertical: 7 * s,
                     ),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       gradient: kBergenOrangeGradient,
                       borderRadius: BorderRadius.circular(999),
                       boxShadow: [
@@ -1273,7 +1274,7 @@ class _FindCard extends StatelessWidget {
           pressDy: 3,
           child: Container(
             padding: EdgeInsets.all(10 * s),
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               borderRadius: BorderRadius.circular(18 * s),
               gradient: const LinearGradient(
                 begin: Alignment.topCenter,
@@ -1329,7 +1330,7 @@ class _FindCard extends StatelessWidget {
                         horizontal: 7 * s,
                         vertical: 3 * s,
                       ),
-                      decoration: BoxDecoration(
+                      decoration: CssDecoration(
                         borderRadius: BorderRadius.circular(999),
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,

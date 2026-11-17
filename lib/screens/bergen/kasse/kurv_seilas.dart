@@ -10,6 +10,7 @@ import '../kit/bergen_motion.dart';
 import '../kit/ro_baat.dart';
 import 'kasse_copy.dart';
 import '../kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// `Seilas · kassen` (L6139): the 104-px header of the Kurv screen — the
 /// dashed course, the quay with the store's logo and «Bryggen», Ægil rowing
@@ -137,7 +138,7 @@ class KurvSeilas extends StatelessWidget {
                             duration: BergenTokens.motion(context, const Duration(milliseconds: 300)),
                             width: 6 * s,
                             height: 6 * s,
-                            decoration: BoxDecoration(
+                            decoration: CssDecoration(
                               shape: BoxShape.circle,
                               color: dot,
                               boxShadow: [BoxShadow(color: dot, blurRadius: onbBlur(8 * s))],

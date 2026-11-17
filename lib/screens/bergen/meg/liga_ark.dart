@@ -10,6 +10,7 @@ import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
 import '../poeng/poeng_feil.dart';
 import 'mork_rad.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The league's dark sheets (new Bergen `kArk ligaBli` / `ligaNavn` /
 /// `ligaVilkaar`, L20251–20287; the field L9900–9915).
@@ -166,7 +167,7 @@ class _Felt extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
             border: Border.all(color: fok ? const Color.fromRGBO(127, 240, 203, .85) : const Color.fromRGBO(255, 255, 255, .16)),

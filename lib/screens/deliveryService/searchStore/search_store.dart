@@ -30,6 +30,7 @@ import '../storeDetail/store_detail.dart';
 import 'search_dishes_shimmer.dart';
 import 'search_store_bloc.dart';
 import 'search_store_dl.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class SearchStore extends StatefulWidget {
   final LatLng latLng;
@@ -771,7 +772,7 @@ class _SearchStoreState extends State<SearchStore> {
                         height: 36,
                         width: 36,
                         padding: const EdgeInsets.all(0),
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                             color: Theme.of(context).colorScheme.surface,
                             boxShadow: [
                               BoxShadow(
@@ -1003,7 +1004,7 @@ void _showFilterModal(BuildContext context) {
                   height: 36,
                   width: 36,
                   padding: const EdgeInsets.all(0),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       boxShadow: [
                         BoxShadow(

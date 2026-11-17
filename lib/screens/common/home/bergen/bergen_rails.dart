@@ -15,6 +15,7 @@ import '../../auth/launch/lf_css.dart' show cssEaseInOut;
 import '../../auth/launch/lf_motion.dart' show LfLoop;
 import '../../../bergen/kit/bergen_lagring.dart' show BergenLagringLive;
 import '../../../bergen/kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
 // Three cards on a turntable: the focused card faces you, the other two sit
@@ -360,7 +361,7 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin, 
       behavior: HitTestBehavior.opaque,
       onTap: () => front ? widget.onOpen(i) : _pick(i),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           gradient: kBergenCardGradient,
           borderRadius: BorderRadius.circular(26 * s),
           border: Border.all(color: const Color(0xF2FFFFFF)),
@@ -1341,7 +1342,7 @@ Widget _offerTag(BuildContext context, String text, {bool small = false}) {
       horizontal: (small ? 8 : 9) * s,
       vertical: 4 * s,
     ),
-    decoration: BoxDecoration(
+    decoration: CssDecoration(
       gradient: kBergenOrangeGradient,
       borderRadius: BorderRadius.circular(10 * s),
       border: Border.all(color: Colors.white, width: 2 * s),

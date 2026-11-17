@@ -13,6 +13,7 @@ import 'sporing_copy.dart';
 import 'sporing_gl.dart';
 import 'sporing_scene_kai.dart';
 import 'sporing_sist_oppdatert.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// **Sporing · På vei** (L6775, the WebGL branch `sjoGlPaa`): the 2.5D night
 /// map of the centre — the prototype's own shader (`spKartInit`, ported as
@@ -131,7 +132,7 @@ class SpSceneKart extends StatelessWidget {
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 250),
                   padding: const EdgeInsets.fromLTRB(11, 8, 11, 8),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     color: rgba(255, 255, 255, .88),
                     border: Border.all(color: rgba(255, 255, 255, .95)),
                     borderRadius: const BorderRadius.only(topLeft: Radius.circular(14), topRight: Radius.circular(14), bottomRight: Radius.circular(14), bottomLeft: Radius.circular(4)),
@@ -211,7 +212,7 @@ class _Over extends StatelessWidget {
     top: y,
     child: Container(
       padding: const EdgeInsets.fromLTRB(7, 2, 7, 2),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [BoxShadow(color: rgba(10, 30, 40, skygge), offset: const Offset(0, 3), blurRadius: 6, spreadRadius: -3)],

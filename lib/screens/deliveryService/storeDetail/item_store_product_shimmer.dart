@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ItemStoreProductShimmer extends StatelessWidget {
   const ItemStoreProductShimmer({super.key});
@@ -76,7 +77,7 @@ class ItemStoreProductShimmer extends StatelessWidget {
                     child: Center(
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: deviceWidth * 0.01, vertical: deviceHeight * 0.004),
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           color: colorShimmerBg,
                           boxShadow: const [
                             BoxShadow(

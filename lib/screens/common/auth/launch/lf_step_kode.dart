@@ -258,7 +258,7 @@ extension _Kode on LaunchOnboardingState {
       // `width:62px;height:70px` content-box + the 1.5px border.
       width: 65,
       height: 73,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(18),
         color: has ? const Color.fromRGBO(242, 109, 61, .16) : const Color.fromRGBO(0, 0, 0, .28),
         border: Border.all(color: kant, width: 1.5),

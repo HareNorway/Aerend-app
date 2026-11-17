@@ -13,6 +13,7 @@ import 'bergen_copy.dart';
 import 'bergen_kit.dart';
 import 'bergen_rails.dart';
 import '../../../bergen/kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ignore_for_file: non_constant_identifier_names
 
@@ -543,7 +544,7 @@ class _Dot extends StatelessWidget {
         return Container(
           width: size * s,
           height: size * s,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             shape: BoxShape.circle,
             color: color,
             boxShadow: [BoxShadow(color: color.withValues(alpha: .9 + .1 * q), blurRadius: onbBlur((8 + 7 * q) * s))],

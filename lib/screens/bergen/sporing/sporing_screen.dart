@@ -46,6 +46,7 @@ import '../aegil/aegil_entry.dart' show kAegilRoute;
 import '../../common/homeMainV1/home_main_v1.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import '../onboarding/onb_tips.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// `sporing` (Launch L6400–7277) at `/bergen/sporing/{id}`.
 ///
@@ -992,7 +993,7 @@ class _SporingScreenState extends State<SporingScreen> {
                   child: Container(
                     key: const Key('a1_sporing_gave'),
                     padding: const EdgeInsets.fromLTRB(9, 4, 9, 4),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       color: rgba(255, 255, 255, .9),
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: [

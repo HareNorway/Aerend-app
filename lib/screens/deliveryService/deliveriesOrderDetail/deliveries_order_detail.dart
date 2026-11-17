@@ -6,6 +6,7 @@ import 'deliveries_order_detail_dl.dart';
 import 'deliveries_order_detail_bloc.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class DeliveriesOrderDetail extends StatefulWidget {
   final bool isFromTrackOrderActivity;
@@ -247,7 +248,7 @@ class _DeliveriesOrderDetailState extends State<DeliveriesOrderDetail> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
@@ -434,7 +435,7 @@ class _DeliveriesOrderDetailState extends State<DeliveriesOrderDetail> {
                             horizontal: 16,
                             vertical: 14,
                           ),
-                          decoration: BoxDecoration(
+                          decoration: CssDecoration(
                             color: cardBg,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(

@@ -49,6 +49,7 @@ import 'aegil_scene.dart';
 import 'aegil_verktoy.dart';
 import 'cus_level3.dart';
 import '../onboarding/onb_tips.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Ægil (`erAgent`, L4500–5120 in `Ærend Kunde Launch.dc.html`, design px).
 ///
@@ -1536,7 +1537,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                 Container(
                   width: 5,
                   height: 5,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: kAeMint, boxShadow: [BoxShadow(color: kAeMint, blurRadius: 4)]),
+                  decoration: const CssDecoration(shape: BoxShape.circle, color: kAeMint, boxShadow: [BoxShadow(color: kAeMint, blurRadius: 4)]),
                 ),
                 const SizedBox(width: 5),
                 Flexible(
@@ -1885,7 +1886,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
           duration: const Duration(milliseconds: 350),
           curve: Curves.ease,
           padding: const EdgeInsets.fromLTRB(17, 0, 7, 0),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: LinearGradient(
               begin: Alignment.topCenter,

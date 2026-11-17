@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class IconSurface extends StatelessWidget {
   final Widget child;
@@ -27,7 +28,7 @@ class IconSurface extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           color: bg,
           borderRadius: borderRadius,
           boxShadow: [

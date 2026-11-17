@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/design_scale.dart';
 
 import '../../theme/sc_saas_theme.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Swipe-to-confirm slider — mirrors `SwipeButton` (dugnad/swipe.jsx) and the
 /// `.dg-swipe` rules: ~66px track, 56px knob inset 5px, settle transition
@@ -98,7 +99,7 @@ class _AeSwipeButtonState extends State<AeSwipeButton>
         // scrolled content show through the capsule.
         return Container(
             height: _trackHeight,
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               color: base,
               borderRadius: BorderRadius.circular(999),
               gradient: LinearGradient(

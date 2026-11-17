@@ -13,6 +13,7 @@ import '../kit/bergen_motion.dart';
 import '../kit/bergen_perf.dart';
 import '../sok/sok_oversikt.dart' show SokIkon;
 import 'kategori_kort.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Kategori › Produkter (Onboarding plan Step 6, §3 #16, prototype
 /// `data-screen-label="Produktkort"` L6827–6885): the «plate on the cloth»
@@ -521,7 +522,7 @@ class _Tag extends StatelessWidget {
     final f = katTagFarger(tag, tilbud: tilbud, ny: ny);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 5 * s),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         color: f.color,
         gradient: f.gradient,
@@ -552,7 +553,7 @@ class _Merke extends StatelessWidget {
       width: size * s,
       height: size * s,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         color: har ? Colors.white : m.bg,
         boxShadow: [

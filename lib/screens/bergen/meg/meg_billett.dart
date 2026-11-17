@@ -13,6 +13,7 @@ import '../aegil/aegil_bits.dart';
 import '../kit/bergen_perf.dart';
 import 'meg_bergen.dart';
 import 'package:aerend_customer/utils/route_names.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Sharing the gullbillett (new Bergen `gbDel`) ──────────────────────────
 
@@ -1103,7 +1104,7 @@ class _GbDeltState extends State<GbDelt> with SingleTickerProviderStateMixin {
                   child: Container(
                     width: s.$3,
                     height: s.$3,
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       shape: BoxShape.circle,
                       color: s.$5,
                       boxShadow: const [BoxShadow(color: Color(0xFFF2C14E), blurRadius: 5)],

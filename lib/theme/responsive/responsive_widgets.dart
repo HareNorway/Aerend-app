@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'responsive_helper.dart';
 import 'responsive_tokens.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ResponsiveGap extends StatelessWidget {
   const ResponsiveGap(
@@ -108,7 +109,7 @@ class ResponsiveCard extends StatelessWidget {
 
     return Container(
       clipBehavior: clipBehavior,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: color,
         borderRadius: BorderRadius.circular(
           r.sizeValue(radius, min: minRadius, max: maxRadius),

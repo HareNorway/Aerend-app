@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Ærend-tilbud (prototype L3011–3100, `tbVals`) ──────────────────────────
 // Paper coupons, one at a time: a cream ticket with the shop, the dish and
@@ -983,7 +984,7 @@ class _Drypp extends StatelessWidget {
                   alignment: Alignment.topCenter,
                   transform: Matrix4.diagonal3Values(1, sy, 1),
                   child: Container(
-                    decoration: const BoxDecoration(
+                    decoration: const CssDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(2)),
                       gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(0, 0, 0, 0), Color.fromRGBO(0, 0, 0, .14)]),
                       boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .2), offset: Offset(1, 0))],

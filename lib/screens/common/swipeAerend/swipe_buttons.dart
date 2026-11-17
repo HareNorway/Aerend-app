@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:appinio_swiper/appinio_swiper.dart';
 import 'package:aerend_customer/constant/colors.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class SwipeButton extends StatelessWidget {
   final Function onTap;
@@ -54,7 +55,7 @@ Widget swipeRightButton(BuildContext context,
     child: Container(
       height: 60,
       width: 60,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(50),
         boxShadow: [
@@ -104,7 +105,7 @@ Widget swipeLeftButton(BuildContext context,
     child: Container(
       height: 60,
       width: 60,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(50),
         boxShadow: [

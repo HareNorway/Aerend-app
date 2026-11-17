@@ -11,6 +11,7 @@ import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import 'sporing_gl.dart';
 import 'sporing_scene_kai.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// **Sporing · Levert** (L6896): the house at night (baked from the
 /// prototype's WebGL canvas), the street number, Ægil on the step waving and
@@ -245,7 +246,7 @@ class _Stjerneskudd extends StatelessWidget {
       child: Container(
         width: w,
         height: 2,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(2),
           gradient: LinearGradient(colors: [rgba(255, 255, 255, 0), Colors.white]),
           boxShadow: [BoxShadow(color: rgba(255, 255, 255, .8), blurRadius: 4)],

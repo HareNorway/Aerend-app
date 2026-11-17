@@ -15,6 +15,7 @@ import '../meg/a3_services.dart';
 import '../meg/meg_ark.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import 'support.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// «Sak på ordren» (Launch L9237, `sakVals`): the case filed on this order —
 /// the dot, «Vi ser på det · svar innen 30 min» and when. A case is shown
@@ -32,7 +33,7 @@ class SakPaaOrdren extends StatelessWidget {
       key: const Key('oh-sak'),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       // The dark Ark's glass (new Bergen L9883).
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
@@ -861,7 +862,7 @@ class _Kort extends StatelessWidget {
     ),
     child: Row(
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 8 / 2 / .57735)])),
+        Container(width: 8, height: 8, decoration: CssDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 8 / 2 / .57735)])),
         const SizedBox(width: 8),
         Expanded(child: Text(tittel, style: inter(13, weight: FontWeight.w800, color: Colors.white))),
         Text(under, style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62))),
@@ -892,7 +893,7 @@ class IssueSakRad extends StatelessWidget {
     return Container(
       key: const Key('oh-sak'),
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
@@ -903,7 +904,7 @@ class IssueSakRad extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 8 / 2 / .57735)])),
+              Container(width: 8, height: 8, decoration: CssDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 8 / 2 / .57735)])),
               const SizedBox(width: 8),
               Expanded(child: Text(i.statusText, key: const Key('oh-sak-status'), style: inter(13.5, weight: FontWeight.w800, color: Colors.white))),
               Text(naar, style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62))),

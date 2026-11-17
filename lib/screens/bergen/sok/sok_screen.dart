@@ -26,6 +26,7 @@ import 'sok_copy.dart';
 import 'sok_oversikt.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// `sok` (L5122–5297 in `Ærend Kunde Launch.dc.html`).
 ///
@@ -656,7 +657,7 @@ class _OrangePill extends StatelessWidget {
       width: width,
       padding: padding,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         gradient: const LinearGradient(
           begin: Alignment.topCenter,

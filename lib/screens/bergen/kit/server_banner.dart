@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../aegil/aegil_bits.dart' show AeIkon;
 import '../ai/ai_bits.dart' show AiIk;
 import '../meg/meg_ark.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Customer Step 16: the server banner from `agents/flags` (a line the
 /// operators set per app version: info / warning / critical), shown at the
@@ -43,7 +44,7 @@ class _CusServerBannerState extends State<CusServerBanner> {
         child: Container(
           key: const Key('cus-server-banner'),
           padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(14),
             color: bg,
             border: Border.all(color: bd),

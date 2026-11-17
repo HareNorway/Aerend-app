@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../../../utils/utils.dart';
 import 'ds_home_dl.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ItemRestaurant extends StatelessWidget {
   final StoreListItem storeListItem;
@@ -17,7 +18,7 @@ class ItemRestaurant extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(deviceWidth * 0.05),
         boxShadow: isDark

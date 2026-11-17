@@ -13,6 +13,7 @@ import '../../../utils/utils.dart';
 import 'aegil_launch_copy.dart';
 import 'aegil_verktoy.dart';
 import '../kit/bergen_perf.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Ægil-chat (`vcAktiv`, L4574–4632) ───────────────────────────────────────
 
@@ -687,7 +688,7 @@ class AeForslagKort extends StatelessWidget {
                           Container(
                             width: 6,
                             height: 6,
-                            decoration: const BoxDecoration(shape: BoxShape.circle, color: kAeMint, boxShadow: [BoxShadow(color: kAeMint, blurRadius: 4)]),
+                            decoration: const CssDecoration(shape: BoxShape.circle, color: kAeMint, boxShadow: [BoxShadow(color: kAeMint, blurRadius: 4)]),
                           ),
                           const SizedBox(width: 5),
                           Flexible(
@@ -854,7 +855,7 @@ class _Vare extends StatelessWidget {
           Container(
             height: 56,
             clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               borderRadius: BorderRadius.circular(15),
               gradient: LinearGradient(begin: const Alignment(-.42, -.9), end: const Alignment(.42, .9), colors: tint!),
               boxShadow: [BoxShadow(color: const Color.fromRGBO(4, 18, 26, .8), offset: const Offset(0, 6), blurRadius: cssSigma(12) * 2, spreadRadius: -8)],

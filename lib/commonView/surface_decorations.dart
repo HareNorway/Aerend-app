@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/sc_saas_theme.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Ærend shared BoxDecoration helpers.
 ///
@@ -17,7 +18,7 @@ class AeSurface {
     Color? color,
     BorderRadius? borderRadius,
   }) {
-    return BoxDecoration(
+    return CssDecoration(
       color: color ?? Colors.white,
       borderRadius: borderRadius ?? BorderRadius.circular(18), // --ae-r-lg
       boxShadow: ScSaasThemeTokens.shadowCard,
@@ -39,7 +40,7 @@ class AeSurface {
     Color? color,
     BorderRadius? borderRadius,
   }) {
-    return BoxDecoration(
+    return CssDecoration(
       color: color ?? Colors.white,
       borderRadius: borderRadius ?? BorderRadius.circular(24), // --ae-r-xl
       boxShadow: ScSaasThemeTokens.shadowDeep,
@@ -59,7 +60,7 @@ class AeSurface {
     BorderRadius? borderRadius,
     bool isCircle = false,
   }) {
-    return BoxDecoration(
+    return CssDecoration(
       gradient: const LinearGradient(
         begin: Alignment(-0.6, -0.8), // ≈ 155deg origin
         end: Alignment(0.6, 0.8),
@@ -92,7 +93,7 @@ class AeSurface {
     BorderRadius? borderRadius,
     bool isCircle = false,
   }) {
-    return BoxDecoration(
+    return CssDecoration(
       gradient: const LinearGradient(
         begin: Alignment(-0.5, -0.85), // ≈ 150deg origin
         end: Alignment(0.5, 0.85),

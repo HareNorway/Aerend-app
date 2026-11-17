@@ -19,6 +19,7 @@ import 'kurv_parts.dart' show KasseTommelKlipp;
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../adresse/adr_ark.dart' show adrMerke;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The four Kasse sheets (≈L6913–7142 in `Ærend Kunde Bergen.dc.html`) via
 /// [BergenArk]: **Adresse** ("Hvor skal ærendet?" + the door note),
@@ -432,7 +433,7 @@ class _TidKort extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(20 * s),
           gradient: cssLinear(180, [
             valgt ? rgba(92, 224, 184, .16) : rgba(255, 255, 255, .1),
@@ -488,7 +489,7 @@ class _TidKort extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 width: 10 * s,
                 height: 10 * s,
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   shape: BoxShape.circle,
                   color: valgt ? mint : const Color(0x005CE0B8),
                   boxShadow: [BoxShadow(color: valgt ? mint : const Color(0x005CE0B8), blurRadius: onbBlur(8 * s))],
@@ -633,7 +634,7 @@ class _BetKort extends StatelessWidget {
               width: 40 * s,
               height: 40 * s,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: BorderRadius.circular(13 * s),
                 gradient: bg,
                 boxShadow: [

@@ -22,6 +22,7 @@ import 'package:aerend_customer/ui/kit/ae_rise_in.dart';
 import 'package:aerend_customer/commonView/modal_ui.dart';
 
 import '../../../utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// "Min konto" — mirrors `MinKontoScreen` in dugnad/account.jsx:
 /// `.tk-head` header, `.dga-photo` card, three `.dga-field` rows,
@@ -259,7 +260,7 @@ class _AccountDetailState extends State<AccountDetail>
                   Container(
                     width: 58,
                     height: 58,
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       gradient: theme.shinyGradient,
                       shape: BoxShape.circle,
                       boxShadow: theme.shadowButton,
@@ -625,7 +626,7 @@ class _AccountDetailState extends State<AccountDetail>
                   horizontal: 15,
                   vertical: 15,
                 ),
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
@@ -700,7 +701,7 @@ class _AccountDetailState extends State<AccountDetail>
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [

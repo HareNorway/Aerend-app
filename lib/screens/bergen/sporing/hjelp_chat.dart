@@ -180,7 +180,7 @@ class _SupportChatState extends State<_SupportChat> {
                         Container(
                           width: 5,
                           height: 5,
-                          decoration: BoxDecoration(
+                          decoration: CssDecoration(
                             shape: BoxShape.circle,
                             color: dot,
                             boxShadow: [BoxShadow(color: dot, blurRadius: 6)],
@@ -793,7 +793,7 @@ class _Hub extends StatelessWidget {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: BoxDecoration(
+                          decoration: CssDecoration(
                             shape: BoxShape.circle,
                             color: dot,
                             boxShadow: [BoxShadow(color: dot, blurRadius: 8)],
@@ -1026,7 +1026,7 @@ class _PulsDot extends StatelessWidget {
     child: Container(
       width: 8,
       height: 8,
-      decoration: const BoxDecoration(
+      decoration: const CssDecoration(
         shape: BoxShape.circle,
         color: kSpMint,
         boxShadow: [BoxShadow(color: kSpMint, blurRadius: 8)],

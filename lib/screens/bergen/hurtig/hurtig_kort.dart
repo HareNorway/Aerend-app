@@ -11,6 +11,7 @@ import 'hurtig_brain.dart';
 import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
 import 'hurtig_glass.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Hurtigbestilling · the module cards and the draft (new Bergen L4264–4535)
 // New Bergen turned every card from white to dark glass and gave each its
@@ -1481,7 +1482,7 @@ class _Forslag extends StatelessWidget {
                         width: 48,
                         height: 48,
                         padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
+                        decoration: const CssDecoration(
                           shape: BoxShape.circle,
                           color: kHbKant,
                           boxShadow: [
@@ -1605,7 +1606,7 @@ class HbBestiltKort extends StatelessWidget {
               width: 42,
               height: 42,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: const CssDecoration(
                 shape: BoxShape.circle,
                 color: kHbMint,
                 boxShadow: [

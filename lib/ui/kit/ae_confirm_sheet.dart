@@ -8,6 +8,7 @@ import '../../theme/sc_saas_theme.dart';
 import '../../screens/common/auth/auth_style.dart';
 import 'ae_theme.dart';
 import 'ae_sheet.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Shared bottom-sheet vocabulary for the dugnad dialog family
 /// (`dugnad/dialogs.jsx` + the two password sheets in `dugnad/auth-screens.jsx`).
@@ -313,7 +314,7 @@ class AeSheetPrimaryButton extends StatelessWidget {
           curve: Curves.ease,
           height: context.dp(56),
           alignment: Alignment.center,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(context.dp(14)),
             color: disabled
                 ? theme.primaryDisabled

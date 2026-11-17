@@ -7,6 +7,7 @@ import '../auth/onboarding_copy.dart';
 import '../auth/onboarding_kit.dart';
 import '../login/login.dart';
 import 'consent_legal_docs.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Onboarding **Vilkår** (+ the terms / privacy reader) — mirrors
 /// `onbErVilkaar` / `onbErTekst` in
@@ -429,7 +430,7 @@ class _DocCard extends StatelessWidget {
               width: 42,
               height: 42,
               alignment: Alignment.center,
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 borderRadius: BorderRadius.circular(14),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,

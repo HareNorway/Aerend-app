@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'chat_provider_dl.dart';
 import '../../../utils/utils.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ChatProvider extends StatefulWidget {
   final String providerName;
@@ -108,7 +109,7 @@ class _ChatProviderState extends State<ChatProvider> {
             left: 0,
             child: Container(
               padding: const EdgeInsets.fromLTRB(15, 15, 15, 20),
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 color: colorWhite,
                 boxShadow: [
                   BoxShadow(
@@ -170,7 +171,7 @@ class _ChatProviderState extends State<ChatProvider> {
     return Container(
       margin: EdgeInsets.fromLTRB(leftMargin, 8, rightMargin, 8),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: boxColor,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [

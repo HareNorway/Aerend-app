@@ -13,6 +13,7 @@ import '../meg/min_bio_kort.dart' show bioNivC;
 import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
 import 'cus_level3.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Det Ægil vet om deg · Min Bio (`agMinne`, new Bergen L4821–4905) ─────────
 
@@ -519,7 +520,7 @@ class _AeMinneViewState extends State<AeMinneView> {
                     children: [
                       () {
                         final c = p.confirmed ? const Color(0xFF5CE0B8) : const Color(0xFFF6D27A);
-                        return Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 4)]));
+                        return Container(width: 8, height: 8, decoration: CssDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 4)]));
                       }(),
                       const SizedBox(width: 10),
                       Expanded(
@@ -569,7 +570,7 @@ class _AeMinneViewState extends State<AeMinneView> {
                       () {
                         final ok = AeMinneView.bekreftet(m);
                         final c = ok ? const Color(0xFF5CE0B8) : const Color(0xFFF6D27A);
-                        return Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 4)]));
+                        return Container(width: 8, height: 8, decoration: CssDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 4)]));
                       }(),
                       const SizedBox(width: 10),
                       Expanded(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../kit/bergen_kit.dart';
 import 'a3_scaffold.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The two orange pills the design uses on Meg.
 ///
@@ -56,7 +57,7 @@ class MegPill extends StatelessWidget {
         child: Container(
           height: height,
           padding: EdgeInsets.symmetric(horizontal: expand ? 18 : 13),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             gradient: enabled ? (cta ? ctaGradient : navGradient) : null,
             color: enabled ? null : BergenTokens.glassFill,
             borderRadius: BorderRadius.circular(999),

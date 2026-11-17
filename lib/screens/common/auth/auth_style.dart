@@ -16,6 +16,7 @@ import '../../../ui/kit/ae_rise_in.dart';
 import '../../../ui/kit/ae_subpage_shell.dart';
 import '../consent/reen_flip_mark.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // `.dg-auth` / Reen `.reen-pre` tokens — navy surface, coral action.
 const Color _authBackground = AerendBergenAuthTokens.navy;
@@ -805,7 +806,7 @@ class AuthPrimaryButton extends StatelessWidget {
           // .ae-btn { height: 56px; border-radius: var(--ae-r-md) }
           height: context.dp(56),
           alignment: Alignment.center,
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(context.dp(14)),
             color: disabled ? theme.primaryDisabled : null,
             gradient: disabled
@@ -1119,7 +1120,7 @@ class AuthOtpCells extends StatelessWidget {
                   duration: const Duration(milliseconds: 150),
                   height: context.dp(54),
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     color: filled
                         ? const Color(0x24FFFFFF)
                         : AerendBergenAuthTokens.glassFill,
@@ -1316,7 +1317,7 @@ class AuthSocialButton extends StatelessWidget {
               curve: Curves.ease,
               width: double.infinity,
               height: context.dp(56),
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 // Design: linear-gradient(180deg, #FF7A4D, #FF5B24 52%, #E64A15)
                 // + white top inset / dark bottom inset / orange drop glow.
                 gradient: pressed
@@ -1393,7 +1394,7 @@ class AuthSocialButton extends StatelessWidget {
           curve: Curves.ease,
           width: double.infinity,
           height: context.dp(56),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             gradient: pressed
                 ? const LinearGradient(
                     begin: Alignment(-0.5, -0.85),

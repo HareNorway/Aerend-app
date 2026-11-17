@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../theme/design_scale.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 typedef _LetIndexPage = bool Function(int value);
 
@@ -147,7 +148,7 @@ class CircleNavBarState extends State<CircleNavBar> {
         child: Container(
           width: width,
           padding: EdgeInsets.all(context.dp(kAePillNavTrackPad)),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             color: const Color(0xD1FFFFFF), // rgba(255,255,255,0.82)
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
@@ -423,7 +424,7 @@ class _PillNavItemState extends State<_PillNavItem>
       height: context.dp(kAePillNavItemHeight),
       width: widget.fillActiveSlot ? double.infinity : null,
       padding: EdgeInsets.only(left: context.dp(4)),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         gradient: widget.activePillGradient ??
             const LinearGradient(

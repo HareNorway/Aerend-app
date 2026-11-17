@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_css.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 import '../onboarding/onb_maal.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Customer Step 9: the customer agents' cards in the chat ─────────────────
 //
@@ -219,7 +220,7 @@ class AeNokkel extends StatelessWidget {
       height: smal ? 38 : 44,
       padding: EdgeInsets.symmetric(horizontal: smal ? 14 : 18),
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         color: glass ? Color.fromRGBO(255, 255, 255, av ? .08 : .16) : (sekundaer ? const Color.fromRGBO(35, 32, 29, .06) : (av ? const Color.fromRGBO(30, 79, 92, .35) : kAeTeal)),
         border: glass ? Border.all(color: const Color.fromRGBO(255, 255, 255, .22)) : null,

@@ -21,6 +21,7 @@ import 'ai_copy.dart';
 import 'ai_overlays.dart';
 import 'ai_store.dart';
 import 'ai_tilbud.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Customer plan Step 14 — the AI sheets of design 10140–10325 / 21549–21672
 /// on the dark Ark: `aiInngang`, `aiVelg`, `aiQr`, `aiSamtykke`, `aiKoblet`,
@@ -165,7 +166,7 @@ abstract final class AiArk {
                   duration: const Duration(milliseconds: 220),
                   transform: Matrix4.translationValues(0, valgt == n ? -4 : 0, 0),
                   padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
-                  decoration: BoxDecoration(
+                  decoration: CssDecoration(
                     borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: valgt == n ? const [Color.fromRGBO(92, 224, 184, .28), Color.fromRGBO(92, 224, 184, .08)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
                     border: Border.all(color: valgt == n ? const Color.fromRGBO(127, 240, 203, .85) : const Color.fromRGBO(255, 255, 255, .14)),

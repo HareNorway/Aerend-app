@@ -12,6 +12,7 @@ import '../../common/auth/launch/lf_widgets.dart';
 import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// **Bud-identitet** (Launch L8995): the white glass pill with the
 /// courier's initial, «{navn} · el-sykkel» and «BankID-verifisert» — or the
@@ -53,7 +54,7 @@ class BudIdentitetPill extends StatelessWidget {
       },
       child: Container(
         padding: const EdgeInsets.fromLTRB(5, 5, 10, 5),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           color: rgba(255, 255, 255, .62),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: rgba(255, 255, 255, .85)),
@@ -420,7 +421,7 @@ class _Bryter extends StatelessWidget {
     child: Container(
       height: 26, // 24 + the CSS border
       padding: const EdgeInsets.fromLTRB(7, 0, 9, 0),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         color: rgba(255, 255, 255, .12),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: rgba(255, 255, 255, .24)),
@@ -543,7 +544,7 @@ class _QrBlokk extends StatelessWidget {
                 child: Opacity(
                   opacity: so.clamp(0.0, 1.0),
                   child: Container(
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       borderRadius: BorderRadius.circular(1),
                       gradient: LinearGradient(colors: [rgba(92, 224, 184, 0), const Color(0xFF5CE0B8), rgba(92, 224, 184, 0)]),
                       boxShadow: [BoxShadow(color: rgba(92, 224, 184, .55), blurRadius: 10, spreadRadius: 2)],
@@ -635,7 +636,7 @@ class ValgSomVenterCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     key: const Key('a1_sporing_valg'),
     padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-    decoration: BoxDecoration(
+    decoration: CssDecoration(
       color: rgba(255, 255, 255, .9),
       borderRadius: BorderRadius.circular(24),
       border: Border.all(color: rgba(242, 109, 61, .5), width: 1.5),

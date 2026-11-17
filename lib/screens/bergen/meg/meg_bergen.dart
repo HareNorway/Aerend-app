@@ -10,6 +10,7 @@ import '../aegil/aegil_bits.dart';
 import '../hjem/hjem_harness.dart';
 import 'meg_mark.dart';
 import 'meg_nivaa_card.dart' show medalFor;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Meg in new Bergen (Bergen Step 8, L7425–7650) ──────────────────────────
 // The gold ticket under the name, the «Poeng, nivå og konkurranser» card that
@@ -585,7 +586,7 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                             Container(
                               width: 12,
                               height: 12,
-                              decoration: BoxDecoration(
+                              decoration: CssDecoration(
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
                                 border: Border.all(color: m.ring),
@@ -743,7 +744,7 @@ class _Ring extends StatelessWidget {
               child: Container(
                 width: 42,
                 height: 42,
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
                   boxShadow: [

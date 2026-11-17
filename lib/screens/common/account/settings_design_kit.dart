@@ -5,6 +5,7 @@ import '../../../commonView/surface_decorations.dart';
 import '../../../theme/sc_saas_theme.dart';
 import '../../../ui/kit/ae_theme.dart';
 import '../auth/auth_style.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Shared Ærend design primitives for the "Innstillinger og støtte" screens
 /// (prototype: `dugnad/settings-screens.jsx` + `dugnad/dugnad.css`).
@@ -566,7 +567,7 @@ class DgrHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
           // --ae-shiny-purple, 150deg
@@ -1036,7 +1037,7 @@ class DgvBurst extends StatelessWidget {
       height: 84,
       margin: const EdgeInsets.only(bottom: 6),
       alignment: Alignment.center,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           // 140deg
@@ -1193,7 +1194,7 @@ class DgPrimaryButton extends StatelessWidget {
         width: double.infinity,
         height: 56,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(14),
           color: disabled
               ? theme.primaryDisabled

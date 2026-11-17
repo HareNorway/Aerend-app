@@ -17,6 +17,7 @@ import '../sok/sok_oversikt.dart' show SokIkon;
 import 'butikk_copy.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── The product sheet's Launch pieces (`visProdukt`, L8901–8990) ────────────
 
@@ -191,7 +192,7 @@ class ProduktHero extends StatelessWidget {
                         width: 38 * s,
                         height: 38 * s,
                         alignment: Alignment.center,
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           shape: BoxShape.circle,
                           color: rgba(15, 31, 43, .5),
                           border: Border.all(color: rgba(255, 255, 255, .3)),
@@ -948,7 +949,7 @@ class _MedKort extends StatelessWidget {
       pressDy: 2 * s,
       child: Container(
         padding: EdgeInsets.fromLTRB(10 * s, 0, 10 * s, 10 * s),
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           borderRadius: BorderRadius.circular(20 * s),
           gradient: cssLinear(
             165,

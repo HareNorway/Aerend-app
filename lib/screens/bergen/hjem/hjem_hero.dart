@@ -19,6 +19,7 @@ import 'hjem_fiskestang.dart';
 import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
 // Prototype L2227–2520. Design px, 390 wide, `top:72px; height:258px`:
@@ -465,7 +466,7 @@ class _HjemHeroState extends State<HjemHero> {
       height: h,
       child: IgnorePointer(
         child: Container(
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.all(Radius.elliptical(w / 2, h * (w == 4 && h == 5 ? .5 : .55))),
             gradient: RadialGradient(
               center: const Alignment(-.3, -.4),

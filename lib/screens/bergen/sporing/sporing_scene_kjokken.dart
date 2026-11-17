@@ -6,6 +6,7 @@ import 'sporing_bits.dart';
 import 'sporing_copy.dart';
 import 'sporing_gl.dart';
 import 'sporing_scene_kai.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// **Sporing · Tilberedes** (L6609, the WebGL branch `sjoGlPaa`): the
 /// kitchen — the prototype's own shader (`spKjInit`, ported as
@@ -189,7 +190,7 @@ class _Kjokken extends StatelessWidget {
           top: 14,
           child: Container(
             padding: const EdgeInsets.fromLTRB(6, 6, 12, 6),
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               color: rgba(255, 255, 255, .8),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: rgba(255, 255, 255, .95)),

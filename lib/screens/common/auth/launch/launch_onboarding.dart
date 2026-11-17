@@ -34,6 +34,7 @@ import 'lf_wow.dart';
 import '../../../bergen/kit/bergen_perf.dart';
 import '../../../bergen/kit/vann_overganger.dart';
 import '../../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 part 'lf_step_landing.dart';
 part 'lf_step_vilkaar.dart';

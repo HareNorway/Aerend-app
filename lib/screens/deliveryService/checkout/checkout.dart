@@ -24,6 +24,7 @@ import '../../../ui/kit/ae_swipe_button.dart';
 import 'checkout_bloc.dart';
 import 'checkout_preview_utils.dart';
 import 'co_styles.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 enum CheckoutPaymentMethod { cardKlarna, platformPay, vipps }
 
@@ -1628,7 +1629,7 @@ Future<void> _openOrderItemEditor(
                     onTap: () => Navigator.pop(bottomSheetContext),
                     child: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
+                      decoration: CssDecoration(
                         color: Colors.white.withValues(alpha: 0.9),
                         shape: BoxShape.circle,
                         boxShadow: ScSaasThemeTokens.shadowCard,

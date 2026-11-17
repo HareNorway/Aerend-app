@@ -16,6 +16,7 @@ import '../meg/a3_services.dart';
 import '../meg/meg_nivaa_card.dart' show medalFor;
 import 'poeng_copy.dart';
 import 'prize_art.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Nivåopprykk (`erOpprykk`, L7502–7554 in `Ærend Kunde Launch.dc.html`,
 /// design px): the aurora over Bryggen at night, then — on the prototype's
@@ -214,7 +215,7 @@ class _Medalje extends StatelessWidget {
     return Container(
       width: 104,
       height: 104,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: m.gradient, stops: m.stops),
         boxShadow: [

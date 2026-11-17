@@ -28,6 +28,7 @@ import 'utforsk_copy.dart';
 import 'package:aerend_customer/utils/route_names.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Butikkprofil (new Bergen L10189–10290, `bpVals` L16721): the store's
 /// page in Ærend Feed — the header (back, name, the «bergensk» dot), the
@@ -634,7 +635,7 @@ class _ApenChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 3)])),
+          Container(width: 7, height: 7, decoration: CssDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 3)])),
           const SizedBox(width: 6),
           Text(tekst, style: jakarta(12)),
         ],

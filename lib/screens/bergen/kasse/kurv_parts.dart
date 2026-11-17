@@ -13,6 +13,7 @@ import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import '../kit/bergen_perf.dart';
 import 'kurv_beskjed.dart' show KurvTipsEget;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// The pieces of the Kurv panel (design L5047–5228), each with the
 /// prototype's sizes, colours and shadows. Glass = `linear-gradient(180deg,
@@ -678,7 +679,7 @@ class _LandGlodState extends State<_LandGlod> with SingleTickerProviderStateMixi
       if (!_c.isAnimating) return child!;
       final k = kf(Curves.easeOut.transform(_c.value), const [0, .3, 1], const [0, 1, 0], const Cubic(0, 0, 1, 1));
       return DecoratedBox(
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           color: Color.fromRGBO(92, 224, 184, .12 * k),
           boxShadow: [
             BoxShadow(color: Color.fromRGBO(92, 224, 184, .55 * k), spreadRadius: 2),
@@ -1165,7 +1166,7 @@ class _CartPainter extends CustomPainter {
 /// The mint glass behind «Endre ›» and the Flere-valg key: `180deg
 /// rgba(130,242,210,.3) → rgba(92,224,184,.1)`, inset top .32, inset bottom
 /// `rgba(4,30,26,.32)`, the `rgba(92,224,184,.38)` ring and the drop.
-BoxDecoration kurvMintGlass(double s, {BoxShape shape = BoxShape.rectangle}) => BoxDecoration(
+BoxDecoration kurvMintGlass(double s, {BoxShape shape = BoxShape.rectangle}) => CssDecoration(
   shape: shape,
   borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(999),
   gradient: cssLinear(180, [rgba(130, 242, 210, .3), rgba(92, 224, 184, .1)]),

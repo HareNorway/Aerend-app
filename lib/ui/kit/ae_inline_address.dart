@@ -15,6 +15,7 @@ import '../../screens/common/address_order_chrome.dart';
 import '../../screens/common/manageAddress/add_new_address_repo.dart';
 import '../../screens/common/manageAddress/manage_address_dl.dart';
 import 'ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Street line shown on address cards — never `flat_no` (`N/A`).
 String addressDisplayTitle(AddressListItem address) {
@@ -277,7 +278,7 @@ class _AeInlineAddressFormState extends State<AeInlineAddressForm> {
                 child: Opacity(
                   opacity: valid ? 1 : 0.5,
                   child: Container(
-                    decoration: BoxDecoration(
+                    decoration: CssDecoration(
                       gradient: theme.shinyGradient,
                       borderRadius: BorderRadius.circular(999),
                       boxShadow: valid ? theme.shadowButton : null,

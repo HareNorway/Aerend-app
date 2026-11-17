@@ -21,6 +21,7 @@ import 'min_bio.dart';
 import 'min_bio_bits.dart';
 import 'min_bio_kort.dart' show bioNivC;
 import '../../../ui/kit/ae_haptic.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// What the sheet's pop means when the customer deleted the bio.
 const int minBioSlettet = -1;
@@ -1084,7 +1085,7 @@ class _NyFelt extends StatelessWidget {
               child: Container(
                 height: 44,
                 padding: const EdgeInsets.fromLTRB(12, 0, 5, 0),
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   color: Color.lerp(const Color.fromRGBO(255, 255, 255, .05), const Color.fromRGBO(255, 255, 255, .1), a),
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: [BoxShadow(color: Color.fromRGBO(92, 224, 184, .16 * a), spreadRadius: 3)],

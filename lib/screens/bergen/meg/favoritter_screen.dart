@@ -29,6 +29,7 @@ import 'bestillinger_screen.dart' show OhCopy;
 import 'meg_copy.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Favoritter (new Bergen `erFavoritter`, L8369–8457 + `favVals` L16766):
 /// a plain title bar, the Butikker (N) / Produkter (N) tabs, and
@@ -1060,7 +1061,7 @@ class _OfteChip extends StatelessWidget {
             width: 24,
             height: 24,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -1100,7 +1101,7 @@ class _LeggKnapp extends StatelessWidget {
         width: 42,
         height: 42,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
+        decoration: CssDecoration(
           shape: BoxShape.circle,
           gradient: LinearGradient(
             begin: Alignment.topCenter,

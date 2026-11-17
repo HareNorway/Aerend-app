@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../utils/utils.dart';
 import 'home_dl.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ItemHomeMainCategory extends StatelessWidget {
   final ServicesItem servicesItem;
@@ -20,7 +21,7 @@ class ItemHomeMainCategory extends StatelessWidget {
           height: deviceWidth * 0.2,
           width: deviceWidth * 0.25,
           padding: EdgeInsets.all(deviceWidth * 0.05),
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
               color: colorWhite,
               boxShadow: [
                 BoxShadow(

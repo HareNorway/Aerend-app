@@ -24,6 +24,7 @@ import 'pose_ark.dart';
 import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
 import '../onboarding/onb_tips.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// A bag as the Forundringspose segment, its card and its sheet show it
 /// (new Bergen `utfPoserVals`, L19899): the store's bag from `GET
@@ -1012,7 +1013,7 @@ class _AutomatScene extends StatelessWidget {
                                 child: Container(
                                   width: 6,
                                   height: 6,
-                                  decoration: BoxDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 3)]),
+                                  decoration: CssDecoration(shape: BoxShape.circle, color: c, boxShadow: [BoxShadow(color: c, blurRadius: 3)]),
                                 ),
                               ),
                             ),

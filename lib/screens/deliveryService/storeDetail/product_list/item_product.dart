@@ -13,6 +13,7 @@ import '../../checkout/checkout.dart';
 import '../store_detail_dl.dart';
 import '../topping_check_box_group.dart';
 import '../topping_radio_button_group.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 class ItemProduct extends StatefulWidget {
   final ProductListItem productListItem;
@@ -62,7 +63,7 @@ class _ItemProductState extends State<ItemProduct> {
                     ? deviceHeight * 0.004
                     : deviceHeight * 0.004,
               ),
-              decoration: BoxDecoration(
+              decoration: CssDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 boxShadow: const [
                   BoxShadow(

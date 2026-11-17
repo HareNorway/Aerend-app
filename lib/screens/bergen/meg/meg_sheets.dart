@@ -30,6 +30,7 @@ import 'meg_nivaa_card.dart' show medalFor, MegMedal;
 import 'mork_rad.dart';
 import 'meg_shine.dart';
 import 'fast_ukeshandel.dart' show FastCopy;
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Every Ark the Meg tab opens (design `kArkVals`), on the design's own sheet
 /// shell ([MegArk]): Gullbilletten, Vilkår, Nivå, Slik får du poeng, Navn i
@@ -1070,7 +1071,7 @@ class _LadderMedal extends StatelessWidget {
     final coin = Container(
       width: 46,
       height: 46,
-      decoration: BoxDecoration(
+      decoration: CssDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
         border: current ? Border.all(color: const Color.fromRGBO(242, 193, 78, .95), width: 3) : null,
@@ -1236,7 +1237,7 @@ class _NivaaDetail extends StatelessWidget {
         children: [
           Container(
             height: 56,
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               borderRadius: BorderRadius.circular(14),
               gradient: PrizeArt.of(slug: p.slug, name: p.name).gradient,
               border: Border.all(color: Colors.white.withValues(alpha: .35)),

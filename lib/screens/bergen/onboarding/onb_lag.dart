@@ -13,6 +13,7 @@ import '../kit/svg_sti.dart';
 import 'onb_maal.dart';
 import 'onb_runde.dart';
 import 'onb_steg.dart';
+import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 // ── Design constants (prototype L792–885, L11154–11302, rtVals L16851) ──────
 
@@ -1025,7 +1026,7 @@ class _Hud extends StatelessWidget {
           enabled: blur,
           filter: BergenPerf.blur(context, 18),
           child: Container(
-            decoration: BoxDecoration(
+            decoration: CssDecoration(
               borderRadius: BorderRadius.circular(999),
               gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(40, 94, 108, .94), Color.fromRGBO(20, 56, 68, .96)]),
               border: Border.all(color: Colors.white.withValues(alpha: .14)),
@@ -1138,7 +1139,7 @@ class _Stasjon extends StatelessWidget {
               opacity: naa ? 1 : 0,
               duration: Duration(milliseconds: rolig ? 1 : 500),
               child: DecoratedBox(
-                decoration: BoxDecoration(
+                decoration: CssDecoration(
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF3F8798), _teal]),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .6), blurRadius: 8 * s, spreadRadius: -3 * s, offset: Offset(0, 4 * s))],
@@ -1299,7 +1300,7 @@ class _Kort extends StatelessWidget {
         enabled: blur,
         filter: BergenPerf.blur(context, 24),
         child: Container(
-          decoration: BoxDecoration(
+          decoration: CssDecoration(
             borderRadius: BorderRadius.circular(24 * s),
             gradient: const LinearGradient(
               begin: Alignment(-.6, -1),
@@ -1362,7 +1363,7 @@ class _Kort extends StatelessWidget {
                               Container(
                                 width: 7 * s,
                                 height: 7 * s,
-                                decoration: BoxDecoration(
+                                decoration: CssDecoration(
                                   shape: BoxShape.circle,
                                   color: _mint,
                                   boxShadow: [BoxShadow(color: _mint.withValues(alpha: .2), spreadRadius: 3 * s), BoxShadow(color: _mint.withValues(alpha: .8), blurRadius: 10 * s)],
@@ -2030,7 +2031,7 @@ class _Stempel extends StatelessWidget {
                             child: Transform.rotate(
                               angle: rad(-8),
                               child: Container(
-                                decoration: BoxDecoration(
+                                decoration: CssDecoration(
                                   shape: BoxShape.circle,
                                   gradient: const RadialGradient(center: Alignment(-.3, -.44), colors: [Color(0xFF3F8798), _teal, Color(0xFF143A45)], stops: [0, .58, 1]),
                                   boxShadow: [
@@ -2189,7 +2190,7 @@ class _FerdigKortState extends State<_FerdigKort> {
                       child: Container(
                         key: const Key('onb-ferdig'),
                         padding: EdgeInsets.fromLTRB(20 * s, 84 * s, 20 * s, 20 * s),
-                        decoration: BoxDecoration(
+                        decoration: CssDecoration(
                           borderRadius: BorderRadius.circular(28 * s),
                           gradient: const LinearGradient(
                             begin: Alignment(-.6, -1),
@@ -2241,7 +2242,7 @@ class _FerdigKortState extends State<_FerdigKort> {
                                             child: Container(
                                               width: 46 * s,
                                               height: 46 * s,
-                                              decoration: BoxDecoration(
+                                              decoration: CssDecoration(
                                                 shape: BoxShape.circle,
                                                 gradient: const RadialGradient(center: Alignment(-.3, -.44), colors: [Color(0xFF3F8798), _teal], stops: [0, .6]),
                                                 border: Border.all(color: _mint, width: 2 * s),
@@ -2701,7 +2702,7 @@ class _KaiHoppState extends State<_KaiHopp> with SingleTickerProviderStateMixin 
                           alignment: Alignment.bottomCenter,
                           child: Container(
                             padding: EdgeInsets.fromLTRB(6 * s, 6 * s, 13 * s, 6 * s),
-                            decoration: BoxDecoration(
+                            decoration: CssDecoration(
                               borderRadius: BorderRadius.circular(999),
                               gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(40, 94, 108, .97), Color.fromRGBO(20, 56, 68, .98)]),
                               border: Border.all(color: Colors.white.withValues(alpha: .18)),
