@@ -11,6 +11,8 @@ import '../kit/bergen_css.dart' show rgba;
 import 'feed_icons.dart';
 import 'utforsk_copy.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Utforsk · shared pieces (Launch prototype, design px) ───────────────────
 
@@ -260,11 +262,27 @@ class UtfOrb extends StatelessWidget {
     CssShadow(0, 7, 11, -5, Color.fromRGBO(15, 45, 55, .75)),
   ];
 
+  // Lys: feedVals `stories` (L20075–20080) — `bg` / `rsh` in the light mode.
+  static const _onLys = [
+    CssLinear(180, [Color(0xFF27606F), Color(0xFF1E4F5C)]),
+  ];
+  static const _offLys = [CssSolid(Color(0xFFFFFFFF))];
+  static const _onShadowLys = [
+    CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
+    CssShadow(0, 3, 0, 0, Color.fromRGBO(11, 38, 45, .85)),
+    CssShadow(0, 10, 15, -6, Color.fromRGBO(15, 45, 55, .55)),
+  ];
+  static const _offShadowLys = [
+    CssShadow(0, 0, 0, 1, LysPalett.kantFarge),
+    CssShadow(0, 4, 7, -4, Color.fromRGBO(23, 62, 72, .2)),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final label = UtforskCopy.a1_feed_orb(slug);
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) == true;
     final ms = reduce ? 0 : 280;
+    final lys = context.lys;
     return Semantics(
       button: true,
       selected: active,
@@ -292,14 +310,15 @@ class UtfOrb extends StatelessWidget {
                   child: RepaintBoundary(child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      CssBox(width: 52, height: 52, radius: BorderRadius.circular(26), bg: _off, shadows: _offShadow),
+                      CssBox(width: 52, height: 52, radius: BorderRadius.circular(26), bg: lys ? _offLys : _off, shadows: lys ? _offShadowLys : _offShadow),
                       AnimatedOpacity(
                         opacity: active ? 1 : 0,
                         duration: Duration(milliseconds: ms),
                         curve: cssEase,
-                        child: CssBox(width: 52, height: 52, radius: BorderRadius.circular(26), bg: _on, shadows: _onShadow),
+                        child: CssBox(width: 52, height: 52, radius: BorderRadius.circular(26), bg: lys ? _onLys : _on, shadows: lys ? _onShadowLys : _onShadow),
                       ),
-                      Center(child: _iconWithShadow(FeedIcons.orb(slug), 26)),
+                      // Lys: `#g-…-l` (stroke `#1E4F5C`) when off (`s.suf`), white when on.
+                      Center(child: _iconWithShadow(FeedIcons.orb(slug), 26, color: lys && !active ? LysPalett.fjord : null)),
                       if (hasNew)
                         Positioned(
                           top: -2,
@@ -311,7 +330,8 @@ class UtfOrb extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF26D3D),
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF12333D), width: 2.5),
+                              // `.mk5c` (s.nytt): the ring `--lys-ull` in Lys.
+                              border: Border.all(color: context.aeM(const Color(0xFF12333D), LysPalett.ull), width: 2.5),
                               boxShadow: [BoxShadow(color: rgba(233, 92, 44, .8), offset: const Offset(0, 3), blurRadius: 6, spreadRadius: -2)],
                             ),
                           ),
@@ -324,7 +344,8 @@ class UtfOrb extends StatelessWidget {
               AnimatedDefaultTextStyle(
                 duration: Duration(milliseconds: reduce ? 0 : 250),
                 curve: cssEase,
-                style: inter(11, weight: FontWeight.w800, color: active ? const Color(0xFF7FF0CB) : rgba(255, 255, 255, .6)),
+                // feedVals `fg` (L20080): `--lys-tittel` / `--lys-sekundar` in Lys.
+                style: inter(11, weight: FontWeight.w800, color: active ? context.aeM(const Color(0xFF7FF0CB), LysPalett.tittel) : context.aeM(rgba(255, 255, 255, .6), LysPalett.sekundar)),
                 child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ],
@@ -338,7 +359,7 @@ class UtfOrb extends StatelessWidget {
   /// Perf plan: the icon and its blurred shadow never change; BergenBakt
   /// draws them from one raster instead of a blur pass every frame (six
   /// orbs on Utforsk). The margin covers the blur (3σ) and the 2 px offset.
-  static Widget _iconWithShadow(String svg, double size) => BergenBakt(
+  static Widget _iconWithShadow(String svg, double size, {Color? color}) => BergenBakt(
     margin: const EdgeInsets.fromLTRB(6, 6, 6, 8),
     child: Stack(
       clipBehavior: Clip.none,
@@ -350,7 +371,7 @@ class UtfOrb extends StatelessWidget {
             child: feedIcon(svg, size, color: rgba(15, 31, 43, .35)),
           ),
         ),
-        feedIcon(svg, size),
+        feedIcon(svg, size, color: color),
       ],
     ),
   );

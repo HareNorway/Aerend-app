@@ -22,6 +22,8 @@ import '../kit/bergen_toast.dart';
 import '../meg/meg_ark.dart';
 import 'pose_segment.dart';
 import 'utforsk_copy.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Secures one bag: a real cart line through the normal cart API (no
 /// payment). The server's own message shows when it says no (another
@@ -160,7 +162,8 @@ class _PoseArkKropp extends StatelessWidget {
                   decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8), boxShadow: [BoxShadow(color: Color(0xFF5CE0B8), blurRadius: 4)]),
                 ),
                 const SizedBox(width: 7),
-                Flexible(child: Text(UtforskCopy.a1_pose_skriver, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB)))),
+                // `.mk8`: `--lys-mint-tekst` in Lys.
+                Flexible(child: Text(UtforskCopy.a1_pose_skriver, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .06, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)))),
               ],
             ),
           ),
@@ -191,7 +194,8 @@ class _Inn extends StatelessWidget {
 }
 
 /// The glass card of the dark Ark (`rgba(255,255,255,.14 → .05)`, a .16
-/// ring, the top light, the deep drop), 20 px corners.
+/// ring, the top light, the deep drop), 20 px corners. Lys (`.mkd8` /
+/// `.mkdg`): white, a `--lys-kant-farge` rim and the card shadow.
 class _Glass extends StatelessWidget {
   const _Glass({required this.child, this.padding = const EdgeInsets.fromLTRB(16, 14, 16, 13), this.radius = 20});
 
@@ -204,12 +208,12 @@ class _Glass extends StatelessWidget {
     radius: BorderRadius.circular(radius),
     clip: true,
     padding: padding,
-    bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
-    shadows: const [
+    bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])], const [CssSolid(LysPalett.hvit)]),
+    shadows: context.aeM(const [
       CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16)),
       CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
       CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85)),
-    ],
+    ], const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
     child: child,
   );
 }
@@ -399,6 +403,7 @@ class _PrisKort extends StatelessWidget {
     final p = pose;
     const tab = [ui.FontFeature.tabularFigures()];
     final harVerdi = p.verdiKr > p.prisKr;
+    final lys = context.lys;
     return _Glass(
       child: Stack(
         clipBehavior: Clip.none,
@@ -421,13 +426,14 @@ class _PrisKort extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.end,
                       spacing: 9,
                       children: [
-                        Text(UtforskCopy.a1_utforsk_pose_price(p.prisKr), style: jakarta(32, em: -.035, height: 1).copyWith(fontFeatures: tab)),
+                        // `.mkb` / `.mkd`: `--lys-tittel` / `--lys-dempet` in Lys.
+                        Text(UtforskCopy.a1_utforsk_pose_price(p.prisKr), style: jakarta(32, em: -.035, height: 1, color: lys ? LysPalett.tittel : Colors.white).copyWith(fontFeatures: tab)),
                         if (harVerdi)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 2),
                             child: Text(
                               UtforskCopy.a1_utforsk_pose_price(p.verdiKr),
-                              style: inter(13, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .55)).copyWith(decoration: TextDecoration.lineThrough, decorationColor: const Color.fromRGBO(255, 255, 255, .55), fontFeatures: tab),
+                              style: inter(13, weight: FontWeight.w800, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55)).copyWith(decoration: TextDecoration.lineThrough, decorationColor: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55), fontFeatures: tab),
                             ),
                           ),
                       ],
@@ -440,11 +446,12 @@ class _PrisKort extends StatelessWidget {
                       height: 30,
                       radius: BorderRadius.circular(999),
                       padding: const EdgeInsets.fromLTRB(8, 0, 11, 0),
-                      bg: const [CssLinear(180, [Color.fromRGBO(255, 221, 134, .24), Color.fromRGBO(233, 172, 60, .12)])],
-                      shadows: const [
-                        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(246, 210, 122, .55)),
-                        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .2)),
-                        CssShadow(0, 0, 14, 0, Color.fromRGBO(242, 193, 78, .25)),
+                      // `.mkdd` / `.mk3k`: `--lys-gull-dis`, a `rgba(74,48,10,.2)` rim, `--lys-gull-tekst`, the star `#4A300A` in Lys.
+                      bg: lys ? const [CssSolid(LysPalett.gullDis)] : const [CssLinear(180, [Color.fromRGBO(255, 221, 134, .24), Color.fromRGBO(233, 172, 60, .12)])],
+                      shadows: [
+                        lys ? const CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(74, 48, 10, .2)) : const CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(246, 210, 122, .55)),
+                        const CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .2)),
+                        const CssShadow(0, 0, 14, 0, Color.fromRGBO(242, 193, 78, .25)),
                       ],
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -453,9 +460,10 @@ class _PrisKort extends StatelessWidget {
                             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFDD86"><path d="M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4-4.9-4.4 6.5-.7z"/></svg>',
                             width: 14,
                             height: 14,
+                            colorFilter: lys ? const ColorFilter.mode(LysPalett.gullTekst, BlendMode.srcIn) : null,
                           ),
                           const SizedBox(width: 6),
-                          Text(UtforskCopy.a1_pose_poeng(poeng!), style: inter(12, weight: FontWeight.w800, color: const Color(0xFFFFDD86)).copyWith(fontFeatures: tab)),
+                          Text(UtforskCopy.a1_pose_poeng(poeng!), style: inter(12, weight: FontWeight.w800, color: lys ? LysPalett.gullTekst : const Color(0xFFFFDD86)).copyWith(fontFeatures: tab)),
                         ],
                       ),
                     ),
@@ -479,7 +487,7 @@ class _PrisKort extends StatelessWidget {
                           children: [
                             const _Prikk(Color(0xFFF26D3D)),
                             const SizedBox(width: 6),
-                            Text(UtforskCopy.a1_pose_du_betaler(p.prisKr), softWrap: false, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFFFFB48E)).copyWith(fontFeatures: tab)),
+                            Text(UtforskCopy.a1_pose_du_betaler(p.prisKr), softWrap: false, style: inter(11.5, weight: FontWeight.w800, color: lys ? LysPalett.glodTekst : const Color(0xFFFFB48E)).copyWith(fontFeatures: tab)),
                           ],
                         ),
                       ),
@@ -494,7 +502,7 @@ class _PrisKort extends StatelessWidget {
                           children: [
                             const _Prikk(Color(0xFF5CE0B8)),
                             const SizedBox(width: 6),
-                            Text(UtforskCopy.a1_pose_du_sparer(p.spar), softWrap: false, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)).copyWith(fontFeatures: tab)),
+                            Text(UtforskCopy.a1_pose_du_sparer(p.spar), softWrap: false, style: inter(11.5, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)).copyWith(fontFeatures: tab)),
                           ],
                         ),
                       ),
@@ -527,20 +535,21 @@ class _VerdiStolpe extends StatelessWidget {
   final double andel;
 
   @override
+  // `.mkde`: in Lys `--lys-mint-dis`, no stripes, no shadow.
   Widget build(BuildContext context) => CssBox(
     height: 14,
     radius: BorderRadius.circular(999),
     clip: true,
-    shadows: const [
+    shadows: context.aeM(const [
       CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(92, 224, 184, .45)),
       CssShadow(0, 0, 12, 0, Color.fromRGBO(92, 224, 184, .18)),
-    ],
+    ], const <CssShadow>[]),
     child: LayoutBuilder(
       builder: (context, box) {
         final w = box.maxWidth;
         return Stack(
           children: [
-            const Positioned.fill(child: CustomPaint(painter: _Striper())),
+            Positioned.fill(child: CustomPaint(painter: context.aeM(const _Striper(), const _Striper(lys: true)))),
             // upGlans 2.6s 1.2s: translateX 0 → 360 % by 60 %, then rests.
             Positioned(
               top: 0,
@@ -581,10 +590,17 @@ class _VerdiStolpe extends StatelessWidget {
 }
 
 class _Striper extends CustomPainter {
-  const _Striper();
+  const _Striper({this.lys = false});
+
+  /// Lys (`.mkde`): a plain `--lys-mint-dis`.
+  final bool lys;
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (lys) {
+      canvas.drawRect(Offset.zero & size, Paint()..color = LysPalett.mintDis);
+      return;
+    }
     canvas.drawRect(Offset.zero & size, Paint()..color = const Color.fromRGBO(92, 224, 184, .16));
     final p = Paint()..color = const Color.fromRGBO(92, 224, 184, .34);
     // −45°: bands 6 px wide every 12 px along the gradient line.
@@ -601,7 +617,7 @@ class _Striper extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _Striper old) => false;
+  bool shouldRepaint(covariant _Striper old) => old.lys != lys;
 }
 
 const String _ikKlokke = '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
@@ -626,24 +642,27 @@ class _Flis extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // `.mkdh` / `.mk1i`: `--lys-dis` with a `--lys-kant-farge` rim, the icon `#0B6B57` in Lys.
           CssBox(
             width: 30,
             height: 30,
             radius: BorderRadius.circular(10),
-            bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .06)])],
-            shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18))],
+            bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .06)])], const [CssSolid(LysPalett.dis)]),
+            shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18))], const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge)]),
             child: Center(
               child: SvgPicture.string(
                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#9FF0D4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">$ikon</svg>',
                 width: 15,
                 height: 15,
+                colorFilter: context.aeM(null, const ColorFilter.mode(Color(0xFF0B6B57), BlendMode.srcIn)),
               ),
             ),
           ),
           const SizedBox(height: 8),
-          Text(verdi, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(15, em: -.02, height: 1.1).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
+          // `.mkb` / `.mkau`: `--lys-tittel` / `--lys-sekundar` in Lys.
+          Text(verdi, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(15, em: -.02, height: 1.1, color: context.aeM(Colors.white, LysPalett.tittel)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
           const SizedBox(height: 3),
-          Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .64))),
+          Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(10.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .64), LysPalett.sekundar))),
         ],
       ),
     ),
@@ -660,19 +679,21 @@ class _Sitat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = pose;
+    final lys = context.lys;
     return _Glass(
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned(left: -6, top: -28, child: Text('«', style: jakarta(84, height: 1, color: const Color.fromRGBO(127, 240, 203, .12)))),
+          // `.mkdi` / `.mkb` / `.mk1z`: in Lys the « `rgba(11,107,87,.12)`, the text `--lys-tittel`, the rule `--lys-skille`.
+          Positioned(left: -6, top: -28, child: Text('«', style: jakarta(84, height: 1, color: lys ? const Color.fromRGBO(11, 107, 87, .12) : const Color.fromRGBO(127, 240, 203, .12)))),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(p.innhold ?? '', key: const Key('a1_pose_innhold'), style: inter(14.5, weight: FontWeight.w700, height: 1.5)),
+              Text(p.innhold ?? '', key: const Key('a1_pose_innhold'), style: inter(14.5, weight: FontWeight.w700, height: 1.5, color: lys ? LysPalett.tittel : Colors.white)),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.only(top: 11),
-                decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: lys ? LysPalett.skille : const Color.fromRGBO(255, 255, 255, .1)))),
                 child: Row(
                   children: [
                     _Merke(navn: p.navn, logoUrl: p.logoUrl),
@@ -681,12 +702,13 @@ class _Sitat extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(p.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800)),
+                          Text(p.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white)),
                           if (p.utlagt != null) ...[
                             const SizedBox(height: 1),
+                            // `.mk2m`: `--lys-dempet` in Lys.
                             Text(
                               UtforskCopy.a1_pose_lagt_ut_kl(p.utlagt!),
-                              style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .6)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
+                              style: inter(10.5, weight: FontWeight.w700, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .6)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
                             ),
                           ],
                         ],

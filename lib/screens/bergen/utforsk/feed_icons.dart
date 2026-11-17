@@ -62,6 +62,11 @@ abstract final class FeedIcons {
   /// The like pill's heart (`p.hjFill`) with its highlight stroke.
   static String heartLaunch({required bool filled}) =>
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.6l-7.4-7.3a5 5 0 0 1 7-7.1l.4.4.4-.4a5 5 0 0 1 7 7.1z" fill="${filled ? '#FFFFFF' : 'none'}" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/><path d="M7.4 8.6a2.3 2.3 0 0 1 2.2-1.4" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.5" stroke-linecap="round"/></svg>';
+  /// Lys: the same heart in the light mode (feedVals L20095 `__aeLys`):
+  /// fill / stroke `--lys-glod-tekst` when liked, stroke `--lys-fjord` when
+  /// not; the highlight `.mk5i` `rgba(30,79,92,0.75)`.
+  static String heartLaunchLys({required bool filled}) =>
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.6l-7.4-7.3a5 5 0 0 1 7-7.1l.4.4.4-.4a5 5 0 0 1 7 7.1z" fill="${filled ? '#A63B0E' : 'none'}" stroke="${filled ? '#A63B0E' : '#1E4F5C'}" stroke-width="2" stroke-linejoin="round"/><path d="M7.4 8.6a2.3 2.3 0 0 1 2.2-1.4" fill="none" stroke="rgba(30,79,92,0.75)" stroke-width="1.5" stroke-linecap="round"/></svg>';
   static const String shareLaunch =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14.5V3.5M7.8 7.6L12 3.5l4.2 4.1"/><path d="M8 11H6.5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H16"/></svg>';
   /// «Rapporter» (not in the prototype): a flag drawn like its line icons
