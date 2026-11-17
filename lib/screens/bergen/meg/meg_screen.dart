@@ -74,6 +74,8 @@ import 'oppdrag_ark.dart';
 import 'oppsummering_ark.dart';
 import 'tillit_ark.dart';
 import '../kit/laster_dra.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -852,15 +854,16 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                   child: CssBox(
                     radius: const BorderRadius.vertical(top: Radius.circular(28)),
                     clip: true,
-                    bg: const [
+                    // `.mk70`: the fjord body, `--lys-ull` + `--lys-arkskygge` in Lys.
+                    bg: context.aeM(const [
                       CssLinear(180, [Color(0xFF22586A), Color(0xFF1B4854)]),
-                    ],
-                    shadows: const [
+                    ], const [CssSolid(LysPalett.ull)]),
+                    shadows: context.aeM(const [
                       CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
                       CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
                       CssShadow(0, -12, 18, -10, Color.fromRGBO(4, 18, 26, .6)),
                       CssShadow(0, -34, 52, -26, Color.fromRGBO(4, 18, 26, .7)),
-                    ],
+                    ], LysPalett.arkskygge),
                     child: _loading
                         ? const Center(child: CircularProgressIndicator(color: BergenTokens.mint))
                         : BergenDraLaster(
@@ -882,13 +885,13 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                       child: Text(
                                         _firstName.isEmpty ? 'Meg' : A4MegCopy.a4_meg_fra(_firstName, A4MegCopy.a4_meg_bydel),
                                         key: const Key('meg-title'),
-                                        style: jakarta(24, em: -.03, height: 1.05),
+                                        style: jakarta(24, em: -.03, height: 1.05, color: context.aeM(Colors.white, LysPalett.tittel)),
                                       ),
                                     ),
                                     const SizedBox(height: 7),
                                     Text(
                                       '${A4MegCopy.a4_meg_bydel} · ${A4MegCopy.a4_meg_region}',
-                                      style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .66)),
+                                      style: inter(11, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)),
                                     ),
                                   ],
                                 ),
@@ -1315,20 +1318,21 @@ class _Gruppe extends StatelessWidget {
   final List<Widget> children;
 
   @override
+  // `.mk81` / `.mk82`: `--lys-hvit`, a `--lys-kant-farge` border, no shadow, `--lys-skille` lines in Lys.
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(22),
-    bg: const [
+    bg: context.aeM(const [
       CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .06)]),
-    ],
-    shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 18, 32, -18, Color.fromRGBO(4, 18, 26, .9))],
-    border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
+    ], const [CssSolid(LysPalett.hvit)]),
+    shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 18, 32, -18, Color.fromRGBO(4, 18, 26, .9))], const []),
+    border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge)),
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
     child: Column(
       children: [
         for (final (i, c) in children.indexed)
           DecoratedBox(
             decoration: BoxDecoration(
-              border: i == children.length - 1 ? null : const Border(bottom: BorderSide(color: Color.fromRGBO(255, 255, 255, .12))),
+              border: i == children.length - 1 ? null : Border(bottom: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.skille))),
             ),
             child: c,
           ),
@@ -1385,11 +1389,11 @@ class _Rad extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(navn, style: inter(14, weight: sterk ? FontWeight.w800 : FontWeight.w700)),
+                  Text(navn, style: inter(14, weight: sterk ? FontWeight.w800 : FontWeight.w700, color: context.aeM(Colors.white, LysPalett.tittel))),
                   if (under != null)
                     Text(
                       under!,
-                      style: inter(12, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .82)),
+                      style: inter(12, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .82), LysPalett.sekundar)),
                     ),
                 ],
               ),
@@ -1405,7 +1409,8 @@ class _Rad extends StatelessWidget {
               else
                 Text(
                   merke!,
-                  style: aeTab(inter(12.5, weight: FontWeight.w800, color: merkeDempet ? const Color.fromRGBO(255, 255, 255, .7) : const Color(0xFF7FF0CB))),
+                  // `r.mC` (L23803) / `.mk8` / `.mk86`: mint text or `--lys-sekundar` in Lys.
+                  style: aeTab(inter(12.5, weight: FontWeight.w800, color: merkeDempet ? context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar) : context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
                 ),
             ],
             if (knapp != null) ...[
@@ -1456,7 +1461,8 @@ class _Rad extends StatelessWidget {
               ),
             ] else ...[
               const SizedBox(width: 11),
-              const AeIkon('M9 6l6 6-6 6', size: 13, stroke: 2.2, color: Color.fromRGBO(255, 255, 255, .85)),
+              // `.mk83`: the chevron `rgba(30,79,92,.85)` in Lys.
+              AeIkon('M9 6l6 6-6 6', size: 13, stroke: 2.2, color: context.aeM(const Color.fromRGBO(255, 255, 255, .85), const Color.fromRGBO(30, 79, 92, .85))),
             ],
           ],
         ),
@@ -1500,15 +1506,16 @@ class _GlassTile extends StatelessWidget {
       width: 38,
       height: 38,
       radius: BorderRadius.circular(13),
-      bg: const [
+      // `.mk84`: `--lys-dis`, no shadow; `megIkon` strokes `--lys-fjord` in Lys (L23576).
+      bg: context.aeM(const [
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .26), Color.fromRGBO(255, 255, 255, .12)]),
-      ],
-      shadows: const [
+      ], const [CssSolid(LysPalett.dis)]),
+      shadows: context.aeM(const [
         CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
         CssShadow(0, 2, 3, -1, Color.fromRGBO(35, 32, 29, .18)),
         CssShadow(0, 6, 12, -8, Color.fromRGBO(35, 32, 29, .35)),
-      ],
-      child: Center(child: AeIkon(d, size: 18, stroke: 2, color: const Color(0xFFEAF6F4))),
+      ], const []),
+      child: Center(child: AeIkon(d, size: 18, stroke: 2, color: context.aeM(const Color(0xFFEAF6F4), LysPalett.fjord))),
     ),
   );
 }
@@ -1530,10 +1537,11 @@ class _FargeTile extends StatelessWidget {
       width: 38,
       height: 38,
       radius: BorderRadius.circular(13),
-      bg: const [
+      // `.mk85`: `--lys-dis`, no shadow in Lys.
+      bg: context.aeM(const [
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)]),
-      ],
-      shadows: const [CssShadow(0, 2, 3, -1, Color.fromRGBO(35, 32, 29, .14)), CssShadow(0, 8, 14, -8, Color.fromRGBO(90, 60, 30, .5))],
+      ], const [CssSolid(LysPalett.dis)]),
+      shadows: context.aeM(const [CssShadow(0, 2, 3, -1, Color.fromRGBO(35, 32, 29, .14)), CssShadow(0, 8, 14, -8, Color.fromRGBO(90, 60, 30, .5))], const <CssShadow>[]),
       padding: const EdgeInsets.all(3),
       child: Container(
         decoration: BoxDecoration(

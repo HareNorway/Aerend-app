@@ -8,6 +8,16 @@ import 'meg_mark.dart';
 import 'meg_pill.dart';
 import 'meg_shine.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../common/auth/launch/lf_css.dart' show CssShadow;
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
+
+/// Lys: a CSS `box-shadow` list (outer shadows) as [BoxShadow]s, with the
+/// app's blur convention (`blur / 2 / .57735`).
+List<BoxShadow> _bokser(List<CssShadow> l) => [
+      for (final s in l)
+        if (!s.inset) BoxShadow(color: s.color, offset: Offset(s.dx, s.dy), blurRadius: s.blur / 2 / .57735, spreadRadius: s.spread),
+    ];
 
 /// The Poeng card (design `Poeng` ≈L5978), built from the design's own
 /// values: the medal (spinning highlight ring, dark bezel, metal coin with the
@@ -49,17 +59,23 @@ class MegNivaaCard extends StatelessWidget {
     return Container(
       key: const Key('meg-nivaa-card'),
       padding: const EdgeInsets.all(16),
+      // `.mk7w`: `--lys-hvit`, a `--lys-kant-farge` border and the card shadow in Lys.
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white.withValues(alpha: .14),
-            Colors.white.withValues(alpha: .06),
-          ],
+        color: context.aeM(null, LysPalett.hvit),
+        gradient: context.aeM(
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.white.withValues(alpha: .14),
+              Colors.white.withValues(alpha: .06),
+            ],
+          ),
+          null,
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: .2)),
+        border: Border.all(color: context.aeM(Colors.white.withValues(alpha: .2), LysPalett.kantFarge)),
+        boxShadow: context.aeM(null, _bokser(LysPalett.kortskygge)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -80,7 +96,7 @@ class MegNivaaCard extends StatelessWidget {
                         A4MegCopy.a4_meg_ditt_nivaa,
                         style: megInter(10, FontWeight.w800,
                           letterSpacing: 1.2,
-                          color: Colors.white.withValues(alpha: .55),
+                          color: context.aeM(Colors.white.withValues(alpha: .55), LysPalett.dempet),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -107,7 +123,7 @@ class MegNivaaCard extends StatelessWidget {
                           style: BergenTokens.text(
                             11.5,
                             weight: FontWeight.w800,
-                            color: Colors.white.withValues(alpha: .7),
+                            color: context.aeM(Colors.white.withValues(alpha: .7), LysPalett.sekundar),
                           ),
                         )
                       else
@@ -120,7 +136,7 @@ class MegNivaaCard extends StatelessWidget {
                                 style: BergenTokens.display(
                                   15,
                                   weight: FontWeight.w800,
-                                  color: BergenTokens.mint,
+                                  color: context.aeM(BergenTokens.mint, LysPalett.mintTekst),
                                   letterSpacingEm: -0.02,
                                 ),
                               ),
@@ -129,7 +145,7 @@ class MegNivaaCard extends StatelessWidget {
                                 style: BergenTokens.text(
                                   11.5,
                                   weight: FontWeight.w800,
-                                  color: Colors.white.withValues(alpha: .7),
+                                  color: context.aeM(Colors.white.withValues(alpha: .7), LysPalett.sekundar),
                                 ),
                               ),
                               TextSpan(
@@ -137,7 +153,7 @@ class MegNivaaCard extends StatelessWidget {
                                 style: BergenTokens.text(
                                   11.5,
                                   weight: FontWeight.w800,
-                                  color: Colors.white,
+                                  color: context.aeM(Colors.white, LysPalett.tittel),
                                 ),
                               ),
                             ],
@@ -149,7 +165,8 @@ class MegNivaaCard extends StatelessWidget {
                 Icon(
                   Icons.chevron_right_rounded,
                   size: 18,
-                  color: Colors.white.withValues(alpha: .45),
+                  // `.mk7x`.
+                  color: context.aeM(Colors.white.withValues(alpha: .45), const Color.fromRGBO(30, 79, 92, .45)),
                 ),
               ],
             ),
@@ -192,7 +209,7 @@ class MegNivaaCard extends StatelessWidget {
                   A4MegCopy.a4_meg_poeng_bruke,
                   style: megInter(11, FontWeight.w800,
                     letterSpacing: .9,
-                    color: Colors.white.withValues(alpha: .55),
+                    color: context.aeM(Colors.white.withValues(alpha: .55), LysPalett.dempet),
                   ),
                 ),
               ),
@@ -225,7 +242,7 @@ class MegNivaaCard extends StatelessWidget {
                     style: BergenTokens.display(
                       42,
                       weight: FontWeight.w800,
-                      color: Colors.white,
+                      color: context.aeM(Colors.white, LysPalett.tittel),
                       letterSpacingEm: -0.04,
                       height: 1,
                     ),
@@ -238,7 +255,7 @@ class MegNivaaCard extends StatelessWidget {
                 style: BergenTokens.display(
                   16,
                   weight: FontWeight.w800,
-                  color: Colors.white.withValues(alpha: .55),
+                  color: context.aeM(Colors.white.withValues(alpha: .55), LysPalett.dempet),
                   letterSpacingEm: -0.02,
                 ),
               ),
@@ -252,7 +269,7 @@ class MegNivaaCard extends StatelessWidget {
               style: BergenTokens.text(
                 11.5,
                 weight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: .55),
+                color: context.aeM(Colors.white.withValues(alpha: .55), LysPalett.dempet),
               ),
             ),
           ],
@@ -261,12 +278,13 @@ class MegNivaaCard extends StatelessWidget {
             Container(
               key: const Key('meg-goal'),
               padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
+              // `.mk7z`: `--lys-dis`, no inner shadow (the bottom light line) in Lys.
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: .22),
+                color: context.aeM(Colors.black.withValues(alpha: .22), LysPalett.dis),
                 borderRadius: BorderRadius.circular(18),
                 border: Border(
                   bottom: BorderSide(
-                    color: Colors.white.withValues(alpha: .14),
+                    color: context.aeM(Colors.white.withValues(alpha: .14), const Color(0x00E7F5FA)),
                   ),
                 ),
               ),
@@ -286,7 +304,7 @@ class MegNivaaCard extends StatelessWidget {
                           style: BergenTokens.text(
                             11.5,
                             weight: FontWeight.w800,
-                            color: Colors.white,
+                            color: context.aeM(Colors.white, LysPalett.tittel),
                             height: 1.35,
                           ),
                         ),
@@ -295,7 +313,7 @@ class MegNivaaCard extends StatelessWidget {
                       Text(
                         '${g.percent}%',
                         style: megInter(10.5, FontWeight.w800,
-                          color: BergenTokens.mint,
+                          color: context.aeM(BergenTokens.mint, LysPalett.mintTekst),
                           fontFeatures: [FontFeature.tabularFigures()],
                         ),
                       ),
@@ -304,8 +322,9 @@ class MegNivaaCard extends StatelessWidget {
                   const SizedBox(height: 9),
                   Container(
                     height: 9,
+                    // `.mk80`.
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: .3),
+                      color: context.aeM(Colors.black.withValues(alpha: .3), LysPalett.dis),
                       borderRadius: BorderRadius.circular(99),
                     ),
                     child: FractionallySizedBox(
@@ -365,7 +384,7 @@ class MegNivaaCard extends StatelessWidget {
                   style: BergenTokens.text(
                     12.5,
                     weight: FontWeight.w800,
-                    color: BergenTokens.mint,
+                    color: context.aeM(BergenTokens.mint, LysPalett.mintTekst),
                     height: 1.25,
                   ),
                 ),
@@ -388,7 +407,8 @@ class _MintChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF5CE0B8).withValues(alpha: .14),
+        // `.mk51`.
+        color: context.aeM(const Color(0xFF5CE0B8).withValues(alpha: .14), LysPalett.mintDis),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: const Color(0xFF5CE0B8).withValues(alpha: .35),
@@ -397,7 +417,7 @@ class _MintChip extends StatelessWidget {
       child: Text(
         text,
         style: megInter(9.5, FontWeight.w800,
-          color: BergenTokens.mint,
+          color: context.aeM(BergenTokens.mint, LysPalett.mintTekst),
         ),
       ),
     );
@@ -444,8 +464,9 @@ class MegLadder extends StatelessWidget {
               top: 14,
               child: Container(
                 height: 6,
+                // `.mk7y`.
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: .32),
+                  color: context.aeM(Colors.black.withValues(alpha: .32), LysPalett.dis),
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -509,7 +530,9 @@ class _Rung extends StatelessWidget {
     final m = medalFor(name);
     final locked = !done && !current;
     final size = current ? 28.0 : 20.0;
-    final ink = locked ? Colors.white.withValues(alpha: .55) : m.ink;
+    // `nivMedaljer` (L23685): locked rungs `--lys-hvit` with a `rgba(31,82,95,.2)` ring and `--lys-dempet` ink in Lys.
+    final lys = context.lys;
+    final ink = locked ? (lys ? LysPalett.dempet : Colors.white.withValues(alpha: .55)) : m.ink;
 
     return SizedBox(
       width: 28,
@@ -522,7 +545,7 @@ class _Rung extends StatelessWidget {
             height: size,
             decoration: CssDecoration(
               shape: BoxShape.circle,
-              color: locked ? Colors.white.withValues(alpha: .14) : null,
+              color: locked ? (lys ? LysPalett.hvit : Colors.white.withValues(alpha: .14)) : null,
               gradient: locked
                   ? null
                   : RadialGradient(
@@ -533,11 +556,17 @@ class _Rung extends StatelessWidget {
               border: Border.all(
                 color: current
                     ? Colors.white
-                    : (locked ? Colors.white.withValues(alpha: .2) : m.ring),
+                    : (locked ? (lys ? const Color.fromRGBO(31, 82, 95, .2) : Colors.white.withValues(alpha: .2)) : m.ring),
                 width: current ? 2 : 1.5,
               ),
               boxShadow: current
-                  ? const [
+                  ? lys
+                      // `0 0 0 3.5px rgba(201,151,40,.5)` outside the 2 px white ring, `0 0 14px rgba(242,193,78,.6)`.
+                      ? const [
+                          BoxShadow(color: Color.fromRGBO(201, 151, 40, .5), spreadRadius: 1.5),
+                          BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 14),
+                        ]
+                      : const [
                       BoxShadow(
                         color: Color.fromRGBO(242, 193, 78, .8),
                         blurRadius: 14,
@@ -571,7 +600,9 @@ class _Rung extends StatelessWidget {
                   letterSpacing: .3,
                   height: 1.1,
                   color: current
-                      ? Colors.white
+                      ? (lys ? LysPalett.tittel : Colors.white)
+                      : lys
+                      ? (done ? LysPalett.sekundar : LysPalett.dempet)
                       : Colors.white.withValues(alpha: done ? .7 : .4),
                 ),
               ),

@@ -5,6 +5,8 @@ import '../meg/a3_scaffold.dart';
 import '../meg/a3_services.dart';
 import '../kit/bergen_kit.dart';
 import 'poeng_copy.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// What the Hjem bobber knows about a catch (AGIL-CONTRACT §5.4). agil-1
 /// constructs it; agil-3 owns this file and the card that rises from the
@@ -52,14 +54,16 @@ Future<void> showNappKort(BuildContext context, NappOffer offer, {AegilAppApi? a
             children: [
               BergenChip(label: offer.kind == 'rytme' ? A3PoengCopy.a3_poeng_napp_dagens : A3PoengCopy.a3_poeng_napp_bergensk, selected: true, icon: offer.kind == 'tilbud' ? Icons.local_offer_rounded : Icons.phishing_rounded),
               const Spacer(),
-              Text(a3Kr(offer.priceOre), style: BergenTokens.display(BergenTokens.textBody, color: BergenTokens.lantern)),
+              // Not in the design: the dark sheet turns light in Lys (bergen_sheet), so the ink follows
+              // (`--lys-gull-tekst` / `--lys-tittel` / `--lys-sekundar` / `--lys-glod-tekst`).
+              Text(a3Kr(offer.priceOre), style: BergenTokens.display(BergenTokens.textBody, color: ctx.aeM(BergenTokens.lantern, LysPalett.gullTekst))),
             ],
           ),
           const SizedBox(height: 10),
-          Text(offer.title, style: BergenTokens.display(BergenTokens.textTitle, color: Colors.white)),
-          Text(offer.storeName, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w600, color: A3Ink.sub)),
+          Text(offer.title, style: BergenTokens.display(BergenTokens.textTitle, color: ctx.aeM(Colors.white, LysPalett.tittel))),
+          Text(offer.storeName, style: BergenTokens.text(BergenTokens.textSmall, weight: FontWeight.w600, color: ctx.aeM(A3Ink.sub, LysPalett.sekundar))),
           const SizedBox(height: 8),
-          Text(offer.reason, style: BergenTokens.text(BergenTokens.textBody, color: A3Ink.sub)),
+          Text(offer.reason, style: BergenTokens.text(BergenTokens.textBody, color: ctx.aeM(A3Ink.sub, LysPalett.sekundar))),
           const SizedBox(height: 16),
           BergenCta3d(
             key: const Key('napp-legg'),
@@ -83,7 +87,7 @@ Future<void> showNappKort(BuildContext context, NappOffer offer, {AegilAppApi? a
                     if (id != null) await api.dismiss(id);
                     if (ctx.mounted) Navigator.of(ctx).pop();
                   },
-                  child: Text(A3PoengCopy.a3_poeng_napp_ikke_naa, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: A3Ink.sub)),
+                  child: Text(A3PoengCopy.a3_poeng_napp_ikke_naa, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: ctx.aeM(A3Ink.sub, LysPalett.sekundar))),
                 ),
               ),
               Expanded(
@@ -95,7 +99,7 @@ Future<void> showNappKort(BuildContext context, NappOffer offer, {AegilAppApi? a
                     Navigator.of(ctx).pop();
                     showBergenToast(context, 'Ægil foreslår ikke dette igjen');
                   },
-                  child: Text(A3PoengCopy.a3_poeng_napp_aldri, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: BergenTokens.orangeLight)),
+                  child: Text(A3PoengCopy.a3_poeng_napp_aldri, style: BergenTokens.text(BergenTokens.textBody, weight: FontWeight.w700, color: ctx.aeM(BergenTokens.orangeLight, LysPalett.glodTekst))),
                 ),
               ),
             ],
