@@ -52,6 +52,8 @@ abstract final class MegSheets {
       context,
       key: const Key('meg-billett-sheet'),
       mork: true,
+      // Lys plan §0.2: the Gullbillett sheet stays fjord.
+      fjord: true,
       title: A4MegCopy.a4_meg_billett_title,
       subtitle: A4MegCopy.a4_meg_billett_linje(referral.pointsForThem, referral.pointsForMe),
       body: (ctx, _) => Column(
@@ -141,6 +143,8 @@ abstract final class MegSheets {
       context,
       key: const Key('meg-slik-sheet'),
       mork: true,
+      // Lys plan §0.2: «Slik får du poeng» stays fjord.
+      fjord: true,
       title: A4MegCopy.a4_meg_slik_title,
       subtitle: A4MegCopy.a4_meg_slik_linje,
       body: (ctx, _) => Column(

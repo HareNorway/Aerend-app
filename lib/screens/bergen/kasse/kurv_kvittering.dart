@@ -12,6 +12,7 @@ import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
 import 'kurv_parts.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// IBM Plex Mono with the paper's ink bleed (`text-shadow 0 0 .6px
 /// rgba(43,42,39,.45)`).
@@ -71,7 +72,8 @@ class KurvKvittering extends StatelessWidget {
       key: const Key('a1_kasse_kvittering'),
       padding: EdgeInsets.only(top: 16 * s),
       child: CustomPaint(
-        painter: _PapirSkygge(s),
+        // Lys plan (`.mk7j`): the lighter drop shadows in Lys; the paper stays.
+        painter: _PapirSkygge(s, lys: context.lys),
         child: Transform.rotate(
           angle: -.7 * math.pi / 180,
           child: ClipPath(
@@ -927,10 +929,14 @@ class _Takker extends CustomClipper<Path> {
 
 /// `drop-shadow(0 20px 16px rgba(3,16,24,.42)) drop-shadow(0 2px 2px
 /// rgba(3,16,24,.28))` under the torn slip.
+///
+/// Lys plan: `drop-shadow(0 14px 14px rgba(23,62,72,.18)) drop-shadow(0 1px
+/// 2px rgba(23,62,72,.14))` (`.mk7j` light).
 class _PapirSkygge extends CustomPainter {
-  const _PapirSkygge(this.s);
+  const _PapirSkygge(this.s, {this.lys = false});
 
   final double s;
+  final bool lys;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -940,22 +946,22 @@ class _PapirSkygge extends CustomPainter {
     canvas.translate(-size.width / 2, -size.height / 2);
     final slip = _Takker(s).getClip(size);
     canvas.drawPath(
-      slip.shift(Offset(0, 20 * s)),
+      slip.shift(Offset(0, (lys ? 14 : 20) * s)),
       Paint()
-        ..color = rgba(3, 16, 24, .42)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, onbBlur(16 * s) / 2),
+        ..color = lys ? rgba(23, 62, 72, .18) : rgba(3, 16, 24, .42)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, onbBlur((lys ? 14 : 16) * s) / 2),
     );
     canvas.drawPath(
-      slip.shift(Offset(0, 2 * s)),
+      slip.shift(Offset(0, (lys ? 1 : 2) * s)),
       Paint()
-        ..color = rgba(3, 16, 24, .28)
+        ..color = lys ? rgba(23, 62, 72, .14) : rgba(3, 16, 24, .28)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, onbBlur(2 * s) / 2),
     );
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(_PapirSkygge old) => old.s != s;
+  bool shouldRepaint(_PapirSkygge old) => old.s != s || old.lys != lys;
 }
 
 /// `border-bottom: 1.5px dashed rgba(43,42,39,.24)` under the header.

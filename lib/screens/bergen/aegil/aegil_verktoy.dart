@@ -12,6 +12,8 @@ import '../meg/min_bio.dart' show CusBioCopy;
 import 'aegil_agenter.dart';
 import 'aegil_bits.dart';
 import 'aegil_chat.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Customer Step 5: the chat's tool cards (`tool_cards`) ───────────────────
 //
@@ -100,9 +102,9 @@ class AeVerktoyKort extends StatelessWidget {
       lagt: false,
       onTap: h.minBio,
     ),
-    'products' => AeVarerKort(v: v, vare: _vare, notis: _notis),
+    'products' => AeVarerKort(v: v, vare: _vare, notis: (t) => _notis(context, t)),
     'cart_proposal' => AeEndringKort(v: v, h: h),
-    'gate' || 'error' => _notis((v.data['copy'] as String?) ?? AeVerktoyCopy.cus_aegil_feilet),
+    'gate' || 'error' => _notis(context, (v.data['copy'] as String?) ?? AeVerktoyCopy.cus_aegil_feilet),
     // Customer Step 9: the customer agents.
     'gift_brief' => AeGaveBrief(v: v, h: h),
     'gift_readback' => AeGaveLest(v: v, h: h),
@@ -173,13 +175,14 @@ class AeVerktoyKort extends StatelessWidget {
     );
   }
 
-  Widget _notis(String tekst) => CssBox(
+  // Not in the design; Lys like the glass cards (`.mk1o`): white, kant, `--lys-kortskygge`, `--lys-sekundar`.
+  Widget _notis(BuildContext context, String tekst) => CssBox(
     radius: BorderRadius.circular(16),
-    bg: kAeRadGlass,
-    shadows: kAeRadGlassSh,
-    border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
+    bg: context.aeM(kAeRadGlass, const [CssSolid(LysPalett.hvit)]),
+    shadows: context.aeM(kAeRadGlassSh, LysPalett.kortskygge),
+    border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge)),
     padding: const EdgeInsets.fromLTRB(13, 11, 13, 12),
-    child: Text(tekst, style: inter(12.5, weight: FontWeight.w700, height: 1.4, color: kAeSub)),
+    child: Text(tekst, style: inter(12.5, weight: FontWeight.w700, height: 1.4, color: context.aeM(kAeSub, LysPalett.sekundar))),
   );
 }
 
@@ -389,9 +392,10 @@ class AeMotInteresse extends StatelessWidget {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(padding: EdgeInsets.only(top: 4), child: AeGevir(color: kAeMintLys, w: 16, h: 10)),
+        // Not in the design; Lys: the mark `.mk1i` `#0B6B57`, the line `--lys-tittel` (the sheet's headings).
+        Padding(padding: const EdgeInsets.only(top: 4), child: AeGevir(color: context.aeM(kAeMintLys, kAeLysIkon), w: 16, h: 10)),
         const SizedBox(width: 7),
-        Expanded(child: Text(line.line, style: inter(13, weight: FontWeight.w800, height: 1.4, em: -.01, color: Colors.white))),
+        Expanded(child: Text(line.line, style: inter(13, weight: FontWeight.w800, height: 1.4, em: -.01, color: context.aeM(Colors.white, LysPalett.tittel)))),
       ],
     ),
   );
@@ -410,10 +414,11 @@ class AeAiMerke extends StatelessWidget {
       key: const Key('cus-aegil-ai-merke'),
       height: 18,
       radius: BorderRadius.circular(999),
-      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .12))],
+      // Not in the design; Lys like the mint chips (`.mk1y`): `--lys-mint-dis`, `--lys-mint-tekst`.
+      bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.mintDis))],
       border: Border.all(color: const Color.fromRGBO(159, 240, 212, .45)),
       padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Center(widthFactor: 1, child: Text(AeVerktoyCopy.cus_aegil_ai, style: inter(10, weight: FontWeight.w800, height: 1, em: .04, color: kAeMintLys))),
+      child: Center(widthFactor: 1, child: Text(AeVerktoyCopy.cus_aegil_ai, style: inter(10, weight: FontWeight.w800, height: 1, em: .04, color: context.aeM(kAeMintLys, LysPalett.mintTekst)))),
     ),
   );
 }
@@ -439,17 +444,18 @@ class AeChatTopp extends StatelessWidget {
             key: const Key('cus-aegil-menneske'),
             onTap: onMenneske,
             dy: 1.5,
+            // Not in the design; Lys like «Ny prat med Ægil» (`.mk1h` + `.mk1i`).
             child: CssBox(
               radius: BorderRadius.circular(999),
-              bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-              shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
+              bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit))],
+              shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))], kAeLysRing),
               padding: const EdgeInsets.fromLTRB(10, 6, 12, 6),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const AeIkon('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5c1.3-4 4-6 7.5-6s6.2 2 7.5 6', size: 11, stroke: 2.8, color: kAeMintLys),
+                  AeIkon('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20.5c1.3-4 4-6 7.5-6s6.2 2 7.5 6', size: 11, stroke: 2.8, color: context.aeM(kAeMintLys, kAeLysIkon)),
                   const SizedBox(width: 6),
-                  Text(AeVerktoyCopy.cus_aegil_menneske, style: inter(11, weight: FontWeight.w800, color: kAeSub)),
+                  Text(AeVerktoyCopy.cus_aegil_menneske, style: inter(11, weight: FontWeight.w800, color: context.aeM(kAeSub, LysPalett.sekundar))),
                 ],
               ),
             ),
@@ -457,7 +463,8 @@ class AeChatTopp extends StatelessWidget {
         ],
       ),
       const SizedBox(height: 7),
-      Text(AeVerktoyCopy.cus_aegil_er_ai, key: const Key('cus-aegil-er-ai'), style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(191, 214, 221, .7))),
+      // Not in the design; Lys: `--lys-dempet`.
+      Text(AeVerktoyCopy.cus_aegil_er_ai, key: const Key('cus-aegil-er-ai'), style: inter(10.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(191, 214, 221, .7), LysPalett.dempet))),
     ],
   );
 }

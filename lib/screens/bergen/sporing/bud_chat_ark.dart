@@ -13,6 +13,8 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../kit/bergen_kit.dart';
 import '../meg/meg_ark.dart';
 import 'sporing_bits.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The bud chat's strings (21 Oct, `cus_budchat_*`).
 abstract final class CusBudchatCopy {
@@ -240,16 +242,18 @@ class _BudKort extends StatelessWidget {
   final String navn, initial;
   final bool underveis;
 
+  // Lys (L7: the sheet over the fjord Sporing follows its own class) — «Budchat · bud»: the card `.mkdp`
+  // (white, `--lys-kant-farge`, `--lys-kortskygge`), `.mkb`, `.mk8` + `.mk1i`, «Privat» `.mkec` + `.mku`.
   @override
   Widget build(BuildContext context) => CssBox(
     key: const Key('cus-budchat-bud'),
     radius: BorderRadius.circular(20),
     padding: const EdgeInsets.fromLTRB(13, 12, 13, 12), // 11 12 + the CSS border
-    border: Border.all(color: rgba(255, 255, 255, .16)),
-    bg: [
+    border: Border.all(color: context.aeM(rgba(255, 255, 255, .16), LysPalett.kantFarge)),
+    bg: context.aeM([
       CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .05)]),
-    ],
-    shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, rgba(0, 10, 16, .85))],
+    ], const [CssSolid(LysPalett.hvit)]),
+    shadows: context.aeM([CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, rgba(0, 10, 16, .85))], LysPalett.kortskygge),
     child: Row(
       children: [
         SizedBox(
@@ -285,19 +289,19 @@ class _BudKort extends StatelessWidget {
                 CusBudchatCopy.cus_budchat_ditt_bud(navn),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: inter(14.5, weight: FontWeight.w800),
+                style: inter(14.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel)),
               ),
               const SizedBox(height: 2),
               Row(
                 children: [
-                  spIkon(_kIkonSykkel, size: 13, color: _kMint),
+                  spIkon(_kIkonSykkel, size: 13, color: context.aeM(_kMint, const Color(0xFF0B6B57))),
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       underveis ? CusBudchatCopy.cus_budchat_paa_vei : CusBudchatCopy.cus_budchat_henter,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: inter(11.5, weight: FontWeight.w700, color: _kMint),
+                      style: inter(11.5, weight: FontWeight.w700, color: context.aeM(_kMint, LysPalett.mintTekst)),
                     ),
                   ),
                 ],
@@ -310,18 +314,18 @@ class _BudKort extends StatelessWidget {
           height: 26,
           padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
-            color: rgba(6, 22, 30, .35),
+            color: context.aeM(rgba(6, 22, 30, .35), LysPalett.dis),
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: rgba(255, 255, 255, .14)),
+            border: Border.all(color: context.aeM(rgba(255, 255, 255, .14), const Color(0x00000000))),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              spIkon(_kIkonLaas, size: 11, color: const Color(0xFFDCE9EC), width: 2.4),
+              spIkon(_kIkonLaas, size: 11, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.fjord), width: 2.4),
               const SizedBox(width: 5),
               Text(
                 CusBudchatCopy.cus_budchat_privat,
-                style: inter(11, weight: FontWeight.w800, color: const Color(0xFFDCE9EC)),
+                style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar)),
               ),
             ],
           ),
@@ -391,24 +395,26 @@ class _Boble extends StatelessWidget {
             radius: meg
                 ? const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomLeft: Radius.circular(18), bottomRight: Radius.circular(6))
                 : const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomLeft: Radius.circular(6), bottomRight: Radius.circular(18)),
-            border: meg ? null : Border.all(color: rgba(255, 255, 255, .18)),
+            // Lys («Budchat · meldinger»): the courier's bubble `.mkez` (white, `--lys-kant-farge`,
+            // `--lys-kortskygge`, `--lys-brod`), its time `.mkd`; the customer's mint bubble is inline (both modes).
+            border: meg ? null : Border.all(color: context.aeM(rgba(255, 255, 255, .18), LysPalett.kantFarge)),
             bg: meg
                 ? const [
                     CssLinear(180, [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]),
                   ]
-                : [
+                : context.aeM([
                     CssLinear(180, [rgba(255, 255, 255, .18), rgba(255, 255, 255, .08)]),
-                  ],
+                  ], const [CssSolid(LysPalett.hvit)]),
             shadows: meg
                 ? [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .6)), CssShadow(0, 2, 0, 0, rgba(20, 90, 70, .5)), CssShadow(0, 10, 16, -10, rgba(0, 0, 0, .6))]
-                : [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 10, 16, -12, rgba(0, 0, 0, .7))],
+                : context.aeM([CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 10, 16, -12, rgba(0, 0, 0, .7))], LysPalett.kortskygge),
             child: Column(
               crossAxisAlignment: meg ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   melding.tekst,
-                  style: inter(13.5, weight: meg ? FontWeight.w700 : FontWeight.w600, height: 1.4, color: meg ? _kInk : Colors.white),
+                  style: inter(13.5, weight: meg ? FontWeight.w700 : FontWeight.w600, height: 1.4, color: meg ? _kInk : context.aeM(Colors.white, LysPalett.brod)),
                 ),
                 if (tid.isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -427,7 +433,7 @@ class _Boble extends StatelessWidget {
                   else
                     Text(
                       tid,
-                      style: inter(10, weight: FontWeight.w700, color: rgba(255, 255, 255, .55)).copyWith(fontFeatures: _kTab),
+                      style: inter(10, weight: FontWeight.w700, color: context.aeM(rgba(255, 255, 255, .55), LysPalett.dempet)).copyWith(fontFeatures: _kTab),
                     ),
                 ],
               ],
@@ -481,12 +487,13 @@ class BudChatFot extends StatelessWidget {
                     height: 36,
                     padding: const EdgeInsets.symmetric(horizontal: 13),
                     radius: BorderRadius.circular(999),
-                    bg: [
+                    // Lys («Budchat · skriv»): the chip `.mkf9` (white, a `--lys-kant-farge` ring, `--lys-tittel`).
+                    bg: context.aeM([
                       CssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .06)]),
-                    ],
-                    shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .2))],
+                    ], const [CssSolid(LysPalett.hvit)]),
+                    shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .22)), CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .2))], const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)]),
                     child: Center(
-                      child: Text(c, style: inter(12.5, weight: FontWeight.w800)),
+                      child: Text(c, style: inter(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                     ),
                   ),
                 ),
@@ -498,10 +505,11 @@ class BudChatFot extends StatelessWidget {
         CssBox(
           padding: const EdgeInsets.fromLTRB(16, 5, 5, 5),
           radius: BorderRadius.circular(999),
-          bg: [
+          // Lys: the field `.mkfa` (`--lys-dis-ull`, no shadow), the input `.mkfb` (`--lys-tittel`, caret mint-tekst).
+          bg: context.aeM([
             CssLinear(180, [rgba(6, 22, 30, .42), rgba(6, 22, 30, .42)]),
-          ],
-          shadows: [CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35)), CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14))],
+          ], const [CssSolid(LysPalett.disUll)]),
+          shadows: context.aeM([CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35)), CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14))], const <CssShadow>[]),
           child: Row(
             children: [
               Expanded(
@@ -510,8 +518,8 @@ class BudChatFot extends StatelessWidget {
                   controller: tekst,
                   textInputAction: TextInputAction.send,
                   onSubmitted: onSend,
-                  cursorColor: _kMint,
-                  style: jakarta(14, weight: FontWeight.w700),
+                  cursorColor: context.aeM(_kMint, LysPalett.mintTekst),
+                  style: jakarta(14, weight: FontWeight.w700, color: context.aeM(Colors.white, LysPalett.tittel)),
                   decoration: InputDecoration(
                     isCollapsed: true,
                     filled: false,

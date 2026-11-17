@@ -6,12 +6,28 @@ import 'package:flutter/material.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── The dark Ark's rows (new Bergen `radMork`, L19866–19900, L9954) ────────
 // One card per row on the teal glass: the 40 px tile (icon or text), the
 // name and line, and on the right a chip, a field, a switch, the mint check
 // or an arrow. Shared by Innstillinger for Ægil and the Meg sheets that new
 // Bergen turned dark (Gullbilletten, Språk, Varsler, Slik får du poeng …).
+
+/// Lys plan: `radMork(…, lys)` — the same rows in the light sheet tone
+/// (Ærend Kunde Lys): K = `--lys-fjord`, M = `--lys-mint-tekst`, G =
+/// `--lys-glod-tekst`, U = `--lys-gull-tekst` and their 25 % / 20 % rings.
+abstract final class MorkLys {
+  static const Color k = LysPalett.fjord;
+  static const Color m = LysPalett.mintTekst;
+  static const Color g = LysPalett.glodTekst;
+  static const Color u = LysPalett.gullTekst;
+  static const Color mB = Color.fromRGBO(11, 107, 87, .25);
+  static const Color gB = Color.fromRGBO(166, 58, 18, .25);
+  static const Color uB = Color.fromRGBO(74, 48, 10, .2);
+  static const Color kB = LysPalett.kantFarge;
+}
 
 abstract final class MorkIk {
   static const String lommebok = 'M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4zM4 7l11-3v3M16 13.5h.01';
@@ -68,13 +84,13 @@ class MorkSeksjon extends StatelessWidget {
                   Flexible(
                     child: Text(
                       navn.toUpperCase(),
-                      style: inter(11, weight: FontWeight.w800, em: .1, color: const Color(0xFF7FF0CB)),
+                      style: inter(11, weight: FontWeight.w800, em: .1, color: context.aeM(const Color(0xFF7FF0CB), ArkTone.lys.mint)),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 3),
-              Text(under, style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62))),
+              Text(under, style: inter(12, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), ArkTone.lys.sek))),
             ],
           ),
         ),
@@ -99,7 +115,14 @@ class MorkVerdi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = snart ? MorkStil.snart : stil;
-    final (List<CssBg> bg, Color bd, Color c) = switch (st) {
+    final (List<CssBg> bg, Color bd, Color c) = context.lys
+        ? switch (st) {
+            MorkStil.ny || MorkStil.nesteNiv => (const [CssSolid(LysPalett.glodDis)], MorkLys.gB, MorkLys.g),
+            MorkStil.valgt || MorkStil.naadd => (const [CssSolid(LysPalett.mintDis)], MorkLys.mB, MorkLys.m),
+            MorkStil.snart || MorkStil.gull => (const [CssSolid(LysPalett.gullDis)], MorkLys.uB, MorkLys.u),
+            MorkStil.vanlig => (const [CssSolid(LysPalett.dis)], MorkLys.kB, MorkLys.k),
+          }
+        : switch (st) {
       MorkStil.ny => (const [CssSolid(Color.fromRGBO(242, 109, 61, .22))], const Color.fromRGBO(249, 162, 115, .5), const Color(0xFFFFC8A8)),
       MorkStil.valgt => (const [CssSolid(Color.fromRGBO(92, 224, 184, .2))], const Color.fromRGBO(127, 240, 203, .5), const Color(0xFF7FF0CB)),
       MorkStil.snart => (const [CssSolid(Color.fromRGBO(245, 196, 81, .16))], const Color.fromRGBO(245, 196, 81, .55), const Color(0xFFFFE08A)),
@@ -119,7 +142,7 @@ class MorkVerdi extends StatelessWidget {
         const Color(0xFFFFC8A8),
       ),
       MorkStil.vanlig => (const [CssSolid(Color.fromRGBO(255, 255, 255, .12))], const Color.fromRGBO(255, 255, 255, .2), Colors.white),
-    };
+          };
     return CssBox(
       radius: BorderRadius.circular(999),
       bg: bg,
@@ -199,12 +222,19 @@ class MorkRad extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = valgt;
     final met = metall;
-    final tBd = met != null
+    final lys = context.lys;
+    final tBd = lys
+        ? (met != null ? (v ? const Color.fromRGBO(11, 107, 87, .4) : MorkLys.kB) : snart ? MorkLys.uB : (v ? MorkLys.mB : (ny ? MorkLys.gB : const Color.fromRGBO(30, 79, 92, 0))))
+        : met != null
         ? (v ? const Color.fromRGBO(127, 240, 203, .9) : const Color.fromRGBO(255, 255, 255, .45))
         : snart
         ? const Color.fromRGBO(245, 196, 81, .4)
         : (v ? const Color.fromRGBO(127, 240, 203, .55) : (ny ? const Color.fromRGBO(249, 162, 115, .5) : const Color.fromRGBO(255, 255, 255, .2)));
-    final tC = met != null ? met.ink : (snart ? const Color(0xFFFFE08A) : (v ? const Color(0xFF7FF0CB) : (ny ? const Color(0xFFFFC8A8) : Colors.white)));
+    final tC = met != null
+        ? met.ink
+        : lys
+        ? (snart ? MorkLys.u : (v ? MorkLys.m : (ny ? MorkLys.g : MorkLys.k)))
+        : (snart ? const Color(0xFFFFE08A) : (v ? const Color(0xFF7FF0CB) : (ny ? const Color(0xFFFFC8A8) : Colors.white)));
     final tile = CssBox(
       width: 40,
       height: 40,
@@ -212,6 +242,8 @@ class MorkRad extends StatelessWidget {
       bg: [
         if (met != null)
           CssRadial(met.farger, stops: met.stopp, rx: .9, ry: .9, cx: .34, cy: .26)
+        else if (lys)
+          CssSolid(snart ? LysPalett.gullDis : v ? LysPalett.mintDis : ny ? LysPalett.glodDis : LysPalett.dis)
         else
           CssLinear(
             160,
@@ -224,7 +256,8 @@ class MorkRad extends StatelessWidget {
                 : const [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .06)],
           ),
       ],
-      shadows: [const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow.inset(0, 0, 0, 1, tBd), const CssShadow(0, 8, 12, -6, Color.fromRGBO(0, 0, 0, .5))],
+      // `0 8px 12px -6px var(--v0)` (mkf3): `rgba(0,0,0,.5)` dark, `--am-dyp` (transparent) light.
+      shadows: [const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow.inset(0, 0, 0, 1, tBd), CssShadow(0, 8, 12, -6, lys ? ArkTone.lys.dyp : const Color.fromRGBO(0, 0, 0, .5))],
       child: Center(
         child: tileBarn ?? (tileTx != null ? Text(tileTx!, style: jakarta(13, color: tC)) : AeIkon(ikon ?? MorkIk.hist, size: 18, stroke: 2.1, color: tC)),
       ),
@@ -250,8 +283,8 @@ class MorkRad extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(navn, style: inter(14, weight: FontWeight.w800, em: -.01, height: 1.3)),
-              if (under != null && under!.isNotEmpty) ...[const SizedBox(height: 2), Text(under!, style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62)))],
+              Text(navn, style: inter(14, weight: FontWeight.w800, em: -.01, height: 1.3, color: lys ? ArkTone.lys.tittel : Colors.white)),
+              if (under != null && under!.isNotEmpty) ...[const SizedBox(height: 2), Text(under!, style: inter(12, height: 1.4, color: lys ? ArkTone.lys.sek : const Color.fromRGBO(255, 255, 255, .62)))],
             ],
           ),
         ),
@@ -262,10 +295,10 @@ class MorkRad extends StatelessWidget {
     // plain and the chosen look; «Kommer snart» has its own stripes.
     final kort = snart
         ? CustomPaint(
-            painter: const MorkStriper(),
+            painter: lys ? const MorkStriper(lys: true) : const MorkStriper(),
             child: CssBox(
               radius: BorderRadius.circular(20),
-              shadows: const [CssShadow(0, 0, 0, 1.5, Color.fromRGBO(245, 196, 81, .32)), CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .18))],
+              shadows: [CssShadow(0, 0, 0, 1.5, lys ? MorkLys.uB : const Color.fromRGBO(245, 196, 81, .32)), const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .18))],
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 60),
                 child: Padding(padding: const EdgeInsets.fromLTRB(14, 12, 14, 12), child: innhold),
@@ -282,6 +315,21 @@ class MorkRad extends StatelessWidget {
             ),
             builder: (context, a, child) {
               Color l(Color x, Color y) => Color.lerp(x, y, a)!;
+              if (lys) {
+                // Light: white ↔ `--lys-mint-dis`, ring `--lys-kant-farge` ↔ `rgba(11,107,87,.4)`, the card shadow
+                // (`--lys-dis-ull` and a fainter ring when locked).
+                final plain = laast ? LysPalett.disUll : LysPalett.hvit;
+                return CssBox(
+                  radius: BorderRadius.circular(20),
+                  bg: [CssSolid(l(plain, LysPalett.mintDis))],
+                  shadows: [
+                    CssShadow(0, 0, 0, 1.5, l(laast ? const Color.fromRGBO(30, 79, 92, .08) : MorkLys.kB, const Color.fromRGBO(11, 107, 87, .4))),
+                    const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .18)),
+                    if (!laast || a > 0) ...LysPalett.kortskygge,
+                  ],
+                  child: child,
+                );
+              }
               return CssBox(
                 radius: BorderRadius.circular(20),
                 bg: [
@@ -310,7 +358,10 @@ class MorkRad extends StatelessWidget {
 /// `repeating-linear-gradient(135deg, white .05 0 8px, white .02 8px 16px)`
 /// behind «Kommer snart».
 class MorkStriper extends CustomPainter {
-  const MorkStriper();
+  const MorkStriper({this.lys = false});
+
+  /// Light: `repeating-linear-gradient(135deg,rgba(30,79,92,.05) 0 8px,rgba(30,79,92,.02) 8px 16px)`.
+  final bool lys;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -321,7 +372,9 @@ class MorkStriper extends CustomPainter {
         ..shader = ui.Gradient.linear(
           Offset.zero,
           const Offset(k, k),
-          const [Color.fromRGBO(255, 255, 255, .05), Color.fromRGBO(255, 255, 255, .05), Color.fromRGBO(255, 255, 255, .02), Color.fromRGBO(255, 255, 255, .02)],
+          lys
+              ? const [Color.fromRGBO(30, 79, 92, .05), Color.fromRGBO(30, 79, 92, .05), Color.fromRGBO(30, 79, 92, .02), Color.fromRGBO(30, 79, 92, .02)]
+              : const [Color.fromRGBO(255, 255, 255, .05), Color.fromRGBO(255, 255, 255, .05), Color.fromRGBO(255, 255, 255, .02), Color.fromRGBO(255, 255, 255, .02)],
           const [0, .5, .5, 1],
           TileMode.repeated,
         ),
@@ -329,7 +382,7 @@ class MorkStriper extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(MorkStriper o) => false;
+  bool shouldRepaint(MorkStriper o) => o.lys != lys;
 }
 
 /// `kortStag .45s <delay> cubic-bezier(.2,.9,.3,1) both`.
@@ -368,9 +421,9 @@ class MorkBryter extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: paa ? null : const Color.fromRGBO(255, 255, 255, .14),
+        color: paa ? null : context.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color.fromRGBO(30, 79, 92, .18)),
         gradient: paa ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9E)]) : null,
-        border: Border.all(color: paa ? const Color.fromRGBO(255, 255, 255, .4) : const Color.fromRGBO(255, 255, 255, .2)),
+        border: Border.all(color: paa ? context.aeM(const Color.fromRGBO(255, 255, 255, .4), MorkLys.mB) : context.aeM(const Color.fromRGBO(255, 255, 255, .2), const Color.fromRGBO(30, 79, 92, .12))),
       ),
       child: Stack(
         children: [
@@ -440,9 +493,9 @@ class MorkPil extends StatelessWidget {
     alignment: Alignment.center,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      color: const Color.fromRGBO(255, 255, 255, .12),
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+      color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), ArkTone.lys.dis12),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), ArkTone.lys.kant22)),
     ),
-    child: const AeIkon('M9 6l6 6-6 6', size: 11, stroke: 3),
+    child: AeIkon('M9 6l6 6-6 6', size: 11, stroke: 3, color: context.aeM(Colors.white, ArkTone.lys.ikon)),
   );
 }

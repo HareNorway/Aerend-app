@@ -29,6 +29,7 @@ void main() {
       'MegStadion 50': (50000, 0, .1),
       'MegStadion lite 1000/12': (83333, 0, .1),
       'AegilFloyen 33': (33000, 0, .1),
+      'AegilFloyen stripes 12': (12000, 0, .1),
       'AegilFloyen lite 66': (66000, 0, .1),
       'Sjo-like 1000/60 - 2': (16667, 2000, .05),
     };

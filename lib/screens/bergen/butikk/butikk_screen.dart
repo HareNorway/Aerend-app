@@ -8,6 +8,8 @@ import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
 import '../../common/home/bergen/bergen_kit.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import '../kit/bergen_kit.dart';
 import 'butikk_copy.dart';
 import 'klede_sheet.dart';
@@ -156,13 +158,16 @@ class _ButikkScreenState extends State<ButikkScreen> {
 
   Widget _bygg(BuildContext context) {
     final store = _store;
+    // Not in the design: in Lys the empty / loading page takes the store
+    // page's light body (`.mky` `--lys-ull`) with fjord ink.
+    final lys = context.lys;
     if (_missing) {
       return Scaffold(
-        backgroundColor: const Color(0xFF1E4F5C),
+        backgroundColor: lys ? LysPalett.ull : const Color(0xFF1E4F5C),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          foregroundColor: Colors.white,
+          foregroundColor: lys ? LysPalett.fjord : Colors.white,
         ),
         body: Center(
           child: Text(
@@ -172,7 +177,7 @@ class _ButikkScreenState extends State<ButikkScreen> {
               context,
               13,
               weight: FontWeight.w700,
-              color: Colors.white,
+              color: lys ? LysPalett.tittel : Colors.white,
             ),
           ),
         ),
@@ -181,10 +186,10 @@ class _ButikkScreenState extends State<ButikkScreen> {
     if (store == null) {
       // The store's water while it loads, so the drop lands on teal.
       return Scaffold(
-        backgroundColor: const Color(0xFF1E4F5C),
+        backgroundColor: lys ? LysPalett.ull : const Color(0xFF1E4F5C),
         body: Center(
           child: CircularProgressIndicator(
-            color: Colors.white,
+            color: lys ? LysPalett.fjord : Colors.white,
             semanticsLabel: _name,
           ),
         ),

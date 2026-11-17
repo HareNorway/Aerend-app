@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/bergen_tokens.dart';
 import 'vann_overganger.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// What the drag handle says (design `.ark-handle` states).
 enum BergenSheetHandle {
@@ -89,17 +91,19 @@ class BergenSheet extends StatelessWidget {
     const radius = BorderRadius.vertical(
       top: Radius.circular(BergenTokens.radiusSheet),
     );
-    final fg = onDark ? Colors.white : BergenTokens.inkSecondary;
+    // Lys plan: a dark sheet takes the light Ark tone in Lys (`--am-*` lys).
+    final lt = onDark && context.lys;
+    final fg = lt ? ArkTone.lys.linje : onDark ? Colors.white : BergenTokens.inkSecondary;
 
     return ClipRRect(
       borderRadius: radius,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: onDark ? BergenTokens.screen : null,
-          color: onDark ? null : BergenTokens.paper,
+          gradient: onDark && !lt ? BergenTokens.screen : null,
+          color: lt ? const Color.fromRGBO(247, 251, 253, .94) : onDark ? null : BergenTokens.paper,
           border: Border(
             top: BorderSide(
-              color: onDark ? BergenTokens.glassBorder : BergenTokens.paperWarm,
+              color: lt ? const Color.fromRGBO(255, 255, 255, .95) : onDark ? BergenTokens.glassBorder : BergenTokens.paperWarm,
             ),
           ),
         ),
@@ -121,7 +125,7 @@ class BergenSheet extends StatelessWidget {
                         width: 40,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: fg.withValues(alpha: .35),
+                          color: lt ? ArkTone.lys.handtak : fg.withValues(alpha: .35),
                           borderRadius: BorderRadius.circular(
                             BergenTokens.radiusChip,
                           ),

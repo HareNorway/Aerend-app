@@ -29,6 +29,8 @@ import 'package:aerend_customer/utils/route_names.dart';
 import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Butikkprofil (new Bergen L10189–10290, `bpVals` L16721): the store's
 /// page in Ærend Feed — the header (back, name, the «bergensk» dot), the
@@ -169,22 +171,26 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
 
   Widget _bygg(BuildContext context) {
     final p = _profil;
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFF12333D),
+      // `.mka4`: `--lys-ull` in Lys.
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFF12333D),
       body: LfFrame(
         child: DecoratedBox(
           // radial-gradient(90% 40% at 20% 0%, .12) over #22596A → #1A4652 → #12333D.
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF22596A), Color(0xFF1A4652), Color(0xFF12333D)], stops: [0, .38, 1]),
-          ),
+          decoration: lys
+              ? const BoxDecoration(color: LysPalett.ull)
+              : const BoxDecoration(
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF22596A), Color(0xFF1A4652), Color(0xFF12333D)], stops: [0, .38, 1]),
+                ),
           child: Stack(
             children: [
-              const Positioned(
+              Positioned(
                 left: -80,
                 top: -160,
                 width: 420,
                 height: 360,
-                child: CssBox(bg: [CssRadial.closestSide([Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6])]),
+                child: CssBox(bg: lys ? const <CssBg>[] : const [CssRadial.closestSide([Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6])]),
               ),
               Column(
                 children: [
@@ -193,7 +199,7 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                     child: p == null
                         ? Center(
                             child: _feil
-                                ? Text(BergenRoutes.provIgjen, style: inter(13, color: const Color.fromRGBO(255, 255, 255, .7)))
+                                ? Text(BergenRoutes.provIgjen, style: inter(13, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .7)))
                                 : const CircularProgressIndicator(color: Color(0xFF5CE0B8)),
                           )
                         : BergenDraLaster(
@@ -230,6 +236,7 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
       if (b?.address != null && b!.address!.isNotEmpty) b.address!.split(',').first.trim(),
       if (b?.distanceKm != null) UtforskCopy.a1_pose_avstand(b!.distanceKm!),
     ].join(' · ');
+    final lys = context.lys;
     final bio = (p.bio?.trim().isNotEmpty ?? false) ? p.bio!.trim() : ((p.description?.trim().isNotEmpty ?? false) ? p.description!.trim() : b?.description?.trim());
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -257,14 +264,15 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(p.name, style: jakarta(15)),
+          // `.mkab` / `.mk33` / `.mk3r`: `--lys-tittel` / `--lys-sekundar` / `--lys-brod` in Lys.
+          Text(p.name, style: jakarta(15, color: lys ? LysPalett.tittel : Colors.white)),
           if (linje.isNotEmpty) ...[
             const SizedBox(height: 2),
-            Text(linje, style: jakarta(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .62))),
+            Text(linje, style: jakarta(12.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .62))),
           ],
           if (bio != null && bio.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(bio, style: inter(13.5, weight: FontWeight.w500, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .92))),
+            Text(bio, style: inter(13.5, weight: FontWeight.w500, height: 1.45, color: lys ? LysPalett.brod : const Color.fromRGBO(255, 255, 255, .92))),
           ],
           const SizedBox(height: 8),
           Wrap(
@@ -279,13 +287,15 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // `.mk8` / `.mk1i`: `--lys-mint-tekst`, the icon `#0B6B57` in Lys.
                       SvgPicture.string(
                         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#7FF0CB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1 M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
                         width: 13,
                         height: 13,
+                        colorFilter: lys ? const ColorFilter.mode(Color(0xFF0B6B57), BlendMode.srcIn) : null,
                       ),
                       const SizedBox(width: 5),
-                      Text('aerend.no/${p.slug}', style: jakarta(12.5, color: const Color(0xFF7FF0CB))),
+                      Text('aerend.no/${p.slug}', style: jakarta(12.5, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB))),
                     ],
                   ),
                 ),
@@ -304,6 +314,7 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                   onTap: _folg,
                   child: _Knapp(
                     oransje: !p.isFollowing,
+                    folger: p.isFollowing,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -329,7 +340,8 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                   dy: 2,
                   ms: 120,
                   onTap: _meny,
-                  child: _Knapp(child: Center(child: Text(UtforskCopy.a1_bp_se_menyen, style: jakarta(14)))),
+                  // `.mkfj`: `--lys-tittel` in Lys.
+                  child: _Knapp(child: Center(child: Text(UtforskCopy.a1_bp_se_menyen, style: jakarta(14, color: lys ? LysPalett.tittel : Colors.white)))),
                 ),
               ),
               const SizedBox(width: 8),
@@ -343,10 +355,12 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
                     width: 42,
                     child: _Knapp(
                       child: Center(
+                        // `.mka5` `.mku`: `#1E4F5C` in Lys.
                         child: SvgPicture.string(
                           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4 M8 8l4-4 4 4 M5 13v6h14v-6"/></svg>',
                           width: 17,
                           height: 17,
+                          colorFilter: lys ? const ColorFilter.mode(LysPalett.fjord, BlendMode.srcIn) : null,
                         ),
                       ),
                     ),
@@ -381,9 +395,10 @@ class _ButikkProfilScreenState extends State<ButikkProfilScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 34),
           child: Column(
             children: [
-              Text(t, textAlign: TextAlign.center, style: jakarta(15)),
+              // Lys: the page ink (`.mka4` `--lys-brod`) and `.mk6` `--lys-sekundar`.
+              Text(t, textAlign: TextAlign.center, style: jakarta(15, color: context.aeM(Colors.white, LysPalett.brod))),
               const SizedBox(height: 4),
-              Text(u, textAlign: TextAlign.center, style: inter(13, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .7))),
+              Text(u, textAlign: TextAlign.center, style: inter(13, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar))),
             ],
           ),
         ),
@@ -488,8 +503,15 @@ class _Hode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    return CssBox(
-      bg: const [CssLinear(180, [Color.fromRGBO(22, 63, 74, .96), Color.fromRGBO(22, 63, 74, .82)])],
+    final lys = context.lys;
+    // `.mkfd`: in Lys `rgba(247,251,253,.96 → .82)` and a `--lys-skille` bottom rule.
+    return DecoratedBox(
+      position: DecorationPosition.foreground,
+      decoration: BoxDecoration(border: lys ? const Border(bottom: BorderSide(color: LysPalett.skille)) : null),
+      child: CssBox(
+      bg: lys
+          ? const [CssLinear(180, [Color.fromRGBO(247, 251, 253, .96), Color.fromRGBO(247, 251, 253, .82)])]
+          : const [CssLinear(180, [Color.fromRGBO(22, 63, 74, .96), Color.fromRGBO(22, 63, 74, .82)])],
       padding: EdgeInsets.fromLTRB(12, top + 14, 12, 10),
       child: DecoratedBox(
         decoration: const BoxDecoration(),
@@ -502,13 +524,15 @@ class _Hode extends StatelessWidget {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(over!, style: jakarta(11, em: .08, color: const Color.fromRGBO(255, 255, 255, .6))),
-                        Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(15.5)),
+                        // `.mk2m`: `--lys-dempet`; the name the page ink (`.mkfn` `--lys-brod`) in Lys.
+                        Text(over!, style: jakarta(11, em: .08, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .6))),
+                        Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(15.5, color: lys ? LysPalett.brod : Colors.white)),
                       ],
                     )
                   : Row(
                       children: [
-                        Flexible(child: Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(17, em: -.02))),
+                        // `.mkab`: `--lys-tittel` in Lys.
+                        Flexible(child: Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(17, em: -.02, color: lys ? LysPalett.tittel : Colors.white))),
                         if (navn.isNotEmpty) ...[
                           const SizedBox(width: 6),
                           Container(
@@ -523,6 +547,7 @@ class _Hode extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 }
@@ -536,22 +561,24 @@ class _GlassKvadrat extends StatelessWidget {
   final double stroke;
 
   @override
+  // `.mkfe`: `--lys-dis`, no shadow in Lys; the icon `.mku` `#1E4F5C`.
   Widget build(BuildContext context) => CssBox(
     width: 40,
     height: 40,
     radius: BorderRadius.circular(14),
-    bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
-    shadows: const [
+    bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])], const [CssSolid(LysPalett.dis)]),
+    shadows: context.aeM(const [
       CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
       CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
       CssShadow(0, 2.5, 0, 0, Color.fromRGBO(6, 22, 30, .5)),
       CssShadow(0, 8, 12, -8, Color.fromRGBO(3, 16, 24, .8)),
-    ],
+    ], const <CssShadow>[]),
     child: Center(
       child: SvgPicture.string(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="$stroke" stroke-linecap="round" stroke-linejoin="round"><path d="$d"/></svg>',
         width: size,
         height: size,
+        colorFilter: context.aeM(null, const ColorFilter.mode(LysPalett.fjord, BlendMode.srcIn)),
       ),
     ),
   );
@@ -579,7 +606,8 @@ class _LogoRing extends StatelessWidget {
         gradient: lys ? const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8), Color(0xFF2A6272)], stops: [0, .45, 1]) : null,
       ),
       child: Container(
-        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white, border: Border.all(color: const Color(0xFF1E4F5C), width: 3)),
+        // `.mkfg`: the 3 px border `--lys-ull` in Lys.
+        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white, border: Border.all(color: context.aeM(const Color(0xFF1E4F5C), LysPalett.ull), width: 3)),
         clipBehavior: Clip.antiAlias,
         child: url != null && url!.isNotEmpty
             ? CachedNetworkImage(imageUrl: url!, fit: BoxFit.cover, memCacheWidth: 240, errorWidget: (_, _, _) => Center(child: Text(init, style: jakarta(28, color: const Color(0xFF1E4F5C)))))
@@ -599,9 +627,10 @@ class _Tall extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(n, maxLines: 1, softWrap: false, style: jakarta(18, em: -.02, height: 1.1).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
+      // «Butikkprofil · tall» `.mkab` / `.mk14`: `--lys-tittel` / `--lys-sekundar` in Lys.
+      Text(n, maxLines: 1, softWrap: false, style: jakarta(18, em: -.02, height: 1.1, color: context.aeM(Colors.white, LysPalett.tittel)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
       const SizedBox(height: 2),
-      Text(navn, maxLines: 1, softWrap: false, overflow: TextOverflow.fade, style: jakarta(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .72))),
+      Text(navn, maxLines: 1, softWrap: false, overflow: TextOverflow.fade, style: jakarta(12, weight: FontWeight.w600, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar))),
     ],
   );
 }
@@ -630,14 +659,15 @@ class _ApenChip extends StatelessWidget {
       height: 26,
       radius: BorderRadius.circular(999),
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .1))],
-      shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
+      // `.mkfh`: `--lys-hvit` with a `--lys-kant-farge` rim in Lys; the text the page ink (`--lys-brod`).
+      bg: context.aeM(const [CssSolid(Color.fromRGBO(255, 255, 255, .1))], const [CssSolid(LysPalett.hvit)]),
+      shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))], const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge)]),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(width: 7, height: 7, decoration: CssDecoration(shape: BoxShape.circle, color: dot, boxShadow: [BoxShadow(color: dot, blurRadius: 3)])),
           const SizedBox(width: 6),
-          Text(tekst, style: jakarta(12)),
+          Text(tekst, style: jakarta(12, color: context.aeM(Colors.white, LysPalett.brod))),
         ],
       ),
     );
@@ -645,22 +675,35 @@ class _ApenChip extends StatelessWidget {
 }
 
 /// «Følg» (orange 3D) / «Følger» and «Se menyen» / «Del» (glass), 42 px.
+///
+/// Lys: «Følger» (`bpFolgBg` / `bpFolgSh`, L19981) the fjord gradient;
+/// «Se menyen» / «Del» (`.mkfj` / `.mka5`) white with a `--lys-kant-farge`
+/// ring.
 class _Knapp extends StatelessWidget {
-  const _Knapp({required this.child, this.oransje = false});
+  const _Knapp({required this.child, this.oransje = false, this.folger = false});
 
   final Widget child;
   final bool oransje;
+  final bool folger;
 
   @override
-  Widget build(BuildContext context) => CssBox(
+  Widget build(BuildContext context) {
+    final lys = context.lys;
+    return CssBox(
     height: 42,
     radius: BorderRadius.circular(13),
     bg: [
       oransje
           ? const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1])
+          : lys
+          ? (folger ? const CssLinear(180, [Color(0xFF27606F), Color(0xFF1E4F5C)]) : const CssSolid(LysPalett.hvit))
           : const CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)]),
     ],
-    shadows: oransje
+    shadows: lys && !oransje
+        ? (folger
+              ? const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(11, 38, 45, .7))]
+              : const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)])
+        : oransje
         ? const [
             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .45)),
             CssShadow(0, 3, 0, 0, Color.fromRGBO(160, 60, 20, .6)),
@@ -674,6 +717,7 @@ class _Knapp extends StatelessWidget {
           ],
     child: child,
   );
+  }
 }
 
 /// The tabs (sticky): icon + name, the active one white with a mint bar.
@@ -695,12 +739,17 @@ class _FaneHode extends SliverPersistentHeaderDelegate {
   double get maxExtent => 62;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => Padding(
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final lys = context.lys;
+    return Padding(
     padding: const EdgeInsets.only(top: 16),
+    // `.mkfk`: `rgba(247,251,253,.92)` and a `--lys-skille` rule in Lys.
     child: CssBox(
-      bg: const [CssSolid(Color.fromRGBO(22, 63, 74, .9))],
+      bg: lys ? const [CssSolid(Color.fromRGBO(247, 251, 253, .92))] : const [CssSolid(Color.fromRGBO(22, 63, 74, .9))],
       child: DecoratedBox(
-        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
+        decoration: lys
+            ? const BoxDecoration(border: Border(bottom: BorderSide(color: LysPalett.skille)))
+            : const BoxDecoration(border: Border(bottom: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
         child: Row(
           children: [
             for (final (f, d) in _faner)
@@ -717,10 +766,12 @@ class _FaneHode extends SliverPersistentHeaderDelegate {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // bpFaner `c` (L19987): `--lys-tittel` / `--lys-dempet` in Lys.
                               SvgPicture.string(
                                 '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#${f == fane ? 'FFFFFF' : '8CA4AB'}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="$d"/></svg>',
                                 width: 16,
                                 height: 16,
+                                colorFilter: lys ? ColorFilter.mode(f == fane ? LysPalett.tittel : LysPalett.dempet, BlendMode.srcIn) : null,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -729,13 +780,13 @@ class _FaneHode extends SliverPersistentHeaderDelegate {
                                   _Fane.tilbud => UtforskCopy.a1_bp_fane_tilbud,
                                   _Fane.aerend => UtforskCopy.a1_bp_fane_aerend,
                                 },
-                                style: jakarta(12.5, color: f == fane ? Colors.white : const Color.fromRGBO(255, 255, 255, .55)),
+                                style: jakarta(12.5, color: f == fane ? (lys ? LysPalett.tittel : Colors.white) : (lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55))),
                               ),
                             ],
                           ),
                         ),
                         if (f == fane)
-                          const Positioned(
+                          Positioned(
                             left: 0,
                             right: 0,
                             bottom: 0,
@@ -743,7 +794,8 @@ class _FaneHode extends SliverPersistentHeaderDelegate {
                               widthFactor: .64,
                               child: SizedBox(
                                 height: 3,
-                                child: DecoratedBox(decoration: BoxDecoration(color: Color(0xFF5CE0B8), borderRadius: BorderRadius.vertical(top: Radius.circular(2)))),
+                                // bpFaner `strek`: `--lys-fjord` in Lys.
+                                child: DecoratedBox(decoration: BoxDecoration(color: lys ? LysPalett.fjord : const Color(0xFF5CE0B8), borderRadius: const BorderRadius.vertical(top: Radius.circular(2)))),
                               ),
                             ),
                           ),
@@ -757,6 +809,7 @@ class _FaneHode extends SliverPersistentHeaderDelegate {
       ),
     ),
   );
+  }
 
   @override
   bool shouldRebuild(covariant _FaneHode old) => old.fane != fane;
@@ -772,22 +825,24 @@ class _AerendInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(12, 10, 12, 2),
+    // `.mkfl` / `.mkfm` / `.mk7v`: white with a `--lys-kant-farge` rim and the
+    // card shadow, the tile `--lys-dis` / `--lys-brod`, the text `--lys-sekundar` in Lys.
     child: CssBox(
       radius: BorderRadius.circular(16),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .07))],
-      shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))],
+      bg: context.aeM(const [CssSolid(Color.fromRGBO(255, 255, 255, .07))], const [CssSolid(LysPalett.hvit)]),
+      shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))], const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
       child: Row(
         children: [
           CssBox(
             width: 28,
             height: 28,
             radius: BorderRadius.circular(9),
-            bg: const [CssSolid(Color(0xFF1E4F5C))],
-            child: Center(child: Text('Æ', style: jakarta(13, color: const Color(0xFFF5F3EF)))),
+            bg: context.aeM(const [CssSolid(Color(0xFF1E4F5C))], const [CssSolid(LysPalett.dis)]),
+            child: Center(child: Text('Æ', style: jakarta(13, color: context.aeM(const Color(0xFFF5F3EF), LysPalett.brod)))),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(UtforskCopy.a1_bp_aerend_info(navn), style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .78)))),
+          Expanded(child: Text(UtforskCopy.a1_bp_aerend_info(navn), style: inter(12, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .78), LysPalett.sekundar)))),
         ],
       ),
     ),
@@ -1228,11 +1283,15 @@ class _PostViserState extends State<_PostViser> {
       if (b?.address != null && b!.address!.isNotEmpty) b.address!.split(',').first.trim(),
       if (b?.distanceKm != null) UtforskCopy.a1_pose_avstand(b!.distanceKm!),
     ];
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFF12333D),
+      // `.mkfn`: `--lys-ull` in Lys.
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFF12333D),
       body: LfFrame(
         child: DecoratedBox(
-          decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1A4652), Color(0xFF12333D)])),
+          decoration: lys
+              ? const BoxDecoration(color: LysPalett.ull)
+              : const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1A4652), Color(0xFF12333D)])),
           child: Column(
             children: [
               _Hode(navn: widget.profil.name, over: over, onTilbake: () => Navigator.of(context).maybePop()),
@@ -1298,15 +1357,19 @@ class _ViserKort extends StatelessWidget {
         ? UtforskCopy.a1_bp_fane_aerend
         : (p.postType == 'tilbud' ? UtforskCopy.a1_bp_fane_tilbud : (p.media.isVideo && p.hasMedia ? UtforskCopy.a1_bp_video : null));
     final kjop = p.storeProductId != null;
+    final lys = context.lys;
+    // `.mkfo`: white, a `--lys-kant-farge` rim and the card shadow in Lys.
     return CssBox(
       radius: BorderRadius.circular(26),
       clip: true,
-      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)])],
-      shadows: const [
-        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18)),
-        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)),
-        CssShadow(0, 20, 32, -22, Color.fromRGBO(4, 18, 26, .9)),
-      ],
+      bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)])],
+      shadows: lys
+          ? const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]
+          : const [
+              CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .18)),
+              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)),
+              CssShadow(0, 20, 32, -22, Color.fromRGBO(4, 18, 26, .9)),
+            ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1394,12 +1457,17 @@ class _ViserKort extends StatelessWidget {
                         height: 34,
                         radius: BorderRadius.circular(999),
                         padding: const EdgeInsets.fromLTRB(9, 0, 12, 0),
+                        // bpViser (L19995) `__aeLys`: `likBg` `--lys-glod-dis` / `--lys-dis`, `likSh` a ring / none.
                         bg: [
-                          p.isLiked
+                          lys
+                              ? CssSolid(p.isLiked ? LysPalett.glodDis : LysPalett.dis)
+                              : p.isLiked
                               ? const CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)])
                               : const CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)]),
                         ],
-                        shadows: p.isLiked
+                        shadows: lys
+                            ? (p.isLiked ? const [CssShadow(0, 0, 0, 1, Color.fromRGBO(166, 58, 18, .25))] : const [])
+                            : p.isLiked
                             ? const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .45)), CssShadow(0, 2.5, 0, 0, Color(0xFFA63A12))]
                             : const [
                                 CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
@@ -1411,14 +1479,18 @@ class _ViserKort extends StatelessWidget {
                           children: [
                             _HjertePop(
                               puls: puls,
+                              // Lys: `hjFill` / `hjStroke` `--lys-glod-tekst` when liked, stroke `--lys-fjord` when not.
                               child: SvgPicture.string(
-                                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.6l-7.4-7.3a5 5 0 0 1 7-7.1l.4.4.4-.4a5 5 0 0 1 7 7.1z" fill="${p.isLiked ? '#FFFFFF' : 'none'}" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/></svg>',
+                                lys
+                                    ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.6l-7.4-7.3a5 5 0 0 1 7-7.1l.4.4.4-.4a5 5 0 0 1 7 7.1z" fill="${p.isLiked ? '#A63B0E' : 'none'}" stroke="${p.isLiked ? '#A63B0E' : '#1E4F5C'}" stroke-width="2" stroke-linejoin="round"/></svg>'
+                                    : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 20.6l-7.4-7.3a5 5 0 0 1 7-7.1l.4.4.4-.4a5 5 0 0 1 7 7.1z" fill="${p.isLiked ? '#FFFFFF' : 'none'}" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/></svg>',
                                 width: 18,
                                 height: 18,
                               ),
                             ),
                             const SizedBox(width: 6),
-                            Text('${p.likeCount}', style: jakarta(12.5).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
+                            // The card ink (`.mkfo` `--lys-brod`) in Lys.
+                            Text('${p.likeCount}', style: jakarta(12.5, color: lys ? LysPalett.brod : Colors.white).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
                           ],
                         ),
                       ),
@@ -1434,17 +1506,21 @@ class _ViserKort extends StatelessWidget {
                           width: 34,
                           height: 34,
                           radius: BorderRadius.circular(999),
-                          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
-                          shadows: const [
-                            CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
-                            CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
-                            CssShadow(0, 2.5, 0, 0, Color.fromRGBO(6, 22, 30, .5)),
-                          ],
+                          // `.mkfe` / `.mku`: `--lys-dis`, no shadow, the icon `#1E4F5C` in Lys.
+                          bg: lys ? const [CssSolid(LysPalett.dis)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
+                          shadows: lys
+                              ? const []
+                              : const [
+                                  CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
+                                  CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
+                                  CssShadow(0, 2.5, 0, 0, Color.fromRGBO(6, 22, 30, .5)),
+                                ],
                           child: Center(
                             child: SvgPicture.string(
                               '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4 M8 8l4-4 4 4 M5 13v6h14v-6"/></svg>',
                               width: 16,
                               height: 16,
+                              colorFilter: lys ? const ColorFilter.mode(LysPalett.fjord, BlendMode.srcIn) : null,
                             ),
                           ),
                         ),
@@ -1452,16 +1528,18 @@ class _ViserKort extends StatelessWidget {
                     ),
                     const Spacer(),
                     if (p.priceOre != null)
-                      Text(UtforskCopy.a1_utforsk_pose_price(p.priceOre! ~/ 100), style: jakarta(15).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
+                      // `.mkab`: `--lys-tittel` in Lys.
+                      Text(UtforskCopy.a1_utforsk_pose_price(p.priceOre! ~/ 100), style: jakarta(15, color: lys ? LysPalett.tittel : Colors.white).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()])),
                   ],
                 ),
                 if (tittel.isNotEmpty) ...[
                   const SizedBox(height: 10),
-                  Text(tittel, style: jakarta(17, em: -.01, height: 1.25)),
+                  Text(tittel, style: jakarta(17, em: -.01, height: 1.25, color: lys ? LysPalett.tittel : Colors.white)),
                 ],
                 if (p.caption.trim().isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(p.caption.trim(), style: inter(13.5, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .86))),
+                  // `.mkaa`: `--lys-sekundar` in Lys.
+                  Text(p.caption.trim(), style: inter(13.5, height: 1.45, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .86))),
                 ],
                 const SizedBox(height: 12),
                 LfPress(

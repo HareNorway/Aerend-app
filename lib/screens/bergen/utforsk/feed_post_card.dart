@@ -16,6 +16,8 @@ import 'utforsk_copy.dart';
 import '../kit/bergen_motion.dart' show BergenOnce;
 import '../kit/bergen_perf.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// One feed post, as the Launch prototype draws it (`{{ poster }}` L5498–5560
 /// in `Ærend Kunde Launch.dc.html`, design px): a glass card with the media on
@@ -323,15 +325,16 @@ class _FeedPostCardState extends State<FeedPostCard>
           final e = cssEaseOut.transform(p);
           return Opacity(opacity: e, child: Transform.translate(offset: Offset(0, 12 * (1 - e)), child: child));
         },
+        // `.mk5h` (utfFeed): white, a `--lys-kant-farge` ring and the card shadow in Lys.
         child: CssBox(
           radius: BorderRadius.circular(28),
-          bg: _glassBg,
-          shadows: [
+          bg: context.aeM(_glassBg, const [CssSolid(LysPalett.hvit)]),
+          shadows: context.aeM([
             CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
             CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .1)),
             CssShadow(0, 5, 0, 0, rgba(8, 28, 36, .45)),
             CssShadow(0, 26, 30, -18, rgba(3, 14, 20, .85)),
-          ],
+          ], const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
           padding: const EdgeInsets.fromLTRB(7, 7, 7, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -815,6 +818,7 @@ class _FeedPostCardState extends State<FeedPostCard>
       ctaLabel = UtforskCopy.a1_feed_cta_post;
     }
     final merke = UtforskCopy.a1_feed_badge(item.postType, today: item.isFromToday);
+    final lys = context.lys;
     final body = item.headline != null && item.caption.trim().isNotEmpty ? item.caption : null;
 
     return Padding(
@@ -840,9 +844,10 @@ class _FeedPostCardState extends State<FeedPostCard>
                     width: 34,
                     height: 34,
                     radius: BorderRadius.circular(17),
-                    bg: [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
-                    shadows: _keyShadow,
-                    child: Center(child: feedIcon(FeedIcons.shareLaunch, 16)),
+                    // `.mk5j`: `--lys-dis`, no shadow in Lys; the icon `.mku` `#1E4F5C`.
+                    bg: lys ? const [CssSolid(LysPalett.dis)] : [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
+                    shadows: lys ? const [] : _keyShadow,
+                    child: Center(child: feedIcon(FeedIcons.shareLaunch, 16, color: lys ? LysPalett.fjord : null)),
                   ),
                 ),
               ),
@@ -862,9 +867,10 @@ class _FeedPostCardState extends State<FeedPostCard>
                       width: 34,
                       height: 34,
                       radius: BorderRadius.circular(17),
-                      bg: [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
-                      shadows: _keyShadow,
-                      child: Center(child: feedIcon(FeedIcons.flagLaunch, 16)),
+                      // Not in the design: drawn like «Del» (`.mk5j`, `.mku`) in Lys.
+                      bg: lys ? const [CssSolid(LysPalett.dis)] : [CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)])],
+                      shadows: lys ? const [] : _keyShadow,
+                      child: Center(child: feedIcon(FeedIcons.flagLaunch, 16, color: lys ? LysPalett.fjord : null)),
                     ),
                   ),
                 ),
@@ -875,15 +881,18 @@ class _FeedPostCardState extends State<FeedPostCard>
               Flexible(
                 child: Align(
                   alignment: Alignment.centerRight,
+                  // `.mk5k`: `--lys-mint-dis`, no shadow, `--lys-mint-tekst` in Lys.
                   child: CssBox(
                     height: 24,
                     radius: BorderRadius.circular(999),
-                    bg: [CssLinear(180, [rgba(92, 224, 184, .22), rgba(92, 224, 184, .08)])],
-                    shadows: [
-                      CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .24)),
-                      CssShadow.inset(0, 0, 0, 1, rgba(92, 224, 184, .32)),
-                      CssShadow(0, 2.5, 0, 0, rgba(4, 18, 26, .42)),
-                    ],
+                    bg: lys ? const [CssSolid(LysPalett.mintDis)] : [CssLinear(180, [rgba(92, 224, 184, .22), rgba(92, 224, 184, .08)])],
+                    shadows: lys
+                        ? const []
+                        : [
+                            CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .24)),
+                            CssShadow.inset(0, 0, 0, 1, rgba(92, 224, 184, .32)),
+                            CssShadow(0, 2.5, 0, 0, rgba(4, 18, 26, .42)),
+                          ],
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Center(
                       child: Text(
@@ -891,7 +900,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                         key: Key('a1_feed_merke_${item.id}'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: inter(10, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB)),
+                        style: inter(10, weight: FontWeight.w800, em: .06, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)),
                       ),
                     ),
                   ),
@@ -907,13 +916,15 @@ class _FeedPostCardState extends State<FeedPostCard>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(item.title, style: jakarta(18, em: -0.02, height: 1.2)),
+                  // `.mkb`: `--lys-tittel` in Lys.
+                  child: Text(item.title, style: jakarta(18, em: -0.02, height: 1.2, color: lys ? LysPalett.tittel : Colors.white)),
                 ),
                 if (!widget.detalj) ...[
                   const SizedBox(width: 10),
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: feedIcon(FeedIcons.chevronLaunch, 16),
+                    // `.mk5l`: `rgba(30,79,92,0.5)` in Lys.
+                    child: feedIcon(FeedIcons.chevronLaunch, 16, color: lys ? const Color.fromRGBO(30, 79, 92, .5) : null),
                   ),
                 ],
               ],
@@ -923,7 +934,8 @@ class _FeedPostCardState extends State<FeedPostCard>
             const SizedBox(height: 3),
             Text(
               body,
-              style: inter(13.5, weight: FontWeight.w500, height: 1.45, color: const Color(0xFFDCE9EC)),
+              // `.mk21`: `--lys-sekundar` in Lys.
+              style: inter(13.5, weight: FontWeight.w500, height: 1.45, color: lys ? LysPalett.sekundar : const Color(0xFFDCE9EC)),
             ),
           ],
           if (hint != null) ...[
@@ -931,12 +943,13 @@ class _FeedPostCardState extends State<FeedPostCard>
             Row(
               key: Key('a1_feed_hint_${item.id}'),
               children: [
-                feedIcon(FeedIcons.clockLaunch, 13),
+                // `.mk5m` / `.mk1i` (p.hint): `--lys-mint-tekst`, the clock `#0B6B57` in Lys.
+                feedIcon(FeedIcons.clockLaunch, 13, color: lys ? const Color(0xFF0B6B57) : null),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
                     hint,
-                    style: inter(12, weight: FontWeight.w700, color: const Color(0xFF9FE8CF)),
+                    style: inter(12, weight: FontWeight.w700, color: lys ? LysPalett.mintTekst : const Color(0xFF9FE8CF)),
                   ),
                 ),
               ],
@@ -946,14 +959,17 @@ class _FeedPostCardState extends State<FeedPostCard>
           // 29 Oct: the price and the CTA sit in a sunken dark panel (20px,
           // 13 below the text) instead of under a rule.
           const SizedBox(height: 13),
+          // `.mk5n`: `--lys-dis`, no shadow in Lys.
           CssBox(
             radius: BorderRadius.circular(20),
-            bg: [CssLinear(180, [rgba(4, 18, 26, .24), rgba(4, 18, 26, .1)])],
-            shadows: [
-              CssShadow.inset(0, 2, 5, 0, rgba(0, 0, 0, .2)),
-              CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .06)),
-              CssShadow(0, 1, 0, 0, rgba(255, 255, 255, .1)),
-            ],
+            bg: lys ? const [CssSolid(LysPalett.dis)] : [CssLinear(180, [rgba(4, 18, 26, .24), rgba(4, 18, 26, .1)])],
+            shadows: lys
+                ? const []
+                : [
+                    CssShadow.inset(0, 2, 5, 0, rgba(0, 0, 0, .2)),
+                    CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .06)),
+                    CssShadow(0, 1, 0, 0, rgba(255, 255, 255, .1)),
+                  ],
             padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
             child: Row(
             children: [
@@ -964,7 +980,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                     if (price != null)
                       Text(
                         UtforskCopy.a1_feed_price(price ~/ 100),
-                        style: jakarta(19, height: 1).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                        style: jakarta(19, height: 1, color: lys ? LysPalett.tittel : Colors.white).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                       ),
                     if (status.isNotEmpty) ...[
                       const SizedBox(height: 5),
@@ -974,7 +990,8 @@ class _FeedPostCardState extends State<FeedPostCard>
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: open ? const Color(0xFF5CE0B8) : rgba(255, 255, 255, .4),
+                              // feedVals `statusFarge` (L20102).
+                              color: open ? const Color(0xFF5CE0B8) : (lys ? const Color.fromRGBO(30, 79, 92, .3) : rgba(255, 255, 255, .4)),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -984,7 +1001,8 @@ class _FeedPostCardState extends State<FeedPostCard>
                               status,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: inter(11, weight: FontWeight.w700, color: const Color(0xFF9FD3DE)),
+                              // `.mk5o`: `--lys-sekundar` in Lys.
+                              style: inter(11, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color(0xFF9FD3DE)),
                             ),
                           ),
                         ],
@@ -1013,6 +1031,7 @@ class _FeedPostCardState extends State<FeedPostCard>
 
   Widget _likePill() {
     final on = _liked;
+    final lys = context.lys;
     return Semantics(
       button: true,
       selected: on,
@@ -1027,12 +1046,18 @@ class _FeedPostCardState extends State<FeedPostCard>
           height: 34,
           radius: BorderRadius.circular(17),
           padding: EdgeInsets.fromLTRB(9, 0, widget.showLikeCount ? 12 : 9, 0),
+          // feedVals (L20095) `__aeLys`: `likBg` `--lys-glod-dis` / `--lys-dis`,
+          // `likSh` a `rgba(166,58,18,.25)` ring / none.
           bg: [
-            on
+            lys
+                ? CssSolid(on ? LysPalett.glodDis : LysPalett.dis)
+                : on
                 ? const CssLinear(180, [Color(0xFFFF9466), Color(0xFFE95C2C)])
                 : CssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .07)]),
           ],
-          shadows: on
+          shadows: lys
+              ? (on ? const [CssShadow(0, 0, 0, 1, Color.fromRGBO(166, 58, 18, .25))] : const [])
+              : on
               ? [
                   CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .45)),
                   const CssShadow(0, 2.5, 0, 0, Color(0xFFA63A12)),
@@ -1044,14 +1069,15 @@ class _FeedPostCardState extends State<FeedPostCard>
             children: [
               ScaleTransition(
                 scale: _popScale,
-                child: feedIcon(FeedIcons.heartLaunch(filled: on), 18),
+                child: feedIcon(lys ? FeedIcons.heartLaunchLys(filled: on) : FeedIcons.heartLaunch(filled: on), 18),
               ),
               if (widget.showLikeCount) ...[
                 const SizedBox(width: 6),
                 Text(
                   '$_likes',
                   key: Key('a1_feed_like_count_${widget.item.id}'),
-                  style: inter(12.5, weight: FontWeight.w800).copyWith(
+                  // `.mkb`: `--lys-tittel` in Lys.
+                  style: inter(12.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white).copyWith(
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
@@ -1071,6 +1097,11 @@ class _FeedPostCardState extends State<FeedPostCard>
   );
 
   Widget _cta({required String label, required bool primary}) {
+    // feedVals (L20099–20101) in Lys: the secondary CTA white with
+    // `--lys-fjord` ink, a `--lys-kant-farge` border and the card shadow; the
+    // primary's glow at .5.
+    final lys = context.lys;
+    final ink = lys && !primary ? LysPalett.fjord : Colors.white;
     return Semantics(
       button: true,
       label: label,
@@ -1087,15 +1118,19 @@ class _FeedPostCardState extends State<FeedPostCard>
           bg: [
             primary
                 ? const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1])
+                : lys
+                ? const CssSolid(LysPalett.hvit)
                 : CssLinear(180, [rgba(255, 255, 255, .18), rgba(255, 255, 255, .08)]),
           ],
-          border: Border.all(color: primary ? rgba(255, 255, 255, .3) : rgba(255, 255, 255, .22)),
+          border: Border.all(color: primary ? rgba(255, 255, 255, .3) : (lys ? LysPalett.kantFarge : rgba(255, 255, 255, .22))),
           shadows: primary
               ? [
                   CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .45)),
                   CssShadow(0, 4, 0, 0, rgba(160, 60, 20, .55)),
-                  CssShadow(0, 14, 24, -10, rgba(242, 109, 61, .8)),
+                  CssShadow(0, 14, 24, -10, lys ? rgba(242, 109, 61, .5) : rgba(242, 109, 61, .8)),
                 ]
+              : lys
+              ? LysPalett.kortskygge
               : [
                   CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
                   CssShadow(0, 3, 0, 0, rgba(4, 18, 26, .4)),
@@ -1108,7 +1143,7 @@ class _FeedPostCardState extends State<FeedPostCard>
                 feedIcon(FeedIcons.bagLaunch, 16),
                 const SizedBox(width: 7),
               ],
-              Text(label, maxLines: 1, style: inter(14, weight: FontWeight.w800)),
+              Text(label, maxLines: 1, style: inter(14, weight: FontWeight.w800, color: ink)),
             ],
           ),
         ),

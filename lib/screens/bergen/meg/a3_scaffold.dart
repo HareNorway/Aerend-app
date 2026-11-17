@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'a3_services.dart';
 import '../kit/bergen_kit.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The page frame every agil-3 screen uses: teal (`onDark`) or paper, the
 /// design's header row (back, title, optional trailing), the reduced-motion
@@ -30,17 +32,20 @@ class A3Scaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = onDark ? Colors.white : BergenTokens.ink;
-    final sub = onDark ? const Color(0xFFDCE9EC) : BergenTokens.inkSecondary;
+    // Not in the design (app-only frame): a teal page turns `--lys-ull` with `--lys-tittel` /
+    // `--lys-sekundar` ink in Lys, like the Meg sub-screens (`.mk9v`).
+    final lt = onDark && context.lys;
+    final fg = lt ? LysPalett.tittel : onDark ? Colors.white : BergenTokens.ink;
+    final sub = lt ? LysPalett.sekundar : onDark ? const Color(0xFFDCE9EC) : BergenTokens.inkSecondary;
 
     return ValueListenableBuilder<bool>(
       valueListenable: A3Services.reducedMotion,
       builder: (context, reduced, _) => MediaQuery(
         data: MediaQuery.of(context).copyWith(disableAnimations: reduced || MediaQuery.of(context).disableAnimations),
         child: Scaffold(
-          backgroundColor: onDark ? BergenTokens.tealDeep : BergenTokens.body,
+          backgroundColor: lt ? LysPalett.ull : onDark ? BergenTokens.tealDeep : BergenTokens.body,
           body: DecoratedBox(
-            decoration: BoxDecoration(gradient: onDark ? BergenTokens.screen : null),
+            decoration: BoxDecoration(gradient: onDark && !lt ? BergenTokens.screen : null),
             child: SafeArea(
               bottom: false,
               child: Column(
@@ -65,7 +70,7 @@ class A3Scaffold extends StatelessWidget {
                               if (kicker != null)
                                 Text(
                                   kicker!,
-                                  style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w800, color: BergenTokens.orangeLight),
+                                  style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w800, color: lt ? LysPalett.glodTekst : BergenTokens.orangeLight),
                                 ),
                               Text(title, style: BergenTokens.display(BergenTokens.textTitle, color: fg)),
                               if (subtitle != null)
@@ -110,7 +115,7 @@ class A3Kicker extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w800, color: onDark ? const Color(0xFF9FD3DE) : BergenTokens.inkMuted).copyWith(letterSpacing: 1.2),
+              style: BergenTokens.text(BergenTokens.textMicro, weight: FontWeight.w800, color: onDark ? context.aeM(const Color(0xFF9FD3DE), LysPalett.dempet) : BergenTokens.inkMuted).copyWith(letterSpacing: 1.2),
             ),
           ),
           if (trailing != null) trailing!,
@@ -143,8 +148,9 @@ class A3Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = onDark ? Colors.white : BergenTokens.ink;
-    final sub = onDark ? const Color(0xFFDCE9EC) : BergenTokens.inkSecondary;
+    final lt = onDark && context.lys;
+    final fg = lt ? LysPalett.tittel : onDark ? Colors.white : BergenTokens.ink;
+    final sub = lt ? LysPalett.sekundar : onDark ? const Color(0xFFDCE9EC) : BergenTokens.inkSecondary;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -155,7 +161,7 @@ class A3Row extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 20, color: onDark ? BergenTokens.mint : BergenTokens.teal),
+              Icon(icon, size: 20, color: lt ? LysPalett.mintTekst : onDark ? BergenTokens.mint : BergenTokens.teal),
               const SizedBox(width: 12),
             ],
             Expanded(

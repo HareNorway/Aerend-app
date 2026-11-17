@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/widgets.dart' show Visibility, Widget;
 import 'package:path_provider/path_provider.dart';
 
+import '../../../theme/lys/bergen_modus.dart';
 import '../../../ui/kit/kglatt.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../kit/bergen_bakt.dart';
@@ -423,6 +424,16 @@ abstract final class HjemHarness {
   static double? aegScroll;
   static int? guideIdx;
 
+  /// Lys plan: `modus` ("lys" / "mork") switches the light/dark mode at once
+  /// (saved, like a real switch); `modusBytt` ("hjem" / "konto") plays the
+  /// switch from that entry point 1.5 s after the screen opens; `modusTreg`
+  /// slows that moment down this many times (shots of the 4.6 s show).
+  static String? modusBytt;
+
+  /// Pulsed once the file is read with `modusBytt: "hjem"` (Hjem's button listens).
+  static final ValueNotifier<int> modusByttPuls = ValueNotifier(0);
+  static double? modusTreg;
+
   static Future<void> load() async {
     if (kReleaseMode) return;
     try {
@@ -441,6 +452,8 @@ abstract final class HjemHarness {
         BergenPerf.taktViktigPaa = true;
         if (perf != null || varme) BergenPerf.force(null);
         perf = null;
+        modusBytt = null;
+        modusTreg = null;
         nyButikk = false;
         betaltKurv = null;
         vaer = null;
@@ -841,6 +854,10 @@ abstract final class HjemHarness {
       KGlatt.sett(m);
       if (m['lagCache'] == true) LagCache.start();
       if (m['videoTest'] is String) PerfVideoTest.start(m['videoTest'] as String);
+      if (m['modus'] == 'lys' || m['modus'] == 'mork') BergenModus.i.sett(m['modus'] == 'lys', kilde: ModusKilde.harness, stille: true);
+      modusBytt = m['modusBytt'] as String?;
+      modusTreg = (m['modusTreg'] as num?)?.toDouble();
+      if (modusBytt == 'hjem') modusByttPuls.value++;
       debugPrint('HJEM_HARNESS applied');
     } catch (_) {}
   }

@@ -32,6 +32,8 @@ import 'feed_post_card.dart';
 import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
 import '../kit/bergen_motion.dart' show BergenOnce;
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The Feed segment of Utforsk (`utfFeed`, L5466–5590 in `Ærend Kunde
 /// Launch.dc.html`, design px): the category orbs, the active-filter chip,
@@ -525,17 +527,18 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
             onTap: () => _setFilter('alle'),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              // `.mk5d` (filterPa): `--lys-mint-dis` / `--lys-mint-tekst` in Lys; ✕ `.mk1i`.
               decoration: BoxDecoration(
-                color: rgba(92, 224, 184, .16),
+                color: context.aeM(rgba(92, 224, 184, .16), LysPalett.mintDis),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: rgba(92, 224, 184, .5)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(UtforskCopy.a1_feed_orb(_filter), style: inter(11, weight: FontWeight.w800, color: const Color(0xFF5CE0B8))),
+                  Text(UtforskCopy.a1_feed_orb(_filter), style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color(0xFF5CE0B8), LysPalett.mintTekst))),
                   const SizedBox(width: 5),
-                  feedIcon(FeedIcons.close, 10),
+                  feedIcon(FeedIcons.close, 10, color: context.aeM(null, const Color(0xFF0B6B57))),
                 ],
               ),
             ),
@@ -575,14 +578,15 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
     return Padding(
       key: const Key('a1_feed_empty'),
       padding: const EdgeInsets.only(top: 14),
+      // `.mk5p` (ingenPoster): white card, `--lys-kant-farge` border, the card shadow in Lys.
       child: CssBox(
         radius: BorderRadius.circular(24),
-        bg: kFeedGlassBg,
-        border: Border.all(color: rgba(255, 255, 255, .2)),
-        shadows: [
+        bg: context.aeM(kFeedGlassBg, const [CssSolid(LysPalett.hvit)]),
+        border: Border.all(color: context.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge)),
+        shadows: context.aeM([
           CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
           CssShadow(0, 24, 40, -22, rgba(4, 18, 26, .85)),
-        ],
+        ], LysPalett.kortskygge),
         padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
         child: Column(
           children: [
@@ -594,9 +598,9 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
               ),
             ),
             const SizedBox(height: 10),
-            Text(title, textAlign: TextAlign.center, style: jakarta(15, height: 1.3)),
+            Text(title, textAlign: TextAlign.center, style: jakarta(15, height: 1.3, color: context.aeM(Colors.white, LysPalett.tittel))),
             const SizedBox(height: 4),
-            Text(text, textAlign: TextAlign.center, style: inter(12.5, weight: FontWeight.w500, color: const Color(0xFFDCE9EC))),
+            Text(text, textAlign: TextAlign.center, style: inter(12.5, weight: FontWeight.w500, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar))),
             const SizedBox(height: 12),
             _OrangePill(label: cta, height: 42, padH: 18, onTap: onCta),
           ],
@@ -622,14 +626,15 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
       scale: .985,
       child: Padding(
         padding: const EdgeInsets.only(top: 12),
+        // `.mk5q` (visPromo): white card, `--lys-kant-farge` border, the card shadow in Lys.
         child: CssBox(
           radius: BorderRadius.circular(20),
-          bg: kFeedGlassBg,
-          border: Border.all(color: rgba(255, 255, 255, .2)),
-          shadows: [
+          bg: context.aeM(kFeedGlassBg, const [CssSolid(LysPalett.hvit)]),
+          border: Border.all(color: context.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge)),
+          shadows: context.aeM([
             CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
             CssShadow(0, 24, 40, -22, rgba(4, 18, 26, .85)),
-          ],
+          ], LysPalett.kortskygge),
           clip: true,
           child: Stack(
             children: [
@@ -667,15 +672,15 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, weight: FontWeight.w800, em: .04, color: const Color(0xFF9FE0C8))),
+                          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, weight: FontWeight.w800, em: .04, color: context.aeM(const Color(0xFF9FE0C8), LysPalett.mintTekst))),
                           const SizedBox(height: 3),
                           Text(
                             valueKr > 0 ? UtforskCopy.a1_feed_promo_price(priceKr, valueKr) : UtforskCopy.a1_utforsk_pose_price(priceKr),
-                            style: jakarta(17, em: -0.015, height: 1.15),
+                            style: jakarta(17, em: -0.015, height: 1.15, color: context.aeM(Colors.white, LysPalett.tittel)),
                           ),
                           if (under.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w600, color: const Color(0xFFDCE9EC))),
+                            Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w600, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar))),
                           ],
                           const SizedBox(height: 10),
                           Row(
@@ -687,7 +692,7 @@ class UtforskFeedTabState extends State<UtforskFeedTab> {
                                   UtforskCopy.a1_utforsk_promo_left(_bags.length),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFF9FD3DE)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
+                                  style: inter(11.5, weight: FontWeight.w700, color: context.aeM(const Color(0xFF9FD3DE), LysPalett.sekundar)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
                                 ),
                               ),
                             ],
@@ -743,15 +748,16 @@ class FeedDriftNotice extends StatelessWidget {
         child: CssBox(
         key: const Key('a1_utforsk_drift'),
         radius: BorderRadius.circular(22),
-        bg: [
+        // `.mk5e` (visDrift): white, a `--lys-kant-farge` ring and the card shadow in Lys.
+        bg: context.aeM([
           CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .05)]),
-        ],
-        shadows: [
+        ], const [CssSolid(LysPalett.hvit)]),
+        shadows: context.aeM([
           CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
           CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .1)),
           CssShadow(0, 4, 0, 0, rgba(8, 28, 36, .45)),
           CssShadow(0, 18, 24, -16, rgba(3, 14, 20, .8)),
-        ],
+        ], const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
         clip: true,
         child: Stack(
           children: [
@@ -776,22 +782,22 @@ class FeedDriftNotice extends StatelessWidget {
                     width: 40,
                     height: 40,
                     radius: BorderRadius.circular(14),
-                    // 29 Oct: a teal 3D tile.
-                    bg: const [
+                    // 29 Oct: a teal 3D tile. `.mk5f`: `--lys-dis`, ink `--lys-brod`, no shadow in Lys.
+                    bg: context.aeM(const [
                       CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1]),
-                    ],
-                    shadows: [
+                    ], const [CssSolid(LysPalett.dis)]),
+                    shadows: context.aeM([
                       CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .32)),
                       CssShadow.inset(0, -3, 5, 0, rgba(4, 20, 28, .42)),
                       CssShadow(0, 0, 0, 1, rgba(255, 255, 255, .07)),
                       CssShadow(0, 8, 10, -6, rgba(3, 16, 24, .8)),
-                    ],
+                    ], const []),
                     child: Center(
                       child: SvgPicture.asset(
                         'assets/svgs/dashboard/ae_mark.svg',
                         width: 24,
                         height: 15,
-                        colorFilter: const ColorFilter.mode(Color(0xFFF5F3EF), BlendMode.srcIn),
+                        colorFilter: ColorFilter.mode(context.aeM(const Color(0xFFF5F3EF), LysPalett.brod), BlendMode.srcIn),
                       ),
                     ),
                   ),
@@ -806,17 +812,19 @@ class FeedDriftNotice extends StatelessWidget {
                               child: Text(
                                 UtforskCopy.a1_utforsk_drift_title,
                                 overflow: TextOverflow.ellipsis,
-                                style: jakarta(14.5, weight: FontWeight.w700, color: const Color(0xFFF5F3EF)),
+                                // `.mkh`: `--lys-tittel` in Lys.
+                                style: jakarta(14.5, weight: FontWeight.w700, color: context.aeM(const Color(0xFFF5F3EF), LysPalett.tittel)),
                               ),
                             ),
                             if (until.isNotEmpty) ...[
                               const SizedBox(width: 6),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(color: rgba(242, 193, 78, .22), borderRadius: BorderRadius.circular(999)),
+                                // `.mk5g`: `--lys-gull-dis` / `--lys-gull-tekst` in Lys.
+                                decoration: BoxDecoration(color: context.aeM(rgba(242, 193, 78, .22), LysPalett.gullDis), borderRadius: BorderRadius.circular(999)),
                                 child: Text(
                                   UtforskCopy.a1_utforsk_drift_pinned(until),
-                                  style: inter(9.5, weight: FontWeight.w800, color: const Color(0xFFF2C14E)),
+                                  style: inter(9.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFFF2C14E), LysPalett.gullTekst)),
                                 ),
                               ),
                             ],
@@ -825,7 +833,8 @@ class FeedDriftNotice extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '${note['note']}',
-                          style: inter(12.5, weight: FontWeight.w500, height: 1.4, color: const Color(0xFFDCE9EC)),
+                          // `.mk21`: `--lys-sekundar` in Lys.
+                          style: inter(12.5, weight: FontWeight.w500, height: 1.4, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar)),
                         ),
                       ],
                     ),

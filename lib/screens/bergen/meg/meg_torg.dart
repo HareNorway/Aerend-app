@@ -8,6 +8,8 @@ import '../aegil/aegil_bits.dart';
 import '../kit/br_pal.dart';
 import '../kit/scene_gl.dart';
 import 'meg_nav.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The page under Meg that opens on the Torg (`erFavoritter` / `erKonto`,
 /// L8164–8270 in `Ærend Kunde Launch.dc.html`, design px): the teal page,
@@ -53,12 +55,13 @@ class MegTorgSkjerm extends StatelessWidget {
       curve: const Cubic(.2, .9, .3, 1),
       child: Stack(
         children: [
-          const Positioned.fill(
+          Positioned.fill(
+            // `.mk9v`: the fjord body, `--lys-ull` in Lys.
             child: CssBox(
-              bg: [
+              bg: context.aeM(const [
                 CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
                 CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1]),
-              ],
+              ], const [CssSolid(LysPalett.ull)]),
             ),
           ),
           Positioned(
@@ -87,9 +90,10 @@ class MegTorgSkjerm extends StatelessWidget {
             right: 0,
             top: 0,
             height: hode,
-            child: _Hode(top: top, tittel: tittel, pille: pille, pilleKey: pilleKey, onPille: onPille),
+            child: ModusStatusMork(child: _Hode(top: top, tittel: tittel, pille: pille, pilleKey: pilleKey, onPille: onPille)),
           ),
-          const Positioned(left: 0, right: 0, bottom: 0, child: MegNav()),
+          // The nav pill stays fjord in both modes.
+          const Positioned(left: 0, right: 0, bottom: 0, child: BergenModusScope.fjord(child: MegNav())),
         ],
       ),
     );
@@ -227,14 +231,15 @@ class MegLysKort extends StatelessWidget {
   final double radius;
 
   @override
+  // `.mkac`: in Lys `--lys-hvit`, a 1px `--lys-kant-farge` border and the card shadow.
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(radius),
-    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .6))],
-    border: const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
-    shadows: const [
+    bg: context.aeM(const [CssSolid(Color.fromRGBO(255, 255, 255, .6))], const [CssSolid(LysPalett.hvit)]),
+    border: context.aeM(const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(255, 255, 255, .9))), const Border.fromBorderSide(BorderSide(color: LysPalett.kantFarge))),
+    shadows: context.aeM(const [
       CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .95)),
       CssShadow(0, 16, 28, -16, Color.fromRGBO(90, 60, 30, .5)),
-    ],
+    ], LysPalett.kortskygge),
     padding: padding,
     child: child,
   );

@@ -8,6 +8,8 @@ import '../../../services/customer/client_flags.dart';
 import '../../../utils/utils.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_ark.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Customer v2 Step 6 (spec §4.11): «Fast ukeshandel» in Meg — the own opt-in
 /// screen (explicit consent with the versioned wording, delivery day and
@@ -150,7 +152,8 @@ abstract final class FastUkeshandel {
             key: const Key('fast-samtykke'),
             title: FastCopy.cus_fast_samtykke,
             selected: samtykke,
-            trailing: Icon(samtykke ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, color: samtykke ? MegArkInk.teal : MegArkInk.faint),
+            // Lys (not in the design): the empty box `--lys-dempet` (the ticked one stays the fjord teal).
+            trailing: Icon(samtykke ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, color: samtykke ? MegArkInk.teal : ctx.aeM(MegArkInk.faint, LysPalett.dempet)),
             onTap: () => setState(() => samtykke = !samtykke),
           ),
         ],
@@ -272,7 +275,7 @@ abstract final class FastUkeshandel {
           if (s.paymentFailed)
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-              child: Text(FastCopy.cus_fast_betaling_feilet, key: const Key('fast-betaling-feilet'), style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFB4452B), height: 1.35)),
+              child: Text(FastCopy.cus_fast_betaling_feilet, key: const Key('fast-betaling-feilet'), style: BergenTokens.text(12.5, weight: FontWeight.w700, color: ctx.aeM(const Color(0xFFB4452B), LysPalett.glodTekst), height: 1.35)),
             ),
           MegArkRow(
             key: const Key('fast-neste'),

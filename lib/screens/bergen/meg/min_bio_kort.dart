@@ -5,6 +5,8 @@ import '../../common/auth/launch/lf_motion.dart';
 import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import 'min_bio.dart';
 import 'min_bio_bits.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The chips under the score (`bioKortChips`): allergies, avoids, diets,
 /// likes and dislikes, the first five and «+N».
@@ -16,7 +18,10 @@ List<({String tx, BioStil stil, String ik})> bioKortChips(BioEff E) => [
       for (final k in E.ikke) (tx: 'Ikke ${k.toLowerCase()}', stil: BioStil.nei, ik: BioIk.nei),
     ];
 
-Color bioNivC(int score) => score == 5 ? const Color(0xFFFFDD86) : const Color(0xFF7FF0CB);
+/// `bioNivC` (L24133): gold at 5/5, else mint; [lys] = `--lys-gull-tekst` /
+/// `--lys-mint-tekst`.
+Color bioNivC(int score, {bool lys = false}) =>
+    score == 5 ? (lys ? LysPalett.gullTekst : const Color(0xFFFFDD86)) : (lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB));
 
 /// Min Bio on Meg (design L7458–7478): Ægil in the turning ring, «Min Bio ·
 /// Ærend Intelligence», the score, the chips and Ægil's sentence. [puls]
@@ -53,12 +58,13 @@ class MinBioKort extends StatelessWidget {
         child: CssBox(
           radius: BorderRadius.circular(24),
           clip: true,
-          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)])],
-          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
-          shadows: const [
+          // `.mk7k`: `--lys-hvit`, a `--lys-kant-farge` border and the card shadow in Lys.
+          bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)])], const [CssSolid(LysPalett.hvit)]),
+          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge)),
+          shadows: context.aeM(const [
             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
             CssShadow(0, 20, 30, -20, Color.fromRGBO(4, 18, 26, .9)),
-          ],
+          ], LysPalett.kortskygge),
           child: Stack(
             children: [
               const Positioned(
@@ -88,12 +94,12 @@ class MinBioKort extends StatelessWidget {
                                 runSpacing: 4,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  Text(BioCopy.tittel, style: jakarta(17, em: -.02)),
+                                  Text(BioCopy.tittel, style: jakarta(17, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel))),
                                   const BioIntelligence(),
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              Text(BioCopy.kortLinje, style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .72))),
+                              Text(BioCopy.kortLinje, style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar))),
                             ],
                           ),
                         ),
@@ -108,7 +114,7 @@ class MinBioKort extends StatelessWidget {
                         const SizedBox(width: 10),
                         Text(
                           BioCopy.nivaa(score),
-                          style: inter(11, weight: FontWeight.w800, color: bioNivC(score)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                          style: inter(11, weight: FontWeight.w800, color: bioNivC(score, lys: context.lys)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                         ),
                       ],
                     ),
@@ -124,15 +130,16 @@ class MinBioKort extends StatelessWidget {
                     const SizedBox(height: 10),
                     CssBox(
                       radius: BorderRadius.circular(14),
-                      bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
-                      shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))],
+                      // `.mk7m` / `.mk8`: `--lys-mint-dis`, no shadow, `--lys-tittel` text in Lys.
+                      bg: context.aeM(const [CssSolid(Color.fromRGBO(0, 0, 0, .18))], const [CssSolid(LysPalett.mintDis)]),
+                      shadows: context.aeM(const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))], const <CssShadow>[]),
                       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
                       child: Text.rich(
                         TextSpan(children: [
-                          TextSpan(text: BioCopy.aegil, style: inter(12, weight: FontWeight.w700, height: 1.45, color: const Color(0xFF7FF0CB))),
+                          TextSpan(text: BioCopy.aegil, style: inter(12, weight: FontWeight.w700, height: 1.45, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
                           TextSpan(text: bioSetning(E)),
                         ]),
-                        style: inter(12, weight: FontWeight.w700, height: 1.45),
+                        style: inter(12, weight: FontWeight.w700, height: 1.45, color: context.aeM(Colors.white, LysPalett.tittel)),
                       ),
                     ),
                   ],

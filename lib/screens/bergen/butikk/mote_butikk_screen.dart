@@ -24,8 +24,24 @@ import 'restaurant_body.dart' show ButikkKurvBar, ButikkMiniKurv;
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
+import '../../common/auth/launch/lf_css.dart' show CssShadow;
 
 const _kGlass = [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .06)];
+
+/// Lys plan: a design shadow list as Flutter shadows, scaled (CSS paints the
+/// first on top; insets are left out, as the dark side leaves them out).
+List<BoxShadow> _lysSkygge(List<CssShadow> l, double s) => [
+  for (final c in l.reversed)
+    if (!c.inset)
+      BoxShadow(
+        color: c.color,
+        offset: Offset(c.dx * s, c.dy * s),
+        blurRadius: onbBlur(c.blur * s),
+        spreadRadius: c.spread * s,
+      ),
+];
 
 const _kPluss = 'M12 5v14M5 12h14';
 const _kAlleIkon =
@@ -386,9 +402,11 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
     final harKurv = _lines.isNotEmpty;
     final antall = _lines.fold<int>(0, (a, l) => a + l.quantity);
     final sum = _lines.fold<double>(0, (a, l) => a + l.sum);
+    final lys = context.lys;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF173E48),
+      // `.mk3`: the page is `--lys-ull` in Lys.
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFF173E48),
       resizeToAvoidBottomInset: false,
       body: BergenOnce(
         // `skjermInn .34s cubic-bezier(.2,.9,.3,1)`.
@@ -404,14 +422,16 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
           );
         },
         child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
-              stops: [0, .42, 1],
-            ),
-          ),
+          decoration: lys
+              ? const BoxDecoration(color: LysPalett.ull)
+              : const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
+                    stops: [0, .42, 1],
+                  ),
+                ),
           child: Stack(
             children: [
               Positioned.fill(
@@ -421,7 +441,8 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
                       gradient: RadialGradient(
                         center: const Alignment(-.72, -1),
                         radius: .9,
-                        colors: [rgba(255, 255, 255, .22), rgba(255, 255, 255, 0)],
+                        // `.mk3` light: no top light.
+                        colors: lys ? [rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)] : [rgba(255, 255, 255, .22), rgba(255, 255, 255, 0)],
                         stops: const [0, .6],
                       ),
                     ),
@@ -474,10 +495,12 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
                           Container(
                             key: const Key('a1_butikk_menu_empty'),
                             padding: EdgeInsets.all(14 * s),
+                            // Lys: not in the design — built like `.mk66` (white, kant, card shadow).
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20 * s),
-                              color: rgba(255, 255, 255, .08),
-                              border: Border.all(color: rgba(255, 255, 255, .14)),
+                              color: lys ? LysPalett.hvit : rgba(255, 255, 255, .08),
+                              border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .14)),
+                              boxShadow: lys ? _lysSkygge(LysPalett.kortskygge, s) : null,
                             ),
                             child: Text(
                               store.allItems.isEmpty ? ButikkCopy.a1_butikk_menu_empty : ButikkCopy.a1_mote_ingen_treff,
@@ -486,7 +509,7 @@ class _MoteButikkScreenState extends State<MoteButikkScreen> {
                                 12,
                                 weight: FontWeight.w600,
                                 height: 1.45,
-                                color: rgba(255, 255, 255, .75),
+                                color: lys ? LysPalett.sekundar : rgba(255, 255, 255, .75),
                               ),
                             ),
                           )
@@ -579,9 +602,12 @@ class _Glass extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: padding,
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
-    ),
+    // `.mk5`: `--lys-hvit` in Lys.
+    decoration: context.lys
+        ? const BoxDecoration(color: LysPalett.hvit)
+        : const BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
+          ),
     child: child,
   );
 }
@@ -604,6 +630,7 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     final dy = math.max(0.0, MediaQuery.paddingOf(context).top - 20 * s);
     final fee = store.deliveryChargeKr;
     final aapen = store.open
@@ -769,12 +796,14 @@ class _Hero extends StatelessWidget {
           padding: EdgeInsets.only(top: 148 * s + dy),
           child: Container(
             padding: EdgeInsets.fromLTRB(16 * s, 14 * s, 16 * s, 0),
+            // `.mka`: `--lys-hvit`, `0 -6px 14px -8px rgba(23,62,72,.18)` in Lys.
             decoration: CssDecoration(
               borderRadius: BorderRadius.vertical(top: Radius.circular(24 * s)),
-              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
+              color: lys ? LysPalett.hvit : null,
+              gradient: lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
               boxShadow: [
                 BoxShadow(
-                  color: rgba(35, 32, 29, .3),
+                  color: lys ? rgba(23, 62, 72, .18) : rgba(35, 32, 29, .3),
                   offset: Offset(0, -6 * s),
                   blurRadius: onbBlur(14 * s),
                   spreadRadius: -8 * s,
@@ -793,7 +822,8 @@ class _Hero extends StatelessWidget {
                         key: const Key('a1_butikk_navn'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: bDisplay(context, 22, letterSpacingEm: -.025, height: 1.05),
+                        // `.mkb`.
+                        style: bDisplay(context, 22, letterSpacingEm: -.025, height: 1.05, color: lys ? LysPalett.tittel : Colors.white),
                       ),
                       SizedBox(height: 5 * s),
                       Row(
@@ -801,13 +831,14 @@ class _Hero extends StatelessWidget {
                           if (store.deliveryMinutes != null) ...[
                             Text(
                               '${store.deliveryMinutes} min',
-                              style: bText(context, 11.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
+                              // `.mk6` / `.mk7`.
+                              style: bText(context, 11.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : rgba(255, 255, 255, .7)),
                             ),
                             SizedBox(width: 6 * s),
                             Container(
                               width: 3 * s,
                               height: 3 * s,
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: rgba(4, 18, 26, .45)),
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: lys ? LysPalett.dis : rgba(4, 18, 26, .45)),
                             ),
                             SizedBox(width: 6 * s),
                           ],
@@ -817,7 +848,8 @@ class _Hero extends StatelessWidget {
                                 fee <= 0 ? ButikkCopy.a1_mote_gratis_lev : ButikkCopy.a1_mote_lev(ButikkCopy.kr(fee)),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: bText(context, 11.5, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)),
+                                // `.mk8`.
+                                style: bText(context, 11.5, weight: FontWeight.w700, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)),
                               ),
                             ),
                         ],
@@ -857,24 +889,29 @@ class _Kikker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mk9` light: `--lys-dis`, no shadow (nor the white ring), `--lys-tittel`.
     return Container(
       key: const Key('a1_butikk_kikker'),
       padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 5 * s),
       decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
-        boxShadow: [
-          BoxShadow(
-            color: rgba(35, 32, 29, .4),
-            offset: Offset(0, 4 * s),
-            blurRadius: onbBlur(8 * s),
-            spreadRadius: -6 * s,
-          ),
-        ],
+        color: lys ? LysPalett.dis : null,
+        gradient: lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
+        boxShadow: lys
+            ? const []
+            : [
+                BoxShadow(
+                  color: rgba(35, 32, 29, .4),
+                  offset: Offset(0, 4 * s),
+                  blurRadius: onbBlur(8 * s),
+                  spreadRadius: -6 * s,
+                ),
+              ],
       ),
       foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white, width: 1.5 * s),
+        border: Border.all(color: lys ? const Color(0x00000000) : Colors.white, width: 1.5 * s),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -917,7 +954,10 @@ class _Kikker extends StatelessWidget {
             ),
           ),
           SizedBox(width: 5 * s),
-          Text(ButikkCopy.a1_butikk_kikker(viewers), style: bText(context, 10.5, weight: FontWeight.w800)),
+          Text(
+            ButikkCopy.a1_butikk_kikker(viewers),
+            style: bText(context, 10.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white),
+          ),
         ],
       ),
     );
@@ -941,7 +981,11 @@ class _TilHvem extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16 * s),
-            child: Text(ButikkCopy.a1_butikk_til_hvem, style: bDisplay(context, 15, letterSpacingEm: -.015)),
+            // Lys: the `.mk5` section's `--lys-tittel`.
+            child: Text(
+              ButikkCopy.a1_butikk_til_hvem,
+              style: bDisplay(context, 15, letterSpacingEm: -.015, color: context.lys ? LysPalett.tittel : Colors.white),
+            ),
           ),
           SizedBox(height: 8 * s),
           SingleChildScrollView(
@@ -952,6 +996,7 @@ class _TilHvem extends StatelessWidget {
                 for (final h in ButikkCopy.a1_butikk_til_hvem_liste) ...[
                   _SegPille(
                     label: h,
+                    gave: true,
                     on: valgt == h,
                     onTap: () => onPick(h),
                     padding: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 8 * s),
@@ -991,6 +1036,7 @@ class _Utstilling extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     if (varer.isEmpty && !gift) return const SizedBox.shrink();
     final trengerStr = varer.any((v) => v.hasSizes);
     return Container(
@@ -1050,23 +1096,29 @@ class _Utstilling extends StatelessWidget {
                   pressScale: .98,
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 10 * s),
+                    // `.mkc` light: `--lys-dis`, no shadow, `--lys-brod`.
                     decoration: CssDecoration(
                       borderRadius: BorderRadius.circular(16 * s),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: _kGlass,
-                      ),
-                      border: Border.all(color: rgba(255, 255, 255, .18)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: rgba(35, 32, 29, .4),
-                          offset: Offset(0, 8 * s),
-                          blurRadius: onbBlur(14 * s),
-                          spreadRadius: -10 * s,
-                        ),
-                        BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 2 * s)),
-                      ],
+                      color: lys ? LysPalett.dis : null,
+                      gradient: lys
+                          ? null
+                          : const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: _kGlass,
+                            ),
+                      border: Border.all(color: lys ? const Color(0x00000000) : rgba(255, 255, 255, .18)),
+                      boxShadow: lys
+                          ? const []
+                          : [
+                              BoxShadow(
+                                color: rgba(35, 32, 29, .4),
+                                offset: Offset(0, 8 * s),
+                                blurRadius: onbBlur(14 * s),
+                                spreadRadius: -10 * s,
+                              ),
+                              BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 2 * s)),
+                            ],
                     ),
                     child: Row(
                       children: [
@@ -1080,10 +1132,11 @@ class _Utstilling extends StatelessWidget {
                         Expanded(
                           child: Text(
                             ButikkCopy.a1_mote_gave_aegil,
-                            style: bText(context, 12.5, weight: FontWeight.w800),
+                            // `.mkb` / `.mkd`.
+                            style: bText(context, 12.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white),
                           ),
                         ),
-                        Text('›', style: bText(context, 14, color: rgba(255, 255, 255, .55))),
+                        Text('›', style: bText(context, 14, color: lys ? LysPalett.dempet : rgba(255, 255, 255, .55))),
                       ],
                     ),
                   ),
@@ -1108,10 +1161,15 @@ class _Merker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(ButikkCopy.a1_butikk_merker, style: bDisplay(context, 15, letterSpacingEm: -.015)),
+        // `.mkb`.
+        Text(
+          ButikkCopy.a1_butikk_merker,
+          style: bDisplay(context, 15, letterSpacingEm: -.015, color: lys ? LysPalett.tittel : Colors.white),
+        ),
         SizedBox(height: 8 * s),
         SingleChildScrollView(
           key: const Key('a1_butikk_merker'),
@@ -1123,7 +1181,9 @@ class _Merker extends StatelessWidget {
               _Merke(
                 key: const Key('a1_butikk_merke_alle'),
                 label: ButikkCopy.a1_butikk_alle,
-                bg: valgt.isEmpty ? const Color(0xFF1B2A44) : rgba(35, 32, 29, .08),
+                // `mAlleBg` (L25476): `--lys-fjord` / `--lys-dis` in Lys.
+                bg: valgt.isEmpty ? (lys ? LysPalett.fjord : const Color(0xFF1B2A44)) : (lys ? LysPalett.dis : rgba(35, 32, 29, .08)),
+                alle: true,
                 ikonFarge: valgt.isEmpty ? const Color(0xFFF5F3EF) : const Color(0xFF57534B),
                 onTap: () => onPick(''),
               ),
@@ -1154,11 +1214,15 @@ class _Merke extends StatelessWidget {
     this.ikonFarge,
     this.ini,
     this.valgt = false,
+    this.alle = false,
     required this.onTap,
   });
 
   final String label;
   final Color bg;
+
+  /// The «Alle» disc (`.mke`); the brand discs are `.mkf` / `.mkg` / `.mki`.
+  final bool alle;
   final Color? ikonFarge;
   final String? ini;
   final bool valgt;
@@ -1168,6 +1232,11 @@ class _Merke extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final lys = bg.computeLuminance() > .6;
+    final modus = context.lys;
+    // Lys: the dark navy / teal discs (`.mkg` #1B2A44, `.mki` #2C6675) turn
+    // `--lys-dis` with no shadow and `--lys-tittel` initials (`.mkh` / `.mkb`).
+    final disLys = modus && !alle && (bg == const Color(0xFF1B2A44) || bg == const Color(0xFF2C6675));
+    final fyll = disLys ? LysPalett.dis : bg;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -1182,24 +1251,37 @@ class _Merke extends StatelessWidget {
               alignment: Alignment.center,
               decoration: CssDecoration(
                 shape: BoxShape.circle,
-                color: bg,
+                color: fyll,
                 border: Border.all(color: valgt ? const Color(0xFFF26D3D) : Colors.white, width: 2 * s),
-                boxShadow: [
-                  BoxShadow(
-                    color: rgba(4, 18, 26, .85),
-                    offset: Offset(0, 14 * s),
-                    blurRadius: onbBlur(16 * s),
-                    spreadRadius: -10 * s,
-                  ),
-                  BoxShadow(
-                    color: rgba(35, 32, 29, .4),
-                    offset: Offset(0, 7 * s),
-                    blurRadius: onbBlur(8 * s),
-                    spreadRadius: -4 * s,
-                  ),
-                  BoxShadow(color: rgba(120, 100, 70, .3), offset: Offset(0, 4 * s)),
-                  BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 3 * s)),
-                ],
+                // `.mke` / `.mkf` light: `0 0 0 1px rgba(35,32,29,.06),0 4px 8px -4px rgba(23,62,72,.3)`.
+                boxShadow: disLys
+                    ? const []
+                    : modus
+                    ? [
+                        BoxShadow(
+                          color: rgba(23, 62, 72, .3),
+                          offset: Offset(0, 4 * s),
+                          blurRadius: onbBlur(8 * s),
+                          spreadRadius: -4 * s,
+                        ),
+                        BoxShadow(color: rgba(35, 32, 29, .06), spreadRadius: 1),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: rgba(4, 18, 26, .85),
+                          offset: Offset(0, 14 * s),
+                          blurRadius: onbBlur(16 * s),
+                          spreadRadius: -10 * s,
+                        ),
+                        BoxShadow(
+                          color: rgba(35, 32, 29, .4),
+                          offset: Offset(0, 7 * s),
+                          blurRadius: onbBlur(8 * s),
+                          spreadRadius: -4 * s,
+                        ),
+                        BoxShadow(color: rgba(120, 100, 70, .3), offset: Offset(0, 4 * s)),
+                        BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 3 * s)),
+                      ],
               ),
               child: ini != null
                   ? Text(
@@ -1208,7 +1290,7 @@ class _Merke extends StatelessWidget {
                         context,
                         13,
                         letterSpacingEm: -.04,
-                        color: lys ? Colors.white : const Color(0xFFF5F3EF),
+                        color: modus && (lys || disLys) ? LysPalett.tittel : (lys ? Colors.white : const Color(0xFFF5F3EF)),
                       ),
                     )
                   : SokIkon(_kAlleIkon, size: 18 * s, color: ikonFarge ?? Colors.white, stroke: 2.2),
@@ -1218,7 +1300,8 @@ class _Merke extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: bText(context, 9, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
+              // `.mk6`.
+              style: bText(context, 9, weight: FontWeight.w700, color: modus ? LysPalett.sekundar : rgba(255, 255, 255, .7)),
             ),
           ],
         ),
@@ -1245,12 +1328,14 @@ class _Hyllene extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mkj` light: `--lys-hvit`, `0 10px 16px -8px rgba(23,62,72,.22)`, `--lys-tittel`.
     return BergenCssShadow(
       key: const Key('a1_butikk_hyller_head'),
       radius: 28 * s,
       shadows: [
         BoxShadow(
-          color: rgba(4, 26, 34, .35),
+          color: lys ? rgba(23, 62, 72, .22) : rgba(4, 26, 34, .35),
           offset: Offset(0, 10 * s),
           blurRadius: onbBlur(16 * s),
           spreadRadius: -8 * s,
@@ -1260,28 +1345,40 @@ class _Hyllene extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(16 * s, 20 * s, 16 * s, 26 * s),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(28 * s)),
-          gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
+          color: lys ? LysPalett.hvit : null,
+          gradient: lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
         ),
         child: Row(
           children: [
-            Expanded(child: Text(ButikkCopy.a1_butikk_hyllene, style: bDisplay(context, 15, letterSpacingEm: -.015))),
+            Expanded(
+              child: Text(
+                ButikkCopy.a1_butikk_hyllene,
+                style: bDisplay(context, 15, letterSpacingEm: -.015, color: lys ? LysPalett.tittel : Colors.white),
+              ),
+            ),
+            // `.mkk` light: `--lys-dis`, no shadow (the inset shading goes too).
             Container(
               padding: EdgeInsets.all(4 * s),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFE4DED2), Color(0xFFEFEAE0)],
-                ),
-                boxShadow: [BoxShadow(color: rgba(255, 255, 255, .9), offset: Offset(0, 1 * s))],
+                color: lys ? LysPalett.dis : null,
+                gradient: lys
+                    ? null
+                    : const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFE4DED2), Color(0xFFEFEAE0)],
+                      ),
+                boxShadow: lys ? const [] : [BoxShadow(color: rgba(255, 255, 255, .9), offset: Offset(0, 1 * s))],
               ),
               foregroundDecoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [rgba(0, 10, 16, .35), rgba(0, 10, 16, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .5)],
+                  colors: lys
+                      ? [rgba(0, 10, 16, 0), rgba(0, 10, 16, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)]
+                      : [rgba(0, 10, 16, .35), rgba(0, 10, 16, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .5)],
                   stops: const [0, .14, .94, 1],
                 ),
               ),
@@ -1309,16 +1406,44 @@ class _Hyllene extends StatelessWidget {
 
 /// `seg(on)`: the raised white pill, or plain grey text.
 class _SegPille extends StatelessWidget {
-  const _SegPille({super.key, required this.label, required this.on, required this.onTap, required this.padding});
+  const _SegPille({
+    super.key,
+    required this.label,
+    required this.on,
+    required this.onTap,
+    required this.padding,
+    this.gave = false,
+  });
 
   final String label;
   final bool on;
   final VoidCallback onTap;
   final EdgeInsets padding;
 
+  /// «Til hvem» (gaveVals `seg`, L22857) rather than Hyllene (moteVals `seg`,
+  /// L20915) — they differ in Lys only.
+  final bool gave;
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // Lys: on = `--lys-fjord-fyll` with white text; off = transparent with
+    // `--lys-dempet` (Hyllene) or `--lys-hvit` ringed in `--lys-kant-farge`
+    // with `--lys-brod` (Til hvem).
+    final List<Color> lysFyll = on
+        ? const [Color(0xFF235E6D), Color(0xFF124A58)]
+        : (gave ? const [LysPalett.hvit, LysPalett.hvit] : [rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)]);
+    final List<BoxShadow> lysSkygge = on
+        ? [
+            BoxShadow(
+              color: gave ? rgba(23, 62, 72, .45) : rgba(23, 62, 72, .5),
+              offset: Offset(0, (gave ? 6 : 4) * s),
+              blurRadius: onbBlur((gave ? 12 : 8) * s),
+              spreadRadius: (gave ? -6 : -5) * s,
+            ),
+          ]
+        : (gave ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : const []);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -1331,9 +1456,11 @@ class _SegPille extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: on ? const [Colors.white, Color(0xFFF6F2E9)] : [rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)],
+            colors: lys ? lysFyll : (on ? const [Colors.white, Color(0xFFF6F2E9)] : [rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)]),
           ),
-          boxShadow: on
+          boxShadow: lys
+              ? lysSkygge
+              : on
               ? [
                   BoxShadow(
                     color: rgba(35, 32, 29, .35),
@@ -1353,7 +1480,9 @@ class _SegPille extends StatelessWidget {
             context,
             11.5,
             weight: FontWeight.w800,
-            color: on ? const Color(0xFF23201D) : const Color(0xFF6E6862),
+            color: lys
+                ? (on ? Colors.white : (gave ? LysPalett.brod : LysPalett.dempet))
+                : (on ? const Color(0xFF23201D) : const Color(0xFF6E6862)),
           ),
           child: Text(label),
         ),
@@ -1435,8 +1564,11 @@ class _Plagg extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     final was = item.wasPrice;
     final pct = was != null && was > item.price ? ((1 - item.price / was) * 100).round() : 0;
+    // `.mkl` light: `--lys-hvit`, `0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)`, `--lys-brod`.
+    final tekst = lys ? LysPalett.brod : Colors.white;
     return BergenOnce(
       // `kortStag .55s .16s cubic-bezier(.2,.9,.3,1) both`, one after another.
       durationMs: 550,
@@ -1457,30 +1589,33 @@ class _Plagg extends StatelessWidget {
         pressScale: .98,
         child: BergenCssShadow(
           radius: 20 * s,
-          shadows: [
-            BoxShadow(
-              color: rgba(35, 32, 29, .5),
-              offset: Offset(0, 22 * s),
-              blurRadius: onbBlur(28 * s),
-              spreadRadius: -18 * s,
-            ),
-            BoxShadow(
-              color: rgba(0, 10, 16, .6),
-              offset: Offset(0, 10 * s),
-              blurRadius: onbBlur(14 * s),
-              spreadRadius: -8 * s,
-            ),
-            BoxShadow(color: rgba(4, 18, 26, .3), offset: Offset(0, 3 * s)),
-            BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 2 * s)),
-          ],
+          shadows: lys
+              ? _lysSkygge(LysPalett.kortskygge, s)
+              : [
+                  BoxShadow(
+                    color: rgba(35, 32, 29, .5),
+                    offset: Offset(0, 22 * s),
+                    blurRadius: onbBlur(28 * s),
+                    spreadRadius: -18 * s,
+                  ),
+                  BoxShadow(
+                    color: rgba(0, 10, 16, .6),
+                    offset: Offset(0, 10 * s),
+                    blurRadius: onbBlur(14 * s),
+                    spreadRadius: -8 * s,
+                  ),
+                  BoxShadow(color: rgba(4, 18, 26, .3), offset: Offset(0, 3 * s)),
+                  BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 2 * s)),
+                ],
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20 * s),
-              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
+              color: lys ? LysPalett.hvit : null,
+              gradient: lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
             ),
             foregroundDecoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20 * s),
-              border: Border.all(color: rgba(255, 255, 255, .18)),
+              border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .18)),
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -1496,24 +1631,25 @@ class _Plagg extends StatelessWidget {
                         item.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: bDisplay(context, 14, letterSpacingEm: -.01, height: 1.2),
+                        style: bDisplay(context, 14, letterSpacingEm: -.01, height: 1.2, color: tekst),
                       ),
                       SizedBox(height: 5 * s),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Text(ButikkCopy.kr(item.price), style: bDisplay(context, 17, letterSpacingEm: -.02)),
+                          Text(ButikkCopy.kr(item.price), style: bDisplay(context, 17, letterSpacingEm: -.02, color: tekst)),
                           if (was != null && was > item.price) ...[
                             SizedBox(width: 6 * s),
                             Flexible(
                               child: Text(
                                 ButikkCopy.kr(was).replaceAll(RegExp(r'\s*kr$'), ''),
                                 maxLines: 1,
-                                style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .55))
+                                // `.mkd`.
+                                style: bText(context, 11, weight: FontWeight.w600, color: lys ? LysPalett.dempet : rgba(255, 255, 255, .55))
                                     .copyWith(
                                       decoration: TextDecoration.lineThrough,
-                                      decorationColor: rgba(255, 255, 255, .55),
+                                      decorationColor: lys ? LysPalett.dempet : rgba(255, 255, 255, .55),
                                     ),
                               ),
                             ),
@@ -1543,24 +1679,31 @@ class _Bilde extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mkp` light: `--lys-dis`, no shadow (and no teal glow).
     return Container(
       height: 172 * s,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20 * s), bottom: Radius.circular(18 * s)),
-        gradient: const RadialGradient(
-          center: Alignment.topCenter,
-          radius: 1.2,
-          colors: [Color(0xFF3C7788), Color(0xFF265A6A), Color(0xFF173E48)],
-          stops: [0, .55, 1],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: rgba(0, 10, 16, .6),
-            offset: Offset(0, 4 * s),
-            blurRadius: onbBlur(10 * s),
-            spreadRadius: -6 * s,
-          ),
-        ],
+        color: lys ? LysPalett.dis : null,
+        gradient: lys
+            ? null
+            : const RadialGradient(
+                center: Alignment.topCenter,
+                radius: 1.2,
+                colors: [Color(0xFF3C7788), Color(0xFF265A6A), Color(0xFF173E48)],
+                stops: [0, .55, 1],
+              ),
+        boxShadow: lys
+            ? const []
+            : [
+                BoxShadow(
+                  color: rgba(0, 10, 16, .6),
+                  offset: Offset(0, 4 * s),
+                  blurRadius: onbBlur(10 * s),
+                  spreadRadius: -6 * s,
+                ),
+              ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -1571,7 +1714,7 @@ class _Bilde extends StatelessWidget {
               gradient: RadialGradient(
                 center: const Alignment(0, -.2),
                 radius: .6,
-                colors: [rgba(127, 240, 203, .24), rgba(127, 240, 203, 0)],
+                colors: lys ? [rgba(127, 240, 203, 0), rgba(127, 240, 203, 0)] : [rgba(127, 240, 203, .24), rgba(127, 240, 203, 0)],
                 stops: const [0, .65],
               ),
             ),
@@ -1791,7 +1934,8 @@ class _StorrelseHint extends StatelessWidget {
             Expanded(
               child: Text(
                 ButikkCopy.a1_butikk_storrelse_hint_generic,
-                style: bText(context, 12, weight: FontWeight.w700, height: 1.4, color: const Color(0xFF23201D)),
+                // `.mkb`: `--lys-tittel` in Lys.
+                style: bText(context, 12, weight: FontWeight.w700, height: 1.4, color: context.lys ? LysPalett.tittel : const Color(0xFF23201D)),
               ),
             ),
           ],
@@ -1823,35 +1967,40 @@ class _FilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     const spring = Cubic(.3, 1.2, .5, 1);
     const fade = Duration(milliseconds: 260);
     const skala = Duration(milliseconds: 300);
+    // `.mks` light: `--lys-hvit`, a `--lys-kant-farge` border, `--lys-kortskygge`.
     return Container(
       key: const Key('a1_butikk_filterbar'),
       padding: EdgeInsets.symmetric(horizontal: 10 * s),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        gradient: cssLinear(160, const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], const [0, .62, 1]),
-        border: Border.all(color: rgba(255, 255, 255, .18)),
-        boxShadow: [
-          BoxShadow(
-            color: rgba(15, 45, 55, .6),
-            offset: Offset(0, 16 * s),
-            blurRadius: onbBlur(30 * s),
-            spreadRadius: -14 * s,
-          ),
-          BoxShadow(
-            color: rgba(15, 45, 55, .3),
-            offset: Offset(0, 2 * s),
-            blurRadius: onbBlur(3 * s),
-            spreadRadius: -1 * s,
-          ),
-        ],
+        color: lys ? LysPalett.hvit : null,
+        gradient: lys ? null : cssLinear(160, const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], const [0, .62, 1]),
+        border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .18)),
+        boxShadow: lys
+            ? _lysSkygge(LysPalett.kortskygge, s)
+            : [
+                BoxShadow(
+                  color: rgba(15, 45, 55, .6),
+                  offset: Offset(0, 16 * s),
+                  blurRadius: onbBlur(30 * s),
+                  spreadRadius: -14 * s,
+                ),
+                BoxShadow(
+                  color: rgba(15, 45, 55, .3),
+                  offset: Offset(0, 2 * s),
+                  blurRadius: onbBlur(3 * s),
+                  spreadRadius: -1 * s,
+                ),
+              ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          bergenInsetTop(radius: 999, alpha: .16, pad: EdgeInsets.symmetric(horizontal: 10 * s)),
+          bergenInsetTop(radius: 999, alpha: lys ? 0 : .16, pad: EdgeInsets.symmetric(horizontal: 10 * s)),
           Center(
             child: SizedBox(
               height: 38 * s,
@@ -1907,30 +2056,36 @@ class _FilterBar extends StatelessWidget {
                           curve: spring,
                           alignment: Alignment.centerLeft,
                           scale: sokApen ? 1 : .96,
+                          // `.mkt` light: `--lys-dis`, no shadow, `--lys-brod`.
                           child: Container(
                             padding: EdgeInsets.fromLTRB(14 * s, 0, 6 * s, 0),
                             decoration: CssDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              gradient: const LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: _kGlass,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: rgba(0, 20, 26, .2),
-                                  offset: Offset(0, 2 * s),
-                                  blurRadius: onbBlur(3 * s),
-                                  spreadRadius: -1 * s,
-                                ),
-                              ],
+                              color: lys ? LysPalett.dis : null,
+                              gradient: lys
+                                  ? null
+                                  : const LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: _kGlass,
+                                    ),
+                              boxShadow: lys
+                                  ? const []
+                                  : [
+                                      BoxShadow(
+                                        color: rgba(0, 20, 26, .2),
+                                        offset: Offset(0, 2 * s),
+                                        blurRadius: onbBlur(3 * s),
+                                        spreadRadius: -1 * s,
+                                      ),
+                                    ],
                             ),
                             child: Stack(
                               children: [
                                 bergenInsetTop(
                                   radius: 999,
                                   height: 1,
-                                  alpha: 1,
+                                  alpha: lys ? 0 : 1,
                                   pad: EdgeInsets.fromLTRB(14 * s, 0, 6 * s, 0),
                                 ),
                                 Row(
@@ -1938,7 +2093,8 @@ class _FilterBar extends StatelessWidget {
                                     SokIkon(
                                       'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20.5 20.5l-4.3-4.3',
                                       size: 16 * s,
-                                      color: Colors.white,
+                                      // `.mku`.
+                                      color: lys ? LysPalett.fjord : Colors.white,
                                       stroke: 2.4,
                                     ),
                                     SizedBox(width: 9 * s),
@@ -1947,8 +2103,9 @@ class _FilterBar extends StatelessWidget {
                                         key: const Key('a1_butikk_mote_sok'),
                                         controller: sok,
                                         focusNode: sokFokus,
-                                        cursorColor: const Color(0xFFF26D3D),
-                                        style: bText(context, 13, weight: FontWeight.w700),
+                                        // `.mkv`: `--lys-tittel`, caret `--lys-glod-tekst`.
+                                        cursorColor: lys ? LysPalett.glodTekst : const Color(0xFFF26D3D),
+                                        style: bText(context, 13, weight: FontWeight.w700, color: lys ? LysPalett.tittel : Colors.white),
                                         textInputAction: TextInputAction.search,
                                         decoration: InputDecoration(
                                           isDense: true,
@@ -1958,7 +2115,8 @@ class _FilterBar extends StatelessWidget {
                                             context,
                                             13,
                                             weight: FontWeight.w700,
-                                            color: rgba(255, 255, 255, .5),
+                                            // Lys: the placeholder is not in the design — `--lys-dempet`.
+                                            color: lys ? LysPalett.dempet : rgba(255, 255, 255, .5),
                                           ),
                                         ),
                                       ),
@@ -1977,7 +2135,8 @@ class _FilterBar extends StatelessWidget {
                                           child: SokIkon(
                                             'M6 6l12 12M18 6L6 18',
                                             size: 9 * s,
-                                            color: rgba(255, 255, 255, .7),
+                                            // `.mkw`.
+                                            color: lys ? rgba(30, 79, 92, .7) : rgba(255, 255, 255, .7),
                                             stroke: 3,
                                           ),
                                         ),
@@ -2013,6 +2172,11 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // moteVals `chip(on)` in Lys (L20915): on = `180deg #27606F → #1E4F5C`, no
+    // border, `0 4px 8px -5px rgba(23,62,72,.5)`, white; off = `#E7F5FA`,
+    // `--lys-kant-farge` border, no shadow, `--lys-brod`.
+    final fg = lys && !on ? LysPalett.brod : Colors.white;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -2022,28 +2186,44 @@ class _Chip extends StatelessWidget {
         transform: Matrix4.translationValues(0, on ? -1 * s : 0, 0),
         decoration: CssDecoration(
           borderRadius: BorderRadius.circular(999),
-          gradient: on
+          gradient: lys
+              ? (on
+                    ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF27606F), Color(0xFF1E4F5C)])
+                    : const LinearGradient(colors: [Color(0xFFE7F5FA), Color(0xFFE7F5FA)]))
+              : on
               ? cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)])
               : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: _kGlass),
-          border: Border.all(color: on ? rgba(255, 255, 255, .5) : rgba(255, 255, 255, .24)),
+          border: Border.all(
+            color: lys ? (on ? rgba(30, 79, 92, 0) : LysPalett.kantFarge) : (on ? rgba(255, 255, 255, .5) : rgba(255, 255, 255, .24)),
+          ),
           // Two shadows in both states, so the spring (which overshoots)
           // only ever moves between them and never scales one to nothing.
-          boxShadow: [
-            BoxShadow(
-              color: on ? rgba(120, 50, 10, .9) : rgba(0, 0, 0, .6),
-              offset: Offset(0, (on ? 10 : 6) * s),
-              blurRadius: onbBlur((on ? 16 : 12) * s),
-              spreadRadius: (on ? -8 : -9) * s,
-            ),
-            BoxShadow(color: on ? rgba(150, 60, 15, .85) : rgba(150, 60, 15, 0), offset: Offset(0, 3 * s)),
-          ],
+          boxShadow: lys
+              ? [
+                  BoxShadow(
+                    color: on ? rgba(23, 62, 72, .5) : rgba(23, 62, 72, 0),
+                    offset: Offset(0, 4 * s),
+                    blurRadius: onbBlur(8 * s),
+                    spreadRadius: -5 * s,
+                  ),
+                  BoxShadow(color: rgba(23, 62, 72, 0), offset: Offset(0, 3 * s)),
+                ]
+              : [
+                  BoxShadow(
+                    color: on ? rgba(120, 50, 10, .9) : rgba(0, 0, 0, .6),
+                    offset: Offset(0, (on ? 10 : 6) * s),
+                    blurRadius: onbBlur((on ? 16 : 12) * s),
+                    spreadRadius: (on ? -8 : -9) * s,
+                  ),
+                  BoxShadow(color: on ? rgba(150, 60, 15, .85) : rgba(150, 60, 15, 0), offset: Offset(0, 3 * s)),
+                ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SokIkon(ikon, size: 13 * s, color: Colors.white, stroke: 2.1),
+            SokIkon(ikon, size: 13 * s, color: fg, stroke: 2.1),
             SizedBox(width: 6 * s),
-            Text(label, style: bDisplay(context, 12.5, letterSpacingEm: -.01)),
+            Text(label, style: bDisplay(context, 12.5, letterSpacingEm: -.01, color: fg)),
           ],
         ),
       ),
@@ -2061,6 +2241,9 @@ class _SokKnapp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mkx` light: `--lys-kant-farge` border, `--lys-kortskygge`; `mSokBg`
+    // (L25469) closed = white; the glass icon `.mku` `#1E4F5C`.
     return OnbPressable(
       key: const Key('a1_butikk_mote_sok_knapp'),
       onTap: onTap,
@@ -2073,14 +2256,16 @@ class _SokKnapp extends StatelessWidget {
         child: DecoratedBox(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: rgba(4, 18, 26, .85),
-                offset: Offset(0, 16 * s),
-                blurRadius: onbBlur(30 * s),
-                spreadRadius: -14 * s,
-              ),
-            ],
+            boxShadow: lys
+                ? _lysSkygge(LysPalett.kortskygge, s)
+                : [
+                    BoxShadow(
+                      color: rgba(4, 18, 26, .85),
+                      offset: Offset(0, 16 * s),
+                      blurRadius: onbBlur(30 * s),
+                      spreadRadius: -14 * s,
+                    ),
+                  ],
           ),
           child: ClipOval(
             // The screen's one blur layer: `backdrop-filter: blur(40px)`.
@@ -2094,8 +2279,10 @@ class _SokKnapp extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: apen
                       ? cssLinear(160, const [Color(0xFFF58A55), Color(0xFFE95C2C)])
-                      : LinearGradient(colors: [rgba(255, 255, 255, .62), rgba(255, 255, 255, .62)]),
-                  border: Border.all(color: rgba(255, 255, 255, .9)),
+                      : (lys
+                            ? const LinearGradient(colors: [LysPalett.hvit, LysPalett.hvit])
+                            : LinearGradient(colors: [rgba(255, 255, 255, .62), rgba(255, 255, 255, .62)])),
+                  border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .9)),
                 ),
                 child: apen
                     ? Transform.rotate(
@@ -2105,7 +2292,7 @@ class _SokKnapp extends StatelessWidget {
                     : SokIkon(
                         'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20.5 20.5l-4.3-4.3',
                         size: 24 * s,
-                        color: Colors.white,
+                        color: lys ? LysPalett.fjord : Colors.white,
                         stroke: 2.3,
                       ),
               ),

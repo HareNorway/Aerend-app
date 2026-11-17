@@ -11,6 +11,8 @@ import '../kit/bergen_motion.dart';
 import '../kit/svg_sti.dart';
 import 'sok_copy.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// One remembered search (`sokNylig`: `{ t, n }`).
 class SokNylig {
@@ -113,6 +115,18 @@ class SokOversikt extends StatelessWidget {
 const Color _kMint = Color(0xFF9FF0D4);
 const Color _kLys = Color(0xFFBFD6DD);
 
+/// Lys: `.mk1i` — the mint line icons' stroke in the light mode.
+const Color _kMintIkonLys = Color(0xFF0B6B57);
+
+/// Lys: `.mku` — the white line icons' stroke in the light mode.
+const Color _kIkonLys = Color(0xFF1E4F5C);
+
+/// `--lys-kortskygge` as [BoxShadow]s at the design scale [s].
+List<BoxShadow> sokKortskygge(double s) => [
+  BoxShadow(color: const Color.fromRGBO(6, 52, 62, .04), offset: Offset(0, 1 * s), blurRadius: onbBlur(1 * s)),
+  BoxShadow(color: const Color.fromRGBO(6, 52, 62, .2), offset: Offset(0, 10 * s), blurRadius: onbBlur(26 * s), spreadRadius: -14 * s),
+];
+
 /// A 24-unit stroked icon from the design's SVG `d` (circles written as two
 /// arcs), scaled to [size].
 class SokIkon extends StatelessWidget {
@@ -196,6 +210,10 @@ Widget sokGevir(double w, double h, Color color) => Image.asset(
 /// rgba(255,255,255,.06))`, `inset 0 1.5px 0 rgba(255,255,255,.3)`,
 /// `inset 0 0 0 1px rgba(255,255,255,.12)`, `0 3px 0 rgba(8,28,36,.45)`,
 /// `0 18px 26px -18px rgba(3,14,20,.85)`.
+///
+/// Lys: [lysBg] with a `0 0 0 1px --lys-kant-farge` ring (`.mk53`), plus the
+/// card shadow when [lysKort] (`.mk3n`); [lysRing] false drops the ring
+/// (`.mk54`: `--lys-mint-dis`, `box-shadow:none`). No top light, no glow.
 class SokGlass extends StatelessWidget {
   const SokGlass({
     super.key,
@@ -205,7 +223,14 @@ class SokGlass extends StatelessWidget {
     this.ring = const Color.fromRGBO(255, 255, 255, .12),
     this.inset = .3,
     this.under,
+    this.lysBg = LysPalett.hvit,
+    this.lysRing = true,
+    this.lysKort = false,
   });
+
+  final Color lysBg;
+  final bool lysRing;
+  final bool lysKort;
 
   final double radius;
   final EdgeInsets padding;
@@ -221,30 +246,40 @@ class SokGlass extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final r = BorderRadius.circular(radius);
+    final lys = context.lys;
+    final under = lys ? null : this.under;
     return BergenCssShadow(
       radius: radius,
-      shadows: [
-        BoxShadow(color: rgba(8, 28, 36, .45), offset: Offset(0, 3 * s)),
-        BoxShadow(
-          color: rgba(3, 14, 20, .85),
-          offset: Offset(0, 18 * s),
-          blurRadius: onbBlur(26 * s),
-          spreadRadius: -18 * s,
-        ),
-      ],
+      shadows: lys
+          ? [
+              if (lysRing) BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1 * s),
+              if (lysKort) ...sokKortskygge(s),
+            ]
+          : [
+              BoxShadow(color: rgba(8, 28, 36, .45), offset: Offset(0, 3 * s)),
+              BoxShadow(
+                color: rgba(3, 14, 20, .85),
+                offset: Offset(0, 18 * s),
+                blurRadius: onbBlur(26 * s),
+                spreadRadius: -18 * s,
+              ),
+            ],
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: r,
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [rgba(255, 255, 255, .15), rgba(255, 255, 255, .06)],
-          ),
+          color: lys ? lysBg : null,
+          gradient: lys
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [rgba(255, 255, 255, .15), rgba(255, 255, 255, .06)],
+                ),
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: r,
-          border: Border.all(color: ring),
+          border: Border.all(color: lys ? const Color(0x00000000) : ring),
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -265,7 +300,7 @@ class SokGlass extends StatelessWidget {
                         ),
                       ),
                     ),
-                  bergenInsetTop(radius: radius, height: 1.5 * s, alpha: inset),
+                  bergenInsetTop(radius: radius, height: 1.5 * s, alpha: lys ? 0 : inset),
                 ],
               ),
             ),
@@ -280,7 +315,7 @@ class SokGlass extends StatelessWidget {
 /// The teal icon tile (`linear-gradient(160deg,#3F8798 0%,#27606F 52%,
 /// #1A4654 100%)`, `inset 0 1.5px 0 rgba(255,255,255,.32)`, `inset 0 -3px
 /// 5px rgba(4,20,28,.42)`, `0 0 0 1px rgba(255,255,255,.07)`, `0 8px 10px
-/// -6px rgba(3,16,24,.8)`).
+/// -6px rgba(3,16,24,.8)`). Lys (`.mk57`): `--lys-dis`, no shadow.
 class SokFlis extends StatelessWidget {
   const SokFlis({
     super.key,
@@ -297,31 +332,37 @@ class SokFlis extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final r = BorderRadius.circular(radius);
+    final lys = context.lys;
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         borderRadius: r,
-        gradient: cssLinear(
-          160,
-          const [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)],
-          const [0, .52, 1],
-        ),
-        boxShadow: [
-          BoxShadow(color: rgba(255, 255, 255, .07), spreadRadius: 1),
-          BoxShadow(
-            color: rgba(3, 16, 24, .8),
-            offset: Offset(0, 8 * s),
-            blurRadius: onbBlur(10 * s),
-            spreadRadius: -6 * s,
-          ),
-        ],
+        color: lys ? LysPalett.dis : null,
+        gradient: lys
+            ? null
+            : cssLinear(
+                160,
+                const [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)],
+                const [0, .52, 1],
+              ),
+        boxShadow: lys
+            ? null
+            : [
+                BoxShadow(color: rgba(255, 255, 255, .07), spreadRadius: 1),
+                BoxShadow(
+                  color: rgba(3, 16, 24, .8),
+                  offset: Offset(0, 8 * s),
+                  blurRadius: onbBlur(10 * s),
+                  spreadRadius: -6 * s,
+                ),
+              ],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          sokInsetBunn(radius: radius, extent: 7 * s, alpha: .42, rgb: const [4, 20, 28]),
-          bergenInsetTop(radius: radius, height: 1.5 * s, alpha: .32),
+          sokInsetBunn(radius: radius, extent: 7 * s, alpha: lys ? 0 : .42, rgb: const [4, 20, 28]),
+          bergenInsetTop(radius: radius, height: 1.5 * s, alpha: lys ? 0 : .32),
           child,
         ],
       ),
@@ -411,6 +452,7 @@ class _Nylige extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final har = nylig.isNotEmpty;
+    final lys = context.lys;
     return Column(
       key: const Key('a1_sok_nylig'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -420,9 +462,11 @@ class _Nylige extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
+                // «Søk · Nylige søk» `.mkb` / `.mk52` / `.mk2q`: `--lys-tittel` /
+                // `--lys-mint-tekst` / `--lys-sekundar` in Lys.
                 child: Text(
                   SokCopy.a1_sok_nylig,
-                  style: bDisplay(context, 15, color: Colors.white),
+                  style: bDisplay(context, 15, color: lys ? LysPalett.tittel : Colors.white),
                 ),
               ),
               if (har)
@@ -441,7 +485,7 @@ class _Nylige extends StatelessWidget {
                         context,
                         11.5,
                         weight: FontWeight.w800,
-                        color: const Color(0xFF9FE0C8),
+                        color: lys ? LysPalett.mintTekst : const Color(0xFF9FE0C8),
                       ),
                     ),
                   ),
@@ -477,7 +521,7 @@ class _Nylige extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 20 * s),
             child: Text(
               SokCopy.a1_sok_ingen_nylig,
-              style: bText(context, 12, weight: FontWeight.w600, color: _kLys),
+              style: bText(context, 12, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : _kLys),
             ),
           ),
       ],
@@ -499,6 +543,7 @@ class _NyligChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return SizedBox(
       height: 40 * s,
       child: SokGlass(
@@ -518,7 +563,7 @@ class _NyligChip extends StatelessWidget {
                     SokIkon(
                       '${SokIkon.sirkel(12, 12, 9)}M12 7v5l3 2',
                       size: 13 * s,
-                      color: _kMint,
+                      color: lys ? _kMintIkonLys : _kMint,
                       stroke: 2.6,
                     ),
                     SizedBox(width: 7 * s),
@@ -534,6 +579,7 @@ class _NyligChip extends StatelessWidget {
                             13,
                             weight: FontWeight.w800,
                             height: 1.1,
+                            color: lys ? LysPalett.tittel : Colors.white,
                           ),
                         ),
                         Text(
@@ -544,7 +590,7 @@ class _NyligChip extends StatelessWidget {
                             9.5,
                             weight: FontWeight.w700,
                             height: 1.1,
-                            color: _kLys,
+                            color: lys ? LysPalett.sekundar : _kLys,
                           ),
                         ),
                       ],
@@ -563,7 +609,8 @@ class _NyligChip extends StatelessWidget {
                   child: SokIkon(
                     'M6 6l12 12M18 6L6 18',
                     size: 9 * s,
-                    color: rgba(255, 255, 255, .55),
+                    // `.mk4f`: `rgba(30,79,92,0.55)` in Lys.
+                    color: lys ? const Color.fromRGBO(30, 79, 92, .55) : rgba(255, 255, 255, .55),
                     stroke: 3.2,
                   ),
                 ),
@@ -587,11 +634,16 @@ class _SporAegil extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mk54`: `--lys-mint-dis`, no shadow in Lys; `.mk1t` / `.mkb` the
+    // kicker `--lys-mint-tekst` and the line `--lys-tittel`.
     return SokGlass(
       key: const Key('a1_sok_aegil_card'),
       radius: 24 * s,
       inset: .32,
       ring: rgba(92, 224, 184, .32),
+      lysBg: LysPalett.mintDis,
+      lysRing: false,
       // `radial-gradient(90% 80% at 0% 0%, rgba(92,224,184,.22),
       // rgba(92,224,184,0) 60%)`.
       under: RadialGradient(
@@ -625,7 +677,7 @@ class _SporAegil extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              sokGevir(15 * s, 9 * s, _kMint),
+                              sokGevir(15 * s, 9 * s, lys ? LysPalett.mintTekst : _kMint),
                               SizedBox(width: 6 * s),
                               Text(
                                 SokCopy.a1_sok_aegil_kicker,
@@ -634,7 +686,7 @@ class _SporAegil extends StatelessWidget {
                                   10,
                                   weight: FontWeight.w800,
                                   letterSpacingEm: .08,
-                                  color: _kMint,
+                                  color: lys ? LysPalett.mintTekst : _kMint,
                                 ),
                               ),
                             ],
@@ -647,7 +699,7 @@ class _SporAegil extends StatelessWidget {
                               15,
                               letterSpacingEm: -.02,
                               height: 1.25,
-                              color: Colors.white,
+                              color: lys ? LysPalett.tittel : Colors.white,
                             ),
                           ),
                         ],
@@ -696,6 +748,8 @@ class _Eksempel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mk55` / `.mk1i`: `--lys-dis`, no ring, `--lys-sekundar`, the icon `#0B6B57` in Lys.
     return OnbPressable(
       onTap: onTap,
       pressDy: 2 * s,
@@ -703,8 +757,8 @@ class _Eksempel extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(10 * s, 8 * s, 12 * s, 8 * s),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          color: rgba(6, 22, 30, .32),
-          border: Border.all(color: rgba(159, 240, 212, .36)),
+          color: lys ? LysPalett.dis : rgba(6, 22, 30, .32),
+          border: Border.all(color: lys ? const Color(0x00000000) : rgba(159, 240, 212, .36)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -712,7 +766,7 @@ class _Eksempel extends StatelessWidget {
             SokIkon(
               'M4 5v6a4 4 0 0 0 4 4h12M15 10l5 5-5 5',
               size: 10 * s,
-              color: _kMint,
+              color: lys ? _kMintIkonLys : _kMint,
               stroke: 3,
             ),
             SizedBox(width: 6 * s),
@@ -723,7 +777,7 @@ class _Eksempel extends StatelessWidget {
                 context,
                 12,
                 weight: FontWeight.w800,
-                color: const Color(0xFFDFF8EE),
+                color: lys ? LysPalett.sekundar : const Color(0xFFDFF8EE),
               ),
             ),
           ],
@@ -921,9 +975,17 @@ class _Populaert extends StatelessWidget {
     Color(0xFFE9B27A),
   ];
 
+  /// Lys: `.mk56` / `.mk21` / `.mk59` — `--lys-gull-tekst`, `--lys-sekundar`, `--lys-gull-tekst`.
+  static const List<Color> _rangLys = [
+    LysPalett.gullTekst,
+    LysPalett.sekundar,
+    LysPalett.gullTekst,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return Column(
       key: const Key('a1_sok_populaert'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -936,7 +998,7 @@ class _Populaert extends StatelessWidget {
               SizedBox(width: 8 * s),
               Text(
                 SokCopy.a1_sok_populaert,
-                style: bDisplay(context, 15, color: Colors.white),
+                style: bDisplay(context, 15, color: lys ? LysPalett.tittel : Colors.white),
               ),
             ],
           ),
@@ -958,7 +1020,8 @@ class _Populaert extends StatelessWidget {
                       border: i == 0
                           ? null
                           : Border(
-                              top: BorderSide(color: rgba(255, 255, 255, .08)),
+                              // `.mk2h`: `--lys-skille` in Lys.
+                              top: BorderSide(color: lys ? LysPalett.skille : rgba(255, 255, 255, .08)),
                             ),
                     ),
                     child: Row(
@@ -973,7 +1036,7 @@ class _Populaert extends StatelessWidget {
                               20,
                               letterSpacingEm: -.04,
                               height: 1,
-                              color: _rang[i % 3],
+                              color: (lys ? _rangLys : _rang)[i % 3],
                             ).copyWith(
                               fontFeatures: const [FontFeature.tabularFigures()],
                             ),
@@ -986,7 +1049,7 @@ class _Populaert extends StatelessWidget {
                           child: SokIkon(
                             sokTrendIkon(rader[i].term),
                             size: 18 * s,
-                            color: Colors.white,
+                            color: lys ? _kIkonLys : Colors.white,
                             stroke: 2.2,
                           ),
                         ),
@@ -996,7 +1059,7 @@ class _Populaert extends StatelessWidget {
                             rader[i].term,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: bText(context, 14, weight: FontWeight.w800),
+                            style: bText(context, 14, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white),
                           ),
                         ),
                         if (rader[i].count != null) ...[
@@ -1040,12 +1103,14 @@ class _SokTall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mk58` / `.mk1i`: `--lys-mint-dis`, no ring, `--lys-mint-tekst`, the arrow `#0B6B57` in Lys.
     return Container(
       padding: EdgeInsets.fromLTRB(7 * s, 4 * s, 9 * s, 4 * s),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: rgba(92, 224, 184, .14),
-        border: Border.all(color: rgba(92, 224, 184, .3)),
+        color: lys ? LysPalett.mintDis : rgba(92, 224, 184, .14),
+        border: Border.all(color: lys ? const Color(0x00000000) : rgba(92, 224, 184, .3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1053,7 +1118,7 @@ class _SokTall extends StatelessWidget {
           SokIkon(
             'M4 16l6-6 4 4 6-7M14 7h6v6',
             size: 9 * s,
-            color: _kMint,
+            color: lys ? _kMintIkonLys : _kMint,
             stroke: 3.2,
           ),
           SizedBox(width: 4 * s),
@@ -1063,7 +1128,7 @@ class _SokTall extends StatelessWidget {
               context,
               10.5,
               weight: FontWeight.w800,
-              color: _kMint,
+              color: lys ? LysPalett.mintTekst : _kMint,
             ),
           ),
         ],
@@ -1124,6 +1189,8 @@ class _Oppdrag extends StatelessWidget {
     final poeng = (oppdrag['points'] as num?)?.toInt() ?? 0;
     final maal = (oppdrag['target'] as num?)?.toInt() ?? 1;
     final gjort = (oppdrag['progress'] as num?)?.toInt() ?? 0;
+    final lys = context.lys;
+    // `.mk3n`: white, the ring and the card shadow in Lys; `.mk1t` / `.mkb` / `.mk2q`.
     return OnbPressable(
       onTap: onTap,
       pressDy: 0,
@@ -1132,6 +1199,7 @@ class _Oppdrag extends StatelessWidget {
         key: const Key('a1_sok_oppdrag'),
         radius: 22 * s,
         padding: EdgeInsets.all(12 * s),
+        lysKort: true,
         child: Row(
           children: [
             SokFlis(
@@ -1155,7 +1223,7 @@ class _Oppdrag extends StatelessWidget {
                       10,
                       weight: FontWeight.w800,
                       letterSpacingEm: .08,
-                      color: _kMint,
+                      color: lys ? LysPalett.mintTekst : _kMint,
                     ),
                   ),
                   SizedBox(height: 2 * s),
@@ -1167,7 +1235,7 @@ class _Oppdrag extends StatelessWidget {
                       context,
                       14,
                       letterSpacingEm: -.015,
-                      color: Colors.white,
+                      color: lys ? LysPalett.tittel : Colors.white,
                     ),
                   ),
                   SizedBox(height: 2 * s),
@@ -1177,7 +1245,7 @@ class _Oppdrag extends StatelessWidget {
                       context,
                       11,
                       weight: FontWeight.w600,
-                      color: _kLys,
+                      color: lys ? LysPalett.sekundar : _kLys,
                     ),
                   ),
                 ],

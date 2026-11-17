@@ -25,6 +25,8 @@ import 'utforsk_bits.dart';
 import 'utforsk_copy.dart';
 import '../onboarding/onb_tips.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// A bag as the Forundringspose segment, its card and its sheet show it
 /// (new Bergen `utfPoserVals`, L19899): the store's bag from `GET
@@ -291,7 +293,8 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
         child: Text(
           UtforskCopy.a1_pose_linje,
-          style: inter(11.5, weight: FontWeight.w600, height: 1.45, color: const Color(0xFFBFD6DD)),
+          // `.mk2q` (utfPose): `--lys-sekundar` in Lys.
+          style: inter(11.5, weight: FontWeight.w600, height: 1.45, color: context.aeM(const Color(0xFFBFD6DD), LysPalett.sekundar)),
         ),
       ),
       OnbMaal(id: 'karusell-u', radius: 26, child: _karusell(poser)),
@@ -328,20 +331,22 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 0),
       child: Row(
         children: [
-          Expanded(child: Text(UtforskCopy.a1_utforsk_pose_title, style: jakarta(16, em: -0.02))),
+          // `.mkb`: `--lys-tittel` in Lys.
+          Expanded(child: Text(UtforskCopy.a1_utforsk_pose_title, style: jakarta(16, em: -0.02, color: context.aeM(Colors.white, LysPalett.tittel)))),
           const SizedBox(width: 8),
           if (_bags != null)
+            // `.mk5r`: `--lys-glod-dis`, no shadow, `--lys-glod-tekst` in Lys.
             CssBox(
               key: const Key('a1_pose_igjen'),
               radius: BorderRadius.circular(999),
               padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              bg: const [
+              bg: context.aeM(const [
                 CssLinear(180, [Color.fromRGBO(255, 148, 102, .3), Color.fromRGBO(233, 92, 44, .16)]),
-              ],
-              shadows: const [
+              ], const [CssSolid(LysPalett.glodDis)]),
+              shadows: context.aeM(const [
                 CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .25)),
                 CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 148, 102, .45)),
-              ],
+              ], const <CssShadow>[]),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -349,7 +354,7 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
                   const SizedBox(width: 5),
                   Text(
                     UtforskCopy.a1_utforsk_pose_left_today(n),
-                    style: inter(10, weight: FontWeight.w800, color: const Color(0xFFFFD2BC)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
+                    style: inter(10, weight: FontWeight.w800, color: context.aeM(const Color(0xFFFFD2BC), LysPalett.glodTekst)).copyWith(fontFeatures: const [ui.FontFeature.tabularFigures()]),
                   ),
                 ],
               ),
@@ -372,12 +377,14 @@ class _UtforskPoseSegmentState extends State<UtforskPoseSegment> {
           key: const Key('a1_utforsk_pose_empty'),
           radius: BorderRadius.circular(24),
           padding: const EdgeInsets.all(18),
-          bg: kUtfGlassBg,
-          shadows: kUtfGlassShadow,
+          // Not in the design: in Lys the feed's empty card (`.mk5p`) — white, a
+          // `--lys-kant-farge` rim, the card shadow, `--lys-sekundar` text.
+          bg: context.aeM(kUtfGlassBg, const [CssSolid(LysPalett.hvit)]),
+          shadows: context.aeM(kUtfGlassShadow, const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
           child: Text(
             UtforskCopy.a1_utforsk_pose_empty,
             textAlign: TextAlign.center,
-            style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: const Color(0xFFDCE9EC)),
+            style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar)),
           ),
         ),
       );
@@ -750,10 +757,14 @@ class _AutomatModul extends StatelessWidget {
       onTap: onTap,
       scale: .985,
       ms: 160,
+      // `.mk5t` (Poseautomaten-modul): in Lys the glass over `#22586A → #1B4854`.
       child: CssBox(
         radius: BorderRadius.circular(26),
         padding: const EdgeInsets.all(6),
-        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)])],
+        bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)])], const [
+          CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)]),
+          CssLinear(180, [Color(0xFF22586A), Color(0xFF1B4854)]),
+        ]),
         shadows: const [
           CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)),
           CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),

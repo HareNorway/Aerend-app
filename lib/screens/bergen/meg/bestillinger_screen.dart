@@ -24,6 +24,8 @@ import '../kit/laster_skjerm.dart';
 import '../kit/laster_dra.dart';
 import '../kasse/kasse_copy.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Ordrehistorikk (new Bergen `erOrdrer`, L8036–8089, + `ohVals` L15336):
 /// the orders the customer has placed (`ops.customer.orders`), «Bestill igjen
@@ -219,7 +221,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
         children: [
           // Customer Step 14: «Bestilt via {AI} · {dato}» (design Kvittering 10054).
           if (_via[o.id] case final via?) ...[
-            Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, '${OhCopy.dag(o.naar)} · ${o.naar.hour.toString().padLeft(2, '0')}:${o.naar.minute.toString().padLeft(2, '0')}'), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
+            Row(children: [AiViaChip(via.name), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_bestilt_via_dato(via.name, '${OhCopy.dag(o.naar)} · ${o.naar.hour.toString().padLeft(2, '0')}:${o.naar.minute.toString().padLeft(2, '0')}'), key: const Key('cus-ai-kvittering-via'), style: inter(12, weight: FontWeight.w700, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .75), LysPalett.sekundar))))]),
             const SizedBox(height: 10),
           ],
           _StatusKort(status: status.tekst, dato: OhCopy.dag(o.naar), ferdig: steg, avbestilt: o.avbestilt, steg: OhCopy.tidFor(o.hent)),
@@ -302,8 +304,10 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
     for (final o in O) {
       grupper.putIfAbsent(OhCopy.maaned(o.naar), () => []).add(o);
     }
+    // `.mk3` (Ordrehistorikk): the fjord gradient dark, `--lys-ull` / `--lys-brod` in Lys.
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFF173E48),
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFF173E48),
       body: LfFrame(
         child: Builder(
           builder: (context) {
@@ -314,12 +318,14 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
               curve: const Cubic(.2, .9, .3, 1),
               child: Stack(
                 children: [
-                  const Positioned.fill(
+                  Positioned.fill(
                     child: CssBox(
-                      bg: [
-                        CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
-                        CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1]),
-                      ],
+                      bg: lys
+                          ? const [CssSolid(LysPalett.ull)]
+                          : const [
+                              CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
+                              CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1]),
+                            ],
                     ),
                   ),
                   Positioned.fill(
@@ -341,9 +347,9 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(OhCopy.tittel, style: jakarta(27, em: -.035)),
+                                      Text(OhCopy.tittel, style: jakarta(27, em: -.035, color: lys ? LysPalett.tittel : Colors.white)),
                                       const SizedBox(height: 3),
-                                      Text(OhCopy.under(O.length, kr), key: const Key('oh-under'), style: inter(12.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DC))),
+                                      Text(OhCopy.under(O.length, kr), key: const Key('oh-under'), style: inter(12.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color(0xFFBFD6DC))),
                                     ],
                                   ),
                                 ),
@@ -354,9 +360,9 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                       children: [
                                         Image.asset(aePose('find'), width: 150, height: 150, fit: BoxFit.contain),
                                         const SizedBox(height: 10),
-                                        Text(OhCopy.tom, style: jakarta(17)),
+                                        Text(OhCopy.tom, style: jakarta(17, color: lys ? LysPalett.tittel : Colors.white)),
                                         const SizedBox(height: 10),
-                                        SizedBox(width: 240, child: Text(OhCopy.tomSub, textAlign: TextAlign.center, style: inter(12.5, color: const Color(0xFFBFD6DC)))),
+                                        SizedBox(width: 240, child: Text(OhCopy.tomSub, textAlign: TextAlign.center, style: inter(12.5, color: lys ? LysPalett.sekundar : const Color(0xFFBFD6DC)))),
                                       ],
                                     ),
                                   )
@@ -366,7 +372,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                     padding: const EdgeInsets.symmetric(horizontal: 4),
                                     child: Row(
                                       children: [
-                                        Flexible(child: Text(OhCopy.bestillIgjen, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(18, em: -.02))),
+                                        Flexible(child: Text(OhCopy.bestillIgjen, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: jakarta(18, em: -.02, color: lys ? LysPalett.tittel : Colors.white))),
                                         const SizedBox(width: 8),
                                         Container(
                                           key: const Key('oh-dine-faste'),
@@ -375,10 +381,11 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                           alignment: Alignment.center,
                                           decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(999),
-                                            color: const Color.fromRGBO(92, 224, 184, .18),
+                                            // `.mk8h`: mint .18 / `#7FF0CB` dark, `--lys-mint-dis` / `--lys-mint-tekst` light.
+                                            color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .18),
                                             border: Border.all(color: const Color.fromRGBO(92, 224, 184, .4)),
                                           ),
-                                          child: Text(OhCopy.dineFaste, style: inter(11, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                                          child: Text(OhCopy.dineFaste, style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB))),
                                         ),
                                       ],
                                     ),
@@ -409,7 +416,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                       padding: const EdgeInsets.fromLTRB(4, 6, 4, 10),
                                       child: Row(
                                         children: [
-                                          Flexible(child: Text(g.key.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(11, weight: FontWeight.w800, em: .12, color: const Color(0xFF7FF0CB)))),
+                                          Flexible(child: Text(g.key.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(11, weight: FontWeight.w800, em: .12, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)))),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Container(
@@ -426,7 +433,7 @@ class _BestillingerScreenState extends State<BestillingerScreen> {
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               softWrap: false,
-                                              style: aeTab(inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7))),
+                                              style: aeTab(inter(11.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .7))),
                                             ),
                                           ),
                                         ],
@@ -523,17 +530,21 @@ Widget _glas({
   double topp = .24,
   double toppY = 1.5,
   CssShadow fall = const CssShadow(0, 18, 30, -20, Color.fromRGBO(0, 10, 16, .9)),
+  bool lys = false,
 }) => CssBox(
   width: width,
   height: height,
   radius: BorderRadius.circular(r),
   clip: clip,
   padding: padding,
-  bg: const [
-    CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
-  ],
-  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-  shadows: [CssShadow.inset(0, toppY, 0, 0, Color.fromRGBO(255, 255, 255, topp)), fall],
+  // Lys (`.mk9r` / `.mkdj` / `.mkdk`): `--lys-hvit`, 1px `--lys-kant-farge`, `--lys-kortskygge`.
+  bg: lys
+      ? const [CssSolid(LysPalett.hvit)]
+      : const [
+          CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
+        ],
+  border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .16)),
+  shadows: lys ? LysPalett.kortskygge : [CssShadow.inset(0, toppY, 0, 0, Color.fromRGBO(255, 255, 255, topp)), fall],
   child: child,
 );
 
@@ -590,11 +601,13 @@ class _Fast extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final banner = bilder?.banner;
+    final lys = context.lys;
     return AePress(
       onTap: onApne,
       dy: 0,
       scale: .98,
       child: _glas(
+        lys: lys,
         r: 22,
         width: 168,
         height: hoyde,
@@ -659,11 +672,11 @@ class _Fast extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(14.5, weight: FontWeight.w800, em: -.01)),
+                        Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(14.5, weight: FontWeight.w800, em: -.01, color: lys ? LysPalett.brod : Colors.white)),
                         const SizedBox(height: 1),
                         SizedBox(
                           height: 31,
-                          child: Text(o.varer, maxLines: 2, overflow: TextOverflow.clip, style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .7))),
+                          child: Text(o.varer, maxLines: 2, overflow: TextOverflow.clip, style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .7))),
                         ),
                         const Spacer(),
                         _Igjen(key: Key('oh-fast-${o.storeId}'), tekst: OhCopy.kr(o.sum.round()), onTap: onIgjen, hoyde: 40, fontPx: 13.5, full: true),
@@ -709,17 +722,28 @@ class _OrdreKort extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, bd, c, ikBg, ikC) = status.gull
+    final lys = context.lys;
+    final (bg0, bd0, c0, ikBg, ikC) = status.gull
         ? (const Color.fromRGBO(242, 193, 78, .14), const Color.fromRGBO(242, 193, 78, .4), const Color(0xFFFFD98A), const [Color(0xFFFFE08A), Color(0xFFF2C14E)], const Color(0xFF5E4318))
         : status.oransje
         ? (const Color.fromRGBO(242, 109, 61, .16), const Color.fromRGBO(242, 109, 61, .45), const Color(0xFFFFB08A), const [Color(0xFFFFC29E), Color(0xFFF26D3D)], Colors.white)
         : (const Color.fromRGBO(92, 224, 184, .14), const Color.fromRGBO(92, 224, 184, .4), const Color(0xFF7FF0CB), const [Color(0xFFB4F9E2), Color(0xFF5CE0B8)], const Color(0xFF0F2B33));
+    // Lys (`ordreVals` L18517 statusBg/Bd/C): gold `--lys-gull-dis` / `rgba(74,48,10,.2)` / `--lys-gull-tekst`,
+    // mint `--lys-mint-dis` / `rgba(11,107,87,.25)` / `--lys-mint-tekst`; «Avbestilt» (app-only) the glød twins.
+    final (bg, bd, c) = !lys
+        ? (bg0, bd0, c0)
+        : status.gull
+        ? (LysPalett.gullDis, const Color.fromRGBO(74, 48, 10, .2), LysPalett.gullTekst)
+        : status.oransje
+        ? (LysPalett.glodDis, const Color.fromRGBO(166, 58, 18, .25), LysPalett.glodTekst)
+        : (LysPalett.mintDis, const Color.fromRGBO(11, 107, 87, .25), LysPalett.mintTekst);
     return AePress(
       key: Key('oh-ordre-${o.id}'),
       onTap: onApne,
       dy: 0,
       scale: .99,
       child: _glas(
+        lys: lys,
         r: 22,
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -745,16 +769,16 @@ class _OrdreKort extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(15, weight: FontWeight.w800, em: -.01)),
+                        Text(o.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(15, weight: FontWeight.w800, em: -.01, color: lys ? LysPalett.brod : Colors.white)),
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            Text(o.kode, style: aeTab(inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66)))),
+                            Text(o.kode, style: aeTab(inter(12, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66)))),
                             const SizedBox(width: 6),
                             Container(width: 3, height: 3, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .45))),
                             const SizedBox(width: 6),
                             if (via != null) ...[AiViaChip(via!.name), const SizedBox(width: 6)],
-                            Flexible(child: Text(OhCopy.dag(o.naar), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .66)))),
+                            Flexible(child: Text(OhCopy.dag(o.naar), maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66)))),
                           ],
                         ),
                       ],
@@ -764,7 +788,7 @@ class _OrdreKort extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(OhCopy.kr(o.sum.round()), style: aeTab(inter(17, weight: FontWeight.w800, em: -.02))),
+                      Text(OhCopy.kr(o.sum.round()), style: aeTab(inter(17, weight: FontWeight.w800, em: -.02, color: lys ? LysPalett.brod : Colors.white))),
                       if (kroner != null) ...[
                         const SizedBox(height: 4),
                         Container(
@@ -772,15 +796,17 @@ class _OrdreKort extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(999),
-                            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 224, 138, .22), Color.fromRGBO(242, 193, 78, .14)]),
+                            // `.mk9s`: the gold glass dark, `--lys-gull-dis` / `--lys-gull-tekst` light; the star `.mk3k` fill `#4A300A`.
+                            color: lys ? LysPalett.gullDis : null,
+                            gradient: lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 224, 138, .22), Color.fromRGBO(242, 193, 78, .14)]),
                             border: Border.all(color: const Color.fromRGBO(242, 193, 78, .45)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const AeIkon('M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z', size: 11, stroke: 0, fill: Color(0xFFF2C14E)),
+                              AeIkon('M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z', size: 11, stroke: 0, fill: lys ? const Color(0xFF4A300A) : const Color(0xFFF2C14E)),
                               const SizedBox(width: 4),
-                              Text(OhCopy.kroner(kroner!), style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFD98A))),
+                              Text(OhCopy.kroner(kroner!), style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.gullTekst : const Color(0xFFFFD98A))),
                             ],
                           ),
                         ),
@@ -797,23 +823,25 @@ class _OrdreKort extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: const Color.fromRGBO(255, 255, 255, .08),
-                      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                      // `.mk9t`: `--lys-dis`, `--lys-kant-farge`, `--lys-sekundar` in Lys; the bag `.mku` stroke `#1E4F5C`.
+                      color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .08),
+                      border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .12)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const AeIkon('M5 7h14l-1.3 11H6.3z M9 7V5.5a3 3 0 0 1 6 0V7', size: 11, stroke: 2.4, color: Color(0xFFDCE9EC)),
+                        AeIkon('M5 7h14l-1.3 11H6.3z M9 7V5.5a3 3 0 0 1 6 0V7', size: 11, stroke: 2.4, color: lys ? const Color(0xFF1E4F5C) : const Color(0xFFDCE9EC)),
                         const SizedBox(width: 4),
-                        Text(OhCopy.antVarer(o.antall), style: inter(11, weight: FontWeight.w800, color: const Color(0xFFDCE9EC))),
+                        Text(OhCopy.antVarer(o.antall), style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.sekundar : const Color(0xFFDCE9EC))),
                       ],
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Expanded(child: Text(o.varer, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12.5, weight: FontWeight.w600, color: const Color(0xFFDCE9EC)))),
+                  Expanded(child: Text(o.varer, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(12.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color(0xFFDCE9EC)))),
                 ],
               ),
-              Container(height: 1, margin: const EdgeInsets.only(top: 10), color: const Color.fromRGBO(255, 255, 255, .1)),
+              // `.mk1z`: `border-top` white .1 dark, `--lys-skille` light.
+              Container(height: 1, margin: const EdgeInsets.only(top: 10), color: lys ? LysPalett.skille : const Color.fromRGBO(255, 255, 255, .1)),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -854,7 +882,8 @@ class _OrdreKort extends StatelessWidget {
 }
 
 /// The dark sheet's glass card (`.14 → .05`, white .16, top light .22).
-Widget _arkKort({required Widget child, EdgeInsets padding = const EdgeInsets.fromLTRB(14, 12, 14, 14), double r = 22, Clip clip = Clip.none}) => _glas(
+Widget _arkKort({required Widget child, EdgeInsets padding = const EdgeInsets.fromLTRB(14, 12, 14, 14), double r = 22, Clip clip = Clip.none, bool lys = false}) => _glas(
+  lys: lys,
   r: r,
   padding: padding,
   clip: clip != Clip.none,
@@ -875,7 +904,10 @@ class _StatusKort extends StatelessWidget {
   final bool avbestilt;
 
   @override
-  Widget build(BuildContext context) => _arkKort(
+  Widget build(BuildContext context) {
+    final lys = context.lys;
+    return _arkKort(
+    lys: lys,
     padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
     clip: Clip.antiAlias,
     child: Stack(
@@ -910,7 +942,8 @@ class _StatusKort extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
-                      color: avbestilt ? const Color.fromRGBO(242, 109, 61, .18) : const Color.fromRGBO(92, 224, 184, .18),
+                      // `.mk8h`: `--lys-mint-dis` / `--lys-mint-tekst` in Lys («Avbestilt», app-only: the glød twins).
+                      color: lys ? (avbestilt ? LysPalett.glodDis : LysPalett.mintDis) : avbestilt ? const Color.fromRGBO(242, 109, 61, .18) : const Color.fromRGBO(92, 224, 184, .18),
                       border: Border.all(color: avbestilt ? const Color.fromRGBO(242, 109, 61, .45) : const Color.fromRGBO(92, 224, 184, .45)),
                     ),
                     child: Row(
@@ -926,12 +959,12 @@ class _StatusKort extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(status, style: inter(12, weight: FontWeight.w800, color: avbestilt ? const Color(0xFFFFB08A) : const Color(0xFF7FF0CB))),
+                        Text(status, style: inter(12, weight: FontWeight.w800, color: lys ? (avbestilt ? LysPalett.glodTekst : LysPalett.mintTekst) : avbestilt ? const Color(0xFFFFB08A) : const Color(0xFF7FF0CB))),
                       ],
                     ),
                   ),
                   const Spacer(),
-                  Text(dato, style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .66))),
+                  Text(dato, style: inter(12, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
                 ],
               ),
             ),
@@ -947,8 +980,9 @@ class _StatusKort extends StatelessWidget {
                     height: 4,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(999),
+                      // `.mk9l`: the rail white .12 dark, `--lys-dis` light.
                       child: ColoredBox(
-                        color: const Color.fromRGBO(255, 255, 255, .12),
+                        color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .12),
                         child: LfOnce(
                           ms: 1050,
                           builder: (context, t, child) => FractionallySizedBox(
@@ -987,7 +1021,7 @@ class _StatusKort extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         gradient: i < ferdig ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : null,
-                                        color: i < ferdig ? null : const Color(0xFF2A5866),
+                                        color: i < ferdig ? null : (lys ? LysPalett.dis : const Color(0xFF2A5866)),
                                         border: Border.all(color: const Color(0xFF1B4A57), width: 3),
                                         boxShadow: i < ferdig ? const [BoxShadow(color: Color.fromRGBO(92, 224, 184, .55), blurRadius: 12 / 2 / .57735)] : null,
                                       ),
@@ -1000,7 +1034,8 @@ class _StatusKort extends StatelessWidget {
                                       maxLines: 1,
                                       softWrap: false,
                                       overflow: TextOverflow.visible,
-                                      style: inter(10.5, weight: FontWeight.w800, color: i == 4 && ferdig >= 5 ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .78)),
+                                      // `kOrdreTid` s.c (L24296): `--lys-mint-tekst` / `--lys-sekundar` in Lys.
+                                      style: inter(10.5, weight: FontWeight.w800, color: i == 4 && ferdig >= 5 ? (lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)) : (lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .78))),
                                     ),
                                   ],
                                 ),
@@ -1018,6 +1053,7 @@ class _StatusKort extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 /// «Ordre · tall» (L9869): betalt, the points, the status — three glass tiles.
@@ -1033,8 +1069,13 @@ class _Tall extends StatelessWidget {
     (_ikHake, [Color(0xFFB4F9E2), Color(0xFF5CE0B8)], Color(0xFF0F2B33), Color(0xFF7FF0CB), Color.fromRGBO(92, 224, 184, .45)),
   ];
 
+  /// `kOrdreTall` tl.tc in Lys (L24297): `--lys-tittel`, `--lys-gull-tekst`, `--lys-mint-tekst`.
+  static const List<Color> _tcLys = [LysPalett.tittel, LysPalett.gullTekst, LysPalett.mintTekst];
+
   @override
-  Widget build(BuildContext context) => Row(
+  Widget build(BuildContext context) {
+    final lys = context.lys;
+    return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       for (final (i, (n, navn, k)) in fliser.indexed) ...[
@@ -1043,6 +1084,7 @@ class _Tall extends StatelessWidget {
           child: HbFlisInn(
             delayMs: 120 + i * 80.0,
             child: _arkKort(
+              lys: lys,
               r: 16,
               clip: Clip.antiAlias,
               padding: const EdgeInsets.fromLTRB(4, 10, 4, 9),
@@ -1079,10 +1121,10 @@ class _Tall extends StatelessWidget {
                       const SizedBox(height: 5),
                       FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(n, maxLines: 1, softWrap: false, style: aeTab(inter(16, weight: FontWeight.w800, em: -.02, height: 1, color: _slag[k].$4))),
+                        child: Text(n, maxLines: 1, softWrap: false, style: aeTab(inter(16, weight: FontWeight.w800, em: -.02, height: 1, color: lys ? _tcLys[k] : _slag[k].$4))),
                       ),
                       const SizedBox(height: 5),
-                      Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7))),
+                      Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, softWrap: false, style: inter(10.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .7))),
                     ],
                   ),
                 ],
@@ -1093,6 +1135,7 @@ class _Tall extends StatelessWidget {
       ],
     ],
   );
+  }
 }
 
 /// «Ordre · kvittering» (L9872): the receipt key, «Kvittering · N varer fra
@@ -1102,13 +1145,13 @@ class _Kvittering extends StatelessWidget {
   final _Ordre o;
 
   /// A line under Levering (Avgifter, Tips): no chip, the label aligned with the lines' names.
-  Widget _ekstraRad(String label, num kr) => Padding(
+  Widget _ekstraRad(String label, num kr, bool lys) => Padding(
         padding: const EdgeInsets.only(top: 8),
         child: Row(
           children: [
             const SizedBox(width: 40),
-            Expanded(child: Text(label, style: inter(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .75)))),
-            Text(OhCopy.kr(kr.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
+            Expanded(child: Text(label, style: inter(13.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .75)))),
+            Text(OhCopy.kr(kr.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .8)))),
           ],
         ),
       );
@@ -1116,7 +1159,11 @@ class _Kvittering extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final varer = o.sum - o.levering;
+    // `.mkdj` card; in Lys the text is `--lys-brod`, names `.mkb` `--lys-tittel`, the rest `--lys-sekundar`.
+    final lys = context.lys;
+    final brod = lys ? LysPalett.brod : Colors.white;
     return _arkKort(
+      lys: lys,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1138,8 +1185,8 @@ class _Kvittering extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(OhCopy.kvittering, style: inter(14, weight: FontWeight.w800)),
-                    Text(OhCopy.antFra(o.linjer.length, o.butikk), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .62))),
+                    Text(OhCopy.kvittering, style: inter(14, weight: FontWeight.w800, color: brod)),
+                    Text(OhCopy.antFra(o.linjer.length, o.butikk), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .62))),
                   ],
                 ),
               ),
@@ -1158,15 +1205,16 @@ class _Kvittering extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(9),
-                      color: const Color.fromRGBO(92, 224, 184, .16),
+                      // `.mk1q`: `--lys-mint-dis` / `--lys-mint-tekst` in Lys.
+                      color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .16),
                       border: Border.all(color: const Color.fromRGBO(92, 224, 184, .4)),
                     ),
-                    child: Text('${((l['quantity'] ?? l['qty'] ?? 1) as num).toInt()}', style: aeTab(inter(12, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))),
+                    child: Text('${((l['quantity'] ?? l['qty'] ?? 1) as num).toInt()}', style: aeTab(inter(12, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)))),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text('${l['name'] ?? ''}', style: inter(14, weight: FontWeight.w700, height: 1.3))),
+                  Expanded(child: Text('${l['name'] ?? ''}', style: inter(14, weight: FontWeight.w700, height: 1.3, color: lys ? LysPalett.tittel : Colors.white))),
                   const SizedBox(width: 10),
-                  Text(OhCopy.kr((((l['unit_price'] ?? 0) as num) * ((l['quantity'] ?? 1) as num)).round()), style: aeTab(inter(14, weight: FontWeight.w800))),
+                  Text(OhCopy.kr((((l['unit_price'] ?? 0) as num) * ((l['quantity'] ?? 1) as num)).round()), style: aeTab(inter(14, weight: FontWeight.w800, color: brod))),
                 ],
               ),
             ),
@@ -1181,19 +1229,20 @@ class _Kvittering extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(9),
-                      color: const Color.fromRGBO(255, 255, 255, .08),
-                      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+                      // `.mkdl` (`--lys-dis`, `--lys-kant-farge`) and the scooter `.mku` (`#1E4F5C`) in Lys.
+                      color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .08),
+                      border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .14)),
                     ),
-                    child: const AeIkon(
+                    child: AeIkon(
                       'M5.5 17.5a2.5 2.5 0 1 0 0-.01 M18.5 17.5a2.5 2.5 0 1 0 0-.01 M8 17.5h7.5 M15.5 17.5 13 9h-3 M13 9l2.5-3h2.5 M5.5 17.5 9 11h5.5',
                       size: 15,
                       stroke: 2.2,
-                      color: Color(0xFFDCE9EC),
+                      color: lys ? const Color(0xFF1E4F5C) : const Color(0xFFDCE9EC),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(OhCopy.levering, style: inter(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .75)))),
-                  Text(OhCopy.kr(o.levering.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .8)))),
+                  Expanded(child: Text(OhCopy.levering, style: inter(13.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .75)))),
+                  Text(OhCopy.kr(o.levering.round()), style: aeTab(inter(13.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .8)))),
                 ],
               ),
             ),
@@ -1201,19 +1250,19 @@ class _Kvittering extends StatelessWidget {
             final linjesum = o.linjer.fold<num>(0, (a, l) => a + ((l['unit_price'] ?? 0) as num) * ((l['quantity'] ?? 1) as num));
             final avgift = o.avgift(linjesum);
             return [
-              if (avgift >= 0.5) _ekstraRad(KasseCopy.a1_kasse_avgifter, avgift),
-              if (o.tips > 0) _ekstraRad(KasseCopy.a1_kasse_tips_rad, o.tips),
+              if (avgift >= 0.5) _ekstraRad(KasseCopy.a1_kasse_avgifter, avgift, lys),
+              if (o.tips > 0) _ekstraRad(KasseCopy.a1_kasse_tips_rad, o.tips, lys),
             ];
           }(),
           const SizedBox(height: 12),
-          CustomPaint(painter: _Stiplet(), child: const SizedBox(height: 1)),
+          CustomPaint(painter: lys ? _Stiplet(farge: LysPalett.skille) : _Stiplet(), child: const SizedBox(height: 1)),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Expanded(child: Text(OhCopy.totalt, style: inter(14, weight: FontWeight.w800))),
-              Text(OhCopy.kr((o.sum > varer ? o.sum : varer).round()), style: aeTab(inter(26, weight: FontWeight.w800, em: -.02))),
+              Expanded(child: Text(OhCopy.totalt, style: inter(14, weight: FontWeight.w800, color: brod))),
+              Text(OhCopy.kr((o.sum > varer ? o.sum : varer).round()), style: aeTab(inter(26, weight: FontWeight.w800, em: -.02, color: brod))),
             ],
           ),
         ],
@@ -1222,12 +1271,15 @@ class _Kvittering extends StatelessWidget {
   }
 }
 
-/// `border-top: 1px dashed rgba(255,255,255,.22)`.
+/// `border-top: 1px dashed rgba(255,255,255,.22)` (`.mkdm`: `--lys-skille` in Lys).
 class _Stiplet extends CustomPainter {
+  _Stiplet({this.farge = const Color.fromRGBO(255, 255, 255, .22)});
+  final Color farge;
+
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()
-      ..color = const Color.fromRGBO(255, 255, 255, .22)
+      ..color = farge
       ..strokeWidth = 1;
     for (double x = 0; x < size.width; x += 6) {
       canvas.drawLine(Offset(x, .5), Offset((x + 3).clamp(0, size.width), .5), p);
@@ -1235,7 +1287,7 @@ class _Stiplet extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_Stiplet old) => false;
+  bool shouldRepaint(_Stiplet old) => old.farge != farge;
 }
 
 /// The glass back key of the history and the league.
@@ -1249,7 +1301,18 @@ class OhTilbake extends StatelessWidget {
     onTap: onTap,
     dy: 0,
     scale: .94,
-    child: const CssBox(
+    // `.mk8y` / `.mku`: in Lys `--lys-hvit` with a 1px `--lys-kant-farge` ring and the fjord chevron
+    // (the league keeps it: it sits under a fjord scope).
+    child: context.lys
+        ? const CssBox(
+            width: 40,
+            height: 40,
+            radius: BorderRadius.all(Radius.circular(999)),
+            bg: [CssSolid(LysPalett.hvit)],
+            shadows: [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)],
+            child: Center(child: AeIkon('M15 6l-6 6 6 6', size: 15, stroke: 2.2, color: Color(0xFF1E4F5C))),
+          )
+        : const CssBox(
       width: 40,
       height: 40,
       radius: BorderRadius.all(Radius.circular(999)),

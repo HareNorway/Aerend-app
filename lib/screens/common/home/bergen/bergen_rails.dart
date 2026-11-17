@@ -16,6 +16,8 @@ import '../../auth/launch/lf_motion.dart' show LfLoop;
 import '../../../bergen/kit/bergen_lagring.dart' show BergenLagringLive;
 import '../../../bergen/kit/bergen_perf.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../../theme/lys/lys_palett.dart';
+import '../../../../theme/lys/modus_scope.dart';
 
 // ── The two 3D rails (`railVals` / `pRailVals`) ─────────────────────────────
 // Three cards on a turntable: the focused card faces you, the other two sit
@@ -246,6 +248,7 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin, 
   Widget build(BuildContext context) {
     final s = context.bs;
     final n = widget.count;
+    final lys = context.lys;
     // Built once per rebuild; the ring only moves them.
     final cards = [for (var i = 0; i < n; i++) _cardBody(context, i)];
     return Column(
@@ -292,9 +295,12 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin, 
                   curve: const Cubic(.3, 1.2, .5, 1),
                   width: (i == _focus ? 22 : 6) * s,
                   height: 6 * s,
+                  // utfPoserVals L23880 `dB`, Lys: the active dot
+                  // `--lys-fjord`, the others `rgba(30,79,92,.2)` (Hjem sits
+                  // under a fjord scope, so it keeps the orange there).
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(3 * s),
-                    gradient: i == _focus
+                    gradient: i == _focus && !lys
                         ? const LinearGradient(
                             colors: [
                               BergenColors.orangeSoft,
@@ -302,7 +308,9 @@ class _RailState extends State<BergenRail> with SingleTickerProviderStateMixin, 
                             ],
                           )
                         : null,
-                    color: i == _focus ? null : const Color(0x59F28A55),
+                    color: lys
+                        ? (i == _focus ? LysPalett.fjord : const Color.fromRGBO(30, 79, 92, .2))
+                        : i == _focus ? null : const Color(0x59F28A55),
                   ),
                 ),
               ),

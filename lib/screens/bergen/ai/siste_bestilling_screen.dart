@@ -5,6 +5,8 @@ import '../../../utils/utils.dart' show isLoggedIn;
 import '../kit/bergen_kit.dart';
 import '../kit/live_aerend.dart' show hjemLiveOrdre;
 import 'ai_copy.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// `/bergen/siste-bestilling` — the TrackOrder intent / shortcut (Customer
 /// Step 15). Finds the order to follow and replaces itself with Sporing: the
@@ -59,9 +61,10 @@ class _SisteBestillingScreenState extends State<SisteBestillingScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-    key: Key('cus-ai-siste-bestilling'),
-    backgroundColor: Color(0xFF173E48),
-    body: Center(child: SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF7FF0CB)))),
+  // Lys (app-only loader host, not in the design): `--lys-ull`, the spinner in the `.mk1i` mint stroke.
+  Widget build(BuildContext context) => Scaffold(
+    key: const Key('cus-ai-siste-bestilling'),
+    backgroundColor: context.aeM(const Color(0xFF173E48), LysPalett.ull),
+    body: Center(child: SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.5, color: context.aeM(const Color(0xFF7FF0CB), const Color(0xFF0B6B57))))),
   );
 }

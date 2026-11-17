@@ -42,6 +42,10 @@ import 'screens/bergen/bergen_routes_agil1.dart';
 import 'screens/bergen/bergen_routes_agil3.dart';
 import 'screens/bergen/kit/bergen_routes.dart';
 import 'screens/bergen/meg/a3_services.dart';
+import 'theme/lys/bergen_modus.dart';
+import 'theme/lys/modus_scope.dart';
+import 'theme/lys/modus_avduk.dart';
+import 'screens/bergen/kit/bergen_toast.dart';
 import 'screens/bergen/kit/bergen_perf.dart';
 import 'services/customer/beacons.dart';
 
@@ -159,6 +163,8 @@ Future<void> main() async {
   // Customer Step 16: the client beacons (technical events, no PII, signed
   // after login) and the per-version flags / banner / min_version.
   await _startBeacons();
+  // Lys plan (L10): the saved light/dark mode before the first frame, so there is no flash.
+  await BergenModus.i.last();
 
   runApp(MyApp(store));
 }
@@ -245,6 +251,12 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    // Lys plan: the toast after a light/dark switch («Lys modus · Skydans» / «Mørk modus · Fjord»).
+    BergenModus.i.visToast = (lys) {
+      // From above the Navigator: hand the toast the navigator's overlay itself.
+      final o = navigatorKey.currentState?.overlay;
+      if (o != null && o.mounted) showBergenToast(o.context, lys ? 'Lys modus · Skydans' : 'Mørk modus · Fjord', overlay0: o);
+    };
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -357,7 +369,11 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
                     onPointerMove: (_) => BergenPerf.beroering(),
                     onPointerSignal: (_) => BergenPerf.beroering(),
                     onPointerPanZoomStart: (_) => BergenPerf.beroering(),
-                    child: Stack(children: [appChild, const OnbLag(), const OnbTipsLag()]),
+                    // Lys plan: the light/dark mode for every route, sheet and layer.
+                    child: BergenModusRot(
+                      // Lys plan Step 2: the circle reveal plays every switch away from Hjem.
+                      child: ModusAvduk(child: Stack(children: [appChild, const BergenModusScope.fjord(child: OnbLag()), const BergenModusScope.fjord(child: OnbTipsLag())])),
+                    ),
                   ),
                 ),
               ),

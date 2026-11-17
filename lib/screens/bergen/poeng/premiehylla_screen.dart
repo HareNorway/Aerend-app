@@ -27,6 +27,8 @@ import 'prize_art.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/laster_skjerm.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Premiehylla (`erPremier`, L7556–7707 in `Ærend Kunde Launch.dc.html`,
 /// design px): the floating back key and the points pill (the coin turning,
@@ -134,7 +136,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     if (claimed == true && mounted) _load();
   }
 
-  void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => AegilVelgerScreen(api: _api))).then((_) => _load());
+  void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => ModusFjord(child: AegilVelgerScreen(api: _api)))).then((_) => _load());
 
   /// A claim's ticket, opened: how it is used, the code, how long it lasts.
   void _visClaim(PrizeClaim c, Prize? p) {
@@ -188,7 +190,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
 
   Widget _bygg(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF173E48),
+      backgroundColor: context.aeM(const Color(0xFF173E48), LysPalett.ull),
       body: LfFrame(
         child: Builder(
           builder: (context) {
@@ -199,12 +201,13 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
               curve: const Cubic(.2, .9, .3, 1),
               child: Stack(
                 children: [
-                  const Positioned.fill(
+                  // `.mk3`: the page, `--lys-ull` in Lys.
+                  Positioned.fill(
                     child: CssBox(
-                      bg: [
+                      bg: context.aeM(const [
                         CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
                         CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1]),
-                      ],
+                      ], const [CssSolid(LysPalett.ull)]),
                     ),
                   ),
                   Positioned(
@@ -215,19 +218,21 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                     child: CssBox(
                       radius: const BorderRadius.vertical(top: Radius.circular(28)),
                       clip: true,
-                      bg: const [
+                      // `.mk8b`: the sheet, `--lys-ull` + `--lys-arkskygge` in Lys.
+                      bg: context.aeM(const [
                         CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
                         CssLinear(180, [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .48, 1]),
-                      ],
-                      shadows: const [
+                      ], const [CssSolid(LysPalett.ull)]),
+                      shadows: context.aeM(const [
                         CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
                         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
                         CssShadow(0, -24, 50, -18, Color.fromRGBO(4, 18, 26, .8)),
-                      ],
+                      ], LysPalett.arkskygge),
                       child: _loading ? const Center(child: CircularProgressIndicator(color: BergenTokens.mint)) : _body(),
                     ),
                   ),
-                  const Positioned(left: 0, right: 0, bottom: 0, child: MegNav()),
+                  // The nav pill stays fjord in both modes.
+                  const Positioned(left: 0, right: 0, bottom: 0, child: BergenModusScope.fjord(child: MegNav())),
                   Positioned(
                     left: 16,
                     right: 16,
@@ -279,11 +284,11 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(A4MegCopy.a4_hylla_title, style: jakarta(27, em: -.035, height: 1.05)),
+                      Text(A4MegCopy.a4_hylla_title, style: jakarta(27, em: -.035, height: 1.05, color: context.aeM(Colors.white, LysPalett.tittel))),
                       const SizedBox(height: 4),
                       Text(
                         A4MegCopy.a4_hylla_sub,
-                        style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .72)),
+                        style: inter(12, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar)),
                       ),
                     ],
                   ),
@@ -302,7 +307,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                     padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
                     child: Row(
                       children: [
-                        Text(A4MegCopy.a4_hylla_mine, style: jakarta(16, em: -.02)),
+                        Text(A4MegCopy.a4_hylla_mine, style: jakarta(16, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel))),
                         const SizedBox(width: 8),
                         _Mint(A4MegCopy.a4_hylla_aktive(aktive)),
                       ],
@@ -337,16 +342,17 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                     padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
                     child: Row(
                       children: [
-                        Text(A4MegCopy.a4_hylla_mine, style: jakarta(16, em: -.02)),
+                        Text(A4MegCopy.a4_hylla_mine, style: jakarta(16, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel))),
                         const SizedBox(width: 8),
+                        // `.mk8g`.
                         Container(
                           padding: const EdgeInsets.fromLTRB(8, 2.5, 8, 2.5),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(999),
-                            color: const Color.fromRGBO(255, 255, 255, .08),
-                            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+                            color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit),
+                            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge)),
                           ),
-                          child: Text(A4MegCopy.a4_hylla_ingen_enna, style: inter(10, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .75))),
+                          child: Text(A4MegCopy.a4_hylla_ingen_enna, style: inter(10, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .75), LysPalett.sekundar))),
                         ),
                       ],
                     ),
@@ -369,7 +375,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                         _LitenMedalje(navn: b.tierName),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(A4MegCopy.a4_hylla_aapent(b.tierName), maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(16, em: -.02)),
+                          child: Text(A4MegCopy.a4_hylla_aapent(b.tierName), maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(16, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel))),
                         ),
                         const SizedBox(width: 8),
                         _KlarePille(key: const Key('hylla-klare'), tekst: A4MegCopy.a4_hylla_klare(klare)),
@@ -378,7 +384,8 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(2, 4, 2, 4),
-                    child: Text(A4MegCopy.a4_hylla_intro_l, style: inter(11.5, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .68))),
+                    // `.mk8o`.
+                    child: Text(A4MegCopy.a4_hylla_intro_l, style: inter(11.5, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .68), LysPalett.sekundar))),
                   ),
                 ],
                 _Rutenett(
@@ -424,22 +431,23 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                         Container(
                           width: 24,
                           height: 24,
+                          // `.mk8t` / `.mku`: `--lys-hvit`, a `--lys-kant-farge` ring, the fjord lock in Lys.
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color.fromRGBO(255, 255, 255, .1),
-                            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+                            color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.hvit),
+                            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge)),
                           ),
                           alignment: Alignment.center,
-                          child: const AeIkon(_las, size: 11, stroke: 2.4),
+                          child: AeIkon(_las, size: 11, stroke: 2.4, color: context.aeM(Colors.white, LysPalett.fjord)),
                         ),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(A4MegCopy.a4_hylla_laast(locked.first.tierName), style: jakarta(16, em: -.02))),
+                        Expanded(child: Text(A4MegCopy.a4_hylla_laast(locked.first.tierName), style: jakarta(16, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel)))),
                       ],
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(2, 4, 2, 10),
-                    child: Text(A4MegCopy.a4_hylla_laast_sub(locked.first.tierName), style: inter(11.5, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .68))),
+                    child: Text(A4MegCopy.a4_hylla_laast_sub(locked.first.tierName), style: inter(11.5, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .68), LysPalett.sekundar))),
                   ),
                   for (final (i, p) in locked.indexed)
                     Padding(
@@ -478,6 +486,13 @@ const List<CssShadow> _glassSh = [
   CssShadow(0, 2, 0, 0, Color.fromRGBO(8, 30, 38, .5)),
   CssShadow(0, 20, 30, -18, Color.fromRGBO(2, 12, 18, .95)),
 ];
+
+/// Lys: the hylla cards (`.mk8c` / `.mk8i` / `.mk8u` / `.mk8x`): `--lys-hvit`, a
+/// `--lys-kant-farge` border and the card shadow.
+const List<CssBg> _kortLys = [CssSolid(LysPalett.hvit)];
+
+/// Lys: the raised light key (`kn.bg` / `maalBg`, L23750–23753): white → `#EEF6F9`.
+const List<CssBg> _knappLys = [CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEEF6F9)])];
 
 class _Glod extends StatelessWidget {
   const _Glod(this.c);
@@ -597,15 +612,16 @@ class HyllaPoengPille extends StatelessWidget {
       child: CssBox(
         key: const Key('hylla-poeng'),
         radius: BorderRadius.circular(999),
-        bg: const [CssSolid(Color.fromRGBO(15, 42, 51, .55))],
-        shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .28))],
+        // `.mk8a`: `--lys-dis-ull`, no shadow in Lys.
+        bg: context.aeM(const [CssSolid(Color.fromRGBO(15, 42, 51, .55))], const [CssSolid(LysPalett.disUll)]),
+        shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .28))], const <CssShadow>[]),
         padding: const EdgeInsets.fromLTRB(6, 5, 14, 5),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const _Mynt(size: 26, periodMs: 4000, dollar: true),
             const SizedBox(width: 7),
-            Text(A4MegCopy.a4_hylla_poeng_tx(poeng), style: aeTab(jakarta(14, em: -.02))),
+            Text(A4MegCopy.a4_hylla_poeng_tx(poeng), style: aeTab(jakarta(14, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel)))),
           ],
         ),
       ),
@@ -669,9 +685,10 @@ class _NivaaMaal extends StatelessWidget {
     return CssBox(
       key: const Key('hylla-nivaa'),
       radius: BorderRadius.circular(24),
-      bg: _glass,
-      shadows: _glassSh,
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+      // `.mk8c`.
+      bg: context.aeM(_glass, _kortLys),
+      shadows: context.aeM(_glassSh, LysPalett.kortskygge),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -714,13 +731,14 @@ class _NivaaMaal extends StatelessWidget {
                     children: [
                       Text(
                         A4MegCopy.a4_hylla_nivaa_kicker,
-                        style: inter(9.5, weight: FontWeight.w800, em: .14, color: const Color.fromRGBO(255, 255, 255, .6)),
+                        // `.mk2m`.
+                        style: inter(9.5, weight: FontWeight.w800, em: .14, color: context.aeM(const Color.fromRGBO(255, 255, 255, .6), LysPalett.dempet)),
                       ),
-                      Text(b.tierName, style: jakarta(17, em: -.02, height: 1.15)),
+                      Text(b.tierName, style: jakarta(17, em: -.02, height: 1.15, color: context.aeM(Colors.white, LysPalett.tittel))),
                       const SizedBox(height: 1),
                       Text(
                         b.nextTierName == null || b.pointsToNextTier == null ? A4MegCopy.a4_meg_hoyeste : A4MegCopy.a4_meg_til_neste(b.pointsToNextTier!, b.nextTierName!),
-                        style: aeTab(inter(11.5, color: const Color.fromRGBO(255, 255, 255, .7))),
+                        style: aeTab(inter(11.5, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar))),
                       ),
                     ],
                   ),
@@ -728,18 +746,20 @@ class _NivaaMaal extends StatelessWidget {
                 Container(
                   width: 30,
                   height: 30,
+                  // `.mk8d` / `.mku`: `--lys-dis`, no ring, the fjord chevron in Lys.
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color.fromRGBO(255, 255, 255, .1),
-                    border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
+                    color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis),
+                    border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .18), const Color(0x00E7F5FA))),
                   ),
                   alignment: Alignment.center,
-                  child: const AeIkon('M9 6l6 6-6 6', size: 12, stroke: 2.6),
+                  child: AeIkon('M9 6l6 6-6 6', size: 12, stroke: 2.6, color: context.aeM(Colors.white, LysPalett.fjord)),
                 ),
               ],
             ),
           ),
-          Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 13), color: const Color.fromRGBO(255, 255, 255, .1)),
+          // `.mk8e`.
+          Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 13), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)),
           Row(
             children: [
               SizedBox(
@@ -752,7 +772,7 @@ class _NivaaMaal extends StatelessWidget {
                   curve: const Cubic(.3, 1.1, .5, 1),
                   builder: (f) => CustomPaint(
                     painter: _Ring(f.clamp(0.0, 1.0)),
-                    child: Center(child: Text('$pct%', style: aeTab(jakarta(14)))),
+                    child: Center(child: Text('$pct%', style: aeTab(jakarta(14, color: context.aeM(Colors.white, LysPalett.tittel))))),
                   ),
                 ),
               ),
@@ -763,12 +783,12 @@ class _NivaaMaal extends StatelessWidget {
                   children: [
                     Text(
                       A4MegCopy.a4_hylla_maalet_ditt,
-                      style: inter(9.5, weight: FontWeight.w800, em: .14, color: const Color.fromRGBO(255, 255, 255, .6)),
+                      style: inter(9.5, weight: FontWeight.w800, em: .14, color: context.aeM(const Color.fromRGBO(255, 255, 255, .6), LysPalett.dempet)),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       g == null ? A4MegCopy.a4_hylla_sett_maal : (g.reached ? A4MegCopy.a4_hylla_klar(g.label) : A4MegCopy.a4_hylla_til(g.remaining, g.label)),
-                      style: inter(13.5, weight: FontWeight.w800, height: 1.3),
+                      style: inter(13.5, weight: FontWeight.w800, height: 1.3, color: context.aeM(Colors.white, LysPalett.tittel)),
                     ),
                     const SizedBox(height: 8),
                     _Stripebar(pct: pct / 100),
@@ -886,7 +906,8 @@ class _Stripebar extends StatelessWidget {
       children: [
         Positioned.fill(
           child: Container(
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), color: const Color.fromRGBO(0, 0, 0, .3)),
+            // `.mk8f`.
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(99), color: context.aeM(const Color.fromRGBO(0, 0, 0, .3), LysPalett.dis)),
           ),
         ),
         LayoutBuilder(
@@ -1022,12 +1043,13 @@ class _Mint extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(999),
-      color: const Color.fromRGBO(92, 224, 184, .18),
+      // `.mk8h`.
+      color: context.aeM(const Color.fromRGBO(92, 224, 184, .18), LysPalett.mintDis),
       border: Border.all(color: const Color.fromRGBO(92, 224, 184, .4)),
     ),
     child: Text(
       t,
-      style: aeTab(inter(10, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+      style: aeTab(inter(10, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
     ),
   );
 }
@@ -1039,8 +1061,9 @@ class _KlarePille extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(999),
-    bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
-    shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(92, 224, 184, .4))],
+    // `.mk8n`.
+    bg: context.aeM(const [CssSolid(Color.fromRGBO(92, 224, 184, .14))], const [CssSolid(LysPalett.mintDis)]),
+    shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(92, 224, 184, .4))], const <CssShadow>[]),
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -1049,7 +1072,7 @@ class _KlarePille extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           tekst,
-          style: aeTab(inter(10.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+          style: aeTab(inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
         ),
       ],
     ),
@@ -1095,11 +1118,14 @@ class _Billett extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = claim;
+    // Lys: the design keeps «Brukt» white on white (`mineVis` R.Brukt, no `__aeM`); the grey chips take
+    // `--lys-dis` / `--lys-sekundar` like the `.mk8w` krav chip.
+    final lys = context.lys;
     final (chip, chipBg, chipC) = switch (c.state) {
       'claimed' || 'applied' => (A4MegCopy.a4_hylla_chip_klar, const Color(0xFF5CE0B8), const Color(0xFF0F2A33)),
       'shipped' => (A4MegCopy.a4_hylla_chip_sendt, const Color(0xFFF7D57E), const Color(0xFF3A2708)),
-      'delivered' || 'used' => (A4MegCopy.a4_hylla_chip_brukt, const Color.fromRGBO(255, 255, 255, .2), Colors.white),
-      _ => (A4MegCopy.a4_hylla_chip_utlopt, const Color.fromRGBO(255, 255, 255, .2), Colors.white),
+      'delivered' || 'used' => (A4MegCopy.a4_hylla_chip_brukt, lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white),
+      _ => (A4MegCopy.a4_hylla_chip_utlopt, lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white),
     };
     final brukt = c.state == 'used' || c.state == 'expired' || c.state == 'cancelled';
     final art = PrizeArt.of(slug: prize?.slug, name: c.prizeName ?? prize?.name ?? '');
@@ -1113,9 +1139,10 @@ class _Billett extends StatelessWidget {
           width: 252,
           radius: BorderRadius.circular(20),
           clip: true,
-          bg: _glass,
-          shadows: _glassSh,
-          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+          // `.mk8i`.
+          bg: lys ? _kortLys : _glass,
+          shadows: lys ? LysPalett.kortskygge : _glassSh,
+          border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .22)),
           child: Stack(
             children: [
               const Positioned.fill(child: _Holo()),
@@ -1140,7 +1167,7 @@ class _Billett extends StatelessWidget {
                                       prize?.partnerName ?? 'Ærend',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: inter(9.5, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB)),
+                                      style: inter(9.5, weight: FontWeight.w800, em: .06, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)),
                                     ),
                                   ),
                                   const SizedBox(width: 6),
@@ -1155,13 +1182,13 @@ class _Billett extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 3),
-                              Text(c.prizeName ?? prize?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14, em: -.015, height: 1.2)),
+                              Text(c.prizeName ?? prize?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14, em: -.015, height: 1.2, color: lys ? LysPalett.tittel : Colors.white)),
                               const SizedBox(height: 2),
                               Text(
                                 PremieArk.hvordan(prize?.type ?? ''),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: inter(11, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .72)),
+                                style: inter(11, height: 1.35, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .72)),
                               ),
                             ],
                           ),
@@ -1169,7 +1196,8 @@ class _Billett extends StatelessWidget {
                       ],
                     ),
                   ),
-                  CustomPaint(painter: _StipletLinje(), child: const SizedBox(height: 1.5)),
+                  // `.mk8j`: `--lys-skille` in Lys.
+                  CustomPaint(painter: _StipletLinje(lys ? LysPalett.skille : const Color.fromRGBO(255, 255, 255, .16)), child: const SizedBox(height: 1.5)),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 9, 12, 11),
                     child: Row(
@@ -1180,7 +1208,8 @@ class _Billett extends StatelessWidget {
                             children: [
                               Text(
                                 A4MegCopy.a4_hylla_dager_igjen(dager),
-                                style: aeTab(inter(10.5, weight: FontWeight.w800, color: dager <= 7 ? const Color(0xFFF7D57E) : const Color(0xFFDCE9EC))),
+                                // Lys: `m.tidC` has no `__aeM`; `--lys-gull-tekst` (as `.mk8l` turns `#F7D57E`) / `--lys-sekundar`.
+                                style: aeTab(inter(10.5, weight: FontWeight.w800, color: dager <= 7 ? (lys ? LysPalett.gullTekst : const Color(0xFFF7D57E)) : (lys ? LysPalett.sekundar : const Color(0xFFDCE9EC)))),
                               ),
                               const SizedBox(height: 5),
                               ClipRRect(
@@ -1190,7 +1219,8 @@ class _Billett extends StatelessWidget {
                                   width: double.infinity,
                                   child: Stack(
                                     children: [
-                                      const Positioned.fill(child: ColoredBox(color: Color.fromRGBO(0, 0, 0, .3))),
+                                      // `.mk8k`.
+                                      Positioned.fill(child: ColoredBox(color: lys ? LysPalett.dis : const Color.fromRGBO(0, 0, 0, .3))),
                                       FractionallySizedBox(
                                         widthFactor: (dager / 60).clamp(0.0, 1.0),
                                         heightFactor: 1,
@@ -1209,12 +1239,15 @@ class _Billett extends StatelessWidget {
                         const SizedBox(width: 10),
                         CssBox(
                           radius: BorderRadius.circular(999),
-                          bg: const [
+                          // `.mk8m`.
+                          bg: lys
+                              ? const [CssSolid(LysPalett.dis)]
+                              : const [
                             CssLinear(180, [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .07)]),
                           ],
-                          shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .24))],
+                          shadows: lys ? const [] : const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .24))],
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                          child: Text(A4MegCopy.a4_hylla_detaljer, style: inter(11, weight: FontWeight.w800)),
+                          child: Text(A4MegCopy.a4_hylla_detaljer, style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white)),
                         ),
                       ],
                     ),
@@ -1230,10 +1263,13 @@ class _Billett extends StatelessWidget {
 }
 
 class _StipletLinje extends CustomPainter {
+  _StipletLinje(this.c);
+  final Color c;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color.fromRGBO(255, 255, 255, .16)
+      ..color = c
       ..strokeWidth = 1.5;
     for (double x = 0; x < size.width; x += 7) {
       canvas.drawLine(Offset(x, .75), Offset(math.min(x + 4, size.width), .75), paint);
@@ -1241,7 +1277,7 @@ class _StipletLinje extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_StipletLinje old) => false;
+  bool shouldRepaint(_StipletLinje old) => old.c != c;
 }
 
 /// `phHolo 5.5s` — a mint-to-peach band sweeping the ticket.
@@ -1383,14 +1419,30 @@ class _PremieKort extends StatelessWidget {
         ? A4MegCopy.a4_hylla_utsolgt_mnd
         : (raad ? A4MegCopy.a4_hylla_hent : (velger ? A4MegCopy.a4_hylla_la_aegil : (erMaal ? A4MegCopy.a4_hylla_er_maal_kn : A4MegCopy.a4_hylla_sett_som_maal)));
     final visLinje = (linje ?? '').isNotEmpty && linje != 'Fra ${merke ?? ''}';
+    final lys = context.lys;
 
     Widget kort = CssBox(
       radius: BorderRadius.circular(22),
-      bg: const [
+      // `.mk8p`: the raised light card in Lys.
+      bg: lys
+          ? const [
+              CssRadial([Color.fromRGBO(255, 214, 140, .14), Color.fromRGBO(255, 214, 140, 0)], stops: [0, .7], rx: .9, ry: .5, cx: .5, cy: 0),
+              CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF5FAFC), Color(0xFFE8F3F7)], [0, .55, 1]),
+            ]
+          : const [
         CssRadial([Color.fromRGBO(255, 214, 140, .14), Color.fromRGBO(255, 214, 140, 0)], stops: [0, .7], rx: .9, ry: .5, cx: .5, cy: 0),
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)]),
       ],
-      shadows: const [
+      shadows: lys
+          ? const [
+              CssShadow(0, 0, 0, 1, Color.fromRGBO(31, 82, 95, .08)),
+              CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
+              CssShadow(0, 2, 0, 0, Color(0xFFD6E8EE)),
+              CssShadow(0, 4, 0, 0, Color(0xFFBCD5DF)),
+              CssShadow(0, 5, 1, 0, Color.fromRGBO(6, 52, 62, .14)),
+              CssShadow(0, 18, 26, -16, Color.fromRGBO(6, 40, 52, .55)),
+            ]
+          : const [
         CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .36)),
         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
         CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .5)),
@@ -1465,25 +1517,26 @@ class _PremieKort extends StatelessWidget {
                     merke!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: inter(9.5, weight: FontWeight.w800, em: .04, color: const Color(0xFF7FF0CB)),
+                    style: inter(9.5, weight: FontWeight.w800, em: .04, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)),
                   ),
                 ],
                 const SizedBox(height: 3),
-                Text(navn, style: jakarta(14, em: -.02, height: 1.2)),
+                Text(navn, style: jakarta(14, em: -.02, height: 1.2, color: lys ? LysPalett.tittel : Colors.white)),
                 const SizedBox(height: 6),
                 Row(
                   children: [
                     _Mynt(size: 18, periodMs: 4500, delayMs: bobD),
                     const SizedBox(width: 5),
-                    Text(A4MegCopy.nf(pris), style: aeTab(jakarta(15.5, em: -.02, color: const Color(0xFFF7D57E)))),
+                    // `.mk8q` / `.mk8r`.
+                    Text(A4MegCopy.nf(pris), style: aeTab(jakarta(15.5, em: -.02, color: lys ? const Color(0xFF8A5D08) : const Color(0xFFF7D57E)))),
                     const SizedBox(width: 5),
                     Text(
                       A4MegCopy.a4_meg_poeng,
-                      style: inter(10.5, weight: FontWeight.w800, color: const Color.fromRGBO(247, 213, 126, .78)),
+                      style: inter(10.5, weight: FontWeight.w800, color: lys ? const Color(0xFF9A6A0E) : const Color.fromRGBO(247, 213, 126, .78)),
                     ),
                   ],
                 ),
-                if (visLinje) ...[const SizedBox(height: 4), Text(linje!, style: inter(10.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .7)))],
+                if (visLinje) ...[const SizedBox(height: 4), Text(linje!, style: inter(10.5, height: 1.4, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .7)))],
               ],
             ),
           ),
@@ -1497,7 +1550,8 @@ class _PremieKort extends StatelessWidget {
                 width: double.infinity,
                 child: Stack(
                   children: [
-                    const Positioned.fill(child: ColoredBox(color: Color.fromRGBO(0, 0, 0, .3))),
+                    // `.mk8s`.
+                    Positioned.fill(child: ColoredBox(color: lys ? const Color.fromRGBO(31, 82, 95, .1) : const Color.fromRGBO(0, 0, 0, .3))),
                     FractionallySizedBox(
                       widthFactor: pris == 0 ? 0 : (poeng / pris).clamp(0.0, 1.0),
                       heightFactor: 1,
@@ -1516,7 +1570,7 @@ class _PremieKort extends StatelessWidget {
             const SizedBox(height: 5),
             Text(
               A4MegCopy.a4_hylla_igjen(math.max(0, pris - poeng)),
-              style: aeTab(inter(10, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .78))),
+              style: aeTab(inter(10, weight: FontWeight.w800, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .78))),
             ),
           ],
           const SizedBox(height: 10),
@@ -1534,22 +1588,31 @@ class _PremieKort extends StatelessWidget {
                     width: 40,
                     height: 40,
                     radius: BorderRadius.circular(14),
+                    // `maalBg` / `maalSh` / `maalIkC` (L23753).
                     bg: erMaal
                         ? const [
                             CssLinear(180, [Color(0xFFA6F8DD), Color(0xFF3CC79F)]),
                           ]
+                        : lys
+                        ? _knappLys
                         : const [
                             CssLinear(180, [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .07)]),
                           ],
                     shadows: erMaal
                         ? const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .6)), CssShadow(0, 2.5, 0, 0, Color(0xFF23946F)), CssShadow(0, 8, 12, -6, Color.fromRGBO(20, 110, 80, .6))]
+                        : lys
+                        ? const [
+                            CssShadow(0, 0, 0, 1, Color.fromRGBO(31, 82, 95, .1)),
+                            CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
+                            CssShadow(0, 2.5, 0, 0, Color(0xFFC9DEE6)),
+                          ]
                         : const [
                             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
                             CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .22)),
                             CssShadow(0, 2.5, 0, 0, Color.fromRGBO(8, 30, 38, .5)),
                           ],
                     child: Center(
-                      child: AeIkon('${AeIkon.sirkel(12, 12, 8.5)}${AeIkon.sirkel(12, 12, 4.5)}', size: 17, stroke: 2.4, color: erMaal ? const Color(0xFF0F3A40) : const Color(0xFF7FF0CB)),
+                      child: AeIkon('${AeIkon.sirkel(12, 12, 8.5)}${AeIkon.sirkel(12, 12, 4.5)}', size: 17, stroke: 2.4, color: erMaal ? const Color(0xFF0F3A40) : (lys ? const Color(0xFF046850) : const Color(0xFF7FF0CB))),
                     ),
                   ),
                 ),
@@ -1625,8 +1688,12 @@ class _Knapp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Lys (`kn`, L23747–23750): the sunken «Utsolgt» and the raised light «Sett som mål»; «Hent» stays orange.
+    final lys = context.lys;
     final (bg, sh, fg, dy) = ute
-        ? (const [CssSolid(Color.fromRGBO(0, 0, 0, .25))], const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .4))], const Color.fromRGBO(255, 255, 255, .55), 0.0)
+        ? (lys
+            ? (const [CssSolid(Color.fromRGBO(31, 82, 95, .08))], const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(6, 52, 62, .15))], LysPalett.dempet, 0.0)
+            : (const [CssSolid(Color.fromRGBO(0, 0, 0, .25))], const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .4))], const Color.fromRGBO(255, 255, 255, .55), 0.0))
         : raad
         ? (
             const [
@@ -1640,6 +1707,18 @@ class _Knapp extends StatelessWidget {
             ],
             Colors.white,
             3.5,
+          )
+        : lys
+        ? (
+            _knappLys,
+            const [
+              CssShadow(0, 0, 0, 1, Color.fromRGBO(31, 82, 95, .1)),
+              CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
+              CssShadow(0, 2, 0, 0, Color(0xFFC9DEE6)),
+              CssShadow(0, 7, 12, -8, Color.fromRGBO(6, 40, 52, .45)),
+            ],
+            LysPalett.tittel,
+            2.0,
           )
         : (
             const [
@@ -1854,11 +1933,12 @@ class _Laast extends StatelessWidget {
       scale: .98,
       child: CssBox(
         radius: BorderRadius.circular(20),
-        bg: const [
+        // `.mk8u`.
+        bg: context.aeM(const [
           CssLinear(165, [Color.fromRGBO(255, 255, 255, .11), Color.fromRGBO(255, 255, 255, .04)]),
-        ],
-        shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .2)), CssShadow(0, 14, 22, -16, Color.fromRGBO(2, 12, 18, .9))],
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+        ], _kortLys),
+        shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .2)), CssShadow(0, 14, 22, -16, Color.fromRGBO(2, 12, 18, .9))], LysPalett.kortskygge),
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
         padding: const EdgeInsets.all(10),
         child: Row(
           children: [
@@ -1881,13 +1961,14 @@ class _Laast extends StatelessWidget {
                     Container(
                       width: 28,
                       height: 28,
+                      // `.mk8v` / `.mku`: `--lys-dis`, no ring, the fjord lock in Lys.
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color.fromRGBO(15, 42, 51, .7),
-                        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .35)),
+                        color: context.aeM(const Color.fromRGBO(15, 42, 51, .7), LysPalett.dis),
+                        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .35), const Color(0x00E7F5FA))),
                       ),
                       alignment: Alignment.center,
-                      child: const AeIkon(_las, size: 12, stroke: 2.4),
+                      child: AeIkon(_las, size: 12, stroke: 2.4, color: context.aeM(Colors.white, LysPalett.fjord)),
                     ),
                   ],
                 ),
@@ -1912,10 +1993,10 @@ class _Laast extends StatelessWidget {
                         child: Text('Æ', style: jakarta(8.5, color: m.ink, height: 1)),
                       ),
                       const SizedBox(width: 7),
-                      Expanded(child: Text(p.name, style: jakarta(13.5, em: -.02, height: 1.2))),
+                      Expanded(child: Text(p.name, style: jakarta(13.5, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.tittel)))),
                     ],
                   ),
-                  if ((p.teaser ?? '').isNotEmpty) ...[const SizedBox(height: 4), Text(p.teaser!, style: inter(10.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .66)))],
+                  if ((p.teaser ?? '').isNotEmpty) ...[const SizedBox(height: 4), Text(p.teaser!, style: inter(10.5, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)))],
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 8,
@@ -1924,18 +2005,20 @@ class _Laast extends StatelessWidget {
                     children: [
                       Text(
                         A4MegCopy.a4_hylla_poeng_tx(p.pointPrice),
-                        style: aeTab(inter(12, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
+                        // `.mk8l`.
+                        style: aeTab(inter(12, weight: FontWeight.w800, color: context.aeM(const Color(0xFFF7D57E), LysPalett.gullTekst))),
                       ),
+                      // `.mk8w`.
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
-                          color: const Color.fromRGBO(255, 255, 255, .08),
-                          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+                          color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis),
+                          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), const Color(0x00E7F5FA))),
                         ),
                         child: Text(
                           A4MegCopy.a4_hylla_krav(p.tierName, p.pointsToUnlock),
-                          style: inter(9.5, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .8)),
+                          style: inter(9.5, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.sekundar)),
                         ),
                       ),
                     ],
@@ -1963,21 +2046,23 @@ class _Vilkaar extends StatelessWidget {
     scale: .98,
     child: CssBox(
       radius: BorderRadius.circular(20),
-      bg: const [
+      // `.mk8x`.
+      bg: context.aeM(const [
         CssLinear(165, [Color.fromRGBO(255, 255, 255, .1), Color.fromRGBO(255, 255, 255, .04)]),
-      ],
-      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .2))],
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+      ], _kortLys),
+      shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .2))], LysPalett.kortskygge),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(
         children: [
           SizedBox(width: 24, height: 30, child: bergenSvg('meg_varde3d', fit: BoxFit.contain)),
           const SizedBox(width: 11),
           Expanded(
-            child: Text(A4MegCopy.a4_hylla_60, style: inter(11.5, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .8))),
+            // `.mk86`.
+            child: Text(A4MegCopy.a4_hylla_60, style: inter(11.5, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.sekundar))),
           ),
           const SizedBox(width: 11),
-          const AeIkon('M9 6l6 6-6 6', size: 13, stroke: 2.6),
+          AeIkon('M9 6l6 6-6 6', size: 13, stroke: 2.6, color: context.aeM(Colors.white, LysPalett.fjord)),
         ],
       ),
     ),
@@ -2015,12 +2100,17 @@ class _MineTom extends StatelessWidget {
       key: const Key('hylla-mine-tom'),
       radius: BorderRadius.circular(22),
       clip: true,
-      bg: const [
+      // Lys: «Mine premier · tom» keeps its inline dark glass in the design (no class); built like `.mk8i`
+      // (`--lys-hvit`, `--lys-kant-farge`, the card shadow) under the same gold corner glow.
+      bg: context.aeM(const [
         CssRadial([Color.fromRGBO(242, 193, 78, .16), Color.fromRGBO(242, 193, 78, 0)], stops: [0, .6], rx: .9, ry: .8, cx: 0, cy: 1),
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
-      ],
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18)),
-      shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)), CssShadow(0, 18, 26, -18, Color.fromRGBO(4, 18, 26, .9))],
+      ], const [
+        CssRadial([Color.fromRGBO(242, 193, 78, .16), Color.fromRGBO(242, 193, 78, 0)], stops: [0, .6], rx: .9, ry: .8, cx: 0, cy: 1),
+        CssSolid(LysPalett.hvit),
+      ]),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge)),
+      shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)), CssShadow(0, 18, 26, -18, Color.fromRGBO(4, 18, 26, .9))], LysPalett.kortskygge),
       child: Stack(
         children: [
           Positioned(
@@ -2031,7 +2121,7 @@ class _MineTom extends StatelessWidget {
                 angle: -8 * math.pi / 180,
                 child: Row(
                   children: [
-                    _plass(const Color.fromRGBO(255, 255, 255, .22), const Color.fromRGBO(255, 255, 255, .03), 0),
+                    _plass(context.aeM(const Color.fromRGBO(255, 255, 255, .22), const Color.fromRGBO(30, 79, 92, .3)), context.aeM(const Color.fromRGBO(255, 255, 255, .03), LysPalett.disUll), 0),
                     const SizedBox(width: 8),
                     _plass(const Color.fromRGBO(246, 210, 122, .35), const Color.fromRGBO(242, 193, 78, .05), 1200),
                   ],
@@ -2081,11 +2171,11 @@ class _MineTom extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(A4MegCopy.a4_hylla_tom_tittel, style: jakarta(16, em: -.015, height: 1.2)),
+                            Text(A4MegCopy.a4_hylla_tom_tittel, style: jakarta(16, em: -.015, height: 1.2, color: context.aeM(Colors.white, LysPalett.tittel))),
                             const SizedBox(height: 4),
                             Text(
                               klare > 0 ? A4MegCopy.a4_hylla_tom_nok(klare) : A4MegCopy.a4_hylla_tom_linje,
-                              style: inter(11.5, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .74)),
+                              style: inter(11.5, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .74), LysPalett.sekundar)),
                             ),
                           ],
                         ),
@@ -2102,12 +2192,13 @@ class _MineTom extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
-                          color: const Color.fromRGBO(242, 193, 78, .14),
-                          border: Border.all(color: const Color.fromRGBO(246, 210, 122, .45)),
+                          // Lys: like the gold `.mkdd` chip (`--lys-gull-dis`, `rgba(74,48,10,.2)`, `--lys-gull-tekst`).
+                          color: context.aeM(const Color.fromRGBO(242, 193, 78, .14), LysPalett.gullDis),
+                          border: Border.all(color: context.aeM(const Color.fromRGBO(246, 210, 122, .45), const Color.fromRGBO(74, 48, 10, .2))),
                         ),
                         child: Row(
                           children: [
-                            const AeIkon('M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4-4.9-4.4 6.5-.7z', size: 12, stroke: 0, fill: Color(0xFFF6D27A)),
+                            AeIkon('M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4-4.9-4.4 6.5-.7z', size: 12, stroke: 0, fill: context.aeM(const Color(0xFFF6D27A), LysPalett.gullTekst)),
                             const SizedBox(width: 6),
                             Expanded(
                               child: Text(
@@ -2115,7 +2206,7 @@ class _MineTom extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 softWrap: false,
-                                style: aeTab(inter(11.5, weight: FontWeight.w800, color: const Color(0xFFF6D27A))),
+                                style: aeTab(inter(11.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFFF6D27A), LysPalett.gullTekst))),
                               ),
                             ),
                           ],

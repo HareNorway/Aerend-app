@@ -23,8 +23,34 @@ import '../kit/bergen_perf.dart';
 import '../onboarding/onb_tips.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 part 'hjelp_chat.dart';
+
+// ── Lys plan Step 14 (L7: the sheet follows its own class, light in Lys) ─────
+// The help sheet's light values (design `sheetHjelp`, «Kundeservice», «Melding til …», «Ring …»,
+// «Finner ikke døra», «Noe mangler», «Support-chat», `(hjHarOrdre)` …). Dark = the app's value.
+
+/// `.mkb`: white → `--lys-tittel`.
+Color _hjT(BuildContext c) => c.aeM(Colors.white, LysPalett.tittel);
+
+/// `.mk9f` / `.mk33` / `.mk6` / `.mk3w`: → `--lys-sekundar`.
+Color _hjSek(BuildContext c, Color dark) => c.aeM(dark, LysPalett.sekundar);
+
+/// `.mk2m` / `.mkd`: → `--lys-dempet`.
+Color _hjDemp(BuildContext c, Color dark) => c.aeM(dark, LysPalett.dempet);
+
+/// `.mk1i`: a mint stroke → `#0B6B57`.
+Color _hjMintStrek(BuildContext c, [Color dark = kSpMint]) => c.aeM(dark, const Color(0xFF0B6B57));
+
+/// `.mku`: a white stroke → `#1E4F5C`.
+Color _hjFjord(BuildContext c, [Color dark = Colors.white]) => c.aeM(dark, LysPalett.fjord);
+
+/// The white card (`.mkbo` / `.mkby` / `.mkbn` / `.mkbz` …): fill, hairline, card shadow.
+List<CssBg> _hjKortBg(BuildContext c, List<CssBg> dark) => c.aeM(dark, const [CssSolid(LysPalett.hvit)]);
+Color _hjKant(BuildContext c, Color dark) => c.aeM(dark, LysPalett.kantFarge);
+List<CssShadow> _hjKortSh(BuildContext c, List<CssShadow> dark) => c.aeM(dark, LysPalett.kortskygge);
 
 /// The Hjelp sheet (Launch L8638–8830, `sheetHjelp`) at
 /// `/bergen/sporing/{id}/hjelp`, and **Kundeservice** standalone at
@@ -455,10 +481,11 @@ class _HjelpScreenState extends State<HjelpScreen> {
         radius: const BorderRadius.vertical(top: Radius.circular(28)),
         padding: EdgeInsets.fromLTRB(16, 0, 16, 22 + math.max(bunn - 8, 0)),
         border: Border(top: BorderSide(color: rgba(255, 255, 255, .9))),
-        bg: const [
+        // Lys: `sheetBg` / `sheetHandle` (L20216) `--lys-ark` / `--lys-haandtak`; `.mkam` `--lys-arkskygge`.
+        bg: context.aeM(const [
           CssLinear(180, [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .55, 1]),
-        ],
-        shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .95)), CssShadow(0, -24, 50, -20, rgba(15, 31, 43, .55))],
+        ], const [CssSolid(LysPalett.ark)]),
+        shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .95)), CssShadow(0, -24, 50, -20, rgba(15, 31, 43, .55))], LysPalett.arkskygge),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: mq.size.height * .86),
           child: SingleChildScrollView(
@@ -471,7 +498,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                   child: Container(
                     width: 40,
                     height: 5,
-                    decoration: BoxDecoration(color: rgba(255, 255, 255, .35), borderRadius: BorderRadius.circular(999)),
+                    decoration: BoxDecoration(color: context.aeM(rgba(255, 255, 255, .35), LysPalett.haandtak), borderRadius: BorderRadius.circular(999)),
                   ),
                 ),
                 AnimatedSize(
@@ -545,7 +572,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_partner ? SporingCopy.a1_sporing_leverer_selv(_navn) : SporingCopy.a1_sporing_er_budet(_navn), key: const Key('a1_sporing_hjelp_tittel'), style: jakarta(17, em: -.02)),
+                  Text(_partner ? SporingCopy.a1_sporing_leverer_selv(_navn) : SporingCopy.a1_sporing_er_budet(_navn), key: const Key('a1_sporing_hjelp_tittel'), style: jakarta(17, em: -.02, color: _hjT(context))),
                   const SizedBox(height: 2),
                   Row(
                     children: [
@@ -563,7 +590,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                         // Wraps like the prototype's line («… · sykler / siden mars»).
                         child: Text(
                           under,
-                          style: inter(11.5, color: rgba(255, 255, 255, .65)),
+                          style: inter(11.5, color: _hjSek(context, rgba(255, 255, 255, .65))),
                         ),
                       ),
                     ],
@@ -576,8 +603,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
               Container(
                 key: const Key('a1_sporing_hjelp_rating'),
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                // Lys: `.mkbl` (`--lys-gull-dis`, `--lys-gull-tekst`).
                 decoration: BoxDecoration(
-                  color: rgba(242, 193, 78, .18),
+                  color: context.aeM(rgba(242, 193, 78, .18), LysPalett.gullDis),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(color: rgba(242, 193, 78, .35)),
                 ),
@@ -590,7 +618,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                       height: 10,
                     ),
                     const SizedBox(width: 4),
-                    Text(rating.toStringAsFixed(1).replaceAll('.', ','), style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFFF2C14E))),
+                    Text(rating.toStringAsFixed(1).replaceAll('.', ','), style: inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFFF2C14E), LysPalett.gullTekst))),
                   ],
                 ),
               ),
@@ -628,10 +656,10 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    spIkon(kSpIkonChatEnkel, size: 15, color: kSpMint),
+                    spIkon(kSpIkonChatEnkel, size: 15, color: _hjMintStrek(context)),
                     const SizedBox(width: 7),
                     Flexible(
-                      child: Text(SporingCopy.a1_sporing_send_melding, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(13.5)),
+                      child: Text(SporingCopy.a1_sporing_send_melding, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(13.5, color: _hjT(context))),
                     ),
                   ],
                 ),
@@ -642,7 +670,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
         const SizedBox(height: 18),
         Text(
           SporingCopy.a1_sporing_hjelp_vanlige.toUpperCase(),
-          style: inter(10.5, weight: FontWeight.w800, em: .06, color: rgba(255, 255, 255, .6)),
+          style: inter(10.5, weight: FontWeight.w800, em: .06, color: _hjDemp(context, rgba(255, 255, 255, .6))),
         ),
         const SizedBox(height: 8),
         _Rad(
@@ -732,20 +760,22 @@ class _HjelpScreenState extends State<HjelpScreen> {
         ),
       ),
       const SizedBox(height: 16),
-      Text(_navn, style: jakarta(20, em: -.02)),
+      // Lys («Ring {{ kontaktRolle }}»): `.mkb`, `.mk9f`, `.mk13` (`--lys-mint-tekst`), `.mk6`, `.mk2m`; the round
+      // keys `ringDempBg/Fg` (L20839): on `--lys-fjord` / white, off `--lys-dis` / `--lys-fjord`.
+      Text(_navn, style: jakarta(20, em: -.02, color: _hjT(context))),
       const SizedBox(height: 3),
-      Text(_calling || _callSeconds < 3 ? SporingCopy.a1_sporing_ringer : SporingCopy.a1_sporing_samtale_med(_navn), style: inter(12, color: rgba(255, 255, 255, .65))),
+      Text(_calling || _callSeconds < 3 ? SporingCopy.a1_sporing_ringer : SporingCopy.a1_sporing_samtale_med(_navn), style: inter(12, color: _hjSek(context, rgba(255, 255, 255, .65)))),
       const SizedBox(height: 6),
       Text(
         spMmSs(_callSeconds),
         key: const Key('a1_sporing_ring_tid'),
-        style: jakarta(28, em: -.02, color: kSpMint),
+        style: jakarta(28, em: -.02, color: context.aeM(kSpMint, LysPalett.mintTekst)),
       ),
       const SizedBox(height: 22),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _rund(SporingCopy.a1_sporing_demp, _muted, spIkon(kSpIkonDemp, size: 20, color: _muted ? kSpTeal : Colors.white, extra: kSpIkonDempExtra), () => setState(() => _muted = !_muted)),
+          _rund(SporingCopy.a1_sporing_demp, _muted, spIkon(kSpIkonDemp, size: 20, color: _muted ? context.aeM(kSpTeal, Colors.white) : _hjFjord(context), extra: kSpIkonDempExtra), () => setState(() => _muted = !_muted)),
           const SizedBox(width: 14),
           Column(
             children: [
@@ -772,12 +802,12 @@ class _HjelpScreenState extends State<HjelpScreen> {
               ),
               Text(
                 SporingCopy.a1_sporing_avslutt_samtale.split(' ').first,
-                style: inter(10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
+                style: inter(10.5, weight: FontWeight.w700, color: _hjSek(context, rgba(255, 255, 255, .7))),
               ),
             ],
           ),
           const SizedBox(width: 14),
-          _rund(SporingCopy.a1_sporing_hoyttaler, _speaker, spIkon(kSpIkonHoyttaler, size: 20, color: _speaker ? kSpTeal : Colors.white), () => setState(() => _speaker = !_speaker)),
+          _rund(SporingCopy.a1_sporing_hoyttaler, _speaker, spIkon(kSpIkonHoyttaler, size: 20, color: _speaker ? context.aeM(kSpTeal, Colors.white) : _hjFjord(context)), () => setState(() => _speaker = !_speaker)),
         ],
       ),
       const SizedBox(height: 18),
@@ -786,7 +816,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
         onTap: _endCall,
         child: Text(
           SporingCopy.a1_sporing_tilbake_til_hjelp,
-          style: inter(12, weight: FontWeight.w800, color: rgba(255, 255, 255, .6)),
+          style: inter(12, weight: FontWeight.w800, color: _hjDemp(context, rgba(255, 255, 255, .6))),
         ),
       ),
       const SizedBox(height: 6),
@@ -826,7 +856,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
           height: 56,
           decoration: CssDecoration(
             shape: BoxShape.circle,
-            color: on ? Colors.white : rgba(255, 255, 255, .14),
+            color: on ? context.aeM(Colors.white, LysPalett.fjord) : context.aeM(rgba(255, 255, 255, .14), LysPalett.dis),
             border: Border.all(color: rgba(255, 255, 255, .26)),
             boxShadow: [BoxShadow(color: rgba(255, 255, 255, .3), offset: const Offset(0, 1.5), blurStyle: BlurStyle.inner)],
           ),
@@ -836,7 +866,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
       const SizedBox(height: 6),
       Text(
         label,
-        style: inter(10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
+        style: inter(10.5, weight: FontWeight.w700, color: _hjSek(context, rgba(255, 255, 255, .7))),
       ),
     ],
   );
@@ -862,7 +892,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(SporingCopy.a1_sporing_hjelp_melding(_rolle), style: jakarta(15, em: -.02)),
+                  // Lys («Melding til {{ kontaktRolle }}»): `.mkb`, `.mk33`; bubbles `hjMeld` (L20842); chips `.mkbw`;
+                  // the field `.mkbx` + `.mk12`.
+                  Text(SporingCopy.a1_sporing_hjelp_melding(_rolle), style: jakarta(15, em: -.02, color: _hjT(context))),
                   Row(
                     children: [
                       Container(
@@ -880,7 +912,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                           SporingCopy.a1_sporing_aktiv_naa,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: inter(10.5, color: rgba(255, 255, 255, .62)),
+                          style: inter(10.5, color: _hjSek(context, rgba(255, 255, 255, .62))),
                         ),
                       ),
                     ],
@@ -920,10 +952,12 @@ class _HjelpScreenState extends State<HjelpScreen> {
                   child: CssBox(
                     radius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomRight: Radius.circular(18), bottomLeft: Radius.circular(5)),
                     padding: const EdgeInsets.fromLTRB(13, 10, 13, 10),
-                    border: Border.all(color: rgba(255, 255, 255, .24)),
-                    bg: [
+                    // `.mkbv`: white, hairline, the card shadow (the dots stay inline white, as in the design).
+                    border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .24))),
+                    bg: _hjKortBg(context, [
                       CssLinear(180, [rgba(255, 255, 255, .18), rgba(255, 255, 255, .09)]),
-                    ],
+                    ]),
+                    shadows: context.aeM(const <CssShadow>[], LysPalett.kortskygge),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [for (var k = 0; k < 3; k++) _prikk(k * 150.0)]),
                   ),
                 ),
@@ -945,13 +979,13 @@ class _HjelpScreenState extends State<HjelpScreen> {
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(11, 7, 11, 7),
                     decoration: BoxDecoration(
-                      color: rgba(255, 255, 255, .08),
+                      color: context.aeM(rgba(255, 255, 255, .08), LysPalett.hvit),
                       borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: rgba(255, 255, 255, .22)),
+                      border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .22))),
                     ),
                     child: Text(
                       c,
-                      style: inter(11.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .9)),
+                      style: inter(11.5, weight: FontWeight.w700, color: _hjSek(context, rgba(255, 255, 255, .9))),
                     ),
                   ),
                 ),
@@ -964,11 +998,11 @@ class _HjelpScreenState extends State<HjelpScreen> {
           height: 50,
           radius: BorderRadius.circular(999),
           padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
-          border: Border.all(color: rgba(255, 255, 255, .26)),
-          bg: [
+          border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .26))),
+          bg: _hjKortBg(context, [
             CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-          ],
-          shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .32))],
+          ]),
+          shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .32))], const <CssShadow>[]),
           child: Row(
             children: [
               Expanded(
@@ -977,15 +1011,15 @@ class _HjelpScreenState extends State<HjelpScreen> {
                   controller: _msg,
                   onSubmitted: (_) => _send(),
                   textInputAction: TextInputAction.send,
-                  cursorColor: kSpMint,
-                  style: jakarta(14, weight: FontWeight.w700),
+                  cursorColor: context.aeM(kSpMint, LysPalett.mintTekst),
+                  style: jakarta(14, weight: FontWeight.w700, color: _hjT(context)),
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
                     filled: false,
                     contentPadding: EdgeInsets.zero,
                     hintText: SporingCopy.a1_sporing_skriv_til(_navn),
-                    hintStyle: jakarta(14, weight: FontWeight.w700, color: rgba(255, 255, 255, .45)),
+                    hintStyle: jakarta(14, weight: FontWeight.w700, color: _hjDemp(context, rgba(255, 255, 255, .45))),
                   ),
                 ),
               ),
@@ -1042,30 +1076,31 @@ class _HjelpScreenState extends State<HjelpScreen> {
         const SizedBox(height: 14),
         _Hode(onTilbake: () => setState(() => _state = HjelpState.main), tittel: SporingCopy.a1_sporing_dor_tittel(_rolleStor), under: SporingCopy.a1_sporing_dette_ser(_navn)),
         const SizedBox(height: 14),
+        // Lys (`(hjDor)`): the card `.mkby`, labels `.mk2m`, the address `.mkb`, the note `.mk3w`, stroke `.mk1i`.
         CssBox(
           radius: BorderRadius.circular(20),
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          border: Border.all(color: rgba(255, 255, 255, .22)),
-          bg: [
+          border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .22))),
+          bg: _hjKortBg(context, [
             CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-          ],
-          shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .3))],
+          ]),
+          shadows: _hjKortSh(context, [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .3))]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 SporingCopy.a1_sporing_lev_adresse.toUpperCase(),
-                style: inter(10.5, weight: FontWeight.w800, em: .06, color: rgba(255, 255, 255, .6)),
+                style: inter(10.5, weight: FontWeight.w800, em: .06, color: _hjDemp(context, rgba(255, 255, 255, .6))),
               ),
               const SizedBox(height: 4),
               Text(
                 adresse.isEmpty ? '—' : '${SporingCopy.a1_sporing_hjem_etikett[0].toUpperCase()}${SporingCopy.a1_sporing_hjem_etikett.substring(1)} · ${adresse.split(',').first.trim()}',
-                style: inter(14, weight: FontWeight.w800),
+                style: inter(14, weight: FontWeight.w800, color: _hjT(context)),
               ),
               const SizedBox(height: 10),
               Text(
                 SporingCopy.a1_sporing_veibeskrivelse.toUpperCase(),
-                style: inter(10.5, weight: FontWeight.w800, em: .06, color: rgba(255, 255, 255, .6)),
+                style: inter(10.5, weight: FontWeight.w800, em: .06, color: _hjDemp(context, rgba(255, 255, 255, .6))),
               ),
               const SizedBox(height: 5),
               Row(
@@ -1073,7 +1108,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: spIkon(kSpIkonHus2, size: 14, color: kSpMint),
+                    child: spIkon(kSpIkonHus2, size: 14, color: _hjMintStrek(context)),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -1081,15 +1116,15 @@ class _HjelpScreenState extends State<HjelpScreen> {
                       key: const Key('a1_sporing_dor_felt'),
                       controller: _door,
                       maxLines: null,
-                      cursorColor: kSpMint,
-                      style: inter(13, height: 1.45, color: rgba(255, 255, 255, .9)),
+                      cursorColor: context.aeM(kSpMint, LysPalett.mintTekst),
+                      style: inter(13, height: 1.45, color: _hjSek(context, rgba(255, 255, 255, .9))),
                       decoration: InputDecoration(
                         isDense: true,
                         isCollapsed: true,
                         border: InputBorder.none,
                         filled: false,
                         hintText: SporingCopy.a1_sporing_dor_hint,
-                        hintStyle: inter(13, height: 1.45, color: rgba(255, 255, 255, .5)),
+                        hintStyle: inter(13, height: 1.45, color: _hjDemp(context, rgba(255, 255, 255, .5))),
                       ),
                     ),
                   ),
@@ -1124,14 +1159,14 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    spIkon(kSpIkonTelefon, size: 14, color: kSpMint),
+                    spIkon(kSpIkonTelefon, size: 14, color: _hjMintStrek(context)),
                     const SizedBox(width: 7),
                     Flexible(
                       child: Text(
                         SporingCopy.a1_sporing_ring_navn(_navn),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: inter(13, weight: FontWeight.w800),
+                        style: inter(13, weight: FontWeight.w800, color: _hjT(context)),
                       ),
                     ),
                   ],
@@ -1146,14 +1181,14 @@ class _HjelpScreenState extends State<HjelpScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    spIkon(kSpIkonChatEnkel, size: 14, color: kSpMint),
+                    spIkon(kSpIkonChatEnkel, size: 14, color: _hjMintStrek(context)),
                     const SizedBox(width: 7),
                     Flexible(
                       child: Text(
                         SporingCopy.a1_sporing_skriv_selv,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: inter(13, weight: FontWeight.w800),
+                        style: inter(13, weight: FontWeight.w800, color: _hjT(context)),
                       ),
                     ),
                   ],
@@ -1183,7 +1218,9 @@ class _HjelpScreenState extends State<HjelpScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(SporingCopy.a1_sporing_aerend_i_bergen, style: jakarta(18, em: -.02)),
+                // Lys («Kundeservice» / `(hjSupport)`): `.mkb`, `.mk33`, rows `.mkbo`, the tile `.mk9l` + `.mk1i`,
+                // the order note `.mkc1` (white, hairline, card shadow, `--lys-dempet`).
+                Text(SporingCopy.a1_sporing_aerend_i_bergen, style: jakarta(18, em: -.02, color: _hjT(context))),
                 const SizedBox(height: 1),
                 Row(
                   children: [
@@ -1202,7 +1239,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
                         SporingCopy.a1_sporing_aapent_til,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: inter(11.5, color: rgba(255, 255, 255, .62)),
+                        style: inter(11.5, color: _hjSek(context, rgba(255, 255, 255, .62))),
                       ),
                     ),
                   ],
@@ -1239,8 +1276,8 @@ class _HjelpScreenState extends State<HjelpScreen> {
         tile: Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(color: rgba(255, 255, 255, .12), borderRadius: BorderRadius.circular(13)),
-          child: Center(child: spIkon(kSpIkonTelefon, size: 18, color: kSpMint)),
+          decoration: BoxDecoration(color: context.aeM(rgba(255, 255, 255, .12), LysPalett.dis), borderRadius: BorderRadius.circular(13)),
+          child: Center(child: spIkon(kSpIkonTelefon, size: 18, color: _hjMintStrek(context))),
         ),
         tittel: SporingCopy.a1_sporing_ring_nummer_til(SupportConfig.telefon!),
         under: SporingCopy.a1_sporing_vanlig_takst,
@@ -1254,18 +1291,19 @@ class _HjelpScreenState extends State<HjelpScreen> {
           key: const Key('a1_sporing_ks_ordre'),
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           decoration: BoxDecoration(
-            color: rgba(255, 255, 255, .06),
+            color: context.aeM(rgba(255, 255, 255, .06), LysPalett.hvit),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: rgba(255, 255, 255, .14)),
+            border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .14))),
+            boxShadow: context.lys ? _hjKortskyggeBox : null,
           ),
           child: Text.rich(
             TextSpan(
-              style: inter(11, height: 1.45, color: rgba(255, 255, 255, .6)),
+              style: inter(11, height: 1.45, color: _hjDemp(context, rgba(255, 255, 255, .6))),
               children: [
                 TextSpan(text: SporingCopy.a1_sporing_ks_ordre_for),
                 TextSpan(
                   text: t?.code ?? '#$_id',
-                  style: inter(11, weight: FontWeight.w800, height: 1.45),
+                  style: inter(11, weight: FontWeight.w800, height: 1.45, color: _hjT(context)),
                 ),
                 TextSpan(text: SporingCopy.a1_sporing_ks_ordre_hale),
               ],
@@ -1293,23 +1331,24 @@ class _HjelpScreenState extends State<HjelpScreen> {
           child: Container(
             width: 72,
             height: 72,
+            // Lys («Bekreftet»): `.mk1u` (`--lys-mint-dis`), stroke `.mk1i`, `.mkb`, `.mk6`, «Ferdig» `.mkbn`.
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: rgba(92, 224, 184, .16),
+              color: context.aeM(rgba(92, 224, 184, .16), LysPalett.mintDis),
               border: Border.all(color: rgba(92, 224, 184, .5), width: 1.5),
             ),
-            child: Center(child: spIkon('M4.5 12.5l5 5 10-11', size: 32, color: kSpMint, width: 3)),
+            child: Center(child: spIkon('M4.5 12.5l5 5 10-11', size: 32, color: _hjMintStrek(context), width: 3)),
           ),
         ),
         const SizedBox(height: 14),
-        Text(_sentTitle, textAlign: TextAlign.center, style: jakarta(19, em: -.02)),
+        Text(_sentTitle, textAlign: TextAlign.center, style: jakarta(19, em: -.02, color: _hjT(context))),
         const SizedBox(height: 6),
         SizedBox(
           width: 300,
           child: Text(
             _sentText,
             textAlign: TextAlign.center,
-            style: inter(12.5, height: 1.45, color: rgba(255, 255, 255, .7)),
+            style: inter(12.5, height: 1.45, color: _hjSek(context, rgba(255, 255, 255, .7))),
           ),
         ),
         const SizedBox(height: 18),
@@ -1318,7 +1357,7 @@ class _HjelpScreenState extends State<HjelpScreen> {
           height: 48,
           onTap: _lukk,
           child: Center(
-            child: Text(SporingCopy.a1_sporing_ferdig, style: inter(13.5, weight: FontWeight.w800)),
+            child: Text(SporingCopy.a1_sporing_ferdig, style: inter(13.5, weight: FontWeight.w800, color: _hjT(context))),
           ),
         ),
       ],
@@ -1354,15 +1393,17 @@ class _Avatar extends StatelessWidget {
   final double size, radius;
 
   @override
+  // Lys: `.mkbk` / `.mkbt` — white, `--lys-kant-farge`, a `0 0 0 1px --lys-kant-farge` ring.
   Widget build(BuildContext context) => Container(
     width: size,
     height: size,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(radius),
-      gradient: const LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [Color(0xFF2F6B7B), Color(0xFF1B4854)]),
-      border: Border.all(color: rgba(255, 255, 255, .26)),
-      boxShadow: [BoxShadow(color: rgba(4, 18, 26, .9), offset: const Offset(0, 10), blurRadius: 18, spreadRadius: -10)],
+      color: context.lys ? LysPalett.hvit : null,
+      gradient: context.lys ? null : const LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [Color(0xFF2F6B7B), Color(0xFF1B4854)]),
+      border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .26))),
+      boxShadow: context.aeM([BoxShadow(color: rgba(4, 18, 26, .9), offset: const Offset(0, 10), blurRadius: 18, spreadRadius: -10)], const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)]),
     ),
     child: Stack(
       clipBehavior: Clip.none,
@@ -1390,12 +1431,13 @@ class _Lukk extends StatelessWidget {
     child: Container(
       width: 36,
       height: 36,
+      // Lys: `.mkbm` (`--lys-dis-ull`, no ring), stroke `.mku`.
       decoration: CssDecoration(
         shape: BoxShape.circle,
-        color: rgba(15, 31, 43, .5),
-        boxShadow: [BoxShadow(color: rgba(255, 255, 255, .28), spreadRadius: 1)],
+        color: context.aeM(rgba(15, 31, 43, .5), LysPalett.disUll),
+        boxShadow: context.aeM([BoxShadow(color: rgba(255, 255, 255, .28), spreadRadius: 1)], const <BoxShadow>[]),
       ),
-      child: Center(child: spIkon(kSpIkonKryss, size: 12, width: 2.6)),
+      child: Center(child: spIkon(kSpIkonKryss, size: 12, width: 2.6, color: _hjFjord(context))),
     ),
   );
 }
@@ -1417,12 +1459,13 @@ class _Tilbake extends StatelessWidget {
         width: 34,
         height: 34,
         radius: BorderRadius.circular(12),
-        border: Border.all(color: rgba(255, 255, 255, .22)),
-        bg: [
+        // Lys: `.mkbs` (white, `--lys-kant-farge`), stroke `.mku`.
+        border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .22))),
+        bg: _hjKortBg(context, [
           CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-        ],
+        ]),
         child: Center(
-          child: spIkon('M15 6l-6 6 6 6', size: 14, width: 2.4),
+          child: spIkon('M15 6l-6 6 6 6', size: 14, width: 2.4, color: _hjFjord(context)),
         ),
       ),
     ),
@@ -1444,9 +1487,9 @@ class _Hode extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(tittel, style: jakarta(18, em: -.02)),
+            Text(tittel, style: jakarta(18, em: -.02, color: _hjT(context))),
             const SizedBox(height: 1),
-            Text(under, style: inter(11.5, color: rgba(255, 255, 255, .62))),
+            Text(under, style: inter(11.5, color: _hjSek(context, rgba(255, 255, 255, .62)))),
           ],
         ),
       ),
@@ -1491,11 +1534,12 @@ class _Glass extends StatelessWidget {
     child: CssBox(
       height: height,
       radius: BorderRadius.circular(16),
-      border: Border.all(color: rgba(255, 255, 255, .26)),
-      bg: [
+      // Lys: `.mkbn` / `.mkbz` (white, `--lys-kant-farge`, `--lys-kortskygge`).
+      border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .26))),
+      bg: _hjKortBg(context, [
         CssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .08)]),
-      ],
-      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .32))],
+      ]),
+      shadows: _hjKortSh(context, [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .32))]),
       child: child,
     ),
   );
@@ -1522,20 +1566,22 @@ class _Rad extends StatelessWidget {
     child: CssBox(
       radius: BorderRadius.circular(18),
       padding: stor ? const EdgeInsets.fromLTRB(14, 13, 14, 13) : const EdgeInsets.fromLTRB(12, 11, 12, 11),
-      border: Border.all(color: rgba(255, 255, 255, .2)),
-      bg: [
+      // Lys: `.mkbo` (white, `--lys-kant-farge`, `--lys-kortskygge`), the tile `.mk9l` + `.mk1i`, `.mkb`, `.mk2m`,
+      // the chevron `.mk9q` (`rgba(30,79,92,.6)`).
+      border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .2))),
+      bg: _hjKortBg(context, [
         CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-      ],
-      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+      ]),
+      shadows: _hjKortSh(context, [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))]),
       child: Row(
         children: [
           tile ??
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(color: rgba(255, 255, 255, .12), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: context.aeM(rgba(255, 255, 255, .12), LysPalett.dis), borderRadius: BorderRadius.circular(12)),
                 child: Center(
-                  child: spIkon(ikon!, size: 16, color: kSpMint, extra: ikonExtra),
+                  child: spIkon(ikon!, size: 16, color: _hjMintStrek(context), extra: ikonExtra),
                 ),
               ),
           SizedBox(width: stor ? 12 : 11),
@@ -1547,20 +1593,20 @@ class _Rad extends StatelessWidget {
                   tittel,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: inter(stor ? 13.5 : 13, weight: FontWeight.w800),
+                  style: inter(stor ? 13.5 : 13, weight: FontWeight.w800, color: _hjT(context)),
                 ),
                 const SizedBox(height: 1),
                 Text(
                   under,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: inter(10.5, color: rgba(255, 255, 255, .6)),
+                  style: inter(10.5, color: _hjDemp(context, rgba(255, 255, 255, .6))),
                 ),
               ],
             ),
           ),
           if (etter != null) ...[const SizedBox(width: 8), etter!],
-          if (pil && etter == null) spIkon(kSpIkonPilLiten, size: 13, color: rgba(255, 255, 255, .6), width: 2.4),
+          if (pil && etter == null) spIkon(kSpIkonPilLiten, size: 13, color: context.aeM(rgba(255, 255, 255, .6), const Color.fromRGBO(30, 79, 92, .6)), width: 2.4),
         ],
       ),
     ),
@@ -1594,24 +1640,26 @@ class _Boble extends StatelessWidget {
         child: CssBox(
           radius: BorderRadius.only(topLeft: const Radius.circular(18), topRight: const Radius.circular(18), bottomLeft: Radius.circular(meg ? 18 : 5), bottomRight: Radius.circular(meg ? 5 : 18)),
           padding: const EdgeInsets.fromLTRB(13, 9, 13, 9),
-          border: Border.all(color: rgba(255, 255, 255, meg ? .2 : .24)),
+          // Lys: `hjMeld` (L20842) — mine `--lys-fjord-fyll` / white / `rgba(255,255,255,.78)` with no ring, theirs
+          // `--lys-hvit` / `--lys-brod` / `--lys-dempet` with `--lys-kant-farge`; `.mkbu` has no shadow.
+          border: Border.all(color: meg ? context.aeM(rgba(255, 255, 255, .2), const Color.fromRGBO(30, 79, 92, 0)) : _hjKant(context, rgba(255, 255, 255, .24))),
           bg: meg
-              ? const [
+              ? context.aeM(const [
                   CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)]),
-                ]
-              : [
+                ], LysPalett.fjordFyll)
+              : _hjKortBg(context, [
                   CssLinear(180, [rgba(255, 255, 255, .18), rgba(255, 255, 255, .09)]),
-                ],
-          shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .28)), CssShadow(0, 8, 16, -12, rgba(4, 18, 26, .8))],
+                ]),
+          shadows: context.aeM([CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .28)), CssShadow(0, 8, 16, -12, rgba(4, 18, 26, .8))], const <CssShadow>[]),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(tekst, style: inter(13, height: 1.4)),
+              Text(tekst, style: inter(13, height: 1.4, color: meg ? Colors.white : context.aeM(Colors.white, LysPalett.brod))),
               const SizedBox(height: 3),
               Text(
                 kl,
-                style: inter(9.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .55)),
+                style: inter(9.5, weight: FontWeight.w700, color: meg ? context.aeM(rgba(255, 255, 255, .55), rgba(255, 255, 255, .78)) : _hjDemp(context, rgba(255, 255, 255, .55))),
               ),
             ],
           ),
@@ -1620,3 +1668,8 @@ class _Boble extends StatelessWidget {
     ),
   );
 }
+
+/// `--lys-kortskygge` as Flutter shadows (behind an opaque white box; the app's blur convention).
+final List<BoxShadow> _hjKortskyggeBox = [
+  for (final s in LysPalett.kortskygge) BoxShadow(color: s.color, offset: Offset(s.dx, s.dy), blurRadius: s.blur / 2 / .57735, spreadRadius: s.spread),
+];

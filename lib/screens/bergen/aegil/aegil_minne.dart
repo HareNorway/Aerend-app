@@ -14,6 +14,8 @@ import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
 import 'cus_level3.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Det Ægil vet om deg · Min Bio (`agMinne`, new Bergen L4821–4905) ─────────
 
@@ -77,6 +79,19 @@ const _glassSh = [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .18)
 const _hvit60 = Color.fromRGBO(255, 255, 255, .6);
 const _mintLys = Color(0xFF9FF0D4);
 
+// ── Lys («Ægil vet · Min Bio», «Glem alt», «Glem alt · bekreft») ────────────
+// The region's container `.mk1n` turns the inherited text `--lys-brod`; the
+// cards `.mk40` (`.mk4c` without the shadow) go white with the hairline.
+
+/// `.mk40` light: white, `--lys-kant-farge`, `--lys-kortskygge`.
+const _kortLys = [CssSolid(LysPalett.hvit)];
+
+/// `.mk1i` / `.mk2d` / `.mk4e` / `.mk4f` light strokes.
+const _strekMint = Color(0xFF0B6B57);
+const _strekGlod = Color(0xFFA63A12);
+const _strekGull = Color(0xFF4A300A);
+const _strekPil = Color.fromRGBO(30, 79, 92, .55);
+
 class AeMinneView extends StatefulWidget {
   const AeMinneView({
     super.key,
@@ -134,33 +149,46 @@ class _AeMinneViewState extends State<AeMinneView> {
     });
   }
 
-  Widget _kort({required Widget child, required double delay, EdgeInsets padding = const EdgeInsets.fromLTRB(13, 13, 13, 6)}) => LfRise(
+  /// [flat]: `.mk4c` (no shadow in Lys) instead of `.mk40`.
+  Widget _kort({required Widget child, required double delay, EdgeInsets padding = const EdgeInsets.fromLTRB(13, 13, 13, 6), bool flat = false}) => LfRise(
         delay: delay,
         dur: 400,
-        child: CssBox(radius: BorderRadius.circular(22), bg: _glass, border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)), shadows: _glassSh, padding: padding, child: child),
+        child: CssBox(
+          radius: BorderRadius.circular(22),
+          bg: context.aeM(_glass, _kortLys),
+          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+          shadows: context.aeM(_glassSh, flat ? const <CssShadow>[] : LysPalett.kortskygge),
+          padding: padding,
+          child: child,
+        ),
       );
+
+  /// Inherited text (`.mk1n`): white dark, `--lys-brod` light.
+  Color get _blekk => context.aeM(Colors.white, LysPalett.brod);
 
   Widget _kortHode(String ik, String tittel, String sub, {Widget? hoyre}) => Row(
         children: [
           Container(
             width: 30,
             height: 30,
+            // `.mk27` (`--lys-mint-dis`), the icon `.mk1i`.
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(92, 224, 184, .14),
+              color: context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis),
               border: Border.all(color: const Color.fromRGBO(127, 240, 203, .36)),
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: BioIkon(ik, color: _mintLys, size: 15, width: 2.2),
+            child: BioIkon(ik, color: context.aeM(_mintLys, _strekMint), size: 15, width: 2.2),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(tittel, style: jakarta(14, em: -.01)),
+                Text(tittel, style: jakarta(14, em: -.01, color: _blekk)),
                 const SizedBox(height: 1),
-                Text(sub, style: inter(11, weight: FontWeight.w600, height: 1.35, color: _hvit60)),
+                // `.mk2m`: `--lys-dempet`.
+                Text(sub, style: inter(11, weight: FontWeight.w600, height: 1.35, color: context.aeM(_hvit60, LysPalett.dempet))),
               ],
             ),
           ),
@@ -174,9 +202,10 @@ class _AeMinneViewState extends State<AeMinneView> {
         child: Container(
           width: size,
           height: size,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 148, 102, a)),
+          // `.mk48` / `.mk4a`: `--lys-glod-dis`; the ✕ `.mk2d`.
+          decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(Color.fromRGBO(255, 148, 102, a), LysPalett.glodDis)),
           alignment: Alignment.center,
-          child: BioIkon(BioIk.kryss, color: const Color(0xFFFFB08A), size: ik, width: w),
+          child: BioIkon(BioIk.kryss, color: context.aeM(const Color(0xFFFFB08A), _strekGlod), size: ik, width: w),
         ),
       );
 
@@ -184,15 +213,16 @@ class _AeMinneViewState extends State<AeMinneView> {
         key: Key('a1_aegil_minne_${m.id}'),
         height: 30,
         padding: const EdgeInsets.fromLTRB(11, 0, 4, 0),
+        // `.mk47`: `--lys-dis`, `--lys-kant-farge`.
         decoration: BoxDecoration(
-          color: const Color.fromRGBO(255, 255, 255, .09),
-          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+          color: context.aeM(const Color.fromRGBO(255, 255, 255, .09), LysPalett.dis),
+          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge)),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Flexible(child: Text(AeMinneData.tekst(m), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800))),
+            Flexible(child: Text(AeMinneData.tekst(m), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: _blekk))),
             const SizedBox(width: 6),
             _kryss(() => widget.onFjern(m)),
           ],
@@ -202,7 +232,8 @@ class _AeMinneViewState extends State<AeMinneView> {
   Widget _gruppe(String tittel, List<MemoryEntry> l) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tittel, style: inter(10, weight: FontWeight.w800, em: .1, color: const Color.fromRGBO(255, 255, 255, .55))),
+          // `.mkd`: `--lys-dempet`.
+          Text(tittel, style: inter(10, weight: FontWeight.w800, em: .1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet))),
           const SizedBox(height: 6),
           Wrap(spacing: 6, runSpacing: 6, children: [for (final m in l) _pille(m)]),
         ],
@@ -211,19 +242,21 @@ class _AeMinneViewState extends State<AeMinneView> {
   /// The bio's four groups (`bioGrupper`), two by two.
   Widget _bioGruppe(int i, BioEff E) {
     final b = widget.bio;
-    final (ik, stil) = switch (i) {
+    final (ik, stil0) = switch (i) {
       0 => (BioIk.blad, BioStil.mint),
       1 => (BioIk.varsel, BioStil.ora),
       2 => (BioIk.hjerte, BioStil.mint),
       _ => (BioIk.nei, BioStil.nei),
     };
+    // `bioGrupper` (L24116–24146): the icon tile and the chips take the light MINT / ORA / GUL / NEI.
+    final stil = stil0.modus(context);
     final on = <({String tx, BioStil stil, String? merke, Color? mBg, Color? mC})>[
       if (i == 0)
         for (final k in E.kost) (tx: k, stil: BioStil.mint, merke: null, mBg: null, mC: null),
       if (i == 1) ...[
         for (final e in E.all.entries)
           e.value == BioAll.allergi
-              ? (tx: e.key, stil: BioStil.ora, merke: BioCopy.merkeAllergi, mBg: const Color(0xFFF26D3D), mC: Colors.white)
+              ? (tx: e.key, stil: BioStil.ora, merke: BioCopy.merkeAllergi, mBg: const Color(0xFFF26D3D), mC: context.aeM(Colors.white, LysPalett.tittel))
               : (tx: e.key, stil: BioStil.gul, merke: BioCopy.merkeUnngaar, mBg: const Color.fromRGBO(246, 210, 122, .92), mC: const Color(0xFF4A300A)),
         if (b.ingen && E.all.isEmpty) (tx: BioCopy.ingenAllergier, stil: BioStil.mint, merke: null, mBg: null, mC: null),
       ],
@@ -241,9 +274,9 @@ class _AeMinneViewState extends State<AeMinneView> {
         ms: 140,
         child: CssBox(
           radius: BorderRadius.circular(22),
-          bg: _glass,
-          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-          shadows: _glassSh,
+          bg: context.aeM(_glass, _kortLys),
+          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+          shadows: context.aeM(_glassSh, LysPalett.kortskygge),
           padding: const EdgeInsets.fromLTRB(11, 11, 11, 12),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 112 - 23),
@@ -261,15 +294,16 @@ class _AeMinneViewState extends State<AeMinneView> {
                       child: Center(child: BioIkon(ik, color: stil.c, size: 13, width: 2.4)),
                     ),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(BioCopy.grupper[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800))),
+                    Expanded(child: Text(BioCopy.grupper[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800, color: _blekk))),
                     const SizedBox(width: 8),
+                    // `.mk43`: `--lys-dis`, `--lys-sekundar`.
                     Container(
                       constraints: const BoxConstraints(minWidth: 20),
                       height: 20,
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: const Color.fromRGBO(255, 255, 255, .1), borderRadius: BorderRadius.circular(999)),
-                      child: Text('${on.length}', style: inter(10.5, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .75))),
+                      decoration: BoxDecoration(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), borderRadius: BorderRadius.circular(999)),
+                      child: Text('${on.length}', style: inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .75), LysPalett.sekundar))),
                     ),
                   ],
                 ),
@@ -279,15 +313,17 @@ class _AeMinneViewState extends State<AeMinneView> {
                   runSpacing: 5,
                   children: [
                     for (final c in on.take(5)) BioSmaaChip(tx: c.tx, stil: c.stil, merke: c.merke, merkeBg: c.mBg, merkeC: c.mC, panel: true),
+                    // `.mk44`: `--lys-dis`, `--lys-sekundar`.
                     if (on.length > 5)
                       Container(
                         height: 24,
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         alignment: Alignment.center,
-                        decoration: BoxDecoration(color: const Color.fromRGBO(255, 255, 255, .08), borderRadius: BorderRadius.circular(999)),
-                        child: Text('+${on.length - 5}', style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .7))),
+                        decoration: BoxDecoration(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis), borderRadius: BorderRadius.circular(999)),
+                        child: Text('+${on.length - 5}', style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar))),
                       ),
-                    if (on.isEmpty) Text(BioCopy.grupperTom[i], style: inter(11, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .55))),
+                    // `.mkd`.
+                    if (on.isEmpty) Text(BioCopy.grupperTom[i], style: inter(11, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet))),
                   ],
                 ),
               ],
@@ -312,26 +348,34 @@ class _AeMinneViewState extends State<AeMinneView> {
           dur: 400,
           child: CssBox(
             radius: BorderRadius.circular(22),
-            bg: _glass,
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-            shadows: _glassSh,
+            bg: context.aeM(_glass, _kortLys),
+            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+            shadows: context.aeM(_glassSh, LysPalett.kortskygge),
             padding: const EdgeInsets.all(14),
             child: Row(
               children: [
+                // `.mk41`: `--lys-dis`, no ring in Lys.
                 Container(
                   width: 48,
                   height: 48,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(begin: Alignment(-.26, -1), end: Alignment(.26, 1), colors: [Color(0xFF2F6E80), Color(0xFF173E48)]),
-                    boxShadow: [BoxShadow(color: Color.fromRGBO(127, 240, 203, .55), spreadRadius: 2)],
+                  decoration: context.aeM(
+                    const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(begin: Alignment(-.26, -1), end: Alignment(.26, 1), colors: [Color(0xFF2F6E80), Color(0xFF173E48)]),
+                      boxShadow: [BoxShadow(color: Color.fromRGBO(127, 240, 203, .55), spreadRadius: 2)],
+                    ),
+                    const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(begin: Alignment(-.26, -1), end: Alignment(.26, 1), colors: [LysPalett.dis, LysPalett.dis]),
+                      boxShadow: [BoxShadow(color: Color.fromRGBO(127, 240, 203, 0), spreadRadius: 2)],
+                    ),
                   ),
                   child: ClipOval(
                     child: Stack(clipBehavior: Clip.none, children: [Positioned(left: 2, bottom: -8, width: 44, child: Image.asset(aePose('front'), width: 44, fit: BoxFit.fitWidth))]),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(AeCopy.minneTom, style: inter(12.5, weight: FontWeight.w700, height: 1.4))),
+                Expanded(child: Text(AeCopy.minneTom, style: inter(12.5, weight: FontWeight.w700, height: 1.4, color: _blekk))),
                 const SizedBox(width: 12),
                 LfPress(
                   key: const Key('a1_aegil_minne_ja'),
@@ -373,19 +417,20 @@ class _AeMinneViewState extends State<AeMinneView> {
                     children: [
                       Row(
                         children: [
-                          const BioRingPortrett(size: 64, inset: 3, aegW: 56, aegBunn: -10, merke: 22, merkeIk: 12, merkeR: -2, merkeB: -1),
+                          const BioRingPortrett(size: 64, inset: 3, aegW: 56, aegBunn: -10, merke: 22, merkeIk: 12, merkeR: -2, merkeB: -1, lysRing: false),
                           const SizedBox(width: 13),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(BioCopy.minneKicker, style: inter(10, weight: FontWeight.w800, em: .12, color: const Color(0xFF7FF0CB))),
+                                // `.mk8`: `--lys-mint-tekst`.
+                                Text(BioCopy.minneKicker, style: inter(10, weight: FontWeight.w800, em: .12, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
                                 const SizedBox(height: 4),
                                 Wrap(
                                   spacing: 8,
                                   runSpacing: 4,
                                   crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [Text(BioCopy.tittel, style: jakarta(20, em: -.02)), const BioIntelligence()],
+                                  children: [Text(BioCopy.tittel, style: jakarta(20, em: -.02, color: _blekk)), const BioIntelligence()],
                                 ),
                               ],
                             ),
@@ -399,29 +444,36 @@ class _AeMinneViewState extends State<AeMinneView> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(BioCopy.minneLinje, style: inter(11.5, weight: FontWeight.w600, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .7))),
+                      // `.mk6`: `--lys-sekundar`.
+                      Text(BioCopy.minneLinje, style: inter(11.5, weight: FontWeight.w600, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar))),
                       const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(child: BioSegmenter(score: score, h: 8)),
                           const SizedBox(width: 10),
-                          Text(BioCopy.nivaa(score), style: inter(11, weight: FontWeight.w800, color: bioNivC(score)).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                          // `bioNivC` (L24133): `--lys-gull-tekst` at 5/5, else `--lys-mint-tekst`.
+                          Text(
+                            BioCopy.nivaa(score),
+                            style: inter(11, weight: FontWeight.w800, color: context.aeM(bioNivC(score), score == 5 ? LysPalett.gullTekst : LysPalett.mintTekst)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(bioNeste(b, E), style: inter(11, weight: FontWeight.w600, height: 1.4, color: _hvit60)),
+                      // `.mk2m`.
+                      Text(bioNeste(b, E), style: inter(11, weight: FontWeight.w600, height: 1.4, color: context.aeM(_hvit60, LysPalett.dempet))),
                       const SizedBox(height: 11),
+                      // `.mk42`: `--lys-dis-ull`, no inset in Lys; «Ægil:» `.mk8`.
                       CssBox(
                         radius: BorderRadius.circular(14),
-                        bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
-                        shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))],
+                        bg: context.aeM(const [CssSolid(Color.fromRGBO(0, 0, 0, .18))], const [CssSolid(LysPalett.disUll)]),
+                        shadows: context.aeM(const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))], const <CssShadow>[]),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         child: Text.rich(
                           TextSpan(children: [
-                            TextSpan(text: BioCopy.aegil, style: inter(12.5, weight: FontWeight.w700, height: 1.45, color: const Color(0xFF7FF0CB))),
+                            TextSpan(text: BioCopy.aegil, style: inter(12.5, weight: FontWeight.w700, height: 1.45, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
                             TextSpan(text: bioSetning(E)),
                           ]),
-                          style: inter(12.5, weight: FontWeight.w700, height: 1.45),
+                          style: inter(12.5, weight: FontWeight.w700, height: 1.45, color: _blekk),
                         ),
                       ),
                     ],
@@ -454,20 +506,21 @@ class _AeMinneViewState extends State<AeMinneView> {
               onTap: widget.onBio,
               child: CssBox(
                 radius: BorderRadius.circular(22),
-                bg: _glass,
-                border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-                shadows: _glassSh,
+                bg: context.aeM(_glass, _kortLys),
+                border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+                shadows: context.aeM(_glassSh, LysPalett.kortskygge),
                 padding: const EdgeInsets.fromLTRB(34, 12, 14, 12),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    Positioned(left: -22, top: -6, child: Text('«', style: jakarta(34, height: 1, color: const Color.fromRGBO(127, 240, 203, .55)))),
+                    // `.mk45` «, `.mkd` kicker, `.mk46` the text.
+                    Positioned(left: -22, top: -6, child: Text('«', style: jakarta(34, height: 1, color: context.aeM(const Color.fromRGBO(127, 240, 203, .55), const Color.fromRGBO(11, 107, 87, .3))))),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(BioCopy.medEgneOrd, style: inter(10, weight: FontWeight.w800, em: .1, color: const Color.fromRGBO(255, 255, 255, .55))),
+                        Text(BioCopy.medEgneOrd, style: inter(10, weight: FontWeight.w800, em: .1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet))),
                         const SizedBox(height: 4),
-                        Text(b.tekst.trim(), maxLines: 3, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .88))),
+                        Text(b.tekst.trim(), maxLines: 3, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w600, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .88), LysPalett.sekundar))),
                       ],
                     ),
                   ],
@@ -486,7 +539,7 @@ class _AeMinneViewState extends State<AeMinneView> {
                 'M5 8h14l-1 12H6z M9 8V6a3 3 0 0 1 6 0v2',
                 _Tx.fraBestillinger,
                 _Tx.fraBestillingerSub,
-                hoyre: GestureDetector(onTap: widget.onLeggTil, child: Text(AeCopy.leggTil, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))),
+                hoyre: GestureDetector(onTap: widget.onLeggTil, child: Text(AeCopy.leggTil, style: inter(11.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)))),
               ),
               const SizedBox(height: 12),
               _gruppe(_Tx.favorittbutikker, d.butikker),
@@ -515,7 +568,7 @@ class _AeMinneViewState extends State<AeMinneView> {
                 Container(
                   key: Key('a1_aegil_monster_${p.id}'),
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08)))),
+                  decoration: BoxDecoration(border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.skille)))),
                   child: Row(
                     children: [
                       () {
@@ -527,11 +580,16 @@ class _AeMinneViewState extends State<AeMinneView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(p.text, style: inter(12.5, weight: FontWeight.w700, height: 1.35)),
+                            Text(p.text, style: inter(12.5, weight: FontWeight.w700, height: 1.35, color: _blekk)),
                             const SizedBox(height: 2),
                             Text(
                               p.confirmed ? CusLevel3Copy.cus_monster_bekreftet : CusLevel3Copy.cus_monster_forslag(p.support),
-                              style: inter(10.5, weight: FontWeight.w700, color: p.confirmed ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .58)),
+                              // `kfM` (L19799).
+                              style: inter(
+                                10.5,
+                                weight: FontWeight.w700,
+                                color: p.confirmed ? context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst) : context.aeM(const Color.fromRGBO(255, 255, 255, .58), LysPalett.sekundar),
+                              ),
                             ),
                           ],
                         ),
@@ -546,12 +604,13 @@ class _AeMinneViewState extends State<AeMinneView> {
                             height: 28,
                             padding: const EdgeInsets.symmetric(horizontal: 11),
                             alignment: Alignment.center,
+                            // `.mk49`: `--lys-mint-dis`, `--lys-mint-tekst`.
                             decoration: BoxDecoration(
-                              color: const Color.fromRGBO(92, 224, 184, .16),
+                              color: context.aeM(const Color.fromRGBO(92, 224, 184, .16), LysPalett.mintDis),
                               border: Border.all(color: const Color.fromRGBO(127, 240, 203, .55)),
                               borderRadius: BorderRadius.circular(999),
                             ),
-                            child: Text(CusLevel3Copy.cus_monster_stemmer, style: inter(11, weight: FontWeight.w800, color: _mintLys)),
+                            child: Text(CusLevel3Copy.cus_monster_stemmer, style: inter(11, weight: FontWeight.w800, color: context.aeM(_mintLys, LysPalett.mintTekst))),
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -564,7 +623,7 @@ class _AeMinneViewState extends State<AeMinneView> {
                 Container(
                   key: Key('a1_aegil_minne_${m.id}'),
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08)))),
+                  decoration: BoxDecoration(border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.skille)))),
                   child: Row(
                     children: [
                       () {
@@ -577,11 +636,18 @@ class _AeMinneViewState extends State<AeMinneView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(AeMinneData.tekst(m), style: inter(12.5, weight: FontWeight.w700, height: 1.35)),
+                            Text(AeMinneData.tekst(m), style: inter(12.5, weight: FontWeight.w700, height: 1.35, color: _blekk)),
                             const SizedBox(height: 2),
                             Text(
                               AeMinneView.bekreftet(m) ? AeCopy.bekreftet : '${AeCopy.fraChat} · ${AeCopy.kunForslag}',
-                              style: inter(10.5, weight: FontWeight.w700, color: AeMinneView.bekreftet(m) ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .58)),
+                              // `kfM` (L19799).
+                              style: inter(
+                                10.5,
+                                weight: FontWeight.w700,
+                                color: AeMinneView.bekreftet(m)
+                                    ? context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)
+                                    : context.aeM(const Color.fromRGBO(255, 255, 255, .58), LysPalett.sekundar),
+                              ),
                             ),
                           ],
                         ),
@@ -595,12 +661,13 @@ class _AeMinneViewState extends State<AeMinneView> {
                             height: 28,
                             padding: const EdgeInsets.symmetric(horizontal: 11),
                             alignment: Alignment.center,
+                            // `.mk49`: `--lys-mint-dis`, `--lys-mint-tekst`.
                             decoration: BoxDecoration(
-                              color: const Color.fromRGBO(92, 224, 184, .16),
+                              color: context.aeM(const Color.fromRGBO(92, 224, 184, .16), LysPalett.mintDis),
                               border: Border.all(color: const Color.fromRGBO(127, 240, 203, .55)),
                               borderRadius: BorderRadius.circular(999),
                             ),
-                            child: Text(AeCopy.stemmer, style: inter(11, weight: FontWeight.w800, color: _mintLys)),
+                            child: Text(AeCopy.stemmer, style: inter(11, weight: FontWeight.w800, color: context.aeM(_mintLys, LysPalett.mintTekst))),
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -617,14 +684,16 @@ class _AeMinneViewState extends State<AeMinneView> {
         // Så mye kan Ægil gjøre · Varsler.
         _kort(
           delay: 520,
+          flat: true,
           padding: const EdgeInsets.symmetric(horizontal: 13),
           child: Column(
             children: [
               _rad(
                 key: const Key('a1_aegil_til_nivaa'),
                 ik: 'M13 2L4 14h7l-1 8 9-12h-7z',
-                ikC: const Color(0xFFFFE7A8),
-                ikBg: const Color.fromRGBO(242, 193, 78, .14),
+                // `.mk4d` / `.mk4e`.
+                ikC: context.aeM(const Color(0xFFFFE7A8), _strekGull),
+                ikBg: context.aeM(const Color.fromRGBO(242, 193, 78, .14), LysPalett.gullDis),
                 ikBd: const Color.fromRGBO(246, 210, 122, .45),
                 tittel: AeCopy.saaMyeRad,
                 verdi: widget.nivaaNavn,
@@ -632,8 +701,9 @@ class _AeMinneViewState extends State<AeMinneView> {
               _rad(
                 topp: true,
                 ik: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4z M10 21h4',
-                ikC: _mintLys,
-                ikBg: const Color.fromRGBO(92, 224, 184, .12),
+                // `.mk2z` / `.mk1i`.
+                ikC: context.aeM(_mintLys, _strekMint),
+                ikBg: context.aeM(const Color.fromRGBO(92, 224, 184, .12), LysPalett.mintDis),
                 ikBd: const Color.fromRGBO(127, 240, 203, .32),
                 tittel: _Tx.varsler,
                 verdi: widget.varsler,
@@ -665,7 +735,8 @@ class _AeMinneViewState extends State<AeMinneView> {
         onTap: widget.onNivaa,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(border: topp ? const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08))) : null),
+          // `.mk2h`: `--lys-skille`.
+          decoration: BoxDecoration(border: topp ? Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.skille))) : null),
           child: Row(
             children: [
               Container(
@@ -680,12 +751,14 @@ class _AeMinneViewState extends State<AeMinneView> {
                 child: Text.rich(
                   TextSpan(children: [
                     TextSpan(text: tittel),
-                    TextSpan(text: ' · $verdi', style: inter(12.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .62))),
+                    // `.mk33`.
+                    TextSpan(text: ' · $verdi', style: inter(12.5, weight: FontWeight.w600, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar))),
                   ]),
-                  style: inter(12.5, weight: FontWeight.w800),
+                  style: inter(12.5, weight: FontWeight.w800, color: _blekk),
                 ),
               ),
-              const BioIkon('M9 6l6 6-6 6', color: Color.fromRGBO(255, 255, 255, .55), size: 14, width: 2.4),
+              // `.mk4f`.
+              BioIkon('M9 6l6 6-6 6', color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), _strekPil), size: 14, width: 2.4),
             ],
           ),
         ),
@@ -699,38 +772,42 @@ class _AeMinneViewState extends State<AeMinneView> {
           onTap: _glemStart,
           scale: .985,
           ms: 140,
+          // `.mk4g`: `--lys-glod-dis`, no shadow in Lys.
           child: CssBox(
             radius: BorderRadius.circular(20),
-            bg: const [CssLinear(180, [Color.fromRGBO(255, 148, 102, .12), Color.fromRGBO(255, 148, 102, .04)])],
+            bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 148, 102, .12), Color.fromRGBO(255, 148, 102, .04)])], const [CssSolid(LysPalett.glodDis)]),
             border: Border.all(color: const Color.fromRGBO(255, 154, 107, .34)),
-            shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .08)), CssShadow(0, 16, 24, -20, Color.fromRGBO(4, 18, 26, .9))],
+            shadows: context.aeM(const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .08)), CssShadow(0, 16, 24, -20, Color.fromRGBO(4, 18, 26, .9))], const <CssShadow>[]),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
                 Container(
                   width: 38,
                   height: 38,
+                  // `.mk48` / `.mk2d`.
                   decoration: BoxDecoration(
-                    color: const Color.fromRGBO(255, 148, 102, .16),
+                    color: context.aeM(const Color.fromRGBO(255, 148, 102, .16), LysPalett.glodDis),
                     border: Border.all(color: const Color.fromRGBO(255, 154, 107, .5)),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   alignment: Alignment.center,
-                  child: const BioIkon('M4 7h16 M9 7V4.5h6V7 M6 7l1 13h10l1-13 M10 11v5.5M14 11v5.5', color: Color(0xFFFFB08A), size: 17, width: 2.2),
+                  child: BioIkon('M4 7h16 M9 7V4.5h6V7 M6 7l1 13h10l1-13 M10 11v5.5M14 11v5.5', color: context.aeM(const Color(0xFFFFB08A), _strekGlod), size: 17, width: 2.2),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_Tx.glemAlt, style: jakarta(14, em: -.01, color: const Color(0xFFFFC7AE))),
+                      // `.mk4h` / `.mk33`.
+                      Text(_Tx.glemAlt, style: jakarta(14, em: -.01, color: context.aeM(const Color(0xFFFFC7AE), LysPalett.glodTekst))),
                       const SizedBox(height: 2),
-                      Text(_Tx.glemAltSub, style: inter(11, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .62))),
+                      Text(_Tx.glemAltSub, style: inter(11, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar))),
                     ],
                   ),
                 ),
                 const SizedBox(width: 12),
-                const BioIkon('M9 6l6 6-6 6', color: Color.fromRGBO(255, 199, 174, .75), size: 14, width: 2.4),
+                // `.mk2d`.
+                BioIkon('M9 6l6 6-6 6', color: context.aeM(const Color.fromRGBO(255, 199, 174, .75), _strekGlod), size: 14, width: 2.4),
               ],
             ),
           ),
@@ -742,12 +819,16 @@ class _AeMinneViewState extends State<AeMinneView> {
         child: CssBox(
           key: const Key('a1_aegil_glem_spor'),
           radius: BorderRadius.circular(20),
-          bg: const [
-            CssRadial([Color.fromRGBO(255, 148, 102, .22), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: .9, cx: 0, cy: 0),
-            CssLinear(180, [Color.fromRGBO(255, 255, 255, .1), Color.fromRGBO(255, 255, 255, .04)]),
-          ],
-          border: Border.all(color: const Color.fromRGBO(255, 154, 107, .62)),
-          shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .14)), CssShadow(0, 18, 28, -20, Color.fromRGBO(4, 18, 26, .95))],
+          // `.mk4i`: `--lys-glod-dis`, `rgba(166,58,18,.25)`, no shadow; text `--lys-brod`.
+          bg: context.aeM(
+            const [
+              CssRadial([Color.fromRGBO(255, 148, 102, .22), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: .9, cx: 0, cy: 0),
+              CssLinear(180, [Color.fromRGBO(255, 255, 255, .1), Color.fromRGBO(255, 255, 255, .04)]),
+            ],
+            const [CssSolid(LysPalett.glodDis)],
+          ),
+          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 154, 107, .62), const Color.fromRGBO(166, 58, 18, .25))),
+          shadows: context.aeM(const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .14)), CssShadow(0, 18, 28, -20, Color.fromRGBO(4, 18, 26, .95))], const <CssShadow>[]),
           padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -767,9 +848,10 @@ class _AeMinneViewState extends State<AeMinneView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_Tx.sikker, style: jakarta(14.5, em: -.01)),
+                        Text(_Tx.sikker, style: jakarta(14.5, em: -.01, color: _blekk)),
                         const SizedBox(height: 2),
-                        Text(_Tx.sikkerSub, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
+                        // `.mk14`.
+                        Text(_Tx.sikkerSub, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar))),
                       ],
                     ),
                   ),
@@ -788,12 +870,13 @@ class _AeMinneViewState extends State<AeMinneView> {
                       child: Container(
                         height: 46,
                         alignment: Alignment.center,
+                        // `.mk4j`: `--lys-dis`, `--lys-kant-farge`, `--lys-tittel`.
                         decoration: BoxDecoration(
-                          color: const Color.fromRGBO(255, 255, 255, .1),
-                          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+                          color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis),
+                          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: Text(_Tx.avbryt, style: inter(13, weight: FontWeight.w800)),
+                        child: Text(_Tx.avbryt, style: inter(13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                       ),
                     ),
                   ),

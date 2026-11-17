@@ -29,8 +29,10 @@ float lv(float u){
 void main(){
   vec2 p = (FlutterFragCoord().xy / uDpr);
   vec4 s = tx(p); vec3 col = s.rgb; float m = s.a;
-  vec3 bl = (tx(p + vec2(0.8, 0.3)).rgb + tx(p - vec2(0.8, 0.3)).rgb + tx(p + vec2(-0.3, 0.8)).rgb + tx(p + vec2(0.3, -0.8)).rgb) * 0.25;
-  col = mix(col, bl, 0.22);
+  float ky = smoothstep(185.0, 80.0, p.y) * step(m, 0.15);
+  vec2 o1 = vec2(0.8, 0.3) * (1.0 + 0.6 * ky), o2 = vec2(-0.3, 0.8) * (1.0 + 0.6 * ky);
+  vec3 bl = (tx(p + o1).rgb + tx(p - o1).rgb + tx(p + o2).rgb + tx(p - o2).rgb) * 0.25;
+  col = mix(col, bl, 0.22 + 0.33 * ky);
   vec3 gl = (tx(p + vec2(3.0, 0.0)).rgb + tx(p - vec2(3.0, 0.0)).rgb + tx(p + vec2(0.0, 3.0)).rgb + tx(p - vec2(0.0, 3.0)).rgb + tx(p + vec2(4.5, 4.5)).rgb + tx(p - vec2(4.5, 4.5)).rgb + tx(p + vec2(4.5, -4.5)).rgb + tx(p - vec2(4.5, -4.5)).rgb) * 0.125;
   col += max(gl - 0.62, 0.0) * 0.32;
   fragColor = vec4(lv(col.r * 0.5), lv(col.g * 0.5), lv(col.b * 0.5), 1.0);

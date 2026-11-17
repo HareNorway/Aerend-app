@@ -11,6 +11,8 @@ import '../hjem/hjem_harness.dart';
 import 'meg_mark.dart';
 import 'meg_nivaa_card.dart' show medalFor;
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Meg in new Bergen (Bergen Step 8, L7425–7650) ──────────────────────────
 // The gold ticket under the name, the «Poeng, nivå og konkurranser» card that
@@ -484,7 +486,26 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
             tween: Tween(end: _apen ? 1 : 0),
             duration: const Duration(milliseconds: 350),
             curve: cssEase,
-            builder: (context, a, child) => CssBox(
+            // `.mk7o` (`--v0` / `--v1`) and `megPoengBd` (L23593): the light card in Lys.
+            builder: (context, a, child) => context.lys
+                ? CssBox(
+                    radius: BorderRadius.circular(24),
+                    clip: true,
+                    bg: const [
+                      CssRadial([Color.fromRGBO(242, 193, 78, .17), Color.fromRGBO(242, 193, 78, 0)], stops: [0, .55], rx: 1.2, ry: 1, cx: 0, cy: 0),
+                      CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF5FAFC), Color(0xFFE8F3F7)], [0, .55, 1]),
+                    ],
+                    border: Border.all(color: Color.lerp(LysPalett.kantFarge, const Color.fromRGBO(11, 107, 87, .25), a)!),
+                    shadows: [
+                      const CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
+                      CssShadow(0, 0, 0, 3, Color.fromRGBO(92, 224, 184, .14 * a)),
+                      const CssShadow(0, 2, 0, 0, Color(0xFFD6E8EE)),
+                      const CssShadow(0, 4, 0, 0, Color(0xFFBCD5DF)),
+                      const CssShadow(0, 22, 30, -20, Color.fromRGBO(6, 40, 52, .55)),
+                    ],
+                    child: child,
+                  )
+                : CssBox(
               radius: BorderRadius.circular(24),
               clip: true,
               bg: const [
@@ -520,7 +541,7 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   softWrap: false,
-                                  style: inter(9.5, weight: FontWeight.w800, em: .03, color: const Color.fromRGBO(255, 255, 255, .66)),
+                                  style: inter(9.5, weight: FontWeight.w800, em: .03, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)),
                                 ),
                                 const SizedBox(height: 3),
                                 Wrap(
@@ -537,7 +558,8 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                                         const SizedBox(width: 5),
                                         Text(
                                           MegB8Copy.poeng,
-                                          style: inter(12, weight: FontWeight.w800, color: const Color(0xFFF6D27A)),
+                                          // `.mk7r`.
+                                          style: inter(12, weight: FontWeight.w800, color: context.aeM(const Color(0xFFF6D27A), const Color(0xFF9A6A0E))),
                                         ),
                                       ],
                                     ),
@@ -546,8 +568,9 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                                       padding: const EdgeInsets.fromLTRB(6, 0, 8, 0),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(999),
-                                        color: med ? const Color.fromRGBO(92, 224, 184, .14) : const Color.fromRGBO(255, 255, 255, .06),
-                                        border: Border.all(color: med ? const Color.fromRGBO(92, 224, 184, .4) : const Color.fromRGBO(255, 255, 255, .16)),
+                                        // `megLigaBg` / `megLigaBd` / `megLigaC` (L23595–23596).
+                                        color: med ? context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis) : context.aeM(const Color.fromRGBO(255, 255, 255, .06), LysPalett.dis),
+                                        border: Border.all(color: med ? context.aeM(const Color.fromRGBO(92, 224, 184, .4), const Color.fromRGBO(11, 107, 87, .25)) : context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -556,12 +579,12 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                                             'M7 4h10v4a5 5 0 0 1-10 0z M7 6H4a3 3 0 0 0 3 4 M17 6h3a3 3 0 0 1-3 4 M12 13v4 M8.5 20h7',
                                             size: 11,
                                             stroke: 2.6,
-                                            color: med ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .78),
+                                            color: med ? context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst) : context.aeM(const Color.fromRGBO(255, 255, 255, .78), LysPalett.sekundar),
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
                                             med ? MegB8Copy.liga(widget.ligaPlass!) : MegB8Copy.ikkeILiga,
-                                            style: aeTab(inter(10.5, weight: FontWeight.w800, color: med ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .78))),
+                                            style: aeTab(inter(10.5, weight: FontWeight.w800, color: med ? context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst) : context.aeM(const Color.fromRGBO(255, 255, 255, .78), LysPalett.sekundar))),
                                           ),
                                         ],
                                       ),
@@ -578,8 +601,12 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                       const SizedBox(height: 10),
                       CssBox(
                         radius: BorderRadius.circular(14),
-                        bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
-                        shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3)), CssShadow.inset(0, -1, 0, 0, Color.fromRGBO(255, 255, 255, .06))],
+                        // `.mk7t`.
+                        bg: context.aeM(const [CssSolid(Color.fromRGBO(0, 0, 0, .18))], const [CssSolid(Color(0xFFE7F5FA))]),
+                        shadows: context.aeM(
+                          const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3)), CssShadow.inset(0, -1, 0, 0, Color.fromRGBO(255, 255, 255, .06))],
+                          const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(6, 52, 62, .12)), CssShadow.inset(0, -1, 0, 0, Color(0xFFFFFFFF))],
+                        ),
                         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                         child: Row(
                           children: [
@@ -594,13 +621,13 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                               ),
                             ),
                             const SizedBox(width: 5),
-                            Text(widget.tierName, style: inter(11.5, weight: FontWeight.w800)),
+                            Text(widget.tierName, style: inter(11.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                             const SizedBox(width: 9),
                             Expanded(child: _Stang(pct: widget.pct)),
                             const SizedBox(width: 9),
                             Text(
                               widget.avstand,
-                              style: aeTab(inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .78))),
+                              style: aeTab(inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .78), LysPalett.sekundar))),
                             ),
                           ],
                         ),
@@ -660,7 +687,11 @@ class _GullTall extends StatelessWidget {
             final w = r.width * 2.5;
             final left = (r.width - w) * pos;
             return LinearGradient(
-              colors: const [Color(0xFFF6D27A), Color(0xFFF6D27A), Color(0xFFFFF6D8), Color(0xFFF6D27A), Color(0xFFF6D27A)],
+              // `.mk7q`: the darker gold in Lys.
+              colors: context.aeM(
+                const [Color(0xFFF6D27A), Color(0xFFF6D27A), Color(0xFFFFF6D8), Color(0xFFF6D27A), Color(0xFFF6D27A)],
+                const [Color(0xFF9A6A0E), Color(0xFF9A6A0E), Color(0xFFD29A2A), Color(0xFF9A6A0E), Color(0xFF9A6A0E)],
+              ),
               stops: const [0, .38, .5, .62, 1],
               transform: _Skyv(left / w),
             ).createShader(Rect.fromLTWH(0, 0, w, r.height));
@@ -717,7 +748,8 @@ class _Ring extends StatelessWidget {
               ms: 1550,
               builder: (context, t, _) {
                 final p = const Cubic(.3, 1, .4, 1).transform(kfP(t, 250, 1300));
-                return CustomPaint(painter: _RingMaler(mal * p));
+                // `.mk7p`: the track `rgba(31,82,95,.12)` in Lys.
+                return CustomPaint(painter: _RingMaler(mal * p, spor: context.aeM(const Color.fromRGBO(255, 255, 255, .13), const Color.fromRGBO(31, 82, 95, .12))));
               },
             ),
           ),
@@ -785,8 +817,9 @@ class _Ring extends StatelessWidget {
 }
 
 class _RingMaler extends CustomPainter {
-  const _RingMaler(this.f);
+  const _RingMaler(this.f, {this.spor = const Color.fromRGBO(255, 255, 255, .13)});
   final double f;
+  final Color spor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -798,7 +831,7 @@ class _RingMaler extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.5
-        ..color = const Color.fromRGBO(255, 255, 255, .13),
+        ..color = spor,
     );
     if (f <= 0) return;
     canvas.drawArc(
@@ -815,7 +848,7 @@ class _RingMaler extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RingMaler o) => o.f != f;
+  bool shouldRepaint(_RingMaler o) => o.f != f || o.spor != spor;
 }
 
 /// `border: 1.2px dashed`.
@@ -853,8 +886,9 @@ class _Stang extends StatelessWidget {
     height: 8,
     radius: BorderRadius.circular(999),
     clip: true,
-    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .12))],
-    shadows: const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(0, 0, 0, .35))],
+    // `.mk7u`.
+    bg: context.aeM(const [CssSolid(Color.fromRGBO(255, 255, 255, .12))], const [CssSolid(Color.fromRGBO(31, 82, 95, .1))]),
+    shadows: context.aeM(const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(0, 0, 0, .35))], const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(6, 52, 62, .18))]),
     child: LayoutBuilder(
       builder: (context, box) {
         final w = box.maxWidth * pct.clamp(0.0, 1.0);
@@ -917,16 +951,18 @@ class _Pil extends StatelessWidget {
     height: 34,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      color: apen ? null : const Color.fromRGBO(255, 255, 255, .12),
+      // `megPoengKnBg` (L23594) / `.mk7s`: `--lys-dis`, a `rgba(31,82,95,.12)` ring and the `0 2px 0 #D6E8EE` lip in Lys.
+      color: apen ? null : context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis),
       gradient: apen ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : null,
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), const Color.fromRGBO(31, 82, 95, .12))),
+      boxShadow: context.aeM(null, const [BoxShadow(color: Color(0xFFD6E8EE), offset: Offset(0, 2))]),
     ),
     alignment: Alignment.center,
     child: AnimatedRotation(
       turns: apen ? .5 : 0,
       duration: const Duration(milliseconds: 500),
       curve: const Cubic(.3, 1.4, .5, 1),
-      child: AeIkon('M6 9l6 6 6-6', size: 14, stroke: 2.8, color: apen ? const Color(0xFF0F2B33) : Colors.white),
+      child: AeIkon('M6 9l6 6 6-6', size: 14, stroke: 2.8, color: apen ? const Color(0xFF0F2B33) : context.aeM(Colors.white, LysPalett.tittel)),
     ),
   );
 }
@@ -985,7 +1021,8 @@ class _MegLoggUtState extends State<MegLoggUt> {
         widget.konto,
         key: const Key('meg-logget-inn'),
         textAlign: TextAlign.center,
-        style: inter(11, color: const Color.fromRGBO(255, 255, 255, .5)),
+        // `.mk73`.
+        style: inter(11, color: context.aeM(const Color.fromRGBO(255, 255, 255, .5), LysPalett.dempet)),
       ),
     ],
   );
@@ -999,15 +1036,17 @@ class _MegLoggUtState extends State<MegLoggUt> {
       height: 52,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .05)]),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+        // `.mk87` / `.mk2d`: `--lys-hvit`, a `--lys-kant-farge` border, `--lys-tittel` text, the `#A63A12` door in Lys.
+        color: context.aeM(null, LysPalett.hvit),
+        gradient: context.aeM(const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .05)]), null),
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const AeIkon('M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4 M15 8l4 4-4 4 M19 12H9', size: 17, stroke: 2.3, color: Color(0xFFFFB08A)),
+          AeIkon('M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4 M15 8l4 4-4 4 M19 12H9', size: 17, stroke: 2.3, color: context.aeM(const Color(0xFFFFB08A), const Color(0xFFA63A12))),
           const SizedBox(width: 8),
-          Text(MegB8Copy.loggUt, style: inter(14, weight: FontWeight.w800)),
+          Text(MegB8Copy.loggUt, style: inter(14, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
         ],
       ),
     ),
@@ -1016,11 +1055,12 @@ class _MegLoggUtState extends State<MegLoggUt> {
   Widget _bekreft() => CssBox(
     key: const Key('meg-logg-ut-bekreft'),
     radius: BorderRadius.circular(22),
-    bg: const [
+    // `.mk88`: `--lys-hvit`, a `--lys-kant-farge` border, the card shadow, `--lys-brod` text in Lys.
+    bg: context.aeM(const [
       CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)]),
-    ],
-    border: Border.all(color: const Color.fromRGBO(255, 176, 138, .35)),
-    shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 18, 28, -18, Color.fromRGBO(4, 18, 26, .9))],
+    ], const [CssSolid(LysPalett.hvit)]),
+    border: Border.all(color: context.aeM(const Color.fromRGBO(255, 176, 138, .35), LysPalett.kantFarge)),
+    shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 18, 28, -18, Color.fromRGBO(4, 18, 26, .9))], LysPalett.kortskygge),
     padding: const EdgeInsets.all(15),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1031,8 +1071,10 @@ class _MegLoggUtState extends State<MegLoggUt> {
               child: Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(begin: Alignment(-.3, -1), end: Alignment(.3, 1), colors: [Color(0xFF2F6E80), Color(0xFF173E48)]),
+                // `.mk89`: `--lys-dis` in Lys.
+                decoration: BoxDecoration(
+                  color: context.aeM(null, LysPalett.dis),
+                  gradient: context.aeM(const LinearGradient(begin: Alignment(-.3, -1), end: Alignment(.3, 1), colors: [Color(0xFF2F6E80), Color(0xFF173E48)]), null),
                 ),
                 child: Stack(
                   clipBehavior: Clip.none,
@@ -1045,9 +1087,10 @@ class _MegLoggUtState extends State<MegLoggUt> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(MegB8Copy.loggeUt, style: jakarta(14.5, em: -.01)),
+                  Text(MegB8Copy.loggeUt, style: jakarta(14.5, em: -.01, color: context.aeM(Colors.white, LysPalett.brod))),
                   const SizedBox(height: 2),
-                  Text(MegB8Copy.loggeUtLinje, style: inter(11.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
+                  // `.mk14`.
+                  Text(MegB8Copy.loggeUtLinje, style: inter(11.5, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar))),
                 ],
               ),
             ),
@@ -1069,10 +1112,11 @@ class _MegLoggUtState extends State<MegLoggUt> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
-                    color: const Color.fromRGBO(255, 255, 255, .1),
-                    border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+                    // `.mk4j`.
+                    color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis),
+                    border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
                   ),
-                  child: Text(MegB8Copy.avbryt, style: inter(13.5, weight: FontWeight.w800)),
+                  child: Text(MegB8Copy.avbryt, style: inter(13.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                 ),
               ),
             ),
@@ -1119,7 +1163,8 @@ class MegGruppeHode extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
     child: Text(
       tx,
-      style: inter(11, weight: FontWeight.w800, em: .12, color: const Color.fromRGBO(255, 255, 255, .55)),
+      // Not in the design (D2): `--lys-dempet` like the `.mkd` kickers in Lys.
+      style: inter(11, weight: FontWeight.w800, em: .12, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet)),
     ),
   );
 }

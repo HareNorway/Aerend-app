@@ -16,6 +16,8 @@ import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../../../constant/constant.dart' show appUrlScheme;
 import '../../../ui/kit/ae_haptic.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The store's Info sheet (`sheetInfo`, L8584): the shared teal sheet with
 /// the store's name, the sliding Allergener / Åpningstider / Mer switch, and
@@ -64,6 +66,7 @@ class _InfoRute extends StatelessWidget {
           builder: (context) {
             final s = context.bs;
             final mq = MediaQuery.of(context);
+            final lys = context.lys;
             return Stack(
               children: [
                 Positioned.fill(
@@ -90,19 +93,23 @@ class _InfoRute extends StatelessWidget {
                     anim,
                     mork: true,
                     radius: 28 * s,
+                    // Lys: `sheetBg` = `--lys-ark` (L20216), `.mkam` = `--lys-arkskygge`
+                    // (no inset top edge); the white top border stays.
                     Container(
                       padding: EdgeInsets.fromLTRB(16 * s, 0, 16 * s, 22 * s + mq.padding.bottom * .5),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),
-                        gradient: cssLinear(
-                          180,
-                          const [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)],
-                          const [0, .55, 1],
-                        ),
+                        gradient: lys
+                            ? const LinearGradient(colors: [LysPalett.ark, LysPalett.ark])
+                            : cssLinear(
+                                180,
+                                const [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)],
+                                const [0, .55, 1],
+                              ),
                         border: const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
                         boxShadow: [
                           BoxShadow(
-                            color: rgba(15, 31, 43, .55),
+                            color: lys ? rgba(15, 31, 43, .35) : rgba(15, 31, 43, .55),
                             offset: Offset(0, -24 * s),
                             blurRadius: onbBlur(50 * s),
                             spreadRadius: -20 * s,
@@ -115,7 +122,7 @@ class _InfoRute extends StatelessWidget {
                           bergenInsetTop(
                             radius: 28 * s,
                             height: 1.5 * s,
-                            alpha: .95,
+                            alpha: lys ? 0 : .95,
                             pad: EdgeInsets.symmetric(
                               horizontal: 16 * s,
                             ).copyWith(bottom: 22 * s + mq.padding.bottom * .5),
@@ -134,7 +141,8 @@ class _InfoRute extends StatelessWidget {
                                       height: 5 * s,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(3 * s),
-                                        color: rgba(255, 255, 255, .35),
+                                        // `sheetHandle`: `--lys-haandtak`.
+                                        color: lys ? LysPalett.haandtak : rgba(255, 255, 255, .35),
                                       ),
                                     ),
                                   ),
@@ -194,26 +202,31 @@ class _InfoSheetState extends State<InfoSheet> {
     final s = context.bs;
     final store = widget.store;
     const tabs = [InfoTab.allergener, InfoTab.apningstider, InfoTab.mer];
+    final lys = context.lys;
     return Column(
       key: const Key('a1_butikk_info_sheet'),
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(height: 14 * s),
-        Text(store.name, style: bDisplay(context, 18, letterSpacingEm: -.02)),
+        // `.mkb`: `--lys-tittel`.
+        Text(store.name, style: bDisplay(context, 18, letterSpacingEm: -.02, color: lys ? LysPalett.tittel : Colors.white)),
         SizedBox(height: 12 * s),
         // The switch: a dark well with the orange pill gliding under the
         // chosen tab (`.38s cubic-bezier(.34,1.3,.5,1)`).
         Container(
           height: 42 * s,
           padding: EdgeInsets.all(4 * s),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: rgba(0, 0, 0, .22)),
+          // `.mkbc`: `--lys-dis-ull`, no inner shade in Lys.
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: lys ? LysPalett.disUll : rgba(0, 0, 0, .22)),
           foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [rgba(4, 18, 26, .45), rgba(4, 18, 26, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .12)],
+              colors: lys
+                  ? const [Color(0x00000000), Color(0x00000000), Color(0x00000000), Color(0x00000000)]
+                  : [rgba(4, 18, 26, .45), rgba(4, 18, 26, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, .12)],
               stops: const [0, .12, .96, 1],
             ),
           ),
@@ -229,26 +242,42 @@ class _InfoSheetState extends State<InfoSheet> {
                     top: 0,
                     bottom: 0,
                     width: w,
+                    // `.mkbd`: `--lys-fjord-fyll` with `0 4px 8px -5px rgba(23,62,72,.5)`.
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(999),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)],
-                          stops: [0, .56, 1],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: rgba(200, 70, 25, .8),
-                            offset: Offset(0, 8 * s),
-                            blurRadius: onbBlur(14 * s),
-                            spreadRadius: -8 * s,
-                          ),
-                          BoxShadow(color: const Color(0xFFC4491A), offset: Offset(0, 2.5 * s)),
-                        ],
+                        gradient: lys
+                            ? const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFF235E6D), Color(0xFF124A58)],
+                              )
+                            : const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)],
+                                stops: [0, .56, 1],
+                              ),
+                        boxShadow: lys
+                            ? [
+                                BoxShadow(
+                                  color: rgba(23, 62, 72, .5),
+                                  offset: Offset(0, 4 * s),
+                                  blurRadius: onbBlur(8 * s),
+                                  spreadRadius: -5 * s,
+                                ),
+                              ]
+                            : [
+                                BoxShadow(
+                                  color: rgba(200, 70, 25, .8),
+                                  offset: Offset(0, 8 * s),
+                                  blurRadius: onbBlur(14 * s),
+                                  spreadRadius: -8 * s,
+                                ),
+                                BoxShadow(color: const Color(0xFFC4491A), offset: Offset(0, 2.5 * s)),
+                              ],
                       ),
-                      child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .4)]),
+                      child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? 0 : .4)]),
                     ),
                   ),
                   Row(
@@ -274,7 +303,8 @@ class _InfoSheetState extends State<InfoSheet> {
                                   12,
                                   weight: FontWeight.w800,
                                   letterSpacingEm: -.01,
-                                  color: _tab == t ? Colors.white : rgba(255, 255, 255, .7),
+                                  // `infoAc` / `infoTc` / `infoMc` (L20230): off `--lys-sekundar`.
+                                  color: _tab == t ? Colors.white : (lys ? LysPalett.sekundar : rgba(255, 255, 255, .7)),
                                 ),
                                 child: Text(label),
                               ),
@@ -305,6 +335,7 @@ class _InfoSheetState extends State<InfoSheet> {
   Widget _allergenFane(BuildContext context) {
     final s = context.bs;
     final a = _allergener;
+    final lys = context.lys;
     return Column(
       key: const ValueKey('a'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -313,12 +344,14 @@ class _InfoSheetState extends State<InfoSheet> {
         if (a.isEmpty)
           Text(
             ButikkCopy.a1_butikk_info_allergen_missing,
-            style: bText(context, 12.5, weight: FontWeight.w600, height: 1.4, color: rgba(255, 255, 255, .75)),
+            // App-only (not in the design): `--lys-sekundar` like the sheet's secondary text.
+            style: bText(context, 12.5, weight: FontWeight.w600, height: 1.4, color: lys ? LysPalett.sekundar : rgba(255, 255, 255, .75)),
           )
         else ...[
           Text(
             ButikkCopy.a1_butikk_info_kan_inneholde,
-            style: bText(context, 10.5, weight: FontWeight.w800, letterSpacingEm: .06, color: rgba(255, 255, 255, .6)),
+            // `.mk2m`: `--lys-dempet`.
+            style: bText(context, 10.5, weight: FontWeight.w800, letterSpacingEm: .06, color: lys ? LysPalett.dempet : rgba(255, 255, 255, .6)),
           ),
           SizedBox(height: 10 * s),
           for (var i = 0; i < a.length; i += 3) ...[
@@ -333,16 +366,17 @@ class _InfoSheetState extends State<InfoSheet> {
                             height: 36 * s,
                             alignment: Alignment.center,
                             padding: EdgeInsets.symmetric(horizontal: 6 * s),
+                            // `.mkbe`: `--lys-hvit`, `--lys-kant-farge` ring, `--lys-tittel`.
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12 * s),
-                              color: rgba(255, 255, 255, .08),
-                              border: Border.all(color: rgba(255, 255, 255, .12)),
+                              color: lys ? LysPalett.hvit : rgba(255, 255, 255, .08),
+                              border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .12)),
                             ),
                             child: Text(
                               a[j],
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: bText(context, 12, weight: FontWeight.w700),
+                              style: bText(context, 12, weight: FontWeight.w700, color: lys ? LysPalett.tittel : Colors.white),
                             ),
                           )
                         : const SizedBox.shrink(),
@@ -396,6 +430,7 @@ class _InfoSheetState extends State<InfoSheet> {
       }
     }
     final idag = _ukedag[DateTime.now().weekday - 1];
+    final lys = context.lys;
     String navn(List<String> d) {
       if (d.length == 1) return d.first;
       String k(String x) => _kort[x.toLowerCase()] ?? x;
@@ -427,7 +462,8 @@ class _InfoSheetState extends State<InfoSheet> {
             SizedBox(width: 8 * s),
             Text(
               store.open ? ButikkCopy.a1_butikk_info_apen_naa : ButikkCopy.a1_butikk_info_stengt_naa,
-              style: bText(context, 14, weight: FontWeight.w800),
+              // `.mkb`.
+              style: bText(context, 14, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white),
             ),
             if (store.open ? store.closeTime != null : store.openTime != null) ...[
               SizedBox(width: 6 * s),
@@ -435,7 +471,8 @@ class _InfoSheetState extends State<InfoSheet> {
                 store.open
                     ? ButikkCopy.a1_butikk_info_stenger(_hm(store.closeTime!))
                     : ButikkCopy.a1_butikk_info_aapner(_hm(store.openTime!)),
-                style: bText(context, 12.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .65)),
+                // `.mk9f`: `--lys-sekundar`.
+                style: bText(context, 12.5, weight: FontWeight.w600, color: lys ? LysPalett.sekundar : rgba(255, 255, 255, .65)),
               ),
             ],
           ],
@@ -452,6 +489,7 @@ class _InfoSheetState extends State<InfoSheet> {
     final s = context.bs;
     final store = widget.store;
     final adr = (store.address ?? '').split(',').first.trim();
+    final lys = context.lys;
     final fee = store.deliveryChargeKr;
     final rader = <(String, String, bool)>[
       if (adr.isNotEmpty) (ButikkCopy.a1_butikk_info_adresse, adr, false),
@@ -477,19 +515,23 @@ class _InfoSheetState extends State<InfoSheet> {
             await Clipboard.setData(ClipboardData(text: '$appUrlScheme://bergen/butikk/${store.id}'));
             if (context.mounted) showBergenToast(context, ButikkCopy.a1_butikk_info_kopiert);
           },
+          // `.mkbg`: in Lys `--lys-hvit` with only the `--lys-kant-farge` ring,
+          // text `--lys-mint-tekst`, icon `.mku` `#1E4F5C`.
           child: BergenCssShadow(
             key: const Key('a1_butikk_info_del'),
             radius: 999,
-            shadows: [
-              BoxShadow(
-                color: rgba(4, 18, 26, .6),
-                offset: Offset(0, 9 * s),
-                blurRadius: onbBlur(13 * s),
-                spreadRadius: -7 * s,
-              ),
-              BoxShadow(color: rgba(90, 74, 48, .35), offset: Offset(0, 3.5 * s)),
-              BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 2 * s)),
-            ],
+            shadows: lys
+                ? const <BoxShadow>[]
+                : [
+                    BoxShadow(
+                      color: rgba(4, 18, 26, .6),
+                      offset: Offset(0, 9 * s),
+                      blurRadius: onbBlur(13 * s),
+                      spreadRadius: -7 * s,
+                    ),
+                    BoxShadow(color: rgba(90, 74, 48, .35), offset: Offset(0, 3.5 * s)),
+                    BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 2 * s)),
+                  ],
             child: Container(
               height: 46 * s,
               decoration: BoxDecoration(
@@ -497,9 +539,9 @@ class _InfoSheetState extends State<InfoSheet> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)],
+                  colors: lys ? const [LysPalett.hvit, LysPalett.hvit] : [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)],
                 ),
-                border: Border.all(color: rgba(255, 255, 255, .95)),
+                border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .95)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -507,13 +549,13 @@ class _InfoSheetState extends State<InfoSheet> {
                   SokIkon(
                     'M12 16V4M12 4 7.5 8.5M12 4l4.5 4.5M5 14v4.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5V14',
                     size: 14 * s,
-                    color: Colors.white,
+                    color: lys ? LysPalett.fjord : Colors.white,
                     stroke: 2.3,
                   ),
                   SizedBox(width: 7 * s),
                   Text(
                     ButikkCopy.a1_butikk_info_del,
-                    style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)),
+                    style: bText(context, 12.5, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB)),
                   ),
                 ],
               ),
@@ -539,11 +581,26 @@ class _Tabell extends StatelessWidget {
     final s = context.bs;
     final timer = rader.isNotEmpty;
     final liste = timer ? rader : fakta;
+    final lys = context.lys;
+    // `.mkbf`: `--lys-hvit`, a 1px `--lys-kant-farge` ring and `--lys-kortskygge`;
+    // rows `.mk2h` (`--lys-skille`), labels `.mk86`/`.mk9f` (`--lys-sekundar`),
+    // values `.mkb` (`--lys-tittel`), today / free `.mk8` (`--lys-mint-tekst`).
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16 * s),
-        color: rgba(255, 255, 255, .06),
-        border: Border.all(color: rgba(255, 255, 255, .1)),
+        color: lys ? LysPalett.hvit : rgba(255, 255, 255, .06),
+        border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .1)),
+        boxShadow: lys
+            ? [
+                BoxShadow(
+                  color: rgba(6, 52, 62, .2),
+                  offset: Offset(0, 10 * s),
+                  blurRadius: onbBlur(26 * s),
+                  spreadRadius: -14 * s,
+                ),
+                BoxShadow(color: rgba(6, 52, 62, .04), offset: Offset(0, 1 * s), blurRadius: onbBlur(1 * s)),
+              ]
+            : null,
       ),
       child: Column(
         children: [
@@ -551,7 +608,7 @@ class _Tabell extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 11 * s),
               decoration: BoxDecoration(
-                border: i == 0 ? null : Border(top: BorderSide(color: rgba(255, 255, 255, .08))),
+                border: i == 0 ? null : Border(top: BorderSide(color: lys ? LysPalett.skille : rgba(255, 255, 255, .08))),
               ),
               child: Row(
                 children: [
@@ -562,8 +619,10 @@ class _Tabell extends StatelessWidget {
                       13,
                       weight: timer && liste[i].$3 ? FontWeight.w700 : FontWeight.w600,
                       color: timer
-                          ? (liste[i].$3 ? const Color(0xFF7FF0CB) : rgba(255, 255, 255, .8))
-                          : rgba(255, 255, 255, .65),
+                          ? (liste[i].$3
+                              ? (lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB))
+                              : (lys ? LysPalett.sekundar : rgba(255, 255, 255, .8)))
+                          : (lys ? LysPalett.sekundar : rgba(255, 255, 255, .65)),
                     ),
                   ),
                   SizedBox(width: 12 * s),
@@ -575,7 +634,9 @@ class _Tabell extends StatelessWidget {
                         context,
                         13,
                         weight: liste[i].$3 ? FontWeight.w800 : FontWeight.w700,
-                        color: liste[i].$3 ? const Color(0xFF7FF0CB) : Colors.white,
+                        color: liste[i].$3
+                            ? (lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB))
+                            : (lys ? LysPalett.tittel : Colors.white),
                       ),
                     ),
                   ),

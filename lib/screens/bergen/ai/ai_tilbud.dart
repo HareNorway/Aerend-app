@@ -9,6 +9,8 @@ import '../kasse/fee_breakdown_sheet.dart';
 import '../aegil/aegil_bits.dart';
 import 'ai_bits.dart';
 import 'ai_copy.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Customer plan Step 14 — the offer as both «Handlekurv fra assistent» and
 /// «Bekreft bestilling» draw it (design `aiTilbudVals`, modes C and D): the
@@ -54,8 +56,10 @@ class AiTilbud extends StatelessWidget {
           AiMerke(n, size: 36),
           const SizedBox(width: 10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(venter ? AiCopy.cus_ai_ber_om(n) : AiCopy.cus_ai_bygde(n), style: inter(14, weight: FontWeight.w800)),
-            Text(venter ? AiCopy.cus_ai_foresporsel(r.store) : AiCopy.cus_ai_apnet_fra(n), style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65))),
+            // Lys («Assistent · logg»): `.mkb`, `.mk2m`; the steps `aiTbLogg` (L24983): brod, the waiting one
+            // glod-tekst, a stopped one sekundar; times `.mk73`.
+            Text(venter ? AiCopy.cus_ai_ber_om(n) : AiCopy.cus_ai_bygde(n), style: inter(14, weight: FontWeight.w800, color: context.aiTittel)),
+            Text(venter ? AiCopy.cus_ai_foresporsel(r.store) : AiCopy.cus_ai_apnet_fra(n), style: inter(11.5, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .65)))),
           ])),
         ]),
         const SizedBox(height: 10),
@@ -68,13 +72,13 @@ class AiTilbud extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(children: [
                 SizedBox(width: 20, height: 20, child: stopp
-                    ? const AeIkon(AiIk.kryss, size: 12, stroke: 2.6, color: Color.fromRGBO(255, 255, 255, .62))
+                    ? AeIkon(AiIk.kryss, size: 12, stroke: 2.6, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .62)))
                     : (aktiv && laster
-                        ? const Padding(padding: EdgeInsets.all(3), child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7FF0CB)))
+                        ? Padding(padding: const EdgeInsets.all(3), child: CircularProgressIndicator(strokeWidth: 2, color: context.aiStrek(const Color(0xFF7FF0CB))))
                         : (aktiv ? Center(child: Container(width: 9, height: 9, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFFFC8A8)))) : Container(decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8)), child: const AeIkon(AiIk.hake, size: 11, stroke: 3, color: Color(0xFF0F2B33)))))),
                 const SizedBox(width: 8),
-                Expanded(child: Text(stopp ? stoppTx! : s.$1, style: inter(12.5, weight: FontWeight.w700, color: stopp ? const Color.fromRGBO(255, 255, 255, .62) : (aktiv && venter ? const Color(0xFFFFC8A8) : Colors.white)))),
-                if (s.$2.isNotEmpty) Text(s.$2, style: aeTab(inter(11, color: const Color.fromRGBO(255, 255, 255, .55)))),
+                Expanded(child: Text(stopp ? stoppTx! : s.$1, style: inter(12.5, weight: FontWeight.w700, color: stopp ? context.aiSek(const Color.fromRGBO(255, 255, 255, .62)) : (aktiv && venter ? context.aiGlod : context.aiBrod)))),
+                if (s.$2.isNotEmpty) Text(s.$2, style: aeTab(inter(11, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .55))))),
               ]),
             ));
           }(),
@@ -83,22 +87,24 @@ class AiTilbud extends StatelessWidget {
       if (banner != null) banner!,
       // The lines.
       AiKort(padding: const EdgeInsets.fromLTRB(12, 10, 12, 6), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(children: [Text(AiCopy.cus_ai_varer, style: inter(13.5, weight: FontWeight.w800)), const SizedBox(width: 8), Text(AiCopy.cus_ai_antall_varer(r.lines.length), style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .6))), const Spacer(), Text(r.subtotal.display, style: aeTab(inter(13.5, weight: FontWeight.w800)))]),
+        // Lys («Fra assistent · varer»): `.mkb`, the count `.mk9b` (`--lys-sekundar`), rules `--lys-skille`, the tile
+        // `--lys-dis` with the `.mku` stroke, `.mkd` under, «Utsolgt» `.mk9c` (`--lys-gull-tekst`).
+        Row(children: [Text(AiCopy.cus_ai_varer, style: inter(13.5, weight: FontWeight.w800, color: context.aiTittel)), const SizedBox(width: 8), Text(AiCopy.cus_ai_antall_varer(r.lines.length), style: inter(11.5, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .6)))), const Spacer(), Text(r.subtotal.display, style: aeTab(inter(13.5, weight: FontWeight.w800, color: context.aiTittel)))]),
         const SizedBox(height: 4),
         for (final (i, l) in r.lines.indexed)
           AeOnce(kind: AeInn.stigOpp, ms: 360, delay: 100.0 + i * 60, child: Container(
             key: Key('cus-ai-linje-${l.productId}'),
             padding: const EdgeInsets.symmetric(vertical: 9),
-            decoration: BoxDecoration(border: i > 0 ? const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1))) : null),
+            decoration: BoxDecoration(border: i > 0 ? Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.skille))) : null),
             child: Opacity(opacity: l.available ? 1 : .62, child: Row(children: [
-              Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.pose, size: 15, stroke: 2.2)),
+              Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(AiIk.pose, size: 15, stroke: 2.2, color: context.aiStrek(Colors.white))),
               const SizedBox(width: 10),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(l.name, style: inter(13.5, weight: FontWeight.w800).copyWith(decoration: l.available ? null : TextDecoration.lineThrough)),
-                Text('${l.quantity}×${l.options.isNotEmpty ? ' · ${l.options.join(', ')}' : ''}', style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .62))),
-                if (!l.available) Text(AiCopy.cus_ai_utsolgt_naa, style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFC8A8))),
+                Text(l.name, style: inter(13.5, weight: FontWeight.w800, color: context.aiTittel).copyWith(decoration: l.available ? null : TextDecoration.lineThrough)),
+                Text('${l.quantity}×${l.options.isNotEmpty ? ' · ${l.options.join(', ')}' : ''}', style: inter(11.5, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .62)))),
+                if (!l.available) Text(AiCopy.cus_ai_utsolgt_naa, style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color(0xFFFFC8A8), LysPalett.gullTekst))),
               ])),
-              Text(l.lineTotal.display, style: aeTab(inter(13.5, weight: FontWeight.w800))),
+              Text(l.lineTotal.display, style: aeTab(inter(13.5, weight: FontWeight.w800, color: context.aiTittel))),
             ])),
           )),
         if (utsolgt && onFjern != null)
@@ -108,13 +114,15 @@ class AiTilbud extends StatelessWidget {
               key: const Key('cus-ai-utsolgt-rad'),
               margin: const EdgeInsets.only(top: 6, bottom: 4),
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(245, 196, 81, .12), border: Border.all(color: const Color.fromRGBO(245, 196, 81, .4))),
+              // Lys («Utsolgt · forslag»): `.mk9d` (`--lys-gull-dis`) with the design's light gold ring
+              // (`rgba(74,48,10,.2)`, `aiTbGrenseBd`), `.mk9e` / `.mk9f`, the glass key `.mk9g`.
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: context.aeM(const Color.fromRGBO(245, 196, 81, .12), LysPalett.gullDis), border: Border.all(color: context.aeM(const Color.fromRGBO(245, 196, 81, .4), const Color.fromRGBO(74, 48, 10, .2)))),
               child: Row(children: [
-                const AeIkon(AiIk.advarsel, size: 16, stroke: 2.2, color: Color(0xFFFFE08A)),
+                AeIkon(AiIk.advarsel, size: 16, stroke: 2.2, color: context.aiStrek(const Color(0xFFFFE08A))),
                 const SizedBox(width: 8),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_fjern_tx(s.name), style: inter(12.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_fjern_under, style: inter(11, color: const Color.fromRGBO(255, 255, 255, .7)))])),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_fjern_tx(s.name), style: inter(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.gullTekst))), Text(AiCopy.cus_ai_fjern_under, style: inter(11, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .7))))])),
                 if (onBytt != null) ...[
-                  AePress(onTap: () => onBytt!(s), dy: 1.5, child: Container(key: const Key('cus-ai-bytt'), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .12), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .25))), child: Text(AiCopy.cus_ai_bytt, style: inter(12, weight: FontWeight.w800)))),
+                  AePress(onTap: () => onBytt!(s), dy: 1.5, child: Container(key: const Key('cus-ai-bytt'), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .25), LysPalett.kantFarge))), child: Text(AiCopy.cus_ai_bytt, style: inter(12, weight: FontWeight.w800, color: context.aiTittel)))),
                   const SizedBox(width: 6),
                 ],
                 AePress(onTap: () => onFjern!(s), dy: 1.5, child: Container(key: const Key('cus-ai-fjern'), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(AiCopy.cus_ai_fjern, style: inter(12, weight: FontWeight.w800)))),
@@ -128,63 +136,67 @@ class AiTilbud extends StatelessWidget {
         Row(children: [
           Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))),
           const SizedBox(width: 7),
-          Expanded(child: Text(AiCopy.cus_ai_tilbudet_ditt.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .1, color: const Color(0xFF7FF0CB)))),
+          // Lys («Tilbudet ditt»): `.mk8`, rows `.mk1p` / `.mkb`, the rule `--lys-skille`, «Totalt» `.mk14`, the old
+          // total `.mk73`, «Ny» `.mk9k` (`--lys-gull-dis`, `--lys-gull-tekst`), the sum `.mkb`.
+          Expanded(child: Text(AiCopy.cus_ai_tilbudet_ditt.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .1, color: context.aiMint))),
           if (visFrist) AiFrist(sekunder: sekunder ?? r.secondsLeft, label: venter ? AiCopy.cus_ai_bekreft_innen : AiCopy.cus_ai_tilbudet_gjelder),
         ]),
         const SizedBox(height: 10),
-        _rad(AiIk.pose, AiCopy.cus_ai_varer, null, r.subtotal.display),
+        _rad(context, AiIk.pose, AiCopy.cus_ai_varer, null, r.subtotal.display),
         // Customer v2 Step 1: «Levering ›» opens the engine's lines — the same sheet as Kassen.
         if (r.deliveryBreakdown != null)
           GestureDetector(
             key: const Key('cus-ai-levering'),
             behavior: HitTestBehavior.opaque,
             onTap: () => visLeveringsprisArk(context, r.deliveryBreakdown!),
-            child: _rad(AiIk.sykkel, '${AiCopy.cus_ai_levering} ›', r.deliveryFee.ore == 0 && r.serviceFee.ore == 0 ? null : [if (r.deliveryFee.ore > 0) r.deliveryFee.display, if (r.serviceFee.ore > 0) '+${r.serviceFee.display}'].join(' · '), CusMoney(ore: r.deliveryFee.ore + r.serviceFee.ore, display: AiCopy.kr((r.deliveryFee.ore + r.serviceFee.ore) ~/ 100)).display),
+            child: _rad(context, AiIk.sykkel, '${AiCopy.cus_ai_levering} ›', r.deliveryFee.ore == 0 && r.serviceFee.ore == 0 ? null : [if (r.deliveryFee.ore > 0) r.deliveryFee.display, if (r.serviceFee.ore > 0) '+${r.serviceFee.display}'].join(' · '), CusMoney(ore: r.deliveryFee.ore + r.serviceFee.ore, display: AiCopy.kr((r.deliveryFee.ore + r.serviceFee.ore) ~/ 100)).display),
           )
         else
-        _rad(AiIk.sykkel, AiCopy.cus_ai_levering, r.deliveryFee.ore == 0 && r.serviceFee.ore == 0 ? null : [if (r.deliveryFee.ore > 0) r.deliveryFee.display, if (r.serviceFee.ore > 0) '+${r.serviceFee.display}'].join(' · '), CusMoney(ore: r.deliveryFee.ore + r.serviceFee.ore, display: AiCopy.kr((r.deliveryFee.ore + r.serviceFee.ore) ~/ 100)).display),
-        _rad(AiIk.klokke, AiCopy.cus_ai_leveringsvindu, null, r.windowDisplay),
-        _rad(AiIk.pin, AiCopy.cus_ai_leveres_til, null, r.address),
-        const Divider(color: Color.fromRGBO(255, 255, 255, .14), height: 18),
+        _rad(context, AiIk.sykkel, AiCopy.cus_ai_levering, r.deliveryFee.ore == 0 && r.serviceFee.ore == 0 ? null : [if (r.deliveryFee.ore > 0) r.deliveryFee.display, if (r.serviceFee.ore > 0) '+${r.serviceFee.display}'].join(' · '), CusMoney(ore: r.deliveryFee.ore + r.serviceFee.ore, display: AiCopy.kr((r.deliveryFee.ore + r.serviceFee.ore) ~/ 100)).display),
+        _rad(context, AiIk.klokke, AiCopy.cus_ai_leveringsvindu, null, r.windowDisplay),
+        _rad(context, AiIk.pin, AiCopy.cus_ai_leveres_til, null, r.address),
+        Divider(color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.skille), height: 18),
         Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(gammelTotal != null ? AiCopy.cus_ai_ny_total : AiCopy.cus_ai_totalt, style: inter(13, weight: FontWeight.w800)),
-            if (gammelTotal != null) Text(gammelTotal!.display, style: aeTab(inter(12, color: const Color.fromRGBO(255, 255, 255, .55)).copyWith(decoration: TextDecoration.lineThrough))),
+            Text(gammelTotal != null ? AiCopy.cus_ai_ny_total : AiCopy.cus_ai_totalt, style: inter(13, weight: FontWeight.w800, color: context.aiSek(Colors.white))),
+            if (gammelTotal != null) Text(gammelTotal!.display, style: aeTab(inter(12, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .55))).copyWith(decoration: TextDecoration.lineThrough))),
           ])),
-          if (gammelTotal != null) Container(margin: const EdgeInsets.only(right: 8), padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color(0xFFF2C14E)), child: Text(AiCopy.cus_ai_ny, style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF3A2708)))),
-          Text(r.total.display, key: const Key('cus-ai-total'), style: aeTab(jakarta(22, weight: FontWeight.w800))),
+          if (gammelTotal != null) Container(margin: const EdgeInsets.only(right: 8), padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: context.aeM(const Color(0xFFF2C14E), LysPalett.gullDis)), child: Text(AiCopy.cus_ai_ny, style: inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF3A2708), LysPalett.gullTekst)))),
+          Text(r.total.display, key: const Key('cus-ai-total'), style: aeTab(jakarta(22, weight: FontWeight.w800, color: context.aiTittel))),
         ]),
         if (visGauge && cap != null) ...[
           const SizedBox(height: 10),
           Row(children: [
-            AeIkon(AiIk.skjold, size: 13, stroke: 2.4, color: over ? const Color(0xFFFFE08A) : const Color(0xFF7FF0CB)),
+            // Lys («Tilbud · grense»): `aiTbGrenseC` gull-tekst / mint-tekst, `.mk14`, the track `.mk9l`, the cap mark
+            // `.mk9m` (`--lys-fjord`), the ends `.mk78`.
+            AeIkon(AiIk.skjold, size: 13, stroke: 2.4, color: context.aiStrek(over ? const Color(0xFFFFE08A) : const Color(0xFF7FF0CB))),
             const SizedBox(width: 6),
-            Expanded(child: Text(over ? AiCopy.cus_ai_over(cap.kr) : AiCopy.cus_ai_innenfor(cap.kr), style: inter(11.5, weight: FontWeight.w800, color: over ? const Color(0xFFFFE08A) : const Color(0xFF7FF0CB)))),
-            Text(AiCopy.cus_ai_av(r.total.display, cap.display), style: aeTab(inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7)))),
+            Expanded(child: Text(over ? AiCopy.cus_ai_over(cap.kr) : AiCopy.cus_ai_innenfor(cap.kr), style: inter(11.5, weight: FontWeight.w800, color: over ? context.aiGull : context.aiMint))),
+            Text(AiCopy.cus_ai_av(r.total.display, cap.display), style: aeTab(inter(11, weight: FontWeight.w700, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .7))))),
           ]),
           const SizedBox(height: 6),
           () {
             final skala = (cap.ore * 1.3 > r.total.ore * 1.08 ? cap.ore * 1.3 : r.total.ore * 1.08).toDouble();
             return Stack(children: [
-              ClipRRect(borderRadius: BorderRadius.circular(99), child: SizedBox(height: 6, child: Stack(children: [const Positioned.fill(child: ColoredBox(color: Color.fromRGBO(255, 255, 255, .12))), FractionallySizedBox(widthFactor: (r.total.ore / skala).clamp(0.02, 1.0), heightFactor: 1, alignment: Alignment.centerLeft, child: DecoratedBox(decoration: BoxDecoration(gradient: over ? const LinearGradient(colors: [Color(0xFFF7D27A), Color(0xFFE4B040)]) : const LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]))))]))),
+              ClipRRect(borderRadius: BorderRadius.circular(99), child: SizedBox(height: 6, child: Stack(children: [Positioned.fill(child: ColoredBox(color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis))), FractionallySizedBox(widthFactor: (r.total.ore / skala).clamp(0.02, 1.0), heightFactor: 1, alignment: Alignment.centerLeft, child: DecoratedBox(decoration: BoxDecoration(gradient: over ? const LinearGradient(colors: [Color(0xFFF7D27A), Color(0xFFE4B040)]) : const LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]))))]))),
               const Positioned(left: null, top: -3, child: FractionallySizedBox(child: SizedBox())),
-              Align(alignment: Alignment(((cap.ore / skala).clamp(0.0, 1.0) * 2) - 1, 0), child: Container(width: 2, height: 12, color: Colors.white)),
+              Align(alignment: Alignment(((cap.ore / skala).clamp(0.0, 1.0) * 2) - 1, 0), child: Container(width: 2, height: 12, color: context.aeM(Colors.white, LysPalett.fjord))),
             ]);
           }(),
           const SizedBox(height: 4),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('0 kr', style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .5))), Text(AiCopy.cus_ai_grense(cap.kr), style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .5)))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('0 kr', style: inter(10.5, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .5)))), Text(AiCopy.cus_ai_grense(cap.kr), style: inter(10.5, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .5))))]),
         ],
       ])),
     ]);
   }
 
-  static Widget _rad(String ik, String navn, String? under, String verdi) => Padding(
+  static Widget _rad(BuildContext c, String ik, String navn, String? under, String verdi) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(children: [
-      AeIkon(ik, size: 14, stroke: 2.2, color: const Color.fromRGBO(255, 255, 255, .75)),
+      AeIkon(ik, size: 14, stroke: 2.2, color: c.aiStrek(const Color.fromRGBO(255, 255, 255, .75))),
       const SizedBox(width: 8),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(navn, style: inter(12.5, weight: FontWeight.w700)), if (under != null) Text(under, style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .55)))])),
-      Flexible(child: Text(verdi, textAlign: TextAlign.end, maxLines: 2, style: aeTab(inter(12.5, weight: FontWeight.w800)))),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(navn, style: inter(12.5, weight: FontWeight.w700, color: c.aiSek(Colors.white))), if (under != null) Text(under, style: inter(10.5, color: c.aiDemp(const Color.fromRGBO(255, 255, 255, .55))))])),
+      Flexible(child: Text(verdi, textAlign: TextAlign.end, maxLines: 2, style: aeTab(inter(12.5, weight: FontWeight.w800, color: c.aiTittel)))),
     ]),
   );
 }
@@ -237,9 +249,10 @@ class _AiFristState extends State<AiFrist> {
     final c = _s < 60 ? const Color(0xFFF2C14E) : const Color(0xFF5CE0B8);
     final tx = '${_s ~/ 60}:${(_s % 60).toString().padLeft(2, '0')}';
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text(widget.label, style: inter(10, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .6))), Text(tx, key: const Key('cus-ai-frist'), style: aeTab(inter(14, weight: FontWeight.w800, color: c)))]),
+      // Lys: the label `.mk2m`, the time `.mkb`, the ring's track `.mk9h` (`rgba(30,79,92,.12)`).
+      Column(crossAxisAlignment: CrossAxisAlignment.end, children: [Text(widget.label, style: inter(10, weight: FontWeight.w700, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .6)))), Text(tx, key: const Key('cus-ai-frist'), style: aeTab(inter(14, weight: FontWeight.w800, color: context.aeM(c, LysPalett.tittel))))]),
       const SizedBox(width: 8),
-      SizedBox(width: 30, height: 30, child: CircularProgressIndicator(value: (_s / widget.total).clamp(0.0, 1.0), strokeWidth: 3, color: c, backgroundColor: const Color.fromRGBO(255, 255, 255, .14))),
+      SizedBox(width: 30, height: 30, child: CircularProgressIndicator(value: (_s / widget.total).clamp(0.0, 1.0), strokeWidth: 3, color: c, backgroundColor: context.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color.fromRGBO(30, 79, 92, .12)))),
     ]);
   }
 }

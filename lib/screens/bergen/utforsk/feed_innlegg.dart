@@ -13,6 +13,8 @@ import '../../feed/utils/feed_time_ago.dart';
 import '../kit/bergen_css.dart' show rgba;
 import '../kit/bergen_perf.dart';
 import 'feed_post_card.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── The post's own page (not in the prototype: needs design sign-off) ───────
 //
@@ -21,6 +23,11 @@ import 'feed_post_card.dart';
 // Steps 9 / 13). Built in the prototype's language: the Utforsk sky, the
 // glass back key and title of Poseautomaten, the feed card itself, glass
 // comment rows and Hurtig's composer.
+//
+// Lys (not in the design either): built like «Butikkprofil · innlegg» — the
+// page `--lys-ull` (`.mkfn`), the back key `--lys-dis` / `--lys-brod`
+// (`.mkfe`), white cards with a `--lys-kant-farge` rim (`.mkfo`), the
+// composer like the light message field (`.mkbx`, `.mk12`).
 
 const String _svgTilbake =
     '<svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
@@ -41,12 +48,13 @@ class FeedInnleggSide extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final topp = MediaQuery.paddingOf(context).top;
+    final lys = context.lys;
     return Material(
-      color: const Color(0xFF173E48),
+      color: lys ? LysPalett.ull : const Color(0xFF173E48),
       child: Stack(
         children: [
-          const Positioned.fill(
-            child: CssBox(bg: [CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1])]),
+          Positioned.fill(
+            child: CssBox(bg: lys ? const [CssSolid(LysPalett.ull)] : const [CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1])]),
           ),
           Column(
             children: [
@@ -65,19 +73,28 @@ class FeedInnleggSide extends StatelessWidget {
                           width: 38,
                           height: 38,
                           radius: BorderRadius.circular(13),
-                          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, .08)])],
-                          shadows: [
-                            CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .38)),
-                            CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14)),
-                            CssShadow(0, 3, 0, 0, rgba(6, 22, 30, .55)),
-                            CssShadow(0, 10, 16, -8, rgba(0, 0, 0, .6)),
-                          ],
-                          child: Center(child: SvgPicture.string(_svgTilbake, width: 15, height: 15)),
+                          bg: lys ? const [CssSolid(LysPalett.dis)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, .08)])],
+                          shadows: lys
+                              ? const []
+                              : [
+                                  CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .38)),
+                                  CssShadow.inset(0, 0, 0, 1, rgba(255, 255, 255, .14)),
+                                  CssShadow(0, 3, 0, 0, rgba(6, 22, 30, .55)),
+                                  CssShadow(0, 10, 16, -8, rgba(0, 0, 0, .6)),
+                                ],
+                          child: Center(
+                            child: SvgPicture.string(
+                              _svgTilbake,
+                              width: 15,
+                              height: 15,
+                              colorFilter: lys ? const ColorFilter.mode(LysPalett.brod, BlendMode.srcIn) : null,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(l10n.post_detail_title, style: jakarta(22, em: -.025)),
+                    Text(l10n.post_detail_title, style: jakarta(22, em: -.025, color: lys ? LysPalett.tittel : Colors.white)),
                   ],
                 ),
               ),
@@ -127,14 +144,14 @@ class FeedInnleggMelding extends StatelessWidget {
       child: CssBox(
         radius: BorderRadius.circular(22),
         padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
-        bg: [CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)])],
-        border: Border.all(color: rgba(255, 255, 255, .2)),
-        shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)), CssShadow(0, 28, 44, -22, rgba(4, 18, 26, .85))],
+        bg: context.aeM([CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)])], const [CssSolid(LysPalett.hvit)]),
+        border: Border.all(color: context.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge)),
+        shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)), CssShadow(0, 28, 44, -22, rgba(4, 18, 26, .85))], LysPalett.kortskygge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (laster) ...[const LfDots(), if (tekst.isNotEmpty) const SizedBox(height: 12)],
-            if (tekst.isNotEmpty) Text(tekst, textAlign: TextAlign.center, style: jakarta(16, em: -.01, height: 1.3)),
+            if (tekst.isNotEmpty) Text(tekst, textAlign: TextAlign.center, style: jakarta(16, em: -.01, height: 1.3, color: context.aeM(Colors.white, LysPalett.tittel))),
             if (knapp != null) ...[
               const SizedBox(height: 16),
               LfPress(
@@ -201,7 +218,7 @@ class _FeedInnleggInnholdState extends State<FeedInnleggInnhold> {
       child: Text(
         l10n.post_detail_no_comments,
         textAlign: TextAlign.center,
-        style: inter(13, weight: FontWeight.w600, color: rgba(220, 233, 236, .7)),
+        style: inter(13, weight: FontWeight.w600, color: context.aeM(rgba(220, 233, 236, .7), LysPalett.sekundar)),
       ),
     );
     return CustomScrollView(
@@ -233,7 +250,7 @@ class _FeedInnleggInnholdState extends State<FeedInnleggInnhold> {
             padding: const EdgeInsets.fromLTRB(22, 20, 22, 8),
             child: Text(
               '${l10n.post_detail_comments}${post.commentCount > 0 ? ' · ${post.commentCount}' : ''}'.toUpperCase(),
-              style: inter(10.5, weight: FontWeight.w800, em: .14, color: const Color(0xFFBFD8DF)),
+              style: inter(10.5, weight: FontWeight.w800, em: .14, color: context.aeM(const Color(0xFFBFD8DF), LysPalett.sekundar)),
             ),
           ),
         ),
@@ -273,13 +290,13 @@ class _FeedInnleggKort extends StatelessWidget {
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(26),
     clip: true,
-    bg: [CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)])],
-    border: Border.all(color: rgba(255, 255, 255, .2)),
-    shadows: [
+    bg: context.aeM([CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .06)])], const [CssSolid(LysPalett.hvit)]),
+    border: Border.all(color: context.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge)),
+    shadows: context.aeM([
       CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28)),
       CssShadow(0, 2, 0, 0, rgba(4, 18, 26, .25)),
       CssShadow(0, 28, 44, -22, rgba(4, 18, 26, .85)),
-    ],
+    ], LysPalett.kortskygge),
     child: child,
   );
 }
@@ -307,9 +324,9 @@ class FeedKommentarRad extends StatelessWidget {
         child: CssBox(
           radius: BorderRadius.circular(18),
           padding: const EdgeInsets.fromLTRB(12, 11, 14, 12),
-          bg: [CssLinear(180, [rgba(255, 255, 255, .12), rgba(255, 255, 255, .05)])],
-          border: Border.all(color: rgba(255, 255, 255, .14)),
-          shadows: [CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .18))],
+          bg: context.aeM([CssLinear(180, [rgba(255, 255, 255, .12), rgba(255, 255, 255, .05)])], const [CssSolid(LysPalett.hvit)]),
+          border: Border.all(color: context.aeM(rgba(255, 255, 255, .14), LysPalett.kantFarge)),
+          shadows: context.aeM([CssShadow.inset(0, 1, 0, 0, rgba(255, 255, 255, .18))], const []),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -342,14 +359,14 @@ class FeedKommentarRad extends StatelessWidget {
                     Row(
                       children: [
                         Flexible(
-                          child: Text(navn.isEmpty ? '?' : navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(13.5, em: -.01)),
+                          child: Text(navn.isEmpty ? '?' : navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(13.5, em: -.01, color: context.aeM(Colors.white, LysPalett.tittel))),
                         ),
                         const SizedBox(width: 7),
-                        Text(feedTimeAgo(comment.createdAt, context), style: inter(10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .55))),
+                        Text(feedTimeAgo(comment.createdAt, context), style: inter(10.5, weight: FontWeight.w700, color: context.aeM(rgba(255, 255, 255, .55), LysPalett.dempet))),
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(comment.body, style: inter(13, weight: FontWeight.w500, height: 1.4, color: const Color(0xFFDCE9EC))),
+                    Text(comment.body, style: inter(13, weight: FontWeight.w500, height: 1.4, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar))),
                   ],
                 ),
               ),
@@ -405,14 +422,17 @@ class FeedKommentarFeltState extends State<FeedKommentarFelt> {
     final l10n = AppLocalizations.of(context)!;
     final bunn = MediaQuery.paddingOf(context).bottom;
     final n = _tekst.text.length;
+    final lys = context.lys;
     return Container(
       padding: EdgeInsets.fromLTRB(14, 18, 14, 12 + bunn),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(23, 62, 72, 0), Color.fromRGBO(23, 62, 72, .96), Color(0xFF173E48)],
-          stops: [0, .22, 1],
+          colors: lys
+              ? const [Color.fromRGBO(247, 251, 253, 0), Color.fromRGBO(247, 251, 253, .96), LysPalett.ull]
+              : const [Color.fromRGBO(23, 62, 72, 0), Color.fromRGBO(23, 62, 72, .96), Color(0xFF173E48)],
+          stops: const [0, .22, 1],
         ),
       ),
       child: Column(
@@ -425,17 +445,19 @@ class FeedKommentarFeltState extends State<FeedKommentarFelt> {
               child: Text(
                 l10n.comment_char_counter(n),
                 textAlign: TextAlign.right,
-                style: inter(11, weight: FontWeight.w700, color: n > _maks ? const Color(0xFFFF9466) : rgba(255, 255, 255, .55)),
+                style: inter(11, weight: FontWeight.w700, color: n > _maks ? const Color(0xFFFF9466) : (lys ? LysPalett.dempet : rgba(255, 255, 255, .55))),
               ),
             ),
           CssBox(
             radius: BorderRadius.circular(27),
-            bg: const [CssLinear(180, [Color(0xFF2B5F6E), Color(0xFF1E4F5C)])],
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .28)),
-            shadows: const [
-              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-              CssShadow(0, 18, 34, -14, Color.fromRGBO(4, 18, 26, .85)),
-            ],
+            bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color(0xFF2B5F6E), Color(0xFF1E4F5C)])],
+            border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .28)),
+            shadows: lys
+                ? const []
+                : const [
+                    CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+                    CssShadow(0, 18, 34, -14, Color.fromRGBO(4, 18, 26, .85)),
+                  ],
             padding: const EdgeInsets.fromLTRB(18, 6, 6, 6),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -452,8 +474,8 @@ class FeedKommentarFeltState extends State<FeedKommentarFelt> {
                       maxLines: 4,
                       maxLength: _maks,
                       buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-                      style: jakarta(14, weight: FontWeight.w700),
-                      cursorColor: const Color(0xFF7FF0CB),
+                      style: jakarta(14, weight: FontWeight.w700, color: lys ? LysPalett.tittel : Colors.white),
+                      cursorColor: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB),
                       decoration: InputDecoration(
                         isCollapsed: true,
                         isDense: true,
@@ -464,7 +486,7 @@ class FeedKommentarFeltState extends State<FeedKommentarFelt> {
                         disabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         hintText: l10n.post_detail_comment_hint,
-                        hintStyle: jakarta(14, weight: FontWeight.w700, color: const Color(0xFFA9BCC2)),
+                        hintStyle: jakarta(14, weight: FontWeight.w700, color: lys ? LysPalett.dempet : const Color(0xFFA9BCC2)),
                       ),
                     ),
                   ),
@@ -520,7 +542,7 @@ class FeedKommentarerAv extends StatelessWidget {
     child: Text(
       'Kommentarer er slått av',
       textAlign: TextAlign.center,
-      style: inter(12.5, weight: FontWeight.w600, color: rgba(220, 233, 236, .7)),
+      style: inter(12.5, weight: FontWeight.w600, color: context.aeM(rgba(220, 233, 236, .7), LysPalett.sekundar)),
     ),
   );
 }

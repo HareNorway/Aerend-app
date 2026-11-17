@@ -11,6 +11,8 @@ import 'aegil_bits.dart';
 import 'aegil_chat.dart';
 import '../onboarding/onb_maal.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Customer Step 9: the customer agents' cards in the chat ─────────────────
 //
@@ -211,6 +213,8 @@ class AeNokkel extends StatelessWidget {
   /// Outside the paper card, on the chat's teal: white glass instead of the quiet grey.
   final bool glass;
 
+  // Not in the design; Lys: the glass key like the chat's keys (`.mk2o`: white — `--lys-dis` when off —,
+  // 1px kant, `--lys-tittel`). The keys inside the paper card stay.
   @override
   Widget build(BuildContext context) => AePress(
     onTap: av ? null : onTap,
@@ -222,11 +226,13 @@ class AeNokkel extends StatelessWidget {
       alignment: Alignment.center,
       decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: glass ? Color.fromRGBO(255, 255, 255, av ? .08 : .16) : (sekundaer ? const Color.fromRGBO(35, 32, 29, .06) : (av ? const Color.fromRGBO(30, 79, 92, .35) : kAeTeal)),
-        border: glass ? Border.all(color: const Color.fromRGBO(255, 255, 255, .22)) : null,
+        color: glass
+            ? context.aeM(Color.fromRGBO(255, 255, 255, av ? .08 : .16), av ? LysPalett.dis : LysPalett.hvit)
+            : (sekundaer ? const Color.fromRGBO(35, 32, 29, .06) : (av ? const Color.fromRGBO(30, 79, 92, .35) : kAeTeal)),
+        border: glass ? Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)) : null,
         boxShadow: sekundaer || av || glass ? null : const [BoxShadow(color: Color.fromRGBO(15, 31, 43, .35), offset: Offset(0, 8), blurRadius: 16, spreadRadius: -10)],
       ),
-      child: Text(label, style: inter(smal ? 12.5 : 13.5, weight: FontWeight.w800, color: sekundaer && !glass ? kAeInk : Colors.white)),
+      child: Text(label, style: inter(smal ? 12.5 : 13.5, weight: FontWeight.w800, color: sekundaer && !glass ? kAeInk : (glass ? context.aeM(Colors.white, LysPalett.tittel) : Colors.white))),
     ),
   );
 }
@@ -410,7 +416,8 @@ class AeGaveSett extends StatelessWidget {
         if (r.round > 1)
           Padding(
             padding: const EdgeInsets.only(bottom: 8, left: 4),
-            child: Text('${AeAgentCopy.cus_gave_forrige} · ${AeAgentCopy.cus_gave_runde(r.round)}', style: inter(11.5, weight: FontWeight.w700, color: kAeSub)),
+            // Not in the design; Lys `--lys-sekundar` (on the sheet, like `.mk2q`).
+            child: Text('${AeAgentCopy.cus_gave_forrige} · ${AeAgentCopy.cus_gave_runde(r.round)}', style: inter(11.5, weight: FontWeight.w700, color: context.aeM(kAeSub, LysPalett.sekundar))),
           ),
         for (final (i, c) in r.cards.indexed) ...[
           if (i > 0) const SizedBox(height: 8),

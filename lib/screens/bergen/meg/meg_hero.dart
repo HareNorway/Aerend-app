@@ -18,6 +18,9 @@ import '../kit/maler_vert.dart';
 /// with the still of the weather until its first frame — Ægil on the path (`aegStaa 3.6s`; a tap makes him hop and say
 /// the next tip, `megAegTrykk`) and his bubble, and the light fade at the
 /// bottom.
+/// The stadium's top pixel ratio at full tier (design: 3; heat plan: 1.5).
+const double kStadionMaksDpr = 1.5;
+
 class MegHero extends StatelessWidget {
   const MegHero({super.key, required this.look, required this.bubble, required this.n, required this.onAegil});
 
@@ -200,10 +203,15 @@ class _Aegil extends StatelessWidget {
 }
 
 /// The stadium scene, live: `shaders/meg_stadion.frag` (the prototype's own
-/// shader) rendered offscreen at about 20 frames a second into at most
-/// 160 000 pixels (`ulGlTegn`), drawn over the still (which also stands in
-/// when the shader cannot load). Reduced motion slows the scene to 15 %, as
-/// the prototype's `rolig` does.
+/// shader) in `ulGlTegn`'s two passes — the scene (uPass 0) into a
+/// supersampled image (`ss`: twice the screen's pixel ratio, at most 4× the
+/// design px, 2× in `lite`), whole the first time (and on a new weather or
+/// size), then one stripe of [_stripes] a frame; the screen pass (uPass 1,
+/// at a pixel ratio of at most 3, 1.5 in `lite` — the prototype's `svak`)
+/// reads it and adds what moves. Rendered offscreen at about 33 frames a
+/// second and drawn over the still (which also stands in when the shader
+/// cannot load). Reduced motion slows the scene to 15 %, as the prototype's
+/// `rolig` does.
 class MegStadion extends StatefulWidget {
   const MegStadion({super.key, required this.kind});
 
@@ -217,7 +225,18 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   static Future<ui.FragmentProgram>? _program;
   static const double _w = 390, _h = 196;
 
-  ui.FragmentShader? _shader;
+  // The scene pass and the screen pass (one program, two sets of uniforms).
+  ui.FragmentShader? _shader, _skjerm;
+  // The scene image, its weather and size, and the next stripe (rows from
+  // the bottom, as GL's scissor counts them).
+  ui.Image? _scene;
+  String? _sceneSig;
+  int _rad = 0;
+  bool _aBusy = false;
+  bool _aVenter = false;
+  bool _ventSkjerm = false;
+  // uScene for the scene pass, which doesn't read it (the prototype's `tom`).
+  ui.Image? _tom;
   // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
   // one only repaints [MalerVert] (no setState per step).
   final MalerRamme _ramme = MalerRamme();
@@ -226,14 +245,21 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   Duration _sist = Duration.zero;
   Duration _prev = Duration.zero;
   double _t = 0;
-  double _dpr = 1.5;
+  double _dpr = 3;
   bool _reduce = false;
 
-  // Motion tier (parity plan §3.1): 20 fps at 160 000 px in `full` (the
-  // prototype's `ulGlTegn`), 12 fps at 55 % in `lite`, one frame in `still`
-  // unless the user asked for calm (then the prototype's slow `rolig`).
-  Duration _step = const Duration(milliseconds: 50);
-  double _budget = 160000;
+  // Motion tier (parity plan §3.1): every 30 ms in `full` (`ulGlTegn`'s step
+  // when its two passes take over 9 ms; 14 ms when they're quicker), 60 ms
+  // with the `svak` sizes in `lite`, one frame in `still` unless the user
+  // asked for calm (then the prototype's slow `rolig`).
+  // Lys plan Step 15 (heat): the design adapts 14–30 ms; the app keeps its heat-tuned 20 fps (12 in lite).
+  static const double _fullMs = 50, _liteMs = 1000 / 12;
+  Duration _step = const Duration(milliseconds: 30);
+  bool _svak = false;
+
+  // `ulGlTegn`'s stripe count (`g.N`, 12 to start; the prototype tunes it
+  // between 8 and 48 by the frame's GPU time).
+  static const int _stripes = 12;
 
   // Perf plan: no frames while the stadium is off the screen (Meg scrolled
   // down); its clock carries on (see PerfHvile).
@@ -255,8 +281,9 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _program!.then((pr) {
       if (!mounted) return;
       _shader = pr.fragmentShader();
+      _skjerm = pr.fragmentShader();
       _render();
-      if (BergenPerf.shaderStep(context, fullMs: 50, liteMs: 1000 / 12) != null || BergenPerf.calmOf(context)) {
+      if (BergenPerf.shaderStep(context, fullMs: _fullMs, liteMs: _liteMs) != null || BergenPerf.calmOf(context)) {
         _ticker.start();
       }
     }).catchError((Object _) {});
@@ -266,11 +293,12 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduce = MediaQuery.disableAnimationsOf(context);
-    _dpr = math.min(1.5, MediaQuery.devicePixelRatioOf(context));
+    _dpr = MediaQuery.devicePixelRatioOf(context);
     final calm = BergenPerf.calmOf(context);
-    final step = BergenPerf.shaderStep(context, fullMs: 50, liteMs: 1000 / 12);
-    _step = step ?? (calm ? const Duration(milliseconds: 1000 ~/ 12) : _step);
-    _budget = BergenPerf.shaderBudget(context, 160000);
+    final step = BergenPerf.shaderStep(context, fullMs: _fullMs, liteMs: _liteMs);
+    _step = step ?? (calm ? Duration(milliseconds: _liteMs.round()) : _step);
+    // `svak` (the prototype's pixel budget under 110 000): the `lite` tier.
+    _svak = BergenPerf.shaderBudget(context, 1) < 1;
     // Heat / battery `still`: hold the frame; the user's calm keeps `rolig`.
     final hold = step == null && !calm;
     if (hold) _hvile.vaakn(start: false);
@@ -293,7 +321,6 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _t += _rammer.dt(e, _prev, .1) * (_reduce ? .15 : 1);
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
     _prev = e;
-    // The scene moves calmly; 20 frames a second is enough (`ulGlTegn`).
     // Heat ladder / idle: on the takt's frames, at its own pace on average.
     final sist = PerfTakt.paa ? PerfTakt.steg(e, _sist, _step) : (e - _sist < _step ? null : e);
     if (sist == null) {
@@ -305,31 +332,102 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _render();
   }
 
+  /// `ulGlTegn`: pass A (the scene into its image, whole or one stripe),
+  /// then pass B (the screen).
   void _render() {
-    final sh = _shader;
-    if (sh == null) return;
-    final dpr = math.max(.5, math.min(_dpr, math.sqrt(_budget / (_w * _h))));
-    final pw = (_w * dpr).round(), ph = (_h * dpr).round();
+    final sh = _shader, sk = _skjerm;
+    if (sh == null || sk == null) return;
+    // Lys plan Step 15 (heat): the design caps the ratio at 3 (1.5 when weak); the app keeps its own 1.5 cap
+    // from the heat work — the same picture at a lower resolution. One number to raise after a device check.
+    final d = math.max(1.0, math.min(_svak ? 1.5 : kStadionMaksDpr, _dpr)), ss = math.min(_svak ? 2.0 : 4.0, d * 2);
+    final pw = (_w * d).round(), ph = (_h * d).round(), sw = (_w * ss).round(), sh2 = (_h * ss).round();
     final p = BrPal.of(widget.kind);
-    var i = 0;
-    void f(double v) => sh.setFloat(i++, v);
-    f(_w);
-    f(_h);
-    f(pw / _w);
-    f(12 + _t % 3600);
-    f(p.night);
-    f(p.sun);
-    f(p.sunset);
-    f(p.rain);
-    f(0); // uSnow — Bergen's four looks have no snow
-    f(p.wet);
-    f(p.rain > 0 ? .5 : (p.sun > .9 ? .18 : .3)); // uHz
-    f(p.rain > 0 ? 30 : -20); // uCY
-    for (final c in [p.skT, p.skM, p.skB]) {
-      c.forEach(f);
+    void set(ui.FragmentShader s, double dpr, double pass) {
+      var i = 0;
+      void f(double v) => s.setFloat(i++, v);
+      f(_w);
+      f(_h);
+      f(dpr);
+      f(12 + _t % 3600);
+      f(p.night);
+      f(p.sun);
+      f(p.sunset);
+      f(p.rain);
+      f(0); // uSnow — Bergen's four looks have no snow
+      f(p.wet);
+      f(p.rain > 0 ? .5 : (p.sun > .9 ? .18 : .3)); // uHz
+      f(p.rain > 0 ? 30 : -20); // uCY
+      for (final c in [p.skT, p.skM, p.skB]) {
+        c.forEach(f);
+      }
+      f(pass); // uPass
     }
-    final rec = ui.PictureRecorder();
-    Canvas(rec).drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sh);
+
+    // Pass A: the scene into its image.
+    set(sh, sw / _w, 0);
+    sh.setImageSampler(0, _tom ??= _blank());
+    final sig = '${widget.kind.name}|${sw}x$sh2';
+    final full = Rect.fromLTWH(0, 0, sw.toDouble(), sh2.toDouble());
+    final pa = Paint()
+      ..shader = sh
+      ..blendMode = BlendMode.src;
+    // The scene image is made with the async `toImage` (a plain texture). A `toImageSync` image keeps its
+    // display list, which drew the previous scene — every stripe step would keep the whole chain of older
+    // scenes alive (an unbounded GPU leak). One step in flight; the screen pass uses the newest finished one.
+    if (!_aBusy) {
+      final ny = _scene == null || _sceneSig != sig;
+      if (!ny || !_aVenter) {
+        final rec0 = ui.PictureRecorder();
+        final c0 = Canvas(rec0);
+        if (ny) {
+          c0.drawRect(full, pa);
+          _rad = 0;
+          _aVenter = true;
+        } else {
+          final n = (sh2 / _stripes).ceil(), y0 = _rad;
+          c0.drawImage(_scene!, Offset.zero, Paint()..blendMode = BlendMode.src);
+          c0.drawRect(Rect.fromLTRB(0, math.max(0, sh2 - y0 - n).toDouble(), full.right, (sh2 - y0).toDouble()), pa);
+          _rad = y0 + n >= sh2 ? 0 : y0 + n;
+        }
+        final pic = rec0.endRecording();
+        _aBusy = true;
+        pic.toImage(sw, sh2).then((img) {
+          pic.dispose();
+          _aBusy = false;
+          if (!mounted) {
+            img.dispose();
+            return;
+          }
+          _scene?.dispose();
+          _scene = img;
+          _sceneSig = sig;
+          _aVenter = false;
+          // A screen frame was skipped waiting for this scene (first frame, `still`): draw it now, once.
+          if (_ventSkjerm) {
+            _ventSkjerm = false;
+            _render();
+          }
+        }, onError: (Object _) {
+          pic.dispose();
+          _aBusy = false;
+          _aVenter = false;
+        });
+      }
+    }
+    final scene = _scene;
+    // Nothing finished yet (first frame, new weather/size): the still stays up a frame longer.
+    if (scene == null || _sceneSig != sig) {
+      _ventSkjerm = true;
+      return;
+    }
+    var rec = ui.PictureRecorder();
+    var c = Canvas(rec);
+    // Pass B: the screen.
+    set(sk, pw / _w, 1);
+    sk.setImageSampler(0, scene);
+    rec = ui.PictureRecorder();
+    c = Canvas(rec);
+    c.drawRect(Rect.fromLTWH(0, 0, pw.toDouble(), ph.toDouble()), Paint()..shader = sk);
     final img = rec.endRecording().toImageSync(pw, ph);
     BergenPerf.telRender('Meg');
     if (BergenPerf.malerVertPaa && _vert) {
@@ -337,6 +435,12 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     } else {
       setState(() => _ramme.sett(img));
     }
+  }
+
+  static ui.Image _blank() {
+    final rec = ui.PictureRecorder();
+    Canvas(rec).drawRect(const Rect.fromLTWH(0, 0, 1, 1), Paint()..color = const Color(0x00000000));
+    return rec.endRecording().toImageSync(1, 1);
   }
 
   @override
@@ -347,6 +451,9 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     _ticker.dispose();
     _ramme.dispose();
     _shader?.dispose();
+    _skjerm?.dispose();
+    _scene?.dispose();
+    _tom?.dispose();
     super.dispose();
   }
 

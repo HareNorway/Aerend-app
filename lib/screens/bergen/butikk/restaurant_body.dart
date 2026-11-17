@@ -44,6 +44,8 @@ import '../../../ui/kit/ae_haptic.dart';
 import '../kasse/kurv_sync.dart';
 import '../kasse/kasse_copy.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The restaurant page (`erButikk` ≈L3035–3520 in `Ærend Kunde Bergen.dc.html`).
 ///
@@ -385,7 +387,8 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
     final barBottom = math.max(18 * s, mq.padding.bottom);
 
     return Scaffold(
-      backgroundColor: BergenColors.teal3,
+      // Lys: the body's `--lys-ull` (`.mky`) also under the fade-in.
+      backgroundColor: context.aeM(BergenColors.teal3, LysPalett.ull),
       body: BergenOnce(
         durationMs: 340,
         builder: (context, p, child) {
@@ -396,8 +399,13 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
           );
         },
         child: DecoratedBox(
+          // `.mky`: the fjord body, `--lys-ull` in Lys (the hero and the
+          // «Seilasen din» card stay fjord in both modes).
           decoration: BoxDecoration(
-            gradient: cssLinear(180, const [Color(0xFF1E4F5C), Color(0xFF1B4854), Color(0xFF173E48)], const [0, .4, 1]),
+            gradient: context.aeM(
+              cssLinear(180, const [Color(0xFF1E4F5C), Color(0xFF1B4854), Color(0xFF173E48)], const [0, .4, 1]),
+              const LinearGradient(colors: [LysPalett.ull, LysPalett.ull]),
+            ),
           ),
           child: Stack(
             children: [
@@ -409,12 +417,12 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _Hero(
+                    ModusStatusMork(child: _Hero(
                       store: store,
                       kitchen: _kitchenText,
                       onBack: () => Navigator.of(context).maybePop(),
                       perKjop: _perKjop,
-                    ),
+                    )),
                     Transform.translate(
                       offset: Offset(0, -22 * s),
                       child: _CreamCard(
@@ -2261,15 +2269,19 @@ class _CategoryRail extends StatelessWidget {
                     width: 64 * s,
                     height: 64 * s,
                     child: IgnorePointer(
+                      // `.mk10`: light radial `rgba(30,79,92,.07/.02/0)`, 1.5px `--lys-kant-farge` ring.
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             center: const Alignment(0, -.56),
-                            colors: [rgba(255, 255, 255, .22), rgba(255, 255, 255, .06), rgba(255, 255, 255, 0)],
+                            colors: context.aeM(
+                              [rgba(255, 255, 255, .22), rgba(255, 255, 255, .06), rgba(255, 255, 255, 0)],
+                              [rgba(30, 79, 92, .07), rgba(30, 79, 92, .02), rgba(30, 79, 92, 0)],
+                            ),
                             stops: const [0, .58, .75],
                           ),
-                          border: Border.all(color: rgba(255, 255, 255, .18), width: 1.5),
+                          border: Border.all(color: context.aeM(rgba(255, 255, 255, .18), LysPalett.kantFarge), width: 1.5),
                         ),
                       ),
                     ),
@@ -2392,6 +2404,7 @@ class _Orb extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     const dur = Duration(milliseconds: 300);
+    final lys = context.lys;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -2411,35 +2424,53 @@ class _Orb extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
+                  // Lys (bkListe L20308–20310): on `linear-gradient(180deg,#27606F,#1E4F5C)`,
+                  // off white with a `--lys-kant-farge` ring; the icon off `--lys-fjord`.
                   gradient: on
-                      ? cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)])
-                      : const LinearGradient(
+                      ? (lys
+                          ? const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFF27606F), Color(0xFF1E4F5C)],
+                            )
+                          : cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)]))
+                      : LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [Colors.white, Color(0xFFF1ECE1)],
+                          colors: lys ? const [Colors.white, Colors.white] : const [Colors.white, Color(0xFFF1ECE1)],
                         ),
                   boxShadow: on
                       ? [
                           BoxShadow(
-                            color: rgba(120, 50, 10, .75),
+                            color: lys ? rgba(15, 45, 55, .55) : rgba(120, 50, 10, .75),
                             offset: Offset(0, 10 * s),
                             blurRadius: onbBlur(15 * s),
                             spreadRadius: -6 * s,
                           ),
-                          BoxShadow(color: rgba(150, 60, 15, .85), offset: Offset(0, 3 * s)),
+                          BoxShadow(color: lys ? rgba(11, 38, 45, .85) : rgba(150, 60, 15, .85), offset: Offset(0, 3 * s)),
                         ]
-                      : [
-                          BoxShadow(
-                            color: rgba(35, 32, 29, .35),
-                            offset: Offset(0, 4 * s),
-                            blurRadius: onbBlur(7 * s),
-                            spreadRadius: -4 * s,
-                          ),
-                          BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
-                          BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 1),
-                        ],
+                      : lys
+                          ? [
+                              BoxShadow(
+                                color: rgba(23, 62, 72, .2),
+                                offset: Offset(0, 4 * s),
+                                blurRadius: onbBlur(7 * s),
+                                spreadRadius: -4 * s,
+                              ),
+                              const BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1),
+                            ]
+                          : [
+                              BoxShadow(
+                                color: rgba(35, 32, 29, .35),
+                                offset: Offset(0, 4 * s),
+                                blurRadius: onbBlur(7 * s),
+                                spreadRadius: -4 * s,
+                              ),
+                              BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 1.5 * s)),
+                              BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 1),
+                            ],
                 ),
-                child: _Ico(18 * s, on ? Colors.white : BergenColors.inkMuted, 2.1, _icon),
+                child: _Ico(18 * s, on ? Colors.white : (lys ? LysPalett.fjord : BergenColors.inkMuted), 2.1, _icon),
               ),
               Positioned(
                 top: 46 * s + 7 * s,
@@ -2455,7 +2486,9 @@ class _Orb extends StatelessWidget {
                       10.5,
                       weight: FontWeight.w800,
                       letterSpacingEm: -.01,
-                      color: on ? const Color(0xFFFF9A5E) : rgba(255, 255, 255, .75),
+                      color: on
+                          ? (lys ? LysPalett.tittel : const Color(0xFFFF9A5E))
+                          : (lys ? LysPalett.sekundar : rgba(255, 255, 255, .75)),
                     ),
                   ),
                 ),
@@ -2489,6 +2522,7 @@ class _MenuHead extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     const spring = Cubic(.3, 1.05, .35, 1);
+    final lys = context.lys;
     return Padding(
       padding: EdgeInsets.fromLTRB(20 * s, 16 * s, 16 * s, 0),
       child: SizedBox(
@@ -2517,13 +2551,14 @@ class _MenuHead extends StatelessWidget {
                             weight: FontWeight.w800,
                             letterSpacingEm: -.01,
                             height: 1.1,
-                            color: Colors.white,
+                            // `.mkb` / `.mkd`.
+                            color: lys ? LysPalett.tittel : Colors.white,
                           ),
                         ),
                         SizedBox(height: 2 * s),
                         Text(
                           ButikkCopy.a1_butikk_inkl_mva,
-                          style: bText(context, 10.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .55)),
+                          style: bText(context, 10.5, weight: FontWeight.w600, color: lys ? LysPalett.dempet : rgba(255, 255, 255, .55)),
                         ),
                       ],
                     ),
@@ -2539,15 +2574,18 @@ class _MenuHead extends StatelessWidget {
                   child: AnimatedOpacity(
                     duration: const Duration(milliseconds: 260),
                     opacity: open ? 0 : 1,
+                    // `.mk11`: light radial `rgba(30,79,92,.06/.02/0)`, 1px `--lys-kant-farge` ring.
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           center: const Alignment(0, -.56),
-                          colors: [rgba(255, 255, 255, .16), rgba(255, 255, 255, .04), rgba(255, 255, 255, 0)],
+                          colors: lys
+                              ? [rgba(30, 79, 92, .06), rgba(30, 79, 92, .02), rgba(30, 79, 92, 0)]
+                              : [rgba(255, 255, 255, .16), rgba(255, 255, 255, .04), rgba(255, 255, 255, 0)],
                           stops: const [0, .58, .75],
                         ),
-                        border: Border.all(color: rgba(255, 255, 255, .12)),
+                        border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .12)),
                       ),
                     ),
                   ),
@@ -2564,17 +2602,38 @@ class _MenuHead extends StatelessWidget {
                   curve: spring,
                   width: open ? c.maxWidth : 38 * s,
                   clipBehavior: Clip.antiAlias,
+                  // Lys (L20339–20340): `--lys-hvit` open or shut; the ring
+                  // `rgba(11,107,87,.45)` open, `--lys-kant-farge` shut; shadow
+                  // `0 0 0 3px rgba(92,224,184,.2)` open, `--lys-kortskygge` shut.
                   decoration: CssDecoration(
                     borderRadius: BorderRadius.circular(19 * s),
-                    gradient: open
+                    gradient: lys
+                        ? const LinearGradient(colors: [LysPalett.hvit, LysPalett.hvit])
+                        : open
                         ? LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [rgba(0, 0, 0, .3), rgba(0, 0, 0, .18)],
                           )
                         : cssLinear(165, const [Color(0xFF2A6272), Color(0xFF1E4F5C)]),
-                    border: Border.all(color: open ? rgba(92, 224, 184, .55) : Colors.transparent),
-                    boxShadow: open
+                    border: Border.all(
+                      color: lys
+                          ? (open ? rgba(11, 107, 87, .45) : LysPalett.kantFarge)
+                          : (open ? rgba(92, 224, 184, .55) : Colors.transparent),
+                    ),
+                    boxShadow: lys
+                        ? (open
+                            ? [BoxShadow(color: rgba(92, 224, 184, .2), spreadRadius: 3 * s)]
+                            : [
+                                BoxShadow(
+                                  color: rgba(6, 52, 62, .2),
+                                  offset: Offset(0, 10 * s),
+                                  blurRadius: onbBlur(26 * s),
+                                  spreadRadius: -14 * s,
+                                ),
+                                BoxShadow(color: rgba(6, 52, 62, .04), offset: Offset(0, 1 * s), blurRadius: onbBlur(1 * s)),
+                              ])
+                        : open
                         ? [
                             BoxShadow(
                               color: rgba(4, 18, 26, .8),
@@ -2596,7 +2655,7 @@ class _MenuHead extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      if (!open) bergenInsetTop(radius: 19 * s, alpha: .28),
+                      if (!open) bergenInsetTop(radius: 19 * s, alpha: lys ? 0 : .28),
                       Positioned(
                         left: 0,
                         top: 0,
@@ -2614,15 +2673,16 @@ class _MenuHead extends StatelessWidget {
                                     key: const Key('a1_butikk_meny_sok'),
                                     controller: controller,
                                     focusNode: focus,
-                                    cursorColor: BergenColors.mint,
-                                    style: bDisplay(context, 13, weight: FontWeight.w700, color: Colors.white),
+                                    // `.mk12`: `--lys-tittel`, caret `--lys-mint-tekst`.
+                                    cursorColor: lys ? LysPalett.mintTekst : BergenColors.mint,
+                                    style: bDisplay(context, 13, weight: FontWeight.w700, color: lys ? LysPalett.tittel : Colors.white),
                                     decoration: onbBareInput(
                                       hint: ButikkCopy.a1_butikk_sok_meny,
                                       hintStyle: bDisplay(
                                         context,
                                         13,
                                         weight: FontWeight.w700,
-                                        color: rgba(255, 255, 255, .45),
+                                        color: lys ? LysPalett.dempet : rgba(255, 255, 255, .45),
                                       ),
                                     ).copyWith(contentPadding: EdgeInsets.only(left: 16 * s)),
                                   ),
@@ -2634,7 +2694,8 @@ class _MenuHead extends StatelessWidget {
                                       padding: EdgeInsets.symmetric(horizontal: 4 * s),
                                       child: Text(
                                         ButikkCopy.a1_butikk_tom,
-                                        style: bText(context, 10.5, weight: FontWeight.w800, color: BergenColors.mint),
+                                        // `.mk13` «Tøm»: `--lys-mint-tekst`.
+                                        style: bText(context, 10.5, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : BergenColors.mint),
                                       ),
                                     ),
                                   ),
@@ -2659,9 +2720,10 @@ class _MenuHead extends StatelessWidget {
                                 duration: const Duration(milliseconds: 420),
                                 curve: const Cubic(.3, 1.1, .4, 1),
                                 turns: open ? .25 : 0,
+                                // `.mku`: stroke `#1E4F5C` in Lys.
                                 child: _Ico(
                                   17 * s,
-                                  Colors.white,
+                                  lys ? LysPalett.fjord : Colors.white,
                                   2.4,
                                   open
                                       ? (k) => Path()
@@ -2726,7 +2788,8 @@ class _TilbudGrid extends StatelessWidget {
               Expanded(
                 child: Text(
                   ButikkCopy.a1_butikk_tilbud_note,
-                  style: bText(context, 11.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .72)),
+                  // `.mk14`: `--lys-sekundar`.
+                  style: bText(context, 11.5, weight: FontWeight.w700, color: context.aeM(rgba(255, 255, 255, .72), LysPalett.sekundar)),
                 ),
               ),
             ],
@@ -3048,17 +3111,28 @@ class _Grid extends StatelessWidget {
     if (items.isEmpty) {
       return Padding(
         padding: EdgeInsets.fromLTRB(16 * s, 34 * s, 16 * s, 0),
+        // `.mk16` / `.mk17` (bkTom): `--lys-hvit`, `--lys-kant-farge` ring,
+        // `--lys-kortskygge`; the text `--lys-sekundar`.
         child: Container(
           key: const Key('a1_butikk_menu_empty'),
           padding: EdgeInsets.all(14 * s),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22 * s),
-            color: rgba(255, 255, 255, .08),
-            border: Border.all(color: rgba(255, 255, 255, .14)),
+            color: context.aeM(rgba(255, 255, 255, .08), LysPalett.hvit),
+            border: Border.all(color: context.aeM(rgba(255, 255, 255, .14), LysPalett.kantFarge)),
+            boxShadow: context.aeM(const <BoxShadow>[], [
+              BoxShadow(
+                color: rgba(6, 52, 62, .2),
+                offset: Offset(0, 10 * s),
+                blurRadius: onbBlur(26 * s),
+                spreadRadius: -14 * s,
+              ),
+              BoxShadow(color: rgba(6, 52, 62, .04), offset: Offset(0, 1 * s), blurRadius: onbBlur(1 * s)),
+            ]),
           ),
           child: Text(
             query.isEmpty ? ButikkCopy.a1_butikk_menu_empty : ButikkCopy.a1_butikk_ingen_treff_meny(query),
-            style: bText(context, 12, weight: FontWeight.w600, height: 1.45, color: rgba(255, 255, 255, .75)),
+            style: bText(context, 12, weight: FontWeight.w600, height: 1.45, color: context.aeM(rgba(255, 255, 255, .75), LysPalett.sekundar)),
           ),
         ),
       );
@@ -3167,25 +3241,40 @@ class _MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final r = BorderRadius.circular(24 * s);
+    final lys = context.lys;
+    // `.mk18`: in Lys `--lys-hvit`, a 1px `--lys-kant-farge` border and
+    // `--lys-kortskygge` (no warm glow, no inset edges).
     return Container(
       padding: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 12 * s),
       decoration: CssDecoration(
         borderRadius: r,
-        gradient: cssLinear(
-          165,
-          [rgba(255, 255, 255, .19), rgba(255, 255, 255, .08), rgba(255, 255, 255, .04)],
-          const [0, .4, 1],
-        ),
-        border: Border.all(color: rgba(255, 255, 255, .24)),
-        boxShadow: [
-          BoxShadow(
-            color: rgba(2, 12, 18, .95),
-            offset: Offset(0, 22 * s),
-            blurRadius: onbBlur(32 * s),
-            spreadRadius: -18 * s,
-          ),
-          BoxShadow(color: rgba(8, 30, 38, .5), offset: Offset(0, 2 * s)),
-        ],
+        gradient: lys
+            ? const LinearGradient(colors: [LysPalett.hvit, LysPalett.hvit])
+            : cssLinear(
+                165,
+                [rgba(255, 255, 255, .19), rgba(255, 255, 255, .08), rgba(255, 255, 255, .04)],
+                const [0, .4, 1],
+              ),
+        border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .24)),
+        boxShadow: lys
+            ? [
+                BoxShadow(
+                  color: rgba(6, 52, 62, .2),
+                  offset: Offset(0, 10 * s),
+                  blurRadius: onbBlur(26 * s),
+                  spreadRadius: -14 * s,
+                ),
+                BoxShadow(color: rgba(6, 52, 62, .04), offset: Offset(0, 1 * s), blurRadius: onbBlur(1 * s)),
+              ]
+            : [
+                BoxShadow(
+                  color: rgba(2, 12, 18, .95),
+                  offset: Offset(0, 22 * s),
+                  blurRadius: onbBlur(32 * s),
+                  spreadRadius: -18 * s,
+                ),
+                BoxShadow(color: rgba(8, 30, 38, .5), offset: Offset(0, 2 * s)),
+              ],
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -3204,7 +3293,9 @@ class _MenuCard extends StatelessWidget {
                   gradient: RadialGradient(
                     center: Alignment.topCenter,
                     radius: 1,
-                    colors: [rgba(255, 190, 120, .2), rgba(255, 190, 120, 0)],
+                    colors: lys
+                        ? const [Color(0x00000000), Color(0x00000000)]
+                        : [rgba(255, 190, 120, .2), rgba(255, 190, 120, 0)],
                     stops: const [0, .7],
                     transform: const _CssRadial(.5, 0, .9, .55),
                   ),
@@ -3215,7 +3306,7 @@ class _MenuCard extends StatelessWidget {
           bergenInsetTop(
             radius: 24 * s,
             height: 1.5 * s,
-            alpha: .38,
+            alpha: lys ? 0 : .38,
             pad: EdgeInsets.fromLTRB(12 * s, 8 * s, 12 * s, 12 * s),
           ),
           Column(
@@ -3248,7 +3339,8 @@ class _MenuCard extends StatelessWidget {
                   item.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: bDisplay(context, 14, letterSpacingEm: -.02, height: 1.2, color: Colors.white),
+                  // `.mkb`: `--lys-tittel`.
+                  style: bDisplay(context, 14, letterSpacingEm: -.02, height: 1.2, color: lys ? LysPalett.tittel : Colors.white),
                 ),
               ),
               SizedBox(height: 10 * s),
@@ -3268,7 +3360,7 @@ class _MenuCard extends StatelessWidget {
                               context,
                               17,
                               letterSpacingEm: -.02,
-                              color: Colors.white,
+                              color: lys ? LysPalett.tittel : Colors.white,
                             ).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                           ),
                           if (item.wasPrice != null)
@@ -3279,7 +3371,8 @@ class _MenuCard extends StatelessWidget {
                                 context,
                                 11,
                                 weight: FontWeight.w700,
-                                color: rgba(255, 255, 255, .5),
+                                // App-only (the design's grid has no old price): `--lys-dempet` like `.mkd`.
+                                color: lys ? LysPalett.dempet : rgba(255, 255, 255, .5),
                                 decoration: TextDecoration.lineThrough,
                               ),
                             ),
@@ -3317,6 +3410,7 @@ class _MenuBilde extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final url = item.imageUrl;
+    final lys = context.lys;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -3331,7 +3425,10 @@ class _MenuBilde extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   center: const Alignment(0, -.1),
-                  colors: [rgba(255, 190, 120, .28), rgba(255, 190, 120, 0)],
+                  // `.mk1a`: the warm glow goes `rgba(255,190,120,0)` in Lys.
+                  colors: lys
+                      ? [rgba(255, 190, 120, 0), rgba(255, 190, 120, 0)]
+                      : [rgba(255, 190, 120, .28), rgba(255, 190, 120, 0)],
                   stops: const [0, .7],
                 ),
               ),
@@ -3348,7 +3445,11 @@ class _MenuBilde extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.elliptical(60 * s, 6 * s)),
-                gradient: RadialGradient(colors: [rgba(0, 8, 12, .55), rgba(0, 8, 12, 0)], stops: const [0, .72]),
+                // `.mk19`: `rgba(23,62,72,.26)` in Lys.
+                gradient: RadialGradient(
+                  colors: lys ? [rgba(23, 62, 72, .26), rgba(23, 62, 72, 0)] : [rgba(0, 8, 12, .55), rgba(0, 8, 12, 0)],
+                  stops: const [0, .72],
+                ),
               ),
             ),
           ),
@@ -3400,19 +3501,27 @@ class _MenuBilde extends StatelessWidget {
                       top: 0,
                       child: Container(
                         padding: EdgeInsets.fromLTRB(6 * s, 3 * s, 8 * s, 3 * s),
+                        // `.mk1b` / `.mk1c`: `--lys-glod-dis`, a `rgba(166,58,18,.25)` ring,
+                        // `--lys-glod-tekst`; the star filled `#A63A12`.
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
-                          color: rgba(15, 42, 51, .72),
-                          border: Border.all(color: rgba(255, 178, 122, .55)),
+                          color: lys ? LysPalett.glodDis : rgba(15, 42, 51, .72),
+                          border: Border.all(color: lys ? rgba(166, 58, 18, .25) : rgba(255, 178, 122, .55)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _Ico(9 * s, const Color(0xFFFFB27A), 0, (k) => _starPath(k), fill: const Color(0xFFFFB27A)),
+                            _Ico(
+                              9 * s,
+                              lys ? const Color(0xFFA63A12) : const Color(0xFFFFB27A),
+                              0,
+                              (k) => _starPath(k),
+                              fill: lys ? const Color(0xFFA63A12) : const Color(0xFFFFB27A),
+                            ),
                             SizedBox(width: 4 * s),
                             Text(
                               ButikkCopy.a1_butikk_mest_bestilt,
-                              style: bText(context, 9.5, weight: FontWeight.w800, color: const Color(0xFFFFB27A)),
+                              style: bText(context, 9.5, weight: FontWeight.w800, color: lys ? LysPalett.glodTekst : const Color(0xFFFFB27A)),
                             ),
                           ],
                         ),
@@ -3565,6 +3674,7 @@ class _GridStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     Widget btn(String key, Path Function(double k) icon, VoidCallback onTap) => OnbPressable(
       key: Key(key),
       onTap: onTap,
@@ -3592,13 +3702,16 @@ class _GridStepper extends StatelessWidget {
     return Container(
       height: 38 * s,
       padding: EdgeInsets.symmetric(horizontal: 4 * s),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: rgba(0, 0, 0, .28)),
+      // `.mk1d`: `--lys-dis`, no inner shade in Lys.
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: lys ? LysPalett.dis : rgba(0, 0, 0, .28)),
       foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [rgba(0, 0, 0, .3), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(255, 255, 255, .1)],
+          colors: lys
+              ? const [Color(0x00000000), Color(0x00000000), Color(0x00000000), Color(0x00000000)]
+              : [rgba(0, 0, 0, .3), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(255, 255, 255, .1)],
           stops: const [0, .2, .94, 1],
         ),
       ),
@@ -3619,7 +3732,7 @@ class _GridStepper extends StatelessWidget {
               '$qty',
               key: Key('a1_butikk_qty_$id'),
               textAlign: TextAlign.center,
-              style: bText(context, 13, weight: FontWeight.w800),
+              style: bText(context, 13, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white),
             ),
           ),
           SizedBox(width: 4 * s),

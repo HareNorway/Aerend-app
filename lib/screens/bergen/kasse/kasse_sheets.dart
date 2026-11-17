@@ -15,11 +15,13 @@ import '../kit/bergen_css.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
-import 'kurv_parts.dart' show KasseTommelKlipp;
+import 'kurv_parts.dart' show KasseTommelKlipp, kurvLysSkygger, kurvLysTommelSkygge, kurvLysFjordFyll;
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../adresse/adr_ark.dart' show adrMerke;
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The four Kasse sheets (≈L6913–7142 in `Ærend Kunde Bergen.dc.html`) via
 /// [BergenArk]: **Adresse** ("Hvor skal ærendet?" + the door note),
@@ -123,6 +125,9 @@ class _KasseArkRute extends StatelessWidget {
           builder: (context) {
             final s = context.bs;
             final mq = MediaQuery.of(context);
+            // Lys plan (`sheetBg` / `sheetHandle` L20216, `.mkam`): every Kasse sheet
+            // is `--lys-ark` with `--lys-haandtak` and `--lys-arkskygge` in Lys.
+            final modusLys = context.lys;
             return Stack(
               children: [
                 Positioned.fill(
@@ -153,8 +158,8 @@ class _KasseArkRute extends StatelessWidget {
                       padding: EdgeInsets.fromLTRB(16 * s, 0, 16 * s, 22 * s + mq.padding.bottom * .5),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),
-                        color: lys ? const Color(0xF2FAF9F6) : null,
-                        gradient: lys
+                        color: modusLys ? LysPalett.ark : lys ? const Color(0xF2FAF9F6) : null,
+                        gradient: lys || modusLys
                             ? null
                             : cssLinear(
                                 180,
@@ -162,14 +167,16 @@ class _KasseArkRute extends StatelessWidget {
                                 const [0, .55, 1],
                               ),
                         border: const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
-                        boxShadow: [
-                          BoxShadow(
-                            color: rgba(15, 31, 43, .55),
-                            offset: Offset(0, -24 * s),
-                            blurRadius: onbBlur(50 * s),
-                            spreadRadius: -20 * s,
-                          ),
-                        ],
+                        boxShadow: modusLys
+                            ? kurvLysSkygger(LysPalett.arkskygge, s)
+                            : [
+                                BoxShadow(
+                                  color: rgba(15, 31, 43, .55),
+                                  offset: Offset(0, -24 * s),
+                                  blurRadius: onbBlur(50 * s),
+                                  spreadRadius: -20 * s,
+                                ),
+                              ],
                       ),
                       child: Stack(
                         clipBehavior: Clip.none,
@@ -196,7 +203,7 @@ class _KasseArkRute extends StatelessWidget {
                                       height: 5 * s,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(3 * s),
-                                        color: lys ? rgba(35, 32, 29, .28) : rgba(255, 255, 255, .35),
+                                        color: modusLys ? LysPalett.haandtak : lys ? rgba(35, 32, 29, .28) : rgba(255, 255, 255, .35),
                                       ),
                                     ),
                                   ),
@@ -248,7 +255,7 @@ Future<KasseSlot?> showLeveringSheet(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(height: 14 * s),
-            Text(KasseCopy.a1_kasse_lev_sheet_title, style: bDisplay(ctx, 18, letterSpacingEm: -.02)),
+            Text(KasseCopy.a1_kasse_lev_sheet_title, style: bDisplay(ctx, 18, letterSpacingEm: -.02, color: ctx.aeM(Colors.white, LysPalett.tittel))),
             SizedBox(height: 12 * s),
             _ModusSpor(pickup: mode, onMode: (m) => setState(() => mode = m)),
             for (var i = 0; i < slots.length; i++) ...[
@@ -318,16 +325,22 @@ class _ModusSpor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    // Lys plan (`(sheetLevering)`): `.mkbh` track, `.mkbi` thumb, `levTabLc` /
+    // `levTabHc` labels (L20218).
+    final lys = context.lys;
     return Container(
       padding: EdgeInsets.all(4 * s),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [rgba(0, 0, 0, .45), rgba(0, 0, 0, .26), rgba(0, 0, 0, .26), rgba(255, 255, 255, .14)],
-          stops: const [0, .16, .96, 1],
-        ),
+        color: lys ? LysPalett.disUll : null,
+        gradient: lys
+            ? null
+            : LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [rgba(0, 0, 0, .45), rgba(0, 0, 0, .26), rgba(0, 0, 0, .26), rgba(255, 255, 255, .14)],
+                stops: const [0, .16, .96, 1],
+              ),
       ),
       child: LayoutBuilder(
         builder: (context, box) {
@@ -353,16 +366,18 @@ class _ModusSpor extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
-                          gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
-                          boxShadow: [
-                            BoxShadow(
-                              color: rgba(4, 18, 26, .8),
-                              offset: Offset(0, 8 * s),
-                              blurRadius: onbBlur(14 * s),
-                              spreadRadius: -8 * s,
-                            ),
-                            BoxShadow(color: const Color(0xFFCDB98E), offset: Offset(0, 3 * s)),
-                          ],
+                          gradient: lys ? kurvLysFjordFyll : cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
+                          boxShadow: lys
+                              ? kurvLysTommelSkygge(s)
+                              : [
+                                  BoxShadow(
+                                    color: rgba(4, 18, 26, .8),
+                                    offset: Offset(0, 8 * s),
+                                    blurRadius: onbBlur(14 * s),
+                                    spreadRadius: -8 * s,
+                                  ),
+                                  BoxShadow(color: const Color(0xFFCDB98E), offset: Offset(0, 3 * s)),
+                                ],
                         ),
                       ),
                     ),
@@ -377,7 +392,7 @@ class _ModusSpor extends StatelessWidget {
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  Center(child: Text(label, style: bText(context, 12.5, weight: FontWeight.w800, color: rgba(255, 255, 255, .75)))),
+                                  Center(child: Text(label, style: bText(context, 12.5, weight: FontWeight.w800, color: context.aeM(rgba(255, 255, 255, .75), LysPalett.sekundar)))),
                                   IgnorePointer(
                                     child: ExcludeSemantics(
                                       child: ClipRect(
@@ -385,7 +400,7 @@ class _ModusSpor extends StatelessWidget {
                                         child: Center(
                                           child: RichText(
                                             textScaler: MediaQuery.textScalerOf(context),
-                                            text: TextSpan(text: label, style: bText(context, 12.5, weight: FontWeight.w800, color: const Color(0xFF1E4F5C))),
+                                            text: TextSpan(text: label, style: bText(context, 12.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF1E4F5C), Colors.white))),
                                           ),
                                         ),
                                       ),
@@ -428,6 +443,9 @@ class _TidKort extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     const mint = Color(0xFF5CE0B8);
+    // Lys plan (`(sheetLevering)`): `tidNGl` / `tidNSh` / `tidNRing` (L20220–20224),
+    // `.mkbj` border, `.mk13` / `.mkb` / `.mk33` text.
+    final lys = context.lys;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -436,18 +454,23 @@ class _TidKort extends StatelessWidget {
         decoration: CssDecoration(
           borderRadius: BorderRadius.circular(20 * s),
           gradient: cssLinear(180, [
-            valgt ? rgba(92, 224, 184, .16) : rgba(255, 255, 255, .1),
+            valgt ? context.aeM(rgba(92, 224, 184, .16), LysPalett.mintDis) : context.aeM(rgba(255, 255, 255, .1), LysPalett.dis),
             rgba(255, 255, 255, .05),
           ]),
-          border: Border.all(color: valgt ? rgba(92, 224, 184, .7) : rgba(255, 255, 255, .2), width: valgt ? 1.5 : 1),
-          boxShadow: [
-            BoxShadow(
-              color: rgba(4, 18, 26, valgt ? .9 : .8),
-              offset: Offset(0, (valgt ? 14 : 12) * s),
-              blurRadius: onbBlur((valgt ? 24 : 20) * s),
-              spreadRadius: -(valgt ? 14 : 16) * s,
-            ),
-          ],
+          border: Border.all(
+            color: valgt ? context.aeM(rgba(92, 224, 184, .7), const Color.fromRGBO(11, 107, 87, .45)) : context.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge),
+            width: valgt ? 1.5 : 1,
+          ),
+          boxShadow: lys
+              ? kurvLysSkygger(LysPalett.kortskygge, s)
+              : [
+                  BoxShadow(
+                    color: rgba(4, 18, 26, valgt ? .9 : .8),
+                    offset: Offset(0, (valgt ? 14 : 12) * s),
+                    blurRadius: onbBlur((valgt ? 24 : 20) * s),
+                    spreadRadius: -(valgt ? 14 : 16) * s,
+                  ),
+                ],
         ),
         child: Row(
           children: [
@@ -460,7 +483,7 @@ class _TidKort extends StatelessWidget {
                       textAlign: TextAlign.center,
                       softWrap: false,
                       overflow: TextOverflow.visible,
-                      style: bText(context, 12, weight: FontWeight.w800, color: mint),
+                      style: bText(context, 12, weight: FontWeight.w800, color: context.aeM(mint, LysPalett.mintTekst)),
                     ),
             ),
             SizedBox(width: 12 * s),
@@ -468,10 +491,10 @@ class _TidKort extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tittel, style: bText(context, 13, weight: FontWeight.w800)),
+                  Text(tittel, style: bText(context, 13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                   Text(
                     slot.line,
-                    style: bText(context, 10.5, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                    style: bText(context, 10.5, weight: FontWeight.w600, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar)),
                   ),
                 ],
               ),
@@ -483,7 +506,7 @@ class _TidKort extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: valgt ? mint : rgba(255, 255, 255, .45), width: 2 * s),
+                border: Border.all(color: valgt ? mint : context.aeM(rgba(255, 255, 255, .45), const Color.fromRGBO(30, 79, 92, .3)), width: 2 * s),
               ),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),

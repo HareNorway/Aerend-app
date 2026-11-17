@@ -12,6 +12,8 @@ import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
 import 'hurtig_glass.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Hurtigbestilling · the module cards and the draft (new Bergen L4264–4535)
 // New Bergen turned every card from white to dark glass and gave each its
@@ -38,13 +40,14 @@ class HbOftestKort extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       HbSeksjon(HurtigCopy.oftestBestilt, under: under),
-      if (rader.isNotEmpty) ...[const SizedBox(height: 10), _topp(rader.first)],
-      for (var i = 1; i < rader.length; i++) ...[const SizedBox(height: 10), HbFlisInn(delayMs: 180 + (i - 1) * 70, child: _rad(rader[i]))],
-      if (vane != null) ...[const SizedBox(height: 10), _vane(vane!)],
+      if (rader.isNotEmpty) ...[const SizedBox(height: 10), _topp(context, rader.first)],
+      for (var i = 1; i < rader.length; i++) ...[const SizedBox(height: 10), HbFlisInn(delayMs: 180 + (i - 1) * 70, child: _rad(context, rader[i]))],
+      if (vane != null) ...[const SizedBox(height: 10), _vane(context, vane!)],
     ],
   );
 
-  Widget _leggKnapp(HbOftestVis r, {required bool bred}) {
+  // Lys: «Lagt til» `.mk1q` / `.mk1u` `--lys-mint-dis` + `--lys-mint-tekst`, `.mk1i`.
+  Widget _leggKnapp(BuildContext context, HbOftestVis r, {required bool bred}) {
     final Widget knapp = r.lagt
         ? VcKnapp(
             key: ValueKey('lagt-${r.id}'),
@@ -53,19 +56,19 @@ class HbOftestKort extends StatelessWidget {
               width: bred ? null : 40,
               height: 40,
               radius: BorderRadius.circular(13),
-              bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .16))],
+              bg: [CssSolid(context.aeM(const Color.fromRGBO(92, 224, 184, .16), LysPalett.mintDis))],
               border: Border.all(color: const Color.fromRGBO(127, 240, 203, .5)),
               padding: bred ? const EdgeInsets.symmetric(horizontal: 17) : null,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  HbIkon(HbIkoner.hake, size: bred ? 13 : 15, stroke: kHbMintLys, width: 3.2),
+                  HbIkon(HbIkoner.hake, size: bred ? 13 : 15, stroke: context.aeM(kHbMintLys, kHbLysIkon), width: 3.2),
                   if (bred) ...[
                     const SizedBox(width: 6),
                     Text(
                       HurtigCopy.lagtTilKnapp,
-                      style: hbI(13.5, weight: FontWeight.w800, color: kHbMintLys),
+                      style: hbI(13.5, weight: FontWeight.w800, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
                     ),
                   ],
                 ],
@@ -102,7 +105,8 @@ class HbOftestKort extends StatelessWidget {
     );
   }
 
-  Widget _topp(HbOftestVis r) => HbGlass(
+  // Lys: the name / price inherit `.mk1o` `--lys-brod`; the store `.mk1p`; the band stays (`.mk4` white).
+  Widget _topp(BuildContext context, HbOftestVis r) => HbGlass(
     clip: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -169,7 +173,7 @@ class HbOftestKort extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     softWrap: false,
-                    style: hbJ(17, em: -.02, height: 1.2, color: Colors.white),
+                    style: hbJ(17, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.brod)),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -177,16 +181,16 @@ class HbOftestKort extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     softWrap: false,
-                    style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66)),
+                    style: hbI(12, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
-                        child: Text(r.pris, style: hbJ(19, em: -.02, color: Colors.white, tabular: true)),
+                        child: Text(r.pris, style: hbJ(19, em: -.02, color: context.aeM(Colors.white, LysPalett.brod), tabular: true)),
                       ),
                       const SizedBox(width: 10),
-                      _leggKnapp(r, bred: true),
+                      _leggKnapp(context, r, bred: true),
                     ],
                   ),
                 ],
@@ -198,7 +202,9 @@ class HbOftestKort extends StatelessWidget {
     ),
   );
 
-  Widget _rad(HbOftestVis r) => HbGlass(
+  // Lys: `.mk1r`; name / price `--lys-brod`, store `.mk1p`, dot `.mk1s`, «N ganger» `.mk1t` + `.mk1i`;
+  // the rank badge is inline (stays).
+  Widget _rad(BuildContext context, HbOftestVis r) => HbGlass(
     radius: 18,
     padding: const EdgeInsets.all(10),
     child: Row(
@@ -241,7 +247,7 @@ class HbOftestKort extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 softWrap: false,
-                style: hbI(14, weight: FontWeight.w800, em: -.01, color: Colors.white),
+                style: hbI(14, weight: FontWeight.w800, em: -.01, color: context.aeM(Colors.white, LysPalett.brod)),
               ),
               const SizedBox(height: 1),
               Text(
@@ -249,23 +255,23 @@ class HbOftestKort extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 softWrap: false,
-                style: hbI(11.5, color: const Color.fromRGBO(255, 255, 255, .66)),
+                style: hbI(11.5, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)),
               ),
               const SizedBox(height: 4),
               Row(
                 children: [
                   Text(
                     r.pris,
-                    style: hbI(12.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                    style: hbI(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.brod), tabular: true),
                   ),
                   const SizedBox(width: 6),
                   Container(
                     width: 3,
                     height: 3,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .4)),
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .4), LysPalett.dis)),
                   ),
                   const SizedBox(width: 6),
-                  const HbIkon(_kOmIgjen, size: 10, stroke: kHbMintPale, width: 2.6),
+                  HbIkon(_kOmIgjen, size: 10, stroke: context.aeM(kHbMintPale, kHbLysIkon), width: 2.6),
                   const SizedBox(width: 3),
                   Flexible(
                     child: Text(
@@ -273,7 +279,7 @@ class HbOftestKort extends StatelessWidget {
                       maxLines: 1,
                       softWrap: false,
                       overflow: TextOverflow.fade,
-                      style: hbI(11, weight: FontWeight.w700, color: kHbMintPale, tabular: true),
+                      style: hbI(11, weight: FontWeight.w700, color: context.aeM(kHbMintPale, LysPalett.mintTekst), tabular: true),
                     ),
                   ),
                 ],
@@ -282,12 +288,14 @@ class HbOftestKort extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        _leggKnapp(r, bred: false),
+        _leggKnapp(context, r, bred: false),
       ],
     ),
   );
 
-  Widget _vane(HbVaneVis v) => HbPress(
+  // Lys: `.mk1v` white card; the date tile `.mk1w` (`--lys-dis`, kant), its time `.mkb`, the title
+  // `.mk1x`, the dishes inherit `--lys-brod`.
+  Widget _vane(BuildContext context, HbVaneVis v) => HbPress(
     scale: .99,
     ms: 140,
     onTap: onVane,
@@ -305,8 +313,8 @@ class HbOftestKort extends StatelessWidget {
             width: 46,
             radius: BorderRadius.circular(12),
             clip: true,
-            bg: const [CssSolid(Color.fromRGBO(10, 26, 34, .4))],
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+            bg: [CssSolid(context.aeM(const Color.fromRGBO(10, 26, 34, .4), LysPalett.dis))],
+            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
             padding: const EdgeInsets.all(1),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -330,7 +338,7 @@ class HbOftestKort extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     softWrap: false,
-                    style: hbJ(11.5, color: Colors.white, tabular: true),
+                    style: hbJ(11.5, color: context.aeM(Colors.white, LysPalett.tittel), tabular: true),
                   ),
                 ),
               ],
@@ -343,10 +351,10 @@ class HbOftestKort extends StatelessWidget {
               children: [
                 Text(
                   v.tittel,
-                  style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbFersken),
+                  style: hbI(10, weight: FontWeight.w800, em: .12, color: context.aeM(kHbFersken, LysPalett.glodTekst)),
                 ),
                 const SizedBox(height: 3),
-                LfPretty(v.varer, style: hbJ(13, color: Colors.white, height: 1.3)),
+                LfPretty(v.varer, style: hbJ(13, color: context.aeM(Colors.white, LysPalett.brod), height: 1.3)),
               ],
             ),
           ),
@@ -461,7 +469,8 @@ class HbForrigeKort extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
-                        style: hbI(15, weight: FontWeight.w800, em: -.01, color: Colors.white),
+                        // Lys: inherits `.mk1o` `--lys-brod`; the code · date `.mk1p` (its dot is inline).
+                        style: hbI(15, weight: FontWeight.w800, em: -.01, color: context.aeM(Colors.white, LysPalett.brod)),
                       ),
                       const SizedBox(height: 2),
                       Row(
@@ -472,7 +481,7 @@ class HbForrigeKort extends StatelessWidget {
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.fade,
-                              style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66), tabular: true),
+                              style: hbI(12, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar), tabular: true),
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -488,7 +497,7 @@ class HbForrigeKort extends StatelessWidget {
                               maxLines: 1,
                               softWrap: false,
                               overflow: TextOverflow.fade,
-                              style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66)),
+                              style: hbI(12, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)),
                             ),
                           ),
                         ],
@@ -500,12 +509,13 @@ class HbForrigeKort extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(fo.sum, style: hbJ(17, em: -.02, color: Colors.white, tabular: true)),
+                    Text(fo.sum, style: hbJ(17, em: -.02, color: context.aeM(Colors.white, LysPalett.brod), tabular: true)),
                     const SizedBox(height: 4),
+                    // Lys: «Levert» `.mk1y`.
                     CssBox(
                       height: 24,
                       radius: BorderRadius.circular(999),
-                      bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
+                      bg: [CssSolid(context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis))],
                       border: Border.all(color: const Color.fromRGBO(92, 224, 184, .35)),
                       padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
                       child: Row(
@@ -521,7 +531,7 @@ class HbForrigeKort extends StatelessWidget {
                           const SizedBox(width: 5),
                           Text(
                             HurtigCopy.levertChip,
-                            style: hbI(11, weight: FontWeight.w800, color: kHbMintLys),
+                            style: hbI(11, weight: FontWeight.w800, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
                           ),
                         ],
                       ),
@@ -533,8 +543,9 @@ class HbForrigeKort extends StatelessWidget {
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.only(top: 4),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1))),
+              // Lys: `.mk1z` `--lys-skille`; the count `.mk20`, the name `.mk21`, the price `--lys-brod`.
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.skille))),
               ),
               child: Column(
                 children: [
@@ -546,8 +557,8 @@ class HbForrigeKort extends StatelessWidget {
                           CssBox(
                             height: 24,
                             radius: BorderRadius.circular(8),
-                            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-                            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                            bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis))],
+                            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.kantFarge)),
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(minWidth: 14),
@@ -555,7 +566,7 @@ class HbForrigeKort extends StatelessWidget {
                                 widthFactor: 1,
                                 child: Text(
                                   x.ant,
-                                  style: hbI(11, weight: FontWeight.w800, color: kHbMintPale, tabular: true),
+                                  style: hbI(11, weight: FontWeight.w800, color: context.aeM(kHbMintPale, LysPalett.mintTekst), tabular: true),
                                 ),
                               ),
                             ),
@@ -564,13 +575,13 @@ class HbForrigeKort extends StatelessWidget {
                           Expanded(
                             child: Text(
                               x.navn,
-                              style: hbI(13, weight: FontWeight.w700, height: 1.3, color: const Color(0xFFDCE9EC), tabular: true),
+                              style: hbI(13, weight: FontWeight.w700, height: 1.3, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar), tabular: true),
                             ),
                           ),
                           const SizedBox(width: 10),
                           Text(
                             x.pris,
-                            style: hbI(13, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                            style: hbI(13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.brod), tabular: true),
                           ),
                         ],
                       ),
@@ -615,7 +626,7 @@ class HbForrigeKort extends StatelessWidget {
             children: [
               for (var i = 0; i < tidligere.length; i++) ...[
                 if (i > 0) const SizedBox(width: 10),
-                HbFlisInn(delayMs: 150 + i * 80, child: _tidligere(tidligere[i])),
+                HbFlisInn(delayMs: 150 + i * 80, child: _tidligere(context, tidligere[i])),
               ],
             ],
           ),
@@ -624,7 +635,8 @@ class HbForrigeKort extends StatelessWidget {
     ],
   );
 
-  Widget _tidligere(HbOrdreVis t) => SizedBox(
+  // Lys: `.mk22` white tile; the store `--lys-brod`, the dishes `.mk6`; the band stays (`.mk4`).
+  Widget _tidligere(BuildContext context, HbOrdreVis t) => SizedBox(
     width: 168,
     child: HbGlass(
       radius: 20,
@@ -670,7 +682,7 @@ class HbForrigeKort extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       softWrap: false,
-                      style: hbI(14, weight: FontWeight.w800, em: -.01, color: Colors.white),
+                      style: hbI(14, weight: FontWeight.w800, em: -.01, color: context.aeM(Colors.white, LysPalett.brod)),
                     ),
                     const SizedBox(height: 1),
                     SizedBox(
@@ -679,7 +691,7 @@ class HbForrigeKort extends StatelessWidget {
                         t.varer,
                         maxLines: 2,
                         overflow: TextOverflow.clip,
-                        style: hbI(11.5, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .7)),
+                        style: hbI(11.5, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar)),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -799,7 +811,8 @@ class HbPrefKort extends StatelessWidget {
     );
   }
 
-  Widget _hode(String ik, String tittel, {bool fersken = false, Widget? hoyre}) => Row(
+  // Lys: the title `.mkb` `--lys-tittel` (the avoided-allergy card's has no class: `--lys-brod`).
+  Widget _hode(BuildContext context, String ik, String tittel, {bool fersken = false, Widget? hoyre}) => Row(
     children: [
       HbHodeIkon(ik, fersken: fersken),
       const SizedBox(width: 8),
@@ -809,7 +822,7 @@ class HbPrefKort extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           softWrap: false,
-          style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
+          style: hbI(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, fersken ? LysPalett.brod : LysPalett.tittel)),
         ),
       ),
       if (hoyre != null) ...[const SizedBox(width: 8), hoyre],
@@ -822,36 +835,42 @@ class HbPrefKort extends StatelessWidget {
     children: [
       HbSeksjon(HurtigCopy.dinePreferanser, under: under),
       const SizedBox(height: 10),
-      HbFlisInn(delayMs: 100, child: _kjenner()),
-      if (butikker.isNotEmpty) ...[const SizedBox(height: 10), HbFlisInn(delayMs: 200, child: _butikker())],
+      HbFlisInn(delayMs: 100, child: _kjenner(context)),
+      if (butikker.isNotEmpty) ...[const SizedBox(height: 10), HbFlisInn(delayMs: 200, child: _butikker(context))],
       const SizedBox(height: 10),
       IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: HbFlisInn(delayMs: 280, child: _husstand())),
+            Expanded(child: HbFlisInn(delayMs: 280, child: _husstand(context))),
             const SizedBox(width: 10),
             Expanded(
               child: KeyedSubtree(
                 key: ValueKey('sk-$unngaaSkalldyr'),
-                child: HbFlisInn(delayMs: unngaaSkalldyr ? 340 : 100, child: _allergi()),
+                child: HbFlisInn(delayMs: unngaaSkalldyr ? 340 : 100, child: _allergi(context)),
               ),
             ),
           ],
         ),
       ),
       const SizedBox(height: 10),
-      HbFlisInn(delayMs: 400, child: _rytme()),
+      HbFlisInn(delayMs: 400, child: _rytme(context)),
       if (forslag != null) ...[const SizedBox(height: 10), _Forslag(f: forslag!)],
     ],
   );
 
-  Widget _kjenner() => HbGlass(
+  // Lys: `.mk23` white; the mint glow is an inline span (stays). The portrait `.mk24` `--lys-ull`,
+  // the title inherits `--lys-brod`, the line `.mk1p`, «Endre» `.mk25` + `.mk1i`, «DU LIKER» `.mkd`.
+  Widget _kjenner(BuildContext context) => HbGlass(
     radius: 24,
     clip: true,
     bg: const [
       CssRadial([Color.fromRGBO(92, 224, 184, .2), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .6], rx: .8, ry: .9, cx: 0, cy: 0),
       ...kHbGlassBg,
+    ],
+    lysBg: const [
+      CssRadial([Color.fromRGBO(92, 224, 184, .2), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .6], rx: .8, ry: .9, cx: 0, cy: 0),
+      CssSolid(LysPalett.hvit),
     ],
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -897,9 +916,9 @@ class HbPrefKort extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(HurtigCopy.slikKjenner, style: hbJ(16, em: -.02, height: 1.2, color: Colors.white)),
+                    Text(HurtigCopy.slikKjenner, style: hbJ(16, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.brod))),
                     const SizedBox(height: 2),
-                    Text(under, style: hbI(12, color: const Color.fromRGBO(255, 255, 255, .66))),
+                    Text(under, style: hbI(12, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar))),
                   ],
                 ),
               ),
@@ -911,17 +930,17 @@ class HbPrefKort extends StatelessWidget {
                 child: CssBox(
                   height: 32,
                   radius: BorderRadius.circular(999),
-                  bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
+                  bg: [CssSolid(context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis))],
                   border: Border.all(color: const Color.fromRGBO(127, 240, 203, .4)),
                   padding: const EdgeInsets.symmetric(horizontal: 13),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const HbIkon(_ikBlyant, size: 12, stroke: kHbMintPale, width: 2.6),
+                      HbIkon(_ikBlyant, size: 12, stroke: context.aeM(kHbMintPale, kHbLysIkon), width: 2.6),
                       const SizedBox(width: 5),
                       Text(
                         HurtigCopy.endre,
-                        style: hbI(12, weight: FontWeight.w800, color: kHbMintPale),
+                        style: hbI(12, weight: FontWeight.w800, color: context.aeM(kHbMintPale, LysPalett.mintTekst)),
                       ),
                     ],
                   ),
@@ -938,11 +957,11 @@ class HbPrefKort extends StatelessWidget {
               children: [
                 Text(
                   HurtigCopy.duLikerKicker,
-                  style: hbI(10.5, weight: FontWeight.w800, em: .12, color: const Color.fromRGBO(255, 255, 255, .55)),
+                  style: hbI(10.5, weight: FontWeight.w800, em: .12, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet)),
                 ),
                 const SizedBox(height: 8),
                 LayoutBuilder(
-                  builder: (context, box) => _rutenett(box.maxWidth, [for (var i = 0; i < liker.length; i++) HbFlisInn(delayMs: 180 + i * 70, child: _smak(liker[i], i))]),
+                  builder: (context, box) => _rutenett(box.maxWidth, [for (var i = 0; i < liker.length; i++) HbFlisInn(delayMs: 180 + i * 70, child: _smak(context, liker[i], i))]),
                 ),
               ],
             ),
@@ -951,13 +970,17 @@ class HbPrefKort extends StatelessWidget {
     ),
   );
 
-  Widget _smak(String t, int i) => HbTenn(
+  // Lys: `.mk26` `--lys-mint-dis` (the border and its glow are inline), the name `.mkb`.
+  Widget _smak(BuildContext context, String t, int i) => HbTenn(
     delayMs: 1200 + i * 900,
     builder: (lys) => CssBox(
       radius: BorderRadius.circular(16),
-      bg: const [
-        CssLinear(180, [Color.fromRGBO(92, 224, 184, .14), Color.fromRGBO(92, 224, 184, .04)]),
-      ],
+      bg: context.aeM(
+        const [
+          CssLinear(180, [Color.fromRGBO(92, 224, 184, .14), Color.fromRGBO(92, 224, 184, .04)]),
+        ],
+        const [CssSolid(LysPalett.mintDis)],
+      ),
       border: Border.all(color: Color.lerp(const Color.fromRGBO(127, 240, 203, .3), const Color.fromRGBO(127, 240, 203, .9), lys)!),
       shadows: lys > 0 ? [CssShadow(0, 0, 14, 1, Color.fromRGBO(92, 224, 184, .5 * lys))] : const [],
       padding: const EdgeInsets.fromLTRB(7, 13, 7, 11),
@@ -979,24 +1002,26 @@ class HbPrefKort extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             softWrap: false,
-            style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
+            style: hbI(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel)),
           ),
         ],
       ),
     ),
   );
 
-  Widget _butikker() => HbGlass(
+  // Lys: `.mk1o`; the count `.mkd`, the names `.mkb` (the logo rings are inline).
+  Widget _butikker(BuildContext context) => HbGlass(
     padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _hode(
+          context,
           _ikButikk,
           HurtigCopy.favorittbutikker,
           hoyre: Text(
             HurtigCopy.lagret(butikker.length),
-            style: hbI(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)),
+            style: hbI(11, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet)),
           ),
         ),
         const SizedBox(height: 12),
@@ -1018,7 +1043,7 @@ class HbPrefKort extends StatelessWidget {
                     Text(
                       butikker[i].navn,
                       textAlign: TextAlign.center,
-                      style: hbI(12, weight: FontWeight.w800, height: 1.25, color: Colors.white),
+                      style: hbI(12, weight: FontWeight.w800, height: 1.25, color: context.aeM(Colors.white, LysPalett.tittel)),
                     ),
                   ],
                 ),
@@ -1029,22 +1054,24 @@ class HbPrefKort extends StatelessWidget {
     ),
   );
 
-  Widget _husstand() => HbGlass(
+  // Lys: `.mk1o`; the number inherits `--lys-brod`, «personer» `.mk6`, the figures `.mk28` / `.mk29`,
+  // the steppers `.mk2a` + `.mk1i`.
+  Widget _husstand(BuildContext context) => HbGlass(
     padding: const EdgeInsets.fromLTRB(12, 13, 12, 12),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _hode(_ikHus, HurtigCopy.husstand),
+        _hode(context, _ikHus, HurtigCopy.husstand),
         const SizedBox(height: 10),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            Text('$hus', style: hbJ(30, em: -.03, height: 1, color: Colors.white, tabular: true)),
+            Text('$hus', style: hbJ(30, em: -.03, height: 1, color: context.aeM(Colors.white, LysPalett.brod), tabular: true)),
             const SizedBox(width: 5),
             Text(
               HurtigCopy.personOrd(hus),
-              style: hbI(12.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7)),
+              style: hbI(12.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar)),
             ),
           ],
         ),
@@ -1061,16 +1088,16 @@ class HbPrefKort extends StatelessWidget {
         const Spacer(),
         Row(
           children: [
-            Expanded(child: _steg(HbIkoner.minus, HurtigCopy.faerre, onHusMinus)),
+            Expanded(child: _steg(context, HbIkoner.minus, HurtigCopy.faerre, onHusMinus)),
             const SizedBox(width: 6),
-            Expanded(child: _steg(HbIkoner.pluss, HurtigCopy.flere, onHusPluss)),
+            Expanded(child: _steg(context, HbIkoner.pluss, HurtigCopy.flere, onHusPluss)),
           ],
         ),
       ],
     ),
   );
 
-  Widget _steg(String ik, String navn, VoidCallback onTap) => Semantics(
+  Widget _steg(BuildContext context, String ik, String navn, VoidCallback onTap) => Semantics(
     button: true,
     label: navn,
     child: HbPress(
@@ -1079,14 +1106,16 @@ class HbPrefKort extends StatelessWidget {
       child: CssBox(
         height: 34,
         radius: BorderRadius.circular(11),
-        bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
-        child: Center(child: HbIkon(ik, size: 13, stroke: kHbMintPale, width: 3)),
+        bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis))],
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
+        child: Center(child: HbIkon(ik, size: 13, stroke: context.aeM(kHbMintPale, kHbLysIkon), width: 3)),
       ),
     ),
   );
 
-  Widget _allergi() {
+  // Lys: `.mk2b` (avoided) / `.mk1o` white; the kicker `.mk1x` / `.mk8`, «Skalldyr» inherits
+  // `--lys-brod`, the line `.mk1p`, «Trykk for å endre» `.mkd`, the off switch `.mk2e`.
+  Widget _allergi(BuildContext context) {
     final u = unngaaSkalldyr;
     return HbPress(
       scale: .98,
@@ -1105,16 +1134,16 @@ class HbPrefKort extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _hode(_ikSkjold, HurtigCopy.allergier, fersken: u),
+            _hode(context, _ikSkjold, HurtigCopy.allergier, fersken: u),
             const SizedBox(height: 11),
             Text(
               u ? HurtigCopy.unngaarKicker : HurtigCopy.tillattKicker,
-              style: hbI(10.5, weight: FontWeight.w800, em: .12, color: u ? kHbFersken : kHbMintLys),
+              style: hbI(10.5, weight: FontWeight.w800, em: .12, color: u ? context.aeM(kHbFersken, LysPalett.glodTekst) : context.aeM(kHbMintLys, LysPalett.mintTekst)),
             ),
             const SizedBox(height: 2),
-            Text(HurtigCopy.skalldyr, style: hbJ(19, em: -.02, color: Colors.white)),
+            Text(HurtigCopy.skalldyr, style: hbJ(19, em: -.02, color: context.aeM(Colors.white, LysPalett.brod))),
             const SizedBox(height: 2),
-            Text(u ? HurtigCopy.holdesUnna : HurtigCopy.kanKomme, style: hbI(11, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .66))),
+            Text(u ? HurtigCopy.holdesUnna : HurtigCopy.kanKomme, style: hbI(11, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar))),
             const SizedBox(height: 10),
             const Spacer(),
             SizedBox(
@@ -1124,7 +1153,7 @@ class HbPrefKort extends StatelessWidget {
                   Expanded(
                     child: Text(
                       HurtigCopy.trykkForAaEndre,
-                      style: hbI(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)),
+                      style: hbI(11, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet)),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -1136,8 +1165,8 @@ class HbPrefKort extends StatelessWidget {
                         ? const [
                             CssLinear(180, [Color(0xFFF9A273), Color(0xFFE95C2C)]),
                           ]
-                        : const [CssSolid(Color.fromRGBO(255, 255, 255, .16))],
-                    shadows: u ? const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .4))] : const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(0, 0, 0, .25))],
+                        : [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.dis))],
+                    shadows: u ? const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .4))] : context.aeM(const [CssShadow.inset(0, 1, 2, 0, Color.fromRGBO(0, 0, 0, .25))], const <CssShadow>[]),
                     child: Align(
                       alignment: u ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
@@ -1161,25 +1190,28 @@ class HbPrefKort extends StatelessWidget {
     );
   }
 
-  Widget _rytme() => HbGlass(
+  // Lys: `.mk1o`; the time chip `.mk2f`, the off days `.mk2g`, «I DAG» `.mk8`, the payment row `.mk2h`
+  // with «Betaling» `.mkd` and the method inheriting `--lys-brod`.
+  Widget _rytme(BuildContext context) => HbGlass(
     padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _hode(
+          context,
           _ikKlokke,
           HurtigCopy.middagsrytme,
           hoyre: CssBox(
             height: 24,
             radius: BorderRadius.circular(999),
-            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+            bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis))],
+            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Center(
               widthFactor: 1,
               child: Text(
                 HurtigCopy.rundtKl(kl),
-                style: hbI(11.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                style: hbI(11.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel), tabular: true),
               ),
             ),
           ),
@@ -1187,14 +1219,14 @@ class HbPrefKort extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
-            for (var i = 0; i < 7; i++) ...[if (i > 0) const SizedBox(width: 5), Expanded(child: _dag(i))],
+            for (var i = 0; i < 7; i++) ...[if (i > 0) const SizedBox(width: 5), Expanded(child: _dag(context, i))],
           ],
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.only(top: 12),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08))),
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.skille))),
           ),
           child: Row(
             children: [
@@ -1206,12 +1238,12 @@ class HbPrefKort extends StatelessWidget {
                   children: [
                     Text(
                       HurtigCopy.betaling,
-                      style: hbI(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)),
+                      style: hbI(11, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet)),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       HurtigCopy.vippsPaaDora,
-                      style: hbI(13, weight: FontWeight.w800, color: Colors.white),
+                      style: hbI(13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.brod)),
                     ),
                   ],
                 ),
@@ -1231,7 +1263,7 @@ class HbPrefKort extends StatelessWidget {
     ),
   );
 
-  Widget _dag(int i) {
+  Widget _dag(BuildContext context, int i) {
     final navn = HurtigCopy.dagerNo[i];
     final on = middagDager.contains(navn);
     final iDag = idag == navn;
@@ -1263,12 +1295,12 @@ class HbPrefKort extends StatelessWidget {
             key: ValueKey('d$i-av'),
             height: 46,
             radius: BorderRadius.circular(13),
-            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
+            bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .05), LysPalett.dis))],
+            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.kantFarge)),
             child: Center(
               child: Text(
                 k,
-                style: hbI(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .5)),
+                style: hbI(11.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .5), LysPalett.dempet)),
               ),
             ),
           );
@@ -1287,7 +1319,7 @@ class HbPrefKort extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     softWrap: false,
-                    style: hbI(9, weight: FontWeight.w800, em: .06, color: kHbMintLys),
+                    style: hbI(9, weight: FontWeight.w800, em: .06, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
                   ),
                 )
               : null,
@@ -1310,7 +1342,8 @@ class _Figur extends StatelessWidget {
       child: SizedBox(
         width: 24 * 20 / 24,
         height: 24,
-        child: HbIkon(HbPrefKort._ikPerson, size: 24, fill: on ? kHbMintLys : const Color.fromRGBO(255, 255, 255, .16)),
+        // Lys: `.mk28` `#0B6B57` / `.mk29` `rgba(30,79,92,.35)`.
+        child: HbIkon(HbPrefKort._ikPerson, size: 24, fill: on ? context.aeM(kHbMintLys, kHbLysIkon) : context.aeM(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(30, 79, 92, .35))),
       ),
     ),
   );
@@ -1478,19 +1511,20 @@ class _Forslag extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
+                      // Lys: `.mk2j` `--lys-dis`, no shadow (the 3px `#1F5463` border is inline).
                       Container(
                         width: 48,
                         height: 48,
                         padding: const EdgeInsets.all(3),
-                        decoration: const CssDecoration(
+                        decoration: CssDecoration(
                           shape: BoxShape.circle,
                           color: kHbKant,
-                          boxShadow: [
+                          boxShadow: context.aeM(const [
                             BoxShadow(color: Color.fromRGBO(127, 240, 203, .6), spreadRadius: 2),
                             BoxShadow(color: Color.fromRGBO(0, 10, 16, .8), offset: Offset(0, 8), blurRadius: 12 / 2 / .57735, spreadRadius: -6),
-                          ],
+                          ], const <BoxShadow>[]),
                         ),
-                        child: const HbAegilFjes(size: 42),
+                        child: const HbAegilFjes(size: 42, lys: LysPalett.dis),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -1501,7 +1535,7 @@ class _Forslag extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             softWrap: false,
-                            style: hbI(11.5, color: const Color.fromRGBO(255, 255, 255, .66)),
+                            style: hbI(11.5, color: context.aeM(const Color.fromRGBO(255, 255, 255, .66), LysPalett.sekundar)),
                           ),
                         ),
                       ),
@@ -1512,7 +1546,7 @@ class _Forslag extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 10),
-                    LfPretty(f.linje, style: hbJ(15.5, em: -.01, height: 1.3, color: Colors.white)),
+                    LfPretty(f.linje, style: hbJ(15.5, em: -.01, height: 1.3, color: context.aeM(Colors.white, LysPalett.brod))),
                     if (f.grunner.isNotEmpty) ...[
                       const SizedBox(height: 9),
                       Wrap(
@@ -1520,11 +1554,12 @@ class _Forslag extends StatelessWidget {
                         runSpacing: 5,
                         children: [
                           for (final g in f.grunner)
+                            // Lys: `.mk2k`.
                             CssBox(
                               height: 24,
                               radius: BorderRadius.circular(999),
-                              bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-                              border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                              bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis))],
+                              border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.kantFarge)),
                               padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -1537,7 +1572,7 @@ class _Forslag extends StatelessWidget {
                                   const SizedBox(width: 5),
                                   Text(
                                     g,
-                                    style: hbI(11, weight: FontWeight.w700, color: const Color(0xFFDCE9EC)),
+                                    style: hbI(11, weight: FontWeight.w700, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar)),
                                   ),
                                 ],
                               ),
@@ -1588,14 +1623,20 @@ class HbBestiltKort extends StatelessWidget {
   final String sum;
   final VoidCallback onFolg;
 
+  // Lys: `.mk2l` `--lys-hvit` + `--lys-kortskygge` (the mint border is inline); «BESTILT» `.mk8`, the
+  // store `--lys-brod`, «klar» / «Vipps» `.mk2m`, the line `.mk6`, `.mk2h`, the kroner `.mk1y`,
+  // «Følg bestillingen» `.mk2n` + `.mk1i`.
   @override
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(22),
-    bg: const [
-      CssLinear(180, [Color.fromRGBO(255, 255, 255, .09), Color.fromRGBO(255, 255, 255, .04)]),
-    ],
+    bg: context.aeM(
+      const [
+        CssLinear(180, [Color.fromRGBO(255, 255, 255, .09), Color.fromRGBO(255, 255, 255, .04)]),
+      ],
+      const [CssSolid(LysPalett.hvit)],
+    ),
     border: Border.all(color: const Color.fromRGBO(127, 240, 203, .4)),
-    shadows: const [CssShadow(0, 18, 30, -20, Color.fromRGBO(0, 10, 16, .9))],
+    shadows: context.aeM(const [CssShadow(0, 18, 30, -20, Color.fromRGBO(0, 10, 16, .9))], LysPalett.kortskygge),
     padding: const EdgeInsets.fromLTRB(13, 15, 13, 13),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1623,42 +1664,42 @@ class HbBestiltKort extends StatelessWidget {
                 children: [
                   Text(
                     HurtigCopy.bestiltKode(kode),
-                    style: hbI(10, weight: FontWeight.w800, em: .1, color: kHbMintLys),
+                    style: hbI(10, weight: FontWeight.w800, em: .1, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
                   ),
                   const SizedBox(height: 1),
-                  Text(butikk, style: hbJ(15.5, em: -.01, color: Colors.white)),
-                  Text(klar, style: hbI(11.5, color: const Color.fromRGBO(255, 255, 255, .6))),
+                  Text(butikk, style: hbJ(15.5, em: -.01, color: context.aeM(Colors.white, LysPalett.brod))),
+                  Text(klar, style: hbI(11.5, color: context.aeM(const Color.fromRGBO(255, 255, 255, .6), LysPalett.dempet))),
                 ],
               ),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        LfPretty(linje, style: hbI(12, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .7))),
+        LfPretty(linje, style: hbI(12, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar))),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.only(top: 10),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .08))),
+          decoration: BoxDecoration(
+            border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.skille))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.fromLTRB(9, 4, 9, 4),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(92, 224, 184, .14)),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis)),
                 child: Text(
                   kr,
-                  style: hbI(10.5, weight: FontWeight.w800, color: kHbMintLys),
+                  style: hbI(10.5, weight: FontWeight.w800, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
                 ),
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(HurtigCopy.vipps, style: hbI(11, color: const Color.fromRGBO(255, 255, 255, .6))),
+                  Text(HurtigCopy.vipps, style: hbI(11, color: context.aeM(const Color.fromRGBO(255, 255, 255, .6), LysPalett.dempet))),
                   const SizedBox(width: 6),
-                  Text(sum, style: hbJ(16, color: Colors.white, tabular: true)),
+                  Text(sum, style: hbJ(16, color: context.aeM(Colors.white, LysPalett.brod), tabular: true)),
                 ],
               ),
             ],
@@ -1671,17 +1712,17 @@ class HbBestiltKort extends StatelessWidget {
           child: CssBox(
             height: 44,
             radius: BorderRadius.circular(14),
-            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+            bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis))],
+            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.kantFarge)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   HurtigCopy.folgBestillingen,
-                  style: hbI(13.5, weight: FontWeight.w800, color: Colors.white),
+                  style: hbI(13.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel)),
                 ),
                 const SizedBox(width: 7),
-                const HbIkon(HbIkoner.videre, size: 13, stroke: kHbMintLys, width: 2.8),
+                HbIkon(HbIkoner.videre, size: 13, stroke: context.aeM(kHbMintLys, kHbLysIkon), width: 2.8),
               ],
             ),
           ),
@@ -1745,10 +1786,17 @@ class HbUtkastKort extends StatelessWidget {
   static const Color _svak = Color.fromRGBO(255, 255, 255, .66);
   static const Border _kant = Border.fromBorderSide(BorderSide(color: Color.fromRGBO(255, 255, 255, .08)));
 
-  Widget _rund(Widget icon) => Container(
+  // Lys (`.mk2r` … `.mk30`): the card white with the kant and the card shadow, text `--lys-brod`;
+  // `_svak` = `.mk1p` `--lys-sekundar`; the wells `.mk2s` / `.mk2y` `--lys-dis` + kant, `.mk2w` /
+  // `.mk2t` / `.mk30` `--lys-dis`; the mint icons `.mk1i` / `.mk28` `#0B6B57`, the mint words `.mk1t`.
+  static const Border _kantLys = Border.fromBorderSide(BorderSide(color: LysPalett.kantFarge));
+  static const List<BoxShadow> _ringLys = [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)];
+
+  /// `.mk2z`: `--lys-mint-dis` in Lys.
+  Widget _rund(BuildContext context, Widget icon) => Container(
     width: 28,
     height: 28,
-    decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(92, 224, 184, .12)),
+    decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(92, 224, 184, .12), LysPalett.mintDis)),
     child: Center(child: icon),
   );
 
@@ -1756,13 +1804,21 @@ class HbUtkastKort extends StatelessWidget {
   Widget build(BuildContext context) {
     // The fill grows one second per tick, from 20 % at 5 s to 100 % at 1 s.
     final fyll = teller ? ((6 - tellerSek) / 5).clamp(0.0, 1.0) : 0.0;
+    final svak = context.aeM(_svak, LysPalett.sekundar);
+    final kant = context.aeM(_kant, _kantLys);
+    final ik = context.aeM(kHbMintPale, kHbLysIkon);
+    final mintTx = context.aeM(kHbMintPale, LysPalett.mintTekst);
+    final hvit = context.aeM(Colors.white, LysPalett.brod);
     return CssBox(
       radius: BorderRadius.circular(26),
-      bg: const [
-        CssLinear(180, [Color.fromRGBO(255, 255, 255, .09), Color.fromRGBO(255, 255, 255, .04)]),
-      ],
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
-      shadows: const [CssShadow(0, 22, 34, -20, Color.fromRGBO(0, 10, 16, .9))],
+      bg: context.aeM(
+        const [
+          CssLinear(180, [Color.fromRGBO(255, 255, 255, .09), Color.fromRGBO(255, 255, 255, .04)]),
+        ],
+        const [CssSolid(LysPalett.hvit)],
+      ),
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.kantFarge)),
+      shadows: context.aeM(const [CssShadow(0, 22, 34, -20, Color.fromRGBO(0, 10, 16, .9))], LysPalett.kortskygge),
       padding: const EdgeInsets.fromLTRB(13, 15, 13, 13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1779,11 +1835,11 @@ class HbUtkastKort extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const HbIkon(HbIkoner.lyn, size: 10, fill: Color(0xFFFF9466)),
+                          HbIkon(HbIkoner.lyn, size: 10, fill: context.aeM(const Color(0xFFFF9466), const Color(0xFFA63A12))),
                           const SizedBox(width: 5),
                           Text(
                             HurtigCopy.aegilsUtkast,
-                            style: hbI(10, weight: FontWeight.w800, em: .12, color: kHbFersken),
+                            style: hbI(10, weight: FontWeight.w800, em: .12, color: context.aeM(kHbFersken, LysPalett.glodTekst)),
                           ),
                         ],
                       ),
@@ -1793,16 +1849,16 @@ class HbUtkastKort extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
-                        style: hbJ(16, em: -.015, color: Colors.white),
+                        style: hbJ(16, em: -.015, color: hvit),
                       ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          const HbIkon(HbIkoner.klokke, size: 11, stroke: kHbMintPale, width: 2.6),
+                          HbIkon(HbIkoner.klokke, size: 11, stroke: ik, width: 2.6),
                           const SizedBox(width: 5),
                           Text(
                             klar,
-                            style: hbI(11, weight: FontWeight.w700, color: _svak, tabular: true),
+                            style: hbI(11, weight: FontWeight.w700, color: svak, tabular: true),
                           ),
                         ],
                       ),
@@ -1813,7 +1869,7 @@ class HbUtkastKort extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          for (var i = 0; i < linjer.length; i++) ...[if (i > 0) const SizedBox(height: 6), _linje(linjer[i])],
+          for (var i = 0; i < linjer.length; i++) ...[if (i > 0) const SizedBox(height: 6), _linje(context, linjer[i])],
           if (forslag.isNotEmpty) ...[
             const SizedBox(height: 12),
             Padding(
@@ -1823,10 +1879,10 @@ class HbUtkastKort extends StatelessWidget {
                 children: [
                   Text(
                     HurtigCopy.leggTil,
-                    style: hbI(10, weight: FontWeight.w800, em: .12, color: _svak),
+                    style: hbI(10, weight: FontWeight.w800, em: .12, color: svak),
                   ),
                   const SizedBox(height: 7),
-                  Wrap(spacing: 7, runSpacing: 7, children: [for (final f in forslag) _forslag(f)]),
+                  Wrap(spacing: 7, runSpacing: 7, children: [for (final f in forslag) _forslag(context, f)]),
                 ],
               ),
             ),
@@ -1834,7 +1890,7 @@ class HbUtkastKort extends StatelessWidget {
           const SizedBox(height: 12),
           CssBox(
             radius: BorderRadius.circular(17),
-            bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .14))],
+            bg: [CssSolid(context.aeM(const Color.fromRGBO(0, 0, 0, .14), LysPalett.dis))],
             padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1844,11 +1900,11 @@ class HbUtkastKort extends StatelessWidget {
                   children: [
                     Text(
                       HurtigCopy.varer,
-                      style: hbI(12, weight: FontWeight.w700, color: _svak),
+                      style: hbI(12, weight: FontWeight.w700, color: svak),
                     ),
                     Text(
                       varer,
-                      style: hbI(12, weight: FontWeight.w700, color: _svak, tabular: true),
+                      style: hbI(12, weight: FontWeight.w700, color: svak, tabular: true),
                     ),
                   ],
                 ),
@@ -1858,22 +1914,22 @@ class HbUtkastKort extends StatelessWidget {
                   children: [
                     Text(
                       HurtigCopy.levering,
-                      style: hbI(12, weight: FontWeight.w700, color: _svak),
+                      style: hbI(12, weight: FontWeight.w700, color: svak),
                     ),
                     if (levGratis)
                       CssBox(
                         radius: BorderRadius.circular(999),
-                        bg: const [CssSolid(Color.fromRGBO(92, 224, 184, .14))],
+                        bg: [CssSolid(context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis))],
                         padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                         child: Text(
                           HurtigCopy.gratis,
-                          style: hbI(11, weight: FontWeight.w800, color: kHbMintLys),
+                          style: hbI(11, weight: FontWeight.w800, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
                         ),
                       )
                     else
                       Text(
                         lev,
-                        style: hbI(12, weight: FontWeight.w700, color: _svak, tabular: true),
+                        style: hbI(12, weight: FontWeight.w700, color: svak, tabular: true),
                       ),
                   ],
                 ),
@@ -1881,9 +1937,14 @@ class HbUtkastKort extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
+                      // Lys: the track `.mk2u` white with the kant ring.
                       child: Container(
                         height: 8,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: const Color.fromRGBO(255, 255, 255, .1)),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.hvit),
+                          boxShadow: context.aeM(const <BoxShadow>[], _ringLys),
+                        ),
                         child: Stack(
                           children: [
                             TweenAnimationBuilder<double>(
@@ -1909,12 +1970,17 @@ class HbUtkastKort extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       levTekst,
-                      style: hbI(10.5, weight: FontWeight.w800, color: levGratis ? kHbMintLys : kHbFersken),
+                      // `hbULevTxC` (L19105).
+                      style: hbI(10.5, weight: FontWeight.w800, color: levGratis ? context.aeM(kHbMintLys, LysPalett.mintTekst) : context.aeM(kHbFersken, LysPalett.glodTekst)),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Container(height: 1, color: const Color.fromRGBO(255, 255, 255, .08)),
+                // Lys: `.mk2x` white with the kant ring.
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit), boxShadow: context.aeM(const <BoxShadow>[], _ringLys)),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -1923,9 +1989,9 @@ class HbUtkastKort extends StatelessWidget {
                   children: [
                     Text(
                       HurtigCopy.totalt,
-                      style: hbI(13, weight: FontWeight.w800, color: Colors.white),
+                      style: hbI(13, weight: FontWeight.w800, color: hvit),
                     ),
-                    Text(total, style: hbJ(22, em: -.03, color: Colors.white, tabular: true)),
+                    Text(total, style: hbJ(22, em: -.03, color: hvit, tabular: true)),
                   ],
                 ),
               ],
@@ -1934,12 +2000,12 @@ class HbUtkastKort extends StatelessWidget {
           const SizedBox(height: 10),
           CssBox(
             radius: BorderRadius.circular(14),
-            bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
-            border: _kant,
+            bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .05), LysPalett.dis))],
+            border: kant,
             padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
             child: Row(
               children: [
-                _rund(const HbIkon(HbIkoner.pin, size: 13, fill: kHbMintPale)),
+                _rund(context, HbIkon(HbIkoner.pin, size: 13, fill: ik)),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Column(
@@ -1947,14 +2013,14 @@ class HbUtkastKort extends StatelessWidget {
                     children: [
                       Text(
                         HurtigCopy.leveresTil,
-                        style: hbI(9.5, weight: FontWeight.w800, color: _svak),
+                        style: hbI(9.5, weight: FontWeight.w800, color: svak),
                       ),
                       Text(
                         adresse,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         softWrap: false,
-                        style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
+                        style: hbI(12.5, weight: FontWeight.w800, color: hvit),
                       ),
                     ],
                   ),
@@ -1973,12 +2039,12 @@ class HbUtkastKort extends StatelessWidget {
                     onTap: onTidBytt,
                     child: CssBox(
                       radius: BorderRadius.circular(14),
-                      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
+                      bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .05), LysPalett.dis))],
                       border: Border.all(color: const Color.fromRGBO(127, 240, 203, .3)),
                       padding: const EdgeInsets.fromLTRB(11, 9, 10, 9),
                       child: Row(
                         children: [
-                          _rund(const HbIkon(HbIkoner.klokke, size: 13, stroke: kHbMintPale, width: 2.6)),
+                          _rund(context, HbIkon(HbIkoner.klokke, size: 13, stroke: ik, width: 2.6)),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Column(
@@ -1986,20 +2052,20 @@ class HbUtkastKort extends StatelessWidget {
                               children: [
                                 Text(
                                   HurtigCopy.naar,
-                                  style: hbI(9.5, weight: FontWeight.w800, color: kHbMintPale),
+                                  style: hbI(9.5, weight: FontWeight.w800, color: mintTx),
                                 ),
                                 Text(
                                   tid,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   softWrap: false,
-                                  style: hbI(12.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+                                  style: hbI(12.5, weight: FontWeight.w800, color: hvit, tabular: true),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const HbIkon(HbIkoner.tidBytt, size: 12, stroke: kHbMintPale, width: 2.8),
+                          HbIkon(HbIkoner.tidBytt, size: 12, stroke: ik, width: 2.8),
                         ],
                       ),
                     ),
@@ -2009,12 +2075,12 @@ class HbUtkastKort extends StatelessWidget {
                 Expanded(
                   child: CssBox(
                     radius: BorderRadius.circular(14),
-                    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
-                    border: _kant,
+                    bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .05), LysPalett.dis))],
+                    border: kant,
                     padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
                     child: Row(
                       children: [
-                        _rund(const HbIkon(HbIkoner.kort, size: 13, stroke: kHbMintPale, width: 2.6)),
+                        _rund(context, HbIkon(HbIkoner.kort, size: 13, stroke: ik, width: 2.6)),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Column(
@@ -2022,7 +2088,7 @@ class HbUtkastKort extends StatelessWidget {
                             children: [
                               Text(
                                 HurtigCopy.betaling,
-                                style: hbI(9.5, weight: FontWeight.w800, color: _svak),
+                                style: hbI(9.5, weight: FontWeight.w800, color: svak),
                               ),
                               const SizedBox(height: 2),
                               CssBox(
@@ -2121,7 +2187,7 @@ class HbUtkastKort extends StatelessWidget {
             Center(
               child: Text(
                 HurtigCopy.betalesMedVipps,
-                style: hbI(11.5, weight: FontWeight.w700, color: _svak),
+                style: hbI(11.5, weight: FontWeight.w700, color: svak),
               ),
             )
           else
@@ -2131,11 +2197,11 @@ class HbUtkastKort extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const HbIkon(HbIkoner.kurv, size: 13, stroke: kHbMintPale, width: 2.6),
+                  HbIkon(HbIkoner.kurv, size: 13, stroke: ik, width: 2.6),
                   const SizedBox(width: 6),
                   Text(
                     HurtigCopy.leggIKurvenIStedet,
-                    style: hbI(12, weight: FontWeight.w800, color: kHbMintPale),
+                    style: hbI(12, weight: FontWeight.w800, color: mintTx),
                   ),
                 ],
               ),
@@ -2145,10 +2211,17 @@ class HbUtkastKort extends StatelessWidget {
     );
   }
 
-  Widget _linje(HbUtkastLinjeVis l) => CssBox(
+  Widget _linje(BuildContext context, HbUtkastLinjeVis l) {
+    final svak = context.aeM(_svak, LysPalett.sekundar);
+    final ik = context.aeM(kHbMintPale, kHbLysIkon);
+    final hvit = context.aeM(Colors.white, LysPalett.brod);
+    // `.mk2u`: white with the kant ring in Lys.
+    final knappFarge = context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.hvit);
+    final knappRing = context.aeM(const <BoxShadow>[], _ringLys);
+    return CssBox(
     radius: BorderRadius.circular(16),
-    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .05))],
-    border: _kant,
+    bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .05), LysPalett.dis))],
+    border: context.aeM(_kant, _kantLys),
     padding: const EdgeInsets.fromLTRB(13, 11, 11, 11),
     child: Row(
       children: [
@@ -2160,12 +2233,12 @@ class HbUtkastKort extends StatelessWidget {
                 l.navn,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: hbJ(13.5, em: -.01, height: 1.2, color: Colors.white),
+                style: hbJ(13.5, em: -.01, height: 1.2, color: hvit),
               ),
               const SizedBox(height: 3),
               Text(
                 HurtigCopy.perStk(l.enhet),
-                style: hbI(11, weight: FontWeight.w700, color: _svak, tabular: true),
+                style: hbI(11, weight: FontWeight.w700, color: svak, tabular: true),
               ),
             ],
           ),
@@ -2177,7 +2250,7 @@ class HbUtkastKort extends StatelessWidget {
             CssBox(
               height: 36,
               radius: BorderRadius.circular(999),
-              bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
+              bg: [CssSolid(context.aeM(const Color.fromRGBO(0, 0, 0, .18), LysPalett.dis))],
               padding: const EdgeInsets.all(4),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -2188,8 +2261,8 @@ class HbUtkastKort extends StatelessWidget {
                     child: Container(
                       width: 28,
                       height: 28,
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
-                      child: const Center(child: HbIkon(HbIkoner.minus, size: 11, stroke: kHbMintPale, width: 3.2)),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: knappFarge, boxShadow: knappRing),
+                      child: Center(child: HbIkon(HbIkoner.minus, size: 11, stroke: ik, width: 3.2)),
                     ),
                   ),
                   const SizedBox(width: 2),
@@ -2198,7 +2271,7 @@ class HbUtkastKort extends StatelessWidget {
                     child: Text(
                       '${l.ant}',
                       textAlign: TextAlign.center,
-                      style: hbJ(14, color: Colors.white, tabular: true),
+                      style: hbJ(14, color: hvit, tabular: true),
                     ),
                   ),
                   const SizedBox(width: 2),
@@ -2208,8 +2281,8 @@ class HbUtkastKort extends StatelessWidget {
                     child: Container(
                       width: 28,
                       height: 28,
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
-                      child: const Center(child: HbIkon(HbIkoner.pluss, size: 11, stroke: kHbMintPale, width: 3.2)),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: knappFarge, boxShadow: knappRing),
+                      child: Center(child: HbIkon(HbIkoner.pluss, size: 11, stroke: ik, width: 3.2)),
                     ),
                   ),
                 ],
@@ -2218,22 +2291,24 @@ class HbUtkastKort extends StatelessWidget {
             const SizedBox(height: 5),
             Padding(
               padding: const EdgeInsets.only(right: 4),
-              child: Text(l.sum, style: hbJ(13, color: Colors.white, tabular: true)),
+              child: Text(l.sum, style: hbJ(13, color: hvit, tabular: true)),
             ),
           ],
         ),
       ],
     ),
   );
+  }
 
-  Widget _forslag(HbForslagVis f) => HbPress(
+  // Lys: `.mk2v` `--lys-dis` + kant; the name `.mkb`, the price `.mk1t` (the orange disc stays).
+  Widget _forslag(BuildContext context, HbForslagVis f) => HbPress(
     dy: 2.5,
     onTap: f.onTap,
     child: CssBox(
       height: 34,
       radius: BorderRadius.circular(999),
-      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .07))],
-      border: Border.all(color: const Color.fromRGBO(255, 255, 255, .1)),
+      bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .07), LysPalett.dis))],
+      border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.kantFarge)),
       padding: const EdgeInsets.fromLTRB(5, 0, 13, 0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2250,12 +2325,12 @@ class HbUtkastKort extends StatelessWidget {
           const SizedBox(width: 7),
           Text(
             f.navn,
-            style: hbI(11.5, weight: FontWeight.w800, color: Colors.white, tabular: true),
+            style: hbI(11.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel), tabular: true),
           ),
           const SizedBox(width: 7),
           Text(
             f.pris,
-            style: hbI(11, weight: FontWeight.w800, color: kHbMintPale, tabular: true),
+            style: hbI(11, weight: FontWeight.w800, color: context.aeM(kHbMintPale, LysPalett.mintTekst), tabular: true),
           ),
         ],
       ),

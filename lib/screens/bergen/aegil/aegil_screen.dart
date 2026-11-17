@@ -50,6 +50,8 @@ import 'aegil_verktoy.dart';
 import 'cus_level3.dart';
 import '../onboarding/onb_tips.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Ægil (`erAgent`, L4500–5120 in `Ærend Kunde Launch.dc.html`, design px).
 ///
@@ -1448,19 +1450,23 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     );
   }
 
-  /// The teal sheet (`top:222px`, radius 30).
+  /// The teal sheet (`top:222px`, radius 30). Lys: `.mk37` `--lys-ull` +
+  /// `--lys-arkskygge`; the handle `.mk1f` white with the kant ring.
   Widget _ark(double bunn, bool kurvPaa) {
     return CssBox(
       radius: const BorderRadius.vertical(top: Radius.circular(30)),
-      bg: const [
-        CssRadial([Color.fromRGBO(255, 255, 255, .26), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
-        CssLinear(180, [Color(0xFF2A6272), kAeTeal, Color(0xFF173E48)], [0, .42, 1]),
-      ],
-      shadows: const [
+      bg: context.aeM(
+        const [
+          CssRadial([Color.fromRGBO(255, 255, 255, .26), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
+          CssLinear(180, [Color(0xFF2A6272), kAeTeal, Color(0xFF173E48)], [0, .42, 1]),
+        ],
+        const [CssSolid(LysPalett.ull)],
+      ),
+      shadows: context.aeM(const [
         CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
         CssShadow(0, -24, 50, -18, Color.fromRGBO(4, 18, 26, .8)),
-      ],
+      ], LysPalett.arkskygge),
       child: Stack(
         children: [
           Positioned(
@@ -1473,7 +1479,11 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                   width: 44,
                   height: 5,
                   margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: const Color.fromRGBO(255, 255, 255, .28)),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(3),
+                    color: context.aeM(const Color.fromRGBO(255, 255, 255, .28), LysPalett.hvit),
+                    boxShadow: context.aeM(const <BoxShadow>[], const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)]),
+                  ),
                 ),
                 Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: _hodeRad()),
               ],
@@ -1527,7 +1537,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
               spacing: 7,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(AeCopy.navn, style: jakarta(19, em: -.025, height: 1.05)),
+                // Lys: `.mkb` `--lys-tittel`; the state `.mk13` `--lys-mint-tekst`.
+                Text(AeCopy.navn, style: jakarta(19, em: -.025, height: 1.05, color: context.aeM(Colors.white, LysPalett.tittel))),
                 const AeAiMerke(),
               ],
             ),
@@ -1541,7 +1552,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                 ),
                 const SizedBox(width: 5),
                 Flexible(
-                  child: Text(_tilstand, key: const Key('a1_aegil_tilstand'), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w800, height: 1.05, color: kAeMint)),
+                  child: Text(_tilstand, key: const Key('a1_aegil_tilstand'), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w800, height: 1.05, color: context.aeM(kAeMint, LysPalett.mintTekst))),
                 ),
               ],
             ),
@@ -1554,12 +1565,13 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
         onTap: () => _gaa('nivaa'),
         dy: 0,
         scale: .95,
+        // Lys: `.mk39` white, kant, no shadow, `--lys-tittel`; the disc `.mk3a` `--lys-dis` + `.mku`.
         child: CssBox(
           height: 36,
           radius: BorderRadius.circular(999),
-          bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .1))],
-          shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22))],
-          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+          bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.hvit))],
+          shadows: context.aeM(const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22))], const <CssShadow>[]),
+          border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
           padding: const EdgeInsets.fromLTRB(11, 0, 5, 0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1574,14 +1586,14 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
                 ),
               ),
               const SizedBox(width: 6),
-              Text(aeNivaaNavn(_settings ?? const AegilSettings(), _nivaaer), style: inter(11.5, weight: FontWeight.w800)),
+              Text(aeNivaaNavn(_settings ?? const AegilSettings(), _nivaaer), style: inter(11.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
               const SizedBox(width: 6),
               Container(
                 width: 24,
                 height: 24,
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .14)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.dis)),
                 alignment: Alignment.center,
-                child: const AeIkon('M9 6l6 6-6 6', size: 11, stroke: 2.6),
+                child: AeIkon('M9 6l6 6-6 6', size: 11, stroke: 2.6, color: context.aeM(Colors.white, kAeTeal)),
               ),
             ],
           ),
@@ -1708,7 +1720,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
     );
     Widget kicker(String t) => Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 9),
-      child: Text(t, style: inter(10, weight: FontWeight.w800, em: .1, color: const Color.fromRGBO(255, 255, 255, .55))),
+      // Lys: `.mkd` `--lys-dempet` (agOb4/agOb5).
+      child: Text(t, style: inter(10, weight: FontWeight.w800, em: .1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet))),
     );
     final (sp, hint, innhold, valg, poeng) = switch (n) {
       1 => (AeCopy.ob1, AeCopy.ob1Hint, chips(AeCopy.kat, o.kat.contains, (t) => o.veksle(o.kat, t)), o.kat.length, o.kat.length * _perSvar),
@@ -1730,7 +1743,8 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
             GestureDetector(
               key: const Key('a1_aegil_vis_flere'),
               onTap: () => setState(() => _butArk = true),
-              child: Text(AeCopy.visFlere, style: inter(11.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+              // Lys: `.mk8` `--lys-mint-tekst` (agOb3).
+              child: Text(AeCopy.visFlere, style: inter(11.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
             ),
           ],
         ),
@@ -1762,19 +1776,20 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
             kicker(AeCopy.naarTilbud),
             chips(AeCopy.varsel, (t) => o.varsel == t, (t) => o.varsel = o.varsel == t ? '' : t),
             const SizedBox(height: 11),
+            // Lys: `.mk4l` `--lys-dis`, no shadow, `--lys-sekundar`; the icon `.mk1i` (agOb5).
             CssBox(
               radius: BorderRadius.circular(12),
-              bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
-              shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))],
+              bg: [CssSolid(context.aeM(const Color.fromRGBO(0, 0, 0, .18), LysPalett.dis))],
+              shadows: context.aeM(const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))], const <CssShadow>[]),
               padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
               child: Row(
                 children: [
-                  AeIkon('M18 15.5A6 6 0 0 1 12 21a6 6 0 0 1-6-5.5${AeIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2', size: 13, stroke: 2.2, color: const Color(0xFF7FF0CB)),
+                  AeIkon('M18 15.5A6 6 0 0 1 12 21a6 6 0 0 1-6-5.5${AeIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2', size: 13, stroke: 2.2, color: context.aeM(const Color(0xFF7FF0CB), kAeLysIkon)),
                   const SizedBox(width: 7),
                   Expanded(
                     child: Text(
                       AeCopy.roligeTimer(_settings?.hasQuietHours ?? false ? '${_settings!.quietHoursFrom}–${_settings!.quietHoursTo}' : '21:00–08:00'),
-                      style: inter(11, weight: FontWeight.w700, color: const Color(0xFFCFEFE6)),
+                      style: inter(11, weight: FontWeight.w700, color: context.aeM(const Color(0xFFCFEFE6), LysPalett.sekundar)),
                     ),
                   ),
                 ],

@@ -37,6 +37,8 @@ abstract final class LigaArk {
       context,
       key: const Key('meg-liga-navn-sheet'),
       mork: true,
+      // Lys plan §0.2: the liga sheets stay fjord.
+      fjord: true,
       tastatur: true,
       title: bli ? A4MegCopy.a4_meg_liga_bli_title : A4MegCopy.a4_meg_navn_liga,
       subtitle: A4MegCopy.a4_meg_liga_navn_linje,
@@ -127,6 +129,8 @@ abstract final class LigaArk {
       context,
       key: const Key('liga-vilkaar-sheet'),
       mork: true,
+      // Lys plan §0.2: the liga sheets stay fjord.
+      fjord: true,
       title: A3PoengCopy.a3_poeng_liga_vilkaar_title,
       subtitle: A3PoengCopy.a3_poeng_liga_vilkaar_linje,
       body: (ctx, _) => Column(

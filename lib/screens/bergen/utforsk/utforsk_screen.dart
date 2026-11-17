@@ -20,6 +20,8 @@ import 'pose_segment.dart';
 import 'utforsk_copy.dart';
 import '../kit/laster_dra.dart';
 import '../onboarding/onb_tips.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// `utforsk` (L5456–5713 in `Ærend Kunde Launch.dc.html`, design px) — tab 1
 /// of the shell, and `/bergen/utforsk` (`?tab=fiske|pose`, `&fane=folger`).
@@ -235,7 +237,8 @@ class _UtforskScreenState extends State<UtforskScreen> {
     final isPose = _tab == UtforskScreen.tabPose;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF173E48),
+      // Lys: `.mk3` (erUtforsk) — `--lys-ull`.
+      backgroundColor: context.aeM(const Color(0xFF173E48), LysPalett.ull),
       body: LfFrame(
         child: Builder(
           builder: (context) {
@@ -243,10 +246,11 @@ class _UtforskScreenState extends State<UtforskScreen> {
             final top = mq.padding.top;
             final bottom = widget.embedded ? 130.0 + mq.padding.bottom * .5 : 40 + mq.padding.bottom;
             final body = CssBox(
-              bg: const [
+              // `.mk3` (erUtforsk): the fjord body, `--lys-ull` in Lys.
+              bg: context.aeM(const [
                 CssRadial([Color.fromRGBO(255, 255, 255, .22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .5, cx: .14, cy: 0),
                 CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .42, 1]),
-              ],
+              ], const [CssSolid(LysPalett.ull)]),
               child: Stack(
                 children: [
                   Positioned(
@@ -262,15 +266,16 @@ class _UtforskScreenState extends State<UtforskScreen> {
                             GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () => Navigator.of(context).pop(),
-                              child: const Padding(
-                                padding: EdgeInsets.only(right: 10),
-                                child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: Icon(Icons.arrow_back_rounded, color: context.aeM(Colors.white, LysPalett.tittel), size: 22),
                               ),
                             ),
                           Text(
                             UtforskCopy.a1_utforsk_title,
                             key: const Key('a1_utforsk_title'),
-                            style: jakarta(20, em: -0.025),
+                            // `.mkb`: `--lys-tittel` in Lys.
+                            style: jakarta(20, em: -0.025, color: context.aeM(Colors.white, LysPalett.tittel)),
                           ),
                         ],
                       ),
@@ -387,9 +392,10 @@ class _Segments extends StatelessWidget {
     return CssBox(
       radius: BorderRadius.circular(999),
       padding: const EdgeInsets.all(3),
-      bg: [CssSolid(rgba(0, 0, 0, .28))],
-      border: Border.all(color: rgba(255, 255, 255, .12)),
-      shadows: [CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35))],
+      // `.mk5a`: in Lys `--lys-dis-ull`, a `--lys-kant-farge` border, no shadow.
+      bg: [CssSolid(context.aeM(rgba(0, 0, 0, .28), LysPalett.disUll))],
+      border: Border.all(color: context.aeM(rgba(255, 255, 255, .12), LysPalett.kantFarge)),
+      shadows: context.aeM([CssShadow.inset(0, 2, 4, 0, rgba(0, 0, 0, .35))], const []),
       child: LayoutBuilder(
         builder: (context, c) {
           // `W = calc(100% - 12px)` of the 1px-bordered box; one flex unit W/3.25.
@@ -407,15 +413,16 @@ class _Segments extends StatelessWidget {
                   top: 0,
                   bottom: 0,
                   width: width,
+                  // `.mk5b` / feedVals `sg` (L20049): `--lys-fjord-fyll` in Lys.
                   child: CssBox(
                     radius: BorderRadius.circular(999),
-                    bg: const [
+                    bg: context.aeM(const [
                       CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
-                    ],
-                    shadows: [
+                    ], LysPalett.fjordFyll),
+                    shadows: context.aeM([
                       CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .4)),
                       CssShadow(0, 4, 10, -4, rgba(242, 109, 61, .9)),
-                    ],
+                    ], const [CssShadow(0, 4, 8, -5, Color.fromRGBO(23, 62, 72, .5))]),
                   ),
                 ),
                 Row(
@@ -481,7 +488,8 @@ class _SegmentState extends State<_Segment> {
           duration: Duration(milliseconds: reduce ? 0 : 350),
           curve: cssEase,
           builder: (context, k, _) {
-            final c = Color.lerp(rgba(255, 255, 255, .6), Colors.white, k)!;
+            // feedVals `sg` (L20049): off `--lys-sekundar` in Lys, on white.
+            final c = Color.lerp(context.aeM(rgba(255, 255, 255, .6), LysPalett.sekundar), Colors.white, k)!;
             return Center(
               child: FittedBox(
                 fit: BoxFit.scaleDown,

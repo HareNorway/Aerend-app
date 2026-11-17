@@ -22,6 +22,9 @@ import '../kit/bergen_kit.dart';
 import 'meg_copy.dart';
 import 'meg_torg.dart';
 import '../sporing/hjelp_sheet.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
+import 'konto_utseende.dart';
 
 const String kPrefA3KrysningAv = 'a3_konto_krysning_varsler_av';
 const String kPrefA3Rolig = 'a3_konto_rolig';
@@ -165,12 +168,16 @@ class _KontoScreenState extends State<KontoScreen> {
           pilleKey: const Key('konto-profil'),
           onPille: () => _push(const EditProfile()),
           listKey: const Key('konto-liste'),
-          glod: const [
-            MegGlod(top: 40, left: -70, size: 250, color: Color.fromRGBO(58, 125, 140, .26)),
-            MegGlod(top: 380, right: -80, size: 260, color: Color.fromRGBO(242, 193, 78, .3)),
+          // `.mk9x` / `.mk9w`: the glows go transparent in Lys.
+          glod: [
+            MegGlod(top: 40, left: -70, size: 250, color: context.aeM(const Color.fromRGBO(58, 125, 140, .26), const Color.fromRGBO(58, 125, 140, 0))),
+            MegGlod(top: 380, right: -80, size: 260, color: context.aeM(const Color.fromRGBO(242, 193, 78, .3), const Color.fromRGBO(242, 193, 78, 0))),
           ],
           children: [
-            const _Overskrift(A3MegCopy.a3_meg_konto_adresser, top: 0),
+            // Lys plan Step 2: «Utseende» first, above Adresser.
+            const _Overskrift(KontoTekst.utseende, top: 0),
+            const MegLysKort(key: Key('konto-utseende'), child: KontoUtseende()),
+            const _Overskrift(A3MegCopy.a3_meg_konto_adresser),
             MegLysKort(
               key: const Key('konto-adresser'),
               child: Column(
@@ -288,7 +295,8 @@ class _Overskrift extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.fromLTRB(6, top, 6, 8),
-    child: Text(tekst, style: jakarta(14, color: MegTorgSkjerm.blekk)),
+    // `.mkab .mkkt`: white on the fjord (since the Lys export), `--lys-tittel` in Lys.
+    child: Text(tekst, style: jakarta(14, color: context.aeM(Colors.white, LysPalett.tittel))),
   );
 }
 
@@ -365,7 +373,7 @@ class _Rad extends StatelessWidget {
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(tittel, maxLines: 2, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: farge == null ? FontWeight.w700 : FontWeight.w800, color: farge ?? MegTorgSkjerm.blekk)),
+                        Text(tittel, maxLines: 2, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: farge == null ? FontWeight.w700 : FontWeight.w800, color: farge ?? context.aeM(MegTorgSkjerm.blekk, LysPalett.brod))),
                         if (under != null) Text(under!, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, weight: FontWeight.w400, color: const Color(0xFF6E6862))),
                       ],
                     ),
@@ -426,6 +434,7 @@ class _Bryter extends StatelessWidget {
 
 /// Copy for Konto that A3MegCopy does not carry.
 abstract final class KontoTekst {
+  static const String utseende = 'Utseende';
   static const String applePay = 'Apple Pay';
   static const String applePaySub = 'Face ID ved betaling';
   static const String kortUnder = 'Lagret kort';

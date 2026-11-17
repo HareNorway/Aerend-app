@@ -304,7 +304,9 @@ void main() {
     testWidgets('MegStadion', (tester) async {
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
-      await sjekk(tester, const SizedBox(width: 390, height: 196, child: MegStadion(kind: BergenWeather.regn)), ms: 51, for0: 4);
+      // 14 steps: the first scene pass is drawn before the clock is frozen,
+      // and its 12 stripes roll in after.
+      await sjekk(tester, const SizedBox(width: 390, height: 196, child: MegStadion(kind: BergenWeather.regn)), ms: 51, for0: 14);
     });
 
     testWidgets('SjoWater (Hjem hero water)', (tester) async {
@@ -328,7 +330,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       for (final vaer in BergenWeather.values) {
-        await sjekk(tester, AegilFloyen(key: ValueKey(vaer), kind: vaer, still: const SizedBox()), ms: 34, for0: 24, delt: true);
+        await sjekk(tester, AegilFloyen(key: ValueKey(vaer), kind: vaer, still: const SizedBox()), ms: 34, for0: 32, delt: true);
       }
     });
 

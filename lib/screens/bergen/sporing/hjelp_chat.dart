@@ -146,7 +146,9 @@ class _SupportChatState extends State<_SupportChat> {
     final aapen = SupportConfig.aapen();
     final human = s?.erMenneske ?? false;
     final lukket = s?.lukket ?? false;
-    final dot = lukket ? rgba(255, 255, 255, .4) : (human ? kSpMint : (aapen ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .4)));
+    // Lys: `scDot` (L22531) — the grey dot `rgba(30,79,92,.3)`.
+    final graa = context.aeM(rgba(255, 255, 255, .4), const Color.fromRGBO(30, 79, 92, .3));
+    final dot = lukket ? graa : (human ? kSpMint : (aapen ? const Color(0xFFF2C14E) : graa));
     // A guest (no conversation yet) is still talking to the assistant.
     final under = s == null
         ? (aapen ? SupportCopy.aiUnder : SupportCopy.stengtUnder(SupportConfig.aapnerKl))
@@ -172,7 +174,7 @@ class _SupportChatState extends State<_SupportChat> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s?.emne ?? SupportCopy.emneSupport, key: const Key('a1_hjelp_chat_tittel'), maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(18, em: -.02)),
+                  Text(s?.emne ?? SupportCopy.emneSupport, key: const Key('a1_hjelp_chat_tittel'), maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(18, em: -.02, color: _hjT(context))),
                   if (under.isNotEmpty || widget.gjest) ...[
                     const SizedBox(height: 1),
                     Row(
@@ -193,7 +195,7 @@ class _SupportChatState extends State<_SupportChat> {
                             key: const Key('a1_hjelp_chat_under'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: inter(11.5, color: rgba(255, 255, 255, .62)),
+                            style: inter(11.5, color: _hjSek(context, rgba(255, 255, 255, .62))),
                           ),
                         ),
                       ],
@@ -235,8 +237,10 @@ class _SupportChatState extends State<_SupportChat> {
                     key: const Key('a1_hjelp_chat_skriver'),
                     radius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomRight: Radius.circular(18), bottomLeft: Radius.circular(5)),
                     padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-                    border: Border.all(color: rgba(255, 255, 255, .2)),
-                    bg: [CssSolid(rgba(255, 255, 255, .1))],
+                    // Lys («Support-chat»): the typing bubble `.mkc7` (white, hairline, card shadow).
+                    border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .2))),
+                    bg: _hjKortBg(context, [CssSolid(rgba(255, 255, 255, .1))]),
+                    shadows: context.aeM(const <CssShadow>[], LysPalett.kortskygge),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [for (var k = 0; k < 3; k++) _Prikk(delay: k * 200.0)],
@@ -262,14 +266,15 @@ class _SupportChatState extends State<_SupportChat> {
                 child: Container(
                   height: 38,
                   padding: const EdgeInsets.symmetric(horizontal: 13),
+                  // `.mkc8`: white, hairline, `--lys-tittel`.
                   decoration: BoxDecoration(
-                    color: rgba(255, 255, 255, .1),
+                    color: context.aeM(rgba(255, 255, 255, .1), LysPalett.hvit),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: rgba(255, 255, 255, .26)),
+                    border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .26))),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [Text(c, style: inter(12.5, weight: FontWeight.w700))],
+                    children: [Text(c, style: inter(12.5, weight: FontWeight.w700, color: _hjT(context)))],
                   ),
                 ),
               ),
@@ -290,12 +295,14 @@ class _SupportChatState extends State<_SupportChat> {
           child: Container(
             height: 46,
             alignment: Alignment.center,
+            // Lys (app-only key, built like `.mkca`): white, hairline, card shadow, `--lys-tittel`.
             decoration: BoxDecoration(
-              color: rgba(255, 255, 255, .08),
+              color: context.aeM(rgba(255, 255, 255, .08), LysPalett.hvit),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: rgba(255, 255, 255, .24)),
+              border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .24))),
+              boxShadow: context.lys ? _hjKortskyggeBox : null,
             ),
-            child: Text(SupportCopy.nySamtale, style: inter(13, weight: FontWeight.w800)),
+            child: Text(SupportCopy.nySamtale, style: inter(13, weight: FontWeight.w800, color: _hjT(context))),
           ),
         ),
       ] else ...[
@@ -304,11 +311,12 @@ class _SupportChatState extends State<_SupportChat> {
           height: 50,
           radius: BorderRadius.circular(999),
           padding: const EdgeInsets.fromLTRB(16, 0, 6, 0),
-          border: Border.all(color: rgba(255, 255, 255, .22)),
-          bg: [
+          // Lys: the field `.mkc9` (white, hairline, no shadow), the input `.mk1n` (`--lys-brod`).
+          border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .22))),
+          bg: _hjKortBg(context, [
             CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-          ],
-          shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+          ]),
+          shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))], const <CssShadow>[]),
           child: Row(
             children: [
               Expanded(
@@ -317,8 +325,8 @@ class _SupportChatState extends State<_SupportChat> {
                   controller: _tekst,
                   onSubmitted: _send,
                   textInputAction: TextInputAction.send,
-                  cursorColor: kSpMint,
-                  style: inter(13.5),
+                  cursorColor: context.aeM(kSpMint, LysPalett.mintTekst),
+                  style: inter(13.5, color: context.aeM(Colors.white, LysPalett.brod)),
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
@@ -327,7 +335,7 @@ class _SupportChatState extends State<_SupportChat> {
                     filled: false,
                     contentPadding: EdgeInsets.zero,
                     hintText: human ? SupportCopy.skrivTil(navn) : SupportCopy.skrivAi,
-                    hintStyle: inter(13.5, color: rgba(255, 255, 255, .45)),
+                    hintStyle: inter(13.5, color: _hjDemp(context, rgba(255, 255, 255, .45))),
                   ),
                 ),
               ),
@@ -361,22 +369,24 @@ class _SupportChatState extends State<_SupportChat> {
           scale: .985,
           child: Container(
             height: 46,
+            // Lys: `.mkca` (white, hairline, card shadow, `--lys-tittel`), stroke `.mk1i`.
             decoration: BoxDecoration(
-              color: rgba(255, 255, 255, .08),
+              color: context.aeM(rgba(255, 255, 255, .08), LysPalett.hvit),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: rgba(255, 255, 255, .24)),
+              border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .24))),
+              boxShadow: context.lys ? _hjKortskyggeBox : null,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                spIkon('M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M4 21a8 8 0 0 1 16 0', size: 15, color: kSpMint, width: 2.2),
+                spIkon('M8 8a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M4 21a8 8 0 0 1 16 0', size: 15, color: _hjMintStrek(context), width: 2.2),
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     human ? SupportCopy.iSamtalen(navn) : SupportCopy.menneske,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: inter(13, weight: FontWeight.w800),
+                    style: inter(13, weight: FontWeight.w800, color: _hjT(context)),
                   ),
                 ),
               ],
@@ -392,17 +402,19 @@ class _SupportChatState extends State<_SupportChat> {
     InputDecoration dekor(String hint, {bool feilKant = false}) => InputDecoration(
       isDense: true,
       filled: true,
-      fillColor: rgba(255, 255, 255, .1),
+      // Lys («Gjest · finn bestillingen»): the fields `.mkc3` / `.mkc4` (`--lys-dis`, `--lys-kant-farge`,
+      // `--lys-tittel`), the wrong-code ring `scGjestKant` `rgba(166,58,18,.5)` (L22520).
+      fillColor: context.aeM(rgba(255, 255, 255, .1), LysPalett.dis),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       hintText: hint,
-      hintStyle: inter(14, weight: FontWeight.w700, color: rgba(255, 255, 255, .45)),
+      hintStyle: inter(14, weight: FontWeight.w700, color: _hjDemp(context, rgba(255, 255, 255, .45))),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: feilKant ? rgba(255, 140, 100, .7) : rgba(255, 255, 255, .28)),
+        borderSide: BorderSide(color: feilKant ? context.aeM(rgba(255, 140, 100, .7), const Color.fromRGBO(166, 58, 18, .5)) : _hjKant(context, rgba(255, 255, 255, .28))),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: feilKant ? rgba(255, 140, 100, .7) : rgba(255, 255, 255, .5)),
+        borderSide: BorderSide(color: feilKant ? context.aeM(rgba(255, 140, 100, .7), const Color.fromRGBO(166, 58, 18, .5)) : _hjKant(context, rgba(255, 255, 255, .5))),
       ),
     );
     return Padding(
@@ -411,17 +423,18 @@ class _SupportChatState extends State<_SupportChat> {
         key: const Key('a1_hjelp_gjest'),
         radius: BorderRadius.circular(20),
         padding: const EdgeInsets.all(14),
-        border: Border.all(color: rgba(255, 255, 255, .2)),
-        bg: [
+        // `.mkc2` (white, hairline, card shadow), `.mkb`, `.mk9f`.
+        border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .2))),
+        bg: _hjKortBg(context, [
           CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-        ],
-        shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+        ]),
+        shadows: _hjKortSh(context, [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))]),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(SupportCopy.gjestTittel, style: inter(14, weight: FontWeight.w800)),
+            Text(SupportCopy.gjestTittel, style: inter(14, weight: FontWeight.w800, color: _hjT(context))),
             const SizedBox(height: 3),
-            Text('${SupportCopy.gjestTekst}${SupportCopy.gjestKontakt}.', style: inter(12, height: 1.45, color: rgba(255, 255, 255, .65))),
+            Text('${SupportCopy.gjestTekst}${SupportCopy.gjestKontakt}.', style: inter(12, height: 1.45, color: _hjSek(context, rgba(255, 255, 255, .65)))),
             const SizedBox(height: 10),
             SizedBox(
               height: 48,
@@ -430,8 +443,8 @@ class _SupportChatState extends State<_SupportChat> {
                 controller: _gjestOrdre,
                 onChanged: (_) => setState(() => _feil = null),
                 textCapitalization: TextCapitalization.characters,
-                cursorColor: kSpMint,
-                style: inter(14, weight: FontWeight.w700),
+                cursorColor: context.aeM(kSpMint, LysPalett.mintTekst),
+                style: inter(14, weight: FontWeight.w700, color: _hjT(context)),
                 decoration: dekor(SupportCopy.gjestOrdre),
               ),
             ),
@@ -445,8 +458,8 @@ class _SupportChatState extends State<_SupportChat> {
                   onChanged: (_) => setState(() => _feil = null),
                   keyboardType: TextInputType.number,
                   maxLength: 4,
-                  cursorColor: kSpMint,
-                  style: inter(16, weight: FontWeight.w800, em: .2),
+                  cursorColor: context.aeM(kSpMint, LysPalett.mintTekst),
+                  style: inter(16, weight: FontWeight.w800, em: .2, color: _hjT(context)),
                   decoration: dekor(SupportCopy.gjestKode, feilKant: feil != null).copyWith(counterText: ''),
                 ),
               ),
@@ -534,11 +547,12 @@ class _VurderingState extends State<_Vurdering> {
       key: const Key('a1_hjelp_vurdering'),
       radius: BorderRadius.circular(18),
       padding: const EdgeInsets.fromLTRB(14, 11, 10, 11),
-      border: Border.all(color: rgba(255, 255, 255, .2)),
-      bg: [
+      // Lys (app-only card, built like `.mkbo`): white, hairline, card shadow, `--lys-tittel`.
+      border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .2))),
+      bg: _hjKortBg(context, [
         CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-      ],
-      shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+      ]),
+      shadows: _hjKortSh(context, [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -551,7 +565,7 @@ class _VurderingState extends State<_Vurdering> {
                   key: Key(takk ? 'a1_hjelp_vurdering_takk' : 'a1_hjelp_vurdering_spor'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: inter(13, weight: FontWeight.w800),
+                  style: inter(13, weight: FontWeight.w800, color: _hjT(context)),
                 ),
               ),
               const SizedBox(width: 6),
@@ -560,7 +574,7 @@ class _VurderingState extends State<_Vurdering> {
                   Padding(
                     key: Key('a1_hjelp_vurdering_vist_$n'),
                     padding: const EdgeInsets.all(2),
-                    child: _stjerne(n <= fylt),
+                    child: _stjerne(context, n <= fylt),
                   )
                 else
                   Semantics(
@@ -571,7 +585,7 @@ class _VurderingState extends State<_Vurdering> {
                       onTap: () => _vurder(n),
                       scale: .85,
                       // 40 px target: enough for a thumb, five fit beside the question.
-                      child: SizedBox(width: 34, height: 40, child: Center(child: _stjerne(n <= fylt))),
+                      child: SizedBox(width: 34, height: 40, child: Center(child: _stjerne(context, n <= fylt))),
                     ),
                   ),
             ],
@@ -581,7 +595,7 @@ class _VurderingState extends State<_Vurdering> {
             Text(
               SupportCopy.vurderFeil,
               key: const Key('a1_hjelp_vurdering_feil'),
-              style: inter(11, weight: FontWeight.w700, color: const Color(0xFFFFD5C6)),
+              style: inter(11, weight: FontWeight.w700, color: context.aeM(const Color(0xFFFFD5C6), LysPalett.glodTekst)),
             ),
           ],
         ],
@@ -590,11 +604,13 @@ class _VurderingState extends State<_Vurdering> {
   }
 
   /// The prototype's star (its rating chip's path), gold when chosen.
-  Widget _stjerne(bool fylt) => AeIkon(
+  /// Lys: an empty star in the dim stroke of the design's chevrons (`.mk9q`, `rgba(30,79,92,.6)` … at the
+  /// app's .34 → `rgba(30,79,92,.3)`, the design's light grey dot).
+  Widget _stjerne(BuildContext context, bool fylt) => AeIkon(
     'M12 2.5l2.9 5.9 6.6 1-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-1z',
     size: 22,
     stroke: 1.6,
-    color: fylt ? const Color(0xFFF2C14E) : rgba(255, 255, 255, .34),
+    color: fylt ? const Color(0xFFF2C14E) : context.aeM(rgba(255, 255, 255, .34), const Color.fromRGBO(30, 79, 92, .3)),
     fill: fylt ? const Color(0xFFF2C14E) : null,
   );
 }
@@ -621,11 +637,12 @@ class _ChatMelding extends StatelessWidget {
           child: Center(
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 5, 12, 5),
-              decoration: BoxDecoration(color: rgba(255, 255, 255, .08), borderRadius: BorderRadius.circular(999)),
+              // Lys: `.mkc5` (white, `--lys-sekundar`, a `--lys-kant-farge` ring).
+              decoration: BoxDecoration(color: context.aeM(rgba(255, 255, 255, .08), LysPalett.hvit), borderRadius: BorderRadius.circular(999), boxShadow: context.lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null),
               child: Text(
                 m.tekst,
                 textAlign: TextAlign.center,
-                style: inter(10.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .62)),
+                style: inter(10.5, weight: FontWeight.w700, color: _hjSek(context, rgba(255, 255, 255, .62))),
               ),
             ),
           ),
@@ -635,7 +652,11 @@ class _ChatMelding extends StatelessWidget {
     final meg = m.fra == SupportAvsender.du;
     final ai = m.fra == SupportAvsender.assistent;
     final merke = meg ? SupportCopy.merkeDu(m.kl) : (ai ? SupportCopy.merkeAi(m.kl, navn: m.navn) : SupportCopy.merkeMenneske(m.navn ?? 'Ærend', m.kl));
-    final merkeC = ai ? const Color(0xFFF2C14E) : (meg ? rgba(255, 255, 255, .5) : kSpMint);
+    // Lys: `scMeld` (L22532) — labels gull-tekst / dempet / mint-tekst; bubbles: mine `--lys-fjord-fyll` with white
+    // and no ring, the assistant's `--lys-hvit`, a person's `--lys-mint-dis`, both `--lys-brod` with the hairline;
+    // `.mkc6` has no shadow. The card inside stays as it is (inline, both modes).
+    final lys = context.lys;
+    final merkeC = ai ? context.aeM(const Color(0xFFF2C14E), LysPalett.gullTekst) : (meg ? _hjDemp(context, rgba(255, 255, 255, .5)) : context.aeM(kSpMint, LysPalett.mintTekst));
     final k = m.kort;
     // `popp .32s cubic-bezier(.2,.9,.3,1)`: 1 → 1.16 → .96 → 1.
     return LfOnce(
@@ -665,8 +686,10 @@ class _ChatMelding extends StatelessWidget {
                     ? const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomLeft: Radius.circular(18), bottomRight: Radius.circular(5))
                     : const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomRight: Radius.circular(18), bottomLeft: Radius.circular(5)),
                 padding: const EdgeInsets.fromLTRB(13, 10, 13, 10),
-                border: Border.all(color: meg ? rgba(255, 255, 255, .2) : rgba(255, 255, 255, .24)),
-                bg: meg
+                border: Border.all(color: meg ? context.aeM(rgba(255, 255, 255, .2), const Color.fromRGBO(30, 79, 92, 0)) : _hjKant(context, rgba(255, 255, 255, .24))),
+                bg: lys
+                    ? (meg ? LysPalett.fjordFyll : (ai ? const [CssSolid(LysPalett.hvit)] : const [CssSolid(LysPalett.mintDis)]))
+                    : meg
                     ? const [
                         CssLinear(160, [Color(0xFFF2884E), Color(0xFFE0662C)]),
                       ]
@@ -677,12 +700,12 @@ class _ChatMelding extends StatelessWidget {
                     : [
                         CssLinear(180, [rgba(92, 224, 184, .26), rgba(92, 224, 184, .12)]),
                       ],
-                shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .2))],
+                shadows: lys ? const [] : [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .2))],
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(m.tekst, style: inter(13.5, height: 1.45)),
+                    Text(m.tekst, style: inter(13.5, height: 1.45, color: meg ? Colors.white : context.aeM(Colors.white, LysPalett.brod))),
                     if (k != null) ...[
                       const SizedBox(height: 8),
                       Container(
@@ -786,7 +809,10 @@ class _Hub extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(SupportCopy.hjelpOgKontakt, style: jakarta(18, em: -.02)),
+                    // Lys (`(hjIngenOrdre)`): `.mkb`, `.mk6`; «Fortsett samtalen» `.mkbp` + `.mkb` / `.mk6` / `.mk1i`; cases
+                    // `.mkbo`; «Finn svar selv» `.mk2m`, the list `.mkbq` with `.mkbr` rules, `.mkb` / `.mk33` / `.mk9q`;
+                    // the e-mail line `.mk33` + `.mk8`. «Chat med oss» is the inline orange key in both modes.
+                    Text(SupportCopy.hjelpOgKontakt, style: jakarta(18, em: -.02, color: _hjT(context))),
                     const SizedBox(height: 2),
                     Row(
                       children: [
@@ -806,7 +832,7 @@ class _Hub extends StatelessWidget {
                             key: const Key('a1_hjelp_hub_aapen'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: inter(11.5, color: rgba(255, 255, 255, .7)),
+                            style: inter(11.5, color: _hjSek(context, rgba(255, 255, 255, .7))),
                           ),
                         ),
                       ],
@@ -828,9 +854,9 @@ class _Hub extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: rgba(92, 224, 184, .12),
+                color: context.aeM(rgba(92, 224, 184, .12), LysPalett.mintDis),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: rgba(92, 224, 184, .5), width: 1.5),
+                border: Border.all(color: context.aeM(rgba(92, 224, 184, .5), const Color(0x00000000)), width: 1.5),
               ),
               child: Row(
                 children: [
@@ -840,18 +866,18 @@ class _Hub extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(SupportCopy.fortsett, style: inter(13, weight: FontWeight.w800)),
+                        Text(SupportCopy.fortsett, style: inter(13, weight: FontWeight.w800, color: _hjT(context))),
                         const SizedBox(height: 1),
                         Text(
                           samtale.emne,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: inter(11, color: rgba(255, 255, 255, .7)),
+                          style: inter(11, color: _hjSek(context, rgba(255, 255, 255, .7))),
                         ),
                       ],
                     ),
                   ),
-                  spIkon(kSpIkonPilLiten, size: 13, color: const Color(0xFF7FF0CB), width: 2.4),
+                  spIkon(kSpIkonPilLiten, size: 13, color: _hjMintStrek(context, const Color(0xFF7FF0CB)), width: 2.4),
                 ],
               ),
             ),
@@ -905,7 +931,7 @@ class _Hub extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             SupportCopy.dineSaker,
-            style: inter(10.5, weight: FontWeight.w800, em: .06, color: rgba(255, 255, 255, .6)),
+            style: inter(10.5, weight: FontWeight.w800, em: .06, color: _hjDemp(context, rgba(255, 255, 255, .6))),
           ),
           const SizedBox(height: 8),
           for (final (i, s) in saker.indexed) ...[
@@ -942,17 +968,17 @@ class _Hub extends StatelessWidget {
         const SizedBox(height: 18),
         Text(
           SupportCopy.finnSvar,
-          style: inter(10.5, weight: FontWeight.w800, em: .06, color: rgba(255, 255, 255, .6)),
+          style: inter(10.5, weight: FontWeight.w800, em: .06, color: _hjDemp(context, rgba(255, 255, 255, .6))),
         ),
         const SizedBox(height: 8),
         CssBox(
           radius: BorderRadius.circular(18),
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          border: Border.all(color: rgba(255, 255, 255, .2)),
-          bg: [
+          border: Border.all(color: _hjKant(context, rgba(255, 255, 255, .2))),
+          bg: _hjKortBg(context, [
             CssLinear(180, [rgba(255, 255, 255, .14), rgba(255, 255, 255, .07)]),
-          ],
-          shadows: [CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))],
+          ]),
+          shadows: context.aeM([CssShadow.inset(0, 1.5, 0, 0, rgba(255, 255, 255, .28))], const <CssShadow>[]),
           child: Column(
             children: [
               for (final (i, f) in SupportCopy.faq.indexed)
@@ -963,7 +989,7 @@ class _Hub extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 11),
                     decoration: BoxDecoration(
-                      border: i == SupportCopy.faq.length - 1 ? null : Border(bottom: BorderSide(color: rgba(255, 255, 255, .08))),
+                      border: i == SupportCopy.faq.length - 1 ? null : Border(bottom: BorderSide(color: context.aeM(rgba(255, 255, 255, .08), LysPalett.skille))),
                     ),
                     child: Row(
                       children: [
@@ -971,14 +997,14 @@ class _Hub extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(f.$1, style: inter(13, weight: FontWeight.w800)),
+                              Text(f.$1, style: inter(13, weight: FontWeight.w800, color: _hjT(context))),
                               const SizedBox(height: 1),
-                              Text(f.$2, style: inter(10.5, color: rgba(255, 255, 255, .62))),
+                              Text(f.$2, style: inter(10.5, color: _hjSek(context, rgba(255, 255, 255, .62)))),
                             ],
                           ),
                         ),
                         const SizedBox(width: 10),
-                        spIkon(kSpIkonPilLiten, size: 13, color: rgba(255, 255, 255, .6), width: 2.4),
+                        spIkon(kSpIkonPilLiten, size: 13, color: context.aeM(rgba(255, 255, 255, .6), const Color.fromRGBO(30, 79, 92, .6)), width: 2.4),
                       ],
                     ),
                   ),
@@ -992,12 +1018,12 @@ class _Hub extends StatelessWidget {
           onTap: () => launchUrl(Uri.parse('mailto:${SupportConfig.epost}')),
           child: Text.rich(
             TextSpan(
-              style: inter(11.5, height: 1.5, color: rgba(255, 255, 255, .62)),
+              style: inter(11.5, height: 1.5, color: _hjSek(context, rgba(255, 255, 255, .62))),
               children: [
                 TextSpan(text: SupportCopy.epostFor),
                 TextSpan(
                   text: SupportConfig.epost,
-                  style: inter(11.5, weight: FontWeight.w800, height: 1.5, color: const Color(0xFF7FF0CB)),
+                  style: inter(11.5, weight: FontWeight.w800, height: 1.5, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)),
                 ),
                 const TextSpan(text: SupportCopy.epostEtter),
               ],

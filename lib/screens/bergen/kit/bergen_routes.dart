@@ -2,6 +2,7 @@ import '../utforsk/butikk_profil.dart' show butikkProfilRute;
 import 'package:flutter/material.dart';
 
 import 'package:aerend_customer/utils/route_names.dart';
+import '../../../theme/lys/modus_scope.dart';
 import '../bergen_routes_agil1.dart';
 import '../bergen_routes_agil3.dart';
 import 'bergen_lagring.dart';
@@ -35,6 +36,9 @@ abstract final class BergenRoutes {
 
   /// The registered key for [name]: query removed, and the last path segment
   /// dropped when it is a parameter the map does not spell.
+  /// Lys plan (§0.2): screens that are fjord-coloured in both modes.
+  static const Set<String> fjordRuter = {'/bergen/sporing', '/bergen/levert', '/bergen/fjordfiske', '/bergen/liga', '/bergen/opprykk'};
+
   static String? resolve(String name) {
     final maps = <String, WidgetBuilder>{...bergenRoutesAgil1(), ...bergenRoutesAgil3()};
     final path = name.split('?').first;
@@ -88,7 +92,9 @@ abstract final class BergenRoutes {
     if (!name.startsWith('/bergen/')) return null;
     final key = resolve(name);
     if (key == null) return null;
-    final skjerm = (bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!;
+    final skjerm0 = (bergenRoutesAgil1()[key] ?? bergenRoutesAgil3()[key])!;
+    // Lys plan: Sporing, Fjordfiske, Bergen-ligaen and Nivåopprykk stay fjord in both modes.
+    final WidgetBuilder skjerm = fjordRuter.contains(key) ? (c) => ModusFjord(child: skjerm0(c)) : skjerm0;
     final builder = _lagring(skjerm);
     final ruteSettings = RouteSettings(
       // `argsOf` reads the arguments, not the name.

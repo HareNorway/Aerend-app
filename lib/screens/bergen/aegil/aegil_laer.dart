@@ -11,6 +11,14 @@ import 'aegil_bits.dart';
 import 'aegil_innst.dart';
 import 'aegil_launch_copy.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/mk_stil.g.dart';
+import '../../../theme/lys/modus_scope.dart';
+
+/// Lys: `.mk1i` (the mint icons), `.mku` (the fjord chevron), `.mk3k` (the gold star fill).
+const Color _lysMintStrek = Color(0xFF0B6B57);
+const Color _lysFjordStrek = Color(0xFF1E4F5C);
+const Color _lysGullFyll = Color(0xFF4A300A);
 
 // ── Start (`agS0`, L4634–4690) ──────────────────────────────────────────────
 
@@ -116,7 +124,8 @@ class AeStartView extends StatelessWidget {
                     const SizedBox(width: 7),
                     Text(
                       kicker,
-                      style: aeTab(inter(10.5, weight: FontWeight.w800, em: .08, color: kAeMintLys)),
+                      // `.mk1t`: `--lys-mint-tekst`.
+                      style: aeTab(inter(10.5, weight: FontWeight.w800, em: .08, color: context.aeM(kAeMintLys, LysPalett.mintTekst))),
                     ),
                   ],
                 ),
@@ -125,7 +134,7 @@ class AeStartView extends StatelessWidget {
                 LfOnce(
                   ms: 150 + ord.length * 45.0 + 320,
                   builder: (context, t, _) => Wrap(
-                    children: [for (final (i, w) in ord.indexed) aeInn(AeInn.ord, kfP(t, 150 + i * 45.0, 320), cssEaseOut, Alignment.center, Text('$w ', style: jakarta(26, em: -.035, height: 1.12)))],
+                    children: [for (final (i, w) in ord.indexed) aeInn(AeInn.ord, kfP(t, 150 + i * 45.0, 320), cssEaseOut, Alignment.center, Text('$w ', style: jakarta(26, em: -.035, height: 1.12, color: context.aeM(Colors.white, LysPalett.tittel))))],
                   ),
                 ),
                 if (husker.isNotEmpty) ...[
@@ -136,11 +145,12 @@ class AeStartView extends StatelessWidget {
                     onTap: onMinne,
                     child: Row(
                       children: [
-                        const AeIkon('M12 3a6 6 0 0 0-4 10.5V17h8v-3.5A6 6 0 0 0 12 3zM9 21h6', size: 12, color: kAeMintLys),
+                        // «Husker:» `.mk2q`, the icons `.mk1i`, the items `.mkb`, the dots `.mk3g`.
+                        AeIkon('M12 3a6 6 0 0 0-4 10.5V17h8v-3.5A6 6 0 0 0 12 3zM9 21h6', size: 12, color: context.aeM(kAeMintLys, _lysMintStrek)),
                         const SizedBox(width: 6),
                         Text(
                           AeCopy.husker,
-                          style: inter(11.5, weight: FontWeight.w700, color: kAeSub),
+                          style: inter(11.5, weight: FontWeight.w700, color: context.aeM(kAeSub, LysPalett.sekundar)),
                         ),
                         const SizedBox(width: 6),
                         Flexible(
@@ -158,11 +168,11 @@ class AeStartView extends StatelessWidget {
                                           TextSpan(text: c),
                                           TextSpan(
                                             text: ' · ',
-                                            style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFF7FA8B3)),
+                                            style: inter(11.5, weight: FontWeight.w700, color: context.aeM(const Color(0xFF7FA8B3), LysPalett.dempet)),
                                           ),
                                         ],
                                       ),
-                                      style: inter(11.5, weight: FontWeight.w800),
+                                      style: inter(11.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel)),
                                     ),
                                   ],
                                 ],
@@ -171,7 +181,7 @@ class AeStartView extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const AeIkon('M9 6l6 6-6 6', size: 9, stroke: 3.2, color: kAeMintLys),
+                        AeIkon('M9 6l6 6-6 6', size: 9, stroke: 3.2, color: context.aeM(kAeMintLys, _lysMintStrek)),
                       ],
                     ),
                   ),
@@ -181,13 +191,14 @@ class AeStartView extends StatelessWidget {
                   CssBox(
                     key: const Key('a1_aegil_minne_tilbud'),
                     radius: BorderRadius.circular(18),
-                    bg: kAeGlass,
-                    shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))],
+                    // `.mk3h`: white, the hairline ring and the card shadow in Lys.
+                    bg: context.aeM(kAeGlass, mk3h.light!.bg!),
+                    shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))], mk3h.light!.skygge!),
                     padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
                     child: Row(
                       children: [
                         Expanded(
-                          child: Text(AeCopy.minneTilbud, style: inter(12.5, weight: FontWeight.w700, height: 1.4)),
+                          child: Text(AeCopy.minneTilbud, style: inter(12.5, weight: FontWeight.w700, height: 1.4, color: context.aeM(Colors.white, LysPalett.tittel))),
                         ),
                         const SizedBox(width: 10),
                         Column(
@@ -210,7 +221,7 @@ class AeStartView extends StatelessWidget {
                               onTap: onIkkeNaa,
                               child: Text(
                                 AeCopy.ikkeNaa,
-                                style: inter(11, weight: FontWeight.w800, color: kAeSub),
+                                style: inter(11, weight: FontWeight.w800, color: context.aeM(kAeSub, LysPalett.sekundar)),
                               ),
                             ),
                           ],
@@ -237,10 +248,11 @@ class AeStartView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
               children: [
-                Expanded(child: Text(AeCopy.beOm, style: jakarta(15))),
+                // `.mkb` / `.mk2q`.
+                Expanded(child: Text(AeCopy.beOm, style: jakarta(15, color: context.aeM(Colors.white, LysPalett.tittel)))),
                 Text(
                   AeCopy.ordner,
-                  style: inter(10.5, weight: FontWeight.w700, color: kAeSub),
+                  style: inter(10.5, weight: FontWeight.w700, color: context.aeM(kAeSub, LysPalett.sekundar)),
                 ),
               ],
             ),
@@ -267,26 +279,27 @@ class AeStartView extends StatelessWidget {
                         onTap: () => onSi(si),
                         dy: 0,
                         scale: .97,
+                        // «Forslagskort» `.mk3n`: white, the hairline ring and the card shadow in Lys.
                         child: CssBox(
                           radius: BorderRadius.circular(20),
-                          bg: kAeGlass,
-                          shadows: const [
+                          bg: context.aeM(kAeGlass, mk3n.light!.bg!),
+                          shadows: context.aeM(const [
                             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
                             CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
                             CssShadow(0, 3, 0, 0, Color.fromRGBO(8, 28, 36, .45)),
                             CssShadow(0, 18, 26, -18, Color.fromRGBO(3, 14, 20, .85)),
-                          ],
+                          ], mk3n.light!.skygge!),
                           padding: const EdgeInsets.fromLTRB(10, 11, 10, 12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _ArtTile(size: 42, r: 14, tint: tint, ico: ico),
                               const SizedBox(height: 9),
-                              Text(tittel, style: jakarta(12.5, em: -.02, height: 1.2)),
+                              Text(tittel, style: jakarta(12.5, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.tittel))),
                               const SizedBox(height: 2),
                               Text(
                                 sub,
-                                style: inter(10, weight: FontWeight.w700, height: 1.25, color: kAeSub),
+                                style: inter(10, weight: FontWeight.w700, height: 1.25, color: context.aeM(kAeSub, LysPalett.sekundar)),
                               ),
                             ],
                           ),
@@ -307,8 +320,9 @@ class AeStartView extends StatelessWidget {
             child: CssBox(
               height: 46,
               radius: BorderRadius.circular(16),
-              bg: const [CssSolid(Color.fromRGBO(6, 22, 30, .26))],
-              shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))],
+              // `.mk3o`: `--lys-dis-ull`, no ring in Lys.
+              bg: context.aeM(const [CssSolid(Color.fromRGBO(6, 22, 30, .26))], const [CssSolid(LysPalett.disUll)]),
+              shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))], const <CssShadow>[]),
               padding: const EdgeInsets.fromLTRB(14, 0, 6, 0),
               child: Row(
                 children: [
@@ -317,18 +331,20 @@ class AeStartView extends StatelessWidget {
                   Expanded(
                     child: Text(
                       AeCopy.sokSelv,
-                      style: inter(13, weight: FontWeight.w700, color: const Color(0xFFDCE9EC)),
+                      // `.mk21`.
+                      style: inter(13, weight: FontWeight.w700, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar)),
                     ),
                   ),
+                  // `.mk3p`: `--lys-mint-dis`, no shadow; the chevron `.mku`.
                   CssBox(
                     width: 32,
                     height: 32,
                     radius: BorderRadius.circular(11),
-                    bg: const [
+                    bg: context.aeM(const [
                       CssLinear(180, [Color.fromRGBO(130, 242, 210, .3), Color.fromRGBO(92, 224, 184, .1)]),
-                    ],
-                    shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)), CssShadow(0, 0, 0, 1, Color.fromRGBO(92, 224, 184, .38))],
-                    child: const Center(child: AeIkon('M9 6l6 6-6 6', size: 11, stroke: 3)),
+                    ], const [CssSolid(LysPalett.mintDis)]),
+                    shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .32)), CssShadow(0, 0, 0, 1, Color.fromRGBO(92, 224, 184, .38))], const <CssShadow>[]),
+                    child: Center(child: AeIkon('M9 6l6 6-6 6', size: 11, stroke: 3, color: context.aeM(Colors.white, _lysFjordStrek))),
                   ),
                 ],
               ),
@@ -351,22 +367,23 @@ class _Tipper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // `.mk3l`: `--lys-dis`, no ring; the icon `.mk1i`, the text `.mk21`.
     Widget chip(String d, String tekst) => CssBox(
       radius: BorderRadius.circular(999),
-      bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-      shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))],
+      bg: context.aeM(const [CssSolid(Color.fromRGBO(255, 255, 255, .08))], const [CssSolid(LysPalett.dis)]),
+      shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12))], const <CssShadow>[]),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AeIkon(d, size: 10, stroke: 2.8, color: kAeMintLys),
+          AeIkon(d, size: 10, stroke: 2.8, color: context.aeM(kAeMintLys, _lysMintStrek)),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               tekst,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: aeTab(inter(10.5, weight: FontWeight.w800, color: const Color(0xFFDCE9EC))),
+              style: aeTab(inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar))),
             ),
           ),
         ],
@@ -376,17 +393,18 @@ class _Tipper extends StatelessWidget {
       key: const Key('a1_aegil_tipper'),
       radius: BorderRadius.circular(26),
       clip: true,
-      bg: const [
+      // «Ægil · tipper» `.mk3i`: white, the hairline ring and the card shadow in Lys.
+      bg: context.aeM(const [
         CssRadial([Color.fromRGBO(255, 148, 102, .24), Color.fromRGBO(255, 148, 102, 0)], stops: [0, .6], rx: .9, ry: .9, cx: 1, cy: 0),
         CssRadial([Color.fromRGBO(92, 224, 184, .18), Color.fromRGBO(92, 224, 184, 0)], stops: [0, .6], rx: .8, ry: .8, cx: 0, cy: 1),
         CssLinear(180, [Color.fromRGBO(255, 255, 255, .17), Color.fromRGBO(255, 255, 255, .06)]),
-      ],
-      shadows: const [
+      ], mk3i.light!.bg!),
+      shadows: context.aeM(const [
         CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .35)),
         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
         CssShadow(0, 3, 0, 0, Color.fromRGBO(8, 28, 36, .5)),
         CssShadow(0, 22, 30, -18, Color.fromRGBO(3, 14, 20, .9)),
-      ],
+      ], mk3i.light!.skygge!),
       child: Stack(
         children: [
           const Positioned.fill(child: IgnorePointer(child: _Sveip())),
@@ -397,24 +415,26 @@ class _Tipper extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    // `.mk3j`: `--lys-dis`, no ring, `--lys-tittel`; the star `.mk3k`.
                     CssBox(
                       radius: BorderRadius.circular(999),
-                      bg: const [CssSolid(Color.fromRGBO(6, 22, 30, .4))],
-                      shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
+                      bg: context.aeM(const [CssSolid(Color.fromRGBO(6, 22, 30, .4))], const [CssSolid(LysPalett.dis)]),
+                      shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))], const <CssShadow>[]),
                       padding: const EdgeInsets.fromLTRB(7, 4, 9, 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const AeIkon('M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z', size: 11, stroke: 0, fill: Color(0xFFFFD27A)),
+                          AeIkon('M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z', size: 11, stroke: 0, fill: context.aeM(const Color(0xFFFFD27A), _lysGullFyll)),
                           const SizedBox(width: 6),
-                          Text(AeCopy.tipper, style: inter(10, weight: FontWeight.w800, em: .06)),
+                          Text(AeCopy.tipper, style: inter(10, weight: FontWeight.w800, em: .06, color: context.aeM(Colors.white, LysPalett.tittel))),
                         ],
                       ),
                     ),
                     const Spacer(),
+                    // `.mk2q`.
                     Text(
                       t.pleier ? AeCopy.pleier : AeCopy.forrige,
-                      style: inter(10.5, weight: FontWeight.w700, color: kAeSub),
+                      style: inter(10.5, weight: FontWeight.w700, color: context.aeM(kAeSub, LysPalett.sekundar)),
                     ),
                   ],
                 ),
@@ -427,13 +447,13 @@ class _Tipper extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AeCopy.sammeSomSist, style: jakarta(17, em: -.025, height: 1.15)),
+                          Text(AeCopy.sammeSomSist, style: jakarta(17, em: -.025, height: 1.15, color: context.aeM(Colors.white, LysPalett.tittel))),
                           const SizedBox(height: 2),
                           Text(
                             '${t.butikk} · ${AeCopy.bestillingen(t.dag)}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFFDCE9EC)),
+                            style: inter(11.5, weight: FontWeight.w700, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar)),
                           ),
                         ],
                       ),
@@ -485,14 +505,15 @@ class _Tipper extends StatelessWidget {
                     AePress(
                       key: const Key('a1_aegil_endre_sist'),
                       onTap: onEndre,
+                      // `.mk3m`: `--lys-dis`, no shadow, `--lys-tittel`.
                       child: CssBox(
                         height: 46,
                         radius: BorderRadius.circular(15),
-                        bg: kAeSek,
-                        shadows: kAeSekSh,
+                        bg: context.aeM(kAeSek, const [CssSolid(LysPalett.dis)]),
+                        shadows: context.aeM(kAeSekSh, const <CssShadow>[]),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Center(
-                          child: Text(AeCopy.endre, style: inter(12.5, weight: FontWeight.w800)),
+                          child: Text(AeCopy.endre, style: inter(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                         ),
                       ),
                     ),
@@ -572,9 +593,10 @@ class AeNivaaView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(AeInnstCopy.tittel, style: jakarta(20, em: -.02, height: 1.2)),
+          // «Ægil · innstillinger» `.mk1n` (`--lys-brod`), the line `.mk14`.
+          Text(AeInnstCopy.tittel, style: jakarta(20, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.brod))),
           const SizedBox(height: 5),
-          Text(AeInnstCopy.linjeAegil, style: inter(12, height: 1.45, color: const Color.fromRGBO(255, 255, 255, .72))),
+          Text(AeInnstCopy.linjeAegil, style: inter(12, height: 1.45, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar))),
           const SizedBox(height: 6),
           AegilInnstListe(settings: settings, levels: levels, onEndre: onEndre, onButikker: onButikker),
           const SizedBox(height: 18),
@@ -665,11 +687,13 @@ class AeTillatelseView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(AeCopy.tlTittel, style: jakarta(20, em: -.02, height: 1.2)),
+                // Not a theme class: the title inherits the panel's `--lys-brod` (`.mk37`); the other
+                // texts take the design's own inline colours (L6588–6590) in Lys.
+                Text(AeCopy.tlTittel, style: jakarta(20, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.brod))),
                 const SizedBox(height: 8),
                 Text(
                   AeCopy.tlTekst,
-                  style: inter(13.5, weight: FontWeight.w500, height: 1.5, color: const Color.fromRGBO(255, 255, 255, .78)),
+                  style: inter(13.5, weight: FontWeight.w500, height: 1.5, color: context.aeM(const Color.fromRGBO(255, 255, 255, .78), const Color(0xFF3E372F))),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -679,14 +703,14 @@ class AeTillatelseView extends StatelessWidget {
                     Expanded(
                       child: Text(
                         AeCopy.tlHva,
-                        style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .6)),
+                        style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .6), const Color(0xFF6E6862))),
                       ),
                     ),
                     GestureDetector(
                       onTap: onAlle,
                       child: Text(
                         AeCopy.tlAlle,
-                        style: inter(11, weight: FontWeight.w800, color: kAeMint),
+                        style: inter(11, weight: FontWeight.w800, color: context.aeM(kAeMint, kAeTeal)),
                       ),
                     ),
                   ],
@@ -726,15 +750,16 @@ class AeChip extends StatelessWidget {
       onTap: onTap,
       dy: 0,
       scale: .96,
+      // `.mk4s`: white, `--lys-kant-farge`, no shadow, `--lys-tittel` in Lys.
       child: CssBox(
         radius: BorderRadius.circular(999),
-        bg: const [
+        bg: context.aeM(const [
           CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .07)]),
-        ],
-        shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 12, 20, -14, Color.fromRGBO(4, 18, 26, .8))],
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .24)),
+        ], const [CssSolid(LysPalett.hvit)]),
+        shadows: context.aeM(const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 12, 20, -14, Color.fromRGBO(4, 18, 26, .8))], const <CssShadow>[]),
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .24), LysPalett.kantFarge)),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Text(tekst, style: inter(12.5, weight: FontWeight.w700)),
+        child: Text(tekst, style: inter(12.5, weight: FontWeight.w700, color: context.aeM(Colors.white, LysPalett.tittel))),
       ),
     ),
   );
@@ -827,10 +852,11 @@ class AeObSteg extends StatelessWidget {
                           builder: (f) => CssBox(
                             height: 7,
                             radius: BorderRadius.circular(999),
+                            // `obSeg` (L19831): the unlit segment `rgba(30,79,92,.12)` in Lys.
                             bg: [
                               CssLinear(90, [
-                                Color.lerp(const Color.fromRGBO(255, 255, 255, .14), kAeMint, f)!,
-                                Color.lerp(const Color.fromRGBO(255, 255, 255, .14), kAeMintLys, f)!,
+                                Color.lerp(context.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color.fromRGBO(30, 79, 92, .12)), kAeMint, f)!,
+                                Color.lerp(context.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color.fromRGBO(30, 79, 92, .12)), kAeMintLys, f)!,
                               ]),
                             ],
                             shadows: [CssShadow(0, 0, 8, 0, Color.fromRGBO(92, 224, 184, .5 * f))],
@@ -845,15 +871,16 @@ class AeObSteg extends StatelessWidget {
               Container(
                 height: 22,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
+                // `.mk1y`: `--lys-mint-dis`, `--lys-mint-tekst`.
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
-                  color: const Color.fromRGBO(92, 224, 184, .14),
+                  color: context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis),
                   border: Border.all(color: const Color.fromRGBO(92, 224, 184, .42)),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   '$steg ${AeCopy.avFem}',
-                  style: aeTab(inter(10.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                  style: aeTab(inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst))),
                 ),
               ),
               const SizedBox(width: 10),
@@ -862,7 +889,8 @@ class AeObSteg extends StatelessWidget {
                 onTap: onAvbryt,
                 child: Text(
                   AeCopy.hoppOverAlt,
-                  style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .7)),
+                  // `.mk6`.
+                  style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar)),
                 ),
               ),
             ],
@@ -883,7 +911,8 @@ class AeObSteg extends StatelessWidget {
                   const SizedBox(height: 14),
                   Container(
                     padding: const EdgeInsets.only(top: 12),
-                    decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1)))),
+                    // `.mk1z`: `--lys-skille`.
+                    decoration: BoxDecoration(border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.skille)))),
                     child: Row(
                       children: [
                         GestureDetector(
@@ -895,7 +924,7 @@ class AeObSteg extends StatelessWidget {
                             child: Text(
                               AeCopy.hoppOver,
                               maxLines: 1,
-                              style: inter(12, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .7)),
+                              style: inter(12, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar)),
                             ),
                           ),
                         ),
@@ -925,7 +954,8 @@ class AeObSteg extends StatelessWidget {
                                       AeCopy.poeng(poeng),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)),
+                                      // `.mk8`.
+                                      style: inter(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)),
                                     ),
                                   ),
                                 ],
@@ -963,6 +993,9 @@ class _ObNeste extends StatelessWidget {
   final String tekst;
 
   static const _av = [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16))];
+
+  /// `obNesteSh` light (L19824): `inset 0 0 0 1px var(--lys-kant-farge)`.
+  static const _avLys = [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge)];
   static const _paa = [
     CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .35)),
     CssShadow(0, 2, 0, 0, Color(0xFFC4491A)),
@@ -974,8 +1007,9 @@ class _ObNeste extends StatelessWidget {
     v: paa ? 1 : 0,
     ms: 250,
     builder: (f) {
-      const glass = Color.fromRGBO(255, 255, 255, .1);
-      final fg = Color.lerp(const Color.fromRGBO(255, 255, 255, .55), Colors.white, f)!;
+      // `obNesteBg/Fg` (L19822–19823): `--lys-dis` and `--lys-dempet` before a choice in Lys.
+      final glass = context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis);
+      final fg = Color.lerp(context.aeM(const Color.fromRGBO(255, 255, 255, .55), LysPalett.dempet), Colors.white, f)!;
       return CssBox(
         radius: BorderRadius.circular(999),
         bg: [
@@ -985,7 +1019,7 @@ class _ObNeste extends StatelessWidget {
             const [0, .56, 1],
           ),
         ],
-        shadows: cssLerpShadows(_av, _paa, f),
+        shadows: cssLerpShadows(context.aeM(_av, _avLys), _paa, f),
         padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 11),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1005,16 +1039,17 @@ class _ObKort extends StatelessWidget {
   final Widget child;
 
   @override
+  // `.mk4k`: white, the 1 px `--lys-kant-farge` edge, `--lys-kortskygge` in Lys.
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(22),
-    bg: const [
+    bg: context.aeM(const [
       CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)]),
-    ],
-    shadows: const [
+    ], const [CssSolid(LysPalett.hvit)]),
+    shadows: context.aeM(const [
       CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .16)),
       CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .18)),
       CssShadow(0, 18, 28, -22, Color.fromRGBO(4, 18, 26, .85)),
-    ],
+    ], [const CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]),
     padding: const EdgeInsets.all(14),
     child: child,
   );
@@ -1213,6 +1248,11 @@ class AeObChip extends StatelessWidget {
         : const CssSolid(Color.fromRGBO(255, 255, 255, .07));
     final bd = paa ? (nei ? const Color.fromRGBO(249, 162, 115, .85) : const Color.fromRGBO(127, 240, 203, .85)) : const Color.fromRGBO(255, 255, 255, .2);
     final fg = paa ? (nei ? const Color(0xFFFFE3D5) : const Color(0xFFE8FFF7)) : Colors.white;
+    // `chips` (L19783) in Lys: `--lys-glod-dis` / `--lys-mint-dis` when on, white off; no shadow.
+    final lys = context.lys;
+    final bgL = CssSolid(paa ? (nei ? LysPalett.glodDis : LysPalett.mintDis) : LysPalett.hvit);
+    final bdL = paa ? (nei ? const Color.fromRGBO(166, 58, 18, .25) : const Color.fromRGBO(11, 107, 87, .4)) : LysPalett.kantFarge;
+    final fgL = paa ? (nei ? LysPalett.glodTekst : LysPalett.mintTekst) : LysPalett.brod;
     return AePress(
       onTap: onTap,
       dy: 0,
@@ -1225,10 +1265,10 @@ class AeObChip extends StatelessWidget {
           scale: 1 + .04 * s,
           child: CssBox(
             radius: BorderRadius.circular(999),
-            bg: [bg],
+            bg: [lys ? bgL : bg],
             shadows: [
-              CssShadow.inset(0, 0, 0, 1, bd),
-              if (paa) ...const [
+              CssShadow.inset(0, 0, 0, 1, lys ? bdL : bd),
+              if (paa && !lys) ...const [
                 CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .25)),
                 CssShadow(0, 6, 12, -8, Color.fromRGBO(0, 10, 16, .8)),
               ],
@@ -1244,11 +1284,11 @@ class AeObChip extends StatelessWidget {
                     kind: AeInn.klask,
                     ms: 350,
                     curve: const Cubic(.3, 1.4, .5, 1),
-                    child: AeIkon('M4.5 12.5l5 5 10-11', size: 11, stroke: 3.4, color: nei ? const Color(0xFFFFC7AE) : kAeMintLys),
+                    child: AeIkon('M4.5 12.5l5 5 10-11', size: 11, stroke: 3.4, color: lys ? (nei ? LysPalett.glodTekst : LysPalett.mintTekst) : (nei ? const Color(0xFFFFC7AE) : kAeMintLys)),
                   ),
                   const SizedBox(width: 6),
                 ],
-                Text(t, style: inter(12.5, weight: FontWeight.w800, em: -.01, color: fg)),
+                Text(t, style: inter(12.5, weight: FontWeight.w800, em: -.01, color: lys ? fgL : fg)),
               ],
             ),
           ),
@@ -1333,10 +1373,11 @@ class AeObSum extends StatelessWidget {
                                 children: [
                                   Text(
                                     AeCopy.lagretIMinne,
-                                    style: inter(10, weight: FontWeight.w800, em: .12, color: _mint),
+                                    // `.mk8`; the title inherits `.mk1n` (`--lys-brod`).
+                                    style: inter(10, weight: FontWeight.w800, em: .12, color: context.aeM(_mint, LysPalett.mintTekst)),
                                   ),
                                   const SizedBox(height: 3),
-                                  Text(AeCopy.minnetStartet, style: jakarta(18, em: -.02)),
+                                  Text(AeCopy.minnetStartet, style: jakarta(18, em: -.02, color: context.aeM(Colors.white, LysPalett.brod))),
                                 ],
                               ),
                             ),
@@ -1349,27 +1390,29 @@ class AeObSum extends StatelessWidget {
                           children: [
                             // `aegil_answer` points: shown only when the rule pays.
                             if (poeng > 0)
+                              // `.mk4m`: `--lys-gull-dis`, `--lys-glod-tekst`; the star `.mk3k`.
                               _sumChip(
-                                bg: const Color.fromRGBO(242, 193, 78, .16),
+                                bg: context.aeM(const Color.fromRGBO(242, 193, 78, .16), LysPalett.gullDis),
                                 bd: const Color.fromRGBO(246, 210, 122, .6),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const AeIkon('M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z', size: 11, stroke: 0, fill: Color(0xFFFFE7A8)),
+                                    AeIkon('M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z', size: 11, stroke: 0, fill: context.aeM(const Color(0xFFFFE7A8), _lysGullFyll)),
                                     const SizedBox(width: 5),
                                     Text(
                                       AeCopy.aegilPoengChip(poeng),
-                                      style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFE7A8)),
+                                      style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color(0xFFFFE7A8), LysPalett.glodTekst)),
                                     ),
                                   ],
                                 ),
                               ),
+                            // `.mk4n`: white, `--lys-kant-farge`, `--lys-sekundar`.
                             _sumChip(
-                              bg: const Color.fromRGBO(255, 255, 255, .08),
-                              bd: const Color.fromRGBO(255, 255, 255, .18),
+                              bg: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit),
+                              bd: context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge),
                               child: Text(
                                 AeCopy.tingLagret(linjer),
-                                style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .85)),
+                                style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .85), LysPalett.sekundar)),
                               ),
                             ),
                           ],
@@ -1378,34 +1421,36 @@ class AeObSum extends StatelessWidget {
                           Container(
                             margin: const EdgeInsets.only(top: 12),
                             padding: const EdgeInsets.only(top: 12),
-                            decoration: const BoxDecoration(
-                              border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .1))),
+                            // `.mk1z`.
+                            decoration: BoxDecoration(
+                              border: Border(top: BorderSide(color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.skille))),
                             ),
                             child: Wrap(
                               spacing: 6,
                               runSpacing: 6,
-                              children: [for (final (i, c) in chips.indexed) LfRise(delay: 200 + i * 50.0, dur: 350, child: _svar(c))],
+                              children: [for (final (i, c) in chips.indexed) LfRise(delay: 200 + i * 50.0, dur: 350, child: _svar(context, c))],
                             ),
                           )
                         else
                           Container(
                             margin: const EdgeInsets.only(top: 12),
+                            // `.mk42`: `--lys-dis-ull`, no inset; «Ægil:» `.mk8`, the rest `--lys-brod`.
                             child: CssBox(
                               radius: BorderRadius.circular(14),
-                              bg: const [CssSolid(Color.fromRGBO(0, 0, 0, .18))],
-                              shadows: const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))],
+                              bg: context.aeM(const [CssSolid(Color.fromRGBO(0, 0, 0, .18))], const [CssSolid(LysPalett.disUll)]),
+                              shadows: context.aeM(const [CssShadow.inset(0, 1, 3, 0, Color.fromRGBO(0, 0, 0, .3))], const <CssShadow>[]),
                               padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
                                     TextSpan(
                                       text: AeCopy.aegilKolon,
-                                      style: inter(12, weight: FontWeight.w700, height: 1.45, color: _mint),
+                                      style: inter(12, weight: FontWeight.w700, height: 1.45, color: context.aeM(_mint, LysPalett.mintTekst)),
                                     ),
                                     TextSpan(text: ' ${AeCopy.ikkeSaaMye}'),
                                   ],
                                 ),
-                                style: inter(12, weight: FontWeight.w700, height: 1.45),
+                                style: inter(12, weight: FontWeight.w700, height: 1.45, color: context.aeM(Colors.white, LysPalett.brod)),
                               ),
                             ),
                           ),
@@ -1454,17 +1499,18 @@ class AeObSum extends StatelessWidget {
                               child: Container(
                                 height: 48,
                                 padding: const EdgeInsets.symmetric(horizontal: 18),
+                                // `.mk4o`: white, `--lys-kant-farge`, `--lys-tittel`; the pencil `.mku`.
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(999),
-                                  color: const Color.fromRGBO(255, 255, 255, .1),
-                                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+                                  color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.hvit),
+                                  border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const AeIkon('M4 20h4L19 9l-4-4L4 16z', size: 13, stroke: 2.6),
+                                    AeIkon('M4 20h4L19 9l-4-4L4 16z', size: 13, stroke: 2.6, color: context.aeM(Colors.white, _lysFjordStrek)),
                                     const SizedBox(width: 6),
-                                    Text(AeCopy.endre, style: inter(13, weight: FontWeight.w800)),
+                                    Text(AeCopy.endre, style: inter(13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                                   ],
                                 ),
                               ),
@@ -1494,8 +1540,10 @@ class AeObSum extends StatelessWidget {
     child: Row(mainAxisSize: MainAxisSize.min, children: [child]),
   );
 
-  Widget _svar(AeObSumChip c) {
-    final fg = c.oransje ? const Color(0xFFFFE3D5) : const Color(0xFFE8FFF7);
+  /// `obSumChips` MI / OR (L19832): `--lys-mint-dis` / `--lys-glod-dis` and their text in Lys.
+  Widget _svar(BuildContext context, AeObSumChip c) {
+    final lys = context.lys;
+    final fg = lys ? (c.oransje ? LysPalett.glodTekst : LysPalett.mintTekst) : (c.oransje ? const Color(0xFFFFE3D5) : const Color(0xFFE8FFF7));
     return Container(
       height: 28,
       padding: const EdgeInsets.fromLTRB(8, 0, 10, 0),
@@ -1504,9 +1552,15 @@ class AeObSum extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: c.oransje ? const [Color.fromRGBO(249, 162, 115, .34), Color.fromRGBO(233, 92, 44, .18)] : const [Color.fromRGBO(92, 224, 184, .3), Color.fromRGBO(92, 224, 184, .14)],
+          colors: lys
+              ? (c.oransje ? const [LysPalett.glodDis, LysPalett.glodDis] : const [LysPalett.mintDis, LysPalett.mintDis])
+              : (c.oransje ? const [Color.fromRGBO(249, 162, 115, .34), Color.fromRGBO(233, 92, 44, .18)] : const [Color.fromRGBO(92, 224, 184, .3), Color.fromRGBO(92, 224, 184, .14)]),
         ),
-        border: Border.all(color: c.oransje ? const Color.fromRGBO(249, 162, 115, .85) : const Color.fromRGBO(127, 240, 203, .8)),
+        border: Border.all(
+          color: lys
+              ? (c.oransje ? const Color.fromRGBO(166, 58, 18, .25) : const Color.fromRGBO(11, 107, 87, .4))
+              : (c.oransje ? const Color.fromRGBO(249, 162, 115, .85) : const Color.fromRGBO(127, 240, 203, .8)),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

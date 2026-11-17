@@ -8,6 +8,8 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart' show aePose;
 import '../kit/bergen_perf.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import 'min_bio.dart';
 
 // ── Min Bio · shared pieces (design L7458–7478, L9693–9762, L4821–4905) ─────
@@ -34,6 +36,25 @@ class BioStil {
   static const ora = BioStil(Color.fromRGBO(249, 162, 115, .34), Color.fromRGBO(233, 92, 44, .18), Color.fromRGBO(249, 162, 115, .85), Color(0xFFFFE3D5));
   static const gul = BioStil(Color.fromRGBO(242, 193, 78, .16), Color.fromRGBO(242, 193, 78, .16), Color.fromRGBO(246, 210, 122, .7), Color(0xFFFFE7A8));
   static const nei = BioStil(Color.fromRGBO(255, 148, 102, .12), Color.fromRGBO(255, 148, 102, .12), Color.fromRGBO(255, 148, 102, .6), Color(0xFFFFC7AE));
+
+  // Lys plan: the light side of each look (bioVals L24092–24093, `__aeM`).
+  static const avLys = BioStil(LysPalett.hvit, LysPalett.hvit, LysPalett.kantFarge, LysPalett.sekundar);
+  static const mintLys = BioStil(LysPalett.mintDis, LysPalett.mintDis, Color.fromRGBO(11, 107, 87, .4), LysPalett.mintTekst);
+  static const oraLys = BioStil(LysPalett.glodDis, LysPalett.glodDis, Color.fromRGBO(166, 58, 18, .25), LysPalett.glodTekst);
+  static const gulLys = BioStil(LysPalett.gullDis, LysPalett.gullDis, Color.fromRGBO(74, 48, 10, .2), LysPalett.gullTekst);
+  static const neiLys = BioStil(LysPalett.glodDis, LysPalett.glodDis, Color.fromRGBO(166, 58, 18, .25), LysPalett.glodTekst);
+
+  /// This look in the mode here: one of the five dark looks turns its light
+  /// twin in Lys; any other (already light, or mid-ease) stays as it is.
+  BioStil modus(BuildContext context) {
+    if (!context.lys) return this;
+    if (identical(this, av)) return avLys;
+    if (identical(this, mint)) return mintLys;
+    if (identical(this, ora)) return oraLys;
+    if (identical(this, gul)) return gulLys;
+    if (identical(this, nei)) return neiLys;
+    return this;
+  }
 }
 
 /// The icon paths (`IK`), drawn on a 24 × 24 box.
@@ -90,7 +111,10 @@ class BioSmaaChip extends StatelessWidget {
   final bool panel;
 
   @override
-  Widget build(BuildContext context) => CssBox(
+  Widget build(BuildContext context) {
+    // Lys: the look's light twin (bioVals).
+    final stil = this.stil.modus(context);
+    return CssBox(
         height: 24,
         radius: BorderRadius.circular(999),
         bg: stil.bg,
@@ -112,6 +136,7 @@ class BioSmaaChip extends StatelessWidget {
           ],
         ),
       );
+  }
 }
 
 /// `bioDot`: the breathing mint dot (opacity .5 ↔ 1, scale .85 ↔ 1.15).
@@ -151,12 +176,13 @@ class BioDot extends StatelessWidget {
 class BioIntelligence extends StatelessWidget {
   const BioIntelligence({super.key});
 
+  // `.mk1y`: `--lys-mint-dis` with `--lys-mint-tekst` in Lys (the inline border stays).
   @override
   Widget build(BuildContext context) => Container(
         height: 20,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color.fromRGBO(92, 224, 184, .14),
+          color: context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis),
           border: Border.all(color: const Color.fromRGBO(92, 224, 184, .42)),
           borderRadius: BorderRadius.circular(999),
         ),
@@ -165,7 +191,7 @@ class BioIntelligence extends StatelessWidget {
           children: [
             const BioDot(),
             const SizedBox(width: 5),
-            Flexible(child: Text(BioCopy.intelligence, maxLines: 1, overflow: TextOverflow.clip, style: inter(10, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))),
+            Flexible(child: Text(BioCopy.intelligence, maxLines: 1, overflow: TextOverflow.clip, style: inter(10, weight: FontWeight.w800, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)))),
           ],
         ),
       );
@@ -206,6 +232,8 @@ class _BioSegmenterState extends State<BioSegmenter> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final gull = widget.score == 5;
+    // bioSeg L24116: an empty segment is `rgba(30,79,92,.12)` in Lys.
+    final tom = context.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color.fromRGBO(30, 79, 92, .12));
     return Row(
       children: [
         for (var i = 0; i < 5; i++) ...[
@@ -224,7 +252,6 @@ class _BioSegmenterState extends State<BioSegmenter> with SingleTickerProviderSt
                 builder: (context, on, _) {
                   final a = gull ? const Color(0xFFFFE7A8) : const Color(0xFF5CE0B8);
                   final b = gull ? const Color(0xFFE9AC3C) : const Color(0xFF9FF0D4);
-                  const tom = Color.fromRGBO(255, 255, 255, .14);
                   final glow = gull ? const Color.fromRGBO(242, 193, 78, .6) : const Color.fromRGBO(92, 224, 184, .5);
                   return CssBox(
                     height: widget.h,
@@ -244,9 +271,13 @@ class _BioSegmenterState extends State<BioSegmenter> with SingleTickerProviderSt
 
 /// `bioSkannRing`: the mint arc turning around Ægil's portrait (3.6 s).
 class BioRingPortrett extends StatelessWidget {
-  const BioRingPortrett({super.key, this.size = 52, this.inset = 2.5, this.aegW = 46, this.aegBunn = -8, this.merke = 19, this.merkeIk = 11, this.merkeR = -3, this.merkeB = -2});
+  const BioRingPortrett({super.key, this.size = 52, this.inset = 2.5, this.aegW = 46, this.aegBunn = -8, this.merke = 19, this.merkeIk = 11, this.merkeR = -3, this.merkeB = -2, this.lysRing = true});
 
   final double size, inset, aegW, aegBunn, merke, merkeIk, merkeR, merkeB;
+
+  /// Lys plan: the star badge's 2 px ring turns `--lys-hvit` in Lys (`.mk7l`,
+  /// the Meg card). False where the design keeps `#23596A` inline (Ægil vet).
+  final bool lysRing;
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -293,12 +324,12 @@ class BioRingPortrett extends StatelessWidget {
               width: merke,
               height: merke,
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)]),
+                  gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFE7A8), Color(0xFFE9AC3C)]),
                   boxShadow: [
-                    BoxShadow(color: Color(0xFF23596A), spreadRadius: 2),
-                    BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 5),
+                    BoxShadow(color: lysRing && context.lys ? LysPalett.hvit : const Color(0xFF23596A), spreadRadius: 2),
+                    const BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 5),
                   ],
                 ),
                 alignment: Alignment.center,

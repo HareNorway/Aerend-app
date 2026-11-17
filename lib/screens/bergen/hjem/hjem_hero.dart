@@ -20,6 +20,7 @@ import '../kit/bergen_bakt.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/hjem_modus_show.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
 // Prototype L2227–2520. Design px, 390 wide, `top:72px; height:258px`:
@@ -111,6 +112,9 @@ class HjemHero extends StatefulWidget {
 
 class _HjemHeroState extends State<HjemHero> {
   final SjoRipples _ripples = SjoRipples();
+
+  // Lys plan Step 2: the Hjem show's three sea ripples (`sjoRippelPkt`), in the sea canvas' own px.
+  void _rippel(double x, double y, double a) => _ripples.add(x, y, a);
   final math.Random _rnd = math.Random();
   double _nextFloatRipple = 2;
 
@@ -141,6 +145,7 @@ class _HjemHeroState extends State<HjemHero> {
   @override
   void initState() {
     super.initState();
+    ModusAnkre.rippel = _rippel;
     widget.ekstra?.addListener(_ekstraEndret);
     if (widget.playIntro) {
       _intro = true;
@@ -169,6 +174,7 @@ class _HjemHeroState extends State<HjemHero> {
     widget.ekstra?.removeListener(_ekstraEndret);
     _kortT?.cancel();
     _introT?.cancel();
+    if (ModusAnkre.rippel == _rippel) ModusAnkre.rippel = null;
     _ripples.dispose();
     _speil.value?.dispose();
     _speil.dispose();
@@ -255,11 +261,15 @@ class _HjemHeroState extends State<HjemHero> {
             top: 0,
             width: 390,
             height: _kWater,
-            child: HjemBryggen(
+            child: KeyedSubtree(
+              // Lys plan Step 2: where the Hjem show aims its sun/moon.
+              key: ModusAnkre.byen,
+              child: HjemBryggen(
               key: ValueKey(v),
               kind: BergenWeather.values.byName(v.name),
               still: Image.asset(v.bryggen, fit: BoxFit.fill, filterQuality: FilterQuality.medium, gaplessPlayback: true),
               onFrame: _bryggenFrame,
+            ),
             ),
           ),
           // Sjø · hero (127 → bottom).
@@ -270,7 +280,7 @@ class _HjemHeroState extends State<HjemHero> {
             bottom: 0,
             child: Stack(
               children: [
-                Positioned.fill(child: ColoredBox(color: v.seaBase)),
+                Positioned.fill(child: KeyedSubtree(key: ModusAnkre.vann, child: ColoredBox(color: v.seaBase))),
                 Positioned.fill(
                   child: RepaintBoundary(
                     child: SjoWater(palette: v.sea, regn: v.regn, reflection: v.bryggen, reflectionHeight: _kWater, fogColor: v.fog, ripples: _ripples, onTick: _onWaterTick, liveReflection: _speil),

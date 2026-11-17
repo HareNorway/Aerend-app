@@ -22,6 +22,8 @@ import '../../deliveryService/trackOrder/track_order.dart';
 import '../../bergen/kasse/kurv_screen.dart';
 import '../../bergen/kit/server_banner.dart';
 import '../../../services/customer/client_flags.dart';
+import 'package:aerend_customer/theme/lys/modus_scope.dart';
+import 'package:aerend_customer/theme/lys/hjem_modus_show.dart';
 
 /// The Bergen shell: Hjem · Utforsk · Kurv · Meg behind the design's pill nav
 /// plus the round search orb (search field + Ægil pill, long-press → Ægil).
@@ -172,7 +174,8 @@ class HomeMainV1State extends State<HomeMainV1> {
       background: kBergenScreenGradient,
       builder: (context, i) => switch (i) {
         // 0 — Hjem
-        0 => BergenHome(isShowDialog: widget.isShowDialog, orderId: widget.orderId),
+        // Lys plan: Hjem is fjord-coloured in both modes.
+        0 => ModusFjord(child: BergenHome(isShowDialog: widget.isShowDialog, orderId: widget.orderId)),
         // 1 — Utforsk (AGIL-1 v2 Phase 2: Feed / Fjordfiske / Forundringspose)
         1 => const UtforskScreen(),
         // 2 — Kurv (AGIL-1 v2 Phase 5: the Bergen Kurv; the legacy cart is
@@ -260,7 +263,9 @@ class HomeMainV1State extends State<HomeMainV1> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: HjemHarness.probe('nav', BergenBottomNav(
+              // Lys plan: the nav pill stays fjord in both modes.
+              child: HjemHarness.probe('nav', BergenModusScope.fjord(child: BergenBottomNav(
+                modusAnkre: true,
                 index: selectedPos,
                 onTab: (i) => switchToTab(i),
                 cartCount: badgeCountNotifier,
@@ -269,9 +274,11 @@ class HomeMainV1State extends State<HomeMainV1> {
                 showHint: selectedPos == BergenTab.home.index,
                 searchController: _sokField,
                 searchOpen: sokOpen,
-              )),
+              ))),
             ),
           ),
+          // Lys plan Step 2: the switch moment on Hjem (design `modusShow`), over the nav, pointer-transparent.
+          Positioned.fill(child: HjemModusShow(aktiv: selectedPos == BergenTab.home.index)),
         ],
       ),
     );

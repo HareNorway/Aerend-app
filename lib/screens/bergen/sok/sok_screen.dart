@@ -27,6 +27,8 @@ import 'sok_oversikt.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// `sok` (L5122–5297 in `Ærend Kunde Launch.dc.html`).
 ///
@@ -398,7 +400,7 @@ class SokScreenState extends State<SokScreen> {
               left: 0,
               right: 0,
               height: panelTop,
-              child: _Hero(dy: dy),
+              child: ModusStatusMork(child: _Hero(dy: dy)),
             ),
             Positioned(
               top: safeTop + 10 * s,
@@ -453,31 +455,43 @@ class SokScreenState extends State<SokScreen> {
     final vanlig = q.isNotEmpty && !wish;
     final treff = q.isNotEmpty ? _treff : null;
     final ingen = vanlig && q.length >= 2 && treff != null && treff.isEmpty;
+    final lys = context.lys;
 
+    // `.mk4t` (erSok): in Lys `--lys-ull` with `--lys-arkskygge`, no rim, no top light.
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(top: Radius.circular(26 * s)),
-        gradient: cssLinear(
-          180,
-          const [Color(0xFF22586A), Color(0xFF1B4854), Color(0xFF173E48)],
-          const [0, .4, 1],
-        ),
+        color: lys ? LysPalett.ull : null,
+        gradient: lys
+            ? null
+            : cssLinear(
+                180,
+                const [Color(0xFF22586A), Color(0xFF1B4854), Color(0xFF173E48)],
+                const [0, .4, 1],
+              ),
         boxShadow: [
-          BoxShadow(
-            color: rgba(4, 18, 26, .8),
-            offset: Offset(0, -16 * s),
-            blurRadius: onbBlur(34 * s),
-            spreadRadius: -18 * s,
-          ),
+          lys
+              ? BoxShadow(
+                  color: const Color.fromRGBO(15, 31, 43, .35),
+                  offset: Offset(0, -24 * s),
+                  blurRadius: onbBlur(50 * s),
+                  spreadRadius: -20 * s,
+                )
+              : BoxShadow(
+                  color: rgba(4, 18, 26, .8),
+                  offset: Offset(0, -16 * s),
+                  blurRadius: onbBlur(34 * s),
+                  spreadRadius: -18 * s,
+                ),
         ],
       ),
       foregroundDecoration: BoxDecoration(
         borderRadius: BorderRadius.vertical(top: Radius.circular(26 * s)),
-        border: Border.all(color: rgba(255, 255, 255, .14)),
+        border: Border.all(color: lys ? const Color(0x00000000) : rgba(255, 255, 255, .14)),
       ),
       child: Stack(
         children: [
-          bergenInsetTop(radius: 26 * s, alpha: .28),
+          bergenInsetTop(radius: 26 * s, alpha: lys ? 0 : .28),
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(26 * s)),
             child: ListView(
@@ -539,6 +553,8 @@ const String _kNoresto = 'assets/images/dashboard/noresto.png';
 
 /// `linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07))`,
 /// the white hairline and the soft drop every glass card on the panel has.
+/// Lys (`.mk4x` / `.mk4z` / `.mk16`): `--lys-hvit`, a 1px `--lys-kant-farge`
+/// border and the card shadow, no top light.
 class _Glass extends StatelessWidget {
   const _Glass({
     super.key,
@@ -562,26 +578,32 @@ class _Glass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return BergenCssShadow(
       radius: radius,
-      shadows: [
-        BoxShadow(
-          color: rgba(4, 18, 26, .8),
-          offset: Offset(0, 14 * s),
-          blurRadius: 24 * s,
-          spreadRadius: -16 * s,
-        ),
-      ],
+      shadows: lys
+          ? sokKortskygge(s)
+          : [
+              BoxShadow(
+                color: rgba(4, 18, 26, .8),
+                offset: Offset(0, 14 * s),
+                blurRadius: 24 * s,
+                spreadRadius: -16 * s,
+              ),
+            ],
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [rgba(255, 255, 255, top), rgba(255, 255, 255, bottom)],
-          ),
-          border: Border.all(color: rgba(255, 255, 255, border)),
+          color: lys ? LysPalett.hvit : null,
+          gradient: lys
+              ? null
+              : LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [rgba(255, 255, 255, top), rgba(255, 255, 255, bottom)],
+                ),
+          border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, border)),
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -592,7 +614,7 @@ class _Glass extends StatelessWidget {
               top: -padding.top,
               bottom: -padding.bottom,
               child: Stack(
-                children: [bergenInsetTop(radius: radius, alpha: inset)],
+                children: [bergenInsetTop(radius: radius, alpha: lys ? 0 : inset)],
               ),
             ),
             child,
@@ -604,13 +626,21 @@ class _Glass extends StatelessWidget {
 }
 
 /// `linear-gradient(160deg,#2A6272,#1E4F5C 60%,#173E48)` with the mint ring —
-/// the Spør Ægil card and the compare card.
+/// the Spør Ægil card and the compare card. Lys (`.mk50`): `--lys-mint-dis`,
+/// a 1.5px `rgba(11,107,87,.25)` border, no shadow.
 BoxDecoration _aegilDeco(
   BuildContext context,
   double radius, {
   double lift = 20,
 }) {
   final s = context.bs;
+  if (context.lys) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(radius),
+      color: LysPalett.mintDis,
+      border: Border.all(color: const Color.fromRGBO(11, 107, 87, .25), width: 1.5),
+    );
+  }
   return BoxDecoration(
     borderRadius: BorderRadius.circular(radius),
     gradient: cssLinear(
@@ -1307,6 +1337,8 @@ class _WishCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mk4u` (sokOnske): `--lys-mint-dis`, no shadow in Lys.
     return Padding(
       padding: EdgeInsets.only(top: 14 * s),
       child: _BobleInn(
@@ -1320,19 +1352,24 @@ class _WishCard extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22 * s),
-              gradient: cssLinear(
-                160,
-                const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
-                const [0, .6, 1],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: rgba(30, 79, 92, .75),
-                  offset: Offset(0, 20 * s),
-                  blurRadius: onbBlur(34 * s),
-                  spreadRadius: -16 * s,
-                ),
-              ],
+              color: lys ? LysPalett.mintDis : null,
+              gradient: lys
+                  ? null
+                  : cssLinear(
+                      160,
+                      const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
+                      const [0, .6, 1],
+                    ),
+              boxShadow: lys
+                  ? null
+                  : [
+                      BoxShadow(
+                        color: rgba(30, 79, 92, .75),
+                        offset: Offset(0, 20 * s),
+                        blurRadius: onbBlur(34 * s),
+                        spreadRadius: -16 * s,
+                      ),
+                    ],
             ),
             child: Stack(
               children: [
@@ -1361,7 +1398,7 @@ class _WishCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                bergenInsetTop(radius: 22 * s, height: 1, alpha: .25),
+                bergenInsetTop(radius: 22 * s, height: 1, alpha: lys ? 0 : .25),
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 14 * s,
@@ -1373,10 +1410,11 @@ class _WishCard extends StatelessWidget {
                         width: 50 * s,
                         height: 50 * s,
                         clipBehavior: Clip.antiAlias,
+                        // `.mk4v`: `--lys-dis` with a `--lys-kant-farge` border in Lys.
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16 * s),
-                          color: rgba(255, 255, 255, .14),
-                          border: Border.all(color: rgba(255, 255, 255, .25)),
+                          color: lys ? LysPalett.dis : rgba(255, 255, 255, .14),
+                          border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .25)),
                         ),
                         child: Stack(
                           clipBehavior: Clip.none,
@@ -1397,11 +1435,12 @@ class _WishCard extends StatelessWidget {
                           children: [
                             Text(
                               SokCopy.a1_sok_onske_title,
+                              // `.mk13` / `.mkh` / `.mk4w`: `--lys-mint-tekst` / `--lys-tittel` / `--lys-dempet` in Lys.
                               style: bText(
                                 context,
                                 10.5,
                                 weight: FontWeight.w800,
-                                color: BergenColors.mint,
+                                color: lys ? LysPalett.mintTekst : BergenColors.mint,
                               ),
                             ),
                             Text(
@@ -1411,7 +1450,7 @@ class _WishCard extends StatelessWidget {
                                 13.5,
                                 weight: FontWeight.w800,
                                 height: 1.3,
-                                color: BergenColors.cream,
+                                color: lys ? LysPalett.tittel : BergenColors.cream,
                               ),
                             ),
                             SizedBox(height: 2 * s),
@@ -1421,16 +1460,17 @@ class _WishCard extends StatelessWidget {
                                 context,
                                 10.5,
                                 weight: FontWeight.w600,
-                                color: const Color(0xFFB9CBD5),
+                                color: lys ? LysPalett.dempet : const Color(0xFFB9CBD5),
                               ),
                             ),
                           ],
                         ),
                       ),
                       SizedBox(width: 12 * s),
+                      // `.mku`: `#1E4F5C` in Lys.
                       _Chevron(
                         size: 16 * s,
-                        color: BergenColors.cream,
+                        color: lys ? LysPalett.fjord : BergenColors.cream,
                         stroke: 2.2,
                       ),
                     ],
@@ -1529,6 +1569,7 @@ class _SectionHead extends StatelessWidget {
   final String label;
   final String count;
 
+  // «Søk · treff» `.mkb` / `.mk2m`: `--lys-tittel` / `--lys-dempet` in Lys.
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.symmetric(horizontal: 6 * context.bs),
@@ -1543,7 +1584,7 @@ class _SectionHead extends StatelessWidget {
               context,
               15,
               weight: FontWeight.w800,
-              color: Colors.white,
+              color: context.aeM(Colors.white, LysPalett.tittel),
             ),
           ),
         ),
@@ -1553,7 +1594,7 @@ class _SectionHead extends StatelessWidget {
             context,
             11,
             weight: FontWeight.w700,
-            color: rgba(255, 255, 255, .6),
+            color: context.aeM(rgba(255, 255, 255, .6), LysPalett.dempet),
           ),
         ),
       ],
@@ -1631,6 +1672,7 @@ class _StoreRow extends StatelessWidget {
       if (b.etaMinutes != null) SokCopy.a1_sok_eta(b.etaMinutes!),
       if (!b.open) SokCopy.a1_sok_closed,
     ].join(' · ');
+    final lys = context.lys;
     return _BobleInn(
       durationMs: 350,
       child: OnbPressable(
@@ -1663,12 +1705,13 @@ class _StoreRow extends StatelessWidget {
                       b.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      // `.mkb` / `.mk6`: `--lys-tittel` / `--lys-sekundar` in Lys.
                       style: bDisplay(
                         context,
                         14,
                         weight: FontWeight.w800,
                         height: 1.2,
-                        color: Colors.white,
+                        color: lys ? LysPalett.tittel : Colors.white,
                       ),
                     ),
                     if (line.isNotEmpty) ...[
@@ -1681,7 +1724,7 @@ class _StoreRow extends StatelessWidget {
                           context,
                           11.5,
                           weight: FontWeight.w600,
-                          color: rgba(255, 255, 255, .7),
+                          color: lys ? LysPalett.sekundar : rgba(255, 255, 255, .7),
                         ),
                       ),
                     ],
@@ -1690,10 +1733,11 @@ class _StoreRow extends StatelessWidget {
                       Row(
                         children: [
                           if (b.rating != null) ...[
+                            // `.mk3k` / `.mkb`: the star `#4A300A`, the figure `--lys-tittel` in Lys.
                             Icon(
                               Icons.star_rounded,
                               size: 11 * s,
-                              color: BergenColors.gold,
+                              color: lys ? LysPalett.gullTekst : BergenColors.gold,
                             ),
                             SizedBox(width: 2 * s),
                             Text(
@@ -1702,7 +1746,7 @@ class _StoreRow extends StatelessWidget {
                                 context,
                                 10.5,
                                 weight: FontWeight.w800,
-                                color: Colors.white,
+                                color: lys ? LysPalett.tittel : Colors.white,
                               ),
                             ),
                           ],
@@ -1711,9 +1755,10 @@ class _StoreRow extends StatelessWidget {
                               width: 3 * s,
                               height: 3 * s,
                               margin: EdgeInsets.symmetric(horizontal: 6 * s),
+                              // `.mk1s`: `--lys-dis` in Lys.
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: rgba(255, 255, 255, .4),
+                                color: lys ? LysPalett.dis : rgba(255, 255, 255, .4),
                               ),
                             ),
                           if (b.feeText != null)
@@ -1722,11 +1767,12 @@ class _StoreRow extends StatelessWidget {
                                 b.feeText!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
+                                // `.mk13`: `--lys-mint-tekst` in Lys.
                                 style: bText(
                                   context,
                                   10.5,
                                   weight: FontWeight.w700,
-                                  color: BergenColors.mint,
+                                  color: lys ? LysPalett.mintTekst : BergenColors.mint,
                                 ),
                               ),
                             ),
@@ -1741,12 +1787,13 @@ class _StoreRow extends StatelessWidget {
                 width: 34 * s,
                 height: 34 * s,
                 alignment: Alignment.center,
+                // `.mk4y` / `.mku`: `--lys-dis`, a `--lys-kant-farge` border, the chevron `#1E4F5C` in Lys.
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: rgba(255, 255, 255, .1),
-                  border: Border.all(color: rgba(255, 255, 255, .2)),
+                  color: lys ? LysPalett.dis : rgba(255, 255, 255, .1),
+                  border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .2)),
                 ),
-                child: _Chevron(size: 14 * s, color: Colors.white),
+                child: _Chevron(size: 14 * s, color: lys ? LysPalett.fjord : Colors.white),
               ),
             ],
           ),
@@ -1796,6 +1843,7 @@ class _ProductCard extends StatelessWidget {
       ),
       child: Icon(Icons.restaurant_rounded, size: 34 * s, color: Colors.white),
     );
+    final lys = context.lys;
     return _BobleInn(
       durationMs: 350,
       child: OnbPressable(
@@ -1840,12 +1888,13 @@ class _ProductCard extends StatelessWidget {
                       p.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      // `.mkb` / `.mk6`: `--lys-tittel` / `--lys-sekundar` in Lys.
                       style: bDisplay(
                         context,
                         13,
                         weight: FontWeight.w800,
                         height: 1.2,
-                        color: Colors.white,
+                        color: lys ? LysPalett.tittel : Colors.white,
                       ),
                     ),
                     SizedBox(height: 2 * s),
@@ -1857,7 +1906,7 @@ class _ProductCard extends StatelessWidget {
                         context,
                         11,
                         weight: FontWeight.w600,
-                        color: rgba(255, 255, 255, .7),
+                        color: lys ? LysPalett.sekundar : rgba(255, 255, 255, .7),
                       ),
                     ),
                   ],
@@ -1879,7 +1928,7 @@ class _ProductCard extends StatelessWidget {
                           context,
                           14,
                           weight: FontWeight.w800,
-                          color: Colors.white,
+                          color: lys ? LysPalett.tittel : Colors.white,
                         ),
                       ),
                     ),
@@ -1921,6 +1970,7 @@ class _CompareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return Padding(
       padding: EdgeInsets.only(top: 14 * s),
       child: OnbPressable(
@@ -1941,22 +1991,23 @@ class _CompareCard extends StatelessWidget {
                 bottom: -12 * s,
                 child: Stack(
                   children: [
-                    bergenInsetTop(radius: 20 * s, height: 1, alpha: .25),
+                    bergenInsetTop(radius: 20 * s, height: 1, alpha: lys ? 0 : .25),
                   ],
                 ),
               ),
               Row(
                 children: [
+                  // `.mk51`: `--lys-mint-dis` / `--lys-mint-tekst` in Lys.
                   Container(
                     width: 40 * s,
                     height: 40 * s,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14 * s),
-                      color: rgba(92, 224, 184, .14),
+                      color: lys ? LysPalett.mintDis : rgba(92, 224, 184, .14),
                       border: Border.all(color: rgba(92, 224, 184, .35)),
                     ),
-                    child: _gevir(20 * s, 12 * s, BergenColors.mint),
+                    child: _gevir(20 * s, 12 * s, lys ? LysPalett.mintTekst : BergenColors.mint),
                   ),
                   SizedBox(width: 12 * s),
                   Expanded(
@@ -1965,12 +2016,13 @@ class _CompareCard extends StatelessWidget {
                       children: [
                         Text(
                           SokCopy.a1_sok_ask_aegil,
+                          // `.mk13` / `.mkb`: `--lys-mint-tekst` / `--lys-tittel` in Lys.
                           style: bText(
                             context,
                             11,
                             weight: FontWeight.w800,
                             letterSpacingEm: .06,
-                            color: BergenColors.mint,
+                            color: lys ? LysPalett.mintTekst : BergenColors.mint,
                           ),
                         ),
                         SizedBox(height: 2 * s),
@@ -1981,7 +2033,7 @@ class _CompareCard extends StatelessWidget {
                             13,
                             weight: FontWeight.w700,
                             height: 1.3,
-                            color: Colors.white,
+                            color: lys ? LysPalett.tittel : Colors.white,
                           ),
                         ),
                       ],
@@ -2057,12 +2109,13 @@ class _NoHits extends StatelessWidget {
               Text(
                 SokCopy.a1_sok_ingen_title(query),
                 textAlign: TextAlign.center,
+                // `.mkb` / `.mk6` (sokIngen): `--lys-tittel` / `--lys-sekundar` in Lys.
                 style: bDisplay(
                   context,
                   15,
                   weight: FontWeight.w800,
                   height: 1.25,
-                  color: Colors.white,
+                  color: context.aeM(Colors.white, LysPalett.tittel),
                 ),
               ),
               SizedBox(height: 10 * s),
@@ -2074,7 +2127,7 @@ class _NoHits extends StatelessWidget {
                   12,
                   weight: FontWeight.w600,
                   height: 1.4,
-                  color: rgba(255, 255, 255, .7),
+                  color: context.aeM(rgba(255, 255, 255, .7), LysPalett.sekundar),
                 ),
               ),
               SizedBox(height: 14 * s),

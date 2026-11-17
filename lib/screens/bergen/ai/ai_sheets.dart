@@ -22,6 +22,8 @@ import 'ai_overlays.dart';
 import 'ai_store.dart';
 import 'ai_tilbud.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Customer plan Step 14 — the AI sheets of design 10140–10325 / 21549–21672
 /// on the dark Ark: `aiInngang`, `aiVelg`, `aiQr`, `aiSamtykke`, `aiKoblet`,
@@ -146,14 +148,15 @@ abstract final class AiArk {
           AiKort(child: Row(children: [
             ClipRRect(borderRadius: BorderRadius.circular(14), child: Image.asset('assets/images/dashboard/front.png', width: 46, height: 46, fit: BoxFit.cover)),
             const SizedBox(width: 10),
-            Expanded(child: Text(AiCopy.cus_ai_inngang_aegil, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .85)))),
+            // Lys: «AI · Ægil» `.mkz` → `--lys-brod`.
+            Expanded(child: Text(AiCopy.cus_ai_inngang_aegil, style: inter(12.5, height: 1.4, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .85), LysPalett.brod)))),
           ])),
           // Customer v2 Step 2 (spec §4.10 A): the privacy line on the entry, above the «Hva {AI} ser» section.
           if (!siri)
             Padding(
               key: const Key('cus-ai-personvern'),
               padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
-              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [const AeIkon(AiIk.laas, size: 13, stroke: 2.3, color: Color(0xFF7FF0CB)), const SizedBox(width: 7), Expanded(child: Text(AiCopy.assistants_privacy_line(valgt), style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .78))))]),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [AeIkon(AiIk.laas, size: 13, stroke: 2.3, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 7), Expanded(child: Text(AiCopy.assistants_privacy_line(valgt), style: inter(12, height: 1.4, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .78)))))]),
             ),
           AiSeksjon(AiCopy.cus_ai_stottede),
           Row(children: [
@@ -166,20 +169,23 @@ abstract final class AiArk {
                   duration: const Duration(milliseconds: 220),
                   transform: Matrix4.translationValues(0, valgt == n ? -4 : 0, 0),
                   padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
+                  // Lys: `aiChips` (L25070) — bg `--lys-mint-dis` / `--lys-hvit`, ring `rgba(11,107,87,.4)` /
+                  // `--lys-kant-farge`, the unselected chip `--lys-kortskygge`.
                   decoration: CssDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: valgt == n ? const [Color.fromRGBO(92, 224, 184, .28), Color.fromRGBO(92, 224, 184, .08)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
-                    border: Border.all(color: valgt == n ? const Color.fromRGBO(127, 240, 203, .85) : const Color.fromRGBO(255, 255, 255, .14)),
-                    boxShadow: valgt == n ? const [BoxShadow(color: Color.fromRGBO(92, 224, 184, .75), blurRadius: 24 / 2 / .57735, spreadRadius: -6)] : null,
+                    color: ctx.lys ? (valgt == n ? LysPalett.mintDis : LysPalett.hvit) : null,
+                    gradient: ctx.lys ? null : LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: valgt == n ? const [Color.fromRGBO(92, 224, 184, .28), Color.fromRGBO(92, 224, 184, .08)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
+                    border: Border.all(color: valgt == n ? ctx.aeM(const Color.fromRGBO(127, 240, 203, .85), const Color.fromRGBO(11, 107, 87, .4)) : ctx.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
+                    boxShadow: valgt == n ? const [BoxShadow(color: Color.fromRGBO(92, 224, 184, .75), blurRadius: 24 / 2 / .57735, spreadRadius: -6)] : (ctx.lys ? aiKortskygge : null),
                   ),
                   child: Column(children: [
                     AiMerke(n, size: 34),
                     const SizedBox(height: 6),
-                    Text(n, style: inter(11.5, weight: FontWeight.w800)),
+                    Text(n, style: inter(11.5, weight: FontWeight.w800, color: ctx.aiTittel)),
                     const SizedBox(height: 2),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       if (_store.aktivFor(n) != null) Container(width: 5, height: 5, margin: const EdgeInsets.only(right: 4), decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF7FF0CB))),
-                      Flexible(child: Text(_store.aktivFor(n) != null ? AiCopy.cus_ai_koblet : (n == 'Siri' ? AiCopy.cus_ai_snarveier : AiCopy.cus_ai_ikke_koblet), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(9.5, weight: FontWeight.w700, color: _store.aktivFor(n) != null ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .55)))),
+                      Flexible(child: Text(_store.aktivFor(n) != null ? AiCopy.cus_ai_koblet : (n == 'Siri' ? AiCopy.cus_ai_snarveier : AiCopy.cus_ai_ikke_koblet), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(9.5, weight: FontWeight.w700, color: _store.aktivFor(n) != null ? ctx.aiMint : ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .55))))),
                     ]),
                   ]),
                 ),
@@ -190,23 +196,25 @@ abstract final class AiArk {
           if (link != null) ...[
             const SizedBox(height: 10),
             AePress(onTap: () => Navigator.of(ctx).pop('detalj:${link.id}'), dy: 1.5, child: AiKort(mint: true, padding: const EdgeInsets.fromLTRB(12, 10, 12, 10), child: Row(children: [
-              const AeIkon(AiIk.kobling, size: 16, stroke: 2.3, color: Color(0xFF7FF0CB)),
+              // Lys: `.mkdz` card; the line `.mk8` (`--lys-mint-tekst`), strokes `.mk1i`.
+              AeIkon(AiIk.kobling, size: 16, stroke: 2.3, color: ctx.aiStrek(const Color(0xFF7FF0CB))),
               const SizedBox(width: 8),
-              Expanded(child: Text(AiCopy.cus_ai_allerede_koblet(valgt), style: inter(13, weight: FontWeight.w800))),
-              Text(AiCopy.cus_ai_se_rettigheter, style: inter(12, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+              Expanded(child: Text(AiCopy.cus_ai_allerede_koblet(valgt), style: inter(13, weight: FontWeight.w800, color: ctx.aeM(Colors.white, LysPalett.mintTekst)))),
+              Text(AiCopy.cus_ai_se_rettigheter, style: inter(12, weight: FontWeight.w800, color: ctx.aiMint)),
               const SizedBox(width: 4),
-              const AeIkon(AiIk.pil, size: 12, stroke: 2.4, color: Color(0xFF7FF0CB)),
+              AeIkon(AiIk.pil, size: 12, stroke: 2.4, color: ctx.aiStrek(const Color(0xFF7FF0CB))),
             ]))),
           ],
           AiSeksjon(AiCopy.cus_ai_slik_fungerer),
           AiKort(child: Row(children: [
             for (final (i, t) in [AiCopy.cus_ai_fl1(valgt), AiCopy.cus_ai_fl2, AiCopy.cus_ai_fl3].indexed) ...[
               Expanded(child: Column(children: [
-                Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: i == 2 ? const Color(0xFF5CE0B8) : const Color.fromRGBO(255, 255, 255, .12)), child: AeIkon([AiIk.person, AiIk.pose, AiIk.skjold][i], size: 14, stroke: 2.3, color: i == 2 ? const Color(0xFF0F2B33) : Colors.white)),
+                // Lys («AI · slik fungerer det»): the node `.mke1` (`--lys-dis`), stroke `.mku`, text `.mk21`, the line `.mk3a`.
+                Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: i == 2 ? const Color(0xFF5CE0B8) : ctx.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis)), child: AeIkon([AiIk.person, AiIk.pose, AiIk.skjold][i], size: 14, stroke: 2.3, color: i == 2 ? const Color(0xFF0F2B33) : ctx.aiStrek(Colors.white))),
                 const SizedBox(height: 6),
-                Text(t, textAlign: TextAlign.center, style: inter(11, weight: FontWeight.w700, height: 1.3)),
+                Text(t, textAlign: TextAlign.center, style: inter(11, weight: FontWeight.w700, height: 1.3, color: ctx.aiSek(Colors.white))),
               ])),
-              if (i < 2) const SizedBox(width: 18, child: Divider(color: Color.fromRGBO(255, 255, 255, .25), thickness: 1.5)),
+              if (i < 2) SizedBox(width: 18, child: Divider(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .25), LysPalett.dis), thickness: 1.5)),
             ],
           ])),
           AiSeksjon(AiCopy.cus_ai_steg_tittel(valgt)),
@@ -222,13 +230,14 @@ abstract final class AiArk {
                 child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Container(
                     width: 28, height: 28, alignment: Alignment.center,
-                    decoration: BoxDecoration(shape: BoxShape.circle, gradient: i < stegN ? const LinearGradient(colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : (i == stegN ? const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)]) : null), color: i > stegN ? const Color.fromRGBO(255, 255, 255, .1) : null),
-                    child: i < stegN ? const AeIkon(AiIk.hake, size: 13, stroke: 3, color: Color(0xFF0F2B33)) : Text('${i + 1}', style: inter(12, weight: FontWeight.w800)),
+                    // Lys: `aiSteg` (L25073) — the active node `--lys-fjord-fyll`, the rest `--lys-dis` with `--lys-sekundar`.
+                    decoration: BoxDecoration(shape: BoxShape.circle, gradient: i < stegN ? const LinearGradient(colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : (i == stegN ? (ctx.lys ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF235E6D), Color(0xFF124A58)]) : const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])) : null), color: i > stegN ? ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis) : null),
+                    child: i < stegN ? const AeIkon(AiIk.hake, size: 13, stroke: 3, color: Color(0xFF0F2B33)) : Text('${i + 1}', style: inter(12, weight: FontWeight.w800, color: i == stegN ? Colors.white : ctx.aiSek(Colors.white))),
                   ),
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(s, style: inter(13, weight: i <= stegN ? FontWeight.w800 : FontWeight.w600, height: 1.35, color: i <= stegN ? Colors.white : const Color.fromRGBO(255, 255, 255, .6))),
-                    if (i == stegN) Text(i == steg.length - 1 ? AiCopy.cus_ai_steg_hint_sist : AiCopy.cus_ai_steg_hint, style: inter(11, color: const Color(0xFFFFC8A8))),
+                    Text(s, style: inter(13, weight: i <= stegN ? FontWeight.w800 : FontWeight.w600, height: 1.35, color: i <= stegN ? ctx.aiTittel : ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6)))),
+                    if (i == stegN) Text(i == steg.length - 1 ? AiCopy.cus_ai_steg_hint_sist : AiCopy.cus_ai_steg_hint, style: inter(11, color: ctx.aiGlod)),
                   ])),
                 ]),
               ),
@@ -237,25 +246,27 @@ abstract final class AiArk {
           AiSeksjon(AiCopy.cus_ai_hva_ser(valgt)),
           AiKort(child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(AiCopy.cus_ai_kan_se, style: inter(11, weight: FontWeight.w800, em: .08, color: const Color(0xFF7FF0CB))),
-              for (final t in AiCopy.cus_ai_kan_se_liste) Padding(padding: const EdgeInsets.only(top: 6), child: Row(children: [const AeIkon(AiIk.hake, size: 12, stroke: 2.6, color: Color(0xFF7FF0CB)), const SizedBox(width: 6), Expanded(child: Text(t, style: inter(12.5, weight: FontWeight.w700)))])),
+              // Lys («AI · personvern»): `.mk8` / `.mke2` heads, `.mkb` lines, strokes `.mk1i` / `.mk2d`.
+              Text(AiCopy.cus_ai_kan_se, style: inter(11, weight: FontWeight.w800, em: .08, color: ctx.aiMint)),
+              for (final t in AiCopy.cus_ai_kan_se_liste) Padding(padding: const EdgeInsets.only(top: 6), child: Row(children: [AeIkon(AiIk.hake, size: 12, stroke: 2.6, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 6), Expanded(child: Text(t, style: inter(12.5, weight: FontWeight.w700, color: ctx.aiTittel)))])),
             ])),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(AiCopy.cus_ai_ser_aldri, style: inter(11, weight: FontWeight.w800, em: .08, color: const Color(0xFFFFC8A8))),
-              for (final t in AiCopy.cus_ai_ser_aldri_liste) Padding(padding: const EdgeInsets.only(top: 6), child: Row(children: [const AeIkon(AiIk.kryss, size: 12, stroke: 2.6, color: Color(0xFFFFC8A8)), const SizedBox(width: 6), Expanded(child: Text(t, style: inter(12.5, weight: FontWeight.w700)))])),
+              Text(AiCopy.cus_ai_ser_aldri, style: inter(11, weight: FontWeight.w800, em: .08, color: ctx.aiGlod)),
+              for (final t in AiCopy.cus_ai_ser_aldri_liste) Padding(padding: const EdgeInsets.only(top: 6), child: Row(children: [AeIkon(AiIk.kryss, size: 12, stroke: 2.6, color: ctx.aiStrek(const Color(0xFFFFC8A8))), const SizedBox(width: 6), Expanded(child: Text(t, style: inter(12.5, weight: FontWeight.w700, color: ctx.aiTittel)))])),
             ])),
           ])),
-          Padding(padding: const EdgeInsets.fromLTRB(4, 8, 4, 0), child: AePress(onTap: () => launchUrl(Uri.parse('https://aerend.no/terms-and-conditions'), mode: LaunchMode.externalApplication), dy: 1, child: Row(children: [Text(AiCopy.cus_ai_les_mer, style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))), const SizedBox(width: 4), const AeIkon(AiIk.pil, size: 11, stroke: 2.4, color: Color(0xFF7FF0CB))]))),
+          Padding(padding: const EdgeInsets.fromLTRB(4, 8, 4, 0), child: AePress(onTap: () => launchUrl(Uri.parse('https://aerend.no/terms-and-conditions'), mode: LaunchMode.externalApplication), dy: 1, child: Row(children: [Text(AiCopy.cus_ai_les_mer, style: inter(12.5, weight: FontWeight.w800, color: ctx.aiMint)), const SizedBox(width: 4), AeIkon(AiIk.pil, size: 11, stroke: 2.4, color: ctx.aiStrek(const Color(0xFF7FF0CB)))]))),
           const SizedBox(height: 12),
           AiKort(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
               const AiMerke('Siri', size: 36),
               const SizedBox(width: 10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_bruk_siri, style: inter(13.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_siri_linje, style: inter(11.5, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .75)))])),
+              // Lys («AI · Siri»): `.mkb`, `.mk33`, `.mkd`, `.mk8`; the rows `aiSiri` (L25078).
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_bruk_siri, style: inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel)), Text(AiCopy.cus_ai_siri_linje, style: inter(11.5, height: 1.35, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .75))))])),
             ]),
             const SizedBox(height: 8),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(AiCopy.cus_ai_snarveier, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .6)))), const SizedBox(width: 8), Flexible(child: Text(AiCopy.cus_ai_siri_antall(snarveier.length), maxLines: 1, textAlign: TextAlign.right, style: inter(11, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))))]),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Flexible(child: Text(AiCopy.cus_ai_snarveier, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .08, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))), const SizedBox(width: 8), Flexible(child: Text(AiCopy.cus_ai_siri_antall(snarveier.length), maxLines: 1, textAlign: TextAlign.right, style: inter(11, weight: FontWeight.w700, color: ctx.aiMint)))]),
             for (final s in AiCopy.cus_ai_siri_snarveier)
               AePress(
                 onTap: () => setState(() { snarveier.contains(s) ? snarveier.remove(s) : snarveier.add(s); showBergenToast(ctx, snarveier.contains(s) ? AiCopy.cus_ai_snarvei_lagt(s) : AiCopy.cus_ai_snarvei_fjernet); }),
@@ -263,8 +274,8 @@ abstract final class AiArk {
                 child: Container(
                   margin: const EdgeInsets.only(top: 6),
                   padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: snarveier.contains(s) ? const Color.fromRGBO(92, 224, 184, .18) : const Color.fromRGBO(255, 255, 255, .07), border: Border.all(color: snarveier.contains(s) ? const Color.fromRGBO(127, 240, 203, .6) : const Color.fromRGBO(255, 255, 255, .16))),
-                  child: Row(children: [const AeIkon(AiIk.lyn, size: 13, stroke: 2.4, color: Color(0xFFF2C14E)), const SizedBox(width: 8), Expanded(child: Text('«$s»', style: inter(12.5, weight: FontWeight.w700))), AeIkon(snarveier.contains(s) ? AiIk.hake : AiIk.pluss, size: 13, stroke: 2.6, color: snarveier.contains(s) ? const Color(0xFF7FF0CB) : Colors.white)]),
+                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: snarveier.contains(s) ? ctx.aeM(const Color.fromRGBO(92, 224, 184, .18), LysPalett.mintDis) : ctx.aeM(const Color.fromRGBO(255, 255, 255, .07), LysPalett.hvit), border: Border.all(color: snarveier.contains(s) ? ctx.aeM(const Color.fromRGBO(127, 240, 203, .6), const Color.fromRGBO(11, 107, 87, .4)) : ctx.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge))),
+                  child: Row(children: [const AeIkon(AiIk.lyn, size: 13, stroke: 2.4, color: Color(0xFFF2C14E)), const SizedBox(width: 8), Expanded(child: Text('«$s»', style: inter(12.5, weight: FontWeight.w700, color: ctx.aiTittel))), AeIkon(snarveier.contains(s) ? AiIk.hake : AiIk.pluss, size: 13, stroke: 2.6, color: ctx.aiStrek(snarveier.contains(s) ? const Color(0xFF7FF0CB) : Colors.white))]),
                 ),
               ),
           ])),
@@ -307,15 +318,16 @@ abstract final class AiArk {
       return ny;
     }
 
-    Widget knapp(Key key, String ik, String tx, VoidCallback onTap) => Expanded(child: AePress(onTap: onTap, dy: 1.5, child: Container(key: key, height: 40, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 13, stroke: 2.4), const SizedBox(width: 6), Flexible(child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800)))]))));
+    // Lys: the pills `.mkdo` (`--lys-dis`, hairline, `--lys-tittel`), stroke `.mku`.
+    Widget knapp(Key key, String ik, String tx, VoidCallback onTap) => Expanded(child: AePress(onTap: onTap, dy: 1.5, child: Container(key: key, height: 40, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), border: Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 13, stroke: 2.4, color: ctx.aiStrek(Colors.white)), const SizedBox(width: 6), Flexible(child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800, color: ctx.aiTittel)))]))));
 
     return Padding(
       key: const Key('cus-ai-annen-enhet'),
       padding: const EdgeInsets.only(top: 10),
       child: AiKort(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(AiCopy.cus_ai_annen_enhet_tittel, style: inter(13, weight: FontWeight.w800)),
+        Text(AiCopy.cus_ai_annen_enhet_tittel, style: inter(13, weight: FontWeight.w800, color: ctx.aiTittel)),
         const SizedBox(height: 2),
-        Text(AiCopy.cus_ai_annen_enhet_linje(navn), style: inter(11.5, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .72))),
+        Text(AiCopy.cus_ai_annen_enhet_linje(navn), style: inter(11.5, height: 1.35, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .72)))),
         const SizedBox(height: 10),
         Row(children: [
           knapp(const Key('cus-ai-inngang-kopier'), AiIk.kobling, AiCopy.cus_ai_kopier_kobling, () async {
@@ -364,17 +376,19 @@ abstract final class AiArk {
                 key: Key('cus-ai-velg-${AiNavn.vendor(n)}'),
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: ak ? const [Color.fromRGBO(92, 224, 184, .16), Color.fromRGBO(255, 255, 255, .05)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]), border: Border.all(color: ak ? const Color.fromRGBO(127, 240, 203, .45) : const Color.fromRGBO(255, 255, 255, .14))),
+                // Lys: `aiVelg` (L25090) — bg `--lys-mint-dis` / `--lys-hvit`, ring `rgba(11,107,87,.25)` / `--lys-kant-farge`.
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), color: ctx.lys ? (ak ? LysPalett.mintDis : LysPalett.hvit) : null, gradient: ctx.lys ? null : LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: ak ? const [Color.fromRGBO(92, 224, 184, .16), Color.fromRGBO(255, 255, 255, .05)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]), border: Border.all(color: ak ? ctx.aeM(const Color.fromRGBO(127, 240, 203, .45), const Color.fromRGBO(11, 107, 87, .25)) : ctx.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge))),
                 child: Row(children: [
                   AiMerke(n, size: 40),
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [Flexible(child: Text(n, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(14, weight: FontWeight.w800))), const SizedBox(width: 8), Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _status(ak ? AiCopy.cus_ai_koblet : (siri ? AiCopy.cus_ai_snarvei : AiCopy.cus_ai_ikke_koblet), ak)))]),
+                    Row(children: [Flexible(child: Text(n, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(14, weight: FontWeight.w800, color: ctx.aiTittel))), const SizedBox(width: 8), Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _status(ctx, ak ? AiCopy.cus_ai_koblet : (siri ? AiCopy.cus_ai_snarvei : AiCopy.cus_ai_ikke_koblet), ak)))]),
                     const SizedBox(height: 2),
-                    Text(ak ? AiCopy.cus_ai_velg_koblet_under(l.capPerOrder?.kr ?? 0, _betNavn(l.paymentPref)) : (siri ? AiCopy.cus_ai_velg_siri_under : AiCopy.cus_ai_velg_ukoblet_under), style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .7))),
+                    Text(ak ? AiCopy.cus_ai_velg_koblet_under(l.capPerOrder?.kr ?? 0, _betNavn(l.paymentPref)) : (siri ? AiCopy.cus_ai_velg_siri_under : AiCopy.cus_ai_velg_ukoblet_under), style: inter(11.5, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .7)))),
                   ])),
                   const SizedBox(width: 8),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: ak ? const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)]) : null, color: ak ? null : const Color.fromRGBO(255, 255, 255, .1), border: ak ? null : Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Text(ak ? AiCopy.cus_ai_bestill : (siri ? AiCopy.cus_ai_legg_til : AiCopy.cus_ai_koble), style: inter(12, weight: FontWeight.w800))),
+                  // Lys: the secondary key `.mkes` (`--lys-dis`, hairline, `--lys-tittel`); «Bestill» stays orange.
+                  Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: ak ? const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)]) : null, color: ak ? null : ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), border: ak ? null : Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge))), child: Text(ak ? AiCopy.cus_ai_bestill : (siri ? AiCopy.cus_ai_legg_til : AiCopy.cus_ai_koble), style: inter(12, weight: FontWeight.w800, color: ak ? Colors.white : ctx.aiTittel))),
                 ]),
               ),
             ));
@@ -383,7 +397,8 @@ abstract final class AiArk {
         const SizedBox(height: 6),
         Row(children: [
           for (final (i, t) in AiCopy.cus_ai_velg_steg.indexed) ...[
-            Expanded(child: Column(children: [AeIkon([AiIk.person, AiIk.pose, AiIk.skjold][i], size: 16, stroke: 2.2, color: const Color(0xFF7FF0CB)), const SizedBox(height: 4), Text(t, textAlign: TextAlign.center, style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75)))])),
+            // Lys («AI · slik går det»): stroke `.mk1i`, text `.mkb`.
+            Expanded(child: Column(children: [AeIkon([AiIk.person, AiIk.pose, AiIk.skjold][i], size: 16, stroke: 2.2, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(height: 4), Text(t, textAlign: TextAlign.center, style: inter(11, weight: FontWeight.w700, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .75), LysPalett.tittel)))])),
           ],
         ]),
       ]),
@@ -392,7 +407,9 @@ abstract final class AiArk {
     );
   }
 
-  static Widget _status(String tx, bool ak) => Container(padding: const EdgeInsets.fromLTRB(7, 2, 8, 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ak ? const Color.fromRGBO(92, 224, 184, .16) : const Color.fromRGBO(255, 255, 255, .08), border: Border.all(color: ak ? const Color.fromRGBO(127, 240, 203, .5) : const Color.fromRGBO(255, 255, 255, .18))), child: Row(mainAxisSize: MainAxisSize.min, children: [if (ak) Container(width: 5, height: 5, margin: const EdgeInsets.only(right: 4), decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF7FF0CB))), Text(tx, style: inter(10.5, weight: FontWeight.w800, color: ak ? const Color(0xFF7FF0CB) : const Color.fromRGBO(255, 255, 255, .6)))]));
+  /// Lys: `stA` (L25065) — bg `--lys-mint-dis` / `--lys-hvit`, ring `rgba(11,107,87,.25)` / `--lys-kant-farge`,
+  /// text mint-tekst / dempet.
+  static Widget _status(BuildContext c, String tx, bool ak) => Container(padding: const EdgeInsets.fromLTRB(7, 2, 8, 2), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ak ? c.aeM(const Color.fromRGBO(92, 224, 184, .16), LysPalett.mintDis) : c.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit), border: Border.all(color: ak ? c.aeM(const Color.fromRGBO(127, 240, 203, .5), const Color.fromRGBO(11, 107, 87, .25)) : c.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge))), child: Row(mainAxisSize: MainAxisSize.min, children: [if (ak) Container(width: 5, height: 5, margin: const EdgeInsets.only(right: 4), decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF7FF0CB))), Text(tx, style: inter(10.5, weight: FontWeight.w800, color: ak ? c.aiMint : c.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))]));
 
   static String _betNavn(String pref) => switch (pref) { 'card' => AiCopy.cus_ai_lagret_kort, 'ask' => AiCopy.cus_ai_spor_hver_gang, _ => AiCopy.cus_ai_vipps };
 
@@ -458,33 +475,38 @@ abstract final class AiArk {
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Container(
             padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .08), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14))),
+            // Lys («AI · velg måte»): the track `.mke6` (`--lys-dis-ull`, no ring), the thumb `.mke7`
+            // (`--lys-fjord-fyll`, `0 4px 8px -5px rgba(23,62,72,.5)`), `aiKMobC` white / `--lys-sekundar` (L25099).
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.disUll), border: Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color(0x00000000)))),
             child: Row(children: [
               for (final (v, t, ik) in [('mobil', AiCopy.cus_ai_paa_mobilen, AiIk.mobil), ('qr', AiCopy.cus_ai_annen_enhet, AiIk.qr)])
-                Expanded(child: AePress(onTap: () => setState(() => m = v), dy: 1, child: Container(key: Key('cus-ai-qr-modus-$v'), height: 36, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: m == v ? const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFE6F2EF)]) : null), child: FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 13, stroke: 2.3, color: m == v ? const Color(0xFF1E4F5C) : const Color.fromRGBO(255, 255, 255, .78)), const SizedBox(width: 6), Text(t, style: inter(12.5, weight: FontWeight.w800, color: m == v ? const Color(0xFF1E4F5C) : const Color.fromRGBO(255, 255, 255, .78)))]))))),
+                Expanded(child: AePress(onTap: () => setState(() => m = v), dy: 1, child: Container(key: Key('cus-ai-qr-modus-$v'), height: 36, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: m == v ? (ctx.lys ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF235E6D), Color(0xFF124A58)]) : const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFE6F2EF)])) : null, boxShadow: m == v && ctx.lys ? const [BoxShadow(color: Color.fromRGBO(23, 62, 72, .5), offset: Offset(0, 4), blurRadius: 8 / 2 / .57735, spreadRadius: -5)] : null), child: FittedBox(fit: BoxFit.scaleDown, child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 13, stroke: 2.3, color: m == v ? ctx.aeM(const Color(0xFF1E4F5C), Colors.white) : ctx.aiSek(const Color.fromRGBO(255, 255, 255, .78))), const SizedBox(width: 6), Text(t, style: inter(12.5, weight: FontWeight.w800, color: m == v ? ctx.aeM(const Color(0xFF1E4F5C), Colors.white) : ctx.aiSek(const Color.fromRGBO(255, 255, 255, .78))))]))))),
             ]),
           ),
           const SizedBox(height: 12),
           if (m == 'mobil') ...[
-            AiKort(mint: true, child: Column(children: [
+            // Lys («AI · samme mobil»): the card `.mk90` (white), names `.mkb`, strokes `.mk1i`, the line `.mke8` (`--lys-sekundar`).
+            AiKort(mint: !ctx.lys, child: Column(children: [
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Column(children: [Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), gradient: const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)])), child: Text('Æ', style: jakarta(20, weight: FontWeight.w800, color: const Color(0xFF23201D)))), const SizedBox(height: 4), Text('Ærend', style: inter(11, weight: FontWeight.w800))]),
-                const SizedBox(width: 14), const AeIkon('M5 12h14M13 6l6 6-6 6', size: 18, stroke: 2.4, color: Color(0xFF7FF0CB)), const SizedBox(width: 14),
-                Column(children: [AiMerke(navn, size: 44), const SizedBox(height: 4), Text(navn, style: inter(11, weight: FontWeight.w800))]),
+                Column(children: [Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), gradient: const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)])), child: Text('Æ', style: jakarta(20, weight: FontWeight.w800, color: const Color(0xFF23201D)))), const SizedBox(height: 4), Text('Ærend', style: inter(11, weight: FontWeight.w800, color: ctx.aiTittel))]),
+                const SizedBox(width: 14), AeIkon('M5 12h14M13 6l6 6-6 6', size: 18, stroke: 2.4, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 14),
+                Column(children: [AiMerke(navn, size: 44), const SizedBox(height: 4), Text(navn, style: inter(11, weight: FontWeight.w800, color: ctx.aiTittel))]),
               ]),
               const SizedBox(height: 10),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [const AeIkon(AiIk.mobil, size: 12, stroke: 2.3, color: Color(0xFF7FF0CB)), const SizedBox(width: 6), Flexible(child: Text(AiCopy.cus_ai_begge_appene, maxLines: 2, textAlign: TextAlign.center, style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))))]),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [AeIkon(AiIk.mobil, size: 12, stroke: 2.3, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 6), Flexible(child: Text(AiCopy.cus_ai_begge_appene, maxLines: 2, textAlign: TextAlign.center, style: inter(11.5, weight: FontWeight.w700, color: ctx.aiSek(const Color(0xFF7FF0CB)))))]),
             ])),
             const SizedBox(height: 10),
             AiKort(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Row(children: [Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))), const SizedBox(width: 7), Expanded(child: Text(AiCopy.cus_ai_eller_kode.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .1, color: const Color(0xFF7FF0CB)))), const AeIkon(AiIk.klokke, size: 11, stroke: 2.4, color: Color.fromRGBO(255, 255, 255, .6)), const SizedBox(width: 4), Text(AiCopy.cus_ai_gyldig_min(k.minutes), style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .6)))]),
+              // Lys («AI · kode»): head `.mk8`, «Gyldig» `.mk2m`, «ÆR» `.mkea` (`--lys-mint-tekst`), «–» `.mkeb`; the code
+              // tiles take the design's own tile (white, `#1E4F5C` type, same in both modes) with the hairline; text `.mk1p`.
+              Row(children: [Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8))), const SizedBox(width: 7), Expanded(child: Text(AiCopy.cus_ai_eller_kode.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .1, color: ctx.aiMint))), AeIkon(AiIk.klokke, size: 11, stroke: 2.4, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))), const SizedBox(width: 4), Text(AiCopy.cus_ai_gyldig_min(k.minutes), style: inter(11, weight: FontWeight.w700, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))]),
               const SizedBox(height: 10),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('ÆR', style: jakarta(26, weight: FontWeight.w800, em: .06)), Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text('–', style: jakarta(26, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .5)))),
-                for (final (i, c) in tegn.indexed) AeOnce(kind: AeInn.stigOpp, ms: 400, delay: 180.0 + i * 70, child: Container(key: Key('cus-ai-kode-$i'), width: 40, height: 48, margin: const EdgeInsets.symmetric(horizontal: 3), alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: const Color.fromRGBO(0, 0, 0, .25), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22))), child: Text(c, style: jakarta(24, weight: FontWeight.w800)))),
+                Text('ÆR', style: jakarta(26, weight: FontWeight.w800, em: .06, color: ctx.aeM(Colors.white, LysPalett.mintTekst))), Padding(padding: const EdgeInsets.symmetric(horizontal: 6), child: Text('–', style: jakarta(26, weight: FontWeight.w800, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .5))))),
+                for (final (i, c) in tegn.indexed) AeOnce(kind: AeInn.stigOpp, ms: 400, delay: 180.0 + i * 70, child: Container(key: Key('cus-ai-kode-$i'), width: 40, height: 48, margin: const EdgeInsets.symmetric(horizontal: 3), alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: ctx.aeM(const Color.fromRGBO(0, 0, 0, .25), LysPalett.hvit), border: Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge))), child: Text(c, style: jakarta(24, weight: FontWeight.w800, color: ctx.aeM(Colors.white, LysPalett.fjord))))),
               ]),
               const SizedBox(height: 10),
-              Text(AiCopy.cus_ai_lim_inn(navn), textAlign: TextAlign.center, style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .75))),
+              Text(AiCopy.cus_ai_lim_inn(navn), textAlign: TextAlign.center, style: inter(12, height: 1.4, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .75)))),
               const SizedBox(height: 10),
               Row(children: [
                 Expanded(flex: 3, child: AePress(
@@ -509,12 +531,14 @@ abstract final class AiArk {
                     if (ctx.mounted) showBergenToast(ctx, AiCopy.cus_ai_lenke_kopiert(navn));
                   },
                   dy: 1.5,
-                  child: Container(key: const Key('cus-ai-kopier-lenke'), height: 40, padding: const EdgeInsets.symmetric(horizontal: 12), alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Row(mainAxisSize: MainAxisSize.min, children: [const AeIkon(AiIk.kobling, size: 13, stroke: 2.4), const SizedBox(width: 6), Flexible(child: Text((k.linkUrl ?? '').replaceFirst(RegExp(r'^https?://'), ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700)))])),
+                  // Lys: `.mkec` (`--lys-dis`, `--lys-sekundar`), stroke `.mku`.
+                  child: Container(key: const Key('cus-ai-kopier-lenke'), height: 40, padding: const EdgeInsets.symmetric(horizontal: 12), alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), border: Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(AiIk.kobling, size: 13, stroke: 2.4, color: ctx.aiStrek(Colors.white)), const SizedBox(width: 6), Flexible(child: Text((k.linkUrl ?? '').replaceFirst(RegExp(r'^https?://'), ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, color: ctx.aiSek(Colors.white))))])),
                 )),
               ]),
               if (venter) ...[
                 const SizedBox(height: 10),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7FF0CB))), const SizedBox(width: 8), Flexible(child: Text(AiCopy.cus_ai_venter(navn), key: const Key('cus-ai-venter'), maxLines: 2, style: inter(12, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))))]),
+                // Lys: `.mked` text `--lys-mint-tekst`.
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: ctx.aiStrek(const Color(0xFF7FF0CB)))), const SizedBox(width: 8), Flexible(child: Text(AiCopy.cus_ai_venter(navn), key: const Key('cus-ai-venter'), maxLines: 2, style: inter(12, weight: FontWeight.w700, color: ctx.aiMint)))]),
               ],
             ])),
           ] else ...[
@@ -525,12 +549,14 @@ abstract final class AiArk {
               child: k.linkUrl == null ? const SizedBox(width: 196, height: 196, child: Center(child: CircularProgressIndicator(color: Color(0xFF1E4F5C)))) : QrImageView(data: k.linkUrl!, size: 196, backgroundColor: Colors.white, eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF0B1014)), dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF0B1014))),
             )),
             const SizedBox(height: 10),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [const AeIkon(AiIk.klokke, size: 12, stroke: 2.3, color: Color.fromRGBO(255, 255, 255, .7)), const SizedBox(width: 6), Flexible(child: Text(AiCopy.cus_ai_kode_for(navn, k.minutes), maxLines: 2, textAlign: TextAlign.center, style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7))))]),
-            if (k.code.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(k.code, textAlign: TextAlign.center, style: jakarta(18, weight: FontWeight.w800, em: .08))),
+            // Lys («AI · QR-kode»): `.mk21` (`--lys-sekundar`), stroke `.mk1i`; the code `.mkb`.
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [AeIkon(AiIk.klokke, size: 12, stroke: 2.3, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .7), const Color(0xFF0B6B57))), const SizedBox(width: 6), Flexible(child: Text(AiCopy.cus_ai_kode_for(navn, k.minutes), maxLines: 2, textAlign: TextAlign.center, style: inter(12, weight: FontWeight.w700, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .7)))))]),
+            if (k.code.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 6), child: Text(k.code, textAlign: TextAlign.center, style: jakarta(18, weight: FontWeight.w800, em: .08, color: ctx.aiTittel))),
           ],
           const SizedBox(height: 12),
           for (final (i, s) in steg.indexed)
-            AeOnce(kind: AeInn.stigOpp, ms: 400, delay: 250.0 + i * 80, child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [Container(width: 22, height: 22, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)), child: Text('${i + 1}', style: inter(11, weight: FontWeight.w800))), const SizedBox(width: 10), Expanded(child: Text(s, style: inter(13, weight: FontWeight.w700)))]))),
+            // Lys («AI · Koble til»): the number `.mkee` (`--lys-mint-dis`, `--lys-mint-tekst`), the line `.mkb`.
+            AeOnce(kind: AeInn.stigOpp, ms: 400, delay: 250.0 + i * 80, child: Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [Container(width: 22, height: 22, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.mintDis)), child: Text('${i + 1}', style: inter(11, weight: FontWeight.w800, color: ctx.aeM(Colors.white, LysPalett.mintTekst)))), const SizedBox(width: 10), Expanded(child: Text(s, style: inter(13, weight: FontWeight.w700, color: ctx.aiTittel)))]))),
         ]);
       },
       primaryBuilder: (ctx) => MegArkButton(
@@ -582,11 +608,12 @@ abstract final class AiArk {
         body: (ctx, _) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           AiHandshake(modus: 'ukoblet', navn: navn, linje: AiCopy.cus_ai_logg_inn_forst),
           AiKort(child: Column(children: [
-            Container(width: 44, height: 44, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.laas, size: 20, stroke: 2.2)),
+            // Lys («AI · logg inn»): the tile `.mk96` (`--lys-dis`), stroke `.mku`, `.mkb`, `.mk1p`.
+            Container(width: 44, height: 44, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(AiIk.laas, size: 20, stroke: 2.2, color: ctx.aiStrek(Colors.white))),
             const SizedBox(height: 8),
-            Text(AiCopy.cus_ai_logg_tx(navn), textAlign: TextAlign.center, style: inter(14, weight: FontWeight.w800)),
+            Text(AiCopy.cus_ai_logg_tx(navn), textAlign: TextAlign.center, style: inter(14, weight: FontWeight.w800, color: ctx.aiTittel)),
             const SizedBox(height: 4),
-            Text(AiCopy.cus_ai_logg_under, textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .75))),
+            Text(AiCopy.cus_ai_logg_under, textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .75)))),
           ])),
         ]),
         primary: MegArkButton(key: const Key('cus-ai-logg-cta'), label: AppFeatureFlagsVipps.on ? AiCopy.cus_ai_logg_vipps : AiCopy.cus_ai_logg_inn, onTap: () => Navigator.of(context).pop('logg')),
@@ -603,23 +630,25 @@ abstract final class AiArk {
       body: (ctx, setState) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         AiHandshake(modus: 'kobler', navn: navn, linje: AiCopy.cus_ai_venter_svar),
         Row(children: [
-          _pill(AiIk.skjold, AiCopy.cus_ai_rett_antall(2 + p.scopes.where((s) => s != 'catalog:read' && s != 'orders:write').length)),
+          _pill(ctx, AiIk.skjold, AiCopy.cus_ai_rett_antall(2 + p.scopes.where((s) => s != 'catalog:read' && s != 'orders:write').length)),
           const SizedBox(width: 8),
-          Flexible(child: _pill(AiIk.lommebok, AiCopy.cus_ai_grense_sum(p.capPerOrderKr, p.capPerDayKr))),
+          Flexible(child: _pill(ctx, AiIk.lommebok, AiCopy.cus_ai_grense_sum(p.capPerOrderKr, p.capPerDayKr))),
         ]),
         rettigheter(ctx, navn, p, (ny) => setState(() => p = ny), adresse: adresse),
         const SizedBox(height: 10),
-        Row(children: [const AeIkon(AiIk.skjold, size: 14, stroke: 2.2, color: Color(0xFF7FF0CB)), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_sam_samtykke(navn), style: inter(12, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))))]),
+        Row(children: [AeIkon(AiIk.skjold, size: 14, stroke: 2.2, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 8), Expanded(child: Text(AiCopy.cus_ai_sam_samtykke(navn), style: inter(12, height: 1.4, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .72)))))]),
         // Customer v2 Step 2 (spec §4.10 B): the consent text's version (policy `cus.ai.consent_version`).
         if ((_api.lastConsentVersion ?? '').isNotEmpty)
-          Padding(padding: const EdgeInsets.fromLTRB(22, 4, 4, 0), child: Text(AiCopy.cus_ai_samtykke_versjon(_api.lastConsentVersion!), key: const Key('cus-ai-samtykke-versjon'), style: inter(10.5, em: .04, color: const Color.fromRGBO(255, 255, 255, .5)))),
+          Padding(padding: const EdgeInsets.fromLTRB(22, 4, 4, 0), child: Text(AiCopy.cus_ai_samtykke_versjon(_api.lastConsentVersion!), key: const Key('cus-ai-samtykke-versjon'), style: inter(10.5, em: .04, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .5))))),
       ]),
       primary: MegArkButton(key: const Key('cus-ai-samtykke-cta'), label: AiCopy.cus_ai_koble_til(navn), onTap: () => Navigator.of(context).pop(p)),
       secondary: MegArkButton(key: const Key('cus-ai-samtykke-avbryt'), label: AiCopy.cus_ai_avbryt, onTap: () => Navigator.of(context).pop()),
     );
   }
 
-  static Widget _pill(String ik, String tx) => Container(padding: const EdgeInsets.fromLTRB(9, 5, 10, 5), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(92, 224, 184, .14), border: Border.all(color: const Color.fromRGBO(92, 224, 184, .35))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 12, stroke: 2.4, color: const Color(0xFF7FF0CB)), const SizedBox(width: 5), Flexible(child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))))]));
+  /// Lys: the mint chip `.mkej` (`--lys-mint-dis`, `--lys-mint-tekst`) with the design's light mint ring
+  /// (`rgba(11,107,87,.22)`, `aiTbNedbryt`), stroke `.mk1i`.
+  static Widget _pill(BuildContext c, String ik, String tx) => Container(padding: const EdgeInsets.fromLTRB(9, 5, 10, 5), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: c.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis), border: Border.all(color: c.aeM(const Color.fromRGBO(92, 224, 184, .35), const Color.fromRGBO(11, 107, 87, .22)))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 12, stroke: 2.4, color: c.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 5), Flexible(child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, color: c.aiMint)))]));
 
   /// The rights, the limits, payment, address and Min bio (design `rettVals`) — shared by aiSamtykke and aiDetalj.
   static Widget rettigheter(BuildContext ctx, String navn, CusAiPrefs p, void Function(CusAiPrefs) sett, {String? adresse}) {
@@ -631,23 +660,26 @@ abstract final class AiArk {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(children: [
         Row(children: [
-          Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: AeIkon(ik, size: 16, stroke: 2.2)),
+          // Lys («AI · grenser»): tile `.mkek` (`--lys-dis`), stroke `.mku`, `.mkb`, `.mk2m`; ± `.mkem` (white, hairline
+          // ring); the track `.mk8e` (`--lys-dis`); min / max `.mken`.
+          Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(ik, size: 16, stroke: 2.2, color: ctx.aiStrek(Colors.white))),
           const SizedBox(width: 10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(navnTx, style: inter(13.5, weight: FontWeight.w800)), Text(under, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))])),
-          AePress(onTap: () => on((verdi - steg).clamp(min, max)), dy: 1, child: Opacity(opacity: verdi <= min ? .4 : 1, child: Container(width: 30, height: 30, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)), child: const AeIkon('M5 12h14', size: 12, stroke: 2.6)))),
-          SizedBox(width: 72, child: Text(AiCopy.kr(verdi), textAlign: TextAlign.center, style: aeTab(inter(14, weight: FontWeight.w800)))),
-          AePress(onTap: () => on((verdi + steg).clamp(min, max)), dy: 1, child: Opacity(opacity: verdi >= max ? .4 : 1, child: Container(width: 30, height: 30, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)), child: const AeIkon('M12 5v14M5 12h14', size: 12, stroke: 2.6)))),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(navnTx, style: inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel)), Text(under, style: inter(11.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))])),
+          AePress(onTap: () => on((verdi - steg).clamp(min, max)), dy: 1, child: Opacity(opacity: verdi <= min ? .4 : 1, child: Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.hvit), boxShadow: ctx.lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null), child: AeIkon('M5 12h14', size: 12, stroke: 2.6, color: ctx.aiStrek(Colors.white))))),
+          SizedBox(width: 72, child: Text(AiCopy.kr(verdi), textAlign: TextAlign.center, style: aeTab(inter(14, weight: FontWeight.w800, color: ctx.aiTittel)))),
+          AePress(onTap: () => on((verdi + steg).clamp(min, max)), dy: 1, child: Opacity(opacity: verdi >= max ? .4 : 1, child: Container(width: 30, height: 30, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.hvit), boxShadow: ctx.lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null), child: AeIkon('M12 5v14M5 12h14', size: 12, stroke: 2.6, color: ctx.aiStrek(Colors.white))))),
         ]),
         const SizedBox(height: 8),
-        ClipRRect(borderRadius: BorderRadius.circular(99), child: SizedBox(height: 5, child: Stack(children: [const Positioned.fill(child: ColoredBox(color: Color.fromRGBO(255, 255, 255, .12))), FractionallySizedBox(widthFactor: ((verdi - min) / (max - min)).clamp(0.02, 1.0), heightFactor: 1, alignment: Alignment.centerLeft, child: const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]))))]))),
+        ClipRRect(borderRadius: BorderRadius.circular(99), child: SizedBox(height: 5, child: Stack(children: [Positioned.fill(child: ColoredBox(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis))), FractionallySizedBox(widthFactor: ((verdi - min) / (max - min)).clamp(0.02, 1.0), heightFactor: 1, alignment: Alignment.centerLeft, child: const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]))))]))),
         const SizedBox(height: 4),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AiCopy.kr(min), style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .5))), Text(AiCopy.kr(max), style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .5)))]),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AiCopy.kr(min), style: inter(10.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .5)))), Text(AiCopy.kr(max), style: inter(10.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .5))))]),
       ]),
     );
     Widget seg(List<(String, String)> alt, String verdi, void Function(String) on) => Container(
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(0, 0, 0, .22), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14))),
-      child: Row(children: [for (final (v, t) in alt) Expanded(child: AePress(onTap: () => on(v), dy: 1, child: Container(key: Key('cus-ai-seg-$v'), height: 30, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: verdi == v ? const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFE6F2EF)]) : null), child: Text(t, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w800, color: verdi == v ? const Color(0xFF1E4F5C) : const Color.fromRGBO(255, 255, 255, .75))))))]),
+      // Lys: the track `.mkeo` (`--lys-dis`, no ring); `seg` (L25050): the white thumb in both, others `--lys-sekundar`.
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(0, 0, 0, .22), LysPalett.dis), border: Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .14), const Color(0x00000000)))),
+      child: Row(children: [for (final (v, t) in alt) Expanded(child: AePress(onTap: () => on(v), dy: 1, child: Container(key: Key('cus-ai-seg-$v'), height: 30, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: verdi == v ? const LinearGradient(colors: [Color(0xFFFFFFFF), Color(0xFFE6F2EF)]) : null), child: Text(t, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, weight: FontWeight.w800, color: verdi == v ? const Color(0xFF1E4F5C) : ctx.aiSek(const Color.fromRGBO(255, 255, 255, .75)))))))]),
     );
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       AiSeksjon(AiCopy.cus_ai_rett_tittel(navn), hoyre: AiCopy.cus_ai_rett_antall(paaN)),
@@ -671,23 +703,24 @@ abstract final class AiArk {
           },
         ),
       AiSeksjon(AiCopy.cus_ai_dine_grenser),
-      Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 4), child: Text(AiCopy.cus_ai_grense_tittel(navn), style: inter(13.5, weight: FontWeight.w800))),
+      Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 4), child: Text(AiCopy.cus_ai_grense_tittel(navn), style: inter(13.5, weight: FontWeight.w800, color: ctx.aiDemp(Colors.white)))),
       stepper(AiCopy.cus_ai_maks_per_best, AiCopy.cus_ai_forslag(500), AiIk.lommebok, p.capPerOrderKr, 50, 100, 2000, (v) => sett(p.copyWith(capPerOrderKr: v))),
       stepper(AiCopy.cus_ai_maks_per_dag, AiCopy.cus_ai_forslag(1000), AiIk.kal, p.capPerDayKr, 100, 200, 5000, (v) => sett(p.copyWith(capPerDayKr: v))),
       const SizedBox(height: 6),
-      Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.kort, size: 16, stroke: 2.2)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_betaling, style: inter(13.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_betaling_under, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))]))]),
+      Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(AiIk.kort, size: 16, stroke: 2.2, color: ctx.aiStrek(Colors.white))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_betaling, style: inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel)), Text(AiCopy.cus_ai_betaling_under, style: inter(11.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))]))]),
       const SizedBox(height: 8),
       seg([('vipps', AiCopy.cus_ai_vipps), ('card', AiCopy.cus_ai_lagret_kort), ('ask', AiCopy.cus_ai_spor_hver_gang)], p.paymentPref, (v) => sett(p.copyWith(paymentPref: v))),
       // Customer v2 Step 4: «Lagret kort» charges the default card under Meg → Betaling (behind cus.ai.linked_checkout).
       if (p.paymentPref == 'card' && ClientFlags.on(ClientFlags.aiLinkedCheckout))
-        Padding(key: const Key('cus-ai-lagret-kort-hint'), padding: const EdgeInsets.fromLTRB(4, 6, 4, 0), child: Text(AiCopy.cus_ai_lagret_kort_hint, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65), height: 1.35))),
+        Padding(key: const Key('cus-ai-lagret-kort-hint'), padding: const EdgeInsets.fromLTRB(4, 6, 4, 0), child: Text(AiCopy.cus_ai_lagret_kort_hint, style: inter(11.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65)), height: 1.35))),
       const SizedBox(height: 12),
-      Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.hus, size: 16, stroke: 2.2)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_leveringsadresse, style: inter(13.5, weight: FontWeight.w800)), Text(AiCopy.cus_ai_hjemme_er(adresse ?? AiCopy.cus_ai_hjemme), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))]))]),
+      Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(AiIk.hus, size: 16, stroke: 2.2, color: ctx.aiStrek(Colors.white))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_leveringsadresse, style: inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel)), Text(AiCopy.cus_ai_hjemme_er(adresse ?? AiCopy.cus_ai_hjemme), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))]))]),
       const SizedBox(height: 8),
       seg([('home', AiCopy.cus_ai_hjemme), ('ask', AiCopy.cus_ai_spor_hver_gang)], p.addressPref, (v) => sett(p.copyWith(addressPref: v))),
       const SizedBox(height: 12),
       MorkRad(key: const Key('cus-ai-bio'), delayMs: 0, ikon: AiIk.hjerte, navn: AiCopy.cus_ai_del_bio, bryter: p.shareBio, onTap: () => sett(p.copyWith(shareBio: !p.shareBio))),
-      Padding(padding: const EdgeInsets.fromLTRB(4, 6, 4, 0), child: Text(AiCopy.cus_ai_bio_tx(navn), style: inter(11.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .65)))),
+      // `.mk1g`: `--lys-dempet`.
+      Padding(padding: const EdgeInsets.fromLTRB(4, 6, 4, 0), child: Text(AiCopy.cus_ai_bio_tx(navn), style: inter(11.5, height: 1.4, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))),
     ]);
   }
 
@@ -705,15 +738,15 @@ abstract final class AiArk {
         AiHandshake(modus: 'koblet', navn: n, linje: AiCopy.cus_ai_koblet_naa),
         Row(children: [
           for (final (i, x) in [(AiCopy.cus_ai_per_best, link.capPerOrder?.display ?? '—', AiIk.lommebok), (AiCopy.cus_ai_betaling, _betNavn(link.paymentPref), AiIk.kort), (AiCopy.cus_ai_levering, link.addressPref == 'ask' ? AiCopy.cus_ai_spor_hver_gang : AiCopy.cus_ai_hjemme, AiIk.hus)].indexed) ...[
-            Expanded(child: AeOnce(kind: AeInn.stigOpp, ms: 420, delay: 950.0 + i * 80, child: AiKort(padding: const EdgeInsets.all(10), child: Column(children: [AeIkon(x.$3, size: 16, stroke: 2.2, color: const Color(0xFF7FF0CB)), const SizedBox(height: 6), Text(x.$2, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13, weight: FontWeight.w800)), Text(x.$1, style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .6)))])))),
+            Expanded(child: AeOnce(kind: AeInn.stigOpp, ms: 420, delay: 950.0 + i * 80, child: AiKort(padding: const EdgeInsets.all(10), child: Column(children: [AeIkon(x.$3, size: 16, stroke: 2.2, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(height: 6), Text(x.$2, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13, weight: FontWeight.w800, color: ctx.aiTittel)), Text(x.$1, style: inter(10.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))])))),
             if (i < 2) const SizedBox(width: 8),
           ],
         ]),
         AiSeksjon(AiCopy.cus_ai_prov_naa),
         AiKort(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [AiMerke(n, size: 30), const SizedBox(width: 10), Expanded(child: Text('«${AiCopy.cus_ai_prompt}»', style: inter(13.5, weight: FontWeight.w700, height: 1.4)))]),
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [AiMerke(n, size: 30), const SizedBox(width: 10), Expanded(child: Text('«${AiCopy.cus_ai_prompt}»', style: inter(13.5, weight: FontWeight.w700, height: 1.4, color: ctx.aiBrod)))]),
           const SizedBox(height: 10),
-          AePress(onTap: () async { try { await Clipboard.setData(ClipboardData(text: AiCopy.cus_ai_prompt)); } catch (_) {} if (ctx.mounted) showBergenToast(ctx, AiCopy.cus_ai_kopiert_lim(n)); }, dy: 1.5, child: Container(key: const Key('cus-ai-kopier-forslag'), height: 38, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Row(mainAxisSize: MainAxisSize.min, children: [const AeIkon(AiIk.kopier, size: 13, stroke: 2.4), const SizedBox(width: 6), Text(AiCopy.cus_ai_kopier_forslag, style: inter(12.5, weight: FontWeight.w800))]))),
+          AePress(onTap: () async { try { await Clipboard.setData(ClipboardData(text: AiCopy.cus_ai_prompt)); } catch (_) {} if (ctx.mounted) showBergenToast(ctx, AiCopy.cus_ai_kopiert_lim(n)); }, dy: 1.5, child: Container(key: const Key('cus-ai-kopier-forslag'), height: 38, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), border: Border.all(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(AiIk.kopier, size: 13, stroke: 2.4, color: ctx.aiStrek(Colors.white)), const SizedBox(width: 6), Text(AiCopy.cus_ai_kopier_forslag, style: inter(12.5, weight: FontWeight.w800, color: ctx.aiTittel))]))),
         ])),
       ]),
       primary: MegArkButton(key: const Key('cus-ai-koblet-cta'), label: fraHurtig ? AiCopy.cus_ai_bestill_naa(n) : AiCopy.cus_ai_ferdig, onTap: () => Navigator.of(context).pop(fraHurtig ? 'bestill:$n' : 'koblede')),
@@ -740,9 +773,10 @@ abstract final class AiArk {
             const SizedBox(height: 6),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [for (final (i, n) in const ['Claude', 'ChatGPT', 'Gemini'].indexed) AeOnce(kind: AeInn.stigOpp, ms: 420, delay: 300.0 + i * 120, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5), child: AiMerke(n, size: 30)))]),
             const SizedBox(height: 10),
-            Text(AiCopy.cus_ai_koblede_tom, key: const Key('cus-ai-koblede-tom'), style: inter(15, weight: FontWeight.w800)),
+            // Lys («AI · tom»): `.mkb`, `.mk1p`.
+            Text(AiCopy.cus_ai_koblede_tom, key: const Key('cus-ai-koblede-tom'), style: inter(15, weight: FontWeight.w800, color: ctx.aiTittel)),
             const SizedBox(height: 4),
-            Text(AiCopy.cus_ai_tom_tekst, textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
+            Text(AiCopy.cus_ai_tom_tekst, textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .72)))),
           ])),
         ],
         for (final (i, l) in L.indexed)
@@ -753,31 +787,34 @@ abstract final class AiArk {
               key: Key('cus-ai-kort-${l.id}'),
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: l.active ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .05)]) : null, color: l.active ? null : const Color.fromRGBO(255, 255, 255, .04), border: Border.all(color: l.active ? const Color.fromRGBO(255, 255, 255, .18) : const Color.fromRGBO(255, 255, 255, .1))),
+              // Lys: `aiKoblede` (L25125) — the active card `--lys-hvit` (with the card shadow, as the render shows), the
+              // revoked one keeps its faint fill; both rings `--lys-kant-farge`.
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), gradient: l.active && !ctx.lys ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .05)]) : null, color: l.active ? (ctx.lys ? LysPalett.hvit : null) : const Color.fromRGBO(255, 255, 255, .04), border: Border.all(color: l.active ? ctx.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge) : ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.kantFarge)), boxShadow: l.active && ctx.lys ? aiKortskygge : null),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Row(children: [
                   AiMerke(l.name, size: 40),
                   const SizedBox(width: 10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Row(children: [Flexible(child: Text(l.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(14, weight: FontWeight.w800))), const SizedBox(width: 8), Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _status(l.active ? AiCopy.cus_ai_aktiv : AiCopy.cus_ai_frakoblet, l.active)))]),
+                    Row(children: [Flexible(child: Text(l.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(14, weight: FontWeight.w800, color: ctx.aiTittel))), const SizedBox(width: 8), Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _status(ctx, l.active ? AiCopy.cus_ai_aktiv : AiCopy.cus_ai_frakoblet, l.active)))]),
                     const SizedBox(height: 2),
-                    Text(l.active ? AiCopy.cus_ai_sist_brukt(aiTid(l.lastUsedAt), l.capPerOrder?.kr ?? 0) : AiCopy.cus_ai_frakoblet_dato(aiTid(l.revokedAt)), style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .7))),
+                    Text(l.active ? AiCopy.cus_ai_sist_brukt(aiTid(l.lastUsedAt), l.capPerOrder?.kr ?? 0) : AiCopy.cus_ai_frakoblet_dato(aiTid(l.revokedAt)), style: inter(11.5, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .7)))),
                   ])),
-                  const AeIkon(AiIk.pil, size: 13, stroke: 2.3, color: Color.fromRGBO(255, 255, 255, .7)),
+                  AeIkon(AiIk.pil, size: 13, stroke: 2.3, color: ctx.aiStrek(const Color.fromRGBO(255, 255, 255, .7))),
                 ]),
                 if (l.active) ...[
                   const SizedBox(height: 10),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AiCopy.cus_ai_brukt_i_dag, style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .65))), Text(AiCopy.cus_ai_av(l.usedToday.display, l.capPerDay?.display ?? '—'), style: aeTab(inter(11, weight: FontWeight.w800)))]),
+                  // Lys («AI · {{ k.navn }}»): `.mk2m`, `.mkb`, the track `.mk8e`, stroke `.mk1i`, rights `.mk21`.
+                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AiCopy.cus_ai_brukt_i_dag, style: inter(11, weight: FontWeight.w700, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65)))), Text(AiCopy.cus_ai_av(l.usedToday.display, l.capPerDay?.display ?? '—'), style: aeTab(inter(11, weight: FontWeight.w800, color: ctx.aiTittel)))]),
                   const SizedBox(height: 5),
-                  ClipRRect(borderRadius: BorderRadius.circular(99), child: SizedBox(height: 5, child: Stack(children: [const Positioned.fill(child: ColoredBox(color: Color.fromRGBO(255, 255, 255, .12))), FractionallySizedBox(widthFactor: ((l.capPerDay?.ore ?? 0) > 0 ? (l.usedToday.ore / l.capPerDay!.ore) : 0.0).toDouble().clamp(0.03, 1.0), heightFactor: 1, alignment: Alignment.centerLeft, child: const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]))))]))),
+                  ClipRRect(borderRadius: BorderRadius.circular(99), child: SizedBox(height: 5, child: Stack(children: [Positioned.fill(child: ColoredBox(color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis))), FractionallySizedBox(widthFactor: ((l.capPerDay?.ore ?? 0) > 0 ? (l.usedToday.ore / l.capPerDay!.ore) : 0.0).toDouble().clamp(0.03, 1.0), heightFactor: 1, alignment: Alignment.centerLeft, child: const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF7FF0CB), Color(0xFF5CE0B8)]))))]))),
                   const SizedBox(height: 8),
-                  Row(children: [const AeIkon(AiIk.skjold, size: 12, stroke: 2.4, color: Color(0xFF7FF0CB)), const SizedBox(width: 6), Expanded(child: Text(AiCopy.cus_ai_rett_kort.where((r) => l.has(r[0])).map((r) => r[1]).join(' · '), style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .75))))]),
+                  Row(children: [AeIkon(AiIk.skjold, size: 12, stroke: 2.4, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 6), Expanded(child: Text(AiCopy.cus_ai_rett_kort.where((r) => l.has(r[0])).map((r) => r[1]).join(' · '), style: inter(11.5, weight: FontWeight.w700, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .75)))))]),
                 ],
               ]),
             )),
           )),
         if (aktive.isNotEmpty)
-          Center(child: AePress(onTap: () => Navigator.of(ctx).pop('kobleFraAlle'), dy: 1, child: Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.fromLTRB(16, 9, 18, 9), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(242, 109, 61, .12), border: Border.all(color: const Color.fromRGBO(255, 200, 168, .35))), child: Row(mainAxisSize: MainAxisSize.min, children: [const AeIkon(AiIk.ut, size: 13, stroke: 2.4, color: Color(0xFFFFC8A8)), const SizedBox(width: 6), Text(AiCopy.cus_ai_koble_fra_alle, key: const Key('cus-ai-koble-fra-alle'), style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFFFFC8A8)))])))),
+          Center(child: AePress(onTap: () => Navigator.of(ctx).pop('kobleFraAlle'), dy: 1, child: Container(margin: const EdgeInsets.only(top: 4), padding: const EdgeInsets.fromLTRB(16, 9, 18, 9), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(242, 109, 61, .12), LysPalett.glodDis), border: Border.all(color: const Color.fromRGBO(255, 200, 168, .35))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(AiIk.ut, size: 13, stroke: 2.4, color: ctx.aiStrek(const Color(0xFFFFC8A8))), const SizedBox(width: 6), Text(AiCopy.cus_ai_koble_fra_alle, key: const Key('cus-ai-koble-fra-alle'), style: inter(12.5, weight: FontWeight.w800, color: ctx.aiGlod))])))),
       ]),
       primary: tom ? MegArkButton(key: const Key('cus-ai-koblede-cta'), label: AiCopy.cus_ai_slik_kobler, onTap: () => Navigator.of(context).pop('inngang')) : null,
       secondary: tom ? null : MegArkButton(key: const Key('cus-ai-koblede-ny'), label: AiCopy.cus_ai_koble_ny, onTap: () => Navigator.of(context).pop('inngang')),
@@ -846,40 +883,42 @@ abstract final class AiArk {
             AiMerke(n, size: 46),
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [Flexible(child: Text(n, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(16, weight: FontWeight.w800))), const SizedBox(width: 8), Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _status(l.active ? AiCopy.cus_ai_aktiv : AiCopy.cus_ai_frakoblet, l.active)))]),
+              // Lys («AI · assistent»): `.mkeh` card, `.mkb`, `.mk33`; the tiles `.mkb` / `.mkd`.
+              Row(children: [Flexible(child: Text(n, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(16, weight: FontWeight.w800, color: ctx.aiTittel))), const SizedBox(width: 8), Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: _status(ctx, l.active ? AiCopy.cus_ai_aktiv : AiCopy.cus_ai_frakoblet, l.active)))]),
               const SizedBox(height: 2),
-              Text(l.active ? AiCopy.cus_ai_koblet_til(aiDato(l.grantedAt), aiTid(l.lastUsedAt)) : AiCopy.cus_ai_frakoblet_dato(aiTid(l.revokedAt)), style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .7))),
+              Text(l.active ? AiCopy.cus_ai_koblet_til(aiDato(l.grantedAt), aiTid(l.lastUsedAt)) : AiCopy.cus_ai_frakoblet_dato(aiTid(l.revokedAt)), style: inter(11.5, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .7)))),
             ])),
           ])),
           const SizedBox(height: 8),
           Row(children: [
             for (final (i, x) in [('$best', best == 1 ? AiCopy.cus_ai_bestilling : AiCopy.cus_ai_bestillinger), (l.usedToday.display, AiCopy.cus_ai_brukt_i_dag), (aiTid(l.lastUsedAt), AiCopy.cus_ai_sist_brukt_lbl)].indexed) ...[
-              Expanded(child: AeOnce(kind: AeInn.stigOpp, ms: 400, delay: 120.0 + i * 60, child: AiKort(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6), child: Column(children: [Text(x.$1, maxLines: 1, overflow: TextOverflow.ellipsis, style: aeTab(inter(15, weight: FontWeight.w800))), Text(x.$2, style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .6)))])))),
+              Expanded(child: AeOnce(kind: AeInn.stigOpp, ms: 400, delay: 120.0 + i * 60, child: AiKort(padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6), child: Column(children: [Text(x.$1, maxLines: 1, overflow: TextOverflow.ellipsis, style: aeTab(inter(15, weight: FontWeight.w800, color: ctx.aiTittel))), Text(x.$2, style: inter(10.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))])))),
               if (i < 2) const SizedBox(width: 8),
             ],
           ]),
           if (l.active) rettigheter(ctx, n, p, oppdater),
           // Customer v2 Step 2: «Del Min bio» is its own consent — when it was given, and the text's version.
           if (l.active && p.shareBio && l.shareBioConsentedAt != null)
-            Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_bio_delt_siden(aiDato(l.shareBioConsentedAt)), key: const Key('cus-ai-bio-siden'), style: inter(11, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)))),
+            Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_bio_delt_siden(aiDato(l.shareBioConsentedAt)), key: const Key('cus-ai-bio-siden'), style: inter(11, weight: FontWeight.w700, color: ctx.aiMint))),
           if (l.consentVersion.isNotEmpty)
-            Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_samtykke_versjon(l.consentVersion), style: inter(10.5, em: .04, color: const Color.fromRGBO(255, 255, 255, .5)))),
+            Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_samtykke_versjon(l.consentVersion), style: inter(10.5, em: .04, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .5))))),
           AiSeksjon(AiCopy.cus_ai_aktivitet),
-          if (A.isEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 8), child: Text(AiCopy.cus_ai_ingen_aktivitet, style: inter(12.5, color: const Color.fromRGBO(255, 255, 255, .6)))),
+          if (A.isEmpty) Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 8), child: Text(AiCopy.cus_ai_ingen_aktivitet, style: inter(12.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))),
           for (final (i, a) in A.indexed)
             AeOnce(kind: AeInn.stigOpp, ms: 380, delay: 100.0 + i * 60, child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Column(children: [
-                Container(width: 28, height: 28, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, gradient: a.tool == 'confirm_order' ? const LinearGradient(colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : null, color: a.tool == 'start_checkout' ? const Color.fromRGBO(245, 196, 81, .24) : (a.tool == 'confirm_order' ? null : const Color.fromRGBO(255, 255, 255, .14))), child: AeIkon(switch (a.tool) { 'confirm_order' || 'create_cart' || 'update_cart' || 'reorder' => AiIk.pose, 'start_checkout' => AiIk.skjold, 'search_products' || 'search_stores' => AiIk.sok, 'open_support' => AiIk.person, _ => AiIk.kobling }, size: 13, stroke: 2.4, color: a.tool == 'confirm_order' ? const Color(0xFF0F2B33) : (a.tool == 'start_checkout' ? const Color(0xFFFFE08A) : Colors.white))),
-                if (i < A.length - 1) Container(width: 2, height: 18, color: const Color.fromRGBO(255, 255, 255, .14)),
+                Container(width: 28, height: 28, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, gradient: a.tool == 'confirm_order' ? const LinearGradient(colors: [Color(0xFFB4F9E2), Color(0xFF5CE0B8)]) : null, color: a.tool == 'start_checkout' ? ctx.aeM(const Color.fromRGBO(245, 196, 81, .24), LysPalett.gullDis) : (a.tool == 'confirm_order' ? null : ctx.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.dis))), child: AeIkon(switch (a.tool) { 'confirm_order' || 'create_cart' || 'update_cart' || 'reorder' => AiIk.pose, 'start_checkout' => AiIk.skjold, 'search_products' || 'search_stores' => AiIk.sok, 'open_support' => AiIk.person, _ => AiIk.kobling }, size: 13, stroke: 2.4, color: a.tool == 'confirm_order' ? const Color(0xFF0F2B33) : ctx.aiStrek(a.tool == 'start_checkout' ? const Color(0xFFFFE08A) : Colors.white))),
+                // Lys («AI · aktivitet»): the node and the line `.mk3a` (`--lys-dis`), `.mkb`, `.mkep`.
+                if (i < A.length - 1) Container(width: 2, height: 18, color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.dis)),
               ]),
               const SizedBox(width: 10),
-              Expanded(child: Padding(padding: const EdgeInsets.only(top: 4, bottom: 6), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_akt(a.tool), style: inter(13, weight: FontWeight.w800)), Text(aiTid(a.at), style: inter(11, color: const Color.fromRGBO(255, 255, 255, .6)))]))),
+              Expanded(child: Padding(padding: const EdgeInsets.only(top: 4, bottom: 6), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_akt(a.tool), style: inter(13, weight: FontWeight.w800, color: ctx.aiTittel)), Text(aiTid(a.at), style: inter(11, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .6))))]))),
             ])),
           const SizedBox(height: 6),
           if (l.active)
-            AePress(onTap: () => Navigator.of(ctx).pop('kobleFra:${l.id}'), dy: 1, child: Container(key: const Key('cus-ai-detalj-koble-fra'), height: 44, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(242, 109, 61, .14), border: Border.all(color: const Color.fromRGBO(249, 162, 115, .45))), child: Row(mainAxisSize: MainAxisSize.min, children: [const AeIkon(AiIk.ut, size: 14, stroke: 2.4, color: Color(0xFFFFC8A8)), const SizedBox(width: 6), Text(AiCopy.cus_ai_koble_fra(n), style: inter(13, weight: FontWeight.w800, color: const Color(0xFFFFC8A8)))])))
+            AePress(onTap: () => Navigator.of(ctx).pop('kobleFra:${l.id}'), dy: 1, child: Container(key: const Key('cus-ai-detalj-koble-fra'), height: 44, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(242, 109, 61, .14), LysPalett.glodDis), border: Border.all(color: const Color.fromRGBO(249, 162, 115, .45))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(AiIk.ut, size: 14, stroke: 2.4, color: ctx.aiStrek(const Color(0xFFFFC8A8))), const SizedBox(width: 6), Text(AiCopy.cus_ai_koble_fra(n), style: inter(13, weight: FontWeight.w800, color: ctx.aiGlod))])))
           else
-            AePress(onTap: () => Navigator.of(ctx).pop('samtykke:$n'), dy: 1, child: Container(key: const Key('cus-ai-detalj-koble-igjen'), height: 44, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(92, 224, 184, .14), border: Border.all(color: const Color.fromRGBO(127, 240, 203, .45))), child: Row(mainAxisSize: MainAxisSize.min, children: [const AeIkon(AiIk.oppdater, size: 14, stroke: 2.4, color: Color(0xFF7FF0CB)), const SizedBox(width: 6), Text(AiCopy.cus_ai_koble_igjen(n), style: inter(13, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))]))),
+            AePress(onTap: () => Navigator.of(ctx).pop('samtykke:$n'), dy: 1, child: Container(key: const Key('cus-ai-detalj-koble-igjen'), height: 44, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: ctx.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis), border: Border.all(color: ctx.aeM(const Color.fromRGBO(127, 240, 203, .45), const Color.fromRGBO(11, 107, 87, .25)))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(AiIk.oppdater, size: 14, stroke: 2.4, color: ctx.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 6), Text(AiCopy.cus_ai_koble_igjen(n), style: inter(13, weight: FontWeight.w800, color: ctx.aiMint))]))),
         ]);
       },
       secondary: MegArkButton(key: const Key('cus-ai-detalj-tilbake'), label: AiCopy.cus_ai_tilbake, onTap: () => Navigator.of(context).pop('koblede')),
@@ -947,13 +986,14 @@ abstract final class AiArk {
         if (kind == 'ikkeKoblet') AiHandshake(modus: 'ukoblet', navn: navn, linje: AiCopy.cus_ai_ikke_koblet_enna),
         if (kind == 'bekreft')
           AiKort(child: Row(children: [
-            Container(width: 52, height: 52, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: const Color.fromRGBO(245, 196, 81, .18), border: Border.all(color: const Color.fromRGBO(245, 196, 81, .5))), child: const AeIkon(AiIk.skjold, size: 24, stroke: 2.2, color: Color(0xFFFFE08A))),
+            // Lys («AI · krever bekreftelse»): the tile `.mkey` (`--lys-gull-dis`, no ring), the amount `.mkz`, the line `.mk6`.
+            Container(width: 52, height: 52, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: ctx.aeM(const Color.fromRGBO(245, 196, 81, .18), LysPalett.gullDis), border: Border.all(color: ctx.aeM(const Color.fromRGBO(245, 196, 81, .5), const Color(0x00000000)))), child: AeIkon(AiIk.skjold, size: 24, stroke: 2.2, color: ctx.aiStrek(const Color(0xFFFFE08A)))),
             const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.kr(belopKr), style: aeTab(jakarta(24, weight: FontWeight.w800))), Text(AiCopy.cus_ai_grensen_din(grenseKr), style: inter(12, color: const Color.fromRGBO(255, 255, 255, .7)))])),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.kr(belopKr), style: aeTab(jakarta(24, weight: FontWeight.w800, color: ctx.aiBrod))), Text(AiCopy.cus_ai_grensen_din(grenseKr), style: inter(12, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .7))))])),
           ])),
         if (kind != 'ikkeKoblet' && kind != 'bekreft') Center(child: Image.asset('assets/images/dashboard/sorry.png', height: 120)),
         const SizedBox(height: 10),
-        Center(child: _pill(AiIk.skjold, AiCopy.cus_ai_ingenting_bestilt)),
+        Center(child: _pill(ctx, AiIk.skjold, AiCopy.cus_ai_ingenting_bestilt)),
       ]),
       primary: MegArkButton(key: const Key('cus-ai-feil-cta'), label: cta, onTap: () => Navigator.of(context).pop(neste)),
       secondary: MegArkButton(label: AiCopy.cus_ai_lukk, onTap: () => Navigator.of(context).pop()),

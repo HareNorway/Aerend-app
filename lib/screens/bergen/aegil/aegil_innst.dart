@@ -12,6 +12,8 @@ import 'aegil_bits.dart';
 import 'aegil_launch_copy.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Innstillinger for Ægil (new Bergen L5082–5092, L9954, L20363–20393) ─────
 // One list for both places: the Ægil screen's settings view and the dark
@@ -330,13 +332,23 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
     );
   }
 
+  // Lys: `.mk4p` (Ægil screen) / `.mkf6` (`--am-felt`, the Meg Ark) = `--lys-dis`; `feltBd` (L24336)
+  // `rgba(11,107,87,.4)` / `--lys-kant-farge`; the number `.mkb` / `.mkd4` and «kr» `.mk6` / `.mkf7`.
   Widget _felt() => AnimatedContainer(
     duration: const Duration(milliseconds: 200),
     padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
     decoration: CssDecoration(
       borderRadius: BorderRadius.circular(12),
-      gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .08)]),
-      border: Border.all(color: _skriver ? const Color.fromRGBO(127, 240, 203, .85) : const Color.fromRGBO(255, 255, 255, .22), width: 1.5),
+      gradient: context.aeM(
+        const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .08)]),
+        const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [LysPalett.dis, LysPalett.dis]),
+      ),
+      border: Border.all(
+        color: _skriver
+            ? context.aeM(const Color.fromRGBO(127, 240, 203, .85), const Color.fromRGBO(11, 107, 87, .4))
+            : context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge),
+        width: 1.5,
+      ),
       boxShadow: [BoxShadow(color: _skriver ? const Color.fromRGBO(92, 224, 184, .6) : Colors.transparent, blurRadius: 18 / 2 / .57735, spreadRadius: -6)],
     ),
     child: Row(
@@ -354,10 +366,10 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
             textAlign: TextAlign.right,
             cursorColor: const Color(0xFF5CE0B8),
-            style: jakarta(15, color: Colors.white),
+            style: jakarta(15, color: context.aeM(Colors.white, LysPalett.tittel)),
             decoration: InputDecoration.collapsed(
               hintText: '–',
-              hintStyle: jakarta(15, color: const Color.fromRGBO(255, 255, 255, .5)),
+              hintStyle: jakarta(15, color: context.aeM(const Color.fromRGBO(255, 255, 255, .5), LysPalett.dempet)),
             ).copyWith(semanticCounterText: AeInnstCopy.grenseLabel),
             onSubmitted: (_) => _grenseFokus.unfocus(),
             onTapOutside: (_) => _grenseFokus.unfocus(),
@@ -366,7 +378,7 @@ class _AegilInnstListeState extends State<AegilInnstListe> {
         const SizedBox(width: 3),
         Text(
           AeInnstCopy.kr,
-          style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7)),
+          style: inter(12, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar)),
         ),
       ],
     ),
@@ -391,12 +403,16 @@ class AegilInnstKnapper extends StatelessWidget {
           child: Container(
             height: 52,
             alignment: Alignment.center,
+            // `.mk4r`: white, a `--lys-kant-farge` ring, `--lys-tittel` text in Lys.
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(999),
-              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)]),
-              border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
+              gradient: context.aeM(
+                const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)]),
+                const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [LysPalett.hvit, LysPalett.hvit]),
+              ),
+              border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
             ),
-            child: Text(AeInnstCopy.hvaVet, style: inter(13.5, weight: FontWeight.w800)),
+            child: Text(AeInnstCopy.hvaVet, style: inter(13.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
           ),
         ),
       ),
