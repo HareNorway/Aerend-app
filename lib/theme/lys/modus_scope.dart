@@ -92,6 +92,19 @@ class ModusFjord extends StatelessWidget {
       );
 }
 
+/// Light status-bar icons over a dark header that sits under the status bar
+/// on a screen that is light in Lys (the Meg stadium, Konto's Bryggen picture,
+/// the Kassen header, the Søk hero, a store's hero photo). In dark it is the
+/// global style, so nothing changes there.
+class ModusStatusMork extends StatelessWidget {
+  const ModusStatusMork({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => AnnotatedRegion<SystemUiOverlayStyle>(value: modusStatusMork, child: child);
+}
+
 extension BergenModusX on BuildContext {
   /// The mode here (subscribes: the widget rebuilds on a switch).
   bool get lys => BergenModusScope.of(this);

@@ -90,7 +90,7 @@ class MegTorgSkjerm extends StatelessWidget {
             right: 0,
             top: 0,
             height: hode,
-            child: _Hode(top: top, tittel: tittel, pille: pille, pilleKey: pilleKey, onPille: onPille),
+            child: ModusStatusMork(child: _Hode(top: top, tittel: tittel, pille: pille, pilleKey: pilleKey, onPille: onPille)),
           ),
           // The nav pill stays fjord in both modes.
           const Positioned(left: 0, right: 0, bottom: 0, child: BergenModusScope.fjord(child: MegNav())),

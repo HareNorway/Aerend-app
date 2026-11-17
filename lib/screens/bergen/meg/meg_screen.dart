@@ -844,7 +844,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                   top: 0,
                   width: 390,
                   height: 196,
-                  child: MegHero(look: _look, bubble: _tips[_aegN % _tips.length], n: _aegN, onAegil: () => setState(() => _aegN++)),
+                  child: ModusStatusMork(child: MegHero(look: _look, bubble: _tips[_aegN % _tips.length], n: _aegN, onAegil: () => setState(() => _aegN++))),
                 ),
                 Positioned(
                   left: 0,

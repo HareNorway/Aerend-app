@@ -400,7 +400,7 @@ class SokScreenState extends State<SokScreen> {
               left: 0,
               right: 0,
               height: panelTop,
-              child: _Hero(dy: dy),
+              child: ModusStatusMork(child: _Hero(dy: dy)),
             ),
             Positioned(
               top: safeTop + 10 * s,

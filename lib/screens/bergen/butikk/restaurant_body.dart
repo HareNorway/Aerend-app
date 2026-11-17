@@ -417,12 +417,12 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _Hero(
+                    ModusStatusMork(child: _Hero(
                       store: store,
                       kitchen: _kitchenText,
                       onBack: () => Navigator.of(context).maybePop(),
                       perKjop: _perKjop,
-                    ),
+                    )),
                     Transform.translate(
                       offset: Offset(0, -22 * s),
                       child: _CreamCard(

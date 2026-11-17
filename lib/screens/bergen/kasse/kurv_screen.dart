@@ -1196,14 +1196,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
               left: 0,
               right: 0,
               top: 0,
-              child: KurvSeilas(
+              child: ModusStatusMork(child: KurvSeilas(
                 safeTop: safeTop,
                 departing: _departing,
                 tom: cart != null && !hasCart,
                 onBack: _tilbake,
                 storeName: _preview?.storeName,
                 storeLogoUrl: _store?.logoUrl,
-              ),
+              )),
             ),
             if (hasCart)
               Positioned(
