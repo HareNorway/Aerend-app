@@ -427,7 +427,11 @@ class KurvModus extends StatelessWidget {
                 );
               }
 
+              // Not clipped, as in the design (the track has no `overflow:hidden`): the thumb's spring curve
+              // overshoots its end by ~7 % and must stay round while it does — the default hard-edge clip sliced
+              // its end flat on the way to «Henting» — and its drop shadow must not be cut at the ends.
               return Stack(
+                clipBehavior: Clip.none,
                 children: [
                   // inset 0 1.5px 3px rgba(35,32,29,.14) — the track's dip.
                   Positioned.fill(
