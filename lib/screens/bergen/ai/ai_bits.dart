@@ -45,7 +45,9 @@ Color aiStrekLys(Color dark) {
   if (v == 0xFF7FF0CB || v == 0xFF5CE0B8 || v == 0xFF9FF0D4) return const Color(0xFF0B6B57);
   if (v == 0xFFFFC8A8 || v == 0xFFFFB08A) return const Color(0xFFA63A12);
   if (v == 0xFFFFE08A) return LysPalett.gullTekst;
-  if ((v & 0x00FFFFFF) == 0x00FFFFFF || v == 0xFFDCE9EC) return LysPalett.fjord;
+  // A dimmed white stays dimmed: the fjord ink at the same alpha.
+  if ((v & 0x00FFFFFF) == 0x00FFFFFF) return LysPalett.fjord.withValues(alpha: dark.a);
+  if (v == 0xFFDCE9EC) return LysPalett.fjord;
   return dark;
 }
 
@@ -214,7 +216,7 @@ class AiHandshake extends StatelessWidget {
                       'koblet' => AeOnce(kind: AeInn.stigOpp, ms: 700, child: Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color(0xFF7FF0CB)), _node(const Color(0xFF5CE0B8), AiIk.kobling, const Color(0xFF0F2B33)), _strek(const Color(0xFF7FF0CB))])),
                       'brutt' => Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color(0xFFFFC8A8)), const SizedBox(width: 6), _node(const Color.fromRGBO(242, 109, 61, .9), AiIk.kryss, Colors.white), const SizedBox(width: 6), _strek(const Color(0xFFFFC8A8))]),
                       // `.mkdx` light: white, a `--lys-kant-farge` ring, `--lys-tittel` «?».
-                      'ukoblet' => Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color.fromRGBO(255, 255, 255, .3)), Container(width: 26, height: 26, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.hvit), boxShadow: lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null), child: Text('?', style: inter(13, weight: FontWeight.w800, color: context.aiTittel))), _strek(const Color.fromRGBO(255, 255, 255, .3))]),
+                      'ukoblet' => Row(mainAxisSize: MainAxisSize.min, children: [_strek(context.aeM(const Color.fromRGBO(255, 255, 255, .3), const Color.fromRGBO(30, 79, 92, .2))), Container(width: 26, height: 26, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.hvit), boxShadow: lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null), child: Text('?', style: inter(13, weight: FontWeight.w800, color: context.aiTittel))), _strek(context.aeM(const Color.fromRGBO(255, 255, 255, .3), const Color.fromRGBO(30, 79, 92, .2)))]),
                       _ => const _Prikker(),
                     },
                   ),
@@ -285,7 +287,7 @@ class _PrikkerState extends State<_Prikker> with SingleTickerProviderStateMixin 
         for (var i = 0; i < 3; i++)
           Opacity(
             opacity: (0.3 + 0.7 * ((1 - ((_c.value - i * .22) % 1.0 - .5).abs() * 2).clamp(0.0, 1.0))),
-            child: Container(width: 8, height: 8, margin: const EdgeInsets.symmetric(horizontal: 5), decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF7FF0CB))),
+            child: Container(width: 8, height: 8, margin: const EdgeInsets.symmetric(horizontal: 5), decoration: BoxDecoration(shape: BoxShape.circle, color: context.aiStrek(const Color(0xFF7FF0CB)))),
           ),
       ],
     ),
