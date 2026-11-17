@@ -22,6 +22,8 @@ import 'min_bio_bits.dart';
 import 'min_bio_kort.dart' show bioNivC;
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// What the sheet's pop means when the customer deleted the bio.
 const int minBioSlettet = -1;
@@ -431,12 +433,13 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
                   decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8), boxShadow: [BoxShadow(color: Color(0xFF5CE0B8), blurRadius: 4)]),
                 ),
                 const SizedBox(width: 7),
-                Flexible(child: Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .06, color: const Color(0xFF7FF0CB)))),
+                // `.mk8` / `.mk33` (Ark {{ kArkTittel }}).
+                Flexible(child: Text(tittel, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, em: .06, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst)))),
               ],
             ),
             if (sub != null) ...[
               const SizedBox(height: 3),
-              Text(sub, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62))),
+              Text(sub, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar))),
             ],
           ],
         ),
@@ -455,6 +458,8 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
     required VoidCallback onTap,
   }) {
     final nokkel = _nokler.putIfAbsent(key, GlobalKey.new);
+    // Lys: the look's light twin (bioVals), so the .25 s ease runs between light looks.
+    stil = stil.modus(context);
     final kopi = _BioChipFlate(tx: tx, stil: stil, ik: ik, paa: paa, fra: fra, merke: merke, merkeBg: merkeBg, merkeC: merkeC);
     if (paa) {
       _paaKopi[key] = kopi;
@@ -503,7 +508,8 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
             stil: allergi ? BioStil.ora : (v == BioAll.unnga ? BioStil.gul : BioStil.av),
             merke: allergi ? BioCopy.merkeAllergi : (v == BioAll.unnga ? BioCopy.merkeUnngaar : null),
             merkeBg: allergi ? const Color(0xFFF26D3D) : const Color.fromRGBO(246, 210, 122, .92),
-            merkeC: allergi ? Colors.white : const Color(0xFF4A300A),
+            // bioVals: the ALLERGI badge text is `--lys-tittel` in Lys.
+            merkeC: allergi ? context.aeM(Colors.white, LysPalett.tittel) : const Color(0xFF4A300A),
             onTap: () => k.allTrykk(x),
           );
         }(),
@@ -571,6 +577,7 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
     final E = k.eff;
     final score = bioScore(b, E);
     final gull = score == 5;
+    final nivC = context.aeM(bioNivC(score), gull ? LysPalett.gullTekst : LysPalett.mintTekst);
     final P = E.p;
     final fT = P.tagger;
     final rader = <Widget>[
@@ -611,12 +618,13 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
         ),
       ),
       // ÆGIL KJENNER DEG · the score.
+      // `.mkd8`: `--lys-hvit`, a `--lys-kant-farge` border and `--lys-kortskygge` in Lys.
       CssBox(
         radius: BorderRadius.circular(20),
         clip: true,
-        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-        shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85))],
+        bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])], const [CssSolid(LysPalett.hvit)]),
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+        shadows: context.aeM(const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85))], LysPalett.kortskygge),
         child: Stack(
           children: [
             Positioned(
@@ -642,9 +650,10 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(BioCopy.kjennerDeg, style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .6))),
+                            // `.mk2m` / `.mkb`.
+                            Text(BioCopy.kjennerDeg, style: inter(10.5, weight: FontWeight.w800, em: .08, color: context.aeM(const Color.fromRGBO(255, 255, 255, .6), LysPalett.dempet))),
                             const SizedBox(height: 2),
-                            Text(bioNivaaNavn[score], style: jakarta(20, em: -.02)),
+                            Text(bioNivaaNavn[score], style: jakarta(20, em: -.02, color: context.aeM(Colors.white, LysPalett.tittel))),
                           ],
                         ),
                       ),
@@ -652,17 +661,20 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
                       Container(
                         height: 28,
                         padding: const EdgeInsets.fromLTRB(9, 0, 11, 0),
+                        // bioScoreBg / bioScoreBd / bioNivC (bioVals L24133).
                         decoration: BoxDecoration(
-                          color: gull ? const Color.fromRGBO(242, 193, 78, .16) : const Color.fromRGBO(92, 224, 184, .14),
-                          border: Border.all(color: gull ? const Color.fromRGBO(246, 210, 122, .55) : const Color.fromRGBO(92, 224, 184, .45)),
+                          color: gull ? context.aeM(const Color.fromRGBO(242, 193, 78, .16), LysPalett.gullDis) : context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis),
+                          border: Border.all(
+                            color: gull ? context.aeM(const Color.fromRGBO(246, 210, 122, .55), const Color.fromRGBO(74, 48, 10, .2)) : context.aeM(const Color.fromRGBO(92, 224, 184, .45), const Color.fromRGBO(11, 107, 87, .25)),
+                          ),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            BioIkon(BioIk.stjerne, color: bioNivC(score), size: 12, fill: true),
+                            BioIkon(BioIk.stjerne, color: nivC, size: 12, fill: true),
                             const SizedBox(width: 5),
-                            Text(BioCopy.score(score), style: inter(12, weight: FontWeight.w800, color: bioNivC(score)).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                            Text(BioCopy.score(score), style: inter(12, weight: FontWeight.w800, color: nivC).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                           ],
                         ),
                       ),
@@ -671,7 +683,8 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
                   const SizedBox(height: 11),
                   BioSegmenter(score: score, h: 9),
                   const SizedBox(height: 9),
-                  Text(bioNeste(b, E), style: inter(11.5, weight: FontWeight.w700, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .78))),
+                  // `.mk7v`.
+                  Text(bioNeste(b, E), style: inter(11.5, weight: FontWeight.w700, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .78), LysPalett.sekundar))),
                 ],
               ),
             ),
@@ -695,9 +708,10 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
             children: [
               Row(
                 children: [
-                  const BioIkon(BioIk.stjerne, color: Color(0xFFFFDD86), size: 11, fill: true),
+                  // `.mk3k` (fill `#4A300A`) / `.mkda` (`--lys-gull-tekst`).
+                  BioIkon(BioIk.stjerne, color: context.aeM(const Color(0xFFFFDD86), const Color(0xFF4A300A)), size: 11, fill: true),
                   const SizedBox(width: 6),
-                  Text(BioCopy.fanget, style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color(0xFFFFDD86))),
+                  Text(BioCopy.fanget, style: inter(10.5, weight: FontWeight.w800, em: .08, color: context.aeM(const Color(0xFFFFDD86), LysPalett.gullTekst))),
                 ],
               ),
               const SizedBox(height: 7),
@@ -726,7 +740,7 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
               // `bioAiTx`: what Ærend AI read, after a model reading.
               if (k.aiTx != null) ...[
                 const SizedBox(height: 7),
-                Text(k.aiTx!, key: const Key('min-bio-ai-tx'), style: inter(11.5, weight: FontWeight.w700, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .75))),
+                Text(k.aiTx!, key: const Key('min-bio-ai-tx'), style: inter(11.5, weight: FontWeight.w700, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .75), LysPalett.sekundar))),
               ],
             ],
           ),
@@ -755,9 +769,10 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
             padding: const EdgeInsets.fromLTRB(4, 2, 4, 0),
             child: Row(
               children: [
-                const BioIkon(BioIk.stjerne, color: Color(0xFF7FF0CB), size: 11, fill: true),
+                // Not in the design: mint like `.mk8`, the line like `.mk14`.
+                BioIkon(BioIk.stjerne, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst), size: 11, fill: true),
                 const SizedBox(width: 6),
-                Expanded(child: Text(CusBioCopy.cus_bio_kjenner(CusBioCopy.dato(d)), key: const Key('min-bio-kjenner'), style: inter(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .72)))),
+                Expanded(child: Text(CusBioCopy.cus_bio_kjenner(CusBioCopy.dato(d)), key: const Key('min-bio-kjenner'), style: inter(11.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .72), LysPalett.sekundar)))),
               ],
             ),
           ),
@@ -770,7 +785,8 @@ class _MinBioKroppState extends State<MinBioKropp> with TickerProviderStateMixin
               ms: 140,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(CusBioCopy.cus_bio_slett, style: inter(13, weight: FontWeight.w800, color: const Color(0xFFF28A78))),
+                // Not in the design: `--lys-glod-tekst` in Lys.
+                child: Text(CusBioCopy.cus_bio_slett, style: inter(13, weight: FontWeight.w800, color: context.aeM(const Color(0xFFF28A78), LysPalett.glodTekst))),
               ),
             ),
           ),
@@ -974,7 +990,8 @@ class _BioChipFlate extends StatelessWidget {
         radius: BorderRadius.circular(999),
         bg: stil.bg,
         border: Border.all(color: stil.bd),
-        shadows: paa ? const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .25)), CssShadow(0, 6, 12, -8, Color.fromRGBO(0, 10, 16, .8))] : const [],
+        // bioVals `sh`: `--lys-kortskygge` when on in Lys.
+        shadows: paa ? context.aeM(const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .25)), CssShadow(0, 6, 12, -8, Color.fromRGBO(0, 10, 16, .8))], LysPalett.kortskygge) : const [],
         padding: EdgeInsets.fromLTRB(ik != null ? 10 : 14, 0, 13, 0),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -992,7 +1009,8 @@ class _BioChipFlate extends StatelessWidget {
                 child: Text(merke!, style: inter(9.5, weight: FontWeight.w800, em: .03, color: merkeC ?? Colors.white)),
               ),
             ],
-            if (fra) ...[const SizedBox(width: 6), const BioIkon(BioIk.stjerne, color: Color(0xFFFFDD86), size: 10, fill: true)],
+            // `.mk3k`: fill `#4A300A` in Lys.
+            if (fra) ...[const SizedBox(width: 6), BioIkon(BioIk.stjerne, color: context.aeM(const Color(0xFFFFDD86), const Color(0xFF4A300A)), size: 10, fill: true)],
           ],
         ),
       );
@@ -1070,6 +1088,7 @@ class _NyFelt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fok = f.hasFocus;
+    final lys = context.lys;
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: c,
       builder: (context, v, _) {
@@ -1081,12 +1100,17 @@ class _NyFelt extends StatelessWidget {
             duration: ms,
             curve: cssEase,
             builder: (context, a, child) => CustomPaint(
-              painter: _Strek(Color.lerp(const Color.fromRGBO(255, 255, 255, .24), const Color.fromRGBO(127, 240, 203, .85), a)!),
+              // bioNyVals L24081: `--lys-kant-farge` ↔ `rgba(11,107,87,.4)`, `--lys-hvit` either way in Lys.
+              painter: _Strek(
+                lys
+                    ? Color.lerp(LysPalett.kantFarge, const Color.fromRGBO(11, 107, 87, .4), a)!
+                    : Color.lerp(const Color.fromRGBO(255, 255, 255, .24), const Color.fromRGBO(127, 240, 203, .85), a)!,
+              ),
               child: Container(
                 height: 44,
                 padding: const EdgeInsets.fromLTRB(12, 0, 5, 0),
                 decoration: CssDecoration(
-                  color: Color.lerp(const Color.fromRGBO(255, 255, 255, .05), const Color.fromRGBO(255, 255, 255, .1), a),
+                  color: lys ? LysPalett.hvit : Color.lerp(const Color.fromRGBO(255, 255, 255, .05), const Color.fromRGBO(255, 255, 255, .1), a),
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: [BoxShadow(color: Color.fromRGBO(92, 224, 184, .16 * a), spreadRadius: 3)],
                 ),
@@ -1099,7 +1123,8 @@ class _NyFelt extends StatelessWidget {
                   turns: fok || kan ? .25 : 0,
                   duration: BergenPerf.oneShot(context, 350),
                   curve: const Cubic(.3, 1.4, .5, 1),
-                  child: const BioIkon(BioIk.pluss, color: Color(0xFF7FF0CB), size: 15),
+                  // `.mk1i`: stroke `#0B6B57` in Lys.
+                  child: BioIkon(BioIk.pluss, color: lys ? const Color(0xFF0B6B57) : const Color(0xFF7FF0CB), size: 15),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -1110,8 +1135,9 @@ class _NyFelt extends StatelessWidget {
                     maxLength: 28,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => onLegg(liste),
-                    cursorColor: const Color(0xFF5CE0B8),
-                    style: inter(13, weight: FontWeight.w700),
+                    // `.mk12`: `--lys-tittel`, caret `--lys-mint-tekst`.
+                    cursorColor: lys ? LysPalett.mintTekst : const Color(0xFF5CE0B8),
+                    style: inter(13, weight: FontWeight.w700, color: lys ? LysPalett.tittel : Colors.white),
                     decoration: InputDecoration(
                       isCollapsed: true,
                       filled: false,
@@ -1121,7 +1147,8 @@ class _NyFelt extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       counterText: '',
                       hintText: BioCopy.nyHint[liste],
-                      hintStyle: inter(13, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .5)),
+                      // The design's `input::placeholder` (`#9A9188`) in Lys.
+                      hintStyle: inter(13, weight: FontWeight.w700, color: lys ? const Color(0xFF9A9188) : const Color.fromRGBO(255, 255, 255, .5)),
                     ),
                   ),
                 ),
@@ -1137,7 +1164,7 @@ class _NyFelt extends StatelessWidget {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
-                      color: kan ? null : const Color.fromRGBO(255, 255, 255, .08),
+                      color: kan ? null : (lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .08)),
                       gradient: kan
                           ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], stops: [0, .56, 1])
                           : null,
@@ -1149,7 +1176,7 @@ class _NyFelt extends StatelessWidget {
                             ]
                           : null,
                     ),
-                    child: Text(BioCopy.leggTil, style: inter(12, weight: FontWeight.w800, color: kan ? Colors.white : const Color.fromRGBO(255, 255, 255, .5))),
+                    child: Text(BioCopy.leggTil, style: inter(12, weight: FontWeight.w800, color: kan ? Colors.white : (lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .5)))),
                   ),
                 ),
               ],
@@ -1200,6 +1227,9 @@ class _Tekstfelt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fok = f.hasFocus;
+    final lys = context.lys;
+    // `.mkd9` (`--lys-hvit`, `--lys-brod`) and bioFeltBd (bioVals): `--lys-kant-farge` ↔ `rgba(11,107,87,.4)` in Lys;
+    // the shadows are inline in the design and stay.
     return TweenAnimationBuilder<double>(
       tween: Tween(end: fok ? 1 : 0),
       duration: BergenPerf.oneShot(context, 250),
@@ -1207,8 +1237,12 @@ class _Tekstfelt extends StatelessWidget {
       builder: (context, a, child) => CssBox(
         radius: BorderRadius.circular(20),
         clip: true,
-        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
-        border: Border.all(color: Color.lerp(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(127, 240, 203, .85), a)!),
+        bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
+        border: Border.all(
+          color: lys
+              ? Color.lerp(LysPalett.kantFarge, const Color.fromRGBO(11, 107, 87, .4), a)!
+              : Color.lerp(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(127, 240, 203, .85), a)!,
+        ),
         shadows: [
           const CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
           CssShadow(0, 0, 0, 3, Color.fromRGBO(92, 224, 184, .18 * a)),
@@ -1224,7 +1258,8 @@ class _Tekstfelt extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 16),
             child: Row(
               children: [
-                Text(BioCopy.skrivSom, style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .6))),
+                // `.mk2m`.
+                Text(BioCopy.skrivSom, style: inter(10.5, weight: FontWeight.w800, em: .08, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .6))),
                 const Spacer(),
                 if (skriver)
                   Row(
@@ -1232,7 +1267,7 @@ class _Tekstfelt extends StatelessWidget {
                     children: [
                       const BioDot(ms: 1000, glow: 0),
                       const SizedBox(width: 5),
-                      Text(BioCopy.aegilLeser, style: inter(11, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                      Text(BioCopy.aegilLeser, style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB))),
                     ],
                   ),
                 if (aiLeser) ...[
@@ -1241,9 +1276,10 @@ class _Tekstfelt extends StatelessWidget {
                     key: const Key('min-bio-ai-leser'),
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const BioIkon(BioIk.stjerne, color: Color(0xFFFFDD86), size: 11, fill: true),
+                      // `.mk3k` / `.mkda`.
+                      BioIkon(BioIk.stjerne, color: lys ? const Color(0xFF4A300A) : const Color(0xFFFFDD86), size: 11, fill: true),
                       const SizedBox(width: 5),
-                      Text(CusBioCopy.cus_bio_ai_leser, style: inter(11, weight: FontWeight.w800, color: const Color(0xFFFFDD86))),
+                      Text(CusBioCopy.cus_bio_ai_leser, style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.gullTekst : const Color(0xFFFFDD86))),
                     ],
                   ),
                 ],
@@ -1263,8 +1299,9 @@ class _Tekstfelt extends StatelessWidget {
               keyboardType: TextInputType.multiline,
               inputFormatters: [LengthLimitingTextInputFormatter(400)],
               onChanged: onEndret,
-              cursorColor: const Color(0xFF5CE0B8),
-              style: inter(14, weight: FontWeight.w600, height: 1.5),
+              // `.mkb9`: `--lys-brod`, caret `--lys-mint-tekst`.
+              cursorColor: lys ? LysPalett.mintTekst : const Color(0xFF5CE0B8),
+              style: inter(14, weight: FontWeight.w600, height: 1.5, color: lys ? LysPalett.brod : Colors.white),
               decoration: InputDecoration(
                 isCollapsed: true,
                 filled: false,
@@ -1274,7 +1311,7 @@ class _Tekstfelt extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 hintText: BioCopy.tekstHint,
                 hintMaxLines: 4,
-                hintStyle: inter(14, weight: FontWeight.w600, height: 1.5, color: const Color.fromRGBO(255, 255, 255, .5)),
+                hintStyle: inter(14, weight: FontWeight.w600, height: 1.5, color: lys ? const Color(0xFF9A9188) : const Color.fromRGBO(255, 255, 255, .5)),
               ),
             ),
           ),
@@ -1284,7 +1321,8 @@ class _Tekstfelt extends StatelessWidget {
             child: SizedBox(
               height: 3,
               child: ColoredBox(
-                color: const Color.fromRGBO(255, 255, 255, .1),
+                // `.mk8e`.
+                color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .1),
                 child: skriver
                     ? LayoutBuilder(
                         builder: (context, box) => LfLoop(
@@ -1319,9 +1357,10 @@ class _Tekstfelt extends StatelessWidget {
             valueListenable: c,
             builder: (context, v, _) => Row(
               children: [
-                Expanded(child: Text(BioCopy.plukker, style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)))),
+                // `.mkd`.
+                Expanded(child: Text(BioCopy.plukker, style: inter(10.5, weight: FontWeight.w700, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55)))),
                 const SizedBox(width: 8),
-                Text('${v.text.length}/400', style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55)).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                Text('${v.text.length}/400', style: inter(10.5, weight: FontWeight.w700, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55)).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
               ],
             ),
           ),
@@ -1340,17 +1379,18 @@ class _BioKort extends StatelessWidget {
   final List<Widget> children;
 
   @override
+  // Lys: the section-6 card's `.mkdb` (`--lys-hvit`, `--lys-kant-farge`, no shadow) and `.mk1z` rules (`--lys-skille`).
   Widget build(BuildContext context) => CssBox(
         radius: BorderRadius.circular(20),
-        bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])],
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
-        shadows: const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85))],
+        bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)])], const [CssSolid(LysPalett.hvit)]),
+        border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
+        shadows: context.aeM(const [CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)), CssShadow(0, 12, 20, -14, Color.fromRGBO(0, 10, 16, .85))], const []),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (final (i, c) in children.indexed) ...[
-              if (i > 0) const Divider(height: 1, thickness: 1, color: Color.fromRGBO(255, 255, 255, .1)),
+              if (i > 0) Divider(height: 1, thickness: 1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.skille)),
               c,
             ],
           ],
@@ -1373,7 +1413,8 @@ class _Bryter extends StatelessWidget {
       height: 28,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: paa ? null : const Color.fromRGBO(255, 255, 255, .18),
+        // bioStrengtBg off: `--lys-dis` in Lys.
+        color: paa ? null : context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.dis),
         gradient: paa ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9F)]) : null,
       ),
       child: AnimatedAlign(
@@ -1415,9 +1456,10 @@ class _StrengRad extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(CusBioCopy.cus_bio_streng(k), style: inter(13, weight: FontWeight.w800)),
+                    // `.mkb` / `.mk8o`.
+                    Text(CusBioCopy.cus_bio_streng(k), style: inter(13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                     const SizedBox(height: 2),
-                    Text(CusBioCopy.cus_bio_streng_sub(k, paa), style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .68))),
+                    Text(CusBioCopy.cus_bio_streng_sub(k, paa), style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .68), LysPalett.sekundar))),
                   ],
                 ),
               ),
@@ -1442,9 +1484,10 @@ class _Ansvar extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(padding: EdgeInsets.only(top: 2), child: BioIkon(BioIk.varsel, color: Color.fromRGBO(255, 255, 255, .62), size: 12)),
+            // The subtitles' `.mk33` (`--lys-sekundar`).
+            Padding(padding: const EdgeInsets.only(top: 2), child: BioIkon(BioIk.varsel, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar), size: 12)),
             const SizedBox(width: 7),
-            Expanded(child: Text(tekst, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .62)))),
+            Expanded(child: Text(tekst, style: inter(11.5, weight: FontWeight.w600, height: 1.4, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar)))),
           ],
         ),
       );
@@ -1483,9 +1526,10 @@ class _Samtykke extends StatelessWidget {
                   height: 24,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(7),
-                    color: paa ? null : const Color.fromRGBO(255, 255, 255, .06),
+                    // Not in the design: an empty box is `--lys-dis` with a `--lys-dempet` edge in Lys.
+                    color: paa ? null : context.aeM(const Color.fromRGBO(255, 255, 255, .06), LysPalett.dis),
                     gradient: paa ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF7FF0CB), Color(0xFF3FCB9F)]) : null,
-                    border: paa ? null : Border.all(color: varsel ? const Color(0xFFF9A273) : const Color.fromRGBO(255, 255, 255, .5), width: 1.5),
+                    border: paa ? null : Border.all(color: varsel ? const Color(0xFFF9A273) : context.aeM(const Color.fromRGBO(255, 255, 255, .5), LysPalett.dempet), width: 1.5),
                   ),
                   child: paa ? const Center(child: BioIkon(BioIk.hake, color: Color(0xFF0E3A44), size: 14)) : null,
                 ),
@@ -1494,10 +1538,10 @@ class _Samtykke extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(tekst, style: inter(12.5, weight: FontWeight.w700, height: 1.45)),
+                      Text(tekst, style: inter(12.5, weight: FontWeight.w700, height: 1.45, color: context.aeM(Colors.white, LysPalett.brod))),
                       if (gitt != null) ...[
                         const SizedBox(height: 6),
-                        Text(CusBioCopy.cus_bio_samtykket(CusBioCopy.dato(gitt!)), key: const Key('min-bio-samtykket'), style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: const Color.fromRGBO(255, 255, 255, .68))),
+                        Text(CusBioCopy.cus_bio_samtykket(CusBioCopy.dato(gitt!)), key: const Key('min-bio-samtykket'), style: inter(11.5, weight: FontWeight.w600, height: 1.35, color: context.aeM(const Color.fromRGBO(255, 255, 255, .68), LysPalett.sekundar))),
                       ],
                     ],
                   ),
