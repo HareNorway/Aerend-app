@@ -11,6 +11,8 @@ import '../../common/auth/launch/lf_widgets.dart' show LfPress;
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The design's Ark (`kVisArk` ≈L7333): the cream frosted sheet the Meg rows
 /// open — `rgba(245,243,239,.94)` + blur, 28px top corners, the title (19px),
@@ -106,6 +108,11 @@ Future<T?> showMegArk<T>(
   /// («Ukens kurv · 421 kr» after a line is taken out), rebuilt with [body].
   String Function()? titleBuilder,
   String? Function()? subtitleBuilder,
+
+  /// Lys plan (§0.2): a dark Ark that keeps the fjord tone in Lys (the liga,
+  /// poeng, billett and premievilkår sheets); every other dark Ark turns
+  /// light (`data-arktone="lys"`).
+  bool fjord = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -123,7 +130,7 @@ Future<T?> showMegArk<T>(
       reverseDuration: BergenTokens.motion(context, kBolgeUt),
     ),
     builder: (ctx) {
-      final ark = MegArkSkala(
+      final ark0 = MegArkSkala(
         child: BolgeArk(
           mork: mork,
           child: StatefulBuilder(
@@ -132,6 +139,8 @@ Future<T?> showMegArk<T>(
           ),
         ),
       );
+      // One tree shape in both modes: the scope only pins the fjord sheets dark.
+      final ark = fjord ? BergenModusScope.fjord(child: ark0) : ark0;
       return tastatur
           ? Padding(
               padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
@@ -307,6 +316,9 @@ class MegArk extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxH = MediaQuery.sizeOf(context).height * .86;
+    // Lys plan: a dark Ark in Lys takes the light tone (`--am-*`, `ArkTone.lys`); the cream Ark turns `--lys-ark`.
+    final lt = mork && context.lys;
+    final cremeLys = !mork && context.lys;
     return ConstrainedBox(
       constraints: BoxConstraints(maxHeight: maxH),
       child: ClipRRect(
@@ -315,7 +327,9 @@ class MegArk extends StatelessWidget {
           enabled: BergenPerf.blurOn(context),
           filter: BergenPerf.blur(context, 30, 30),
           child: DecoratedBox(
-            decoration: mork
+            decoration: lt
+                ? const BoxDecoration(color: Color.fromRGBO(247, 251, 253, .94))
+                : mork
                 ? const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -325,12 +339,12 @@ class MegArk extends StatelessWidget {
                     ),
                   )
                 : BoxDecoration(
-                    color: const Color(0xFFF5F3EF).withValues(alpha: .96),
+                    color: cremeLys ? const Color.fromRGBO(247, 251, 253, .94) : const Color(0xFFF5F3EF).withValues(alpha: .96),
                     border: Border(top: BorderSide(color: Colors.white.withValues(alpha: .95), width: 1.5)),
                   ),
             // The dark Ark's mint glow and inner edge are drawn over the fill.
             child: CustomPaint(
-              painter: mork ? const _MorkKant() : null,
+              painter: mork ? (lt ? const _MorkKant(lys: true) : const _MorkKant()) : null,
               child: SafeArea(
               top: false,
               child: Column(
@@ -343,7 +357,7 @@ class MegArk extends StatelessWidget {
                       width: 40,
                       height: 5,
                       margin: const EdgeInsets.only(top: 8),
-                      decoration: BoxDecoration(color: mork ? const Color.fromRGBO(255, 255, 255, .28) : const Color.fromRGBO(35, 32, 29, .16), borderRadius: BorderRadius.circular(999)),
+                      decoration: BoxDecoration(color: lt ? ArkTone.lys.handtak : mork ? const Color.fromRGBO(255, 255, 255, .28) : const Color.fromRGBO(35, 32, 29, .16), borderRadius: BorderRadius.circular(999)),
                     ),
                   ),
                   Padding(
@@ -358,14 +372,14 @@ class MegArk extends StatelessWidget {
                               Text(
                                 title,
                                 style: mork
-                                    ? BergenTokens.display(21, weight: FontWeight.w800, color: Colors.white, letterSpacingEm: -0.03)
+                                    ? BergenTokens.display(21, weight: FontWeight.w800, color: lt ? ArkTone.lys.tittel : Colors.white, letterSpacingEm: -0.03)
                                     : BergenTokens.display(19, weight: FontWeight.w800, color: MegArkInk.ink, letterSpacingEm: -0.02),
                               ),
                               if (subtitle != null && subtitle!.isNotEmpty) ...[
                                 SizedBox(height: mork ? 4 : 3),
                                 Text(
                                   subtitle!,
-                                  style: BergenTokens.text(12.5, weight: FontWeight.w600, color: mork ? const Color.fromRGBO(255, 255, 255, .7) : MegArkInk.sub, height: 1.45),
+                                  style: BergenTokens.text(12.5, weight: FontWeight.w600, color: lt ? ArkTone.lys.linje : mork ? const Color.fromRGBO(255, 255, 255, .7) : MegArkInk.sub, height: 1.45),
                                 ),
                               ],
                             ],
@@ -412,11 +426,22 @@ class MegArk extends StatelessWidget {
 /// 20% 0%, rgba(127,240,203,.12), transparent 60%)`), the inner top edge
 /// (`inset 0 1.5px 0 .3`) and the faint ring (`inset 0 0 0 1px .08`).
 class _MorkKant extends CustomPainter {
-  const _MorkKant();
+  const _MorkKant({this.lys = false});
+
+  /// The light tone (`--am-sh` lys): only the white top edge (`inset 0 1.5px 0 rgba(255,255,255,.95)`), no glow or ring.
+  final bool lys;
 
   @override
   void paint(Canvas canvas, Size size) {
     final r = Offset.zero & size;
+    if (lys) {
+      final rr = RRect.fromRectAndCorners(r, topLeft: const Radius.circular(28), topRight: const Radius.circular(28));
+      canvas.save();
+      canvas.clipRRect(rr);
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.width, 1.5), Paint()..color = const Color.fromRGBO(255, 255, 255, .95));
+      canvas.restore();
+      return;
+    }
     canvas.save();
     canvas.translate(size.width * .2, 0);
     canvas.scale(size.width * .9, size.height * .4);
@@ -435,7 +460,7 @@ class _MorkKant extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MorkKant old) => false;
+  bool shouldRepaint(covariant _MorkKant old) => old.lys != lys;
 }
 
 /// The 40 px round close key (`#FFFFFF → #E9EEED`, the teal ✕).
@@ -447,6 +472,22 @@ class _CloseSquare extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (mork && context.lys) {
+      // Lys tone (mkd6/mkd7): `--am-knapp-*` — white, a 1px `--lys-kant-farge` ring, the card shadow; the fjord ✕.
+      return GestureDetector(
+        key: const Key('meg-ark-lukk'),
+        onTap: aeTrykkTikk(onTap),
+        child: CssBox(
+          width: 40,
+          height: 40,
+          radius: const BorderRadius.all(Radius.circular(20)),
+          bg: ArkTone.lys.knappBg,
+          border: Border.all(color: ArkTone.lys.knappBd),
+          shadows: ArkTone.lys.knappSh,
+          child: Center(child: AeIkon('M6 6l12 12M18 6L6 18', size: 14, stroke: 2.8, color: ArkTone.lys.ikon)),
+        ),
+      );
+    }
     if (mork) {
       // Dark: glass (`.22 → .08`), a .28 white ring, the white ✕.
       return GestureDetector(
@@ -492,6 +533,29 @@ class _ArkSecondary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (mork && context.lys) {
+      // Lys tone (mkfc): `--am-sekk-*` — white, a 1px `--lys-kant-farge` ring, the card shadow, `--am-tittel` text.
+      return LfPress(
+        key: button.key,
+        onTap: aeTrykkTikk(button.onTap),
+        dy: 2,
+        ms: 140,
+        child: CssBox(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          radius: BorderRadius.circular(999),
+          bg: ArkTone.lys.sekkBg,
+          border: Border.all(color: ArkTone.lys.sekkBd),
+          shadows: ArkTone.lys.sekkSh,
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(button.label, textAlign: TextAlign.center, style: BergenTokens.text(14, weight: FontWeight.w800, color: ArkTone.lys.tittel)),
+            ),
+          ),
+        ),
+      );
+    }
     if (mork) {
       // Dark (L9957): glass `.2 → .07`, a .26 ring, the top light, white 14 px.
       return LfPress(
@@ -557,6 +621,8 @@ class _ArkPrimary extends StatelessWidget {
       // dimmed text (`#A9BEC3` in the design's data).
       final av = button.av;
       final rod = button.rod && !av;
+      // Lys tone: a done key is `--lys-dis` with `--lys-dempet` text and a `--lys-kant-farge` ring (kArkCtaBg/C/Sh).
+      final avLys = av && context.lys;
       return LfPress(
         key: button.key,
         onTap: aeTrykkTikk(button.onTap),
@@ -567,13 +633,17 @@ class _ArkPrimary extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           radius: BorderRadius.circular(999),
           bg: [
-            av
+            avLys
+                ? const CssSolid(LysPalett.dis)
+                : av
                 ? const CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .07)])
                 : rod
                     ? const CssLinear(180, [Color(0xFFF28A78), Color(0xFFD9452F), Color(0xFFB5301D)], [0, .56, 1])
                     : const CssLinear(180, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, .56, 1]),
           ],
-          shadows: av
+          shadows: avLys
+              ? const [CssShadow.inset(0, 0, 0, 1, LysPalett.kantFarge)]
+              : av
               ? const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .2))]
               : rod
                   ? const [
@@ -596,7 +666,7 @@ class _ArkPrimary extends StatelessWidget {
               child: Text(
                 button.label,
                 textAlign: TextAlign.center,
-                style: BergenTokens.text(14.5, weight: FontWeight.w800, color: av ? const Color.fromRGBO(255, 255, 255, .62) : Colors.white),
+                style: BergenTokens.text(14.5, weight: FontWeight.w800, color: avLys ? LysPalett.dempet : av ? const Color.fromRGBO(255, 255, 255, .62) : Colors.white),
               ),
             ),
           ),

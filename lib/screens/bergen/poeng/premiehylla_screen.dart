@@ -27,6 +27,7 @@ import 'prize_art.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/laster_skjerm.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Premiehylla (`erPremier`, L7556–7707 in `Ærend Kunde Launch.dc.html`,
 /// design px): the floating back key and the points pill (the coin turning,
@@ -134,7 +135,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     if (claimed == true && mounted) _load();
   }
 
-  void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => AegilVelgerScreen(api: _api))).then((_) => _load());
+  void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => ModusFjord(child: AegilVelgerScreen(api: _api)))).then((_) => _load());
 
   /// A claim's ticket, opened: how it is used, the code, how long it lasts.
   void _visClaim(PrizeClaim c, Prize? p) {

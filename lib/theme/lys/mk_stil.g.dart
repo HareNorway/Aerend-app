@@ -15,22 +15,22 @@ import 'mk_stil.dart';
 /// light: color:rgba(255,255,255,.82)
 const MkStil mk0 = MkStil('mk0', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.62)), light: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.82)));
 
-/// (top) · «129 kr»
+/// (aldri) · «129 kr»
 /// dark: color:rgba(255,255,255,.55)
 /// light: color:rgba(255,255,255,.82)
 const MkStil mk1 = MkStil('mk1', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.55)), light: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.82)));
 
-/// (top) · «{{ d.gml }}»
+/// (aldri) · «{{ d.gml }}»
 /// dark: color:rgba(255,255,255,.5)
 /// light: color:rgba(255,255,255,.82)
 const MkStil mk2 = MkStil('mk2', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.5)), light: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.82)));
 
-/// {{ butSideLabel }}, (top), Premiehylla · «{{ gaveIni }} Åpen til 20 12 kikker nå {{ utstillingTittel }} {{ vindu»
+/// {{ butSideLabel }}, (erUtforsk), Premiehylla · «{{ gaveIni }} Åpen til 20 12 kikker nå {{ utstillingTittel }} {{ vindu»
 /// dark: background:radial-gradient(80% 50% at 14% 0%,rgba(255,255,255,.22),rgba(255,255,255,0) 60%),linear-gradient(180deg,#2A6272 0%,#1E4F5C 42%,#173E48 100%)
 /// light: background:var(--lys-ull);color:var(--lys-brod)
 const MkStil mk3 = MkStil('mk3', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.14, cy: 0, rx: 0.8, ry: 0.5), CssLinear(180.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.42, 1.0])]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], farge: Color(0xFF142226)));
 
-/// (top)×26, {{ butSideLabel }}×9, Gaver-kategori×9 · «{{ gaveAapen }} {{ gaveIni }}»
+/// {{ butSideLabel }}×9, Gaver-kategori×9, Hurtig · ordreutkast×4 · «{{ gaveAapen }} {{ gaveIni }}»
 /// dark: —
 /// light: color:#FFFFFF
 const MkStil mk4 = MkStil('mk4', dark: null, light: MkVerdi(farge: Color(0xFFFFFFFF)));
@@ -40,7 +40,7 @@ const MkStil mk4 = MkStil('mk4', dark: null, light: MkVerdi(farge: Color(0xFFFFF
 /// light: background:var(--lys-hvit);color:var(--lys-tittel)
 const MkStil mk5 = MkStil('mk5', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], farge: Color(0xFF03313C)));
 
-/// (top)×15, {{ butSideLabel }}×10, Ark {{ kArkTittel }}×4 · «{{ gaveEta }} {{ gaveLev }}»
+/// {{ butSideLabel }}×10, Ark {{ kArkTittel }}×4, Hurtig · bestilt forrige gang×3 · «{{ gaveEta }} {{ gaveLev }}»
 /// dark: color:rgba(255,255,255,.7)
 /// light: color:var(--lys-sekundar)
 const MkStil mk6 = MkStil('mk6', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.7)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -50,7 +50,7 @@ const MkStil mk6 = MkStil('mk6', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 2
 /// light: background:var(--lys-dis)
 const MkStil mk7 = MkStil('mk7', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(4, 18, 26, 0.45))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))]));
 
-/// Ark {{ kArkTittel }}×13, (top)×11, Hurtig · dine preferanser×4 · «{{ gaveLev }}»
+/// Ark {{ kArkTittel }}×13, (obHarValg)×5, Hurtig · dine preferanser×4 · «{{ gaveLev }}»
 /// dark: color:#7FF0CB
 /// light: color:var(--lys-mint-tekst)
 const MkStil mk8 = MkStil('mk8', dark: MkVerdi(farge: Color(0xFF7FF0CB)), light: MkVerdi(farge: Color(0xFF046850)));
@@ -65,7 +65,7 @@ const MkStil mk9 = MkStil('mk9', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Col
 /// light: background:var(--lys-hvit);box-shadow:0 -6px 14px -8px rgba(23,62,72,.18);color:var(--lys-tittel)
 const MkStil mka = MkStil('mka', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow(0, -6.0, 14.0, -8.0, Color.fromRGBO(35, 32, 29, 0.3))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, -6.0, 14.0, -8.0, Color.fromRGBO(23, 62, 72, 0.18))], farge: Color(0xFF03313C)));
 
-/// (top)×86, Ark {{ kArkTittel }}×13, Premiehylla×12 · «Tiger of Sweden»
+/// Ark {{ kArkTittel }}×13, Premiehylla×12, Tilbudet ditt×12 · «Tiger of Sweden»
 /// dark: color:#FFFFFF
 /// light: color:var(--lys-tittel)
 const MkStil mkb = MkStil('mkb', dark: MkVerdi(farge: Color(0xFFFFFFFF)), light: MkVerdi(farge: Color(0xFF03313C)));
@@ -75,7 +75,7 @@ const MkStil mkb = MkStil('mkb', dark: MkVerdi(farge: Color(0xFFFFFFFF)), light:
 /// light: background:var(--lys-dis);box-shadow:none;color:var(--lys-brod)
 const MkStil mkc = MkStil('mkc', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.18)), CssShadow(0, 2.0, 0, 0, Color.fromRGBO(4, 18, 26, 0.45)), CssShadow(0, 8.0, 14.0, -10.0, Color.fromRGBO(35, 32, 29, 0.4))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[], farge: Color(0xFF142226)));
 
-/// (top)×10, Hurtig · dine preferanser×5, Ægil vet · Min Bio×5 · «›»
+/// Hurtig · dine preferanser×5, Ægil vet · Min Bio×5, Ark {{ kArkTittel }}×5 · «›»
 /// dark: color:rgba(255,255,255,.55)
 /// light: color:var(--lys-dempet)
 const MkStil mkd = MkStil('mkd', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.55)), light: MkVerdi(farge: Color(0xFF627276)));
@@ -95,7 +95,7 @@ const MkStil mkf = MkStil('mkf', dark: MkVerdi(skygge: <CssShadow>[CssShadow(0, 
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mkg = MkStil('mkg', dark: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFF1B2A44))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(35, 32, 29, 0.06)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(4, 18, 26, 0.45)), CssShadow(0, 4.0, 0, 0, Color.fromRGBO(120, 100, 70, 0.3)), CssShadow(0, 7.0, 8.0, -4.0, Color.fromRGBO(35, 32, 29, 0.4)), CssShadow(0, 14.0, 16.0, -10.0, Color.fromRGBO(4, 18, 26, 0.85)), CssShadow.inset(0, 2.0, 3.0, 0, Color.fromRGBO(255, 255, 255, 0.5))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×2, {{ butSideLabel }}, Ikke dekket ennå · «NP»
+/// {{ butSideLabel }}, (sokOnske), (visDrift) · «NP»
 /// dark: color:#F5F3EF
 /// light: color:var(--lys-tittel)
 const MkStil mkh = MkStil('mkh', dark: MkVerdi(farge: Color(0xFFF5F3EF)), light: MkVerdi(farge: Color(0xFF03313C)));
@@ -160,7 +160,7 @@ const MkStil mks = MkStil('mks', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLin
 /// light: background:var(--lys-dis);box-shadow:none;color:var(--lys-brod)
 const MkStil mkt = MkStil('mkt', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 1.0)), CssShadow(0, 2.0, 3.0, -1.0, Color.fromRGBO(0, 20, 26, 0.2))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[], farge: Color(0xFF142226)));
 
-/// (top)×18, Tilbudet ditt×8, Premiehylla×4 · «<svg>»
+/// Tilbudet ditt×8, Premiehylla×4, Ark {{ kArkTittel }}×4 · «<svg>»
 /// dark: —
 /// light: stroke:#1E4F5C
 const MkStil mku = MkStil('mku', dark: null, light: MkVerdi(strek: Color(0xFF1E4F5C)));
@@ -180,82 +180,82 @@ const MkStil mkw = MkStil('mkw', dark: null, light: MkVerdi(strek: Color.fromRGB
 /// light: border-radius:50%;border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge);color:var(--lys-brod)
 const MkStil mkx = MkStil('mkx', dark: MkVerdi(rund: true, kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.9)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, 2.0, 3.0, -1.0, Color.fromRGBO(35, 32, 29, 0.12)), CssShadow(0, 16.0, 30.0, -14.0, Color.fromRGBO(4, 18, 26, 0.85))]), light: MkVerdi(rund: true, kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF142226)));
 
-/// (top) · «Burger King Åpent til 22:30 · 25–35 min Kjøkkenet er i gang 17:31 Berg»
+/// (erButikk) · «Burger King Åpent til 22:30 · 25–35 min Kjøkkenet er i gang 17:31 Berg»
 /// dark: background:linear-gradient(180deg,#1E4F5C 0%,#1B4854 40%,#173E48 100%)
 /// light: background:var(--lys-ull)
 const MkStil mky = MkStil('mky', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF1E4F5C), Color(0xFF1B4854), Color(0xFF173E48)], [0, 0.4, 1.0])]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))]));
 
-/// Ark {{ kArkTittel }}×22, (top)×10, Min Bio · Ægil · «{{ b.navn }}»
+/// Ark {{ kArkTittel }}×22, (erButikk)×3, (utfPose)×3 · «{{ b.navn }}»
 /// dark: —
 /// light: color:var(--lys-brod)
 const MkStil mkz = MkStil('mkz', dark: null, light: MkVerdi(farge: Color(0xFF142226)));
 
-/// (top) · «<div>»
+/// (erButikk) · «<div>»
 /// dark: background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.22),rgba(255,255,255,.06) 58%,rgba(255,255,255,0) 75%);box-shadow:0 0 0 1.5px rgba(255,255,255,.18)
 /// light: background:radial-gradient(circle at 50% 22%,rgba(30,79,92,.07),rgba(30,79,92,.02) 58%,rgba(30,79,92,0) 75%);box-shadow:0 0 0 1.5px var(--lys-kant-farge)
 const MkStil mk10 = MkStil('mk10', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.22), Color.fromRGBO(255, 255, 255, 0.06), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.58, 0.75], cx: 0.5, cy: 0.22, farthestCorner: true, circle: true)], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.5, Color.fromRGBO(255, 255, 255, 0.18))]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(30, 79, 92, 0.07), Color.fromRGBO(30, 79, 92, 0.02), Color.fromRGBO(30, 79, 92, 0)], stops: [0, 0.58, 0.75], cx: 0.5, cy: 0.22, farthestCorner: true, circle: true)], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.5, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «<span>»
+/// (erButikk) · «<span>»
 /// dark: background:radial-gradient(circle at 50% 22%,rgba(255,255,255,.16),rgba(255,255,255,.04) 58%,rgba(255,255,255,0) 75%);box-shadow:0 0 0 1px rgba(255,255,255,.12)
 /// light: background:radial-gradient(circle at 50% 22%,rgba(30,79,92,.06),rgba(30,79,92,.02) 58%,rgba(30,79,92,0) 75%);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk11 = MkStil('mk11', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.04), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.58, 0.75], cx: 0.5, cy: 0.22, farthestCorner: true, circle: true)], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12))]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(30, 79, 92, 0.06), Color.fromRGBO(30, 79, 92, 0.02), Color.fromRGBO(30, 79, 92, 0)], stops: [0, 0.58, 0.75], cx: 0.5, cy: 0.22, farthestCorner: true, circle: true)], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top)×5, Ark {{ kArkTittel }}×4, Hurtigbestilling · «<input>»
+/// Ark {{ kArkTittel }}×4, (erButikk), Hurtigbestilling · «<input>»
 /// dark: color:#FFFFFF;caret-color:#5CE0B8
 /// light: color:var(--lys-tittel);caret-color:var(--lys-mint-tekst)
 const MkStil mk12 = MkStil('mk12', dark: MkVerdi(farge: Color(0xFFFFFFFF), markor: Color(0xFF5CE0B8)), light: MkVerdi(farge: Color(0xFF03313C), markor: Color(0xFF046850)));
 
-/// (top)×9, Poeng×3, Søk · treff · «Tøm»
+/// Poeng×3, (sheetLevering)×2, (bkSokHarTekst) · «Tøm»
 /// dark: color:#5CE0B8
 /// light: color:var(--lys-mint-tekst)
 const MkStil mk13 = MkStil('mk13', dark: MkVerdi(farge: Color(0xFF5CE0B8)), light: MkVerdi(farge: Color(0xFF046850)));
 
-/// (top)×4, Min Bio×2, Premiehylla×2 · «Butikken setter tilbudet selv · gjelder i denne bestillingen»
+/// (kFlere)×2, Min Bio×2, Premiehylla×2 · «Butikken setter tilbudet selv · gjelder i denne bestillingen»
 /// dark: color:rgba(255,255,255,.72)
 /// light: color:var(--lys-sekundar)
 const MkStil mk14 = MkStil('mk14', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.72)), light: MkVerdi(farge: Color(0xFF4B5E64)));
 
-/// (top) · «<span>»
+/// (visTilbud) · «<span>»
 /// dark: —
 /// light: color:rgba(255,255,255,.72)
 const MkStil mk15 = MkStil('mk15', dark: null, light: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.72)));
 
-/// (top)×2 · «Drikke legges inn av butikken denne uken. Vann fra kranen i Bergen er »
+/// (bkTom), (sokIngen) · «Drikke legges inn av butikken denne uken. Vann fra kranen i Bergen er »
 /// dark: border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 14px 24px -16px rgba(4,18,26,.8)
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk16 = MkStil('mk16', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 14.0, 24.0, -16.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top), Handlekurv · utenfor dekning, Handlekurv · lenker · «Drikke legges inn av butikken denne uken. Vann fra kranen i Bergen er »
+/// (bkTom), Handlekurv · utenfor dekning, Handlekurv · lenker · «Drikke legges inn av butikken denne uken. Vann fra kranen i Bergen er »
 /// dark: color:rgba(255,255,255,.75)
 /// light: color:var(--lys-sekundar)
 const MkStil mk17 = MkStil('mk17', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.75)), light: MkVerdi(farge: Color(0xFF4B5E64)));
 
-/// (top)×3 · «Mest bestilt Dobbel cheeseburger 149 kr {{ antP0 }}»
+/// (erButikk)×3 · «Mest bestilt Dobbel cheeseburger 149 kr {{ antP0 }}»
 /// dark: background:radial-gradient(90% 55% at 50% 0%,rgba(255,190,120,.2),rgba(255,190,120,0) 70%),linear-gradient(165deg,rgba(255,255,255,.19) 0%,rgba(255,255,255,.08) 40%,rgba(255,255,255,.04) 100%);border:1px solid rgba(255,255,255,.24);border-radius:24px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.38),inset 0 -1px 0 rgba(255,255,255,.06),0 2px 0 rgba(8,30,38,.5),0 22px 32px -18px rgba(2,12,18,.95)
 /// light: background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);border-radius:24px;box-shadow:var(--lys-kortskygge)
 const MkStil mk18 = MkStil('mk18', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 190, 120, 0.2), Color.fromRGBO(255, 190, 120, 0)], stops: [0, 0.7], cx: 0.5, cy: 0, rx: 0.9, ry: 0.55), CssLinear(165.0, [Color.fromRGBO(255, 255, 255, 0.19), Color.fromRGBO(255, 255, 255, 0.08), Color.fromRGBO(255, 255, 255, 0.04)], [0, 0.4, 1.0])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.24)), radius: 24.0, skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.38)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.06)), CssShadow(0, 2.0, 0, 0, Color.fromRGBO(8, 30, 38, 0.5)), CssShadow(0, 22.0, 32.0, -18.0, Color.fromRGBO(2, 12, 18, 0.95))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), radius: 24.0, skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top)×3 · «<span>»
+/// (erButikk)×3 · «<span>»
 /// dark: background:radial-gradient(50% 50% at 50% 50%,rgba(0,8,12,.55),rgba(0,8,12,0) 72%)
 /// light: background:radial-gradient(50% 50% at 50% 50%,rgba(23,62,72,.26),rgba(23,62,72,0) 72%)
 const MkStil mk19 = MkStil('mk19', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(0, 8, 12, 0.55), Color.fromRGBO(0, 8, 12, 0)], stops: [0, 0.72], cx: 0.5, cy: 0.5, rx: 0.5, ry: 0.5)]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(23, 62, 72, 0.26), Color.fromRGBO(23, 62, 72, 0)], stops: [0, 0.72], cx: 0.5, cy: 0.5, rx: 0.5, ry: 0.5)]));
 
-/// (top)×3 · «<span>»
+/// (erButikk)×3 · «<span>»
 /// dark: background:radial-gradient(50% 50% at 50% 45%,rgba(255,190,120,.28),rgba(255,190,120,0) 70%)
 /// light: background:radial-gradient(50% 50% at 50% 45%,rgba(255,190,120,0),rgba(255,190,120,0) 70%)
 const MkStil mk1a = MkStil('mk1a', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 190, 120, 0.28), Color.fromRGBO(255, 190, 120, 0)], stops: [0, 0.7], cx: 0.5, cy: 0.45, rx: 0.5, ry: 0.5)]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 190, 120, 0), Color.fromRGBO(255, 190, 120, 0)], stops: [0, 0.7], cx: 0.5, cy: 0.45, rx: 0.5, ry: 0.5)]));
 
-/// (top)×2 · «Mest bestilt»
+/// (erButikk)×2 · «Mest bestilt»
 /// dark: border-radius:999px;background:rgba(15,42,51,.72);border:1px solid rgba(255,178,122,.55);color:#FFB27A
 /// light: border-radius:999px;background:var(--lys-glod-dis);border:1px solid rgba(166,58,18,.25);color:var(--lys-glod-tekst)
 const MkStil mk1b = MkStil('mk1b', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(15, 42, 51, 0.72))], kant: MkKant(1.0, Color.fromRGBO(255, 178, 122, 0.55)), farge: Color(0xFFFFB27A)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFEAE1))], kant: MkKant(1.0, Color.fromRGBO(166, 58, 18, 0.25)), farge: Color(0xFFA63B0E)));
 
-/// (top), Hurtig · ordreutkast · «<svg>»
+/// (erButikk), Hurtig · ordreutkast · «<svg>»
 /// dark: —
 /// light: fill:#A63A12
 const MkStil mk1c = MkStil('mk1c', dark: null, light: MkVerdi(fyll: Color(0xFFA63A12)));
 
-/// (top)×3 · «{{ antP0 }}»
+/// (harP0), (harP1), (harP2) · «{{ antP0 }}»
 /// dark: background:rgba(0,0,0,.28);box-shadow:inset 0 2px 5px rgba(0,0,0,.45),inset 0 -1px 0 rgba(255,255,255,.14)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk1d = MkStil('mk1d', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.28))], skygge: <CssShadow>[CssShadow.inset(0, 2.0, 5.0, 0, Color.fromRGBO(0, 0, 0, 0.45)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.14))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
@@ -265,7 +265,7 @@ const MkStil mk1d = MkStil('mk1d', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge);color:var(--lys-brod)
 const MkStil mk1e = MkStil('mk1e', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.2), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.14, cy: 0, rx: 0.8, ry: 0.4), CssLinear(180.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.4, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.4)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1)), CssShadow(0, -24.0, 50.0, -18.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))], farge: Color(0xFF142226)));
 
-/// Hurtigbestilling, (top) · «<div>»
+/// Hurtigbestilling, (erAgent) · «<div>»
 /// dark: background:rgba(255,255,255,.28)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk1f = MkStil('mk1f', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.28))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
@@ -280,7 +280,7 @@ const MkStil mk1g = MkStil('mk1g', dark: MkVerdi(farge: Color.fromRGBO(255, 255,
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge);color:var(--lys-sekundar)
 const MkStil mk1h = MkStil('mk1h', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.14))], farge: Color(0xFFBFD6DD)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))], farge: Color(0xFF4B5E64)));
 
-/// (top)×36, Ark {{ kArkTittel }}×11, Hurtig · dine preferanser×8 · «<svg>»
+/// Ark {{ kArkTittel }}×11, Hurtig · dine preferanser×8, (harKurv)×8 · «<svg>»
 /// dark: —
 /// light: stroke:#0B6B57
 const MkStil mk1i = MkStil('mk1i', dark: null, light: MkVerdi(strek: Color(0xFF0B6B57)));
@@ -305,7 +305,7 @@ const MkStil mk1l = MkStil('mk1l', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [C
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge);color:var(--lys-brod)
 const MkStil mk1m = MkStil('mk1m', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.15), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(8, 28, 36, 0.45)), CssShadow(0, 16.0, 22.0, -16.0, Color.fromRGBO(3, 14, 20, 0.85))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF142226)));
 
-/// (top)×2, Hurtig · oftest bestilt, Hurtig · bestilt forrige gang · «OFTEST BESTILT {{ m.oftUnder }} Din favoritt {{ m.topp.ganger }} {{ m.»
+/// Hurtig · oftest bestilt, Hurtig · bestilt forrige gang, Hurtig · dine preferanser · «OFTEST BESTILT {{ m.oftUnder }} Din favoritt {{ m.topp.ganger }} {{ m.»
 /// dark: color:#FFFFFF
 /// light: color:var(--lys-brod)
 const MkStil mk1n = MkStil('mk1n', dark: MkVerdi(farge: Color(0xFFFFFFFF)), light: MkVerdi(farge: Color(0xFF142226)));
@@ -315,7 +315,7 @@ const MkStil mk1n = MkStil('mk1n', dark: MkVerdi(farge: Color(0xFFFFFFFF)), ligh
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge);color:var(--lys-brod)
 const MkStil mk1o = MkStil('mk1o', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.05)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.16)), skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.14)), CssShadow(0, 18.0, 30.0, -20.0, Color.fromRGBO(0, 10, 16, 0.9))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF142226)));
 
-/// (top)×10, Hurtig · ordreutkast×8, Tilbudet ditt×8 · «{{ m.topp.butikk }}»
+/// Hurtig · ordreutkast×8, Tilbudet ditt×8, Hurtig · dine preferanser×4 · «{{ m.topp.butikk }}»
 /// dark: color:rgba(255,255,255,.66)
 /// light: color:var(--lys-sekundar)
 const MkStil mk1p = MkStil('mk1p', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.66)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -360,12 +360,12 @@ const MkStil mk1w = MkStil('mk1w', dark: MkVerdi(radius: 12.0, bg: <CssBg>[CssSo
 /// light: color:var(--lys-glod-tekst)
 const MkStil mk1x = MkStil('mk1x', dark: MkVerdi(farge: Color(0xFFFFB48E)), light: MkVerdi(farge: Color(0xFFA63B0E)));
 
-/// (top)×5, Hurtig · bestilt forrige gang, Hurtig · bestilt · «Levert»
+/// Hurtig · bestilt forrige gang, Hurtig · bestilt, Hurtig · ordreutkast · «Levert»
 /// dark: background:rgba(92,224,184,.14);color:#7FF0CB
 /// light: background:var(--lys-mint-dis);color:var(--lys-mint-tekst)
 const MkStil mk1y = MkStil('mk1y', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.14))], farge: Color(0xFF7FF0CB)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], farge: Color(0xFF046850)));
 
-/// (top)×10, AI · grenser×4, Ark {{ kArkTittel }}×2 · «{{ x.ant }} {{ x.navn }} {{ x.pris }}»
+/// AI · grenser×4, (harKurv)×3, Ark {{ kArkTittel }}×2 · «{{ x.ant }} {{ x.navn }} {{ x.pris }}»
 /// dark: border-top:1px solid rgba(255,255,255,.1)
 /// light: border-top:1px solid var(--lys-skille)
 const MkStil mk1z = MkStil('mk1z', dark: MkVerdi(kantTopp: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.1))), light: MkVerdi(kantTopp: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.08))));
@@ -375,7 +375,7 @@ const MkStil mk1z = MkStil('mk1z', dark: MkVerdi(kantTopp: MkKant(1.0, Color.fro
 /// light: border-radius:8px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);color:var(--lys-mint-tekst)
 const MkStil mk20 = MkStil('mk20', dark: MkVerdi(radius: 8.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.12)), farge: Color(0xFF9FF0D4)), light: MkVerdi(radius: 8.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF046850)));
 
-/// (top)×5, AI · slik fungerer det×3, Ægil · tipper×2 · «{{ x.navn }}»
+/// AI · slik fungerer det×3, Ægil · tipper×2, Hurtig · bestilt forrige gang · «{{ x.navn }}»
 /// dark: color:#DCE9EC
 /// light: color:var(--lys-sekundar)
 const MkStil mk21 = MkStil('mk21', dark: MkVerdi(farge: Color(0xFFDCE9EC)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -455,7 +455,7 @@ const MkStil mk2f = MkStil('mk2f', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssS
 /// light: border-radius:13px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);color:var(--lys-dempet)
 const MkStil mk2g = MkStil('mk2g', dark: MkVerdi(radius: 13.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.05))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.1)), farge: Color.fromRGBO(255, 255, 255, 0.5)), light: MkVerdi(radius: 13.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF627276)));
 
-/// (top)×5, Ægil vet · Min Bio×3, Søk · Populært nå×2 · «Betaling Vipps · på døra med kode»
+/// Ægil vet · Min Bio×3, (infoM)×3, Søk · Populært nå×2 · «Betaling Vipps · på døra med kode»
 /// dark: border-top:1px solid rgba(255,255,255,.08)
 /// light: border-top:1px solid var(--lys-skille)
 const MkStil mk2h = MkStil('mk2h', dark: MkVerdi(kantTopp: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.08))), light: MkVerdi(kantTopp: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.08))));
@@ -480,7 +480,7 @@ const MkStil mk2k = MkStil('mk2k', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssS
 /// light: background:var(--lys-hvit);box-shadow:var(--lys-kortskygge);color:var(--lys-brod)
 const MkStil mk2l = MkStil('mk2l', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.09), Color.fromRGBO(255, 255, 255, 0.04)])], skygge: <CssShadow>[CssShadow(0, 18.0, 30.0, -20.0, Color.fromRGBO(0, 10, 16, 0.9))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF142226)));
 
-/// (top)×18, Ægil vet · Min Bio×4, AI · grenser×4 · «{{ m.o.klar }}»
+/// (hjHarOrdre)×6, Ægil vet · Min Bio×4, AI · grenser×4 · «{{ m.o.klar }}»
 /// dark: color:rgba(255,255,255,.6)
 /// light: color:var(--lys-dempet)
 const MkStil mk2m = MkStil('mk2m', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.6)), light: MkVerdi(farge: Color(0xFF627276)));
@@ -565,7 +565,7 @@ const MkStil mk31 = MkStil('mk31', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [C
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk32 = MkStil('mk32', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(6, 22, 30, 0.6)), CssShadow(0, 12.0, 18.0, -12.0, Color.fromRGBO(2, 12, 18, 0.9))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top)×13, Ark {{ kArkTittel }}×6, Ægil vet · Min Bio×3 · «{{ hbAiSub }}»
+/// Ark {{ kArkTittel }}×6, (harKurv)×4, Ægil vet · Min Bio×3 · «{{ hbAiSub }}»
 /// dark: color:rgba(255,255,255,.62)
 /// light: color:var(--lys-sekundar)
 const MkStil mk33 = MkStil('mk33', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.62)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -585,32 +585,32 @@ const MkStil mk35 = MkStil('mk35', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [C
 /// light: --v0:0 10px 24px -14px rgba(23,62,72,.22)
 const MkStil mk36 = MkStil('mk36', dark: MkVerdi(v0: <CssShadow>[CssShadow(0, 18.0, 34.0, -14.0, Color.fromRGBO(4, 18, 26, 0.85))]), light: MkVerdi(v0: <CssShadow>[CssShadow(0, 10.0, 24.0, -14.0, Color.fromRGBO(23, 62, 72, 0.22))]));
 
-/// (top) · «Ægil {{ agTilstand }} {{ agNivaa }} Tweaks {{ twSpill }} {{ twNavn }} »
+/// (erAgent) · «Ægil {{ agTilstand }} {{ agNivaa }} Tweaks {{ twSpill }} {{ twNavn }} »
 /// dark: background:radial-gradient(80% 50% at 14% 0%,rgba(255,255,255,.26),rgba(255,255,255,0) 60%),linear-gradient(180deg,#2A6272 0%,#1E4F5C 42%,#173E48 100%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.1),0 -24px 50px -18px rgba(4,18,26,.8)
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge);color:var(--lys-brod)
 const MkStil mk37 = MkStil('mk37', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.26), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.14, cy: 0, rx: 0.8, ry: 0.5), CssLinear(180.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.42, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.4)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1)), CssShadow(0, -24.0, 50.0, -18.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))], farge: Color(0xFF142226)));
 
-/// (top)×3 · «<span>»
+/// (erAgent)×3 · «<span>»
 /// dark: background:#1E4F5C
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk38 = MkStil('mk38', dark: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFF1E4F5C))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top)×2 · «{{ agNivaa }}»
+/// (erAgent)×2 · «{{ agNivaa }}»
 /// dark: border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.22);color:#FFFFFF
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none;color:var(--lys-tittel)
 const MkStil mk39 = MkStil('mk39', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.22))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[], farge: Color(0xFF03313C)));
 
-/// Assistent · logg×3, (top)×2, AI · slik fungerer det · «<span>»
+/// Assistent · logg×3, (erAgent), (agForslag) · «<span>»
 /// dark: background:rgba(255,255,255,.14)
 /// light: background:var(--lys-dis)
 const MkStil mk3a = MkStil('mk3a', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.14))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))]));
 
-/// (top) · «<span>»
+/// (twSpiller) · «<span>»
 /// dark: background:rgba(35,32,29,.1)
 /// light: background:var(--lys-dis-ull)
 const MkStil mk3b = MkStil('mk3b', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(35, 32, 29, 0.1))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.07))]));
 
-/// (top) · «AV {{ twNotat }}»
+/// (twAvNaa) · «AV {{ twNotat }}»
 /// dark: background:rgba(35,32,29,.06)
 /// light: background:var(--lys-dis-ull)
 const MkStil mk3c = MkStil('mk3c', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(35, 32, 29, 0.06))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.07))]));
@@ -680,52 +680,52 @@ const MkStil mk3o = MkStil('mk3o', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: background:var(--lys-mint-dis);box-shadow:none
 const MkStil mk3p = MkStil('mk3p', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(130, 242, 210, 0.3), Color.fromRGBO(92, 224, 184, 0.1)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(92, 224, 184, 0.38))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[]));
 
-/// (top) · «{{ agSpor }}»
+/// (agHarSpor) · «{{ agSpor }}»
 /// dark: border-radius:20px 20px 6px 20px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.09));border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32),0 14px 24px -16px rgba(4,18,26,.8)
 /// light: border-radius:20px 20px 6px 20px;background:var(--lys-fjord-fyll);border:1px solid rgba(30,79,92,0);box-shadow:0 8px 14px -10px rgba(23,62,72,.5)
 const MkStil mk3q = MkStil('mk3q', dark: MkVerdi(hjorner: [20.0, 20.0, 6.0, 20.0], bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0.09)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow(0, 14.0, 24.0, -16.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(hjorner: [20.0, 20.0, 6.0, 20.0], bg: <CssBg>[CssLinear(180.0, [Color(0xFF235E6D), Color(0xFF124A58)])], kant: MkKant(1.0, Color.fromRGBO(30, 79, 92, 0)), skygge: <CssShadow>[CssShadow(0, 8.0, 14.0, -10.0, Color.fromRGBO(23, 62, 72, 0.5))]));
 
-/// (top), Butikkprofil · «{{ agSvar }}»
+/// (agHarSvar), Butikkprofil · «{{ agSvar }}»
 /// dark: color:rgba(255,255,255,.92)
 /// light: color:var(--lys-brod)
 const MkStil mk3r = MkStil('mk3r', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.92)), light: MkVerdi(farge: Color(0xFF142226)));
 
-/// (top)×2 · «<span>»
+/// (agLeter), (it.erOverskrift) · «<span>»
 /// dark: background:rgba(255,255,255,.14)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk3s = MkStil('mk3s', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.14))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «Torgboden Åpen · 25–35 min · Fisketorget Bergensk Tortillas ×12 49 kr »
+/// (agForslag) · «Torgboden Åpen · 25–35 min · Fisketorget Bergensk Tortillas ×12 49 kr »
 /// dark: border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 22px 36px -20px rgba(4,18,26,.85)
 /// light: border-radius:24px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk3t = MkStil('mk3t', dark: MkVerdi(radius: 24.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 22.0, 36.0, -20.0, Color.fromRGBO(4, 18, 26, 0.85))]), light: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «<span>»
+/// (agForslag) · «<span>»
 /// dark: border-radius:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22)
 /// light: border-radius:13px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge)
 const MkStil mk3u = MkStil('mk3u', dark: MkVerdi(radius: 13.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.14))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22))), light: MkVerdi(radius: 13.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09))));
 
-/// (top) · «Bergensk»
+/// (agForslag) · «Bergensk»
 /// dark: background:rgba(242,193,78,.2);color:#F2C14E
 /// light: background:var(--lys-gull-dis);color:var(--lys-gull-tekst)
 const MkStil mk3v = MkStil('mk3v', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(242, 193, 78, 0.2))], farge: Color(0xFFF2C14E)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFF3C9))], farge: Color(0xFF4A300A)));
 
-/// (top)×5 · «Tortillas ×12»
+/// (agForslag)×4, (hjDor) · «Tortillas ×12»
 /// dark: color:rgba(255,255,255,.9)
 /// light: color:var(--lys-sekundar)
 const MkStil mk3w = MkStil('mk3w', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.9)), light: MkVerdi(farge: Color(0xFF4B5E64)));
 
-/// (top) · «+2»
+/// (agForslag) · «+2»
 /// dark: border-radius:15px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.75)
 /// light: border-radius:15px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);color:var(--lys-sekundar)
 const MkStil mk3x = MkStil('mk3x', dark: MkVerdi(radius: 15.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.16)), farge: Color.fromRGBO(255, 255, 255, 0.75)), light: MkVerdi(radius: 15.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF4B5E64)));
 
-/// (top)×2 · «Derfor: {{ agDerfor }}»
+/// (agForslag), (hjMangler) · «Derfor: {{ agDerfor }}»
 /// dark: background:rgba(92,224,184,.12);color:#9FEBD5
 /// light: background:var(--lys-mint-dis);color:var(--lys-mint-tekst)
 const MkStil mk3y = MkStil('mk3y', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.12))], farge: Color(0xFF9FEBD5)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], farge: Color(0xFF046850)));
 
-/// (top) · «Bytt butikk»
+/// (agForslag) · «Bytt butikk»
 /// dark: border-radius:15px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.26);color:#FFFFFF
 /// light: border-radius:15px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);box-shadow:none;color:var(--lys-tittel)
 const MkStil mk3z = MkStil('mk3z', dark: MkVerdi(radius: 15.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.12))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.26))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 15.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[], farge: Color(0xFF03313C)));
@@ -805,7 +805,7 @@ const MkStil mk4d = MkStil('mk4d', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: stroke:#4A300A
 const MkStil mk4e = MkStil('mk4e', dark: null, light: MkVerdi(strek: Color(0xFF4A300A)));
 
-/// Ægil vet · Min Bio×2, Søk · Nylige søk, (top) · «<svg>»
+/// Ægil vet · Min Bio×2, Søk · Nylige søk, (vsAapent) · «<svg>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.55)
 const MkStil mk4f = MkStil('mk4f', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.55)));
@@ -830,12 +830,12 @@ const MkStil mk4i = MkStil('mk4i', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssRa
 /// light: border-radius:999px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);color:var(--lys-tittel)
 const MkStil mk4j = MkStil('mk4j', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF03313C)));
 
-/// (top)×5 · «{{ c.t }} Hopp over +{{ obPoeng }} Ægil-poeng Neste»
+/// (agOb1), (agOb2), (agOb3) · «{{ c.t }} Hopp over +{{ obPoeng }} Ægil-poeng Neste»
 /// dark: border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 18px 28px -22px rgba(4,18,26,.85);color:#FFFFFF
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge);color:var(--lys-brod)
 const MkStil mk4k = MkStil('mk4k', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.05)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.16)), skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.18)), CssShadow(0, 18.0, 28.0, -22.0, Color.fromRGBO(4, 18, 26, 0.85))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF142226)));
 
-/// (top) · «Rolige timer 21:00–08:00. Da er jeg stille.»
+/// (agOb5) · «Rolige timer 21:00–08:00. Da er jeg stille.»
 /// dark: background:rgba(0,0,0,.18);box-shadow:inset 0 1px 3px rgba(0,0,0,.3);color:#CFEFE6
 /// light: background:var(--lys-dis);box-shadow:none;color:var(--lys-sekundar)
 const MkStil mk4l = MkStil('mk4l', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.18))], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 3.0, 0, Color.fromRGBO(0, 0, 0, 0.3))], farge: Color(0xFFCFEFE6)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[], farge: Color(0xFF4B5E64)));
@@ -870,27 +870,27 @@ const MkStil mk4q = MkStil('mk4q', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssS
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);color:var(--lys-tittel)
 const MkStil mk4r = MkStil('mk4r', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF03313C)));
 
-/// (top) · «{{ c.tekst }}»
+/// (agHarChips) · «{{ c.tekst }}»
 /// dark: border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 12px 20px -14px rgba(4,18,26,.8);color:#FFFFFF
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none;color:var(--lys-tittel)
 const MkStil mk4s = MkStil('mk4s', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.24)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 12.0, 20.0, -14.0, Color.fromRGBO(4, 18, 26, 0.8))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[], farge: Color(0xFF03313C)));
 
-/// (top) · «Dette høres ut som et ærend Spør Ægil: «{{ sokTekst }}» Kurv med lever»
+/// (erSok) · «Dette høres ut som et ærend Spør Ægil: «{{ sokTekst }}» Kurv med lever»
 /// dark: background:linear-gradient(180deg,#22586A 0%,#1B4854 40%,#173E48 100%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.14),0 -16px 34px -18px rgba(4,18,26,.8)
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge);color:var(--lys-brod)
 const MkStil mk4t = MkStil('mk4t', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF22586A), Color(0xFF1B4854), Color(0xFF173E48)], [0, 0.4, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.14)), CssShadow(0, -16.0, 34.0, -18.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))], farge: Color(0xFF142226)));
 
-/// (top) · «Dette høres ut som et ærend Spør Ægil: «{{ sokTekst }}» Kurv med lever»
+/// (sokOnske) · «Dette høres ut som et ærend Spør Ægil: «{{ sokTekst }}» Kurv med lever»
 /// dark: background:linear-gradient(160deg,#2A6272,#1E4F5C 60%,#173E48);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 20px 34px -16px rgba(30,79,92,.75)
 /// light: background:var(--lys-mint-dis);box-shadow:none
 const MkStil mk4u = MkStil('mk4u', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.6, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.25)), CssShadow(0, 20.0, 34.0, -16.0, Color.fromRGBO(30, 79, 92, 0.75))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[]));
 
-/// (top) · «<div>»
+/// (sokOnske) · «<div>»
 /// dark: border-radius:16px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25)
 /// light: border-radius:16px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge)
 const MkStil mk4v = MkStil('mk4v', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.14))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.25))), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09))));
 
-/// (top)×2 · «Kurv med levering på under 20 sekunder — du betaler selv»
+/// (sokOnske), (vsOrdreAktiv) · «Kurv med levering på under 20 sekunder — du betaler selv»
 /// dark: color:#B9CBD5
 /// light: color:var(--lys-dempet)
 const MkStil mk4w = MkStil('mk4w', dark: MkVerdi(farge: Color(0xFFB9CBD5)), light: MkVerdi(farge: Color(0xFF627276)));
@@ -910,17 +910,17 @@ const MkStil mk4y = MkStil('mk4y', dark: MkVerdi(rund: true, bg: <CssBg>[CssSoli
 /// light: background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);border-radius:22px;box-shadow:var(--lys-kortskygge)
 const MkStil mk4z = MkStil('mk4z', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2)), radius: 22.0, skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 14.0, 24.0, -16.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), radius: 22.0, skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «SPØR ÆGIL Sammenlikn «{{ sokTekst }}» på pris og levering»
+/// (sokVanlig) · «SPØR ÆGIL Sammenlikn «{{ sokTekst }}» på pris og levering»
 /// dark: border-radius:20px;background:linear-gradient(160deg,#2A6272,#1E4F5C 60%,#173E48);border:1.5px solid rgba(92,224,184,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 4px rgba(92,224,184,.1),0 14px 24px -14px rgba(30,79,92,.7)
 /// light: border-radius:20px;background:var(--lys-mint-dis);border:1.5px solid rgba(11,107,87,.25);box-shadow:none
 const MkStil mk50 = MkStil('mk50', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssLinear(160.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.6, 1.0])], kant: MkKant(1.5, Color.fromRGBO(92, 224, 184, 0.45)), skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.25)), CssShadow(0, 0, 0, 4.0, Color.fromRGBO(92, 224, 184, 0.1)), CssShadow(0, 14.0, 24.0, -14.0, Color.fromRGBO(30, 79, 92, 0.7))]), light: MkVerdi(radius: 20.0, bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], kant: MkKant(1.5, Color.fromRGBO(11, 107, 87, 0.25)), skygge: <CssShadow>[]));
 
-/// (top), Poeng · «<span>»
+/// (sokVanlig), Poeng · «<span>»
 /// dark: background:rgba(92,224,184,.14);color:#5CE0B8
 /// light: background:var(--lys-mint-dis);color:var(--lys-mint-tekst)
 const MkStil mk51 = MkStil('mk51', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.14))], farge: Color(0xFF5CE0B8)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], farge: Color(0xFF046850)));
 
-/// Søk · Nylige søk, (top) · «Tøm»
+/// Søk · Nylige søk, (visPromo) · «Tøm»
 /// dark: color:#9FE0C8
 /// light: color:var(--lys-mint-tekst)
 const MkStil mk52 = MkStil('mk52', dark: MkVerdi(farge: Color(0xFF9FE0C8)), light: MkVerdi(farge: Color(0xFF046850)));
@@ -960,97 +960,97 @@ const MkStil mk58 = MkStil('mk58', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: color:var(--lys-gull-tekst)
 const MkStil mk59 = MkStil('mk59', dark: MkVerdi(farge: Color(0xFFE9B27A)), light: MkVerdi(farge: Color(0xFF4A300A)));
 
-/// (top) · «Feed 2 Fjordfiske Forundringspose»
+/// (erUtforsk) · «Feed 2 Fjordfiske Forundringspose»
 /// dark: border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 2px 4px rgba(0,0,0,.35)
 /// light: border-radius:999px;background:var(--lys-dis-ull);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mk5a = MkStil('mk5a', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.28))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.12)), skygge: <CssShadow>[CssShadow.inset(0, 2.0, 4.0, 0, Color.fromRGBO(0, 0, 0, 0.35))]), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.07))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «<span>»
+/// (erUtforsk) · «<span>»
 /// dark: background:linear-gradient(180deg,#F9A273,#F26D3D 56%,#DD5A25);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 4px 10px -4px rgba(242,109,61,.9)
 /// light: background:var(--lys-fjord-fyll);box-shadow:0 4px 8px -5px rgba(23,62,72,.5);color:#FFFFFF
 const MkStil mk5b = MkStil('mk5b', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, 0.56, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.4)), CssShadow(0, 4.0, 10.0, -4.0, Color.fromRGBO(242, 109, 61, 0.9))]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF235E6D), Color(0xFF124A58)])], skygge: <CssShadow>[CssShadow(0, 4.0, 8.0, -5.0, Color.fromRGBO(23, 62, 72, 0.5))], farge: Color(0xFFFFFFFF)));
 
-/// (top) · «<span>»
+/// (s.nytt) · «<span>»
 /// dark: border-radius:999px;border:2.5px solid #12333D
 /// light: border-radius:999px;border:2.5px solid var(--lys-ull)
 const MkStil mk5c = MkStil('mk5c', dark: MkVerdi(radius: 999.0, kant: MkKant(2.5, Color(0xFF12333D))), light: MkVerdi(radius: 999.0, kant: MkKant(2.5, Color(0xFFF7FBFD))));
 
-/// (top) · «{{ filterNavn }}»
+/// (filterPa) · «{{ filterNavn }}»
 /// dark: background:rgba(92,224,184,.16);color:#5CE0B8
 /// light: background:var(--lys-mint-dis);color:var(--lys-mint-tekst)
 const MkStil mk5d = MkStil('mk5d', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.16))], farge: Color(0xFF5CE0B8)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], farge: Color(0xFF046850)));
 
-/// (top) · «Ærend · Drift Festet til 20:00 Mye regn i kveld — vi legger 5 min på a»
+/// (visDrift) · «Ærend · Drift Festet til 20:00 Mye regn i kveld — vi legger 5 min på a»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.1),0 4px 0 rgba(8,28,36,.45),0 18px 24px -16px rgba(3,14,20,.8)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)
 const MkStil mk5e = MkStil('mk5e', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.05)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1)), CssShadow(0, 4.0, 0, 0, Color.fromRGBO(8, 28, 36, 0.45)), CssShadow(0, 18.0, 24.0, -16.0, Color.fromRGBO(3, 14, 20, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «<span>»
+/// (visDrift) · «<span>»
 /// dark: background:linear-gradient(160deg,#3F8798 0%,#27606F 52%,#1A4654 100%);color:#F5F3EF;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32),inset 0 -3px 5px rgba(4,20,28,.42),0 0 0 1px rgba(255,255,255,.07),0 8px 10px -6px rgba(3,16,24,.8)
 /// light: background:var(--lys-dis);color:var(--lys-brod);box-shadow:none
 const MkStil mk5f = MkStil('mk5f', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, 0.52, 1.0])], farge: Color(0xFFF5F3EF), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow.inset(0, -3.0, 5.0, 0, Color.fromRGBO(4, 20, 28, 0.42)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.07)), CssShadow(0, 8.0, 10.0, -6.0, Color.fromRGBO(3, 16, 24, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], farge: Color(0xFF142226), skygge: <CssShadow>[]));
 
-/// (top) · «Festet til 20:00»
+/// (visDrift) · «Festet til 20:00»
 /// dark: background:rgba(242,193,78,.22);color:#F2C14E
 /// light: background:var(--lys-gull-dis);color:var(--lys-gull-tekst)
 const MkStil mk5g = MkStil('mk5g', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(242, 193, 78, 0.22))], farge: Color(0xFFF2C14E)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFF3C9))], farge: Color(0xFF4A300A)));
 
-/// (top) · «Bilde fra {{ p.butikk }} {{ p.butikk }} {{ p.meta }} {{ p.ftx }} {{ p.»
+/// (utfFeed) · «Bilde fra {{ p.butikk }} {{ p.butikk }} {{ p.meta }} {{ p.ftx }} {{ p.»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.1),0 5px 0 rgba(8,28,36,.45),0 26px 30px -18px rgba(3,14,20,.85)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)
 const MkStil mk5h = MkStil('mk5h', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.05)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1)), CssShadow(0, 5.0, 0, 0, Color.fromRGBO(8, 28, 36, 0.45)), CssShadow(0, 26.0, 30.0, -18.0, Color.fromRGBO(3, 14, 20, 0.85))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «<path>»
+/// (utfFeed) · «<path>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.75)
 const MkStil mk5i = MkStil('mk5i', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.75)));
 
-/// (top) · «Del»
+/// (utfFeed) · «Del»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.07));box-shadow:inset 0 1px 0 rgba(255,255,255,.32),inset 0 0 0 1px rgba(255,255,255,.12),0 2.5px 0 rgba(6,22,30,.5),0 8px 12px -8px rgba(3,16,24,.8)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk5j = MkStil('mk5j', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.2), Color.fromRGBO(255, 255, 255, 0.07)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(6, 22, 30, 0.5)), CssShadow(0, 8.0, 12.0, -8.0, Color.fromRGBO(3, 16, 24, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top) · «{{ p.merke }}»
+/// (utfFeed) · «{{ p.merke }}»
 /// dark: background:linear-gradient(180deg,rgba(92,224,184,.22),rgba(92,224,184,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 0 1px rgba(92,224,184,.32),0 2.5px 0 rgba(4,18,26,.42);color:#7FF0CB
 /// light: background:var(--lys-mint-dis);box-shadow:none;color:var(--lys-mint-tekst)
 const MkStil mk5k = MkStil('mk5k', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(92, 224, 184, 0.22), Color.fromRGBO(92, 224, 184, 0.08)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.24)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(92, 224, 184, 0.32)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 18, 26, 0.42))], farge: Color(0xFF7FF0CB)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[], farge: Color(0xFF046850)));
 
-/// (top)×2 · «<svg>»
+/// (utfFeed), (naHarForslag) · «<svg>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.5)
 const MkStil mk5l = MkStil('mk5l', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.5)));
 
-/// (top) · «{{ p.hint }}»
+/// (p.hint) · «{{ p.hint }}»
 /// dark: color:#9FE8CF
 /// light: color:var(--lys-mint-tekst)
 const MkStil mk5m = MkStil('mk5m', dark: MkVerdi(farge: Color(0xFF9FE8CF)), light: MkVerdi(farge: Color(0xFF046850)));
 
-/// (top) · «{{ p.pris }} {{ p.status }} {{ p.ctaTx }}»
+/// (utfFeed) · «{{ p.pris }} {{ p.status }} {{ p.ctaTx }}»
 /// dark: background:linear-gradient(180deg,rgba(4,18,26,.24),rgba(4,18,26,.1));box-shadow:inset 0 2px 5px rgba(0,0,0,.2),inset 0 0 0 1px rgba(255,255,255,.06),0 1px 0 rgba(255,255,255,.1)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk5n = MkStil('mk5n', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(4, 18, 26, 0.24), Color.fromRGBO(4, 18, 26, 0.1)])], skygge: <CssShadow>[CssShadow.inset(0, 2.0, 5.0, 0, Color.fromRGBO(0, 0, 0, 0.2)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.06)), CssShadow(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.1))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×4 · «{{ p.status }}»
+/// (utfFeed), (visPromo), (vsAapent) · «{{ p.status }}»
 /// dark: color:#9FD3DE
 /// light: color:var(--lys-sekundar)
 const MkStil mk5o = MkStil('mk5o', dark: MkVerdi(farge: Color(0xFF9FD3DE)), light: MkVerdi(farge: Color(0xFF4B5E64)));
 
-/// (top) · «{{ tomTittel }} {{ tomTekst }} {{ tomCta }}»
+/// (ingenPoster) · «{{ tomTittel }} {{ tomTekst }} {{ tomCta }}»
 /// dark: border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 24px 40px -22px rgba(4,18,26,.85)
 /// light: border-radius:24px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk5p = MkStil('mk5p', dark: MkVerdi(radius: 24.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 24.0, 40.0, -22.0, Color.fromRGBO(4, 18, 26, 0.85))]), light: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «FORUNDRINGSPOSE · GRØNT & GODT 99 kr · verdi minst 250 kr Uten nøtter »
+/// (visPromo) · «FORUNDRINGSPOSE · GRØNT & GODT 99 kr · verdi minst 250 kr Uten nøtter »
 /// dark: border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 24px 40px -22px rgba(4,18,26,.85)
 /// light: border-radius:20px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk5q = MkStil('mk5q', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 24.0, 40.0, -22.0, Color.fromRGBO(4, 18, 26, 0.85))]), light: MkVerdi(radius: 20.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «{{ utfIgjenTx }}»
+/// (utfPose) · «{{ utfIgjenTx }}»
 /// dark: background:linear-gradient(180deg,rgba(255,148,102,.3),rgba(233,92,44,.16));box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 1px rgba(255,148,102,.45);color:#FFD2BC
 /// light: background:var(--lys-glod-dis);box-shadow:none;color:var(--lys-glod-tekst)
 const MkStil mk5r = MkStil('mk5r', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 148, 102, 0.3), Color.fromRGBO(233, 92, 44, 0.16)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.25)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 148, 102, 0.45))], farge: Color(0xFFFFD2BC)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFEAE1))], skygge: <CssShadow>[], farge: Color(0xFFA63B0E)));
 
-/// (top) · «<span>»
+/// (utfPose) · «<span>»
 /// dark: —
 /// light: color:#FFD2BC
 const MkStil mk5s = MkStil('mk5s', dark: null, light: MkVerdi(farge: Color(0xFFFFD2BC)));
@@ -1060,32 +1060,32 @@ const MkStil mk5s = MkStil('mk5s', dark: null, light: MkVerdi(farge: Color(0xFFF
 /// light: background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.06)),linear-gradient(180deg,#22586A,#1B4854)
 const MkStil mk5t = MkStil('mk5t', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.15), Color.fromRGBO(255, 255, 255, 0.06)])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.15), Color.fromRGBO(255, 255, 255, 0.06)]), CssLinear(180.0, [Color(0xFF22586A), Color(0xFF1B4854)])]));
 
-/// (top) · «{{ katApne }} åpne nå · Bergen {{ katNavn }} {{ katNavn }} {{ katUnder»
+/// (erKategori) · «{{ katApne }} åpne nå · Bergen {{ katNavn }} {{ katNavn }} {{ katUnder»
 /// dark: background:radial-gradient(80% 50% at 14% 0%,rgba(255,255,255,.2),rgba(255,255,255,0) 60%),linear-gradient(180deg,#2A6272 0%,#1E4F5C 42%,#173E48 100%)
 /// light: background:var(--lys-ull);color:var(--lys-brod)
 const MkStil mk5u = MkStil('mk5u', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.2), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.14, cy: 0, rx: 0.8, ry: 0.5), CssLinear(180.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.42, 1.0])]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], farge: Color(0xFF142226)));
 
-/// (top) · «<div>»
+/// (erKategori) · «<div>»
 /// dark: --v0:rgba(30,79,92,0)
 /// light: color:#FFFFFF;--v0:rgba(247,251,253,0)
 const MkStil mk5v = MkStil('mk5v', dark: MkVerdi(v0: <CssShadow>[CssShadow(0, 0, 0, 0, Color.fromRGBO(30, 79, 92, 0))]), light: MkVerdi(farge: Color(0xFFFFFFFF), v0: <CssShadow>[CssShadow(0, 0, 0, 0, Color.fromRGBO(247, 251, 253, 0))]));
 
-/// (top) · «<div>»
+/// (erKategori) · «<div>»
 /// dark: border-radius:15px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.34),0 12px 22px -12px rgba(4,18,26,.8)
 /// light: border-radius:15px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mk5w = MkStil('mk5w', dark: MkVerdi(radius: 15.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.34)), CssShadow(0, 12.0, 22.0, -12.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(radius: 15.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «{{ katApne }} åpne nå · Bergen»
+/// (erKategori) · «{{ katApne }} åpne nå · Bergen»
 /// dark: border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.34),0 8px 14px -10px rgba(4,18,26,.8);color:#FFFFFF
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none;color:var(--lys-tittel)
 const MkStil mk5x = MkStil('mk5x', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.34)), CssShadow(0, 8.0, 14.0, -10.0, Color.fromRGBO(4, 18, 26, 0.8))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[], farge: Color(0xFF03313C)));
 
-/// (top) · «{{ katNavn }}»
+/// (erKategori) · «{{ katNavn }}»
 /// dark: color:#FFFFFF;text-shadow:0 2px 12px rgba(4,18,26,.4)
 /// light: color:var(--lys-tittel);text-shadow:none
 const MkStil mk5y = MkStil('mk5y', dark: MkVerdi(farge: Color(0xFFFFFFFF), raa: {'text-shadow': '0 2px 12px rgba(4,18,26,.4)'}) /* TODO(mk2dart) text-shadow: 0 2px 12px rgba(4,18,26,.4) */, light: MkVerdi(farge: Color(0xFF03313C), raa: {'text-shadow': 'none'}) /* TODO(mk2dart) text-shadow: none */);
 
-/// (top) · «Butikker {{ katAntB }} Produkter {{ katAntP }}»
+/// (erKategori) · «Butikker {{ katAntB }} Produkter {{ katAntP }}»
 /// dark: border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 2px 4px rgba(0,0,0,.35)
 /// light: border-radius:999px;background:linear-gradient(180deg,#E2F0F5,#EEF7FA);border:1px solid rgba(31,82,95,.08);box-shadow:inset 0 2px 4px rgba(6,52,62,.10),inset 0 -1px 0 rgba(255,255,255,.9),0 1px 0 rgba(255,255,255,.95)
 const MkStil mk5z = MkStil('mk5z', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.28))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.12)), skygge: <CssShadow>[CssShadow.inset(0, 2.0, 4.0, 0, Color.fromRGBO(0, 0, 0, 0.35))]), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color(0xFFE2F0F5), Color(0xFFEEF7FA)])], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.08)), skygge: <CssShadow>[CssShadow.inset(0, 2.0, 4.0, 0, Color.fromRGBO(6, 52, 62, 0.1)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.9)), CssShadow(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.95))]));
@@ -1125,7 +1125,7 @@ const MkStil mk65 = MkStil('mk65', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [C
 /// light: border-radius:18px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk66 = MkStil('mk66', dark: MkVerdi(radius: 18.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.14))), light: MkVerdi(radius: 18.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// Meg-rader×3, Gaver-kategori, (top) · «{{ gkSitat }} — {{ gkHvem }}»
+/// Meg-rader×3, Gaver-kategori, (erMeg) · «{{ gkSitat }} — {{ gkHvem }}»
 /// dark: color:rgba(255,255,255,.82)
 /// light: color:var(--lys-sekundar)
 const MkStil mk67 = MkStil('mk67', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.82)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -1255,117 +1255,117 @@ const MkStil mk6v = MkStil('mk6v', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: stroke:#627276
 const MkStil mk6w = MkStil('mk6w', dark: null, light: MkVerdi(strek: Color(0xFF627276)));
 
-/// (top) · «Åpen nå Gratis levering Under 30 min Topprangert»
+/// (erKategori) · «Åpen nå Gratis levering Under 30 min Topprangert»
 /// dark: border-radius:999px;background:linear-gradient(180deg,#2B5F6E,#1E4F5C);border:1px solid rgba(255,255,255,.28);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 18px 30px -16px rgba(4,18,26,.9)
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk6x = MkStil('mk6x', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color(0xFF2B5F6E), Color(0xFF1E4F5C)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.28)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 18.0, 30.0, -16.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «<input>»
+/// (erKategori) · «<input>»
 /// dark: caret-color:#F26D3D
 /// light: caret-color:var(--lys-glod-tekst)
 const MkStil mk6y = MkStil('mk6y', dark: MkVerdi(markor: Color(0xFFF26D3D)), light: MkVerdi(markor: Color(0xFFA63B0E)));
 
-/// (top) · «<div>»
+/// (erKategori) · «<div>»
 /// dark: border-radius:22px;border:1px solid rgba(255,255,255,.3)
 /// light: border-radius:22px;border:1px solid var(--lys-kant-farge)
 const MkStil mk6z = MkStil('mk6z', dark: MkVerdi(radius: 22.0, kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.3))), light: MkVerdi(radius: 22.0, kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09))));
 
-/// (top)×2 · «Levering Henting ÆGIL Kurven er tom — skal vi finne noe i Bergen? Bla »
+/// (erKurv), (erMeg) · «Levering Henting ÆGIL Kurven er tom — skal vi finne noe i Bergen? Bla »
 /// dark: background:linear-gradient(180deg,#22586A,#1B4854 140px);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),inset 0 0 0 1px rgba(255,255,255,.14),0 -12px 18px -10px rgba(4,18,26,.6),0 -34px 52px -26px rgba(4,18,26,.7)
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge);color:var(--lys-brod)
 const MkStil mk70 = MkStil('mk70', dark: MkVerdi(skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.14)), CssShadow(0, -12.0, 18.0, -10.0, Color.fromRGBO(4, 18, 26, 0.6)), CssShadow(0, -34.0, 52.0, -26.0, Color.fromRGBO(4, 18, 26, 0.7))], raa: {'background': 'linear-gradient(180deg,#22586A,#1B4854 140px)'}) /* TODO(mk2dart) background: linear-gradient(180deg,#22586A,#1B4854 140px) */, light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))], farge: Color(0xFF142226)));
 
-/// (top) · «{{ l.ant }} ÆGIL Kurven er tom — skal vi finne noe i Bergen? Bla gjenn»
+/// (erKurv) · «{{ l.ant }} ÆGIL Kurven er tom — skal vi finne noe i Bergen? Bla gjenn»
 /// dark: border-radius:22px;border:1px solid rgba(255,255,255,.18)
 /// light: border-radius:22px;border:1px solid var(--lys-kant-farge)
 const MkStil mk71 = MkStil('mk71', dark: MkVerdi(radius: 22.0, kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.18))), light: MkVerdi(radius: 22.0, kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09))));
 
-/// (top) · «{{ l.navn }} {{ l.stk }} · {{ l.pris }} kr per stk. {{ l.sum }} kr {{ »
+/// (erKurv) · «{{ l.navn }} {{ l.stk }} · {{ l.pris }} kr per stk. {{ l.sum }} kr {{ »
 /// dark: border-bottom:1px solid rgba(255,255,255,.1)
 /// light: border-bottom:1px solid var(--lys-skille)
 const MkStil mk72 = MkStil('mk72', dark: MkVerdi(kantBunn: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.1))), light: MkVerdi(kantBunn: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.08))));
 
-/// (top)×4, Assistent · logg×3, Tilbudet ditt×2 · «kr»
+/// Assistent · logg×3, Tilbudet ditt×2, (erKurv) · «kr»
 /// dark: color:rgba(255,255,255,.5)
 /// light: color:var(--lys-dempet)
 const MkStil mk73 = MkStil('mk73', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.5)), light: MkVerdi(farge: Color(0xFF627276)));
 
-/// (top) · «{{ l.ant }}»
+/// (erKurv) · «{{ l.ant }}»
 /// dark: background:rgba(0,0,0,.2);box-shadow:inset 0 1px 3px rgba(0,0,0,.35),inset 0 -1px 0 rgba(255,255,255,.1)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk74 = MkStil('mk74', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.2))], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 3.0, 0, Color.fromRGBO(0, 0, 0, 0.35)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.1))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×2 · «Én mindre»
+/// (erKurv)×2 · «Én mindre»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.1));box-shadow:inset 0 1px 0 rgba(255,255,255,.3)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk75 = MkStil('mk75', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.2), Color.fromRGBO(255, 255, 255, 0.1)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.3))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «ÆGIL Kurven er tom — skal vi finne noe i Bergen?»
+/// (tomKurv) · «ÆGIL Kurven er tom — skal vi finne noe i Bergen?»
 /// dark: border-radius:18px 18px 18px 6px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32),0 16px 24px -14px rgba(4,18,26,.85)
 /// light: border-radius:18px 18px 18px 6px;background:var(--lys-mint-dis);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mk76 = MkStil('mk76', dark: MkVerdi(hjorner: [18.0, 18.0, 18.0, 6.0], bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.08)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.24)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow(0, 16.0, 24.0, -14.0, Color.fromRGBO(4, 18, 26, 0.85))]), light: MkVerdi(hjorner: [18.0, 18.0, 18.0, 6.0], bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «{{ s.navn }} {{ s.pris }} {{ s.foer }} {{ s.rabatt }}»
+/// (tomKurv) · «{{ s.navn }} {{ s.pris }} {{ s.foer }} {{ s.rabatt }}»
 /// dark: border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 14px 22px -14px rgba(4,18,26,.9)
 /// light: border-radius:18px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk77 = MkStil('mk77', dark: MkVerdi(radius: 18.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 14.0, 22.0, -14.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 18.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// Tilbud · grense×2, (top) · «{{ s.foer }}»
+/// Tilbud · grense×2, (tomKurv) · «{{ s.foer }}»
 /// dark: color:rgba(255,255,255,.45)
 /// light: color:var(--lys-dempet)
 const MkStil mk78 = MkStil('mk78', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.45)), light: MkVerdi(farge: Color(0xFF627276)));
 
-/// (top) · «{{ adrRadTittel }} {{ adrRadUnder }} Endre Se fullt kart {{ levTidNavn»
+/// (harKurv) · «{{ adrRadTittel }} {{ adrRadUnder }} Endre Se fullt kart {{ levTidNavn»
 /// dark: border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 18px 30px -18px rgba(4,18,26,.9)
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mk79 = MkStil('mk79', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.18)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 18.0, 30.0, -18.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top)×6, Handlekurv · betal · «<div>»
+/// (harKurv)×4, (hentValgAapen), (kFlere) · «<div>»
 /// dark: background:linear-gradient(160deg,#3F8798 0%,#27606F 52%,#1A4654 100%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32),inset 0 -3px 5px rgba(4,20,28,.42),0 0 0 1px rgba(255,255,255,.07),0 9px 12px -6px rgba(3,16,24,.8)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk7a = MkStil('mk7a', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, 0.52, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow.inset(0, -3.0, 5.0, 0, Color.fromRGBO(4, 20, 28, 0.42)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.07)), CssShadow(0, 9.0, 12.0, -6.0, Color.fromRGBO(3, 16, 24, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×5, Handlekurv · betal×2 · «Endre»
+/// (harKurv)×2, Handlekurv · betal×2, (erLevering) · «Endre»
 /// dark: color:#5CE0B8;background:linear-gradient(180deg,rgba(130,242,210,.3),rgba(92,224,184,.1));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32),inset 0 -2px 4px rgba(4,30,26,.32),0 0 0 1px rgba(92,224,184,.38),0 9px 12px -7px rgba(3,16,24,.85)
 /// light: color:var(--lys-mint-tekst);background:var(--lys-mint-dis);box-shadow:none
 const MkStil mk7b = MkStil('mk7b', dark: MkVerdi(farge: Color(0xFF5CE0B8), bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(130, 242, 210, 0.3), Color.fromRGBO(92, 224, 184, 0.1)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow.inset(0, -2.0, 4.0, 0, Color.fromRGBO(4, 30, 26, 0.32)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(92, 224, 184, 0.38)), CssShadow(0, 9.0, 12.0, -7.0, Color.fromRGBO(3, 16, 24, 0.85))]), light: MkVerdi(farge: Color(0xFF046850), bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[]));
 
-/// (top) · «<span>»
+/// (harKurv) · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(130,242,210,.3),rgba(92,224,184,.1));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32),inset 0 -2px 4px rgba(4,30,26,.32),0 0 0 1px rgba(92,224,184,.38),0 9px 12px -7px rgba(3,16,24,.85)
 /// light: background:var(--lys-mint-dis);box-shadow:none
 const MkStil mk7c = MkStil('mk7c', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(130, 242, 210, 0.3), Color.fromRGBO(92, 224, 184, 0.1)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow.inset(0, -2.0, 4.0, 0, Color.fromRGBO(4, 30, 26, 0.32)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(92, 224, 184, 0.38)), CssShadow(0, 9.0, 12.0, -7.0, Color.fromRGBO(3, 16, 24, 0.85))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[]));
 
-/// (top)×2 · «Beskjed til butikken {{ bkUnder }} {{ c.tx }} Hentetid Butikken pakker»
+/// (hentValgAapen), (kFlere) · «Beskjed til butikken {{ bkUnder }} {{ c.tx }} Hentetid Butikken pakker»
 /// dark: border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 18px 30px -18px rgba(4,18,26,.9)
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk7d = MkStil('mk7d', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.18)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 18.0, 30.0, -18.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «Tøm beskjed»
+/// (hentHarBeskjed) · «Tøm beskjed»
 /// dark: background:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 0 0 1px rgba(255,255,255,.1)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk7e = MkStil('mk7e', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.18)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top) · «<svg>»
+/// (hentHarBeskjed) · «<svg>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.8)
 const MkStil mk7f = MkStil('mk7f', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.8)));
 
-/// (top)×2 · «{{ h.tx }}»
+/// (bkErHent), (kFlere) · «{{ h.tx }}»
 /// dark: background:rgba(0,0,0,.22);box-shadow:inset 0 1px 3px rgba(0,0,0,.35),inset 0 -1px 0 rgba(255,255,255,.1)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk7g = MkStil('mk7g', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.22))], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 3.0, 0, Color.fromRGBO(0, 0, 0, 0.35)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.1))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×2 · «<span>»
+/// (bkErHent), (kFlere) · «<span>»
 /// dark: background:linear-gradient(180deg,#FFFFFF,#E9EEED);box-shadow:inset 0 -3px 6px rgba(30,79,92,.14),0 6px 10px -6px rgba(0,10,14,.7)
 /// light: background:var(--lys-fjord-fyll);box-shadow:0 4px 8px -5px rgba(23,62,72,.5)
 const MkStil mk7h = MkStil('mk7h', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFFFFFFF), Color(0xFFE9EEED)])], skygge: <CssShadow>[CssShadow.inset(0, -3.0, 6.0, 0, Color.fromRGBO(30, 79, 92, 0.14)), CssShadow(0, 6.0, 10.0, -6.0, Color.fromRGBO(0, 10, 14, 0.7))]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF235E6D), Color(0xFF124A58)])], skygge: <CssShadow>[CssShadow(0, 4.0, 8.0, -5.0, Color.fromRGBO(23, 62, 72, 0.5))]));
 
-/// (top) · «{{ hentKvittering }}»
+/// (bkVisKvitt) · «{{ hentKvittering }}»
 /// dark: background:rgba(92,224,184,.1);box-shadow:inset 0 0 0 1px rgba(92,224,184,.22);color:#BFF3E2
 /// light: background:var(--lys-mint-dis);box-shadow:none;color:var(--lys-mint-tekst)
 const MkStil mk7i = MkStil('mk7i', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.1))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(92, 224, 184, 0.22))], farge: Color(0xFFBFF3E2)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[], farge: Color(0xFF046850)));
 
-/// (top) · «KVITTERING {{ varerLinje }} Varer {{ subtotal }} kr {{ fraktRadTx }} {»
+/// (harKurv) · «KVITTERING {{ varerLinje }} Varer {{ subtotal }} kr {{ fraktRadTx }} {»
 /// dark: filter:drop-shadow(0 20px 16px rgba(3,16,24,.42)) drop-shadow(0 2px 2px rgba(3,16,24,.28))
 /// light: filter:drop-shadow(0 14px 14px rgba(23,62,72,.18)) drop-shadow(0 1px 2px rgba(23,62,72,.14))
 const MkStil mk7j = MkStil('mk7j', dark: MkVerdi(raa: {'filter': 'drop-shadow(0 20px 16px rgba(3,16,24,.42)) drop-shadow(0 2px 2px rgba(3,16,24,.28))'}) /* TODO(mk2dart) filter: drop-shadow(0 20px 16px rgba(3,16,24,.42)) drop-shadow(0 2px 2px rgba(3,16,24,.28)) */, light: MkVerdi(raa: {'filter': 'drop-shadow(0 14px 14px rgba(23,62,72,.18)) drop-shadow(0 1px 2px rgba(23,62,72,.14))'}) /* TODO(mk2dart) filter: drop-shadow(0 14px 14px rgba(23,62,72,.18)) drop-shadow(0 1px 2px rgba(23,62,72,.14)) */);
@@ -1455,32 +1455,32 @@ const MkStil mk7z = MkStil('mk7z', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk80 = MkStil('mk80', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.3))], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 3.0, 0, Color.fromRGBO(35, 32, 29, 0.22))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// Meg-rader, (top) · «Nivå · {{ nivNavn }} Nivået påvirkes aldri av at du bruker poeng {{ ni»
+/// Meg-rader, (erMeg) · «Nivå · {{ nivNavn }} Nivået påvirkes aldri av at du bruker poeng {{ ni»
 /// dark: border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 18px 32px -18px rgba(4,18,26,.9)
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mk81 = MkStil('mk81', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.18)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 18.0, 32.0, -18.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top)×3, Meg-rader×2 · «Nivå · {{ nivNavn }} Nivået påvirkes aldri av at du bruker poeng {{ ni»
+/// (erMeg)×3, Meg-rader×2 · «Nivå · {{ nivNavn }} Nivået påvirkes aldri av at du bruker poeng {{ ni»
 /// dark: border-bottom:1px solid rgba(255,255,255,.12)
 /// light: border-bottom:1px solid var(--lys-skille)
 const MkStil mk82 = MkStil('mk82', dark: MkVerdi(kantBunn: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.12))), light: MkVerdi(kantBunn: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.08))));
 
-/// (top)×4, Meg-rader×2 · «<svg>»
+/// (erMeg)×4, Meg-rader×2 · «<svg>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.85)
 const MkStil mk83 = MkStil('mk83', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.85)));
 
-/// (top) · «<span>»
+/// (erMeg) · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.26),rgba(255,255,255,.12));box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 3px -1px rgba(35,32,29,.18),0 6px 12px -8px rgba(35,32,29,.35)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk84 = MkStil('mk84', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.26), Color.fromRGBO(255, 255, 255, 0.12)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.35)), CssShadow(0, 2.0, 3.0, -1.0, Color.fromRGBO(35, 32, 29, 0.18)), CssShadow(0, 6.0, 12.0, -8.0, Color.fromRGBO(35, 32, 29, 0.35))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×3 · «<span>»
+/// (erMeg)×3 · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));box-shadow:0 2px 3px -1px rgba(35,32,29,.14),0 8px 14px -8px rgba(90,60,30,.5)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mk85 = MkStil('mk85', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow(0, 2.0, 3.0, -1.0, Color.fromRGBO(35, 32, 29, 0.14)), CssShadow(0, 8.0, 14.0, -8.0, Color.fromRGBO(90, 60, 30, 0.5))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top)×3, Premiehylla, Ordre · kvittering · «{{ favAntall }}»
+/// (infoT)×2, (erMeg), Premiehylla · «{{ favAntall }}»
 /// dark: color:rgba(255,255,255,.8)
 /// light: color:var(--lys-sekundar)
 const MkStil mk86 = MkStil('mk86', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.8)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -1555,7 +1555,7 @@ const MkStil mk8j = MkStil('mk8j', dark: MkVerdi(kantTopp: MkKant(1.5, Color.fro
 /// light: background:var(--lys-dis)
 const MkStil mk8k = MkStil('mk8k', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.3))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))]));
 
-/// Premiehylla×2, (top) · «{{ m.stegTx }}»
+/// Premiehylla×2, (phKrevVis) · «{{ m.stegTx }}»
 /// dark: color:#F7D57E
 /// light: color:var(--lys-gull-tekst)
 const MkStil mk8l = MkStil('mk8l', dark: MkVerdi(farge: Color(0xFFF7D57E)), light: MkVerdi(farge: Color(0xFF4A300A)));
@@ -1705,7 +1705,7 @@ const MkStil mk9d = MkStil('mk9d', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [C
 /// light: color:var(--lys-gull-tekst)
 const MkStil mk9e = MkStil('mk9e', dark: MkVerdi(farge: Color(0xFFFFE08A)), light: MkVerdi(farge: Color(0xFF4A300A)));
 
-/// (top)×8, Utsolgt · forslag×2, Ring {{ kontaktRolle }} · «{{ aiTbByttUnder }}»
+/// (infoM)×4, Utsolgt · forslag×2, (infoT) · «{{ aiTbByttUnder }}»
 /// dark: color:rgba(255,255,255,.65)
 /// light: color:var(--lys-sekundar)
 const MkStil mk9f = MkStil('mk9f', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.65)), light: MkVerdi(farge: Color(0xFF4B5E64)));
@@ -1735,7 +1735,7 @@ const MkStil mk9j = MkStil('mk9j', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.from
 /// light: background:var(--lys-gull-dis);color:var(--lys-gull-tekst)
 const MkStil mk9k = MkStil('mk9k', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(245, 196, 81, 0.18))], farge: Color(0xFFFFE08A)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFF3C9))], farge: Color(0xFF4A300A)));
 
-/// (top)×7, Tilbud · grense×2, Dørbeskjed · «<div>»
+/// (hjHarOrdre)×5, Tilbud · grense×2, Dørbeskjed · «<div>»
 /// dark: background:rgba(255,255,255,.12)
 /// light: background:var(--lys-dis)
 const MkStil mk9l = MkStil('mk9l', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.12))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))]));
@@ -1760,7 +1760,7 @@ const MkStil mk9o = MkStil('mk9o', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssLi
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mk9p = MkStil('mk9p', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, 0.52, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32)), CssShadow.inset(0, -3.0, 5.0, 0, Color.fromRGBO(4, 20, 28, 0.42)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.07)), CssShadow(0, 9.0, 12.0, -6.0, Color.fromRGBO(3, 16, 24, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top)×6, Handlekurv · betal · «<svg>»
+/// (hjHarOrdre)×3, (hjSupport)×2, Handlekurv · betal · «<svg>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.6)
 const MkStil mk9q = MkStil('mk9q', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.6)));
@@ -1785,47 +1785,47 @@ const MkStil mk9t = MkStil('mk9t', dark: MkVerdi(radius: 8.0, bg: <CssBg>[CssSol
 /// light: border-radius:999px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);color:var(--lys-sekundar)
 const MkStil mk9u = MkStil('mk9u', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.16)), farge: Color(0xFFDCE9EC)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF4B5E64)));
 
-/// (top)×2 · «Bergenhus · i dag Nytt fra butikkene for 12 min Sandviken Bakeri Berge»
+/// (erFeed), (erKonto) · «Bergenhus · i dag Nytt fra butikkene for 12 min Sandviken Bakeri Berge»
 /// dark: background:radial-gradient(80% 50% at 14% 0%,rgba(255,255,255,.22),rgba(255,255,255,0) 60%),linear-gradient(180deg,#2A6272 0%,#1E4F5C 42%,#173E48 100%)
 /// light: background:var(--lys-ull)
 const MkStil mk9v = MkStil('mk9v', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.22), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.14, cy: 0, rx: 0.8, ry: 0.5), CssLinear(180.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.42, 1.0])]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))]));
 
-/// (top)×2 · «<div>»
+/// (erFeed), (erKonto) · «<div>»
 /// dark: background:radial-gradient(circle, rgba(242,193,78,.3), rgba(242,193,78,0) 68%)
 /// light: background:radial-gradient(circle, rgba(242,193,78,0), rgba(242,193,78,0) 68%)
 const MkStil mk9w = MkStil('mk9w', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(242, 193, 78, 0.3), Color.fromRGBO(242, 193, 78, 0)], stops: [0, 0.68], farthestCorner: true, circle: true)]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(242, 193, 78, 0), Color.fromRGBO(242, 193, 78, 0)], stops: [0, 0.68], farthestCorner: true, circle: true)]));
 
-/// (top)×2 · «<div>»
+/// (erFeed), (erKonto) · «<div>»
 /// dark: background:radial-gradient(circle, rgba(58,125,140,.26), rgba(58,125,140,0) 68%)
 /// light: background:radial-gradient(circle, rgba(58,125,140,0), rgba(58,125,140,0) 68%)
 const MkStil mk9x = MkStil('mk9x', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(58, 125, 140, 0.26), Color.fromRGBO(58, 125, 140, 0)], stops: [0, 0.68], farthestCorner: true, circle: true)]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(58, 125, 140, 0), Color.fromRGBO(58, 125, 140, 0)], stops: [0, 0.68], farthestCorner: true, circle: true)]));
 
-/// (top) · «for 12 min Sandviken Bakeri Bergensk Kanelbollene går ut døra kl. 19 —»
+/// (erFeed) · «for 12 min Sandviken Bakeri Bergensk Kanelbollene går ut døra kl. 19 —»
 /// dark: border-radius:24px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 18px 30px -18px rgba(120,80,20,.5)
 /// light: border-radius:24px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mk9y = MkStil('mk9y', dark: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.62))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.9)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, 18.0, 30.0, -18.0, Color.fromRGBO(120, 80, 20, 0.5))]), light: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top)×2 · «Bergensk»
+/// (erFeed)×2 · «Bergensk»
 /// dark: background:rgba(242,193,78,.18);color:#23201D
 /// light: background:var(--lys-gull-dis);color:var(--lys-gull-tekst)
 const MkStil mk9z = MkStil('mk9z', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(242, 193, 78, 0.18))], farge: Color(0xFF23201D)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFF3C9))], farge: Color(0xFF4A300A)));
 
-/// (top)×2 · «Bestill · 89 kr»
+/// (erFeed)×2 · «Bestill · 89 kr»
 /// dark: color:#23201D
 /// light: color:#FFFFFF
 const MkStil mka0 = MkStil('mka0', dark: MkVerdi(farge: Color(0xFF23201D)), light: MkVerdi(farge: Color(0xFFFFFFFF)));
 
-/// (top) · «for 1 t Nordnes Fisk Bergensk Dagens fangst: skrei fra Lofoten kom i m»
+/// (erFeed) · «for 1 t Nordnes Fisk Bergensk Dagens fangst: skrei fra Lofoten kom i m»
 /// dark: border-radius:24px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 18px 30px -18px rgba(30,79,92,.5)
 /// light: border-radius:24px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mka1 = MkStil('mka1', dark: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.62))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.9)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, 18.0, 30.0, -18.0, Color.fromRGBO(30, 79, 92, 0.5))]), light: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «Strandgaten studio i går Ullgenseren «Vestland» er tilbake i alle stør»
+/// (erFeed) · «Strandgaten studio i går Ullgenseren «Vestland» er tilbake i alle stør»
 /// dark: border-radius:24px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 14px 26px -16px rgba(90,60,30,.45)
 /// light: border-radius:24px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mka2 = MkStil('mka2', dark: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.55))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.9)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, 14.0, 26.0, -16.0, Color.fromRGBO(90, 60, 30, 0.45))]), light: MkVerdi(radius: 24.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top)×2 · «i går»
+/// (erFeed)×2 · «i går»
 /// dark: color:#8C847C
 /// light: color:var(--lys-dempet)
 const MkStil mka3 = MkStil('mka3', dark: MkVerdi(farge: Color(0xFF8C847C)), light: MkVerdi(farge: Color(0xFF627276)));
@@ -1865,62 +1865,62 @@ const MkStil mka9 = MkStil('mka9', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssLi
 /// light: color:var(--lys-sekundar)
 const MkStil mkaa = MkStil('mkaa', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.86)), light: MkVerdi(farge: Color(0xFF4B5E64)));
 
-/// (top)×4, Butikkprofil×2, Butikkprofil · innlegg×2 · «Utseende»
+/// (erKonto)×4, Butikkprofil×2, Butikkprofil · innlegg×2 · «Utseende»
 /// dark: —
 /// light: color:var(--lys-tittel)
 const MkStil mkab = MkStil('mkab', dark: null, light: MkVerdi(farge: Color(0xFF03313C)));
 
-/// (top)×3, Utseende · «Mørk Fjord Lys Skydans Hjem, sporing og Fjordfiske er fjordfarget i be»
+/// (erKonto)×3, Utseende · «Mørk Fjord Lys Skydans Hjem, sporing og Fjordfiske er fjordfarget i be»
 /// dark: border-radius:22px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 16px 28px -16px rgba(90,60,30,.5)
 /// light: border-radius:22px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkac = MkStil('mkac', dark: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.6))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.9)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, 16.0, 28.0, -16.0, Color.fromRGBO(90, 60, 30, 0.5))]), light: MkVerdi(radius: 22.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «Varsler {{ vsOppsummering }} Lukk {{ f.t }} PÅ VEI NÅ Æ-42K Kommer 18:»
+/// (vsAapent) · «Varsler {{ vsOppsummering }} Lukk {{ f.t }} PÅ VEI NÅ Æ-42K Kommer 18:»
 /// dark: background:radial-gradient(80% 50% at 14% 0%,rgba(255,255,255,.18),rgba(255,255,255,0) 60%),linear-gradient(180deg,#2A6272 0%,#1E4F5C 42%,#173E48 100%);box-shadow:0 -26px 50px -22px rgba(4,18,26,.9)
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge);color:var(--lys-brod)
 const MkStil mkad = MkStil('mkad', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.14, cy: 0, rx: 0.8, ry: 0.5), CssLinear(180.0, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.42, 1.0])], skygge: <CssShadow>[CssShadow(0, -26.0, 50.0, -22.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))], farge: Color(0xFF142226)));
 
-/// (top)×2 · «<div>»
+/// (vsAapent), (phKrevVis) · «<div>»
 /// dark: background:rgba(255,255,255,.4)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkae = MkStil('mkae', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.4))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «Lukk»
+/// (vsAapent) · «Lukk»
 /// dark: border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.25);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 3px 0 rgba(4,18,26,.4);color:#FFFFFF
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none;color:var(--lys-tittel)
 const MkStil mkaf = MkStil('mkaf', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0.08)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.25)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(4, 18, 26, 0.4))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[], farge: Color(0xFF03313C)));
 
-/// (top) · «PÅ VEI NÅ Æ-42K Kommer 18:12–18:22 Sindre er på vei fra Torgboden Vis »
+/// (vsOrdreAktiv) · «PÅ VEI NÅ Æ-42K Kommer 18:12–18:22 Sindre er på vei fra Torgboden Vis »
 /// dark: background:linear-gradient(160deg,rgba(92,224,184,.22),rgba(92,224,184,.08));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 16px 26px -16px rgba(4,18,26,.9)
 /// light: background:var(--lys-mint-dis);box-shadow:none
 const MkStil mkag = MkStil('mkag', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [Color.fromRGBO(92, 224, 184, 0.22), Color.fromRGBO(92, 224, 184, 0.08)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 16.0, 26.0, -16.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[]));
 
-/// (top) · «PÅ VEI NÅ»
+/// (vsOrdreAktiv) · «PÅ VEI NÅ»
 /// dark: color:#9FD9CC
 /// light: color:var(--lys-mint-tekst)
 const MkStil mkah = MkStil('mkah', dark: MkVerdi(farge: Color(0xFF9FD9CC)), light: MkVerdi(farge: Color(0xFF046850)));
 
-/// (top) · «Ikke slike varsler»
+/// (it.erKort) · «Ikke slike varsler»
 /// dark: background:rgba(255,255,255,.14);color:#FFFFFF
 /// light: background:var(--lys-hvit);color:var(--lys-tittel);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkai = MkStil('mkai', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.14))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], farge: Color(0xFF03313C), skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «Se meny»
+/// (it.erRik) · «Se meny»
 /// dark: border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 3px 0 rgba(4,18,26,.4);color:#FFFFFF
 /// light: border-radius:999px;background:var(--lys-dis);border:1px solid var(--lys-kant-farge);box-shadow:none;color:var(--lys-tittel)
 const MkStil mkaj = MkStil('mkaj', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0.08)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(4, 18, 26, 0.4))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[], farge: Color(0xFF03313C)));
 
-/// (top) · «{{ vsBekreftelse }} Angre Innstillinger for varsler»
+/// (vsAapent) · «{{ vsBekreftelse }} Angre Innstillinger for varsler»
 /// dark: background:linear-gradient(180deg,rgba(23,62,72,0),#173E48 42%)
 /// light: background:linear-gradient(180deg,rgba(247,251,253,0),var(--lys-ull) 42%)
 const MkStil mkak = MkStil('mkak', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(23, 62, 72, 0), Color(0xFF173E48)], [0, 0.42])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(247, 251, 253, 0), Color(0xFFF7FBFD)], [0, 0.42])]));
 
-/// (top) · «Innstillinger for varsler»
+/// (vsAapent) · «Innstillinger for varsler»
 /// dark: border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28),0 3px 0 rgba(4,18,26,.4),0 12px 20px -14px rgba(4,18,26,.9)
 /// light: border-radius:16px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkal = MkStil('mkal', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(4, 18, 26, 0.4)), CssShadow(0, 12.0, 20.0, -14.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «Hvor skal ærendet? Butikker og priser følger adressen. {{ adrAegTx }} »
+/// (visSheet) · «Hvor skal ærendet? Butikker og priser følger adressen. {{ adrAegTx }} »
 /// dark: box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),0 -24px 50px -20px rgba(15,31,43,.55)
 /// light: box-shadow:var(--lys-arkskygge)
 const MkStil mkam = MkStil('mkam', dark: MkVerdi(skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.55))]), light: MkVerdi(skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))]));
@@ -1930,7 +1930,7 @@ const MkStil mkam = MkStil('mkam', dark: MkVerdi(skygge: <CssShadow>[CssShadow.i
 /// light: background:linear-gradient(180deg,#FFFFFF,#E7F5FA)
 const MkStil mkan = MkStil('mkan', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFFFFFFF), Color(0xFFEAF2F2)])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFFFFFFF), Color(0xFFE7F5FA)])]));
 
-/// (top), Adresse valgt · «{{ dekTx }}»
+/// (dekDekket), Adresse valgt · «{{ dekTx }}»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 1px rgba(255,255,255,.1);color:#E7F2F4
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge);color:var(--lys-tittel)
 const MkStil mkao = MkStil('mkao', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1))], farge: Color(0xFFE7F2F4)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))], farge: Color(0xFF03313C)));
@@ -1950,27 +1950,27 @@ const MkStil mkaq = MkStil('mkaq', dark: MkVerdi(radius: 18.0, bg: <CssBg>[CssSo
 /// light: background:var(--lys-mint-dis);color:var(--lys-mint-tekst)
 const MkStil mkar = MkStil('mkar', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.22))], farge: Color(0xFF7FF0CB)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], farge: Color(0xFF046850)));
 
-/// (top) · «LEVERES HIT»
+/// (a.valgt) · «LEVERES HIT»
 /// dark: background:rgba(92,224,184,.2);box-shadow:inset 0 0 0 1px rgba(92,224,184,.45);color:#9FF0D4
 /// light: background:var(--lys-mint-dis);box-shadow:none;color:var(--lys-mint-tekst)
 const MkStil mkas = MkStil('mkas', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.2))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(92, 224, 184, 0.45))], farge: Color(0xFF9FF0D4)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[], farge: Color(0xFF046850)));
 
-/// (top) · «{{ a.adr }}»
+/// (sheetAdresse) · «{{ a.adr }}»
 /// dark: color:#E7F2F4
 /// light: color:var(--lys-tittel)
 const MkStil mkat = MkStil('mkat', dark: MkVerdi(farge: Color(0xFFE7F2F4)), light: MkVerdi(farge: Color(0xFF03313C)));
 
-/// Ark {{ kArkTittel }}×3, (top)×2 · «{{ a.info }}»
+/// Ark {{ kArkTittel }}×3, (sheetAdresse)×2 · «{{ a.info }}»
 /// dark: color:rgba(255,255,255,.64)
 /// light: color:var(--lys-sekundar)
 const MkStil mkau = MkStil('mkau', dark: MkVerdi(farge: Color.fromRGBO(255, 255, 255, 0.64)), light: MkVerdi(farge: Color(0xFF4B5E64)));
 
-/// (top) · «Slett {{ a.merke }}»
+/// (sheetAdresse) · «Slett {{ a.merke }}»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 1px rgba(255,148,102,.32),0 2.5px 0 rgba(4,20,28,.45)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mkav = MkStil('mkav', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.05)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 148, 102, 0.32)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 20, 28, 0.45))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top) · «<span>»
+/// (a.ikkeValgt) · «<span>»
 /// dark: border-radius:50%;border:2px solid rgba(255,255,255,.42)
 /// light: border-radius:50%;border:2px solid var(--lys-kant-farge)
 const MkStil mkaw = MkStil('mkaw', dark: MkVerdi(rund: true, kant: MkKant(2.0, Color.fromRGBO(255, 255, 255, 0.42))), light: MkVerdi(rund: true, kant: MkKant(2.0, Color.fromRGBO(31, 82, 95, 0.09))));
@@ -1985,7 +1985,7 @@ const MkStil mkax = MkStil('mkax', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [C
 /// light: background:var(--lys-glod-dis)
 const MkStil mkay = MkStil('mkay', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(242, 109, 61, 0.22))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFEAE1))]));
 
-/// (top) · «Legg til et nytt sted Hytta, kjæresten, foreldrene …»
+/// (sheetAdresse) · «Legg til et nytt sted Hytta, kjæresten, foreldrene …»
 /// dark: border-radius:20px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.32)
 /// light: border-radius:20px;background:var(--lys-hvit);border:1.5px dashed var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkaz = MkStil('mkaz', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.04))], kant: MkKant(1.5, Color.fromRGBO(255, 255, 255, 0.32), stiplet: true)), light: MkVerdi(radius: 20.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.5, Color.fromRGBO(31, 82, 95, 0.09), stiplet: true), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
@@ -1995,137 +1995,137 @@ const MkStil mkaz = MkStil('mkaz', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssSo
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkb0 = MkStil('mkb0', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0.07)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12)), CssShadow(0, 2.0, 0, 0, Color.fromRGBO(8, 28, 36, 0.5))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «Bruk posisjonen min»
+/// (sheetAdresse) · «Bruk posisjonen min»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.07));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.14),0 3px 0 rgba(4,20,28,.55),0 12px 18px -10px rgba(3,14,20,.85);color:#FFFFFF
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge);color:var(--lys-tittel)
 const MkStil mkb1 = MkStil('mkb1', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.2), Color.fromRGBO(255, 255, 255, 0.07)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.4)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.14)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(4, 20, 28, 0.55)), CssShadow(0, 12.0, 18.0, -10.0, Color.fromRGBO(3, 14, 20, 0.85))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF03313C)));
 
-/// (top) · «<span>»
+/// (sheetAdresse) · «<span>»
 /// dark: background:rgba(92,224,184,.18)
 /// light: background:var(--lys-mint-dis)
 const MkStil mkb2 = MkStil('mkb2', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.18))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))]));
 
-/// (top) · «Tilbake»
+/// (sheetNyAdresse) · «Tilbake»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.07));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),inset 0 0 0 1px rgba(255,255,255,.14),0 3px 0 rgba(4,20,28,.55),0 12px 18px -10px rgba(3,14,20,.85)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkb3 = MkStil('mkb3', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.2), Color.fromRGBO(255, 255, 255, 0.07)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.4)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.14)), CssShadow(0, 3.0, 0, 0, Color.fromRGBO(4, 20, 28, 0.55)), CssShadow(0, 12.0, 18.0, -10.0, Color.fromRGBO(3, 14, 20, 0.85))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «<div>»
+/// (naIkkeValgt) · «<div>»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.07))
 /// light: background:var(--lys-hvit)
 const MkStil mkb4 = MkStil('mkb4', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.15), Color.fromRGBO(255, 255, 255, 0.07)])]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))]));
 
-/// (top) · «<span>»
+/// (naIkkeValgt) · «<span>»
 /// dark: background:radial-gradient(70% 60% at 40% 25%,#3A8296,#1E4F5C);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 2px 0 rgba(4,20,28,.5)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mkb5 = MkStil('mkb5', dark: MkVerdi(bg: <CssBg>[CssRadial([Color(0xFF3A8296), Color(0xFF1E4F5C)], cx: 0.4, cy: 0.25, rx: 0.7, ry: 0.6)], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 2.0, 0, 0, Color.fromRGBO(4, 20, 28, 0.5))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top) · «{{ f.gate }} {{ f.sted }}»
+/// (naHarForslag) · «{{ f.gate }} {{ f.sted }}»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(255,255,255,.1),0 14px 22px -14px rgba(3,14,20,.85)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkb6 = MkStil('mkb6', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.12), Color.fromRGBO(255, 255, 255, 0.05)])], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.22)), CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1)), CssShadow(0, 14.0, 22.0, -14.0, Color.fromRGBO(3, 14, 20, 0.85))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «<span>»
+/// (naHarForslag) · «<span>»
 /// dark: background:linear-gradient(160deg,#3F8798 0%,#27606F 52%,#1A4654 100%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),inset 0 -2px 4px rgba(4,20,28,.4),0 6px 8px -5px rgba(3,16,24,.8)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mkb7 = MkStil('mkb7', dark: MkVerdi(bg: <CssBg>[CssLinear(160.0, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, 0.52, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow.inset(0, -2.0, 4.0, 0, Color.fromRGBO(4, 20, 28, 0.4)), CssShadow(0, 6.0, 8.0, -5.0, Color.fromRGBO(3, 16, 24, 0.8))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top) · «<div>»
+/// (sheetNyAdresse) · «<div>»
 /// dark: border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 2px 4px rgba(3,16,24,.25),0 2.5px 0 rgba(4,20,28,.4)
 /// light: border-radius:16px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mkb8 = MkStil('mkb8', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.15), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 2.0, 4.0, 0, Color.fromRGBO(3, 16, 24, 0.25)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 20, 28, 0.4))]), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top), Ark {{ kArkTittel }} · «<input>»
+/// (sheetNyAdresse), Ark {{ kArkTittel }} · «<input>»
 /// dark: color:#FFFFFF;caret-color:#5CE0B8
 /// light: color:var(--lys-brod);caret-color:var(--lys-mint-tekst)
 const MkStil mkb9 = MkStil('mkb9', dark: MkVerdi(farge: Color(0xFFFFFFFF), markor: Color(0xFF5CE0B8)), light: MkVerdi(farge: Color(0xFF142226), markor: Color(0xFF046850)));
 
-/// (top) · «Skriv adressen først»
+/// (naIkkeKlar) · «Skriv adressen først»
 /// dark: border-radius:17px;background:rgba(255,255,255,.06);border:1.5px dashed rgba(255,255,255,.24);color:rgba(255,255,255,.66)
 /// light: border-radius:17px;background:var(--lys-hvit);border:1.5px dashed var(--lys-kant-farge);color:var(--lys-sekundar);box-shadow:var(--lys-kortskygge)
 const MkStil mkba = MkStil('mkba', dark: MkVerdi(radius: 17.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.06))], kant: MkKant(1.5, Color.fromRGBO(255, 255, 255, 0.24), stiplet: true), farge: Color.fromRGBO(255, 255, 255, 0.66)), light: MkVerdi(radius: 17.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.5, Color.fromRGBO(31, 82, 95, 0.09), stiplet: true), farge: Color(0xFF4B5E64), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «<svg>»
+/// (naIkkeKlar) · «<svg>»
 /// dark: —
 /// light: stroke:rgba(30,79,92,0.66)
 const MkStil mkbb = MkStil('mkbb', dark: null, light: MkVerdi(strek: Color.fromRGBO(30, 79, 92, 0.66)));
 
-/// (top) · «Allergener Åpningstider Mer»
+/// (sheetInfo) · «Allergener Åpningstider Mer»
 /// dark: background:rgba(0,0,0,.22);box-shadow:inset 0 1.5px 3px rgba(4,18,26,.6),inset 0 -1px 0 rgba(255,255,255,.12)
 /// light: background:var(--lys-dis-ull);box-shadow:none
 const MkStil mkbc = MkStil('mkbc', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.22))], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 3.0, 0, Color.fromRGBO(4, 18, 26, 0.6)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.12))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.07))], skygge: <CssShadow>[]));
 
-/// (top) · «<span>»
+/// (sheetInfo) · «<span>»
 /// dark: background:linear-gradient(180deg,#F9A273,#F26D3D 56%,#DD5A25);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 2.5px 0 #C4491A,0 8px 14px -8px rgba(200,70,25,.8)
 /// light: background:var(--lys-fjord-fyll);box-shadow:0 4px 8px -5px rgba(23,62,72,.5)
 const MkStil mkbd = MkStil('mkbd', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], [0, 0.56, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.4)), CssShadow(0, 2.5, 0, 0, Color(0xFFC4491A)), CssShadow(0, 8.0, 14.0, -8.0, Color.fromRGBO(200, 70, 25, 0.8))]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF235E6D), Color(0xFF124A58)])], skygge: <CssShadow>[CssShadow(0, 4.0, 8.0, -5.0, Color.fromRGBO(23, 62, 72, 0.5))]));
 
-/// (top)×6 · «Gluten»
+/// (infoA)×6 · «Gluten»
 /// dark: background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);color:#FFFFFF
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge);color:var(--lys-tittel)
 const MkStil mkbe = MkStil('mkbe', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))], farge: Color(0xFF03313C)));
 
-/// (top)×2 · «Man–tor 10:00–22:30 Fre–lør 10:00–01:00 Søndag 12:00–22:00»
+/// (infoT), (infoM) · «Man–tor 10:00–22:30 Fre–lør 10:00–01:00 Søndag 12:00–22:00»
 /// dark: background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)
 const MkStil mkbf = MkStil('mkbf', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.06))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.1))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «Del butikken»
+/// (infoM) · «Del butikken»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));box-shadow:0 0 0 1px rgba(255,255,255,.95),0 2px 0 #D9D2C4,0 3.5px 0 rgba(90,74,48,.35),0 9px 13px -7px rgba(4,18,26,.6);color:#7FF0CB
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge);color:var(--lys-mint-tekst)
 const MkStil mkbg = MkStil('mkbg', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.95)), CssShadow(0, 2.0, 0, 0, Color(0xFFD9D2C4)), CssShadow(0, 3.5, 0, 0, Color.fromRGBO(90, 74, 48, 0.35)), CssShadow(0, 9.0, 13.0, -7.0, Color.fromRGBO(4, 18, 26, 0.6))], farge: Color(0xFF7FF0CB)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))], farge: Color(0xFF046850)));
 
-/// (top) · «Levering Henting»
+/// (sheetLevering) · «Levering Henting»
 /// dark: background:rgba(0,0,0,.26);box-shadow:inset 0 2px 5px rgba(0,0,0,.45),inset 0 -1px 0 rgba(255,255,255,.14)
 /// light: background:var(--lys-dis-ull);box-shadow:none
 const MkStil mkbh = MkStil('mkbh', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.26))], skygge: <CssShadow>[CssShadow.inset(0, 2.0, 5.0, 0, Color.fromRGBO(0, 0, 0, 0.45)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.14))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.07))], skygge: <CssShadow>[]));
 
-/// (top) · «<span>»
+/// (sheetLevering) · «<span>»
 /// dark: background:linear-gradient(180deg,#FFFFFF,#F3EEE2);box-shadow:inset 0 1.5px 0 #FFFFFF,0 3px 0 #CDB98E,0 8px 14px -8px rgba(4,18,26,.8)
 /// light: background:var(--lys-fjord-fyll);box-shadow:0 4px 8px -5px rgba(23,62,72,.5)
 const MkStil mkbi = MkStil('mkbi', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFFFFFFF), Color(0xFFF3EEE2)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 3.0, 0, 0, Color(0xFFCDB98E)), CssShadow(0, 8.0, 14.0, -8.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF235E6D), Color(0xFF124A58)])], skygge: <CssShadow>[CssShadow(0, 4.0, 8.0, -5.0, Color.fromRGBO(23, 62, 72, 0.5))]));
 
-/// (top)×3 · «Så fort som mulig Innen 18:15 · 25–35 min»
+/// (sheetLevering)×3 · «Så fort som mulig Innen 18:15 · 25–35 min»
 /// dark: border-radius:20px;border:1px solid rgba(255,255,255,.2)
 /// light: border-radius:20px;border:1px solid var(--lys-kant-farge)
 const MkStil mkbj = MkStil('mkbj', dark: MkVerdi(radius: 20.0, kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2))), light: MkVerdi(radius: 20.0, kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09))));
 
-/// (top)×2 · «<div>»
+/// (hjHarOrdre), (hjIngenOrdre) · «<div>»
 /// dark: border-radius:18px;background:linear-gradient(160deg,#2F6B7B,#1B4854);border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 10px 18px -10px rgba(4,18,26,.9)
 /// light: border-radius:18px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkbk = MkStil('mkbk', dark: MkVerdi(radius: 18.0, bg: <CssBg>[CssLinear(160.0, [Color(0xFF2F6B7B), Color(0xFF1B4854)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 10.0, 18.0, -10.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 18.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «4,9»
+/// (hjHarOrdre) · «4,9»
 /// dark: background:rgba(242,193,78,.18);color:#F2C14E
 /// light: background:var(--lys-gull-dis);color:var(--lys-gull-tekst)
 const MkStil mkbl = MkStil('mkbl', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(242, 193, 78, 0.18))], farge: Color(0xFFF2C14E)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFF3C9))], farge: Color(0xFF4A300A)));
 
-/// (top)×3 · «Lukk»
+/// (hjHarOrdre), (hjIngenOrdre), (phKrevVis) · «Lukk»
 /// dark: background:rgba(15,31,43,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 1px rgba(255,255,255,.28)
 /// light: background:var(--lys-dis-ull);box-shadow:none
 const MkStil mkbm = MkStil('mkbm', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(15, 31, 43, 0.5))], skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.25)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.28))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.07))], skygge: <CssShadow>[]));
 
-/// (top), Bekreftet · «Send melding»
+/// (hjHarOrdre), Bekreftet · «Send melding»
 /// dark: border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32);color:#FFFFFF
 /// light: border-radius:16px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge);color:var(--lys-tittel)
 const MkStil mkbn = MkStil('mkbn', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.08)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32))], farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF03313C)));
 
-/// (top)×8 · «{{ kontaktRolleStor }} finner ikke døra Send veibeskrivelse eller ring»
+/// (hjHarOrdre)×5, (hjSupport)×2, (hjHarSaker) · «{{ kontaktRolleStor }} finner ikke døra Send veibeskrivelse eller ring»
 /// dark: border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28)
 /// light: border-radius:18px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkbo = MkStil('mkbo', dark: MkVerdi(radius: 18.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28))]), light: MkVerdi(radius: 18.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «Fortsett samtalen {{ hjSamtaleTx }}»
+/// (hjHarSamtale) · «Fortsett samtalen {{ hjSamtaleTx }}»
 /// dark: background:rgba(92,224,184,.12);box-shadow:inset 0 0 0 1.5px rgba(92,224,184,.5)
 /// light: background:var(--lys-mint-dis);box-shadow:none
 const MkStil mkbp = MkStil('mkbp', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(92, 224, 184, 0.12))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.5, Color.fromRGBO(92, 224, 184, 0.5))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFD4FBEB))], skygge: <CssShadow>[]));
 
-/// (top) · «{{ f.t }} {{ f.u }}»
+/// (hjIngenOrdre) · «{{ f.t }} {{ f.u }}»
 /// dark: border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28)
 /// light: border-radius:18px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mkbq = MkStil('mkbq', dark: MkVerdi(radius: 18.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28))]), light: MkVerdi(radius: 18.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «{{ f.t }} {{ f.u }}»
+/// (hjIngenOrdre) · «{{ f.t }} {{ f.u }}»
 /// dark: border-bottom:1px solid rgba(255,255,255,.08)
 /// light: border-bottom:1px solid var(--lys-skille)
 const MkStil mkbr = MkStil('mkbr', dark: MkVerdi(kantBunn: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.08))), light: MkVerdi(kantBunn: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.08))));
@@ -2140,42 +2140,42 @@ const MkStil mkbs = MkStil('mkbs', dark: MkVerdi(radius: 12.0, bg: <CssBg>[CssLi
 /// light: border-radius:12px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkbt = MkStil('mkbt', dark: MkVerdi(radius: 12.0, bg: <CssBg>[CssLinear(160.0, [Color(0xFF2F6B7B), Color(0xFF1B4854)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26))), light: MkVerdi(radius: 12.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «{{ m.t }} {{ m.kl }}»
+/// (hjMelding) · «{{ m.t }} {{ m.kl }}»
 /// dark: box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 16px -12px rgba(4,18,26,.8)
 /// light: box-shadow:none
 const MkStil mkbu = MkStil('mkbu', dark: MkVerdi(skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.28)), CssShadow(0, 8.0, 16.0, -12.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(skygge: <CssShadow>[]));
 
-/// (top) · «<div>»
+/// (hjSkriver) · «<div>»
 /// dark: border-radius:18px 18px 18px 5px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.09));border:1px solid rgba(255,255,255,.24)
 /// light: border-radius:18px 18px 18px 5px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkbv = MkStil('mkbv', dark: MkVerdi(hjorner: [18.0, 18.0, 18.0, 5.0], bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0.09)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.24))), light: MkVerdi(hjorner: [18.0, 18.0, 18.0, 5.0], bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «{{ h.t }}»
+/// (hjMelding) · «{{ h.t }}»
 /// dark: border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.9)
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);color:var(--lys-sekundar)
 const MkStil mkbw = MkStil('mkbw', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), farge: Color.fromRGBO(255, 255, 255, 0.9)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF4B5E64)));
 
-/// (top) · «<div>»
+/// (hjMelding) · «<div>»
 /// dark: border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.26);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.32)
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mkbx = MkStil('mkbx', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.32))]), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «LEVERINGSADRESSE {{ adresseNavn }} VEIBESKRIVELSE {{ hjDorNotat }}»
+/// (hjDor) · «LEVERINGSADRESSE {{ adresseNavn }} VEIBESKRIVELSE {{ hjDorNotat }}»
 /// dark: border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3)
 /// light: border-radius:20px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkby = MkStil('mkby', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3))]), light: MkVerdi(radius: 20.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top)×2 · «Ring {{ kontaktNavn }}»
+/// (hjDor)×2 · «Ring {{ kontaktNavn }}»
 /// dark: border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);color:#FFFFFF
 /// light: border-radius:16px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);color:var(--lys-tittel);box-shadow:var(--lys-kortskygge)
 const MkStil mkbz = MkStil('mkbz', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF03313C), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «{{ v.navn }}»
+/// (hjMangler) · «{{ v.navn }}»
 /// dark: border-radius:18px;border:1px solid rgba(255,255,255,.2)
 /// light: border-radius:18px;border:1px solid var(--lys-kant-farge)
 const MkStil mkc0 = MkStil('mkc0', dark: MkVerdi(radius: 18.0, kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2))), light: MkVerdi(radius: 18.0, kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09))));
 
-/// (top) · «Ordre #BRG-4471 er allerede lagt ved, så du slipper å forklare.»
+/// (hjSupport) · «Ordre #BRG-4471 er allerede lagt ved, så du slipper å forklare.»
 /// dark: border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.6)
 /// light: border-radius:14px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);color:var(--lys-dempet);box-shadow:var(--lys-kortskygge)
 const MkStil mkc1 = MkStil('mkc1', dark: MkVerdi(radius: 14.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.06))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.14)), farge: Color.fromRGBO(255, 255, 255, 0.6)), light: MkVerdi(radius: 14.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF627276), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
@@ -2195,77 +2195,77 @@ const MkStil mkc3 = MkStil('mkc3', dark: MkVerdi(radius: 14.0, kant: MkKant(1.0,
 /// light: background:var(--lys-dis);color:var(--lys-tittel)
 const MkStil mkc4 = MkStil('mkc4', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], farge: Color(0xFF03313C)));
 
-/// (top) · «{{ m.tx }}»
+/// (m.system) · «{{ m.tx }}»
 /// dark: background:rgba(255,255,255,.08);color:rgba(255,255,255,.62)
 /// light: background:var(--lys-hvit);color:var(--lys-sekundar);box-shadow:0 0 0 1px var(--lys-kant-farge)
 const MkStil mkc5 = MkStil('mkc5', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], farge: Color.fromRGBO(255, 255, 255, 0.62)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], farge: Color(0xFF4B5E64), skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09))]));
 
-/// (top) · «{{ m.tx }} {{ m.kortLabel }} {{ m.kortTittel }} {{ m.kortUnder }}»
+/// (m.boble) · «{{ m.tx }} {{ m.kortLabel }} {{ m.kortTittel }} {{ m.kortUnder }}»
 /// dark: box-shadow:inset 0 1.5px 0 rgba(255,255,255,.2)
 /// light: box-shadow:none
 const MkStil mkc6 = MkStil('mkc6', dark: MkVerdi(skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.2))]), light: MkVerdi(skygge: <CssShadow>[]));
 
-/// (top) · «<div>»
+/// (scSkriver) · «<div>»
 /// dark: border-radius:18px 18px 18px 5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)
 /// light: border-radius:18px 18px 18px 5px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkc7 = MkStil('mkc7', dark: MkVerdi(hjorner: [18.0, 18.0, 18.0, 5.0], bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.2))), light: MkVerdi(hjorner: [18.0, 18.0, 18.0, 5.0], bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «{{ c.tx }}»
+/// (scHarChips) · «{{ c.tx }}»
 /// dark: border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.26);color:#FFFFFF
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);color:var(--lys-tittel)
 const MkStil mkc8 = MkStil('mkc8', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.26)), farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF03313C)));
 
-/// (top) · «<div>»
+/// (scVisTraad) · «<div>»
 /// dark: border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.28)
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mkc9 = MkStil('mkc9', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.28))]), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «{{ scMenneskeTx }}»
+/// (scVisTraad) · «{{ scMenneskeTx }}»
 /// dark: border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.24);color:#FFFFFF
 /// light: border-radius:16px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);color:var(--lys-tittel);box-shadow:var(--lys-kortskygge)
 const MkStil mkca = MkStil('mkca', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.24)), farge: Color(0xFFFFFFFF)), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), farge: Color(0xFF03313C), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «{{ pNavn }} {{ pSum }} kr {{ pNavn }} {{ pBesk }} {{ pGrunnpris }} kr »
+/// (visProdukt) · «{{ pNavn }} {{ pSum }} kr {{ pNavn }} {{ pBesk }} {{ pGrunnpris }} kr »
 /// dark: background:linear-gradient(180deg,#1E4F5C 0%,#173E48 55%,#122F3A 100%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 -24px 50px -18px rgba(4,18,26,.9)
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge)
 const MkStil mkcb = MkStil('mkcb', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFF1E4F5C), Color(0xFF173E48), Color(0xFF122F3A)], [0, 0.55, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, -24.0, 50.0, -18.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))]));
 
-/// (top) · «<div>»
+/// (visProdukt) · «<div>»
 /// dark: background:radial-gradient(80% 60% at 50% 0%,rgba(255,255,255,.18),rgba(255,255,255,0) 60%),linear-gradient(180deg,#2F6C7E 0%,#225868 45%,#1B4A57 100%)
 /// light: background:linear-gradient(180deg,var(--lys-hvit),var(--lys-ull))
 const MkStil mkcc = MkStil('mkcc', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0)], stops: [0, 0.6], cx: 0.5, cy: 0, rx: 0.8, ry: 0.6), CssLinear(180.0, [Color(0xFF2F6C7E), Color(0xFF225868), Color(0xFF1B4A57)], [0, 0.45, 1.0])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color(0xFFFFFFFF), Color(0xFFF7FBFD)])]));
 
-/// (top)×2 · «<div>»
+/// (visProdukt)×2 · «<div>»
 /// dark: border-radius:50%;border:1.5px solid rgba(214,242,250,.35)
 /// light: border-radius:50%;border:1.5px solid rgba(30,79,92,.10)
 const MkStil mkcd = MkStil('mkcd', dark: MkVerdi(rund: true, kant: MkKant(1.5, Color.fromRGBO(214, 242, 250, 0.35))), light: MkVerdi(rund: true, kant: MkKant(1.5, Color.fromRGBO(30, 79, 92, 0.1))));
 
-/// (top) · «<div>»
+/// (visProdukt) · «<div>»
 /// dark: background:radial-gradient(50% 50% at 50% 50%,rgba(4,18,26,.65),rgba(4,18,26,0) 72%)
 /// light: background:radial-gradient(50% 50% at 50% 50%,rgba(23,62,72,.3),rgba(23,62,72,0) 72%)
 const MkStil mkce = MkStil('mkce', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(4, 18, 26, 0.65), Color.fromRGBO(4, 18, 26, 0)], stops: [0, 0.72], cx: 0.5, cy: 0.5, rx: 0.5, ry: 0.5)]), light: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(23, 62, 72, 0.3), Color.fromRGBO(23, 62, 72, 0)], stops: [0, 0.72], cx: 0.5, cy: 0.5, rx: 0.5, ry: 0.5)]));
 
-/// (top) · «<div>»
+/// (visProdukt) · «<div>»
 /// dark: background:linear-gradient(180deg,rgba(27,74,87,0),#1E4F5C)
 /// light: background:linear-gradient(180deg,rgba(247,251,253,0),var(--lys-ull))
 const MkStil mkcf = MkStil('mkcf', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(27, 74, 87, 0), Color(0xFF1E4F5C)])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(247, 251, 253, 0), Color(0xFFF7FBFD)])]));
 
-/// (top) · «<span>»
+/// (visProdukt) · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.28) 50%,rgba(255,255,255,0))
 /// light: background:linear-gradient(180deg,rgba(30,79,92,0),rgba(30,79,92,.08) 50%,rgba(30,79,92,0))
 const MkStil mkcg = MkStil('mkcg', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, 0.28), Color.fromRGBO(255, 255, 255, 0)], [0, 0.5, 1.0])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(30, 79, 92, 0), Color.fromRGBO(30, 79, 92, 0.08), Color.fromRGBO(30, 79, 92, 0)], [0, 0.5, 1.0])]));
 
-/// (top) · «<span>»
+/// (visProdukt) · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.22) 50%,rgba(255,255,255,0))
 /// light: background:linear-gradient(180deg,rgba(30,79,92,0),rgba(30,79,92,.08) 50%,rgba(30,79,92,0))
 const MkStil mkch = MkStil('mkch', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, 0.22), Color.fromRGBO(255, 255, 255, 0)], [0, 0.5, 1.0])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(30, 79, 92, 0), Color.fromRGBO(30, 79, 92, 0.08), Color.fromRGBO(30, 79, 92, 0)], [0, 0.5, 1.0])]));
 
-/// (top) · «<span>»
+/// (visProdukt) · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.18) 50%,rgba(255,255,255,0))
 /// light: background:linear-gradient(180deg,rgba(30,79,92,0),rgba(30,79,92,.08) 50%,rgba(30,79,92,0))
 const MkStil mkci = MkStil('mkci', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, 0.18), Color.fromRGBO(255, 255, 255, 0)], [0, 0.5, 1.0])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(30, 79, 92, 0), Color.fromRGBO(30, 79, 92, 0.08), Color.fromRGBO(30, 79, 92, 0)], [0, 0.5, 1.0])]));
 
-/// (top) · «{{ pSum }} kr»
+/// (visProdukt) · «{{ pSum }} kr»
 /// dark: color:#FFB27A
 /// light: color:var(--lys-glod-tekst)
 const MkStil mkcj = MkStil('mkcj', dark: MkVerdi(farge: Color(0xFFFFB27A)), light: MkVerdi(farge: Color(0xFFA63B0E)));
@@ -2275,22 +2275,22 @@ const MkStil mkcj = MkStil('mkcj', dark: MkVerdi(farge: Color(0xFFFFB27A)), ligh
 /// light: background:var(--lys-ull)
 const MkStil mkck = MkStil('mkck', dark: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFF1B4A57))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))]));
 
-/// Produktfoto, (top) · «<span>»
+/// Produktfoto, (visProdukt) · «<span>»
 /// dark: background:linear-gradient(180deg,rgba(30,79,92,0),#1E4F5C)
 /// light: background:linear-gradient(180deg,rgba(247,251,253,0),var(--lys-ull))
 const MkStil mkcl = MkStil('mkcl', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(30, 79, 92, 0), Color(0xFF1E4F5C)])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(247, 251, 253, 0), Color(0xFFF7FBFD)])]));
 
-/// (top) · «<div>»
+/// (visProdukt) · «<div>»
 /// dark: background:rgba(255,255,255,.55)
 /// light: background:var(--lys-haandtak)
 const MkStil mkcm = MkStil('mkcm', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.55))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(31, 82, 95, 0.24))]));
 
-/// (top) · «Lukk»
+/// (visProdukt) · «Lukk»
 /// dark: border-radius:50%;background:rgba(15,31,43,.5);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 14px -7px rgba(0,0,0,.6)
 /// light: border-radius:50%;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkcn = MkStil('mkcn', dark: MkVerdi(rund: true, bg: <CssBg>[CssSolid(Color.fromRGBO(15, 31, 43, 0.5))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.3)), skygge: <CssShadow>[CssShadow.inset(0, 1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.25)), CssShadow(0, 10.0, 14.0, -7.0, Color.fromRGBO(0, 0, 0, 0.6))]), light: MkVerdi(rund: true, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «{{ pGrunnpris }} kr inkl. mva»
+/// (visProdukt) · «{{ pGrunnpris }} kr inkl. mva»
 /// dark: border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 10px 20px -12px rgba(4,18,26,.8)
 /// light: border-radius:16px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge)
 const MkStil mkco = MkStil('mkco', dark: MkVerdi(radius: 16.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.16), Color.fromRGBO(255, 255, 255, 0.07)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 10.0, 20.0, -12.0, Color.fromRGBO(4, 18, 26, 0.8))]), light: MkVerdi(radius: 16.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
@@ -2310,47 +2310,47 @@ const MkStil mkcq = MkStil('mkcq', dark: MkVerdi(radius: 20.0, bg: <CssBg>[CssRa
 /// light: background:var(--lys-dis);color:var(--lys-mint-tekst)
 const MkStil mkcr = MkStil('mkcr', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(15, 42, 51, 0.7))], farge: Color(0xFF7FF0CB)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], farge: Color(0xFF046850)));
 
-/// (top) · «Allergener: {{ pAllerg }}»
+/// (visProdukt) · «Allergener: {{ pAllerg }}»
 /// dark: background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;color:rgba(255,255,255,.75)
 /// light: background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);border-radius:14px;color:var(--lys-sekundar);box-shadow:var(--lys-kortskygge)
 const MkStil mkcs = MkStil('mkcs', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.08))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.14)), radius: 14.0, farge: Color.fromRGBO(255, 255, 255, 0.75)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), radius: 14.0, farge: Color(0xFF4B5E64), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top) · «− {{ pAntall }} + Legg til · {{ pSum }} kr»
+/// (visProdukt) · «− {{ pAntall }} + Legg til · {{ pSum }} kr»
 /// dark: background:linear-gradient(180deg,rgba(18,47,58,0),#122F3A 40%)
 /// light: background:linear-gradient(180deg,rgba(247,251,253,0),var(--lys-ull) 40%);color:var(--lys-brod)
 const MkStil mkct = MkStil('mkct', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(18, 47, 58, 0), Color(0xFF122F3A)], [0, 0.4])]), light: MkVerdi(bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(247, 251, 253, 0), Color(0xFFF7FBFD)], [0, 0.4])], farge: Color(0xFF142226)));
 
-/// (top) · «− {{ pAntall }} + Legg til · {{ pSum }} kr»
+/// (visProdukt) · «− {{ pAntall }} + Legg til · {{ pSum }} kr»
 /// dark: border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3),0 18px 34px -16px rgba(4,18,26,.9)
 /// light: border-radius:999px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:none
 const MkStil mkcu = MkStil('mkcu', dark: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.1))], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.22)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.3)), CssShadow(0, 18.0, 34.0, -16.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 999.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[]));
 
-/// (top) · «− {{ pAntall }} +»
+/// (visProdukt) · «− {{ pAntall }} +»
 /// dark: background:rgba(0,0,0,.3);box-shadow:inset 0 2px 4px rgba(0,0,0,.45),inset 0 -1px 0 rgba(255,255,255,.12)
 /// light: background:var(--lys-dis);box-shadow:none
 const MkStil mkcv = MkStil('mkcv', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(0, 0, 0, 0.3))], skygge: <CssShadow>[CssShadow.inset(0, 2.0, 4.0, 0, Color.fromRGBO(0, 0, 0, 0.45)), CssShadow.inset(0, -1.0, 0, 0, Color.fromRGBO(255, 255, 255, 0.12))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFE7F5FA))], skygge: <CssShadow>[]));
 
-/// (top) · «+»
+/// (visProdukt) · «+»
 /// dark: color:#F9A273
 /// light: color:var(--lys-glod-tekst)
 const MkStil mkcw = MkStil('mkcw', dark: MkVerdi(farge: Color(0xFFF9A273)), light: MkVerdi(farge: Color(0xFFA63B0E)));
 
-/// (top) · «{{ phKrevMerke }} {{ phKrevNavn }} {{ phKrevPris }} poeng Saldo {{ phK»
+/// (phKrevVis) · «{{ phKrevMerke }} {{ phKrevNavn }} {{ phKrevPris }} poeng Saldo {{ phK»
 /// dark: background:radial-gradient(90% 40% at 50% 0%,rgba(255,200,120,.16),rgba(255,200,120,0) 70%),linear-gradient(180deg,#27596A 0%,#1E4F5C 45%,#173E48 100%);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.35),0 -24px 50px -18px rgba(4,18,26,.9);color:#FFFFFF
 /// light: background:var(--lys-ull);box-shadow:var(--lys-arkskygge);color:var(--lys-brod)
 const MkStil mkcx = MkStil('mkcx', dark: MkVerdi(bg: <CssBg>[CssRadial([Color.fromRGBO(255, 200, 120, 0.16), Color.fromRGBO(255, 200, 120, 0)], stops: [0, 0.7], cx: 0.5, cy: 0, rx: 0.9, ry: 0.4), CssLinear(180.0, [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, 0.45, 1.0])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.35)), CssShadow(0, -24.0, 50.0, -18.0, Color.fromRGBO(4, 18, 26, 0.9))], farge: Color(0xFFFFFFFF)), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFF7FBFD))], skygge: <CssShadow>[CssShadow(0, -24.0, 50.0, -20.0, Color.fromRGBO(15, 31, 43, 0.35))], farge: Color(0xFF142226)));
 
-/// (top) · «{{ phKrevPris }} poeng»
+/// (phKrevVis) · «{{ phKrevPris }} poeng»
 /// dark: background:rgba(242,193,78,.14);box-shadow:inset 0 0 0 1px rgba(242,193,78,.45),0 0 18px rgba(242,193,78,.2)
 /// light: background:var(--lys-gull-dis);box-shadow:none
 const MkStil mkcy = MkStil('mkcy', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(242, 193, 78, 0.14))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(242, 193, 78, 0.45)), CssShadow(0, 0, 18.0, 0, Color.fromRGBO(242, 193, 78, 0.2))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFF3C9))], skygge: <CssShadow>[]));
 
-/// (top) · «Saldo {{ phKrevFor }} Etter: {{ phKrevEtter }} poeng»
+/// (phKrevVis) · «Saldo {{ phKrevFor }} Etter: {{ phKrevEtter }} poeng»
 /// dark: background:linear-gradient(165deg,rgba(255,255,255,.13),rgba(255,255,255,.05));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.24),0 0 0 1px rgba(255,255,255,.14)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)
 const MkStil mkcz = MkStil('mkcz', dark: MkVerdi(bg: <CssBg>[CssLinear(165.0, [Color.fromRGBO(255, 255, 255, 0.13), Color.fromRGBO(255, 255, 255, 0.05)])], skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.24)), CssShadow(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.14))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
 
-/// (top)×2 · «SLIK FÅR DU DEN {{ phKrevHva }}»
+/// (phKrevVis)×2 · «SLIK FÅR DU DEN {{ phKrevHva }}»
 /// dark: background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)
 /// light: background:var(--lys-hvit);box-shadow:0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)
 const MkStil mkd0 = MkStil('mkd0', dark: MkVerdi(bg: <CssBg>[CssSolid(Color.fromRGBO(255, 255, 255, 0.07))], skygge: <CssShadow>[CssShadow.inset(0, 0, 0, 1.0, Color.fromRGBO(255, 255, 255, 0.12))]), light: MkVerdi(bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], skygge: <CssShadow>[CssShadow(0, 0, 0, 1.0, Color.fromRGBO(31, 82, 95, 0.09)), CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))]));
@@ -2835,7 +2835,7 @@ const MkStil mkfn = MkStil('mkfn', dark: MkVerdi(bg: <CssBg>[CssLinear(180.0, [C
 /// light: border-radius:26px;background:var(--lys-hvit);border:1px solid var(--lys-kant-farge);box-shadow:var(--lys-kortskygge);color:var(--lys-brod)
 const MkStil mkfo = MkStil('mkfo', dark: MkVerdi(radius: 26.0, bg: <CssBg>[CssLinear(180.0, [Color.fromRGBO(255, 255, 255, 0.14), Color.fromRGBO(255, 255, 255, 0.06)])], kant: MkKant(1.0, Color.fromRGBO(255, 255, 255, 0.18)), skygge: <CssShadow>[CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, 0.26)), CssShadow(0, 20.0, 32.0, -22.0, Color.fromRGBO(4, 18, 26, 0.9))]), light: MkVerdi(radius: 26.0, bg: <CssBg>[CssSolid(Color(0xFFFFFFFF))], kant: MkKant(1.0, Color.fromRGBO(31, 82, 95, 0.09)), skygge: <CssShadow>[CssShadow(0, 1.0, 1.0, 0, Color.fromRGBO(6, 52, 62, 0.04)), CssShadow(0, 10.0, 26.0, -14.0, Color.fromRGBO(6, 52, 62, 0.2))], farge: Color(0xFF142226)));
 
-/// (top)×4 · «Utseende»
+/// (erKonto)×4 · «Utseende»
 /// dark: color:#FFFFFF
 /// light: —
 const MkStil mkkt = MkStil('mkkt', dark: MkVerdi(farge: Color(0xFFFFFFFF)), light: null);
