@@ -9,7 +9,10 @@ import 'package:flutter/material.dart';
 import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import '../../../utils/utils.dart';
+import '../../common/auth/launch/lf_css.dart' show CssShadow;
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_home.dart';
 import '../../common/home/bergen/bergen_kit.dart';
@@ -627,8 +630,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
     final k = _slot;
     final navn = kHjemKatNavn[k];
     OnbTips.instance.sett('kategori', k);
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFF173E48),
+      // Lys (`.mk5u`): the page is `--lys-ull`.
+      backgroundColor: lys ? LysPalett.ull : const Color(0xFF173E48),
       resizeToAvoidBottomInset: false,
       body: BergenOnce(
         durationMs: 340,
@@ -646,25 +651,30 @@ class _KategoriScreenState extends State<KategoriScreen> {
         child: DecoratedBox(
           key: _rotKey,
           decoration: BoxDecoration(
-            gradient: cssLinear(
-              180,
-              const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
-              const [0, .42, 1],
-            ),
+            // `.mk5u` light: `background: var(--lys-ull)` (both layers go).
+            gradient: lys
+                ? cssLinear(180, const [LysPalett.ull, LysPalett.ull, LysPalett.ull], const [0, .42, 1])
+                : cssLinear(
+                    180,
+                    const [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)],
+                    const [0, .42, 1],
+                  ),
           ),
           child: Stack(
             children: [
               // `radial-gradient(80% 50% at 14% 0%, rgba(255,255,255,.2), …)`.
-              const Positioned.fill(
+              Positioned.fill(
                 child: IgnorePointer(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
-                        center: Alignment(-.72, -1),
+                        center: const Alignment(-.72, -1),
                         radius: 1,
-                        colors: [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, 0)],
-                        stops: [0, .6],
-                        transform: _CssEllipse(.8, .5),
+                        colors: lys
+                            ? const [Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(255, 255, 255, 0)]
+                            : const [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, 0)],
+                        stops: const [0, .6],
+                        transform: const _CssEllipse(.8, .5),
                       ),
                     ),
                   ),
@@ -711,7 +721,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [_kTint[k], const Color.fromRGBO(30, 79, 92, 0)],
+                      // `.mk5v` `--v0`: the fade's end colour per mode.
+                      colors: [_kTint[k], context.aeM(const Color.fromRGBO(30, 79, 92, 0), const Color.fromRGBO(247, 251, 253, 0))],
                     ),
                   ),
                 ),
@@ -773,7 +784,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
                   child: SokIkon(
                     'M15 6l-6 6 6 6',
                     size: 16 * s,
-                    color: Colors.white,
+                    // `.mku` light: `stroke:#1E4F5C`.
+                    color: context.aeM(Colors.white, LysPalett.fjord),
                     stroke: 2.4,
                   ),
                 ),
@@ -792,7 +804,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
                           textAlign: TextAlign.right,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: bDisplay(context, 19, letterSpacingEm: -.02),
+                          // `.mkb`: `--lys-tittel` in Lys.
+                          style: bDisplay(context, 19, letterSpacingEm: -.02, color: context.aeM(Colors.white, LysPalett.tittel)),
                         ),
                       ),
                     ),
@@ -837,14 +850,16 @@ class _KategoriScreenState extends State<KategoriScreen> {
               Text(
                 navn,
                 key: const Key('a1_kat_title'),
+                // `.mk5y` light: `color:var(--lys-tittel);text-shadow:none`.
                 style: bDisplay(
                   context,
                   34,
                   letterSpacingEm: -.03,
                   height: 1,
+                  color: context.aeM(Colors.white, LysPalett.tittel),
                   shadows: [
                     Shadow(
-                      color: rgba(4, 18, 26, .4),
+                      color: context.aeM(rgba(4, 18, 26, .4), rgba(4, 18, 26, 0)),
                       offset: Offset(0, 2 * s),
                       blurRadius: 12 * s,
                     ),
@@ -861,7 +876,8 @@ class _KategoriScreenState extends State<KategoriScreen> {
                     12.5,
                     weight: FontWeight.w700,
                     height: 1.35,
-                    color: rgba(255, 255, 255, .72),
+                    // `.mk14`: `--lys-sekundar` in Lys.
+                    color: context.aeM(rgba(255, 255, 255, .72), LysPalett.sekundar),
                   ),
                 ),
               ),
@@ -944,10 +960,12 @@ class _KategoriScreenState extends State<KategoriScreen> {
 
   Widget _faner(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     BergenFane fane(bool produkter, String tekst, String ikon, int? antall) => BergenFane(
           key: Key(produkter ? 'a1_kat_tab_produkter' : 'a1_kat_tab_butikker'),
           bygg: (context, t) {
-            final fg = BergenFaner.farge(t);
+            // renderVals L25860 `kfBfarge`: off `--lys-sekundar`, on white.
+            final fg = BergenFaner.farge(t, lys: lys);
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -963,7 +981,10 @@ class _KategoriScreenState extends State<KategoriScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 7 * s, vertical: 1 * s),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
-                      color: rgba(255, 255, 255, .1 + .18 * t),
+                      // renderVals L25862 `kfBtall`: off rgba(31,82,95,.09), on rgba(255,255,255,.2).
+                      color: lys
+                          ? Color.lerp(const Color.fromRGBO(31, 82, 95, .09), const Color.fromRGBO(255, 255, 255, .2), t)!
+                          : rgba(255, 255, 255, .1 + .18 * t),
                     ),
                     child: Text(
                       '$antall',
@@ -1196,6 +1217,12 @@ class _KategoriScreenState extends State<KategoriScreen> {
     final bunn = math.max(MediaQuery.paddingOf(context).bottom, 16 * s);
     final tastatur = MediaQuery.viewInsetsOf(context).bottom;
     final y = math.max(bunn, tastatur + 12 * s);
+    final lys = context.lys;
+    // katFilterVals L20891–20892, Lys: on `#27606F → #1E4F5C` (sampled at
+    // the dark fill's 56 % stop), no edge, `0 4px 8px -5px rgba(23,62,72,.5)`;
+    // off `#E7F5FA`, `--lys-kant-farge` edge, `--lys-brod`, no shadow.
+    const lysPaa = Color(0xFF27606F), lysPaaBunn = Color(0xFF1E4F5C);
+    final lysPaaMidt = Color.lerp(lysPaa, lysPaaBunn, .56)!;
     Widget chip(String id, String tekst, {bool hake = false}) {
       final paa = _filter == id;
       return OnbPressable(
@@ -1215,16 +1242,22 @@ class _KategoriScreenState extends State<KategoriScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: paa
+              colors: lys
+                  ? (paa ? [lysPaa, lysPaaMidt, lysPaaBunn] : const [LysPalett.dis, LysPalett.dis, LysPalett.dis])
+                  : paa
                   ? const [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)]
                   : [rgba(255, 255, 255, .06), rgba(255, 255, 255, .06), rgba(255, 255, 255, .06)],
               stops: const [0, .56, 1],
             ),
             border: Border.all(
-              color: paa ? rgba(255, 255, 255, .55) : rgba(255, 255, 255, .22),
+              color: lys
+                  ? (paa ? const Color.fromRGBO(30, 79, 92, 0) : LysPalett.kantFarge)
+                  : paa ? rgba(255, 255, 255, .55) : rgba(255, 255, 255, .22),
             ),
             boxShadow: paa
-                ? [
+                ? lys
+                    ? [BoxShadow(color: rgba(23, 62, 72, .5), offset: Offset(0, 4 * s), blurRadius: onbBlur(8 * s), spreadRadius: -5 * s)]
+                    : [
                     BoxShadow(color: const Color(0xFFC4491A), offset: Offset(0, 1.5 * s)),
                     BoxShadow(color: rgba(120, 45, 15, .4), offset: Offset(0, 3 * s)),
                     BoxShadow(
@@ -1243,7 +1276,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
               bergenInsetTop(
                 radius: 999,
                 height: (paa ? 1.5 : 1) * s,
-                alpha: paa ? .4 : .18,
+                alpha: lys ? 0 : paa ? .4 : .18,
                 pad: EdgeInsets.symmetric(horizontal: 13 * s, vertical: 9 * s),
               ),
               Row(
@@ -1253,7 +1286,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
                     SokIkon(
                       'M4.5 12.5l5 5 10-11',
                       size: 12 * s,
-                      color: paa ? Colors.white : rgba(255, 255, 255, .82),
+                      color: paa ? Colors.white : context.aeM(rgba(255, 255, 255, .82), LysPalett.brod),
                       stroke: 3,
                     ),
                     SizedBox(width: 5 * s),
@@ -1264,7 +1297,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
                       context,
                       12.5,
                       weight: FontWeight.w800,
-                      color: paa ? Colors.white : rgba(255, 255, 255, .82),
+                      color: paa ? Colors.white : context.aeM(rgba(255, 255, 255, .82), LysPalett.brod),
                     ),
                   ),
                 ],
@@ -1292,15 +1325,18 @@ class _KategoriScreenState extends State<KategoriScreen> {
             bottom: 0,
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 8 * s),
+              // `.mk6x` light: `--lys-hvit`, `--lys-kant-farge` edge, `--lys-kortskygge`.
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Color(0xFF2B5F6E), Color(0xFF1E4F5C)],
+                  colors: lys ? const [LysPalett.hvit, LysPalett.hvit] : const [Color(0xFF2B5F6E), Color(0xFF1E4F5C)],
                 ),
-                border: Border.all(color: rgba(255, 255, 255, .28)),
-                boxShadow: [
+                border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .28)),
+                boxShadow: lys
+                    ? _lysSkygge(LysPalett.kortskygge, s)
+                    : [
                   BoxShadow(
                     color: rgba(4, 18, 26, .9),
                     offset: Offset(0, 18 * s),
@@ -1316,7 +1352,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
                   bergenInsetTop(
                     radius: 999,
                     height: 1.5 * s,
-                    alpha: .3,
+                    alpha: lys ? 0 : .3,
                     pad: EdgeInsets.symmetric(horizontal: 8 * s),
                   ),
                   SizedBox(
@@ -1400,6 +1436,19 @@ class _KategoriScreenState extends State<KategoriScreen> {
   }
 }
 
+/// Lys plan: a design shadow list (`--lys-kortskygge` …) as Flutter shadows,
+/// scaled (CSS paints the first on top, Flutter the last).
+List<BoxShadow> _lysSkygge(List<CssShadow> l, double s) => [
+  for (final c in l.reversed)
+    if (!c.inset)
+      BoxShadow(
+        color: c.color,
+        offset: Offset(c.dx * s, c.dy * s),
+        blurRadius: onbBlur(c.blur * s),
+        spreadRadius: c.spread * s,
+      ),
+];
+
 /// CSS `radial-gradient(<rx>% <ry>% at …)` — Flutter's radial is a circle
 /// on the box's shortest side; this stretches it to the ellipse.
 class _CssEllipse extends GradientTransform {
@@ -1429,6 +1478,7 @@ class _GlassKnapp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return OnbPressable(
       key: const Key('a1_kat_tilbake'),
       onTap: onTap,
@@ -1437,17 +1487,18 @@ class _GlassKnapp extends StatelessWidget {
       child: Container(
         width: 42 * s,
         height: 42 * s,
+        // `.mk5w` light: `--lys-hvit`, `--lys-kant-farge` edge, `box-shadow:none`.
         decoration: CssDecoration(
           borderRadius: BorderRadius.circular(15 * s),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [rgba(255, 255, 255, .16), rgba(255, 255, 255, .07)],
+            colors: lys ? const [LysPalett.hvit, LysPalett.hvit] : [rgba(255, 255, 255, .16), rgba(255, 255, 255, .07)],
           ),
-          border: Border.all(color: rgba(255, 255, 255, .26)),
+          border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .26)),
           boxShadow: [
             BoxShadow(
-              color: rgba(4, 18, 26, .8),
+              color: lys ? rgba(4, 18, 26, 0) : rgba(4, 18, 26, .8),
               offset: Offset(0, 12 * s),
               blurRadius: onbBlur(22 * s),
               spreadRadius: -12 * s,
@@ -1457,7 +1508,7 @@ class _GlassKnapp extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            bergenInsetTop(radius: 15 * s, height: 1.5 * s, alpha: .34),
+            bergenInsetTop(radius: 15 * s, height: 1.5 * s, alpha: lys ? 0 : .34),
             child,
           ],
         ),
@@ -1475,20 +1526,22 @@ class _LivePille extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return Container(
       key: const Key('a1_kat_apne'),
       padding: EdgeInsets.fromLTRB(8 * s, 6 * s, 11 * s, 6 * s),
+      // `.mk5x` light: `--lys-hvit`, `--lys-kant-farge` edge, no shadow, `--lys-tittel`.
       decoration: CssDecoration(
         borderRadius: BorderRadius.circular(999),
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [rgba(255, 255, 255, .16), rgba(255, 255, 255, .07)],
+          colors: lys ? const [LysPalett.hvit, LysPalett.hvit] : [rgba(255, 255, 255, .16), rgba(255, 255, 255, .07)],
         ),
-        border: Border.all(color: rgba(255, 255, 255, .26)),
+        border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .26)),
         boxShadow: [
           BoxShadow(
-            color: rgba(4, 18, 26, .8),
+            color: lys ? rgba(4, 18, 26, 0) : rgba(4, 18, 26, .8),
             offset: Offset(0, 8 * s),
             blurRadius: onbBlur(14 * s),
             spreadRadius: -10 * s,
@@ -1503,7 +1556,7 @@ class _LivePille extends StatelessWidget {
             right: -11 * s,
             top: -6 * s,
             bottom: -6 * s,
-            child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .34)]),
+            child: Stack(children: [bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? 0 : .34)]),
           ),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -1553,7 +1606,7 @@ class _LivePille extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 6 * s),
-              Text(tekst, style: bText(context, 11, weight: FontWeight.w800)),
+              Text(tekst, style: bText(context, 11, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white)),
             ],
           ),
         ],
@@ -1580,8 +1633,34 @@ class _UnderOrb extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     const c = Cubic(.3, 1.3, .5, 1);
+    final lys = context.lys;
     // CSS lists the top shadow first; Flutter paints the first one lowest.
-    final skygge = valgt
+    // underKatVals L20789–20792, Lys: the chosen orb is `#27606F → #1E4F5C`
+    // with `inset 0 1.5px 0 white .28, 0 3px 0 rgba(11,38,45,.85),
+    // 0 10px 15px -6px rgba(15,45,55,.55)`; the others white with a
+    // `--lys-kant-farge` ring and `0 4px 7px -4px rgba(23,62,72,.2)`, the
+    // icon in `#1E4F5C` (`#g-…-l`), labels `--lys-tittel` / `--lys-sekundar`.
+    final skygge = lys
+        ? valgt
+            ? [
+                BoxShadow(
+                  color: rgba(15, 45, 55, .55),
+                  offset: Offset(0, 10 * s),
+                  blurRadius: onbBlur(15 * s),
+                  spreadRadius: -6 * s,
+                ),
+                BoxShadow(color: rgba(11, 38, 45, .85), offset: Offset(0, 3 * s)),
+              ]
+            : [
+                BoxShadow(
+                  color: rgba(23, 62, 72, .2),
+                  offset: Offset(0, 4 * s),
+                  blurRadius: onbBlur(7 * s),
+                  spreadRadius: -4 * s,
+                ),
+                BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1 * s),
+              ]
+        : valgt
         ? [
             BoxShadow(
               color: rgba(200, 70, 25, .85),
@@ -1627,7 +1706,19 @@ class _UnderOrb extends StatelessWidget {
                   height: 50 * s,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: valgt
+                    gradient: lys
+                        ? (valgt
+                            ? const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFF27606F), Color(0xFF1E4F5C)],
+                              )
+                            : const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF)],
+                              ))
+                        : valgt
                         ? const LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
@@ -1640,11 +1731,12 @@ class _UnderOrb extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      if (valgt)
+                      // The chosen orb's `inset 0 -4px 6px` is dark-only.
+                      if (valgt && !lys)
                         sokInsetBunnSirkel(s)
                       else
                         const SizedBox.shrink(),
-                      bergenInsetTop(radius: 999, height: 1.5 * s, alpha: valgt ? .45 : .28),
+                      bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? (valgt ? .28 : 0) : (valgt ? .45 : .28)),
                       // `filter: drop-shadow(0 2px 3px rgba(15,31,43,.35))`.
                       Transform.translate(
                         offset: Offset(0, 2 * s),
@@ -1656,7 +1748,7 @@ class _UnderOrb extends StatelessWidget {
                           blur: 1.5 * s,
                         ),
                       ),
-                      SokIkon(ikon, size: 26 * s, color: Colors.white, stroke: 2),
+                      SokIkon(ikon, size: 26 * s, color: lys && !valgt ? LysPalett.fjord : Colors.white, stroke: 2),
                     ],
                   ),
                 ),
@@ -1669,7 +1761,9 @@ class _UnderOrb extends StatelessWidget {
                 context,
                 11,
                 weight: FontWeight.w800,
-                color: valgt ? const Color(0xFF7FF0CB) : rgba(255, 255, 255, .6),
+                color: lys
+                    ? (valgt ? LysPalett.tittel : LysPalett.sekundar)
+                    : valgt ? const Color(0xFF7FF0CB) : rgba(255, 255, 255, .6),
               ),
               child: Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
@@ -1776,7 +1870,9 @@ class _SokFelt extends StatelessWidget {
               key: const Key('a1_kat_sok'),
               controller: controller,
               focusNode: fokus,
-              cursorColor: const Color(0xFFF26D3D),
+              // `.mk6y` light: `caret-color:var(--lys-glod-tekst)` (the field
+              // itself is the same white pill in both modes).
+              cursorColor: context.aeM(const Color(0xFFF26D3D), LysPalett.glodTekst),
               textInputAction: TextInputAction.search,
               style: bDisplay(
                 context,
@@ -1834,6 +1930,7 @@ class _SokOrb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return OnbPressable(
       key: const Key('a1_kat_sok_orb'),
       onTap: onTap,
@@ -1848,26 +1945,31 @@ class _SokOrb extends StatelessWidget {
           curve: Curves.ease,
           width: 58 * s,
           height: 58 * s,
+          // renderVals L25846 `kSokBg` / `kSokSh` and `.mk6z` (border
+          // `--lys-kant-farge`): closed white with `--lys-kortskygge`, open
+          // the same orange with a softer .5 drop.
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22 * s),
             gradient: apen
                 ? cssLinear(160, const [Color(0xFFF58A55), Color(0xFFE95C2C)])
-                : const LinearGradient(
+                : LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Color(0xFF2B5F6E), Color(0xFF1E4F5C)],
+                    colors: lys ? const [LysPalett.hvit, LysPalett.hvit] : const [Color(0xFF2B5F6E), Color(0xFF1E4F5C)],
                   ),
-            border: Border.all(color: rgba(255, 255, 255, .3)),
+            border: Border.all(color: lys ? LysPalett.kantFarge : rgba(255, 255, 255, .3)),
             boxShadow: apen
                 ? [
                     BoxShadow(color: rgba(150, 60, 15, .8), offset: Offset(0, 3 * s)),
                     BoxShadow(
-                      color: rgba(120, 50, 10, .9),
+                      color: lys ? rgba(120, 50, 10, .5) : rgba(120, 50, 10, .9),
                       offset: Offset(0, 16 * s),
                       blurRadius: onbBlur(26 * s),
                       spreadRadius: -12 * s,
                     ),
                   ]
+                : lys
+                ? _lysSkygge(LysPalett.kortskygge, s)
                 : [
                     BoxShadow(
                       color: rgba(4, 18, 26, .85),
@@ -1880,7 +1982,7 @@ class _SokOrb extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              bergenInsetTop(radius: 22 * s, height: 1.5 * s, alpha: apen ? .35 : .34),
+              bergenInsetTop(radius: 22 * s, height: 1.5 * s, alpha: apen ? .35 : lys ? 0 : .34),
               if (apen)
                 Transform.rotate(
                   angle: -math.pi / 2,
@@ -1890,7 +1992,8 @@ class _SokOrb extends StatelessWidget {
                 SokIkon(
                   '${SokIkon.sirkel(11, 11, 7)}M20.5 20.5l-4.3-4.3',
                   size: 22 * s,
-                  color: Colors.white,
+                  // `.mku` light: `stroke:#1E4F5C`.
+                  color: lys ? LysPalett.fjord : Colors.white,
                   stroke: 2.4,
                 ),
             ],
@@ -1915,7 +2018,8 @@ class _Tomt extends StatelessWidget {
         tekst,
         key: const Key('a1_kat_tomt'),
         textAlign: TextAlign.center,
-        style: bText(context, 12.5, weight: FontWeight.w700, color: rgba(255, 255, 255, .7)),
+        // Not in the design: `--lys-sekundar` in Lys, like `.mk14`.
+        style: bText(context, 12.5, weight: FontWeight.w700, color: context.aeM(rgba(255, 255, 255, .7), LysPalett.sekundar)),
       ),
     );
   }

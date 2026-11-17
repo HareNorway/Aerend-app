@@ -344,7 +344,8 @@ class _HoloMaler extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_HoloMaler old) => old.p != p;
+  // `farger`: a Lys switch swaps the (const) colour list while `p` may hold.
+  bool shouldRepaint(_HoloMaler old) => old.p != p || !identical(old.farger, farger);
 }
 
 const List<Color> kKatHoloLys = [
@@ -355,6 +356,16 @@ const List<Color> kKatHoloLys = [
   Color.fromRGBO(255, 255, 255, 0),
 ];
 const List<double> kKatHoloLysStopp = [.28, .40, .48, .56, .68];
+
+/// Lys plan: the store module's sheen in the light mode (`.mk6f` light),
+/// on [kKatHoloLysStopp].
+const List<Color> kKatHoloSkydans = [
+  Color.fromRGBO(255, 255, 255, 0),
+  Color.fromRGBO(140, 236, 208, .30),
+  Color.fromRGBO(196, 234, 248, .42),
+  Color.fromRGBO(255, 206, 186, .22),
+  Color.fromRGBO(255, 255, 255, 0),
+];
 
 const List<Color> kKatHoloSterk = [
   Color.fromRGBO(255, 255, 255, 0),

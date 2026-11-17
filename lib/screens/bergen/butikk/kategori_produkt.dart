@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import '../../common/auth/onboarding_kit.dart' show onbBlur;
 import '../../common/home/bergen/bergen_kit.dart';
 import '../kit/bergen_css.dart';
@@ -130,10 +132,26 @@ class _Inn extends StatelessWidget {
   }
 }
 
-BoxDecoration _kortDeko(double s, double r) => BoxDecoration(
+/// The card face. [lys]: `.mk6q` (hero, r 28) / `.mk6t` (small) light —
+/// the sky-white plate on its blue-grey edge (the hero's last drop
+/// `0 26px 36px -20px`, the small card's `0 24px 32px -20px`).
+BoxDecoration _kortDeko(double s, double r, {bool lys = false}) => BoxDecoration(
   borderRadius: BorderRadius.circular(r * s),
-  gradient: cssLinear(180, const [Color(0xFFFFFDF9), Color(0xFFFAF3EA), Color(0xFFF4EADD)], const [0, .55, 1]),
-  boxShadow: [
+  gradient: lys
+      ? cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF5FAFC), Color(0xFFE8F3F7)], const [0, .52, 1])
+      : cssLinear(180, const [Color(0xFFFFFDF9), Color(0xFFFAF3EA), Color(0xFFF4EADD)], const [0, .55, 1]),
+  boxShadow: lys
+      ? [
+          BoxShadow(color: rgba(31, 82, 95, .08), spreadRadius: 1),
+          BoxShadow(color: const Color(0xFFD6E8EE), offset: Offset(0, 2 * s)),
+          BoxShadow(color: const Color(0xFFBCD5DF), offset: Offset(0, 4 * s)),
+          BoxShadow(color: rgba(6, 52, 62, .14), offset: Offset(0, 5 * s), blurRadius: onbBlur(1 * s)),
+          BoxShadow(color: rgba(6, 40, 52, .35), offset: Offset(0, 8 * s), blurRadius: onbBlur(14 * s), spreadRadius: -8 * s),
+          r >= 28
+              ? BoxShadow(color: rgba(6, 40, 52, .72), offset: Offset(0, 26 * s), blurRadius: onbBlur(36 * s), spreadRadius: -20 * s)
+              : BoxShadow(color: rgba(6, 40, 52, .72), offset: Offset(0, 24 * s), blurRadius: onbBlur(32 * s), spreadRadius: -20 * s),
+        ]
+      : [
     BoxShadow(color: rgba(255, 255, 255, .6), spreadRadius: 1),
     BoxShadow(color: rgba(205, 188, 160, .9), offset: Offset(0, 2 * s)),
     BoxShadow(color: rgba(4, 18, 26, .4), offset: Offset(0, 6 * s), blurRadius: onbBlur(12 * s), spreadRadius: -8 * s),
@@ -155,8 +173,12 @@ class _Hero extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final butikkEta = p.eta != null ? '${p.butikk} · ${p.eta}' : p.butikk;
+    final lysM = context.lys;
+    // `.mk6h` `#03313C`, `.mk6s` `#4B5E64` in Lys.
+    final ink = lysM ? LysPalett.tittel : _kInk;
+    final sek = lysM ? LysPalett.sekundar : const Color(0xFF5E574D);
     return Container(
-      decoration: _kortDeko(s, 28),
+      decoration: _kortDeko(s, 28, lys: lysM),
       padding: EdgeInsets.all(7 * s),
       child: LayoutBuilder(
         builder: (context, c) => ConstrainedBox(
@@ -173,23 +195,23 @@ class _Hero extends StatelessWidget {
                       children: [
                         if (p.tag != null) Align(alignment: Alignment.centerLeft, child: Transform.rotate(angle: -4 * math.pi / 180, child: _Tag(tag: p.tag!, tilbud: tilbud, ny: ny))),
                         SizedBox(height: 10 * s),
-                        Text(p.navn, style: bDisplay(context, 20, letterSpacingEm: -.03, height: 1.12, color: _kInk)),
+                        Text(p.navn, style: bDisplay(context, 20, letterSpacingEm: -.03, height: 1.12, color: ink)),
                         SizedBox(height: 8 * s),
                         Row(children: [
                           _Merke(navn: p.butikk, logoUrl: p.logoUrl, size: 26),
                           SizedBox(width: 7 * s),
-                          Expanded(child: Text(butikkEta, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 12, weight: FontWeight.w700, color: const Color(0xFF5E574D)))),
+                          Expanded(child: Text(butikkEta, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 12, weight: FontWeight.w700, color: sek))),
                         ]),
                         if ((p.besk ?? '').isNotEmpty) ...[
                           SizedBox(height: 6 * s),
-                          Text(p.besk!, maxLines: 3, overflow: TextOverflow.ellipsis, style: bText(context, 12, weight: FontWeight.w500, height: 1.35, color: const Color(0xFF5E574D))),
+                          Text(p.besk!, maxLines: 3, overflow: TextOverflow.ellipsis, style: bText(context, 12, weight: FontWeight.w500, height: 1.35, color: sek)),
                         ],
                         SizedBox(height: 10 * s),
                         const Spacer(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(p.pris, maxLines: 1, style: bDisplay(context, 21, letterSpacingEm: -.02, color: _kInk).copyWith(fontFeatures: const [FontFeature.tabularFigures()])))),
+                            Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(p.pris, maxLines: 1, style: bDisplay(context, 21, letterSpacingEm: -.02, color: ink).copyWith(fontFeatures: const [FontFeature.tabularFigures()])))),
                             SizedBox(width: 8 * s),
                             _Stepper(ant: ant, stor: true, onLegg: onLegg, onMinus: onMinus, navn: p.navn),
                           ],
@@ -225,8 +247,12 @@ class _Liten extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lysM = context.lys;
+    // `.mk6h` `#03313C`, `.mk6u` `#566A70`, `.mk6v` (`--lys-dis`, no ring,
+    // `#4B5E64`) and its clock `.mk6w` `#627276` in Lys.
+    final ink = lysM ? LysPalett.tittel : _kInk;
     return Container(
-      decoration: _kortDeko(s, 26),
+      decoration: _kortDeko(s, 26, lys: lysM),
       padding: EdgeInsets.fromLTRB(7 * s, 7 * s, 7 * s, 13 * s),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -249,25 +275,25 @@ class _Liten extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(p.navn, maxLines: 2, overflow: TextOverflow.ellipsis, style: bDisplay(context, 14.5, letterSpacingEm: -.02, height: 1.2, color: _kInk)),
+                Text(p.navn, maxLines: 2, overflow: TextOverflow.ellipsis, style: bDisplay(context, 14.5, letterSpacingEm: -.02, height: 1.2, color: ink)),
                 SizedBox(height: 3 * s),
-                Text(p.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 11.5, weight: FontWeight.w700, color: const Color(0xFF7A7266))),
+                Text(p.butikk, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 11.5, weight: FontWeight.w700, color: lysM ? const Color(0xFF566A70) : const Color(0xFF7A7266))),
                 SizedBox(height: 9 * s),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(p.pris, style: bDisplay(context, 16.5, letterSpacingEm: -.02, color: _kInk).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                    Text(p.pris, style: bDisplay(context, 16.5, letterSpacingEm: -.02, color: ink).copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                     if (p.eta != null) ...[
                       SizedBox(width: 6 * s),
                       Flexible(
                         child: Container(
                           height: 22 * s,
                           padding: EdgeInsets.fromLTRB(6 * s, 0, 8 * s, 0),
-                          decoration: BoxDecoration(color: rgba(35, 32, 29, .055), borderRadius: BorderRadius.circular(999), border: Border.all(color: rgba(35, 32, 29, .05))),
+                          decoration: BoxDecoration(color: lysM ? LysPalett.dis : rgba(35, 32, 29, .055), borderRadius: BorderRadius.circular(999), border: Border.all(color: lysM ? rgba(35, 32, 29, 0) : rgba(35, 32, 29, .05))),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
-                            SokIkon('${SokIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2', size: 11 * s, color: const Color(0xFF8A8174), stroke: 2.6),
+                            SokIkon('${SokIkon.sirkel(12, 12, 8.5)}M12 7.5V12l3 2', size: 11 * s, color: lysM ? const Color(0xFF627276) : const Color(0xFF8A8174), stroke: 2.6),
                             SizedBox(width: 4 * s),
-                            Flexible(child: Text(p.eta!, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 10.5, weight: FontWeight.w700, color: _kGra))),
+                            Flexible(child: Text(p.eta!, maxLines: 1, overflow: TextOverflow.ellipsis, style: bText(context, 10.5, weight: FontWeight.w700, color: lysM ? LysPalett.sekundar : _kGra))),
                           ]),
                         ),
                       ),
@@ -557,7 +583,8 @@ class _Merke extends StatelessWidget {
         shape: BoxShape.circle,
         color: har ? Colors.white : m.bg,
         boxShadow: [
-          if (ring) BoxShadow(color: rgba(255, 255, 255, .92), spreadRadius: 2.5 * s) else BoxShadow(color: rgba(35, 32, 29, .08), spreadRadius: 1),
+          // `.mk6r` light (the hero's mark): the hairline is `rgba(31,82,95,.09)`.
+          if (ring) BoxShadow(color: rgba(255, 255, 255, .92), spreadRadius: 2.5 * s) else BoxShadow(color: context.aeM(rgba(35, 32, 29, .08), rgba(31, 82, 95, .09)), spreadRadius: 1),
           BoxShadow(color: rgba(40, 16, 6, ring ? .6 : .5), offset: Offset(0, (ring ? 8 : 4) * s), blurRadius: onbBlur((ring ? 14 : 8) * s), spreadRadius: -(ring ? 6 : 4) * s),
         ],
       ),

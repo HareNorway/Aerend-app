@@ -6,6 +6,8 @@ import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../theme/bergen_tokens.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import '../../../utils/shared_pref_utill.dart' show resolveSelectedLanguage;
 import '../../common/auth/launch/lf_css.dart' show CssBox, CssLinear, CssShadow;
 import '../../common/auth/onboarding_kit.dart' show onbBlur;
@@ -213,6 +215,7 @@ class KatButikkModul extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = context.bs;
     final farge = kKatFarge[b.nr % 4];
+    final lysM = context.lys;
     return KatSvevKort(
       key: ValueKey('kat-bm-${b.id}'),
       perspektiv: 1100,
@@ -240,10 +243,21 @@ class KatButikkModul extends StatelessWidget {
             ),
           ),
           Container(
+            // `.mk6e` light: the sky-white card on its blue-grey edge.
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30 * s),
-              gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFBF5), Color(0xFFF7EEE2)]),
-              boxShadow: [
+              gradient: lysM
+                  ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFFFF), Color(0xFFF5FAFC), Color(0xFFE8F3F7)], stops: [0, .52, 1])
+                  : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFBF5), Color(0xFFF7EEE2)]),
+              boxShadow: lysM
+                  ? [
+                      BoxShadow(color: rgba(31, 82, 95, .08), spreadRadius: 1),
+                      BoxShadow(color: const Color(0xFFD6E8EE), offset: Offset(0, 2 * s)),
+                      BoxShadow(color: const Color(0xFFBCD5DF), offset: Offset(0, 4 * s)),
+                      BoxShadow(color: rgba(6, 52, 62, .16), offset: Offset(0, 5 * s), blurRadius: onbBlur(1 * s)),
+                      BoxShadow(color: rgba(6, 40, 52, .72), offset: Offset(0, 30 * s), blurRadius: onbBlur(40 * s), spreadRadius: -22 * s),
+                    ]
+                  : [
                 BoxShadow(color: rgba(255, 255, 255, .55), spreadRadius: 1),
                 BoxShadow(color: rgba(4, 18, 26, .25), offset: Offset(0, 3 * s)),
                 BoxShadow(color: rgba(4, 18, 26, .85), offset: Offset(0, 30 * s), blurRadius: onbBlur(40 * s), spreadRadius: -22 * s),
@@ -253,7 +267,8 @@ class KatButikkModul extends StatelessWidget {
               borderRadius: BorderRadius.circular(30 * s),
               child: Stack(
                 children: [
-                  const Positioned.fill(child: IgnorePointer(child: KatHolo(farger: kKatHoloLys, stopp: kKatHoloLysStopp))),
+                  // `.mk6f`: the sheen's colours per mode.
+                  Positioned.fill(child: IgnorePointer(child: KatHolo(farger: lysM ? kKatHoloSkydans : kKatHoloLys, stopp: kKatHoloLysStopp))),
                   bergenInsetTop(radius: 30 * s, height: 1.5 * s, alpha: 1),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 12 * s),
@@ -302,9 +317,15 @@ class _Hode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
+    // `.mk6h` name `#03313C`, `.mk6i` line `#4B5E64`, `.mk6j` dot `#A7BCC3`,
+    // `.mk6k` tag `#03313C` in Lys; the fee colour (`bmFraktFarge`) is the
+    // same in both modes.
+    final ink = lys ? LysPalett.tittel : _kInk;
+    final gra = lys ? LysPalett.sekundar : _kGra;
     final fraktFarge = fraktGratis ? _kGronn : _kGra;
-    final linje = bText(context, 11.5, weight: FontWeight.w700, color: _kGra);
-    Widget prikk() => Container(width: 3 * s, height: 3 * s, margin: EdgeInsets.symmetric(horizontal: 5 * s), decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFB5AC9F)));
+    final linje = bText(context, 11.5, weight: FontWeight.w700, color: gra);
+    Widget prikk() => Container(width: 3 * s, height: 3 * s, margin: EdgeInsets.symmetric(horizontal: 5 * s), decoration: BoxDecoration(shape: BoxShape.circle, color: lys ? const Color(0xFFA7BCC3) : const Color(0xFFB5AC9F)));
     final deler = <Widget>[
       if (frakt != null) Text(frakt!, style: linje.copyWith(fontWeight: FontWeight.w800, color: fraktFarge)),
       if (b.eta != null) Text(b.eta!, style: linje),
@@ -328,7 +349,7 @@ class _Hode extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(b.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: bDisplay(context, 17, letterSpacingEm: -.025, height: 1.15, color: _kInk)),
+                  Text(b.navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: bDisplay(context, 17, letterSpacingEm: -.025, height: 1.15, color: ink)),
                   SizedBox(height: 3 * s),
                   ClipRect(
                     child: SingleChildScrollView(
@@ -348,13 +369,13 @@ class _Hode extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         physics: const NeverScrollableScrollPhysics(),
                         child: Row(children: [
-                          if (b.tag != null) ...[_Brikke(tekst: b.tag!, bg: _kInk, fg: const Color(0xFFF6D27A)), SizedBox(width: 6 * s)],
+                          if (b.tag != null) ...[_Brikke(tekst: b.tag!, bg: ink, fg: const Color(0xFFF6D27A)), SizedBox(width: 6 * s)],
                           if (provd) ...[_Brikke(tekst: KatModulCopy.provd, bg: rgba(47, 184, 147, .14), fg: _kGronn, hake: true), SizedBox(width: 6 * s)],
                           if (b.live != null)
                             Row(mainAxisSize: MainAxisSize.min, children: [
                               const _Puls(),
                               SizedBox(width: 5 * s),
-                              Text(KatModulCopy.bestillerNaa(b.live!), style: bText(context, 11, weight: FontWeight.w700, color: _kGra)),
+                              Text(KatModulCopy.bestillerNaa(b.live!), style: bText(context, 11, weight: FontWeight.w700, color: gra)),
                             ]),
                         ]),
                       ),
@@ -365,7 +386,8 @@ class _Hode extends StatelessWidget {
             ),
           ),
           SizedBox(width: 7 * s),
-          if (b.id > 0) BergenFavHeart(storeId: b.id, size: 36 * s, iconSize: 16 * s, burst: true, burstFarge: kKatFarge[b.nr % kKatFarge.length], navn: b.navn),
+          // `.mk6m` light: the empty heart's stroke `#03313C` (null: the kit's ink).
+          if (b.id > 0) BergenFavHeart(storeId: b.id, size: 36 * s, iconSize: 16 * s, burst: true, burstFarge: kKatFarge[b.nr % kKatFarge.length], navn: b.navn, strokeInk: lys ? LysPalett.tittel : null),
           SizedBox(width: 7 * s),
           KatRundKnapp(size: 42, ikon: 'M5 12h13M13 6l6 6-6 6', ikonPx: 18, strek: 2.8, onTap: () {}),
         ],
@@ -398,7 +420,14 @@ class _LogoFlis extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18 * s),
-        boxShadow: [
+        // `.mk6g` light: the same drops in fjord blue-grey.
+        boxShadow: context.lys
+            ? [
+                BoxShadow(color: rgba(31, 82, 95, .07), spreadRadius: 1),
+                BoxShadow(color: rgba(31, 82, 95, .16), offset: Offset(0, 3 * s)),
+                BoxShadow(color: rgba(6, 40, 52, .4), offset: Offset(0, 12 * s), blurRadius: onbBlur(16 * s), spreadRadius: -8 * s),
+              ]
+            : [
           BoxShadow(color: rgba(35, 32, 29, .06), spreadRadius: 1),
           BoxShadow(color: rgba(90, 74, 48, .16), offset: Offset(0, 3 * s)),
           BoxShadow(color: rgba(4, 18, 26, .45), offset: Offset(0, 12 * s), blurRadius: onbBlur(16 * s), spreadRadius: -8 * s),
@@ -722,7 +751,8 @@ class _RailState extends State<_Rail> with SingleTickerProviderStateMixin {
               child: Container(
                 width: 48 * s,
                 height: 4 * s,
-                decoration: BoxDecoration(color: rgba(35, 32, 29, .1), borderRadius: BorderRadius.circular(2 * s)),
+                // `.mk6p` light: the track is `--lys-dis`.
+                decoration: BoxDecoration(color: context.aeM(rgba(35, 32, 29, .1), LysPalett.dis), borderRadius: BorderRadius.circular(2 * s)),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Transform.translate(
@@ -827,7 +857,8 @@ class _Flis extends StatelessWidget {
                 CssShadow.inset(0, 1.5 * s, 0, 0, rgba(255, 255, 255, .5)),
                 CssShadow.inset(0, -14 * s, 22 * s, -14 * s, rgba(40, 16, 4, .45)),
                 CssShadow(0, 1 * s, 0, 0, rgba(255, 255, 255, .8)),
-                CssShadow(0, 12 * s, 18 * s, -12 * s, rgba(40, 20, 8, .6)),
+                // `.mk6n` light: the drop is `rgba(6,40,52,.5)`.
+                CssShadow(0, 12 * s, 18 * s, -12 * s, context.aeM(rgba(40, 20, 8, .6), rgba(6, 40, 52, .5))),
               ],
               child: Stack(
                 clipBehavior: Clip.none,
@@ -985,6 +1016,7 @@ class _PlussState extends State<_Pluss> {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    final lys = context.lys;
     return Semantics(
       button: true,
       label: KatModulCopy.leggIKurven(widget.navn),
@@ -1002,14 +1034,15 @@ class _PlussState extends State<_Pluss> {
             ..translateByDouble(0, _ned ? 2 * s : 0, 0, 1)
             ..scaleByDouble(_ned ? .9 : 1, _ned ? .9 : 1, 1, 1),
           transformAlignment: Alignment.center,
+          // `.mk6o` light: white → `#E9F4F8` on fjord-grey drops.
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
+            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: lys ? const [Color(0xFFFFFFFF), Color(0xFFE9F4F8)] : const [Color(0xFFFFFFFF), Color(0xFFF1ECE1)]),
             boxShadow: [
               BoxShadow(color: rgba(255, 255, 255, .9), spreadRadius: 1),
-              BoxShadow(color: const Color(0xFFD9D2C4), offset: Offset(0, 2 * s)),
-              BoxShadow(color: rgba(90, 74, 48, .3), offset: Offset(0, 3 * s)),
-              BoxShadow(color: rgba(35, 32, 29, .6), offset: Offset(0, 8 * s), blurRadius: onbBlur(12 * s), spreadRadius: -6 * s),
+              BoxShadow(color: lys ? const Color(0xFFC2D9E2) : const Color(0xFFD9D2C4), offset: Offset(0, 2 * s)),
+              BoxShadow(color: lys ? rgba(31, 82, 95, .25) : rgba(90, 74, 48, .3), offset: Offset(0, 3 * s)),
+              BoxShadow(color: lys ? rgba(6, 40, 52, .5) : rgba(35, 32, 29, .6), offset: Offset(0, 8 * s), blurRadius: onbBlur(12 * s), spreadRadius: -6 * s),
             ],
           ),
           child: Center(

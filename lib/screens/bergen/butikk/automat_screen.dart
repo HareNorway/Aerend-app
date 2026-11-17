@@ -25,6 +25,7 @@ import '../utforsk/utforsk_bits.dart';
 import '../utforsk/utforsk_copy.dart';
 import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
+import '../../../theme/lys/modus_scope.dart' show ModusFjord;
 
 /// `automat` — Poseautomaten (L5715–5906 in `Ærend Kunde Launch.dc.html`,
 /// design px) at `/bergen/automat`.
@@ -244,7 +245,10 @@ class _AutomatScreenState extends State<AutomatScreen> {
 
   @override
   // A game (heat ladder: keeps every vsync under the takt).
-  Widget build(BuildContext context) => BergenEssential(spill: true, child: _essentialBuild(context));
+  // Lys plan (Step 9): «Poseautomaten» and «Posen i Vågen» carry no light
+  // theme in the design (no `.mk*`, `__aeM` or `--x-kft` there) — the
+  // machine over Vågen stays fjord in both modes, with light status icons.
+  Widget build(BuildContext context) => ModusFjord(child: BergenEssential(spill: true, child: _essentialBuild(context)));
 
   Widget _essentialBuild(BuildContext context) {
     final look = BergenWeatherLook.forHour(DateTime.now().hour);
