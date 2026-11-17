@@ -242,6 +242,7 @@ vec3 byggF(vec2 sq, float Y, float fc, vec2 d2, vec4 bx, vec2 hy, float sty, flo
   c *= 0.82 + 0.32 * nb;
   c *= mix(vec3(1.0), vec3(1.05, 0.99, 0.92), smoothstep(0.45, 0.85, nb2)) * mix(vec3(1.0), vec3(0.94, 0.98, 1.04), smoothstep(0.55, 0.15, nb2));
   if (fc < 0.5) c += uWet * 0.07 * mix(uSkB, uSkM, 0.5) * (0.6 + 0.4 * vn(sq * 0.4)) * sat(1.2 - pf * 0.15);
+  c = mix(c, vec3(0.4, 0.39, 0.38) * lit(0.5 * sh), 0.42 * smoothstep(3.0, 9.0, t / FO));
   return c;
 }
 vec3 landF(vec2 sq, vec2 P, float t, float wd, inout vec3 glow){
@@ -512,9 +513,10 @@ void trelag(vec2 p, vec2 CZ, float rB, float rV, float off, float sd, float nr, 
         if (et > e) { e = et; sh = 0.5 + 0.6 * smoothstep(0.4, -0.4, tx0 / (r * 0.06)); tc = mix(vec3(0.52, 0.32, 0.19), vec3(0.3, 0.26, 0.22), smoothstep(-0.2, 1.3, d.y / r)) * (0.8 + 0.3 * vn(vec2(d.y * 2.0, cid.x))); }
       } else {
         float yy = (d.y + r * 1.9) / (r * 2.6), lag = fract(yy * 7.0 + h * 3.0);
-        float wd = r * 0.6 * sat(yy) * (0.78 + 0.35 * lag) * (0.8 + 0.4 * vn(vec2(d.y * 3.0 / r, cid.x * 3.0)));
+        float la = smoothstep(3.0, 9.0, r);
+        float wd = r * 0.6 * sat(yy) * mix(0.95, 0.78 + 0.35 * lag, la) * (0.8 + 0.4 * vn(vec2(d.y * 3.0 / r, cid.x * 3.0)));
         e = min(wd - abs(d.x) + r * 0.12 * (lf2 - 0.5), r * 0.7 - d.y);
-        sh = (0.5 + 0.5 * smoothstep(0.5, -0.5, d.x / max(wd, 0.3))) * (0.5 + 0.6 * lf) * (0.72 + 0.38 * lag);
+        sh = (0.5 + 0.5 * smoothstep(0.5, -0.5, d.x / max(wd, 0.3))) * (0.5 + 0.6 * lf) * mix(0.9, 0.72 + 0.38 * lag, la);
         tc = mix(vec3(0.04, 0.085, 0.055), vec3(0.08, 0.13, 0.075), h3);
       }
     } else {
@@ -549,7 +551,7 @@ void plattform(vec2 p, inout vec3 col){
   }
   float de = min(p.y - yb, xe - p.x);
   if (de > -1.0) {
-    vec3 g = vec3(0.64, 0.62, 0.58) * (0.86 + 0.2 * vn(p * 1.6)) * (0.94 + 0.12 * hs(floor(p * uDpr * 1.5)));
+    vec3 g = vec3(0.64, 0.62, 0.58) * (0.86 + 0.2 * vn(p * 1.6)) * (0.95 + 0.1 * vn(p * 5.0));
     float rl = log(p.y - yb + 3.0) * 3.2, cl = (p.x - 30.0) / (p.y - 110.0) * 5.0, rr = fract(rl), cc = fract(cl);
     g *= (0.97 + 0.05 * hs(vec2(floor(rl), floor(cl)))) * (0.94 + 0.1 * vn(p * vec2(0.08, 0.2))) * (0.95 + 0.08 * vn(p * 0.6));
     g *= 1.0 - 0.045 * (1.0 - smoothstep(0.0, 0.05, min(rr, 1.0 - rr))) - 0.04 * (1.0 - smoothstep(0.0, 0.025, min(cc, 1.0 - cc)));
@@ -562,13 +564,13 @@ void plattform(vec2 p, inout vec3 col){
     float dyp = p.y - yb, gl2 = 1.0 - smoothstep(0.0, 70.0, dyp);
     vec3 rf = mix(uSkM, uSkT, sat(dyp / 120.0)) * mix(1.0, 0.55, uNight);
     float pv0 = vn(vec2(p.x * 0.06, p.y * 0.2) + 3.0) * 0.7 + vn(p * vec2(0.16, 0.45) + 8.0) * 0.3;
-    float pud = smoothstep(0.66, 0.71, pv0) * uWet * (0.55 + 0.45 * gl2), pring = (smoothstep(0.6, 0.66, pv0) - smoothstep(0.66, 0.71, pv0)) * uWet;
+    float pud = smoothstep(0.58, 0.78, pv0) * uWet * (0.55 + 0.45 * gl2), pring = (smoothstep(0.5, 0.6, pv0) - smoothstep(0.6, 0.78, pv0)) * uWet;
     vec3 dc = g * lit(0.75) * mix(1.0, 0.62, uWet) + uWet * 0.1 * rf * (0.5 + 0.5 * vn(vec2(p.x * 0.2, p.y * 0.6)));
     dc = mix(dc, rf * 0.8, uWet * 0.26 * gl2);
     dc *= 1.0 - 0.18 * pring;
     vec3 pc = mix(dc, rf * 0.62, 0.75) * (1.0 + uRain * 0.22 * (vn(vec2(p.x * 0.7, p.y * 1.4) + T * 1.4) - 0.5)) + vec3(0.012);
     if (p.x < 153.5) { float pm2 = mod(p.x + 9.0, 30.0) - 15.0; pc = mix(pc, vec3(0.13, 0.14, 0.15) * lit(0.5), cv(abs(pm2) - 0.9) * step(dyp, 21.0) * 0.8); pc = mix(pc, vec3(0.3, 0.32, 0.34) * lit(0.6), cv(abs(dyp - 20.0) - 0.9) * 0.7); }
-    dc = mix(dc, pc, pud * 0.7);
+    dc = mix(dc, pc, pud * 0.62);
     vec2 lq = (p - vec2(74.0, 196.0)) * vec2(0.022, 0.06); dc += VARM * g * smoothstep(0.85, 1.0, uNight) * (1.0 - uRain) * 0.45 * exp(-dot(lq, lq) * 2.0);
     col = mix(col, dc, sat(de * uDpr + 0.5));
   }
@@ -646,7 +648,6 @@ void main(){
   vec3 xe3 = col * (0.94 - 0.12 * uSun);
   col = clamp((xe3 * (2.51 * xe3 + 0.03)) / (xe3 * (2.43 * xe3 + 0.59) + 0.14), 0.0, 1.0);
   vec2 vq = p / uRes - 0.5; col *= 1.0 - 0.12 * smoothstep(0.35, 0.8, length(vq * vec2(1.0, 0.8)));
-  col += (hs(floor(p * uDpr) + fract(T * 6.0) * 97.0) - 0.5) * 0.026 * (1.0 - 0.6 * dot(col, vec3(0.33)));
   col = col * 0.975 + vec3(0.008, 0.011, 0.014);
   fragColor = vec4(col, MAT);
 }

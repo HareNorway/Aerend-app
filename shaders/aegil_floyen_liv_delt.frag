@@ -138,6 +138,6 @@ void main(){
     col += vec3(0.75, 0.8, 0.85) * (0.06 + 0.2 * (1.0 - uNight)) * r * uRain; }
   if (uSnow > 0.0) { float sn = sno(p, 9.0, 14.0, 1.0) * 0.55 + sno(p, 16.0, 24.0, 5.0) * 0.85 + sno(p, 28.0, 40.0, 9.0);
     col = mix(col, vec3(0.93, 0.95, 1.0) * (0.55 + 0.35 * (1.0 - uNight)), sat(sn) * uSnow); }
-  col += (hs(FlutterFragCoord().xy + fract(T * 7.0) * 91.0) - 0.5) * 0.016;
+  col += (hs(FlutterFragCoord().xy + fract(T * 7.0) * 91.0) - 0.5) * 0.008;
   fragColor = vec4(col, 1.0);
 }

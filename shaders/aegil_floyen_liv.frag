@@ -98,8 +98,10 @@ void main(){
   vec2 p = (FlutterFragCoord().xy / uDpr);
   T = uT; AA = 1.0 / uDpr;
   vec4 s = tx(p); vec3 col = s.rgb; float m = s.a;
-  vec3 bl = (tx(p + vec2(0.8, 0.3)).rgb + tx(p - vec2(0.8, 0.3)).rgb + tx(p + vec2(-0.3, 0.8)).rgb + tx(p + vec2(0.3, -0.8)).rgb) * 0.25;
-  col = mix(col, bl, 0.22);
+  float ky = smoothstep(185.0, 80.0, p.y) * step(m, 0.15);
+  vec2 o1 = vec2(0.8, 0.3) * (1.0 + 0.6 * ky), o2 = vec2(-0.3, 0.8) * (1.0 + 0.6 * ky);
+  vec3 bl = (tx(p + o1).rgb + tx(p - o1).rgb + tx(p + o2).rgb + tx(p - o2).rgb) * 0.25;
+  col = mix(col, bl, 0.22 + 0.33 * ky);
   vec3 gl = (tx(p + vec2(3.0, 0.0)).rgb + tx(p - vec2(3.0, 0.0)).rgb + tx(p + vec2(0.0, 3.0)).rgb + tx(p - vec2(0.0, 3.0)).rgb + tx(p + vec2(4.5, 4.5)).rgb + tx(p - vec2(4.5, 4.5)).rgb + tx(p + vec2(4.5, -4.5)).rgb + tx(p - vec2(4.5, -4.5)).rgb) * 0.125;
   col += max(gl - 0.62, 0.0) * 0.32;
   if (m > 0.15 && m < 0.4) {
@@ -128,6 +130,6 @@ void main(){
     col += vec3(0.75, 0.8, 0.85) * (0.06 + 0.2 * (1.0 - uNight)) * r * uRain; }
   if (uSnow > 0.0) { float sn = sno(p, 9.0, 14.0, 1.0) * 0.55 + sno(p, 16.0, 24.0, 5.0) * 0.85 + sno(p, 28.0, 40.0, 9.0);
     col = mix(col, vec3(0.93, 0.95, 1.0) * (0.55 + 0.35 * (1.0 - uNight)), sat(sn) * uSnow); }
-  col += (hs(FlutterFragCoord().xy + fract(T * 7.0) * 91.0) - 0.5) * 0.016;
+  col += (hs(FlutterFragCoord().xy + fract(T * 7.0) * 91.0) - 0.5) * 0.008;
   fragColor = vec4(col, 1.0);
 }

@@ -14,10 +14,12 @@ import '../kit/maler_vert.dart';
 /// (`data-flgl="agent"`, `flGlInit` / `flGlTegn`), 390 × 252 design px.
 ///
 /// As in the prototype, the heavy city (`shaders/aegil_floyen.frag`: the
-/// ray-traced blocks, shadows, mountains) is drawn once per weather, at
-/// twice the size, in 20 stripes (one per frame), into an image; each frame
-/// (every 33 ms, at a device pixel ratio of at most 1.6) then reads it and
-/// adds what moves (`shaders/aegil_floyen_liv.frag`: the water, the boats,
+/// ray-traced blocks, shadows, mountains) is drawn once per weather,
+/// supersampled (`ss`: twice the screen pass's pixel ratio, at most 4× the
+/// design px, 3× in `lite`), in 28 stripes (one per frame, every 12 ms while
+/// they're drawn), into an image; each frame (every 33 ms, at a device pixel
+/// ratio of at most 3, 1.5 in `lite` — the prototype's `svak`) then reads it
+/// and adds what moves (`shaders/aegil_floyen_liv.frag`: the water, the boats,
 /// the fountain, the Fløibanen car, the rain). The page's layers over the
 /// canvas — its `saturate(.92) contrast(.97) brightness(1.02)`, the two soft
 /// blurs at the top, the haze, the warm light (soft-light), the shade
@@ -32,8 +34,9 @@ import '../kit/maler_vert.dart';
 /// rebuild.
 ///
 /// Motion tiers (parity plan §3.1): `full` as the prototype; `lite` every
-/// 66 ms at 55 % of the pixels; `still` shows [still] (the baked frame,
-/// which is also there until the city is drawn and if a shader can't load).
+/// 66 ms with the prototype's `svak` sizes (low pixel budget); `still` shows
+/// [still] (the baked frame, which is also there until the city is drawn and
+/// if a shader can't load).
 /// «Roligere bevegelse» keeps the slow `rolig` clock.
 class AegilFloyen extends StatefulWidget {
   const AegilFloyen({super.key, required this.kind, required this.still});
@@ -47,7 +50,7 @@ class AegilFloyen extends StatefulWidget {
 
 class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStateMixin {
   static const double _w = 390, _h = 252;
-  static const int _stripes = 20;
+  static const int _stripes = 28;
   static Future<List<ui.FragmentProgram>>? _programs;
   static Future<List<ui.FragmentProgram>>? _delProgs;
 
@@ -60,10 +63,12 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   Duration _sist = Duration.zero;
   Duration _prev = Duration.zero;
   double _t = 12;
-  double _dpr = 1.6;
+  double _dpr = 3;
   bool _calm = false;
   Duration? _step = const Duration(milliseconds: 33);
-  double _budgetK = 1;
+  // `flGlTegn`'s `svak` (the prototype's pixel budget under 110 000): the
+  // `lite` tier here.
+  bool _svak = false;
 
   // Perf plan: no frames while Fløyen is off the screen; its clock carries
   // on (see PerfHvile).
@@ -121,10 +126,10 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _dpr = math.max(1, math.min(1.6, MediaQuery.devicePixelRatioOf(context)));
+    _dpr = MediaQuery.devicePixelRatioOf(context);
     _calm = BergenPerf.calmOf(context);
     _step = BergenPerf.shaderStep(context, fullMs: 33, liteMs: 66) ?? (_calm ? const Duration(milliseconds: 33) : null);
-    _budgetK = BergenPerf.shaderBudget(context, 1);
+    _svak = BergenPerf.shaderBudget(context, 1) < 1;
     _sync();
   }
 
@@ -149,7 +154,14 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     }
   }
 
-  double get _d => _dpr * math.sqrt(_budgetK);
+  /// `flGlTegn`: the screen pass's pixel ratio `d` and the city's `ss`.
+  // Lys plan Step 15 (heat): the design caps at 3; the app keeps its 1.6 cap from the heat work (same picture,
+  // lower resolution) until a device check.
+  double get _d => math.max(1, math.min(_svak ? 1.5 : 1.6, _dpr));
+  double get _ss => math.min(_svak ? 3 : 4, _d * 2);
+
+  /// The city for this weather and size.
+  String get _citySig => '${widget.kind.name}|${(_w * _ss).round()}x${(_h * _ss).round()}';
 
   void _tick(Duration e) {
     _rammer.tikk(e);
@@ -158,7 +170,8 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
     _prev = e;
     _t += dt * (_calm ? .15 : 1);
     if (BergenPerf.frysMs != null) _t = BergenPerf.frysMs! / 1000;
-    final step = _step;
+    // While the city's stripes are drawn, a step every 12 ms (`flGlTegn`).
+    final step = _step == null ? null : (_statSig != _citySig ? const Duration(milliseconds: 12) : _step);
     // Heat ladder / idle: on the takt's frames ([PerfTakt.steg]).
     final sist = step == null ? null : (PerfTakt.paa ? PerfTakt.steg(e, _sist, step) : (e - _sist < step ? null : e));
     if (sist == null) {
@@ -174,9 +187,9 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
   /// `flGlTegn`'s first pass: one stripe of the city per frame.
   void _city() {
     final sh = _by!;
-    final d = _d, pw = (_w * d).round(), ph = (_h * d).round(), w2 = pw * 2, h2 = ph * 2;
+    final ss = _ss, w2 = (_w * ss).round(), h2 = (_h * ss).round();
     final p = BrPal.of(widget.kind);
-    final sig = '${widget.kind.name}|${w2}x$h2';
+    final sig = _citySig;
     if (_statSig == sig) return;
     if (_cacheSig == sig && _cache != null) {
       _useStat(sig, _cache!.clone());
