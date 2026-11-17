@@ -253,9 +253,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void initState() {
     // Lys plan: the toast after a light/dark switch («Lys modus · Skydans» / «Mørk modus · Fjord»).
     BergenModus.i.visToast = (lys) {
-      // The navigator's own context sits above its Overlay: show it from the overlay's.
-      final c = navigatorKey.currentState?.overlay?.context;
-      if (c != null) showBergenToast(c, lys ? 'Lys modus · Skydans' : 'Mørk modus · Fjord');
+      // From above the Navigator: hand the toast the navigator's overlay itself.
+      final o = navigatorKey.currentState?.overlay;
+      if (o != null && o.mounted) showBergenToast(o.context, lys ? 'Lys modus · Skydans' : 'Mørk modus · Fjord', overlay0: o);
     };
     super.initState();
     WidgetsBinding.instance.addObserver(this);

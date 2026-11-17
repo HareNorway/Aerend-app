@@ -86,8 +86,10 @@ void showBergenToast(
   IconData? icon,
   Duration? duration,
   VoidCallback? angre,
+  /// Lys plan: callers above the Navigator (the mode switch) pass its overlay directly.
+  OverlayState? overlay0,
 }) {
-  final overlay = Overlay.maybeOf(context, rootOverlay: true);
+  final overlay = overlay0 ?? Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) return;
 
   _current?.remove();
