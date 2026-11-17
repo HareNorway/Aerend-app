@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../kit/bergen_perf.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import 'hurtig_bits.dart';
 import 'hurtig_data.dart';
 
@@ -17,6 +19,16 @@ import 'hurtig_data.dart';
 const Color kHbMintLys = Color(0xFF7FF0CB);
 const Color kHbFersken = Color(0xFFFFB48E);
 const Color kHbKant = Color(0xFF1F5463);
+
+// Lys: every glass card class of the design (`.mk1o` `.mk1r` `.mk1v` `.mk22`
+// `.mk23` `.mk2b` `.mk2i`) is `--lys-hvit`, `1px solid --lys-kant-farge`,
+// `--lys-kortskygge`, text `--lys-brod`.
+
+/// `.mk1i` (svg stroke) / `.mk28` (svg fill) in Lys: `#0B6B57`.
+const Color kHbLysIkon = Color(0xFF0B6B57);
+
+/// `box-shadow: 0 0 0 1px var(--lys-kant-farge)` (the Lys ring).
+const List<CssShadow> kHbLysRing = [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)];
 
 const List<CssBg> kHbGlassBg = [
   CssLinear(180, [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .05)]),
@@ -37,23 +49,25 @@ List<CssShadow> hbOransjeSkygge({double dyp = 12, double blur = 20}) => [
 ];
 
 /// One glass card. The CSS border sits inside the box, so the padding is
-/// the design's plus 1px.
+/// the design's plus 1px. Lys: white with the kant ring and the card shadow
+/// ([lysBg] when an inline layer of the design stays on top of the white).
 class HbGlass extends StatelessWidget {
-  const HbGlass({super.key, required this.child, this.radius = 22, this.padding = EdgeInsets.zero, this.kant = const Color.fromRGBO(255, 255, 255, .16), this.bg = kHbGlassBg, this.clip = false});
+  const HbGlass({super.key, required this.child, this.radius = 22, this.padding = EdgeInsets.zero, this.kant = const Color.fromRGBO(255, 255, 255, .16), this.bg = kHbGlassBg, this.lysBg = const [CssSolid(LysPalett.hvit)], this.clip = false});
 
   final Widget child;
   final double radius;
   final EdgeInsets padding;
   final Color kant;
   final List<CssBg> bg;
+  final List<CssBg> lysBg;
   final bool clip;
 
   @override
   Widget build(BuildContext context) => CssBox(
     radius: BorderRadius.circular(radius),
-    bg: bg,
-    border: Border.all(color: kant),
-    shadows: kHbGlassSkygge,
+    bg: context.aeM(bg, lysBg),
+    border: Border.all(color: context.aeM(kant, LysPalett.kantFarge)),
+    shadows: context.aeM(kHbGlassSkygge, LysPalett.kortskygge),
     clip: clip,
     padding: padding + const EdgeInsets.all(1),
     child: child,
@@ -74,7 +88,8 @@ class HbSeksjon extends StatelessWidget {
       children: [
         Text(
           tittel,
-          style: hbI(11, weight: FontWeight.w800, em: .12, color: kHbMintLys),
+          // `.mk8` / `.mk6` in Lys.
+          style: hbI(11, weight: FontWeight.w800, em: .12, color: context.aeM(kHbMintLys, LysPalett.mintTekst)),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -88,7 +103,7 @@ class HbSeksjon extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             under,
-            style: hbI(11.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7)),
+            style: hbI(11.5, weight: FontWeight.w700, color: context.aeM(const Color.fromRGBO(255, 255, 255, .7), LysPalett.sekundar)),
           ),
         ],
       ],
@@ -297,6 +312,8 @@ class HbPop extends StatelessWidget {
 }
 
 /// The 26px icon tile of a dark card's head (mint, or peach for allergies).
+/// Lys: `.mk27` `--lys-mint-dis` + `.mk1i` / `.mk2c` `--lys-glod-dis` +
+/// `.mk2d` `#A63A12` (the inline borders stay).
 class HbHodeIkon extends StatelessWidget {
   const HbHodeIkon(this.d, {super.key, this.fersken = false});
 
@@ -308,25 +325,38 @@ class HbHodeIkon extends StatelessWidget {
     width: 26,
     height: 26,
     radius: BorderRadius.circular(9),
-    bg: [CssSolid(fersken ? const Color.fromRGBO(242, 109, 61, .18) : const Color.fromRGBO(92, 224, 184, .14))],
+    bg: [
+      CssSolid(
+        fersken
+            ? context.aeM(const Color.fromRGBO(242, 109, 61, .18), LysPalett.glodDis)
+            : context.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis),
+      ),
+    ],
     border: Border.all(color: fersken ? const Color.fromRGBO(255, 148, 102, .35) : const Color.fromRGBO(127, 240, 203, .25)),
-    child: Center(child: HbIkon(d, size: 13, stroke: fersken ? kHbFersken : kHbMintLys, width: 2.3)),
+    child: Center(
+      child: HbIkon(d, size: 13, stroke: fersken ? context.aeM(kHbFersken, const Color(0xFFA63A12)) : context.aeM(kHbMintLys, kHbLysIkon), width: 2.3),
+    ),
   );
 }
 
 /// Ægil's face in a circle (`assets/aegil-s/front.png`, left −30 %, top
-/// [topp], 160 %).
+/// [topp], 160 %). Lys: the disc is [lys] (`.mk24` `--lys-ull`, `.mk2j`
+/// `--lys-dis`).
 class HbAegilFjes extends StatelessWidget {
-  const HbAegilFjes({super.key, required this.size, this.topp = -.08});
+  const HbAegilFjes({super.key, required this.size, this.topp = -.08, this.lys = LysPalett.ull});
 
   final double size;
   final double topp;
+  final Color lys;
 
   @override
   Widget build(BuildContext context) => ClipOval(
     child: DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [Color(0xFF4A93A4), Color(0xFF1E4F5C)]),
+      decoration: BoxDecoration(
+        gradient: context.aeM(
+          const LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [Color(0xFF4A93A4), Color(0xFF1E4F5C)]),
+          LinearGradient(begin: const Alignment(-.5, -1), end: const Alignment(.5, 1), colors: [lys, lys]),
+        ),
       ),
       child: SizedBox.square(
         dimension: size,

@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,9 +30,12 @@ import 'hurtig_bits.dart';
 import 'hurtig_brain.dart';
 import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
+import 'hurtig_glass.dart' show kHbLysIkon, kHbLysRing;
 import 'hurtig_kort.dart';
 import '../kit/bergen_perf.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Hurtigbestilling (prototype `erHurtig`, L4245–4520) ────────────────────
 //
@@ -41,6 +45,9 @@ import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 // countdown key, and the bottom bar with the three module keys and the
 // composer. The reasoning is `HurtigHjerne`; this file owns the state the
 // prototype keeps in `hb*` and the real order path.
+
+/// Lys: `0 0 0 1px var(--lys-kant-farge), var(--lys-kortskygge)` (`.mk1m`).
+const List<CssShadow> _lysBobleSkygge = [CssShadow(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge];
 
 /// One line of the conversation (`hb[]`).
 class _Melding {
@@ -775,7 +782,11 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Lys: the teal header stays in both modes, so the status bar keeps its light icons (the
+    // root region sets dark ones in Lys).
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: modusStatusMork,
+      child: Scaffold(
       backgroundColor: kHbTealDeep,
       resizeToAvoidBottomInset: false,
       body: LfFrame(
@@ -796,6 +807,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           child: _skjerm(context),
         ),
       ),
+    ),
     );
   }
 
@@ -947,7 +959,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           width: 112,
           child: IgnorePointer(child: _Aegil(bilde: _aegilBilde)),
         ),
-        // The sheet.
+        // The sheet. Lys: `.mk1e` `--lys-ull` + `--lys-arkskygge`; the handle `.mk1f` white with the kant ring.
         Positioned(
           left: 0,
           right: 0,
@@ -955,15 +967,18 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           bottom: 0,
           child: CssBox(
             radius: const BorderRadius.vertical(top: Radius.circular(30)),
-            bg: const [
-              CssRadial([Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .4, cx: .14, cy: 0),
-              CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .4, 1]),
-            ],
-            shadows: const [
+            bg: context.aeM(
+              const [
+                CssRadial([Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .6], rx: .8, ry: .4, cx: .14, cy: 0),
+                CssLinear(180, [Color(0xFF2A6272), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .4, 1]),
+              ],
+              const [CssSolid(LysPalett.ull)],
+            ),
+            shadows: context.aeM(const [
               CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
               CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
               CssShadow(0, -24, 50, -18, Color.fromRGBO(4, 18, 26, .8)),
-            ],
+            ], LysPalett.arkskygge),
             child: Stack(
               children: [
                 Positioned(
@@ -971,7 +986,15 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                   right: 0,
                   top: 10,
                   child: Center(
-                    child: Container(width: 44, height: 5, decoration: BoxDecoration(borderRadius: BorderRadius.circular(3), color: const Color.fromRGBO(255, 255, 255, .28))),
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(3),
+                        color: context.aeM(const Color.fromRGBO(255, 255, 255, .28), LysPalett.hvit),
+                        boxShadow: context.aeM(const <BoxShadow>[], const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)]),
+                      ),
+                    ),
                   ),
                 ),
                 Positioned(
@@ -1018,24 +1041,26 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // «ÆGIL TAR HENSYN TIL» + Start på nytt, and the context chips.
+            // Lys: `.mk1g` `--lys-dempet`; «Start på nytt» `.mk1h` / the chips `.mk1j`: white, the kant
+            // ring, `--lys-sekundar`; the icon `.mk1i`.
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(HurtigCopy.tarHensyn, style: hbI(10, weight: FontWeight.w800, em: .1, color: const Color.fromRGBO(255, 255, 255, .58))),
+                Text(HurtigCopy.tarHensyn, style: hbI(10, weight: FontWeight.w800, em: .1, color: context.aeM(const Color.fromRGBO(255, 255, 255, .58), LysPalett.dempet))),
                 HbPress(
                   dy: 1.5,
                   onTap: _ny,
                   child: CssBox(
                     radius: BorderRadius.circular(999),
-                    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-                    shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
+                    bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit))],
+                    shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))], kHbLysRing),
                     padding: const EdgeInsets.fromLTRB(8, 5, 10, 5),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const HbIkon(HbIkoner.omstart, size: 10, stroke: kHbMintPale, width: 2.8),
+                        HbIkon(HbIkoner.omstart, size: 10, stroke: context.aeM(kHbMintPale, kHbLysIkon), width: 2.8),
                         const SizedBox(width: 5),
-                        Text(HurtigCopy.startPaaNytt, style: hbI(10.5, weight: FontWeight.w800, color: const Color(0xFFBFD6DD))),
+                        Text(HurtigCopy.startPaaNytt, style: hbI(10.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFFBFD6DD), LysPalett.sekundar))),
                       ],
                     ),
                   ),
@@ -1050,15 +1075,15 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                 for (final c in kontekst)
                   CssBox(
                     radius: BorderRadius.circular(999),
-                    bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-                    shadows: const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))],
+                    bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit))],
+                    shadows: context.aeM(const [CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14))], kHbLysRing),
                     padding: const EdgeInsets.fromLTRB(8, 5, 10, 5),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(width: 5, height: 5, decoration: const BoxDecoration(shape: BoxShape.circle, color: kHbMint)),
                         const SizedBox(width: 5),
-                        Text(c, style: hbI(11, weight: FontWeight.w700, color: const Color(0xFFDCE9EC))),
+                        Text(c, style: hbI(11, weight: FontWeight.w700, color: context.aeM(const Color(0xFFDCE9EC), LysPalett.sekundar))),
                       ],
                     ),
                   ),
@@ -1076,6 +1101,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     );
   }
 
+  // Lys: `.mk1k` `--lys-fjord-fyll`, `0 8px 14px -10px rgba(23,62,72,.5)`, white text.
   Widget _megBoble(_Melding m) => Padding(
     key: ValueKey('m${m.id}'),
     padding: const EdgeInsets.only(left: 56),
@@ -1084,14 +1110,14 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       child: VcMeg(
         child: CssBox(
           radius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(20)),
-          bg: const [CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEEF2F2)])],
-          shadows: const [
+          bg: context.aeM(const [CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEEF2F2)])], LysPalett.fjordFyll),
+          shadows: context.aeM(const [
             CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
             CssShadow(0, 2.5, 0, 0, Color(0xFF9FB3B8)),
             CssShadow(0, 12, 18, -12, Color.fromRGBO(3, 16, 24, .8)),
-          ],
+          ], const [CssShadow(0, 8, 14, -10, Color.fromRGBO(23, 62, 72, .5))]),
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 11),
-          child: LfPretty(m.tekst, style: hbI(14, weight: FontWeight.w700, height: 1.4, color: kHbTealDeep)),
+          child: LfPretty(m.tekst, style: hbI(14, weight: FontWeight.w700, height: 1.4, color: context.aeM(kHbTealDeep, Colors.white))),
         ),
       ),
     ),
@@ -1179,20 +1205,24 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Lys: `.mk1m` white, the kant ring + `--lys-kortskygge`, `--lys-brod`.
                   VcBoble(
                     child: CssBox(
                       radius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20), bottomRight: Radius.circular(20), bottomLeft: Radius.circular(6)),
-                      bg: const [
-                        CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)]),
-                      ],
-                      shadows: const [
+                      bg: context.aeM(
+                        const [
+                          CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)]),
+                        ],
+                        const [CssSolid(LysPalett.hvit)],
+                      ),
+                      shadows: context.aeM(const [
                         CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
                         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
                         CssShadow(0, 3, 0, 0, Color.fromRGBO(8, 28, 36, .45)),
                         CssShadow(0, 16, 22, -16, Color.fromRGBO(3, 14, 20, .85)),
-                      ],
+                      ], _lysBobleSkygge),
                       padding: const EdgeInsets.fromLTRB(14, 11, 14, 12),
-                      child: LfPretty(m.tekst, style: hbI(14.5, height: 1.45, color: Colors.white)),
+                      child: LfPretty(m.tekst, style: hbI(14.5, height: 1.45, color: context.aeM(Colors.white, LysPalett.brod))),
                     ),
                   ),
                 ],
@@ -1241,16 +1271,17 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                                 ],
                               ),
                             )
+                          // Lys: `.mk2o` white, kant, `--lys-tittel`.
                           : CssBox(
                               height: 38,
                               radius: BorderRadius.circular(13),
-                              bg: const [CssSolid(Color.fromRGBO(255, 255, 255, .08))],
-                              border: Border.all(color: const Color.fromRGBO(255, 255, 255, .12)),
+                              bg: [CssSolid(context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.hvit))],
+                              border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.kantFarge)),
                               padding: const EdgeInsets.symmetric(horizontal: 15),
                               child: Center(
                                 child: Text(
                                   knapper[j].tekst,
-                                  style: hbI(12.5, weight: FontWeight.w800, color: Colors.white),
+                                  style: hbI(12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel)),
                                 ),
                               ),
                             ),
@@ -1304,14 +1335,18 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
 
   Widget _bunn(BuildContext context, double bunn) {
     final harTekst = _tekst.text.trim().isNotEmpty;
+    // Lys: `.mk31` the fade into `--lys-ull`.
     return Container(
       padding: EdgeInsets.fromLTRB(14, 20, 14, 16 + bunn),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(23, 62, 72, 0), Color.fromRGBO(23, 62, 72, .96), Color(0xFF173E48)],
-          stops: [0, .22, 1],
+          colors: context.aeM(
+            const [Color.fromRGBO(23, 62, 72, 0), Color.fromRGBO(23, 62, 72, .96), Color(0xFF173E48)],
+            const [Color.fromRGBO(247, 251, 253, 0), Color.fromRGBO(247, 251, 253, .96), LysPalett.ull],
+          ),
+          stops: const [0, .22, 1],
         ),
       ),
       child: Column(
@@ -1355,21 +1390,31 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           tween: Tween(end: f ? 1 : 0),
           duration: d(300),
           curve: cssEase,
+          // Lys (`hbFeltBg` / `hbFeltBd`, L19121; `.mk36` `--v0`): white, the border from the kant to
+          // `rgba(11,107,87,.45)`, the lighter drop.
           builder: (context, c, child) => CssBox(
             height: 54,
             radius: BorderRadius.circular(999),
-            bg: [
-              CssLinear(180, [
-                Color.lerp(const Color(0xFF2B5F6E), const Color(0xFF33707F), c)!,
-                Color.lerp(const Color(0xFF1E4F5C), const Color(0xFF22596A), c)!,
-              ]),
-            ],
-            border: Border.all(color: Color.lerp(const Color.fromRGBO(255, 255, 255, .28), const Color.fromRGBO(127, 240, 203, .8), c)!),
+            bg: context.aeM(
+              [
+                CssLinear(180, [
+                  Color.lerp(const Color(0xFF2B5F6E), const Color(0xFF33707F), c)!,
+                  Color.lerp(const Color(0xFF1E4F5C), const Color(0xFF22596A), c)!,
+                ]),
+              ],
+              const [CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFFFFFFF)])],
+            ),
+            border: Border.all(
+              color: context.aeM(
+                Color.lerp(const Color.fromRGBO(255, 255, 255, .28), const Color.fromRGBO(127, 240, 203, .8), c)!,
+                Color.lerp(LysPalett.kantFarge, const Color.fromRGBO(11, 107, 87, .45), c)!,
+              ),
+            ),
             shadows: [
               const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
               CssShadow(0, 0, 0, 4 * r, const Color.fromRGBO(92, 224, 184, .16)),
               CssShadow(0, 0, 26, -6, Color.fromRGBO(92, 224, 184, .55 * r)),
-              const CssShadow(0, 18, 34, -14, Color.fromRGBO(4, 18, 26, .85)),
+              context.aeM(const CssShadow(0, 18, 34, -14, Color.fromRGBO(4, 18, 26, .85)), const CssShadow(0, 10, 24, -14, Color.fromRGBO(23, 62, 72, .22))),
             ],
             child: child,
           ),
@@ -1433,7 +1478,8 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                         angle: -12 * math.max(0, k - 1) * math.pi / 180,
                         child: Transform.scale(scale: 1 + .1 * k, child: child),
                       ),
-                      child: HbIkon(HbIkoner.lyn, size: 14, fill: Color.lerp(const Color(0xFFF26D3D), const Color(0xFFFFB48E), c)!),
+                      // `hbLynC`: `#FFB48E` / Lys `#DD5A25` when focused.
+                      child: HbIkon(HbIkoner.lyn, size: 14, fill: Color.lerp(const Color(0xFFF26D3D), context.aeM(const Color(0xFFFFB48E), const Color(0xFFDD5A25)), c)!),
                     ),
                   ),
                   const SizedBox(width: 9),
@@ -1444,8 +1490,9 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                         key: const Key('a1_hurtig_felt'),
                         controller: _tekst,
                         focusNode: _fokus,
-                        style: hbJ(14, weight: FontWeight.w700, color: Colors.white),
-                        cursorColor: kHbMint,
+                        // Lys: `.mk12` `--lys-tittel`, caret `--lys-mint-tekst`.
+                        style: hbJ(14, weight: FontWeight.w700, color: context.aeM(Colors.white, LysPalett.tittel)),
+                        cursorColor: context.aeM(kHbMint, LysPalett.mintTekst),
                         textInputAction: TextInputAction.send,
                         onSubmitted: _send,
                         decoration: InputDecoration(
@@ -1508,13 +1555,15 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
           height: 50,
           radius: BorderRadius.circular(16),
           padding: const EdgeInsets.fromLTRB(12, 0, 8, 0),
-          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])],
-          shadows: const [
+          // Lys: `.mk32` white with the kant ring; the title `.mkb`, the line `.mk33`, the chevron disc
+          // `.mk34` `--lys-dis` + `.mku` `#1E4F5C` (the marks' rings are inline).
+          bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])], const [CssSolid(LysPalett.hvit)]),
+          shadows: context.aeM(const [
             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
             CssShadow(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
             CssShadow(0, 3, 0, 0, Color.fromRGBO(6, 22, 30, .6)),
             CssShadow(0, 12, 18, -12, Color.fromRGBO(2, 12, 18, .9)),
-          ],
+          ], kHbLysRing),
           child: Row(
             children: [
               SizedBox(width: 68, height: 28, child: Stack(clipBehavior: Clip.none, children: [merke('Gemini', 40), merke('ChatGPT', 20), merke('Claude', 0)])),
@@ -1524,9 +1573,9 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(AiCopy.cus_ai_hurtig_rad, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(12.5, weight: FontWeight.w800, height: 1.2, color: Colors.white)),
+                    Text(AiCopy.cus_ai_hurtig_rad, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(12.5, weight: FontWeight.w800, height: 1.2, color: context.aeM(Colors.white, LysPalett.tittel))),
                     const SizedBox(height: 1),
-                    Text(l != null ? AiCopy.cus_ai_hurtig_sub_koblet(l.name) : AiCopy.cus_ai_hurtig_sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(10.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .62))),
+                    Text(l != null ? AiCopy.cus_ai_hurtig_sub_koblet(l.name) : AiCopy.cus_ai_hurtig_sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: hbI(10.5, weight: FontWeight.w600, color: context.aeM(const Color.fromRGBO(255, 255, 255, .62), LysPalett.sekundar))),
                   ],
                 ),
               ),
@@ -1534,12 +1583,12 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
               Container(
                 width: 30,
                 height: 30,
-                decoration: const CssDecoration(
+                decoration: CssDecoration(
                   shape: BoxShape.circle,
-                  color: Color.fromRGBO(255, 255, 255, .12),
-                  boxShadow: [BoxShadow(color: Color.fromRGBO(255, 255, 255, .18), spreadRadius: 1)],
+                  color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis),
+                  boxShadow: context.aeM(const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .18), spreadRadius: 1)], const <BoxShadow>[]),
                 ),
-                child: const Center(child: HbIkon('M9 6l6 6-6 6', size: 12, stroke: Colors.white, width: 3)),
+                child: Center(child: HbIkon('M9 6l6 6-6 6', size: 12, stroke: context.aeM(Colors.white, const Color(0xFF1E4F5C)), width: 3)),
               ),
             ],
           ),
@@ -1559,17 +1608,24 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         tween: Tween(end: a ? 1 : 0),
         duration: const Duration(milliseconds: 200),
         curve: cssEase,
+        // Lys: `.mk35` white with `--v0` `0 1px 2px rgba(23,62,72,.06), 0 10px 24px -14px rgba(23,62,72,.22)`;
+        // the ring (`hbVals` L19094) from the kant to `rgba(11,107,87,.45)`.
         builder: (context, r, child) => CssBox(
           height: 50,
           radius: BorderRadius.circular(16),
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])],
-          shadows: [
+          bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])], const [CssSolid(LysPalett.hvit)]),
+          shadows: context.aeM([
             const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
             CssShadow(0, 0, 0, 1 + .5 * r, Color.lerp(const Color.fromRGBO(255, 255, 255, .16), const Color.fromRGBO(127, 240, 203, .9), r)!),
             const CssShadow(0, 3, 0, 0, Color.fromRGBO(6, 22, 30, .6)),
             const CssShadow(0, 12, 18, -12, Color.fromRGBO(2, 12, 18, .9)),
-          ],
+          ], [
+            const CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .28)),
+            CssShadow(0, 0, 0, 1 + .5 * r, Color.lerp(LysPalett.kantFarge, const Color.fromRGBO(11, 107, 87, .45), r)!),
+            const CssShadow(0, 1, 2, 0, Color.fromRGBO(23, 62, 72, .06)),
+            const CssShadow(0, 10, 24, -14, Color.fromRGBO(23, 62, 72, .22)),
+          ]),
           child: child,
         ),
         child: Row(
@@ -1582,16 +1638,19 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
                 borderRadius: BorderRadius.circular(10),
                 gradient: a
                     ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF8CF0D2), Color(0xFF3CC79F)])
-                    : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .24), Color.fromRGBO(255, 255, 255, .1)]),
+                    : context.aeM(
+                        const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .24), Color.fromRGBO(255, 255, 255, .1)]),
+                        const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [LysPalett.dis, LysPalett.dis]),
+                      ),
               ),
               foregroundDecoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .4), Color.fromRGBO(255, 255, 255, 0)], stops: [0, .05]),
               ),
-              child: Center(child: HbIkon(ikon, size: 15, stroke: a ? const Color(0xFF0F3A40) : Colors.white, width: 2.4)),
+              child: Center(child: HbIkon(ikon, size: 15, stroke: a ? const Color(0xFF0F3A40) : context.aeM(Colors.white, LysPalett.fjord), width: 2.4)),
             ),
             const SizedBox(width: 7),
-            Expanded(child: Text(tekst, style: hbI(11, weight: FontWeight.w800, height: 1.15, color: Colors.white))),
+            Expanded(child: Text(tekst, style: hbI(11, weight: FontWeight.w800, height: 1.15, color: context.aeM(Colors.white, LysPalett.tittel)))),
           ],
         ),
       ),
@@ -1604,17 +1663,21 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
 class _Portrett extends StatelessWidget {
   const _Portrett();
 
+  // Lys: `.mk1l` white with the kant ring.
   @override
   Widget build(BuildContext context) => Container(
     width: 32,
     height: 32,
-    decoration: const BoxDecoration(
+    decoration: BoxDecoration(
       shape: BoxShape.circle,
-      gradient: LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [Color(0xFF4A93A4), Color(0xFF1E4F5C)]),
-      boxShadow: [
+      gradient: context.aeM(
+        const LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [Color(0xFF4A93A4), Color(0xFF1E4F5C)]),
+        const LinearGradient(begin: Alignment(-.5, -1), end: Alignment(.5, 1), colors: [LysPalett.hvit, LysPalett.hvit]),
+      ),
+      boxShadow: context.aeM(const [
         BoxShadow(color: Color.fromRGBO(255, 255, 255, .85), spreadRadius: 2),
         BoxShadow(color: Color.fromRGBO(3, 16, 24, .7), offset: Offset(0, 6), blurRadius: 10 / 2 / .57735, spreadRadius: -4),
-      ],
+      ], const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)]),
     ),
     child: ClipOval(
       child: Stack(
@@ -1680,13 +1743,14 @@ class _Tenker extends StatelessWidget {
         CssBox(
           height: 40,
           radius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20), bottomRight: Radius.circular(20), bottomLeft: Radius.circular(6)),
-          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)])],
-          shadows: const [
+          // Lys: `.mk2p` white with the kant ring; «Sjekker vanene dine» `.mk2q` (the dots are inline white).
+          bg: context.aeM(const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .06)])], const [CssSolid(LysPalett.hvit)]),
+          shadows: context.aeM(const [
             CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
             CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
             CssShadow(0, 3, 0, 0, Color.fromRGBO(8, 28, 36, .45)),
             CssShadow(0, 16, 22, -16, Color.fromRGBO(3, 14, 20, .85)),
-          ],
+          ], kHbLysRing),
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1711,7 +1775,7 @@ class _Tenker extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(HurtigCopy.sjekkerVanene, style: hbI(11.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DD))),
+              Text(HurtigCopy.sjekkerVanene, style: hbI(11.5, weight: FontWeight.w700, color: context.aeM(const Color(0xFFBFD6DD), LysPalett.sekundar))),
             ],
           ),
         ),

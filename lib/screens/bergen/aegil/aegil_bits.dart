@@ -10,6 +10,8 @@ import '../kit/bergen_perf.dart';
 import '../kit/svg_sti.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── Ægil · shared pieces (Launch prototype L4500–5120, design px) ───────────
 
@@ -73,6 +75,18 @@ const List<CssShadow> kAeRadGlassSh = [
   CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .26)),
   CssShadow(0, 16, 28, -22, Color.fromRGBO(4, 18, 26, .7)),
 ];
+
+// ── Lys twins of the chat pieces (the design's light theme classes) ────────
+
+/// `.mk1i` (svg stroke) in Lys: `#0B6B57`.
+const Color kAeLysIkon = Color(0xFF0B6B57);
+
+/// `box-shadow: 0 0 0 1px var(--lys-kant-farge)`.
+const List<CssShadow> kAeLysRing = [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)];
+
+/// `.mk1m` / `.mk3d` in Lys: white, `0 0 0 1px var(--lys-kant-farge), var(--lys-kortskygge)`.
+const List<CssBg> kAeGlassLys = [CssSolid(LysPalett.hvit)];
+const List<CssShadow> kAeGlassShLys = [CssShadow(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge];
 
 TextStyle aeTab(TextStyle s) => s.copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
 
@@ -439,7 +453,8 @@ class AePulsDot extends StatelessWidget {
 }
 
 /// The round Ægil avatar of the chat (`32px`, `linear-gradient(160deg,
-/// #4A93A4,#1E4F5C)`, the front sprite at 160 % from 50 % 0 %).
+/// #4A93A4,#1E4F5C)`, the front sprite at 160 % from 50 % 0 %). Lys: `.mk1l`
+/// white with the kant ring.
 class AeAvatar extends StatelessWidget {
   const AeAvatar({super.key, this.size = 32});
 
@@ -451,11 +466,14 @@ class AeAvatar extends StatelessWidget {
     height: size,
     decoration: CssDecoration(
       shape: BoxShape.circle,
-      gradient: const LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [Color(0xFF4A93A4), kAeTeal]),
-      boxShadow: [
+      gradient: context.aeM(
+        const LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [Color(0xFF4A93A4), kAeTeal]),
+        const LinearGradient(begin: Alignment(-.34, -.94), end: Alignment(.34, .94), colors: [LysPalett.hvit, LysPalett.hvit]),
+      ),
+      boxShadow: context.aeM([
         const BoxShadow(color: Color.fromRGBO(255, 255, 255, .85), spreadRadius: 2),
         BoxShadow(color: const Color.fromRGBO(3, 16, 24, .7), offset: const Offset(0, 6), blurRadius: cssSigma(10) * 2, spreadRadius: -4),
-      ],
+      ], const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)]),
     ),
     child: ClipOval(
       child: OverflowBox(

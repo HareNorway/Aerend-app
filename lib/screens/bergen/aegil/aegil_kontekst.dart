@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import 'aegil_bits.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// What Ægil was opened about (D-K20): a store's or a category's «Spør
 /// Ægil», a gift for someone, the basket's door note. Read from the route's
@@ -87,19 +89,21 @@ class AeKontekstChip extends StatelessWidget {
     child: CssBox(
       key: const Key('cus_aegil_ktx'),
       radius: BorderRadius.circular(999),
-      bg: const [CssSolid(Color.fromRGBO(6, 22, 30, .32))],
-      shadows: const [
+      // Not in the design; Lys like the chat's chips (`.mk3f` `--lys-dis-ull`, `--lys-sekundar`, `.mk1i`),
+      // the × disc like `.mk3a` (`--lys-dis`).
+      bg: [CssSolid(context.aeM(const Color.fromRGBO(6, 22, 30, .32), LysPalett.disUll))],
+      shadows: context.aeM(const [
         CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(159, 240, 212, .38)),
         CssShadow(0, 6, 10, -8, Color.fromRGBO(3, 16, 24, .8)),
-      ],
+      ], const <CssShadow>[]),
       padding: const EdgeInsets.fromLTRB(11, 4, 4, 4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const AeIkon('M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z', size: 11, stroke: 2.6, color: kAeMintLys),
+          AeIkon('M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z', size: 11, stroke: 2.6, color: context.aeM(kAeMintLys, kAeLysIkon)),
           const SizedBox(width: 6),
           Flexible(
-            child: Text(etikett, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: const Color(0xFFDFF8EE))),
+            child: Text(etikett, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: context.aeM(const Color(0xFFDFF8EE), LysPalett.sekundar))),
           ),
           const SizedBox(width: 4),
           Semantics(
@@ -113,9 +117,9 @@ class AeKontekstChip extends StatelessWidget {
               child: Container(
                 width: 22,
                 height: 22,
-                decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.dis)),
                 alignment: Alignment.center,
-                child: const AeIkon('M7 7l10 10M17 7L7 17', size: 9, stroke: 3, color: Color.fromRGBO(255, 255, 255, .8)),
+                child: AeIkon('M7 7l10 10M17 7L7 17', size: 9, stroke: 3, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.sekundar)),
               ),
             ),
           ),

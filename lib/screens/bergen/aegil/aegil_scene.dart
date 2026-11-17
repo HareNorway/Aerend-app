@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeatherLook;
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import 'aegil_bits.dart';
 import 'aegil_floyen.dart';
 
@@ -262,13 +264,14 @@ class _Bolger extends StatelessWidget {
       children: [
         for (final (i, w) in const [(0, 9.0), (1, 13.0), (2, 7.0)]) ...[
           if (i > 0) const SizedBox(height: 2),
-          _linje(kfP(t, 50 + i * 170.0, 1500), w),
+          _linje(context, kfP(t, 50 + i * 170.0, 1500), w),
         ],
       ],
     ),
   );
 
-  Widget _linje(double p, double w) {
+  // Lys: `.mk38` white with the kant ring.
+  Widget _linje(BuildContext context, double p, double w) {
     final o = kf(p, const [0, .35, 1], const [0, .85, 0], cssEaseOut);
     final x = kf(p, const [0, .35, 1], const [-3, 0, 4], cssEaseOut);
     final sx = kf(p, const [0, .35, 1], const [.5, 1, .7], cssEaseOut);
@@ -278,7 +281,15 @@ class _Bolger extends StatelessWidget {
         offset: Offset(x, 0),
         child: Transform.scale(
           scaleX: sx,
-          child: Container(width: w, height: 2.5, decoration: BoxDecoration(color: kAeTeal, borderRadius: BorderRadius.circular(2))),
+          child: Container(
+            width: w,
+            height: 2.5,
+            decoration: BoxDecoration(
+              color: context.aeM(kAeTeal, LysPalett.hvit),
+              borderRadius: BorderRadius.circular(2),
+              boxShadow: context.aeM(const <BoxShadow>[], const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)]),
+            ),
+          ),
         ),
       ),
     );
