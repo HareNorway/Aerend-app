@@ -17,6 +17,19 @@ import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../common/auth/onboarding_kit.dart' show onbBlur;
+import '../../../theme/lys/modus_scope.dart';
+
+/// Lys plan: the input placeholder (`input::placeholder`) and the toggle's
+/// off fill (`dorHuskBg`, L19454).
+const Color _plassLys = Color(0xFF9A9188);
+const Color _bryterAvLys = Color.fromRGBO(30, 79, 92, .18);
+
+/// `--lys-kortskygge` as box shadows (for the plain decorated boxes).
+final List<BoxShadow> _lysKortskygge = [
+  for (final c in LysPalett.kortskygge) BoxShadow(color: c.color, offset: Offset(c.dx, c.dy), blurRadius: onbBlur(c.blur), spreadRadius: c.spread),
+];
 
 // ── Adresse sheets (`sheet:'adresse'` L8382, `sheet:'nyAdresse'` L8493) ─────
 // "Hvor skal ærendet?": the street scene with the chosen place, its door
@@ -184,6 +197,8 @@ const Map<String, String> _kAegTx = {
 const _kHus = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="#FFFFFF"/></svg>';
 const _kSoppel =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFAD8F" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7"/><path d="M6.5 7l.9 11.6A1.6 1.6 0 0 0 9 20h6a1.6 1.6 0 0 0 1.6-1.4L17.5 7"/><path d="M10.2 11v5M13.8 11v5"/></svg>';
+/// Lys plan: the bin in `.mk2d`'s light stroke (`#A63A12`).
+final _kSoppelLys = _kSoppel.replaceAll('#FFAD8F', '#A63A12');
 const _kHake = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1F8A66" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>';
 const _kPil = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1E4F5C" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5l6.5 6.5-6.5 6.5"/></svg>';
 const _kNaal = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#7FF0CB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.4-6.5-11a6.5 6.5 0 0 1 13 0c0 5.6-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>';
@@ -424,14 +439,19 @@ class _AdrArkState extends State<_AdrArk> {
 
   @override
   Widget build(BuildContext context) {
+    // Lys plan (`sheetBg` / `sheetHandle` L20216, `.mkam`): `--lys-ark`,
+    // `--lys-arkskygge`, `--lys-haandtak`.
+    final lys = context.lys;
     return CssBox(
       radius: const BorderRadius.vertical(top: Radius.circular(28)),
-      bg: const [CssLinear(180, [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .55, 1])],
+      bg: lys ? const [CssSolid(LysPalett.ark)] : const [CssLinear(180, [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .55, 1])],
       border: const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
-      shadows: const [
-        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .95)),
-        CssShadow(0, -24, 50, -20, Color.fromRGBO(15, 31, 43, .55)),
-      ],
+      shadows: lys
+          ? LysPalett.arkskygge
+          : const [
+              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .95)),
+              CssShadow(0, -24, 50, -20, Color.fromRGBO(15, 31, 43, .55)),
+            ],
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         padding: EdgeInsets.fromLTRB(16, 0, 16, 22 + MediaQuery.paddingOf(context).bottom * (MediaQuery.viewInsetsOf(context).bottom > 0 ? 0 : 1)),
@@ -446,7 +466,7 @@ class _AdrArkState extends State<_AdrArk> {
                   width: 44,
                   height: 5,
                   margin: const EdgeInsets.only(top: 10),
-                  decoration: BoxDecoration(color: const Color.fromRGBO(255, 255, 255, .35), borderRadius: BorderRadius.circular(3)),
+                  decoration: BoxDecoration(color: lys ? LysPalett.haandtak : const Color.fromRGBO(255, 255, 255, .35), borderRadius: BorderRadius.circular(3)),
                 ),
               ),
             ),
@@ -494,14 +514,17 @@ class _AdrArkState extends State<_AdrArk> {
     final ny = _nyNaa != null && DateTime.now().difference(_nyNaa!).inMilliseconds < 4200 && v?.addressId == _nyId;
     final d = _dek;
     final maal = synlig.length < 4 ? 4 : synlig.length;
+    // Lys plan (`(sheetAdresse)`): `.mkb` / `.mk1p` / `.mk1t` text, `adrPips`,
+    // `.mkb1` / `.mkb2` (Bruk posisjonen min).
+    final lys = context.lys;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 14),
-        Text('Hvor skal ærendet?', style: jakarta(18, em: -.02)),
+        Text('Hvor skal ærendet?', style: jakarta(18, em: -.02, color: lys ? LysPalett.tittel : Colors.white)),
         const SizedBox(height: 2),
-        Text('Butikker og priser følger adressen.', style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .66))),
+        Text('Butikker og priser følger adressen.', style: inter(11.5, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
         const SizedBox(height: 12),
         if (v != null) ...[
           AdrGatescene(
@@ -536,14 +559,14 @@ class _AdrArkState extends State<_AdrArk> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Text('DINE STEDER', style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .66))),
+                  Text('DINE STEDER', style: inter(10.5, weight: FontWeight.w800, em: .08, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66))),
                   const Spacer(),
                   for (var j = 0; j < maal; j++) ...[
                     if (j > 0) const SizedBox(width: 3),
                     SvgPicture.string(
                       j < synlig.length
                           ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="#5CE0B8" stroke="#5CE0B8" stroke-width="2" stroke-linejoin="round"/></svg>'
-                          : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 2.2"/></svg>',
+                          : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 11L12 3.5 21 11v10H3z" fill="none" stroke="${lys ? 'rgba(30,79,92,.35)' : 'rgba(255,255,255,.42)'}" stroke-width="2" stroke-linejoin="round" stroke-dasharray="3 2.2"/></svg>',
                       width: 13,
                       height: 13,
                     ),
@@ -551,7 +574,7 @@ class _AdrArkState extends State<_AdrArk> {
                   const SizedBox(width: 7),
                   Text(
                     '${synlig.length} av $maal steder',
-                    style: inter(11, weight: FontWeight.w800, color: const Color(0xFF9FF0D4)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                    style: inter(11, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4)).copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
                   ),
                 ],
               ),
@@ -596,10 +619,10 @@ class _AdrArkState extends State<_AdrArk> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          Container(decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(92, 224, 184, .18))),
+                          Container(decoration: BoxDecoration(shape: BoxShape.circle, color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .18))),
                           _Puls(farge: const Color.fromRGBO(127, 240, 203, .7), ms: _posisjon ? 900 : 2000),
                           SvgPicture.string(
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#7FF0CB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>',
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#0B6B57' : '#7FF0CB'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>',
                             width: 15,
                             height: 15,
                           ),
@@ -607,7 +630,7 @@ class _AdrArkState extends State<_AdrArk> {
                       ),
                     ),
                     const SizedBox(width: 9),
-                    Text('Bruk posisjonen min', style: inter(13.5, weight: FontWeight.w800)),
+                    Text('Bruk posisjonen min', style: inter(13.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white)),
                   ],
                 ),
               ),
@@ -621,6 +644,9 @@ class _AdrArkState extends State<_AdrArk> {
   /// Coverage: dekket chip, Pauset or "Ikke dekket ennå".
   Widget _dekningVis(AdrDekning? d, AddressListItem v) {
     if (d == null) return const SizedBox(height: 0);
+    // Lys plan: «Pauset» (`.mkap` / `.mk17`), «Ikke dekket ennå» (`.mkaq` /
+    // `.mkh` / `.mkar`).
+    final lys = context.lys;
     if (d.dekket && !d.pauset) {
       return Padding(
         padding: const EdgeInsets.only(top: 12),
@@ -632,16 +658,16 @@ class _AdrArkState extends State<_AdrArk> {
         margin: const EdgeInsets.only(top: 12),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: const Color.fromRGBO(242, 193, 78, .18),
+          color: lys ? LysPalett.gullDis : const Color.fromRGBO(242, 193, 78, .18),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color.fromRGBO(242, 193, 78, .4)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(d.linje, style: inter(13, weight: FontWeight.w800, height: 1.4, color: const Color(0xFFF5F3EF))),
+            Text(d.linje, style: inter(13, weight: FontWeight.w800, height: 1.4, color: lys ? LysPalett.tittel : const Color(0xFFF5F3EF))),
             const SizedBox(height: 3),
-            Text('Du kan se butikkene, og vi åpner for bestilling igjen da.', style: inter(12, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .75))),
+            Text('Du kan se butikkene, og vi åpner for bestilling igjen da.', style: inter(12, weight: FontWeight.w600, height: 1.4, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .75))),
           ],
         ),
       );
@@ -650,14 +676,15 @@ class _AdrArkState extends State<_AdrArk> {
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color.fromRGBO(255, 255, 255, .1),
+        color: lys ? LysPalett.hvit : const Color.fromRGBO(255, 255, 255, .1),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2)),
+        border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .2)),
+        boxShadow: lys ? _lysKortskygge : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Vi leverer ikke hit ennå.', style: inter(15, weight: FontWeight.w800, color: const Color(0xFFF5F3EF))),
+          Text('Vi leverer ikke hit ennå.', style: inter(15, weight: FontWeight.w800, color: lys ? LysPalett.tittel : const Color(0xFFF5F3EF))),
           if (_sagtFra)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -665,8 +692,8 @@ class _AdrArkState extends State<_AdrArk> {
                 alignment: Alignment.centerLeft,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-                  decoration: BoxDecoration(color: const Color.fromRGBO(92, 224, 184, .22), borderRadius: BorderRadius.circular(999)),
-                  child: Text('Vi sier fra.', style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+                  decoration: BoxDecoration(color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .22), borderRadius: BorderRadius.circular(999)),
+                  child: Text('Vi sier fra.', style: inter(12.5, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF7FF0CB))),
                 ),
               ),
             )
@@ -723,7 +750,7 @@ class _AdrArkState extends State<_AdrArk> {
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(999),
       gradient: on ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF5CE0B8), Color(0xFF2FB893)]) : null,
-      color: on ? null : const Color.fromRGBO(255, 255, 255, .16),
+      color: on ? null : context.aeM(const Color.fromRGBO(255, 255, 255, .16), _bryterAvLys),
     ),
     child: AnimatedAlign(
       duration: const Duration(milliseconds: 300),
@@ -773,6 +800,12 @@ class _AdrArkState extends State<_AdrArk> {
     if (har && tx.trim() != _dorTolketFor) _planTolk(v, tx.trim());
     final chips = svar != null ? _chipsFra(svar.fields, _dorEtasje) : dorTolk(tx);
     final endret = tx.trim() != _dorLagret.trim();
+    // Lys plan («Dørbeskjed»): `.mk2m` kicker, `.mk1t` «Lagret», `dorFeltBg`
+    // (`--lys-hvit`), `.mk12` text, `.mk8e` / `.mku` clear key, `.mkb0` chips with
+    // `.mk2q` / `.mkb`, `dorHuskBg`, `.mk21`.
+    final lys = context.lys;
+    final hvit = lys ? LysPalett.tittel : Colors.white;
+    final hake = _kHake.replaceAll('#1F8A66', lys ? '#0B6B57' : '#9FF0D4');
     return Padding(
       padding: const EdgeInsets.only(top: 14),
       child: Column(
@@ -780,16 +813,16 @@ class _AdrArkState extends State<_AdrArk> {
         children: [
           Row(
             children: [
-              Text('HVORDAN FINNER BUDET FRAM?', style: inter(10.5, weight: FontWeight.w800, em: .06, color: const Color.fromRGBO(255, 255, 255, .6))),
+              Text('HVORDAN FINNER BUDET FRAM?', style: inter(10.5, weight: FontWeight.w800, em: .06, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .6))),
               const Spacer(),
               if (_dorLagret.isNotEmpty && !endret)
                 _Inn(
                   key: ValueKey('lagret-$_dorLagret'),
                   child: Row(
                     children: [
-                      SvgPicture.string(_kHake.replaceAll('#1F8A66', '#9FF0D4'), width: 10, height: 10),
+                      SvgPicture.string(hake, width: 10, height: 10),
                       const SizedBox(width: 4),
-                      Text('Lagret', style: inter(10.5, weight: FontWeight.w800, color: const Color(0xFF9FF0D4))),
+                      Text('Lagret', style: inter(10.5, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4))),
                     ],
                   ),
                 ),
@@ -802,13 +835,16 @@ class _AdrArkState extends State<_AdrArk> {
             padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
             decoration: CssDecoration(
               borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: fok
-                    ? const [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .08)]
-                    : const [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .07)],
-              ),
+              color: lys ? LysPalett.hvit : null,
+              gradient: lys
+                  ? null
+                  : LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: fok
+                          ? const [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .08)]
+                          : const [Color.fromRGBO(255, 255, 255, .14), Color.fromRGBO(255, 255, 255, .07)],
+                    ),
               border: Border.all(color: fok ? const Color.fromRGBO(92, 224, 184, .6) : const Color.fromRGBO(255, 255, 255, .22)),
               boxShadow: [if (fok) const BoxShadow(color: Color.fromRGBO(92, 224, 184, .14), spreadRadius: 4)],
             ),
@@ -826,8 +862,8 @@ class _AdrArkState extends State<_AdrArk> {
                       focusNode: _dorFokus,
                       maxLines: null,
                       expands: true,
-                      cursorColor: const Color(0xFF5CE0B8),
-                      style: inter(13, weight: FontWeight.w700, height: 1.4),
+                      cursorColor: lys ? LysPalett.mintTekst : const Color(0xFF5CE0B8),
+                      style: inter(13, weight: FontWeight.w700, height: 1.4, color: hvit),
                       decoration: InputDecoration(
                         isCollapsed: true,
                         filled: false,
@@ -837,7 +873,7 @@ class _AdrArkState extends State<_AdrArk> {
                         contentPadding: EdgeInsets.zero,
                         hintText: 'Skriv som til en venn: etasje, ring på, inngang, kode …',
                         hintMaxLines: 2,
-                        hintStyle: inter(13, weight: FontWeight.w700, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .45)),
+                        hintStyle: inter(13, weight: FontWeight.w700, height: 1.4, color: lys ? _plassLys : const Color.fromRGBO(255, 255, 255, .45)),
                       ),
                     ),
                   ),
@@ -853,10 +889,10 @@ class _AdrArkState extends State<_AdrArk> {
                     child: Container(
                       width: 32,
                       height: 32,
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .1)),
                       alignment: Alignment.center,
                       child: SvgPicture.string(
-                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+                        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#1E4F5C' : '#FFFFFF'}" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
                         width: 10,
                         height: 10,
                       ),
@@ -878,25 +914,27 @@ class _AdrArkState extends State<_AdrArk> {
                     child: CssBox(
                       height: 30,
                       radius: BorderRadius.circular(10),
-                      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .07)])],
-                      shadows: const [
-                        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-                        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
-                        CssShadow(0, 2, 0, 0, Color.fromRGBO(8, 28, 36, .5)),
-                      ],
+                      bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .18), Color.fromRGBO(255, 255, 255, .07)])],
+                      shadows: lys
+                          ? const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)]
+                          : const [
+                              CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+                              CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .12)),
+                              CssShadow(0, 2, 0, 0, Color.fromRGBO(8, 28, 36, .5)),
+                            ],
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           SvgPicture.string(
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#9FF0D4" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${chips[i].$3}"/></svg>',
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#0B6B57' : '#9FF0D4'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${chips[i].$3}"/></svg>',
                             width: 11,
                             height: 11,
                           ),
                           const SizedBox(width: 5),
-                          Text(chips[i].$1, style: inter(11.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DD))),
+                          Text(chips[i].$1, style: inter(11.5, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color(0xFFBFD6DD))),
                           const SizedBox(width: 5),
-                          Text(chips[i].$2, style: jakarta(11.5)),
+                          Text(chips[i].$2, style: jakarta(11.5, color: hvit)),
                         ],
                       ),
                     ),
@@ -905,18 +943,18 @@ class _AdrArkState extends State<_AdrArk> {
             ),
             if (svar != null) ...[
               const SizedBox(height: 8),
-              Text('Dette er det budet ser.', style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55))),
+              Text('Dette er det budet ser.', style: inter(10.5, weight: FontWeight.w700, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55))),
               if (svar.needsFloor && _dorEtasje == null) ...[
                 const SizedBox(height: 8),
                 _Inn(
                   key: const Key('dor-etasje-spor'),
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(255, 255, 255, .12)),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .12)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Jeg fikk ikke tak i etasjen. Skriv den?', style: inter(12, weight: FontWeight.w800, color: Colors.white)),
+                        Text('Jeg fikk ikke tak i etasjen. Skriv den?', style: inter(12, weight: FontWeight.w800, color: hvit)),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -928,8 +966,12 @@ class _AdrArkState extends State<_AdrArk> {
                                   width: 36,
                                   height: 32,
                                   alignment: Alignment.center,
-                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: const Color.fromRGBO(255, 255, 255, .16)),
-                                  child: Text(e == 5 ? '5+' : '$e', style: jakarta(12.5)),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: lys ? LysPalett.hvit : const Color.fromRGBO(255, 255, 255, .16),
+                                    boxShadow: lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null,
+                                  ),
+                                  child: Text(e == 5 ? '5+' : '$e', style: jakarta(12.5, color: hvit)),
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -950,16 +992,16 @@ class _AdrArkState extends State<_AdrArk> {
                     onTap: () => setState(() => _dorSamtykke = !_dorSamtykke),
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(255, 255, 255, .1)),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .1)),
                       child: Row(
                         children: [
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Lagre koden så budet finner fram neste gang også', style: inter(12, weight: FontWeight.w800, color: Colors.white, height: 1.3)),
+                                Text('Lagre koden så budet finner fram neste gang også', style: inter(12, weight: FontWeight.w800, color: hvit, height: 1.3)),
                                 const SizedBox(height: 2),
-                                Text('Slettes når du vil under Adresser', style: inter(10.5, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .55))),
+                                Text('Slettes når du vil under Adresser', style: inter(10.5, weight: FontWeight.w700, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55))),
                               ],
                             ),
                           ),
@@ -977,12 +1019,12 @@ class _AdrArkState extends State<_AdrArk> {
                   key: const Key('dor-kvittering'),
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(12, 9, 10, 9),
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(92, 224, 184, .16)),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .16)),
                     child: Row(
                       children: [
-                        SvgPicture.string(_kHake.replaceAll('#1F8A66', '#9FF0D4'), width: 12, height: 12),
+                        SvgPicture.string(hake, width: 12, height: 12),
                         const SizedBox(width: 8),
-                        Expanded(child: Text('Koden er lagret for ${kv.address ?? v.address.split(',').first} · slettes når du vil', style: inter(11.5, weight: FontWeight.w700, color: Colors.white, height: 1.3))),
+                        Expanded(child: Text('Koden er lagret for ${kv.address ?? v.address.split(',').first} · slettes når du vil', style: inter(11.5, weight: FontWeight.w700, color: hvit, height: 1.3))),
                         const SizedBox(width: 8),
                         GestureDetector(
                           key: const Key('dor-angre'),
@@ -995,7 +1037,7 @@ class _AdrArkState extends State<_AdrArk> {
                             });
                             k.toast(r == null ? 'Kunne ikke angre' : 'Koden er fjernet · budet ser: ${r.line ?? ''}');
                           },
-                          child: Text('Angre', style: inter(12, weight: FontWeight.w800, color: const Color(0xFF9FF0D4))),
+                          child: Text('Angre', style: inter(12, weight: FontWeight.w800, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4))),
                         ),
                       ],
                     ),
@@ -1018,7 +1060,7 @@ class _AdrArkState extends State<_AdrArk> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(999),
                           gradient: _husk ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF5CE0B8), Color(0xFF2FB893)]) : null,
-                          color: _husk ? null : const Color.fromRGBO(255, 255, 255, .16),
+                          color: _husk ? null : (lys ? _bryterAvLys : const Color.fromRGBO(255, 255, 255, .16)),
                         ),
                         child: AnimatedAlign(
                           duration: const Duration(milliseconds: 300),
@@ -1037,7 +1079,7 @@ class _AdrArkState extends State<_AdrArk> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('Husk til neste gang', style: inter(11, weight: FontWeight.w700, color: const Color(0xFFDCE9EC))),
+                      Text('Husk til neste gang', style: inter(11, weight: FontWeight.w700, color: lys ? LysPalett.sekundar : const Color(0xFFDCE9EC))),
                     ],
                   ),
                 ),
@@ -1079,13 +1121,18 @@ class _DekChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = liten ? 7.0 : 8.0;
+    // Lys plan (`.mkao`, `(dekDekket)` / «Adresse valgt»): `--lys-hvit` with the
+    // `--lys-kant` ring, `--lys-tittel` text.
+    final lys = context.lys;
     return CssBox(
       radius: BorderRadius.circular(999),
-      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])],
-      shadows: const [
-        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
-      ],
+      bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .06)])],
+      shadows: lys
+          ? const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)]
+          : const [
+              CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+              CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
+            ],
       padding: liten ? const EdgeInsets.fromLTRB(10, 4, 12, 4) : const EdgeInsets.fromLTRB(10, 5, 13, 5),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 20),
@@ -1107,7 +1154,7 @@ class _DekChip extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(tekst, style: inter(liten ? 11.5 : 12, weight: FontWeight.w700, color: const Color(0xFFE7F2F4))),
+            Text(tekst, style: inter(liten ? 11.5 : 12, weight: FontWeight.w700, color: lys ? LysPalett.tittel : const Color(0xFFE7F2F4))),
           ],
         ),
       ),
@@ -1176,6 +1223,7 @@ class _GlassKnapp extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
 
+  // Lys plan (`.mkb1`): `--lys-hvit`, `0 0 0 1px var(--lys-kant-farge),var(--lys-kortskygge)`.
   @override
   Widget build(BuildContext context) => LfPress(
     dy: 3,
@@ -1183,13 +1231,15 @@ class _GlassKnapp extends StatelessWidget {
     child: CssBox(
       height: hoyde,
       radius: BorderRadius.circular(17),
-      bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
-      shadows: const [
-        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
-        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
-        CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .55)),
-        CssShadow(0, 12, 18, -10, Color.fromRGBO(3, 14, 20, .85)),
-      ],
+      bg: context.lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
+      shadows: context.lys
+          ? [const CssShadow(0, 0, 0, 1, LysPalett.kantFarge), ...LysPalett.kortskygge]
+          : const [
+              CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
+              CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
+              CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .55)),
+              CssShadow(0, 12, 18, -10, Color.fromRGBO(3, 14, 20, .85)),
+            ],
       child: Center(child: child),
     ),
   );
@@ -1268,6 +1318,9 @@ class _AdrRad extends StatelessWidget {
       AdrType.hus => kTileHus,
     };
     final (gate, nr) = adrGateNr(a.address);
+    // Lys plan (`a.bg` / `a.sh` / `a.tile` L24765–24767, `.mkb` / `.mkas` /
+    // `.mkat` / `.mkau` / `.mkav` / `.mk2d` / `.mkaw`).
+    final lys = context.lys;
     final kort = LfPress(
       dy: 2,
       onTap: onTap,
@@ -1279,14 +1332,24 @@ class _AdrRad extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: valgt
+            colors: lys
+                ? (valgt ? const [LysPalett.mintDis, LysPalett.mintDis] : const [LysPalett.hvit, LysPalett.hvit])
+                : valgt
                 ? const [Color.fromRGBO(92, 224, 184, .2), Color.fromRGBO(92, 224, 184, .06)]
                 : const [Color.fromRGBO(255, 255, 255, .1), Color.fromRGBO(255, 255, 255, .04)],
           ),
+          boxShadow: lys ? _lysKortskygge : null,
         ),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: valgt ? const Color.fromRGBO(92, 224, 184, .7) : const Color.fromRGBO(255, 255, 255, .14), width: valgt ? 1.5 : 1),
+          border: Border.all(
+            color: lys
+                ? (valgt ? const Color.fromRGBO(11, 107, 87, .4) : LysPalett.kantFarge)
+                : valgt
+                ? const Color.fromRGBO(92, 224, 184, .7)
+                : const Color.fromRGBO(255, 255, 255, .14),
+            width: valgt ? 1.5 : 1,
+          ),
         ),
         child: Row(
           children: [
@@ -1298,6 +1361,8 @@ class _AdrRad extends StatelessWidget {
               bg: [
                 valgt
                     ? const CssLinear(180, [Color(0xFF4A97A9), Color(0xFF24596A)])
+                    : lys
+                    ? const CssLinear(180, [Color(0xFFE7F5FA), Color(0xFFE7F5FA)])
                     : const CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .05)]),
               ],
               shadows: const [
@@ -1320,26 +1385,26 @@ class _AdrRad extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(merke, style: jakarta(14, em: -.01)),
+                      Text(merke, style: jakarta(14, em: -.01, color: lys ? LysPalett.tittel : Colors.white)),
                       if (valgt) ...[
                         const SizedBox(width: 6),
                         _Inn(
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color.fromRGBO(92, 224, 184, .2),
+                              color: lys ? LysPalett.mintDis : const Color.fromRGBO(92, 224, 184, .2),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color.fromRGBO(92, 224, 184, .45)),
+                              border: Border.all(color: lys ? const Color(0x00000000) : const Color.fromRGBO(92, 224, 184, .45)),
                             ),
-                            child: Text('LEVERES HIT', style: inter(8.5, weight: FontWeight.w800, em: .1, color: const Color(0xFF9FF0D4))),
+                            child: Text('LEVERES HIT', style: inter(8.5, weight: FontWeight.w800, em: .1, color: lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4))),
                           ),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 1),
-                  Text(nr == null ? gate : '$gate $nr', maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, color: const Color(0xFFE7F2F4))),
-                  Text(adrUnder(a), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .64))),
+                  Text(nr == null ? gate : '$gate $nr', maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, color: lys ? LysPalett.tittel : const Color(0xFFE7F2F4))),
+                  Text(adrUnder(a), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .64))),
                 ],
               ),
             ),
@@ -1351,13 +1416,15 @@ class _AdrRad extends StatelessWidget {
                 width: 32,
                 height: 32,
                 radius: BorderRadius.circular(11),
-                bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .05)])],
-                shadows: const [
-                  CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-                  CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 148, 102, .32)),
-                  CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 20, 28, .45)),
-                ],
-                child: Center(child: SvgPicture.string(_kSoppel, width: 15, height: 15)),
+                bg: lys ? const [CssSolid(LysPalett.dis)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .05)])],
+                shadows: lys
+                    ? const []
+                    : const [
+                        CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+                        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 148, 102, .32)),
+                        CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 20, 28, .45)),
+                      ],
+                child: Center(child: SvgPicture.string(lys ? _kSoppelLys : _kSoppel, width: 15, height: 15)),
               ),
             ),
             const SizedBox(width: 12),
@@ -1383,7 +1450,7 @@ class _AdrRad extends StatelessWidget {
                 margin: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color.fromRGBO(255, 255, 255, .42), width: 2),
+                  border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .42), width: 2),
                 ),
               ),
           ],
@@ -1440,15 +1507,19 @@ class _AngreRad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Lys plan («Adresse slettet»: `.mkax` / `.mkay` / `.mk2d` / `.mkb`).
+    final lys = context.lys;
     final kort = ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: CssBox(
         radius: BorderRadius.circular(16),
-        bg: const [CssLinear(180, [Color.fromRGBO(242, 109, 61, .2), Color.fromRGBO(242, 109, 61, .1)])],
-        shadows: const [
-          CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .18)),
-          CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 148, 102, .42)),
-        ],
+        bg: lys ? const [CssSolid(LysPalett.glodDis)] : const [CssLinear(180, [Color.fromRGBO(242, 109, 61, .2), Color.fromRGBO(242, 109, 61, .1)])],
+        shadows: lys
+            ? const []
+            : const [
+                CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .18)),
+                CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 148, 102, .42)),
+              ],
         padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
         child: Stack(
           clipBehavior: Clip.none,
@@ -1458,12 +1529,12 @@ class _AngreRad extends StatelessWidget {
                 Container(
                   width: 30,
                   height: 30,
-                  decoration: BoxDecoration(color: const Color.fromRGBO(242, 109, 61, .22), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: lys ? LysPalett.glodDis : const Color.fromRGBO(242, 109, 61, .22), borderRadius: BorderRadius.circular(10)),
                   alignment: Alignment.center,
-                  child: SvgPicture.string(_kSoppel, width: 15, height: 15),
+                  child: SvgPicture.string(lys ? _kSoppelLys : _kSoppel, width: 15, height: 15),
                 ),
                 const SizedBox(width: 10),
-                Expanded(child: Text(tekst, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800))),
+                Expanded(child: Text(tekst, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12.5, weight: FontWeight.w800, color: lys ? LysPalett.tittel : Colors.white))),
                 const SizedBox(width: 10),
                 LfPress(
                   dy: 2,
@@ -1539,14 +1610,21 @@ class _LeggTilRad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Lys plan (`.mkaz`): `--lys-hvit`, `1.5px dashed var(--lys-kant-farge)`,
+    // `--lys-kortskygge`; `.mkb` / `.mkau` text. The plot tile stays.
+    final lys = context.lys;
     return LfPress(
       dy: 2,
       onTap: onTap,
       child: CustomPaint(
-        foregroundPainter: const _Stiplet(radius: 20, farge: Color.fromRGBO(255, 255, 255, .32), bredde: 1.5),
+        foregroundPainter: _Stiplet(radius: 20, farge: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .32), bredde: 1.5),
         child: Container(
           padding: const EdgeInsets.fromLTRB(9, 9, 12, 9),
-          decoration: BoxDecoration(color: const Color.fromRGBO(255, 255, 255, .04), borderRadius: BorderRadius.circular(20)),
+          decoration: BoxDecoration(
+            color: lys ? LysPalett.hvit : const Color.fromRGBO(255, 255, 255, .04),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: lys ? _lysKortskygge : null,
+          ),
           child: Row(
             children: [
               SizedBox(
@@ -1598,9 +1676,9 @@ class _LeggTilRad extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Legg til et nytt sted', style: jakarta(14, em: -.01)),
+                    Text('Legg til et nytt sted', style: jakarta(14, em: -.01, color: lys ? LysPalett.tittel : Colors.white)),
                     const SizedBox(height: 1),
-                    Text('Hytta, kjæresten, foreldrene …', style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .64))),
+                    Text('Hytta, kjæresten, foreldrene …', style: inter(10.5, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .64))),
                   ],
                 ),
               ),
@@ -1656,7 +1734,7 @@ class _Stiplet extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _Stiplet old) => false;
+  bool shouldRepaint(covariant _Stiplet old) => old.farge != farge || old.radius != radius || old.bredde != bredde;
 }
 
 class _Rutenett extends CustomPainter {
@@ -1803,6 +1881,12 @@ class _NyAdresseState extends State<_NyAdresse> {
     final (gate, nr) = adrGateNr(_valgt?.full ?? _adr.text);
     final klar = _adr.text.trim().length > 3;
     final steg = [('Navn', true, false), ('Adresse', valgt, !valgt), ('Lys på', valgt && info, valgt && !info)];
+    // Lys plan (`(sheetNyAdresse)`): `.mkb3` / `.mku` back key, `.mkb` / `.mk1p` /
+    // `.mk73` text, `naLysC` (L24734), `.mkb8` / `.mkb9` field, `.mkba` / `.mkbb`.
+    final lys = context.lys;
+    final etikett = lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .66);
+    final lysC = info ? (lys ? LysPalett.gullTekst : const Color(0xFFFFD27A)) : (lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .5));
+    final lysS = info ? (lys ? '#4A300A' : '#FFD27A') : (lys ? '#627276' : 'rgba(255,255,255,.5)');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1818,16 +1902,18 @@ class _NyAdresseState extends State<_NyAdresse> {
                 height: 40,
                 radius: BorderRadius.circular(14),
                 clip: true,
-                bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
-                shadows: const [
-                  CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
-                  CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
-                  CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .55)),
-                  CssShadow(0, 12, 18, -10, Color.fromRGBO(3, 14, 20, .85)),
-                ],
+                bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .2), Color.fromRGBO(255, 255, 255, .07)])],
+                shadows: lys
+                    ? const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)]
+                    : const [
+                        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .4)),
+                        CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .14)),
+                        CssShadow(0, 3, 0, 0, Color.fromRGBO(4, 20, 28, .55)),
+                        CssShadow(0, 12, 18, -10, Color.fromRGBO(3, 14, 20, .85)),
+                      ],
                 child: Center(
                   child: SvgPicture.string(
-                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5.5l-6.5 6.5 6.5 6.5"/></svg>',
+                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? '#1E4F5C' : '#FFFFFF'}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5.5l-6.5 6.5 6.5 6.5"/></svg>',
                     width: 15,
                     height: 15,
                   ),
@@ -1839,9 +1925,9 @@ class _NyAdresseState extends State<_NyAdresse> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Nytt sted på kartet', style: jakarta(18, em: -.02)),
+                  Text('Nytt sted på kartet', style: jakarta(18, em: -.02, color: lys ? LysPalett.tittel : Colors.white)),
                   const SizedBox(height: 1),
-                  Text('Lagres på kontoen din og kan velges neste gang.', style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .66))),
+                  Text('Lagres på kontoen din og kan velges neste gang.', style: inter(11.5, color: etikett)),
                 ],
               ),
             ),
@@ -1864,7 +1950,7 @@ class _NyAdresseState extends State<_NyAdresse> {
           ],
         ),
         const SizedBox(height: 16),
-        Text('HVA KALLER DU DEN?', style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .66))),
+        Text('HVA KALLER DU DEN?', style: inter(10.5, weight: FontWeight.w800, em: .08, color: etikett)),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -1885,7 +1971,7 @@ class _NyAdresseState extends State<_NyAdresse> {
           ],
         ),
         const SizedBox(height: 16),
-        Text('ADRESSE', style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .66))),
+        Text('ADRESSE', style: inter(10.5, weight: FontWeight.w800, em: .08, color: etikett)),
         const SizedBox(height: 8),
         if (!valgt) _sokFelt() else _valgtKort(gate, nr),
         const SizedBox(height: 16),
@@ -1894,20 +1980,20 @@ class _NyAdresseState extends State<_NyAdresse> {
             Text.rich(
               TextSpan(
                 text: 'TIL BUDET ',
-                style: inter(10.5, weight: FontWeight.w800, em: .08, color: const Color.fromRGBO(255, 255, 255, .66)),
-                children: [TextSpan(text: '· valgfritt', style: inter(10.5, color: const Color.fromRGBO(255, 255, 255, .5)))],
+                style: inter(10.5, weight: FontWeight.w800, em: .08, color: etikett),
+                children: [TextSpan(text: '· valgfritt', style: inter(10.5, color: lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .5)))],
               ),
             ),
             const Spacer(),
             SvgPicture.string(
-              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3.5 10.9V17h7v-3.1A6 6 0 0 0 12 3z" fill="${info ? '#FFD27A' : 'none'}" stroke="${info ? '#FFD27A' : 'rgba(255,255,255,.5)'}" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 20.5h5" stroke="${info ? '#FFD27A' : 'rgba(255,255,255,.5)'}" stroke-width="2" stroke-linecap="round"/></svg>',
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3.5 10.9V17h7v-3.1A6 6 0 0 0 12 3z" fill="${info ? '#FFD27A' : 'none'}" stroke="$lysS" stroke-width="2" stroke-linejoin="round"/><path d="M9.5 20.5h5" stroke="$lysS" stroke-width="2" stroke-linecap="round"/></svg>',
               width: 12,
               height: 12,
             ),
             const SizedBox(width: 5),
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 400),
-              style: inter(10.5, weight: FontWeight.w800, color: info ? const Color(0xFFFFD27A) : const Color.fromRGBO(255, 255, 255, .5)),
+              style: inter(10.5, weight: FontWeight.w800, color: lysC),
               child: Text(info ? 'Lyset er på' : 'Tenner lyset'),
             ),
           ],
@@ -1916,17 +2002,17 @@ class _NyAdresseState extends State<_NyAdresse> {
         CssBox(
           height: 50,
           radius: BorderRadius.circular(16),
-          bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .07)])],
-          border: Border.all(color: const Color.fromRGBO(255, 255, 255, .22)),
-          shadows: const [CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(3, 16, 24, .25)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 20, 28, .4))],
+          bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .07)])],
+          border: Border.all(color: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .22)),
+          shadows: lys ? const [] : const [CssShadow.inset(0, 2, 4, 0, Color.fromRGBO(3, 16, 24, .25)), CssShadow(0, 2.5, 0, 0, Color.fromRGBO(4, 20, 28, .4))],
           padding: const EdgeInsets.fromLTRB(14, 0, 9, 0),
           child: Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _info,
-                  cursorColor: const Color(0xFF5CE0B8),
-                  style: jakarta(13.5, weight: FontWeight.w600),
+                  cursorColor: lys ? LysPalett.mintTekst : const Color(0xFF5CE0B8),
+                  style: jakarta(13.5, weight: FontWeight.w600, color: lys ? LysPalett.brod : Colors.white),
                   decoration: InputDecoration(
                     isCollapsed: true,
                     filled: false,
@@ -1935,7 +2021,7 @@ class _NyAdresseState extends State<_NyAdresse> {
                     focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                     hintText: 'Etasje, ring på, inngang, kode …',
-                    hintStyle: jakarta(13.5, weight: FontWeight.w600, color: const Color.fromRGBO(255, 255, 255, .45)),
+                    hintStyle: jakarta(13.5, weight: FontWeight.w600, color: lys ? _plassLys : const Color.fromRGBO(255, 255, 255, .45)),
                   ),
                 ),
               ),
@@ -2003,20 +2089,24 @@ class _NyAdresseState extends State<_NyAdresse> {
           )
         else
           CustomPaint(
-            foregroundPainter: const _Stiplet(radius: 17, farge: Color.fromRGBO(255, 255, 255, .24), bredde: 1.5),
+            foregroundPainter: _Stiplet(radius: 17, farge: lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .24), bredde: 1.5),
             child: Container(
               height: 54,
-              decoration: BoxDecoration(color: const Color.fromRGBO(255, 255, 255, .06), borderRadius: BorderRadius.circular(17)),
+              decoration: BoxDecoration(
+                color: lys ? LysPalett.hvit : const Color.fromRGBO(255, 255, 255, .06),
+                borderRadius: BorderRadius.circular(17),
+                boxShadow: lys ? _lysKortskygge : null,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.string(
-                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.66)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${lys ? 'rgba(30,79,92,.66)' : 'rgba(255,255,255,.66)'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
                     width: 14,
                     height: 14,
                   ),
                   const SizedBox(width: 8),
-                  Text('Skriv adressen først', style: inter(13, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .66))),
+                  Text('Skriv adressen først', style: inter(13, weight: FontWeight.w800, color: etikett)),
                 ],
               ),
             ),
@@ -2027,21 +2117,28 @@ class _NyAdresseState extends State<_NyAdresse> {
 
   Widget _sokFelt() {
     final fok = _adrFokus.hasFocus;
+    // Lys plan (`(naIkkeValgt)` / `(naHarForslag)`): `.mkb4` field with `naKant` /
+    // `naGlod` (L20257), `.mkb5` tile, `.mk12` input, `.mkb6` list.
+    final lys = context.lys;
     Widget felt = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       height: 54,
       padding: const EdgeInsets.fromLTRB(7, 0, 12, 0),
       decoration: CssDecoration(
         borderRadius: BorderRadius.circular(17),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .07)],
+          colors: lys ? const [LysPalett.hvit, LysPalett.hvit] : const [Color.fromRGBO(255, 255, 255, .15), Color.fromRGBO(255, 255, 255, .07)],
         ),
-        border: Border.all(color: fok ? const Color.fromRGBO(92, 224, 184, .6) : const Color.fromRGBO(255, 255, 255, .26)),
+        border: Border.all(
+          color: fok
+              ? (lys ? const Color.fromRGBO(11, 107, 87, .45) : const Color.fromRGBO(92, 224, 184, .6))
+              : (lys ? LysPalett.kantFarge : const Color.fromRGBO(255, 255, 255, .26)),
+        ),
         boxShadow: [
           const BoxShadow(color: Color.fromRGBO(4, 20, 28, .4), offset: Offset(0, 2.5)),
-          if (fok) const BoxShadow(color: Color.fromRGBO(92, 224, 184, .14), spreadRadius: 4),
+          if (fok) BoxShadow(color: lys ? const Color.fromRGBO(92, 224, 184, .2) : const Color.fromRGBO(92, 224, 184, .14), spreadRadius: 4),
         ],
       ),
       child: Row(
@@ -2050,8 +2147,8 @@ class _NyAdresseState extends State<_NyAdresse> {
             width: 38,
             height: 38,
             radius: BorderRadius.circular(12),
-            bg: const [CssRadial([Color(0xFF3A8296), Color(0xFF1E4F5C)], rx: .7, ry: .6, cx: .4, cy: .25)],
-            shadows: const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 2, 0, 0, Color.fromRGBO(4, 20, 28, .5))],
+            bg: lys ? const [CssSolid(LysPalett.dis)] : const [CssRadial([Color(0xFF3A8296), Color(0xFF1E4F5C)], rx: .7, ry: .6, cx: .4, cy: .25)],
+            shadows: lys ? const [] : const [CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)), CssShadow(0, 2, 0, 0, Color.fromRGBO(4, 20, 28, .5))],
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -2072,7 +2169,7 @@ class _NyAdresseState extends State<_NyAdresse> {
                     ),
                   ),
                 ),
-                SvgPicture.string(_kNaal, width: 14, height: 14),
+                SvgPicture.string(lys ? _kNaal.replaceAll('#7FF0CB', '#0B6B57') : _kNaal, width: 14, height: 14),
               ],
             ),
           ),
@@ -2081,7 +2178,7 @@ class _NyAdresseState extends State<_NyAdresse> {
             child: TextField(
               controller: _adr,
               focusNode: _adrFokus,
-              cursorColor: const Color(0xFF5CE0B8),
+              cursorColor: lys ? LysPalett.mintTekst : const Color(0xFF5CE0B8),
               textInputAction: TextInputAction.done,
               onSubmitted: (_) {
                 final q = _adr.text.trim();
@@ -2090,7 +2187,7 @@ class _NyAdresseState extends State<_NyAdresse> {
                   _velg(m ?? AdrForslag(gate: q, sted: 'Ny adresse i Bergen', egen: true));
                 }
               },
-              style: jakarta(14, weight: FontWeight.w700),
+              style: jakarta(14, weight: FontWeight.w700, color: lys ? LysPalett.tittel : Colors.white),
               decoration: InputDecoration(
                 isCollapsed: true,
                 filled: false,
@@ -2099,7 +2196,7 @@ class _NyAdresseState extends State<_NyAdresse> {
                 focusedBorder: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
                 hintText: 'Gateadresse og nummer',
-                hintStyle: jakarta(14, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .45)),
+                hintStyle: jakarta(14, weight: FontWeight.w700, color: lys ? _plassLys : const Color.fromRGBO(255, 255, 255, .45)),
               ),
             ),
           ),
@@ -2115,12 +2212,14 @@ class _NyAdresseState extends State<_NyAdresse> {
             margin: const EdgeInsets.only(top: 6),
             child: CssBox(
               radius: BorderRadius.circular(16),
-              bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .05)])],
-              shadows: const [
-                CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
-                CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
-                CssShadow(0, 14, 22, -14, Color.fromRGBO(3, 14, 20, .85)),
-              ],
+              bg: lys ? const [CssSolid(LysPalett.hvit)] : const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .05)])],
+              shadows: lys
+                  ? const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge)]
+                  : const [
+                      CssShadow.inset(0, 1, 0, 0, Color.fromRGBO(255, 255, 255, .22)),
+                      CssShadow.inset(0, 0, 0, 1, Color.fromRGBO(255, 255, 255, .1)),
+                      CssShadow(0, 14, 22, -14, Color.fromRGBO(3, 14, 20, .85)),
+                    ],
               padding: const EdgeInsets.all(4),
               child: Column(
                 children: [
@@ -2233,6 +2332,7 @@ class _ForslagRad extends StatelessWidget {
   final double delayMs;
   final VoidCallback onTap;
 
+  // Lys plan (`(naHarForslag)`): `.mkb7` / `.mku` tile, `.mkb` / `.mk2q`, `.mk5l`.
   @override
   Widget build(BuildContext context) => LfOnce(
     ms: delayMs + 380,
@@ -2259,26 +2359,28 @@ class _ForslagRad extends StatelessWidget {
               width: 30,
               height: 30,
               radius: BorderRadius.circular(10),
-              bg: const [CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1])],
-              shadows: const [
-                CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
-                CssShadow.inset(0, -2, 4, 0, Color.fromRGBO(4, 20, 28, .4)),
-                CssShadow(0, 6, 8, -5, Color.fromRGBO(3, 16, 24, .8)),
-              ],
-              child: Center(child: SvgPicture.string(_kNaal.replaceAll('#7FF0CB', '#FFFFFF'), width: 13, height: 13)),
+              bg: context.lys ? const [CssSolid(LysPalett.dis)] : const [CssLinear(160, [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], [0, .52, 1])],
+              shadows: context.lys
+                  ? const []
+                  : const [
+                      CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .3)),
+                      CssShadow.inset(0, -2, 4, 0, Color.fromRGBO(4, 20, 28, .4)),
+                      CssShadow(0, 6, 8, -5, Color.fromRGBO(3, 16, 24, .8)),
+                    ],
+              child: Center(child: SvgPicture.string(_kNaal.replaceAll('#7FF0CB', context.lys ? '#1E4F5C' : '#FFFFFF'), width: 13, height: 13)),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(f.gate, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13, weight: FontWeight.w800)),
-                  Text(f.sted, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, weight: FontWeight.w700, color: const Color(0xFFBFD6DD))),
+                  Text(f.gate, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13, weight: FontWeight.w800, color: context.lys ? LysPalett.tittel : Colors.white)),
+                  Text(f.sted, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(10.5, weight: FontWeight.w700, color: context.lys ? LysPalett.sekundar : const Color(0xFFBFD6DD))),
                 ],
               ),
             ),
             SvgPicture.string(
-              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+              '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${context.lys ? 'rgba(30,79,92,.5)' : 'rgba(255,255,255,.5)'}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
               width: 12,
               height: 12,
             ),
@@ -2297,6 +2399,8 @@ class _Steg extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Lys plan (`naSteg` L24737–24739): bg / sh / fg / tc / linje.
+    final lys = context.lys;
     final sirkel = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: 22,
@@ -2306,24 +2410,36 @@ class _Steg extends StatelessWidget {
         gradient: ferdig
             ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFA6F8DD), Color(0xFF3CC79F)])
             : aktiv
-            ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFA77C), Color(0xFFE95C2C)])
+            ? (lys
+                  ? const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF27606F), Color(0xFF1E4F5C)])
+                  : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFFFFA77C), Color(0xFFE95C2C)]))
             : null,
-        color: ferdig || aktiv ? null : const Color.fromRGBO(255, 255, 255, .1),
-        border: ferdig || aktiv ? null : Border.all(color: const Color.fromRGBO(255, 255, 255, .3), width: 1.5),
+        color: ferdig || aktiv ? null : (lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .1)),
+        border: ferdig || aktiv ? null : Border.all(color: lys ? const Color.fromRGBO(30, 79, 92, .2) : const Color.fromRGBO(255, 255, 255, .3), width: 1.5),
         boxShadow: ferdig
             ? const [BoxShadow(color: Color(0xFF23946F), offset: Offset(0, 2))]
             : aktiv
-            ? const [BoxShadow(color: Color(0xFFA63A12), offset: Offset(0, 2)), BoxShadow(color: Color.fromRGBO(242, 109, 61, .18), spreadRadius: 4)]
+            ? (lys
+                  ? const [BoxShadow(color: Color.fromRGBO(11, 38, 45, .85), offset: Offset(0, 2)), BoxShadow(color: Color.fromRGBO(30, 79, 92, .14), spreadRadius: 4)]
+                  : const [BoxShadow(color: Color(0xFFA63A12), offset: Offset(0, 2)), BoxShadow(color: Color.fromRGBO(242, 109, 61, .18), spreadRadius: 4)])
             : null,
       ),
       alignment: Alignment.center,
       child: ferdig
           ? SvgPicture.string(_kHake.replaceAll('#1F8A66', '#0F3A40'), width: 11, height: 11)
-          : Text('$nr', style: jakarta(10.5, color: aktiv ? Colors.white : const Color.fromRGBO(255, 255, 255, .7))),
+          : Text('$nr', style: jakarta(10.5, color: aktiv ? Colors.white : (lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .7)))),
     );
     final tekst = AnimatedDefaultTextStyle(
       duration: const Duration(milliseconds: 300),
-      style: inter(11, weight: FontWeight.w800, color: ferdig ? const Color(0xFF9FF0D4) : aktiv ? Colors.white : const Color.fromRGBO(255, 255, 255, .55)),
+      style: inter(
+        11,
+        weight: FontWeight.w800,
+        color: ferdig
+            ? (lys ? LysPalett.mintTekst : const Color(0xFF9FF0D4))
+            : aktiv
+            ? (lys ? LysPalett.tittel : Colors.white)
+            : (lys ? LysPalett.dempet : const Color.fromRGBO(255, 255, 255, .55)),
+      ),
       child: Text(navn, maxLines: 1),
     );
     return Row(
@@ -2338,7 +2454,7 @@ class _Steg extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 400),
               height: 3,
-              decoration: BoxDecoration(color: ferdig ? const Color(0xFF5CE0B8) : const Color.fromRGBO(255, 255, 255, .16), borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: ferdig ? const Color(0xFF5CE0B8) : (lys ? const Color.fromRGBO(30, 79, 92, .14) : const Color.fromRGBO(255, 255, 255, .16)), borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(width: 6),
@@ -2364,6 +2480,8 @@ class _MerkeFlis extends StatelessWidget {
       'Annet' => kMerkeAnnet,
       _ => kMerkeHus,
     };
+    // Lys plan (`naMerker2` L24743–24746): tile / bg / sh / fg.
+    final lys = context.lys;
     Widget flis = CssBox(
       width: 38,
       height: 38,
@@ -2372,6 +2490,8 @@ class _MerkeFlis extends StatelessWidget {
       bg: [
         valgt
             ? const CssLinear(180, [Color(0xFF4A97A9), Color(0xFF24596A)])
+            : lys
+            ? const CssLinear(180, [Color(0xFFE7F5FA), Color(0xFFE7F5FA)])
             : const CssLinear(180, [Color.fromRGBO(255, 255, 255, .16), Color.fromRGBO(255, 255, 255, .05)]),
       ],
       shadows: const [
@@ -2412,11 +2532,17 @@ class _MerkeFlis extends StatelessWidget {
       child: CssBox(
         radius: BorderRadius.circular(16),
         bg: [
-          valgt
+          lys
+              ? const CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFFFFFFF)])
+              : valgt
               ? const CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFF3EEE2)])
               : const CssLinear(180, [Color.fromRGBO(255, 255, 255, .13), Color.fromRGBO(255, 255, 255, .05)]),
         ],
-        shadows: valgt
+        shadows: lys
+            ? (valgt
+                  ? const [CssShadow(0, 0, 0, 2, Color(0xFF1E4F5C)), CssShadow(0, 10, 16, -8, Color.fromRGBO(23, 62, 72, .35))]
+                  : const [CssShadow(0, 0, 0, 1, LysPalett.kantFarge), CssShadow(0, 1, 2, 0, Color.fromRGBO(23, 62, 72, .06))])
+            : valgt
             ? const [
                 CssShadow.inset(0, 1.5, 0, 0, Color(0xFFFFFFFF)),
                 CssShadow(0, 0, 0, 2, Color(0xFFF26D3D)),
@@ -2433,7 +2559,7 @@ class _MerkeFlis extends StatelessWidget {
           children: [
             flis,
             const SizedBox(height: 5),
-            Text(navn, maxLines: 1, style: inter(12, weight: FontWeight.w800, color: valgt ? const Color(0xFF1E4F5C) : const Color.fromRGBO(255, 255, 255, .85))),
+            Text(navn, maxLines: 1, style: inter(12, weight: FontWeight.w800, color: valgt ? const Color(0xFF1E4F5C) : (lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .85)))),
           ],
         ),
       ),

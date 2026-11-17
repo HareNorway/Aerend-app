@@ -5,6 +5,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import 'adr_tegning.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 // ── The address sheets' street (prototype L8384–8432, L8498–8562) ──────────
 // One timeline per appearance: neighbours rise (`adrReis`), the chosen
@@ -315,7 +316,9 @@ Widget _aegil(double t, double w, double aegDelay) {
 }
 
 /// Ægil's bubble (`adrBoble` .45s), placed by the caller (right 10, top 12).
-Widget _boble(double t, String tekst, double delay, double maxW) {
+/// Lys plan ([lys], `.mkan`): `linear-gradient(180deg,#FFFFFF,#E7F5FA)`; the
+/// scene around it stays the same in both modes.
+Widget _boble(double t, String tekst, double delay, double maxW, {bool lys = false}) {
   final pb = ((t - delay) / 450).clamp(0.0, 1.0);
   const bc = Cubic(.3, 1.4, .5, 1);
   final bs = kf(pb, const [0, .65, 1], const [.4, 1.06, 1], bc);
@@ -332,9 +335,11 @@ Widget _boble(double t, String tekst, double delay, double maxW) {
           ..translateByDouble(0, by, 0, 1),
         child: CssBox(
           radius: const BorderRadius.only(topLeft: Radius.circular(14), topRight: Radius.circular(14), bottomRight: Radius.circular(14), bottomLeft: Radius.circular(4)),
-          bg: const [
-            CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEAF2F2)]),
-          ],
+          bg: lys
+              ? const [CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFE7F5FA)])]
+              : const [
+                  CssLinear(180, [Color(0xFFFFFFFF), Color(0xFFEAF2F2)]),
+                ],
           shadows: const [CssShadow.inset(0, 1, 0, 0, Color(0xFFFFFFFF)), CssShadow(0, 2.5, 0, 0, Color(0xFF9FB2B6)), CssShadow(0, 10, 14, -6, Color.fromRGBO(3, 14, 20, .7))],
           padding: const EdgeInsets.fromLTRB(10, 7, 10, 8),
           child: LfPretty(
@@ -554,7 +559,7 @@ class AdrGatescene extends StatelessWidget {
               Positioned(left: w / 2 - 41, top: pinTop, width: 38, height: 48, child: _pin(t, type, 550)),
               if (ny) ..._gnister(t, w, 1200),
               _aegil(t, w, 700),
-              Positioned(right: 10, top: 12, child: _boble(t, tekst, 1150, 130)),
+              Positioned(right: 10, top: 12, child: _boble(t, tekst, 1150, 130, lys: context.lys)),
             ],
           );
         },
@@ -862,7 +867,7 @@ class AdrByggeplass extends StatelessWidget {
               Positioned(
                 right: 10,
                 top: 12,
-                child: _Stund(key: ValueKey(tekst), builder: (bt) => _boble(bt, tekst, 200, 132)),
+                child: _Stund(key: ValueKey(tekst), builder: (bt) => _boble(bt, tekst, 200, 132, lys: context.lys)),
               ),
             ],
           );
