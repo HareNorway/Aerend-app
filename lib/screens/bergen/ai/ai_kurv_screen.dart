@@ -22,6 +22,8 @@ import 'ai_sheets.dart';
 import 'ai_store.dart';
 import 'ai_tilbud.dart';
 import '../../../services/customer/beacons.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Customer plan Step 14 — «Handlekurv fra assistent» (design 8060–8187,
 /// `skjerm: 'aiKurv'`, route `/bergen/ai/foresporsel/{id}`, the hand-off
@@ -212,12 +214,13 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
       title: AiCopy.cus_ai_bytt_tittel(l.name),
       subtitle: AiCopy.cus_ai_bytt_linje,
       body: (ctx, _) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (valg.isEmpty) Padding(padding: const EdgeInsets.all(8), child: Text(AiCopy.cus_ai_bytt_ingen, style: inter(13, color: const Color.fromRGBO(255, 255, 255, .75)))),
+        // Lys (app-only sheet, built like «Fra assistent · varer»): `.mkb`, `.mku`, `--lys-sekundar`.
+        if (valg.isEmpty) Padding(padding: const EdgeInsets.all(8), child: Text(AiCopy.cus_ai_bytt_ingen, style: inter(13, color: ctx.aiSek(const Color.fromRGBO(255, 255, 255, .75))))),
         for (final a in valg)
           AePress(onTap: () => Navigator.of(ctx).pop(a), dy: 1.5, child: AiKort(key: Key('cus-ai-bytt-${a.productId}'), padding: const EdgeInsets.all(12), child: Row(children: [
-            const AeIkon(AiIk.pose, size: 15, stroke: 2.2), const SizedBox(width: 10),
-            Expanded(child: Text(a.name, style: inter(13.5, weight: FontWeight.w800))),
-            Text(a.price.display, style: aeTab(inter(13.5, weight: FontWeight.w800))),
+            AeIkon(AiIk.pose, size: 15, stroke: 2.2, color: ctx.aiStrek(Colors.white)), const SizedBox(width: 10),
+            Expanded(child: Text(a.name, style: inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel))),
+            Text(a.price.display, style: aeTab(inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel))),
           ]))),
       ]),
       secondary: MegArkButton(label: AiCopy.cus_ai_avbryt, onTap: () => Navigator.of(context).pop()),
@@ -307,25 +310,29 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
     final visKnapper = ok && r != null && !r.harUtsolgt;
     final top = MediaQuery.paddingOf(context).top;
     final bunn = MediaQuery.paddingOf(context).bottom;
+    // Lys («Handlekurv fra assistent», `.mk3`): the screen `--lys-ull`, text `--lys-brod`.
+    final lys = context.lys;
     return Scaffold(
-      backgroundColor: const Color(0xFF0F2B33),
+      backgroundColor: context.aeM(const Color(0xFF0F2B33), LysPalett.ull),
       body: LfFrame(
         child: Container(
-          decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1E4F5C), Color(0xFF0F2B33), Color(0xFF081F28)], stops: [0, .55, 1])),
+          decoration: lys ? const BoxDecoration(color: LysPalett.ull) : const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1E4F5C), Color(0xFF0F2B33), Color(0xFF081F28)], stops: [0, .55, 1])),
           child: Column(children: [
             // Header.
             Padding(
               padding: EdgeInsets.fromLTRB(16, top + 10, 16, 0),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  AePress(onTap: _tilHjem, dy: 1.5, child: Container(key: const Key('cus-ai-kurv-tilbake'), width: 40, height: 40, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .18))), child: const AeIkon('M15 6l-6 6 6 6', size: 16, stroke: 2.4))),
+                  // Lys: «Tilbake» `.mk8y` (white, a hairline ring), stroke `.mku`; the chip `.mk1q` (`--lys-mint-dis`,
+                  // `--lys-mint-tekst`, its inline ring `rgba(127,240,203,.5)`); the title `.mkb`; «Ingenting sendes» `.mk8z` (`--lys-sekundar`), stroke `.mk1i`.
+                  AePress(onTap: _tilHjem, dy: 1.5, child: Container(key: const Key('cus-ai-kurv-tilbake'), width: 40, height: 40, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.hvit), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge))), child: AeIkon('M15 6l-6 6 6 6', size: 16, stroke: 2.4, color: context.aiStrek(Colors.white)))),
                   const Spacer(),
-                  Container(padding: const EdgeInsets.fromLTRB(5, 4, 11, 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Row(mainAxisSize: MainAxisSize.min, children: [AiMerke(navn, size: 22, radius: 7), const SizedBox(width: 7), Text(AiCopy.cus_ai_fra(navn), style: inter(12, weight: FontWeight.w800))])),
+                  Container(padding: const EdgeInsets.fromLTRB(5, 4, 11, 4), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.mintDis), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), const Color.fromRGBO(127, 240, 203, .5)))), child: Row(mainAxisSize: MainAxisSize.min, children: [AiMerke(navn, size: 22, radius: 7), const SizedBox(width: 7), Text(AiCopy.cus_ai_fra(navn), style: inter(12, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.mintTekst)))])),
                 ]),
                 const SizedBox(height: 14),
-                Text(AiCopy.cus_ai_kurv_tittel(navn), key: const Key('cus-ai-kurv-tittel'), style: jakarta(24, em: -.03, height: 1.05)),
+                Text(AiCopy.cus_ai_kurv_tittel(navn), key: const Key('cus-ai-kurv-tittel'), style: jakarta(24, em: -.03, height: 1.05, color: context.aiTittel)),
                 const SizedBox(height: 4),
-                Row(children: [const AeIkon(AiIk.skjold, size: 12, stroke: 2.4, color: Color(0xFF7FF0CB)), const SizedBox(width: 6), Expanded(child: Text(AiCopy.cus_ai_ingenting_sendes, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))))]),
+                Row(children: [AeIkon(AiIk.skjold, size: 12, stroke: 2.4, color: context.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 6), Expanded(child: Text(AiCopy.cus_ai_ingenting_sendes, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w700, color: context.aiSek(const Color(0xFF7FF0CB)))))]),
               ]),
             ),
             Expanded(
@@ -337,20 +344,22 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
                     AiKort(child: Row(children: [
                       Container(width: 40, height: 40, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(13), gradient: const LinearGradient(colors: [Color(0xFFF58A55), Color(0xFFE95C2C)])), child: const AeIkon('M4 10l1.6-5h12.8L20 10M4 10h16M5 10v10h14V10M10 20v-5h4v5', size: 18, stroke: 2.2)),
                       const SizedBox(width: 10),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(r.store, style: inter(14, weight: FontWeight.w800)), Text(r.storeLine.isEmpty ? r.address : r.storeLine, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))])),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(r.store, style: inter(14, weight: FontWeight.w800, color: context.aiTittel)), Text(r.storeLine.isEmpty ? r.address : r.storeLine, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .65))))])),
                     ])),
                   const SizedBox(height: 10),
                   if (s == 'laster' && r != null) ...[
                     AiTilbud(key: const Key('cus-ai-kurv-laster'), r: r, venter: false, laster: true, visFrist: false),
                     const SizedBox(height: 10),
-                    for (var i = 0; i < 3; i++) Container(height: 54, margin: const EdgeInsets.only(bottom: 8), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: const Color.fromRGBO(255, 255, 255, .06))),
+                    // Lys (app-only placeholders): `--lys-dis-ull`.
+                    for (var i = 0; i < 3; i++) Container(height: 54, margin: const EdgeInsets.only(bottom: 8), decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: context.aeM(const Color.fromRGBO(255, 255, 255, .06), LysPalett.disUll))),
                   ] else if (s == 'gjest') ...[
                     AiKort(key: const Key('cus-ai-kurv-gjest'), padding: const EdgeInsets.all(18), child: Column(children: [
-                      Container(width: 48, height: 48, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .1)), child: const AeIkon(AiIk.laas, size: 22, stroke: 2.2)),
+                      // Lys («Handlekurv · logg inn»): `.mk96` (`--lys-dis`), `.mku`, `.mkb`, `.mk1p`.
+                      Container(width: 48, height: 48, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(AiIk.laas, size: 22, stroke: 2.2, color: context.aiStrek(Colors.white))),
                       const SizedBox(height: 10),
-                      Text(AiCopy.cus_ai_logg_inn_fortsett, style: inter(16, weight: FontWeight.w800)),
+                      Text(AiCopy.cus_ai_logg_inn_fortsett, style: inter(16, weight: FontWeight.w800, color: context.aiTittel)),
                       const SizedBox(height: 4),
-                      Text(AiCopy.cus_ai_kurv_venter(navn), textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
+                      Text(AiCopy.cus_ai_kurv_venter(navn), textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .72)))),
                       const SizedBox(height: 12),
                       AePress(onTap: () async {
                         // Customer v2 Step 2: log in and come back to this request (was: the login replaced the app).
@@ -365,27 +374,29 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
                       if (s == 'dekning') ...[
                         Image.asset('assets/images/dashboard/find.png', height: 110),
                         const SizedBox(height: 8),
-                        Text(AiCopy.cus_ai_leverer_ikke, style: inter(16, weight: FontWeight.w800)),
+                        // Lys («Handlekurv · utenfor dekning»): `.mkb`, the address `.mk97` (`--lys-glod-tekst`, stroke
+                        // `.mk2d`), `.mk1p`, «Avvis» `.mk17` on the app's glass key (`--lys-dis`, hairline).
+                        Text(AiCopy.cus_ai_leverer_ikke, style: inter(16, weight: FontWeight.w800, color: context.aiTittel)),
                         const SizedBox(height: 6),
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [const AeIkon(AiIk.pin, size: 12, stroke: 2.4, color: Color(0xFF7FF0CB)), const SizedBox(width: 5), Flexible(child: Text(r?.address ?? '', style: inter(12, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))))]),
+                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [AeIkon(AiIk.pin, size: 12, stroke: 2.4, color: context.aeM(const Color(0xFF7FF0CB), const Color(0xFFA63A12))), const SizedBox(width: 5), Flexible(child: Text(r?.address ?? '', style: inter(12, weight: FontWeight.w700, color: context.aeM(const Color(0xFF7FF0CB), LysPalett.glodTekst))))]),
                         const SizedBox(height: 6),
-                        Text(AiCopy.cus_ai_si_fra, textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
+                        Text(AiCopy.cus_ai_si_fra, textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .72)))),
                         const SizedBox(height: 12),
                         AePress(onTap: _venteliste, dy: 2, child: Container(key: const Key('cus-ai-venteliste'), height: 46, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(AiCopy.cus_ai_venteliste, style: inter(14, weight: FontWeight.w800)))),
                         const SizedBox(height: 8),
-                        AePress(onTap: _avvis, dy: 1, child: Container(key: const Key('cus-ai-kurv-avvis'), height: 42, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: const Color.fromRGBO(255, 255, 255, .08), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Text(AiCopy.cus_ai_avvis, style: inter(13.5, weight: FontWeight.w800)))),
+                        AePress(onTap: _avvis, dy: 1, child: Container(key: const Key('cus-ai-kurv-avvis'), height: 42, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge))), child: Text(AiCopy.cus_ai_avvis, style: inter(13.5, weight: FontWeight.w800, color: context.aiSek(Colors.white))))),
                       ] else ...[
                         Container(width: 54, height: 54, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8)), child: const AeIkon(AiIk.hake, size: 24, stroke: 3, color: Color(0xFF0F2B33))),
                         const SizedBox(height: 10),
-                        Text(AiCopy.cus_ai_paa_venteliste, style: inter(16, weight: FontWeight.w800)),
+                        Text(AiCopy.cus_ai_paa_venteliste, style: inter(16, weight: FontWeight.w800, color: context.aiTittel)),
                         const SizedBox(height: 4),
-                        Text(AiCopy.cus_ai_paa_venteliste_tx(r?.address ?? ''), textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .72))),
+                        Text(AiCopy.cus_ai_paa_venteliste_tx(r?.address ?? ''), textAlign: TextAlign.center, style: inter(12.5, height: 1.4, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .72)))),
                         const SizedBox(height: 12),
                         AePress(onTap: _tilHjem, dy: 2, child: Container(key: const Key('cus-ai-til-hjem'), height: 46, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(AiCopy.cus_ai_til_hjem, style: inter(14, weight: FontWeight.w800)))),
                       ],
                     ])),
                   ] else if (r == null) ...[
-                    AiKort(key: const Key('cus-ai-kurv-tom'), padding: const EdgeInsets.all(18), child: Column(children: [Image.asset('assets/images/dashboard/sorry.png', height: 100), const SizedBox(height: 8), Text(AiCopy.cus_ai_feil_generisk, style: inter(15, weight: FontWeight.w800)), Text(AiCopy.cus_ai_ingenting_bestilt, style: inter(12.5, color: const Color.fromRGBO(255, 255, 255, .7)))])),
+                    AiKort(key: const Key('cus-ai-kurv-tom'), padding: const EdgeInsets.all(18), child: Column(children: [Image.asset('assets/images/dashboard/sorry.png', height: 100), const SizedBox(height: 8), Text(AiCopy.cus_ai_feil_generisk, style: inter(15, weight: FontWeight.w800, color: context.aiTittel)), Text(AiCopy.cus_ai_ingenting_bestilt, style: inter(12.5, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .7))))])),
                   ] else ...[
                     AiTilbud(
                       key: Key('cus-ai-kurv-$s'),
@@ -410,9 +421,10 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
                       AePress(onTap: _sjekk, dy: 1.5, child: Container(key: const Key('cus-ai-sjekk'), height: 46, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), gradient: const LinearGradient(colors: [Color(0xFFF9A273), Color(0xFFF26D3D)])), child: Text(AiCopy.cus_ai_sjekk_betaling, style: inter(14, weight: FontWeight.w800))))
                     else if (s != 'trukket')
                     Row(children: [
-                      Expanded(child: AePress(onTap: _endre, dy: 1.5, child: AiKort(key: const Key('cus-ai-endre'), padding: const EdgeInsets.all(12), child: Row(children: [const AeIkon(AiIk.oppdater, size: 16, stroke: 2.3, color: Color(0xFF7FF0CB)), const SizedBox(width: 8), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_endre_kurv, style: inter(13, weight: FontWeight.w800)), Text(AiCopy.cus_ai_endre_under, style: inter(11, color: const Color.fromRGBO(255, 255, 255, .65)))]))])))),
+                      // Lys («Handlekurv · lenker»): `.mk8` (`--lys-mint-tekst`), `.mkd`, stroke `.mk1i`; «Avvis» `.mk17`.
+                      Expanded(child: AePress(onTap: _endre, dy: 1.5, child: AiKort(key: const Key('cus-ai-endre'), padding: const EdgeInsets.all(12), child: Row(children: [AeIkon(AiIk.oppdater, size: 16, stroke: 2.3, color: context.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 8), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_endre_kurv, style: inter(13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.mintTekst))), Text(AiCopy.cus_ai_endre_under, style: inter(11, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))]))])))),
                       const SizedBox(width: 8),
-                      AePress(onTap: _avvis, dy: 1.5, child: Container(key: const Key('cus-ai-kurv-avvis'), height: 56, padding: const EdgeInsets.symmetric(horizontal: 16), alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), color: const Color.fromRGBO(255, 255, 255, .08), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .2))), child: Text(AiCopy.cus_ai_avvis, style: inter(13.5, weight: FontWeight.w800)))),
+                      AePress(onTap: _avvis, dy: 1.5, child: Container(key: const Key('cus-ai-kurv-avvis'), height: 56, padding: const EdgeInsets.symmetric(horizontal: 16), alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(18), color: context.aeM(const Color.fromRGBO(255, 255, 255, .08), LysPalett.dis), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .2), LysPalett.kantFarge))), child: Text(AiCopy.cus_ai_avvis, style: inter(13.5, weight: FontWeight.w800, color: context.aiSek(Colors.white))))),
                     ]),
                   ],
                 ],
@@ -421,7 +433,10 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
             if (visKnapper)
               Container(
                 padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bunn),
-                decoration: const BoxDecoration(color: Color(0xFF0B2229), border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .12)))),
+                // Lys («Handlekurv · betal»): the bar `.mk9n` (`--lys-ull` fading in), the rule `--lys-skille` (`.mk1z`).
+                decoration: lys
+                    ? const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(247, 251, 253, 0), Color.fromRGBO(247, 251, 253, .97)], stops: [0, .26]), border: Border(top: BorderSide(color: LysPalett.skille)))
+                    : const BoxDecoration(color: Color(0xFF0B2229), border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .12)))),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   _linjeRad(AiIk.sykkel, r.windowDisplay, r.address, onEndre: null),
                   const SizedBox(height: 8),
@@ -430,7 +445,7 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
                   const SizedBox(height: 12),
                   KurvBetal(key: const Key('cus-ai-betal'), total: r.total.ore / 100, onPay: _betal, busy: _betaler),
                   const SizedBox(height: 8),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [const AeIkon(AiIk.laas, size: 11, stroke: 2.4, color: Color.fromRGBO(255, 255, 255, .6)), const SizedBox(width: 5), Flexible(child: Text(AiCopy.cus_ai_ingen_betdata(navn), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .6))))]),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [AeIkon(AiIk.laas, size: 11, stroke: 2.4, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .6))), const SizedBox(width: 5), Flexible(child: Text(AiCopy.cus_ai_ingen_betdata(navn), maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w700, color: context.aiDemp(const Color.fromRGBO(255, 255, 255, .6)))))]),
                 ]),
               ),
           ]),
@@ -449,8 +464,10 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
         height: 40,
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: pa ? const Color.fromRGBO(92, 224, 184, .18) : const Color.fromRGBO(255, 255, 255, .07), border: Border.all(color: pa ? const Color.fromRGBO(127, 240, 203, .8) : const Color.fromRGBO(255, 255, 255, .18))),
-        child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: pa ? const Color(0xFF7FF0CB) : Colors.white)),
+        // Lys (app-only switch, built like `aiChips`): `--lys-mint-dis` / `--lys-hvit`, `rgba(11,107,87,.4)` /
+        // `--lys-kant-farge`, mint-tekst / tittel.
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: pa ? context.aeM(const Color.fromRGBO(92, 224, 184, .18), LysPalett.mintDis) : context.aeM(const Color.fromRGBO(255, 255, 255, .07), LysPalett.hvit), border: Border.all(color: pa ? context.aeM(const Color.fromRGBO(127, 240, 203, .8), const Color.fromRGBO(11, 107, 87, .4)) : context.aeM(const Color.fromRGBO(255, 255, 255, .18), LysPalett.kantFarge))),
+        child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(12, weight: FontWeight.w800, color: pa ? context.aiMint : context.aiTittel)),
       )));
     }
 
@@ -458,9 +475,10 @@ class _AiKurvScreenState extends State<AiKurvScreen> with WidgetsBindingObserver
   }
 
   Widget _linjeRad(String ik, String navn, String under, {VoidCallback? onEndre}) => Row(children: [
-    Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: const Color.fromRGBO(255, 255, 255, .1)), child: AeIkon(ik, size: 16, stroke: 2.2)),
+    // Lys («Handlekurv · betal»): the tile `.mk7a` (`--lys-dis`), stroke `.mk1i`, `.mkb`, `.mk33`, «Endre» `.mk7b`.
+    Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(ik, size: 16, stroke: 2.2, color: context.aeM(Colors.white, const Color(0xFF0B6B57)))),
     const SizedBox(width: 10),
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13.5, weight: FontWeight.w800)), Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: const Color.fromRGBO(255, 255, 255, .65)))])),
-    if (onEndre != null) AePress(onTap: onEndre, dy: 1, child: Row(children: [Text(AiCopy.cus_ai_endre, style: inter(12.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))), const SizedBox(width: 3), const AeIkon(AiIk.pil, size: 11, stroke: 2.4, color: Color(0xFF7FF0CB))])),
+    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(navn, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(13.5, weight: FontWeight.w800, color: context.aiTittel)), Text(under, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11.5, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .65))))])),
+    if (onEndre != null) AePress(onTap: onEndre, dy: 1, child: Row(children: [Text(AiCopy.cus_ai_endre, style: inter(12.5, weight: FontWeight.w800, color: context.aiMint)), const SizedBox(width: 3), AeIkon(AiIk.pil, size: 11, stroke: 2.4, color: context.aiStrek(const Color(0xFF7FF0CB)))])),
   ]);
 }

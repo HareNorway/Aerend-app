@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 import 'ai_sheets.dart';
 import 'ai_store.dart';
 
@@ -26,5 +28,6 @@ class _AiKobledeScreenState extends State<AiKobledeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(backgroundColor: Color(0xFF0F2B33), body: SizedBox.expand());
+  // Lys (app-only host, not in the design): the light screen ground `--lys-ull` behind the sheet.
+  Widget build(BuildContext context) => Scaffold(backgroundColor: context.aeM(const Color(0xFF0F2B33), LysPalett.ull), body: const SizedBox.expand());
 }

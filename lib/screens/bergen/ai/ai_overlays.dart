@@ -10,6 +10,7 @@ import '../aegil/aegil_bits.dart';
 import '../kit/bergen_routes.dart';
 import 'ai_bits.dart';
 import 'ai_copy.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// Customer plan Step 14 — the three overlays of design 9612–9643:
 /// «Bytter app» (Ærend ↔ the assistant, out and back), the push «{AI} vil
@@ -27,7 +28,9 @@ abstract final class AiOverlays {
       barrierDismissible: false,
       barrierColor: const Color.fromRGBO(4, 18, 26, .92),
       transitionDuration: const Duration(milliseconds: 220),
-      pageBuilder: (_, __, ___) => _Bytt(navn: navn, kurv: kurv, faseUt: faseUt),
+      // Lys plan: «Bytter app» has no light variant in the design (no theme class) — the overlay stays fjord, so
+      // its glass card ([AiKort]) keeps the dark look in both modes.
+      pageBuilder: (_, __, ___) => BergenModusScope.fjord(child: _Bytt(navn: navn, kurv: kurv, faseUt: faseUt)),
     ).whenComplete(() {
       if (!done.isCompleted) done.complete();
     }));

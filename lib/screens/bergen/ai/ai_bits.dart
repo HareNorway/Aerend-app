@@ -7,6 +7,52 @@ import '../../common/login/login.dart';
 import '../aegil/aegil_bits.dart';
 import 'ai_copy.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
+
+/// Lys plan Step 13: the light values every AI sheet shares (design «AI · …»,
+/// «Tilbudet ditt», «Fra assistent · varer»). Dark = the app's value as it was.
+extension AiLys on BuildContext {
+  /// `.mkb`: headings and names, white → `--lys-tittel`.
+  Color get aiTittel => aeM(Colors.white, LysPalett.tittel);
+
+  /// `.mkz` / `.mk1n`: running text inside a region, white → `--lys-brod`.
+  Color get aiBrod => aeM(Colors.white, LysPalett.brod);
+
+  /// `.mk6` / `.mk1p` / `.mk33` / `.mk21` …: secondary text → `--lys-sekundar`.
+  Color aiSek(Color dark) => aeM(dark, LysPalett.sekundar);
+
+  /// `.mkd` / `.mk2m` / `.mk73` …: muted text → `--lys-dempet`.
+  Color aiDemp(Color dark) => aeM(dark, LysPalett.dempet);
+
+  /// `.mk8`: mint text → `--lys-mint-tekst`.
+  Color get aiMint => aeM(const Color(0xFF7FF0CB), LysPalett.mintTekst);
+
+  /// `.mke2`: glød text → `--lys-glod-tekst`.
+  Color get aiGlod => aeM(const Color(0xFFFFC8A8), LysPalett.glodTekst);
+
+  /// `.mk9c` / `.mk9e`: gold text → `--lys-gull-tekst`.
+  Color get aiGull => aeM(const Color(0xFFFFE08A), LysPalett.gullTekst);
+
+  /// An icon stroke: `.mk1i` (mint → `#0B6B57`), `.mk2d` (glød → `#A63A12`),
+  /// `.mku` (white / `#DCE9EC` → `#1E4F5C`); other colours stay.
+  Color aiStrek(Color dark) => aeM(dark, aiStrekLys(dark));
+}
+
+/// The light stroke for a dark icon colour (see [AiLys.aiStrek]).
+Color aiStrekLys(Color dark) {
+  final v = dark.toARGB32();
+  if (v == 0xFF7FF0CB || v == 0xFF5CE0B8 || v == 0xFF9FF0D4) return const Color(0xFF0B6B57);
+  if (v == 0xFFFFC8A8 || v == 0xFFFFB08A) return const Color(0xFFA63A12);
+  if (v == 0xFFFFE08A) return LysPalett.gullTekst;
+  if ((v & 0x00FFFFFF) == 0x00FFFFFF || v == 0xFFDCE9EC) return LysPalett.fjord;
+  return dark;
+}
+
+/// `--lys-kortskygge` as Flutter shadows (behind an opaque white card, the app's blur convention).
+final List<BoxShadow> aiKortskygge = [
+  for (final s in LysPalett.kortskygge) BoxShadow(color: s.color, offset: Offset(s.dx, s.dy), blurRadius: s.blur / 2 / .57735, spreadRadius: s.spread),
+];
 
 /// Customer plan Step 14 — the small parts every AI sheet shares (design
 /// `AI_M`, `AI_IK`, the handshake header `aiHs`): the assistant marks
@@ -131,17 +177,21 @@ class AiHandshake extends StatelessWidget {
   Widget build(BuildContext context) {
     final koblet = modus == 'koblet';
     final brutt = modus == 'brutt';
-    final linjeC = koblet ? const Color(0xFF7FF0CB) : (brutt ? const Color(0xFFFFC8A8) : (modus == 'kobler' ? Colors.white : const Color.fromRGBO(255, 255, 255, .75)));
-    final glod = brutt ? const Color.fromRGBO(242, 109, 61, .22) : (modus == 'ukoblet' ? const Color.fromRGBO(255, 255, 255, .1) : const Color.fromRGBO(92, 224, 184, .26));
+    // Lys: `aiHsLinjeC` (L25045) mint-tekst / glod-tekst / tittel / sekundar; `aiHsGlod` ukoblet `rgba(30,79,92,.06)`.
+    final linjeC = koblet ? context.aiMint : (brutt ? context.aiGlod : (modus == 'kobler' ? context.aiTittel : context.aiSek(const Color.fromRGBO(255, 255, 255, .75))));
+    final glod = brutt ? const Color.fromRGBO(242, 109, 61, .22) : (modus == 'ukoblet' ? context.aeM(const Color.fromRGBO(255, 255, 255, .1), const Color.fromRGBO(30, 79, 92, .06)) : const Color.fromRGBO(92, 224, 184, .26));
+    final lys = context.lys;
     return Column(
       key: Key('cus-ai-hs-$modus'),
       children: [
         Container(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+          // Lys (app card, not in the design): white with the hairline, like `.mke0`.
           decoration: CssDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
-            border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16)),
+            color: lys ? LysPalett.hvit : null,
+            gradient: lys ? null : const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
+            border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge)),
             boxShadow: [BoxShadow(color: glod, blurRadius: 36 / 2 / .57735, spreadRadius: -6)],
           ),
           child: Row(
@@ -153,7 +203,8 @@ class AiHandshake extends StatelessWidget {
                   child: Text('Æ', style: jakarta(20, weight: FontWeight.w800, color: const Color(0xFF23201D))),
                 ),
                 const SizedBox(height: 6),
-                Text('Ærend', style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .8))),
+                // `.mkb`: `--lys-tittel`.
+                Text('Ærend', style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.tittel))),
               ]),
               Expanded(
                 child: SizedBox(
@@ -162,7 +213,8 @@ class AiHandshake extends StatelessWidget {
                     child: switch (modus) {
                       'koblet' => AeOnce(kind: AeInn.stigOpp, ms: 700, child: Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color(0xFF7FF0CB)), _node(const Color(0xFF5CE0B8), AiIk.kobling, const Color(0xFF0F2B33)), _strek(const Color(0xFF7FF0CB))])),
                       'brutt' => Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color(0xFFFFC8A8)), const SizedBox(width: 6), _node(const Color.fromRGBO(242, 109, 61, .9), AiIk.kryss, Colors.white), const SizedBox(width: 6), _strek(const Color(0xFFFFC8A8))]),
-                      'ukoblet' => Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color.fromRGBO(255, 255, 255, .3)), Container(width: 26, height: 26, alignment: Alignment.center, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color.fromRGBO(255, 255, 255, .12)), child: Text('?', style: inter(13, weight: FontWeight.w800))), _strek(const Color.fromRGBO(255, 255, 255, .3))]),
+                      // `.mkdx` light: white, a `--lys-kant-farge` ring, `--lys-tittel` «?».
+                      'ukoblet' => Row(mainAxisSize: MainAxisSize.min, children: [_strek(const Color.fromRGBO(255, 255, 255, .3)), Container(width: 26, height: 26, alignment: Alignment.center, decoration: BoxDecoration(shape: BoxShape.circle, color: context.aeM(const Color.fromRGBO(255, 255, 255, .12), LysPalett.hvit), boxShadow: lys ? const [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1)] : null), child: Text('?', style: inter(13, weight: FontWeight.w800, color: context.aiTittel))), _strek(const Color.fromRGBO(255, 255, 255, .3))]),
                       _ => const _Prikker(),
                     },
                   ),
@@ -174,7 +226,7 @@ class AiHandshake extends StatelessWidget {
                 else
                   AiMerke(navn, size: 44),
                 const SizedBox(height: 6),
-                Text(navn, style: inter(11, weight: FontWeight.w800, color: const Color.fromRGBO(255, 255, 255, .8))),
+                Text(navn, style: inter(11, weight: FontWeight.w800, color: context.aeM(const Color.fromRGBO(255, 255, 255, .8), LysPalett.tittel))),
               ]),
             ],
           ),
@@ -254,8 +306,9 @@ class AiSeksjon extends StatelessWidget {
       children: [
         Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5CE0B8), boxShadow: [BoxShadow(color: Color.fromRGBO(92, 224, 184, .8), blurRadius: 8 / 2 / .57735)])),
         const SizedBox(width: 7),
-        Expanded(child: Text(navn.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .1, color: const Color(0xFF7FF0CB)))),
-        if (hoyre != null) Text(hoyre!, style: inter(12, weight: FontWeight.w700, color: const Color.fromRGBO(255, 255, 255, .7))),
+        // `.mk8` → `--lys-mint-tekst`; the right text `.mk6` → `--lys-sekundar`.
+        Expanded(child: Text(navn.toUpperCase(), style: inter(11, weight: FontWeight.w800, em: .1, color: context.aiMint))),
+        if (hoyre != null) Text(hoyre!, style: inter(12, weight: FontWeight.w700, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .7)))),
       ],
     ),
   );
@@ -278,9 +331,10 @@ class AiLinjeRad extends StatelessWidget {
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(children: [
-        Container(width: 28, height: 28, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), color: const Color.fromRGBO(255, 255, 255, .1), border: Border.all(color: const Color.fromRGBO(255, 255, 255, .16))), child: AeIkon(ikon, size: 14, stroke: 2.2, color: farge)),
+        // Lys: the tile `.mkek` (`--lys-dis`, hairline), the stroke `.mk1i` / `.mk2d` / `.mku`, the line `.mkb`.
+        Container(width: 28, height: 28, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(9), color: context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis), border: Border.all(color: context.aeM(const Color.fromRGBO(255, 255, 255, .16), LysPalett.kantFarge))), child: AeIkon(ikon, size: 14, stroke: 2.2, color: context.aiStrek(farge))),
         const SizedBox(width: 10),
-        Expanded(child: Text(tekst, style: inter(13, weight: FontWeight.w700, height: 1.35))),
+        Expanded(child: Text(tekst, style: inter(13, weight: FontWeight.w700, height: 1.35, color: context.aiTittel))),
       ]),
     ),
   );
@@ -295,15 +349,22 @@ class AiKort extends StatelessWidget {
   final bool mint;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: padding,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
-      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: mint ? const [Color.fromRGBO(92, 224, 184, .18), Color.fromRGBO(92, 224, 184, .05)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
-      border: Border.all(color: mint ? const Color.fromRGBO(127, 240, 203, .45) : const Color.fromRGBO(255, 255, 255, .14)),
-    ),
-    child: child,
-  );
+  Widget build(BuildContext context) {
+    // Lys: `.mke0` (white, `--lys-kant-farge`, `--lys-kortskygge`); the mint
+    // card `.mkdz` (`--lys-mint-dis`, its inline mint border kept).
+    final lys = context.lys;
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: lys ? (mint ? LysPalett.mintDis : LysPalett.hvit) : null,
+        gradient: lys ? null : LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: mint ? const [Color.fromRGBO(92, 224, 184, .18), Color.fromRGBO(92, 224, 184, .05)] : const [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .04)]),
+        border: Border.all(color: mint ? const Color.fromRGBO(127, 240, 203, .45) : context.aeM(const Color.fromRGBO(255, 255, 255, .14), LysPalett.kantFarge)),
+        boxShadow: lys && !mint ? aiKortskygge : null,
+      ),
+      child: child,
+    );
+  }
 }
 
 /// The mint / amber / red banner inside «Tilbudet ditt» (design `aiBanner`).
@@ -318,7 +379,15 @@ class AiBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bg, bd, c) = switch (tone) {
+    // Lys: `aiBanner` (L25004) — gul `--lys-gull-dis` / `rgba(74,48,10,.2)` / gull-tekst, rod `--lys-glod-dis` /
+    // `rgba(166,58,18,.25)` / glod-tekst, graa `--lys-hvit` / `--lys-kant-farge` / tittel.
+    final (bg, bd, c) = context.lys
+        ? switch (tone) {
+            'gul' => (LysPalett.gullDis, const Color.fromRGBO(74, 48, 10, .2), LysPalett.gullTekst),
+            'rod' => (LysPalett.glodDis, const Color.fromRGBO(166, 58, 18, .25), LysPalett.glodTekst),
+            _ => (LysPalett.hvit, LysPalett.kantFarge, LysPalett.tittel),
+          }
+        : switch (tone) {
       'gul' => (const Color.fromRGBO(245, 196, 81, .14), const Color.fromRGBO(245, 196, 81, .5), const Color(0xFFFFE08A)),
       'rod' => (const Color.fromRGBO(242, 109, 61, .16), const Color.fromRGBO(249, 162, 115, .55), const Color(0xFFFFC8A8)),
       _ => (const Color.fromRGBO(255, 255, 255, .1), const Color.fromRGBO(255, 255, 255, .22), Colors.white),
@@ -337,7 +406,8 @@ class AiBanner extends StatelessWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(tittel, style: inter(13.5, weight: FontWeight.w800, color: c)),
             const SizedBox(height: 2),
-            Text(tekst, style: inter(12, weight: FontWeight.w600, height: 1.4, color: const Color.fromRGBO(255, 255, 255, .8))),
+            // `.mk9a`: `--lys-sekundar`.
+            Text(tekst, style: inter(12, weight: FontWeight.w600, height: 1.4, color: context.aiSek(const Color.fromRGBO(255, 255, 255, .8)))),
           ])),
         ]),
       ),
@@ -360,13 +430,14 @@ class AiViaChip extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(5, 3, 9, 3),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(999),
-      color: lys ? const Color(0xFF1E4F5C) : const Color.fromRGBO(255, 255, 255, .1),
-      border: Border.all(color: lys ? const Color(0xFF1E4F5C) : const Color.fromRGBO(255, 255, 255, .22)),
+      // Lys (the glass variant): the pill `.mkev` (`--lys-dis`, hairline), the line `.mk21` (`--lys-sekundar`).
+      color: lys ? const Color(0xFF1E4F5C) : context.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis),
+      border: Border.all(color: lys ? const Color(0xFF1E4F5C) : context.aeM(const Color.fromRGBO(255, 255, 255, .22), LysPalett.kantFarge)),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       AiMerke(navn, size: 16, radius: 5),
       const SizedBox(width: 6),
-      Text(AiCopy.cus_ai_via(navn), style: inter(11, weight: FontWeight.w800, color: Colors.white)),
+      Text(AiCopy.cus_ai_via(navn), style: inter(11, weight: FontWeight.w800, color: lys ? Colors.white : context.aeM(Colors.white, LysPalett.sekundar))),
     ]),
   );
 }
