@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/widgets.dart';
 
 import '../../screens/bergen/kit/bergen_perf.dart';
@@ -44,6 +46,9 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
   bool _vask = false;
   int _gen = 0;
 
+  /// The pending `bruk` of a moment still playing: applied at once if this host goes away mid-switch.
+  VoidCallback? _venter;
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +57,9 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
 
   @override
   void dispose() {
+    final v = _venter;
+    _venter = null;
+    v?.call();
     BergenModus.i.avregistrer(this);
     _a.dispose();
     _ut.dispose();
@@ -60,6 +68,7 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
   }
 
   void _ferdig(bool lys) {
+    if (kDebugMode) timeDilation = 1.0;
     if (!mounted) return;
     BergenModus.i.visToast?.call(lys);
   }
@@ -68,6 +77,7 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
     _bilde?.dispose();
     _bilde = null;
     _vask = false;
+    _a.duration = const Duration(milliseconds: 760);
     _a.value = 0;
     _ut.value = 0;
   }
@@ -76,6 +86,9 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
   bool spill({required bool lys, required Offset? fra, required ModusKilde kilde, required VoidCallback bruk}) {
     final gen = ++_gen;
     // A moment still playing ends at once (the design skips the running transition).
+    final forrige = _venter;
+    _venter = null;
+    forrige?.call();
     _a.stop();
     _ut.stop();
     setState(_rydd);
@@ -87,7 +100,16 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
       _ferdig(lys);
       return true;
     }
-    _ta(lys, gen, bruk);
+    var brukt = false;
+    void brukEn() {
+      if (brukt) return;
+      brukt = true;
+      if (_venter == brukEn) _venter = null;
+      bruk();
+    }
+
+    _venter = brukEn;
+    _ta(lys, gen, brukEn);
     return true;
   }
 
@@ -95,9 +117,15 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
     ui.Image? bilde;
     try {
       final ro = _rb.currentContext?.findRenderObject();
-      if (ro is RenderRepaintBoundary && !ro.debugNeedsPaint) {
+      // `debugNeedsPaint` exists only with asserts on (debug); release/profile just take the picture.
+      if (ro is RenderRepaintBoundary && ro.hasSize && (!kDebugMode || !ro.debugNeedsPaint)) {
         final dpr = math.min(MediaQuery.devicePixelRatioOf(context), 2.0);
-        bilde = await ro.toImage(pixelRatio: dpr).timeout(ModusAvduk.bildeFrist);
+        final f = ro.toImage(pixelRatio: dpr);
+        bilde = await f.timeout(ModusAvduk.bildeFrist, onTimeout: () {
+          // Too slow: the picture that arrives later is thrown away.
+          f.then((i) => i.dispose(), onError: (_) {});
+          throw TimeoutException('modus');
+        });
       }
     } catch (_) {
       bilde = null;
@@ -121,15 +149,13 @@ class _ModusAvdukState extends State<ModusAvduk> with TickerProviderStateMixin i
 
   Future<void> _vaskSpill(bool lys, int gen, VoidCallback bruk) async {
     setState(() => _vask = true);
-    _a.duration = const Duration(milliseconds: 520);
-    unawaited(_a.animateTo(1));
+    unawaited(_a.animateTo(1, duration: const Duration(milliseconds: 520)));
     await Future<void>.delayed(const Duration(milliseconds: 530));
     if (!mounted || gen != _gen) return;
     bruk();
     await _ut.animateTo(1);
     await Future<void>.delayed(const Duration(milliseconds: 20));
     if (!mounted || gen != _gen) return;
-    _a.duration = const Duration(milliseconds: 760);
     setState(_rydd);
     _ferdig(lys);
   }

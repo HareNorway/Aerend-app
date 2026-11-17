@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -74,8 +75,8 @@ class _ModusFaneSprettState extends State<ModusFaneSprett> with SingleTickerProv
         animation: _a,
         child: widget.child,
         builder: (context, child) {
-          if (!_a.isAnimating) return child!;
-          final t = const Cubic(.3, 1.5, .5, 1).transform(_a.value);
+          // One tree shape: identity transforms when idle.
+          final t = _a.isAnimating ? const Cubic(.3, 1.5, .5, 1).transform(_a.value) : 0.0;
           // keyframes none → (35 %) translateY(-5px) scale(1.22) → none, eased as one animation
           final k = t < .35 ? t / .35 : 1 - (t - .35) / .65;
           return Transform.translate(offset: Offset(0, -5 * k), child: Transform.scale(scale: 1 + .22 * k, child: child));
@@ -116,10 +117,29 @@ class _HjemModusShowState extends State<HjemModusShow> with SingleTickerProvider
   }
 
   @override
+  void didUpdateWidget(HjemModusShow old) {
+    super.didUpdateWidget(old);
+    // Left Hjem mid-show: stop drawing over the other tab, toast at once.
+    if (old.aktiv && !widget.aktiv && _plan != null) _slutt();
+  }
+
+  @override
   void dispose() {
     BergenModus.i.avregistrer(this);
     _ticker.dispose();
     super.dispose();
+  }
+
+  void _slutt() {
+    final p = _plan;
+    _ticker.stop();
+    _plan = null;
+    _rippler.clear();
+    ModusAnkre.faneSprett.value = const {};
+    // The debug harness slowed time for shots; back to normal once the moment ends.
+    if (kDebugMode) timeDilation = 1.0;
+    if (mounted) setState(() {});
+    if (p != null) BergenModus.i.visToast?.call(p.lys);
   }
 
   Rect? _rect(GlobalKey k) {
@@ -175,11 +195,7 @@ class _HjemModusShowState extends State<HjemModusShow> with SingleTickerProvider
       }
     }
     if (ms >= 4600) {
-      _ticker.stop();
-      _plan = null;
-      ModusAnkre.faneSprett.value = const {};
-      setState(() {});
-      BergenModus.i.visToast?.call(p.lys);
+      _slutt();
       return;
     }
     setState(() {});
