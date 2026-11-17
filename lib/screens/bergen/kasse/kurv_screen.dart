@@ -56,6 +56,8 @@ import '../kit/laster_dra.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'kurv_sync.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -997,12 +999,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   Future<void> _editFirma() async {
     String? feil;
+    // Lys plan: the dark sheet turns light; the fields as the design's light
+    // inputs (`.mkc3`: `--lys-dis`, `--lys-kant`, `--lys-tittel`; placeholder #9A9188).
     InputDecoration felt(BuildContext ctx, String hint) => InputDecoration(
           filled: true,
-          fillColor: rgba(255, 255, 255, .1),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14 * ctx.bs), borderSide: BorderSide(color: rgba(255, 255, 255, .2))),
+          fillColor: ctx.aeM(rgba(255, 255, 255, .1), LysPalett.dis),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14 * ctx.bs), borderSide: BorderSide(color: ctx.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge))),
           hintText: hint,
-          hintStyle: bText(ctx, 13, weight: FontWeight.w600, color: rgba(255, 255, 255, .5)),
+          hintStyle: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(rgba(255, 255, 255, .5), const Color(0xFF9A9188))),
         );
     await showBergenSheet<void>(
       context,
@@ -1014,15 +1018,15 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(KasseCopy.a1_kasse_bedrift, style: bDisplay(ctx, 16, letterSpacingEm: -.02)),
+              Text(KasseCopy.a1_kasse_bedrift, style: bDisplay(ctx, 16, letterSpacingEm: -.02, color: ctx.aeM(Colors.white, ArkTone.lys.tittel))),
               SizedBox(height: 10 * ctx.bs),
-              TextField(key: const Key('a1_kasse_bedrift_navn'), controller: _firmaNavn, style: bText(ctx, 13, weight: FontWeight.w600), decoration: felt(ctx, KasseCopy.a1_kasse_bedrift_navn)),
+              TextField(key: const Key('a1_kasse_bedrift_navn'), controller: _firmaNavn, style: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(Colors.white, LysPalett.tittel)), decoration: felt(ctx, KasseCopy.a1_kasse_bedrift_navn)),
               SizedBox(height: 8 * ctx.bs),
               TextField(
                 key: const Key('a1_kasse_bedrift_orgnr'),
                 controller: _firmaOrg,
                 keyboardType: TextInputType.number,
-                style: bText(ctx, 13, weight: FontWeight.w600),
+                style: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(Colors.white, LysPalett.tittel)),
                 decoration: felt(ctx, KasseCopy.a1_kasse_bedrift_orgnr),
               ),
               if (feil != null) Padding(padding: EdgeInsets.only(top: 6 * ctx.bs), child: Text(feil!, style: bText(ctx, 12, weight: FontWeight.w700, color: const Color(0xFFF26D3D)))),
@@ -1049,7 +1053,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                     prefSetString('kasse_firma_org', '');
                     Navigator.of(ctx).pop();
                   },
-                  child: Text(KasseCopy.a1_kasse_bedrift_fjern, style: bText(ctx, 13, weight: FontWeight.w700, color: rgba(255, 255, 255, .7))),
+                  child: Text(KasseCopy.a1_kasse_bedrift_fjern, style: bText(ctx, 13, weight: FontWeight.w700, color: ctx.aeM(rgba(255, 255, 255, .7), ArkTone.lys.linje))),
                 ),
             ],
           ),
@@ -1071,24 +1075,26 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(KasseCopy.a1_kasse_beskjed_bud, style: bDisplay(ctx, 16, letterSpacingEm: -.02)),
+            Text(KasseCopy.a1_kasse_beskjed_bud, style: bDisplay(ctx, 16, letterSpacingEm: -.02, color: ctx.aeM(Colors.white, ArkTone.lys.tittel))),
             SizedBox(height: 10 * ctx.bs),
+            // Lys plan: as the design's light inputs (`.mkc3`; caret `.mk12` mint-tekst).
             TextField(
               key: const Key('a1_kasse_beskjed'),
               controller: _note,
               autofocus: true,
               maxLines: 3,
               minLines: 1,
-              style: bText(ctx, 13, weight: FontWeight.w600),
+              cursorColor: ctx.lys ? LysPalett.mintTekst : null,
+              style: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(Colors.white, LysPalett.tittel)),
               decoration: InputDecoration(
                 filled: true,
-                fillColor: rgba(255, 255, 255, .1),
+                fillColor: ctx.aeM(rgba(255, 255, 255, .1), LysPalett.dis),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14 * ctx.bs),
-                  borderSide: BorderSide(color: rgba(255, 255, 255, .2)),
+                  borderSide: BorderSide(color: ctx.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge)),
                 ),
                 hintText: KasseCopy.a1_kasse_beskjed_hint,
-                hintStyle: bText(ctx, 13, weight: FontWeight.w600, color: rgba(255, 255, 255, .5)),
+                hintStyle: bText(ctx, 13, weight: FontWeight.w600, color: ctx.aeM(rgba(255, 255, 255, .5), const Color(0xFF9A9188))),
               ),
               onSubmitted: (_) => Navigator.of(ctx).pop(),
             ),
@@ -1179,7 +1185,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                 child: cart == null
                     ? Padding(
                         padding: EdgeInsets.all(30 * s),
-                        child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+                        child: Center(child: CircularProgressIndicator(color: context.aeM(Colors.white, LysPalett.fjord))),
                       )
                     : !hasCart
                     ? _empty(context)
@@ -1337,6 +1343,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
         KurvGlass(
           radius: 22 * s,
           padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 4 * s),
+          // `.mk79`: no shadow in Lys.
+          lysSkygge: false,
           child: Column(
             children: [
               KurvEndreRad(
@@ -1631,31 +1639,39 @@ class _Panel extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, box) {
         final stop = (140 * s / box.maxHeight).clamp(0.05, 1.0);
+        // Lys plan (`.mk70`): `--lys-ull` with `--lys-arkskygge`, no inset (the
+        // ring stays, transparent, so the size does not move).
+        final lys = context.lys;
         return Container(
           clipBehavior: Clip.antiAlias,
           decoration: CssDecoration(
             borderRadius: BorderRadius.vertical(top: Radius.circular(28 * s)),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: const [Color(0xFF22586A), Color(0xFF1B4854)],
-              stops: [0, stop],
-            ),
-            border: Border.all(color: rgba(255, 255, 255, .14)),
-            boxShadow: [
-              BoxShadow(
-                color: rgba(4, 18, 26, .6),
-                offset: Offset(0, -12 * s),
-                blurRadius: onbBlur(18 * s),
-                spreadRadius: -10 * s,
-              ),
-              BoxShadow(
-                color: rgba(4, 18, 26, .7),
-                offset: Offset(0, -34 * s),
-                blurRadius: onbBlur(52 * s),
-                spreadRadius: -26 * s,
-              ),
-            ],
+            color: lys ? LysPalett.ull : null,
+            gradient: lys
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: const [Color(0xFF22586A), Color(0xFF1B4854)],
+                    stops: [0, stop],
+                  ),
+            border: Border.all(color: lys ? const Color(0x00000000) : rgba(255, 255, 255, .14)),
+            boxShadow: lys
+                ? kurvLysSkygger(LysPalett.arkskygge, s)
+                : [
+                    BoxShadow(
+                      color: rgba(4, 18, 26, .6),
+                      offset: Offset(0, -12 * s),
+                      blurRadius: onbBlur(18 * s),
+                      spreadRadius: -10 * s,
+                    ),
+                    BoxShadow(
+                      color: rgba(4, 18, 26, .7),
+                      offset: Offset(0, -34 * s),
+                      blurRadius: onbBlur(52 * s),
+                      spreadRadius: -26 * s,
+                    ),
+                  ],
           ),
           child: Stack(
             children: [
@@ -1668,7 +1684,7 @@ class _Panel extends StatelessWidget {
                 keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [child],
               )),
-              bergenInsetTop(radius: 28 * s, height: 1.5 * s, alpha: .28),
+              bergenInsetTop(radius: 28 * s, height: 1.5 * s, alpha: lys ? 0 : .28),
             ],
           ),
         );

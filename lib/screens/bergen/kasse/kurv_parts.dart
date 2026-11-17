@@ -14,6 +14,9 @@ import 'kasse_copy.dart';
 import '../kit/bergen_perf.dart';
 import 'kurv_beskjed.dart' show KurvTipsEget;
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
+import '../../common/auth/launch/lf_css.dart' show CssShadow;
+import '../../../theme/lys/lys_palett.dart';
+import '../../../theme/lys/modus_scope.dart';
 
 /// The pieces of the Kurv panel (design L5047–5228), each with the
 /// prototype's sizes, colours and shadows. Glass = `linear-gradient(180deg,
@@ -211,6 +214,30 @@ abstract final class KurvIcons {
   }
 }
 
+// ── Lys ─────────────────────────────────────────────────────────────────────
+
+/// Lys plan: the stroke the design gives the mint icons in Lys (`.mk1i`
+/// `stroke:#0B6B57`) and the fjord glyphs (`.mku` `stroke:#1E4F5C`).
+const Color kurvLysIkon = Color(0xFF0B6B57);
+const Color kurvLysGlyf = LysPalett.fjord;
+
+/// Lys plan: a design shadow list (`--lys-kortskygge`, …) as box shadows at
+/// scale [s] (outer shadows only; the light cards have no inset).
+List<BoxShadow> kurvLysSkygger(List<CssShadow> l, double s) => [
+  for (final c in l)
+    if (!c.inset)
+      BoxShadow(color: c.color, offset: Offset(c.dx * s, c.dy * s), blurRadius: onbBlur(c.blur * s), spreadRadius: c.spread * s),
+];
+
+/// Lys plan: `0 4px 8px -5px rgba(23,62,72,.5)` — the light thumbs (`.mk7h`,
+/// `.mkbi`, `.mkbd`: `--lys-fjord-fyll`).
+List<BoxShadow> kurvLysTommelSkygge(double s) => [
+  BoxShadow(color: const Color.fromRGBO(23, 62, 72, .5), offset: Offset(0, 4 * s), blurRadius: onbBlur(8 * s), spreadRadius: -5 * s),
+];
+
+/// `--lys-fjord-fyll` as a gradient.
+final LinearGradient kurvLysFjordFyll = cssLinear(180, const [Color(0xFF235E6D), Color(0xFF124A58)]);
+
 // ── glass ───────────────────────────────────────────────────────────────────
 
 /// A glass card of the panel: `radius`, glass gradient, `.18` border, inset
@@ -224,6 +251,7 @@ class KurvGlass extends StatelessWidget {
     required this.child,
     this.deep = true,
     this.transparent = false,
+    this.lysSkygge = true,
   });
 
   final double radius;
@@ -234,13 +262,22 @@ class KurvGlass extends StatelessWidget {
   /// `kurvKortBg: transparent` — the lines card in the empty state.
   final bool transparent;
 
+  /// Lys plan: the card's light shadow — `--lys-kortskygge` (`kurvKortSh`,
+  /// `.mk7d`, `.mk77`), or none (`.mk79`, the Endre card).
+  final bool lysSkygge;
+
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    // Lys plan: `--lys-hvit` with `--lys-kant` and no inset (`.mk71`, `.mk79`,
+    // `.mk7d`, `.mk77`, `kurvKortBg` / `kurvKortSh`).
+    final lys = context.lys;
     return BergenCssShadow(
       radius: radius,
       shadows: transparent
           ? const []
+          : lys
+          ? (lysSkygge ? kurvLysSkygger(LysPalett.kortskygge, s) : const [])
           : [
               BoxShadow(
                 color: rgba(4, 18, 26, .9),
@@ -253,8 +290,9 @@ class KurvGlass extends StatelessWidget {
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius),
-          gradient: transparent ? null : cssLinear(180, [rgba(255, 255, 255, .13), rgba(255, 255, 255, .06)]),
-          border: Border.all(color: rgba(255, 255, 255, .18)),
+          color: !transparent && lys ? LysPalett.hvit : null,
+          gradient: transparent || lys ? null : cssLinear(180, [rgba(255, 255, 255, .13), rgba(255, 255, 255, .06)]),
+          border: Border.all(color: context.aeM(rgba(255, 255, 255, .18), LysPalett.kantFarge)),
         ),
         child: Stack(
           clipBehavior: Clip.none,
@@ -262,7 +300,7 @@ class KurvGlass extends StatelessWidget {
             child,
             // On the card's edge: the Stack sits inside the padding.
             if (!transparent)
-              bergenInsetTop(radius: radius, height: 1.5 * s, alpha: .28, pad: padding.resolve(TextDirection.ltr)),
+              bergenInsetTop(radius: radius, height: 1.5 * s, alpha: lys ? 0 : .28, pad: padding.resolve(TextDirection.ltr)),
           ],
         ),
       ),
@@ -508,6 +546,9 @@ class KurvLinje extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    // Lys plan (`(erKurv)`): `.mkb` / `.mk2m` / `.mk73` text, `.mk72` rule,
+    // `.mk74` stepper, `.mk75` keys with the `.mku` glyphs.
+    final lys = context.lys;
     Widget button(String label, KurvDraw draw, VoidCallback onTap, Key key) => Semantics(
       button: true,
       label: label,
@@ -521,14 +562,16 @@ class KurvLinje extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: cssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .1)]),
+            color: lys ? LysPalett.hvit : null,
+            gradient: lys ? null : cssLinear(180, [rgba(255, 255, 255, .2), rgba(255, 255, 255, .1)]),
+            boxShadow: lys ? [BoxShadow(color: LysPalett.kantFarge, spreadRadius: 1 * s)] : null,
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
               const SizedBox.expand(),
-              bergenInsetTop(radius: 16 * s, height: 1 * s, alpha: .3),
-              KurvIcon(11 * s, draw, width: 3),
+              bergenInsetTop(radius: 16 * s, height: 1 * s, alpha: lys ? 0 : .3),
+              KurvIcon(11 * s, draw, width: 3, color: context.aeM(Colors.white, kurvLysGlyf)),
             ],
           ),
         ),
@@ -540,7 +583,7 @@ class KurvLinje extends StatelessWidget {
       key: Key('a1_kasse_linje_${line.cartId}'),
       padding: EdgeInsets.symmetric(vertical: 12 * s),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: rgba(255, 255, 255, .1))),
+        border: Border(bottom: BorderSide(color: context.aeM(rgba(255, 255, 255, .1), LysPalett.skille))),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -563,12 +606,12 @@ class KurvLinje extends StatelessWidget {
                             line.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: bText(context, 13.5, weight: FontWeight.w800, letterSpacingEm: -.01),
+                            style: bText(context, 13.5, weight: FontWeight.w800, letterSpacingEm: -.01, color: context.aeM(Colors.white, LysPalett.tittel)),
                           ),
                           SizedBox(height: 2 * s),
                           Text(
                             KasseCopy.a1_kasse_stk_pris(line.quantity, KasseCopy.tall(line.unitPrice)),
-                            style: bText(context, 11, color: rgba(255, 255, 255, .6)),
+                            style: bText(context, 11, color: context.aeM(rgba(255, 255, 255, .6), LysPalett.dempet)),
                           ),
                         ],
                       ),
@@ -579,11 +622,11 @@ class KurvLinje extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(KasseCopy.tall(line.sum), style: bDisplay(context, 14.5, letterSpacingEm: -.02)),
+                        Text(KasseCopy.tall(line.sum), style: bDisplay(context, 14.5, letterSpacingEm: -.02, color: context.aeM(Colors.white, LysPalett.tittel))),
                         SizedBox(width: 2 * s),
                         Text(
                           'kr',
-                          style: bText(context, 10, weight: FontWeight.w800, color: rgba(255, 255, 255, .5)),
+                          style: bText(context, 10, weight: FontWeight.w800, color: context.aeM(rgba(255, 255, 255, .5), LysPalett.dempet)),
                         ),
                       ],
                     ),
@@ -594,12 +637,15 @@ class KurvLinje extends StatelessWidget {
                   padding: EdgeInsets.all(3 * s),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [rgba(0, 0, 0, .34), rgba(0, 0, 0, .2), rgba(0, 0, 0, .2), rgba(255, 255, 255, .1)],
-                      stops: const [0, .14, .96, 1],
-                    ),
+                    color: lys ? LysPalett.dis : null,
+                    gradient: lys
+                        ? null
+                        : LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [rgba(0, 0, 0, .34), rgba(0, 0, 0, .2), rgba(0, 0, 0, .2), rgba(255, 255, 255, .1)],
+                            stops: const [0, .14, .96, 1],
+                          ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -617,7 +663,7 @@ class KurvLinje extends StatelessWidget {
                           '${line.quantity}',
                           key: Key('a1_kasse_antall_${line.cartId}'),
                           textAlign: TextAlign.center,
-                          style: bText(context, 12.5, weight: FontWeight.w800),
+                          style: bText(context, 12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel)),
                         ),
                       ),
                       SizedBox(width: 2 * s),
@@ -831,14 +877,14 @@ class KurvLeggMer extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 10 * s),
         child: Row(
           children: [
-            KurvIcon(13 * s, KurvIcons.plus, color: const Color(0xFF5CE0B8), width: 2.6),
+            KurvIcon(13 * s, KurvIcons.plus, color: context.aeM(const Color(0xFF5CE0B8), kurvLysIkon), width: 2.6),
             SizedBox(width: 8 * s),
             Flexible(
               child: Text(
                 KasseCopy.a1_kasse_legg_mer,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: bText(context, 12, weight: FontWeight.w800, color: const Color(0xFF5CE0B8)),
+                style: bText(context, 12, weight: FontWeight.w800, color: context.aeM(const Color(0xFF5CE0B8), LysPalett.mintTekst)),
               ),
             ),
             SizedBox(width: 8 * s),
@@ -849,7 +895,7 @@ class KurvLeggMer extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.right,
-                style: bText(context, 10.5, color: rgba(255, 255, 255, .5)),
+                style: bText(context, 10.5, color: context.aeM(rgba(255, 255, 255, .5), LysPalett.dempet)),
               ),
             ),
           ],
@@ -876,6 +922,9 @@ class KurvTom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    // Lys plan (`(tomKurv)`): the `.mk76` bubble, `.mk13` kicker, `.mkb` /
+    // `.mkd` text; the stage and the orange CTA are the same in both.
+    final lys = context.lys;
     return Column(
       key: const Key('a1_kasse_tom'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1006,14 +1055,16 @@ class KurvTom extends StatelessWidget {
               constraints: BoxConstraints(maxWidth: 300 * s),
                   child: BergenCssShadow(
                     radius: 18 * s,
-                    shadows: [
-                      BoxShadow(
-                        color: rgba(4, 18, 26, .85),
-                        offset: Offset(0, 16 * s),
-                        blurRadius: onbBlur(24 * s),
-                        spreadRadius: -14 * s,
-                      ),
-                    ],
+                    shadows: lys
+                        ? const []
+                        : [
+                            BoxShadow(
+                              color: rgba(4, 18, 26, .85),
+                              offset: Offset(0, 16 * s),
+                              blurRadius: onbBlur(24 * s),
+                              spreadRadius: -14 * s,
+                            ),
+                          ],
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 11 * s),
                       decoration: BoxDecoration(
@@ -1023,8 +1074,9 @@ class KurvTom extends StatelessWidget {
                           bottomRight: Radius.circular(18 * s),
                           bottomLeft: Radius.circular(6 * s),
                         ),
-                        gradient: cssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .08)]),
-                        border: Border.all(color: rgba(255, 255, 255, .24)),
+                        color: lys ? LysPalett.mintDis : null,
+                        gradient: lys ? null : cssLinear(180, [rgba(255, 255, 255, .16), rgba(255, 255, 255, .08)]),
+                        border: Border.all(color: context.aeM(rgba(255, 255, 255, .24), LysPalett.kantFarge)),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -1037,13 +1089,13 @@ class KurvTom extends StatelessWidget {
                               9,
                               weight: FontWeight.w800,
                               letterSpacingEm: .06,
-                              color: const Color(0xFF5CE0B8),
+                              color: context.aeM(const Color(0xFF5CE0B8), LysPalett.mintTekst),
                             ),
                           ),
                           SizedBox(height: 2 * s),
                           Text(
                             KasseCopy.a1_kasse_tom_title,
-                            style: bDisplay(context, 13, letterSpacingEm: -.015, height: 1.3),
+                            style: bDisplay(context, 13, letterSpacingEm: -.015, height: 1.3, color: context.aeM(Colors.white, LysPalett.tittel)),
                           ),
                         ],
                       ),
@@ -1098,9 +1150,9 @@ class KurvTom extends StatelessWidget {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Expanded(
-                  child: Text(KasseCopy.a1_kasse_tom_tilbud, style: bDisplay(context, 14, letterSpacingEm: -.015)),
+                  child: Text(KasseCopy.a1_kasse_tom_tilbud, style: bDisplay(context, 14, letterSpacingEm: -.015, color: context.aeM(Colors.white, LysPalett.tittel))),
                 ),
-                Text(KasseCopy.a1_kasse_tom_rett, style: bText(context, 10.5, color: rgba(255, 255, 255, .55))),
+                Text(KasseCopy.a1_kasse_tom_rett, style: bText(context, 10.5, color: context.aeM(rgba(255, 255, 255, .55), LysPalett.dempet))),
               ],
             ),
           ),
@@ -1166,14 +1218,20 @@ class _CartPainter extends CustomPainter {
 /// The mint glass behind «Endre ›» and the Flere-valg key: `180deg
 /// rgba(130,242,210,.3) → rgba(92,224,184,.1)`, inset top .32, inset bottom
 /// `rgba(4,30,26,.32)`, the `rgba(92,224,184,.38)` ring and the drop.
-BoxDecoration kurvMintGlass(double s, {BoxShape shape = BoxShape.rectangle}) => CssDecoration(
+///
+/// Lys plan ([lys]): `--lys-mint-dis` and no shadow (`.mk7b`, `.mk7c`); the
+/// ring turns transparent so the size stays.
+BoxDecoration kurvMintGlass(double s, {BoxShape shape = BoxShape.rectangle, bool lys = false}) => CssDecoration(
   shape: shape,
   borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(999),
-  gradient: cssLinear(180, [rgba(130, 242, 210, .3), rgba(92, 224, 184, .1)]),
-  border: Border.all(color: rgba(92, 224, 184, .38)),
-  boxShadow: [
-    BoxShadow(color: rgba(3, 16, 24, .85), offset: Offset(0, 9 * s), blurRadius: onbBlur(12 * s), spreadRadius: -7 * s),
-  ],
+  color: lys ? LysPalett.mintDis : null,
+  gradient: lys ? null : cssLinear(180, [rgba(130, 242, 210, .3), rgba(92, 224, 184, .1)]),
+  border: Border.all(color: lys ? const Color(0x00000000) : rgba(92, 224, 184, .38)),
+  boxShadow: lys
+      ? null
+      : [
+          BoxShadow(color: rgba(3, 16, 24, .85), offset: Offset(0, 9 * s), blurRadius: onbBlur(12 * s), spreadRadius: -7 * s),
+        ],
 );
 
 /// «Endre ›» (L6230): `min-height 34; 0 12`, mint 11.5px 800 −.01em with the
@@ -1188,7 +1246,10 @@ class KurvEndrePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    const mint = Color(0xFF5CE0B8);
+    // Lys plan (`.mk7b` text / `.mk1i` icons): mint-tekst on mint-dis.
+    final lys = context.lys;
+    final mint = lys ? LysPalett.mintTekst : const Color(0xFF5CE0B8);
+    final ikon = lys ? kurvLysIkon : const Color(0xFF5CE0B8);
     return OnbPressable(
       onTap: onTap,
       pressDy: 2,
@@ -1198,13 +1259,13 @@ class KurvEndrePill extends StatelessWidget {
         constraints: BoxConstraints(minHeight: 34 * s),
         padding: EdgeInsets.symmetric(horizontal: (icon == null ? 12 : 13) * s),
         alignment: Alignment.center,
-        decoration: kurvMintGlass(s),
+        decoration: kurvMintGlass(s, lys: lys),
         foregroundDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [rgba(4, 30, 26, 0), rgba(4, 30, 26, 0), rgba(4, 30, 26, .32)],
+            colors: [rgba(4, 30, 26, 0), rgba(4, 30, 26, 0), rgba(4, 30, 26, lys ? 0 : .32)],
             stops: const [0, .8, 1],
           ),
         ),
@@ -1215,14 +1276,14 @@ class KurvEndrePill extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (icon != null) ...[KurvIcon(13 * s, icon!, color: mint), SizedBox(width: 5 * s)],
+                if (icon != null) ...[KurvIcon(13 * s, icon!, color: ikon), SizedBox(width: 5 * s)],
                 Text(
                   label,
                   style: bText(context, 11.5, weight: FontWeight.w800, letterSpacingEm: -.01, color: mint),
                 ),
                 if (icon == null) ...[
                   SizedBox(width: 4 * s),
-                  KurvIcon(11 * s, KurvIcons.chevron, color: mint, width: 3.2),
+                  KurvIcon(11 * s, KurvIcons.chevron, color: ikon, width: 3.2),
                 ],
               ],
             ),
@@ -1230,7 +1291,7 @@ class KurvEndrePill extends StatelessWidget {
         ),
       ),
           // On the pill's own edge (the content above is only as tall as its text).
-          bergenInsetTop(radius: 999, height: 1.5 * s, alpha: .32),
+          bergenInsetTop(radius: 999, height: 1.5 * s, alpha: lys ? 0 : .32),
         ],
       ),
     );
@@ -1249,17 +1310,23 @@ class KurvRadFlis extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
+    // Lys plan (`.mk7a`): `--lys-dis`, no shadow, the `.mk1i` icon; the
+    // orange door tile (`.mk4`) stays.
+    final lys = context.lys && !orange;
     return Container(
       width: 36 * s,
       height: 36 * s,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(13 * s),
+        color: lys ? LysPalett.dis : null,
         gradient: orange
             ? cssLinear(160, const [Color(0xFFF68450), Color(0xFFE65A28)])
+            : lys
+            ? null
             : cssLinear(160, const [Color(0xFF3F8798), Color(0xFF27606F), Color(0xFF1A4654)], const [0, .52, 1]),
-        border: orange ? null : Border.all(color: rgba(255, 255, 255, .07)),
-        boxShadow: [
+        border: orange ? null : Border.all(color: lys ? const Color(0x00000000) : rgba(255, 255, 255, .07)),
+        boxShadow: lys ? null : [
           BoxShadow(
             color: rgba(3, 16, 24, .8),
             offset: Offset(0, 9 * s),
@@ -1275,7 +1342,7 @@ class KurvRadFlis extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: orange
               ? [rgba(150, 40, 10, 0), rgba(150, 40, 10, 0), rgba(150, 40, 10, .35)]
-              : [rgba(4, 20, 28, 0), rgba(4, 20, 28, 0), rgba(4, 20, 28, .42)],
+              : [rgba(4, 20, 28, 0), rgba(4, 20, 28, 0), rgba(4, 20, 28, lys ? 0 : .42)],
           stops: const [0, .78, 1],
         ),
       ),
@@ -1283,11 +1350,11 @@ class KurvRadFlis extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           const SizedBox.expand(),
-          bergenInsetTop(radius: 13 * s, height: 1.5 * s, alpha: orange ? .4 : .32),
+          bergenInsetTop(radius: 13 * s, height: 1.5 * s, alpha: orange ? .4 : lys ? 0 : .32),
           KurvIcon(
             orange ? 15 * s : 17 * s,
             icon,
-            color: orange ? Colors.white : const Color(0xFF5CE0B8),
+            color: orange ? Colors.white : lys ? kurvLysIkon : const Color(0xFF5CE0B8),
             width: orange ? 1.9 : 2,
           ),
         ],
@@ -1330,7 +1397,7 @@ class KurvEndreRad extends StatelessWidget {
       key: Key(keyName),
       padding: EdgeInsets.symmetric(vertical: 12 * s),
       decoration: BoxDecoration(
-        border: first ? null : Border(top: BorderSide(color: rgba(255, 255, 255, .1))),
+        border: first ? null : Border(top: BorderSide(color: context.aeM(rgba(255, 255, 255, .1), LysPalett.skille))),
       ),
       child: Row(
         children: [
@@ -1344,14 +1411,14 @@ class KurvEndreRad extends StatelessWidget {
                   title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, height: 1.3),
+                  style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, height: 1.3, color: context.aeM(Colors.white, LysPalett.tittel)),
                 ),
                 if (line.isNotEmpty)
                   Text(
                     line,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                    style: bText(context, 11, weight: FontWeight.w600, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar)),
                   ),
               ],
             ),
@@ -1393,7 +1460,7 @@ class KurvFlere extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 12 * s),
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: rgba(255, 255, 255, .1))),
+          border: Border(top: BorderSide(color: context.aeM(rgba(255, 255, 255, .1), LysPalett.skille))),
         ),
         child: Row(
           children: [
@@ -1405,12 +1472,12 @@ class KurvFlere extends StatelessWidget {
                 children: [
                   Text(
                     KasseCopy.a1_kasse_flere_valg,
-                    style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01),
+                    style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, color: context.aeM(Colors.white, LysPalett.tittel)),
                   ),
                   SizedBox(height: 1 * s),
                   Text(
                     line,
-                    style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                    style: bText(context, 11, weight: FontWeight.w600, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar)),
                   ),
                 ],
               ),
@@ -1419,17 +1486,17 @@ class KurvFlere extends StatelessWidget {
               width: 34 * s,
               height: 34 * s,
               alignment: Alignment.center,
-              decoration: kurvMintGlass(s, shape: BoxShape.circle),
+              decoration: kurvMintGlass(s, shape: BoxShape.circle, lys: context.lys),
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   const SizedBox.expand(),
-                  bergenInsetTop(radius: 17 * s, height: 1.5 * s, alpha: .32),
+                  bergenInsetTop(radius: 17 * s, height: 1.5 * s, alpha: context.aeM(.32, 0)),
                   AnimatedRotation(
                     turns: open ? .5 : 0,
                     duration: BergenTokens.motion(context, const Duration(milliseconds: 280)),
                     curve: const Cubic(.3, 1.2, .5, 1),
-                    child: KurvIcon(14 * s, KurvIcons.chevronDown, color: const Color(0xFF5CE0B8), width: 3),
+                    child: KurvIcon(14 * s, KurvIcons.chevronDown, color: context.aeM(const Color(0xFF5CE0B8), kurvLysIkon), width: 3),
                   ),
                 ],
               ),
@@ -1466,6 +1533,8 @@ class KurvTips extends StatelessWidget {
     final s = context.bs;
     final i = math.max(0, verdier.indexOf(tip));
     final egetPaa = (egetController?.text ?? '').isNotEmpty;
+    // Lys plan (`(kFlere)`): `.mk7g` track, `.mk7h` thumb, `tf` labels.
+    final lys = context.lys;
     return BergenOnce(
       durationMs: 300,
       builder: (context, p, child) {
@@ -1492,11 +1561,11 @@ class KurvTips extends StatelessWidget {
                     children: [
                       Text(
                         KasseCopy.a1_kasse_tips_title,
-                        style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01),
+                        style: bText(context, 13, weight: FontWeight.w800, letterSpacingEm: -.01, color: context.aeM(Colors.white, LysPalett.tittel)),
                       ),
                       Text(
                         KasseCopy.a1_kasse_tips_line,
-                        style: bText(context, 11, weight: FontWeight.w600, color: rgba(255, 255, 255, .62)),
+                        style: bText(context, 11, weight: FontWeight.w600, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar)),
                       ),
                     ],
                   ),
@@ -1508,12 +1577,15 @@ class KurvTips extends StatelessWidget {
               padding: EdgeInsets.all(4 * s),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [rgba(0, 0, 0, .36), rgba(0, 0, 0, .22), rgba(0, 0, 0, .22), rgba(255, 255, 255, .1)],
-                  stops: const [0, .14, .96, 1],
-                ),
+                color: lys ? LysPalett.dis : null,
+                gradient: lys
+                    ? null
+                    : LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [rgba(0, 0, 0, .36), rgba(0, 0, 0, .22), rgba(0, 0, 0, .22), rgba(255, 255, 255, .1)],
+                        stops: const [0, .14, .96, 1],
+                      ),
               ),
               child: LayoutBuilder(
                 builder: (context, box) {
@@ -1535,22 +1607,24 @@ class KurvTips extends StatelessWidget {
                             child: Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
-                              gradient: cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFE9EEED)]),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: rgba(0, 10, 14, .7),
-                                  offset: Offset(0, 6 * s),
-                                  blurRadius: onbBlur(10 * s),
-                                  spreadRadius: -6 * s,
-                                ),
-                              ],
+                              gradient: lys ? kurvLysFjordFyll : cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFE9EEED)]),
+                              boxShadow: lys
+                                  ? kurvLysTommelSkygge(s)
+                                  : [
+                                      BoxShadow(
+                                        color: rgba(0, 10, 14, .7),
+                                        offset: Offset(0, 6 * s),
+                                        blurRadius: onbBlur(10 * s),
+                                        spreadRadius: -6 * s,
+                                      ),
+                                    ],
                             ),
                             foregroundDecoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(999),
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [rgba(30, 79, 92, 0), rgba(30, 79, 92, .14)],
+                                colors: [rgba(30, 79, 92, 0), rgba(30, 79, 92, lys ? 0 : .14)],
                                 stops: const [.6, 1],
                               ),
                             ),
@@ -1572,7 +1646,9 @@ class KurvTips extends StatelessWidget {
                                         context,
                                         12.5,
                                         weight: FontWeight.w800,
-                                        color: !egetPaa && tip == v ? const Color(0xFF1E4F5C) : rgba(255, 255, 255, .8),
+                                        color: !egetPaa && tip == v
+                                            ? context.aeM(const Color(0xFF1E4F5C), Colors.white)
+                                            : context.aeM(rgba(255, 255, 255, .8), LysPalett.sekundar),
                                       ),
                                       child: Text('$v kr'),
                                     ),
@@ -1639,19 +1715,19 @@ class KurvTilbudRad extends StatelessWidget {
                     navn,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: bText(context, 12.5, weight: FontWeight.w800, letterSpacingEm: -.015),
+                    style: bText(context, 12.5, weight: FontWeight.w800, letterSpacingEm: -.015, color: context.aeM(Colors.white, LysPalett.tittel)),
                   ),
                   SizedBox(height: 2 * s),
                   Row(
                     children: [
-                      Text(pris, style: bText(context, 12.5, weight: FontWeight.w800)),
+                      Text(pris, style: bText(context, 12.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                       SizedBox(width: 6 * s),
                       Text(
                         foer,
                         style: bText(
                           context,
                           10,
-                          color: rgba(255, 255, 255, .45),
+                          color: context.aeM(rgba(255, 255, 255, .45), LysPalett.dempet),
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
