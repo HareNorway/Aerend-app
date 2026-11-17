@@ -240,6 +240,21 @@ class _AegilFloyenState extends State<AegilFloyen> with SingleTickerProviderStat
       _useStat(sig, img);
       _acc = null;
       _sig = null;
+      // The finished city is a chain of `toImageSync` stripes, each keeping the one before alive (its
+      // display list). Flatten it once into a plain texture so the stripes are freed.
+      final r = ui.PictureRecorder();
+      Canvas(r).drawImage(img, Offset.zero, Paint()..blendMode = BlendMode.src);
+      final pic = r.endRecording();
+      pic.toImage(w2, h2).then((flat) {
+        pic.dispose();
+        if (!mounted || _statSig != sig) {
+          flat.dispose();
+          return;
+        }
+        _cache?.dispose();
+        _cache = flat.clone();
+        _useStat(sig, flat);
+      }, onError: (Object _) => pic.dispose());
     }
   }
 

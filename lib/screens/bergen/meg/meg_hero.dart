@@ -232,6 +232,9 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
   ui.Image? _scene;
   String? _sceneSig;
   int _rad = 0;
+  bool _aBusy = false;
+  bool _aVenter = false;
+  bool _ventSkjerm = false;
   // uScene for the scene pass, which doesn't read it (the prototype's `tom`).
   ui.Image? _tom;
   // Heat plan Step 6: the newest frame; with [BergenPerf.malerVertPaa] a new
@@ -368,21 +371,57 @@ class _MegStadionState extends State<MegStadion> with SingleTickerProviderStateM
     final pa = Paint()
       ..shader = sh
       ..blendMode = BlendMode.src;
+    // The scene image is made with the async `toImage` (a plain texture). A `toImageSync` image keeps its
+    // display list, which drew the previous scene — every stripe step would keep the whole chain of older
+    // scenes alive (an unbounded GPU leak). One step in flight; the screen pass uses the newest finished one.
+    if (!_aBusy) {
+      final ny = _scene == null || _sceneSig != sig;
+      if (!ny || !_aVenter) {
+        final rec0 = ui.PictureRecorder();
+        final c0 = Canvas(rec0);
+        if (ny) {
+          c0.drawRect(full, pa);
+          _rad = 0;
+          _aVenter = true;
+        } else {
+          final n = (sh2 / _stripes).ceil(), y0 = _rad;
+          c0.drawImage(_scene!, Offset.zero, Paint()..blendMode = BlendMode.src);
+          c0.drawRect(Rect.fromLTRB(0, math.max(0, sh2 - y0 - n).toDouble(), full.right, (sh2 - y0).toDouble()), pa);
+          _rad = y0 + n >= sh2 ? 0 : y0 + n;
+        }
+        final pic = rec0.endRecording();
+        _aBusy = true;
+        pic.toImage(sw, sh2).then((img) {
+          pic.dispose();
+          _aBusy = false;
+          if (!mounted) {
+            img.dispose();
+            return;
+          }
+          _scene?.dispose();
+          _scene = img;
+          _sceneSig = sig;
+          _aVenter = false;
+          // A screen frame was skipped waiting for this scene (first frame, `still`): draw it now, once.
+          if (_ventSkjerm) {
+            _ventSkjerm = false;
+            _render();
+          }
+        }, onError: (Object _) {
+          pic.dispose();
+          _aBusy = false;
+          _aVenter = false;
+        });
+      }
+    }
+    final scene = _scene;
+    // Nothing finished yet (first frame, new weather/size): the still stays up a frame longer.
+    if (scene == null || _sceneSig != sig) {
+      _ventSkjerm = true;
+      return;
+    }
     var rec = ui.PictureRecorder();
     var c = Canvas(rec);
-    if (_scene == null || _sceneSig != sig) {
-      c.drawRect(full, pa);
-      _rad = 0;
-    } else {
-      final n = (sh2 / _stripes).ceil(), y0 = _rad;
-      c.drawImage(_scene!, Offset.zero, Paint()..blendMode = BlendMode.src);
-      c.drawRect(Rect.fromLTRB(0, math.max(0, sh2 - y0 - n).toDouble(), full.right, (sh2 - y0).toDouble()), pa);
-      _rad = y0 + n >= sh2 ? 0 : y0 + n;
-    }
-    final scene = rec.endRecording().toImageSync(sw, sh2);
-    _scene?.dispose();
-    _scene = scene;
-    _sceneSig = sig;
     // Pass B: the screen.
     set(sk, pw / _w, 1);
     sk.setImageSampler(0, scene);
