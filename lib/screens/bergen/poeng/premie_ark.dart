@@ -123,6 +123,8 @@ abstract final class PremieArk {
       context,
       key: const Key('premie-vilkaar-sheet'),
       mork: true,
+      // Lys plan §0.2: «Vilkår for premier» stays fjord.
+      fjord: true,
       title: A4MegCopy.a4_premie_vilkaar_title,
       subtitle: A4MegCopy.a4_premie_vilkaar_linje,
       body: (ctx, _) => Column(
