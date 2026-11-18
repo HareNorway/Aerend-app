@@ -1,3 +1,5 @@
+import '../lopet/lopet_copy.dart';
+import '../lopet/lopet_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../onboarding/onb_runde.dart';
@@ -93,6 +95,9 @@ class _UtforskScreenState extends State<UtforskScreen> {
   @override
   void initState() {
     super.initState();
+    // Points plan Step 7: the Fjordfiske segment reads «Fjordløpet» while a session is open.
+    LopetPort.status.addListener(_lopEndret);
+    LopetPort.sjekk();
     // Onboarding Step 2: the tour's `feed` / `poser` steps switch the segment first (`forbered`).
     OnbRunde.instance.forbered['feed'] = () => _select(UtforskScreen.tabFeed);
     OnbRunde.instance.forbered['poser'] = () => _select(UtforskScreen.tabPose);
@@ -119,13 +124,18 @@ class _UtforskScreenState extends State<UtforskScreen> {
     // as the design's `tilFjordfiske` does.
     if (_tab == UtforskScreen.tabFiske) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) BergenRoutes.push(context, '/bergen/fjordfiske');
+        if (mounted) LopetPort.apne(context);
       });
     }
   }
 
+  void _lopEndret() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    LopetPort.status.removeListener(_lopEndret);
     OnbTips.instance.sett('utforskFane', null);
     OnbRunde.instance.forbered.remove('feed');
     OnbRunde.instance.forbered.remove('poser');
@@ -178,7 +188,8 @@ class _UtforskScreenState extends State<UtforskScreen> {
       // Design `segFiske`: the segment lights up and the game opens — every
       // tap, also when it is already the lit segment.
       if (_tab != tab) setState(() => _tab = tab);
-      BergenRoutes.push(context, '/bergen/fjordfiske');
+      // Points plan Step 7: the segment opens Fjordløpet while a session is open.
+      LopetPort.apne(context);
       return;
     }
     if (tab == UtforskScreen.tabFeed) _markFeedSeen();
@@ -383,7 +394,7 @@ class _Segments extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = <(String, String, String, double)>[
       (UtforskScreen.tabFeed, UtforskCopy.a1_utforsk_tab_feed, FeedIcons.segFeed, 1),
-      (UtforskScreen.tabFiske, UtforskCopy.a1_utforsk_tab_fiske, FeedIcons.segFiske, 1),
+      (UtforskScreen.tabFiske, LopetPort.status.value != null ? LopetCopy.navn : UtforskCopy.a1_utforsk_tab_fiske, FeedIcons.segFiske, 1),
       (UtforskScreen.tabPose, UtforskCopy.a1_utforsk_tab_pose, FeedIcons.segPose, 1.25),
     ];
     final index = items.indexWhere((e) => e.$1 == active).clamp(0, 2);

@@ -1,3 +1,4 @@
+import '../lopet/lopet_data.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -937,7 +938,7 @@ class _AegilScreenState extends State<AegilScreen> implements AeHandling {
   void app(AeApp a) {
     switch (a) {
       case AeApp.fiske:
-        BergenRoutes.push(context, '/bergen/fjordfiske');
+        LopetPort.apne(context); // Points plan Step 7: Fjordløpet while a session is open
       case AeApp.pose:
         BergenRoutes.push(context, '/bergen/automat');
       case AeApp.sporing:

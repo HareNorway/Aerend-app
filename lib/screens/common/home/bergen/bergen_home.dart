@@ -1,3 +1,4 @@
+import '../../../bergen/lopet/lopet_data.dart';
 import 'dart:async';
 import '../../../../data/ops/tracking_models.dart';
 
@@ -277,6 +278,10 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     BergenHome.hjemInn = false;
+    // Points plan Step 7: «Ægil er klar til å seile» on the hero while an order's Fjordløpet session is open.
+    LopetPort.sjekk();
+    // A cold start signs in a moment after Hjem is built: look again then.
+    Future.delayed(const Duration(seconds: 4), () => LopetPort.sjekk(tving: true));
     HjemNy.endret.addListener(_nyEndret);
     HjemVarsler.uleste.addListener(_ulesteEndret);
     DrapePek.lytt();
@@ -721,7 +726,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     );
   }
 
-  void _openFjordfiske() => BergenRoutes.push(context, '/bergen/fjordfiske');
+  /// Points plan Step 7 (game spec §8): Fjordløpet while a session is open, else Fjordfiske.
+  void _openFjordfiske() => LopetPort.apne(context);
 
   /// Under kaien's line → all of Ægil's finds (the Brett, D-K20).
   Future<void> _openBrett() async {

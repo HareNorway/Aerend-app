@@ -65,14 +65,208 @@ class FjordResult {
       };
 }
 
-class _Kajakk {
-  _Kajakk(this.n, this.lane, this.v, this.u0, this.st);
+/// A kajakk on the water: put out at `u0` (1/60 mm) at tick `st`, moving `v` mm/s along `lane`.
+class FjordKajakk {
+  FjordKajakk(this.n, this.lane, this.v, this.u0, this.st);
 
   final int n;
   final int lane;
   final int v;
   final int u0;
   final int st;
+
+  /// Where it is at tick [t], in 1/60 mm.
+  int uAt(int t) => u0 + v * (t - st);
+}
+
+/// The simulation stepped one tick at a time — what the play screen drives and draws, and what [FjordEngine.run]
+/// replays. Its state is public for drawing only; nothing outside may change it.
+class FjordSim {
+  FjordSim(Map<String, dynamic> course, this.perk)
+      : params = (course['params'] as Map).cast<String, dynamic>(),
+        rows = (course['rows'] as List).cast<Map>() {
+    final p = params;
+    nRows = rows.length;
+    lengthMm = FjordEngine._i(p['length_m']) * 1000;
+    start = FjordEngine._i(p['speed_start_mms']);
+    step = FjordEngine._i(p['speed_step_mms']);
+    max = FjordEngine._i(p['speed_max_mms']);
+    final l = FjordEngine._i(p['lane_change_ticks']);
+    lc = l < 1 ? 1 : l;
+    mid = lc ~/ 2;
+    wakeFrom = FjordEngine._i(p['wake_from_m']) * 1000;
+    wakeTicks = FjordEngine._i(p['wake_counter_ticks']);
+    grace = FjordEngine._i(p['vest_grace_ticks']);
+    kAhead = FjordEngine._i(p['kajakk_ahead_mm']);
+    crateM = FjordEngine._i(p['crate_m']);
+    vestAvail = perk == 'vest';
+  }
+
+  final Map<String, dynamic> params;
+  final List<Map> rows;
+  final String perk;
+  late final int nRows, lengthMm, start, step, max, lc, mid, wakeFrom, wakeTicks, grace, kAhead, crateM;
+
+  /// The next tick to simulate.
+  int tick = 0;
+
+  /// The boat's distance, 1/60 mm.
+  int u = 0;
+  final List<int> hist = [];
+  int chFrom = 1, chTo = 1, chStart = -1000000;
+  int crates = 0;
+  late bool vestAvail;
+  bool vestUsed = false;
+  int graceUntil = -1;
+  int nextRow = 0, kNext = 0;
+  List<FjordKajakk> kajakks = [];
+
+  /// A pending wake: [direction, the tick it pushes].
+  List<int>? wake;
+  String? ended;
+  int endTick = 0;
+  int? hitRow;
+
+  /// The tick the redningsvest took a hit (drawing: «Redningsvesten tok støyten»).
+  int? vestHitTick;
+
+  bool get done => ended != null || tick >= FjordEngine.maxTicks;
+
+  int get sailedM => u ~/ 60000;
+
+  (Map, int) rowAt(int n) {
+    final r = rows[n % nRows];
+    return (r, FjordEngine._i(r['d']) + (n ~/ nRows) * lengthMm);
+  }
+
+  int effLane(int t) => (t - chStart) < mid ? chFrom : chTo;
+
+  int speedAt(int t) {
+    final s = start + (step * t) ~/ 60;
+    return s < max ? s : max;
+  }
+
+  /// The first tick the boat's distance reached [target] (1/60 mm), from the history so far.
+  int firstAt(int target) {
+    var lo = 0;
+    var hi = hist.length - 1;
+    if (target <= 0 || hi < 0) return 0;
+    while (lo < hi) {
+      final m = (lo + hi) ~/ 2;
+      if (hist[m] >= target) {
+        hi = m;
+      } else {
+        lo = m + 1;
+      }
+    }
+    return lo;
+  }
+
+  void _change(int t, int dir) {
+    if (t < chStart + lc) return;
+    final to = chTo + dir;
+    if (to < 0 || to > 2) return;
+    chFrom = chTo;
+    chTo = to;
+    chStart = t;
+  }
+
+  void _hit(int t, int n) {
+    if (t < graceUntil) return;
+    if (vestAvail) {
+      vestAvail = false;
+      vestUsed = true;
+      vestHitTick = t;
+      graceUntil = t + grace;
+    } else {
+      ended = 'collision';
+      endTick = t;
+      hitRow = n;
+    }
+  }
+
+  /// One tick, with the lane inputs given at it (−1 left, +1 right), in order.
+  void stepTick(List<int> dirs) {
+    if (done) return;
+    final t = tick;
+    // (1) inputs
+    for (final d0 in dirs) {
+      final dir = d0 < 0 ? -1 : 1;
+      final w = wake;
+      if (w != null && dir == -w[0]) {
+        wake = null;
+        continue;
+      }
+      _change(t, dir);
+    }
+    // (2) the wake pushes if nobody steered against it
+    final w = wake;
+    if (w != null && t >= w[1]) {
+      _change(t, w[0]);
+      wake = null;
+    }
+    // (3) advance
+    u += speedAt(t);
+    hist.add(u);
+    // (4) kajakks put out
+    while (true) {
+      final (r, d) = rowAt(kNext);
+      if (u < (d - kAhead) * 60) break;
+      if (r['t'] == 'kajakk') {
+        final kp = (r['p'] as Map);
+        kajakks.add(FjordKajakk(kNext, FjordEngine._i(kp['lane']), FjordEngine._i(kp['v']), d * 60, t));
+      }
+      kNext++;
+    }
+    // (5) rows passed
+    while (ended == null) {
+      final (r, d) = rowAt(nextRow);
+      if (u < d * 60) break;
+      final n = nextRow;
+      nextRow++;
+      final lane = effLane(t);
+      if (FjordEngine._i(r['c'] ?? -1) == lane) crates++;
+      final b = FjordEngine.blocked(r, d, t, firstAt);
+      if (r['t'] == 'wake' && d >= wakeFrom) {
+        wake = [FjordEngine._i((r['p'] as Map)['w']) < 0 ? -1 : 1, t + wakeTicks];
+      }
+      if (b.contains(lane)) _hit(t, n);
+    }
+    // (6) kajakks caught
+    if (ended == null && kajakks.isNotEmpty) {
+      final keep = <FjordKajakk>[];
+      for (final k in kajakks) {
+        if (ended != null) {
+          keep.add(k);
+          continue;
+        }
+        if (u < k.uAt(t)) {
+          keep.add(k);
+          continue;
+        }
+        if (effLane(t) == k.lane) _hit(t, k.n);
+      }
+      kajakks = keep;
+    }
+    tick++;
+  }
+
+  FjordResult result() {
+    final ticks = ended == 'collision' ? endTick + 1 : hist.length;
+    return FjordResult(
+      distanceM: sailedM + crates * crateM,
+      sailedMm: u ~/ 60,
+      crates: crates,
+      ticks: ticks,
+      vestUsed: vestUsed,
+      ended: ended ?? 'limit',
+      gates: [
+        for (final m in (params['milestones_m'] as List))
+          if (sailedM >= FjordEngine._i(m)) FjordEngine._i(m),
+      ],
+      hitRow: hitRow,
+    );
+  }
 }
 
 abstract final class FjordEngine {
@@ -87,165 +281,31 @@ abstract final class FjordEngine {
 
   /// Plays [course] (as the server sends it: `params`, `rows`) with [perk] (`none` | `vest`) and [inputs] (ascending).
   static FjordResult run(Map<String, dynamic> course, String perk, List<FjordInput> inputs) {
-    final p = (course['params'] as Map).cast<String, dynamic>();
-    final rows = (course['rows'] as List).cast<Map>();
-    final nRows = rows.length;
-    final lengthMm = _i(p['length_m']) * 1000;
-    final start = _i(p['speed_start_mms']);
-    final step = _i(p['speed_step_mms']);
-    final max = _i(p['speed_max_mms']);
-    final lc = _i(p['lane_change_ticks']) < 1 ? 1 : _i(p['lane_change_ticks']);
-    final mid = lc ~/ 2;
-    final wakeFrom = _i(p['wake_from_m']) * 1000;
-    final wakeTicks = _i(p['wake_counter_ticks']);
-    final grace = _i(p['vest_grace_ticks']);
-    final kAhead = _i(p['kajakk_ahead_mm']);
-    final crateM = _i(p['crate_m']);
-
-    var u = 0;
-    final hist = <int>[];
-    var chFrom = 1;
-    var chTo = 1;
-    var chStart = -1000000;
-    var crates = 0;
-    var vestAvail = perk == 'vest';
-    var vestUsed = false;
-    var graceUntil = -1;
-    var nextRow = 0;
-    var kNext = 0;
-    var kajakks = <_Kajakk>[];
-    List<int>? wake; // [w, until]
+    final sim = FjordSim(course, perk);
     var ii = 0;
-    final nIn = inputs.length;
-    String? ended;
-    var endTick = 0;
-    int? hitRow;
-
-    (Map, int) rowAt(int n) {
-      final r = rows[n % nRows];
-      return (r, _i(r['d']) + (n ~/ nRows) * lengthMm);
-    }
-
-    int eff(int t) => (t - chStart) < mid ? chFrom : chTo;
-
-    void change(int t, int dir) {
-      if (t < chStart + lc) return;
-      final to = chTo + dir;
-      if (to < 0 || to > 2) return;
-      chFrom = chTo;
-      chTo = to;
-      chStart = t;
-    }
-
-    int firstAt(int target) {
-      var lo = 0;
-      var hi = hist.length - 1;
-      if (target <= 0 || hi < 0) return 0;
-      while (lo < hi) {
-        final m = (lo + hi) ~/ 2;
-        if (hist[m] >= target) {
-          hi = m;
-        } else {
-          lo = m + 1;
-        }
-      }
-      return lo;
-    }
-
-    void hit(int t, int n) {
-      if (t < graceUntil) return;
-      if (vestAvail) {
-        vestAvail = false;
-        vestUsed = true;
-        graceUntil = t + grace;
-      } else {
-        ended = 'collision';
-        endTick = t;
-        hitRow = n;
-      }
-    }
-
-    for (var t = 0; t < maxTicks && ended == null; t++) {
-      // (1) inputs
-      while (ii < nIn && inputs[ii].tick < t) {
+    final n = inputs.length;
+    while (!sim.done) {
+      final t = sim.tick;
+      while (ii < n && inputs[ii].tick < t) {
         ii++;
       }
-      while (ii < nIn && inputs[ii].tick == t) {
-        final dir = inputs[ii].dir < 0 ? -1 : 1;
+      final dirs = <int>[];
+      while (ii < n && inputs[ii].tick == t) {
+        dirs.add(inputs[ii].dir);
         ii++;
-        if (wake != null && dir == -wake[0]) {
-          wake = null;
-          continue;
-        }
-        change(t, dir);
       }
-      // (2) the wake pushes if nobody steered against it
-      if (wake != null && t >= wake[1]) {
-        change(t, wake[0]);
-        wake = null;
-      }
-      // (3) advance
-      final s = start + (step * t) ~/ 60;
-      u += s < max ? s : max;
-      hist.add(u);
-      // (4) kajakks put out
-      while (true) {
-        final (r, d) = rowAt(kNext);
-        if (u < (d - kAhead) * 60) break;
-        if (r['t'] == 'kajakk') {
-          final kp = (r['p'] as Map);
-          kajakks.add(_Kajakk(kNext, _i(kp['lane']), _i(kp['v']), d * 60, t));
-        }
-        kNext++;
-      }
-      // (5) rows passed
-      while (ended == null) {
-        final (r, d) = rowAt(nextRow);
-        if (u < d * 60) break;
-        final n = nextRow;
-        nextRow++;
-        final lane = eff(t);
-        if (_i(r['c'] ?? -1) == lane) crates++;
-        final b = blocked(r, d, t, firstAt);
-        if (r['t'] == 'wake' && d >= wakeFrom) {
-          wake = [_i((r['p'] as Map)['w']) < 0 ? -1 : 1, t + wakeTicks];
-        }
-        if (b.contains(lane)) hit(t, n);
-      }
-      // (6) kajakks caught
-      if (ended == null && kajakks.isNotEmpty) {
-        final keep = <_Kajakk>[];
-        for (final k in kajakks) {
-          if (ended != null) {
-            keep.add(k);
-            continue;
-          }
-          final ku = k.u0 + k.v * (t - k.st);
-          if (u < ku) {
-            keep.add(k);
-            continue;
-          }
-          if (eff(t) == k.lane) hit(t, k.n);
-        }
-        kajakks = keep;
-      }
+      sim.stepTick(dirs);
     }
+    return sim.result();
+  }
 
-    final ticks = ended == 'collision' ? endTick + 1 : hist.length;
-    final sailedM = u ~/ 60000;
-    return FjordResult(
-      distanceM: sailedM + crates * crateM,
-      sailedMm: u ~/ 60,
-      crates: crates,
-      ticks: ticks,
-      vestUsed: vestUsed,
-      ended: ended ?? 'limit',
-      gates: [
-        for (final m in (p['milestones_m'] as List))
-          if (sailedM >= _i(m)) _i(m),
-      ],
-      hitRow: hitRow,
-    );
+  /// The beffen's position across the fjord (width units, lanes centred at 500/1500/2500) at tick [t] — before it is
+  /// put out, where it starts. Drawing only.
+  static int beffenX(Map r, int d, int t, int Function(int target) firstAt, int u) {
+    final p = (r['p'] as Map?) ?? const {};
+    if (u < (d - _i(p['a'])) * 60) return _i(p['x0']);
+    final st = firstAt((d - _i(p['a'])) * 60);
+    return _i(p['x0']) + _i(p['vx']) * (t - st);
   }
 
   /// The lanes a row blocks when the boat passes it at tick [t] (beffen by where it is then, the gull once it has

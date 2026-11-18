@@ -1,4 +1,5 @@
 
+import '../lopet/lopet_copy.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -340,13 +341,19 @@ class SpPanel extends StatelessWidget {
                               pil: true,
                               onTap: onVisVeien,
                             )
-                          : _BredNokkel(
-                              key: const Key('a1_sporing_fjordfiske'),
-                              ikon: bergenSvg('sveipstakk', width: 20, height: 18),
-                              tittel: SporingCopy.a1_sporing_fjordfiske,
-                              under: SporingCopy.a1_sporing_mens_du_venter_kort,
-                              onTap: onFjordfiske,
-                            ),
+                          : (() {
+                              // Points plan Step 7 (game spec §8): «Fjordløpet · mens du venter» with the runs left while
+                              // the order's session is open (the order snapshot's `game`); Fjordfiske otherwise.
+                              final g = t.raw['game'];
+                              final lop = g is Map && g['open'] == true;
+                              return _BredNokkel(
+                                key: Key(lop ? 'a1_sporing_lopet' : 'a1_sporing_fjordfiske'),
+                                ikon: bergenSvg('sveipstakk', width: 20, height: 18),
+                                tittel: lop ? LopetCopy.mensDuVenter : SporingCopy.a1_sporing_fjordfiske,
+                                under: lop ? LopetCopy.seilaserIgjen((g['runs_left'] as num?)?.toInt() ?? 0) : SporingCopy.a1_sporing_mens_du_venter_kort,
+                                onTap: onFjordfiske,
+                              );
+                            })(),
                     ),
                     const SizedBox(width: 11),
                     if (!hent)

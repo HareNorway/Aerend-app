@@ -1,3 +1,4 @@
+import '../screens/bergen/lopet/lopet_data.dart';
 import 'dart:async';
 import '../screens/bergen/ai/ai_push_hook.dart';
 import 'dart:convert';
@@ -250,6 +251,9 @@ class PushNotificationService {
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       logd(tag, "onMessage foreground: $message");
+      // Points plan Step 7 (game spec §7): the courier at the door ends a Fjordløpet run; a call, a message or a
+      // CRITICAL notification pauses it. The notification itself is shown as always — the game never hides it.
+      LopetSignaler.fraPush(message.data);
       await showNotification(message);
     });
 

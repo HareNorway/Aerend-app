@@ -1,3 +1,5 @@
+import '../lopet/lopet_copy.dart';
+import '../lopet/lopet_data.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -1612,13 +1614,16 @@ class _FjordfiskeKnapp extends StatelessWidget {
                       // Perf plan: the label drifts with the button (scaleY
                       // .982–1.016); from one raster its glyphs and the blurred
                       // text shadow are not redrawn at a new scale every frame.
-                      child: BergenBakt(
+                      // Points plan Step 7 (game spec §8): «Fjordløpet · Ægil er klar til å seile» while a session is open.
+                      child: ValueListenableBuilder<LopetInngang?>(
+                      valueListenable: LopetPort.status,
+                      builder: (context, lop, _) => BergenBakt(
                       margin: const EdgeInsets.fromLTRB(6, 6, 6, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            HjemHeroCopy.fjordfiske,
+                            lop != null ? LopetCopy.navn : HjemHeroCopy.fjordfiske,
                             softWrap: false,
                             style: jakarta(
                               11.5,
@@ -1628,11 +1633,12 @@ class _FjordfiskeKnapp extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            HjemHeroCopy.fjordfiskeSub,
+                            lop != null ? LopetCopy.hjemKlar : HjemHeroCopy.fjordfiskeSub,
                             softWrap: false,
                             style: inter(8.5, weight: FontWeight.w700, height: 1.15, color: const Color(0xFF9FF0D4)),
                           ),
                         ],
+                      ),
                       ),
                       ),
                     ),

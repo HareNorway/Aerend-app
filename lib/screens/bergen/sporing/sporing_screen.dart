@@ -1,3 +1,4 @@
+import '../lopet/lopet_data.dart';
 import '../../../services/ntf/ntf_live_card.dart';
 import '../meg/varsler_innst.dart' show NtfSamtykke;
 import 'dart:async';
@@ -207,6 +208,8 @@ class _SporingScreenState extends State<SporingScreen> {
       final json = await _api.tracking(_id);
       if (!mounted || _forceOffline) return;
       final next = OpsTracking.fromJson(json);
+      // Points plan Step 7: the order snapshot's Fjordløpet session drives every entry point (LopetPort).
+      LopetPort.fraSporing(_id, next.raw['game']);
       final changed = _lastStage != null && next.stage != _lastStage;
       setState(() {
         _t = next;
@@ -464,7 +467,16 @@ class _SporingScreenState extends State<SporingScreen> {
     await Share.shareXFiles([XFile(fil.path, mimeType: 'application/pdf')], subject: SporingCopy.a1_sporing_kvittering, sharePositionOrigin: origin);
   }
 
-  void _fjordfiske() => BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
+  /// Points plan Step 7 (game spec §8): while this order's Fjordløpet session is open the button opens the game; else
+  /// Fjordfiske, as today.
+  void _fjordfiske() {
+    final g = _t?.raw['game'];
+    if (g is Map && g['open'] == true) {
+      LopetPort.apne(context, orderId: _id, gameOpen: true);
+      return;
+    }
+    BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
+  }
 
   Future<void> _delBillett() async {
     final code = _vervKode;
