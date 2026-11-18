@@ -568,11 +568,12 @@ class RestaurantButikkBodyState extends State<RestaurantButikkBody> with TickerP
     );
   }
 
-  /// "+N per kjøp": the points a typical 300 kr order earns at this store's
-  /// rate (`points_per_10kr`); hidden until the rate is known.
+  /// "+N per kjøp": what one order at this store typically earns, as the server
+  /// computes it (`points_per_order`; points plan Step 1 — the app assumes no
+  /// basket or rate of its own). Hidden until known.
   int? get _perKjop {
-    final r = _detail?.pointsPer10Kr;
-    return r == null || r <= 0 ? null : r * 30;
+    final n = _detail?.pointsPerOrder;
+    return n == null || n <= 0 ? null : n;
   }
 
   String get _kitchenText {

@@ -29,8 +29,11 @@ class PointsRepo {
       '${ApiConst.endPointPointsMe}?${_query(_auth())}',
     );
     final json = _ok(response);
+    // Points plan Step 1: with points switched off in the panel the server answers `enabled: false` and the
+    // points screens are hidden (points spec T25).
+    if (json == null || json['enabled'] == false) return null;
 
-    return json == null ? null : PointsBalance.fromJson(json);
+    return PointsBalance.fromJson(json);
   }
 
   Future<List<LedgerEntry>> fetchLedger({int page = 1, int perPage = 30}) async {

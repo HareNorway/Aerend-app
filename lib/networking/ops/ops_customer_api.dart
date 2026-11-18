@@ -453,6 +453,16 @@ class OpsCustomerApi {
   Future<Map<String, dynamic>?> mission() =>
       _guarded(() => _get('api/points/mission'));
 
+  /// `POST /api/points/preview` (guarded) — what a basket earns when delivered (points plan Step 1): the checkout's
+  /// «+N poeng». Lines are `{product_id, qty}`. Null hides the line.
+  Future<int?> pointsPreview({required int storeId, required List<Map<String, int>> lines}) async {
+    if (lines.isEmpty) return null;
+    final json = await _guarded(() => _post('api/points/preview', {'store_id': storeId, 'lines': lines}));
+    final p = json?['points_preview'];
+    if (p is! Map || p['enabled'] == false) return null;
+    return (p['total'] as num?)?.toInt();
+  }
+
   /// `GET /api/points/me` (guarded) — the Sporing stage overlay's "+X poeng".
   Future<Map<String, dynamic>?> pointsMe() =>
       _guarded(() => _get('api/points/me'));

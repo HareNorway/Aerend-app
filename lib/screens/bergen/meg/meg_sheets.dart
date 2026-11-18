@@ -127,8 +127,9 @@ abstract final class MegSheets {
       if (regler != null) ...[
         (
           A4MegCopy.a4_meg_poengrater[0][0],
-          regler.kjopPer10kr == 10 ? A4MegCopy.a4_meg_poengrater[0][1] : A4MegCopy.a4_meg_rate_kjop(regler.kjopPer10kr),
-          regler.kjopPer10kr == 10 ? A4MegCopy.a4_meg_rate_kr : A4MegCopy.a4_meg_rate_per10(regler.kjopPer10kr),
+          // Points plan Step 1: the rate from the panel (`kr_per_point`), never a fixed line.
+          A4MegCopy.a4_meg_rate_kr_per_point(regler.krPerPoint),
+          A4MegCopy.a4_meg_rate_chip(regler.krPerPoint),
           MorkIk.pose,
         ),
         (A4MegCopy.a4_meg_poengrater[1][0], A4MegCopy.a4_meg_rate_forste(regler.firstOrderBonus), '+${regler.firstOrderBonus}', MorkIk.butikk),

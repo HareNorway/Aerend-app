@@ -182,6 +182,9 @@ abstract final class A4MegCopy {
   static String a4_meg_rate_kjop(int n) => '$n poeng per 10 kr du handler for';
   static const String a4_meg_rate_kr = '1 per kr';
   static String a4_meg_rate_per10(int n) => '$n per 10 kr';
+  // Points plan Step 1: the rate as the panel sets it, «1 poeng per N kr».
+  static String a4_meg_rate_kr_per_point(int kr) => kr == 1 ? '1 poeng per krone du handler for' : '1 poeng per $kr kr du handler for';
+  static String a4_meg_rate_chip(int kr) => kr == 1 ? '1 per kr' : '1 per $kr kr';
   static String a4_meg_rate_forste(int n) => '+$n poeng, én gang per butikk';
   static String a4_meg_rate_napp(int n) => '+$n poeng for det første funnet hver dag';
   static String a4_meg_rate_verving(int n) => '+$n poeng når vennen får sin første ordre levert';

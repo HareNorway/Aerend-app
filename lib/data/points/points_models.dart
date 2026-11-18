@@ -9,6 +9,7 @@ class PointsBalance {
   const PointsBalance({
     this.available = 0,
     this.pending = 0,
+    this.onTheWay = 0,
     this.earned12m = 0,
     this.lifetime = 0,
     this.tier = 0,
@@ -30,6 +31,13 @@ class PointsBalance {
 
   /// Earned but still inside the order's return window.
   final int pending;
+
+  /// Points plan Step 1: what the orders on their way will earn (`points.on_the_way`, their previews). Points are
+  /// no longer held after delivery, so this is what Meg's «+N kommer når ordren er levert» shows.
+  final int onTheWay;
+
+  /// Meg's «kommer» number: held points (older servers) plus the orders on their way.
+  int get coming => pending + onTheWay;
 
   /// What drives Nivå. Spending and expiry never reduce it.
   final int earned12m;
@@ -91,6 +99,7 @@ class PointsBalance {
     return PointsBalance(
       available: _int(points['available']),
       pending: _int(points['pending']),
+      onTheWay: _int(points['on_the_way']),
       earned12m: _int(points['earned_12m']),
       lifetime: _int(points['lifetime']),
       tier: _int(tier['index']),

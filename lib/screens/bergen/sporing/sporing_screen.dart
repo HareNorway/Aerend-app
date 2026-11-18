@@ -276,6 +276,12 @@ class _SporingScreenState extends State<SporingScreen> {
     // Onboarding Step 3: the Hjem card «Vil du se hva mer Ærend kan?» waits for a delivery.
     OnbStatus.instance.merkLevert();
     _levertKl ??= DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ?? t.deliveryCode?.verifiedAt ?? DateTime.now();
+    // Points plan Step 1: the snapshot's net `points` first (what a refund left); the ledger only when it has none.
+    final fraSnapshot = spPoengFraSnapshot(t.raw);
+    if (fraSnapshot != null) {
+      if (mounted) setState(() => _poeng = fraSnapshot);
+      return;
+    }
     _api.pointsForOrder(_id).then((p) {
       final n = spPoengForOrdre(p, _id);
       if (mounted && n != null) setState(() => _poeng = n);

@@ -171,11 +171,11 @@ class _FavoritterScreenState extends State<FavoritterScreen> {
     );
   }
 
-  /// `+N` on a sum: the purchase rule, whole 10 kr × the rate. No rule, no chip.
+  /// `+N` on a sum: the purchase rule at the panel's rate (points plan Step 1). No rule, no chip.
   int? _poeng(double kr) {
     final r = _regler;
-    if (r == null || r.kjopPer10kr <= 0) return null;
-    return (kr ~/ 10) * r.kjopPer10kr;
+    if (r == null) return null;
+    return r.pointsForOre((kr * 100).round());
   }
 
   void _pop(String key) {

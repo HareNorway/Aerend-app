@@ -7,6 +7,7 @@
 class PointsRules {
   const PointsRules({
     required this.kjopPer10kr,
+    this.krPerPoint = 10,
     required this.firstOrderBonus,
     required this.referrer,
     required this.referee,
@@ -23,6 +24,10 @@ class PointsRules {
 
   /// Points per whole 10 kr paid (`points.kjop_per_10kr`).
   final int kjopPer10kr;
+
+  /// Points plan Step 1: kroner of goods per point (`kr_per_point`, set in the panel). Older servers send only
+  /// `kjop_per_10kr`; then it is derived from that.
+  final int krPerPoint;
 
   /// Første gang (`points.forste_gang`).
   final int firstOrderBonus;
@@ -70,6 +75,9 @@ class PointsRules {
     final aegil = json['aegil_answer'] is Map ? Map<String, dynamic>.from(json['aegil_answer'] as Map) : const <String, dynamic>{};
     return PointsRules(
       kjopPer10kr: _int(json['kjop_per_10kr']),
+      krPerPoint: json['kr_per_point'] != null
+          ? (_int(json['kr_per_point']) > 0 ? _int(json['kr_per_point']) : 10)
+          : (_int(json['kjop_per_10kr']) > 0 ? (10 ~/ _int(json['kjop_per_10kr'])).clamp(1, 1000) : 10),
       firstOrderBonus: _int(json['first_order_bonus']),
       referrer: _int(referral['referrer']),
       referee: _int(referral['referee']),
@@ -85,9 +93,10 @@ class PointsRules {
     );
   }
 
-  /// Kjøp points for an amount in øre, the way KjopRule counts them: whole
-  /// 10 kr only.
-  int pointsForOre(int ore) => ore <= 0 ? 0 : (ore ~/ 1000) * kjopPer10kr;
+  /// Purchase points for an amount of goods in øre, the way the server counts them: whole points at the panel's
+  /// `kr_per_point`, rounded down (points plan Step 1). A display estimate only — the order's real points come from
+  /// the server (`points/preview`, the order snapshot).
+  int pointsForOre(int ore) => ore <= 0 ? 0 : ore ~/ (krPerPoint * 100);
 }
 
 /// Splits an order's real points total over the Sporing stages by the

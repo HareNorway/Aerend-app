@@ -612,7 +612,24 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   /// The flex line for the Levering sheet (its own quote, so the discount is the engine's) and a silent refresh
   /// when the quote's time runs out while Kassen is open.
+  /// Points plan Step 1: the order's «+N poeng» as the server computes it (`POST points/preview`: goods only,
+  /// excluded categories out, the new-store bonus) — null until it answers, and then the line is hidden.
+  int? _poengServer;
+  String? _poengFor;
+
+  Future<void> _hentPoeng() async {
+    final cart = _cart;
+    if (cart == null || cart.lines.isEmpty || !OpsCustomerApi.networkEnabled) return;
+    final lines = [for (final l in cart.lines) {'product_id': l.productId, 'qty': l.quantity}];
+    final key = '${cart.storeId}:${lines.map((l) => '${l['product_id']}x${l['qty']}').join(',')}';
+    if (key == _poengFor) return;
+    _poengFor = key;
+    final n = await _customer.pointsPreview(storeId: cart.storeId, lines: lines);
+    if (mounted && key == _poengFor) setState(() => _poengServer = n);
+  }
+
   void _afterQuote() {
+    _hentPoeng();
     _quoteTimer?.cancel();
     final exp = _preview?.feeQuote?.expiresAt;
     if (exp != null) {
@@ -1315,10 +1332,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final mot = _motInteresse(cart);
     final terskel = _gratisOver;
     final vanligFrakt = _store?.deliveryChargeKr ?? 0;
-    // KjopRule (`points.kjop_per_10kr`, 1 by default): whole 10 kr of the
-    // total; there is no rules read in the API, so the default rate is used. 03 test pass (CUS-A14 b): never on the
-    // courier tip — it is the courier's money.
-    final tilbake = ((total - _tipNaa) / 10).floor();
+    // Points plan Step 1: the server's preview of this basket (goods only — never the fee or the courier's tip — at
+    // the panel's rate, excluded categories out). The app computes no points of its own; 0 hides the line.
+    final tilbake = _poengServer ?? 0;
     final kode = 'Æ-${(cart.lines.first.cartId % 46656).toRadixString(36).toUpperCase().padLeft(3, '0')}';
 
     return Column(
