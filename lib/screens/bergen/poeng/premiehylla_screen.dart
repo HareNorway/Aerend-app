@@ -124,7 +124,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _hent(Prize p) async {
-    if (!p.inStock) {
+    if (p.soldOut || !p.inStock) {
       showBergenToast(context, A4MegCopy.a4_hylla_utsolgt_toast(p.name));
       return;
     }
@@ -132,7 +132,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       await _setGoal(p);
       return;
     }
-    final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: _regler?.claimExpiryDays);
+    final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: p.validDays ?? _regler?.claimExpiryDays);
     if (claimed == true && mounted) _load();
   }
 
@@ -147,7 +147,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: PremieArk.hvordan(p?.type ?? '')),
+          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: PremieArk.hvordan(c.specType ?? p?.specType ?? '')),
           if ((c.voucherCode ?? '').isNotEmpty) MegArkRow(title: A4MegCopy.a4_hylla_kode, sub: c.voucherCode!),
           if (c.expiresAt != null) MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: A4MegCopy.a4_hylla_dager_igjen(_dagerIgjen(c))),
           // Customer Step 12 (Points spec §4.3): within 24 h before fulfilment the claim can be undone.
@@ -264,7 +264,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     final klare = prizes.where((p) => p.inStock && p.affordable).length;
     final byId = {for (final p in prizes) p.id: p};
     final cheapest = prizes.where((p) => p.inStock).map((p) => p.pointPrice).fold<int?>(null, (a, v) => a == null || v < a ? v : a);
-    final aktive = _claims.where((c) => c.state != 'used' && c.state != 'expired' && c.state != 'cancelled').length;
+    final aktive = _claims.where((c) => c.status == 'klar' || c.status == 'paa_vei').length;
 
     return ListView(
       key: const Key('hylla-list'),
@@ -1121,13 +1121,18 @@ class _Billett extends StatelessWidget {
     // Lys: the design keeps «Brukt» white on white (`mineVis` R.Brukt, no `__aeM`); the grey chips take
     // `--lys-dis` / `--lys-sekundar` like the `.mk8w` krav chip.
     final lys = context.lys;
-    final (chip, chipBg, chipC) = switch (c.state) {
-      'claimed' || 'applied' => (A4MegCopy.a4_hylla_chip_klar, const Color(0xFF5CE0B8), const Color(0xFF0F2A33)),
-      'shipped' => (A4MegCopy.a4_hylla_chip_sendt, const Color(0xFFF7D57E), const Color(0xFF3A2708)),
-      'delivered' || 'used' => (A4MegCopy.a4_hylla_chip_brukt, lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white),
-      _ => (A4MegCopy.a4_hylla_chip_utlopt, lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white),
+    // Points plan Step 3 (points spec §6.3): Klar, På vei, Brukt, Utløpt, Angret, Gitt, Feilet — from the claim's status.
+    final graa = (lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white);
+    final (chip, chipBg, chipC) = switch (c.status) {
+      'klar' => (A4MegCopy.a4_hylla_chip_klar, const Color(0xFF5CE0B8), const Color(0xFF0F2A33)),
+      'paa_vei' => (A4MegCopy.a4_hylla_chip_paavei, const Color(0xFFF7D57E), const Color(0xFF3A2708)),
+      'brukt' => (A4MegCopy.a4_hylla_chip_brukt, graa.$1, graa.$2),
+      'angret' => (A4MegCopy.a4_hylla_chip_angret, graa.$1, graa.$2),
+      'gitt' => (A4MegCopy.a4_hylla_chip_gitt, graa.$1, graa.$2),
+      'feilet' => (A4MegCopy.a4_hylla_chip_feilet, graa.$1, graa.$2),
+      _ => (A4MegCopy.a4_hylla_chip_utlopt, graa.$1, graa.$2),
     };
-    final brukt = c.state == 'used' || c.state == 'expired' || c.state == 'cancelled';
+    final brukt = !{'klar', 'paa_vei'}.contains(c.status);
     final art = PrizeArt.of(slug: prize?.slug, name: c.prizeName ?? prize?.name ?? '');
     return AePress(
       onTap: onTap,
@@ -1185,7 +1190,7 @@ class _Billett extends StatelessWidget {
                               Text(c.prizeName ?? prize?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14, em: -.015, height: 1.2, color: lys ? LysPalett.tittel : Colors.white)),
                               const SizedBox(height: 2),
                               Text(
-                                PremieArk.hvordan(prize?.type ?? ''),
+                                PremieArk.hvordan(c.specType ?? prize?.specType ?? ''),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: inter(11, height: 1.35, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .72)),

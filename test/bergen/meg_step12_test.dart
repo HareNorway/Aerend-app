@@ -180,10 +180,18 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const Key('hylla-krev-sheet')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('hylla-krev-cta')));
+    // Points plan Step 3: hold-to-claim (900 ms), then the celebration.
+    await tester.ensureVisible(find.byKey(const Key('hylla-krev-cta')));
+    await tester.pump(const Duration(milliseconds: 300));
+    final g = await tester.startGesture(tester.getCenter(find.byKey(const Key('hylla-krev-cta'))));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await g.up();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(api.calls, contains('claim:7'));
+    expect(find.text(A4MegCopy.a4_hylla_fest_tittel), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));
   });
 

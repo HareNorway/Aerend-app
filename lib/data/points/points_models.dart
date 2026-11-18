@@ -214,6 +214,10 @@ class Prize {
     this.affordable = false,
     this.claimable = false,
     this.blockedReason,
+    this.specKind,
+    this.soldOut = false,
+    this.stockLeft,
+    this.validDays,
   });
 
   final int id;
@@ -232,6 +236,23 @@ class Prize {
   final bool claimable;
   final String? blockedReason;
 
+  /// Points plan Step 3 (points spec §6): the spec's type (auto | kode | send | baat | velger | gave), sold out this
+  /// month (stays on the shelf as «Utsolgt»), what is left (null without a limit), and how long a claim lasts.
+  final String? specKind;
+  String get specType => specKind ?? specFrom(type);
+  final bool soldOut;
+  final int? stockLeft;
+  final int? validDays;
+
+  /// The spec's type from an older server's engine type.
+  static String specFrom(String type) => switch (type) {
+        'voucher' => 'auto',
+        'physical' => 'send',
+        'identity' => 'baat',
+        'donation' => 'gave',
+        _ => 'kode',
+      };
+
   factory Prize.fromJson(Map<String, dynamic> json) => Prize(
         id: _int(json['id']),
         slug: json['slug'] as String?,
@@ -246,6 +267,10 @@ class Prize {
         affordable: json['affordable'] as bool? ?? false,
         claimable: json['claimable'] as bool? ?? false,
         blockedReason: json['blocked_reason'] as String?,
+        specKind: json['spec_type'] as String?,
+        soldOut: json['sold_out'] as bool? ?? !(json['in_stock'] as bool? ?? true),
+        stockLeft: json['stock_left'] == null ? null : _int(json['stock_left']),
+        validDays: json['valid_days'] == null ? null : _int(json['valid_days']),
       );
 }
 
@@ -302,7 +327,28 @@ class PrizeClaim {
     this.cancelDeadlineAt,
     this.expiresAt,
     this.createdAt,
+    this.status = 'klar',
+    this.specType,
+    this.partnerName,
   });
+
+  /// Points plan Step 3 (points spec §6.3): Mine premier's state — klar | paa_vei | brukt | utlopt | angret | gitt |
+  /// feilet — and the premie's spec type and store.
+  final String status;
+  final String? specType;
+  final String? partnerName;
+
+  /// An older server's engine state as the spec's.
+  static String statusFrom(String state) => switch (state) {
+        'claimed' => 'klar',
+        'applied' || 'shipped' => 'paa_vei',
+        'delivered' || 'used' => 'brukt',
+        'expired' => 'utlopt',
+        'cancelled' => 'angret',
+        'given' => 'gitt',
+        'failed' => 'feilet',
+        _ => 'klar',
+      };
 
   final int id;
   final int prizeId;
@@ -331,7 +377,10 @@ class PrizeClaim {
         voucherCode: json['voucher_code'] as String?,
         identityName: json['identity_name'] as String?,
         nameReview: (json['name_review'] as String?) ?? 'not_required',
-        cancellable: json['cancellable'] as bool? ?? false,
+        cancellable: json['returnable'] as bool? ?? json['cancellable'] as bool? ?? false,
+        status: (json['status'] as String?) ?? statusFrom((json['state'] as String?) ?? 'claimed'),
+        specType: json['spec_type'] as String?,
+        partnerName: json['partner_name'] as String?,
         cancelDeadlineAt: _date(json['cancel_deadline_at']),
         expiresAt: _date(json['expires_at']),
         createdAt: _date(json['created_at']),

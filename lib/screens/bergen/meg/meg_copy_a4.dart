@@ -413,6 +413,21 @@ abstract final class A4MegCopy {
   static const String a4_hylla_chip_sendt = 'Sendt';
   static const String a4_hylla_chip_brukt = 'Brukt';
   static const String a4_hylla_chip_utlopt = 'Utløpt';
+  // Points plan Step 3 (points spec §6.3): the rest of Mine premier's states, the hold-to-claim and the celebration.
+  static const String a4_hylla_chip_paavei = 'På vei';
+  static const String a4_hylla_chip_angret = 'Angret';
+  static const String a4_hylla_chip_gitt = 'Gitt';
+  static const String a4_hylla_chip_feilet = 'Feilet';
+  static String a4_hylla_saldo(int n) => 'Saldo ${nf(n)}';
+  static String a4_hylla_etter(int n) => 'Etter: ${nf(n)} poeng';
+  static const String a4_hylla_hold = 'Hold for å hente';
+  static const String a4_hylla_holder = 'Hold …';
+  static const String a4_hylla_hold_hint = 'Hold inne til knappen er full';
+  static const String a4_hylla_fest_kicker = 'PREMIE HENTET';
+  static const String a4_hylla_fest_tittel = 'Den er din!';
+  static const String a4_hylla_fest_lukk = 'Se Mine premier';
+  static const String a4_premie_vilkaar_utsolgt = 'Utsolgt';
+  static const String a4_premie_vilkaar_utsolgt_sub = 'Kommer tilbake neste måned';
   static const String a4_hylla_detaljer = 'Detaljer';
   static const String a4_hylla_utsolgt = 'UTSOLGT';
   static const String a4_hylla_maal_merke = 'MÅL';

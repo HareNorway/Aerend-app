@@ -76,11 +76,14 @@ void main() {
     await apne(tester);
     expect(find.byKey(const Key('hylla-krev-sheet')), findsOneWidget);
     expect(find.text('Gjelder i 45 dager'), findsOneWidget);
-    expect(find.text('840 poeng'), findsOneWidget);
+    // Points plan Step 3 (`phKrev`): «Saldo 1 240 · Etter: 840 poeng» and the hold hint.
+    expect(find.text('Saldo 1 240'), findsOneWidget);
+    expect(find.text('Etter: 840 poeng'), findsOneWidget);
+    expect(find.text('Hold inne til knappen er full'), findsOneWidget);
     expect(find.text('Brukes automatisk på neste levering'), findsOneWidget);
   });
 
-  testWidgets('Vilkår for premier: real rules only, no «Utsolgt … neste måned»', (tester) async {
+  testWidgets('Vilkår for premier: real rules, and «Utsolgt · kommer tilbake neste måned» since monthly stock', (tester) async {
     phone(tester);
     final regler = PointsRules.fromJson({'kjop_per_10kr': 1, 'claim_expiry_days': 60, 'points_expiry_months': 12});
     expect(regler?.claimExpiryDays, 60);
@@ -91,7 +94,9 @@ void main() {
     expect(find.text('En hentet premie gjelder i 60 dager'), findsOneWidget);
     expect(find.text('Utløper 12 måneder etter at de er tjent'), findsOneWidget);
     expect(find.text('Partnerpremier'), findsOneWidget);
-    expect(find.text('Utsolgt'), findsNothing);
+    // Points plan Step 3: stock is a monthly allotment, refilled on the 1st.
+    expect(find.text('Utsolgt'), findsOneWidget);
+    expect(find.text('Kommer tilbake neste måned'), findsOneWidget);
   });
 
   testWidgets('Vilkår for premier on an older server: the rule rows hide', (tester) async {
