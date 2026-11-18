@@ -415,6 +415,10 @@ abstract final class A4MegCopy {
   static const String a4_hylla_chip_utlopt = 'Utløpt';
   // Points plan Step 3 (points spec §6.3): the rest of Mine premier's states, the hold-to-claim and the celebration.
   static const String a4_hylla_chip_paavei = 'På vei';
+  // Points plan Step 4 (`phBong`, auto): free delivery — where it applies, and the switch for the next order.
+  static const String a4_hylla_auto_gjelder = 'Gjelder alle butikker i Ærend. Leveringen blir 0 kr';
+  static const String a4_hylla_auto_bruk = 'Bruk på neste bestilling';
+  static const String a4_hylla_auto_bruk_av = 'Spares til senere · du kan slå den på i kassen';
   static const String a4_hylla_chip_angret = 'Angret';
   static const String a4_hylla_chip_gitt = 'Gitt';
   static const String a4_hylla_chip_feilet = 'Feilet';

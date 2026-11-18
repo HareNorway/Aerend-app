@@ -8,6 +8,9 @@ import '../../../utils/utils.dart';
 /// Bestillingsdetaljer ≈L5641 in `Ærend Kunde Bergen.dc.html`).
 /// AGIL-CONTRACT §3.2: class `KasseCopy`, keys `a1_kasse_*`, NO and EN.
 abstract final class KasseCopy {
+  // Points plan Step 4 (points spec §6.2 `auto`): the «Gratis levering» premie on the slip.
+  static const String a1_kasse_premie = 'Gratis levering';
+  static const String a1_kasse_premie_av = 'Gratis levering · av';
   static bool get _en => resolveSelectedLanguage() == 'en';
   static String _t(String no, String en) => _en ? en : no;
 

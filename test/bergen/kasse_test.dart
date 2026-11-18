@@ -41,10 +41,22 @@ class _FakeKasse extends OpsKasseApi {
   @override
   Future<KurvState> cart() async => state;
   @override
-  Future<OrderPreviewPojo?> preview({bool flex = false}) async {
+  Future<OrderPreviewPojo?> preview({bool flex = false, bool? useFreeDelivery}) async {
     previews.add(flex);
-    return flex ? (flexPojo ?? previewPojo) : previewPojo;
+    premieSent.add(useFreeDelivery);
+    // Points plan Step 4: a ready «Gratis levering» premie, applied unless unticked.
+    final p = premie;
+    lastFreeDeliveryPremie = p == null ? null : {...p, 'applied': useFreeDelivery != false};
+    final pojo = flex ? (flexPojo ?? previewPojo) : previewPojo;
+    if (p != null && pojo != null && useFreeDelivery != false) {
+      return _preview(delivery: 0, min: pojo.minOrderAmount.toDouble());
+    }
+    return pojo;
   }
+
+  /// Points plan Step 4: the premie the fake preview offers, and the `use_free_delivery` values it was asked with.
+  Map<String, dynamic>? premie;
+  final List<bool?> premieSent = [];
   @override
   Future<List<AddressListItem>> addresses() async => addressList;
   @override
@@ -74,8 +86,10 @@ class _FakeKasse extends OpsKasseApi {
     bool flex = false,
     String? companyName,
     String? companyOrgNr,
+    bool? useFreeDelivery,
   }) async {
     lastPlace = {
+      'useFreeDelivery': useFreeDelivery,
       'companyName': companyName,
       'companyOrgNr': companyOrgNr,
       'quoteId': quoteId,
@@ -815,5 +829,35 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(api.lastPlace?['quoteId'], 'fq_flex');
     expect(api.lastPlace?['flex'], isTrue);
+  });
+
+  testWidgets('points plan Step 4: a ready «Gratis levering» premie makes delivery 0, and the switch keeps it for later', (tester) async {
+    _frame(tester);
+    final api = _FakeKasse(
+      state: KurvState(lines: [_line(1, 'Dobbel cheeseburger', 149), _line(2, 'Pommes frites', 59, qty: 2)], storeId: 7),
+      previewPojo: _preview(),
+      addressList: [_address(5)],
+    )..premie = {'claim_id': 31, 'name': 'Gratis levering', 'covers': 39};
+    await tester.pumpWidget(_app(KurvScreen(embedded: false, api: api, customerApi: _FakeCustomer())));
+    await tester.pump();
+    await tester.pump();
+    await tester.pump();
+
+    await tester.dragUntilVisible(find.byKey(const Key('a1_kasse_total')), find.byType(ListView).first, const Offset(0, -300));
+    await tester.pump();
+    expect(find.byKey(const Key('a1_kasse_premie')), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_premie), findsOneWidget);
+    expect(find.text('−39 kr'), findsOneWidget);
+    // 149 + 118, delivery 0 with the premie.
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '267');
+    expect(api.premieSent.last, isTrue);
+
+    // Keep it for later: the fee is charged and the request says so.
+    await tester.tap(find.byKey(const Key('a1_kasse_premie_bryter')));
+    await tester.pump();
+    await tester.pump();
+    expect(api.premieSent.last, isFalse);
+    expect(find.text(KasseCopy.a1_kasse_premie_av), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('a1_kasse_total'))).data, '306');
   });
 }

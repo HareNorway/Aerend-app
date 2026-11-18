@@ -11,13 +11,15 @@ class CheckoutRepo {
 
   /// Customer v2 Step 1: [flex] asks for the «Innen 2 timer» price (pricing.flex_window); with [clientErrors]
   /// a 4xx body (e.g. 422 `OUT_OF_COVERAGE` from the pricing engine) comes back instead of throwing.
-  callOrderPreviewApi({bool flex = false, bool clientErrors = false}) async {
+  callOrderPreviewApi({bool flex = false, bool clientErrors = false, bool? useFreeDelivery}) async {
     final ownerId = OrderCartRepo().resolveCartOwnerId();
     final body = {
         ApiParam.paramUserId:
             ownerId.isNotEmpty ? ownerId : prefGetInt(prefUserId),
         ApiParam.paramAddressId: prefGetInt(prefNewDeliveryAddressId),
         if (flex) 'flex': 1,
+        // Points plan Step 4: a ready «Gratis levering» premie applies unless the customer unticked it.
+        if (useFreeDelivery != null) 'use_free_delivery': useFreeDelivery ? 1 : 0,
       };
     if (clientErrors) {
       final r = await _apiBaseHelper.postAllowClientError(ApiConst.endPointOrderPreview, body: body);
@@ -79,6 +81,7 @@ class CheckoutRepo {
     bool clientErrors = false,
     String? companyName,
     String? companyOrgNr,
+    bool? useFreeDelivery,
   }) async {
     // Customer v2 Step 1: with [clientErrors] a 422 (`QUOTE_EXPIRED`, `OUT_OF_COVERAGE`) comes back as its body.
     final post = clientErrors
@@ -109,6 +112,8 @@ class CheckoutRepo {
         // Customer v2 Step 1 (pricing spec §2.4): the quote the customer saw is the fee.
         if (quoteId != null) 'quote_id': quoteId,
         if (flex) 'flex': 1,
+        // Points plan Step 4: the «Gratis levering» premie, on unless unticked.
+        if (useFreeDelivery != null) 'use_free_delivery': useFreeDelivery ? 1 : 0,
         // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering — the company on the receipt.
         if (companyOrgNr != null && companyOrgNr.isNotEmpty) 'company_org_nr': companyOrgNr,
         if (companyOrgNr != null && companyOrgNr.isNotEmpty && (companyName ?? '').isNotEmpty) 'company_name': companyName,

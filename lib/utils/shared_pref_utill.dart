@@ -49,6 +49,8 @@ const String prefServiceAccountAccessToken = "serviceAccountAccessToken";
 const String prefOTPerror = "prefOTPerror";
 const String prefSelectedLatLng = "selectedLatLng";
 const String prefTip = "tip";
+// Points plan Step 4: the «Gratis levering» ticket's «Bruk på neste bestilling» (on by default).
+const String prefPremieBrukNeste = "premie_bruk_neste";
 const String prefThemeMode = "themeMode";
 const String prefHomeCategoryCache = "homeCategoryCache";
 const String prefIsGuestMode = "isGuestMode";

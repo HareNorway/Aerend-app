@@ -43,17 +43,22 @@ class OpsKasseApi {
   /// (CUS-A13): the level the price engine applies — Kassen's «Du mangler N kr» and «Gratis over» read this.
   double lastFreeDeliveryOverKr = 0;
 
-  Future<OrderPreviewPojo?> preview({bool flex = false}) async {
+  /// Points plan Step 4 (points spec §6.2 `auto`): the ready «Gratis levering» premie from the last [preview] —
+  /// `claim_id`, `name`, `covers` (kr), `applied` — or null.
+  Map<String, dynamic>? lastFreeDeliveryPremie;
+
+  Future<OrderPreviewPojo?> preview({bool flex = false, bool? useFreeDelivery}) async {
     lastPreviewError = null;
     if (_off) return null;
     try {
-      final json = await CheckoutRepo().callOrderPreviewApi(flex: flex, clientErrors: true);
+      final json = await CheckoutRepo().callOrderPreviewApi(flex: flex, clientErrors: true, useFreeDelivery: useFreeDelivery);
       if (json is! Map<String, dynamic>) return null;
       if (json['status'] != 1) {
         lastPreviewError = json['error'] is String ? json['error'] as String : null;
         return null;
       }
       lastFreeDeliveryOverKr = json['free_delivery_over'] is num ? (json['free_delivery_over'] as num).toDouble() : 0;
+      lastFreeDeliveryPremie = json['free_delivery_premie'] is Map ? Map<String, dynamic>.from(json['free_delivery_premie'] as Map) : null;
       return previewFromJson(json);
     } catch (_) {
       return null;
@@ -130,6 +135,7 @@ class OpsKasseApi {
     bool flex = false,
     String? companyName,
     String? companyOrgNr,
+    bool? useFreeDelivery,
   }) async {
     if (_off) return null;
     try {
@@ -156,6 +162,7 @@ class OpsKasseApi {
         clientErrors: true,
         companyName: companyName,
         companyOrgNr: companyOrgNr,
+        useFreeDelivery: useFreeDelivery,
       );
       // The order rows the app reads back carry no payment type: remember it for Bestillingsdetaljer.
       if (json is Map && json['status'] == 1) {

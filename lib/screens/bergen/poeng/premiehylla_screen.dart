@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
@@ -140,14 +141,34 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
 
   /// A claim's ticket, opened: how it is used, the code, how long it lasts.
   void _visClaim(PrizeClaim c, Prize? p) {
+    final auto = (c.specType ?? p?.specType) == 'auto' && c.status == 'klar';
+    var bruk = prefGetBoolOr(prefPremieBrukNeste, true);
     showMegArk<void>(
       context,
       title: c.prizeName ?? p?.name ?? '',
       subtitle: p?.partnerName ?? 'Ærend',
-      body: (ctx, _) => Column(
+      body: (ctx, setSheet) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: PremieArk.hvordan(c.specType ?? p?.specType ?? '')),
+          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: auto ? A4MegCopy.a4_hylla_auto_gjelder : PremieArk.hvordan(c.specType ?? p?.specType ?? '')),
+          // Points plan Step 4 (`phBong` auto): on by default; off keeps it for later (Kassen can still switch it on).
+          if (auto)
+            MegArkRow(
+              key: const Key('hylla-auto-bruk'),
+              title: A4MegCopy.a4_hylla_auto_bruk,
+              sub: bruk ? null : A4MegCopy.a4_hylla_auto_bruk_av,
+              trailing: Switch.adaptive(
+                key: const Key('hylla-auto-bryter'),
+                value: bruk,
+                // The slip's mint switch (KvBryter), not the platform's accent.
+                activeTrackColor: const Color(0xFF2FB893),
+                activeThumbColor: Colors.white,
+                onChanged: (v) {
+                  prefSetBool(prefPremieBrukNeste, v);
+                  setSheet(() => bruk = v);
+                },
+              ),
+            ),
           if ((c.voucherCode ?? '').isNotEmpty) MegArkRow(title: A4MegCopy.a4_hylla_kode, sub: c.voucherCode!),
           if (c.expiresAt != null) MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: A4MegCopy.a4_hylla_dager_igjen(_dagerIgjen(c))),
           // Customer Step 12 (Points spec §4.3): within 24 h before fulfilment the claim can be undone.
