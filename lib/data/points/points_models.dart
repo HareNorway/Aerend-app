@@ -13,7 +13,7 @@ class PointsBalance {
     this.earned12m = 0,
     this.lifetime = 0,
     this.tier = 0,
-    this.tierName = 'Fløyen',
+    this.tierName = 'Bronse',
     this.nextTierName,
     this.pointsToNextTier,
     this.expiringAmount = 0,
@@ -24,6 +24,12 @@ class PointsBalance {
     this.protectedUntil,
     this.reviewAt,
     this.keepGap = 0,
+    this.atRisk = false,
+    this.tierThreshold = 0,
+    this.pacePerMonth = 0,
+    this.monthsToNext,
+    this.boat = 'robaat',
+    this.perk = 'none',
   });
 
   /// Spendable now.
@@ -58,13 +64,30 @@ class PointsBalance {
   /// The whole ladder (agil-4): Bronse → Sølv → Gull → Platina with thresholds.
   final List<TierStep> tiers;
 
-  /// The tier is safe until this date; the next annual review follows it.
+  /// Before points plan Step 2: the tier was safe until this date. No longer sent.
   final DateTime? protectedUntil;
 
-  /// The next annual review (`tier.review_at`) and the points still needed so
-  /// the tier holds on that day (`tier.keep_gap`).
+  /// Points plan Step 2 (points spec §5): the customer's own review date (`tier.review_at`; reached or confirmed + 90
+  /// days, null on the first level) and the points still needed so the level holds on that day (`tier.keep_gap`).
   final DateTime? reviewAt;
   final int keepGap;
+
+  /// The review would move the customer down (`tier.at_risk`): only then «Du er N poeng unna å bli på X».
+  final bool atRisk;
+
+  /// The current level's threshold (`tier.threshold`), for «N poeng over grensen for X».
+  final int tierThreshold;
+
+  /// The pace line (`tier.pace`): points a month over the last 90 days, and months to the next level at it.
+  final int pacePerMonth;
+  final int? monthsToNext;
+
+  /// Fjordløpet reads the level (`tier.boat`: robaat | vimpel | snekke | egen; `tier.perk`: none | vest).
+  final String boat;
+  final String perk;
+
+  /// Points above the current level's threshold (0 on the first level).
+  int get marginOverThreshold => tier <= 0 ? 0 : (earned12m - tierThreshold).clamp(0, 1 << 30);
 
   /// How far through the current tier (design `NV.pct`): 0 at its threshold,
   /// 1 at the next one. Uses the ladder when the API sent it.
@@ -103,7 +126,7 @@ class PointsBalance {
       earned12m: _int(points['earned_12m']),
       lifetime: _int(points['lifetime']),
       tier: _int(tier['index']),
-      tierName: (tier['name'] as String?) ?? 'Fløyen',
+      tierName: (tier['name'] as String?) ?? 'Bronse',
       nextTierName: tier['next_name'] as String?,
       pointsToNextTier:
           tier['points_to_next'] == null ? null : _int(tier['points_to_next']),
@@ -118,6 +141,12 @@ class PointsBalance {
       protectedUntil: _date(tier['protected_until']),
       reviewAt: _date(tier['review_at']),
       keepGap: _int(tier['keep_gap']),
+      atRisk: tier['at_risk'] == true || (tier['at_risk'] == null && _int(tier['keep_gap']) > 0),
+      tierThreshold: _int(tier['threshold']),
+      pacePerMonth: _int((tier['pace'] as Map?)?['per_month']),
+      monthsToNext: (tier['pace'] as Map?)?['months_to_next'] == null ? null : _int((tier['pace'] as Map)['months_to_next']),
+      boat: (tier['boat'] as String?) ?? 'robaat',
+      perk: (tier['perk'] as String?) ?? 'none',
     );
   }
 }

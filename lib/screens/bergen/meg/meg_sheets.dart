@@ -1188,8 +1188,26 @@ class _NivaaDetail extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           Text(A4MegCopy.a4_meg_opptjent_12(b.earned12m), style: BergenTokens.text(12, weight: FontWeight.w700, color: MegArkInk.sub)),
+          // Points plan Step 2: the pace line from the customer's own last 90 days (`tier.pace`), never a fixed number.
+          if (!hasNext || (b.pacePerMonth > 0 && b.monthsToNext != null)) ...[
+            const SizedBox(height: 6),
+            Text(
+              hasNext ? A4MegCopy.a4_meg_tempo(b.pacePerMonth, b.monthsToNext!) : A4MegCopy.a4_meg_tempo_topp,
+              key: const Key('nivaa-tempo'),
+              style: BergenTokens.text(12, weight: FontWeight.w600, color: MegArkInk.sub, height: 1.45),
+            ),
+          ],
+          // «N poeng over grensen for Gull» — when the level is safe.
+          if (b.tier > 0 && !b.atRisk && b.marginOverThreshold > 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              A4MegCopy.a4_meg_margin(b.marginOverThreshold, b.tierName),
+              key: const Key('nivaa-margin'),
+              style: BergenTokens.text(12, weight: FontWeight.w800, color: MegArkInk.green, height: 1.45),
+            ),
+          ],
           const SizedBox(height: 16),
-          Text(hasNext ? A4MegCopy.a4_meg_da_aapner : A4MegCopy.a4_meg_hele_hylla, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: MegArkInk.ink)),
+          Text(hasNext ? A4MegCopy.a4_meg_aapner_paa(b.nextTierName!) : A4MegCopy.a4_meg_hele_hylla, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: MegArkInk.ink)),
           if (three.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
@@ -1211,7 +1229,7 @@ class _NivaaDetail extends StatelessWidget {
               children: [
                 if (b.reviewAt != null && b.tier > 0) ...[
                   Text(
-                    b.keepGap > 0
+                    b.atRisk && b.keepGap > 0
                         ? A4MegCopy.a4_meg_vurdering_gap(MegSheets.pretty(b.reviewAt!.toIso8601String()), b.keepGap, b.tierName)
                         : A4MegCopy.a4_meg_vurdering(MegSheets.pretty(b.reviewAt!.toIso8601String()), b.tierName),
                     key: const Key('nivaa-vurdering'),

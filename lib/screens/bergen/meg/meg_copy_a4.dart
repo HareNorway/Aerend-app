@@ -373,6 +373,12 @@ abstract final class A4MegCopy {
   static const String a4_meg_hoyeste_linje = 'poeng opptjent — høyeste nivå';
   static String a4_meg_opptjent_12(int n) => 'Opptjent siste 12 måneder: ${_nf(n)}';
   static const String a4_meg_da_aapner = 'Da åpner disse på hylla di:';
+  // Points plan Step 2 (the 24des level sheet `phNiv`): the next shelf, the pace and the margin, all from the API.
+  static String a4_meg_aapner_paa(String neste) => 'Dette åpner på $neste';
+  static String a4_meg_tempo(int perMonth, int months) =>
+      'Med rundt ${_nf(perMonth)} poeng i måneden er du der om ca. ${months == 1 ? 'én måned' : '$months måneder'}.';
+  static const String a4_meg_tempo_topp = 'Du har det høyeste nivået.';
+  static String a4_meg_margin(int n, String tier) => '${_nf(n)} poeng over grensen for $tier';
   static const String a4_meg_hele_hylla = 'Hele hylla er åpen for deg.';
   static String a4_meg_vurdering(String date, String tier) => 'Neste vurdering $date · du holder $tier.';
   static String a4_meg_vurdering_gap(String date, int gap, String tier) => 'Neste vurdering $date · du er ${_nf(gap)} poeng unna å bli på $tier.';

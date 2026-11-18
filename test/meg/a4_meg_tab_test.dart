@@ -66,6 +66,10 @@ void main() {
     pointsToNextTier: 2400,
     reviewAt: DateTime(2027, 3, 14),
     keepGap: 400,
+    atRisk: true,
+    tierThreshold: 3000,
+    pacePerMonth: 300,
+    monthsToNext: 8,
     tiers: [
       TierStep(index: 0, name: 'Bronse', threshold: 0),
       TierStep(index: 1, name: 'Sølv', threshold: 1000),
@@ -546,7 +550,9 @@ void main() {
     expect(find.text('NÅ'), findsOneWidget);
     expect(find.text('poeng til Platina'), findsOneWidget);
     expect(find.text('Opptjent siste 12 måneder: 3 600'), findsOneWidget);
-    expect(find.text('Da åpner disse på hylla di:'), findsOneWidget);
+    expect(find.text('Dette åpner på Platina'), findsOneWidget);
+    expect(find.text('Med rundt 300 poeng i måneden er du der om ca. 8 måneder.'), findsOneWidget);
+    expect(find.byKey(const Key('nivaa-margin')), findsNothing, reason: 'at risk: the gap, not the margin');
     expect(find.text('Din egen båt i Vågen'), findsOneWidget);
     expect(find.text('Middag for to på Bryggen'), findsOneWidget);
     expect(find.text('Fløybanen for to'), findsOneWidget);
