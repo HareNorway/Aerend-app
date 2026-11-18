@@ -7154,7 +7154,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cus_ai_rett_antall(int n) {
-    return '$n of 6 on';
+    return '$n of 4 on';
   }
 
   @override
@@ -7171,11 +7171,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'The same as everyone sees in the app';
 
   @override
-  String get consent_rights_cart_write => 'Build a cart for you';
+  String get consent_rights_cart_write => 'Put items in your cart';
 
   @override
   String get consent_rights_cart_write_sub =>
-      'You always see the cart before anything is sent';
+      'The same cart you see in the app';
 
   @override
   String get consent_rights_orders_read => 'See your orders';
@@ -7185,10 +7185,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get consent_rights_orders_write =>
-      'Order for you – always with your confirmation';
+      'Order and cancel for you, within your limits';
 
   @override
-  String get consent_rights_orders_write_sub => 'Cannot be switched off';
+  String get consent_rights_orders_write_sub =>
+      'You always approve the payment yourself';
 
   @override
   String get consent_rights_profile_read => 'Use your addresses and favourites';
@@ -7203,6 +7204,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get consent_rights_support_write_sub =>
       'When something is missing or wrong';
+
+  @override
+  String get consent_rights_account_read => 'See your addresses and orders';
+
+  @override
+  String get consent_rights_account_read_sub =>
+      'Address names and order status — never your phone, e-mail or full street address';
+
+  @override
+  String cus_ai_hoyst(String kr) {
+    return 'At most $kr kr — you can only lower it';
+  }
+
+  @override
+  String cus_ai_maks_ordre(int n) {
+    return 'And at most $n orders per 24 hours.';
+  }
 
   @override
   String get cus_ai_dine_grenser => 'Your limits';

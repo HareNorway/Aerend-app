@@ -146,12 +146,16 @@ void main() {
     expect(find.text(AiCopy.cus_ai_aktivitet.toUpperCase()), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text(AiCopy.cus_ai_akt('confirm_order')), findsOneWidget);
-    // «Maks per bestilling» + 50 → saved after the debounce.
+    // Agent Ordering Step 4 (A5): the caps only go down — «+» at the link's own cap does nothing, «−» 50 is saved.
     await tester.ensureVisible(find.text(AiCopy.cus_ai_maks_per_best));
-    final pluss = find.descendant(of: find.ancestor(of: find.text(AiCopy.cus_ai_maks_per_best), matching: find.byType(Row)).first, matching: find.byType(Opacity)).last;
-    await tester.tap(pluss);
+    final knapper = find.descendant(of: find.ancestor(of: find.text(AiCopy.cus_ai_maks_per_best), matching: find.byType(Row)).first, matching: find.byType(Opacity));
+    await tester.tap(knapper.last);
     await tester.pump(const Duration(milliseconds: 800));
-    expect(cus.calls.any((c) => c.startsWith('update:1:550:')), isTrue, reason: cus.calls.join(','));
+    expect(cus.calls.any((c) => c.startsWith('update:1:2050:')), isFalse, reason: cus.calls.join(','));
+    await tester.tap(knapper.first);
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(cus.calls.any((c) => c.startsWith('update:1:1950:')), isTrue, reason: cus.calls.join(','));
+    expect(find.byKey(const Key('cus-ai-maks-ordre')), findsOneWidget);
     await tester.ensureVisible(find.byKey(const Key('cus-ai-detalj-koble-fra')));
     await tester.tap(find.byKey(const Key('cus-ai-detalj-koble-fra')));
     await tester.pump();
@@ -174,7 +178,7 @@ void main() {
     expect(find.byKey(const Key('cus-ai-hs-kobler')), findsOneWidget);
     expect(find.text(AiCopy.cus_ai_sam_tittel('Claude')), findsOneWidget);
     expect(find.byKey(const Key('cus-ai-rett-orders:write')), findsOneWidget);
-    // Switch «Åpne en supportsak» on, then «Koble til Claude» → the code carries 6 scopes.
+    // Agent Ordering Step 4 (spec §7 defaults): support is on by default — switch it off, then «Koble til Claude».
     await tester.ensureVisible(find.byKey(const Key('cus-ai-rett-support:write')));
     await tester.tap(find.byKey(const Key('cus-ai-rett-support:write')));
     await tester.pump();
@@ -184,7 +188,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 900));
     expect(find.byKey(const Key('cus-ai-qr')), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 600));
-    expect(cus.calls.any((c) => c.startsWith('code:claude:500:') && c.contains('support:write')), isTrue, reason: cus.calls.join(','));
+    expect(cus.calls.any((c) => c.startsWith('code:claude:2000:') && c.contains('account:read') && !c.contains('support:write')), isTrue, reason: cus.calls.join(','));
     expect(find.byKey(const Key('cus-ai-kode-0')), findsOneWidget);
     expect(find.text('7'), findsWidgets);
     await tester.ensureVisible(find.byKey(const Key('cus-ai-kopier-kode')));

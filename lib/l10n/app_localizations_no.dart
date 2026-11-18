@@ -7163,7 +7163,7 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String cus_ai_rett_antall(int n) {
-    return '$n av 6 på';
+    return '$n av 4 på';
   }
 
   @override
@@ -7180,11 +7180,11 @@ class AppLocalizationsNo extends AppLocalizations {
       'Det samme som alle ser i appen';
 
   @override
-  String get consent_rights_cart_write => 'Bygge handlekurv for deg';
+  String get consent_rights_cart_write => 'Legge varer i handlekurven din';
 
   @override
   String get consent_rights_cart_write_sub =>
-      'Du ser alltid kurven før noe sendes';
+      'Den samme handlekurven du ser i appen';
 
   @override
   String get consent_rights_orders_read => 'Se bestillingene dine';
@@ -7194,10 +7194,11 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get consent_rights_orders_write =>
-      'Bestille for deg – alltid med din bekreftelse';
+      'Bestille og avbestille for deg, innenfor grensene dine';
 
   @override
-  String get consent_rights_orders_write_sub => 'Kan ikke slås av';
+  String get consent_rights_orders_write_sub =>
+      'Du godkjenner alltid betalingen selv';
 
   @override
   String get consent_rights_profile_read =>
@@ -7213,6 +7214,24 @@ class AppLocalizationsNo extends AppLocalizations {
   @override
   String get consent_rights_support_write_sub =>
       'Når noe mangler eller er feil';
+
+  @override
+  String get consent_rights_account_read =>
+      'Se adressene og bestillingene dine';
+
+  @override
+  String get consent_rights_account_read_sub =>
+      'Navnene på adressene og status på bestillinger — aldri telefon, e-post eller hele gateadressen';
+
+  @override
+  String cus_ai_hoyst(String kr) {
+    return 'Høyst $kr kr — du kan bare senke';
+  }
+
+  @override
+  String cus_ai_maks_ordre(int n) {
+    return 'Og høyst $n bestillinger per døgn.';
+  }
 
   @override
   String get cus_ai_dine_grenser => 'Dine grenser';

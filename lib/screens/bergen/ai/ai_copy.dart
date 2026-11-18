@@ -135,14 +135,15 @@ abstract final class AiCopy {
   static String cus_ai_rett_antall(int n) => languages.cus_ai_rett_antall(n);
   static String get cus_ai_alltid_paa => languages.cus_ai_alltid_paa;
   static String get cus_ai_paakrevd => languages.cus_ai_paakrevd;
+  // Agent Ordering Step 4 (spec §7, plan A13): the four scopes the customer switches, in the order of `AiArk.scopes`.
   static List<List<String>> get cus_ai_rett => [
-    [languages.consent_rights_catalog_read, languages.consent_rights_catalog_read_sub],
+    [languages.consent_rights_account_read, languages.consent_rights_account_read_sub],
     [languages.consent_rights_cart_write, languages.consent_rights_cart_write_sub],
-    [languages.consent_rights_orders_read, languages.consent_rights_orders_read_sub],
     [languages.consent_rights_orders_write, languages.consent_rights_orders_write_sub],
-    [languages.consent_rights_profile_read, languages.consent_rights_profile_read_sub],
     [languages.consent_rights_support_write, languages.consent_rights_support_write_sub],
   ];
+  static String cus_ai_hoyst(int kr) => languages.cus_ai_hoyst(nf(kr));
+  static String cus_ai_maks_ordre(int n) => languages.cus_ai_maks_ordre(n);
   static String get cus_ai_dine_grenser => languages.cus_ai_dine_grenser;
   static String cus_ai_grense_tittel(String navn) => languages.cus_ai_grense_tittel(navn);
   static String get cus_ai_maks_per_best => languages.consent_limit_per_order;
@@ -192,7 +193,7 @@ abstract final class AiCopy {
   static String get cus_ai_koble_fra_alle => languages.revoke_all;
   static String get cus_ai_slik_kobler => languages.assistants_how_to_link;
   static String get cus_ai_koble_ny => languages.cus_ai_koble_ny;
-  static List<List<String>> get cus_ai_rett_kort => [['cart:write', languages.cus_ai_rett_kort_cart], ['orders:read', languages.cus_ai_rett_kort_orders], ['profile:read', languages.cus_ai_rett_kort_addresses], ['support:write', 'Support']];
+  static List<List<String>> get cus_ai_rett_kort => [['cart:write', languages.cus_ai_rett_kort_cart], ['account:read', languages.cus_ai_rett_kort_orders], ['support:write', 'Support']];
 
   // aiDetalj
   static String cus_ai_detalj_linje(String navn) => languages.cus_ai_detalj_linje(navn);

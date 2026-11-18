@@ -12869,7 +12869,7 @@ abstract class AppLocalizations {
   /// No description provided for @cus_ai_rett_antall.
   ///
   /// In en, this message translates to:
-  /// **'{n} of 6 on'**
+  /// **'{n} of 4 on'**
   String cus_ai_rett_antall(int n);
 
   /// No description provided for @cus_ai_alltid_paa.
@@ -12899,13 +12899,13 @@ abstract class AppLocalizations {
   /// No description provided for @consent_rights_cart_write.
   ///
   /// In en, this message translates to:
-  /// **'Build a cart for you'**
+  /// **'Put items in your cart'**
   String get consent_rights_cart_write;
 
   /// No description provided for @consent_rights_cart_write_sub.
   ///
   /// In en, this message translates to:
-  /// **'You always see the cart before anything is sent'**
+  /// **'The same cart you see in the app'**
   String get consent_rights_cart_write_sub;
 
   /// No description provided for @consent_rights_orders_read.
@@ -12923,13 +12923,13 @@ abstract class AppLocalizations {
   /// No description provided for @consent_rights_orders_write.
   ///
   /// In en, this message translates to:
-  /// **'Order for you – always with your confirmation'**
+  /// **'Order and cancel for you, within your limits'**
   String get consent_rights_orders_write;
 
   /// No description provided for @consent_rights_orders_write_sub.
   ///
   /// In en, this message translates to:
-  /// **'Cannot be switched off'**
+  /// **'You always approve the payment yourself'**
   String get consent_rights_orders_write_sub;
 
   /// No description provided for @consent_rights_profile_read.
@@ -12955,6 +12955,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When something is missing or wrong'**
   String get consent_rights_support_write_sub;
+
+  /// No description provided for @consent_rights_account_read.
+  ///
+  /// In en, this message translates to:
+  /// **'See your addresses and orders'**
+  String get consent_rights_account_read;
+
+  /// No description provided for @consent_rights_account_read_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Address names and order status — never your phone, e-mail or full street address'**
+  String get consent_rights_account_read_sub;
+
+  /// No description provided for @cus_ai_hoyst.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {kr} kr — you can only lower it'**
+  String cus_ai_hoyst(String kr);
+
+  /// No description provided for @cus_ai_maks_ordre.
+  ///
+  /// In en, this message translates to:
+  /// **'And at most {n} orders per 24 hours.'**
+  String cus_ai_maks_ordre(int n);
 
   /// No description provided for @cus_ai_dine_grenser.
   ///

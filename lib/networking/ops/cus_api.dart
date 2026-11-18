@@ -905,7 +905,8 @@ class CusAiClient {
 
 /// The in-app consent's choices (design `aiSamtykke`): ride on the link code and win on the consent page.
 class CusAiPrefs {
-  const CusAiPrefs({this.scopes = const ['catalog:read', 'cart:write', 'orders:read', 'orders:write', 'profile:read'], this.capPerOrderKr = 500, this.capPerDayKr = 1000, this.paymentPref = 'vipps', this.addressPref = 'home', this.shareBio = false});
+  // Agent Ordering Step 4 (spec §7 defaults, D-03): the four scopes on (preferences off), the spec's caps.
+  const CusAiPrefs({this.scopes = const ['account:read', 'cart:write', 'orders:write', 'support:write'], this.capPerOrderKr = 2000, this.capPerDayKr = 5000, this.paymentPref = 'vipps', this.addressPref = 'home', this.shareBio = false});
   final List<String> scopes;
   final int capPerOrderKr;
   final int capPerDayKr;

@@ -630,7 +630,7 @@ abstract final class AiArk {
       body: (ctx, setState) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         AiHandshake(modus: 'kobler', navn: navn, linje: AiCopy.cus_ai_venter_svar),
         Row(children: [
-          _pill(ctx, AiIk.skjold, AiCopy.cus_ai_rett_antall(2 + p.scopes.where((s) => s != 'catalog:read' && s != 'orders:write').length)),
+          _pill(ctx, AiIk.skjold, AiCopy.cus_ai_rett_antall(p.scopes.where(scopes.contains).length)),
           const SizedBox(width: 8),
           Flexible(child: _pill(ctx, AiIk.lommebok, AiCopy.cus_ai_grense_sum(p.capPerOrderKr, p.capPerDayKr))),
         ]),
@@ -651,11 +651,23 @@ abstract final class AiArk {
   static Widget _pill(BuildContext c, String ik, String tx) => Container(padding: const EdgeInsets.fromLTRB(9, 5, 10, 5), decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: c.aeM(const Color.fromRGBO(92, 224, 184, .14), LysPalett.mintDis), border: Border.all(color: c.aeM(const Color.fromRGBO(92, 224, 184, .35), const Color.fromRGBO(11, 107, 87, .22)))), child: Row(mainAxisSize: MainAxisSize.min, children: [AeIkon(ik, size: 12, stroke: 2.4, color: c.aiStrek(const Color(0xFF7FF0CB))), const SizedBox(width: 5), Flexible(child: Text(tx, maxLines: 1, overflow: TextOverflow.ellipsis, style: inter(11, weight: FontWeight.w800, color: c.aiMint)))]));
 
   /// The rights, the limits, payment, address and Min bio (design `rettVals`) — shared by aiSamtykke and aiDetalj.
-  static Widget rettigheter(BuildContext ctx, String navn, CusAiPrefs p, void Function(CusAiPrefs) sett, {String? adresse}) {
-    const scopes = ['catalog:read', 'cart:write', 'orders:read', 'orders:write', 'profile:read', 'support:write'];
-    const locked = ['catalog:read', 'orders:write'];
-    const ik = [AiIk.bok, AiIk.pose, AiIk.hist, AiIk.skjold, AiIk.pin, AiIk.person];
-    final paaN = 2 + p.scopes.where((s) => !locked.contains(s)).length;
+  /// Agent Ordering Step 4 (spec §7, plan A13): the scopes the customer switches (none locked); «Del Min bio» below
+  /// is `preferences:apply`.
+  static const scopes = ['account:read', 'cart:write', 'orders:write', 'support:write'];
+
+  /// Agent Ordering Step 4 (spec PAY-08, D-03, plan A5): the spec's limits are the ceilings.
+  static const takPerBestKr = 2000;
+  static const takPerDagKr = 5000;
+  static const maksOrdrePerDogn = 5;
+
+  /// [maksPerBestKr] / [maksPerDagKr]: the highest the steppers go — the caps already saved on a link (the customer
+  /// can only lower them, A5); the ceilings on a new link.
+  static Widget rettigheter(BuildContext ctx, String navn, CusAiPrefs p, void Function(CusAiPrefs) sett, {String? adresse, int maksPerBestKr = takPerBestKr, int maksPerDagKr = takPerDagKr}) {
+    const locked = <String>[];
+    const ik = [AiIk.hist, AiIk.pose, AiIk.skjold, AiIk.person];
+    final paaN = p.scopes.where(scopes.contains).length;
+    final maksBest = maksPerBestKr.clamp(100, takPerBestKr);
+    final maksDag = maksPerDagKr.clamp(200, takPerDagKr);
     Widget stepper(String navnTx, String under, String ik, int verdi, int steg, int min, int max, void Function(int) on) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(children: [
@@ -691,7 +703,7 @@ abstract final class AiArk {
           navn: AiCopy.cus_ai_rett[i][0],
           under: AiCopy.cus_ai_rett[i][1],
           bryter: locked.contains(s) ? null : p.scopes.contains(s),
-          verdi: locked.contains(s) ? (s == 'catalog:read' ? AiCopy.cus_ai_alltid_paa : AiCopy.cus_ai_paakrevd) : null,
+          verdi: null,
           onTap: () {
             if (locked.contains(s)) {
               showBergenToast(ctx, s == 'orders:write' ? AiCopy.cus_ai_bekrefter_alltid : AiCopy.cus_ai_menyer_synlige);
@@ -704,8 +716,9 @@ abstract final class AiArk {
         ),
       AiSeksjon(AiCopy.cus_ai_dine_grenser),
       Padding(padding: const EdgeInsets.fromLTRB(4, 0, 4, 4), child: Text(AiCopy.cus_ai_grense_tittel(navn), style: inter(13.5, weight: FontWeight.w800, color: ctx.aiDemp(Colors.white)))),
-      stepper(AiCopy.cus_ai_maks_per_best, AiCopy.cus_ai_forslag(500), AiIk.lommebok, p.capPerOrderKr, 50, 100, 2000, (v) => sett(p.copyWith(capPerOrderKr: v))),
-      stepper(AiCopy.cus_ai_maks_per_dag, AiCopy.cus_ai_forslag(1000), AiIk.kal, p.capPerDayKr, 100, 200, 5000, (v) => sett(p.copyWith(capPerDayKr: v))),
+      stepper(AiCopy.cus_ai_maks_per_best, AiCopy.cus_ai_hoyst(maksBest), AiIk.lommebok, p.capPerOrderKr.clamp(100, maksBest), 50, 100, maksBest, (v) => sett(p.copyWith(capPerOrderKr: v))),
+      stepper(AiCopy.cus_ai_maks_per_dag, AiCopy.cus_ai_hoyst(maksDag), AiIk.kal, p.capPerDayKr.clamp(200, maksDag), 100, 200, maksDag, (v) => sett(p.copyWith(capPerDayKr: v))),
+      Padding(key: const Key('cus-ai-maks-ordre'), padding: const EdgeInsets.fromLTRB(4, 0, 4, 4), child: Text(AiCopy.cus_ai_maks_ordre(maksOrdrePerDogn), style: inter(11.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))),
       const SizedBox(height: 6),
       Row(children: [Container(width: 34, height: 34, alignment: Alignment.center, decoration: BoxDecoration(borderRadius: BorderRadius.circular(11), color: ctx.aeM(const Color.fromRGBO(255, 255, 255, .1), LysPalett.dis)), child: AeIkon(AiIk.kort, size: 16, stroke: 2.2, color: ctx.aiStrek(Colors.white))), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(AiCopy.cus_ai_betaling, style: inter(13.5, weight: FontWeight.w800, color: ctx.aiTittel)), Text(AiCopy.cus_ai_betaling_under, style: inter(11.5, color: ctx.aiDemp(const Color.fromRGBO(255, 255, 255, .65))))]))]),
       const SizedBox(height: 8),
@@ -838,7 +851,10 @@ abstract final class AiArk {
     }
     var l = link;
     List<CusAiAktivitet>? akt;
-    var p = CusAiPrefs(scopes: l.scopes, capPerOrderKr: l.capPerOrder?.kr ?? 500, capPerDayKr: l.capPerDay?.kr ?? 1000, paymentPref: l.paymentPref, addressPref: l.addressPref, shareBio: l.shareBio);
+    var p = CusAiPrefs(scopes: l.scopes, capPerOrderKr: l.capPerOrder?.kr ?? takPerBestKr, capPerDayKr: l.capPerDay?.kr ?? takPerDagKr, paymentPref: l.paymentPref, addressPref: l.addressPref, shareBio: l.shareBio);
+    // A5: what the link already allows is the most the steppers go to (lower only).
+    final maksBest = l.capPerOrder?.kr ?? takPerBestKr;
+    final maksDag = l.capPerDay?.kr ?? takPerDagKr;
     Timer? lagre;
     final n = l.name;
     return showMegArk<String>(
@@ -896,7 +912,7 @@ abstract final class AiArk {
               if (i < 2) const SizedBox(width: 8),
             ],
           ]),
-          if (l.active) rettigheter(ctx, n, p, oppdater),
+          if (l.active) rettigheter(ctx, n, p, oppdater, maksPerBestKr: maksBest, maksPerDagKr: maksDag),
           // Customer v2 Step 2: «Del Min bio» is its own consent — when it was given, and the text's version.
           if (l.active && p.shareBio && l.shareBioConsentedAt != null)
             Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 0), child: Text(AiCopy.cus_ai_bio_delt_siden(aiDato(l.shareBioConsentedAt)), key: const Key('cus-ai-bio-siden'), style: inter(11, weight: FontWeight.w700, color: ctx.aiMint))),

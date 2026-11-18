@@ -25,9 +25,9 @@ class AiStore extends ChangeNotifier {
   /// The design's seeded link for the harness (`aiStd`).
   static CusAiLink harnessLink(String navn, {bool active = true}) => CusAiLink(
     id: 1, clientId: AiNavn.clientId(navn), name: navn, vendor: AiNavn.vendor(navn), active: active,
-    scopes: const ['catalog:read', 'cart:write', 'orders:read', 'orders:write', 'profile:read'],
-    permissions: [for (final s in const ['catalog:read', 'cart:write', 'orders:read', 'orders:write', 'profile:read', 'support:write']) CusAiRett(scope: s, on: s != 'support:write', locked: s == 'catalog:read' || s == 'orders:write', title: '', line: '', lockedLabel: s == 'catalog:read' ? 'Alltid på' : (s == 'orders:write' ? 'Påkrevd' : null))],
-    capPerOrder: const CusMoney(ore: 50000, display: '500 kr'), capPerDay: const CusMoney(ore: 100000, display: '1 000 kr'), usedToday: const CusMoney(ore: 41200, display: '412 kr'), orders: 1,
+    scopes: const ['account:read', 'cart:write', 'orders:write'],
+    permissions: [for (final s in const ['account:read', 'cart:write', 'orders:write', 'support:write']) CusAiRett(scope: s, on: s != 'support:write', locked: false, title: '', line: '', lockedLabel: null)],
+    capPerOrder: const CusMoney(ore: 200000, display: '2 000 kr'), capPerDay: const CusMoney(ore: 500000, display: '5 000 kr'), usedToday: const CusMoney(ore: 41200, display: '412 kr'), orders: 1,
     grantedAt: DateTime(2026, 10, 12, 20, 15), lastUsedAt: DateTime.now().subtract(const Duration(minutes: 20)), revokedAt: active ? null : DateTime.now(),
   );
 

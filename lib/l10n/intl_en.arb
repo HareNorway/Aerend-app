@@ -4346,7 +4346,7 @@
       }
     }
   },
-  "cus_ai_rett_antall": "{n} of 6 on",
+  "cus_ai_rett_antall": "{n} of 4 on",
   "@cus_ai_rett_antall": {
     "placeholders": {
       "n": {
@@ -4358,16 +4358,34 @@
   "cus_ai_paakrevd": "Required",
   "consent_rights_catalog_read": "See menus and prices",
   "consent_rights_catalog_read_sub": "The same as everyone sees in the app",
-  "consent_rights_cart_write": "Build a cart for you",
-  "consent_rights_cart_write_sub": "You always see the cart before anything is sent",
+  "consent_rights_cart_write": "Put items in your cart",
+  "consent_rights_cart_write_sub": "The same cart you see in the app",
   "consent_rights_orders_read": "See your orders",
   "consent_rights_orders_read_sub": "Status and earlier orders",
-  "consent_rights_orders_write": "Order for you – always with your confirmation",
-  "consent_rights_orders_write_sub": "Cannot be switched off",
+  "consent_rights_orders_write": "Order and cancel for you, within your limits",
+  "consent_rights_orders_write_sub": "You always approve the payment yourself",
   "consent_rights_profile_read": "Use your addresses and favourites",
   "consent_rights_profile_read_sub": "Home, Work and favourite stores",
   "consent_rights_support_write": "Open a support case for you",
   "consent_rights_support_write_sub": "When something is missing or wrong",
+  "consent_rights_account_read": "See your addresses and orders",
+  "consent_rights_account_read_sub": "Address names and order status — never your phone, e-mail or full street address",
+  "cus_ai_hoyst": "At most {kr} kr — you can only lower it",
+  "@cus_ai_hoyst": {
+    "placeholders": {
+      "kr": {
+        "type": "String"
+      }
+    }
+  },
+  "cus_ai_maks_ordre": "And at most {n} orders per 24 hours.",
+  "@cus_ai_maks_ordre": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "cus_ai_dine_grenser": "Your limits",
   "cus_ai_grense_tittel": "{navn} never goes above these",
   "@cus_ai_grense_tittel": {
