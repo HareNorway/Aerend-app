@@ -92,7 +92,7 @@ abstract final class LfCopy {
     ('Hva vi lagrer', 'Navn, telefonnummer, e-post og leveringsadresse — det vi trenger for å levere ærendet ditt og gi deg poengene dine.', []),
     ('Hva vi aldri gjør', 'Vi selger aldri dataene dine. Butikken ser bare det den må for å pakke ordren, aldri hele historikken din.', []),
     ('Ægils hukommelse', 'Det Ægil husker om deg — rytmer, allergier, favoritter — ligger på din konto. Du kan lese, endre og slette hvert enkelt minne under Meg.', []),
-    ('Synlighet i bydelsligaen', 'Du velger selv om navnet ditt vises. Du kan bruke visningsnavn, bare fornavn, eller være helt anonym.', []),
+    ('Synlighet i Bergen-ligaen', 'Du velger selv om navnet ditt vises. Du kan bruke visningsnavn, bare fornavn, eller være helt anonym.', []),
     ('Dine rettigheter', 'Du kan når som helst be om innsyn i, retting av eller sletting av dataene dine fra Meg → Personvern.', []),
   ];
 
