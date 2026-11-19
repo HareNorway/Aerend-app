@@ -58,6 +58,7 @@ import 'kurv_sync.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
+import '../../../data/points/points_models.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -260,6 +261,10 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   /// ticket's «Bruk på neste bestilling» (`premie_bruk_neste`, on by default); the slip's switch unticks it here.
   bool _brukPremie = prefGetBoolOr(prefPremieBrukNeste, true);
 
+  /// Points plan follow-up (points spec §6.2 kode, P-T15): a ready kode premie from this store, offered as a 0 kr line.
+  PrizeClaim? _kodePremie;
+  bool _medKodePremie = false;
+
   /// The premie from the last main preview (`free_delivery_premie`), or null. Kept here: the side preview for the
   /// flexible window prices another fee and must not replace it.
   Map<String, dynamic>? _premieData;
@@ -401,6 +406,16 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _lastKodePremie(int storeId) async {
+    // An injected Kasse API is a test double: no live points call behind it.
+    if (widget.api != null || OpsCustomerApi.authParams() == null || !OpsCustomerApi.networkEnabled) return;
+    try {
+      final claims = await A3Services.points().claims();
+      final k = claims.where((c) => c.status == 'klar' && c.specType == 'kode' && c.storeIds.contains(storeId)).firstOrNull;
+      if (mounted && k?.id != _kodePremie?.id) setState(() => _kodePremie = k);
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
     _door.removeListener(_dorEndret);
@@ -462,6 +477,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     }
     final results = await Future.wait([_api.preview(flex: _flex, useFreeDelivery: _brukPremie), _api.addresses()]);
     if (!mounted) return;
+    unawaited(_lastKodePremie(cart.storeId));
     final addresses = results[1] as List<AddressListItem>;
     final savedId = prefGetInt(prefNewDeliveryAddressId);
     setState(() {
@@ -859,6 +875,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       companyName: _harFirma ? _firmaNavn.text.trim() : null,
       companyOrgNr: _harFirma ? _orgnr : null,
       useFreeDelivery: _pickup ? null : _brukPremie,
+      premieLineClaimId: _medKodePremie ? _kodePremie?.id : null,
     );
     if (!mounted) return false;
     if (response == null || response['status'] != 1) {
@@ -1549,6 +1566,20 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                         _requote(sett: true);
                       },
                     ),
+                  ],
+                ),
+              ),
+            // Points plan follow-up (points spec §6.2 kode): «Legg til premien din» — a 0 kr line marked PREMIE on the order.
+            if (_kodePremie case final k?)
+              KvRad(
+                key: const Key('a1_kasse_kodepremie'),
+                label: KasseCopy.a1_kasse_kodepremie(k.prizeName ?? ''),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(KasseCopy.kr(0), style: kvMono(context, 12.5, weight: FontWeight.w700, color: const Color(0xFF2E6B47))),
+                    SizedBox(width: 8 * context.bs),
+                    KvBryter(key: const Key('a1_kasse_kodepremie_bryter'), on: _medKodePremie, onTap: () => setState(() => _medKodePremie = !_medKodePremie)),
                   ],
                 ),
               ),

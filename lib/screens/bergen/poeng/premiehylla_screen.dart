@@ -201,13 +201,62 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
               ),
             ),
           if ((c.voucherCode ?? '').isNotEmpty) MegArkRow(title: A4MegCopy.a4_hylla_kode, sub: c.voucherCode!),
+          // Points plan follow-up (points spec §6.2 send): the address to confirm, then «På vei» with tracking.
+          if (c.needsAddress) MegArkRow(key: const Key('cus-hylla-adresse-rad'), title: A4MegCopy.a4_hylla_send_adresse, sub: A4MegCopy.a4_hylla_send_adresse_sub),
+          if (c.specType == 'send' && c.status == 'paa_vei')
+            MegArkRow(key: const Key('cus-hylla-sporing-rad'), title: A4MegCopy.a4_hylla_send_paa_vei, sub: (c.tracking ?? '').isNotEmpty ? A4MegCopy.a4_hylla_send_sporing(c.tracking!) : A4MegCopy.a4_hylla_send_uten_sporing),
           if (c.expiresAt != null) MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: A4MegCopy.a4_hylla_dager_igjen(_dagerIgjen(c))),
           // Customer Step 12 (Points spec §4.3): within 24 h before fulfilment the claim can be undone.
           if (c.cancellable) MegArkRow(key: const Key('cus-hylla-angre-rad'), title: A4MegCopy.cus_hylla_angre, sub: A4MegCopy.cus_hylla_angre_til(_frist(c))),
         ],
       ),
-      primary: c.cancellable ? MegArkButton(key: const Key('cus-hylla-angre-cta'), label: A4MegCopy.cus_hylla_angre_cta, rod: true, onTap: () => _angreClaim(c)) : null,
+      primary: c.needsAddress
+          ? MegArkButton(key: const Key('cus-hylla-adresse-cta'), label: A4MegCopy.a4_hylla_send_bekreft, onTap: () => _adresse(c))
+          : (c.specType == 'send' && c.status == 'paa_vei'
+              ? MegArkButton(key: const Key('cus-hylla-mottatt-cta'), label: A4MegCopy.a4_hylla_send_mottatt, onTap: () => _mottatt(c))
+              : (c.cancellable ? MegArkButton(key: const Key('cus-hylla-angre-cta'), label: A4MegCopy.cus_hylla_angre_cta, rod: true, onTap: () => _angreClaim(c)) : null)),
     );
+  }
+
+  /// Points plan follow-up: the customer confirms where the store should send the premie.
+  Future<void> _adresse(PrizeClaim c) async {
+    final nav = Navigator.of(context);
+    final f = [TextEditingController(text: a3Pref(prefUserName)), TextEditingController(), TextEditingController(), TextEditingController(text: 'Bergen')];
+    final labels = [A4MegCopy.a4_hylla_send_navn, A4MegCopy.a4_hylla_send_gate, A4MegCopy.a4_hylla_send_postnr, A4MegCopy.a4_hylla_send_sted];
+    final ok = await showMegArk<bool>(
+      context,
+      key: const Key('cus-hylla-adresse-ark'),
+      title: A4MegCopy.a4_hylla_send_adresse,
+      subtitle: A4MegCopy.a4_hylla_send_adresse_sub,
+      body: (ctx, _) => Column(children: [
+        for (var i = 0; i < f.length; i++)
+          TextField(key: Key('cus-hylla-adresse-$i'), controller: f[i], decoration: InputDecoration(labelText: labels[i]), keyboardType: i == 2 ? TextInputType.number : TextInputType.text),
+      ]),
+      primary: MegArkButton(key: const Key('cus-hylla-adresse-lagre'), label: A4MegCopy.a4_hylla_send_bekreft, onTap: () => Navigator.of(context).pop(true)),
+    );
+    if (ok != true || !mounted) return;
+    final feil = await SendPremieApi().confirmAddress(c.id, name: f[0].text.trim(), line: f[1].text.trim(), postcode: f[2].text.trim(), city: f[3].text.trim());
+    if (!mounted) return;
+    if (feil == null) {
+      nav.pop();
+      showBergenToast(context, A4MegCopy.a4_hylla_send_bekreftet(c.partnerName ?? ''), icon: Icons.check_rounded);
+      _load();
+    } else {
+      showBergenToast(context, feil == 'ADDRESS_INCOMPLETE' ? A4MegCopy.a4_hylla_send_mangler : CusPoengFeil.tekst(feil, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
+    }
+  }
+
+  Future<void> _mottatt(PrizeClaim c) async {
+    final nav = Navigator.of(context);
+    final feil = await SendPremieApi().received(c.id);
+    if (!mounted) return;
+    if (feil == null) {
+      nav.pop();
+      showBergenToast(context, A4MegCopy.a4_hylla_send_kos, icon: Icons.check_rounded);
+      _load();
+    } else {
+      showBergenToast(context, CusPoengFeil.tekst(feil, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
+    }
   }
 
   /// «til kl 12:57» today, «til kl 13.10. 12:57» another day.

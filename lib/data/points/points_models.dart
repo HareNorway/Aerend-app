@@ -330,7 +330,17 @@ class PrizeClaim {
     this.status = 'klar',
     this.specType,
     this.partnerName,
+    this.storeIds = const [],
+    this.needsAddress = false,
+    this.tracking,
+    this.shippedAt,
   });
+
+  /// Points plan follow-up (points spec §6.2): where a kode premie can ride on an order (Kassen), and the send flow.
+  final List<int> storeIds;
+  final bool needsAddress;
+  final String? tracking;
+  final DateTime? shippedAt;
 
   /// Points plan Step 3 (points spec §6.3): Mine premier's state — klar | paa_vei | brukt | utlopt | angret | gitt |
   /// feilet — and the premie's spec type and store.
@@ -381,6 +391,10 @@ class PrizeClaim {
         status: (json['status'] as String?) ?? statusFrom((json['state'] as String?) ?? 'claimed'),
         specType: json['spec_type'] as String?,
         partnerName: json['partner_name'] as String?,
+        storeIds: [for (final v in (json['store_ids'] as List?) ?? const []) _int(v)],
+        needsAddress: json['needs_address'] == true,
+        tracking: json['tracking'] as String?,
+        shippedAt: _date(json['shipped_at']),
         cancelDeadlineAt: _date(json['cancel_deadline_at']),
         expiresAt: _date(json['expires_at']),
         createdAt: _date(json['created_at']),

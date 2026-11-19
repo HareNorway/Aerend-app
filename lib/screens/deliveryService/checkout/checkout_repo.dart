@@ -82,6 +82,7 @@ class CheckoutRepo {
     String? companyName,
     String? companyOrgNr,
     bool? useFreeDelivery,
+    int? premieLineClaimId,
   }) async {
     // Customer v2 Step 1: with [clientErrors] a 422 (`QUOTE_EXPIRED`, `OUT_OF_COVERAGE`) comes back as its body.
     final post = clientErrors
@@ -114,6 +115,8 @@ class CheckoutRepo {
         if (flex) 'flex': 1,
         // Points plan Step 4: the «Gratis levering» premie, on unless unticked.
         if (useFreeDelivery != null) 'use_free_delivery': useFreeDelivery ? 1 : 0,
+        // Points plan follow-up (points spec §6.2 kode): a premie from this store as a 0 kr line.
+        if (premieLineClaimId != null) 'premie_line_claim_id': premieLineClaimId,
         // Payments plan Step 3 (payments spec v1.3 §2.1): Bedriftskvittering — the company on the receipt.
         if (companyOrgNr != null && companyOrgNr.isNotEmpty) 'company_org_nr': companyOrgNr,
         if (companyOrgNr != null && companyOrgNr.isNotEmpty && (companyName ?? '').isNotEmpty) 'company_name': companyName,

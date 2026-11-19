@@ -382,6 +382,22 @@ abstract final class A4MegCopy {
   static const String a4_meg_baat_sendt = 'Navnet er sendt til godkjenning';
   static const String a4_meg_baat_feil = 'Navnet kan ikke brukes';
 
+  // Points plan follow-up (points spec §6.2 send).
+  static const String a4_hylla_send_adresse = 'Hvor skal premien sendes?';
+  static const String a4_hylla_send_adresse_sub = 'Butikken pakker og sender den når du har bekreftet adressen.';
+  static const String a4_hylla_send_bekreft = 'Bekreft adressen';
+  static const String a4_hylla_send_navn = 'Navn';
+  static const String a4_hylla_send_gate = 'Gateadresse';
+  static const String a4_hylla_send_postnr = 'Postnummer';
+  static const String a4_hylla_send_sted = 'Sted';
+  static const String a4_hylla_send_mangler = 'Fyll ut navn, adresse, postnummer og sted';
+  static String a4_hylla_send_bekreftet(String butikk) => butikk.isEmpty ? 'Adressen er sendt til butikken' : 'Adressen er sendt til $butikk';
+  static const String a4_hylla_send_paa_vei = 'På vei';
+  static String a4_hylla_send_sporing(String nr) => 'Sporingsnummer $nr';
+  static const String a4_hylla_send_uten_sporing = 'Butikken har sendt den';
+  static const String a4_hylla_send_mottatt = 'Jeg har fått den';
+  static const String a4_hylla_send_kos = 'Kos deg med premien';
+
   // Points plan Step 12: a premiekupong from Ukens led.
   static const String a4_hylla_kupong_tittel = 'Bruk premiekupongen?';
   static String a4_hylla_kupong_linje(String premie, String hylle) => '$premie for 0 poeng. Kupongen gjelder én premie opp til $hylle-hylla.';

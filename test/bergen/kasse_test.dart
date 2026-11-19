@@ -87,6 +87,7 @@ class _FakeKasse extends OpsKasseApi {
     String? companyName,
     String? companyOrgNr,
     bool? useFreeDelivery,
+    int? premieLineClaimId,
   }) async {
     lastPlace = {
       'useFreeDelivery': useFreeDelivery,

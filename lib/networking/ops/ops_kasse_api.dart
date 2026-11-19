@@ -136,6 +136,7 @@ class OpsKasseApi {
     String? companyName,
     String? companyOrgNr,
     bool? useFreeDelivery,
+    int? premieLineClaimId,
   }) async {
     if (_off) return null;
     try {
@@ -163,6 +164,7 @@ class OpsKasseApi {
         companyName: companyName,
         companyOrgNr: companyOrgNr,
         useFreeDelivery: useFreeDelivery,
+        premieLineClaimId: premieLineClaimId,
       );
       // The order rows the app reads back carry no payment type: remember it for Bestillingsdetaljer.
       if (json is Map && json['status'] == 1) {

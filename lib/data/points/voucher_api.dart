@@ -50,3 +50,28 @@ class VoucherApi {
     }
   }
 }
+
+/// Points plan follow-up (points spec §6.2 send): confirm the address, confirm it arrived.
+class SendPremieApi {
+  SendPremieApi({ApiBaseHelper? helper}) : _helper = helper ?? ApiBaseHelper(baseUrl: BaseUrl.domain);
+
+  final ApiBaseHelper _helper;
+
+  Future<String?> _post(String path, Map<String, dynamic> body) async {
+    final auth = OpsCustomerApi.authParams();
+    if (auth == null) return 'network';
+    try {
+      final json = await _helper.post('api/points/$path?${Uri(queryParameters: auth).query}', body: body);
+      return json is Map && json['status'] == 1 ? null : (json is Map ? '${json['message'] ?? 'error'}' : 'error');
+    } catch (_) {
+      return 'network';
+    }
+  }
+
+  /// Null when saved; else ADDRESS_INCOMPLETE, CLAIM_ALREADY_SENT …
+  Future<String?> confirmAddress(int claimId, {required String name, required String line, required String postcode, required String city}) =>
+      _post('claims/$claimId/address', {'name': name, 'line': line, 'postcode': postcode, 'city': city});
+
+  Future<String?> received(int claimId) => _post('claims/$claimId/received', const {});
+}
+
