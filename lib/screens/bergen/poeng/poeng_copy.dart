@@ -4,6 +4,7 @@
 /// `Napp-kort`) verbatim. Moved to ARB by agil-1 in its Phase 8.
 // ignore: unused_import
 import '../../../main.dart' show languages;
+import '../../../data/points/league_models.dart';
 
 abstract final class A3PoengCopy {
   // Premiehylla (design ≈L6178)
@@ -48,10 +49,12 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_liga_av_toast = 'Meldt av · navnet ditt er fjernet fra listene';
   static const String a3_poeng_liga_vilkaar_title = 'Vilkår for Bergen-ligaen';
   static const String a3_poeng_liga_vilkaar_linje = 'Ligaen nullstilles den første i hver måned.';
-  static const List<List<String>> a3_poeng_liga_vilkaar_rader = [
-    ['Teller', 'Poengene du samler i måneden'],
-    ['Premier', '1. Middag for to · 2. Gratis levering i ett år · 3. Kveld på Fløyen'],
-    ['Månedsslutt', 'Nordlys over Fløyen, så nullstilling'],
+  // Points plan Step 11 (points spec §10, §4c): the terms from the server's numbers and prizes.
+  static List<List<String>> a3_poeng_liga_vilkaar_rader([League? l]) => [
+    ['Teller', 'Poengene du tjener i måneden, høyst ${l?.capPerOrder ?? 100} kjøpspoeng per ordre. Premiepoeng teller ikke.'],
+    ['Rangering', 'Fra ${l?.minOrders ?? 3} leverte ordrer i måneden. Lik poengsum: den som kom dit først.'],
+    ['Premier', a3_poeng_liga_premie_liste(l).join(' · ')],
+    ['Månedsslutt', 'Nordlys over Fløyen, så nullstilling. Premiene gis etter ${l?.holdHours ?? 48} timer. Topp tre høyst én gang på ${l?.top3CooldownMonths ?? 3} måneder.'],
     ['Utestengelse', 'Kontoer med uvanlig mønster tas ut av listen'],
   ];
   static String a3_poeng_liga_min_plass(int rank, String navn) => '$rank. plass · vises som $navn';
@@ -86,12 +89,40 @@ abstract final class A3PoengCopy {
   static const String a3_poeng_liga_poeng = 'POENG';
   static const String a3_poeng_liga_premier = 'Månedens premier';
   static const String a3_poeng_liga_premier_sub = 'Kan ikke kjøpes på hylla';
-  static const List<String> a3_poeng_liga_premie_liste = [
-    '1. Kveld på Fløyen for fire · transport, mat og utsikt',
-    '2. Du velger månedens oppdrag for hele Bergen · Ægil bruker det neste måned',
-    '3. Navnet ditt på Ægils båt i én måned · synlig for alle i Hjem',
-    '4.–10. 100 poeng',
-  ];
+  /// Points plan Step 11 (points spec §10.1, §4c): the prizes from `league.prizes`; the winner also chooses next month's
+  /// first mission and has their name on Ægil's boat. Without the payload, the spec's table.
+  static List<String> a3_poeng_liga_premie_liste([League? l]) {
+    final rader = l?.prizes ?? const <LeaguePrize>[];
+    String tekst(LeaguePrize p) {
+      if (p.kind == 'points') return '${p.points} poeng';
+      final navn = p.premie ?? 'Premie';
+      return p.uses > 1 ? '$navn · opptil ${p.uses} leveringer' : navn;
+    }
+
+    if (rader.isEmpty) {
+      return const [
+        '1. Kveld på Fløyen for to · du velger neste måneds første oppdrag · navnet ditt på Ægils båt',
+        '2. Gratis levering i tre måneder · opptil 30 leveringer',
+        '3. 500 poeng',
+        '4.–10. 100 poeng',
+      ];
+    }
+    return [
+      for (final p in rader)
+        p.from == p.to
+            ? '${p.from}. ${tekst(p)}${p.from == 1 ? ' · du velger neste måneds første oppdrag · navnet ditt på Ægils båt' : ''}'
+            : '${p.from}.–${p.to}. ${tekst(p)}',
+    ];
+  }
+
+  // Points plan Step 11: not ranked yet, the activity feed, «Nordlys over Fløyen».
+  static String a3_poeng_liga_ikke_rangert(int orders, int min) => 'Ikke rangert ennå · $orders av $min ordrer';
+  static const String a3_poeng_liga_ansatt = 'Ansatte tjener poeng, men rangeres ikke';
+  static const String a3_poeng_liga_aktivitet = 'Aktivitet';
+  static const String a3_poeng_liga_nordlys_title = 'Nordlys over Fløyen';
+  static String a3_poeng_liga_nordlys_sub(String maaned) => '$maaned er avsluttet. Ny måned, ny liga.';
+  static String a3_poeng_liga_nordlys_deg(int rank) => 'Du ble nr. $rank';
+  static const String a3_poeng_liga_ny_maaned = 'Ny måned';
   static const String a3_poeng_liga_slutt = 'Se månedsslutten';
   static const String a3_poeng_liga_navn = 'Navn i ligaen';
   static const String a3_poeng_liga_bli_med = 'Bli med';
