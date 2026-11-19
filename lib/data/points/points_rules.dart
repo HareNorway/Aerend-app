@@ -20,6 +20,7 @@ class PointsRules {
     this.aegilAnswerCap = 0,
     this.claimExpiryDays,
     this.pointsExpiryMonths,
+    this.fiskeMonthlyCap = 0,
     this.fjordlopetPoints = const [],
     this.fjordlopetMilestones = const [],
     this.fjordlopetPb = 0,
@@ -31,6 +32,9 @@ class PointsRules {
 
   /// Points plan Step 1: kroner of goods per point (`kr_per_point`, set in the panel). Older servers send only
   /// `kjop_per_10kr`; then it is derived from that.
+  /// Points plan Step 14: Dagens napp's month cap («opptil 50 i måneden»).
+  final int fiskeMonthlyCap;
+
   /// Points plan Step 12 (game spec §6.1): Fjordløpet's points per gate, the gates, the personal-best bonus, the cap.
   final List<int> fjordlopetPoints;
   final List<int> fjordlopetMilestones;
@@ -94,6 +98,7 @@ class PointsRules {
       signupBonus: _int(signup['amount']),
       signupEnabled: signup['enabled'] == true,
       fiskePerCatch: _int(fiske['points_per_catch']),
+      fiskeMonthlyCap: _int(fiske['monthly_cap']),
       configVersion: '${json['config_version'] ?? ''}',
       aegilAnswerEnabled: aegil['enabled'] == true,
       aegilPerAnswer: _int(aegil['per_answer']),

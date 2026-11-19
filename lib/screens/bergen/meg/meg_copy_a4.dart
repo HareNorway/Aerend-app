@@ -167,7 +167,7 @@ abstract final class A4MegCopy {
   static const List<List<String>> a4_meg_poengrater = [
     ['Handel', '1 poeng per krone du handler for'],
     ['Første gang hos en ny butikk', '+50 poeng, én gang per butikk'],
-    ['Dagens napp', '+5 poeng for det første funnet hver dag'],
+    ['Dagens napp', '+5 poeng for dagens første funn, opptil 50 i måneden'],
     ['Ægils oppdrag', '+50 poeng når du fullfører'],
     ['Verving', '+200 poeng når vennen får sin første ordre levert'],
   ];
@@ -188,7 +188,10 @@ abstract final class A4MegCopy {
   static String a4_meg_rate_kr_per_point(int kr) => kr == 1 ? '1 poeng per krone du handler for' : '1 poeng per $kr kr du handler for';
   static String a4_meg_rate_chip(int kr) => kr == 1 ? '1 per kr' : '1 per $kr kr';
   static String a4_meg_rate_forste(int n) => '+$n poeng, én gang per butikk';
-  static String a4_meg_rate_napp(int n) => '+$n poeng for det første funnet hver dag';
+  // Points plan Step 14 (§4c): «+5 poeng for dagens første funn, opptil 50 i måneden».
+  static String a4_meg_rate_napp(int n, [int? maanedTak]) => maanedTak != null && maanedTak > 0
+      ? '+$n poeng for dagens første funn, opptil $maanedTak i måneden'
+      : '+$n poeng for dagens første funn';
   static String a4_meg_rate_verving(int n) => '+$n poeng når vennen får sin første ordre levert';
   static String a4_meg_du_er(String tier) => 'Du er $tier';
   static String a4_meg_poeng_opptjent(int n) => '${_nf(n)} poeng opptjent';
@@ -398,7 +401,8 @@ abstract final class A4MegCopy {
     return [
       ['Verving', '$hver poeng til hver når vennens første ordre med minst $kr kr i varer er levert'],
       ['Grenser', '$mnd venner med poeng i måneden og $aar i året. Flere kan bli med, uten poeng. Samme nummer, kort eller telefon gir ingen poeng.'],
-      ['Poeng', 'Utløper 12 måneder etter at de er tjent'],
+      // Points plan Step 14 (§4c, points spec §3): the inactivity rule.
+      ['Poeng', 'Utløper ikke så lenge du har fått levert en ordre de siste 12 månedene'],
       ['Ligaen', 'Krever at du melder deg på, og viser bare navnet du selv velger'],
     ];
   }
@@ -510,7 +514,7 @@ abstract final class A4MegCopy {
   static const String a4_premie_vilkaar_partner = 'Partnerpremier';
   static const String a4_premie_vilkaar_partner_sub = 'Butikken står for varen, Ærend for poengprisen';
   static const String a4_premie_vilkaar_poeng = 'Poeng';
-  static String a4_premie_vilkaar_poeng_sub(int m) => 'Utløper $m måneder etter at de er tjent';
+  static String a4_premie_vilkaar_poeng_sub(int m) => 'Utløper ikke så lenge du har fått levert en ordre de siste $m månedene';
   static const String a4_hylla_poeng_etter = 'Poeng etter';
   static String a4_hylla_hent_for(int n) => 'Hent for ${_nf(n)} poeng';
   static String a4_hylla_hentet(String name) => '$name ligger under Mine premier';

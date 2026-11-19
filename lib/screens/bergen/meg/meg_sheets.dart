@@ -133,7 +133,7 @@ abstract final class MegSheets {
           MorkIk.pose,
         ),
         (A4MegCopy.a4_meg_poengrater[1][0], A4MegCopy.a4_meg_rate_forste(regler.firstOrderBonus), '+${regler.firstOrderBonus}', MorkIk.butikk),
-        (A4MegCopy.a4_meg_poengrater[2][0], A4MegCopy.a4_meg_rate_napp(regler.fiskePerCatch), '+${regler.fiskePerCatch}', MorkIk.krok),
+        (A4MegCopy.a4_meg_poengrater[2][0], A4MegCopy.a4_meg_rate_napp(regler.fiskePerCatch, regler.fiskeMonthlyCap), '+${regler.fiskePerCatch}', MorkIk.krok),
         (A4MegCopy.a4_meg_poengrater[3][0], A4MegCopy.a4_meg_poengrater[3][1], null, MorkIk.flagg),
         (A4MegCopy.a4_meg_poengrater[4][0], A4MegCopy.a4_meg_rate_verving(regler.referrer), '+${regler.referrer}', MorkIk.person),
         // Points plan Step 12 (game spec §6.1): Fjordløpet, from the server's numbers.

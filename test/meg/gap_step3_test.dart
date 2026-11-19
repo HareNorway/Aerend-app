@@ -92,7 +92,7 @@ void main() {
     await apne(tester);
     expect(find.text('Vilkår for premier'), findsOneWidget);
     expect(find.text('En hentet premie gjelder i 60 dager'), findsOneWidget);
-    expect(find.text('Utløper 12 måneder etter at de er tjent'), findsOneWidget);
+    expect(find.text('Utløper ikke så lenge du har fått levert en ordre de siste 12 månedene'), findsOneWidget); // points plan Step 14 (§4c)
     expect(find.text('Partnerpremier'), findsOneWidget);
     // Points plan Step 3: stock is a monthly allotment, refilled on the 1st.
     expect(find.text('Utsolgt'), findsOneWidget);
