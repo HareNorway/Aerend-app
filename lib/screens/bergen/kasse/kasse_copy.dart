@@ -12,7 +12,7 @@ abstract final class KasseCopy {
   static const String a1_kasse_premie = 'Gratis levering';
   static const String a1_kasse_premie_av = 'Gratis levering · av';
   // Points plan follow-up (points spec §6.2 kode): a premie from this store on the order.
-  static String a1_kasse_kodepremie(String premie) => 'Legg til premien din: $premie';
+  static String a1_kasse_kodepremie(String premie) => 'Premie: $premie';
   static bool get _en => resolveSelectedLanguage() == 'en';
   static String _t(String no, String en) => _en ? en : no;
 

@@ -10,7 +10,7 @@ void main() {
     final kode = PrizeClaim.fromJson({'id': 5, 'prize_id': 6, 'state': 'claimed', 'spec_type': 'kode', 'voucher_code': 'SANDV-8QK2', 'store_ids': [875006, 875007]});
     expect(kode.storeIds, [875006, 875007]);
     expect(kode.status, 'klar');
-    expect(KasseCopy.a1_kasse_kodepremie('Seks kanelboller'), 'Legg til premien din: Seks kanelboller');
+    expect(KasseCopy.a1_kasse_kodepremie('Seks kanelboller'), 'Premie: Seks kanelboller');
 
     final send = PrizeClaim.fromJson({'id': 9, 'prize_id': 8, 'state': 'claimed', 'spec_type': 'send', 'needs_address': true});
     expect(send.needsAddress, isTrue);
