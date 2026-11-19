@@ -1,3 +1,4 @@
+import '../../../services/lopet_utboks.dart';
 import '../lopet/lopet_data.dart';
 import '../../../services/ntf/ntf_live_card.dart';
 import '../meg/varsler_innst.dart' show NtfSamtykke;
@@ -210,6 +211,8 @@ class _SporingScreenState extends State<SporingScreen> {
       final next = OpsTracking.fromJson(json);
       // Points plan Step 7: the order snapshot's Fjordløpet session drives every entry point (LopetPort).
       LopetPort.fraSporing(_id, next.raw['game']);
+      // Points plan Step 8: Fjordløpet runs waiting on the phone go now (the order's points follow at delivered).
+      if (next.raw['game'] != null) unawaited(LopetUtboks.send());
       final changed = _lastStage != null && next.stage != _lastStage;
       setState(() {
         _t = next;

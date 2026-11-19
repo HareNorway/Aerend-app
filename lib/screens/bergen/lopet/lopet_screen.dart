@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../../game/fjordlopet/sim/engine.dart';
 import '../kit/bergen_kit.dart';
+import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
 import 'lopet_data.dart';
 import 'lopet_painter.dart';
@@ -76,6 +77,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (_orderId == 0) {
       _orderId = widget.orderId ?? int.tryParse(BergenRoutes.argsOf(context)['order_id'] ?? '') ?? 0;
       _hent();
+      unawaited(LopetUtboks.send()); // runs left over from an offline session
       _poll = Timer.periodic(widget.pollEvery, (_) => _hent(stille: true));
     }
   }
@@ -228,6 +230,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     });
     await LopetLager.lagre(token: token, s: s, inputs: List.of(_inputs), result: res.toJson(), startedMs: _startetMs);
     if (mounted) setState(() {});
+    // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
+    unawaited(LopetUtboks.send());
     LopetPort.status.value = LopetInngang(orderId: s.orderId, runsLeft: _igjen);
   }
 

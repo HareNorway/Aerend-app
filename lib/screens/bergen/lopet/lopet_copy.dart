@@ -43,4 +43,10 @@ abstract final class LopetCopy {
   static String get vestTok => _t('Redningsvesten tok støyten', 'Your life vest took the hit');
   static String get stengt => _t('Fjordløpet er åpent mens et ærend er på vei.', 'Fjordløpet is open while an order is on its way.');
   static String minUnna(int m) => _t('Budet er $m min unna', 'Courier $m min away');
+
+  /// Points plan Step 8 (game spec §8 Levert): what the order's runs came to.
+  static String levert(String? port, int m, int poeng) {
+    final hva = port != null ? _t('Ukens led: du nådde $port', "This week's course: you reached $port") : _t('Ukens led: $m m', "This week's course: $m m");
+    return poeng > 0 ? '$hva · +$poeng ${_t('poeng', 'points')}' : hva;
+  }
 }
