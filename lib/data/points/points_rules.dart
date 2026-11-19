@@ -20,6 +20,10 @@ class PointsRules {
     this.aegilAnswerCap = 0,
     this.claimExpiryDays,
     this.pointsExpiryMonths,
+    this.fjordlopetPoints = const [],
+    this.fjordlopetMilestones = const [],
+    this.fjordlopetPb = 0,
+    this.fjordlopetCap = 0,
   });
 
   /// Points per whole 10 kr paid (`points.kjop_per_10kr`).
@@ -27,6 +31,12 @@ class PointsRules {
 
   /// Points plan Step 1: kroner of goods per point (`kr_per_point`, set in the panel). Older servers send only
   /// `kjop_per_10kr`; then it is derived from that.
+  /// Points plan Step 12 (game spec §6.1): Fjordløpet's points per gate, the gates, the personal-best bonus, the cap.
+  final List<int> fjordlopetPoints;
+  final List<int> fjordlopetMilestones;
+  final int fjordlopetPb;
+  final int fjordlopetCap;
+
   final int krPerPoint;
 
   /// Første gang (`points.forste_gang`).
@@ -90,6 +100,10 @@ class PointsRules {
       aegilAnswerCap: _int(aegil['cap']),
       claimExpiryDays: json['claim_expiry_days'] == null ? null : _int(json['claim_expiry_days']),
       pointsExpiryMonths: json['points_expiry_months'] == null ? null : _int(json['points_expiry_months']),
+      fjordlopetPoints: [for (final v in ((json['fjordlopet'] as Map?)?['points'] as List?) ?? const []) _int(v)],
+      fjordlopetMilestones: [for (final v in ((json['fjordlopet'] as Map?)?['milestones_m'] as List?) ?? const []) _int(v)],
+      fjordlopetPb: _int((json['fjordlopet'] as Map?)?['personal_best']),
+      fjordlopetCap: _int((json['fjordlopet'] as Map?)?['cap_per_order']),
     );
   }
 

@@ -7,6 +7,7 @@ import '../../../game/fjordlopet/sim/engine.dart';
 import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
+import 'lopet_liste.dart';
 import 'lopet_data.dart';
 import 'lopet_painter.dart';
 
@@ -138,7 +139,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (ledige.isEmpty) return;
     setState(() {
       _token = ledige.first;
-      _sim = FjordSim(s.course, s.perk);
+      _sim = FjordSim(s.course, _perk(s));
       _inputs.clear();
       _venter.clear();
       _tickBase = 0;
@@ -229,6 +230,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _token = null;
     });
     await LopetLager.lagre(token: token, s: s, inputs: List.of(_inputs), result: res.toJson(), startedMs: _startetMs);
+    // Points plan Step 12: the vest is spent for the rest of this order.
+    if (res.vestUsed) await LopetVest.merk(s.orderId);
     if (mounted) setState(() {});
     // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
     unawaited(LopetUtboks.send());
@@ -374,7 +377,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                  if (s.perk == 'vest') ...[
+                  if (_perk(s) == 'vest') ...[
                     const SizedBox(height: 6),
                     _Chip(key: const Key('lopet-vest'), tekst: LopetCopy.vest, farge: const Color(0xFFE5532D)),
                   ],
@@ -404,16 +407,28 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         else
           _Melding(key: const Key('lopet-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
         const SizedBox(height: 16),
-        Center(
-          child: TextButton(
-            key: const Key('lopet-vilkaar-knapp'),
-            onPressed: _vilkaar,
-            child: Text(LopetCopy.vilkaar, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
-          ),
+        Wrap(
+          alignment: WrapAlignment.center,
+          children: [
+            TextButton(
+              key: const Key('lopet-ukeliste-knapp'),
+              onPressed: () => LopetListe.vis(context),
+              child: Text(LopetCopy.ukeliste, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+            ),
+            TextButton(
+              key: const Key('lopet-vilkaar-knapp'),
+              onPressed: _vilkaar,
+              child: Text(LopetCopy.vilkaar, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
+            ),
+          ],
         ),
       ],
     );
   }
+
+  /// Points plan Step 12 (game spec §5.3, G-T15): one redningsvest per order — once a run of this order used it, the
+  /// rest sail without it (kept on the phone per order; the server's state says the same once the run is verified).
+  String _perk(LopetState s) => s.perk == 'vest' && !LopetVest.brukt(s.orderId) ? 'vest' : 'none';
 
   Widget _spill() {
     final sim = _sim!;

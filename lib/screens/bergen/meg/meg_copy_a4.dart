@@ -365,6 +365,17 @@ abstract final class A4MegCopy {
   static const String a4_meg_vilkaar_linje = 'Poeng er ikke penger og kan ikke veksles i kroner.';
   // Points plan Step 10 (points spec §9): the Gullbillett terms from the server's numbers (`points/me/referral`); the
   // ladder is retired. Without the payload the spec's defaults are shown.
+  // Points plan Step 12: a premiekupong from Ukens led.
+  static const String a4_hylla_kupong_tittel = 'Bruk premiekupongen?';
+  static String a4_hylla_kupong_linje(String premie, String hylle) => '$premie for 0 poeng. Kupongen gjelder én premie opp til $hylle-hylla.';
+  static const String a4_hylla_kupong_bruk = 'Bruk kupongen';
+  static const String a4_hylla_kupong_ikke = 'Ikke nå';
+  static String a4_hylla_kupong_hentet(String premie) => '$premie er din · 0 poeng';
+
+  // Points plan Step 12: «Slik får du poeng» › Fjordløpet.
+  static String a4_meg_rate_fjordlopet(List<int> p, int pb, int cap) =>
+      'Mens du venter: ${p[0]} / ${p[1]} / ${p[2]} poeng for Bøye 1, Bøye 2 og Bryggen, +$pb for ny rekord, høyst $cap per bestilling. Gis når ærendet er levert.';
+
   static List<List<String>> a4_meg_vilkaar_rader(Referral? r) {
     final hver = r?.pointsForMe ?? 200;
     final kr = ((r?.minOrderOre ?? 15000) / 100).floor();

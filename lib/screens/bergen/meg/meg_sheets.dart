@@ -136,6 +136,9 @@ abstract final class MegSheets {
         (A4MegCopy.a4_meg_poengrater[2][0], A4MegCopy.a4_meg_rate_napp(regler.fiskePerCatch), '+${regler.fiskePerCatch}', MorkIk.krok),
         (A4MegCopy.a4_meg_poengrater[3][0], A4MegCopy.a4_meg_poengrater[3][1], null, MorkIk.flagg),
         (A4MegCopy.a4_meg_poengrater[4][0], A4MegCopy.a4_meg_rate_verving(regler.referrer), '+${regler.referrer}', MorkIk.person),
+        // Points plan Step 12 (game spec §6.1): Fjordløpet, from the server's numbers.
+        if (regler.fjordlopetPoints.length >= 3 && regler.fjordlopetCap > 0)
+          ('Fjordløpet', A4MegCopy.a4_meg_rate_fjordlopet(regler.fjordlopetPoints, regler.fjordlopetPb, regler.fjordlopetCap), '+${regler.fjordlopetCap}', MorkIk.stjerne),
       ] else
         for (final (i, r) in A4MegCopy.a4_meg_poengrater.indexed) (r[0], r[1], null, [MorkIk.pose, MorkIk.butikk, MorkIk.krok, MorkIk.flagg, MorkIk.person][i]),
     ];

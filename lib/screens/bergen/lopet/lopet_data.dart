@@ -144,6 +144,28 @@ class LopetApi {
   }
 }
 
+/// Points plan Step 12: the orders whose redningsvest a run on this phone has used.
+abstract final class LopetVest {
+  static const _key = 'lopet_vest_brukt';
+
+  static Set<int> _les() {
+    try {
+      return {for (final t in (jsonDecode(prefGetString(_key)) as List)) (t as num).toInt()};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static bool brukt(int orderId) => _les().contains(orderId);
+
+  static Future<void> merk(int orderId) async {
+    final s = _les()..add(orderId);
+    try {
+      await prefSetString(_key, jsonEncode(s.toList()..sort()));
+    } catch (_) {}
+  }
+}
+
 /// The runs played on this phone: the used tokens (a run is never played twice on one token, also after a restart)
 /// and the outbox Step 8 submits; and the best distance per week, for «Din beste denne uken» and the chart.
 class LopetLager {

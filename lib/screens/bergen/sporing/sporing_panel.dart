@@ -2195,7 +2195,9 @@ class _LopetLevert extends StatelessWidget {
                 Text(LopetCopy.levert(port, (game['best_m'] as num).toInt(), (game['points'] as num?)?.toInt() ?? 0),
                     style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 2),
-                Text(LopetCopy.nesteSeilas, style: TextStyle(color: rgba(255, 255, 255, .7), fontSize: 11.5, fontWeight: FontWeight.w600)),
+                // Points plan Step 12: the week's place and the losgrad, then «Neste seilas …» (never opens the game).
+                Text([LopetCopy.plassLosgrad((game['place'] as num?)?.toInt(), '${game['losgrad'] ?? ''}'), LopetCopy.nesteSeilas].where((t) => t.isNotEmpty).join(' · '),
+                    style: TextStyle(color: rgba(255, 255, 255, .7), fontSize: 11.5, fontWeight: FontWeight.w600)),
               ],
             ),
           ),

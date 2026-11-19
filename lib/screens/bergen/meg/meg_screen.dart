@@ -76,6 +76,8 @@ import 'tillit_ark.dart';
 import '../kit/laster_dra.dart';
 import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
+import '../lopet/lopet_copy.dart';
+import '../lopet/lopet_liste.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -135,6 +137,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
   // Customer Step 12: Ukens oppdrag (`points/mission`) and the month's summary.
   Mission? _oppdrag;
   MonthlySummary? _oppsummering;
+
+  /// Points plan Step 12: Fjordløpet's summary for the locked row (`GET /game/summary`).
+  Map<String, dynamic>? _lopet;
   int _bioPuls = 0;
   bool _loading = true;
 
@@ -277,6 +282,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       case 14: _cusBio = v as CusBio?;
       case 15: _oppdrag = v as Mission?;
       case 16: _oppsummering = v as MonthlySummary?;
+      case 17: _lopet = v as Map<String, dynamic>?;
     }
   }
 
@@ -304,6 +310,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       // Customer Step 12: Ukens oppdrag and the month's summary.
       a3Try(_api.mission),
       a3Try(_aegil.monthlySummary),
+      a3Try(() => LopetListeApi().summary()),
     ];
     // Each section fills in as its answer arrives: the slowest call no longer
     // holds the whole sheet behind one spinner (only until the first answer).
@@ -916,7 +923,8 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                   tierName: b.tierName,
                                   pct: b.tierProgress,
                                   avstand: b.nextTierName == null || b.pointsToNextTier == null ? A4MegCopy.a4_meg_hoyeste : A4MegCopy.a4_meg_avstand(b.pointsToNextTier!, b.nextTierName!),
-                                  ligaPlass: l?.optedIn == true ? l?.own?.rank : null,
+                                  // Points plan Step 11: an unranked member (rank 0) has no place to show.
+                                  ligaPlass: l?.optedIn == true && (l?.own?.rank ?? 0) > 0 ? l?.own?.rank : null,
                                   innhold: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
@@ -947,11 +955,22 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                             tile: const _LigaTile(),
                                             navn: A4MegCopy.a4_meg_rad_liga,
                                             under: l?.optedIn == true ? A4MegCopy.a4_meg_liga_med : A4MegCopy.a4_meg_liga_ute,
-                                            merke: l?.optedIn == true && l?.own != null ? A4MegCopy.a4_meg_plass(l!.own!.rank) : null,
+                                            merke: l?.optedIn == true && (l?.own?.rank ?? 0) > 0 ? A4MegCopy.a4_meg_plass(l!.own!.rank) : null,
                                             knapp: l?.optedIn == true ? null : A4MegCopy.a4_meg_bli_med,
                                             onKnapp: () => _go('/bergen/liga'),
                                             onTap: () => _go('/bergen/liga'),
                                           ),
+                                          // Points plan Step 12 (game spec §8 row Meg): «Fjordløpet · beste 412 m · 8. plass · Matros», then the runs
+                                          // left or «Neste seilas ved neste bestilling». A locked row: it never opens the game.
+                                          if (_lopet != null)
+                                            _Rad(
+                                              key: const Key('meg-rad-fjordlopet'),
+                                              sterk: true,
+                                              tile: const Icon(Icons.sailing_rounded, color: Color(0xFFF7D57E), size: 26),
+                                              navn: LopetCopy.megRad((_lopet!['best_m'] as num?)?.toInt(), (_lopet!['place'] as num?)?.toInt(), '${_lopet!['losgrad'] ?? ''}'),
+                                              under: ((_lopet!['runs_left'] as num?)?.toInt() ?? 0) > 0 ? LopetCopy.igjenPaaBestilling((_lopet!['runs_left'] as num).toInt()) : LopetCopy.nesteSeilas,
+                                              onTap: () {},
+                                            ),
                                           // Ukens oppdrag and the month's summary are not rows here (the design
                                           // has Nivå, Liga and Gullbilletten only; Saved-for-later plan, 2026-10-23).
                                           _Rad(

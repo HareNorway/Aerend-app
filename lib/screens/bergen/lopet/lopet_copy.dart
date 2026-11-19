@@ -7,6 +7,19 @@ abstract final class LopetCopy {
   static String _t(String no, String en) => _en ? en : no;
 
   static String get navn => 'Fjordløpet';
+  // Points plan Step 12: Ukens liste, the locked rows, the vest once per order.
+  static String get ukeliste => _t('Ukens liste', "This week's ladder");
+  static String get ukelisteTom => _t('Listen er ikke tilgjengelig nå', 'The ladder is not available right now');
+  static String ukelisteLinje(int n) => _t('$n seilere denne uken · beste verifiserte distanse', '$n sailors this week · best verified distance');
+  static String get ukelisteIngen => _t('Ingen har seilt denne uken ennå', 'Nobody has sailed this week yet');
+  static String premieHylle(String hylle) => _t('Én premie fra $hylle-hylla', 'One prize from the $hylle shelf');
+  static String premiePoeng(int n) => _t('$n poeng', '$n points');
+  static String plassLosgrad(int? plass, String losgrad) => [if (plass != null) _t('$plass. plass', 'place $plass'), if (losgrad.isNotEmpty) losgrad].join(' · ');
+  static String megRad(int? m, int? plass, String losgrad) => m == null
+      ? 'Fjordløpet'
+      : ['Fjordløpet', _t('beste $m m', 'best $m m'), if (plass != null) _t('$plass. plass', 'place $plass'), if (losgrad.isNotEmpty) losgrad].join(' · ');
+  static String igjenPaaBestilling(int n) => n == 1 ? _t('1 seilas igjen på bestillingen', '1 run left on the order') : _t('$n seilaser igjen på bestillingen', '$n runs left on the order');
+  static String get vestBrukt => _t('Redningsvesten er brukt på denne bestillingen', 'The life vest is used on this order');
   static String get mensDuVenter => _t('Fjordløpet · mens du venter', 'Fjordløpet · while you wait');
   static String seilaserIgjen(int n) => n == 1 ? _t('1 seilas igjen', '1 run left') : _t('$n seilaser igjen', '$n runs left');
   static String seilaser(int n) => _t('Fjordløpet · $n seilaser', 'Fjordløpet · $n runs');

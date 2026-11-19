@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../data/points/voucher_api.dart';
 import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
@@ -62,6 +63,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   final GlobalKey _hyllaKey = GlobalKey();
   bool _loading = true;
 
+  /// Points plan Step 12: open premiekuponger from Ukens led.
+  List<PremieVoucher> _kuponger = const [];
+
   @override
   void initState() {
     super.initState();
@@ -69,9 +73,10 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _load() async {
-    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules)]);
+    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules), a3Try(() => VoucherApi().list())]);
     if (!mounted) return;
     setState(() {
+      _kuponger = (r[4] as List<PremieVoucher>?) ?? const [];
       _regler = r[3] as PointsRules? ?? _regler;
       _balance = r[0] as PointsBalance?;
       _shelf = r[1] as Premiehylla?;
@@ -129,12 +134,38 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
       showBergenToast(context, A4MegCopy.a4_hylla_utsolgt_toast(p.name));
       return;
     }
+    // Points plan Step 12 (points spec §11.2): a premiekupong that reaches this shelf claims it for 0 points.
+    final kupong = _kuponger.where((k) => k.maxShelf >= p.tierBand).firstOrNull;
+    if (kupong != null && await _brukKupong(kupong, p)) return;
     if (!p.affordable) {
       await _setGoal(p);
       return;
     }
     final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: p.validDays ?? _regler?.claimExpiryDays);
     if (claimed == true && mounted) _load();
+  }
+
+  /// «Bruk premiekupongen?» — true when the customer chose it (claimed or refused); false lets the normal claim go on.
+  Future<bool> _brukKupong(PremieVoucher k, Prize p) async {
+    final ja = await showMegArk<bool>(
+      context,
+      key: const Key('hylla-kupong-ark'),
+      title: A4MegCopy.a4_hylla_kupong_tittel,
+      subtitle: A4MegCopy.a4_hylla_kupong_linje(p.name, k.shelf ?? ''),
+      body: (ctx, _) => const SizedBox.shrink(),
+      primary: MegArkButton(key: const Key('hylla-kupong-bruk'), label: A4MegCopy.a4_hylla_kupong_bruk, onTap: () => Navigator.of(context).pop(true)),
+      secondary: MegArkButton(label: A4MegCopy.a4_hylla_kupong_ikke, onTap: () => Navigator.of(context).pop(false)),
+    );
+    if (ja != true || !mounted) return false;
+    final feil = await VoucherApi().claim(k.id, p.id);
+    if (!mounted) return true;
+    if (feil == null) {
+      showBergenToast(context, A4MegCopy.a4_hylla_kupong_hentet(p.name), icon: Icons.check_rounded);
+      _load();
+    } else {
+      showBergenToast(context, CusPoengFeil.tekst(feil, ellers: A4MegCopy.cus_meg_oppdrag_feil), icon: Icons.error_outline_rounded);
+    }
+    return true;
   }
 
   void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => ModusFjord(child: AegilVelgerScreen(api: _api)))).then((_) => _load());
