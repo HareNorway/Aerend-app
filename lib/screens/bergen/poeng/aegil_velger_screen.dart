@@ -17,6 +17,7 @@ import '../meg/meg_copy_a4.dart';
 import 'poeng_copy.dart';
 import 'poeng_feil.dart';
 import 'prize_art.dart';
+import '../../../data/points/velger_api.dart';
 
 /// Ægil velger (`erVelger`, L7709–7768 in `Ærend Kunde Launch.dc.html`,
 /// design px): night over Vågen — the aurora swaying (`sway`), Bryggen's
@@ -27,9 +28,12 @@ import 'prize_art.dart';
 /// `points/prizes/pick`, its value, why Ægil chose it, «Hent premien»,
 /// «Bra» / «Ikke for meg». «Hopp over» from 2 s.
 class AegilVelgerScreen extends StatefulWidget {
-  const AegilVelgerScreen({super.key, this.api});
+  const AegilVelgerScreen({super.key, this.api, this.velger});
 
   final PointsAppApi? api;
+
+  /// Points plan Step 13: the velger endpoints (a fake in tests).
+  final VelgerApi? velger;
 
   @override
   State<AegilVelgerScreen> createState() => _AegilVelgerScreenState();
@@ -37,7 +41,12 @@ class AegilVelgerScreen extends StatefulWidget {
 
 class _AegilVelgerScreenState extends State<AegilVelgerScreen> {
   late final PointsAppApi _api = widget.api ?? A3Services.points();
+  late final VelgerApi _velger = widget.velger ?? VelgerApi();
   AegilPick? _pick;
+
+  /// Points plan Step 13: the server's offer (`points/velger/start`) and a refusal (VELGER_NONE, …) in words.
+  int? _offerId;
+  String? _feil;
   int _steg = 0;
   bool _kanSkippe = false;
   String? _svar;
@@ -55,9 +64,7 @@ class _AegilVelgerScreenState extends State<AegilVelgerScreen> {
   @override
   void initState() {
     super.initState();
-    a3Try(_api.pick).then((p) {
-      if (mounted) setState(() => _pick = p);
-    });
+    _start();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (MediaQuery.disableAnimationsOf(context)) {
@@ -90,18 +97,52 @@ class _AegilVelgerScreenState extends State<AegilVelgerScreen> {
     setState(() => _steg = 4);
   }
 
-  Future<void> _claim() async {
-    final id = _pick?.prizeId;
-    if (id == null) return;
-    final r = await _api.claim(id);
+  /// Points plan Step 13 (points spec §7.2): Ægil chooses by rule on the server; 300 points are spent now.
+  Future<void> _start() async {
+    final r = await _velger.start();
     if (!mounted) return;
-    if (r.claim != null) {
+    setState(() => _vis(r.offer, r.error));
+  }
+
+  void _vis(Map<String, dynamic>? offer, String? feil) {
+    _offerId = (offer?['id'] as num?)?.toInt();
+    final p = offer?['premie'] as Map?;
+    _pick = p == null ? null : AegilPick(prize: {...p.cast<String, dynamic>(), 'partner_name': p['partner']}, reason: '', valueHint: A3PoengCopy.a3_poeng_velger_verdi_kr((p['retail_value_kr'] as num?)?.toInt() ?? 0), affordable: true);
+    _feil = feil;
+  }
+
+  Future<void> _claim() async {
+    final id = _offerId;
+    if (id == null) return;
+    final feil = await _velger.accept(id);
+    if (!mounted) return;
+    if (feil == null) {
       showBergenToast(context, '${_pick?.prizeName} er din', icon: Icons.check_rounded);
       Navigator.of(context).maybePop();
     } else {
-      // Customer Step 12: the named 422 (PRIZE_TIER_LOCKED, PRIZE_SOLD_OUT, …) in words.
-      showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
+      showBergenToast(context, CusPoengFeil.tekst(feil, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
     }
+  }
+
+  /// «Ikke for meg»: once gives the next best; the second time the points come back.
+  Future<void> _ikke() async {
+    final id = _offerId;
+    if (id == null) return;
+    final r = await _velger.decline(id);
+    if (!mounted) return;
+    if (r.error != null) {
+      showBergenToast(context, CusPoengFeil.tekst(r.error, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
+      return;
+    }
+    if (r.returned) {
+      showBergenToast(context, A3PoengCopy.a3_poeng_velger_poeng_tilbake, icon: Icons.undo_rounded);
+      Navigator.of(context).maybePop();
+      return;
+    }
+    setState(() {
+      _vis(r.offer, null);
+      _svar = null;
+    });
   }
 
   @override
@@ -158,7 +199,10 @@ class _AegilVelgerScreenState extends State<AegilVelgerScreen> {
                       child: _Baat(steg: s),
                     ),
                   ] else
-                    Positioned(left: 22, right: 22, top: 274, child: _Avslort(pick: _pick, svar: _svar, onHent: _claim, onSvar: (v) => setState(() => _svar = v))),
+                    Positioned(left: 22, right: 22, top: 274, child: _Avslort(pick: _pick, svar: _svar, feil: _feil, onHent: _claim, onSvar: (v) {
+                      setState(() => _svar = v);
+                      if (v == 'nei') _ikke();
+                    })),
                   if (_kanSkippe && s < 4)
                     Positioned(
                       left: 0,
@@ -402,10 +446,13 @@ class _Snor extends CustomPainter {
 /// merchant chip, the name, the value, Ægil's reason, «Hent premien» and the
 /// two feedback words.
 class _Avslort extends StatelessWidget {
-  const _Avslort({required this.pick, required this.svar, required this.onHent, required this.onSvar});
+  const _Avslort({required this.pick, required this.svar, required this.onHent, required this.onSvar, this.feil});
 
   final AegilPick? pick;
   final String? svar;
+
+  /// Points plan Step 13: why nothing was chosen (VELGER_NONE, VELGER_USED_THIS_MONTH, POINTS_INSUFFICIENT).
+  final String? feil;
   final VoidCallback onHent;
   final ValueChanged<String> onSvar;
 
@@ -413,7 +460,7 @@ class _Avslort extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = pick;
     final prize = p?.prize;
-    final navn = p?.prizeName ?? A3PoengCopy.a3_poeng_velger_tom;
+    final navn = p?.prizeName ?? (feil != null ? A3PoengCopy.a3_poeng_velger_feil(feil!) : A3PoengCopy.a3_poeng_velger_tom);
     final art = PrizeArt.of(slug: prize?['slug'] as String?, name: navn);
     final merke = (prize?['partner_name'] as String?) ?? 'Ærend';
     return LfOnce(

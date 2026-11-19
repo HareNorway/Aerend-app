@@ -347,7 +347,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             ),
           ],
         ),
-        Text('${s.week} · ${s.losgrad}', style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
+        // Points plan Step 13 (game spec §5.3): the Platina boat sails under its own name.
+        Text([s.week, s.losgrad, if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '), style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
         if (s.bonusGranted) ...[
           const SizedBox(height: 10),
           _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E)),

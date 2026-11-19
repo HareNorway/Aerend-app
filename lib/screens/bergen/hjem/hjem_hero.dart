@@ -23,6 +23,7 @@ import '../kit/bergen_perf.dart';
 import '../../../ui/kit/ae_haptic.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/hjem_modus_show.dart';
+import 'hjem_baat.dart';
 
 // ── Hjem · hero (`data-hero="1"`, kategoriStil "Rom") ───────────────────────
 // Prototype L2227–2520. Design px, 390 wide, `top:72px; height:258px`:
@@ -464,6 +465,8 @@ class _HjemHeroState extends State<HjemHero> {
               ),
             ),
           ],
+          // Points plan Step 13: the customer's own boat in Vågen (approved name, Platina), drawn last so it sits on the water.
+          if (!vi) const Positioned(key: ValueKey('hjem-baat-pos'), right: 14, top: 62, child: HjemBaat()),
         ],
       ),
     );

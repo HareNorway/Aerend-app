@@ -115,6 +115,16 @@ abstract final class A3PoengCopy {
     ];
   }
 
+  // Points plan Step 13: Ægil velger on the server.
+  static String a3_poeng_velger_verdi_kr(int kr) => 'Verdi $kr kr';
+  static const String a3_poeng_velger_poeng_tilbake = 'Greit · poengene er tilbake';
+  static String a3_poeng_velger_feil(String code) => switch (code) {
+        'VELGER_USED_THIS_MONTH' => 'Ægil har valgt for deg denne måneden',
+        'VELGER_NONE' => 'Ingen premie passer akkurat nå',
+        'POINTS_INSUFFICIENT' => 'Du trenger 300 poeng',
+        _ => 'Ægil fikk ikke valgt nå',
+      };
+
   // Points plan Step 11: not ranked yet, the activity feed, «Nordlys over Fløyen».
   static String a3_poeng_liga_ikke_rangert(int orders, int min) => 'Ikke rangert ennå · $orders av $min ordrer';
   static const String a3_poeng_liga_ansatt = 'Ansatte tjener poeng, men rangeres ikke';

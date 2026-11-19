@@ -365,6 +365,20 @@ abstract final class A4MegCopy {
   static const String a4_meg_vilkaar_linje = 'Poeng er ikke penger og kan ikke veksles i kroner.';
   // Points plan Step 10 (points spec §9): the Gullbillett terms from the server's numbers (`points/me/referral`); the
   // ladder is retired. Without the payload the spec's defaults are shown.
+  // Points plan Step 13: the boat in Vågen.
+  static String a4_meg_baat_rad(String? navn) => navn == null || navn.isEmpty ? 'Båten din i Vågen' : 'Båten din · $navn';
+  static String a4_meg_baat_under(String? state, bool vist) => switch (state) {
+        null => 'Gi den et navn',
+        'pending' => 'Navnet venter på godkjenning',
+        'rejected' => 'Navnet ble ikke godkjent · prøv et annet',
+        _ => vist ? 'Ligger i Vågen på Hjem' : 'Vises på Hjem når du er Platina',
+      };
+  static const String a4_meg_baat_tittel = 'Gi båten din et navn';
+  static const String a4_meg_baat_linje = 'Høyst 20 tegn. En person godkjenner navnet før båten vises.';
+  static const String a4_meg_baat_lagre = 'Lagre navnet';
+  static const String a4_meg_baat_sendt = 'Navnet er sendt til godkjenning';
+  static const String a4_meg_baat_feil = 'Navnet kan ikke brukes';
+
   // Points plan Step 12: a premiekupong from Ukens led.
   static const String a4_hylla_kupong_tittel = 'Bruk premiekupongen?';
   static String a4_hylla_kupong_linje(String premie, String hylle) => '$premie for 0 poeng. Kupongen gjelder én premie opp til $hylle-hylla.';

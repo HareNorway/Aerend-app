@@ -78,6 +78,7 @@ import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
 import '../lopet/lopet_copy.dart';
 import '../lopet/lopet_liste.dart';
+import '../../../data/points/velger_api.dart';
 
 /// The threshold the design quotes for "Av · kreves over N kr". Ops decides the
 /// real one (an Ask of agil-1: policy `proof.value_threshold_ore`).
@@ -140,6 +141,9 @@ class _MegScreenBodyState extends State<MegScreenBody> {
 
   /// Points plan Step 12: Fjordløpet's summary for the locked row (`GET /game/summary`).
   Map<String, dynamic>? _lopet;
+
+  /// Points plan Step 13: the boat in Vågen (`GET points/boat`).
+  ({String? name, String? state, bool shown})? _baat;
   int _bioPuls = 0;
   bool _loading = true;
 
@@ -283,6 +287,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       case 15: _oppdrag = v as Mission?;
       case 16: _oppsummering = v as MonthlySummary?;
       case 17: _lopet = v as Map<String, dynamic>?;
+      case 18: _baat = v as ({String? name, String? state, bool shown})?;
     }
   }
 
@@ -311,6 +316,7 @@ class _MegScreenBodyState extends State<MegScreenBody> {
       a3Try(_api.mission),
       a3Try(_aegil.monthlySummary),
       a3Try(() => LopetListeApi().summary()),
+      a3Try(() => VelgerApi().boat()),
     ];
     // Each section fills in as its answer arrives: the slowest call no longer
     // holds the whole sheet behind one spinner (only until the first answer).
@@ -453,6 +459,25 @@ class _MegScreenBodyState extends State<MegScreenBody> {
     }
     setState(() => _oppdrag = r.replacement);
     showBergenToast(context, r.replacement == null ? A4MegCopy.a4_meg_oppdrag_nei : A4MegCopy.cus_meg_oppdrag_nytt_toast(r.replacement!.title));
+  }
+
+  /// Points plan Step 13: «Gi båten din et navn» — up to 20 characters, then a person approves it.
+  Future<void> _navnBaat() async {
+    final c = TextEditingController(text: _baat?.name ?? '');
+    final navn = await showMegArk<String>(
+      context,
+      key: const Key('meg-baat-ark'),
+      title: A4MegCopy.a4_meg_baat_tittel,
+      subtitle: A4MegCopy.a4_meg_baat_linje,
+      body: (ctx, _) => TextField(key: const Key('meg-baat-felt'), controller: c, maxLength: 20, autofocus: true, textCapitalization: TextCapitalization.words),
+      primary: MegArkButton(key: const Key('meg-baat-lagre'), label: A4MegCopy.a4_meg_baat_lagre, onTap: () => Navigator.of(context).pop(c.text.trim())),
+    );
+    if (navn == null || navn.isEmpty || !mounted) return;
+    final feil = await VelgerApi().nameBoat(navn);
+    if (!mounted) return;
+    showBergenToast(context, feil == null ? A4MegCopy.a4_meg_baat_sendt : A4MegCopy.a4_meg_baat_feil, icon: feil == null ? Icons.check_rounded : Icons.error_outline_rounded);
+    final b = await VelgerApi().boat();
+    if (mounted) setState(() => _baat = b);
   }
 
   void _visOppsummering() {
@@ -971,6 +996,16 @@ class _MegScreenBodyState extends State<MegScreenBody> {
                                               under: ((_lopet!['runs_left'] as num?)?.toInt() ?? 0) > 0 ? LopetCopy.igjenPaaBestilling((_lopet!['runs_left'] as num).toInt()) : LopetCopy.nesteSeilas,
                                               onTap: () {},
                                             ),
+                                          // Points plan Step 13 (points spec §6.2 baat): name the boat; a person approves it, and it shows on Hjem
+                                          // and in Fjordløpet while Platina.
+                                          _Rad(
+                                            key: const Key('meg-rad-baat'),
+                                            sterk: true,
+                                            tile: const Icon(Icons.directions_boat_filled_rounded, color: Color(0xFF7FF0CB), size: 26),
+                                            navn: A4MegCopy.a4_meg_baat_rad(_baat?.name),
+                                            under: A4MegCopy.a4_meg_baat_under(_baat?.state, _baat?.shown ?? false),
+                                            onTap: _navnBaat,
+                                          ),
                                           // Ukens oppdrag and the month's summary are not rows here (the design
                                           // has Nivå, Liga and Gullbilletten only; Saved-for-later plan, 2026-10-23).
                                           _Rad(

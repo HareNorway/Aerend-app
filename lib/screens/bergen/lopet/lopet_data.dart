@@ -34,6 +34,7 @@ class LopetState {
     required this.losgrad,
     required this.levelName,
     required this.boat,
+    this.boatName,
     required this.rewards,
     required this.delivery,
     required this.vilkaar,
@@ -62,6 +63,9 @@ class LopetState {
 
   /// robaat | vimpel | snekke | egen
   final String boat;
+
+  /// Points plan Step 13: the Platina boat's approved name, or null.
+  final String? boatName;
   final Map<String, dynamic> rewards;
   final Map<String, dynamic> delivery;
   final List<String> vilkaar;
@@ -93,6 +97,7 @@ class LopetState {
       losgrad: '${l['name'] ?? ''}',
       levelName: '${lv['name'] ?? ''}',
       boat: '${lv['boat'] ?? 'robaat'}',
+      boatName: lv['boat_name'] as String?,
       rewards: Map<String, dynamic>.from((j['rewards'] as Map?) ?? const {}),
       delivery: Map<String, dynamic>.from((j['delivery'] as Map?) ?? const {}),
       vilkaar: [for (final v in ((j['vilkaar'] as List?) ?? const [])) '$v'],
