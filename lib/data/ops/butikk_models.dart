@@ -518,6 +518,7 @@ class BergenProductDetail {
     this.readyMinutes,
     this.mostOrdered = false,
     this.pointsPer10Kr,
+    this.pointsPerOrder,
     this.priceOre,
     this.wasPriceOre,
     this.cells = const [],
@@ -551,6 +552,10 @@ class BergenProductDetail {
   final String? imageUrl;
   /// `points.kjop_per_10kr`: "+N poeng" = whole 10 kr × this (KjopRule).
   final int? pointsPer10Kr;
+
+  /// Points plan Step 1: what one order at this store typically earns (`points_per_order`, from the store's own
+  /// orders and the panel's settings). The store page's «+N per kjøp»; null hides it.
+  final int? pointsPerOrder;
   final List<String> allergens;
   final bool vegan;
   final bool halal;
@@ -577,6 +582,7 @@ class BergenProductDetail {
       readyMinutes: (json['ready_minutes'] as num?)?.toInt(),
       mostOrdered: json['most_ordered'] == true,
       pointsPer10Kr: (json['points_per_10kr'] as num?)?.toInt(),
+      pointsPerOrder: (json['points_per_order'] as num?)?.toInt(),
       priceOre: (json['price_ore'] as num?)?.toInt(),
       wasPriceOre: (json['was_price_ore'] as num?)?.toInt(),
       cells: BergenCell.listFrom(json['variants']),

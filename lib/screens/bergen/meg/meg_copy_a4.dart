@@ -1,4 +1,6 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
+import '../../../data/aegil/aegil_app_models.dart';
+
 /// Copy for the rebuilt Meg tab (agil-4). Keys `a4_meg_*`; the design's
 /// wording (`Ærend Kunde Bergen.dc.html` `meg` ≈L5912–6124 and the Ark
 /// sheets `slikPoeng`, `nivaa`, `ligaNavn`, `kodeInnst`, `anledninger`,
@@ -165,7 +167,7 @@ abstract final class A4MegCopy {
   static const List<List<String>> a4_meg_poengrater = [
     ['Handel', '1 poeng per krone du handler for'],
     ['Første gang hos en ny butikk', '+50 poeng, én gang per butikk'],
-    ['Dagens napp', '+5 poeng for det første funnet hver dag'],
+    ['Dagens napp', '+5 poeng for dagens første funn, opptil 50 i måneden'],
     ['Ægils oppdrag', '+50 poeng når du fullfører'],
     ['Verving', '+200 poeng når vennen får sin første ordre levert'],
   ];
@@ -182,8 +184,14 @@ abstract final class A4MegCopy {
   static String a4_meg_rate_kjop(int n) => '$n poeng per 10 kr du handler for';
   static const String a4_meg_rate_kr = '1 per kr';
   static String a4_meg_rate_per10(int n) => '$n per 10 kr';
+  // Points plan Step 1: the rate as the panel sets it, «1 poeng per N kr».
+  static String a4_meg_rate_kr_per_point(int kr) => kr == 1 ? '1 poeng per krone du handler for' : '1 poeng per $kr kr du handler for';
+  static String a4_meg_rate_chip(int kr) => kr == 1 ? '1 per kr' : '1 per $kr kr';
   static String a4_meg_rate_forste(int n) => '+$n poeng, én gang per butikk';
-  static String a4_meg_rate_napp(int n) => '+$n poeng for det første funnet hver dag';
+  // Points plan Step 14 (§4c): «+5 poeng for dagens første funn, opptil 50 i måneden».
+  static String a4_meg_rate_napp(int n, [int? maanedTak]) => maanedTak != null && maanedTak > 0
+      ? '+$n poeng for dagens første funn, opptil $maanedTak i måneden'
+      : '+$n poeng for dagens første funn';
   static String a4_meg_rate_verving(int n) => '+$n poeng når vennen får sin første ordre levert';
   static String a4_meg_du_er(String tier) => 'Du er $tier';
   static String a4_meg_poeng_opptjent(int n) => '${_nf(n)} poeng opptjent';
@@ -358,18 +366,74 @@ abstract final class A4MegCopy {
   static String a4_meg_verv_mnd(int n, int cap) => n == 0 ? 'Ingen vervet denne måneden ennå — del billetten, så teller neste bestilling.' : 'Du har vervet $n denne måneden${cap > 0 ? ' av maks $cap' : ''}.';
   static const String a4_meg_vilkaar_title = 'Vilkår for poeng';
   static const String a4_meg_vilkaar_linje = 'Poeng er ikke penger og kan ikke veksles i kroner.';
-  static const List<List<String>> a4_meg_vilkaar_rader = [
-    ['Verving', '200 poeng til hver når vennens første ordre over 200 kr er levert'],
-    ['Billettstigen', 'Bonus ved 3, 10, 25 og 50 vervede — én gang per trinn'],
-    ['Poeng', 'Utløper 12 måneder etter at de er tjent'],
-    ['Ligaen', 'Krever at du melder deg på, og viser bare navnet du selv velger'],
-  ];
+  // Points plan Step 10 (points spec §9): the Gullbillett terms from the server's numbers (`points/me/referral`); the
+  // ladder is retired. Without the payload the spec's defaults are shown.
+  // Points plan Step 13: the boat in Vågen.
+  static String a4_meg_baat_rad(String? navn) => navn == null || navn.isEmpty ? 'Båten din i Vågen' : 'Båten din · $navn';
+  static String a4_meg_baat_under(String? state, bool vist) => switch (state) {
+        null => 'Gi den et navn',
+        'pending' => 'Navnet venter på godkjenning',
+        'rejected' => 'Navnet ble ikke godkjent · prøv et annet',
+        _ => vist ? 'Ligger i Vågen på Hjem' : 'Vises på Hjem når du er Platina',
+      };
+  static const String a4_meg_baat_tittel = 'Gi båten din et navn';
+  static const String a4_meg_baat_linje = 'Høyst 20 tegn. En person godkjenner navnet før båten vises.';
+  static const String a4_meg_baat_lagre = 'Lagre navnet';
+  static const String a4_meg_baat_sendt = 'Navnet er sendt til godkjenning';
+  static const String a4_meg_baat_feil = 'Navnet kan ikke brukes';
+
+  // Points plan follow-up (points spec §6.2 send).
+  static const String a4_hylla_send_adresse = 'Hvor skal premien sendes?';
+  static const String a4_hylla_send_adresse_sub = 'Butikken pakker og sender den når du har bekreftet adressen.';
+  static const String a4_hylla_send_bekreft = 'Bekreft adressen';
+  static const String a4_hylla_send_navn = 'Navn';
+  static const String a4_hylla_send_gate = 'Gateadresse';
+  static const String a4_hylla_send_postnr = 'Postnummer';
+  static const String a4_hylla_send_sted = 'Sted';
+  static const String a4_hylla_send_mangler = 'Fyll ut navn, adresse, postnummer og sted';
+  static String a4_hylla_send_bekreftet(String butikk) => butikk.isEmpty ? 'Adressen er sendt til butikken' : 'Adressen er sendt til $butikk';
+  static const String a4_hylla_send_paa_vei = 'På vei';
+  static String a4_hylla_send_sporing(String nr) => 'Sporingsnummer $nr';
+  static const String a4_hylla_send_uten_sporing = 'Butikken har sendt den';
+  static const String a4_hylla_send_mottatt = 'Jeg har fått den';
+  static const String a4_hylla_send_kos = 'Kos deg med premien';
+
+  // Points plan Step 12: a premiekupong from Ukens led.
+  static const String a4_hylla_kupong_tittel = 'Bruk premiekupongen?';
+  static String a4_hylla_kupong_linje(String premie, String hylle) => '$premie for 0 poeng. Kupongen gjelder én premie opp til $hylle-hylla.';
+  static const String a4_hylla_kupong_bruk = 'Bruk kupongen';
+  static const String a4_hylla_kupong_ikke = 'Ikke nå';
+  static String a4_hylla_kupong_hentet(String premie) => '$premie er din · 0 poeng';
+
+  // Points plan Step 12: «Slik får du poeng» › Fjordløpet.
+  static String a4_meg_rate_fjordlopet(List<int> p, int pb, int cap) =>
+      'Mens du venter: ${p[0]} / ${p[1]} / ${p[2]} poeng for Bøye 1, Bøye 2 og Bryggen, +$pb for ny rekord, høyst $cap per bestilling. Gis når ærendet er levert.';
+
+  static List<List<String>> a4_meg_vilkaar_rader(Referral? r) {
+    final hver = r?.pointsForMe ?? 200;
+    final kr = ((r?.minOrderOre ?? 15000) / 100).floor();
+    final mnd = r?.monthlyCap ?? 5;
+    final aar = r?.yearlyCap ?? 25;
+    return [
+      ['Verving', '$hver poeng til hver når vennens første ordre med minst $kr kr i varer er levert'],
+      ['Grenser', '$mnd venner med poeng i måneden og $aar i året. Flere kan bli med, uten poeng. Samme nummer, kort eller telefon gir ingen poeng.'],
+      // Points plan Step 14 (§4c, points spec §3): the inactivity rule.
+      ['Poeng', 'Utløper ikke så lenge du har fått levert en ordre de siste 12 månedene'],
+      ['Ligaen', 'Krever at du melder deg på, og viser bare navnet du selv velger'],
+    ];
+  }
 
   // Ark · Nivå (detail)
   static String a4_meg_poeng_til(String next) => 'poeng til $next';
   static const String a4_meg_hoyeste_linje = 'poeng opptjent — høyeste nivå';
   static String a4_meg_opptjent_12(int n) => 'Opptjent siste 12 måneder: ${_nf(n)}';
   static const String a4_meg_da_aapner = 'Da åpner disse på hylla di:';
+  // Points plan Step 2 (the 24des level sheet `phNiv`): the next shelf, the pace and the margin, all from the API.
+  static String a4_meg_aapner_paa(String neste) => 'Dette åpner på $neste';
+  static String a4_meg_tempo(int perMonth, int months) =>
+      'Med rundt ${_nf(perMonth)} poeng i måneden er du der om ca. ${months == 1 ? 'én måned' : '$months måneder'}.';
+  static const String a4_meg_tempo_topp = 'Du har det høyeste nivået.';
+  static String a4_meg_margin(int n, String tier) => '${_nf(n)} poeng over grensen for $tier';
   static const String a4_meg_hele_hylla = 'Hele hylla er åpen for deg.';
   static String a4_meg_vurdering(String date, String tier) => 'Neste vurdering $date · du holder $tier.';
   static String a4_meg_vurdering_gap(String date, int gap, String tier) => 'Neste vurdering $date · du er ${_nf(gap)} poeng unna å bli på $tier.';
@@ -404,6 +468,25 @@ abstract final class A4MegCopy {
   static const String a4_hylla_chip_sendt = 'Sendt';
   static const String a4_hylla_chip_brukt = 'Brukt';
   static const String a4_hylla_chip_utlopt = 'Utløpt';
+  // Points plan Step 3 (points spec §6.3): the rest of Mine premier's states, the hold-to-claim and the celebration.
+  static const String a4_hylla_chip_paavei = 'På vei';
+  // Points plan Step 4 (`phBong`, auto): free delivery — where it applies, and the switch for the next order.
+  static const String a4_hylla_auto_gjelder = 'Gjelder alle butikker i Ærend. Leveringen blir 0 kr';
+  static const String a4_hylla_auto_bruk = 'Bruk på neste bestilling';
+  static const String a4_hylla_auto_bruk_av = 'Spares til senere · du kan slå den på i kassen';
+  static const String a4_hylla_chip_angret = 'Angret';
+  static const String a4_hylla_chip_gitt = 'Gitt';
+  static const String a4_hylla_chip_feilet = 'Feilet';
+  static String a4_hylla_saldo(int n) => 'Saldo ${nf(n)}';
+  static String a4_hylla_etter(int n) => 'Etter: ${nf(n)} poeng';
+  static const String a4_hylla_hold = 'Hold for å hente';
+  static const String a4_hylla_holder = 'Hold …';
+  static const String a4_hylla_hold_hint = 'Hold inne til knappen er full';
+  static const String a4_hylla_fest_kicker = 'PREMIE HENTET';
+  static const String a4_hylla_fest_tittel = 'Den er din!';
+  static const String a4_hylla_fest_lukk = 'Se Mine premier';
+  static const String a4_premie_vilkaar_utsolgt = 'Utsolgt';
+  static const String a4_premie_vilkaar_utsolgt_sub = 'Kommer tilbake neste måned';
   static const String a4_hylla_detaljer = 'Detaljer';
   static const String a4_hylla_utsolgt = 'UTSOLGT';
   static const String a4_hylla_maal_merke = 'MÅL';
@@ -447,7 +530,7 @@ abstract final class A4MegCopy {
   static const String a4_premie_vilkaar_partner = 'Partnerpremier';
   static const String a4_premie_vilkaar_partner_sub = 'Butikken står for varen, Ærend for poengprisen';
   static const String a4_premie_vilkaar_poeng = 'Poeng';
-  static String a4_premie_vilkaar_poeng_sub(int m) => 'Utløper $m måneder etter at de er tjent';
+  static String a4_premie_vilkaar_poeng_sub(int m) => 'Utløper ikke så lenge du har fått levert en ordre de siste $m månedene';
   static const String a4_hylla_poeng_etter = 'Poeng etter';
   static String a4_hylla_hent_for(int n) => 'Hent for ${_nf(n)} poeng';
   static String a4_hylla_hentet(String name) => '$name ligger under Mine premier';

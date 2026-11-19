@@ -10,6 +10,7 @@ import 'hjem/hjem_varsler.dart';
 import 'kit/bergen_routes.dart';
 import 'kit/bergen_videre.dart';
 import 'fiske/fjordfiske_screen.dart';
+import 'lopet/lopet_screen.dart';
 import 'poeng/liga_screen.dart';
 import 'poeng/opprykk_screen.dart';
 import 'poeng/premiehylla_screen.dart';
@@ -33,6 +34,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
         return OpprykkScreen(tierName: m['tier_name'] as String?, giftName: m['gift'] as String?);
       },
       '/bergen/fjordfiske': (_) => const FjordfiskeScreen(),
+      // Points plan Step 7: Fjordløpet, for one order (`order_id`); only reached while its session is open (LopetPort).
+      '/bergen/lopet': (_) => const LopetScreen(),
       '/bergen/aegil': (_) => const AegilScreen(),
       '/bergen/aegil/minne': (_) => const AegilScreen(steg: 'minne'),
       // Gap Step 1: «Innstillinger for varsler» in the Varsler panel.

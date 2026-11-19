@@ -374,6 +374,9 @@ class Referral {
     this.pointsForThem = 200,
     this.qualifiedThisMonth = 0,
     this.monthlyCap = 5,
+    this.yearlyCap = 25,
+    this.rewarded12m = 0,
+    this.minOrderOre = 15000,
     this.qualifiedTotal = 0,
     this.pointsEarned = 0,
     this.ladder = const [],
@@ -386,6 +389,11 @@ class Referral {
   final int pointsForThem;
   final int qualifiedThisMonth;
   final int monthlyCap;
+
+  /// Points plan Step 10 (points spec §9): 25 rewarded friends in 12 months, the friend's first order's minimum goods.
+  final int yearlyCap;
+  final int rewarded12m;
+  final int minOrderOre;
 
   /// agil-4: lifetime qualified referrals, points they brought in, the
   /// Gullbillett ladder and the friends who used the code.
@@ -401,6 +409,9 @@ class Referral {
     pointsForThem: (json['points_for_them'] as num?)?.toInt() ?? 200,
     qualifiedThisMonth: (json['qualified_this_month'] as num?)?.toInt() ?? 0,
     monthlyCap: (json['monthly_cap'] as num?)?.toInt() ?? 5,
+    yearlyCap: (json['yearly_cap'] as num?)?.toInt() ?? 25,
+    rewarded12m: (json['rewarded_12m'] as num?)?.toInt() ?? 0,
+    minOrderOre: (json['min_order_ore'] as num?)?.toInt() ?? 15000,
     qualifiedTotal: (json['qualified_total'] as num?)?.toInt() ?? 0,
     pointsEarned: (json['points_earned'] as num?)?.toInt() ?? 0,
     ladder: ((json['ladder'] as List?) ?? const []).whereType<Map>().map((e) => VervStep.fromJson(e.cast<String, dynamic>())).toList(),
@@ -497,19 +508,24 @@ class VervStep {
       );
 }
 
-/// A friend who used the code: `downloaded` (claimed) or `delivered` (qualified).
+/// A friend who used the code: `downloaded` (claimed) or `delivered` (qualified). Points plan Step 10: [state] is
+/// the server's joined | rewarded | over_limit (joined, no points) | rejected.
 class VervFriend {
-  const VervFriend({required this.name, required this.status, this.at});
+  const VervFriend({required this.name, required this.status, this.state, this.at});
 
   final String name;
   final String status;
+  final String? state;
   final String? at;
 
-  bool get delivered => status == 'delivered';
+  bool get delivered => state == null ? status == 'delivered' : state == 'rewarded';
+  bool get overLimit => state == 'over_limit';
+  bool get rejected => state == 'rejected';
 
   factory VervFriend.fromJson(Map<String, dynamic> json) => VervFriend(
         name: (json['name'] as String?) ?? '',
         status: (json['status'] as String?) ?? 'downloaded',
+        state: json['state'] as String?,
         at: json['at'] as String?,
       );
 }

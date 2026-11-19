@@ -8,6 +8,8 @@ import 'package:flutter/rendering.dart' show OverflowBoxFit;
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../../../data/points/voucher_api.dart';
+import '../../../utils/shared_pref_utill.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
@@ -61,6 +63,9 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   final GlobalKey _hyllaKey = GlobalKey();
   bool _loading = true;
 
+  /// Points plan Step 12: open premiekuponger from Ukens led.
+  List<PremieVoucher> _kuponger = const [];
+
   @override
   void initState() {
     super.initState();
@@ -68,9 +73,10 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _load() async {
-    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules)]);
+    final r = await Future.wait<Object?>([a3Try(_api.balance), a3Try(_api.shelf), a3Try(_api.claims), a3Try(A3Services.rules), a3Try(() => VoucherApi().list())]);
     if (!mounted) return;
     setState(() {
+      _kuponger = (r[4] as List<PremieVoucher>?) ?? const [];
       _regler = r[3] as PointsRules? ?? _regler;
       _balance = r[0] as PointsBalance?;
       _shelf = r[1] as Premiehylla?;
@@ -124,38 +130,133 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
   }
 
   Future<void> _hent(Prize p) async {
-    if (!p.inStock) {
+    if (p.soldOut || !p.inStock) {
       showBergenToast(context, A4MegCopy.a4_hylla_utsolgt_toast(p.name));
       return;
     }
+    // Points plan Step 12 (points spec §11.2): a premiekupong that reaches this shelf claims it for 0 points.
+    final kupong = _kuponger.where((k) => k.maxShelf >= p.tierBand).firstOrNull;
+    if (kupong != null && await _brukKupong(kupong, p)) return;
     if (!p.affordable) {
       await _setGoal(p);
       return;
     }
-    final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: _regler?.claimExpiryDays);
+    final claimed = await PremieArk.krev(context, p: p, poeng: _points, api: _api, gyldigDager: p.validDays ?? _regler?.claimExpiryDays);
     if (claimed == true && mounted) _load();
+  }
+
+  /// «Bruk premiekupongen?» — true when the customer chose it (claimed or refused); false lets the normal claim go on.
+  Future<bool> _brukKupong(PremieVoucher k, Prize p) async {
+    final ja = await showMegArk<bool>(
+      context,
+      key: const Key('hylla-kupong-ark'),
+      title: A4MegCopy.a4_hylla_kupong_tittel,
+      subtitle: A4MegCopy.a4_hylla_kupong_linje(p.name, k.shelf ?? ''),
+      body: (ctx, _) => const SizedBox.shrink(),
+      primary: MegArkButton(key: const Key('hylla-kupong-bruk'), label: A4MegCopy.a4_hylla_kupong_bruk, onTap: () => Navigator.of(context).pop(true)),
+      secondary: MegArkButton(label: A4MegCopy.a4_hylla_kupong_ikke, onTap: () => Navigator.of(context).pop(false)),
+    );
+    if (ja != true || !mounted) return false;
+    final feil = await VoucherApi().claim(k.id, p.id);
+    if (!mounted) return true;
+    if (feil == null) {
+      showBergenToast(context, A4MegCopy.a4_hylla_kupong_hentet(p.name), icon: Icons.check_rounded);
+      _load();
+    } else {
+      showBergenToast(context, CusPoengFeil.tekst(feil, ellers: A4MegCopy.cus_meg_oppdrag_feil), icon: Icons.error_outline_rounded);
+    }
+    return true;
   }
 
   void _openVelger() => Navigator.of(context).push(BergenRoutes.rute<void>((_) => ModusFjord(child: AegilVelgerScreen(api: _api)))).then((_) => _load());
 
   /// A claim's ticket, opened: how it is used, the code, how long it lasts.
   void _visClaim(PrizeClaim c, Prize? p) {
+    final auto = (c.specType ?? p?.specType) == 'auto' && c.status == 'klar';
+    var bruk = prefGetBoolOr(prefPremieBrukNeste, true);
     showMegArk<void>(
       context,
       title: c.prizeName ?? p?.name ?? '',
       subtitle: p?.partnerName ?? 'Ærend',
-      body: (ctx, _) => Column(
+      body: (ctx, setSheet) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: PremieArk.hvordan(p?.type ?? '')),
+          MegArkRow(title: A4MegCopy.a4_hylla_dette_skjer, sub: auto ? A4MegCopy.a4_hylla_auto_gjelder : PremieArk.hvordan(c.specType ?? p?.specType ?? '')),
+          // Points plan Step 4 (`phBong` auto): on by default; off keeps it for later (Kassen can still switch it on).
+          if (auto)
+            MegArkRow(
+              key: const Key('hylla-auto-bruk'),
+              title: A4MegCopy.a4_hylla_auto_bruk,
+              sub: bruk ? null : A4MegCopy.a4_hylla_auto_bruk_av,
+              trailing: Switch.adaptive(
+                key: const Key('hylla-auto-bryter'),
+                value: bruk,
+                // The slip's mint switch (KvBryter), not the platform's accent.
+                activeTrackColor: const Color(0xFF2FB893),
+                activeThumbColor: Colors.white,
+                onChanged: (v) {
+                  prefSetBool(prefPremieBrukNeste, v);
+                  setSheet(() => bruk = v);
+                },
+              ),
+            ),
           if ((c.voucherCode ?? '').isNotEmpty) MegArkRow(title: A4MegCopy.a4_hylla_kode, sub: c.voucherCode!),
+          // Points plan follow-up (points spec §6.2 send): the address to confirm, then «På vei» with tracking.
+          if (c.needsAddress) MegArkRow(key: const Key('cus-hylla-adresse-rad'), title: A4MegCopy.a4_hylla_send_adresse, sub: A4MegCopy.a4_hylla_send_adresse_sub),
+          if (c.specType == 'send' && c.status == 'paa_vei')
+            MegArkRow(key: const Key('cus-hylla-sporing-rad'), title: A4MegCopy.a4_hylla_send_paa_vei, sub: (c.tracking ?? '').isNotEmpty ? A4MegCopy.a4_hylla_send_sporing(c.tracking!) : A4MegCopy.a4_hylla_send_uten_sporing),
           if (c.expiresAt != null) MegArkRow(title: A4MegCopy.a4_hylla_gyldighet, sub: A4MegCopy.a4_hylla_dager_igjen(_dagerIgjen(c))),
           // Customer Step 12 (Points spec §4.3): within 24 h before fulfilment the claim can be undone.
           if (c.cancellable) MegArkRow(key: const Key('cus-hylla-angre-rad'), title: A4MegCopy.cus_hylla_angre, sub: A4MegCopy.cus_hylla_angre_til(_frist(c))),
         ],
       ),
-      primary: c.cancellable ? MegArkButton(key: const Key('cus-hylla-angre-cta'), label: A4MegCopy.cus_hylla_angre_cta, rod: true, onTap: () => _angreClaim(c)) : null,
+      primary: c.needsAddress
+          ? MegArkButton(key: const Key('cus-hylla-adresse-cta'), label: A4MegCopy.a4_hylla_send_bekreft, onTap: () => _adresse(c))
+          : (c.specType == 'send' && c.status == 'paa_vei'
+              ? MegArkButton(key: const Key('cus-hylla-mottatt-cta'), label: A4MegCopy.a4_hylla_send_mottatt, onTap: () => _mottatt(c))
+              : (c.cancellable ? MegArkButton(key: const Key('cus-hylla-angre-cta'), label: A4MegCopy.cus_hylla_angre_cta, rod: true, onTap: () => _angreClaim(c)) : null)),
     );
+  }
+
+  /// Points plan follow-up: the customer confirms where the store should send the premie.
+  Future<void> _adresse(PrizeClaim c) async {
+    final nav = Navigator.of(context);
+    final f = [TextEditingController(text: a3Pref(prefUserName)), TextEditingController(), TextEditingController(), TextEditingController(text: 'Bergen')];
+    final labels = [A4MegCopy.a4_hylla_send_navn, A4MegCopy.a4_hylla_send_gate, A4MegCopy.a4_hylla_send_postnr, A4MegCopy.a4_hylla_send_sted];
+    final ok = await showMegArk<bool>(
+      context,
+      key: const Key('cus-hylla-adresse-ark'),
+      title: A4MegCopy.a4_hylla_send_adresse,
+      subtitle: A4MegCopy.a4_hylla_send_adresse_sub,
+      body: (ctx, _) => Column(children: [
+        for (var i = 0; i < f.length; i++)
+          TextField(key: Key('cus-hylla-adresse-$i'), controller: f[i], decoration: InputDecoration(labelText: labels[i]), keyboardType: i == 2 ? TextInputType.number : TextInputType.text),
+      ]),
+      primary: MegArkButton(key: const Key('cus-hylla-adresse-lagre'), label: A4MegCopy.a4_hylla_send_bekreft, onTap: () => Navigator.of(context).pop(true)),
+    );
+    if (ok != true || !mounted) return;
+    final feil = await SendPremieApi().confirmAddress(c.id, name: f[0].text.trim(), line: f[1].text.trim(), postcode: f[2].text.trim(), city: f[3].text.trim());
+    if (!mounted) return;
+    if (feil == null) {
+      nav.pop();
+      showBergenToast(context, A4MegCopy.a4_hylla_send_bekreftet(c.partnerName ?? ''), icon: Icons.check_rounded);
+      _load();
+    } else {
+      showBergenToast(context, feil == 'ADDRESS_INCOMPLETE' ? A4MegCopy.a4_hylla_send_mangler : CusPoengFeil.tekst(feil, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
+    }
+  }
+
+  Future<void> _mottatt(PrizeClaim c) async {
+    final nav = Navigator.of(context);
+    final feil = await SendPremieApi().received(c.id);
+    if (!mounted) return;
+    if (feil == null) {
+      nav.pop();
+      showBergenToast(context, A4MegCopy.a4_hylla_send_kos, icon: Icons.check_rounded);
+      _load();
+    } else {
+      showBergenToast(context, CusPoengFeil.tekst(feil, ellers: A4MegCopy.a4_hylla_feil), icon: Icons.error_outline_rounded);
+    }
   }
 
   /// «til kl 12:57» today, «til kl 13.10. 12:57» another day.
@@ -264,7 +365,7 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
     final klare = prizes.where((p) => p.inStock && p.affordable).length;
     final byId = {for (final p in prizes) p.id: p};
     final cheapest = prizes.where((p) => p.inStock).map((p) => p.pointPrice).fold<int?>(null, (a, v) => a == null || v < a ? v : a);
-    final aktive = _claims.where((c) => c.state != 'used' && c.state != 'expired' && c.state != 'cancelled').length;
+    final aktive = _claims.where((c) => c.status == 'klar' || c.status == 'paa_vei').length;
 
     return ListView(
       key: const Key('hylla-list'),
@@ -1121,13 +1222,18 @@ class _Billett extends StatelessWidget {
     // Lys: the design keeps «Brukt» white on white (`mineVis` R.Brukt, no `__aeM`); the grey chips take
     // `--lys-dis` / `--lys-sekundar` like the `.mk8w` krav chip.
     final lys = context.lys;
-    final (chip, chipBg, chipC) = switch (c.state) {
-      'claimed' || 'applied' => (A4MegCopy.a4_hylla_chip_klar, const Color(0xFF5CE0B8), const Color(0xFF0F2A33)),
-      'shipped' => (A4MegCopy.a4_hylla_chip_sendt, const Color(0xFFF7D57E), const Color(0xFF3A2708)),
-      'delivered' || 'used' => (A4MegCopy.a4_hylla_chip_brukt, lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white),
-      _ => (A4MegCopy.a4_hylla_chip_utlopt, lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white),
+    // Points plan Step 3 (points spec §6.3): Klar, På vei, Brukt, Utløpt, Angret, Gitt, Feilet — from the claim's status.
+    final graa = (lys ? LysPalett.dis : const Color.fromRGBO(255, 255, 255, .2), lys ? LysPalett.sekundar : Colors.white);
+    final (chip, chipBg, chipC) = switch (c.status) {
+      'klar' => (A4MegCopy.a4_hylla_chip_klar, const Color(0xFF5CE0B8), const Color(0xFF0F2A33)),
+      'paa_vei' => (A4MegCopy.a4_hylla_chip_paavei, const Color(0xFFF7D57E), const Color(0xFF3A2708)),
+      'brukt' => (A4MegCopy.a4_hylla_chip_brukt, graa.$1, graa.$2),
+      'angret' => (A4MegCopy.a4_hylla_chip_angret, graa.$1, graa.$2),
+      'gitt' => (A4MegCopy.a4_hylla_chip_gitt, graa.$1, graa.$2),
+      'feilet' => (A4MegCopy.a4_hylla_chip_feilet, graa.$1, graa.$2),
+      _ => (A4MegCopy.a4_hylla_chip_utlopt, graa.$1, graa.$2),
     };
-    final brukt = c.state == 'used' || c.state == 'expired' || c.state == 'cancelled';
+    final brukt = !{'klar', 'paa_vei'}.contains(c.status);
     final art = PrizeArt.of(slug: prize?.slug, name: c.prizeName ?? prize?.name ?? '');
     return AePress(
       onTap: onTap,
@@ -1185,7 +1291,7 @@ class _Billett extends StatelessWidget {
                               Text(c.prizeName ?? prize?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: jakarta(14, em: -.015, height: 1.2, color: lys ? LysPalett.tittel : Colors.white)),
                               const SizedBox(height: 2),
                               Text(
-                                PremieArk.hvordan(prize?.type ?? ''),
+                                PremieArk.hvordan(c.specType ?? prize?.specType ?? ''),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: inter(11, height: 1.35, color: lys ? LysPalett.sekundar : const Color.fromRGBO(255, 255, 255, .72)),

@@ -7,6 +7,7 @@
 class PointsRules {
   const PointsRules({
     required this.kjopPer10kr,
+    this.krPerPoint = 10,
     required this.firstOrderBonus,
     required this.referrer,
     required this.referee,
@@ -19,10 +20,28 @@ class PointsRules {
     this.aegilAnswerCap = 0,
     this.claimExpiryDays,
     this.pointsExpiryMonths,
+    this.fiskeMonthlyCap = 0,
+    this.fjordlopetPoints = const [],
+    this.fjordlopetMilestones = const [],
+    this.fjordlopetPb = 0,
+    this.fjordlopetCap = 0,
   });
 
   /// Points per whole 10 kr paid (`points.kjop_per_10kr`).
   final int kjopPer10kr;
+
+  /// Points plan Step 1: kroner of goods per point (`kr_per_point`, set in the panel). Older servers send only
+  /// `kjop_per_10kr`; then it is derived from that.
+  /// Points plan Step 14: Dagens napp's month cap («opptil 50 i måneden»).
+  final int fiskeMonthlyCap;
+
+  /// Points plan Step 12 (game spec §6.1): Fjordløpet's points per gate, the gates, the personal-best bonus, the cap.
+  final List<int> fjordlopetPoints;
+  final List<int> fjordlopetMilestones;
+  final int fjordlopetPb;
+  final int fjordlopetCap;
+
+  final int krPerPoint;
 
   /// Første gang (`points.forste_gang`).
   final int firstOrderBonus;
@@ -70,24 +89,33 @@ class PointsRules {
     final aegil = json['aegil_answer'] is Map ? Map<String, dynamic>.from(json['aegil_answer'] as Map) : const <String, dynamic>{};
     return PointsRules(
       kjopPer10kr: _int(json['kjop_per_10kr']),
+      krPerPoint: json['kr_per_point'] != null
+          ? (_int(json['kr_per_point']) > 0 ? _int(json['kr_per_point']) : 10)
+          : (_int(json['kjop_per_10kr']) > 0 ? (10 ~/ _int(json['kjop_per_10kr'])).clamp(1, 1000) : 10),
       firstOrderBonus: _int(json['first_order_bonus']),
       referrer: _int(referral['referrer']),
       referee: _int(referral['referee']),
       signupBonus: _int(signup['amount']),
       signupEnabled: signup['enabled'] == true,
       fiskePerCatch: _int(fiske['points_per_catch']),
+      fiskeMonthlyCap: _int(fiske['monthly_cap']),
       configVersion: '${json['config_version'] ?? ''}',
       aegilAnswerEnabled: aegil['enabled'] == true,
       aegilPerAnswer: _int(aegil['per_answer']),
       aegilAnswerCap: _int(aegil['cap']),
       claimExpiryDays: json['claim_expiry_days'] == null ? null : _int(json['claim_expiry_days']),
       pointsExpiryMonths: json['points_expiry_months'] == null ? null : _int(json['points_expiry_months']),
+      fjordlopetPoints: [for (final v in ((json['fjordlopet'] as Map?)?['points'] as List?) ?? const []) _int(v)],
+      fjordlopetMilestones: [for (final v in ((json['fjordlopet'] as Map?)?['milestones_m'] as List?) ?? const []) _int(v)],
+      fjordlopetPb: _int((json['fjordlopet'] as Map?)?['personal_best']),
+      fjordlopetCap: _int((json['fjordlopet'] as Map?)?['cap_per_order']),
     );
   }
 
-  /// Kjøp points for an amount in øre, the way KjopRule counts them: whole
-  /// 10 kr only.
-  int pointsForOre(int ore) => ore <= 0 ? 0 : (ore ~/ 1000) * kjopPer10kr;
+  /// Purchase points for an amount of goods in øre, the way the server counts them: whole points at the panel's
+  /// `kr_per_point`, rounded down (points plan Step 1). A display estimate only — the order's real points come from
+  /// the server (`points/preview`, the order snapshot).
+  int pointsForOre(int ore) => ore <= 0 ? 0 : ore ~/ (krPerPoint * 100);
 }
 
 /// Splits an order's real points total over the Sporing stages by the

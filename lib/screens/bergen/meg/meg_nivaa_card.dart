@@ -261,10 +261,10 @@ class MegNivaaCard extends StatelessWidget {
               ),
             ],
           ),
-          if (b.pending > 0) ...[
+          if (b.coming > 0) ...[
             const SizedBox(height: 6),
             Text(
-              A4MegCopy.a4_meg_kommer(b.pending),
+              A4MegCopy.a4_meg_kommer(b.coming),
               key: const Key('meg-pending-line'),
               style: BergenTokens.text(
                 11.5,

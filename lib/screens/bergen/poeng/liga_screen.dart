@@ -18,6 +18,7 @@ import '../meg/meg_ark.dart';
 import '../meg/meg_copy_a4.dart';
 import '../meg/meg_nav.dart';
 import '../meg/meg_sheets.dart';
+import '../meg/liga_ark.dart';
 import '../meg/mork_rad.dart';
 import 'poeng_copy.dart';
 import '../kit/laster_skjerm.dart';
@@ -64,6 +65,7 @@ class _LigaScreenState extends State<LigaScreen> {
       _league = l;
       _loading = false;
     });
+    if (l != null) _nordlys(l);
   }
 
   String get _fornavn => a3Pref(prefUserName).trim().split(' ').firstOrNull ?? '';
@@ -105,7 +107,48 @@ class _LigaScreenState extends State<LigaScreen> {
     }
   }
 
-  void _vilkaar() => MegSheets.ligaVilkaar(context);
+  void _vilkaar() => LigaArk.vilkaar(context, _league);
+
+  /// Points plan Step 11 (points spec §10.1): «Nordlys over Fløyen» once per closed month, then the new month.
+  Future<void> _nordlys(League l) async {
+    final m = l.lastMonth;
+    if (m == null || m.top.isEmpty) return;
+    final key = 'liga_nordlys_${m.month}';
+    if (a3Pref(key) == '1') return;
+    try {
+      await prefSetString(key, '1');
+    } catch (_) {}
+    if (!mounted) return;
+    await showMegArk<void>(
+      context,
+      key: const Key('liga-nordlys'),
+      mork: true,
+      fjord: true,
+      title: A3PoengCopy.a3_poeng_liga_nordlys_title,
+      subtitle: A3PoengCopy.a3_poeng_liga_nordlys_sub(_maanedNavn(m.month)),
+      body: (ctx, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, s) in m.top.indexed) ...[
+            if (i > 0) const SizedBox(height: 8),
+            MorkRad(delayMs: i * 60.0, ikon: MorkIk.pokal, navn: '${s.rank}. ${s.label}', under: '${s.points} poeng', onTap: () {}),
+          ],
+          if (m.ownRank != null && m.ownRank! > 3) ...[
+            const SizedBox(height: 8),
+            MorkRad(delayMs: 200, ikon: MorkIk.stjerne, navn: A3PoengCopy.a3_poeng_liga_nordlys_deg(m.ownRank!), onTap: () {}),
+          ],
+        ],
+      ),
+      primary: MegArkButton(key: const Key('liga-nordlys-ny'), label: A3PoengCopy.a3_poeng_liga_ny_maaned, onTap: () => Navigator.of(context).pop()),
+    );
+  }
+
+  static String _maanedNavn(String ym) {
+    const navn = ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'];
+    final m = int.tryParse(ym.split('-').last) ?? 0;
+    final s = m >= 1 && m <= 12 ? navn[m - 1] : ym;
+    return s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+  }
 
   void _seremoni() => showMegArk<void>(
     context,
@@ -115,7 +158,7 @@ class _LigaScreenState extends State<LigaScreen> {
     body: (ctx, _) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (i, p) in A3PoengCopy.a3_poeng_liga_premie_liste.indexed) ...[
+        for (final (i, p) in A3PoengCopy.a3_poeng_liga_premie_liste(_league).indexed) ...[
           if (i > 0) const SizedBox(height: 8),
           MorkRad(delayMs: i * 40.0, ikon: MorkIk.pokal, navn: p, onTap: () {}),
         ],
@@ -131,8 +174,12 @@ class _LigaScreenState extends State<LigaScreen> {
     final med = l?.optedIn == true;
     final own = med ? l?.own : null;
     final top = l?.top ?? const <LeagueStanding>[];
-    final rader = [...top, if (own != null && !top.any((s) => s.userId == own.userId)) own];
-    final plass = own != null ? A3PoengCopy.a3_poeng_liga_min_plass(own.rank, l?.displayName ?? _fornavn) : A3PoengCopy.a3_poeng_liga_ute;
+    final rader = [...top, if (own != null && own.rank > 0 && !top.any((s) => s.userId == own.userId)) own];
+    final plass = own == null
+        ? A3PoengCopy.a3_poeng_liga_ute
+        : (own.rank > 0
+            ? A3PoengCopy.a3_poeng_liga_min_plass(own.rank, l?.displayName ?? _fornavn)
+            : (own.employee ? A3PoengCopy.a3_poeng_liga_ansatt : A3PoengCopy.a3_poeng_liga_ikke_rangert(own.orders, l?.minOrders ?? 3)));
     return Scaffold(
       backgroundColor: const Color(0xFF173E48),
       body: LfFrame(
@@ -197,7 +244,11 @@ class _LigaScreenState extends State<LigaScreen> {
                               children: [
                                 _Tabell(rader: rader, ownId: own?.userId, maaned: l?.month),
                                 const SizedBox(height: 14),
-                                _Premier(onSeremoni: _seremoni),
+                                if ((l?.feed ?? const <String>[]).isNotEmpty) ...[
+                                  _Aktivitet(linjer: l!.feed),
+                                  const SizedBox(height: 14),
+                                ],
+                                _Premier(onSeremoni: _seremoni, rader: A3PoengCopy.a3_poeng_liga_premie_liste(l)),
                                 const SizedBox(height: 12),
                                 _GlassRad(
                                   key: const Key('liga-navn'),
@@ -587,7 +638,8 @@ class _Hode extends StatelessWidget {
   Widget build(BuildContext context) {
     // You: your place when you are in; outside, where joining starts you
     // (the foot of the path — the month starts at 0 points).
-    final rang = own?.rank ?? (participants + 1);
+    // Points plan Step 11: an unranked member (too few orders, or an employee) stands below the ranked list.
+    final rang = (own == null || own!.rank <= 0) ? participants + 1 : own!.rank;
     final maal = _Sti.plass(rang);
     final fra = math.max(0.0, maal - .88 / 9);
     final over = top.where((s) => s.rank == rang - 1).firstOrNull;
@@ -739,7 +791,7 @@ class _Hode extends StatelessWidget {
                 child: _Deg(key: const Key('liga-deg'), t: t, med: med, rang: rang),
               ),
               // The bubble (`ligaInn .5s 1.9s`).
-              if (!med || (own != null && rang > 1 && over != null))
+              if (!med || (own != null && own!.rank > 0 && rang > 1 && over != null))
                 _Boble(
                   t: t,
                   marker: _Sti.pos(maal).translate(0, dy),
@@ -1315,9 +1367,43 @@ class _Tabell extends StatelessWidget {
 
 /// «Månedens premier» (L8013–8022): gold-lit glass, the trophy key, the
 /// three medals and «4–10», «Se månedsslutten».
+/// Points plan Step 11 (points spec §10): the activity feed — display names only, never what was bought.
+class _Aktivitet extends StatelessWidget {
+  const _Aktivitet({required this.linjer});
+  final List<String> linjer;
+
+  @override
+  Widget build(BuildContext context) => CssBox(
+    key: const Key('liga-aktivitet'),
+    radius: BorderRadius.circular(22),
+    bg: const [CssLinear(180, [Color.fromRGBO(255, 255, 255, .12), Color.fromRGBO(255, 255, 255, .05)])],
+    border: Border.all(color: const Color.fromRGBO(255, 255, 255, .14)),
+    padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(A3PoengCopy.a3_poeng_liga_aktivitet, style: jakarta(15, em: -.02)),
+        const SizedBox(height: 8),
+        for (final t in linjer.take(6))
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              children: [
+                Container(width: 6, height: 6, decoration: const BoxDecoration(shape: BoxShape.circle, color: kAeMint)),
+                const SizedBox(width: 10),
+                Expanded(child: Text(t, style: inter(13, weight: FontWeight.w700, color: const Color(0xFFDCE9EC)))),
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
 class _Premier extends StatelessWidget {
-  const _Premier({required this.onSeremoni});
+  const _Premier({required this.onSeremoni, required this.rader});
   final VoidCallback onSeremoni;
+  final List<String> rader;
 
   @override
   Widget build(BuildContext context) {
@@ -1333,7 +1419,6 @@ class _Premier extends StatelessWidget {
       ],
       child: Center(child: Text('$n', style: jakarta(12.5, color: fg))),
     );
-    const rader = A3PoengCopy.a3_poeng_liga_premie_liste;
     return CssBox(
       key: const Key('liga-premier'),
       radius: BorderRadius.circular(24),
@@ -1392,7 +1477,7 @@ class _Premier extends StatelessWidget {
               children: [
                 medalje(n, c, fg),
                 const SizedBox(width: 11),
-                Expanded(child: Text(_uten(rader[i]), style: inter(13, weight: FontWeight.w700, height: 1.4, color: const Color(0xFFF5F3EF)))),
+                Expanded(child: Text(_uten(i < rader.length ? rader[i] : ''), style: inter(13, weight: FontWeight.w700, height: 1.4, color: const Color(0xFFF5F3EF)))),
               ],
             ),
           ],
@@ -1445,7 +1530,7 @@ class _Premier extends StatelessWidget {
   }
 
   /// «1. Kveld på Fløyen …» → «Kveld på Fløyen …».
-  static String _uten(String s) => s.replaceFirst(RegExp(r'^\s*[\d–-]+\.?\s*'), '');
+  static String _uten(String s) => s.replaceFirst(RegExp(r'^\s*\d+\.?(?:\s*[–-]\s*\d+\.?)?\s*'), '');
 }
 
 class _Tile extends StatelessWidget {

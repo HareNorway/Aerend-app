@@ -18,6 +18,7 @@ import 'package:aerend_customer/screens/bergen/meg/konto_screen.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_copy_a4.dart';
 import 'package:aerend_customer/screens/bergen/meg/meg_sheets.dart';
 import 'package:aerend_customer/screens/bergen/poeng/aegil_velger_screen.dart';
+import 'package:aerend_customer/data/points/velger_api.dart';
 import 'package:aerend_customer/screens/bergen/poeng/liga_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/opprykk_screen.dart';
 import 'package:aerend_customer/screens/bergen/poeng/premiehylla_screen.dart';
@@ -180,10 +181,18 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byKey(const Key('hylla-krev-sheet')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('hylla-krev-cta')));
+    // Points plan Step 3: hold-to-claim (900 ms), then the celebration.
+    await tester.ensureVisible(find.byKey(const Key('hylla-krev-cta')));
+    await tester.pump(const Duration(milliseconds: 300));
+    final g = await tester.startGesture(tester.getCenter(find.byKey(const Key('hylla-krev-cta'))));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await g.up();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(api.calls, contains('claim:7'));
+    expect(find.text(A4MegCopy.a4_hylla_fest_tittel), findsOneWidget);
     await tester.pump(const Duration(seconds: 4));
   });
 
@@ -203,12 +212,13 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('Ægil velger: the boat, then the pick with value hint, reason and Hent', (tester) async {
+  testWidgets('Ægil velger: the boat, then the server choice with its value and Hent', (tester) async {
     phone(tester, h: 900);
-    final api = FakePointsApi();
-    await tester.pumpWidget(a3App(AegilVelgerScreen(api: api)));
+    final velger = _FakeVelger();
+    await tester.pumpWidget(a3App(AegilVelgerScreen(api: FakePointsApi(), velger: velger)));
     await settle(tester);
-    expect(api.calls, contains('pick'));
+    // Points plan Step 13: the choice is made on the server (points/velger/start).
+    expect(velger.calls, contains('start'));
     expect(find.byKey(const Key('velger-premie')), findsNothing);
 
     await tester.pump(const Duration(milliseconds: 2100));
@@ -217,12 +227,11 @@ void main() {
     await settle(tester);
 
     expect(find.byKey(const Key('velger-premie')), findsOneWidget);
-    expect(find.text('Kaffe hos Kaffemisjonen'), findsOneWidget);
-    expect(find.text('Verdi minst 300 kr'), findsOneWidget);
-    expect(find.text('Du har vært der tre torsdager på rad.'), findsOneWidget);
+    expect(find.text('Fiskesuppe for to'), findsOneWidget);
+    expect(find.text('Verdi 360 kr'), findsOneWidget);
     await tester.tap(find.byKey(const Key('velger-hent')));
     await settle(tester);
-    expect(api.calls, contains('claim:7'));
+    expect(velger.calls, contains('accept:5'));
     await tester.pump(const Duration(seconds: 6));
   });
 
@@ -578,4 +587,20 @@ void main() {
     expect(find.text(A4MegCopy.a4_meg_betaling_standard), findsOneWidget);
     expect(find.textContaining('••'), findsNothing, reason: 'no digits of 41234567 under Vipps');
   });
+}
+
+class _FakeVelger extends VelgerApi {
+  final List<String> calls = [];
+
+  @override
+  Future<({Map<String, dynamic>? offer, String? error})> start() async {
+    calls.add('start');
+    return (offer: <String, dynamic>{'id': 5, 'premie': {'id': 9, 'name': 'Fiskesuppe for to', 'partner': 'Nordnes Fisk', 'retail_value_kr': 360}, 'points': 300}, error: null);
+  }
+
+  @override
+  Future<String?> accept(int id) async {
+    calls.add('accept:$id');
+    return null;
+  }
 }

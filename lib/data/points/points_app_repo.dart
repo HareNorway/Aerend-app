@@ -21,7 +21,8 @@ abstract class PointsAppApi {
   Future<League?> league();
   Future<bool> leagueOptIn(bool optIn);
   Future<Referral?> referral();
-  Future<AegilPick?> pick();
+  /// Points plan Step 13: [cast] and [session] let the server count the premie-catch rule.
+  Future<AegilPick?> pick({int? cast, String? session});
   Future<EarnResult?> earn({required int catchNumber, int? suggestionId});
 
   // agil-4: the Meg tab.
@@ -114,9 +115,9 @@ class PointsAppRepo implements PointsAppApi {
   }
 
   @override
-  Future<AegilPick?> pick() async {
+  Future<AegilPick?> pick({int? cast, String? session}) async {
     try {
-      final json = _ok(await _api.post('prizes/pick', body: _auth()));
+      final json = _ok(await _api.post('prizes/pick', body: {..._auth(), if (cast != null) 'cast': cast, if (session != null) 'session': session}));
       return json == null ? null : AegilPick.fromJson(json);
     } catch (_) {
       return null;

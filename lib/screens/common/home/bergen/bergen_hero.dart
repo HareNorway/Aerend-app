@@ -1,3 +1,5 @@
+import '../../../bergen/lopet/lopet_copy.dart';
+import '../../../bergen/lopet/lopet_data.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -1431,14 +1433,18 @@ class _FjordfiskeButton extends StatelessWidget {
               ),
             ),
             SizedBox(width: 6 * s),
-            Text(
-              BergenCopy.fjordfiske,
+            // Points plan Step 7: «Ægil er klar til å seile» while a Fjordløpet session is open.
+            ValueListenableBuilder<LopetInngang?>(
+              valueListenable: LopetPort.status,
+              builder: (context, lop, _) => Text(
+              lop != null ? LopetCopy.hjemKlar : BergenCopy.fjordfiske,
               style: bText(
                 context,
                 11,
                 weight: FontWeight.w800,
                 letterSpacingEm: -.01,
               ),
+            ),
             ),
             SizedBox(width: 6 * s),
             OnbIcons.of(OnbIcons.chevronRight('#7FF0CB'), 10 * s),

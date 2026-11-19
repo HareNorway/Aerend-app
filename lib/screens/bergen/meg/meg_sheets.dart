@@ -68,14 +68,14 @@ abstract final class MegSheets {
           GbBillettene(referral: referral, onNeste: del),
         ],
       ),
-      secondary: MegArkButton(key: const Key('meg-billett-vilkaar'), label: A4MegCopy.a4_meg_vilkaar, onTap: () => vilkaar(context)),
+      secondary: MegArkButton(key: const Key('meg-billett-vilkaar'), label: A4MegCopy.a4_meg_vilkaar, onTap: () => vilkaar(context, referral: referral)),
       primary: MegArkButton(key: const Key('meg-billett-del'), label: A4MegCopy.a4_meg_del_billetten, onTap: del),
     );
   }
 
   /// `vilkaar`: the points terms, stated as the backend enforces them (dark).
-  static Future<void> vilkaar(BuildContext context) {
-    const ik = {'Verving': MorkIk.person, 'Billettstigen': MorkIk.opp, 'Poeng': MorkIk.stjerne, 'Ligaen': MorkIk.pokal};
+  static Future<void> vilkaar(BuildContext context, {Referral? referral}) {
+    const ik = {'Verving': MorkIk.person, 'Grenser': MorkIk.opp, 'Poeng': MorkIk.stjerne, 'Ligaen': MorkIk.pokal};
     return showMegArk<void>(
       context,
       key: const Key('meg-vilkaar-sheet'),
@@ -85,7 +85,7 @@ abstract final class MegSheets {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final (i, r) in A4MegCopy.a4_meg_vilkaar_rader.indexed) ...[
+          for (final (i, r) in A4MegCopy.a4_meg_vilkaar_rader(referral).indexed) ...[
             if (i > 0) const SizedBox(height: 8),
             MorkRad(delayMs: i * 40.0, ikon: ik[r[0]] ?? MorkIk.bok, navn: r[0], under: r[1], onTap: () {}),
           ],
@@ -127,14 +127,18 @@ abstract final class MegSheets {
       if (regler != null) ...[
         (
           A4MegCopy.a4_meg_poengrater[0][0],
-          regler.kjopPer10kr == 10 ? A4MegCopy.a4_meg_poengrater[0][1] : A4MegCopy.a4_meg_rate_kjop(regler.kjopPer10kr),
-          regler.kjopPer10kr == 10 ? A4MegCopy.a4_meg_rate_kr : A4MegCopy.a4_meg_rate_per10(regler.kjopPer10kr),
+          // Points plan Step 1: the rate from the panel (`kr_per_point`), never a fixed line.
+          A4MegCopy.a4_meg_rate_kr_per_point(regler.krPerPoint),
+          A4MegCopy.a4_meg_rate_chip(regler.krPerPoint),
           MorkIk.pose,
         ),
         (A4MegCopy.a4_meg_poengrater[1][0], A4MegCopy.a4_meg_rate_forste(regler.firstOrderBonus), '+${regler.firstOrderBonus}', MorkIk.butikk),
-        (A4MegCopy.a4_meg_poengrater[2][0], A4MegCopy.a4_meg_rate_napp(regler.fiskePerCatch), '+${regler.fiskePerCatch}', MorkIk.krok),
+        (A4MegCopy.a4_meg_poengrater[2][0], A4MegCopy.a4_meg_rate_napp(regler.fiskePerCatch, regler.fiskeMonthlyCap), '+${regler.fiskePerCatch}', MorkIk.krok),
         (A4MegCopy.a4_meg_poengrater[3][0], A4MegCopy.a4_meg_poengrater[3][1], null, MorkIk.flagg),
         (A4MegCopy.a4_meg_poengrater[4][0], A4MegCopy.a4_meg_rate_verving(regler.referrer), '+${regler.referrer}', MorkIk.person),
+        // Points plan Step 12 (game spec §6.1): Fjordløpet, from the server's numbers.
+        if (regler.fjordlopetPoints.length >= 3 && regler.fjordlopetCap > 0)
+          ('Fjordløpet', A4MegCopy.a4_meg_rate_fjordlopet(regler.fjordlopetPoints, regler.fjordlopetPb, regler.fjordlopetCap), '+${regler.fjordlopetCap}', MorkIk.stjerne),
       ] else
         for (final (i, r) in A4MegCopy.a4_meg_poengrater.indexed) (r[0], r[1], null, [MorkIk.pose, MorkIk.butikk, MorkIk.krok, MorkIk.flagg, MorkIk.person][i]),
     ];
@@ -1187,8 +1191,26 @@ class _NivaaDetail extends StatelessWidget {
           ),
           const SizedBox(height: 9),
           Text(A4MegCopy.a4_meg_opptjent_12(b.earned12m), style: BergenTokens.text(12, weight: FontWeight.w700, color: MegArkInk.sub)),
+          // Points plan Step 2: the pace line from the customer's own last 90 days (`tier.pace`), never a fixed number.
+          if (!hasNext || (b.pacePerMonth > 0 && b.monthsToNext != null)) ...[
+            const SizedBox(height: 6),
+            Text(
+              hasNext ? A4MegCopy.a4_meg_tempo(b.pacePerMonth, b.monthsToNext!) : A4MegCopy.a4_meg_tempo_topp,
+              key: const Key('nivaa-tempo'),
+              style: BergenTokens.text(12, weight: FontWeight.w600, color: MegArkInk.sub, height: 1.45),
+            ),
+          ],
+          // «N poeng over grensen for Gull» — when the level is safe.
+          if (b.tier > 0 && !b.atRisk && b.marginOverThreshold > 0) ...[
+            const SizedBox(height: 6),
+            Text(
+              A4MegCopy.a4_meg_margin(b.marginOverThreshold, b.tierName),
+              key: const Key('nivaa-margin'),
+              style: BergenTokens.text(12, weight: FontWeight.w800, color: MegArkInk.green, height: 1.45),
+            ),
+          ],
           const SizedBox(height: 16),
-          Text(hasNext ? A4MegCopy.a4_meg_da_aapner : A4MegCopy.a4_meg_hele_hylla, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: MegArkInk.ink)),
+          Text(hasNext ? A4MegCopy.a4_meg_aapner_paa(b.nextTierName!) : A4MegCopy.a4_meg_hele_hylla, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: MegArkInk.ink)),
           if (three.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
@@ -1210,7 +1232,7 @@ class _NivaaDetail extends StatelessWidget {
               children: [
                 if (b.reviewAt != null && b.tier > 0) ...[
                   Text(
-                    b.keepGap > 0
+                    b.atRisk && b.keepGap > 0
                         ? A4MegCopy.a4_meg_vurdering_gap(MegSheets.pretty(b.reviewAt!.toIso8601String()), b.keepGap, b.tierName)
                         : A4MegCopy.a4_meg_vurdering(MegSheets.pretty(b.reviewAt!.toIso8601String()), b.tierName),
                     key: const Key('nivaa-vurdering'),

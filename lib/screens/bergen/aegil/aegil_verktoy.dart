@@ -57,6 +57,10 @@ abstract final class AeVerktoyCopy {
   static String get cus_aegil_ny_samtale => _t('Ny prat', 'New chat');
   static String get cus_aegil_spor => _t('Spør Ægil', 'Ask Ægil');
   static String cus_aegil_ktx_ordre(String nr) => _t('Om $nr', 'About $nr');
+  static String cus_aegil_poeng(int saldo, String nivaa, int? igjen, String? neste) => [
+        _t('$saldo poeng · $nivaa', '$saldo points · $nivaa'),
+        if (igjen != null && neste != null) _t('$igjen til $neste', '$igjen to $neste'),
+      ].join(' · ');
 }
 
 /// One tool card, by type.
@@ -102,6 +106,9 @@ class AeVerktoyKort extends StatelessWidget {
       lagt: false,
       onTap: h.minBio,
     ),
+    // Points plan Step 14 (points spec §14): `points_summary` — balance, level and the next level.
+    'points' => _notis(context, AeVerktoyCopy.cus_aegil_poeng((v.data['balance'] as num?)?.toInt() ?? 0, '${v.data['level'] ?? ''}',
+        (v.data['to_next'] as num?)?.toInt(), v.data['next_level'] as String?)),
     'products' => AeVarerKort(v: v, vare: _vare, notis: (t) => _notis(context, t)),
     'cart_proposal' => AeEndringKort(v: v, h: h),
     'gate' || 'error' => _notis(context, (v.data['copy'] as String?) ?? AeVerktoyCopy.cus_aegil_feilet),

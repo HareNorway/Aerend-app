@@ -123,7 +123,7 @@ abstract final class LigaArk {
   }
 
   /// «Vilkår for Bergen-ligaen» (`ligaVilkaar`).
-  static Future<void> vilkaar(BuildContext context) {
+  static Future<void> vilkaar(BuildContext context, [League? league]) {
     const ik = [MorkIk.stjerne, MorkIk.pokal, MorkIk.klokke, MorkIk.skjold];
     return showMegArk<void>(
       context,
@@ -136,7 +136,7 @@ abstract final class LigaArk {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final (i, r) in A3PoengCopy.a3_poeng_liga_vilkaar_rader.indexed) ...[
+          for (final (i, r) in A3PoengCopy.a3_poeng_liga_vilkaar_rader(league).indexed) ...[
             if (i > 0) const SizedBox(height: 8),
             MorkRad(delayMs: i * 40.0, ikon: ik[i % ik.length], navn: r[0], under: r[1], onTap: () {}),
           ],

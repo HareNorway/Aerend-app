@@ -11,6 +11,8 @@ abstract final class CusPoengFeil {
   static String _t(String no, String en) => _en ? en : no;
 
   static const Set<String> koder = {
+    // Points plan Step 3: the spec's codes (points spec §13.2); the older names stay for older servers.
+    'POINTS_INSUFFICIENT', 'SHELF_LOCKED', 'PREMIE_SOLD_OUT', 'PREMIE_LIMIT', 'PREMIE_NOT_AVAILABLE', 'PREMIE_NOT_FOUND', 'CLAIM_NOT_RETURNABLE',
     'PRIZE_TIER_LOCKED', 'PRIZE_INSUFFICIENT_POINTS', 'PRIZE_SOLD_OUT', 'PRIZE_USER_CAP', 'PRIZE_INACTIVE', 'PRIZE_NOT_FOUND',
     'CLAIM_CANCEL_WINDOW_CLOSED', 'CLAIM_ALREADY_CANCELLED', 'CLAIM_NOT_FOUND', 'CLAIM_NOT_REDEEMABLE',
     'MISSION_DECLINE_LIMIT', 'MISSION_ALREADY_ACTIVE', 'MISSION_NONE_ACTIVE', 'MISSION_NO_TEMPLATE',
@@ -23,12 +25,12 @@ abstract final class CusPoengFeil {
 
   /// The line for [code]; [ellers] when the code is unknown or null.
   static String tekst(String? code, {required String ellers}) => switch (code) {
-    'PRIZE_TIER_LOCKED' => _t('Denne premien åpner på et høyere nivå. Nivået ditt kommer av poeng du har tjent.', 'This prize opens at a higher tier. Your tier comes from points you have earned.'),
-    'PRIZE_INSUFFICIENT_POINTS' => _t('Du har ikke nok poeng ennå. Sett den som mål, så følger Ægil deg dit.', 'Not enough points yet. Set it as your goal and Ægil will follow you there.'),
-    'PRIZE_SOLD_OUT' => _t('Denne premien er utsolgt. Hylla fylles på igjen.', 'This prize is sold out. The shelf is restocked.'),
-    'PRIZE_USER_CAP' => _t('Du har hentet denne så mange ganger som den kan hentes.', 'You have claimed this one as many times as it allows.'),
-    'PRIZE_INACTIVE' || 'PRIZE_NOT_FOUND' => _t('Denne premien er tatt av hylla.', 'This prize has left the shelf.'),
-    'CLAIM_CANCEL_WINDOW_CLOSED' => _t('Fristen for å angre har gått ut · premien er på vei.', 'The window to undo has closed · the prize is on its way.'),
+    'SHELF_LOCKED' || 'PRIZE_TIER_LOCKED' => _t('Denne premien åpner på et høyere nivå. Nivået ditt kommer av poeng du har tjent.', 'This prize opens at a higher tier. Your tier comes from points you have earned.'),
+    'POINTS_INSUFFICIENT' || 'PRIZE_INSUFFICIENT_POINTS' => _t('Du har ikke nok poeng ennå. Sett den som mål, så følger Ægil deg dit.', 'Not enough points yet. Set it as your goal and Ægil will follow you there.'),
+    'PREMIE_SOLD_OUT' || 'PRIZE_SOLD_OUT' => _t('Denne premien er utsolgt denne måneden. Den kommer tilbake neste måned.', 'This prize is sold out this month. It comes back next month.'),
+    'PREMIE_LIMIT' || 'PRIZE_USER_CAP' => _t('Du har hentet denne premien denne måneden. Den kan hentes igjen neste måned.', 'You have claimed this prize this month. It can be claimed again next month.'),
+    'PREMIE_NOT_AVAILABLE' || 'PREMIE_NOT_FOUND' || 'PRIZE_INACTIVE' || 'PRIZE_NOT_FOUND' => _t('Denne premien er tatt av hylla.', 'This prize has left the shelf.'),
+    'CLAIM_NOT_RETURNABLE' || 'CLAIM_CANCEL_WINDOW_CLOSED' => _t('Fristen for å angre har gått ut · premien er på vei.', 'The window to undo has closed · the prize is on its way.'),
     'CLAIM_ALREADY_CANCELLED' => _t('Denne er allerede avbrutt · poengene er tilbake.', 'This one is already cancelled · the points are back.'),
     'CLAIM_NOT_FOUND' || 'CLAIM_NOT_REDEEMABLE' => _t('Fant ikke denne premien lenger.', 'Could not find this prize any more.'),
     'MISSION_DECLINE_LIMIT' => _t('Ett nei i uka · nytt oppdrag kommer mandag.', 'One pass a week · a new mission comes Monday.'),

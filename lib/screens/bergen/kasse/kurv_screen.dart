@@ -58,6 +58,7 @@ import 'kurv_sync.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
+import '../../../data/points/points_models.dart';
 
 /// `kurv` (L4973–5242 in `Ærend Kunde Bergen.dc.html`) at `/bergen/kurv`,
 /// tab 2 of the shell — rebuilt 1:1 on 2026-09-26.
@@ -255,6 +256,19 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   // Customer v2 Step 1 (pricing spec §2.4): «Innen 2 timer» chosen, its quote (for the line in the sheet),
   // an address the engine does not cover, and one retry after a re-quote at payment.
   bool _flex = false;
+
+  /// Points plan Step 4 (points spec §6.2 `auto`): use a ready «Gratis levering» premie on this order. Starts from the
+  /// ticket's «Bruk på neste bestilling» (`premie_bruk_neste`, on by default); the slip's switch unticks it here.
+  bool _brukPremie = prefGetBoolOr(prefPremieBrukNeste, true);
+
+  /// Points plan follow-up (points spec §6.2 kode, P-T15): a ready kode premie from this store, offered as a 0 kr line.
+  PrizeClaim? _kodePremie;
+  bool _medKodePremie = false;
+
+  /// The premie from the last main preview (`free_delivery_premie`), or null. Kept here: the side preview for the
+  /// flexible window prices another fee and must not replace it.
+  Map<String, dynamic>? _premieData;
+  Map<String, dynamic>? get _premie => _pickup ? null : _premieData;
   FeeQuoteView? _flexQuote;
   bool _outOfCoverage = false;
   int _quoteRetry = 0;
@@ -392,6 +406,16 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _lastKodePremie(int storeId) async {
+    // An injected Kasse API is a test double: no live points call behind it.
+    if (widget.api != null || OpsCustomerApi.authParams() == null || !OpsCustomerApi.networkEnabled) return;
+    try {
+      final claims = await A3Services.points().claims();
+      final k = claims.where((c) => c.status == 'klar' && c.specType == 'kode' && c.storeIds.contains(storeId)).firstOrNull;
+      if (mounted && k?.id != _kodePremie?.id) setState(() => _kodePremie = k);
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
     _door.removeListener(_dorEndret);
@@ -451,12 +475,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       if (_tilbud.isEmpty) _loadTilbud();
       return;
     }
-    final results = await Future.wait([_api.preview(flex: _flex), _api.addresses()]);
+    final results = await Future.wait([_api.preview(flex: _flex, useFreeDelivery: _brukPremie), _api.addresses()]);
     if (!mounted) return;
+    unawaited(_lastKodePremie(cart.storeId));
     final addresses = results[1] as List<AddressListItem>;
     final savedId = prefGetInt(prefNewDeliveryAddressId);
     setState(() {
       _preview = results[0] as OrderPreviewPojo?;
+      _premieData = _api.lastFreeDeliveryPremie;
       _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
       _address ??= addresses.where((a) => a.addressId == savedId).firstOrNull ?? addresses.firstOrNull;
     });
@@ -599,10 +625,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
   /// Customer v2 Step 1: the fee again for the address and the window (pricing spec §11 — «Address changed
   /// after quote: re-quote; if the fee rises the customer confirms»; Kassen shows the new fee before paying).
   Future<void> _requote({bool sett = false}) async {
-    final preview = await _api.preview(flex: _flex);
+    final preview = await _api.preview(flex: _flex, useFreeDelivery: _brukPremie);
     if (!mounted) return;
     setState(() {
       _preview = preview ?? _preview;
+      if (preview != null) _premieData = _api.lastFreeDeliveryPremie;
       _outOfCoverage = _api.lastPreviewError == 'OUT_OF_COVERAGE';
     });
     // [sett]: the customer changed the address or the window and sees the new fee now.
@@ -612,7 +639,24 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
 
   /// The flex line for the Levering sheet (its own quote, so the discount is the engine's) and a silent refresh
   /// when the quote's time runs out while Kassen is open.
+  /// Points plan Step 1: the order's «+N poeng» as the server computes it (`POST points/preview`: goods only,
+  /// excluded categories out, the new-store bonus) — null until it answers, and then the line is hidden.
+  int? _poengServer;
+  String? _poengFor;
+
+  Future<void> _hentPoeng() async {
+    final cart = _cart;
+    if (cart == null || cart.lines.isEmpty || !OpsCustomerApi.networkEnabled) return;
+    final lines = [for (final l in cart.lines) {'product_id': l.productId, 'qty': l.quantity}];
+    final key = '${cart.storeId}:${lines.map((l) => '${l['product_id']}x${l['qty']}').join(',')}';
+    if (key == _poengFor) return;
+    _poengFor = key;
+    final n = await _customer.pointsPreview(storeId: cart.storeId, lines: lines);
+    if (mounted && key == _poengFor) setState(() => _poengServer = n);
+  }
+
   void _afterQuote() {
+    _hentPoeng();
     _quoteTimer?.cancel();
     final exp = _preview?.feeQuote?.expiresAt;
     if (exp != null) {
@@ -622,7 +666,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       });
     }
     if (_flexOn && !_flex && _preview?.feeQuote != null) {
-      _api.preview(flex: true).then((p) {
+      _api.preview(flex: true, useFreeDelivery: _brukPremie).then((p) {
         if (mounted) setState(() => _flexQuote = p?.feeQuote);
       });
     }
@@ -830,6 +874,8 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       flex: !_pickup && _flex,
       companyName: _harFirma ? _firmaNavn.text.trim() : null,
       companyOrgNr: _harFirma ? _orgnr : null,
+      useFreeDelivery: _pickup ? null : _brukPremie,
+      premieLineClaimId: _medKodePremie ? _kodePremie?.id : null,
     );
     if (!mounted) return false;
     if (response == null || response['status'] != 1) {
@@ -1315,10 +1361,9 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final mot = _motInteresse(cart);
     final terskel = _gratisOver;
     final vanligFrakt = _store?.deliveryChargeKr ?? 0;
-    // KjopRule (`points.kjop_per_10kr`, 1 by default): whole 10 kr of the
-    // total; there is no rules read in the API, so the default rate is used. 03 test pass (CUS-A14 b): never on the
-    // courier tip — it is the courier's money.
-    final tilbake = ((total - _tipNaa) / 10).floor();
+    // Points plan Step 1: the server's preview of this basket (goods only — never the fee or the courier's tip — at
+    // the panel's rate, excluded categories out). The app computes no points of its own; 0 hides the line.
+    final tilbake = _poengServer ?? 0;
     final kode = 'Æ-${(cart.lines.first.cartId % 46656).toRadixString(36).toUpperCase().padLeft(3, '0')}';
 
     return Column(
@@ -1500,6 +1545,44 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
                       foer: vanligFrakt > 0 ? KasseCopy.kr(vanligFrakt) : null,
                     ),
             ),
+            // Points plan Step 4 (points spec §6.2 `auto`): the «Gratis levering» premie — what it covers, and the switch
+            // to keep it for later (then the fee is charged and the premie stays ready).
+            if (_premie case final p?)
+              KvRad(
+                key: const Key('a1_kasse_premie'),
+                label: _brukPremie ? KasseCopy.a1_kasse_premie : KasseCopy.a1_kasse_premie_av,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_brukPremie && p['covers'] is num) ...[
+                      Text('−${KasseCopy.kr((p['covers'] as num).toDouble())}', style: kvMono(context, 12.5, weight: FontWeight.w700, color: const Color(0xFF2E6B47))),
+                      SizedBox(width: 8 * context.bs),
+                    ],
+                    KvBryter(
+                      key: const Key('a1_kasse_premie_bryter'),
+                      on: _brukPremie,
+                      onTap: () {
+                        setState(() => _brukPremie = !_brukPremie);
+                        _requote(sett: true);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            // Points plan follow-up (points spec §6.2 kode): «Legg til premien din» — a 0 kr line marked PREMIE on the order.
+            if (_kodePremie case final k?)
+              KvRad(
+                key: const Key('a1_kasse_kodepremie'),
+                label: KasseCopy.a1_kasse_kodepremie(k.prizeName ?? ''),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(KasseCopy.kr(0), style: kvMono(context, 12.5, weight: FontWeight.w700, color: const Color(0xFF2E6B47))),
+                    SizedBox(width: 8 * context.bs),
+                    KvBryter(key: const Key('a1_kasse_kodepremie_bryter'), on: _medKodePremie, onTap: () => setState(() => _medKodePremie = !_medKodePremie)),
+                  ],
+                ),
+              ),
             // 03 test pass (CUS-A13 b): the store's minimum order, said before the slider instead of by the server.
             if (!_pickup && (_preview?.minOrderAmount ?? 0) > cart.subtotal)
               KvRad(

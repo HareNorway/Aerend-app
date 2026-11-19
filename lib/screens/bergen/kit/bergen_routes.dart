@@ -37,7 +37,7 @@ abstract final class BergenRoutes {
   /// The registered key for [name]: query removed, and the last path segment
   /// dropped when it is a parameter the map does not spell.
   /// Lys plan (§0.2): screens that are fjord-coloured in both modes.
-  static const Set<String> fjordRuter = {'/bergen/sporing', '/bergen/levert', '/bergen/fjordfiske', '/bergen/liga', '/bergen/opprykk'};
+  static const Set<String> fjordRuter = {'/bergen/sporing', '/bergen/levert', '/bergen/fjordfiske', '/bergen/lopet', '/bergen/liga', '/bergen/opprykk'};
 
   static String? resolve(String name) {
     final maps = <String, WidgetBuilder>{...bergenRoutesAgil1(), ...bergenRoutesAgil3()};

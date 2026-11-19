@@ -9,10 +9,11 @@ class PointsBalance {
   const PointsBalance({
     this.available = 0,
     this.pending = 0,
+    this.onTheWay = 0,
     this.earned12m = 0,
     this.lifetime = 0,
     this.tier = 0,
-    this.tierName = 'Fløyen',
+    this.tierName = 'Bronse',
     this.nextTierName,
     this.pointsToNextTier,
     this.expiringAmount = 0,
@@ -23,6 +24,12 @@ class PointsBalance {
     this.protectedUntil,
     this.reviewAt,
     this.keepGap = 0,
+    this.atRisk = false,
+    this.tierThreshold = 0,
+    this.pacePerMonth = 0,
+    this.monthsToNext,
+    this.boat = 'robaat',
+    this.perk = 'none',
   });
 
   /// Spendable now.
@@ -30,6 +37,13 @@ class PointsBalance {
 
   /// Earned but still inside the order's return window.
   final int pending;
+
+  /// Points plan Step 1: what the orders on their way will earn (`points.on_the_way`, their previews). Points are
+  /// no longer held after delivery, so this is what Meg's «+N kommer når ordren er levert» shows.
+  final int onTheWay;
+
+  /// Meg's «kommer» number: held points (older servers) plus the orders on their way.
+  int get coming => pending + onTheWay;
 
   /// What drives Nivå. Spending and expiry never reduce it.
   final int earned12m;
@@ -50,13 +64,30 @@ class PointsBalance {
   /// The whole ladder (agil-4): Bronse → Sølv → Gull → Platina with thresholds.
   final List<TierStep> tiers;
 
-  /// The tier is safe until this date; the next annual review follows it.
+  /// Before points plan Step 2: the tier was safe until this date. No longer sent.
   final DateTime? protectedUntil;
 
-  /// The next annual review (`tier.review_at`) and the points still needed so
-  /// the tier holds on that day (`tier.keep_gap`).
+  /// Points plan Step 2 (points spec §5): the customer's own review date (`tier.review_at`; reached or confirmed + 90
+  /// days, null on the first level) and the points still needed so the level holds on that day (`tier.keep_gap`).
   final DateTime? reviewAt;
   final int keepGap;
+
+  /// The review would move the customer down (`tier.at_risk`): only then «Du er N poeng unna å bli på X».
+  final bool atRisk;
+
+  /// The current level's threshold (`tier.threshold`), for «N poeng over grensen for X».
+  final int tierThreshold;
+
+  /// The pace line (`tier.pace`): points a month over the last 90 days, and months to the next level at it.
+  final int pacePerMonth;
+  final int? monthsToNext;
+
+  /// Fjordløpet reads the level (`tier.boat`: robaat | vimpel | snekke | egen; `tier.perk`: none | vest).
+  final String boat;
+  final String perk;
+
+  /// Points above the current level's threshold (0 on the first level).
+  int get marginOverThreshold => tier <= 0 ? 0 : (earned12m - tierThreshold).clamp(0, 1 << 30);
 
   /// How far through the current tier (design `NV.pct`): 0 at its threshold,
   /// 1 at the next one. Uses the ladder when the API sent it.
@@ -91,10 +122,11 @@ class PointsBalance {
     return PointsBalance(
       available: _int(points['available']),
       pending: _int(points['pending']),
+      onTheWay: _int(points['on_the_way']),
       earned12m: _int(points['earned_12m']),
       lifetime: _int(points['lifetime']),
       tier: _int(tier['index']),
-      tierName: (tier['name'] as String?) ?? 'Fløyen',
+      tierName: (tier['name'] as String?) ?? 'Bronse',
       nextTierName: tier['next_name'] as String?,
       pointsToNextTier:
           tier['points_to_next'] == null ? null : _int(tier['points_to_next']),
@@ -109,6 +141,12 @@ class PointsBalance {
       protectedUntil: _date(tier['protected_until']),
       reviewAt: _date(tier['review_at']),
       keepGap: _int(tier['keep_gap']),
+      atRisk: tier['at_risk'] == true || (tier['at_risk'] == null && _int(tier['keep_gap']) > 0),
+      tierThreshold: _int(tier['threshold']),
+      pacePerMonth: _int((tier['pace'] as Map?)?['per_month']),
+      monthsToNext: (tier['pace'] as Map?)?['months_to_next'] == null ? null : _int((tier['pace'] as Map)['months_to_next']),
+      boat: (tier['boat'] as String?) ?? 'robaat',
+      perk: (tier['perk'] as String?) ?? 'none',
     );
   }
 }
@@ -176,6 +214,10 @@ class Prize {
     this.affordable = false,
     this.claimable = false,
     this.blockedReason,
+    this.specKind,
+    this.soldOut = false,
+    this.stockLeft,
+    this.validDays,
   });
 
   final int id;
@@ -194,6 +236,23 @@ class Prize {
   final bool claimable;
   final String? blockedReason;
 
+  /// Points plan Step 3 (points spec §6): the spec's type (auto | kode | send | baat | velger | gave), sold out this
+  /// month (stays on the shelf as «Utsolgt»), what is left (null without a limit), and how long a claim lasts.
+  final String? specKind;
+  String get specType => specKind ?? specFrom(type);
+  final bool soldOut;
+  final int? stockLeft;
+  final int? validDays;
+
+  /// The spec's type from an older server's engine type.
+  static String specFrom(String type) => switch (type) {
+        'voucher' => 'auto',
+        'physical' => 'send',
+        'identity' => 'baat',
+        'donation' => 'gave',
+        _ => 'kode',
+      };
+
   factory Prize.fromJson(Map<String, dynamic> json) => Prize(
         id: _int(json['id']),
         slug: json['slug'] as String?,
@@ -208,6 +267,10 @@ class Prize {
         affordable: json['affordable'] as bool? ?? false,
         claimable: json['claimable'] as bool? ?? false,
         blockedReason: json['blocked_reason'] as String?,
+        specKind: json['spec_type'] as String?,
+        soldOut: json['sold_out'] as bool? ?? !(json['in_stock'] as bool? ?? true),
+        stockLeft: json['stock_left'] == null ? null : _int(json['stock_left']),
+        validDays: json['valid_days'] == null ? null : _int(json['valid_days']),
       );
 }
 
@@ -264,7 +327,38 @@ class PrizeClaim {
     this.cancelDeadlineAt,
     this.expiresAt,
     this.createdAt,
+    this.status = 'klar',
+    this.specType,
+    this.partnerName,
+    this.storeIds = const [],
+    this.needsAddress = false,
+    this.tracking,
+    this.shippedAt,
   });
+
+  /// Points plan follow-up (points spec §6.2): where a kode premie can ride on an order (Kassen), and the send flow.
+  final List<int> storeIds;
+  final bool needsAddress;
+  final String? tracking;
+  final DateTime? shippedAt;
+
+  /// Points plan Step 3 (points spec §6.3): Mine premier's state — klar | paa_vei | brukt | utlopt | angret | gitt |
+  /// feilet — and the premie's spec type and store.
+  final String status;
+  final String? specType;
+  final String? partnerName;
+
+  /// An older server's engine state as the spec's.
+  static String statusFrom(String state) => switch (state) {
+        'claimed' => 'klar',
+        'applied' || 'shipped' => 'paa_vei',
+        'delivered' || 'used' => 'brukt',
+        'expired' => 'utlopt',
+        'cancelled' => 'angret',
+        'given' => 'gitt',
+        'failed' => 'feilet',
+        _ => 'klar',
+      };
 
   final int id;
   final int prizeId;
@@ -293,7 +387,14 @@ class PrizeClaim {
         voucherCode: json['voucher_code'] as String?,
         identityName: json['identity_name'] as String?,
         nameReview: (json['name_review'] as String?) ?? 'not_required',
-        cancellable: json['cancellable'] as bool? ?? false,
+        cancellable: json['returnable'] as bool? ?? json['cancellable'] as bool? ?? false,
+        status: (json['status'] as String?) ?? statusFrom((json['state'] as String?) ?? 'claimed'),
+        specType: json['spec_type'] as String?,
+        partnerName: json['partner_name'] as String?,
+        storeIds: [for (final v in (json['store_ids'] as List?) ?? const []) _int(v)],
+        needsAddress: json['needs_address'] == true,
+        tracking: json['tracking'] as String?,
+        shippedAt: _date(json['shipped_at']),
         cancelDeadlineAt: _date(json['cancel_deadline_at']),
         expiresAt: _date(json['expires_at']),
         createdAt: _date(json['created_at']),

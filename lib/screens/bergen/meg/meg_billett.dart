@@ -124,6 +124,10 @@ abstract final class GbCopy {
   static const String nesteVenn = 'Neste venn';
   static String pluss(int n) => '+$n poeng';
   static const String lastetNed = 'Lastet ned';
+  // Points plan Step 10 (points spec §9): over the month's or the year's limit the friend joins with no points; a
+  // rejected referral (same phone, card or device) says so without the reason.
+  static const String utenPoeng = 'Uten poeng';
+  static const String ikkeGodkjent = 'Ikke godkjent';
   static const String nyVenn = 'Ny venn';
   static const String akkuratNaa = 'Akkurat nå';
   static const String billettSendt = 'Billett sendt';
@@ -438,7 +442,7 @@ class _Venn extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(7, 2.5, 7, 2.5),
                     decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), color: lev ? const Color.fromRGBO(90, 60, 10, .18) : const Color.fromRGBO(242, 193, 78, .18)),
                     child: Text(
-                      lev ? GbCopy.pluss(pluss) : GbCopy.lastetNed,
+                      lev ? GbCopy.pluss(pluss) : (v.overLimit ? GbCopy.utenPoeng : (v.rejected ? GbCopy.ikkeGodkjent : GbCopy.lastetNed)),
                       maxLines: 1,
                       style: aeTab(inter(9.5, weight: FontWeight.w800, color: lev ? const Color(0xFF4A3208) : const Color(0xFFF6D27A))),
                     ),

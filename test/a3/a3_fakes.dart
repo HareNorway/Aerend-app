@@ -223,7 +223,7 @@ class FakePointsApi implements PointsAppApi {
       referralValue ?? const Referral(code: 'KARI200', link: 'https://aerend.no/r/KARI200');
 
   @override
-  Future<AegilPick?> pick() async {
+  Future<AegilPick?> pick({int? cast, String? session}) async {
     calls.add('pick');
     return pickValue ??
         const AegilPick(

@@ -22,6 +22,10 @@ void main() {
   }
 
   testWidgets('Premie: the claim sheet claims through the API (Gap Step 4: the old page is gone)', (tester) async {
+    // Points plan Step 3: the sheet carries the balance bar and the hold button; a phone-sized screen fits it.
+    tester.view.physicalSize = const Size(1170, 2532);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
     final api = FakePointsApi();
     late BuildContext ctx;
     await tester.pumpWidget(a3App(Builder(builder: (c) {
@@ -33,7 +37,15 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.text('Kaffe hos Kaffemisjonen'), findsOneWidget);
+    // Points plan Step 3: hold-to-claim (900 ms), not a tap.
     await tester.tap(find.byKey(const Key('hylla-krev-cta')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(api.calls, isNot(contains('claim:7')), reason: 'a tap alone claims nothing');
+    final g = await tester.startGesture(tester.getCenter(find.byKey(const Key('hylla-krev-cta'))));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await g.up();
     await settle(tester);
     expect(api.calls, contains('claim:7'));
     await tester.pump(const Duration(seconds: 4));

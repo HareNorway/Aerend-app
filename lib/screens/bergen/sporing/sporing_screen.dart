@@ -1,3 +1,5 @@
+import '../../../services/lopet_utboks.dart';
+import '../lopet/lopet_data.dart';
 import '../../../services/ntf/ntf_live_card.dart';
 import '../meg/varsler_innst.dart' show NtfSamtykke;
 import 'dart:async';
@@ -207,6 +209,10 @@ class _SporingScreenState extends State<SporingScreen> {
       final json = await _api.tracking(_id);
       if (!mounted || _forceOffline) return;
       final next = OpsTracking.fromJson(json);
+      // Points plan Step 7: the order snapshot's Fjordløpet session drives every entry point (LopetPort).
+      LopetPort.fraSporing(_id, next.raw['game']);
+      // Points plan Step 8: Fjordløpet runs waiting on the phone go now (the order's points follow at delivered).
+      if (next.raw['game'] != null) unawaited(LopetUtboks.send());
       final changed = _lastStage != null && next.stage != _lastStage;
       setState(() {
         _t = next;
@@ -276,6 +282,12 @@ class _SporingScreenState extends State<SporingScreen> {
     // Onboarding Step 3: the Hjem card «Vil du se hva mer Ærend kan?» waits for a delivery.
     OnbStatus.instance.merkLevert();
     _levertKl ??= DateTime.tryParse('${t.raw['delivered_at'] ?? ''}')?.toLocal() ?? t.deliveryCode?.verifiedAt ?? DateTime.now();
+    // Points plan Step 1: the snapshot's net `points` first (what a refund left); the ledger only when it has none.
+    final fraSnapshot = spPoengFraSnapshot(t.raw);
+    if (fraSnapshot != null) {
+      if (mounted) setState(() => _poeng = fraSnapshot);
+      return;
+    }
     _api.pointsForOrder(_id).then((p) {
       final n = spPoengForOrdre(p, _id);
       if (mounted && n != null) setState(() => _poeng = n);
@@ -458,7 +470,16 @@ class _SporingScreenState extends State<SporingScreen> {
     await Share.shareXFiles([XFile(fil.path, mimeType: 'application/pdf')], subject: SporingCopy.a1_sporing_kvittering, sharePositionOrigin: origin);
   }
 
-  void _fjordfiske() => BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
+  /// Points plan Step 7 (game spec §8): while this order's Fjordløpet session is open the button opens the game; else
+  /// Fjordfiske, as today.
+  void _fjordfiske() {
+    final g = _t?.raw['game'];
+    if (g is Map && g['open'] == true) {
+      LopetPort.apne(context, orderId: _id, gameOpen: true);
+      return;
+    }
+    BergenRoutes.pushOr(context, '/bergen/fjordfiske', orElse: () => showBergenToast(context, BergenRoutes.kommerSnart));
+  }
 
   Future<void> _delBillett() async {
     final code = _vervKode;

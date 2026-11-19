@@ -1,4 +1,5 @@
 
+import '../lopet/lopet_copy.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -281,6 +282,12 @@ class SpPanel extends StatelessWidget {
               ] else ...[
                 _Veileder(tracking: t, linje: linje, navn: navn, poeng: poengNeste),
                 const SizedBox(height: 14),
+                // Points plan Step 8 (game spec §8): Levert's Fjordløpet row — what the order's runs came to, and the
+                // next run with the next order. Never opens the game.
+                if (t.stage >= 3 && t.raw['game'] is Map && (t.raw['game'] as Map)['best_m'] != null) ...[
+                  _LopetLevert(game: t.raw['game'] as Map),
+                  const SizedBox(height: 14),
+                ],
               ],
               // Cancelled (the API answers stage 0): no stage is under way.
               _Stadier(key: const Key('a1_sporing_stepper'), steg: t.isCancelled ? -1 : s, navn: navn, henting: hent),
@@ -340,13 +347,19 @@ class SpPanel extends StatelessWidget {
                               pil: true,
                               onTap: onVisVeien,
                             )
-                          : _BredNokkel(
-                              key: const Key('a1_sporing_fjordfiske'),
-                              ikon: bergenSvg('sveipstakk', width: 20, height: 18),
-                              tittel: SporingCopy.a1_sporing_fjordfiske,
-                              under: SporingCopy.a1_sporing_mens_du_venter_kort,
-                              onTap: onFjordfiske,
-                            ),
+                          : (() {
+                              // Points plan Step 7 (game spec §8): «Fjordløpet · mens du venter» with the runs left while
+                              // the order's session is open (the order snapshot's `game`); Fjordfiske otherwise.
+                              final g = t.raw['game'];
+                              final lop = g is Map && g['open'] == true;
+                              return _BredNokkel(
+                                key: Key(lop ? 'a1_sporing_lopet' : 'a1_sporing_fjordfiske'),
+                                ikon: bergenSvg('sveipstakk', width: 20, height: 18),
+                                tittel: lop ? LopetCopy.mensDuVenter : SporingCopy.a1_sporing_fjordfiske,
+                                under: lop ? LopetCopy.seilaserIgjen((g['runs_left'] as num?)?.toInt() ?? 0) : SporingCopy.a1_sporing_mens_du_venter_kort,
+                                onTap: onFjordfiske,
+                              );
+                            })(),
                     ),
                     const SizedBox(width: 11),
                     if (!hent)
@@ -2155,4 +2168,41 @@ class _Effekter extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Points plan Step 8: «Ukens led: du nådde Bøye 2 · +6 poeng» / «Neste seilas ved neste bestilling».
+class _LopetLevert extends StatelessWidget {
+  const _LopetLevert({required this.game});
+
+  final Map game;
+
+  @override
+  Widget build(BuildContext context) {
+    final gate = (game['gate'] as num?)?.toInt();
+    final port = gate != null && gate >= 0 && gate < LopetCopy.porter.length ? LopetCopy.porter[gate] : null;
+    return Container(
+      key: const Key('a1_sporing_lopet_levert'),
+      padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
+      decoration: BoxDecoration(color: rgba(255, 255, 255, .08), borderRadius: BorderRadius.circular(16), border: Border.all(color: rgba(255, 255, 255, .16))),
+      child: Row(
+        children: [
+          const Icon(Icons.sailing_rounded, color: Color(0xFFF7D57E), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(LopetCopy.levert(port, (game['best_m'] as num).toInt(), (game['points'] as num?)?.toInt() ?? 0),
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 2),
+                // Points plan Step 12: the week's place and the losgrad, then «Neste seilas …» (never opens the game).
+                Text([LopetCopy.plassLosgrad((game['place'] as num?)?.toInt(), '${game['losgrad'] ?? ''}'), LopetCopy.nesteSeilas].where((t) => t.isNotEmpty).join(' · '),
+                    style: TextStyle(color: rgba(255, 255, 255, .7), fontSize: 11.5, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

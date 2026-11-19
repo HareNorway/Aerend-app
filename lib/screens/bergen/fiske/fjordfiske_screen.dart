@@ -110,6 +110,9 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
   FiskePhase _phase = FiskePhase.klar;
   int _idx = 0;
   int _kastNr = 0;
+
+  /// Points plan Step 13: this screen's session, for the server's premie-catch counters.
+  final String _okt = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
   AegilPick? _premie;
   int _premieAnt = 0;
   int _premieSiste = 0;
@@ -292,7 +295,7 @@ class _FjordfiskeScreenState extends State<FjordfiskeScreen> {
     var ant = _premieAnt;
     if (pr == null &&
         _rules.eligible(kastNr, taken: _premieAnt, lastAt: _premieSiste)) {
-      final pick = await a3Try(_points.pick);
+      final pick = await a3Try(() => _points.pick(cast: kastNr, session: _okt));
       if (!mounted) return;
       if (pick?.prize != null) {
         pr = pick;

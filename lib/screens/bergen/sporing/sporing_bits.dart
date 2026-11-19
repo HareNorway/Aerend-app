@@ -595,6 +595,18 @@ int? spPoengForOrdre(Map<String, dynamic>? p, int orderId) {
   return _ledgerSum(p, orderId, (r) => r != 'forste_gang');
 }
 
+/// Points plan Step 1 (points spec §13.2): the order's points from the order snapshot's `points { granted, breakdown }`
+/// — net of any refund reversal, per source — without the first-time bonus at the store (`new_store`), which has its
+/// own row. Null when the snapshot has none yet (then Levert falls back to the ledger).
+int? spPoengFraSnapshot(Map<String, dynamic> raw) {
+  final p = raw['points'];
+  if (p is! Map || p['granted'] is! num) return null;
+  final b = p['breakdown'];
+  final nyButikk = b is Map && b['new_store'] is num ? (b['new_store'] as num).toInt() : 0;
+  final n = (p['granted'] as num).toInt() - nyButikk;
+  return n < 0 ? 0 : n;
+}
+
 /// The first-time bonus at the store this order earned (`forste_gang`), or null.
 int? spForsteGang(Map<String, dynamic>? p, int orderId) {
   if (p == null) return null;
