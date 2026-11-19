@@ -68,14 +68,14 @@ abstract final class MegSheets {
           GbBillettene(referral: referral, onNeste: del),
         ],
       ),
-      secondary: MegArkButton(key: const Key('meg-billett-vilkaar'), label: A4MegCopy.a4_meg_vilkaar, onTap: () => vilkaar(context)),
+      secondary: MegArkButton(key: const Key('meg-billett-vilkaar'), label: A4MegCopy.a4_meg_vilkaar, onTap: () => vilkaar(context, referral: referral)),
       primary: MegArkButton(key: const Key('meg-billett-del'), label: A4MegCopy.a4_meg_del_billetten, onTap: del),
     );
   }
 
   /// `vilkaar`: the points terms, stated as the backend enforces them (dark).
-  static Future<void> vilkaar(BuildContext context) {
-    const ik = {'Verving': MorkIk.person, 'Billettstigen': MorkIk.opp, 'Poeng': MorkIk.stjerne, 'Ligaen': MorkIk.pokal};
+  static Future<void> vilkaar(BuildContext context, {Referral? referral}) {
+    const ik = {'Verving': MorkIk.person, 'Grenser': MorkIk.opp, 'Poeng': MorkIk.stjerne, 'Ligaen': MorkIk.pokal};
     return showMegArk<void>(
       context,
       key: const Key('meg-vilkaar-sheet'),
@@ -85,7 +85,7 @@ abstract final class MegSheets {
       body: (ctx, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final (i, r) in A4MegCopy.a4_meg_vilkaar_rader.indexed) ...[
+          for (final (i, r) in A4MegCopy.a4_meg_vilkaar_rader(referral).indexed) ...[
             if (i > 0) const SizedBox(height: 8),
             MorkRad(delayMs: i * 40.0, ikon: ik[r[0]] ?? MorkIk.bok, navn: r[0], under: r[1], onTap: () {}),
           ],

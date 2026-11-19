@@ -1,4 +1,6 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
+import '../../../data/aegil/aegil_app_models.dart';
+
 /// Copy for the rebuilt Meg tab (agil-4). Keys `a4_meg_*`; the design's
 /// wording (`Ærend Kunde Bergen.dc.html` `meg` ≈L5912–6124 and the Ark
 /// sheets `slikPoeng`, `nivaa`, `ligaNavn`, `kodeInnst`, `anledninger`,
@@ -361,12 +363,20 @@ abstract final class A4MegCopy {
   static String a4_meg_verv_mnd(int n, int cap) => n == 0 ? 'Ingen vervet denne måneden ennå — del billetten, så teller neste bestilling.' : 'Du har vervet $n denne måneden${cap > 0 ? ' av maks $cap' : ''}.';
   static const String a4_meg_vilkaar_title = 'Vilkår for poeng';
   static const String a4_meg_vilkaar_linje = 'Poeng er ikke penger og kan ikke veksles i kroner.';
-  static const List<List<String>> a4_meg_vilkaar_rader = [
-    ['Verving', '200 poeng til hver når vennens første ordre over 200 kr er levert'],
-    ['Billettstigen', 'Bonus ved 3, 10, 25 og 50 vervede — én gang per trinn'],
-    ['Poeng', 'Utløper 12 måneder etter at de er tjent'],
-    ['Ligaen', 'Krever at du melder deg på, og viser bare navnet du selv velger'],
-  ];
+  // Points plan Step 10 (points spec §9): the Gullbillett terms from the server's numbers (`points/me/referral`); the
+  // ladder is retired. Without the payload the spec's defaults are shown.
+  static List<List<String>> a4_meg_vilkaar_rader(Referral? r) {
+    final hver = r?.pointsForMe ?? 200;
+    final kr = ((r?.minOrderOre ?? 15000) / 100).floor();
+    final mnd = r?.monthlyCap ?? 5;
+    final aar = r?.yearlyCap ?? 25;
+    return [
+      ['Verving', '$hver poeng til hver når vennens første ordre med minst $kr kr i varer er levert'],
+      ['Grenser', '$mnd venner med poeng i måneden og $aar i året. Flere kan bli med, uten poeng. Samme nummer, kort eller telefon gir ingen poeng.'],
+      ['Poeng', 'Utløper 12 måneder etter at de er tjent'],
+      ['Ligaen', 'Krever at du melder deg på, og viser bare navnet du selv velger'],
+    ];
+  }
 
   // Ark · Nivå (detail)
   static String a4_meg_poeng_til(String next) => 'poeng til $next';
