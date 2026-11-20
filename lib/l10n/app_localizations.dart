@@ -14887,6 +14887,516 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Order confirmation'**
   String get ops_kv_ordrebekreftelse;
+
+  /// No description provided for @lop_ukeliste.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s ladder'**
+  String get lop_ukeliste;
+
+  /// No description provided for @lop_ukeliste_tom.
+  ///
+  /// In en, this message translates to:
+  /// **'The ladder is not available right now'**
+  String get lop_ukeliste_tom;
+
+  /// No description provided for @lop_ukeliste_linje.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} sailors this week · best verified distance'**
+  String lop_ukeliste_linje(Object p0);
+
+  /// No description provided for @lop_ukeliste_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody has sailed this week yet'**
+  String get lop_ukeliste_ingen;
+
+  /// No description provided for @lop_premie_hylle.
+  ///
+  /// In en, this message translates to:
+  /// **'One prize from the {p0} shelf'**
+  String lop_premie_hylle(Object p0);
+
+  /// No description provided for @lop_premie_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} points'**
+  String lop_premie_poeng(Object p0);
+
+  /// No description provided for @lop_plass_losgrad.
+  ///
+  /// In en, this message translates to:
+  /// **'place {p0}'**
+  String lop_plass_losgrad(Object p0);
+
+  /// No description provided for @lop_meg_rad.
+  ///
+  /// In en, this message translates to:
+  /// **'best {p0} m'**
+  String lop_meg_rad(Object p0);
+
+  /// No description provided for @lop_meg_rad_2.
+  ///
+  /// In en, this message translates to:
+  /// **'place {p0}'**
+  String lop_meg_rad_2(Object p0);
+
+  /// No description provided for @lop_igjen_paa_bestilling.
+  ///
+  /// In en, this message translates to:
+  /// **'1 run left on the order'**
+  String get lop_igjen_paa_bestilling;
+
+  /// No description provided for @lop_igjen_paa_bestilling_2.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} runs left on the order'**
+  String lop_igjen_paa_bestilling_2(Object p0);
+
+  /// No description provided for @lop_vest_brukt.
+  ///
+  /// In en, this message translates to:
+  /// **'The life vest is used on this order'**
+  String get lop_vest_brukt;
+
+  /// No description provided for @lop_mens_du_venter.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordløpet · while you wait'**
+  String get lop_mens_du_venter;
+
+  /// No description provided for @lop_seilaser_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'1 run left'**
+  String get lop_seilaser_igjen;
+
+  /// No description provided for @lop_seilaser_igjen_2.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} runs left'**
+  String lop_seilaser_igjen_2(Object p0);
+
+  /// No description provided for @lop_seilaser.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordløpet · {p0} runs'**
+  String lop_seilaser(Object p0);
+
+  /// No description provided for @lop_hjem_klar.
+  ///
+  /// In en, this message translates to:
+  /// **'Ægil is ready to sail'**
+  String get lop_hjem_klar;
+
+  /// No description provided for @lop_ukens_led.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s course'**
+  String get lop_ukens_led;
+
+  /// No description provided for @lop_sett_seil.
+  ///
+  /// In en, this message translates to:
+  /// **'Set sail'**
+  String get lop_sett_seil;
+
+  /// No description provided for @lop_din_beste.
+  ///
+  /// In en, this message translates to:
+  /// **'Your best this week'**
+  String get lop_din_beste;
+
+  /// No description provided for @lop_ukens_beste.
+  ///
+  /// In en, this message translates to:
+  /// **'Best this week'**
+  String get lop_ukens_beste;
+
+  /// No description provided for @lop_sjokort.
+  ///
+  /// In en, this message translates to:
+  /// **'The chart'**
+  String get lop_sjokort;
+
+  /// No description provided for @lop_take_ukjent.
+  ///
+  /// In en, this message translates to:
+  /// **'The rest lies in fog until you have sailed there.'**
+  String get lop_take_ukjent;
+
+  /// No description provided for @lop_vest.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts with a full life vest'**
+  String get lop_vest;
+
+  /// No description provided for @lop_vilkaar.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordløpet rules'**
+  String get lop_vilkaar;
+
+  /// No description provided for @lop_lyd.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get lop_lyd;
+
+  /// No description provided for @lop_porter.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoy 1'**
+  String get lop_porter;
+
+  /// No description provided for @lop_porter_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoy 2'**
+  String get lop_porter_2;
+
+  /// No description provided for @lop_porter_3.
+  ///
+  /// In en, this message translates to:
+  /// **'The quay'**
+  String get lop_porter_3;
+
+  /// No description provided for @lop_om_meter.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} in {p1} m'**
+  String lop_om_meter(Object p0, Object p1);
+
+  /// No description provided for @lop_pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get lop_pause;
+
+  /// No description provided for @lop_ved_dora.
+  ///
+  /// In en, this message translates to:
+  /// **'Your courier is at the door'**
+  String get lop_ved_dora;
+
+  /// No description provided for @lop_trenger_deg.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order needs you'**
+  String get lop_trenger_deg;
+
+  /// No description provided for @lop_fortsett.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get lop_fortsett;
+
+  /// No description provided for @lop_fortsett_om.
+  ///
+  /// In en, this message translates to:
+  /// **'Resuming in {p0}'**
+  String lop_fortsett_om(Object p0);
+
+  /// No description provided for @lop_til_sporing.
+  ///
+  /// In en, this message translates to:
+  /// **'To tracking'**
+  String get lop_til_sporing;
+
+  /// No description provided for @lop_over.
+  ///
+  /// In en, this message translates to:
+  /// **'THE RUN IS OVER'**
+  String get lop_over;
+
+  /// No description provided for @lop_fra_rekorden.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m from your best'**
+  String lop_fra_rekorden(Object p0);
+
+  /// No description provided for @lop_ny_rekord.
+  ///
+  /// In en, this message translates to:
+  /// **'New best this week'**
+  String get lop_ny_rekord;
+
+  /// No description provided for @lop_poeng_ved_levering.
+  ///
+  /// In en, this message translates to:
+  /// **'+{p0} points when your order is delivered'**
+  String lop_poeng_ved_levering(Object p0);
+
+  /// No description provided for @lop_seil_igjen.
+  ///
+  /// In en, this message translates to:
+  /// **'Sail again · {p0} left'**
+  String lop_seil_igjen(Object p0);
+
+  /// No description provided for @lop_neste_seilas.
+  ///
+  /// In en, this message translates to:
+  /// **'Your next run comes with your next order'**
+  String get lop_neste_seilas;
+
+  /// No description provided for @lop_snart_fremme.
+  ///
+  /// In en, this message translates to:
+  /// **'Your courier is almost there'**
+  String get lop_snart_fremme;
+
+  /// No description provided for @lop_forsinket.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order is late. You get an extra run.'**
+  String get lop_forsinket;
+
+  /// No description provided for @lop_vest_tok.
+  ///
+  /// In en, this message translates to:
+  /// **'Your life vest took the hit'**
+  String get lop_vest_tok;
+
+  /// No description provided for @lop_stengt.
+  ///
+  /// In en, this message translates to:
+  /// **'Fjordløpet is open while an order is on its way.'**
+  String get lop_stengt;
+
+  /// No description provided for @lop_min_unna.
+  ///
+  /// In en, this message translates to:
+  /// **'Courier {p0} min away'**
+  String lop_min_unna(Object p0);
+
+  /// No description provided for @lop_naere_paa.
+  ///
+  /// In en, this message translates to:
+  /// **'Close call'**
+  String get lop_naere_paa;
+
+  /// No description provided for @lop_ny_rekord_kort.
+  ///
+  /// In en, this message translates to:
+  /// **'New best'**
+  String get lop_ny_rekord_kort;
+
+  /// No description provided for @lop_port_poeng.
+  ///
+  /// In en, this message translates to:
+  /// **'points'**
+  String get lop_port_poeng;
+
+  /// No description provided for @lop_hindring.
+  ///
+  /// In en, this message translates to:
+  /// **'The buoy'**
+  String get lop_hindring;
+
+  /// No description provided for @lop_hindring_2.
+  ///
+  /// In en, this message translates to:
+  /// **'The log'**
+  String get lop_hindring_2;
+
+  /// No description provided for @lop_hindring_3.
+  ///
+  /// In en, this message translates to:
+  /// **'The fishing net'**
+  String get lop_hindring_3;
+
+  /// No description provided for @lop_hindring_4.
+  ///
+  /// In en, this message translates to:
+  /// **'The kayak'**
+  String get lop_hindring_4;
+
+  /// No description provided for @lop_hindring_5.
+  ///
+  /// In en, this message translates to:
+  /// **'The ferry'**
+  String get lop_hindring_5;
+
+  /// No description provided for @lop_hindring_6.
+  ///
+  /// In en, this message translates to:
+  /// **'The gull'**
+  String get lop_hindring_6;
+
+  /// No description provided for @lop_hindring_7.
+  ///
+  /// In en, this message translates to:
+  /// **'Something'**
+  String get lop_hindring_7;
+
+  /// No description provided for @lop_aarsak.
+  ///
+  /// In en, this message translates to:
+  /// **' after {p0}'**
+  String lop_aarsak(Object p0);
+
+  /// No description provided for @lop_aarsak_2.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0}{p1} got you at {p2} m'**
+  String lop_aarsak_2(Object p0, Object p1, Object p2);
+
+  /// No description provided for @lop_maal_milepael.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m to {p1}'**
+  String lop_maal_milepael(Object p0, Object p1);
+
+  /// No description provided for @lop_maal_beste.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m from your best'**
+  String lop_maal_beste(Object p0);
+
+  /// No description provided for @lop_maal_seiler.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} is {p1} m ahead of you'**
+  String lop_maal_seiler(Object p0, Object p1);
+
+  /// No description provided for @lop_maal_merke.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} crates to {p1}'**
+  String lop_maal_merke(Object p0, Object p1);
+
+  /// No description provided for @lop_maal_merke_2.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} close calls to {p1}'**
+  String lop_maal_merke_2(Object p0, Object p1);
+
+  /// No description provided for @lop_maal_merke_3.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} m to {p1}'**
+  String lop_maal_merke_3(Object p0, Object p1);
+
+  /// No description provided for @lop_maal_merke_4.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} to go for {p1}'**
+  String lop_maal_merke_4(Object p0, Object p1);
+
+  /// No description provided for @lop_kasser.
+  ///
+  /// In en, this message translates to:
+  /// **'Crates'**
+  String get lop_kasser;
+
+  /// No description provided for @lop_naere_paa_tall.
+  ///
+  /// In en, this message translates to:
+  /// **'Close calls'**
+  String get lop_naere_paa_tall;
+
+  /// No description provided for @lop_vest_bruk.
+  ///
+  /// In en, this message translates to:
+  /// **'Life vest used'**
+  String get lop_vest_bruk;
+
+  /// No description provided for @lop_merker.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s badges'**
+  String get lop_merker;
+
+  /// No description provided for @lop_pynt.
+  ///
+  /// In en, this message translates to:
+  /// **'Boat decorations'**
+  String get lop_pynt;
+
+  /// No description provided for @lop_pynt_ingen.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a badge to unlock decorations.'**
+  String get lop_pynt_ingen;
+
+  /// No description provided for @lop_pynt_ingen_valgt.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get lop_pynt_ingen_valgt;
+
+  /// No description provided for @lop_pynt_plass.
+  ///
+  /// In en, this message translates to:
+  /// **'Pennant'**
+  String get lop_pynt_plass;
+
+  /// No description provided for @lop_pynt_plass_2.
+  ///
+  /// In en, this message translates to:
+  /// **'Wake'**
+  String get lop_pynt_plass_2;
+
+  /// No description provided for @lop_pynt_plass_3.
+  ///
+  /// In en, this message translates to:
+  /// **'Figurehead'**
+  String get lop_pynt_plass_3;
+
+  /// No description provided for @lop_uker.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week sailed'**
+  String get lop_uker;
+
+  /// No description provided for @lop_uker_2.
+  ///
+  /// In en, this message translates to:
+  /// **'{p0} weeks sailed'**
+  String lop_uker_2(Object p0);
+
+  /// No description provided for @lop_rival.
+  ///
+  /// In en, this message translates to:
+  /// **'Rival: {p0} · {p1} m'**
+  String lop_rival(Object p0, Object p1);
+
+  /// No description provided for @lop_her_gikk_det_galt.
+  ///
+  /// In en, this message translates to:
+  /// **'This is where it went wrong'**
+  String get lop_her_gikk_det_galt;
+
+  /// No description provided for @lop_kart_lukk.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get lop_kart_lukk;
+
+  /// No description provided for @lop_vest_full.
+  ///
+  /// In en, this message translates to:
+  /// **'A full life vest on the first run'**
+  String get lop_vest_full;
+
+  /// No description provided for @lop_levert.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s course: you reached {p0}'**
+  String lop_levert(Object p0);
+
+  /// No description provided for @lop_levert_2.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s course: {p0} m'**
+  String lop_levert_2(Object p0);
+
+  /// No description provided for @lop_levert_3.
+  ///
+  /// In en, this message translates to:
+  /// **'points'**
+  String get lop_levert_3;
 }
 
 class _AppLocalizationsDelegate

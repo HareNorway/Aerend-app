@@ -8381,4 +8381,315 @@ class AppLocalizationsNo extends AppLocalizations {
 
   @override
   String get ops_kv_ordrebekreftelse => 'Ordrebekreftelse';
+
+  @override
+  String get lop_ukeliste => 'Ukens liste';
+
+  @override
+  String get lop_ukeliste_tom => 'Listen er ikke tilgjengelig nå';
+
+  @override
+  String lop_ukeliste_linje(Object p0) {
+    return '$p0 seilere denne uken · beste verifiserte distanse';
+  }
+
+  @override
+  String get lop_ukeliste_ingen => 'Ingen har seilt denne uken ennå';
+
+  @override
+  String lop_premie_hylle(Object p0) {
+    return 'Én premie fra $p0-hylla';
+  }
+
+  @override
+  String lop_premie_poeng(Object p0) {
+    return '$p0 poeng';
+  }
+
+  @override
+  String lop_plass_losgrad(Object p0) {
+    return '$p0. plass';
+  }
+
+  @override
+  String lop_meg_rad(Object p0) {
+    return 'beste $p0 m';
+  }
+
+  @override
+  String lop_meg_rad_2(Object p0) {
+    return '$p0. plass';
+  }
+
+  @override
+  String get lop_igjen_paa_bestilling => '1 seilas igjen på bestillingen';
+
+  @override
+  String lop_igjen_paa_bestilling_2(Object p0) {
+    return '$p0 seilaser igjen på bestillingen';
+  }
+
+  @override
+  String get lop_vest_brukt => 'Redningsvesten er brukt på denne bestillingen';
+
+  @override
+  String get lop_mens_du_venter => 'Fjordløpet · mens du venter';
+
+  @override
+  String get lop_seilaser_igjen => '1 seilas igjen';
+
+  @override
+  String lop_seilaser_igjen_2(Object p0) {
+    return '$p0 seilaser igjen';
+  }
+
+  @override
+  String lop_seilaser(Object p0) {
+    return 'Fjordløpet · $p0 seilaser';
+  }
+
+  @override
+  String get lop_hjem_klar => 'Ægil er klar til å seile';
+
+  @override
+  String get lop_ukens_led => 'Ukens led';
+
+  @override
+  String get lop_sett_seil => 'Sett seil';
+
+  @override
+  String get lop_din_beste => 'Din beste denne uken';
+
+  @override
+  String get lop_ukens_beste => 'Ukens beste';
+
+  @override
+  String get lop_sjokort => 'Sjøkortet';
+
+  @override
+  String get lop_take_ukjent => 'Resten ligger i tåka til du har seilt dit.';
+
+  @override
+  String get lop_vest => 'Starter med full redningsvest';
+
+  @override
+  String get lop_vilkaar => 'Vilkår for Fjordløpet';
+
+  @override
+  String get lop_lyd => 'Lyd';
+
+  @override
+  String get lop_porter => 'Bøye 1';
+
+  @override
+  String get lop_porter_2 => 'Bøye 2';
+
+  @override
+  String get lop_porter_3 => 'Bryggen';
+
+  @override
+  String lop_om_meter(Object p0, Object p1) {
+    return '$p0 om $p1 m';
+  }
+
+  @override
+  String get lop_pause => 'Pause';
+
+  @override
+  String get lop_ved_dora => 'Budet er ved døra';
+
+  @override
+  String get lop_trenger_deg => 'Ærendet ditt trenger deg';
+
+  @override
+  String get lop_fortsett => 'Fortsett';
+
+  @override
+  String lop_fortsett_om(Object p0) {
+    return 'Fortsett om $p0';
+  }
+
+  @override
+  String get lop_til_sporing => 'Til sporing';
+
+  @override
+  String get lop_over => 'SEILASEN ER OVER';
+
+  @override
+  String lop_fra_rekorden(Object p0) {
+    return '$p0 m fra rekorden din';
+  }
+
+  @override
+  String get lop_ny_rekord => 'Ny rekord denne uken';
+
+  @override
+  String lop_poeng_ved_levering(Object p0) {
+    return '+$p0 poeng når ærendet er levert';
+  }
+
+  @override
+  String lop_seil_igjen(Object p0) {
+    return 'Seil igjen · $p0 igjen';
+  }
+
+  @override
+  String get lop_neste_seilas => 'Neste seilas ved neste bestilling';
+
+  @override
+  String get lop_snart_fremme => 'Budet er snart fremme';
+
+  @override
+  String get lop_forsinket => 'Ærendet er forsinket. Du får en ekstra seilas.';
+
+  @override
+  String get lop_vest_tok => 'Redningsvesten tok støyten';
+
+  @override
+  String get lop_stengt => 'Fjordløpet er åpent mens et ærend er på vei.';
+
+  @override
+  String lop_min_unna(Object p0) {
+    return 'Budet er $p0 min unna';
+  }
+
+  @override
+  String get lop_naere_paa => 'Nære på';
+
+  @override
+  String get lop_ny_rekord_kort => 'Ny rekord';
+
+  @override
+  String get lop_port_poeng => 'poeng';
+
+  @override
+  String get lop_hindring => 'Bøya';
+
+  @override
+  String get lop_hindring_2 => 'Tømmerstokken';
+
+  @override
+  String get lop_hindring_3 => 'Fiskegarnet';
+
+  @override
+  String get lop_hindring_4 => 'Kajakken';
+
+  @override
+  String get lop_hindring_5 => 'Beffen';
+
+  @override
+  String get lop_hindring_6 => 'Måka';
+
+  @override
+  String get lop_hindring_7 => 'Noe';
+
+  @override
+  String lop_aarsak(Object p0) {
+    return ' etter $p0';
+  }
+
+  @override
+  String lop_aarsak_2(Object p0, Object p1, Object p2) {
+    return '$p0$p1 tok deg ved $p2 m';
+  }
+
+  @override
+  String lop_maal_milepael(Object p0, Object p1) {
+    return '$p0 m til $p1';
+  }
+
+  @override
+  String lop_maal_beste(Object p0) {
+    return '$p0 m fra rekorden din';
+  }
+
+  @override
+  String lop_maal_seiler(Object p0, Object p1) {
+    return '$p0 er $p1 m foran deg';
+  }
+
+  @override
+  String lop_maal_merke(Object p0, Object p1) {
+    return '$p0 kasser til $p1';
+  }
+
+  @override
+  String lop_maal_merke_2(Object p0, Object p1) {
+    return '$p0 «Nære på» til $p1';
+  }
+
+  @override
+  String lop_maal_merke_3(Object p0, Object p1) {
+    return '$p0 m til $p1';
+  }
+
+  @override
+  String lop_maal_merke_4(Object p0, Object p1) {
+    return '$p0 igjen til $p1';
+  }
+
+  @override
+  String get lop_kasser => 'Kasser';
+
+  @override
+  String get lop_naere_paa_tall => 'Nære på';
+
+  @override
+  String get lop_vest_bruk => 'Redningsvest brukt';
+
+  @override
+  String get lop_merker => 'Ukens merker';
+
+  @override
+  String get lop_pynt => 'Pynt på båten';
+
+  @override
+  String get lop_pynt_ingen => 'Ta et merke for å låse opp pynt.';
+
+  @override
+  String get lop_pynt_ingen_valgt => 'Ingen';
+
+  @override
+  String get lop_pynt_plass => 'Vimpel';
+
+  @override
+  String get lop_pynt_plass_2 => 'Kjølvann';
+
+  @override
+  String get lop_pynt_plass_3 => 'Galionsfigur';
+
+  @override
+  String get lop_uker => '1 uke seilt';
+
+  @override
+  String lop_uker_2(Object p0) {
+    return '$p0 uker seilt';
+  }
+
+  @override
+  String lop_rival(Object p0, Object p1) {
+    return 'Rival: $p0 · $p1 m';
+  }
+
+  @override
+  String get lop_her_gikk_det_galt => 'Her gikk det galt';
+
+  @override
+  String get lop_kart_lukk => 'Lukk';
+
+  @override
+  String get lop_vest_full => 'Full redningsvest på første seilas';
+
+  @override
+  String lop_levert(Object p0) {
+    return 'Ukens led: du nådde $p0';
+  }
+
+  @override
+  String lop_levert_2(Object p0) {
+    return 'Ukens led: $p0 m';
+  }
+
+  @override
+  String get lop_levert_3 => 'poeng';
 }

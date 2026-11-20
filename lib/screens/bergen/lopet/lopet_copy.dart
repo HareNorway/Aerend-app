@@ -1,113 +1,113 @@
-import '../../../utils/shared_pref_utill.dart';
+// ignore_for_file: non_constant_identifier_names
+import '../../../main.dart' show languages;
 
-/// Points plan Step 7: Fjordløpet's interface texts (game spec §15), bokmål and English. The rules page itself comes
+/// Points plan Step 7: Fjordløpet's interface texts (game spec §15), bokmål and English — in the ARB files (`lop_*`)
+/// since Fjordløpet v1.3 plan Step 6. The rules page itself comes
 /// from the panel (`game.vilkaar`, in `/game/state`).
 abstract final class LopetCopy {
-  static bool get _en => resolveSelectedLanguage() == 'en';
-  static String _t(String no, String en) => _en ? en : no;
 
   static String get navn => 'Fjordløpet';
   // Points plan Step 12: Ukens liste, the locked rows, the vest once per order.
-  static String get ukeliste => _t('Ukens liste', "This week's ladder");
-  static String get ukelisteTom => _t('Listen er ikke tilgjengelig nå', 'The ladder is not available right now');
-  static String ukelisteLinje(int n) => _t('$n seilere denne uken · beste verifiserte distanse', '$n sailors this week · best verified distance');
-  static String get ukelisteIngen => _t('Ingen har seilt denne uken ennå', 'Nobody has sailed this week yet');
-  static String premieHylle(String hylle) => _t('Én premie fra $hylle-hylla', 'One prize from the $hylle shelf');
-  static String premiePoeng(int n) => _t('$n poeng', '$n points');
-  static String plassLosgrad(int? plass, String losgrad) => [if (plass != null) _t('$plass. plass', 'place $plass'), if (losgrad.isNotEmpty) losgrad].join(' · ');
+  static String get ukeliste => languages.lop_ukeliste;
+  static String get ukelisteTom => languages.lop_ukeliste_tom;
+  static String ukelisteLinje(int n) => languages.lop_ukeliste_linje(n);
+  static String get ukelisteIngen => languages.lop_ukeliste_ingen;
+  static String premieHylle(String hylle) => languages.lop_premie_hylle(hylle);
+  static String premiePoeng(int n) => languages.lop_premie_poeng(n);
+  static String plassLosgrad(int? plass, String losgrad) => [if (plass != null) languages.lop_plass_losgrad(plass), if (losgrad.isNotEmpty) losgrad].join(' · ');
   static String megRad(int? m, int? plass, String losgrad) => m == null
       ? 'Fjordløpet'
-      : ['Fjordløpet', _t('beste $m m', 'best $m m'), if (plass != null) _t('$plass. plass', 'place $plass'), if (losgrad.isNotEmpty) losgrad].join(' · ');
-  static String igjenPaaBestilling(int n) => n == 1 ? _t('1 seilas igjen på bestillingen', '1 run left on the order') : _t('$n seilaser igjen på bestillingen', '$n runs left on the order');
-  static String get vestBrukt => _t('Redningsvesten er brukt på denne bestillingen', 'The life vest is used on this order');
-  static String get mensDuVenter => _t('Fjordløpet · mens du venter', 'Fjordløpet · while you wait');
-  static String seilaserIgjen(int n) => n == 1 ? _t('1 seilas igjen', '1 run left') : _t('$n seilaser igjen', '$n runs left');
-  static String seilaser(int n) => _t('Fjordløpet · $n seilaser', 'Fjordløpet · $n runs');
-  static String get hjemKlar => _t('Ægil er klar til å seile', 'Ægil is ready to sail');
+      : ['Fjordløpet', languages.lop_meg_rad(m), if (plass != null) languages.lop_meg_rad_2(plass), if (losgrad.isNotEmpty) losgrad].join(' · ');
+  static String igjenPaaBestilling(int n) => n == 1 ? languages.lop_igjen_paa_bestilling : languages.lop_igjen_paa_bestilling_2(n);
+  static String get vestBrukt => languages.lop_vest_brukt;
+  static String get mensDuVenter => languages.lop_mens_du_venter;
+  static String seilaserIgjen(int n) => n == 1 ? languages.lop_seilaser_igjen : languages.lop_seilaser_igjen_2(n);
+  static String seilaser(int n) => languages.lop_seilaser(n);
+  static String get hjemKlar => languages.lop_hjem_klar;
 
-  static String get ukensLed => _t('Ukens led', "This week's course");
-  static String get settSeil => _t('Sett seil', 'Set sail');
-  static String get dinBeste => _t('Din beste denne uken', 'Your best this week');
-  static String get ukensBeste => _t('Ukens beste', 'Best this week');
-  static String get sjokort => _t('Sjøkortet', 'The chart');
-  static String get takeUkjent => _t('Resten ligger i tåka til du har seilt dit.', 'The rest lies in fog until you have sailed there.');
-  static String get vest => _t('Starter med full redningsvest', 'Starts with a full life vest');
-  static String get vilkaar => _t('Vilkår for Fjordløpet', 'Fjordløpet rules');
-  static String get lyd => _t('Lyd', 'Sound');
+  static String get ukensLed => languages.lop_ukens_led;
+  static String get settSeil => languages.lop_sett_seil;
+  static String get dinBeste => languages.lop_din_beste;
+  static String get ukensBeste => languages.lop_ukens_beste;
+  static String get sjokort => languages.lop_sjokort;
+  static String get takeUkjent => languages.lop_take_ukjent;
+  static String get vest => languages.lop_vest;
+  static String get vilkaar => languages.lop_vilkaar;
+  static String get lyd => languages.lop_lyd;
 
-  static List<String> get porter => [_t('Bøye 1', 'Buoy 1'), _t('Bøye 2', 'Buoy 2'), _t('Bryggen', 'The quay')];
-  static String omMeter(String port, int m) => _t('$port om $m m', '$port in $m m');
+  static List<String> get porter => [languages.lop_porter, languages.lop_porter_2, languages.lop_porter_3];
+  static String omMeter(String port, int m) => languages.lop_om_meter(port, m);
 
-  static String get pause => _t('Pause', 'Paused');
-  static String get vedDora => _t('Budet er ved døra', 'Your courier is at the door');
-  static String get trengerDeg => _t('Ærendet ditt trenger deg', 'Your order needs you');
-  static String get fortsett => _t('Fortsett', 'Resume');
-  static String fortsettOm(int n) => _t('Fortsett om $n', 'Resuming in $n');
-  static String get tilSporing => _t('Til sporing', 'To tracking');
+  static String get pause => languages.lop_pause;
+  static String get vedDora => languages.lop_ved_dora;
+  static String get trengerDeg => languages.lop_trenger_deg;
+  static String get fortsett => languages.lop_fortsett;
+  static String fortsettOm(int n) => languages.lop_fortsett_om(n);
+  static String get tilSporing => languages.lop_til_sporing;
 
-  static String get over => _t('SEILASEN ER OVER', 'THE RUN IS OVER');
-  static String fraRekorden(int m) => _t('$m m fra rekorden din', '$m m from your best');
-  static String get nyRekord => _t('Ny rekord denne uken', 'New best this week');
-  static String poengVedLevering(int p) => _t('+$p poeng når ærendet er levert', '+$p points when your order is delivered');
-  static String seilIgjen(int n) => _t('Seil igjen · $n igjen', 'Sail again · $n left');
-  static String get nesteSeilas => _t('Neste seilas ved neste bestilling', 'Your next run comes with your next order');
-  static String get snartFremme => _t('Budet er snart fremme', 'Your courier is almost there');
-  static String get forsinket => _t('Ærendet er forsinket. Du får en ekstra seilas.', 'Your order is late. You get an extra run.');
-  static String get vestTok => _t('Redningsvesten tok støyten', 'Your life vest took the hit');
-  static String get stengt => _t('Fjordløpet er åpent mens et ærend er på vei.', 'Fjordløpet is open while an order is on its way.');
-  static String minUnna(int m) => _t('Budet er $m min unna', 'Courier $m min away');
+  static String get over => languages.lop_over;
+  static String fraRekorden(int m) => languages.lop_fra_rekorden(m);
+  static String get nyRekord => languages.lop_ny_rekord;
+  static String poengVedLevering(int p) => languages.lop_poeng_ved_levering(p);
+  static String seilIgjen(int n) => languages.lop_seil_igjen(n);
+  static String get nesteSeilas => languages.lop_neste_seilas;
+  static String get snartFremme => languages.lop_snart_fremme;
+  static String get forsinket => languages.lop_forsinket;
+  static String get vestTok => languages.lop_vest_tok;
+  static String get stengt => languages.lop_stengt;
+  static String minUnna(int m) => languages.lop_min_unna(m);
 
   // Fjordløpet v1.3 plan Step 6 (spec §4.6, §5.4–5.7, §12.1, §15).
-  static String get naerePaa => _t('Nære på', 'Close call');
-  static String get nyRekordKort => _t('Ny rekord', 'New best');
-  static String portPoeng(String port, int p) => p > 0 ? '$port · +$p ${_t('poeng', 'points')}' : port;
+  static String get naerePaa => languages.lop_naere_paa;
+  static String get nyRekordKort => languages.lop_ny_rekord_kort;
+  static String portPoeng(String port, int p) => p > 0 ? '$port · +$p ${languages.lop_port_poeng}' : port;
   static String hindring(String? t) => switch (t) {
-        'boye' => _t('Bøya', 'The buoy'),
-        'stokk' => _t('Tømmerstokken', 'The log'),
-        'garn' => _t('Fiskegarnet', 'The fishing net'),
-        'kajakk' => _t('Kajakken', 'The kayak'),
-        'beffen' => _t('Beffen', 'The ferry'),
-        'make' => _t('Måka', 'The gull'),
-        _ => _t('Noe', 'Something'),
+        'boye' => languages.lop_hindring,
+        'stokk' => languages.lop_hindring_2,
+        'garn' => languages.lop_hindring_3,
+        'kajakk' => languages.lop_hindring_4,
+        'beffen' => languages.lop_hindring_5,
+        'make' => languages.lop_hindring_6,
+        _ => languages.lop_hindring_7,
       };
 
   /// «Tømmerstokken etter fyret tok deg ved 311 m».
   static String aarsak(String? obstacle, String? landmark, int m) {
     final hva = hindring(obstacle);
-    final etter = landmark == null ? '' : _t(' etter $landmark', ' after $landmark');
-    return _t('$hva$etter tok deg ved $m m', '$hva$etter got you at $m m');
+    final etter = landmark == null ? '' : languages.lop_aarsak(landmark);
+    return languages.lop_aarsak_2(hva, etter, m);
   }
 
-  static String maalMilepael(String port, int gap) => _t('$gap m til $port', '$gap m to $port');
-  static String maalBeste(int gap) => _t('$gap m fra rekorden din', '$gap m from your best');
-  static String maalSeiler(String navn, int gap) => _t('$navn er $gap m foran deg', '$navn is $gap m ahead of you');
+  static String maalMilepael(String port, int gap) => languages.lop_maal_milepael(gap, port);
+  static String maalBeste(int gap) => languages.lop_maal_beste(gap);
+  static String maalSeiler(String navn, int gap) => languages.lop_maal_seiler(navn, gap);
   static String maalMerke(String merke, String metric, int igjen) => switch (metric) {
-        'crates' => _t('$igjen kasser til $merke', '$igjen crates to $merke'),
-        'near_misses' => _t('$igjen «Nære på» til $merke', '$igjen close calls to $merke'),
-        'metres' => _t('$igjen m til $merke', '$igjen m to $merke'),
-        _ => _t('$igjen igjen til $merke', '$igjen to go for $merke'),
+        'crates' => languages.lop_maal_merke(igjen, merke),
+        'near_misses' => languages.lop_maal_merke_2(igjen, merke),
+        'metres' => languages.lop_maal_merke_3(igjen, merke),
+        _ => languages.lop_maal_merke_4(igjen, merke),
       };
-  static String get kasser => _t('Kasser', 'Crates');
-  static String get naerePaaTall => _t('Nære på', 'Close calls');
-  static String get vestBruk => _t('Redningsvest brukt', 'Life vest used');
-  static String get merker => _t('Ukens merker', "This week's badges");
-  static String get pynt => _t('Pynt på båten', 'Boat decorations');
-  static String get pyntIngen => _t('Ta et merke for å låse opp pynt.', 'Take a badge to unlock decorations.');
-  static String get pyntIngenValgt => _t('Ingen', 'None');
+  static String get kasser => languages.lop_kasser;
+  static String get naerePaaTall => languages.lop_naere_paa_tall;
+  static String get vestBruk => languages.lop_vest_bruk;
+  static String get merker => languages.lop_merker;
+  static String get pynt => languages.lop_pynt;
+  static String get pyntIngen => languages.lop_pynt_ingen;
+  static String get pyntIngenValgt => languages.lop_pynt_ingen_valgt;
   static String pyntPlass(String kind) => switch (kind) {
-        'pennant' => _t('Vimpel', 'Pennant'),
-        'wake' => _t('Kjølvann', 'Wake'),
-        _ => _t('Galionsfigur', 'Figurehead'),
+        'pennant' => languages.lop_pynt_plass,
+        'wake' => languages.lop_pynt_plass_2,
+        _ => languages.lop_pynt_plass_3,
       };
-  static String uker(int n) => n == 1 ? _t('1 uke seilt', '1 week sailed') : _t('$n uker seilt', '$n weeks sailed');
-  static String rival(String navn, int m) => _t('Rival: $navn · $m m', 'Rival: $navn · $m m');
-  static String get herGikkDetGalt => _t('Her gikk det galt', 'This is where it went wrong');
-  static String get kartLukk => _t('Lukk', 'Close');
-  static String get vestFull => _t('Full redningsvest på første seilas', 'A full life vest on the first run');
+  static String uker(int n) => n == 1 ? languages.lop_uker : languages.lop_uker_2(n);
+  static String rival(String navn, int m) => languages.lop_rival(navn, m);
+  static String get herGikkDetGalt => languages.lop_her_gikk_det_galt;
+  static String get kartLukk => languages.lop_kart_lukk;
+  static String get vestFull => languages.lop_vest_full;
 
   /// Points plan Step 8 (game spec §8 Levert): what the order's runs came to.
   static String levert(String? port, int m, int poeng) {
-    final hva = port != null ? _t('Ukens led: du nådde $port', "This week's course: you reached $port") : _t('Ukens led: $m m', "This week's course: $m m");
-    return poeng > 0 ? '$hva · +$poeng ${_t('poeng', 'points')}' : hva;
+    final hva = port != null ? languages.lop_levert(port) : languages.lop_levert_2(m);
+    return poeng > 0 ? '$hva · +$poeng ${languages.lop_levert_3}' : hva;
   }
 }
