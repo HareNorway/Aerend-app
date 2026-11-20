@@ -3,13 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+import '../../../game/fjordlopet/input/lopet_input.dart';
+import '../../../game/fjordlopet/render/lopet_atlas.dart';
+import '../../../game/fjordlopet/render/lopet_field_painter.dart';
+import '../../../game/fjordlopet/render/lopet_loop.dart';
 import '../../../game/fjordlopet/sim/engine.dart';
 import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
 import 'lopet_liste.dart';
 import 'lopet_data.dart';
-import 'lopet_painter.dart';
 
 enum _Fase { start, spill, pause, slutt }
 
@@ -34,7 +40,6 @@ class LopetScreen extends StatefulWidget {
 class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final LopetApi _api = widget.api ?? LopetApi();
   late final Ticker _ticker;
-  final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
   StreamSubscription<LopetSignal>? _sig;
   Timer? _poll;
   Timer? _nedtelling;
@@ -45,14 +50,22 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   bool _stengt = false;
   _Fase _fase = _Fase.start;
 
-  FjordSim? _sim;
+  // Fjordløpet v1.3 plan Step 5 (spec §12.2–12.4): the fixed-step loop, the atlas, the flags and the frame numbers.
+  FjordLoop? _loop;
+  LopetAtlas? _atlas;
+  bool _atlasLaster = false;
+  final LopetFlags _flags = LopetFlags();
+  final FramePerf _perf = FramePerf();
+  final ValueNotifier<LopetState?> _sVn = ValueNotifier<LopetState?>(null);
+  final ValueNotifier<bool> _vestMelding = ValueNotifier<bool>(false);
+  final ValueNotifier<String> _perfTekst = ValueNotifier<String>('');
+  Timer? _vestTimer;
+  Timer? _krasjTimer;
+  String? _appVersion;
+  int _rammer = 0;
   String? _token;
-  final List<List<int>> _inputs = [];
-  final List<int> _venter = [];
-  int _tickBase = 0;
   int _startetMs = 0;
-  double _dragDx = 0;
-  bool _dragBrukt = false;
+  static const bool _perfOverlay = bool.fromEnvironment('LOPET_PERF');
 
   String? _pauseGrunn; // manuell | bakgrunn | trenger
   int? _teller;
@@ -70,6 +83,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _ticker = createTicker(_onTick);
     WidgetsBinding.instance.addObserver(this);
     _sig = LopetSignaler.stream.listen(_onSignal);
+    unawaited(PackageInfo.fromPlatform().then((i) => _appVersion = i.version, onError: (_) => null));
   }
 
   @override
@@ -81,6 +95,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       unawaited(LopetUtboks.send()); // runs left over from an offline session
       _poll = Timer.periodic(widget.pollEvery, (_) => _hent(stille: true));
     }
+    // Fjordløpet v1.3 plan Step 5 (spec §12.2): a covered screen stops the run, as the background does.
+    if (!TickerMode.valuesOf(context).enabled && _fase == _Fase.spill) _pause('dekket');
   }
 
   @override
@@ -89,8 +105,17 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _sig?.cancel();
     _poll?.cancel();
     _nedtelling?.cancel();
+    _vestTimer?.cancel();
+    _krasjTimer?.cancel();
+    // Leaving mid-run (the route replaced, the app closing the screen): the run is kept and its token spent.
+    if ((_fase == _Fase.spill || _fase == _Fase.pause) && _token != null) unawaited(_avslutt('forlatt', vis: false));
     _ticker.dispose();
-    _repaint.dispose();
+    _perf.stop();
+    _loop?.dispose();
+    _atlas?.dispose();
+    _sVn.dispose();
+    _vestMelding.dispose();
+    _perfTekst.dispose();
     super.dispose();
   }
 
@@ -99,6 +124,19 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   Future<void> _hent({bool stille = false}) async {
     final s = _orderId > 0 ? await _api.state(_orderId) : null;
     if (!mounted) return;
+    // Fjordløpet v1.3 plan Step 5: offline or a timeout is not the window closing — the run goes on (spec §12).
+    if (s == null && _api.lastOffline) {
+      if (_laster) setState(() => _laster = false);
+      return;
+    }
+    if (s != null && (_fase == _Fase.spill || _fase == _Fase.pause)) {
+      // During a run the tree is not rebuilt: the strip listens on its own.
+      _s = s;
+      _sVn.value = s;
+      _lyd = s.soundOn;
+      if ((s.delivery['state'] ?? '') == 'arrived_customer') _avslutt('ved_dora');
+      return;
+    }
     if (s == null) {
       // The window closed: the courier is at the door, or the order was delivered or cancelled.
       if (_fase == _Fase.spill || _fase == _Fase.pause) {
@@ -117,6 +155,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _stengt = false;
       _lyd = s.soundOn;
     });
+    _sVn.value = s;
+    _byggAtlas(s);
     LopetPort.status.value = LopetInngang(orderId: s.orderId, runsLeft: _igjen);
     if ((s.delivery['state'] ?? '') == 'arrived_customer' && (_fase == _Fase.spill || _fase == _Fase.pause)) {
       _avslutt('ved_dora');
@@ -132,52 +172,98 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   // ── the run ──────────────────────────────────────────────────────────────
 
+  /// The atlas is made when the session opens, before «Sett seil» (spec §12.2): nothing decodes during a run.
+  Future<void> _byggAtlas(LopetState s) async {
+    if (_atlas != null || _atlasLaster) return;
+    _atlasLaster = true;
+    try {
+      final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+      final labels = [for (var k = 0; k < 3; k++) k < s.milestones.length ? '${LopetCopy.porter[k]} · ${s.milestones[k]} m' : ''];
+      final a = await LopetAtlas.build(density: dpr >= 2.5 ? 3 : 2, labels: labels);
+      if (!mounted) {
+        a.dispose();
+        return;
+      }
+      setState(() => _atlas = a);
+    } catch (_) {
+      // Without an atlas the field draws only the water (the run itself does not depend on it).
+    } finally {
+      _atlasLaster = false;
+    }
+  }
+
   void _settSeil() {
     final s = _s;
     if (s == null || s.noNewRun) return;
     final ledige = LopetLager.ledige(s);
     if (ledige.isEmpty) return;
+    _loop?.dispose();
+    final loop = FjordLoop(FjordSim(s.course, _perkFor(s, ledige.first)));
+    final best = LopetLager.beste(s.week) ?? s.personalBestM;
+    _flags
+      ..bestMm = best == null ? -1 : best * 1000.0
+      ..weekMm = s.weekBestM == null || s.weekBestM == best ? -1 : s.weekBestM! * 1000.0
+      ..rivalMm = -1;
     setState(() {
       _token = ledige.first;
-      _sim = FjordSim(s.course, _perkFor(s, ledige.first));
-      _inputs.clear();
-      _venter.clear();
-      _tickBase = 0;
+      _loop = loop;
       _startetMs = DateTime.now().millisecondsSinceEpoch;
       _res = null;
       _fase = _Fase.spill;
       _pauseGrunn = null;
     });
+    _perf.start();
+    _rammer = 0;
+    loop.resetClock();
     _ticker.start();
   }
 
   void _onTick(Duration elapsed) {
-    final sim = _sim;
-    if (sim == null || _fase != _Fase.spill) return;
-    final target = _tickBase + elapsed.inMicroseconds * 60 ~/ 1000000;
-    var steps = 0;
-    while (sim.tick < target && !sim.done && steps < 12) {
-      final dirs = List<int>.of(_venter);
-      _venter.clear();
-      for (final d in dirs) {
-        _inputs.add([sim.tick, d]);
-      }
-      sim.stepTick(dirs);
-      steps++;
+    final loop = _loop;
+    if (loop == null || _fase != _Fase.spill || _krasjTimer != null) return;
+    loop.frame(elapsed);
+    final ev = loop.takeEvents();
+    if (ev != 0) _feedback(ev);
+    if (_perfOverlay && ++_rammer % 30 == 0) {
+      _perfTekst.value = '${(1000 / (_perf.recentAvgMs(30).clamp(1, 1000))).round()} fps · snitt ${_perf.avgMs.toStringAsFixed(1)} ms · '
+          'verst ${_perf.worstMs.toStringAsFixed(1)} ms · >20 ms ${_perf.over20} · Lav';
     }
-    _repaint.value++;
-    if (sim.done) _avslutt('kollisjon');
+    if (loop.done) {
+      // The picture freezes, then the end of the run — within 0.9 s of the collision (spec §4.6, §12.1).
+      _ticker.stop();
+      _krasjTimer = Timer(const Duration(milliseconds: 740), () {
+        _krasjTimer = null;
+        _avslutt('kollisjon');
+      });
+    }
+  }
+
+  /// Fjordløpet v1.3 plan Step 5: the felt column of spec §12.1 for the events that exist so far (Step 6 adds the rest).
+  void _feedback(int ev) {
+    if (ev & FjordSim.evHit != 0) {
+      HapticFeedback.heavyImpact();
+    } else if (ev & FjordSim.evVest != 0) {
+      HapticFeedback.heavyImpact();
+      _vestMelding.value = true;
+      _vestTimer?.cancel();
+      _vestTimer = Timer(const Duration(milliseconds: 1500), () => _vestMelding.value = false);
+    } else if (ev & (FjordSim.evNearMiss | FjordSim.evMeterFull) != 0) {
+      HapticFeedback.mediumImpact();
+    } else if (ev & FjordSim.evCrate != 0) {
+      HapticFeedback.selectionClick();
+    }
   }
 
   void _styr(int dir) {
     if (_fase != _Fase.spill) return;
-    _venter.add(dir);
+    _loop?.input(dir);
+    HapticFeedback.selectionClick();
   }
 
   void _pause(String grunn) {
-    if (_fase != _Fase.spill) return;
+    if (_fase != _Fase.spill || _krasjTimer != null) return;
     _ticker.stop();
-    _tickBase = _sim?.tick ?? 0;
+    _perf.stop();
     _nedtelling?.cancel();
     setState(() {
       _fase = _Fase.pause;
@@ -186,7 +272,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     });
   }
 
-  /// 3 · 2 · 1, 800 ms each, then on.
+  /// 3 · 2 · 1, 800 ms each, then on — only while the app is in the foreground (spec §7).
   void _fortsett() {
     if (_fase != _Fase.pause) return;
     setState(() => _teller = 3);
@@ -203,6 +289,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           _pauseGrunn = null;
           _fase = _Fase.spill;
         });
+        _loop?.resetClock();
+        _perf.resume();
         _ticker.start();
       } else {
         setState(() => _teller = (_teller ?? 3) - 1);
@@ -210,31 +298,62 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     });
   }
 
-  Future<void> _avslutt(String grunn) async {
-    final sim = _sim;
+  /// Ends the run and keeps it: [grunn] kollisjon | ved_dora | forlatt. [vis] false when the screen is going away.
+  Future<void> _avslutt(String grunn, {bool vis = true}) async {
+    final loop = _loop;
     final s = _s;
     final token = _token;
-    if (sim == null || s == null || token == null || _fase == _Fase.slutt) return;
+    if (loop == null || s == null || token == null || _fase == _Fase.slutt) return;
     if (_ticker.isActive) _ticker.stop();
+    _perf.stop();
     _nedtelling?.cancel();
-    final res = sim.result();
+    _krasjTimer?.cancel();
+    _krasjTimer = null;
+    final res = loop.sim.result();
     final forBeste = LopetLager.beste(s.week) ?? s.personalBestM;
     final rekord = forBeste != null && res.distanceM > forBeste;
-    setState(() {
+    _token = null;
+    void sett() {
       _res = res;
       _sluttGrunn = grunn;
       _sluttRekord = rekord;
       _sluttFraRekord = forBeste != null && res.distanceM < forBeste ? forBeste - res.distanceM : null;
       _sluttPoeng = s.pointsFor(res.gates, personalBest: rekord);
       _fase = _Fase.slutt;
-      _token = null;
-    });
-    await LopetLager.lagre(token: token, s: s, inputs: List.of(_inputs), result: res.toJson(), startedMs: _startetMs);
-    // Points plan Step 12: the vest is spent for the rest of this order.
+    }
+
+    if (vis && mounted) {
+      setState(sett);
+    } else {
+      sett();
+    }
+    await LopetLager.lagre(token: token, s: s, inputs: loop.inputsJson(), result: res.toJson(), startedMs: _startetMs,
+        perf: _perf.frames > 0 ? _perf.toJson('low') : null, appVersion: _appVersion);
     if (mounted) setState(() {});
     // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
     unawaited(LopetUtboks.send());
     LopetPort.status.value = LopetInngang(orderId: s.orderId, runsLeft: _igjen);
+  }
+
+  /// Back during a run pauses it; back again (or the arrow) leaves, and the run is kept (spec §12.3).
+  void _tilbake() {
+    if (_fase == _Fase.spill) {
+      _pause('manuell');
+      return;
+    }
+    if (_fase == _Fase.pause) {
+      _avslutt('forlatt', vis: false).whenComplete(_forlat);
+      return;
+    }
+    _forlat();
+  }
+
+  /// Leaves the screen. A direct pop: the run is already kept, and asking PopScope again before it has rebuilt would
+  /// send the back press round in a loop.
+  void _forlat() {
+    if (!mounted) return;
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop();
   }
 
   void _onSignal(LopetSignal sig) {
@@ -248,7 +367,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state != AppLifecycleState.resumed) _pause('bakgrunn');
+    if (state == AppLifecycleState.resumed) return;
+    if (_fase == _Fase.pause && _nedtelling != null) {
+      // The countdown never runs in the background: back to the pause screen.
+      _nedtelling?.cancel();
+      _nedtelling = null;
+      setState(() => _teller = null);
+    }
+    _pause('bakgrunn');
   }
 
   void _tilSporing() {
@@ -300,12 +426,21 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final iLop = _fase == _Fase.spill || _fase == _Fase.pause;
+    return PopScope(
+      canPop: !iLop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _tilbake();
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFF0C2A38),
       body: SafeArea(
         child: Column(
           children: [
-            _Stripe(s: _s, stengt: _stengt, onTap: _tilSporing, onTilbake: () => Navigator.of(context).maybePop()),
+            ValueListenableBuilder<LopetState?>(
+              valueListenable: _sVn,
+              builder: (_, sv, __) => _Stripe(s: sv ?? _s, stengt: _stengt, onTap: _tilSporing, onTilbake: _tilbake),
+            ),
             Expanded(
               child: _laster
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF7FF0CB)))
@@ -317,6 +452,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -438,79 +574,81 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   }
 
   Widget _spill() {
-    final sim = _sim!;
+    final loop = _loop!;
     final s = _s!;
     final rolig = MediaQuery.of(context).disableAnimations;
-    return LayoutBuilder(
-      builder: (context, box) => Stack(
-        children: [
-          Positioned.fill(
-            child: GestureDetector(
-              key: const Key('lopet-felt'),
-              behavior: HitTestBehavior.opaque,
-              // Tap the left or right half of the screen (full-height targets), or swipe 22 px.
-              onTapUp: (d) => _styr(d.localPosition.dx < box.maxWidth / 2 ? -1 : 1),
-              onHorizontalDragStart: (_) {
-                _dragDx = 0;
-                _dragBrukt = false;
-              },
-              onHorizontalDragUpdate: (d) {
-                if (_dragBrukt) return;
-                _dragDx += d.delta.dx;
-                if (_dragDx.abs() >= 22) {
-                  _dragBrukt = true;
-                  _styr(_dragDx < 0 ? -1 : 1);
-                }
-              },
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  painter: LopetPainter(sim: sim, boat: s.boat, milestones: s.milestones, portNavn: LopetCopy.porter, rolig: rolig, repaint: _repaint),
-                ),
-              ),
+    final atlas = _atlas;
+    return Stack(
+      key: const Key('lopet-spill'),
+      children: [
+        // The scene and the HUD are separate repaint boundaries (spec §12.2); the field reads raw pointers (§12.3).
+        Positioned.fill(
+          child: LopetInput(
+            key: const Key('lopet-felt'),
+            onDir: _styr,
+            child: RepaintBoundary(
+              child: atlas == null
+                  ? const ColoredBox(color: Color(0xFF155A70))
+                  : CustomPaint(
+                      painter: LopetFieldPainter(loop: loop, atlas: atlas, boat: s.boat, milestones: s.milestones, flags: _flags, rolig: rolig),
+                    ),
             ),
           ),
-          // HUD
-          Positioned(
-            left: 16,
-            top: 12,
-            right: 16,
-            child: ValueListenableBuilder<int>(
-              valueListenable: _repaint,
-              builder: (_, __, ___) {
-                final m = sim.sailedM;
-                String? neste;
-                for (var k = 0; k < s.milestones.length && k < 3; k++) {
-                  if (sim.sailedM < s.milestones[k]) {
-                    neste = LopetCopy.omMeter(LopetCopy.porter[k], s.milestones[k] - sim.sailedM);
-                    break;
-                  }
-                }
-                final vestNa = sim.vestHitTick != null && sim.tick - sim.vestHitTick! < 90;
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
+        ),
+        Positioned(
+          left: 16,
+          top: 12,
+          right: 16,
+          child: RepaintBoundary(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ValueListenableBuilder<int>(
+                  valueListenable: loop.metres,
+                  builder: (_, m, __) {
+                    String? neste;
+                    for (var k = 0; k < s.milestones.length && k < 3; k++) {
+                      if (m < s.milestones[k]) {
+                        neste = LopetCopy.omMeter(LopetCopy.porter[k], s.milestones[k] - m);
+                        break;
+                      }
+                    }
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('$m m', key: const Key('lopet-meter'), style: BergenTokens.display(30, weight: FontWeight.w800, color: Colors.white)),
                         if (neste != null) Text(neste, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
-                        if (vestNa) Text(LopetCopy.vestTok, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFFF9C7A))),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _vestMelding,
+                          builder: (_, on, __) => on
+                              ? Text(LopetCopy.vestTok, style: BergenTokens.text(12.5, weight: FontWeight.w800, color: const Color(0xFFFF9C7A)))
+                              : const SizedBox.shrink(),
+                        ),
                       ],
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      key: const Key('lopet-pause-knapp'),
-                      onPressed: () => _pause('manuell'),
-                      icon: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 36),
-                    ),
-                  ],
-                );
-              },
+                    );
+                  },
+                ),
+                const Spacer(),
+                IconButton(
+                  key: const Key('lopet-pause-knapp'),
+                  onPressed: () => _pause('manuell'),
+                  icon: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 36),
+                ),
+              ],
             ),
           ),
-          if (_fase == _Fase.pause) Positioned.fill(child: _pauseLag()),
-        ],
-      ),
+        ),
+        if (_perfOverlay)
+          Positioned(
+            left: 8,
+            bottom: 8,
+            child: ValueListenableBuilder<String>(
+              valueListenable: _perfTekst,
+              builder: (_, t, __) => Text(t, key: const Key('lopet-perf'), style: const TextStyle(color: Colors.white, fontSize: 11, backgroundColor: Color(0xAA000000))),
+            ),
+          ),
+        if (_fase == _Fase.pause) Positioned.fill(child: _pauseLag()),
+      ],
     );
   }
 

@@ -114,6 +114,22 @@ class ApiBaseHelper {
     }
   }
 
+  /// Like [get] but returns client-error (4xx) bodies instead of throwing, as [postAllowClientError] does for POST —
+  /// so a caller can tell «not found / closed» from «offline» (Fjordløpet v1.3 plan Step 5).
+  Future<ApiClientResult> getAllowClientError(String url) async {
+    _syncBaseUrl();
+    print('[API] GET(ace) ${_dio.options.baseUrl}$url');
+    try {
+      final response = await _dio.get(
+        url,
+        options: Options(validateStatus: (s) => s != null && s >= 200 && s < 500),
+      );
+      return ApiClientResult(response.statusCode ?? 0, _normalizeResponseData(response.data));
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<dynamic> postFormData(String url, {dynamic body, onProgress}) async {
     _syncBaseUrl();
     print('[API] POST-FORM ${_dio.options.baseUrl}$url');

@@ -132,16 +132,27 @@ class LopetApi {
 
   final ApiBaseHelper _helper;
 
-  /// Null when the window is not open (404 GAME_CLOSED), the game is off for this customer, or offline.
+  /// Fjordløpet v1.3 plan Step 5: true when the last [state] failed for want of a network (or a timeout, or a 5xx) —
+  /// which is not the window closing, so a run in progress goes on.
+  bool lastOffline = false;
+
+  /// Null when the window is not open (404 GAME_CLOSED), the game is off for this customer, or offline ([lastOffline]).
   Future<LopetState?> state(int orderId) async {
     final auth = OpsCustomerApi.authParams();
-    if (auth == null || !OpsCustomerApi.networkEnabled) return null;
+    lastOffline = false;
+    if (auth == null) return null;
+    if (!OpsCustomerApi.networkEnabled) {
+      lastOffline = true;
+      return null;
+    }
     try {
       final q = Uri(queryParameters: {...auth, 'order_id': '$orderId'}).query;
-      final json = await _helper.get('api/game/state?$q');
-      if (json is! Map<String, dynamic> || json['status'] != 1) return null;
+      final r = await _helper.getAllowClientError('api/game/state?$q');
+      final json = r.data;
+      if (r.statusCode != 200 || json is! Map<String, dynamic> || json['status'] != 1) return null;
       return LopetState.fromJson(json);
     } catch (_) {
+      lastOffline = true;
       return null;
     }
   }
@@ -194,7 +205,8 @@ class LopetLager {
   }
 
   /// Keep a finished run: its token is spent, it waits in the outbox, and the week's best moves.
-  static Future<void> lagre({required String token, required LopetState s, required List<List<int>> inputs, required Map<String, dynamic> result, required int startedMs}) async {
+  static Future<void> lagre({required String token, required LopetState s, required List<List<int>> inputs, required Map<String, dynamic> result, required int startedMs,
+      Map<String, Object>? perf, String? appVersion}) async {
     final b = brukte()..add(token);
     await prefSetString(_brukt, jsonEncode(b.toList()));
     final u = utboks()
@@ -211,6 +223,9 @@ class LopetLager {
         'near_misses': result['near_misses'],
         'vest_uses': result['vest_uses'],
         'started_client_ts': startedMs,
+        // Fjordløpet v1.3 plan Step 5 (spec §12.4): the run's frame numbers and the app version.
+        if (perf != null) 'perf': perf,
+        if (appVersion != null) 'app_version': appVersion,
         'result': result,
       });
     await prefSetString(_utboks, jsonEncode(u));

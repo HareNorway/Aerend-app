@@ -53,6 +53,8 @@ abstract final class LopetUtboks {
             'near_misses': run['near_misses'],
             'vest_uses': run['vest_uses'],
             'started_client_ts': run['started_client_ts'],
+            if (run['perf'] != null) 'perf': run['perf'],
+            if (run['app_version'] != null) 'app_version': run['app_version'],
           });
         } catch (_) {
           break; // offline: keep the rest for the next try

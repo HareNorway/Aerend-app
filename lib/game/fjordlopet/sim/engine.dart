@@ -189,6 +189,32 @@ class FjordSim {
     return (r, FjordEngine._i(r['d']) + (n ~/ nRows) * lengthMm);
   }
 
+  /// Row [n] and its distance without a record — for drawing, which allocates nothing per frame.
+  Map rowMapAt(int n) => rows[n % nRows];
+  int rowDAt(int n) => FjordEngine._i(rows[n % nRows]['d']) + (n ~/ nRows) * lengthMm;
+
+  /// Crate [n]'s lane and distance (mm) without a record; [crateDAt] is −1 when the course has no crates.
+  int crateLaneAt(int n) => nCrates == 0 ? 1 : FjordEngine._i(crateList[n % nCrates]['l']);
+  int crateDAt(int n) => nCrates == 0 ? -1 : FjordEngine._i(crateList[n % nCrates]['d']) + (n ~/ nCrates) * lengthMm;
+
+  /// The beffen of row [r] at distance [d]: its position across the fjord now (width units) — drawing only, and
+  /// without a closure (so nothing is allocated per frame).
+  int beffenXNow(Map r, int d) {
+    final p = r['p'] as Map;
+    final a = FjordEngine._i(p['a']);
+    if (u < (d - a) * 60) return FjordEngine._i(p['x0']);
+    final dt = tick - firstAt((d - a) * 60);
+    return FjordEngine._i(p['x0']) + FjordEngine._i(p['vx']) * (dt < 0 ? 0 : dt);
+  }
+
+  /// The boat's lane position at tick [t] as a fraction (1.0 = the middle lane), for drawing a change in progress.
+  double lanePosAt(int t) {
+    final f = (t - chStart) / lc;
+    if (f <= 0) return chFrom.toDouble();
+    if (f >= 1) return chTo.toDouble();
+    return chFrom + (chTo - chFrom) * f;
+  }
+
   /// Crate [n] (absolute index over laps) and its distance in mm; null when the course has none.
   (Map, int)? crateAt(int n) {
     if (nCrates == 0) return null;
@@ -245,6 +271,14 @@ class FjordSim {
     for (var i = 0; i < _switches.length; i += 2) {
       final sw = _switches[i];
       if (sw <= t && t - sw < nmTicks && lanes.contains(_switches[i + 1])) return true;
+    }
+    return false;
+  }
+
+  bool _leftLaneRecently(int t, int lane) {
+    for (var i = 0; i < _switches.length; i += 2) {
+      final sw = _switches[i];
+      if (sw <= t && t - sw < nmTicks && _switches[i + 1] == lane) return true;
     }
     return false;
   }
@@ -366,27 +400,24 @@ class FjordSim {
         _fill();
       }
     }
-    // (8) kajakks caught
+    // (8) kajakks caught (compacted in place: nothing allocated per tick)
     if (ended == null && kajakks.isNotEmpty) {
-      final keep = <FjordKajakk>[];
-      for (final k in kajakks) {
-        if (ended != null) {
-          keep.add(k);
-          continue;
-        }
-        if (u < k.uAt(t)) {
-          keep.add(k);
+      var w = 0;
+      for (var i = 0; i < kajakks.length; i++) {
+        final k = kajakks[i];
+        if (ended != null || u < k.uAt(t)) {
+          kajakks[w++] = k;
           continue;
         }
         if (lane == k.lane) {
           _hit(t, k.n, 'kajakk', k.d);
-        } else if (t >= graceUntil && _leftRecently(t, [k.lane])) {
+        } else if (t >= graceUntil && _leftLaneRecently(t, k.lane)) {
           nearMisses++;
           events |= evNearMiss;
           _fill();
         }
       }
-      kajakks = keep;
+      kajakks.length = w;
     }
     tick++;
   }
