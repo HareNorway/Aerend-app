@@ -55,6 +55,7 @@ abstract final class LopetUtboks {
             'started_client_ts': run['started_client_ts'],
             if (run['perf'] != null) 'perf': run['perf'],
             if (run['app_version'] != null) 'app_version': run['app_version'],
+            if (run['device_model'] != null) 'device_model': run['device_model'],
           });
         } catch (_) {
           break; // offline: keep the rest for the next try

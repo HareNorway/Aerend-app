@@ -91,6 +91,7 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
   audioplayers: ^6.7.1
+  device_info_plus: ^12.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -159,6 +160,8 @@ flutter:
     - shaders/aegil_floyen_liv_delt.frag
     - shaders/scene_gl_bake.frag
     - shaders/scene_gl_delt.frag
+    # Fjordløpet v1.3 plan Step 9: the game's water, seen from above.
+    - shaders/lopet_sjo.frag
 
   fonts:
     - family: CustomIcons

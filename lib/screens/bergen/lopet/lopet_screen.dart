@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io' show Platform;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -11,7 +13,12 @@ import '../../../game/fjordlopet/lopet_lyd.dart';
 import '../../../game/fjordlopet/nearest_goal.dart';
 import '../../../game/fjordlopet/render/lopet_atlas.dart';
 import '../../../game/fjordlopet/render/lopet_field_painter.dart';
+import '../../../game/fjordlopet/render/lopet_look.dart';
 import '../../../game/fjordlopet/render/lopet_loop.dart';
+import '../../../game/fjordlopet/render/lopet_quality.dart';
+import '../../../game/fjordlopet/render/lopet_water.dart';
+import '../hjem/hjem_hero.dart';
+import '../../common/auth/launch/lf_css.dart' show LfFrame;
 import '../../../game/fjordlopet/sim/engine.dart';
 import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
@@ -38,6 +45,15 @@ class LopetScreen extends StatefulWidget {
   /// After the courier reached the door, how long the end card stays before Sporing (spec T6).
   final Duration tilSporingEtter;
 
+  /// Fjordløpet v1.3 plan Step 9 (spec §12.2): from «Sett seil» the picture moves into play in at most 0.6 s — when
+  /// Home's scene is there to move (widget tests start at once unless a test sets [overgangTest]).
+  static Duration get overgang => overgangTest ?? (hjemScene ? const Duration(milliseconds: 450) : Duration.zero);
+  static Duration? overgangTest;
+
+  /// The start screen sits on Home's Bryggen and Vågen scene (the same widget). Off in widget tests (FLUTTER_TEST):
+  /// the scene's shaders and live mirror are not there; a plain backdrop of the same height stands in.
+  static bool hjemScene = !Platform.environment.containsKey('FLUTTER_TEST');
+
   @override
   State<LopetScreen> createState() => _LopetScreenState();
 }
@@ -61,6 +77,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   bool _atlasLaster = false;
   final LopetFlags _flags = LopetFlags();
   final FramePerf _perf = FramePerf();
+
+  // Fjordløpet v1.3 plan Step 9 (spec §12.2, §12.5, §12.6): the quality level, the shader water, the particle pool,
+  // Home's sea mode and Ægil's back for the boat sprite — all made when the session opens.
+  LopetQuality? _q;
+  LopetWater? _water;
+  final LopetFx _fx = LopetFx();
+  final LopetMode _mode = LopetLook.now();
+  ui.Image? _aegil;
+  bool _overgang = false; // the ≤ 0.6 s move from the quay into play
   final ValueNotifier<LopetState?> _sVn = ValueNotifier<LopetState?>(null);
   final ValueNotifier<bool> _vestMelding = ValueNotifier<bool>(false);
   final ValueNotifier<String> _perfTekst = ValueNotifier<String>('');
@@ -137,6 +162,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _perf.stop();
     _loop?.dispose();
     _atlas?.dispose();
+    _water?.dispose();
+    _aegil?.dispose();
     _sVn.dispose();
     _vestMelding.dispose();
     _perfTekst.dispose();
@@ -184,6 +211,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       LopetPort.status.value = null;
       return;
     }
+    _q ??= LopetQuality.fromState(s.quality);
     setState(() {
       _s = s;
       _laster = false;
@@ -214,10 +242,18 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     try {
       final dpr = WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
       final labels = [for (var k = 0; k < 3; k++) k < s.milestones.length ? '${LopetCopy.porter[k]} · ${s.milestones[k]} m' : ''];
-      final a = await LopetAtlas.build(density: dpr >= 2.5 ? 3 : 2, labels: labels);
+      _aegil ??= await _lastAegil();
+      final program = await LopetWater.load();
+      final a = await LopetAtlas.build(density: dpr >= 2.5 ? 3 : 2, labels: labels, mode: _mode, aegil: _aegil);
       if (!mounted) {
         a.dispose();
         return;
+      }
+      // A shader that does not load means Low for the session (spec §12.5, T32).
+      if (program == null) {
+        _q?.markShaderFailed();
+      } else {
+        _water ??= LopetWater(program, LopetLook.of(_mode));
       }
       setState(() => _atlas = a);
     } catch (_) {
@@ -225,6 +261,35 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     } finally {
       _atlasLaster = false;
     }
+  }
+
+  /// Ægil from behind (`assets/images/aegil/rear.png`), decoded once for the atlas; null if it cannot be read.
+  static Future<ui.Image?> _lastAegil() async {
+    try {
+      final data = await rootBundle.load('assets/images/aegil/rear.png');
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: 180);
+      final frame = await codec.getNextFrame();
+      codec.dispose();
+      return frame.image;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// «Sett seil»: the quay moves up and the play view comes in (at most 0.6 s, spec §12.2), then the run starts.
+  void _settSeilMedOvergang() {
+    final s = _s;
+    if (s == null || s.noNewRun || LopetLager.ledige(s).isEmpty || _overgang) return;
+    if (MediaQuery.of(context).disableAnimations || LopetScreen.overgang == Duration.zero) {
+      _settSeil();
+      return;
+    }
+    setState(() => _overgang = true);
+    Future<void>.delayed(LopetScreen.overgang, () {
+      if (!mounted) return;
+      _overgang = false;
+      _settSeil();
+    });
   }
 
   void _settSeil() {
@@ -256,6 +321,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _pauseGrunn = null;
     });
     _perf.start();
+    _q?.runStarted();
+    _fx.clear();
     _rammer = 0;
     loop.resetClock();
     _ticker.start();
@@ -266,11 +333,16 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (loop == null || _fase != _Fase.spill || _krasjTimer != null) return;
     loop.frame(elapsed);
     final ev = loop.takeEvents();
-    if (ev != 0) _feedback(ev);
+    if (ev != 0) {
+      _feedback(ev);
+      _fx.queue(ev);
+    }
+    // Spec §12.5: one step down at once when the last 2 s average over the limit, then kept for the session.
+    _q?.frame(_perf.recentAvgMs(120));
     _milepaeler(loop);
     if (_perfOverlay && ++_rammer % 30 == 0) {
       _perfTekst.value = '${(1000 / (_perf.recentAvgMs(30).clamp(1, 1000))).round()} fps · snitt ${_perf.avgMs.toStringAsFixed(1)} ms · '
-          'verst ${_perf.worstMs.toStringAsFixed(1)} ms · >20 ms ${_perf.over20} · Lav';
+          'verst ${_perf.worstMs.toStringAsFixed(1)} ms · >20 ms ${_perf.over20} · ${_q?.level.key ?? 'low'}';
     }
     if (loop.done) {
       // The picture freezes, then the end of the run — within 0.9 s of the collision (spec §4.6, §12.1).
@@ -427,7 +499,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       sett();
     }
     await LopetLager.lagre(token: token, s: s, inputs: loop.inputsJson(), result: res.toJson(), startedMs: _startetMs,
-        perf: _perf.frames > 0 ? _perf.toJson('low') : null, appVersion: _appVersion);
+        perf: _perf.frames > 0 ? _perf.toJson(_q?.level.key ?? 'low') : null, appVersion: _appVersion);
+    // Spec §12.5: one step up after a whole run with a p99 under the limit.
+    if (grunn == 'kollisjon' || grunn == 'ved_dora') _q?.afterRun(_perf.p99Ms, frames: _perf.frames);
     if (mounted) setState(() {});
     // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
     unawaited(LopetUtboks.send());
@@ -674,9 +748,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     }
     final igjen = _igjen;
     final beste = LopetLager.beste(s.week) ?? s.personalBestM;
-    return ListView(
+    // Short screens (the iPhone SE) keep the quay as a band behind the title, so the start fits as before (T24).
+    final kort = MediaQuery.sizeOf(context).height < 720;
+    final kaiH = kort ? _kaiHKort : _kaiH;
+    final liste = ListView(
       key: const Key('lopet-start'),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: EdgeInsets.fromLTRB(20, kort ? 12 : _kaiTopp, 20, 28),
       children: [
         Row(
           children: [
@@ -760,7 +837,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         if (s.noNewRun) ...[
           _Melding(key: const Key('lopet-snart'), tekst: LopetCopy.snartFremme, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
         ] else if (igjen > 0)
-          _Knapp(key: const Key('lopet-sett-seil'), tekst: LopetCopy.settSeil, onTap: _settSeil)
+          _Knapp(key: const Key('lopet-sett-seil'), tekst: LopetCopy.settSeil, onTap: _settSeilMedOvergang)
         else
           _Melding(key: const Key('lopet-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
         const SizedBox(height: 16),
@@ -786,7 +863,95 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         ),
       ],
     );
+    // Fjordløpet v1.3 plan Step 9 (spec §12.2): the start screen on Home's Bryggen and Vågen scene, the boat moored in
+    // it; from «Sett seil» the picture moves up into play in [LopetScreen.overgang] (≤ 0.6 s). A Transform, not a
+    // fade: no Opacity layer anywhere near the scene.
+    final look = LopetLook.of(_mode);
+    return ClipRect(
+      child: TweenAnimationBuilder<double>(
+        key: const Key('lopet-kai'),
+        tween: Tween<double>(begin: 0, end: _overgang ? 1 : 0),
+        duration: LopetScreen.overgang,
+        curve: Curves.easeInCubic,
+        builder: (_, v, child) => FractionalTranslation(translation: Offset(0, -v), child: child),
+        child: Stack(
+          children: [
+            Positioned(left: 0, right: 0, top: 0, height: kaiH, child: IgnorePointer(child: RepaintBoundary(child: _kaiScene(look, kaiH)))),
+            Positioned(
+              left: 0,
+              right: 0,
+              top: kort ? 0 : kaiH - 120,
+              height: kort ? kaiH : 120,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [kort ? const Color(0x990C2A38) : const Color(0x000C2A38), const Color(0xFF0C2A38)]),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(child: liste),
+          ],
+        ),
+      ),
+    );
   }
+
+  static const double _kaiH = 230;
+  static const double _kaiHKort = 120;
+  static const double _kaiTopp = 96;
+
+  /// Home's scene (the same widget, as a window onto Vågen: no floats, raft or Fjordfiske pill), with the boat moored
+  /// at the quay; in widget tests a plain sky-over-water stand-in.
+  Widget _kaiScene(LopetLook look, double kaiH) {
+    final boat = Positioned(
+      left: 0,
+      right: 0,
+      top: kaiH * .35,
+      child: Center(child: Icon(Icons.sailing_rounded, key: const Key('lopet-kai-baat'), size: 34, color: Colors.white.withValues(alpha: .92))),
+    );
+    if (!LopetScreen.hjemScene) {
+      return Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              key: const Key('lopet-kai-scene'),
+              decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [look.skyHi, look.skyLo, look.shal, look.deep], stops: const [0, .45, .55, 1])),
+            ),
+          ),
+          boat,
+        ],
+      );
+    }
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: LfFrame(
+            child: HjemHero(
+              key: const Key('lopet-kai-scene'),
+              vaer: _hjemVaer(),
+              floats: const [],
+              onFloatAdd: (_) {},
+              onFloatSink: (_) {},
+              onFloatNever: (_) {},
+              onPose: () {},
+              onFjordfiske: () {},
+              nappAvailable: false,
+              vindu: true,
+            ),
+          ),
+        ),
+        boat,
+      ],
+    );
+  }
+
+  /// Home's weather for the scene: the same choice Home makes (the harness, else the hour).
+  HjemVaer _hjemVaer() => switch (_mode) {
+        LopetMode.dag => HjemVaer.sol,
+        LopetMode.regn => HjemVaer.regn,
+        LopetMode.kveld => (DateTime.now().hour >= 23 || DateTime.now().hour < 5) ? HjemVaer.natt : HjemVaer.solnedgang,
+      };
 
   /// Points plan Step 12 (game spec §5.3, G-T15): one redningsvest per order — once a run of this order used it, the
   /// rest sail without it (kept on the phone per order; the server's state says the same once the run is verified).
@@ -819,7 +984,18 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                 child: atlas == null
                     ? const ColoredBox(color: Color(0xFF155A70))
                     : CustomPaint(
-                        painter: LopetFieldPainter(loop: loop, atlas: atlas, boat: s.boat, milestones: s.milestones, flags: _flags, rolig: rolig),
+                        painter: LopetFieldPainter(
+                          loop: loop,
+                          atlas: atlas,
+                          boat: s.boat,
+                          milestones: s.milestones,
+                          flags: _flags,
+                          rolig: rolig,
+                          quality: _q,
+                          water: _water,
+                          fx: _fx,
+                          landmarks: [for (final l in (s.course['landmarks'] as List? ?? const [])) if (l is Map) Map<String, dynamic>.from(l)],
+                        ),
                       ),
               ),
             ),

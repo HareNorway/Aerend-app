@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import '../../../game/fjordlopet/sim/engine.dart';
+import '../../../game/fjordlopet/lopet_enhet.dart';
 
 import 'package:flutter/widgets.dart';
 
@@ -310,7 +311,9 @@ class LopetApi {
       return LopetStateCache.les(orderId);
     }
     try {
-      final q = Uri(queryParameters: {...auth, 'order_id': '$orderId'}).query;
+      // Fjordløpet v1.3 plan Step 9 (spec §12.5): the model, so the server can pin it to Low (`quality.low_model`).
+      final model = await LopetEnhet.hent();
+      final q = Uri(queryParameters: {...auth, 'order_id': '$orderId', if (model.isNotEmpty) 'device_model': model}).query;
       final r = await _helper.getAllowClientError('api/game/state?$q');
       final json = r.data;
       if (r.statusCode != 200 || json is! Map<String, dynamic> || json['status'] != 1) {
@@ -406,6 +409,8 @@ class LopetLager {
         // Fjordløpet v1.3 plan Step 5 (spec §12.4): the run's frame numbers and the app version.
         if (perf != null) 'perf': perf,
         if (appVersion != null) 'app_version': appVersion,
+        // Fjordløpet v1.3 plan Step 9: the panel groups frame times by device model.
+        if (LopetEnhet.model.isNotEmpty) 'device_model': LopetEnhet.model,
         'result': result,
       });
     await prefSetString(_utboks, jsonEncode(u));
