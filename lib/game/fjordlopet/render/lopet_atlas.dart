@@ -394,10 +394,11 @@ class _Figur {
       case LopetSprite.rain:
         c.drawLine(Offset(w, 0), Offset(0, h), _stroke(const Color(0x59FFFFFF), w * .6));
       case LopetSprite.cloud:
-        for (var i = 0; i < 5; i++) {
-          final cx = w * (.2 + i * .15), cy = h * (.45 + (i.isEven ? -.08 : .1));
-          c.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: w * .42, height: h * .62),
-              _p..shader = ui.Gradient.radial(Offset(cx, cy), w * .22, [const Color(0x2604121A), const Color(0x0004121A)]));
+        // One soft shadow with no edges (three wide overlapping falloffs, faint), so no blob reads on its own.
+        for (var i = 0; i < 3; i++) {
+          final cx = w * (.3 + i * .2), cy = h * (.5 + (i == 1 ? -.06 : .05));
+          c.drawOval(Rect.fromCenter(center: Offset(cx, cy), width: w * .8, height: h * .95),
+              _p..shader = ui.Gradient.radial(Offset(cx, cy), w * .4, [const Color(0x1404121A), const Color(0x0004121A)]));
         }
       case LopetSprite.bowWave:
         final p = _stroke(const Color(0xCCFFFFFF), h * .1);

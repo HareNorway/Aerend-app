@@ -193,14 +193,21 @@ class LopetFieldPainter extends CustomPainter {
 
   /// An object with its height: shadow, reflection and foam under it (background), the figure itself (sorted).
   void _object(LopetSprite s, double x, double y, double scale, double seed, {int colour = _white, bool reflect = false}) {
-    final sw = atlas.width(s) * scale;
-    final shadowScale = sw / atlas.width(LopetSprite.shadow);
-    _addBg(LopetSprite.shadow, x + sw * .08, y + sw * .12, shadowScale);
+    final sw = atlas.width(s) * scale, sh = atlas.height(s) * scale;
+    // A sprite scales the same both ways, so a wide object (the log, Beffen) gets its shadow and foam as a row of
+    // small ones along its length, each about as wide as the object is tall.
+    final parts = (sw / (sh * 1.6)).ceil().clamp(1, 6);
+    final pw = sw / parts;
+    final shadowScale = pw / atlas.width(LopetSprite.shadow);
+    for (var k = 0; k < parts; k++) {
+      final px = x - sw / 2 + pw * (k + .5);
+      _addBg(LopetSprite.shadow, px + sh * .1, y + sh * .16, shadowScale);
+      _addBg(LopetSprite.foamRing, px, y + sh * .2, shadowScale * .95);
+    }
     if (reflect) {
       final r = LopetAtlas.reflectionOf(s);
-      if (r != null) _addBg(r, x, y + atlas.height(s) * scale * .62, scale * atlas.width(s) / atlas.width(r) * .92);
+      if (r != null) _addBg(r, x, y + sh * .62, scale * atlas.width(s) / atlas.width(r) * .92);
     }
-    _addBg(LopetSprite.foamRing, x, y + atlas.height(s) * scale * .3, shadowScale * .9);
     _add(s, x, y + _bob(seed), scale, colour, _tilt(seed));
   }
 
@@ -438,23 +445,20 @@ class LopetFieldPainter extends CustomPainter {
     _addBoat(LopetSprite.shadow, bx + 4, boatY + 8, s1 * atlas.width(boatSprite) / atlas.width(LopetSprite.shadow) * 1.1, _white, 0);
     _addBoat(LopetSprite.bowWave, bx, boatY - boatH * .46, s1 * (.8 + .4 * speedShare), _white, roll * .5);
     final wtr2 = water;
+    // The V wake: two arms that open behind the stern, longer at speed, bent by the roll in a lane change. Drawn as
+    // sprites at every level (stamped into the scrolling foam map they would smear into straight lines).
+    final len = boatH * (1 + 1.8 * speedShare);
+    for (var i = 1; i <= 5; i++) {
+      final f = i / 5;
+      final yy = boatY + boatH * .38 + f * len, bend = roll * laneW * .5 * f;
+      final sz = s1 * (1.9 - f * .7);
+      _addBoat(LopetSprite.spray, bx - f * laneW * .34 + bend, yy, sz, _dim, 0);
+      _addBoat(LopetSprite.spray, bx + f * laneW * .34 + bend, yy, sz, _dim, 0);
+    }
     if (wtr2 != null && _level.foamMap) {
-      // The wake stamped into the foam map: two arms that open behind the boat, longer at speed.
-      final len = boatH * (1.2 + 2.2 * speedShare);
-      for (var i = 1; i <= 4; i++) {
-        final f = i / 4;
-        wtr2.stamp(bx - f * laneW * .32 + roll * 20 * f, boatY + boatH * .35 + f * len, 3.5 + f * 2, .55 * (1 - f * .6));
-        wtr2.stamp(bx + f * laneW * .32 + roll * 20 * f, boatY + boatH * .35 + f * len, 3.5 + f * 2, .55 * (1 - f * .6));
-      }
-      wtr2.stamp(bx, boatY - boatH * .5, 5, .5);
-    } else {
-      // Low: the wake as sprites.
-      final len = boatH * (1 + 1.6 * speedShare);
-      for (var i = 1; i <= 3; i++) {
-        final f = i / 3;
-        _addBoat(LopetSprite.spray, bx - f * laneW * .28, boatY + boatH * .35 + f * len, s1 * 1.6, _dim, 0);
-        _addBoat(LopetSprite.spray, bx + f * laneW * .28, boatY + boatH * .35 + f * len, s1 * 1.6, _dim, 0);
-      }
+      // The foam map takes the track right behind the stern and the bow wave; the water carries them away and they fade.
+      wtr2.stamp(bx, boatY + boatH * .42, 3.2, .3);
+      wtr2.stamp(bx, boatY - boatH * .48, 4.5, .35);
     }
     _addBoat(boatSprite, bx, boatY + _bob(0) * .5, s1, blink ? _blink : _white, roll);
     if (sim.hasVest) _addBoat(LopetSprite.ring, bx, boatY, s1, _white, 0);
