@@ -200,7 +200,8 @@ void main() {
     LopetSignaler.fraPush({'class': 'critical', 'type': 'x'});
     LopetSignaler.fraPush({'type': 'customer.insight.weekly_summary'});
     await Future<void>.delayed(Duration.zero);
-    expect(got, [LopetSignal.vedDora, LopetSignal.trengerDeg, LopetSignal.trengerDeg]);
+    // Fjordløpet v1.3 plan Step 7: every notification also hushes the game's sounds (varsel).
+    expect(got.where((g) => g != LopetSignal.varsel), [LopetSignal.vedDora, LopetSignal.trengerDeg, LopetSignal.trengerDeg]);
     await sub.cancel();
   });
 }

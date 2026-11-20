@@ -29,11 +29,14 @@ enum _Fase { start, spill, pause, slutt }
 /// notification and the app going to the background pause it, and it resumes with 3 · 2 · 1. No new run once the
 /// courier is within two minutes. Runs are recorded tick by tick and kept on the phone for Step 8 to submit.
 class LopetScreen extends StatefulWidget {
-  const LopetScreen({super.key, this.orderId, this.api, this.pollEvery = const Duration(seconds: 6)});
+  const LopetScreen({super.key, this.orderId, this.api, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500)});
 
   final int? orderId;
   final LopetApi? api;
   final Duration pollEvery;
+
+  /// After the courier reached the door, how long the end card stays before Sporing (spec T6).
+  final Duration tilSporingEtter;
 
   @override
   State<LopetScreen> createState() => _LopetScreenState();
@@ -81,6 +84,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   FjordGoal? _sluttMaal;
 
   String? _pauseGrunn; // manuell | bakgrunn | trenger
+  String? _trengerSett; // the needs-you card that already paused a run
+  Timer? _doraTimer;
+  String? _sluttToken; // the token of the run on the end card
+  String? _sluttMaalServer; // the server's nearest goal for that run, once it answered
   int? _teller;
 
   FjordResult? _res;
@@ -97,6 +104,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _ticker = createTicker(_onTick);
     WidgetsBinding.instance.addObserver(this);
     _sig = LopetSignaler.stream.listen(_onSignal);
+    LopetUtboks.onSvar = _svar;
     unawaited(PackageInfo.fromPlatform().then((i) => _appVersion = i.version, onError: (_) => null));
   }
 
@@ -117,10 +125,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _sig?.cancel();
+    if (LopetUtboks.onSvar == _svar) LopetUtboks.onSvar = null;
     _poll?.cancel();
     _nedtelling?.cancel();
     _vestTimer?.cancel();
     _krasjTimer?.cancel();
+    _doraTimer?.cancel();
     // Leaving mid-run (the route replaced, the app closing the screen): the run is kept and its token spent.
     if ((_fase == _Fase.spill || _fase == _Fase.pause) && _token != null) unawaited(_avslutt('forlatt', vis: false));
     _ticker.dispose();
@@ -153,13 +163,19 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _s = s;
       _sVn.value = s;
       _settLyd(s.soundOn);
-      if ((s.delivery['state'] ?? '') == 'arrived_customer') _avslutt('ved_dora');
+      final trenger = s.delivery['needs_you'];
+      if ((s.delivery['state'] ?? '') == 'arrived_customer') {
+        _vedDora();
+      } else if (trenger is String && trenger.isNotEmpty && trenger != _trengerSett) {
+        _trengerSett = trenger;
+        _pause('trenger'); // a card that needs the customer's answer (spec §7), once per card
+      }
       return;
     }
     if (s == null) {
       // The window closed: the courier is at the door, or the order was delivered or cancelled.
       if (_fase == _Fase.spill || _fase == _Fase.pause) {
-        _avslutt('ved_dora');
+        _vedDora();
       }
       setState(() {
         _laster = false;
@@ -178,7 +194,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _byggAtlas(s);
     LopetPort.status.value = LopetInngang(orderId: s.orderId, runsLeft: _igjen);
     if ((s.delivery['state'] ?? '') == 'arrived_customer' && (_fase == _Fase.spill || _fase == _Fase.pause)) {
-      _avslutt('ved_dora');
+      _vedDora();
     }
   }
 
@@ -390,6 +406,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final forBeste = LopetLager.beste(s.week) ?? s.personalBestM;
     final rekord = forBeste != null && res.distanceM > forBeste;
     _token = null;
+    _sluttToken = token;
+    _sluttMaalServer = null;
     final poeng = s.pointsFor(res.gates, personalBest: rekord);
     if (poeng > _ordrePoeng) _ordrePoeng = poeng;
     final maal = _maalFor(s, res, forBeste);
@@ -414,6 +432,21 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
     unawaited(LopetUtboks.send());
     LopetPort.status.value = LopetInngang(orderId: s.orderId, runsLeft: _igjen);
+  }
+
+  /// The server answered a run from the outbox (spec §12, plan D6): for the run on the end card, its points pending
+  /// and nearest goal replace the phone's own; for any run of this order, the order's points.
+  void _svar(Map<String, dynamic> run, Map<String, dynamic>? svar) {
+    final d = svar?['data'] is Map ? Map<String, dynamic>.from(svar!['data'] as Map) : svar;
+    if (!mounted || d == null || d['state'] != 'verified') return;
+    final poeng = (d['points_pending'] as num?)?.toInt();
+    setState(() {
+      if (poeng != null) _ordrePoeng = poeng;
+      if (run['token'] == _sluttToken && _fase == _Fase.slutt) {
+        if (poeng != null) _sluttPoeng = poeng;
+        _sluttMaalServer = LopetCopy.maalFra(d['nearest_goal']) ?? _sluttMaalServer;
+      }
+    });
   }
 
   /// The end screen's third line (spec §4.6, plan D6): badges counted with this run.
@@ -464,8 +497,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   }
 
   void _onSignal(LopetSignal sig) {
+    if (sig == LopetSignal.varsel) {
+      _lyder.stille();
+      return;
+    }
     if (sig == LopetSignal.vedDora) {
-      if (_fase == _Fase.spill || _fase == _Fase.pause) _avslutt('ved_dora');
+      _vedDora();
       _hent(stille: true);
     } else {
       _pause('trenger');
@@ -482,6 +519,20 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       setState(() => _teller = null);
     }
     _pause('bakgrunn');
+  }
+
+  /// The courier is at the door (spec §3, §7, T6): a run in progress ends at once and its distance counts. The end
+  /// card shows the distance for a moment ([LopetScreen.tilSporingEtter]), then Sporing comes up with the code. The
+  /// run is kept before the screen goes.
+  void _vedDora() {
+    if (_fase != _Fase.spill && _fase != _Fase.pause) return;
+    unawaited(_avslutt('ved_dora').whenComplete(() {
+      if (!mounted) return;
+      _doraTimer?.cancel();
+      _doraTimer = Timer(widget.tilSporingEtter, () {
+        if (mounted && _fase == _Fase.slutt) _tilSporing();
+      });
+    }));
   }
 
   void _tilSporing() {
@@ -885,7 +936,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             : vedDora
                 ? null // said once, in the button area
                 : (_sluttFraRekord != null ? LopetCopy.fraRekorden(_sluttFraRekord!) : null);
-    final linje3 = _maalTekst(_sluttMaal);
+    final linje3 = _sluttMaalServer ?? _maalTekst(_sluttMaal);
     return ListView(
       key: const Key('lopet-slutt'),
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),

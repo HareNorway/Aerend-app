@@ -179,6 +179,34 @@ class LopetState {
   }
 }
 
+/// Fjordløpet v1.3 plan Step 7 (spec §12, T12): the last `/game/state` per order, so a run can start offline. Removed
+/// when the server says the window is closed.
+abstract final class LopetStateCache {
+  static String _key(int orderId) => 'lopet_state_$orderId';
+
+  static Future<void> lagre(int orderId, Map<String, dynamic> json) async {
+    try {
+      await prefSetString(_key(orderId), jsonEncode(json));
+    } catch (_) {}
+  }
+
+  static LopetState? les(int orderId) {
+    try {
+      final raw = prefGetString(_key(orderId));
+      if (raw.isEmpty) return null;
+      return LopetState.fromJson((jsonDecode(raw) as Map).cast<String, dynamic>());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> glem(int orderId) async {
+    try {
+      await prefSetString(_key(orderId), '');
+    } catch (_) {}
+  }
+}
+
 /// The language the game texts follow (the app's choice).
 abstract final class LopetLanguage {
   static bool get en => resolveSelectedLanguage() == 'en';
@@ -271,23 +299,29 @@ class LopetApi {
   bool lastOffline = false;
 
   /// Null when the window is not open (404 GAME_CLOSED), the game is off for this customer, or offline ([lastOffline]).
+  /// Offline, the state kept from the last answer for this order is returned instead (Fjordløpet v1.3 plan Step 7, T12:
+  /// runs start from the session's tokens without a network).
   Future<LopetState?> state(int orderId) async {
     final auth = OpsCustomerApi.authParams();
     lastOffline = false;
     if (auth == null) return null;
     if (!OpsCustomerApi.networkEnabled) {
       lastOffline = true;
-      return null;
+      return LopetStateCache.les(orderId);
     }
     try {
       final q = Uri(queryParameters: {...auth, 'order_id': '$orderId'}).query;
       final r = await _helper.getAllowClientError('api/game/state?$q');
       final json = r.data;
-      if (r.statusCode != 200 || json is! Map<String, dynamic> || json['status'] != 1) return null;
+      if (r.statusCode != 200 || json is! Map<String, dynamic> || json['status'] != 1) {
+        await LopetStateCache.glem(orderId);
+        return null;
+      }
+      await LopetStateCache.lagre(orderId, json);
       return LopetState.fromJson(json);
     } catch (_) {
       lastOffline = true;
-      return null;
+      return LopetStateCache.les(orderId);
     }
   }
 
@@ -389,6 +423,8 @@ class LopetLager {
 
 /// Why a run pauses by itself (game spec §7).
 enum LopetSignal {
+  /// Any notification arrived: the game's own sounds keep quiet for a moment (spec §7 Sound).
+  varsel,
   /// arrived_customer / the courier at the door: the run ends and counts.
   vedDora,
 
@@ -407,6 +443,7 @@ abstract final class LopetSignaler {
   /// A foreground push: the courier at the door ends a run; a courier message or call, the code card, a choice or
   /// any CRITICAL notification pauses it.
   static void fraPush(Map<String, dynamic> data) {
+    send(LopetSignal.varsel);
     final type = '${data['type'] ?? data['ntf_type'] ?? data['kind'] ?? ''}';
     final cls = '${data['class'] ?? data['ntf_class'] ?? ''}'.toUpperCase();
     if (type == 'customer.order.at_door' || type.endsWith('arrived_customer')) {

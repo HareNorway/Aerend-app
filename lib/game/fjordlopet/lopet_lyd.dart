@@ -32,8 +32,13 @@ class LopetLyd {
     }
   }
 
+  DateTime _stilleTil = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// A notification sound always wins: the game keeps quiet for [d].
+  void stille([Duration d = const Duration(seconds: 2)]) => _stilleTil = DateTime.now().add(d);
+
   void spill(String n) {
-    if (!on) return;
+    if (!on || DateTime.now().isBefore(_stilleTil)) return;
     try {
       _pools[n]?.start(volume: .9);
     } catch (_) {}

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import '../lopet/lopet_laast_rad.dart';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -395,6 +396,8 @@ class _PremiehyllaScreenState extends State<PremiehyllaScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
+                // Fjordløpet v1.3 plan Step 7 (spec §8): the locked row — results only, never opens the game.
+                const LopetLaastRad(),
                 if (b != null)
                   _KortInn(
                     child: _NivaaMaal(

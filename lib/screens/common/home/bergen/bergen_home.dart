@@ -1,4 +1,5 @@
 import '../../../bergen/lopet/lopet_data.dart';
+import '../../../../services/lopet_utboks.dart';
 import 'dart:async';
 import '../../../../data/ops/tracking_models.dart';
 
@@ -280,6 +281,8 @@ class _BergenHomeState extends State<BergenHome> with WidgetsBindingObserver {
     BergenHome.hjemInn = false;
     // Points plan Step 7: «Ægil er klar til å seile» on the hero while an order's Fjordløpet session is open.
     LopetPort.sjekk();
+    // Fjordløpet v1.3 plan Step 7 (spec §12): runs left in the outbox from an offline session go when the app starts.
+    unawaited(LopetUtboks.send());
     // A cold start signs in a moment after Hjem is built: look again then.
     Future.delayed(const Duration(seconds: 4), () => LopetPort.sjekk(tving: true));
     HjemNy.endret.addListener(_nyEndret);

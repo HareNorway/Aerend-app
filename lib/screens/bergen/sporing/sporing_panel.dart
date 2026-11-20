@@ -356,7 +356,9 @@ class SpPanel extends StatelessWidget {
                                 key: Key(lop ? 'a1_sporing_lopet' : 'a1_sporing_fjordfiske'),
                                 ikon: bergenSvg('sveipstakk', width: 20, height: 18),
                                 tittel: lop ? LopetCopy.mensDuVenter : SporingCopy.a1_sporing_fjordfiske,
-                                under: lop ? LopetCopy.seilaserIgjen((g['runs_left'] as num?)?.toInt() ?? 0) : SporingCopy.a1_sporing_mens_du_venter_kort,
+                                under: lop
+                                    ? LopetCopy.flisUnder((g['runs_left'] as num?)?.toInt() ?? 0, (g['my_best_m'] as num?)?.toInt(), (g['week_best_m'] as num?)?.toInt())
+                                    : SporingCopy.a1_sporing_mens_du_venter_kort,
                                 onTap: onFjordfiske,
                               );
                             })(),
@@ -2194,6 +2196,12 @@ class _LopetLevert extends StatelessWidget {
               children: [
                 Text(LopetCopy.levert(port, (game['best_m'] as num).toInt(), (game['points'] as num?)?.toInt() ?? 0),
                     style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                // Fjordløpet v1.3 plan Step 7 (spec §8): the nearest goal («Seiler 30 er 12 m foran deg»).
+                if (LopetCopy.maalFra(game['goal']) != null) ...[
+                  const SizedBox(height: 2),
+                  Text(LopetCopy.maalFra(game['goal'])!, key: const Key('a1_sporing_lopet_maal'),
+                      style: const TextStyle(color: Color(0xFF7FF0CB), fontSize: 12, fontWeight: FontWeight.w800)),
+                ],
                 const SizedBox(height: 2),
                 // Points plan Step 12: the week's place and the losgrad, then «Neste seilas …» (never opens the game).
                 Text([LopetCopy.plassLosgrad((game['place'] as num?)?.toInt(), '${game['losgrad'] ?? ''}'), LopetCopy.nesteSeilas].where((t) => t.isNotEmpty).join(' · '),

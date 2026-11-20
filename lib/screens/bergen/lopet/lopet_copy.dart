@@ -105,6 +105,23 @@ abstract final class LopetCopy {
   static String get kartLukk => languages.lop_kart_lukk;
   static String get vestFull => languages.lop_vest_full;
 
+  /// Fjordløpet v1.3 plan Step 7: the server's nearest goal (Levert, Meg, Premiehylla) as a line, or null.
+  static String? maalFra(Object? g) {
+    if (g is! Map) return null;
+    int i(Object? v) => (v as num?)?.toInt() ?? 0;
+    return switch (g['type']) {
+      'badge' => maalMerke('${g['name']}', '${g['metric']}', i(g['remaining'])),
+      'milestone' => maalMilepael(porter[i(g['index']).clamp(0, 2)], i(g['gap_m'])),
+      'best' => maalBeste(i(g['gap_m'])),
+      'rival' || 'top10' => maalSeiler('${g['name']}', i(g['gap_m'])),
+      _ => null,
+    };
+  }
+
+  /// The Sporing tile's second line (spec §8): runs left, your best, the week's best.
+  static String flisUnder(int runsLeft, int? mine, int? week) =>
+      [seilaserIgjen(runsLeft), if (mine != null) '${dinBeste.toLowerCase()} $mine m', if (week != null) '${ukensBeste.toLowerCase()} $week m'].join(' · ');
+
   /// Points plan Step 8 (game spec §8 Levert): what the order's runs came to.
   static String levert(String? port, int m, int poeng) {
     final hva = port != null ? languages.lop_levert(port) : languages.lop_levert_2(m);
