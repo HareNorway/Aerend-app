@@ -26,6 +26,7 @@ class LopetState {
     required this.bonusGranted,
     required this.perk,
     required this.tokens,
+    this.fullMeterToken,
     required this.course,
     required this.courseId,
     required this.week,
@@ -53,6 +54,10 @@ class LopetState {
   /// none | vest
   final String perk;
   final List<String> tokens;
+
+  /// Fjordløpet v1.3 plan Step 3 (D2): the token whose run starts with a full meter (Gull/Platina, the order's first
+  /// run), or null.
+  final String? fullMeterToken;
   final Map<String, dynamic> course;
   final int courseId;
   final String week;
@@ -89,6 +94,7 @@ class LopetState {
       bonusGranted: s['bonus_granted'] == true,
       perk: '${s['perk'] ?? 'none'}',
       tokens: [for (final t in ((s['tokens'] as List?) ?? const [])) '$t'],
+      fullMeterToken: s['full_meter_token'] as String?,
       course: Map<String, dynamic>.from(c),
       courseId: _i(c['id']),
       week: '${c['week'] ?? ''}',
@@ -149,28 +155,6 @@ class LopetApi {
   }
 }
 
-/// Points plan Step 12: the orders whose redningsvest a run on this phone has used.
-abstract final class LopetVest {
-  static const _key = 'lopet_vest_brukt';
-
-  static Set<int> _les() {
-    try {
-      return {for (final t in (jsonDecode(prefGetString(_key)) as List)) (t as num).toInt()};
-    } catch (_) {
-      return {};
-    }
-  }
-
-  static bool brukt(int orderId) => _les().contains(orderId);
-
-  static Future<void> merk(int orderId) async {
-    final s = _les()..add(orderId);
-    try {
-      await prefSetString(_key, jsonEncode(s.toList()..sort()));
-    } catch (_) {}
-  }
-}
-
 /// The runs played on this phone: the used tokens (a run is never played twice on one token, also after a restart)
 /// and the outbox Step 8 submits; and the best distance per week, for «Din beste denne uken» and the chart.
 class LopetLager {
@@ -224,6 +208,8 @@ class LopetLager {
         'duration_ticks': result['ticks'],
         'distance_m': result['distance_m'],
         'crates': result['crates'],
+        'near_misses': result['near_misses'],
+        'vest_uses': result['vest_uses'],
         'started_client_ts': startedMs,
         'result': result,
       });

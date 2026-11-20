@@ -49,6 +49,9 @@ abstract final class LopetUtboks {
             'duration_ticks': run['duration_ticks'],
             'distance_m': run['distance_m'],
             'crates': run['crates'],
+            // Fjordløpet v1.3 plan Step 3: the engine v2 result is replayed field by field.
+            'near_misses': run['near_misses'],
+            'vest_uses': run['vest_uses'],
             'started_client_ts': run['started_client_ts'],
           });
         } catch (_) {

@@ -139,7 +139,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (ledige.isEmpty) return;
     setState(() {
       _token = ledige.first;
-      _sim = FjordSim(s.course, _perk(s));
+      _sim = FjordSim(s.course, _perkFor(s, ledige.first));
       _inputs.clear();
       _venter.clear();
       _tickBase = 0;
@@ -231,7 +231,6 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     });
     await LopetLager.lagre(token: token, s: s, inputs: List.of(_inputs), result: res.toJson(), startedMs: _startetMs);
     // Points plan Step 12: the vest is spent for the rest of this order.
-    if (res.vestUses > 0) await LopetVest.merk(s.orderId);
     if (mounted) setState(() {});
     // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
     unawaited(LopetUtboks.send());
@@ -378,7 +377,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                  if (_perk(s) == 'full_meter') ...[
+                  if (_nesteFullMaaler(s)) ...[
                     const SizedBox(height: 6),
                     _Chip(key: const Key('lopet-vest'), tekst: LopetCopy.vest, farge: const Color(0xFFE5532D)),
                   ],
@@ -429,8 +428,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   /// Points plan Step 12 (game spec §5.3, G-T15): one redningsvest per order — once a run of this order used it, the
   /// rest sail without it (kept on the phone per order; the server's state says the same once the run is verified).
-  // Engine v2: Gull/Platina start the order's first run with a full meter (plan Step 3 moves this to the token).
-  String _perk(LopetState s) => (s.perk == 'vest' || s.perk == 'full_meter') && !LopetVest.brukt(s.orderId) ? 'full_meter' : 'none';
+  // Fjordløpet v1.3 plan Step 3 (D2): Gull/Platina start the order's first run — its first token — with a full meter;
+  // the server replays each token with the same perk.
+  String _perkFor(LopetState s, String token) => token == s.fullMeterToken ? 'full_meter' : 'none';
+
+  bool _nesteFullMaaler(LopetState s) {
+    final ledige = LopetLager.ledige(s);
+    return ledige.isNotEmpty && ledige.first == s.fullMeterToken;
+  }
 
   Widget _spill() {
     final sim = _sim!;

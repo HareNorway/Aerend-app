@@ -16,8 +16,7 @@
 /// the first tick a new change may start. An input against a pending kjølvann counters it at once.
 ///
 /// The redningsvest: a meter 0–`vest_crates`; a crate or a near miss adds one; full = a vest. A hit with a vest empties
-/// the meter and gives `vest_grace_ticks` without hits; a hit without one ends the run. Perk `full_meter` starts full
-/// (`vest` is accepted as the same perk until the sessions are migrated).
+/// the meter and gives `vest_grace_ticks` without hits; a hit without one ends the run. Perk `full_meter` starts full.
 ///
 /// Near miss, once per obstacle when the boat reaches it unhurt: (a) it left that obstacle's lane fewer than
 /// `near_miss_ticks` ticks earlier, or (b) a beffen was in the boat's lane during the last `near_miss_ticks` ticks.
@@ -125,7 +124,7 @@ class FjordSim {
     full = f < 1 ? 1 : f;
     nmTicks = FjordEngine._i(p['near_miss_ticks']);
     markNear = FjordEngine._i(p['landmark_near_mm'] ?? 0);
-    meter = (perk == 'full_meter' || perk == 'vest') ? full : 0;
+    meter = perk == 'full_meter' ? full : 0;
   }
 
   final Map<String, dynamic> params;

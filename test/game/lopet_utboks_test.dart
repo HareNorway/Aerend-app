@@ -50,6 +50,23 @@ void main() {
     expect(LopetLager.utboks(), isEmpty);
   });
 
+  test('Fjordløpet v1.3 Step 3: the outbox sends the engine v2 result (near misses, vest uses)', () async {
+    await LopetLager.lagre(token: 'rt_a', s: _s(), inputs: const [[30, 1]],
+        result: const {'distance_m': 120, 'ticks': 600, 'crates': 3, 'near_misses': 2, 'vest_uses': 1}, startedMs: 1);
+    final h = _Svar([200]);
+    await LopetUtboks.send(helper: h);
+    expect([h.sendt.single['crates'], h.sendt.single['near_misses'], h.sendt.single['vest_uses']], [3, 2, 1]);
+  });
+
+  test('Fjordløpet v1.3 Step 3: the full-meter token is parsed from the state', () {
+    final s = LopetState.fromJson({
+      'session': {'id': 1, 'order_id': 42, 'perk': 'full_meter', 'full_meter_token': 'rt_a', 'tokens': ['rt_a', 'rt_b']},
+      'course': {'id': 9, 'week': '2026-W47', 'engine_version': 2, 'params': {}, 'rows': []},
+    })!;
+    expect(s.fullMeterToken, 'rt_a');
+    expect(LopetState.fromJson({'session': {'tokens': []}, 'course': {}})!.fullMeterToken, isNull);
+  });
+
   test('a guest sends nothing', () async {
     await a3Bootstrap();
     await _tre();

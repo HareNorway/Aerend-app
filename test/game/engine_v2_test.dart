@@ -70,14 +70,14 @@ void main() {
     expect(r.hitRow, 2);
   });
 
-  test('full_meter starts with a vest; vest is the same perk until Step 3', () {
+  test('full_meter starts with a vest; the v1 name vest is no perk', () {
     final c = course([
       {'d': 150000, 't': 'boye', 'l': [1]},
       wall(300000),
     ]);
     expect(run(c, []).hitRow, 0);
     expect(run(c, [], perk: 'full_meter').hitRow, 1);
-    expect(run(c, [], perk: 'vest').toJson(), run(c, [], perk: 'full_meter').toJson());
+    expect(run(c, [], perk: 'vest').toJson(), run(c, []).toJson());
   });
 
   test('T21: a change 0.2 s before an obstacle is a near miss, 0.8 s is not', () {
