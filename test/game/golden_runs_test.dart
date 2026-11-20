@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/game/fjordlopet/sim/engine.dart';
 
-/// Points plan Step 5 (game spec §9, G-T10): the Dart core against the 200 golden runs. The same file is checked into
+/// Points plan Step 5, engine v2 since Fjordløpet v1.3 plan Step 1 (game spec §9, G-T10): the Dart core against the 200
+/// golden runs. The same file is checked into
 /// Hare-AdminPanel (`tests/fixtures/game/golden_runs.json`), where the PHP core must give the same results
 /// (`Step5FjordlopetCoreTest`). Any difference fails the build.
 void main() {
@@ -36,26 +37,5 @@ void main() {
     expect((c['params'] as Map)['lane_change_ticks'], 12, reason: 'c4 was made with 200 ms');
     final c1 = (courses['c1'] as Map).cast<String, dynamic>();
     expect((c1['params'] as Map)['lane_change_ticks'], 7);
-  });
-
-  test('a redningsvest absorbs one hit; a crate adds crate_m', () {
-    final c = {
-      'params': {
-        'speed_start_mms': 9000, 'speed_step_mms': 120, 'speed_max_mms': 24000, 'lane_change_ticks': 7,
-        'milestones_m': [200, 500, 1000], 'crate_m': 20, 'length_m': 5000, 'wake_from_m': 700, 'wake_counter_ticks': 30,
-        'vest_grace_ticks': 50, 'kajakk_ahead_mm': 60000,
-      },
-      'rows': [
-        {'d': 60000, 't': 'open', 'l': [], 'c': 1},
-        {'d': 100000, 't': 'boye', 'l': [1], 'c': -1},
-      ],
-    };
-    final hit = FjordEngine.run(c, 'none', const []);
-    expect(hit.ended, 'collision');
-    expect(hit.crates, 1);
-    expect(hit.distanceM, hit.sailedMm ~/ 1000 + 20);
-    final vest = FjordEngine.run(c, 'vest', const []);
-    expect(vest.vestUsed, isTrue);
-    expect(vest.sailedMm, greaterThan(hit.sailedMm));
   });
 }

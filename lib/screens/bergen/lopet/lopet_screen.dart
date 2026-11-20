@@ -231,7 +231,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     });
     await LopetLager.lagre(token: token, s: s, inputs: List.of(_inputs), result: res.toJson(), startedMs: _startetMs);
     // Points plan Step 12: the vest is spent for the rest of this order.
-    if (res.vestUsed) await LopetVest.merk(s.orderId);
+    if (res.vestUses > 0) await LopetVest.merk(s.orderId);
     if (mounted) setState(() {});
     // Points plan Step 8: the run goes to the server now if there is a network, else later from the outbox.
     unawaited(LopetUtboks.send());
@@ -378,7 +378,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                  if (_perk(s) == 'vest') ...[
+                  if (_perk(s) == 'full_meter') ...[
                     const SizedBox(height: 6),
                     _Chip(key: const Key('lopet-vest'), tekst: LopetCopy.vest, farge: const Color(0xFFE5532D)),
                   ],
@@ -429,7 +429,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   /// Points plan Step 12 (game spec §5.3, G-T15): one redningsvest per order — once a run of this order used it, the
   /// rest sail without it (kept on the phone per order; the server's state says the same once the run is verified).
-  String _perk(LopetState s) => s.perk == 'vest' && !LopetVest.brukt(s.orderId) ? 'vest' : 'none';
+  // Engine v2: Gull/Platina start the order's first run with a full meter (plan Step 3 moves this to the token).
+  String _perk(LopetState s) => (s.perk == 'vest' || s.perk == 'full_meter') && !LopetVest.brukt(s.orderId) ? 'full_meter' : 'none';
 
   Widget _spill() {
     final sim = _sim!;
@@ -471,7 +472,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             child: ValueListenableBuilder<int>(
               valueListenable: _repaint,
               builder: (_, __, ___) {
-                final m = sim.sailedM + sim.crates * sim.crateM;
+                final m = sim.sailedM;
                 String? neste;
                 for (var k = 0; k < s.milestones.length && k < 3; k++) {
                   if (sim.sailedM < s.milestones[k]) {
@@ -557,7 +558,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           children: [
             for (var k = 0; k < (s?.milestones.length ?? 0) && k < 3; k++)
               _Chip(tekst: LopetCopy.porter[k], farge: r.gates.contains(s!.milestones[k]) ? const Color(0xFFF2C14E) : Colors.white24),
-            if (r.vestUsed) _Chip(tekst: LopetCopy.vestTok, farge: const Color(0xFFE5532D)),
+            if (r.vestUses > 0) _Chip(tekst: LopetCopy.vestTok, farge: const Color(0xFFE5532D)),
           ],
         ),
         if (_sluttPoeng > 0) ...[

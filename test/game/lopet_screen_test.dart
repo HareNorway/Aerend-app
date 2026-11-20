@@ -12,17 +12,17 @@ import '../a3/a3_fakes.dart';
 Map<String, dynamic> _course() => {
       'id': 9,
       'week': '2026-W47',
-      'engine_version': 1,
+      'engine_version': 2,
       'params': {
         'speed_start_mms': 9000, 'speed_step_mms': 120, 'speed_max_mms': 24000, 'lane_change_ticks': 7,
-        'milestones_m': [200, 500, 1000], 'crate_m': 20, 'length_m': 5000, 'wake_from_m': 700, 'wake_counter_ticks': 30,
-        'vest_grace_ticks': 50, 'kajakk_ahead_mm': 60000,
+        'milestones_m': [200, 500, 1000], 'length_m': 5000, 'wake_from_m': 700, 'wake_counter_ticks': 30,
+        'vest_grace_ticks': 60, 'vest_crates': 8, 'near_miss_ticks': 18, 'kajakk_ahead_mm': 60000,
       },
       // Open water for 300 m, then a wall: a run of about 300 m without input.
       'rows': [
-        {'d': 60000, 't': 'open', 'l': [], 'c': -1},
-        {'d': 300000, 't': 'stokk', 'l': [0, 1], 'c': -1},
-        {'d': 301000, 't': 'boye', 'l': [2], 'c': -1},
+        {'d': 60000, 't': 'open', 'l': []},
+        {'d': 300000, 't': 'stokk', 'l': [0, 1]},
+        {'d': 301000, 't': 'boye', 'l': [2]},
       ],
       'squalls': [],
     };

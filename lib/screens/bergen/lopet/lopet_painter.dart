@@ -103,8 +103,15 @@ class LopetPainter extends CustomPainter {
         default:
           break;
       }
-      final c = ((r['c'] as num?)?.toInt() ?? -1);
-      if (c >= 0 && d > boatMm) _kasse(canvas, Offset(laneX(c.toDouble()), y - pxPerM * 1.2));
+    }
+    // Crates in view (engine v2: their own list; a crate picked up is gone).
+    for (var m = math.max(0, sim.nextCrate - 6), guard = 0; guard < 60; m++, guard++) {
+      final c = sim.crateAt(m);
+      if (c == null) break;
+      final (cr, d) = c;
+      if (d > toMm) break;
+      if (d < fromMm || sim.crateTaken(m)) continue;
+      _kasse(canvas, Offset(laneX(((cr['l'] as num?)?.toDouble() ?? 1)), yOf(d)));
     }
     // Kajakks on the move.
     for (final k in sim.kajakks) {
