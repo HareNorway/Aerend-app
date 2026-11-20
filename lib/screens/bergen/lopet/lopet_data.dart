@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import '../../../game/fjordlopet/sim/engine.dart';
+
 import 'package:flutter/widgets.dart';
 
 import '../../../networking/api_constant.dart';
@@ -27,6 +29,15 @@ class LopetState {
     required this.perk,
     required this.tokens,
     this.fullMeterToken,
+    this.ghost,
+    this.rival,
+    this.ladderTop = const [],
+    this.myRuns = const [],
+    this.badges = const [],
+    this.cosmetics = const [],
+    this.equipped = const {},
+    this.weeksSailed = 0,
+    this.quality = const {},
     required this.course,
     required this.courseId,
     required this.week,
@@ -58,6 +69,37 @@ class LopetState {
   /// Fjordløpet v1.3 plan Step 3 (D2): the token whose run starts with a full meter (Gull/Platina, the order's first
   /// run), or null.
   final String? fullMeterToken;
+
+  // Fjordløpet v1.3 plan Step 6 (spec §5.2, §5.4–5.7, §4.6): what the screens show beyond the run itself.
+  final LopetGhost? ghost;
+  final LopetRival? rival;
+
+  /// The week's top ten: place, name, best_m, me.
+  final List<LopetRival> ladderTop;
+
+  /// This week's verified runs: where each ended, for «Her gikk det galt».
+  final List<LopetRunEnd> myRuns;
+  final List<LopetBadge> badges;
+  final List<LopetCosmetic> cosmetics;
+
+  /// pennant | wake | figurehead → item or null.
+  final Map<String, String?> equipped;
+  final int weeksSailed;
+  final Map<String, dynamic> quality;
+
+  /// The course's landmarks: {d (mm), k, s}.
+  List<Map> get landmarks => ((course['landmarks'] as List?) ?? const []).cast<Map>();
+
+  /// A landmark's name for the end line («etter fyret»), from the panel's set in the course.
+  String? landmarkName(String? k) {
+    if (k == null) return null;
+    final set = ((((course['params'] as Map?)?['generator'] as Map?)?['landmark_set'] as List?) ?? const []);
+    final en = LopetLanguage.en;
+    for (final r in set) {
+      if (r is Map && r['k'] == k) return '${r[en ? 'en' : 'nb'] ?? k}';
+    }
+    return k;
+  }
   final Map<String, dynamic> course;
   final int courseId;
   final String week;
@@ -95,6 +137,17 @@ class LopetState {
       perk: '${s['perk'] ?? 'none'}',
       tokens: [for (final t in ((s['tokens'] as List?) ?? const [])) '$t'],
       fullMeterToken: s['full_meter_token'] as String?,
+      ghost: LopetGhost.fromJson(j['ghost']),
+      rival: LopetRival.fromJson(j['rival']),
+      ladderTop: [for (final r in ((j['ladder_top'] as List?) ?? const [])) if (LopetRival.fromJson(r) != null) LopetRival.fromJson(r)!],
+      myRuns: [for (final r in ((j['my_runs'] as List?) ?? const [])) if (r is Map) LopetRunEnd(_i(r['distance_m']), (r['end_cause'] as Map?)?.cast<String, dynamic>())],
+      badges: [for (final b in ((j['badges'] as List?) ?? const [])) if (b is Map) LopetBadge.fromJson(b.cast<String, dynamic>())],
+      cosmetics: [for (final c in ((((j['cosmetics'] as Map?)?['items']) as List?) ?? const [])) if (c is Map) LopetCosmetic.fromJson(c.cast<String, dynamic>())],
+      equipped: {
+        for (final e in ((((j['cosmetics'] as Map?)?['equipped']) as Map?) ?? const {}).entries) '${e.key}': e.value as String?,
+      },
+      weeksSailed: _i(j['weeks_sailed']),
+      quality: Map<String, dynamic>.from((j['quality'] as Map?) ?? const {}),
       course: Map<String, dynamic>.from(c),
       courseId: _i(c['id']),
       week: '${c['week'] ?? ''}',
@@ -126,6 +179,87 @@ class LopetState {
   }
 }
 
+/// The language the game texts follow (the app's choice).
+abstract final class LopetLanguage {
+  static bool get en => resolveSelectedLanguage() == 'en';
+}
+
+/// The customer's best verified run this week, replayed tick for tick (spec §5.5).
+class LopetGhost {
+  const LopetGhost({required this.inputs, required this.distanceM, required this.ticks, required this.perk});
+
+  final List<FjordInput> inputs;
+  final int distanceM;
+  final int ticks;
+  final String perk;
+
+  static LopetGhost? fromJson(Object? j) {
+    if (j is! Map) return null;
+    return LopetGhost(
+      inputs: [for (final i in ((j['inputs'] as List?) ?? const [])) if (i is List && i.length == 2) FjordInput(_i(i[0]), _i(i[1]))],
+      distanceM: _i(j['distance_m']),
+      ticks: _i(j['ticks']),
+      perk: '${j['perk'] ?? 'none'}',
+    );
+  }
+}
+
+/// A sailor on the ladder: the rival (spec §5.6) or a top-ten row.
+class LopetRival {
+  const LopetRival({required this.place, required this.name, required this.distanceM, this.me = false});
+
+  final int place;
+  final String name;
+  final int distanceM;
+  final bool me;
+
+  static LopetRival? fromJson(Object? j) {
+    if (j is! Map) return null;
+    return LopetRival(place: _i(j['place']), name: '${j['name'] ?? ''}', distanceM: _i(j['distance_m'] ?? j['best_m']), me: j['me'] == true);
+  }
+}
+
+class LopetRunEnd {
+  const LopetRunEnd(this.distanceM, this.endCause);
+
+  final int distanceM;
+  final Map<String, dynamic>? endCause;
+}
+
+class LopetBadge {
+  const LopetBadge({required this.key, required this.name, required this.metric, required this.target, required this.progress, required this.done, this.unlocks = ''});
+
+  final String key;
+  final String name;
+  final String metric;
+  final int target;
+  final int progress;
+  final bool done;
+  final String unlocks;
+
+  factory LopetBadge.fromJson(Map<String, dynamic> j) => LopetBadge(
+        key: '${j['key']}',
+        name: '${j['name'] ?? j['key']}',
+        metric: '${j['metric'] ?? ''}',
+        target: _i(j['target'], 1),
+        progress: _i(j['progress']),
+        done: j['done'] == true,
+        unlocks: '${j['unlocks'] ?? ''}',
+      );
+}
+
+class LopetCosmetic {
+  const LopetCosmetic({required this.item, required this.kind, required this.stars, required this.name});
+
+  final String item;
+  final String kind;
+  final int stars;
+  final String name;
+
+  factory LopetCosmetic.fromJson(Map<String, dynamic> j) =>
+      LopetCosmetic(item: '${j['item']}', kind: '${j['kind'] ?? ''}', stars: _i(j['stars'], 1), name: '${j[LopetLanguage.en ? 'en' : 'nb'] ?? j['item']}');
+}
+
 /// `api/game/*` with the customer auth of `/points/*`.
 class LopetApi {
   LopetApi({ApiBaseHelper? helper}) : _helper = helper ?? ApiBaseHelper(baseUrl: BaseUrl.domain);
@@ -154,6 +288,18 @@ class LopetApi {
     } catch (_) {
       lastOffline = true;
       return null;
+    }
+  }
+
+  /// Fjordløpet v1.3 plan Step 6 (spec §5.7): what the boat shows. False when the server refused it.
+  Future<bool> equip(Map<String, String?> equipped) async {
+    final auth = OpsCustomerApi.authParams();
+    if (auth == null) return false;
+    try {
+      final r = await _helper.postAllowClientError('api/game/profile?${Uri(queryParameters: auth).query}', body: {'equipped': equipped});
+      return r.statusCode == 200;
+    } catch (_) {
+      return false;
     }
   }
 

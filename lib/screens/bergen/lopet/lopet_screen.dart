@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../game/fjordlopet/input/lopet_input.dart';
+import '../../../game/fjordlopet/nearest_goal.dart';
 import '../../../game/fjordlopet/render/lopet_atlas.dart';
 import '../../../game/fjordlopet/render/lopet_field_painter.dart';
 import '../../../game/fjordlopet/render/lopet_loop.dart';
@@ -67,6 +68,17 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   int _startetMs = 0;
   static const bool _perfOverlay = bool.fromEnvironment('LOPET_PERF');
 
+  // Fjordløpet v1.3 plan Step 6 (spec §12.1, §4.6): flashes on the water, the near-miss zoom, the end screen's lines.
+  final ValueNotifier<String?> _flash = ValueNotifier<String?>(null);
+  final ValueNotifier<double> _zoom = ValueNotifier<double>(1);
+  Timer? _flashTimer;
+  Timer? _zoomTimer;
+  int? _forBesteRun;
+  bool _rekordVist = false;
+  int _porterVist = 0;
+  int _ordrePoeng = 0;
+  FjordGoal? _sluttMaal;
+
   String? _pauseGrunn; // manuell | bakgrunn | trenger
   int? _teller;
 
@@ -116,6 +128,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _sVn.dispose();
     _vestMelding.dispose();
     _perfTekst.dispose();
+    _flashTimer?.cancel();
+    _zoomTimer?.cancel();
+    _flash.dispose();
+    _zoom.dispose();
     super.dispose();
   }
 
@@ -198,12 +214,20 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final ledige = LopetLager.ledige(s);
     if (ledige.isEmpty) return;
     _loop?.dispose();
-    final loop = FjordLoop(FjordSim(s.course, _perkFor(s, ledige.first)));
+    // From the second run of the week the ghost of the best verified run sails along (spec §5.5).
+    final g = s.ghost;
+    final loop = g == null
+        ? FjordLoop(FjordSim(s.course, _perkFor(s, ledige.first)))
+        : FjordLoop(FjordSim(s.course, _perkFor(s, ledige.first)), ghost: FjordSim(s.course, g.perk), ghostTicks: g.ticks, ghostInputs: g.inputs);
     final best = LopetLager.beste(s.week) ?? s.personalBestM;
     _flags
       ..bestMm = best == null ? -1 : best * 1000.0
       ..weekMm = s.weekBestM == null || s.weekBestM == best ? -1 : s.weekBestM! * 1000.0
-      ..rivalMm = -1;
+      ..rivalMm = s.rival == null ? -1 : s.rival!.distanceM * 1000.0;
+    _forBesteRun = best;
+    _rekordVist = false;
+    _porterVist = 0;
+    _flash.value = null;
     setState(() {
       _token = ledige.first;
       _loop = loop;
@@ -224,6 +248,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     loop.frame(elapsed);
     final ev = loop.takeEvents();
     if (ev != 0) _feedback(ev);
+    _milepaeler(loop);
     if (_perfOverlay && ++_rammer % 30 == 0) {
       _perfTekst.value = '${(1000 / (_perf.recentAvgMs(30).clamp(1, 1000))).round()} fps · snitt ${_perf.avgMs.toStringAsFixed(1)} ms · '
           'verst ${_perf.worstMs.toStringAsFixed(1)} ms · >20 ms ${_perf.over20} · Lav';
@@ -249,9 +274,43 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _vestTimer = Timer(const Duration(milliseconds: 1500), () => _vestMelding.value = false);
     } else if (ev & (FjordSim.evNearMiss | FjordSim.evMeterFull) != 0) {
       HapticFeedback.mediumImpact();
+      if (ev & FjordSim.evNearMiss != 0) {
+        _vis(LopetCopy.naerePaa);
+        // A 3 % zoom for 0.2 s — not with reduce motion.
+        if (!MediaQuery.of(context).disableAnimations) {
+          _zoom.value = 1.03;
+          _zoomTimer?.cancel();
+          _zoomTimer = Timer(const Duration(milliseconds: 200), () => _zoom.value = 1);
+        }
+      }
     } else if (ev & FjordSim.evCrate != 0) {
       HapticFeedback.selectionClick();
     }
+  }
+
+  /// Gates and «Din beste» passed (spec §12.1): one label each, shown once.
+  void _milepaeler(FjordLoop loop) {
+    final s = _s;
+    if (s == null) return;
+    final m = loop.sim.sailedM;
+    while (_porterVist < s.milestones.length && _porterVist < 3 && m >= s.milestones[_porterVist]) {
+      final p = s.pointsFor(s.milestones.sublist(0, _porterVist + 1));
+      _vis(LopetCopy.portPoeng(LopetCopy.porter[_porterVist], p));
+      HapticFeedback.heavyImpact();
+      _porterVist++;
+    }
+    final best = _forBesteRun;
+    if (!_rekordVist && best != null && best > 0 && m > best) {
+      _rekordVist = true;
+      _vis(LopetCopy.nyRekordKort);
+      HapticFeedback.heavyImpact();
+    }
+  }
+
+  void _vis(String tekst) {
+    _flash.value = tekst;
+    _flashTimer?.cancel();
+    _flashTimer = Timer(const Duration(milliseconds: 1200), () => _flash.value = null);
   }
 
   void _styr(int dir) {
@@ -313,12 +372,16 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final forBeste = LopetLager.beste(s.week) ?? s.personalBestM;
     final rekord = forBeste != null && res.distanceM > forBeste;
     _token = null;
+    final poeng = s.pointsFor(res.gates, personalBest: rekord);
+    if (poeng > _ordrePoeng) _ordrePoeng = poeng;
+    final maal = _maalFor(s, res, forBeste);
     void sett() {
+      _sluttMaal = maal;
       _res = res;
       _sluttGrunn = grunn;
       _sluttRekord = rekord;
       _sluttFraRekord = forBeste != null && res.distanceM < forBeste ? forBeste - res.distanceM : null;
-      _sluttPoeng = s.pointsFor(res.gates, personalBest: rekord);
+      _sluttPoeng = _ordrePoeng;
       _fase = _Fase.slutt;
     }
 
@@ -334,6 +397,32 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     unawaited(LopetUtboks.send());
     LopetPort.status.value = LopetInngang(orderId: s.orderId, runsLeft: _igjen);
   }
+
+  /// The end screen's third line (spec §4.6, plan D6): badges counted with this run.
+  FjordGoal? _maalFor(LopetState s, FjordResult res, int? forBeste) {
+    int plus(String metric) => switch (metric) {
+          'crates' => res.crates,
+          'near_misses' => res.nearMisses,
+          'metres' => res.distanceM,
+          _ => 0,
+        };
+    return FjordGoal.of(
+      distanceM: res.distanceM,
+      milestones: s.milestones,
+      bestM: forBeste,
+      rival: s.rival == null ? null : (s.rival!.place, s.rival!.name, s.rival!.distanceM),
+      ladder: [for (final r in s.ladderTop) (r.place, r.name, r.distanceM, r.me)],
+      badges: [for (final b in s.badges) (b.name, b.metric, b.target, b.progress + plus(b.metric), b.done)],
+    );
+  }
+
+  String? _maalTekst(FjordGoal? g) => switch (g?.type) {
+        'badge' => LopetCopy.maalMerke(g!.name, g.metric, g.remaining),
+        'milestone' => LopetCopy.maalMilepael(LopetCopy.porter[g!.index.clamp(0, 2)], g.gapM),
+        'best' => LopetCopy.maalBeste(g!.gapM),
+        'rival' || 'top10' => LopetCopy.maalSeiler(g!.name, g.gapM),
+        _ => null,
+      };
 
   /// Back during a run pauses it; back again (or the arrow) leaves, and the run is kept (spec §12.3).
   void _tilbake() {
@@ -385,6 +474,58 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     } else {
       BergenRoutes.push(context, '/bergen/sporing', arguments: {'id': '$_orderId'});
     }
+  }
+
+  /// Pynt på båten (spec §5.7): one per place, from what is unlocked; never affects play.
+  void _pynt() {
+    final s = _s;
+    if (s == null) return;
+    final valgt = Map<String, String?>.from(s.equipped);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF103847),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, set) => SafeArea(
+          child: Padding(
+            key: const Key('lopet-pynt'),
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(LopetCopy.pynt, style: BergenTokens.display(20, weight: FontWeight.w800, color: Colors.white)),
+                const SizedBox(height: 10),
+                if (s.cosmetics.isEmpty) Text(LopetCopy.pyntIngen, style: BergenTokens.text(13, weight: FontWeight.w600, color: Colors.white70)),
+                for (final kind in const ['pennant', 'wake', 'figurehead'])
+                  if (s.cosmetics.any((c) => c.kind == kind)) ...[
+                    const SizedBox(height: 8),
+                    Text(LopetCopy.pyntPlass(kind), style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white60)),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(label: Text(LopetCopy.pyntIngenValgt), selected: valgt[kind] == null, onSelected: (_) => set(() => valgt[kind] = null)),
+                        for (final c in s.cosmetics.where((c) => c.kind == kind))
+                          ChoiceChip(
+                            label: Text('${c.name}${'★' * c.stars}'),
+                            selected: valgt[kind] == c.item,
+                            onSelected: (_) => set(() => valgt[kind] = c.item),
+                          ),
+                      ],
+                    ),
+                  ],
+                const SizedBox(height: 14),
+                if (s.cosmetics.isNotEmpty)
+                  _Knapp(tekst: LopetCopy.fortsett, onTap: () {
+                    Navigator.of(ctx).pop();
+                    _api.equip(valgt).then((_) => _hent(stille: true));
+                  }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _vilkaar() {
@@ -483,7 +624,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           ],
         ),
         // Points plan Step 13 (game spec §5.3): the Platina boat sails under its own name.
-        Text([s.week, s.losgrad, if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '), style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
+        Text([s.week, s.losgrad, if (s.weeksSailed > 0) LopetCopy.uker(s.weeksSailed), if ((s.boatName ?? '').isNotEmpty) s.boatName!].join(' · '),
+            style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB))),
+        if (s.rival != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(LopetCopy.rival(s.rival!.name, s.rival!.distanceM), key: const Key('lopet-rival'),
+                style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFFF9C7A))),
+          ),
         if (s.bonusGranted) ...[
           const SizedBox(height: 10),
           _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E)),
@@ -522,6 +670,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             ),
           ],
         ),
+        if (s.badges.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _Merker(badges: s.badges),
+        ],
         const SizedBox(height: 22),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -550,6 +702,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               key: const Key('lopet-ukeliste-knapp'),
               onPressed: () => LopetListe.vis(context),
               child: Text(LopetCopy.ukeliste, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+            ),
+            TextButton(
+              key: const Key('lopet-pynt-knapp'),
+              onPressed: _pynt,
+              child: Text(LopetCopy.pynt, style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white70)),
             ),
             TextButton(
               key: const Key('lopet-vilkaar-knapp'),
@@ -587,11 +744,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             key: const Key('lopet-felt'),
             onDir: _styr,
             child: RepaintBoundary(
-              child: atlas == null
-                  ? const ColoredBox(color: Color(0xFF155A70))
-                  : CustomPaint(
-                      painter: LopetFieldPainter(loop: loop, atlas: atlas, boat: s.boat, milestones: s.milestones, flags: _flags, rolig: rolig),
-                    ),
+              child: ValueListenableBuilder<double>(
+                valueListenable: _zoom,
+                builder: (_, z, child) => Transform.scale(scale: z, child: child),
+                child: atlas == null
+                    ? const ColoredBox(color: Color(0xFF155A70))
+                    : CustomPaint(
+                        painter: LopetFieldPainter(loop: loop, atlas: atlas, boat: s.boat, milestones: s.milestones, flags: _flags, rolig: rolig),
+                      ),
+              ),
             ),
           ),
         ),
@@ -618,6 +779,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                       children: [
                         Text('$m m', key: const Key('lopet-meter'), style: BergenTokens.display(30, weight: FontWeight.w800, color: Colors.white)),
                         if (neste != null) Text(neste, style: BergenTokens.text(12.5, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+                        const SizedBox(height: 6),
+                        _Maaler(loop: loop),
                         ValueListenableBuilder<bool>(
                           valueListenable: _vestMelding,
                           builder: (_, on, __) => on
@@ -635,6 +798,20 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                   icon: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 36),
                 ),
               ],
+            ),
+          ),
+        ),
+        // One label at a time on the water: «Nære på», a gate with its points, «Ny rekord».
+        Positioned(
+          left: 0,
+          right: 0,
+          top: 120,
+          child: IgnorePointer(
+            child: ValueListenableBuilder<String?>(
+              valueListenable: _flash,
+              builder: (_, t, __) => t == null
+                  ? const SizedBox.shrink()
+                  : Center(child: Text(t, key: const Key('lopet-flash'), style: BergenTokens.display(22, weight: FontWeight.w800, color: const Color(0xFFF7D57E)))),
             ),
           ),
         ),
@@ -682,34 +859,37 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     final s = _s;
     final igjen = _igjen;
     final vedDora = _sluttGrunn == 'ved_dora' || _stengt;
+    final cause = r.endCause;
+    final linje2 = _sluttRekord
+        ? LopetCopy.nyRekord
+        : _sluttGrunn == 'kollisjon' && cause != null
+            ? LopetCopy.aarsak('${cause['obstacle']}', s?.landmarkName(cause['landmark'] as String?), r.distanceM)
+            : vedDora
+                ? null // said once, in the button area
+                : (_sluttFraRekord != null ? LopetCopy.fraRekorden(_sluttFraRekord!) : null);
+    final linje3 = _maalTekst(_sluttMaal);
     return ListView(
       key: const Key('lopet-slutt'),
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
       children: [
-        Text(LopetCopy.over, textAlign: TextAlign.center, style: BergenTokens.text(12, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)).copyWith(letterSpacing: 2)),
-        const SizedBox(height: 8),
+        // 1 · the distance
         Text('${r.distanceM} m', key: const Key('lopet-slutt-meter'), textAlign: TextAlign.center, style: BergenTokens.display(48, weight: FontWeight.w800, color: Colors.white)),
-        if (_sluttRekord)
-          Text(LopetCopy.nyRekord, textAlign: TextAlign.center, style: BergenTokens.text(14, weight: FontWeight.w800, color: const Color(0xFFF7D57E)))
-        else if (_sluttFraRekord != null)
-          Text(LopetCopy.fraRekorden(_sluttFraRekord!), textAlign: TextAlign.center, style: BergenTokens.text(14, weight: FontWeight.w700, color: Colors.white70)),
-        const SizedBox(height: 14),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var k = 0; k < (s?.milestones.length ?? 0) && k < 3; k++)
-              _Chip(tekst: LopetCopy.porter[k], farge: r.gates.contains(s!.milestones[k]) ? const Color(0xFFF2C14E) : Colors.white24),
-            if (r.vestUses > 0) _Chip(tekst: LopetCopy.vestTok, farge: const Color(0xFFE5532D)),
-          ],
-        ),
+        // 2 · what ended it, and where — or the record
+        if (linje2 != null)
+          Text(linje2, key: const Key('lopet-slutt-aarsak'), textAlign: TextAlign.center,
+              style: BergenTokens.text(14.5, weight: FontWeight.w800, color: _sluttRekord ? const Color(0xFFF7D57E) : Colors.white70)),
+        const SizedBox(height: 10),
+        // 3 · the nearest goal, one only
+        if (linje3 != null)
+          Text(linje3, key: const Key('lopet-slutt-maal'), textAlign: TextAlign.center, style: BergenTokens.text(15, weight: FontWeight.w800, color: const Color(0xFF7FF0CB))),
+        // 4 · the order's points so far, and when they are paid
         if (_sluttPoeng > 0) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           Text(LopetCopy.poengVedLevering(_sluttPoeng), key: const Key('lopet-slutt-poeng'), textAlign: TextAlign.center,
               style: BergenTokens.text(15, weight: FontWeight.w800, color: const Color(0xFFF7D57E))),
         ],
-        const SizedBox(height: 26),
+        const SizedBox(height: 18),
+        // 5 · the button within reach of the thumb
         if (vedDora)
           _Melding(key: const Key('lopet-slutt-dora'), tekst: LopetCopy.vedDora, knapp: LopetCopy.tilSporing, onTap: _tilSporing)
         else if (s != null && s.noNewRun)
@@ -718,9 +898,106 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           _Knapp(key: const Key('lopet-seil-igjen'), tekst: LopetCopy.seilIgjen(igjen), onTap: _settSeil)
         else
           _Melding(key: const Key('lopet-slutt-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
+        // Below, on scrolling: statistics, gates, badges, the chart where the run ended, the ladder.
+        const SizedBox(height: 28),
+        Wrap(
+          alignment: WrapAlignment.spaceEvenly,
+          spacing: 18,
+          runSpacing: 10,
+          children: [
+            _Tall(etikett: LopetCopy.kasser, verdi: '${r.crates}'),
+            _Tall(etikett: LopetCopy.naerePaaTall, verdi: '${r.nearMisses}'),
+            _Tall(etikett: LopetCopy.vestBruk, verdi: '${r.vestUses}'),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (var k = 0; k < (s?.milestones.length ?? 0) && k < 3; k++)
+              _Chip(tekst: LopetCopy.porter[k], farge: r.gates.contains(s!.milestones[k]) ? const Color(0xFFF2C14E) : Colors.white24),
+          ],
+        ),
+        if (s != null && s.badges.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _Merker(badges: s.badges, plus: (m) => switch (m) { 'crates' => r.crates, 'near_misses' => r.nearMisses, 'metres' => r.distanceM, _ => 0 }),
+        ],
+        if (s != null) ...[
+          const SizedBox(height: 16),
+          Center(child: _Sjokort(s: s, besteM: [LopetLager.beste(s.week) ?? 0, s.personalBestM ?? 0, r.distanceM].reduce((a, b) => a > b ? a : b), merkeM: r.distanceM)),
+        ],
+        TextButton(
+          onPressed: () => LopetListe.vis(context),
+          child: Text(LopetCopy.ukeliste, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFFF7D57E))),
+        ),
       ],
     );
   }
+}
+
+/// The redningsvest meter (spec §4.4): one field per crate or near miss, a life ring when full.
+class _Maaler extends StatelessWidget {
+  const _Maaler({required this.loop});
+
+  final FjordLoop loop;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<int>(
+        valueListenable: loop.meter,
+        builder: (_, m, __) {
+          final full = loop.sim.full;
+          return Row(
+            key: const Key('lopet-maaler'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < full; i++)
+                Container(
+                  width: 10,
+                  height: 8,
+                  margin: const EdgeInsets.only(right: 3),
+                  decoration: BoxDecoration(color: i < m ? const Color(0xFFE5532D) : Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              if (m >= full) const Icon(Icons.radio_button_checked_rounded, key: Key('lopet-livboye'), size: 16, color: Color(0xFFE5532D)),
+            ],
+          );
+        },
+      );
+}
+
+/// The week's three badges with progress (spec §5.7); [plus] adds what the last run brought.
+class _Merker extends StatelessWidget {
+  const _Merker({required this.badges, this.plus});
+
+  final List<LopetBadge> badges;
+  final int Function(String metric)? plus;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        key: const Key('lopet-merker'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(LopetCopy.merker, style: BergenTokens.text(12, weight: FontWeight.w800, color: Colors.white60)),
+          const SizedBox(height: 6),
+          for (final b in badges)
+            Builder(builder: (_) {
+              final p = (b.progress + (plus?.call(b.metric) ?? 0)).clamp(0, b.target);
+              final done = b.done || p >= b.target;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Icon(done ? Icons.military_tech_rounded : Icons.radio_button_unchecked_rounded, size: 18, color: done ? const Color(0xFFF2C14E) : Colors.white38),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(b.name, style: BergenTokens.text(13, weight: FontWeight.w700, color: Colors.white))),
+                    Text('$p / ${b.target}', style: BergenTokens.text(12.5, weight: FontWeight.w700, color: Colors.white70)),
+                  ],
+                ),
+              );
+            }),
+        ],
+      );
 }
 
 /// The delivery strip (game spec §7): stage, window, the courier's minutes; a tap pauses and opens Sporing.
@@ -782,33 +1059,90 @@ class _Stripe extends StatelessWidget {
 
 /// Sjøkortet (game spec §5.2): this week's course drawn up to the customer's best distance; the rest is fog.
 class _Sjokort extends StatelessWidget {
-  const _Sjokort({required this.s, required this.besteM});
+  const _Sjokort({required this.s, required this.besteM, this.merkeM});
 
   final LopetState s;
   final int besteM;
 
+  /// Where the last run ended (the end screen), or null.
+  final int? merkeM;
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      key: const Key('lopet-sjokort'),
-      width: 96,
-      height: 230,
-      decoration: BoxDecoration(color: const Color(0xFF123F50), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white24)),
-      clipBehavior: Clip.antiAlias,
-      child: CustomPaint(painter: _SjokortMaler(s: s, besteM: besteM)),
+    return GestureDetector(
+      onTap: () => _SjokortStor.vis(context, s, besteM),
+      child: Container(
+        key: const Key('lopet-sjokort'),
+        width: 96,
+        height: 230,
+        decoration: BoxDecoration(color: const Color(0xFF123F50), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white24)),
+        clipBehavior: Clip.antiAlias,
+        child: CustomPaint(painter: _SjokortMaler(s: s, besteM: besteM, merker: [if (merkeM != null) merkeM!])),
+      ),
+    );
+  }
+}
+
+/// Sjøkortet in full screen (spec §5.2): the landmarks by name, the gates, and where each of this week's runs ended.
+class _SjokortStor {
+  static void vis(BuildContext context, LopetState s, int besteM) {
+    showDialog<void>(
+      context: context,
+      useSafeArea: true,
+      builder: (ctx) => Dialog.fullscreen(
+        backgroundColor: const Color(0xFF0C2A38),
+        child: Column(
+          key: const Key('lopet-sjokort-stor'),
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 16),
+                Expanded(child: Text(LopetCopy.sjokort, style: BergenTokens.display(20, weight: FontWeight.w800, color: Colors.white))),
+                TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(LopetCopy.kartLukk, style: BergenTokens.text(13, weight: FontWeight.w700, color: const Color(0xFF7FF0CB)))),
+              ],
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: _SjokortMaler(s: s, besteM: besteM, merker: [for (final r in s.myRuns) r.distanceM], navn: true),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.close_rounded, size: 14, color: Color(0xFFFF6B5A)),
+                  const SizedBox(width: 6),
+                  Text(LopetCopy.herGikkDetGalt, style: BergenTokens.text(12, weight: FontWeight.w700, color: Colors.white70)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _SjokortMaler extends CustomPainter {
-  _SjokortMaler({required this.s, required this.besteM});
+  _SjokortMaler({required this.s, required this.besteM, this.merker = const [], this.navn = false});
 
   final LopetState s;
   final int besteM;
 
+  /// Distances where runs ended («Her gikk det galt»).
+  final List<int> merker;
+
+  /// Full screen: the landmarks by name.
+  final bool navn;
+
   @override
   void paint(Canvas canvas, Size size) {
-    const visM = 1200.0; // the chart shows the first 1 200 m
+    final visM = navn ? (besteM + 200).clamp(400, 5000).toDouble() : 1200.0;
     double y(num m) => size.height - 10 - (m / visM) * (size.height - 20);
     final seen = besteM.clamp(0, visM.toInt());
     final rows = (s.course['rows'] as List?) ?? const [];
@@ -819,11 +1153,30 @@ class _SjokortMaler extends CustomPainter {
       final lanes = [for (final l in ((r['l'] as List?) ?? const [])) (l as num).toInt()];
       final lane = lanes.isNotEmpty ? lanes.first : ((((r['p'] as Map?)?['lane']) as num?)?.toInt() ?? 1);
       final x = size.width * (lane + .5) / 3;
-      canvas.drawCircle(Offset(x, y(m)), 2.6, Paint()..color = r['t'] == 'boye' ? const Color(0xFFE5532D) : Colors.white70);
+      canvas.drawCircle(Offset(x, y(m)), navn ? 3.4 : 2.6, Paint()..color = r['t'] == 'boye' ? const Color(0xFFE5532D) : Colors.white70);
     }
     for (final g in s.milestones) {
       if (g > visM) continue;
       canvas.drawLine(Offset(6, y(g)), Offset(size.width - 6, y(g)), Paint()..color = const Color(0xFFF2C14E)..strokeWidth = 2);
+    }
+    if (navn) {
+      for (final lm in s.landmarks) {
+        final m = ((lm['d'] as num) / 1000);
+        if (m > seen || m > visM) continue;
+        final tp = TextPainter(
+          text: TextSpan(text: s.landmarkName('${lm['k']}'), style: const TextStyle(color: Color(0xFFB8E6F0), fontSize: 11, fontWeight: FontWeight.w700)),
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: size.width / 3);
+        final right = (lm['s'] as num? ?? 1) > 0;
+        tp.paint(canvas, Offset(right ? size.width - tp.width - 2 : 2, y(m) - tp.height / 2));
+      }
+    }
+    final x = Paint()..color = const Color(0xFFFF6B5A)..strokeWidth = 2.2;
+    for (final m in merker) {
+      if (m > visM) continue;
+      final c = Offset(size.width / 2, y(m));
+      canvas.drawLine(c + const Offset(-5, -5), c + const Offset(5, 5), x);
+      canvas.drawLine(c + const Offset(-5, 5), c + const Offset(5, -5), x);
     }
     // Fog above the best distance.
     final fog = Rect.fromLTRB(0, 0, size.width, y(seen));
@@ -831,7 +1184,7 @@ class _SjokortMaler extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SjokortMaler old) => old.besteM != besteM;
+  bool shouldRepaint(_SjokortMaler old) => old.besteM != besteM || old.merker.length != merker.length;
 }
 
 class _Tall extends StatelessWidget {

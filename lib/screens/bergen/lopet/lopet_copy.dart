@@ -31,7 +31,7 @@ abstract final class LopetCopy {
   static String get ukensBeste => _t('Ukens beste', 'Best this week');
   static String get sjokort => _t('Sjøkortet', 'The chart');
   static String get takeUkjent => _t('Resten ligger i tåka til du har seilt dit.', 'The rest lies in fog until you have sailed there.');
-  static String get vest => _t('Redningsvest · én per bestilling', 'Life vest · one per order');
+  static String get vest => _t('Starter med full redningsvest', 'Starts with a full life vest');
   static String get vilkaar => _t('Vilkår for Fjordløpet', 'Fjordløpet rules');
   static String get lyd => _t('Lyd', 'Sound');
 
@@ -56,6 +56,54 @@ abstract final class LopetCopy {
   static String get vestTok => _t('Redningsvesten tok støyten', 'Your life vest took the hit');
   static String get stengt => _t('Fjordløpet er åpent mens et ærend er på vei.', 'Fjordløpet is open while an order is on its way.');
   static String minUnna(int m) => _t('Budet er $m min unna', 'Courier $m min away');
+
+  // Fjordløpet v1.3 plan Step 6 (spec §4.6, §5.4–5.7, §12.1, §15).
+  static String get naerePaa => _t('Nære på', 'Close call');
+  static String get nyRekordKort => _t('Ny rekord', 'New best');
+  static String portPoeng(String port, int p) => p > 0 ? '$port · +$p ${_t('poeng', 'points')}' : port;
+  static String hindring(String? t) => switch (t) {
+        'boye' => _t('Bøya', 'The buoy'),
+        'stokk' => _t('Tømmerstokken', 'The log'),
+        'garn' => _t('Fiskegarnet', 'The fishing net'),
+        'kajakk' => _t('Kajakken', 'The kayak'),
+        'beffen' => _t('Beffen', 'The ferry'),
+        'make' => _t('Måka', 'The gull'),
+        _ => _t('Noe', 'Something'),
+      };
+
+  /// «Tømmerstokken etter fyret tok deg ved 311 m».
+  static String aarsak(String? obstacle, String? landmark, int m) {
+    final hva = hindring(obstacle);
+    final etter = landmark == null ? '' : _t(' etter $landmark', ' after $landmark');
+    return _t('$hva$etter tok deg ved $m m', '$hva$etter got you at $m m');
+  }
+
+  static String maalMilepael(String port, int gap) => _t('$gap m til $port', '$gap m to $port');
+  static String maalBeste(int gap) => _t('$gap m fra rekorden din', '$gap m from your best');
+  static String maalSeiler(String navn, int gap) => _t('$navn er $gap m foran deg', '$navn is $gap m ahead of you');
+  static String maalMerke(String merke, String metric, int igjen) => switch (metric) {
+        'crates' => _t('$igjen kasser til $merke', '$igjen crates to $merke'),
+        'near_misses' => _t('$igjen «Nære på» til $merke', '$igjen close calls to $merke'),
+        'metres' => _t('$igjen m til $merke', '$igjen m to $merke'),
+        _ => _t('$igjen igjen til $merke', '$igjen to go for $merke'),
+      };
+  static String get kasser => _t('Kasser', 'Crates');
+  static String get naerePaaTall => _t('Nære på', 'Close calls');
+  static String get vestBruk => _t('Redningsvest brukt', 'Life vest used');
+  static String get merker => _t('Ukens merker', "This week's badges");
+  static String get pynt => _t('Pynt på båten', 'Boat decorations');
+  static String get pyntIngen => _t('Ta et merke for å låse opp pynt.', 'Take a badge to unlock decorations.');
+  static String get pyntIngenValgt => _t('Ingen', 'None');
+  static String pyntPlass(String kind) => switch (kind) {
+        'pennant' => _t('Vimpel', 'Pennant'),
+        'wake' => _t('Kjølvann', 'Wake'),
+        _ => _t('Galionsfigur', 'Figurehead'),
+      };
+  static String uker(int n) => n == 1 ? _t('1 uke seilt', '1 week sailed') : _t('$n uker seilt', '$n weeks sailed');
+  static String rival(String navn, int m) => _t('Rival: $navn · $m m', 'Rival: $navn · $m m');
+  static String get herGikkDetGalt => _t('Her gikk det galt', 'This is where it went wrong');
+  static String get kartLukk => _t('Lukk', 'Close');
+  static String get vestFull => _t('Full redningsvest på første seilas', 'A full life vest on the first run');
 
   /// Points plan Step 8 (game spec §8 Levert): what the order's runs came to.
   static String levert(String? port, int m, int poeng) {
