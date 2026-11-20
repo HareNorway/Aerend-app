@@ -90,6 +90,7 @@ dependencies:
   google_maps_flutter_platform_interface: any
   pdf: ^3.12.0
   printing: ^5.14.3
+  audioplayers: ^6.7.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -121,6 +122,7 @@ flutter:
     - assets/images/products/
     - assets/images/service-category/
     - assets/gifs/
+    - assets/game/sounds/
     - assets/svgs/
     - assets/svgs/icons/
     - assets/svgs/onboarding/

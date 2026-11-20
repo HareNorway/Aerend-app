@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../game/fjordlopet/input/lopet_input.dart';
+import '../../../game/fjordlopet/lopet_lyd.dart';
 import '../../../game/fjordlopet/nearest_goal.dart';
 import '../../../game/fjordlopet/render/lopet_atlas.dart';
 import '../../../game/fjordlopet/render/lopet_field_painter.dart';
@@ -88,6 +89,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   int? _sluttFraRekord;
   bool _sluttRekord = false;
   bool _lyd = false;
+  final LopetLyd _lyder = LopetLyd();
 
   @override
   void initState() {
@@ -131,6 +133,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _flashTimer?.cancel();
     _zoomTimer?.cancel();
     _flash.dispose();
+    unawaited(_lyder.dispose());
     _zoom.dispose();
     super.dispose();
   }
@@ -149,7 +152,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       // During a run the tree is not rebuilt: the strip listens on its own.
       _s = s;
       _sVn.value = s;
-      _lyd = s.soundOn;
+      _settLyd(s.soundOn);
       if ((s.delivery['state'] ?? '') == 'arrived_customer') _avslutt('ved_dora');
       return;
     }
@@ -169,7 +172,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _s = s;
       _laster = false;
       _stengt = false;
-      _lyd = s.soundOn;
+      _settLyd(s.soundOn);
     });
     _sVn.value = s;
     _byggAtlas(s);
@@ -267,13 +270,16 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   void _feedback(int ev) {
     if (ev & FjordSim.evHit != 0) {
       HapticFeedback.heavyImpact();
+      _lyder.spill('treff');
     } else if (ev & FjordSim.evVest != 0) {
       HapticFeedback.heavyImpact();
+      _lyder.spill('vest');
       _vestMelding.value = true;
       _vestTimer?.cancel();
       _vestTimer = Timer(const Duration(milliseconds: 1500), () => _vestMelding.value = false);
     } else if (ev & (FjordSim.evNearMiss | FjordSim.evMeterFull) != 0) {
       HapticFeedback.mediumImpact();
+      _lyder.spill(ev & FjordSim.evMeterFull != 0 ? 'full' : 'naer');
       if (ev & FjordSim.evNearMiss != 0) {
         _vis(LopetCopy.naerePaa);
         // A 3 % zoom for 0.2 s — not with reduce motion.
@@ -285,6 +291,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       }
     } else if (ev & FjordSim.evCrate != 0) {
       HapticFeedback.selectionClick();
+      _lyder.kasse();
     }
   }
 
@@ -297,6 +304,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       final p = s.pointsFor(s.milestones.sublist(0, _porterVist + 1));
       _vis(LopetCopy.portPoeng(LopetCopy.porter[_porterVist], p));
       HapticFeedback.heavyImpact();
+      _lyder.spill('port');
       _porterVist++;
     }
     final best = _forBesteRun;
@@ -304,7 +312,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _rekordVist = true;
       _vis(LopetCopy.nyRekordKort);
       HapticFeedback.heavyImpact();
+      _lyder.spill('rekord');
     }
+  }
+
+  /// Sound is off until the customer turns it on (spec §7); the sounds load the first time it is on.
+  void _settLyd(bool on) {
+    _lyd = on;
+    _lyder.on = on;
+    if (on) unawaited(_lyder.last());
   }
 
   void _vis(String tekst) {
@@ -317,6 +333,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (_fase != _Fase.spill) return;
     _loop?.input(dir);
     HapticFeedback.selectionClick();
+    _lyder.spill('bytte');
   }
 
   void _pause(String grunn) {
@@ -353,6 +370,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         _ticker.start();
       } else {
         setState(() => _teller = (_teller ?? 3) - 1);
+        _lyder.spill('blip');
       }
     });
   }
@@ -616,7 +634,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               key: const Key('lopet-lyd'),
               tooltip: LopetCopy.lyd,
               onPressed: () {
-                setState(() => _lyd = !_lyd);
+                setState(() => _settLyd(!_lyd));
                 _api.sound(_lyd);
               },
               icon: Icon(_lyd ? Icons.volume_up_rounded : Icons.volume_off_rounded, color: Colors.white70),

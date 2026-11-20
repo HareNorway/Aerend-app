@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'dart:io';
+
+import 'package:aerend_customer/game/fjordlopet/lopet_lyd.dart';
 import 'package:aerend_customer/game/fjordlopet/nearest_goal.dart';
 import 'package:aerend_customer/game/fjordlopet/render/lopet_loop.dart';
 import 'package:aerend_customer/game/fjordlopet/sim/engine.dart';
@@ -177,6 +180,20 @@ void main() {
     await t.tap(find.text(LopetCopy.fortsett));
     await t.pumpAndSettle();
     expect(api.equipped, {'pennant': null, 'wake': 'wake_mint', 'figurehead': null});
+  });
+
+  test('the sounds: rendered WAV files for every event; silent unless turned on, and safe without a player', () {
+    for (final n in [...LopetLyd.navn, for (var k = 0; k < 15; k++) 'kasse_$k']) {
+      final f = File('assets/game/sounds/$n.wav');
+      expect(f.existsSync(), isTrue, reason: n);
+      final b = f.readAsBytesSync();
+      expect(String.fromCharCodes(b.sublist(0, 4)), 'RIFF');
+      expect(b[24] | b[25] << 8, 22050);
+    }
+    final lyd = LopetLyd();
+    expect(() => lyd..spill('treff')..kasse(), returnsNormally);
+    lyd.on = true;
+    expect(() => lyd..spill('treff')..kasse(), returnsNormally, reason: 'not loaded: simply not heard');
   });
 
   testWidgets('the HUD shows the vest meter during the run', (t) async {
