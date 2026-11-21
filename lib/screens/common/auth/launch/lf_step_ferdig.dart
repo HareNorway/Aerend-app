@@ -444,82 +444,12 @@ class _FerdigMerke extends StatelessWidget {
   }
 }
 
-/// The gold coin with the embossed Æ (`phMynt`: flips at 72–100% of 4s).
+/// The gold coin with the engraved Æ (`phMynt`, 1.4 s in): the shared [AeMynt] with its halo (A6).
 class _Mynt extends StatelessWidget {
   const _Mynt();
 
   @override
-  Widget build(BuildContext context) {
-    return LfLoop(
-      builder: (context, t, child) {
-        final q = kfLoop(t, 1400, 4000);
-        final ry = q == null ? 0.0 : kf(q, const [0, .72, .86, 1], const [0, 0, 180, 0], cssEaseInOut);
-        return Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, .002)
-            ..rotateY(rad(ry)),
-          child: child,
-        );
-      },
-      child: Stack(
-        children: [
-          const CssBox(
-            width: 44,
-            height: 44,
-            radius: BorderRadius.all(Radius.circular(22)),
-            bg: [
-              CssRadial(
-                [Color(0xFFFFF2C8), Color(0xFFF2C14E), Color(0xFFB77F1C)],
-                stops: [0, .55, 1],
-                cx: .34,
-                cy: .28,
-                circle: true,
-                farthestCorner: true,
-              ),
-            ],
-            shadows: [
-              CssShadow.inset(0, 2, 0, 0, Color.fromRGBO(255, 255, 255, .8)),
-              CssShadow.inset(0, -3, 6, 0, Color.fromRGBO(120, 70, 10, .45)),
-              CssShadow(0, 3, 0, 0, Color(0xFF8E5E12)),
-              CssShadow(0, 10, 16, -6, Color.fromRGBO(0, 0, 0, .55)),
-              CssShadow(0, 0, 18, 0, Color.fromRGBO(242, 193, 78, .45)),
-            ],
-          ),
-          Positioned(
-            left: 5,
-            top: 5,
-            right: 5,
-            bottom: 5,
-            child: CustomPaint(painter: _DashedCircle()),
-          ),
-          Positioned.fill(
-            child: Center(child: LfSvg(lfMerkeInk(const Color(0xFF6A4A10)), w: 22, h: 18)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DashedCircle extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..color = const Color.fromRGBO(120, 80, 10, .45);
-    final r = size.width / 2 - .75;
-    final c = size.center(Offset.zero);
-    const n = 18;
-    for (var i = 0; i < n; i++) {
-      final a0 = i * 2 * math.pi / n;
-      canvas.drawArc(Rect.fromCircle(center: c, radius: r), a0, math.pi / n, false, p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) => const AeMynt(size: 44, glow: true, periodMs: 4000, delayMs: 1400);
 }
 
 /// Striped mint fill with the travelling stripes (`phStripe`) and the

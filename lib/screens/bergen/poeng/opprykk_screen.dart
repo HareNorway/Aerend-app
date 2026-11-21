@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -7,16 +6,14 @@ import 'package:flutter/material.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../common/auth/launch/lf_css.dart';
-import '../../common/auth/launch/lf_icons.dart' show LfSvg, lfMerkeInk;
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import '../aegil/aegil_bits.dart';
 import '../kit/svg_sti.dart';
+import '../kit/ae_mynt.dart';
 import '../meg/a3_services.dart';
-import '../meg/meg_nivaa_card.dart' show medalFor;
 import 'poeng_copy.dart';
 import 'prize_art.dart';
-import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 
 /// Nivåopprykk (`erOpprykk`, L7502–7554 in `Ærend Kunde Launch.dc.html`,
 /// design px): the aurora over Bryggen at night, then — on the prototype's
@@ -203,72 +200,20 @@ class _OpprykkScreenState extends State<OpprykkScreen> {
   }
 }
 
-/// The 104 px medal: the metal, the 3 px ring, the dashed inner rim and the
-/// embossed Æ, glowing gold.
+/// The 104 px medal (A6: the shared [AeMedalje] with its 3 px ring) in its gold glow
+/// (`0 0 42px rgba(242,193,78,.35)`).
 class _Medalje extends StatelessWidget {
   const _Medalje({required this.navn});
   final String navn;
 
   @override
-  Widget build(BuildContext context) {
-    final m = medalFor(navn);
-    return Container(
-      width: 104,
-      height: 104,
-      decoration: CssDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: m.gradient, stops: m.stops),
-        boxShadow: [
-          BoxShadow(color: m.ring, spreadRadius: 3),
-          const BoxShadow(color: Color.fromRGBO(8, 24, 32, .9), offset: Offset(0, 18), blurRadius: 15, spreadRadius: -14),
-          const BoxShadow(color: Color.fromRGBO(242, 193, 78, .35), blurRadius: 21),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const Positioned.fill(
-            child: CssBox(
-              radius: BorderRadius.all(Radius.circular(999)),
-              shadows: [
-                CssShadow.inset(0, 3, 0, 0, Color.fromRGBO(255, 255, 255, .75)),
-                CssShadow.inset(0, -8, 16, 0, Color.fromRGBO(35, 32, 29, .28)),
-              ],
-            ),
-          ),
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: CustomPaint(painter: _Stiplet(const Color.fromRGBO(90, 60, 10, .35), 2)),
-            ),
-          ),
-          LfSvg(lfMerkeInk(m.ink), w: 66, h: 53),
-        ],
-      ),
-    );
-  }
-}
-
-class _Stiplet extends CustomPainter {
-  _Stiplet(this.c, this.w);
-  final Color c;
-  final double w;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final r = size.width / 2 - w / 2;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w
-      ..color = c;
-    const n = 30;
-    for (var i = 0; i < n; i++) {
-      canvas.drawArc(Rect.fromCircle(center: size.center(Offset.zero), radius: r), i / n * 2 * math.pi, math.pi / n, false, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_Stiplet old) => false;
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      boxShadow: [BoxShadow(color: Color.fromRGBO(242, 193, 78, .35), blurRadius: 21)],
+    ),
+    child: AeMedalje(name: navn, size: 104, ring: 3),
+  );
 }
 
 /// «HER ER NOE TIL DEG» — the gift card (`kortInn .55s`), its art bobbing,

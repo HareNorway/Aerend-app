@@ -16,6 +16,7 @@ import '../../common/auth/launch/lf_motion.dart' show LfRise;
 import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import '../../common/notifications/notifications_dl.dart';
 import '../poeng/prize_art.dart';
+import '../kit/ae_mynt.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_routes.dart' show BergenRoutes;
 import '../kit/bergen_toast.dart';
@@ -23,7 +24,6 @@ import 'a3_services.dart';
 import 'liga_ark.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
-import 'meg_mark.dart';
 import 'meg_bergen.dart';
 import 'meg_billett.dart';
 import 'meg_nivaa_card.dart' show medalFor, MegMedal;
@@ -1075,41 +1075,8 @@ class _LadderMedal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = medalFor(step.name);
-    final coin = Container(
-      width: 46,
-      height: 46,
-      decoration: CssDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
-        border: current ? Border.all(color: const Color.fromRGBO(242, 193, 78, .95), width: 3) : null,
-        boxShadow: const [BoxShadow(color: Color.fromRGBO(35, 32, 29, .45), offset: Offset(0, 2), blurRadius: 5, spreadRadius: -3)],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            left: 6,
-            right: 12,
-            top: 5,
-            child: Container(
-              height: 13,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.white.withValues(alpha: .62), Colors.white.withValues(alpha: 0)]),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.all(5),
-              child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFF5A3C0A).withValues(alpha: .4), width: 1.3))),
-            ),
-          ),
-          MegMark(color: m.ink, size: 28),
-        ],
-      ),
-    );
+    // A6: the shared 46 px medal (the current one carries the shine below).
+    final coin = AeMedalje(name: step.name, size: 46);
 
     return Column(
       children: [

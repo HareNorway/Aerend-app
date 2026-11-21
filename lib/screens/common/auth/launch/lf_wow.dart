@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:aerend_customer/utils/route_names.dart';
+import '../../../bergen/kit/ae_mynt.dart';
 import '../../home/bergen/bergen_nav.dart';
 import '../../../../ui/kit/ae_haptic.dart';
 
@@ -243,18 +244,8 @@ class _CoinHostState extends State<_CoinHost> with TickerProviderStateMixin {
         child: Transform(
           alignment: Alignment.center,
           transform: Matrix4.diagonal3Values(sc * math.max(flip, .08), sc, 1),
-          child: const DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                center: Alignment(-.32, -.44),
-                radius: .9,
-                colors: [Color(0xFFFFF2C8), Color(0xFFF2C14E), Color(0xFFB77F1C)],
-                stops: [0, .55, 1],
-              ),
-              boxShadow: [BoxShadow(color: Color.fromRGBO(242, 193, 78, .7), blurRadius: 8)],
-            ),
-          ),
+          // A6: the shared coin as a plain disc (no Æ at 16–22 px); the flight above fakes the flip.
+          child: AeMynt(size: s, flip: false, mark: false, glow: true),
         ),
       ),
     );

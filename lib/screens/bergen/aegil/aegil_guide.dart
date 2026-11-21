@@ -13,6 +13,7 @@ import '../../../utils/shared_pref_utill.dart' show prefGetString, prefSetString
 import 'aegil_bits.dart';
 import 'aegil_entry.dart';
 import 'aegil_launch_copy.dart';
+import '../kit/ae_primitiver.dart' show aeSkriver;
 
 /// One tip (`gTips(sk).tips[i]`).
 class AeGTip {
@@ -204,6 +205,11 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
     _idleT = Timer(const Duration(seconds: 16), () {
       if (!mounted || _fase != _Fase.borte || widget.tips.isEmpty) return;
       if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      // Design 21 Nov (`skriver()`): typing postpones the idle tip.
+      if (aeSkriver()) {
+        _planIdle();
+        return;
+      }
       final i = _apen(math.min(1, widget.tips.length - 1));
       if (i == null) return;
       AegilGuide._idle.add(widget.skjerm);
@@ -227,6 +233,12 @@ class _AegilGuideState extends State<AegilGuide> with TickerProviderStateMixin {
     // Onboarding Step 1: never beside Ægil-runden (the design's `gKan` is false while `rt` is up).
     if (OnbRunde.instance.aktiv || OnbTips.instance.naa != null) {
       _planIdle();
+      return;
+    }
+    // Design 21 Nov (`skriver()`): no guide while a field has focus; try again in a couple of seconds.
+    if (aeSkriver()) {
+      _t2?.cancel();
+      _t2 = Timer(const Duration(seconds: 2), () => _inn(i));
       return;
     }
     setState(() {

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../data/points/points_models.dart';
+import '../kit/ae_mynt.dart';
 import '../kit/bergen_kit.dart';
 import 'meg_ark.dart';
 import 'meg_copy_a4.dart';
-import 'meg_mark.dart';
 import 'meg_pill.dart';
 import 'meg_shine.dart';
-import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../common/auth/launch/lf_css.dart' show CssShadow;
 import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
@@ -176,33 +175,7 @@ class MegNivaaCard extends StatelessWidget {
           const SizedBox(height: 26),
           Row(
             children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    center: Alignment(-.32, -.44),
-                    colors: [
-                      Color(0xFFFBE8B4),
-                      Color(0xFFE0A32C),
-                      Color(0xFFB77F1C),
-                    ],
-                    stops: [0, .62, 1],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color.fromRGBO(120, 80, 10, .65),
-                      offset: Offset(0, 2),
-                      blurRadius: 4,
-                      spreadRadius: -1,
-                    ),
-                  ],
-                ),
-                child: const Center(
-                  child: MegMark(color: Color(0xFF7C5A18), size: 16),
-                ),
-              ),
+              const AeMynt(size: 30),
               const SizedBox(width: 9),
               Expanded(
                 child: Text(
@@ -529,10 +502,27 @@ class _Rung extends StatelessWidget {
   Widget build(BuildContext context) {
     final m = medalFor(name);
     final locked = !done && !current;
-    final size = current ? 28.0 : 20.0;
-    // `nivMedaljer` (L23685): locked rungs `--lys-hvit` with a `rgba(31,82,95,.2)` ring and `--lys-dempet` ink in Lys.
     final lys = context.lys;
-    final ink = locked ? (lys ? LysPalett.dempet : Colors.white.withValues(alpha: .55)) : m.ink;
+
+    // A6: every rung is the shared medal — the current one at 28 px inside its 2 px white ring and gold glow, the
+    // others at 20 px with the check or the lock instead of the Æ (a locked rung is dimmed).
+    final Widget rung = current
+        ? DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: lys
+                  // `0 0 0 3.5px rgba(201,151,40,.5)` outside the 2 px white ring, `0 0 14px rgba(242,193,78,.6)`.
+                  ? const [
+                      BoxShadow(color: Color.fromRGBO(201, 151, 40, .5), spreadRadius: 5.5),
+                      BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 14),
+                    ]
+                  : const [BoxShadow(color: Color.fromRGBO(242, 193, 78, .8), blurRadius: 14)],
+            ),
+            child: AeMedalje(name: name, size: 28, ring: 2, ringColor: Colors.white),
+          )
+        : locked
+            ? Opacity(opacity: .55, child: AeMedalje(name: name, size: 20, mark: false, child: Icon(Icons.lock_rounded, size: 9, color: m.ink)))
+            : AeMedalje(name: name, size: 20, mark: false, child: Icon(Icons.check_rounded, size: 11, color: m.ink));
 
     return SizedBox(
       width: 28,
@@ -540,50 +530,7 @@ class _Rung extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(height: current ? 3 : 7),
-          Container(
-            width: size,
-            height: size,
-            decoration: CssDecoration(
-              shape: BoxShape.circle,
-              color: locked ? (lys ? LysPalett.hvit : Colors.white.withValues(alpha: .14)) : null,
-              gradient: locked
-                  ? null
-                  : RadialGradient(
-                      center: const Alignment(-.32, -.48),
-                      colors: m.gradient,
-                      stops: m.stops,
-                    ),
-              border: Border.all(
-                color: current
-                    ? Colors.white
-                    : (locked ? (lys ? const Color.fromRGBO(31, 82, 95, .2) : Colors.white.withValues(alpha: .2)) : m.ring),
-                width: current ? 2 : 1.5,
-              ),
-              boxShadow: current
-                  ? lys
-                      // `0 0 0 3.5px rgba(201,151,40,.5)` outside the 2 px white ring, `0 0 14px rgba(242,193,78,.6)`.
-                      ? const [
-                          BoxShadow(color: Color.fromRGBO(201, 151, 40, .5), spreadRadius: 1.5),
-                          BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 14),
-                        ]
-                      : const [
-                      BoxShadow(
-                        color: Color.fromRGBO(242, 193, 78, .8),
-                        blurRadius: 14,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Center(
-              child: current
-                  ? MegMark(color: m.ink, size: 15)
-                  : Icon(
-                      done ? Icons.check_rounded : Icons.lock_rounded,
-                      size: done ? 11 : 9,
-                      color: ink,
-                    ),
-            ),
-          ),
+          rung,
           const SizedBox(height: 3),
           // The label is wider than its rung (design: absolute, nowrap).
           SizedBox(
@@ -629,62 +576,8 @@ class MegMedal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = medalFor(name);
-    final coin = Container(
-      width: size,
-      height: size,
-      decoration: CssDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
-          center: const Alignment(-.32, -.48),
-          colors: m.gradient,
-          stops: m.stops,
-        ),
-        border: Border.all(color: m.ring, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(3, 16, 24, .8),
-            offset: Offset(0, 6),
-            blurRadius: 12,
-            spreadRadius: -4,
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withValues(alpha: .55),
-                    Colors.white.withValues(alpha: 0),
-                    Colors.transparent,
-                    const Color(0xFF5A3C0A).withValues(alpha: .28),
-                  ],
-                  stops: const [0, .08, .7, 1],
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Padding(
-              padding: EdgeInsets.all(size * .094),
-              child: CustomPaint(
-                painter: _DashedRing(
-                  color: const Color(0xFF5A3C0A).withValues(alpha: .35),
-                ),
-              ),
-            ),
-          ),
-          MegMark(color: m.ink, size: size * .69),
-        ],
-      ),
-    );
+    // The medal itself is the shared [AeMedalje] (A6) with its 2 px ring, on the `size + 8` bezel.
+    final coin = AeMedalje(name: name, size: size, ring: 2);
 
     final medal = SizedBox(
       width: size + 12,
@@ -715,36 +608,6 @@ class MegMedal extends StatelessWidget {
       child: medal,
     );
   }
-}
-
-class _DashedRing extends CustomPainter {
-  const _DashedRing({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final r = size.shortestSide / 2;
-    final c = Offset(size.width / 2, size.height / 2);
-    const dashes = 28;
-    const pi = 3.141592653589793;
-    for (var i = 0; i < dashes; i++) {
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r),
-        i * 2 * pi / dashes,
-        pi / dashes,
-        false,
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedRing old) => old.color != color;
 }
 
 class MedalStyle {

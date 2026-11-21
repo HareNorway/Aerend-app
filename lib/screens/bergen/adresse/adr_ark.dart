@@ -445,7 +445,8 @@ class _AdrArkState extends State<_AdrArk> {
     return CssBox(
       radius: const BorderRadius.vertical(top: Radius.circular(28)),
       bg: lys ? const [CssSolid(LysPalett.ark)] : const [CssLinear(180, [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)], [0, .55, 1])],
-      border: const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
+      // Design 21 Nov (`mkam`): a faint hairline on the dark sheet.
+      border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, lys ? .95 : .14))),
       shadows: lys
           ? LysPalett.arkskygge
           : const [

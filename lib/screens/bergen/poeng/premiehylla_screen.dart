@@ -17,11 +17,12 @@ import '../../common/home/bergen/bergen_kit.dart' show bergenSvg;
 import '../aegil/aegil_bits.dart';
 import '../kit/bergen_kit.dart';
 import '../hjem/hjem_harness.dart';
+import '../kit/ae_mynt.dart';
 import '../meg/a3_services.dart';
 import '../meg/meg_ark.dart';
 import '../meg/meg_copy_a4.dart';
 import '../meg/meg_nav.dart';
-import '../meg/meg_nivaa_card.dart' show MegMedal, medalFor;
+import '../meg/meg_nivaa_card.dart' show MegMedal;
 import '../meg/meg_sheets.dart';
 import 'aegil_velger_screen.dart';
 import 'poeng_feil.dart';
@@ -733,7 +734,8 @@ class HyllaPoengPille extends StatelessWidget {
   );
 }
 
-/// The gold coin (`phMynt`: rotateY 0 → 180 at 86 %, back at 100 %).
+/// The gold coin (`phMynt`): the shared [AeMynt] (Design 21 Nov Step 1, A6) with its own flip clock; the pill's
+/// `dollar` variant keeps its $ icon and the soft halo.
 class _Mynt extends StatelessWidget {
   const _Mynt({required this.size, required this.periodMs, this.delayMs = 0, this.dollar = false});
   final double size;
@@ -743,32 +745,12 @@ class _Mynt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => RepaintBoundary(
-    child: LfLoop(
-      builder: (context, t, _) {
-        final p = ((t - delayMs) / periodMs) % 1.0;
-        final ry = kf(p, const [0, .72, .86, 1], const [0, 0, 180, 0]);
-        return Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, .002)
-            ..rotateY(rad(ry)),
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: dollar
-                  ? const RadialGradient(center: Alignment(-.32, -.44), radius: .8, colors: [Color(0xFFFBE8B4), Color(0xFFE0A32C), Color(0xFFB77F1C)], stops: [0, .62, 1])
-                  : const RadialGradient(center: Alignment(-.32, -.44), radius: .8, colors: [Color(0xFFFFF1C4), Color(0xFFE8B23E), Color(0xFFB77F1C)], stops: [0, .58, 1]),
-              boxShadow: dollar
-                  ? const [BoxShadow(color: Color.fromRGBO(242, 193, 78, .6), blurRadius: 5)]
-                  : const [BoxShadow(color: Color(0xFF946410), offset: Offset(0, 1.5)), BoxShadow(color: Color.fromRGBO(242, 193, 78, .45), blurRadius: 4)],
-            ),
-            alignment: Alignment.center,
-            child: dollar ? const AeIkon('M12 4v16M8 8.5h6a3 3 0 0 1 0 6H10a3 3 0 0 0 0 6h7', size: 13, stroke: 2.6, color: Color(0xFF7C5A18)) : null,
-          ),
-        );
-      },
+    child: AeMynt(
+      size: size,
+      periodMs: periodMs,
+      delayMs: delayMs,
+      glow: dollar,
+      child: dollar ? const AeIkon('M12 4v16M8 8.5h6a3 3 0 0 1 0 6H10a3 3 0 0 0 0 6h7', size: 13, stroke: 2.6, color: AeMynt.ink) : null,
     ),
   );
 }
@@ -1189,23 +1171,7 @@ class _LitenMedalje extends StatelessWidget {
   final String navn;
 
   @override
-  Widget build(BuildContext context) {
-    final m = medalFor(navn);
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: CssDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: m.gradient, stops: m.stops),
-        boxShadow: [
-          BoxShadow(color: m.ring, spreadRadius: 1.5),
-          const BoxShadow(color: Color.fromRGBO(242, 193, 78, .4), blurRadius: 6),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: Text('Æ', style: jakarta(10, color: m.ink, height: 1)),
-    );
-  }
+  Widget build(BuildContext context) => AeMedalje(name: navn, size: 24);
 }
 
 /// A claim (`minePremier`): the holo sweep, the art, the merchant, the chip,
@@ -2035,7 +2001,6 @@ class _Laast extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = preview;
     final art = PrizeArt.of(slug: p.slug, name: p.name);
-    final m = medalFor(p.tierName);
     return AePress(
       onTap: onTap,
       dy: 0,
@@ -2090,17 +2055,7 @@ class _Laast extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 20,
-                        height: 20,
-                        decoration: CssDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(center: const Alignment(-.32, -.44), radius: .9, colors: m.gradient, stops: m.stops),
-                          boxShadow: const [BoxShadow(color: Color.fromRGBO(255, 255, 255, .2), blurRadius: 4)],
-                        ),
-                        alignment: Alignment.center,
-                        child: Text('Æ', style: jakarta(8.5, color: m.ink, height: 1)),
-                      ),
+                      AeMedalje(name: p.tierName, size: 20),
                       const SizedBox(width: 7),
                       Expanded(child: Text(p.name, style: jakarta(13.5, em: -.02, height: 1.2, color: context.aeM(Colors.white, LysPalett.tittel)))),
                     ],

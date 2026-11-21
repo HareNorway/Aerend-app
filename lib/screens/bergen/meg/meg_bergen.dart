@@ -8,9 +8,8 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
 import '../hjem/hjem_harness.dart';
+import '../kit/ae_mynt.dart';
 import 'meg_mark.dart';
-import 'meg_nivaa_card.dart' show medalFor;
-import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/lys_palett.dart';
 import '../../../theme/lys/modus_scope.dart';
 
@@ -472,7 +471,6 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final m = medalFor(widget.tierName);
     final med = widget.ligaPlass != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -610,16 +608,7 @@ class _MegPoengKortState extends State<MegPoengKort> with SingleTickerProviderSt
                         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                         child: Row(
                           children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: CssDecoration(
-                                shape: BoxShape.circle,
-                                gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
-                                border: Border.all(color: m.ring),
-                                boxShadow: const [BoxShadow(color: Color.fromRGBO(242, 193, 78, .45), blurRadius: 8 / 2 / .57735)],
-                              ),
-                            ),
+                            AeMedalje(name: widget.tierName, size: 12, mark: false),
                             const SizedBox(width: 5),
                             Text(widget.tierName, style: inter(11.5, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
                             const SizedBox(width: 9),
@@ -722,7 +711,6 @@ class _Ring extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final m = medalFor(tierName);
     final mal = math.max(.04, math.min(1.0, pct));
     return SizedBox(
       width: 58,
@@ -773,39 +761,16 @@ class _Ring extends StatelessWidget {
                   child: child,
                 );
               },
-              child: Container(
+              // A6: the shared 42 px medal with its 1.5 px ring; the sheen stays clipped to the circle over it.
+              child: SizedBox(
                 width: 42,
                 height: 42,
-                decoration: CssDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(center: const Alignment(-.32, -.48), colors: m.gradient, stops: m.stops),
-                  boxShadow: [
-                    BoxShadow(color: m.ring, spreadRadius: 1.5),
-                    const BoxShadow(color: Color.fromRGBO(3, 16, 24, .75), offset: Offset(0, 5), blurRadius: 10 / 2 / .57735, spreadRadius: -4),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AeMedalje(name: tierName, size: 42, ring: 1.5),
+                    const Positioned.fill(child: ClipOval(child: MegSveip3(ms: 10200, delay: 600, frac: .36, alpha: .9))),
                   ],
-                ),
-                child: ClipOval(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Color.fromRGBO(255, 255, 255, .85), Color.fromRGBO(255, 255, 255, 0), Color.fromRGBO(90, 60, 10, 0), Color.fromRGBO(90, 60, 10, .25)],
-                              stops: [0, .05, .7, 1],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned.fill(left: 4, top: 4, right: 4, bottom: 4, child: CustomPaint(painter: _Stiplet(const Color.fromRGBO(90, 60, 10, .4)))),
-                      MegMark(color: m.ink, size: 25),
-                      const Positioned.fill(child: MegSveip3(ms: 10200, delay: 600, frac: .36, alpha: .9)),
-                    ],
-                  ),
                 ),
               ),
             ),
@@ -851,29 +816,6 @@ class _RingMaler extends CustomPainter {
   bool shouldRepaint(_RingMaler o) => o.f != f || o.spor != spor;
 }
 
-/// `border: 1.2px dashed`.
-class _Stiplet extends CustomPainter {
-  const _Stiplet(this.color);
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    final r = size.shortestSide / 2;
-    final c = size.center(Offset.zero);
-    const n = 22;
-    for (var i = 0; i < n; i++) {
-      final a = i * 2 * math.pi / n;
-      canvas.drawArc(Rect.fromCircle(center: c, radius: r), a, math.pi / n, false, p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_Stiplet o) => o.color != color;
-}
 
 /// The tier bar: fills in (`upFyll 1.1s .35s`) with a glint (`upGlans 3.2s
 /// 1.6s`).

@@ -106,7 +106,8 @@ class _InfoRute extends StatelessWidget {
                                 const [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)],
                                 const [0, .55, 1],
                               ),
-                        border: const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
+                        // Design 21 Nov (`mkam`): a faint hairline on the dark sheet.
+                        border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, lys ? .95 : .14))),
                         boxShadow: [
                           BoxShadow(
                             color: lys ? rgba(15, 31, 43, .35) : rgba(15, 31, 43, .55),

@@ -16,6 +16,7 @@ import '../sporing/hjelp_sheet.dart' show HjelpScreen;
 import 'onb_maal.dart';
 import 'onb_runde.dart';
 import 'onb_status.dart';
+import '../kit/ae_primitiver.dart' show aeSkriver;
 
 /// Ægil's small poses in a coach mark (the design's `pose`; `watch`,
 /// `concerned` and `relieved` are not used by the catalogue).
@@ -235,6 +236,11 @@ class OnbTips extends ChangeNotifier {
   }
 
   void sjekk() {
+    // Design 21 Nov (`skriver()`): nothing appears while the customer types; look again in 900 ms.
+    if (aeSkriver()) {
+      plan();
+      return;
+    }
     if (!_ordreHentet && sporingStadie >= 3) _hentOrdrer();
     final id = velg();
     if (id != null) vis(id);

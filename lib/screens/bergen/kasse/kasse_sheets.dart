@@ -166,7 +166,8 @@ class _KasseArkRute extends StatelessWidget {
                                 const [Color(0xFF27596A), Color(0xFF1E4F5C), Color(0xFF173E48)],
                                 const [0, .55, 1],
                               ),
-                        border: const Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, .9))),
+                        // Design 21 Nov (`mkam`): the dark sheet's top hairline is faint (.14); the light one keeps .95.
+                        border: Border(top: BorderSide(color: Color.fromRGBO(255, 255, 255, lys || modusLys ? .95 : .14))),
                         boxShadow: modusLys
                             ? kurvLysSkygger(LysPalett.arkskygge, s)
                             : [

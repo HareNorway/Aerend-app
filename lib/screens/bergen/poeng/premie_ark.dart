@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../data/points/points_app_repo.dart';
 import '../../../data/points/points_models.dart';
 import '../../../data/points/points_rules.dart';
+import '../kit/ae_mynt.dart';
 import '../kit/bergen_kit.dart';
 import '../meg/meg_ark.dart';
 import '../meg/meg_copy_a4.dart';
@@ -289,14 +290,7 @@ class _PremieHoldKnappState extends State<PremieHoldKnapp> with SingleTickerProv
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(center: Alignment(-.32, -.44), colors: [Color(0xFFFBE8B4), Color(0xFFE0A32C), Color(0xFFB77F1C)], stops: [0, .62, 1]),
-                    ),
-                  ),
+                  const AeMynt(size: 20, flip: false),
                   const SizedBox(width: 9),
                   Text(_holder ? A4MegCopy.a4_hylla_holder : A4MegCopy.a4_hylla_hold, style: megInter(15, FontWeight.w800, color: Colors.white)),
                 ],

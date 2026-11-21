@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../common/auth/onboarding_kit.dart';
 import '../../common/home/bergen/bergen_kit.dart';
+import '../kit/ae_mynt.dart';
 import '../kit/bergen_css.dart';
 import '../kit/bergen_lagring.dart' show BergenLagringLive;
 import '../kit/bergen_motion.dart';
@@ -483,23 +484,21 @@ class _Mynt extends StatelessWidget {
       return Transform(
         alignment: Alignment.center,
         transform: katPerspektiv(240)..rotateY(grad * math.pi / 180),
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              center: bak ? const Alignment(.2, -.3) : const Alignment(-.3, -.4),
-              colors: bak
-                  ? const [Color(0xFFFCE7A0), Color(0xFFD9A12C), Color(0xFF9A640C)]
-                  : const [Color(0xFFFFF6CF), Color(0xFFF2C14E), Color(0xFFB87A12)],
-              stops: bak ? const [0, .55, 1] : const [0, .52, 1],
-            ),
-            border: bak
-                ? null
-                : Border.all(color: rgba(150, 95, 20, .55), width: size * .09),
-          ),
-        ),
+        // A6: the front is the shared coin (plain disc, no Æ at this size); the back keeps its own darker gold.
+        child: bak
+            ? Container(
+                width: size,
+                height: size,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    center: Alignment(.2, -.3),
+                    colors: [Color(0xFFF6C94E), Color(0xFFD79A22), Color(0xFF8F5B0C)],
+                    stops: [0, .55, 1],
+                  ),
+                ),
+              )
+            : AeMynt(size: size, flip: false, mark: false),
       );
     },
   );

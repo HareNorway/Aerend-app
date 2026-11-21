@@ -10,6 +10,7 @@ import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../aegil/aegil_bits.dart';
 import '../aegil/aegil_guide.dart';
+import '../kit/ae_mynt.dart';
 import '../kit/bergen_kit.dart';
 import '../kit/bergen_perf.dart';
 import '../kit/svg_sti.dart';
@@ -1212,11 +1213,8 @@ class _Tabell extends StatelessWidget {
   final int? ownId;
   final String? maaned;
 
-  static const List<List<Color>> _med = [
-    [Color(0xFFFFE9A3), Color(0xFFF2C14E), Color(0xFFC9971F)],
-    [Color(0xFFFFFFFF), Color(0xFFC9D3D7), Color(0xFF94A3A9)],
-    [Color(0xFFFBD2AE), Color(0xFFD98E52), Color(0xFFA6602E)],
-  ];
+  /// The top three's medals are the tier metals (A6: the shared [AeMedalje] with the rank on it).
+  static const List<String> _med = ['Gull', 'Sølv', 'Bronse'];
   static const List<Color> _medC = [Color(0xFF5A3D06), Color(0xFF3A4A50), Color(0xFF5A2F10)];
   static const List<List<Color>> _av = [
     [Color(0xFF4FA3B3), kAeTeal],
@@ -1301,18 +1299,7 @@ class _Tabell extends StatelessWidget {
                             SizedBox(
                               width: 26,
                               child: med
-                                  ? CssBox(
-                                      width: 26,
-                                      height: 26,
-                                      radius: BorderRadius.circular(13),
-                                      bg: [CssRadial(_med[m], stops: const [0, .58, 1], cx: .34, cy: .28)],
-                                      shadows: const [
-                                        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .6)),
-                                        CssShadow.inset(0, -2, 3, 0, Color.fromRGBO(0, 0, 0, .18)),
-                                        CssShadow(0, 3, 6, -2, Color.fromRGBO(35, 32, 29, .45)),
-                                      ],
-                                      child: Center(child: Text('${r.rank}', style: jakarta(12, color: _medC[m]))),
-                                    )
+                                  ? AeMedalje(name: _med[m], size: 26, child: Text('${r.rank}', style: jakarta(12, color: _medC[m], height: 1)))
                                   : Text(
                                       '${r.rank}',
                                       textAlign: TextAlign.center,
@@ -1407,18 +1394,8 @@ class _Premier extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget medalje(int n, List<Color> c, Color fg) => CssBox(
-      width: 28,
-      height: 28,
-      radius: BorderRadius.circular(14),
-      bg: [CssRadial(c, stops: const [0, .58, 1], cx: .34, cy: .28)],
-      shadows: const [
-        CssShadow.inset(0, 1.5, 0, 0, Color.fromRGBO(255, 255, 255, .6)),
-        CssShadow.inset(0, -2, 3, 0, Color.fromRGBO(0, 0, 0, .2)),
-        CssShadow(0, 4, 8, -3, Color.fromRGBO(0, 0, 0, .5)),
-      ],
-      child: Center(child: Text('$n', style: jakarta(12.5, color: fg))),
-    );
+    // A6: the shared medal in the rank's metal, the number on it.
+    Widget medalje(int n, String metall, Color fg) => AeMedalje(name: metall, size: 28, child: Text('$n', style: jakarta(12.5, color: fg, height: 1)));
     return CssBox(
       key: const Key('liga-premier'),
       radius: BorderRadius.circular(24),
@@ -1468,9 +1445,9 @@ class _Premier extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           for (final (i, (n, c, fg)) in [
-            (1, const [Color(0xFFFFE9A3), Color(0xFFF2C14E), Color(0xFFC9971F)], const Color(0xFF5A3D06)),
-            (2, const [Color(0xFFFFFFFF), Color(0xFFC9D3D7), Color(0xFF94A3A9)], const Color(0xFF3A4A50)),
-            (3, const [Color(0xFFFBD2AE), Color(0xFFD98E52), Color(0xFFA6602E)], const Color(0xFF5A2F10)),
+            (1, 'Gull', const Color(0xFF5A3D06)),
+            (2, 'Sølv', const Color(0xFF3A4A50)),
+            (3, 'Bronse', const Color(0xFF5A2F10)),
           ].indexed) ...[
             if (i > 0) const SizedBox(height: 10),
             Row(
