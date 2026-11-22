@@ -28,6 +28,7 @@ import '../kit/bergen_kit.dart';
 import '../../../services/lopet_utboks.dart';
 import 'lopet_copy.dart';
 import 'lopet_liste.dart';
+import 'lopet_vibrasjon.dart';
 import 'lopet_kai.dart';
 import '../kit/ae_primitiver.dart' show AeKnappPille, AeKollaps;
 import '../kit/ae_mynt.dart' show AeMynt;
@@ -466,6 +467,34 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       if (uke != best) _hap.play(HaptikkId.h12);
     }
   }
+
+  Widget _lydVibRad() => Container(
+        key: const Key('lopet-lyd-vib'),
+        padding: const EdgeInsets.fromLTRB(12, 8, 10, 10),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), color: Colors.white.withValues(alpha: .07), border: Border.all(color: Colors.white.withValues(alpha: .12))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [
+              Expanded(child: Text(LopetCopy.lydVib, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: Colors.white))),
+              Semantics(
+                toggled: _lyd,
+                label: LopetCopy.lyd,
+                child: IconButton(
+                  key: const Key('lopet-kai-lyd'),
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    setState(() => _settLyd(!_lyd));
+                    _api.sound(_lyd);
+                  },
+                  icon: Icon(_lyd ? Icons.volume_up_rounded : Icons.volume_off_rounded, color: Colors.white.withValues(alpha: .85), size: 22),
+                ),
+              ),
+            ]),
+            LopetVibrasjon(haptics: _hap, kompakt: true),
+          ],
+        ),
+      );
 
   /// Haptics plan Step 5: «Sett seil» / «Seil igjen» — U01, or U09 when no run can start.
   void _seil(VoidCallback go) {
@@ -927,7 +956,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
           AeKnappPille(key: const Key('lopet-sett-seil'), label: LopetCopy.settSeil, onPressed: () => _seil(_settSeilMedOvergang))
         else
           _Melding(key: const Key('lopet-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
-        const SizedBox(height: 10),
+        // Haptics plan Step 6 (DH4): the compact «Lyd · Vibrasjon» row — the sound switch back on the quay, with it.
+        const SizedBox(height: 12),
+        _lydVibRad(),
+        const SizedBox(height: 4),
         Center(
           child: TextButton(
             key: const Key('lopet-vilkaar-knapp'),
@@ -1202,6 +1234,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
                   ),
                 ),
               ),
+              // Haptics plan Step 6 (DH4): «Vibrasjon» under «Lyd».
+              const SizedBox(height: 12),
+              LopetVibrasjon(haptics: _hap),
               const SizedBox(height: 14),
               AeKnappPille(key: const Key('lopet-fortsett'), label: LopetCopy.fortsett, onPressed: _fortsett),
               const SizedBox(height: 4),

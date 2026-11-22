@@ -185,6 +185,15 @@ abstract final class LopetCopy {
         _ => (languages.lop_p_bruker, languages.lop_p_bruker_under),
       };
   static String lydTekst(bool paa) => paa ? languages.lop_p_lyd_paa : languages.lop_p_lyd_av;
+
+  // Fjordløpet haptics plan Step 6 (haptics spec §8): «Vibrasjon» Full · Dempet · Av.
+  static String get vibrasjon => languages.lop_vib;
+  static String get vibFull => languages.lop_vib_full;
+  static String get vibDempet => languages.lop_vib_dempet;
+  static String get vibAv => languages.lop_vib_av;
+  static String get vibTelefonAv => languages.lop_vib_telefon_av;
+  static String get vibKontoAv => languages.lop_vib_konto_av;
+  static String get lydVib => languages.lop_lyd_vib;
   static String doraRakk(int m) => languages.lop_s_dora(tallTekst(m));
   static String nyttMerke(String navn) => languages.lop_s_nytt_merke(navn);
   static String nyStjerne(String navn) => languages.lop_s_ny_stjerne(navn);

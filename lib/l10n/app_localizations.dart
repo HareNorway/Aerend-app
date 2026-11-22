@@ -15518,6 +15518,48 @@ abstract class AppLocalizations {
   /// **'Sound off'**
   String get lop_p_lyd_av;
 
+  /// No description provided for @lop_vib.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration'**
+  String get lop_vib;
+
+  /// No description provided for @lop_vib_full.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get lop_vib_full;
+
+  /// No description provided for @lop_vib_dempet.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft'**
+  String get lop_vib_dempet;
+
+  /// No description provided for @lop_vib_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get lop_vib_av;
+
+  /// No description provided for @lop_vib_telefon_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration is turned off on your phone'**
+  String get lop_vib_telefon_av;
+
+  /// No description provided for @lop_vib_konto_av.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration is turned off under Account'**
+  String get lop_vib_konto_av;
+
+  /// No description provided for @lop_lyd_vib.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound · Vibration'**
+  String get lop_lyd_vib;
+
   /// No description provided for @lop_s_dora.
   ///
   /// In en, this message translates to:

@@ -8766,6 +8766,27 @@ class AppLocalizationsNo extends AppLocalizations {
   String get lop_p_lyd_av => 'Lyd av';
 
   @override
+  String get lop_vib => 'Vibrasjon';
+
+  @override
+  String get lop_vib_full => 'Full';
+
+  @override
+  String get lop_vib_dempet => 'Dempet';
+
+  @override
+  String get lop_vib_av => 'Av';
+
+  @override
+  String get lop_vib_telefon_av => 'Telefonen din har slått av vibrasjon';
+
+  @override
+  String get lop_vib_konto_av => 'Vibrasjon er slått av under Konto';
+
+  @override
+  String get lop_lyd_vib => 'Lyd · Vibrasjon';
+
+  @override
   String lop_s_dora(Object p0) {
     return 'Budet er ved døra · du rakk $p0 m';
   }

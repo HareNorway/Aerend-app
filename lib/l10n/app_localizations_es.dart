@@ -8775,6 +8775,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get lop_p_lyd_av => 'Sound off';
 
   @override
+  String get lop_vib => 'Vibration';
+
+  @override
+  String get lop_vib_full => 'Full';
+
+  @override
+  String get lop_vib_dempet => 'Soft';
+
+  @override
+  String get lop_vib_av => 'Off';
+
+  @override
+  String get lop_vib_telefon_av => 'Vibration is turned off on your phone';
+
+  @override
+  String get lop_vib_konto_av => 'Vibration is turned off under Account';
+
+  @override
+  String get lop_lyd_vib => 'Sound · Vibration';
+
+  @override
   String lop_s_dora(Object p0) {
     return 'The courier is at the door · you reached $p0 m';
   }

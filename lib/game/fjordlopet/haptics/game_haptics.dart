@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../../../ui/kit/ae_haptic.dart' show AeHaptikk;
+import '../../../utils/shared_pref_utill.dart' show prefGetStringWithDefaultValue, prefSetString;
+
 import '../sim/engine.dart';
 import 'haptikk_moenster.dart';
 
@@ -97,15 +100,40 @@ class GameHaptics {
     int Function()? klokke,
     bool? ios,
     void Function(String kind)? standardIos,
+    bool Function()? appSwitch,
+    HaptikkNivaaValg? nivaa,
   })  : _kanal = kanal ?? const MethodHaptikkKanal(),
         _klokke = klokke ?? _naa,
         _ios = ios ?? defaultTargetPlatform == TargetPlatform.iOS,
-        _standardIos = standardIos ?? _flutterStandard;
+        _standardIos = standardIos ?? _flutterStandard,
+        _appSwitch = appSwitch ?? _appVibrasjon,
+        _nivaa = nivaa ?? HaptikkNivaaValg.full;
+
+  /// Haptics plan Step 6: the player's «Vibrasjon» on this device (next to the quality level and the sound switch).
+  static const String prefNivaa = 'ae_lopet_vibrasjon';
+
+  /// The stored level (Full when nothing is stored).
+  static HaptikkNivaaValg lagretNivaa() {
+    try {
+      final v = prefGetStringWithDefaultValue(prefNivaa, 'full');
+      return HaptikkNivaaValg.values.firstWhere((e) => e.name == v, orElse: () => HaptikkNivaaValg.full);
+    } catch (_) {
+      return HaptikkNivaaValg.full;
+    }
+  }
+
+  static Future<void> lagreNivaa(HaptikkNivaaValg v) async {
+    try {
+      await prefSetString(prefNivaa, v.name);
+    } catch (_) {}
+  }
+
+  static bool _appVibrasjon() => AeHaptikk.vibrasjon;
 
   /// Haptics plan Step 5: the one instance of the app — the game, «Poeng kreditert», Pynt and the Meg row all play
   /// through it, so the level, the policies and «one at a time» hold everywhere. Prepared on first use; never released
   /// (the native side lets an idle engine sleep).
-  static GameHaptics get felles => _felles ??= (GameHaptics()..prepare());
+  static GameHaptics get felles => _felles ??= (GameHaptics(nivaa: lagretNivaa())..prepare());
   static GameHaptics? _felles;
 
   /// Tests put a fake-channel instance here.
@@ -119,13 +147,14 @@ class GameHaptics {
   final int Function() _klokke;
   final bool _ios;
   final void Function(String kind) _standardIos;
+  final bool Function() _appSwitch;
 
   HaptikkTier _tier = HaptikkTier.off;
   String? _tierWhy;
   bool _klar = false;
 
-  HaptikkNivaaValg _nivaa = HaptikkNivaaValg.full;
-  bool _appAv = false; // the app-wide «Vibrasjon» under Konto is off (DH2)
+  HaptikkNivaaValg _nivaa;
+  bool? _appOverride; // tests; otherwise the app-wide «Vibrasjon» under Konto is read live (DH2)
   bool _policyOn = true;
   double _policyScale = 1.0;
   double? _preparedScale;
@@ -150,8 +179,14 @@ class GameHaptics {
 
   HaptikkNivaaValg get nivaa => _nivaa;
 
+  /// The app-wide «Vibrasjon» (Meg → Konto) is on.
+  bool get appPaa => _appOverride ?? _appSwitch();
+
   /// The level that is in force: Av when the app-wide switch, the policy or the device says so.
-  HaptikkNivaaValg get virkelig => !_policyOn || _appAv || _tier == HaptikkTier.off ? HaptikkNivaaValg.off : _nivaa;
+  HaptikkNivaaValg get virkelig => !_policyOn || !appPaa || _tier == HaptikkTier.off ? HaptikkNivaaValg.off : _nivaa;
+
+  /// `game.haptics_enabled` (DH8).
+  bool get policyPaa => _policyOn;
 
   /// The id now playing (tests, the lab).
   HaptikkId? get spiller => _klokke() < _spillerTil ? _spiller : null;
@@ -188,8 +223,8 @@ class GameHaptics {
 
   /// The app-wide switch (Meg → Konto «Vibrasjon»); off wins over the game's own setting (DH2).
   void setAppSwitch(bool on) {
-    _appAv = !on;
-    if (_appAv) stop();
+    _appOverride = on;
+    if (!on) stop();
   }
 
   /// The two policies from `/game/state` (DH8).

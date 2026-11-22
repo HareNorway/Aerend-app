@@ -81,6 +81,10 @@ void main() {
     expect(find.byKey(const Key('lopet-sett-seil')), findsOneWidget);
     expect(find.byKey(const Key('lopet-sjokort')), findsOneWidget);
 
+    // Haptics plan Step 6: the «Lyd · Vibrasjon» row sits above the rules link, so the list scrolls to it.
+    expect(find.byKey(const Key('lopet-lyd-vib')), findsOneWidget);
+    await tester.scrollUntilVisible(find.byKey(const Key('lopet-vilkaar-knapp')), 200,
+        scrollable: find.descendant(of: find.byKey(const Key('lopet-start')), matching: find.byType(Scrollable)).first);
     await tester.tap(find.byKey(const Key('lopet-vilkaar-knapp')));
     await tester.pumpAndSettle();
     expect(find.text('Linje 7'), findsOneWidget, reason: 'the seven lines from the panel');
