@@ -39,6 +39,8 @@ class LopetState {
     this.equipped = const {},
     this.weeksSailed = 0,
     this.quality = const {},
+    this.hapticsEnabled = true,
+    this.hapticsScale = 1.0,
     required this.course,
     required this.courseId,
     required this.week,
@@ -91,6 +93,11 @@ class LopetState {
   final Map<String, String?> equipped;
   final int weeksSailed;
   final Map<String, dynamic> quality;
+
+  /// Fjordløpet haptics plan Step 7 (DH8): `haptics: {enabled, scale}` — the two policies; an older server sends
+  /// neither, and haptics stay on at full strength.
+  final bool hapticsEnabled;
+  final double hapticsScale;
 
   /// The course's landmarks: {d (mm), k, s}.
   List<Map> get landmarks => ((course['landmarks'] as List?) ?? const []).cast<Map>();
@@ -162,6 +169,8 @@ class LopetState {
       },
       weeksSailed: _i(j['weeks_sailed']),
       quality: Map<String, dynamic>.from((j['quality'] as Map?) ?? const {}),
+      hapticsEnabled: (j['haptics'] is Map ? (j['haptics'] as Map)['enabled'] : null) != false,
+      hapticsScale: (((j['haptics'] is Map ? (j['haptics'] as Map)['scale'] : null) as num?)?.toDouble() ?? 1.0).clamp(0.5, 1.0).toDouble(),
       course: Map<String, dynamic>.from(c),
       courseId: _i(c['id']),
       week: '${c['week'] ?? ''}',

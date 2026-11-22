@@ -222,7 +222,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   Future<void> _hent({bool stille = false}) async {
     final s = _orderId > 0 ? await _api.state(_orderId) : null;
     if (!mounted) return;
-    if (s != null) _rundtHaptikk(s);
+    if (s != null) {
+      // Haptics plan Step 7 (DH8, TH12): the policies apply at every state read — no release needed.
+      _hap.setPolicy(enabled: s.hapticsEnabled, scale: s.hapticsScale);
+      _rundtHaptikk(s);
+    }
     // Fjordløpet v1.3 plan Step 5: offline or a timeout is not the window closing — the run goes on (spec §12).
     if (s == null && _api.lastOffline) {
       if (_laster) setState(() => _laster = false);
@@ -507,6 +511,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     go();
   }
 
+  /// Haptics plan Step 7 (spec §11.2): the run's `perf` carries the phone's tier and the level in force.
+  Map<String, String> _hapPerf() => {
+        'haptics_tier': _hap.tier.name,
+        'haptics_level': _hap.virkelig.name,
+      };
+
   /// Plays U04 now, or after the run.
   void _bank() {
     _bankVenter = false;
@@ -658,7 +668,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (vis && grunn != 'forlatt' && _nyttMerke(s, res) != null) _hap.play(HaptikkId.u07);
     if (_bankVenter && grunn != 'ved_dora' && grunn != 'kollisjon') _bank();
     await LopetLager.lagre(token: token, s: s, inputs: loop.inputsJson(), result: res.toJson(), startedMs: _startetMs,
-        perf: _perf.frames > 0 ? _perf.toJson(_q?.level.key ?? 'low') : null, appVersion: _appVersion);
+        perf: {if (_perf.frames > 0) ..._perf.toJson(_q?.level.key ?? 'low'), ..._hapPerf()}, appVersion: _appVersion);
     // Spec §12.5: one step up after a whole run with a p99 under the limit.
     if (grunn == 'kollisjon' || grunn == 'ved_dora') _q?.afterRun(_perf.p99Ms, frames: _perf.frames);
     if (mounted) setState(() {});
