@@ -43,6 +43,9 @@ abstract final class KasseValg {
     return [...deler.where((d) => d != mot[chip]), chip].join(' · ');
   }
 
+  /// The first clock time in a text («Innen 18:15 · 25–35 min» → «18:15»), or null.
+  static String? klokke(String tekst) => RegExp(r'\d{1,2}[:.]\d{2}').firstMatch(tekst)?.group(0)?.replaceAll('.', ':');
+
   /// The flat / floor for the address title, or null when the field holds nothing real («N/A», «-», «0»).
   static String? flatNo(String raw) {
     final f = raw.trim();

@@ -235,6 +235,10 @@ final ValueNotifier<bool> kurvSkjulerNav = ValueNotifier(false);
 AegilAppApi Function() kurvAegilApi = AegilAppRepo.new;
 
 class KurvScreen extends StatefulWidget {
+  /// Design 21 Nov plan Step 4 (D2): the time Hurtigbestilling's draft asked for («18:30»), picked as the slot on
+  /// the next load; null or no matching slot = «Så fort som mulig». Read once.
+  static String? hurtigTid;
+
   const KurvScreen({super.key, this.embedded = true, this.api, this.customerApi, this.butikkApi});
 
   final bool embedded;
@@ -466,6 +470,14 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     }
     if (!mounted) return;
     setState(() => _cart = cart);
+    if (KurvScreen.hurtigTid case final t?) {
+      KurvScreen.hurtigTid = null;
+      final slots = _slots;
+      setState(() {
+        _pickup = false;
+        _slot = slots.where((s) => s.label == t).firstOrNull ?? slots.first;
+      });
+    }
     if (widget.embedded) kurvSkjulerNav.value = !cart.isEmpty;
     // The nav's count follows the basket the API returned.
     prefSetInt(prefCartCount, cart.lines.length);
@@ -1614,9 +1626,11 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
     final chips = hent ? KasseCopy.a1_kasse_hent_chips : KasseCopy.a1_kasse_lev_chips;
     final n = KasseValg.antall(valgte, ctrl.text);
     final navn = storeName.isEmpty ? KasseCopy.a1_kasse_beskjed_butikk : storeName;
+    // «Klar 18:20»: a clock time — «Så fort som mulig» / «Stengt nå» read the time out of their line.
+    final klar = KasseValg.klokke(slot.at != null ? slot.label : slot.line) ?? slot.label;
     final String? kvitt;
     if (hent) {
-      kvitt = n == 0 ? KasseCopy.a1_kasse_hent_kvitt_klar(slot.label, prefGetString(prefUserName).split(' ').first) : KasseCopy.a1_kasse_hent_kvitt_n(n, slot.label);
+      kvitt = n == 0 ? KasseCopy.a1_kasse_hent_kvitt_klar(klar, prefGetString(prefUserName).split(' ').first) : KasseCopy.a1_kasse_hent_kvitt_n(n, klar);
     } else {
       kvitt = n == 0 ? null : KasseCopy.a1_kasse_lev_kvitt_n(n, navn);
     }
@@ -1635,7 +1649,7 @@ class KurvScreenState extends State<KurvScreen> with WidgetsBindingObserver {
       onLagre: () => _lagreButikk(navn),
       allergiPaa: !hent && valgte.contains(KasseCopy.a1_kasse_lev_chip_allergi),
       kvittering: kvitt,
-      tidLabel: slot.label,
+      tidLabel: klar,
       tider: [for (final sl in _slots.take(3)) KurvHentetid(sl.id, sl.label)],
       tidId: slot.id,
       onTid: (t) => setState(() => _slot = _slots.firstWhere((sl) => sl.id == t.id, orElse: () => slot)),

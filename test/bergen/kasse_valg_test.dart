@@ -43,6 +43,12 @@ void main() {
     expect(KasseValg.flatNo(''), isNull);
   });
 
+  test('the pickup «Klar» time is a clock time', () {
+    expect(KasseValg.klokke('Innen 18:15 · 25–35 min'), '18:15');
+    expect(KasseValg.klokke('Åpner 15.30'), '15:30');
+    expect(KasseValg.klokke('Stengt nå'), isNull);
+  });
+
   test('the phone reads 412 34 567', () {
     expect(KasseValg.tlf('41234567'), '412 34 567');
     expect(KasseValg.tlf('+47 412 34 567'), '412 34 567');
