@@ -4004,6 +4004,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ops_kasse_bruk_dette => 'Use this';
 
   @override
+  String get ops_kasse_lev_sub_lev => 'The courier delivers to your door.';
+
+  @override
+  String get ops_kasse_lev_sub_hent =>
+      'You pick it up at the store. No delivery charge.';
+
+  @override
+  String ops_kasse_tid_klar_ca(String t) {
+    return 'Ready about $t';
+  }
+
+  @override
+  String get ops_kasse_hent_middag_line => 'The food is ready when you arrive';
+
+  @override
+  String get ops_kasse_snarest => 'as soon as possible';
+
+  @override
+  String ops_kasse_bekreft_lev(String tid) {
+    return 'Confirm delivery · $tid';
+  }
+
+  @override
+  String ops_kasse_bekreft_hent(String tid) {
+    return 'Confirm pickup · $tid';
+  }
+
+  @override
   String get ops_kasse_bet_sheet_title => 'How would you like to pay?';
 
   @override

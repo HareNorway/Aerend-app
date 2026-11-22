@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:aerend_customer/data/ops/butikk_models.dart';
@@ -831,6 +832,85 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(valgt?.id, 'slot1');
     expect(henting, isTrue);
+  });
+
+  // Design 21 Nov plan Step 3 (A3).
+  testWidgets('A3: the Levering sheet — sub-line per mode, radio cards, the pill names the time, the close key', (tester) async {
+    _frame(tester);
+    final slots = [
+      const KasseSlot(id: 'asap', label: 'Så fort som mulig', line: 'Innen 18:15 · 25–35 min'),
+      KasseSlot(id: 'slot1', label: '18:30', line: 'Budet venter', at: DateTime(2026, 11, 22, 18, 30)),
+      KasseSlot(id: 'slot2', label: '19:30', line: 'Etter Fløibanen', at: DateTime(2026, 11, 22, 19, 30)),
+    ];
+    KasseSlot? valgt;
+    var lukket = 0;
+    await tester.pumpWidget(_app(Builder(
+      builder: (context) => TextButton(
+        onPressed: () async {
+          valgt = await showLeveringSheet(context, slots: slots, pickup: false, onModeChanged: (_) {});
+          lukket++;
+        },
+        child: const Text('åpne'),
+      ),
+    )));
+    await tester.tap(find.text('åpne'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text(KasseCopy.a1_kasse_lev_sub_lev), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_bekreft_lev(KasseCopy.a1_kasse_snarest)), findsOneWidget);
+    expect(find.text('Innen 18:15 · 25–35 min'), findsOneWidget);
+    // Three radio cards in one group, the first checked.
+    final d0 = tester.getSemantics(find.byKey(const Key('a1_kasse_slot_asap'))).getSemanticsData();
+    expect([d0.hasFlag(SemanticsFlag.isInMutuallyExclusiveGroup), d0.hasFlag(SemanticsFlag.isChecked)], [true, true]);
+    expect(tester.getSize(find.byKey(const Key('a1_kasse_slot_slot1'))).height, greaterThanOrEqualTo(64));
+
+    await tester.tap(find.byKey(const Key('a1_kasse_slot_slot1')));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text(KasseCopy.a1_kasse_bekreft_lev('18:30')), findsOneWidget);
+    // Henting: the sub-line and the pickup lines change, the pill says henting.
+    await tester.tap(find.byKey(const Key('a1_kasse_ark_henting')));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(KasseCopy.a1_kasse_lev_sub_hent), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_tid_klar_ca('18:15')), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_hent_middag_line), findsOneWidget);
+    expect(find.text(KasseCopy.a1_kasse_bekreft_hent('18:30')), findsOneWidget);
+    // The close key leaves without a choice.
+    await tester.tap(find.byKey(const Key('a1_kasse_ark_lukk')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(lukket, 1);
+    expect(valgt, isNull);
+    expect(find.byKey(const Key('a1_kasse_levering_sheet')), findsNothing);
+  });
+
+  testWidgets('A3: the Betaling sheet is dark, with radio cards and the phone under Vipps; a tap picks and closes', (tester) async {
+    _frame(tester);
+    await prefSetString(prefContactNumber, '41234567');
+    addTearDown(() => prefSetString(prefContactNumber, ''));
+    int? valgt;
+    await tester.pumpWidget(_app(Builder(
+      builder: (context) => TextButton(
+        onPressed: () async => valgt = await showBetalingSheet(context, selected: kBetKort),
+        child: const Text('åpne'),
+      ),
+    )));
+    await tester.tap(find.text('åpne'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text(KasseCopy.a1_kasse_bet_sheet_title), findsOneWidget);
+    expect(find.text('412 34 567'), findsOneWidget);
+    final dk = tester.getSemantics(find.byKey(const Key('a1_kasse_bet_$kBetKort'))).getSemanticsData();
+    expect([dk.hasFlag(SemanticsFlag.isInMutuallyExclusiveGroup), dk.hasFlag(SemanticsFlag.isChecked)], [true, true]);
+    final dv = tester.getSemantics(find.byKey(const Key('a1_kasse_bet_$kBetVipps'))).getSemanticsData();
+    expect(dv.hasFlag(SemanticsFlag.isChecked), isFalse);
+    // The dark sheet: white title.
+    final t = tester.widget<Text>(find.text(KasseCopy.a1_kasse_bet_sheet_title));
+    expect(t.style?.color, Colors.white);
+    await tester.tap(find.byKey(const Key('a1_kasse_bet_$kBetVipps')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(valgt, kBetVipps);
+    expect(find.byKey(const Key('a1_kasse_betaling_sheet')), findsNothing);
   });
 
   // ── Customer v2 Step 1: the fee quote ─────────────────────────────────

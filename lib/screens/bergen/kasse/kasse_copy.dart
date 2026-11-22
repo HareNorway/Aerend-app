@@ -150,6 +150,14 @@ abstract final class KasseCopy {
   static String get a1_kasse_lev_kveld => languages.ops_kasse_lev_kveld;
   static String get a1_kasse_lev_kveld_line => languages.ops_kasse_lev_kveld_line;
   static String get a1_kasse_bruk_dette => languages.ops_kasse_bruk_dette;
+  // Design 21 Nov plan Step 3 (A3): the sheets' sub-lines, the pickup time lines and the pill.
+  static String get a1_kasse_lev_sub_lev => languages.ops_kasse_lev_sub_lev;
+  static String get a1_kasse_lev_sub_hent => languages.ops_kasse_lev_sub_hent;
+  static String a1_kasse_tid_klar_ca(String t) => languages.ops_kasse_tid_klar_ca(t);
+  static String get a1_kasse_hent_middag_line => languages.ops_kasse_hent_middag_line;
+  static String get a1_kasse_snarest => languages.ops_kasse_snarest;
+  static String a1_kasse_bekreft_lev(String tid) => languages.ops_kasse_bekreft_lev(tid);
+  static String a1_kasse_bekreft_hent(String tid) => languages.ops_kasse_bekreft_hent(tid);
   static String get a1_kasse_bet_sheet_title => languages.ops_kasse_bet_sheet_title;
   static String get a1_kasse_bet_sheet_line => languages.ops_kasse_bet_sheet_line;
   /// Just «Vipps» — the phone number after it read as a random number at checkout.

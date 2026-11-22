@@ -122,7 +122,7 @@ class _AeKnappPilleState extends State<AeKnappPille> {
 /// One choice in a group (`role=radio`, 64 px): a 3D icon tile on the left, title and sub-line, the ring on the right.
 /// Selected: mint fill and border with a glow (dark) or `--lys-mint-dis` (light).
 class AeRadioKort extends StatelessWidget {
-  const AeRadioKort({super.key, required this.valgt, required this.onTap, required this.tittel, this.under, this.ikon, this.trailing, this.semanticsKey});
+  const AeRadioKort({super.key, required this.valgt, required this.onTap, required this.tittel, this.under, this.ikon, this.flis, this.trailing, this.semanticsKey});
 
   final bool valgt;
   final VoidCallback onTap;
@@ -131,6 +131,9 @@ class AeRadioKort extends StatelessWidget {
 
   /// What sits in the 40 px tile (an icon, a payment mark, a time).
   final Widget? ikon;
+
+  /// A whole 40 px tile of the caller's instead (the payment brands' coloured tiles).
+  final Widget? flis;
 
   /// Replaces the radio ring.
   final Widget? trailing;
@@ -182,6 +185,7 @@ class AeRadioKort extends StatelessWidget {
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(20 * s), color: bg, gradient: grad, border: Border.all(color: bd), boxShadow: shadow),
           child: Row(
             children: [
+              if (flis != null) ...[flis!, SizedBox(width: 12 * s)],
               if (ikon != null) ...[
                 Container(
                   width: 40 * s,

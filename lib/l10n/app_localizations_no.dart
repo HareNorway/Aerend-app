@@ -4015,6 +4015,34 @@ class AppLocalizationsNo extends AppLocalizations {
   String get ops_kasse_bruk_dette => 'Bruk dette';
 
   @override
+  String get ops_kasse_lev_sub_lev => 'Budet leverer på døra.';
+
+  @override
+  String get ops_kasse_lev_sub_hent =>
+      'Du henter selv hos butikken. Ingen leveringskostnad.';
+
+  @override
+  String ops_kasse_tid_klar_ca(String t) {
+    return 'Klar ca. $t';
+  }
+
+  @override
+  String get ops_kasse_hent_middag_line => 'Maten er klar når du kommer';
+
+  @override
+  String get ops_kasse_snarest => 'snarest';
+
+  @override
+  String ops_kasse_bekreft_lev(String tid) {
+    return 'Bekreft levering · $tid';
+  }
+
+  @override
+  String ops_kasse_bekreft_hent(String tid) {
+    return 'Bekreft henting · $tid';
+  }
+
+  @override
   String get ops_kasse_bet_sheet_title => 'Hvordan vil du betale?';
 
   @override

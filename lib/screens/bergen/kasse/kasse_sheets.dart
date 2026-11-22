@@ -11,11 +11,13 @@ import '../../common/manageAddress/manage_address_dl.dart';
 import '../../common/auth/launch/lf_css.dart' show LfFrame;
 import '../../common/auth/onboarding_kit.dart' show OnbPressable, onbBlur;
 import 'package:aerend_customer/utils/route_names.dart';
+import '../kit/ae_primitiver.dart';
 import '../kit/bergen_css.dart';
+import 'kurv_beskjed.dart' show KasseValg;
 import '../kit/bergen_kit.dart';
 import '../kit/svg_sti.dart';
 import 'kasse_copy.dart';
-import 'kurv_parts.dart' show KasseTommelKlipp, kurvLysSkygger, kurvLysTommelSkygge, kurvLysFjordFyll;
+import 'kurv_parts.dart' show kurvLysSkygger;
 import '../kit/bergen_perf.dart';
 import '../kit/vann_overganger.dart';
 import '../adresse/adr_ark.dart' show adrMerke;
@@ -230,10 +232,11 @@ class _KasseArkRute extends StatelessWidget {
 /// The time shown on the Kurv row: «Så fort som mulig», else «Kl. 18:30».
 String kasseTidNavn(KasseSlot slot) => slot.at == null ? slot.label : KasseCopy.a1_kasse_kl(slot.label);
 
-/// Levering (`sheet:'levering'`, L8614): «Når vil du ha det?», the dark
-/// Levering / Henting track with the white thumb (`.38s cubic-bezier(.34,
-/// 1.3,.5,1)`), the three times as glass cards with their radio, «Bruk
-/// dette». Returns the chosen slot; the mode is reported on «Bruk dette».
+/// Levering (Design 21 Nov A3, `sheet:'levering'`): «Når vil du ha det?» 21/800 with a sub-line per mode and the
+/// round close key, the Levering / Henting tab pill with icons ([AeFanePille]), one 64 px radio card per time
+/// ([AeRadioKort]: the longship tile for «Så fort som mulig», the clock time for the rest; the flex window and the
+/// pickup lines stay the app's), and the 56 px pill «Bekreft levering · snarest / 18:30» ([AeKnappPille]). Returns
+/// the chosen slot; the mode is reported on the pill.
 Future<KasseSlot?> showLeveringSheet(
   BuildContext context, {
   required List<KasseSlot> slots,
@@ -250,65 +253,55 @@ Future<KasseSlot?> showLeveringSheet(
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setState) {
         final s = ctx.bs;
+        final valgt = chosen ?? slots.firstOrNull;
+        // «snarest», «18:30», «innen 2 timer» — the time named in the pill.
+        final tidTx = valgt == null || valgt.id == 'asap'
+            ? KasseCopy.a1_kasse_snarest
+            : valgt.id == 'flex'
+                ? languages.flex_window_title.toLowerCase()
+                : valgt.label;
         return Column(
           key: const Key('a1_kasse_levering_sheet'),
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(height: 14 * s),
-            Text(KasseCopy.a1_kasse_lev_sheet_title, style: bDisplay(ctx, 18, letterSpacingEm: -.02, color: ctx.aeM(Colors.white, LysPalett.tittel))),
-            SizedBox(height: 12 * s),
-            _ModusSpor(pickup: mode, onMode: (m) => setState(() => mode = m)),
+            KasseArkHode(tittel: KasseCopy.a1_kasse_lev_sheet_title, linje: mode ? KasseCopy.a1_kasse_lev_sub_hent : KasseCopy.a1_kasse_lev_sub_lev),
+            SizedBox(height: 14 * s),
+            AeFanePille(
+              faner: [
+                AeFane(label: KasseCopy.a1_kasse_levering, icon: Icons.home_outlined, key: const Key('a1_kasse_ark_levering')),
+                AeFane(label: KasseCopy.a1_kasse_henting, icon: Icons.shopping_bag_outlined, key: const Key('a1_kasse_ark_henting')),
+              ],
+              valgt: mode ? 1 : 0,
+              onValg: (i) => setState(() => mode = i == 1),
+            ),
             for (var i = 0; i < slots.length; i++) ...[
               SizedBox(height: (i == 0 ? 12 : 8) * s),
-              _TidKort(
+              AeRadioKort(
                 key: Key('a1_kasse_slot_${slots[i].id}'),
-                slot: slots[i],
+                valgt: valgt?.id == slots[i].id,
+                onTap: () => setState(() => chosen = slots[i]),
                 tittel: i == 0
                     ? slots[i].label
                     // Customer v2 Step 1: «Innen 2 timer» (pricing.flex_window).
                     : slots[i].id == 'flex'
                     ? languages.flex_window_title
                     : (i == 1 ? KasseCopy.a1_kasse_lev_middag : KasseCopy.a1_kasse_lev_kveld),
-                skip: i == 0,
-                valgt: chosen?.id == slots[i].id,
-                onTap: () => setState(() => chosen = slots[i]),
+                under: kasseTidLinje(slots[i], i, hent: mode),
+                ikon: i == 0
+                    ? bergenSvg('longship3d', width: 32 * s, height: 17 * s)
+                    : Text(slots[i].label, textAlign: TextAlign.center, softWrap: false, overflow: TextOverflow.visible, style: BergenTokens.text(12 * s, weight: FontWeight.w800)),
               ),
             ],
-            SizedBox(height: 14 * s),
-            OnbPressable(
+            SizedBox(height: 16 * s),
+            AeKnappPille(
               key: const Key('a1_kasse_bruk_dette'),
-              onTap: () {
+              label: mode ? KasseCopy.a1_kasse_bekreft_hent(tidTx) : KasseCopy.a1_kasse_bekreft_lev(tidTx),
+              onPressed: () {
                 onModeChanged(mode);
                 Navigator.of(ctx).pop(chosen);
               },
-              pressDy: 0,
-              pressScale: .97,
-              child: Container(
-                height: 50 * s,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16 * s),
-                  gradient: cssLinear(160, const [Color(0xFFF2884E), Color(0xFFE0662C)]),
-                  boxShadow: [
-                    BoxShadow(
-                      color: rgba(120, 50, 10, .9),
-                      offset: Offset(0, 14 * s),
-                      blurRadius: onbBlur(22 * s),
-                      spreadRadius: -12 * s,
-                    ),
-                    BoxShadow(color: rgba(150, 60, 15, .8), offset: Offset(0, 3 * s)),
-                  ],
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const SizedBox.expand(),
-                    bergenInsetTop(radius: 16 * s, height: 1.5 * s, alpha: .35),
-                    Text(KasseCopy.a1_kasse_bruk_dette, style: bDisplay(ctx, 14)),
-                  ],
-                ),
-              ),
             ),
           ],
         );
@@ -317,212 +310,66 @@ Future<KasseSlot?> showLeveringSheet(
   );
 }
 
-class _ModusSpor extends StatelessWidget {
-  const _ModusSpor({required this.pickup, required this.onMode});
-
-  final bool pickup;
-  final ValueChanged<bool> onMode;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.bs;
-    // Lys plan (`(sheetLevering)`): `.mkbh` track, `.mkbi` thumb, `levTabLc` /
-    // `levTabHc` labels (L20218).
-    final lys = context.lys;
-    return Container(
-      padding: EdgeInsets.all(4 * s),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: lys ? LysPalett.disUll : null,
-        gradient: lys
-            ? null
-            : LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [rgba(0, 0, 0, .45), rgba(0, 0, 0, .26), rgba(0, 0, 0, .26), rgba(255, 255, 255, .14)],
-                stops: const [0, .16, .96, 1],
-              ),
-      ),
-      child: LayoutBuilder(
-        builder: (context, box) {
-          final w = box.maxWidth / 2;
-          // Bug-11: as KurvModus — the thumb's position is animated here and each label is drawn twice, the white
-          // track colour everywhere and the teal one clipped to the thumb, so neither vanishes mid-slide (the colour
-          // used to fade in .24 s while the thumb took .38 s).
-          return TweenAnimationBuilder<double>(
-            tween: Tween<double>(end: pickup ? 1 : 0),
-            duration: BergenTokens.motion(context, const Duration(milliseconds: 380)),
-            curve: const Cubic(.34, 1.3, .5, 1),
-            builder: (context, t, _) {
-              final venstre = t * w;
-              return SizedBox(
-                height: 34 * s,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: venstre,
-                      top: 0,
-                      bottom: 0,
-                      width: w,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(999),
-                          gradient: lys ? kurvLysFjordFyll : cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFF3EEE2)]),
-                          boxShadow: lys
-                              ? kurvLysTommelSkygge(s)
-                              : [
-                                  BoxShadow(
-                                    color: rgba(4, 18, 26, .8),
-                                    offset: Offset(0, 8 * s),
-                                    blurRadius: onbBlur(14 * s),
-                                    spreadRadius: -8 * s,
-                                  ),
-                                  BoxShadow(color: const Color(0xFFCDB98E), offset: Offset(0, 3 * s)),
-                                ],
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        for (final (m, label) in [(false, KasseCopy.a1_kasse_levering), (true, KasseCopy.a1_kasse_henting)])
-                          Expanded(
-                            child: GestureDetector(
-                              key: Key(m ? 'a1_kasse_ark_henting' : 'a1_kasse_ark_levering'),
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => onMode(m),
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Center(child: Text(label, style: bText(context, 12.5, weight: FontWeight.w800, color: context.aeM(rgba(255, 255, 255, .75), LysPalett.sekundar)))),
-                                  IgnorePointer(
-                                    child: ExcludeSemantics(
-                                      child: ClipRect(
-                                        clipper: KasseTommelKlipp(venstre - (m ? w : 0), w),
-                                        child: Center(
-                                          child: RichText(
-                                            textScaler: MediaQuery.textScalerOf(context),
-                                            text: TextSpan(text: label, style: bText(context, 12.5, weight: FontWeight.w800, color: context.aeM(const Color(0xFF1E4F5C), Colors.white))),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
+/// The sub-line of a time card: the slot's own line, except on pickup where «Så fort som mulig» reads «Klar ca.
+/// 18:20» (the time out of the delivery line) and «Til middag» «Maten er klar når du kommer» (design `tid0Under` /
+/// `tid1Under`); the flex window keeps its engine line.
+String kasseTidLinje(KasseSlot slot, int i, {required bool hent}) {
+  if (!hent || slot.id == 'flex') return slot.line;
+  if (i == 0) {
+    final t = RegExp(r'\d{1,2}[:.]\d{2}').firstMatch(slot.line)?.group(0);
+    return t == null ? slot.line : KasseCopy.a1_kasse_tid_klar_ca(t);
   }
+  if (i == 1) return KasseCopy.a1_kasse_hent_middag_line;
+  return slot.line;
 }
 
-class _TidKort extends StatelessWidget {
-  const _TidKort({
-    super.key,
-    required this.slot,
-    required this.tittel,
-    required this.skip,
-    required this.valgt,
-    required this.onTap,
-  });
+/// The sheets' head (Design 21 Nov A3): title 21/800 −.03em, the sub-line 12.5/600 .62, and the round 44 px close key.
+class KasseArkHode extends StatelessWidget {
+  const KasseArkHode({super.key, required this.tittel, required this.linje});
 
-  final KasseSlot slot;
   final String tittel;
-  final bool skip;
-  final bool valgt;
-  final VoidCallback onTap;
+  final String linje;
 
   @override
   Widget build(BuildContext context) {
     final s = context.bs;
-    const mint = Color(0xFF5CE0B8);
-    // Lys plan (`(sheetLevering)`): `tidNGl` / `tidNSh` / `tidNRing` (L20220–20224),
-    // `.mkbj` border, `.mk13` / `.mkb` / `.mk33` text.
     final lys = context.lys;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 12 * s),
-        decoration: CssDecoration(
-          borderRadius: BorderRadius.circular(20 * s),
-          gradient: cssLinear(180, [
-            valgt ? context.aeM(rgba(92, 224, 184, .16), LysPalett.mintDis) : context.aeM(rgba(255, 255, 255, .1), LysPalett.dis),
-            rgba(255, 255, 255, .05),
-          ]),
-          border: Border.all(
-            color: valgt ? context.aeM(rgba(92, 224, 184, .7), const Color.fromRGBO(11, 107, 87, .45)) : context.aeM(rgba(255, 255, 255, .2), LysPalett.kantFarge),
-            width: valgt ? 1.5 : 1,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(tittel, style: bDisplay(context, 21, letterSpacingEm: -.03, color: context.aeM(Colors.white, LysPalett.tittel)).copyWith(height: 1.15)),
+              SizedBox(height: 4 * s),
+              Text(linje, style: bText(context, 12.5, weight: FontWeight.w600, height: 1.35, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar))),
+            ],
           ),
-          boxShadow: lys
-              ? kurvLysSkygger(LysPalett.kortskygge, s)
-              : [
-                  BoxShadow(
-                    color: rgba(4, 18, 26, valgt ? .9 : .8),
-                    offset: Offset(0, (valgt ? 14 : 12) * s),
-                    blurRadius: onbBlur((valgt ? 24 : 20) * s),
-                    spreadRadius: -(valgt ? 14 : 16) * s,
-                  ),
-                ],
         ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 30 * s,
-              child: skip
-                  ? bergenSvg('longship3d', width: 30 * s, height: 20 * s)
-                  : Text(
-                      slot.label,
-                      textAlign: TextAlign.center,
-                      softWrap: false,
-                      overflow: TextOverflow.visible,
-                      style: bText(context, 12, weight: FontWeight.w800, color: context.aeM(mint, LysPalett.mintTekst)),
-                    ),
-            ),
-            SizedBox(width: 12 * s),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(tittel, style: bText(context, 13, weight: FontWeight.w800, color: context.aeM(Colors.white, LysPalett.tittel))),
-                  Text(
-                    slot.line,
-                    style: bText(context, 10.5, weight: FontWeight.w600, color: context.aeM(rgba(255, 255, 255, .62), LysPalett.sekundar)),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              width: 20 * s,
-              height: 20 * s,
+        SizedBox(width: 12 * s),
+        Semantics(
+          button: true,
+          label: languages.close,
+          child: OnbPressable(
+            key: const Key('a1_kasse_ark_lukk'),
+            onTap: () => Navigator.of(context).pop(),
+            pressDy: 0,
+            pressScale: .94,
+            child: Container(
+              width: 44 * s,
+              height: 44 * s,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: valgt ? mint : context.aeM(rgba(255, 255, 255, .45), const Color.fromRGBO(30, 79, 92, .3)), width: 2 * s),
+                color: lys ? LysPalett.dis : rgba(4, 18, 26, .38),
+                border: Border.all(color: lys ? Colors.transparent : rgba(255, 255, 255, .12)),
               ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                width: 10 * s,
-                height: 10 * s,
-                decoration: CssDecoration(
-                  shape: BoxShape.circle,
-                  color: valgt ? mint : const Color(0x005CE0B8),
-                  boxShadow: [BoxShadow(color: valgt ? mint : const Color(0x005CE0B8), blurRadius: onbBlur(8 * s))],
-                ),
-              ),
+              child: Icon(Icons.close_rounded, size: 18 * s, color: lys ? LysPalett.fjord : Colors.white),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -540,9 +387,9 @@ String kasseBetalingNavn(int type) {
   };
 }
 
-/// Betaling (`sheet:'betaling'`, L8822): «Hvordan vil du betale?» on paper,
-/// one card per method with its brand tile and the radio that springs in.
-/// Checked visually only — nothing here starts a payment. Returns the type.
+/// Betaling (Design 21 Nov A3, `sheet:'betaling'`): the dark sheet, «Hvordan vil du betale?» with its sub-line and
+/// the close key, and one 64 px radio card per method with its brand tile ([AeRadioKort]; Vipps carries the phone).
+/// Checked visually only — nothing here starts a payment; a tap picks and closes. Returns the type.
 Future<int?> showBetalingSheet(BuildContext context, {int? selected}) {
   final metoder = [
     kBetVipps,
@@ -550,9 +397,10 @@ Future<int?> showBetalingSheet(BuildContext context, {int? selected}) {
     if (defaultTargetPlatform == TargetPlatform.iOS) kBetApple,
     if (defaultTargetPlatform == TargetPlatform.android) kBetGoogle,
   ];
+  final tlf = KasseValg.tlf(prefGetString(prefContactNumber));
   return visKasseArk<int>(
     context,
-    lys: true,
+    lys: false,
     navn: 'betaling',
     builder: (ctx) {
       final s = ctx.bs;
@@ -562,20 +410,15 @@ Future<int?> showBetalingSheet(BuildContext context, {int? selected}) {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(height: 14 * s),
-          Text(
-            KasseCopy.a1_kasse_bet_sheet_title,
-            style: bDisplay(ctx, 18, letterSpacingEm: -.02, color: const Color(0xFF23201D)),
-          ),
-          SizedBox(height: 2 * s),
-          Text(
-            KasseCopy.a1_kasse_bet_sheet_line,
-            style: bText(ctx, 11.5, weight: FontWeight.w600, color: const Color(0xFF57534B)),
-          ),
+          KasseArkHode(tittel: KasseCopy.a1_kasse_bet_sheet_title, linje: KasseCopy.a1_kasse_bet_sheet_line),
           for (var i = 0; i < metoder.length; i++) ...[
             SizedBox(height: (i == 0 ? 14 : 8) * s),
-            _BetKort(
-              type: metoder[i],
+            AeRadioKort(
+              key: Key('a1_kasse_bet_${metoder[i]}'),
               valgt: (selected ?? kBetVipps) == metoder[i],
+              tittel: kasseBetalingNavn(metoder[i]),
+              under: metoder[i] == kBetVipps && tlf.isNotEmpty ? tlf : null,
+              flis: KasseBetFlis(type: metoder[i]),
               onTap: () {
                 Navigator.of(ctx).pop(metoder[i]);
                 showBergenToast(
@@ -595,12 +438,11 @@ Future<int?> showBetalingSheet(BuildContext context, {int? selected}) {
   );
 }
 
-class _BetKort extends StatelessWidget {
-  const _BetKort({required this.type, required this.valgt, required this.onTap});
+/// The 40 px brand tile of a payment method: Vipps orange, Visa blue, Apple black, Google white.
+class KasseBetFlis extends StatelessWidget {
+  const KasseBetFlis({super.key, required this.type});
 
   final int type;
-  final bool valgt;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -631,134 +473,38 @@ class _BetKort extends StatelessWidget {
         ),
       ),
     };
-    return GestureDetector(
-      key: Key('a1_kasse_bet_$type'),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.fromLTRB(10 * s, 10 * s, 14 * s, 10 * s),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20 * s),
-          gradient: valgt
-              ? cssLinear(180, const [Color(0xFFF1FBF7), Color(0xFFE3F6EF)])
-              : cssLinear(180, const [Color(0xFFFFFFFF), Color(0xFFFAF8F4)]),
-          border: Border.all(color: valgt ? const Color(0xFF5CE0B8) : rgba(35, 32, 29, .05), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: rgba(8, 24, 32, .45),
-              offset: Offset(0, 10 * s),
-              blurRadius: onbBlur(18 * s),
-              spreadRadius: -14 * s,
-            ),
-          ],
+    return Container(
+      width: 40 * s,
+      height: 40 * s,
+      alignment: Alignment.center,
+      decoration: CssDecoration(
+        borderRadius: BorderRadius.circular(13 * s),
+        gradient: bg,
+        boxShadow: [
+          BoxShadow(
+            color: rgba(8, 24, 32, .6),
+            offset: Offset(0, 7 * s),
+            blurRadius: onbBlur(12 * s),
+            spreadRadius: -7 * s,
+          ),
+        ],
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(13 * s),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, .22)],
+          stops: const [0, .8, 1],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 40 * s,
-              height: 40 * s,
-              alignment: Alignment.center,
-              decoration: CssDecoration(
-                borderRadius: BorderRadius.circular(13 * s),
-                gradient: bg,
-                boxShadow: [
-                  BoxShadow(
-                    color: rgba(8, 24, 32, .6),
-                    offset: Offset(0, 7 * s),
-                    blurRadius: onbBlur(12 * s),
-                    spreadRadius: -7 * s,
-                  ),
-                ],
-              ),
-              foregroundDecoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(13 * s),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, .22)],
-                  stops: const [0, .8, 1],
-                ),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const SizedBox.expand(),
-                  bergenInsetTop(radius: 13 * s, height: 1.5 * s, alpha: .35),
-                  merke,
-                ],
-              ),
-            ),
-            SizedBox(width: 12 * s),
-            Expanded(
-              child: Text(
-                kasseBetalingNavn(type),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: bText(context, 14, weight: FontWeight.w800, color: const Color(0xFF23201D)),
-              ),
-            ),
-            SizedBox(
-              width: 26 * s,
-              height: 26 * s,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            const Color(0xFFDCD7CE),
-                            const Color(0xFFF1EEE8),
-                            const Color(0xFFF1EEE8),
-                            rgba(255, 255, 255, .9),
-                          ],
-                          stops: const [0, .2, .94, 1],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: valgt ? 1 : 0,
-                      child: AnimatedScale(
-                        duration: const Duration(milliseconds: 350),
-                        curve: const Cubic(.34, 1.56, .64, 1),
-                        scale: valgt ? 1 : .5,
-                        child: Container(
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const RadialGradient(
-                              center: Alignment(-.32, -.44),
-                              colors: [Color(0xFF4A93A4), Color(0xFF1E4F5C)],
-                              stops: [0, .7],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: rgba(8, 24, 32, .5),
-                                offset: Offset(0, 4 * s),
-                                blurRadius: onbBlur(8 * s),
-                                spreadRadius: -3 * s,
-                              ),
-                            ],
-                          ),
-                          child: CustomPaint(
-                            size: Size.square(12 * s),
-                            painter: const _MerkePainter(_kHake, 24, 24, [Color(0xFF5CE0B8)], strek: 3.6),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const SizedBox.expand(),
+          bergenInsetTop(radius: 13 * s, height: 1.5 * s, alpha: .35),
+          merke,
+        ],
       ),
     );
   }
@@ -773,32 +519,21 @@ const _kG = [
   'M6.38 13.89a6 6 0 0 1 0-3.78v-2.6H3.04a10 10 0 0 0 0 8.98l3.34-2.6z',
   'M12 6.18c1.47 0 2.79.5 3.83 1.5l2.85-2.85A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.96 5.51l3.34 2.6A5.98 5.98 0 0 1 12 6.18z',
 ];
-const _kHake = ['M5 12.5l4.5 4.5L19 7.5'];
 
-/// Brand marks from their SVG paths: filled in [farger] (one per path), or
-/// stroked when [strek] is given.
+/// Brand marks from their SVG paths: filled in [farger] (one per path).
 class _MerkePainter extends CustomPainter {
-  const _MerkePainter(this.stier, this.vw, this.vh, this.farger, {this.strek});
+  const _MerkePainter(this.stier, this.vw, this.vh, this.farger);
 
   final List<String> stier;
   final double vw;
   final double vh;
   final List<Color> farger;
-  final double? strek;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.scale(size.width / vw, size.height / vh);
     for (var i = 0; i < stier.length; i++) {
-      final paint = Paint()..color = farger[i % farger.length];
-      if (strek != null) {
-        paint
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strek!
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round;
-      }
-      canvas.drawPath(svgSti(stier[i]), paint);
+      canvas.drawPath(svgSti(stier[i]), Paint()..color = farger[i % farger.length]);
     }
   }
 

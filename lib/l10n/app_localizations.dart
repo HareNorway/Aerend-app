@@ -7580,6 +7580,48 @@ abstract class AppLocalizations {
   /// **'Use this'**
   String get ops_kasse_bruk_dette;
 
+  /// No description provided for @ops_kasse_lev_sub_lev.
+  ///
+  /// In en, this message translates to:
+  /// **'The courier delivers to your door.'**
+  String get ops_kasse_lev_sub_lev;
+
+  /// No description provided for @ops_kasse_lev_sub_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'You pick it up at the store. No delivery charge.'**
+  String get ops_kasse_lev_sub_hent;
+
+  /// No description provided for @ops_kasse_tid_klar_ca.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready about {t}'**
+  String ops_kasse_tid_klar_ca(String t);
+
+  /// No description provided for @ops_kasse_hent_middag_line.
+  ///
+  /// In en, this message translates to:
+  /// **'The food is ready when you arrive'**
+  String get ops_kasse_hent_middag_line;
+
+  /// No description provided for @ops_kasse_snarest.
+  ///
+  /// In en, this message translates to:
+  /// **'as soon as possible'**
+  String get ops_kasse_snarest;
+
+  /// No description provided for @ops_kasse_bekreft_lev.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm delivery · {tid}'**
+  String ops_kasse_bekreft_lev(String tid);
+
+  /// No description provided for @ops_kasse_bekreft_hent.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm pickup · {tid}'**
+  String ops_kasse_bekreft_hent(String tid);
+
   /// No description provided for @ops_kasse_bet_sheet_title.
   ///
   /// In en, this message translates to:
