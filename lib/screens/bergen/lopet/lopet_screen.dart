@@ -9,6 +9,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../game/fjordlopet/haptics/haptikk_lab.dart';
 import '../../../game/fjordlopet/input/lopet_input.dart';
 import '../../../game/fjordlopet/lopet_lyd.dart';
 import '../../../game/fjordlopet/nearest_goal.dart';
@@ -1067,6 +1068,13 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
               AeKnappPille(key: const Key('lopet-fortsett'), label: LopetCopy.fortsett, onPressed: _fortsett),
               const SizedBox(height: 4),
               TextButton(onPressed: _tilSporing, child: Text(LopetCopy.tilSporing, style: BergenTokens.text(13.5, weight: FontWeight.w800, color: const Color(0xFF7FF0CB)))),
+              // Haptics plan Step 8: the lab, from the paused run, in LOPET_PERF builds only.
+              if (_perfOverlay)
+                TextButton(
+                  key: const Key('lopet-haptikk-lab'),
+                  onPressed: () => Navigator.of(context).pushNamed(HaptikkLab.rute),
+                  child: const Text('Haptikk-lab', style: TextStyle(color: Colors.white70)),
+                ),
             ],
           ],
         ),

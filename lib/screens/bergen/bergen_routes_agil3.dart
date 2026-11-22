@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../game/fjordlopet/haptics/haptikk_lab.dart';
 import 'aegil/aegil_screen.dart';
 import 'meg/bestillinger_screen.dart';
 import 'meg/favoritter_screen.dart';
@@ -36,6 +37,8 @@ Map<String, WidgetBuilder> bergenRoutesAgil3() => <String, WidgetBuilder>{
       '/bergen/fjordfiske': (_) => const FjordfiskeScreen(),
       // Points plan Step 7: Fjordløpet, for one order (`order_id`); only reached while its session is open (LopetPort).
       '/bergen/lopet': (_) => const LopetScreen(),
+      // Fjordløpet haptics plan Step 8: the haptics lab, only in builds with LOPET_PERF (never in a store build).
+      if (const bool.fromEnvironment('LOPET_PERF')) HaptikkLab.rute: (_) => const HaptikkLab(),
       '/bergen/aegil': (_) => const AegilScreen(),
       '/bergen/aegil/minne': (_) => const AegilScreen(steg: 'minne'),
       // Gap Step 1: «Innstillinger for varsler» in the Varsler panel.
