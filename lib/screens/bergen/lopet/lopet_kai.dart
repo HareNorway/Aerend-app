@@ -136,7 +136,8 @@ class LopetKaiSjokort extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         child: DecoratedBox(
                           decoration: const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF2E5A55), Color(0xFF1F4A4E)])),
-                          child: RotatedBox(quarterTurns: 3, child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, visM: _visM, merker: [if (stoppM != null) stoppM!]))),
+                          // A quarter turn clockwise: the chart's start (its bottom) on the left, the fog to the right, as the design.
+                          child: RotatedBox(quarterTurns: 1, child: CustomPaint(painter: LopetSjokortMaler(s: s, besteM: besteM, visM: _visM, merker: [if (stoppM != null) stoppM!]))),
                         ),
                       ),
                     ),
