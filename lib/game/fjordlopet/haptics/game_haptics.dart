@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../sim/engine.dart';
 import 'haptikk_moenster.dart';
 
 /// The device's haptics tier (spec §7.1), asked once when the game opens.
@@ -330,6 +331,30 @@ class GameHaptics {
       case 'heavy':
         HapticFeedback.heavyImpact();
     }
+  }
+
+  /// Haptics plan Step 4: one tick's engine events (FjordLoop.onTickEvents) — H13 a collision, H05 the vest used, H04
+  /// the meter full, H03 a near miss, H02 a crate (its place in the row), H01 a lane change carried out; only the
+  /// highest of them plays. The crate row advances even when the pop itself does not play.
+  HaptikkUtfall tickEvents(int tick, int ev) {
+    var n = 0;
+    if (ev & FjordSim.evCrate != 0) n = crate(tick);
+    if (ev & FjordSim.evHit != 0) collision();
+    final id = ev & FjordSim.evHit != 0
+        ? HaptikkId.h13
+        : ev & FjordSim.evVest != 0
+            ? HaptikkId.h05
+            : ev & FjordSim.evMeterFull != 0
+                ? HaptikkId.h04
+                : ev & FjordSim.evNearMiss != 0
+                    ? HaptikkId.h03
+                    : ev & FjordSim.evCrate != 0
+                        ? HaptikkId.h02
+                        : ev & FjordSim.evLane != 0
+                            ? HaptikkId.h01
+                            : null;
+    if (id == null) return HaptikkUtfall.dropped;
+    return play(id, step: n);
   }
 
   // ── The crate row (DH6): crates less than 90 ticks apart; a near miss neither advances nor breaks it ─────────────

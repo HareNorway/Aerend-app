@@ -9,7 +9,9 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../game/fjordlopet/haptics/game_haptics.dart';
 import '../../../game/fjordlopet/haptics/haptikk_lab.dart';
+import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import '../../../game/fjordlopet/input/lopet_input.dart';
 import '../../../game/fjordlopet/lopet_lyd.dart';
 import '../../../game/fjordlopet/nearest_goal.dart';
@@ -41,10 +43,13 @@ enum _Fase { start, spill, pause, slutt }
 /// notification and the app going to the background pause it, and it resumes with 3 · 2 · 1. No new run once the
 /// courier is within two minutes. Runs are recorded tick by tick and kept on the phone for Step 8 to submit.
 class LopetScreen extends StatefulWidget {
-  const LopetScreen({super.key, this.orderId, this.api, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500)});
+  const LopetScreen({super.key, this.orderId, this.api, this.haptics, this.pollEvery = const Duration(seconds: 6), this.tilSporingEtter = const Duration(milliseconds: 1500)});
 
   final int? orderId;
   final LopetApi? api;
+
+  /// The game's haptics (tests pass one with a fake channel); the screen makes its own otherwise.
+  final GameHaptics? haptics;
   final Duration pollEvery;
 
   /// After the courier reached the door, how long the end card stays before Sporing (spec T6).
@@ -136,6 +141,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   bool _lyd = false;
   final LopetLyd _lyder = LopetLyd();
 
+  // Fjordløpet haptics plan Step 4: every haptic of the game goes through GameHaptics (spec §6), next to the sound.
+  late final GameHaptics _hap = widget.haptics ?? GameHaptics();
+  bool _rivalForbi = false;
+  bool _ukeForbi = false;
+
   @override
   void initState() {
     super.initState();
@@ -143,6 +153,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     WidgetsBinding.instance.addObserver(this);
     _sig = LopetSignaler.stream.listen(_onSignal);
     LopetUtboks.onSvar = _svar;
+    unawaited(_hap.prepare());
     unawaited(PackageInfo.fromPlatform().then((i) => _appVersion = i.version, onError: (_) => null));
   }
 
@@ -156,7 +167,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       _poll = Timer.periodic(widget.pollEvery, (_) => _hent(stille: true));
     }
     // Fjordløpet v1.3 plan Step 5 (spec §12.2): a covered screen stops the run, as the background does.
-    if (!TickerMode.valuesOf(context).enabled && _fase == _Fase.spill) _pause('dekket');
+    final dekket = !TickerMode.valuesOf(context).enabled;
+    if (dekket && _fase == _Fase.spill) _pause('dekket');
+    // Haptics plan Step 4: covered, nothing plays (also during the freeze after a collision, which is not paused).
+    if (dekket) {
+      _hap.hold(true);
+    } else if (_fase != _Fase.pause) {
+      _hap.hold(false);
+    }
   }
 
   @override
@@ -184,6 +202,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _zoomTimer?.cancel();
     _flash.dispose();
     unawaited(_lyder.dispose());
+    _hap.hold(true);
+    if (widget.haptics == null) unawaited(_hap.dispose());
     _zoom.dispose();
     super.dispose();
   }
@@ -324,7 +344,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _forBesteRun = best;
     _rekordVist = false;
     _porterVist = 0;
+    _rivalForbi = false;
+    _ukeForbi = false;
     _flash.value = null;
+    loop.onTickEvents = _hap.tickEvents;
+    _hap.newRun();
     setState(() {
       _token = ledige.first;
       _loop = loop;
@@ -339,6 +363,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _rammer = 0;
     loop.resetClock();
     _ticker.start();
+    _hap.hold(false);
+    _hap.play(HaptikkId.h14); // control starts
   }
 
   void _onTick(Duration elapsed) {
@@ -353,6 +379,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     // Spec §12.5: one step down at once when the last 2 s average over the limit, then kept for the session.
     _q?.frame(_perf.recentAvgMs(120));
     _milepaeler(loop);
+    _puls(loop);
     if (_perfOverlay && ++_rammer % 30 == 0) {
       // Design 21 Nov plan Step 9 (design `ytelseVis`): fps, average, worst, frames over 20 ms, the level by its name
       // and the water's resolution.
@@ -373,17 +400,16 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   /// Fjordløpet v1.3 plan Step 5: the felt column of spec §12.1 for the events that exist so far (Step 6 adds the rest).
   void _feedback(int ev) {
+    // Haptics plan Step 4: the haptics are played per tick by GameHaptics (FjordLoop.onTickEvents); this is the sound
+    // and the picture.
     if (ev & FjordSim.evHit != 0) {
-      HapticFeedback.heavyImpact();
       _lyder.spill('treff');
     } else if (ev & FjordSim.evVest != 0) {
-      HapticFeedback.heavyImpact();
       _lyder.spill('vest');
       _vestMelding.value = true;
       _vestTimer?.cancel();
       _vestTimer = Timer(const Duration(milliseconds: 1500), () => _vestMelding.value = false);
     } else if (ev & (FjordSim.evNearMiss | FjordSim.evMeterFull) != 0) {
-      HapticFeedback.mediumImpact();
       _lyder.spill(ev & FjordSim.evMeterFull != 0 ? 'full' : 'naer');
       if (ev & FjordSim.evNearMiss != 0) {
         _vis(LopetCopy.naerePaa);
@@ -395,8 +421,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         }
       }
     } else if (ev & FjordSim.evCrate != 0) {
-      HapticFeedback.selectionClick();
-      _lyder.kasse();
+      _lyder.kasse(_hap.rad); // the same row as H02 (DH6)
     }
   }
 
@@ -408,7 +433,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     while (_porterVist < s.milestones.length && _porterVist < 3 && m >= s.milestones[_porterVist]) {
       final p = s.pointsFor(s.milestones.sublist(0, _porterVist + 1));
       _vis(LopetCopy.portPoeng(LopetCopy.porter[_porterVist], p));
-      HapticFeedback.heavyImpact();
+      _hap.play(const [HaptikkId.h06, HaptikkId.h07, HaptikkId.h08][_porterVist]);
       _lyder.spill('port');
       _porterVist++;
     }
@@ -416,9 +441,32 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     if (!_rekordVist && best != null && best > 0 && m > best) {
       _rekordVist = true;
       _vis(LopetCopy.nyRekordKort);
-      HapticFeedback.heavyImpact();
+      _hap.play(HaptikkId.h10);
       _lyder.spill('rekord');
     }
+    // Haptics plan Step 4: H11 when the rival ahead is passed, H12 when the week's best is (not H10 then: when the
+    // week's best is the customer's own, the record above plays).
+    final rival = s.rival;
+    if (!_rivalForbi && rival != null && !rival.me && rival.distanceM > 0 && m > rival.distanceM) {
+      _rivalForbi = true;
+      _hap.play(HaptikkId.h11);
+    }
+    final uke = s.weekBestM;
+    if (!_ukeForbi && uke != null && uke > 0 && m > uke) {
+      _ukeForbi = true;
+      if (uke != best) _hap.play(HaptikkId.h12);
+    }
+  }
+
+  /// The pulse before «Din beste» (spec §4.3): from 60 m before the best not yet passed in this run — none in the
+  /// week's first run (no best yet).
+  void _puls(FjordLoop loop) {
+    final best = _forBesteRun;
+    if (best == null || best <= 0 || _rekordVist) {
+      _hap.pulse(null);
+      return;
+    }
+    _hap.pulse(best - loop.boatMm() / 1000);
   }
 
   /// Sound is off until the customer turns it on (spec §7); the sounds load the first time it is on.
@@ -437,14 +485,15 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   void _styr(int dir) {
     if (_fase != _Fase.spill) return;
     _loop?.input(dir);
-    HapticFeedback.selectionClick();
-    _lyder.spill('bytte');
+    _hap.touch();
+    _lyder.spill('bytte'); // H01 plays when the change is carried out (evLane, DH1)
   }
 
   void _pause(String grunn) {
     if (_fase != _Fase.spill || _krasjTimer != null) return;
     _ticker.stop();
     _perf.stop();
+    _hap.hold(true); // stop, and nothing new while paused (spec §6)
     _nedtelling?.cancel();
     setState(() {
       _fase = _Fase.pause;
@@ -473,6 +522,8 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         _loop?.resetClock();
         _perf.resume();
         _ticker.start();
+        _hap.hold(false);
+        _hap.play(HaptikkId.h14); // control starts again
       } else {
         setState(() => _teller = (_teller ?? 3) - 1);
         _lyder.spill('blip');
@@ -602,7 +653,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) return;
+    if (state == AppLifecycleState.resumed) {
+      if (_fase != _Fase.pause) _hap.hold(false);
+      return;
+    }
+    // Haptics plan Step 4 (TH9): in the background nothing plays — a pattern under way (H13 in the freeze) stops.
+    _hap.hold(true);
     if (_fase == _Fase.pause && _nedtelling != null) {
       // The countdown never runs in the background: back to the pause screen.
       _nedtelling?.cancel();
@@ -689,6 +745,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _tilbake();
       },
+      // Haptics plan Step 4: any touch ends the silence after a collision (spec §6).
+      child: Listener(
+      onPointerDown: (_) => _hap.touch(),
       child: Scaffold(
       backgroundColor: const Color(0xFF0C2A38),
       body: SafeArea(
@@ -709,6 +768,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             ),
           ],
         ),
+      ),
       ),
       ),
     );

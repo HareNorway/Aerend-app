@@ -45,9 +45,15 @@ class LopetLyd {
   }
 
   /// The crate note rises one step for each crate in a row; resets after 1.5 s (spec §12.1).
-  void kasse() {
+  /// [rad]: the crate's place in the row from GameHaptics (1, 2 …, counted in ticks — haptics plan DH6); without it
+  /// the row is counted here by the clock, as before.
+  void kasse([int? rad]) {
     final now = DateTime.now();
-    _kasseN = now.difference(_kasseT) > const Duration(milliseconds: 1500) ? 0 : (_kasseN + 1).clamp(0, 14);
+    _kasseN = rad != null
+        ? (rad - 1).clamp(0, 14)
+        : now.difference(_kasseT) > const Duration(milliseconds: 1500)
+            ? 0
+            : (_kasseN + 1).clamp(0, 14);
     _kasseT = now;
     spill('kasse_$_kasseN');
   }
