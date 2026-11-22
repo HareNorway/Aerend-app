@@ -265,8 +265,10 @@ class _HjemHeroState extends State<HjemHero> {
             width: 390,
             height: _kWater,
             child: KeyedSubtree(
-              // Lys plan Step 2: where the Hjem show aims its sun/moon.
-              key: ModusAnkre.byen,
+              // Lys plan Step 2: where the Hjem show aims its sun/moon. Only Hjem's own scene carries these global
+              // anchors: the window copy (Fjordløpet's quay, `vindu`) is mounted while Hjem's is still in the tree, and
+              // the same GlobalKey twice broke the quay's scene (Design 21 Nov plan Step 10, found on the emulator).
+              key: vi ? null : ModusAnkre.byen,
               child: HjemBryggen(
               key: ValueKey(v),
               kind: BergenWeather.values.byName(v.name),
@@ -283,7 +285,7 @@ class _HjemHeroState extends State<HjemHero> {
             bottom: 0,
             child: Stack(
               children: [
-                Positioned.fill(child: KeyedSubtree(key: ModusAnkre.vann, child: ColoredBox(color: v.seaBase))),
+                Positioned.fill(child: KeyedSubtree(key: vi ? null : ModusAnkre.vann, child: ColoredBox(color: v.seaBase))),
                 Positioned.fill(
                   child: RepaintBoundary(
                     child: SjoWater(palette: v.sea, regn: v.regn, reflection: v.bryggen, reflectionHeight: _kWater, fogColor: v.fog, ripples: _ripples, onTick: _onWaterTick, liveReflection: _speil),
