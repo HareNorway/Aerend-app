@@ -38,7 +38,7 @@ bool aeSkriver() {
 // ── the CTA pill ────────────────────────────────────────────────────────────
 
 class AeKnappPille extends StatefulWidget {
-  const AeKnappPille({super.key, required this.label, this.onPressed, this.leading, this.trailing, this.expand = true, this.height = 56});
+  const AeKnappPille({super.key, required this.label, this.onPressed, this.leading, this.trailing, this.expand = true, this.height = 56, this.fjordILys = false});
 
   final String label;
   final VoidCallback? onPressed;
@@ -46,6 +46,10 @@ class AeKnappPille extends StatefulWidget {
   final Widget? trailing;
   final bool expand;
   final double height;
+
+  /// The fjord-teal pill in light mode (`--x-kft`); off by default — the design's confirm pills stay orange in both
+  /// modes (the Levering sheet's «Bekreft levering», checked on the emulator).
+  final bool fjordILys;
 
   @override
   State<AeKnappPille> createState() => _AeKnappPilleState();
@@ -59,8 +63,8 @@ class _AeKnappPilleState extends State<AeKnappPille> {
     final s = context.bs;
     final enabled = widget.onPressed != null;
     final down = _down || !enabled;
-    final lys = context.lys;
-    // `--x-kft` in light mode is the fjord-teal pill; dark is the orange glow.
+    final lys = context.lys && widget.fjordILys;
+    // `--x-kft` in light mode is the fjord-teal pill (opt-in); otherwise the orange pill in both modes.
     final grad = lys
         ? cssLinear(180, const [Color(0xFF2B6A7A), Color(0xFF1E4F5C), Color(0xFF174553)], const [0, .58, 1])
         : cssLinear(180, const [Color(0xFFF9A273), Color(0xFFF26D3D), Color(0xFFDD5A25)], const [0, .56, 1]);
