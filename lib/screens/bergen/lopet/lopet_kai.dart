@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../game/fjordlopet/haptics/game_haptics.dart';
+import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import '../kit/ae_primitiver.dart' show aeMyk;
 import '../kit/bergen_kit.dart';
 import 'lopet_copy.dart';
@@ -493,6 +495,7 @@ class _LopetPyntArkState extends State<LopetPyntArk> {
   late final Map<String, String?> _valgt = Map<String, String?>.from(widget.s.equipped);
 
   void _velg(String kind, String? item) {
+    GameHaptics.felles.play(HaptikkId.u10); // haptics plan Step 5
     setState(() => _valgt[kind] = item);
     widget.onVelg(Map<String, String?>.from(_valgt));
   }
@@ -522,7 +525,7 @@ class _LopetPyntArkState extends State<LopetPyntArk> {
                   stjerner: (eid[v.item]?.stars ?? 0),
                   valgt: _valgt[kind] == v.item,
                   laast: !eid.containsKey(v.item),
-                  onTap: eid.containsKey(v.item) ? () => _velg(kind, v.item) : null,
+                  onTap: eid.containsKey(v.item) ? () => _velg(kind, v.item) : () => GameHaptics.felles.play(HaptikkId.u09),
                 ),
               ),
             ],

@@ -102,6 +102,16 @@ class GameHaptics {
         _ios = ios ?? defaultTargetPlatform == TargetPlatform.iOS,
         _standardIos = standardIos ?? _flutterStandard;
 
+  /// Haptics plan Step 5: the one instance of the app — the game, «Poeng kreditert», Pynt and the Meg row all play
+  /// through it, so the level, the policies and «one at a time» hold everywhere. Prepared on first use; never released
+  /// (the native side lets an idle engine sleep).
+  static GameHaptics get felles => _felles ??= (GameHaptics()..prepare());
+  static GameHaptics? _felles;
+
+  /// Tests put a fake-channel instance here.
+  @visibleForTesting
+  static set felles(GameHaptics? g) => _felles = g;
+
   static final Stopwatch _sw = Stopwatch()..start();
   static int _naa() => _sw.elapsedMilliseconds;
 

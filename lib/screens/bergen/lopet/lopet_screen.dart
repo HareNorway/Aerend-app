@@ -142,9 +142,14 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   final LopetLyd _lyder = LopetLyd();
 
   // Fjordløpet haptics plan Step 4: every haptic of the game goes through GameHaptics (spec §6), next to the sound.
-  late final GameHaptics _hap = widget.haptics ?? GameHaptics();
+  late final GameHaptics _hap = widget.haptics ?? GameHaptics.felles;
   bool _rivalForbi = false;
   bool _ukeForbi = false;
+  // Step 5: the knock for «Budet er to minutter unna» waits for the run (DH9) and, after a collision, for a touch.
+  bool _snartSett = false;
+  bool _bankVenter = false;
+  bool _bonusVist = false;
+  String? _sistLosgrad;
 
   @override
   void initState() {
@@ -202,8 +207,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _zoomTimer?.cancel();
     _flash.dispose();
     unawaited(_lyder.dispose());
-    _hap.hold(true);
-    if (widget.haptics == null) unawaited(_hap.dispose());
+    // The shared instance outlives the screen: stopped, and free to play elsewhere.
+    _hap
+      ..stop()
+      ..hold(false)
+      ..newRun();
     _zoom.dispose();
     super.dispose();
   }
@@ -213,6 +221,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   Future<void> _hent({bool stille = false}) async {
     final s = _orderId > 0 ? await _api.state(_orderId) : null;
     if (!mounted) return;
+    if (s != null) _rundtHaptikk(s);
     // Fjordløpet v1.3 plan Step 5: offline or a timeout is not the window closing — the run goes on (spec §12).
     if (s == null && _api.lastOffline) {
       if (_laster) setState(() => _laster = false);
@@ -458,6 +467,50 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     }
   }
 
+  /// Haptics plan Step 5: «Sett seil» / «Seil igjen» — U01, or U09 when no run can start.
+  void _seil(VoidCallback go) {
+    final s = _s;
+    if (s == null || s.noNewRun || LopetLager.ledige(s).isEmpty) {
+      _hap.play(HaptikkId.u09);
+      return;
+    }
+    _hap.play(HaptikkId.u01);
+    go();
+  }
+
+  /// Plays U04 now, or after the run.
+  void _bank() {
+    _bankVenter = false;
+    _hap.play(HaptikkId.u04);
+  }
+
+  /// A state read (Step 5): the first «Budet er to minutter unna» knocks (DH9) — after the run if one is going; a new
+  /// losgrad plays the fanfare (U11; DH10: no weekly-prize moment exists in the app yet).
+  void _rundtHaptikk(LopetState s) {
+    // It knocks when it turns true, not when the game opens with the courier already near.
+    if (_sistLosgrad == null) _snartSett = s.noNewRun;
+    if (s.noNewRun && !_snartSett) {
+      _snartSett = true;
+      if (_fase == _Fase.spill || _fase == _Fase.pause || _hap.spiller == HaptikkId.h13) {
+        _bankVenter = true;
+      } else {
+        _bank();
+      }
+    }
+    final g = s.losgrad;
+    final sist = _sistLosgrad;
+    _sistLosgrad = g;
+    if (sist != null && g.isNotEmpty && g != sist && _fase != _Fase.spill) _hap.play(HaptikkId.u11);
+  }
+
+  /// Runs [f] once after this frame (a haptic for something the build just showed).
+  Widget _naarVist(VoidCallback f) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) f();
+    });
+    return const SizedBox.shrink();
+  }
+
   /// The pulse before «Din beste» (spec §4.3): from 60 m before the best not yet passed in this run — none in the
   /// week's first run (no best yet).
   void _puls(FjordLoop loop) {
@@ -494,6 +547,9 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _ticker.stop();
     _perf.stop();
     _hap.hold(true); // stop, and nothing new while paused (spec §6)
+    // Step 5: U03 when the player pauses, U04 the knock for «Du har en melding fra budet».
+    if (grunn == 'manuell') _hap.preview(HaptikkId.u03);
+    if (grunn == 'trenger') _hap.preview(HaptikkId.u04);
     _nedtelling?.cancel();
     setState(() {
       _fase = _Fase.pause;
@@ -506,6 +562,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   void _fortsett() {
     if (_fase != _Fase.pause) return;
     setState(() => _teller = 3);
+    _hap.preview(HaptikkId.u02);
     _nedtelling?.cancel();
     _nedtelling = Timer.periodic(const Duration(milliseconds: 800), (t) {
       if (!mounted || _fase != _Fase.pause) {
@@ -527,6 +584,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       } else {
         setState(() => _teller = (_teller ?? 3) - 1);
         _lyder.spill('blip');
+        _hap.preview(HaptikkId.u02);
       }
     });
   }
@@ -566,6 +624,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     } else {
       sett();
     }
+    // Step 5: U07 with the «Nytt merke» card (allowed in the silence after a collision); the knock that waited for
+    // the run (DH9) — after a collision it waits for the next touch.
+    if (vis && grunn != 'forlatt' && _nyttMerke(s, res) != null) _hap.play(HaptikkId.u07);
+    if (_bankVenter && grunn != 'ved_dora' && grunn != 'kollisjon') _bank();
     await LopetLager.lagre(token: token, s: s, inputs: loop.inputsJson(), result: res.toJson(), startedMs: _startetMs,
         perf: _perf.frames > 0 ? _perf.toJson(_q?.level.key ?? 'low') : null, appVersion: _appVersion);
     // Spec §12.5: one step up after a whole run with a p99 under the limit.
@@ -673,6 +735,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
   /// run is kept before the screen goes.
   void _vedDora() {
     if (_fase != _Fase.spill && _fase != _Fase.pause) return;
+    // Step 5 (TH5): the knock-knock stops whatever is playing — it outranks everything.
+    _hap.stop();
+    _hap.preview(HaptikkId.u05);
+    _bankVenter = false;
     unawaited(_avslutt('ved_dora').whenComplete(() {
       if (!mounted) return;
       _doraTimer?.cancel();
@@ -747,7 +813,10 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
       },
       // Haptics plan Step 4: any touch ends the silence after a collision (spec §6).
       child: Listener(
-      onPointerDown: (_) => _hap.touch(),
+      onPointerDown: (_) {
+        _hap.touch();
+        if (_bankVenter && _fase != _Fase.spill && _fase != _Fase.pause) _bank();
+      },
       child: Scaffold(
       backgroundColor: const Color(0xFF0C2A38),
       body: SafeArea(
@@ -823,6 +892,11 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
             LopetLosgrad(s: s),
           ],
         ),
+        if (s.bonusGranted && !_bonusVist) _naarVist(() {
+          // Step 5: U08 the first time the bonus chip is shown.
+          _bonusVist = true;
+          _hap.play(HaptikkId.u08);
+        }),
         if (s.bonusGranted) ...[
           const SizedBox(height: 10),
           Align(alignment: Alignment.centerLeft, child: _Chip(key: const Key('lopet-bonus'), tekst: LopetCopy.forsinket, farge: const Color(0xFFF2C14E))),
@@ -844,9 +918,13 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         LopetBoyer(antall: s.runsAllowed, igjen: igjen, vest: _nesteFullMaaler(s)),
         const SizedBox(height: 14),
         if (s.noNewRun) ...[
-          _Melding(key: const Key('lopet-snart'), tekst: LopetCopy.snartFremme, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () => _hap.play(HaptikkId.u09),
+            child: _Melding(key: const Key('lopet-snart'), tekst: LopetCopy.snartFremme, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
+          ),
         ] else if (igjen > 0)
-          AeKnappPille(key: const Key('lopet-sett-seil'), label: LopetCopy.settSeil, onPressed: _settSeilMedOvergang)
+          AeKnappPille(key: const Key('lopet-sett-seil'), label: LopetCopy.settSeil, onPressed: () => _seil(_settSeilMedOvergang))
         else
           _Melding(key: const Key('lopet-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
         const SizedBox(height: 10),
@@ -1246,7 +1324,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         else if (s != null && s.noNewRun)
           _Melding(tekst: LopetCopy.snartFremme, knapp: LopetCopy.tilSporing, onTap: _tilSporing)
         else if (igjen > 0)
-          AeKnappPille(key: const Key('lopet-seil-igjen'), label: LopetCopy.seilIgjen(igjen), leading: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20), onPressed: _settSeil)
+          AeKnappPille(key: const Key('lopet-seil-igjen'), label: LopetCopy.seilIgjen(igjen), leading: const Icon(Icons.refresh_rounded, color: Colors.white, size: 20), onPressed: () => _seil(_settSeil))
         else
           _Melding(key: const Key('lopet-slutt-neste'), tekst: LopetCopy.nesteSeilas, knapp: LopetCopy.tilSporing, onTap: _tilSporing),
         if (!vedDora)

@@ -5,7 +5,8 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../../../data/points/points_models.dart';
-import '../../../ui/kit/ae_haptic.dart';
+import '../../../game/fjordlopet/haptics/game_haptics.dart';
+import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_motion.dart' show LfLoop;
 import '../../common/home/bergen/bergen_kit.dart';
@@ -274,7 +275,8 @@ class _PoengKreditertState extends State<PoengKreditert> with TickerProviderStat
   late final AnimationController _ut = AnimationController(vsync: this, duration: const Duration(milliseconds: 260));
   final GlobalKey _lag = GlobalKey(), _stor = GlobalKey(), _liten = GlobalKey(), _total = GlobalKey(), _saldo = GlobalKey();
   late final _Fx _fx = _Fx(seed: d.pg * 7919 + d.rader.length, tid: tid);
-  int _landet = 0;
+  int _raderVist = 0;
+  bool _fanfare = false;
 
   bool get _ferdig => _c.value >= 1;
   double get _t => _c.value * tid.total;
@@ -293,18 +295,31 @@ class _PoengKreditertState extends State<PoengKreditert> with TickerProviderStat
     });
   }
 
-  /// Haptics on the landings (every third), and once at the end.
+  /// Fjordløpet haptics plan Step 5 (DH5): a light coin (U06) as each points row appears and the fanfare (U11) when
+  /// the level changes — through GameHaptics at the player's game level; the per-coin ticks and the heavy end pulse
+  /// are gone. Skipped to the end (or reduce motion — haptics do not follow it): one U06, or U11 on a new level.
   void _tikk() {
-    if (!tid.medKort) return;
-    var n = 0;
-    for (var k = 0; k < tid.nc; k++) {
-      if (_t >= tid.lander(k)) n++;
+    final h = GameHaptics.felles;
+    if (_ferdig) {
+      if (!_fanfare && d.nyttNivaa) {
+        _fanfare = true;
+        h.play(HaptikkId.u11);
+      } else if (_raderVist == 0 && d.rader.isNotEmpty) {
+        h.play(HaptikkId.u06);
+      }
+      _raderVist = d.rader.length;
+      return;
     }
-    if (n != _landet && !_ferdig) {
-      if (n % 3 == 1) AeHaptikk.tikk();
-      if (n == tid.nc) AeHaptikk.tung();
+    var r = 0;
+    for (var i = 0; i < tid.nR; i++) {
+      if (_t >= tid.tR(i)) r++;
     }
-    _landet = n;
+    if (r > _raderVist) h.play(HaptikkId.u06);
+    _raderVist = r;
+    if (!_fanfare && d.nyttNivaa && _t >= tid.tEnd) {
+      _fanfare = true;
+      h.play(HaptikkId.u11);
+    }
   }
 
   @override

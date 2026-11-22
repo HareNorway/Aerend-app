@@ -98,7 +98,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
     await tester.tap(find.byKey(const Key('lopet-sett-seil')));
     await tester.pump();
-    expect(k.played.first, 'h14', reason: 'control starts');
+    // «Sett seil» plays U01; control starts on the same moment here (no transition in tests), so H14 — lower — is
+    // dropped by «one at a time».
+    expect(k.played.first, 'u01');
     expect(h.holdt, isFalse);
 
     for (var i = 0; i < 10; i++) {
@@ -116,7 +118,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 800));
     }
     expect(h.holdt, isFalse);
-    expect(k.played.where((p) => p == 'h14'), hasLength(2), reason: 'control starts again after 3 · 2 · 1');
+    expect(k.played.where((p) => p == 'h14'), hasLength(1), reason: 'control starts again after 3 · 2 · 1');
 
     for (var i = 0; i < 300 && find.byKey(const Key('lopet-slutt')).evaluate().isEmpty; i++) {
       await tester.pump(const Duration(milliseconds: 100));

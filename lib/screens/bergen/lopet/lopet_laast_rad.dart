@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../game/fjordlopet/haptics/game_haptics.dart';
+import '../../../game/fjordlopet/haptics/haptikk_moenster.dart';
 import 'lopet_copy.dart';
 import 'lopet_liste.dart';
 
@@ -40,7 +42,11 @@ class _LopetLaastRadState extends State<LopetLaastRad> {
     final best = (s['best_m'] as num?)?.toInt();
     final weeks = (s['weeks_sailed'] as num?)?.toInt() ?? 0;
     final maal = LopetCopy.maalFra(s['nearest_goal']);
-    return Container(
+    // Haptics plan Step 5: a tap on the locked row says «not now» (U09); it still opens nothing.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => GameHaptics.felles.play(HaptikkId.u09),
+      child: Container(
       key: const Key('lopet-laast-rad'),
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.fromLTRB(14, 11, 14, 11),
@@ -65,6 +71,7 @@ class _LopetLaastRadState extends State<LopetLaastRad> {
           ),
         ],
       ),
+    ),
     );
   }
 }

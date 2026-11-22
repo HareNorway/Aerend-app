@@ -184,12 +184,16 @@ final class GameHapticsChannel {
     return ["tier": "standard", "why": "engine"]
   }
 
+  /// Starts the engine; a new engine (after a failure) means the players are rebuilt.
   private func startEngine() -> Bool {
     do {
+      var fresh = false
       if engine == nil {
+        fresh = true
         let e = try CHHapticEngine()
         e.playsHapticsOnly = true
-        e.isAutoShutdownEnabled = false
+        // The engine sleeps when idle (the shared instance is never released) and is started again on the next play.
+        e.isAutoShutdownEnabled = true
         // The handlers come on a Core Haptics queue; the players are only touched on the main queue (the channel's).
         e.stoppedHandler = { [weak self] _ in
           DispatchQueue.main.async { self?.needsStart = true }
@@ -210,6 +214,7 @@ final class GameHapticsChannel {
       }
       try engine?.start()
       needsStart = false
+      if fresh && !table.isEmpty { build() }
       return true
     } catch {
       engine = nil
@@ -271,8 +276,8 @@ final class GameHapticsChannel {
   private func play(_ key: String) {
     guard tier == "rich" else { return }
     if needsStart {
+      // Stopped (idle, background, an interruption): start again; the players survive a stop, not a reset.
       guard startEngine() else { return }
-      build()
     }
     guard let player = players[key] else { return }
     try? current?.stop(atTime: CHHapticTimeImmediate)
