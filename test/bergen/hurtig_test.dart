@@ -11,6 +11,8 @@ import 'package:aerend_customer/screens/bergen/hurtig/hurtig_copy.dart';
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_data.dart';
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_bits.dart';
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_kort.dart';
+import 'package:aerend_customer/screens/bergen/hurtig/hurtig_utkast.dart';
+import 'package:aerend_customer/screens/bergen/kasse/kurv_screen.dart' show KurvScreen;
 import 'package:aerend_customer/screens/bergen/hurtig/hurtig_screen.dart';
 import 'package:aerend_customer/screens/common/manageAddress/manage_address_dl.dart';
 
@@ -75,6 +77,29 @@ final HurtigData kData = HurtigData(
 class _FakeKasse extends OpsKasseApi {
   KurvState state = const KurvState();
   final List<int> removed = [];
+  // Design 21 Nov (D1): the chat never places an order.
+  static int placed = 0;
+
+  @override
+  Future<Map<String, dynamic>?> placeOrder({
+    required int storeId,
+    required int addressId,
+    required int paymentType,
+    required bool pickup,
+    required List<int> cartIds,
+    String note = '',
+    String? scheduleDateTime,
+    double tip = 0,
+    String? quoteId,
+    bool flex = false,
+    String? companyName,
+    String? companyOrgNr,
+    bool? useFreeDelivery,
+    int? premieLineClaimId,
+  }) async {
+    placed++;
+    return null;
+  }
   @override
   Future<KurvState> cart() async => state;
   @override
@@ -92,11 +117,26 @@ class _FakeCustomer extends OpsCustomerApi {
   Future<List<Map<String, dynamic>>> orders({int limit = 50}) async => const [];
 }
 
+late _FakeKasse _kasse;
+final List<(int, int, int)> _lagt = [];
+
 void main() {
   setUpAll(() => bootstrapGlobals(locale: 'no'));
   setUp(() {
     HurtigKilde.reset();
-    HurtigKilde.kasse = () => _FakeKasse();
+    _kasse = _FakeKasse();
+    _lagt.clear();
+    _FakeKasse.placed = 0;
+    KurvScreen.hurtigTid = null;
+    HurtigKilde.kasse = () => _kasse;
+    // The lines «Gå til kassen» sends to the basket; the fake basket fills with them.
+    HurtigKilde.leggTil = (store, product, qty) async {
+      _lagt.add((store, product, qty));
+      _kasse.state = KurvState(storeId: store, lines: [
+        for (var i = 0; i < _lagt.length; i++)
+          KurvLine(cartId: i + 1, productId: _lagt[i].$2, name: '${_lagt[i].$2}', quantity: _lagt[i].$3, unitPrice: 10, storeId: store),
+      ]);
+    };
     HurtigKilde.customer = () => _FakeCustomer();
     HurtigKilde.butikk = () => OpsButikkApi();
     HurtigKilde.memory = () async => const <MemoryEntry>[];
@@ -166,10 +206,20 @@ void main() {
       expect(s.tekst, 'Samme som tirsdag, altså pad thai med kylling fra Fyllingsdalen Wok.');
     });
 
-    test('tolk: «bestill» appends the five-second warning and orders', () {
+    test('tolk: «bestill» sends the draft to the checkout (Design 21 Nov D1)', () {
       final s = h.tolk('bestill det vanlige', st);
       expect(s.bestill, isTrue);
-      expect(s.tekst, endsWith('Jeg bestiller om fem sekunder, trykk Angre hvis du ombestemmer deg.'));
+      expect(s.tekst, endsWith('Jeg legger det i kassen, så bekrefter du der.'));
+      final ja = h.tolk('ja', HbTilstand(utkast: s.utkast));
+      expect(ja.bestill, isTrue);
+      expect(ja.tekst, 'Da legger jeg det i kassen. Der ser du over levering og betaling før du bestiller.');
+    });
+
+    test('klokkeslett: the draft time handed to the Kurv', () {
+      expect(HurtigHjerne.klokkeslett('Kl. 18:30'), '18:30');
+      expect(HurtigHjerne.klokkeslett('Kl. 9:00'), '09:00');
+      expect(HurtigHjerne.klokkeslett('Snarest'), isNull);
+      expect(HurtigHjerne.klokkeslett(''), isNull);
     });
 
     test('tolk: shellfish is questioned while the customer avoids it', () {
@@ -282,15 +332,50 @@ void main() {
       await svar(tester);
       expect(find.byType(HbUtkastKort), findsOneWidget);
       expect(find.text('ÆGILS UTKAST'), findsOneWidget);
-      expect(find.text('Bestill nå · 486 kr'), findsOneWidget);
-      expect(find.text('Gratis låst opp'), findsOneWidget);
-      expect(find.text('Legg i kurven i stedet'), findsOneWidget);
+      // Design 21 Nov (A1): the goods' sum on the pill, no in-chat order, the kassen note.
+      expect(find.text('Gå til kassen · 486 kr'), findsOneWidget);
+      expect(find.text('Gratis levering'), findsOneWidget);
+      expect(find.text('Ingenting bestilles før du bekrefter i kassen'), findsOneWidget);
+      expect(find.text('Levering, tid og betaling velger du i kassen.'), findsOneWidget);
+      expect(find.textContaining('Bestill nå'), findsNothing);
+      expect(find.text('Legg i kurven i stedet'), findsNothing);
+      expect(find.text('2 stk. · 149 kr per stk.'), findsOneWidget);
       // The stepper: minus on the soup → 1× → 149 + 179 + 9 = 337 kr, still free.
-      await trykk(tester, find.descendant(of: find.byType(HbUtkastKort), matching: find.byWidgetPredicate((w) => w is HbIkon && w.d == HbIkoner.minus)).first);
-      expect(find.text('Bestill nå · 337 kr'), findsOneWidget);
-      // The time tile cycles Snarest → the next half hour.
-      await trykk(tester, find.text('Snarest'));
-      expect(find.text('Kl. 18:30'), findsOneWidget);
+      await trykk(tester, find.descendant(of: find.byKey(const Key('a1_hurtig_rad_101')), matching: find.byWidgetPredicate((w) => w is HbIkon && w.d == HbIkoner.minus)));
+      expect(find.text('Gå til kassen · 337 kr'), findsOneWidget);
+      expect(find.text('1 stk. · 149 kr per stk.'), findsOneWidget);
+    });
+
+    testWidgets('«Gå til kassen» moves the lines and the time to the basket, says it, and orders nothing', (tester) async {
+      phone(tester);
+      String? ut;
+      await tester.pumpWidget(host(
+        home: Builder(
+          builder: (c) => TextButton(
+            onPressed: () async => ut = await Navigator.of(c).push<String>(MaterialPageRoute(builder: (_) => HurtigScreen(data: kData, now: kNow))),
+            child: const Text('åpne'),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('åpne'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.enterText(find.byKey(const Key('a1_hurtig_felt')), 'det vanlige kl 18:30');
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await svar(tester);
+      expect(find.text('Levering, tid og betaling velger du i kassen · ønsket tid 18:30.'), findsOneWidget);
+      await trykk(tester, find.byKey(const Key('a1_hurtig_til_kassen')));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(_lagt, [(1, 101, 2), (1, 103, 1), (1, 104, 1)], reason: 'the draft lines, one call each, to the Torgboden basket');
+      expect(KurvScreen.hurtigTid, '18:30');
+      expect(find.textContaining('Lagt i kassen: 2× fiskesuppe'), findsOneWidget);
+      expect(find.text('Til kassen'), findsOneWidget);
+      expect(find.text('4 varer fra Torgboden ligger i kassen'), findsOneWidget);
+      expect(find.byType(HbUtkastKort), findsNothing);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(ut, HurtigScreen.tilKurv, reason: 'Hjem switches to the Kurv tab');
+      expect(_FakeKasse.placed, 0, reason: 'no order is placed from the chat');
     });
 
     testWidgets('module key → the «oftest» card, + adds to the draft', (tester) async {
@@ -308,7 +393,7 @@ void main() {
       await trykk(tester, find.descendant(of: find.byType(HbOftestKort), matching: find.byWidgetPredicate((w) => w is HbIkon && w.d == HbIkoner.pluss)).first);
       await tester.pump(const Duration(milliseconds: 600));
       expect(find.byType(HbUtkastKort), findsOneWidget);
-      expect(find.text('Bestill nå · 337 kr'), findsOneWidget);
+      expect(find.text('Gå til kassen · 298 kr'), findsOneWidget);
       expect(find.descendant(of: find.byType(HbOftestKort), matching: find.byWidgetPredicate((w) => w is HbIkon && w.d == HbIkoner.hake)), findsOneWidget);
     });
 
@@ -339,7 +424,7 @@ void main() {
       expect(find.text('Kan komme i forslagene'), findsOneWidget);
     });
 
-    testWidgets('typing a dish sets up a draft; the countdown shows Angre and stops', (tester) async {
+    testWidgets('typing a dish sets up a draft; a stepper to 0 empties it', (tester) async {
       phone(tester);
       await tester.pumpWidget(host());
       await tester.pump(const Duration(milliseconds: 100));
@@ -347,17 +432,13 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.send);
       await svar(tester);
       expect(find.text('Satt opp: 2× pad thai med kylling fra Fyllingsdalen Wok.'), findsOneWidget);
-      expect(find.text('Bestill nå · 378 kr'), findsOneWidget);
-      await trykk(tester, find.text('Bestill nå · 378 kr'));
-      expect(find.text('Angre · bestiller om 5 s'), findsOneWidget);
-      expect(find.text('Betales med Vipps når tiden er ute'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 1));
-      expect(find.text('Angre · bestiller om 4 s'), findsOneWidget);
-      await trykk(tester, find.text('Angre · bestiller om 4 s'));
+      expect(find.text('Gå til kassen · 378 kr'), findsOneWidget);
+      final minus = find.descendant(of: find.byKey(const Key('a1_hurtig_rad_201')), matching: find.byWidgetPredicate((w) => w is HbIkon && w.d == HbIkoner.minus));
+      await trykk(tester, minus);
+      await trykk(tester, minus);
       await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Bestill nå · 378 kr'), findsOneWidget);
-      expect(find.text('Stoppet. Utkastet ligger her til du er klar.'), findsOneWidget);
+      expect(find.byType(HbUtkastKort), findsNothing);
+      expect(_FakeKasse.placed, 0);
     });
 
     testWidgets('Start på nytt clears the conversation and the draft', (tester) async {

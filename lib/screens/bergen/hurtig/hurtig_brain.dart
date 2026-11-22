@@ -14,7 +14,7 @@ import 'hurtig_data.dart';
 // from an open one.
 
 /// A button under an Ægil bubble (`knapper`): [h] is the handler key
-/// (`si:…`, `leggtil:<id>`, `angrebytt`, `bestill`).
+/// (`si:…`, `leggtil:<id>`, `angrebytt`, `bestill` = to the checkout, `kasse`).
 class HbKnapp {
   const HbKnapp(this.tekst, this.h, {this.primar = false});
   final String tekst;
@@ -33,7 +33,6 @@ class HbSvar {
     this.tomUtkast = false,
     this.tid,
     this.bestill = false,
-    this.angre = false,
     this.ai = false,
   });
 
@@ -46,8 +45,9 @@ class HbSvar {
   final HbUtkast? utkast;
   final bool tomUtkast;
   final String? tid;
+
+  /// Design 21 Nov (D1): the draft goes to the checkout (`hbTilKasse`), never an order from here.
   final bool bestill;
-  final bool angre;
 
   /// The local rules gave up: ask the assistant API.
   final bool ai;
@@ -234,6 +234,9 @@ class HurtigHjerne {
   }
 
   /// `hbTekst`: «2× Fiskesuppe + Hjemmelaget brød».
+  /// «Kl. 18:30» → «18:30»; «Snarest» or anything else → null (Design 21 Nov D2: the time handed to the Kurv).
+  static String? klokkeslett(String tid) => RegExp(r'(\d{1,2}):(\d{2})').firstMatch(tid)?.let((m) => '${m.group(1)!.padLeft(2, '0')}:${m.group(2)}');
+
   String tekst(List<HbLinje> L, [String sep = ' + ']) => [
     for (final l in L)
       if (vare(l.id) != null) '${l.ant > 1 ? '${l.ant}× ' : ''}${vare(l.id)!.navn}',
@@ -413,9 +416,9 @@ class HurtigHjerne {
     final klH = klM != null ? int.parse(klM.group(1)!) : 0;
     final tid = klM != null && klH >= 11 && klH <= 23 ? HurtigCopy.klokken('${klH.toString().padLeft(2, '0')}:${klM.group(2) ?? '00'}') : '';
     final kjor = h(['bestill', 'kjør på', 'send den', 'send det']);
-    String etter(String t) => kjor ? t + HurtigCopy.bestillerOmFem : t;
+    // Design 21 Nov (D1): «bestill» / «kjør på» sends the draft to the checkout — nothing is ordered here.
+    String etter(String t) => kjor ? t + HurtigCopy.leggerIKassen : t;
 
-    if (st.fase == 'teller' && h(['angre', 'stopp', ' nei ', 'vent'])) return HbSvar(tekst: HurtigCopy.stoppet, humor: 'glad', angre: true);
     if (treff.isEmpty && h(['vanlig', 'oftest', 'favoritt', 'pleier'])) {
       final v = vane(st);
       if (v == null) return HbSvar(tekst: HurtigCopy.ingenHistorikk, humor: 'tenker');
@@ -437,7 +440,7 @@ class HurtigHjerne {
     }
     if (treff.isEmpty && h(['takk']) && !h(['nei takk'])) return HbSvar(tekst: HurtigCopy.bareHyggelig, humor: 'glad');
     if (U != null && treff.isEmpty && (kjor || h([' ja ', 'gjør det', 'perfekt', ' ok ', 'greit', 'flott', 'kjøp']))) {
-      return HbSvar(tekst: HurtigCopy.daBestillerJeg, humor: 'spent', bestill: true);
+      return HbSvar(tekst: HurtigCopy.daLeggerJeg, humor: 'spent', bestill: true);
     }
     if (h(['uten ', 'fjern', 'ta bort', 'dropp', 'ikke ', 'slett']) && U != null && treff.isNotEmpty) {
       final ids = treff.map((t) => t.v.id).toList();
@@ -563,4 +566,8 @@ void mergeSort<T>(List<T> list, int Function(T, T) compare) {
   while (j < right.length) {
     list[k++] = right[j++];
   }
+}
+
+extension _Let<T extends Object> on T {
+  R let<R>(R Function(T) f) => f(this);
 }

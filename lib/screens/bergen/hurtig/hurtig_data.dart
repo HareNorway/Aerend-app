@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
@@ -10,6 +11,7 @@ import '../../../networking/ops/ops_butikk_api.dart';
 import '../../../networking/ops/ops_customer_api.dart';
 import '../../../networking/ops/ops_kasse_api.dart';
 import '../../../utils/utils.dart';
+import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import 'hurtig_copy.dart';
 
 // ── Hurtigbestilling · data (prototype `HB_BUT` / `HB_MENY` / `HB_HIST0` /
@@ -238,6 +240,16 @@ abstract final class HurtigKilde {
   /// Customer Step 6: Min bio on the server (null while `cus.bio` is off) — «Unngår skalldyr» reads it too.
   static Future<CusBio?> Function() bio = () => CusApi().bio();
 
+  /// Design 21 Nov plan Step 4: one draft line into the server basket (`add-order-cart`, as the store page does).
+  static Future<void> Function(int storeId, int productId, int qty) leggTil = _leggTil;
+
+  static Future<void> _leggTil(int storeId, int productId, int qty) async {
+    prefSetInt('checkedSize', 0);
+    prefSetInt('checkedColor', 0);
+    prefSetString('checkedOptionList', jsonEncode(const <int>[]));
+    await StoreDetailRepo().callOrderCartApi(storeId, productId, qty);
+  }
+
   @visibleForTesting
   static void reset() {
     cache.value = null;
@@ -247,6 +259,7 @@ abstract final class HurtigKilde {
     butikk = () => OpsButikkApi();
     memory = () => AegilRepo().fetchMemory();
     bio = () => CusApi().bio();
+    leggTil = _leggTil;
   }
 
   static Future<HurtigData> load({bool refresh = false}) {

@@ -198,12 +198,11 @@ abstract final class HjemHarness {
   /// key (`oftest` / `forrige` / `pref`), `hurtigSi` sends a line,
   /// `hurtigTekst` types into the composer, `hurtigFokus` focuses it,
   /// `hurtigBestilt` shows the
-  /// «Bestilt» card for that (paid) order, `hurtigTeller` freezes the
-  /// countdown at N seconds (nothing is ordered), `hurtigScroll` scrolls the
-  /// conversation (design px).
+  /// «Bestilt» card for that (paid) order, `hurtigAct: tilKurv` sends the draft to the checkout, `hurtigScroll`
+  /// scrolls the conversation (design px).
   static bool hurtig = false, hurtigTenk = false, hurtigFokus = false;
   static String? hurtigMod, hurtigSi, hurtigTekst, hurtigAct;
-  static int? hurtigBestilt, hurtigTeller;
+  static int? hurtigBestilt;
   static double? hurtigScroll;
 
   /// Open Sporing for this order (`/bergen/sporing/{id}`); `sporingArk`
@@ -544,7 +543,7 @@ abstract final class HjemHarness {
         katLive = false;
         hurtig = hurtigTenk = hurtigFokus = false;
         hurtigMod = hurtigSi = hurtigTekst = hurtigAct = null;
-        hurtigBestilt = hurtigTeller = null;
+        hurtigBestilt = null;
         hurtigScroll = null;
         sporing = levert = null;
         sporingArk = sporingHjelp = levertArk = null;
@@ -762,7 +761,6 @@ abstract final class HjemHarness {
       hurtigFokus = m['hurtigFokus'] == true;
       hurtigAct = m['hurtigAct'] as String?;
       hurtigBestilt = m['hurtigBestilt'] as int?;
-      hurtigTeller = m['hurtigTeller'] as int?;
       hurtigScroll = (m['hurtigScroll'] as num?)?.toDouble();
       sporing = m['sporing'] as int?;
       levert = m['levert'] as int?;

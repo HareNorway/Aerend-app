@@ -100,21 +100,22 @@ abstract final class HurtigCopy {
   static String hosDegCa(String t) => _t('Hos deg ca. $t', 'At yours around $t');
   static String leveringTid(String t) => _t('Levering $t', 'Delivery $t');
   static String perStk(String kr) => _t('$kr / stk', '$kr each');
-  static String get leggTil => _t('LEGG TIL?', 'ADD?');
   static String get varer => _t('Varer', 'Items');
-  static String get levering => _t('Levering', 'Delivery');
-  static String get gratis => _t('Gratis', 'Free');
-  static String tilGratis(String kr) => _t('$kr til gratis', '$kr to free');
-  static String get gratisLaastOpp => _t('Gratis låst opp', 'Free unlocked');
-  static String get totalt => _t('Totalt', 'Total');
-  static String get leveresTil => _t('Leveres til', 'Delivered to');
-  static String get naar => _t('Når', 'When');
   static String get snarest => _t('Snarest', 'Soonest');
+  // Design 21 Nov plan Step 4 (A1): the draft hands over to the checkout.
+  static String get passerTil => _t('Passer til', 'Goes with');
+  static String get aegilForeslaar => _t('Ægil foreslår', 'Ægil suggests');
+  static String get gratisLevering => _t('Gratis levering', 'Free delivery');
+  static String tilGratisLevering(String kr) => _t('$kr til gratis levering', '$kr to free delivery');
+  static String kasseTekst(String? tid) => _t('Levering, tid og betaling velger du i kassen${tid != null ? ' · ønsket tid $tid' : ''}.', 'Delivery, time and payment are chosen at checkout${tid != null ? ' · wanted time $tid' : ''}.');
+  static String gaaTilKassen(String kr) => _t('Gå til kassen · $kr', 'Go to checkout · $kr');
+  static String get ingentingBestilles => _t('Ingenting bestilles før du bekrefter i kassen', 'Nothing is ordered before you confirm at checkout');
+  static String lagtIKassen(String linjer, String butikk) => _t('Lagt i kassen: $linjer fra $butikk. Der velger du levering, tid og betaling.', 'In the checkout: $linjer from $butikk. Pick delivery, time and payment there.');
+  static String get tilKassen => _t('Til kassen', 'To checkout');
+  static String liggerIKassen(int n, String butikk) => _t('$n ${n == 1 ? 'vare' : 'varer'} fra $butikk ligger i kassen', '$n ${n == 1 ? 'item' : 'items'} from $butikk in the checkout');
+  static String get daLeggerJeg => _t('Da legger jeg det i kassen. Der ser du over levering og betaling før du bestiller.', 'Then I\'ll put it in the checkout. You check delivery and payment there before you order.');
+  static String get leggerIKassen => _t(' Jeg legger det i kassen, så bekrefter du der.', ' I\'ll put it in the checkout and you confirm there.');
   static String klokken(String t) => _t('Kl. $t', 'At $t');
-  static String bestillNaa(String kr) => _t('Bestill nå · $kr', 'Order now · $kr');
-  static String angreOm(int s) => _t('Angre · bestiller om $s s', 'Undo · ordering in $s s');
-  static String get leggIKurvenIStedet => _t('Legg i kurven i stedet', 'Put it in the basket instead');
-  static String get betalesMedVipps => _t('Betales med Vipps når tiden er ute', 'Paid with Vipps when the time is up');
 
   // ── bottom bar ──────────────────────────────────────────────────────────
   static String get modOftest => _t('Oftest bestilt', 'Most ordered');
@@ -164,9 +165,6 @@ abstract final class HurtigCopy {
     'This is what I\'ve learned about you. Based on it I\'d get $linjer from $butikk tonight.',
   );
   static String get ingenHistorikk => _t('Jeg har ingen bestillinger å gå ut fra ennå. Si hva du har lyst på, så setter jeg det opp.', 'I have no orders to go by yet. Tell me what you feel like and I\'ll set it up.');
-  static String get bestillerOmFem => _t(' Jeg bestiller om fem sekunder, trykk Angre hvis du ombestemmer deg.', ' I\'ll order in five seconds, tap Undo if you change your mind.');
-  static String get stoppet => _t('Stoppet! Utkastet ligger her til du er klar.', 'Stopped! The draft stays here until you\'re ready.');
-  static String get stoppetRolig => _t('Stoppet. Utkastet ligger her til du er klar.', 'Stopped. The draft stays here until you\'re ready.');
   static String vanligSvar(String dag, String linjer, String butikk) => _t(
     'Det vanlige på en $dag er $linjer fra $butikk. Utkastet er klart.',
     'The usual on a $dag is $linjer from $butikk. The draft is ready.',
@@ -184,7 +182,6 @@ abstract final class HurtigCopy {
     'Hi there! Say "the usual", "same as last time" or just what you feel like, and I\'ll set up the order.',
   );
   static String get bareHyggelig => _t('Bare hyggelig! Si fra hvis du vil ha noe mer.', 'You\'re welcome! Say so if you want anything else.');
-  static String get daBestillerJeg => _t('Da bestiller jeg! Du har fem sekunder på å angre.', 'Ordering! You have five seconds to undo.');
   static String get ikkeIUtkastet => _t('Det står ikke i utkastet, så alt er som før.', 'That isn\'t in the draft, so everything is as before.');
   static String fjernet(String hva) => _t('Fjernet $hva.', 'Removed $hva.');
   static String fjernetTomt(String hva) => _t('Fjernet $hva. Nå er utkastet tomt. Hva vil du ha i stedet?', 'Removed $hva. The draft is empty now. What would you like instead?');
@@ -248,20 +245,10 @@ abstract final class HurtigCopy {
     'Ordered! $butikk has the order and the courier is notified. I\'ll tell you when the food is on its way.',
   );
   static String bestiltToast(String kode) => _t('Bestilt · $kode', 'Ordered · $kode');
-  static String get utkastetIKurven => _t('Utkastet ligger i kurven', 'The draft is in your basket');
   static String get sattOppVane => _t('Satt opp! ', 'Set up! ');
   static String liggerIUtkastet(String hva) => _t('$hva ligger i utkastet.', '$hva is in the draft.');
   static String sammeSomLigger(String dato) => _t('Samme som $dato ligger i utkastet.', 'Same as $dato is in the draft.');
   static String get sattOppEtterPref => _t('Satt opp etter preferansene dine. Du kan justere alt i utkastet.', 'Set up from your preferences. You can adjust everything in the draft.');
-  static String get vippsAapnet => _t(
-    'Vipps er åpnet. Bestillingen går gjennom så snart betalingen er bekreftet.',
-    'Vipps is open. The order goes through as soon as the payment is confirmed.',
-  );
-  static String get betalingIkkeFullfort => _t(
-    'Betalingen ble ikke fullført. Utkastet ligger her til du er klar.',
-    'The payment wasn\'t completed. The draft stays here until you\'re ready.',
-  );
-  static String get velgAdresseForst => _t('Velg en leveringsadresse først', 'Pick a delivery address first');
 
   // ── days and dates ──────────────────────────────────────────────────────
   static const List<String> dagerNo = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag', 'søndag'];

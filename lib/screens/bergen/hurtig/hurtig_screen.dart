@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -7,13 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
 import '../../../ui/kit/ae_haptic.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../utils/utils.dart';
 import '../../common/auth/launch/lf_css.dart';
 import '../../common/auth/launch/lf_motion.dart';
 import '../../common/home/bergen/bergen_kit.dart' show BergenWeather, BergenWeatherLook;
-import '../../deliveryService/storeDetail/store_detail_repo.dart';
 import '../hjem/hjem_harness.dart';
 import '../hjem/hjem_hero.dart' show HjemVaer;
 import '../kasse/kasse_copy.dart';
@@ -32,6 +29,8 @@ import 'hurtig_copy.dart';
 import 'hurtig_data.dart';
 import 'hurtig_glass.dart' show kHbLysIkon, kHbLysRing;
 import 'hurtig_kort.dart';
+import 'hurtig_utkast.dart';
+import '../kasse/kurv_screen.dart' show KurvScreen;
 import '../kit/bergen_perf.dart';
 import 'package:aerend_customer/screens/bergen/kit/css_decoration.dart';
 import '../../../theme/lys/lys_palett.dart';
@@ -101,14 +100,15 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   /// Customer Step 15: the route's `mod` / `si` applied once.
   bool _rute = false;
   String _fase = 'utkast';
-  int _teller = 0;
   bool _tenker = false;
   String _modAktiv = '';
   int? _hus;
   bool? _skalldyr;
-  int? _venterOrdreId;
   bool _plasserer = false;
-  Timer? _hbT, _hbC, _poll;
+  Timer? _hbT;
+
+  /// Design 21 Nov (A1): a line on its way out of the draft (quantity 0) slides left for 220 ms before it leaves.
+  final Set<int> _ut = {};
   final TextEditingController _tekst = TextEditingController();
   final FocusNode _fokus = FocusNode();
   final ScrollController _scroll = ScrollController();
@@ -196,16 +196,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         final o = rows.where((o) => '${o['order_id']}' == '$id').firstOrNull;
         if (o != null && mounted) _bestiltFerdig(o);
       }
-      if (HjemHarness.hurtigTeller case final n?) {
-        // The countdown frozen at n seconds: a frame check, nothing ordered.
-        await Future.delayed(const Duration(milliseconds: 1600));
-        if (!mounted || _utkast == null) return;
-        _hbC?.cancel();
-        setState(() {
-          _fase = 'teller';
-          _teller = n;
-        });
-      }
       if (HjemHarness.hurtigTenk) {
         // The typing indicator, held (a frame check).
         setState(() {
@@ -216,7 +206,7 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       }
       if (HjemHarness.hurtigAct == 'tilKurv') {
         await Future.delayed(const Duration(milliseconds: 1600));
-        if (mounted) _tilKurv();
+        if (mounted) _tilKassen();
       }
       if (HjemHarness.hurtigScroll case final y?) {
         await Future.delayed(const Duration(milliseconds: 1800));
@@ -230,17 +220,10 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _hbT?.cancel();
-    _hbC?.cancel();
-    _poll?.cancel();
     _tekst.dispose();
     _fokus.dispose();
     _scroll.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _venterOrdreId != null) _sjekkBetaling();
   }
 
   // ── the conversation ────────────────────────────────────────────────────
@@ -291,12 +274,11 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   /// `hbSettUtkast`.
   void _settUtkast(int butikkId, String butikk, List<HbLinje> linjer, [String? tid]) {
     final L = [for (final l in linjer) if (l.ant > 0 && _h.vare(l.id) != null) l];
-    _hbC?.cancel();
+    _ut.clear();
     if (L.isEmpty) {
       setState(() {
         _utkast = null;
         _fase = 'utkast';
-        _teller = 0;
       });
       return;
     }
@@ -305,16 +287,14 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       _forrigeU = gml != null && gml.butikkId != butikkId ? gml : _forrigeU;
       _utkast = HbUtkast(butikkId: butikkId, butikk: butikk, linjer: [for (final l in L) HbLinje(l.id, math.min(20, l.ant))], tid: tid ?? gml?.tid ?? HurtigCopy.snarest);
       _fase = 'utkast';
-      _teller = 0;
     });
     _rullNed();
   }
 
-  /// `hbEndre`.
-  void _endre(int id, int d) {
+  /// `hbEndre`. A line going to 0 slides out first (220 ms, design `hbEndre`'s exit), unless motion is reduced.
+  void _endre(int id, int d, {bool ferdig = false}) {
     final U = _utkast;
     if (U == null) return;
-    _hbC?.cancel();
     final L = U.linjer.toList();
     final i = L.indexWhere((l) => l.id == id);
     if (i < 0) {
@@ -322,6 +302,14 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     } else {
       final n = math.min(20, L[i].ant + d);
       if (n <= 0) {
+        if (!ferdig && !_ut.contains(id) && !MediaQuery.disableAnimationsOf(context)) {
+          setState(() => _ut.add(id));
+          Timer(const Duration(milliseconds: 220), () {
+            if (mounted) _endre(id, d, ferdig: true);
+          });
+          return;
+        }
+        _ut.remove(id);
         L.removeAt(i);
       } else {
         L[i] = L[i].med(n);
@@ -330,7 +318,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     setState(() {
       _utkast = L.isEmpty ? null : U.kopi(linjer: L);
       _fase = 'utkast';
-      _teller = 0;
     });
     _rullNed();
   }
@@ -385,18 +372,21 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     if (k == 'angrebytt') {
       final P = _forrigeU;
       if (P != null) {
-        _hbC?.cancel();
         setState(() {
           _utkast = P;
           _forrigeU = null;
           _fase = 'utkast';
-          _teller = 0;
         });
         _aegil(HurtigCopy.tilbakeTil(P.butikk), 'glad', const [], vent: 400);
       }
       return;
     }
-    if (k == 'bestill') return _bestill();
+    // Design 21 Nov (D1): «bestill» and the Ægil line's «Til kassen» both land in the checkout.
+    if (k == 'bestill') {
+      unawaited(_tilKassen());
+      return;
+    }
+    if (k == 'kasse') return Navigator.of(context).pop(HurtigScreen.tilKurv);
   }
 
   String _modTekst(String m) => switch (m) {
@@ -432,9 +422,9 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       } else if (svar.tid != null && svar.tid!.isNotEmpty && _utkast != null) {
         setState(() => _utkast = _utkast!.kopi(tid: svar.tid));
       }
-      if (svar.angre) _angre(true);
       _aegil(svar.tekst, svar.humor, svar.knapper, modul: svar.modul, vent: 0);
-      if (svar.bestill) Timer(const Duration(milliseconds: 380), _bestill);
+      // Design 21 Nov (A1): `bestill` = the draft to the checkout, 1 100 ms after the answer (was an order in 380 ms).
+      if (svar.bestill) Timer(const Duration(milliseconds: 1100), _tilKassen);
     });
   }
 
@@ -467,7 +457,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
 
   /// `hbNy`.
   void _ny() {
-    _hbC?.cancel();
     _hbT?.cancel();
     AeHaptikk.tikk();
     final v = _h.velkomst(_st);
@@ -479,7 +468,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       _utkast = null;
       _forrigeU = null;
       _fase = 'utkast';
-      _teller = 0;
       _tenker = false;
       _modAktiv = '';
       _tekst.clear();
@@ -487,42 +475,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
   }
 
   // ── ordering ────────────────────────────────────────────────────────────
-
-  /// `hbBestill`: five seconds to change your mind.
-  void _bestill() {
-    final U = _utkast;
-    if (U == null || U.linjer.isEmpty || _fase == 'teller' || _plasserer) return;
-    _hbC?.cancel();
-    AeHaptikk.fast();
-    setState(() {
-      _fase = 'teller';
-      _teller = 5;
-    });
-    _hbC = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? true)) {
-        t.cancel();
-        if (mounted) _angre(true);
-        return;
-      }
-      final n = _teller - 1;
-      if (n > 0) {
-        setState(() => _teller = n);
-        return;
-      }
-      t.cancel();
-      _fullfor();
-    });
-  }
-
-  /// `hbAngre`.
-  void _angre([bool stille = false]) {
-    _hbC?.cancel();
-    setState(() {
-      _fase = 'utkast';
-      _teller = 0;
-    });
-    if (!stille) _aegil(HurtigCopy.stoppetRolig, 'glad', const [], vent: 300);
-  }
 
   /// The draft's lines into the real basket (one shop at a time).
   Future<bool> _fyllKurven(HbUtkast U) async {
@@ -534,11 +486,8 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
       }
     }
     for (final l in U.linjer) {
-      prefSetInt('checkedSize', 0);
-      prefSetInt('checkedColor', 0);
-      prefSetString('checkedOptionList', jsonEncode(const <int>[]));
       try {
-        await StoreDetailRepo().callOrderCartApi(U.butikkId, l.id, l.ant);
+        await HurtigKilde.leggTil(U.butikkId, l.id, l.ant);
       } catch (_) {}
     }
     cart = await k.cart();
@@ -546,99 +495,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     prefSetInt(prefCartCount, cart.lines.length);
     BergenCart.syncBadge(context, cart.lines.length);
     return !cart.isEmpty;
-  }
-
-  /// `hbFullfor`, for real: the lines into the basket, the order placed with
-  /// Vipps (the same request the Kassen sends), Vipps opened, and the
-  /// confirmation once the payment callback has landed.
-  Future<void> _fullfor() async {
-    final U = _utkast;
-    final d = _d;
-    if (U == null || d == null || _plasserer) return;
-    setState(() => _plasserer = true);
-    try {
-      if (d.adresseId == 0) {
-        showBergenToast(context, HurtigCopy.velgAdresseForst);
-        return _angre(true);
-      }
-      if (!await _fyllKurven(U)) {
-        if (mounted) AeHaptikk.feil();
-        if (mounted) showBergenToast(context, BergenRoutes.ikkeIKurven);
-        return _angre(true);
-      }
-      final k = HurtigKilde.kasse();
-      final cart = await k.cart();
-      String? schedule;
-      final m = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(U.tid);
-      if (m != null) {
-        final n = _h.now;
-        String two(int v) => v.toString().padLeft(2, '0');
-        schedule = '${n.year}-${two(n.month)}-${two(n.day)} ${m.group(1)!.padLeft(2, '0')}:${m.group(2)}:00';
-      }
-      final response = await k.placeOrder(
-        storeId: U.butikkId,
-        addressId: d.adresseId,
-        paymentType: 3,
-        pickup: false,
-        cartIds: [for (final l in cart.lines) l.cartId],
-        scheduleDateTime: schedule,
-      );
-      if (!mounted) return;
-      if (response == null || response['status'] != 1) {
-        AeHaptikk.feil();
-        showBergenToast(context, '${response?['message'] ?? BergenRoutes.provIgjen}');
-        return _angre(true);
-      }
-      final orderId = (response['order_id'] as num?)?.toInt() ?? 0;
-      prefSetInt('bookedOrderId', orderId);
-      final url = orderId > 0 ? await k.vippsRedirect(orderId) : null;
-      if (!mounted) return;
-      if (url == null) {
-        AeHaptikk.feil();
-        showBergenToast(context, KasseCopy.a1_kasse_vipps);
-        return _angre(true);
-      }
-      _venterOrdreId = orderId;
-      setState(() {
-        _fase = 'venter';
-        _teller = 0;
-      });
-      _aegil(HurtigCopy.vippsAapnet, 'tenker', const [], vent: 0);
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else if (mounted) {
-        showBergenToast(context, KasseCopy.a1_kasse_vipps);
-      }
-      _poll?.cancel();
-      var ticks = 0;
-      _poll = Timer.periodic(const Duration(seconds: 3), (t) {
-        if (!mounted || _venterOrdreId == null || ticks++ > 300) return t.cancel();
-        _sjekkBetaling();
-      });
-    } finally {
-      if (mounted) setState(() => _plasserer = false);
-    }
-  }
-
-  /// Has the payment confirmation landed for the order we sent to Vipps?
-  Future<void> _sjekkBetaling() async {
-    final id = _venterOrdreId;
-    if (id == null) return;
-    final rows = await HurtigKilde.customer().orders(limit: 10);
-    if (!mounted || _venterOrdreId != id) return;
-    final o = rows.where((o) => '${o['order_id']}' == '$id').firstOrNull;
-    if (o == null) return;
-    if (o['paid'] == true) {
-      _venterOrdreId = null;
-      _poll?.cancel();
-      _bestiltFerdig(o);
-    } else if ('${o['state']}' == 'cancelled') {
-      _venterOrdreId = null;
-      _poll?.cancel();
-      setState(() => _fase = 'utkast');
-      _aegil(HurtigCopy.betalingIkkeFullfort, 'tenker', const [], vent: 0);
-    }
   }
 
   /// The «Bestilt» card from the order summary (`hbFullfor`'s tail).
@@ -667,7 +523,6 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     AeHaptikk.tung();
     setState(() {
       _fase = 'bestilt';
-      _teller = 0;
       _utkast = null;
       _forrigeU = null;
       _tenker = false;
@@ -678,34 +533,40 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     HurtigKilde.load(refresh: true);
   }
 
-  /// `hbTilKurv`: the draft into the basket, then the Kurv tab.
-  Future<void> _tilKurv() async {
+  /// `hbTilKasse` (Design 21 Nov, D1/D2): the draft's lines into the real basket (merged by the server, one shop
+  /// at a time), the draft's time handed to the Kurv as its preselected slot, Ægil's «Lagt i kassen …» line with
+  /// «Til kassen», the toast, and the Kurv tab. Nothing is ordered here.
+  Future<void> _tilKassen() async {
     final U = _utkast;
-    if (U == null || _plasserer) return;
-    _hbC?.cancel();
-    AeHaptikk.tikk();
+    if (U == null || U.linjer.isEmpty || _plasserer) return;
+    AeHaptikk.fast();
     setState(() => _plasserer = true);
     final ok = await _fyllKurven(U);
     if (!mounted) return;
     setState(() => _plasserer = false);
-    if (!ok) return showBergenToast(context, BergenRoutes.ikkeIKurven);
+    if (!ok) {
+      AeHaptikk.feil();
+      return showBergenToast(context, BergenRoutes.ikkeIKurven);
+    }
+    final n = U.linjer.fold<int>(0, (a, l) => a + l.ant);
+    KurvScreen.hurtigTid = HurtigHjerne.klokkeslett(U.tid);
+    final m = _Melding(
+      meg: false,
+      tekst: HurtigCopy.lagtIKassen(_h.tekst(U.linjer, HurtigCopy.og).toLowerCase(), U.butikk),
+      humor: 'glad',
+      knapper: [HbKnapp(HurtigCopy.tilKassen, 'kasse', primar: true)],
+    );
     setState(() {
       _utkast = null;
+      _forrigeU = null;
       _fase = 'utkast';
-      _teller = 0;
+      _tenker = false;
+      _hb.add(m);
     });
-    showBergenToast(context, HurtigCopy.utkastetIKurven);
-    Navigator.of(context).pop(HurtigScreen.tilKurv);
-  }
-
-  /// `hbUTidBytt`: Snarest → the next half hours → Snarest.
-  void _tidBytt() {
-    final X = _utkast;
-    if (X == null) return;
-    final T = _h.tider();
-    final i = T.indexOf(X.tid);
-    AeHaptikk.tikk();
-    setState(() => _utkast = X.kopi(tid: T[(i + 1) % T.length]));
+    _rullNed(tilMelding: m.id);
+    showBergenToast(context, HurtigCopy.liggerIKassen(n, U.butikk));
+    await Future.delayed(const Duration(milliseconds: 900));
+    if (mounted) Navigator.of(context).pop(HurtigScreen.tilKurv);
   }
 
   void _folg(_Ordre o) {
@@ -1299,8 +1160,8 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
     final U = _utkast!;
     final bt = _h.b(U.butikkId, U.butikk);
     final s = _h.sum(U);
-    final teller = _fase == 'teller';
     final forslag = _h.forslagFor(U, _st);
+    final tid = HurtigHjerne.klokkeslett(U.tid);
     return VcKort(
       key: ValueKey('utkast-${U.butikkId}'),
       child: HbUtkastKort(
@@ -1312,23 +1173,27 @@ class HurtigScreenState extends State<HurtigScreen> with WidgetsBindingObserver 
         linjer: [
           for (final l in U.linjer)
             if (_h.vare(l.id) case final v?)
-              HbUtkastLinjeVis(navn: v.navn, enhet: HurtigCopy.kr(v.pris), ant: l.ant, sum: HurtigCopy.kr(v.pris * l.ant), onMinus: () => _endre(l.id, -1), onPluss: () => _endre(l.id, 1)),
+              HbUtkastLinjeVis(
+                id: l.id,
+                navn: v.navn,
+                bilde: v.bilde,
+                enhet: KasseCopy.tall(v.pris),
+                ant: l.ant,
+                sum: KasseCopy.tall(v.pris * l.ant),
+                ut: _ut.contains(l.id),
+                onMinus: () => _endre(l.id, -1),
+                onPluss: () => _endre(l.id, 1),
+              ),
         ],
         forslag: [for (final v in forslag) HbForslagVis(navn: v.navn, pris: HurtigCopy.kr(v.pris), onTap: () => _endre(v.id, 1))],
-        varer: HurtigCopy.kr(s.varer),
+        varer: s.varer,
         levGratis: s.lev == 0,
-        lev: HurtigCopy.kr(s.lev),
         levPst: bt.gratisOver > 0 ? math.min(1, s.varer / bt.gratisOver) : 1,
-        levTekst: s.lev == 0 ? HurtigCopy.gratisLaastOpp : HurtigCopy.tilGratis(HurtigCopy.kr(bt.gratisOver - s.varer)),
-        total: HurtigCopy.kr(s.total),
-        adresse: _d?.adresse ?? '',
-        tid: U.tid.isEmpty ? HurtigCopy.snarest : U.tid,
-        teller: teller,
-        tellerSek: _teller,
-        cta: teller ? HurtigCopy.angreOm(_teller) : HurtigCopy.bestillNaa(HurtigCopy.kr(s.total)),
-        onCta: () => teller ? _angre() : _bestill(),
-        onTidBytt: _tidBytt,
-        onTilKurv: _tilKurv,
+        levTekst: s.lev == 0 ? HurtigCopy.gratisLevering : HurtigCopy.tilGratisLevering(HurtigCopy.kr(bt.gratisOver - s.varer)),
+        kasseTekst: HurtigCopy.kasseTekst(tid),
+        cta: HurtigCopy.gaaTilKassen(HurtigCopy.kr(s.varer)),
+        onCta: _plasserer ? null : _tilKassen,
+        signatur: '${U.butikkId}|${U.linjer.map((l) => l.id).join(',')}',
       ),
     );
   }
