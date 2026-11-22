@@ -175,6 +175,9 @@ abstract final class LopetCopy {
   static String get pyntStandard => languages.lop_pynt_standard;
   static String pyntTa(String merke) => languages.lop_pynt_ta(merke);
 
+  /// Design 21 Nov plan Step 9: the quality levels as the design names them (the API keeps high / medium / low).
+  static String kvalitet(String key) => switch (key) { 'high' => languages.lop_kval_high, 'medium' => languages.lop_kval_medium, _ => languages.lop_kval_low };
+
   // Design 21 Nov plan Step 8: the pause by cause, the end card.
   static (String, String) pauseTekst(String? grunn) => switch (grunn) {
         'bakgrunn' => (languages.lop_p_bruker, languages.lop_p_bakgrunn_under),

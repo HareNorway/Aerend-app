@@ -15608,6 +15608,24 @@ abstract class AppLocalizations {
   /// **'Decorate'**
   String get lop_kai_pynt;
 
+  /// No description provided for @lop_kval_high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get lop_kval_high;
+
+  /// No description provided for @lop_kval_medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get lop_kval_medium;
+
+  /// No description provided for @lop_kval_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get lop_kval_low;
+
   /// No description provided for @lop_kai_uke.
   ///
   /// In en, this message translates to:

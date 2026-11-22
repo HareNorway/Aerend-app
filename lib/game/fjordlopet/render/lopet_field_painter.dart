@@ -301,8 +301,10 @@ class LopetFieldPainter extends CustomPainter {
     for (var t = -1; t < tiles; t++) {
       final y = t * tileH + bankOff - tileH / 2 + tileH;
       final idx = firstTile - t;
-      _addBg(LopetSprite.bankQuay, bankW * .5, y, bankScale);
-      _addBgFlipped(LopetSprite.bankQuay, w - bankW * .5, y, bankScale);
+      // Design 21 Nov plan Step 9: the banks vary as the design's — mostly stone quay, stretches of svaberg, now and
+      // then a row of naust — each side on its own rhythm, fixed to the course position (not random per frame).
+      _addBg(_bankFor(idx), bankW * .5, y, bankScale);
+      _addBgFlipped(_bankFor(idx + 6), w - bankW * .5, y, bankScale);
       if (idx % 5 == 0) _addBg(LopetSprite.bankPier, bankW * 1.05, y, bankScale * .9);
       if (idx % 7 == 3) {
         final mx = w - bankW * 1.15;
@@ -527,6 +529,14 @@ class LopetFieldPainter extends CustomPainter {
   }
 
   // The right bank's quay: the same tile turned half a circle (its land side outwards).
+  /// The bank sprite for a tile index: svaberg for three tiles in thirteen, a naust row one in eleven, else quay.
+  static LopetSprite _bankFor(int idx) {
+    final i = idx.abs();
+    if (i % 13 >= 5 && i % 13 <= 7) return LopetSprite.bankSvaberg;
+    if (i % 11 == 2) return LopetSprite.bankNaust;
+    return LopetSprite.bankQuay;
+  }
+
   void _addBgFlipped(LopetSprite s, double x, double y, double scale) {
     if (_bn >= cap) return;
     _bsp[_bn] = -1 - s.index; // negative = turned

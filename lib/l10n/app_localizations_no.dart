@@ -8829,6 +8829,15 @@ class AppLocalizationsNo extends AppLocalizations {
   String get lop_kai_pynt => 'Pynt';
 
   @override
+  String get lop_kval_high => 'Høy';
+
+  @override
+  String get lop_kval_medium => 'Middels';
+
+  @override
+  String get lop_kval_low => 'Lav';
+
+  @override
   String lop_kai_uke(Object p0) {
     return 'Uke $p0 · samme løp for alle til søndag';
   }

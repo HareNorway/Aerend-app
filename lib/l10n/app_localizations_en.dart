@@ -8816,6 +8816,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lop_kai_pynt => 'Decorate';
 
   @override
+  String get lop_kval_high => 'High';
+
+  @override
+  String get lop_kval_medium => 'Medium';
+
+  @override
+  String get lop_kval_low => 'Low';
+
+  @override
   String lop_kai_uke(Object p0) {
     return 'Week $p0 · the same course for everyone until Sunday';
   }

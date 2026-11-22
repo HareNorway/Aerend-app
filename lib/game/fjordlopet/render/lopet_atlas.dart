@@ -73,6 +73,10 @@ enum LopetSprite {
   cloud,
   bowWave,
   lantern,
+  // Design 21 Nov plan Step 9: the design's five bank types — the stone quay, the pier on piles, the moored boat,
+  // and these two: a row of naust with their slipway, and smooth svaberg rock.
+  bankNaust,
+  bankSvaberg,
 }
 
 class LopetAtlas {
@@ -174,6 +178,8 @@ class LopetAtlas {
     LopetSprite.cloud: (1.6, 1),
     LopetSprite.bowWave: (.5, .3),
     LopetSprite.lantern: (.08, .08),
+    LopetSprite.bankNaust: (.3, 1),
+    LopetSprite.bankSvaberg: (.3, 1),
   };
 
   /// The objects that stand out of the water (they get a shadow, foam and bobbing; T34 checks their contrast).
@@ -367,6 +373,10 @@ class _Figur {
         _quay();
       case LopetSprite.bankPier:
         _pier();
+      case LopetSprite.bankNaust:
+        _naustRad();
+      case LopetSprite.bankSvaberg:
+        _svaberg();
       case LopetSprite.moored:
         _hull(_HullColours.snekke, 1, w / 2, h / 2, h / 5.2);
       case LopetSprite.lmNaust:
@@ -712,6 +722,57 @@ class _Figur {
     }
     c.drawRect(Rect.fromLTWH(0, h * .7, w * .9, h * .14),
         _p..shader = ui.Gradient.linear(Offset(0, h * .7), Offset(0, h * .84), const [Color(0x5904121A), Color(0x0004121A)]));
+  }
+
+  /// A bank strip with two naust seen from above-front: red gables towards the water, dark roofs, a wooden slipway
+  /// into the water and its shadow (land is the left of the cell).
+  void _naustRad() {
+    c.drawRect(Rect.fromLTWH(0, 0, w * .7, h), _p..color = const Color(0xFF55604A)); // grass behind
+    for (var i = 0; i < 2; i++) {
+      final top = h * (.08 + i * .5);
+      final roof = Rect.fromLTWH(w * .04, top, w * .58, h * .3);
+      c.drawRect(roof, _p..color = const Color(0xFF3A2E26));
+      c.drawLine(Offset(roof.left, roof.center.dy), Offset(roof.right, roof.center.dy), _stroke(const Color(0xFF241C17), w * .02));
+      final gable = Rect.fromLTWH(roof.right - w * .02, top + h * .03, w * .1, h * .24);
+      c.drawRect(gable, _p..color = const Color(0xFFB7412A));
+      c.drawRect(Rect.fromLTWH(gable.left + w * .02, gable.top + h * .07, w * .06, h * .12), _p..color = _ink); // the boat door
+      // The slipway and its shadow on the water.
+      c.drawRect(Rect.fromLTWH(gable.right, top + h * .1, w * .2, h * .08), _p..color = const Color(0xFF8E6A46));
+      c.drawRect(Rect.fromLTWH(gable.right, top + h * .18, w * .2, h * .04), _p..color = const Color(0x5904121A));
+    }
+    c.drawRect(Rect.fromLTWH(w * .7, 0, w * .3, h),
+        _p..shader = ui.Gradient.linear(Offset(w * .7, 0), Offset(w, 0), const [Color(0x5904121A), Color(0x0004121A)]));
+    c.drawLine(Offset(w * .72, 0), Offset(w * .72, h), _stroke(const Color(0x73FFFFFF), w * .03));
+  }
+
+  /// Smooth svaberg: rounded grey slabs going down to the water, a few cracks and lichen, the foam where the rock
+  /// meets the sea.
+  void _svaberg() {
+    final rock = Path()..moveTo(0, 0)..lineTo(w * .55, 0);
+    for (var i = 0; i <= 8; i++) {
+      final y = h * i / 8;
+      rock.quadraticBezierTo(w * (.78 + (i.isEven ? .06 : -.02)), y - h / 16, w * (.7 + (i % 3) * .04), y);
+    }
+    rock..lineTo(0, h)..close();
+    c.drawPath(rock, _p..shader = ui.Gradient.linear(Offset.zero, Offset(w, 0), [look.stone, look.stoneDark]));
+    final crack = _stroke(const Color(0x33000000), w * .015);
+    for (var i = 0; i < 5; i++) {
+      final y = h * (.12 + i * .19);
+      c.drawPath(Path()..moveTo(w * .1, y)..quadraticBezierTo(w * .35, y + h * .03, w * .6, y - h * .01), crack);
+    }
+    for (var i = 0; i < 4; i++) {
+      c.drawOval(Rect.fromLTWH(w * (.12 + (i % 2) * .22), h * (.2 + i * .2), w * .12, h * .04), _p..color = const Color(0x55B5A44A)); // lichen
+    }
+    final edge = Path();
+    for (var i = 0; i <= 8; i++) {
+      final y = h * i / 8, x = w * (.7 + (i % 3) * .04);
+      if (i == 0) {
+        edge.moveTo(x, y);
+      } else {
+        edge.quadraticBezierTo(w * (.78 + (i.isEven ? .06 : -.02)), y - h / 16, x, y);
+      }
+    }
+    c.drawPath(edge, _stroke(const Color(0x8CFFFFFF), w * .03));
   }
 
   // ── landmarks, seen slightly from the front: a footprint on the water, the body above it ──

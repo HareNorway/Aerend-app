@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 
@@ -50,7 +51,8 @@ class LopetScreen extends StatefulWidget {
 
   /// Fjordløpet v1.3 plan Step 9 (spec §12.2): from «Sett seil» the picture moves into play in at most 0.6 s — when
   /// Home's scene is there to move (widget tests start at once unless a test sets [overgangTest]).
-  static Duration get overgang => overgangTest ?? (hjemScene ? const Duration(milliseconds: 450) : Duration.zero);
+  // Design 21 Nov plan Step 9: the design's Bølge — 0.6 s with a wave front sweeping up from the bottom.
+  static Duration get overgang => overgangTest ?? (hjemScene ? const Duration(milliseconds: 600) : Duration.zero);
   static Duration? overgangTest;
 
   /// The start screen sits on Home's Bryggen and Vågen scene (the same widget). Off in widget tests (FLUTTER_TEST):
@@ -351,8 +353,12 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
     _q?.frame(_perf.recentAvgMs(120));
     _milepaeler(loop);
     if (_perfOverlay && ++_rammer % 30 == 0) {
+      // Design 21 Nov plan Step 9 (design `ytelseVis`): fps, average, worst, frames over 20 ms, the level by its name
+      // and the water's resolution.
+      final lvl = _q?.level;
       _perfTekst.value = '${(1000 / (_perf.recentAvgMs(30).clamp(1, 1000))).round()} fps · snitt ${_perf.avgMs.toStringAsFixed(1)} ms · '
-          'verst ${_perf.worstMs.toStringAsFixed(1)} ms · >20 ms ${_perf.over20} · ${_q?.level.key ?? 'low'}';
+          'verst ${_perf.worstMs.toStringAsFixed(1)} ms · >20 ms ${_perf.over20} · ${LopetCopy.kvalitet(lvl?.key ?? 'low')}'
+          '${lvl == null || lvl.waterScale == 0 ? '' : ' · vann ${(lvl.waterScale * 100).round()} %'}';
     }
     if (loop.done) {
       // The picture freezes, then the end of the run — within 0.9 s of the collision (spec §4.6, §12.1).
@@ -802,7 +808,7 @@ class _LopetScreenState extends State<LopetScreen> with SingleTickerProviderStat
         tween: Tween<double>(begin: 0, end: _overgang ? 1 : 0),
         duration: LopetScreen.overgang,
         curve: Curves.easeInCubic,
-        builder: (_, v, child) => FractionalTranslation(translation: Offset(0, -v), child: child),
+        builder: (_, v, child) => v == 0 ? child! : ClipPath(clipper: _Bolge(v), child: FractionalTranslation(translation: Offset(0, -v * .35), child: child)),
         child: Stack(
           children: [
             Positioned(left: 0, right: 0, top: 0, height: kaiH, child: IgnorePointer(child: RepaintBoundary(child: _kaiScene(look, kaiH)))),
@@ -1506,4 +1512,27 @@ class _Melding extends StatelessWidget {
           ),
         ],
       );
+}
+
+/// Design 21 Nov plan Step 9: the Bølge front — the quay is cut along a sine wave that rises from the bottom over
+/// the transition, the water (play) showing below it.
+class _Bolge extends CustomClipper<Path> {
+  _Bolge(this.v);
+  final double v;
+
+  @override
+  Path getClip(Size size) {
+    final y0 = size.height * (1 - v);
+    final amp = 14 * (1 - (v - .5).abs() * 2).clamp(0.0, 1.0) + 4;
+    final p = Path()..moveTo(0, 0)..lineTo(size.width, 0)..lineTo(size.width, y0);
+    const steps = 24;
+    for (var i = steps; i >= 0; i--) {
+      final x = size.width * i / steps;
+      p.lineTo(x, y0 + amp * math.sin(i / steps * 2 * math.pi * 1.5 + v * 6));
+    }
+    return p..close();
+  }
+
+  @override
+  bool shouldReclip(_Bolge old) => old.v != v;
 }
